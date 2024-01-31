@@ -308,14 +308,17 @@ std::vector<Node> MinisatSatSolver::getOrderHeap() const
   return d_minisat->getMiniSatOrderHeap();
 }
 
-std::shared_ptr<ProofNode> MinisatSatSolver::getProof(
-    const std::vector<Node>& clauses)
+std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
 {
   Assert(d_env.isSatProofProducing());
   return d_minisat->getProof();
 }
 
-bool MinisatSatSolver::needsMinimizeClausesForGetProof() const { return false; }
+std::pair<ProofRule, std::vector<Node>> MinisatSatSolver::getProofSketch()
+{
+  Unimplemented() << "getProofSketch for Minisat not supported";
+  return std::pair<ProofRule, std::vector<Node>>();
+}
 
 /** Incremental interface */
 

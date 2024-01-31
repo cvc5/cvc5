@@ -961,7 +961,7 @@ CadicalSolver::CadicalSolver(Env& env,
       d_inSatMode(false),
       d_statistics(registry, name)
 {
-  if (env.isSatProofProducing() && !options().proof.satExternalProve)
+  if (env.isSatProofProducing() && options().proof.propProofMode==options::PropProofMode::SKETCH)
   {
     std::stringstream ssp;
     ssp << options().driver.filename << ".drat_proof.txt";
@@ -1250,34 +1250,22 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
 
 std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
-std::shared_ptr<ProofNode> CadicalSolver::getProof(
-    const std::vector<Node>& clauses)
+std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
-  Assert(d_env.isSatProofProducing());
-  std::vector<Node> args;
-  NodeManager* nm = NodeManager::currentNM();
-  std::stringstream dinputFile;
-  dinputFile << options().driver.filename << ".drat_input.cnf";
-  // d_solver->write_dimacs(dimacs.c_str());
-  Node dfile = nm->mkConst(String(dinputFile.str()));
-  args.push_back(dfile);
-  Node falsen = NodeManager::currentNM()->mkConst(false);
-  CDProof cdp(d_env);
-  if (options().proof.satExternalProve)
-  {
-    cdp.addStep(falsen, ProofRule::SAT_EXTERNAL_PROVE, clauses, args);
-  }
-  else
-  {
-    d_solver->flush_proof_trace();
-    Node pfile = nm->mkConst(String(d_pfFile));
-    args.push_back(pfile);
-    cdp.addStep(falsen, ProofRule::DRAT_REFUTATION, clauses, args);
-  }
-  return cdp.getProofFor(falsen);
+  Unimplemented() << "getProof for CaDiCaL not supported";
+  return nullptr;
 }
 
-bool CadicalSolver::needsMinimizeClausesForGetProof() const { return true; }
+std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
+{
+  Assert(d_env.isSatProofProducing());
+  d_solver->flush_proof_trace();
+  std::vector<Node> args;
+  NodeManager* nm = NodeManager::currentNM();
+  Node pfile = nm->mkConst(String(d_pfFile));
+  args.push_back(pfile);
+  return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION, args);
+}
 
 /* -------------------------------------------------------------------------- */
 }  // namespace prop

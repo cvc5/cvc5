@@ -197,17 +197,27 @@ name   = "Proof"
   help       = "Print the DRAT proof in binary format"
 
 [[option]]
-  name       = "satExternalProve"
-  category   = "expert"
-  long       = "sat-external-prove"
-  type       = "bool"
-  default    = "true"
-  help       = "Reprove the DIMACS generated from SMT externally"
-
-[[option]]
   name       = "satProofMinDimacs"
   category   = "expert"
   long       = "sat-proof-min-dimacs"
   type       = "bool"
   default    = "true"
   help       = "Minimize the DIMACs emitted as the preamble"
+
+[[option]]
+  name       = "propProofMode"
+  category   = "regular"
+  long       = "prop-proof-mode=MODE"
+  type       = "PropProofMode"
+  default    = "PROOF"
+  help       = "modes for proof granularity"
+  help_mode  = "Modes for proof granularity."
+[[option.mode.PROOF]]
+  name = "proof"
+  help = "A proof computed by the SAT solver."
+[[option.mode.SAT_EXTERNAL_PROVE]]
+  name = "sat-external-prove"
+  help = "A proof containing a step that will be proven externally."
+[[option.mode.SKETCH]]
+  name = "sketch"
+  help = "A sketch given by the SAT solver."

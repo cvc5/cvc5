@@ -170,13 +170,21 @@ class CDCLTSatSolver : public SatSolver
    */
   virtual std::vector<Node> getOrderHeap() const = 0;
 
-  virtual std::shared_ptr<ProofNode> getProof(
-      const std::vector<Node>& clauses) = 0;
-
-  /** Is `true` if the set of clauses handed to `getProof` must be
-   * minimized to the unsat core.
+  /**
+   * Get proof, which is used if prop-proof-mode is PROOF.
+   * Returns a complete proof computed by this SAT solver.
    */
-  virtual bool needsMinimizeClausesForGetProof() const = 0;
+  virtual std::shared_ptr<ProofNode> getProof() = 0;
+  
+  /**
+   * Get proof, which is used if prop-proof-mode is SKETCH.
+   * Returns a rule r and additional arugments args such that the final proof
+   * will be:
+   *   (r :premises (c1..cn) :args (F args))
+   * where F is a string corresponding to the file name of a DIMACs file
+   * for an unsat core of derived clauses (input or theory lemma) c1...cn.
+   */
+  virtual std::pair<ProofRule, std::vector<Node>> getProofSketch() = 0;
 
 }; /* class CDCLTSatSolver */
 

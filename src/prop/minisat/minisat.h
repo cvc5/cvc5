@@ -105,10 +105,10 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   Minisat::SimpSolver* getSolver() { return d_minisat; }
 
   /** Retrieve the refutation proof of this SAT solver. */
-  std::shared_ptr<ProofNode> getProof(
-      const std::vector<Node>& clauses) override;
+  std::shared_ptr<ProofNode> getProof() override;
 
-  bool needsMinimizeClausesForGetProof() const override;
+  /** Get proof sketch, not used */
+  std::pair<ProofRule, std::vector<Node>> getProofSketch() override;
 
  private:
 
