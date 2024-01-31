@@ -1,8 +1,8 @@
 (include "../programs/Utils.smt3")
 
-(declare-const forall (-> @List Bool Bool))
+(declare-const forall (-> Bool Bool) :binder @list)
 
-(declare-const exists (-> @List Bool Bool))
+(declare-const exists (-> Bool Bool) :binder @list)
 
 (declare-const witness (-> (! Type :var T :implicit) T Bool T))
 
