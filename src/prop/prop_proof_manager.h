@@ -173,6 +173,10 @@ class PropPfManager : protected EnvObj
   /** Retrieve the clauses derived from lemmas */
   std::vector<Node> getLemmaClauses();
   /**
+   * Return a subset of input clauses + lemma clauses that is unsat.
+   * If minimal is true, we spawn a copy of CaDiCaL to (re)minimize this set.
+   * If outDimacs is non-null, we output to it a DIMACS representation of the
+   * returned set of clauses.
    */
   std::vector<Node> getUnsatCoreClauses(bool minimal,
                                         std::ostream* outDimacs = nullptr);
