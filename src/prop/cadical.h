@@ -141,7 +141,6 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    */
   std::vector<SatLiteral> d_assumptions;
 
-
   unsigned d_nextVarIdx;
   /** Whether we are logging proofs */
   bool d_logProofs;
