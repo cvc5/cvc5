@@ -113,7 +113,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   bool satProofs = d_env.isSatProofProducing();
   if (satProofs)
   {
-    d_ppm.reset(new PropPfManager(env, d_satSolver, *d_cnfStream));
+    d_ppm.reset(new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
   }
   // connect SAT solver
   d_satSolver->initialize(
@@ -700,7 +700,7 @@ void PropEngine::checkProof(const context::CDList<Node>& assertions)
   {
     return;
   }
-  return d_ppm->checkProof(d_assumptions, assertions);
+  return d_ppm->checkProof(assertions);
 }
 
 std::shared_ptr<ProofNode> PropEngine::getProof(bool connectCnf)
@@ -712,13 +712,13 @@ std::shared_ptr<ProofNode> PropEngine::getProof(bool connectCnf)
   Trace("sat-proof") << "PropEngine::getProof: getting proof with cnfStream's "
                         "lazycdproof cxt lvl "
                      << userContext()->getLevel() << "\n";
-  return d_ppm->getProof(d_assumptions, connectCnf);
+  return d_ppm->getProof(connectCnf);
 }
 
 std::vector<std::shared_ptr<ProofNode>> PropEngine::getProofLeaves(
     modes::ProofComponent pc)
 {
-  return d_ppm->getProofLeaves(d_assumptions, pc);
+  return d_ppm->getProofLeaves(pc);
 }
 
 bool PropEngine::isProofEnabled() const { return d_ppm != nullptr; }
@@ -750,7 +750,7 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
 std::vector<Node> PropEngine::getUnsatCoreLemmas()
 {
   Assert(d_env.isSatProofProducing());
-  return d_ppm->getUnsatCoreLemmas(d_assumptions);
+  return d_ppm->getUnsatCoreLemmas();
 }
 
 std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(

@@ -33,7 +33,7 @@ namespace prop {
 
 PropPfManager::PropPfManager(Env& env,
                              CDCLTSatSolver* satSolver,
-                             CnfStream& cnf)
+                             CnfStream& cnf, const context::CDList<Node>& assumptions)
     : EnvObj(env),
       d_propProofs(userContext()),
       // Since the ProofCnfStream performs no equality reasoning, there is no
@@ -58,6 +58,7 @@ PropPfManager::PropPfManager(Env& env,
       d_satSolver(satSolver),
       d_assertions(userContext()),
       d_cnfStream(cnf),
+      d_assumptions(assumptions),
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
       d_satPm(nullptr)
@@ -89,12 +90,11 @@ void PropPfManager::registerAssertion(Node assertion)
   d_assertions.push_back(assertion);
 }
 
-void PropPfManager::checkProof(const context::CDList<Node>& assumptions,
-                               const context::CDList<Node>& assertions)
+void PropPfManager::checkProof(const context::CDList<Node>& assertions)
 {
   Trace("sat-proof") << "PropPfManager::checkProof: Checking if resolution "
                         "proof of false is closed\n";
-  std::shared_ptr<ProofNode> conflictProof = getProof(assumptions, false);
+  std::shared_ptr<ProofNode> conflictProof = getProof(false);
   Assert(conflictProof);
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
@@ -111,12 +111,11 @@ void PropPfManager::checkProof(const context::CDList<Node>& assumptions,
                      "PropPfManager::checkProof");
 }
 
-std::vector<Node> PropPfManager::getUnsatCoreLemmas(
-    const context::CDList<Node>& assumptions)
+std::vector<Node> PropPfManager::getUnsatCoreLemmas()
 {
   std::vector<Node> usedLemmas;
   std::vector<Node> allLemmas = getLemmaClauses();
-  std::shared_ptr<ProofNode> satPf = getProof(assumptions, false);
+  std::shared_ptr<ProofNode> satPf = getProof(false);
   std::vector<Node> satLeaves;
   expr::getFreeAssumptions(satPf.get(), satLeaves);
   for (const Node& lemma : allLemmas)
@@ -130,7 +129,7 @@ std::vector<Node> PropPfManager::getUnsatCoreLemmas(
 }
 
 std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
-    const context::CDList<Node>& assumptions, modes::ProofComponent pc)
+    modes::ProofComponent pc)
 {
   Trace("sat-proof") << "PropPfManager::getProofLeaves: Getting " << pc
                      << " component proofs\n";
@@ -140,7 +139,7 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   std::vector<std::shared_ptr<ProofNode>> pfs =
       pc == modes::ProofComponent::THEORY_LEMMAS ? getLemmaClausesProofs()
                                                  : getInputClausesProofs();
-  std::shared_ptr<ProofNode> satPf = getProof(assumptions, false);
+  std::shared_ptr<ProofNode> satPf = getProof(false);
   std::vector<Node> satLeaves;
   expr::getFreeAssumptions(satPf.get(), satLeaves);
   std::vector<std::shared_ptr<ProofNode>> usedPfs;
@@ -155,8 +154,7 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   return usedPfs;
 }
 
-std::shared_ptr<ProofNode> PropPfManager::getProof(
-    const context::CDList<Node>& assumptions, bool connectCnf)
+std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
 {
   auto it = d_propProofs.find(connectCnf);
   if (it != d_propProofs.end())
@@ -177,12 +175,11 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(
   else
   {
     // otherwise, we compute the unsat core clauses
-    std::vector<Node> clauses;
     // the stream which stores the DIMACS of the computed clauses
     std::stringstream dumpDimacs;
     bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE
                     && options().proof.satProofMinDimacs);
-    getUnsatCoreClauses(assumptions, clauses, minimal, &dumpDimacs);
+    std::vector<Node> clauses = getUnsatCoreClauses(minimal, &dumpDimacs);
     NodeManager* nm = NodeManager::currentNM();
     Node falsen = nm->mkConst(false);
     if (clauses.size() == 1 && clauses[0] == falsen)
@@ -338,13 +335,12 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 
-void PropPfManager::getUnsatCoreClauses(
-    const context::CDList<Node>& assumptions,
-    std::vector<Node>& clauses,
+std::vector<Node> PropPfManager::getUnsatCoreClauses(
     bool minimal,
     std::ostream* outDimacs)
 {
-  std::unordered_set<Node> cset(assumptions.begin(), assumptions.end());
+  std::vector<Node> clauses;
+  std::unordered_set<Node> cset(d_assumptions.begin(), d_assumptions.end());
   Trace("cnf-input") << "#assumptions=" << cset.size() << std::endl;
   std::vector<Node> minAssumptions;
   std::vector<SatLiteral> unsatAssumptions;
@@ -363,7 +359,7 @@ void PropPfManager::getUnsatCoreClauses(
         Trace("cnf-input") << "...found false assumption" << std::endl;
         // if false exists, take it only
         clauses.push_back(nc);
-        return;
+        return clauses;
       }
     }
     else if (d_pfCnfStream.hasLiteral(nc))
@@ -496,6 +492,7 @@ void PropPfManager::getUnsatCoreClauses(
   {
     clauses.insert(clauses.end(), cset.begin(), cset.end());
   }
+  return clauses;
 }
 
 std::vector<Node> PropPfManager::getInputClauses()
