@@ -159,6 +159,13 @@ class CnfStream : protected EnvObj
   /** Retrieves map from literals to nodes. */
   const CnfStream::LiteralToNodeMap& getNodeCache() const;
 
+  /**
+   * Dump dimacs of the given clauses to the given output stream.
+   * We use the identifiers for literals computed by this class. All literals
+   * in clauses should be assigned by this class already.
+   */
+  void dumpDimacs(std::ostream& out, const std::vector<Node>& clauses);
+
  protected:
   /**
    * Same as above, except that uses the saved d_removable flag. It calls the

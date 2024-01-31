@@ -778,5 +778,35 @@ CnfStream::Statistics::Statistics(StatisticsRegistry& sr,
 {
 }
 
+void CnfStream::dumpDimacs(std::ostream& out, const std::vector<Node>& clauses)
+{
+  std::stringstream dclauses;
+  SatVariable maxVar = 0;
+  // get the unsat core from cadical
+  for (const Node& i : clauses)
+  {
+    std::vector<Node> lits;
+    if (i.getKind() == Kind::OR)
+    {
+      lits.insert(lits.end(), i.begin(), i.end());
+    }
+    else
+    {
+      lits.push_back(i);
+    }
+    Trace("dimacs-debug") << "Print " << i << std::endl;
+    for (const Node& l : lits)
+    {
+      SatLiteral lit = getLiteral(l);
+      SatVariable v = lit.getSatVariable();
+      maxVar = v > maxVar ? v : maxVar;
+      dclauses << (lit.isNegated() ? "-" : "") << v << " ";
+    }
+    dclauses << "0" << std::endl;
+  }
+  out << "p cnf " << maxVar << " " << clauses.size() << std::endl;
+  out << dclauses.str();
+}
+
 }  // namespace prop
 }  // namespace cvc5::internal

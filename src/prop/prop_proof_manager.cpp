@@ -15,6 +15,8 @@
 
 #include "prop/prop_proof_manager.h"
 
+#include "expr/skolem_manager.h"
+#include "options/main_options.h"
 #include "proof/proof_ensure_closed.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/theory_proof_step_buffer.h"
@@ -22,14 +24,17 @@
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_proof_manager.h"
 #include "prop/sat_solver.h"
+#include "prop/sat_solver_factory.h"
 #include "smt/env.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 namespace prop {
 
 PropPfManager::PropPfManager(Env& env,
                              CDCLTSatSolver* satSolver,
-                             CnfStream& cnf)
+                             CnfStream& cnf,
+                             const context::CDList<Node>& assumptions)
     : EnvObj(env),
       d_propProofs(userContext()),
       // Since the ProofCnfStream performs no equality reasoning, there is no
@@ -54,6 +59,7 @@ PropPfManager::PropPfManager(Env& env,
       d_satSolver(satSolver),
       d_assertions(userContext()),
       d_cnfStream(cnf),
+      d_assumptions(assumptions),
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
       d_satPm(nullptr)
@@ -157,9 +163,70 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     return it->second;
   }
   // retrieve the SAT solver's refutation proof
-  Trace("sat-proof")
-      << "PropPfManager::getProof: Getting resolution proof of false\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
+  Trace("sat-proof") << "PropPfManager::getProof: Getting proof of false\n";
+
+  // get the proof based on the proof mode
+  options::PropProofMode pmode = options().proof.propProofMode;
+  std::shared_ptr<ProofNode> conflictProof;
+  if (pmode == options::PropProofMode::PROOF)
+  {
+    // take proof from SAT solver as is
+    conflictProof = d_satSolver->getProof();
+  }
+  else
+  {
+    // otherwise, we compute the unsat core clauses
+    // the stream which stores the DIMACS of the computed clauses
+    std::stringstream dumpDimacs;
+    // minimize only if SAT_EXTERNAL_PROVE and satProofMinDimacs is true.
+    bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE
+                    && options().proof.satProofMinDimacs);
+    std::vector<Node> clauses = getUnsatCoreClauses(minimal, &dumpDimacs);
+    NodeManager* nm = NodeManager::currentNM();
+    Node falsen = nm->mkConst(false);
+    if (clauses.size() == 1 && clauses[0] == falsen)
+    {
+      // if we had a false assert, it is trivial, just use the false assumption
+      conflictProof = d_env.getProofNodeManager()->mkAssume(falsen);
+    }
+    else
+    {
+      // dump the DIMACS to a file
+      std::stringstream dinputFile;
+      dinputFile << options().driver.filename << ".drat_input.cnf";
+      std::fstream dout(dinputFile.str(), std::ios::out);
+      dout << dumpDimacs.str();
+      dout.close();
+      // construct the proof
+      CDProof cdp(d_env);
+      std::vector<Node> args;
+      Node dfile = nm->mkConst(String(dinputFile.str()));
+      args.push_back(dfile);
+      ProofRule r = ProofRule::UNKNOWN;
+      if (pmode == options::PropProofMode::SKETCH)
+      {
+        // if sketch, get the rule and arguments from the SAT solver.
+        std::pair<ProofRule, std::vector<Node>> sk =
+            d_satSolver->getProofSketch();
+        r = sk.first;
+        args.insert(args.end(), sk.second.begin(), sk.second.end());
+      }
+      else if (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE)
+      {
+        // if SAT_EXTERNAL_PROVE, the rule is fixed and there are no additional
+        // arguments.
+        r = ProofRule::SAT_EXTERNAL_PROVE;
+      }
+      else
+      {
+        Assert(false) << "Unknown proof mode " << pmode;
+      }
+      // use the rule, clauses and arguments we computed above
+      cdp.addStep(falsen, r, clauses, args);
+      conflictProof = cdp.getProofFor(falsen);
+    }
+  }
+
   Assert(conflictProof);
   if (TraceIsOn("sat-proof"))
   {
@@ -188,9 +255,9 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     if (d_propProofs.find(true) != d_propProofs.end())
     {
       CDProof cdp(d_env);
-      // get the clauses added to the SAT solver and add them as assumptions
       std::vector<Node> inputs = getInputClauses();
       std::vector<Node> lemmas = getLemmaClauses();
+      // get the clauses added to the SAT solver and add them as assumptions
       std::vector<Node> allAssumptions{inputs.begin(), inputs.end()};
       allAssumptions.insert(allAssumptions.end(), lemmas.begin(), lemmas.end());
       for (const Node& a : allAssumptions)
@@ -269,6 +336,165 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
 }
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
+
+std::vector<Node> PropPfManager::getUnsatCoreClauses(bool minimal,
+                                                     std::ostream* outDimacs)
+{
+  std::vector<Node> clauses;
+  // deduplicate assumptions
+  std::unordered_set<Node> cset(d_assumptions.begin(), d_assumptions.end());
+  Trace("cnf-input") << "#assumptions=" << cset.size() << std::endl;
+  std::vector<Node> minAssumptions;
+  std::vector<SatLiteral> unsatAssumptions;
+  d_satSolver->getUnsatAssumptions(unsatAssumptions);
+  for (const Node& nc : d_assumptions)
+  {
+    if (nc.isConst())
+    {
+      if (nc.getConst<bool>())
+      {
+        // never include true
+        continue;
+      }
+      else
+      {
+        Trace("cnf-input") << "...found false assumption" << std::endl;
+        // if false exists, take it only
+        clauses.push_back(nc);
+        return clauses;
+      }
+    }
+    else if (d_pfCnfStream.hasLiteral(nc))
+    {
+      SatLiteral il = d_pfCnfStream.getLiteral(nc);
+      if (std::find(unsatAssumptions.begin(), unsatAssumptions.end(), il)
+          == unsatAssumptions.end())
+      {
+        continue;
+      }
+    }
+    minAssumptions.push_back(nc);
+  }
+  cset.clear();
+  cset.insert(minAssumptions.begin(), minAssumptions.end());
+  Trace("cnf-input") << "#assumptions (min)=" << cset.size() << std::endl;
+  std::vector<Node> inputs = getInputClauses();
+  Trace("cnf-input") << "#input=" << inputs.size() << std::endl;
+  std::vector<Node> lemmas = getLemmaClauses();
+  Trace("cnf-input") << "#lemmas=" << lemmas.size() << std::endl;
+  cset.insert(inputs.begin(), inputs.end());
+  cset.insert(lemmas.begin(), lemmas.end());
+
+  // go back and minimize assumptions if minimal is true
+  if (minimal)
+  {
+    Trace("cnf-input-min") << "Make cadical..." << std::endl;
+    CDCLTSatSolver* csm = SatSolverFactory::createCadical(
+        d_env, statisticsRegistry(), d_env.getResourceManager());
+    NullRegistrar nreg;
+    context::Context nctx;
+    CnfStream csms(d_env, csm, &nreg, &nctx);
+    Trace("cnf-input-min") << "Get literals..." << std::endl;
+    std::vector<SatLiteral> csma;
+    std::map<SatLiteral, Node> litToNode;
+    std::map<SatLiteral, Node> litToNodeAbs;
+    NodeManager* nm = NodeManager::currentNM();
+    TypeNode bt = nm->booleanType();
+    TypeNode ft = nm->mkFunctionType({bt}, bt);
+    SkolemManager* skm = nm->getSkolemManager();
+    // Function used to ensure that subformulas are not treated by CNF below.
+    Node litOf = skm->mkDummySkolem("litOf", ft);
+    for (const Node& c : cset)
+    {
+      Node ca = c;
+      std::vector<SatLiteral> satClause;
+      std::vector<Node> lits;
+      if (c.getKind() == Kind::OR)
+      {
+        lits.insert(lits.end(), c.begin(), c.end());
+      }
+      else
+      {
+        lits.push_back(c);
+      }
+      // For each literal l in the current clause, if it has Boolean
+      // substructure, we replace it with (litOf l), which will be treated as a
+      // literal. We do this since we require that the clause be treated
+      // verbatim by the SAT solver, otherwise the unsat core will not include
+      // the necessary clauses (e.g. it will skip those corresponding to CNF
+      // conversion).
+      std::vector<Node> cls;
+      bool childChanged = false;
+      for (const Node& cl : lits)
+      {
+        bool negated = cl.getKind() == Kind::NOT;
+        Node cla = negated ? cl[0] : cl;
+        if (d_env.theoryOf(cla) == theory::THEORY_BOOL && !cla.isVar())
+        {
+          Node k = nm->mkNode(Kind::APPLY_UF, {litOf, cla});
+          cls.push_back(negated ? k.notNode() : k);
+          childChanged = true;
+        }
+        else
+        {
+          cls.push_back(cl);
+        }
+      }
+      if (childChanged)
+      {
+        ca = nm->mkOr(cls);
+      }
+      Trace("cnf-input-min-assert") << "Assert: " << ca << std::endl;
+      csms.ensureLiteral(ca);
+      SatLiteral lit = csms.getLiteral(ca);
+      csma.emplace_back(lit);
+      litToNode[lit] = c;
+      litToNodeAbs[lit] = ca;
+    }
+    Trace("cnf-input-min") << "Solve under " << csma.size() << " assumptions..."
+                           << std::endl;
+    SatValue res = csm->solve(csma);
+    if (res == SAT_VALUE_FALSE)
+    {
+      // we successfully reproved the input
+      Trace("cnf-input-min") << "...got unsat" << std::endl;
+      std::vector<SatLiteral> uassumptions;
+      csm->getUnsatAssumptions(uassumptions);
+      Trace("cnf-input-min")
+          << "...#unsat assumptions=" << uassumptions.size() << std::endl;
+      std::vector<Node> aclauses;
+      for (const SatLiteral& lit : uassumptions)
+      {
+        Assert(litToNode.find(lit) != litToNode.end());
+        Trace("cnf-input-min-result")
+            << "assert: " << litToNode[lit] << std::endl;
+        clauses.emplace_back(litToNode[lit]);
+        aclauses.emplace_back(litToNodeAbs[lit]);
+      }
+      if (outDimacs)
+      {
+        csms.dumpDimacs(*outDimacs, aclauses);
+      }
+    }
+    else
+    {
+      // should never happen, if it does, we revert to the entire input
+      Trace("cnf-input-min") << "...got sat" << std::endl;
+      Assert(false) << "Failed to minimize DIMACS";
+      clauses.insert(clauses.end(), cset.begin(), cset.end());
+      if (outDimacs)
+      {
+        d_pfCnfStream.dumpDimacs(*outDimacs, clauses);
+      }
+    }
+    delete csm;
+  }
+  else
+  {
+    clauses.insert(clauses.end(), cset.begin(), cset.end());
+  }
+  return clauses;
+}
 
 std::vector<Node> PropPfManager::getInputClauses()
 {
