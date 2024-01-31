@@ -92,7 +92,9 @@ class ProofCnfStream : protected EnvObj
   void getBooleanVariables(std::vector<TNode>& outputVariables) const;
 
   /**
-   * Dump dimacs of the given clauses to the given file.
+   * Dump dimacs of the given clauses to the given output stream.
+   * We use the identifiers for literals computed by this class. All literals
+   * in clauses should be assigned by this class already.
    */
   void dumpDimacs(std::ostream& out, const std::vector<Node>& clauses);
 

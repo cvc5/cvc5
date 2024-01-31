@@ -341,12 +341,13 @@ std::vector<Node> PropPfManager::getUnsatCoreClauses(bool minimal,
                                                      std::ostream* outDimacs)
 {
   std::vector<Node> clauses;
+  // deduplicate assumptions
   std::unordered_set<Node> cset(d_assumptions.begin(), d_assumptions.end());
   Trace("cnf-input") << "#assumptions=" << cset.size() << std::endl;
   std::vector<Node> minAssumptions;
   std::vector<SatLiteral> unsatAssumptions;
   d_satSolver->getUnsatAssumptions(unsatAssumptions);
-  for (const Node& nc : cset)
+  for (const Node& nc : d_assumptions)
   {
     if (nc.isConst())
     {
@@ -377,7 +378,6 @@ std::vector<Node> PropPfManager::getUnsatCoreClauses(bool minimal,
   cset.clear();
   cset.insert(minAssumptions.begin(), minAssumptions.end());
   Trace("cnf-input") << "#assumptions (min)=" << cset.size() << std::endl;
-  //
   std::vector<Node> inputs = getInputClauses();
   Trace("cnf-input") << "#input=" << inputs.size() << std::endl;
   std::vector<Node> lemmas = getLemmaClauses();
