@@ -427,7 +427,6 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   // guess the size of the preimage of e
   Node preImageSize =
       d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_SIZE, {f, A, e});
-  AlwaysAssert(preImageSize.getType() == d_nm->integerType());
 
   // (= (sum preImageSize) (bag.count e skolem))
   Node mapSkolem = registerAndAssertSkolemLemma(n);
