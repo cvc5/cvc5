@@ -504,6 +504,38 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   return std::tuple(inferInfo, uf, preImageSize);
 }
 
+InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
+{
+  Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
+  Assert(n[0].getType().isFunction()
+         && n[0].getType().getArgTypes().size() == 1);
+  Assert(y.getType() == n[0].getType().getRangeType());
+
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_DOWN_INJECTIVE);
+
+  Node f = n[0];
+  Node A = n[1];
+  // declare a fresh skolem of type T
+  TypeNode domainType = f.getType().getArgTypes()[0];
+  Node x = d_sm->mkSkolemFunctionTyped(
+      SkolemFunId::BAGS_MAP_PREIMAGE, domainType, {n, y});
+
+  Node mapSkolem = registerAndAssertSkolemLemma(n);
+  Node countY = getMultiplicityTerm(y, mapSkolem);
+  Node countX = getMultiplicityTerm(x, A);
+
+  Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
+  Node y_equals_f_x = y.eqNode(f_x);
+
+  Node count_x_equals_count_y = countX.eqNode(countY);
+  Node conclusion = y_equals_f_x.andNode(count_x_equals_count_y);
+  inferInfo.d_conclusion = conclusion;
+
+  Trace("bags::InferenceGenerator::mapDown")
+      << "conclusion: " << inferInfo.d_conclusion << std::endl;
+  return inferInfo;
+}
+
 InferInfo InferenceGenerator::mapUp1(Node n, Node x)
 {
   Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());

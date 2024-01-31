@@ -255,6 +255,22 @@ class InferenceGenerator
    * and skolem is a fresh variable equals (bag.map f A))
    */
   std::tuple<InferInfo, Node, Node> mapDown(Node n, Node e);
+
+  /**
+   * @pre option bagsInjectiveMaps is true
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param y is a node of Type T
+   * @return an inference that represents the following conjunction
+   * (and
+   *   (= (bag.count x A) (bag.count y skolem))
+   *   (= (f x) y)
+   * )
+   * where skolem is a fresh variable equals (bag.map f A))
+   * and x is a fresh variable unique per n, y.
+   */
+  InferInfo mapDownInjective(Node n, Node y);
+
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
