@@ -65,12 +65,6 @@ class ProofCnfStream : protected EnvObj
    */
   void convertAndAssert(
       TNode node, bool negated, bool removable, bool input, ProofGenerator* pg);
-  /**
-   * Get the node that is represented by the given SatLiteral.
-   * @param literal the literal from the sat solver
-   * @return the actual node
-   */
-  TNode getNode(const SatLiteral& literal);
 
   /**
    * Ensure that the given node will have a designated SAT literal that is

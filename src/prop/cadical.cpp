@@ -959,6 +959,7 @@ CadicalSolver::CadicalSolver(Env& env,
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
+      d_logProofs(logProofs),
       d_inSatMode(false),
       d_statistics(registry, name)
 {
@@ -1259,8 +1260,7 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
 
 std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
 {
-  Assert(d_env.isSatProofProducing());
-  Assert(options().proof.propProofMode == options::PropProofMode::SKETCH);
+  Assert(d_logProofs);
   d_solver->flush_proof_trace();
   std::vector<Node> args;
   NodeManager* nm = NodeManager::currentNM();

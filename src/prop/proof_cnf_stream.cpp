@@ -60,11 +60,6 @@ void ProofCnfStream::convertAndAssert(TNode node,
   d_input = false;
 }
 
-TNode ProofCnfStream::getNode(const SatLiteral& literal)
-{
-  return d_cnfStream.getNode(literal);
-}
-
 void ProofCnfStream::convertAndAssert(TNode node, bool negated)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
@@ -102,7 +97,6 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
     {
       // negate
       Node nnode = negated ? node.negate() : static_cast<Node>(node);
-      Trace("cnf-input") << "Look at " << node << std::endl;
       // Atoms
       SatLiteral lit = toCNF(node, negated);
       bool added = d_cnfStream.assertClause(nnode, lit);

@@ -90,7 +90,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   }
   else
   {
-    // log proofs if the mode is SKETCH.
+    // log DRAT proofs if the mode is SKETCH.
     bool logProofs =
         (env.isSatProofProducing()
          && options().proof.propProofMode == options::PropProofMode::SKETCH);

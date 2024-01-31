@@ -141,10 +141,13 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    */
   std::vector<SatLiteral> d_assumptions;
 
-  /** The proof file */
-  std::string d_pfFile;
 
   unsigned d_nextVarIdx;
+  /** Whether we are logging proofs */
+  bool d_logProofs;
+  /** The proof file */
+  std::string d_pfFile;
+  /** Whether we are in SAT mode */
   bool d_inSatMode;
   /** The variable representing true. */
   SatVariable d_true;

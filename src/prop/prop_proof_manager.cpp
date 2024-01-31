@@ -178,6 +178,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     // otherwise, we compute the unsat core clauses
     // the stream which stores the DIMACS of the computed clauses
     std::stringstream dumpDimacs;
+    // minimize only if SAT_EXTERNAL_PROVE and satProofMinDimacs is true.
     bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE
                     && options().proof.satProofMinDimacs);
     std::vector<Node> clauses = getUnsatCoreClauses(minimal, &dumpDimacs);
