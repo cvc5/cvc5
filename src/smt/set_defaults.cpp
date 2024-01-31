@@ -217,6 +217,22 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
   }
+  //  
+  if (opts.smt.produceProofs)
+  {
+    // determine the prop proof mode, based on which SAT solver we are using
+    if (!opts.proof.propProofModeWasSetByUser)
+    {
+      if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
+      {
+        // use SAT_EXTERNAL_PROVE for cadical by default
+        SET_AND_NOTIFY(Proof,
+                       propProofMode,
+                       options::PropProofMode::SAT_EXTERNAL_PROVE,
+                       "cadical");
+      }
+    }
+  }
 
   // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
   // for proof mode.
@@ -234,20 +250,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
       std::stringstream ss;
       ss << reasonNoProofs.str() << " not supported with proofs or unsat cores";
       throw OptionException(ss.str());
-    }
-    // the above method does not disable proofs
-    Assert(opts.smt.produceProofs);
-    // determine the prop proof mode, based on which SAT solver we are using
-    if (!opts.proof.propProofModeWasSetByUser)
-    {
-      if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-      {
-        // use SAT_EXTERNAL_PROVE for cadical by default
-        SET_AND_NOTIFY(Proof,
-                       propProofMode,
-                       options::PropProofMode::SAT_EXTERNAL_PROVE,
-                       "cadical");
-      }
     }
   }
   if (d_isInternalSubsolver)
@@ -962,6 +964,23 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   {
     reason << "deep restarts";
     return true;
+  }
+  // specific to SAT solver
+  if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
+  {
+    if (opts.proof.propProofMode==options::PropProofMode::PROOF)
+    {
+      reason << "(resolution) proofs not supported in cadical";
+      return true;
+    }
+  }
+  else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
+  {
+    if (opts.proof.propProofMode==options::PropProofMode::SKETCH)
+    {
+      reason << "(DRAT) proof sketch not supported in minisat";
+      return true;
+    }
   }
   return false;
 }
