@@ -93,7 +93,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   /** Get proof sketch */
   std::pair<ProofRule, std::vector<Node>> getProofSketch() override;
-  
+
  private:
   /**
    * Constructor.

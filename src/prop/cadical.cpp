@@ -961,7 +961,8 @@ CadicalSolver::CadicalSolver(Env& env,
       d_inSatMode(false),
       d_statistics(registry, name)
 {
-  if (env.isSatProofProducing() && options().proof.propProofMode==options::PropProofMode::SKETCH)
+  if (env.isSatProofProducing()
+      && options().proof.propProofMode == options::PropProofMode::SKETCH)
   {
     std::stringstream ssp;
     ssp << options().driver.filename << ".drat_proof.txt";
@@ -1264,7 +1265,8 @@ std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
   NodeManager* nm = NodeManager::currentNM();
   Node pfile = nm->mkConst(String(d_pfFile));
   args.push_back(pfile);
-  return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION, args);
+  return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,
+                                                 args);
 }
 
 /* -------------------------------------------------------------------------- */

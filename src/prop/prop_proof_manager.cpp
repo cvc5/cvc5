@@ -138,9 +138,8 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   Assert(pc == modes::ProofComponent::THEORY_LEMMAS
          || pc == modes::ProofComponent::PREPROCESS);
   std::vector<std::shared_ptr<ProofNode>> pfs =
-      pc == modes::ProofComponent::THEORY_LEMMAS
-          ? getLemmaClausesProofs()
-          : getInputClausesProofs();
+      pc == modes::ProofComponent::THEORY_LEMMAS ? getLemmaClausesProofs()
+                                                 : getInputClausesProofs();
   std::shared_ptr<ProofNode> satPf = getProof(assumptions, false);
   std::vector<Node> satLeaves;
   expr::getFreeAssumptions(satPf.get(), satLeaves);
@@ -166,11 +165,11 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(
   }
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof") << "PropPfManager::getProof: Getting proof of false\n";
-  
+
   options::PropProofMode pmode = options().proof.propProofMode;
-  
+
   std::shared_ptr<ProofNode> conflictProof;
-  if (pmode==options::PropProofMode::PROOF)
+  if (pmode == options::PropProofMode::PROOF)
   {
     // take proof from SAT solver as is
     conflictProof = d_satSolver->getProof();
@@ -180,17 +179,21 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(
     std::vector<Node> clauses;
     bool hasFalseAssert = false;
     std::stringstream dumpDimacs;
-    getUnsatCoreClauses(assumptions, clauses, hasFalseAssert, options().proof.satProofMinDimacs, &dumpDimacs);
+    getUnsatCoreClauses(assumptions,
+                        clauses,
+                        hasFalseAssert,
+                        options().proof.satProofMinDimacs,
+                        &dumpDimacs);
     if (hasFalseAssert)
     {
       // if we had a false assert, it is trivial, just use it.
       Assert(clauses.size() == 1 && clauses[0].isConst()
-            && !clauses[0].getConst<bool>());
+             && !clauses[0].getConst<bool>());
       conflictProof = d_env.getProofNodeManager()->mkAssume(clauses[0]);
     }
     else
     {
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       std::stringstream dinputFile;
       dinputFile << options().driver.filename << ".drat_input.cnf";
       std::fstream dout(dinputFile.str(), std::ios::out);
@@ -202,20 +205,21 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(
       Node dfile = nm->mkConst(String(dinputFile.str()));
       args.push_back(dfile);
       ProofRule r = ProofRule::UNKNOWN;
-      if (pmode==options::PropProofMode::SKETCH)
+      if (pmode == options::PropProofMode::SKETCH)
       {
-        std::pair<ProofRule, std::vector<Node>> sk = d_satSolver->getProofSketch();
+        std::pair<ProofRule, std::vector<Node>> sk =
+            d_satSolver->getProofSketch();
         r = sk.first;
         args.insert(args.end(), sk.second.begin(), sk.second.end());
       }
-      else if (pmode==options::PropProofMode::SAT_EXTERNAL_PROVE)
+      else if (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE)
       {
         r = ProofRule::SAT_EXTERNAL_PROVE;
         // no additional arguments
       }
       else
       {
-        Assert (false) << "Unknown proof mode " << pmode;
+        Assert(false) << "Unknown proof mode " << pmode;
       }
       // use the rule, clauses and arguments we computed above
       cdp.addStep(falsen, r, clauses, args);
@@ -333,12 +337,12 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 
-
-void PropPfManager::getUnsatCoreClauses(const context::CDList<Node>& assumptions,
-                           std::vector<Node>& clauses,
-                           bool& hasFalseAssert,
-                           bool minimal,
-                           std::ostream* outDimacs)
+void PropPfManager::getUnsatCoreClauses(
+    const context::CDList<Node>& assumptions,
+    std::vector<Node>& clauses,
+    bool& hasFalseAssert,
+    bool minimal,
+    std::ostream* outDimacs)
 {
   std::unordered_set<Node> cset(assumptions.begin(), assumptions.end());
   Trace("cnf-input") << "#assumptions=" << cset.size() << std::endl;

@@ -175,7 +175,7 @@ class CDCLTSatSolver : public SatSolver
    * Returns a complete proof computed by this SAT solver.
    */
   virtual std::shared_ptr<ProofNode> getProof() = 0;
-  
+
   /**
    * Get proof, which is used if prop-proof-mode is SKETCH.
    * Returns a rule r and additional arugments args such that the final proof

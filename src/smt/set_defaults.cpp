@@ -236,14 +236,17 @@ void SetDefaults::setDefaultsPre(Options& opts)
       throw OptionException(ss.str());
     }
     // the above method does not disable proofs
-    Assert (opts.smt.produceProofs);
+    Assert(opts.smt.produceProofs);
     // determine the prop proof mode, based on which SAT solver we are using
     if (!opts.proof.propProofModeWasSetByUser)
     {
       if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
       {
         // use SAT_EXTERNAL_PROVE for cadical by default
-        SET_AND_NOTIFY(Proof, propProofMode, options::PropProofMode::SAT_EXTERNAL_PROVE, "cadical");
+        SET_AND_NOTIFY(Proof,
+                       propProofMode,
+                       options::PropProofMode::SAT_EXTERNAL_PROVE,
+                       "cadical");
       }
     }
   }
