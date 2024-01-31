@@ -88,13 +88,16 @@ Token Lexer::nextToken()
     // Call the derived yylex() and convert it to a token
     return nextTokenInternal();
   }
-  Token t = d_peeked[0];
-  d_peeked.erase(d_peeked.begin());
+  Token t = d_peeked.back();
+  d_peeked.pop_back();
   return t;
 }
 
 Token Lexer::peekToken()
 {
+  // since d_peeked is first in, last out, we should not peek more than once
+  // or the order is swapped.
+  Assert(d_peeked.empty());
   // parse next token
   Token t = nextTokenInternal();
   // reinsert it immediately
