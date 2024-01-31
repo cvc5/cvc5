@@ -91,8 +91,9 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   else
   {
     // log proofs if the mode is SKETCH.
-    bool logProofs = (env.isSatProofProducing()
-      && options().proof.propProofMode == options::PropProofMode::SKETCH);
+    bool logProofs =
+        (env.isSatProofProducing()
+         && options().proof.propProofMode == options::PropProofMode::SKETCH);
     d_satSolver = SatSolverFactory::createCadicalCDCLT(
         d_env, statisticsRegistry(), env.getResourceManager(), "", logProofs);
   }
