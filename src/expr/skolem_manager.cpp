@@ -571,11 +571,13 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::BAGS_MAP_PREIMAGE:
     {
       TypeNode itype = nm->integerType();
+      Assert (cacheVals[0].getType().isFunction());
       TypeNode retType = cacheVals[0].getType().getArgTypes()[0];
       return nm->mkFunctionType(itype, retType);
     }
     case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
     {
+      Assert (cacheVals[0].getType().isFunction());
       return cacheVals[0].getType().getArgTypes()[0];
     }
     default: break;
