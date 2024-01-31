@@ -33,7 +33,8 @@ namespace prop {
 
 PropPfManager::PropPfManager(Env& env,
                              CDCLTSatSolver* satSolver,
-                             CnfStream& cnf, const context::CDList<Node>& assumptions)
+                             CnfStream& cnf,
+                             const context::CDList<Node>& assumptions)
     : EnvObj(env),
       d_propProofs(userContext()),
       // Since the ProofCnfStream performs no equality reasoning, there is no
@@ -335,9 +336,8 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 
-std::vector<Node> PropPfManager::getUnsatCoreClauses(
-    bool minimal,
-    std::ostream* outDimacs)
+std::vector<Node> PropPfManager::getUnsatCoreClauses(bool minimal,
+                                                     std::ostream* outDimacs)
 {
   std::vector<Node> clauses;
   std::unordered_set<Node> cset(d_assumptions.begin(), d_assumptions.end());

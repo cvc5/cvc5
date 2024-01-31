@@ -113,7 +113,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   bool satProofs = d_env.isSatProofProducing();
   if (satProofs)
   {
-    d_ppm.reset(new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
+    d_ppm.reset(
+        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
   }
   // connect SAT solver
   d_satSolver->initialize(

@@ -51,9 +51,12 @@ class PropPfManager : protected EnvObj
    * @param env The environment
    * @param satSolver Pointer to the SAT solver
    * @param cnfProof Pointer to the CNF stream
-   * @param assumptions Reference to assumptions of parent prop engine 
+   * @param assumptions Reference to assumptions of parent prop engine
    */
-  PropPfManager(Env& env, CDCLTSatSolver* satSolver, CnfStream& cnfProof, const context::CDList<Node>& assumptions);
+  PropPfManager(Env& env,
+                CDCLTSatSolver* satSolver,
+                CnfStream& cnfProof,
+                const context::CDList<Node>& assumptions);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -103,7 +106,8 @@ class PropPfManager : protected EnvObj
    * clauses) or of preprocessed assertion proofs (them the preprocessed
    * assertion assumptions to the added clauses to the SAT solver).
    */
-  std::vector<std::shared_ptr<ProofNode>> getProofLeaves(modes::ProofComponent pc);
+  std::vector<std::shared_ptr<ProofNode>> getProofLeaves(
+      modes::ProofComponent pc);
 
   /** Return lemmas used in the SAT proof. */
   std::vector<Node> getUnsatCoreLemmas();
@@ -171,7 +175,7 @@ class PropPfManager : protected EnvObj
   /**
    */
   std::vector<Node> getUnsatCoreClauses(bool minimal,
-                           std::ostream* outDimacs = nullptr);
+                                        std::ostream* outDimacs = nullptr);
   /** The proofs of this proof manager, which are saved once requested (note the
    * cache is for both the request of the full proof (true) or not (false)).
    *
