@@ -415,16 +415,10 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node f = n[0];
   Node A = n[1];
   // declare an uninterpreted function uf: Int -> T
-  TypeNode domainType = f.getType().getArgTypes()[0];
-  TypeNode ufType = d_nm->mkFunctionType(d_nm->integerType(), domainType);
   Node uf = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE, {f, A, e});
-  AlwaysAssert(uf.getType() == ufType);
 
   // declare uninterpreted function sum: Int -> Int
-  TypeNode sumType =
-      d_nm->mkFunctionType(d_nm->integerType(), d_nm->integerType());
   Node sum = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_SUM, {f, A, e});
-  AlwaysAssert(sum.getType() == sumType);
 
   // (= (sum 0) 0)
   Node sum_zero = d_nm->mkNode(Kind::APPLY_UF, sum, d_zero);
@@ -517,8 +511,7 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
   Node f = n[0];
   Node A = n[1];
   // declare a fresh skolem of type T
-  TypeNode domainType = f.getType().getArgTypes()[0];
-  Node x = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE, {f, A, y});
+  Node x = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE, {f, A, y});
 
   Node mapSkolem = registerAndAssertSkolemLemma(n);
   Node countY = getMultiplicityTerm(y, mapSkolem);
