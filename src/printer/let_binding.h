@@ -96,7 +96,9 @@ class LetBinding
    * must appear before being letified.
    * @param traverseBinders Whether we should traverse binders
    */
-  LetBinding(const std::string& prefix, uint32_t thresh = 2, bool traverseBinders = false);
+  LetBinding(const std::string& prefix,
+             uint32_t thresh = 2,
+             bool traverseBinders = false);
   /** Get threshold */
   uint32_t getThreshold() const;
   /**

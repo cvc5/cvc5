@@ -19,7 +19,9 @@
 
 namespace cvc5::internal {
 
-LetBinding::LetBinding(const std::string& prefix, uint32_t thresh, bool traverseBinders)
+LetBinding::LetBinding(const std::string& prefix,
+                       uint32_t thresh,
+                       bool traverseBinders)
     : d_prefix(prefix),
       d_thresh(thresh),
       d_traverseBinders(traverseBinders),
@@ -158,7 +160,8 @@ void LetBinding::updateCounts(Node n)
     cur = visit.back();
     it = d_count.find(cur);
     // do not traverse beneath quantifiers if d_traverseBinders is false.
-    if (cur.getNumChildren() == 0 || cur.getKind()==Kind::BOUND_VAR_LIST || (!d_traverseBinders && cur.isClosure()))
+    if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST
+        || (!d_traverseBinders && cur.isClosure()))
     {
       visit.pop_back();
       continue;
