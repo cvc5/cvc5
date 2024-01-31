@@ -180,14 +180,12 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(
     std::vector<Node> clauses;
     // the stream which stores the DIMACS of the computed clauses
     std::stringstream dumpDimacs;
-    bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE && options().proof.satProofMinDimacs);
-    getUnsatCoreClauses(assumptions,
-                        clauses,
-                        minimal,
-                        &dumpDimacs);
+    bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE
+                    && options().proof.satProofMinDimacs);
+    getUnsatCoreClauses(assumptions, clauses, minimal, &dumpDimacs);
     NodeManager* nm = NodeManager::currentNM();
     Node falsen = nm->mkConst(false);
-    if (clauses.size() == 1 && clauses[0]==falsen)
+    if (clauses.size() == 1 && clauses[0] == falsen)
     {
       // if we had a false assert, it is trivial, just use the false assumption
       conflictProof = d_env.getProofNodeManager()->mkAssume(falsen);
