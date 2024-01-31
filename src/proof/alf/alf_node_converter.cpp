@@ -310,6 +310,15 @@ Node AlfNodeConverter::postConvert(Node n)
     args.insert(args.end(), n.begin(), n.end());
     return mkInternalApp("@list", args, tn);
   }
+  else if (k == Kind::NULLABLE_LIFT)
+  {
+    // must apply only to function
+    Node op = mkInternalApp("nullable.lift", {n[0]}, tn);
+    std::vector<Node> args;
+    args.push_back(op);
+    args.insert(args.end(), n.begin()+1, n.end());
+    return mkInternalApp("_", args, tn);
+  }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
     // return app of?
@@ -555,6 +564,17 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         if (dt.isTuple())
         {
           opName << "is-tuple";
+        }
+        else if (dt.isNullable())
+        {
+          if (cindex == 0)
+          {
+            opName << "nullable.is_null";
+          }
+          else
+          {
+            opName << "nullable.is_some";
+          }
         }
         else
         {
