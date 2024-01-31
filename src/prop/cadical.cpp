@@ -1259,7 +1259,8 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
 
 std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
 {
-  Assert(d_env.isSatProofProducing());
+  Assert (d_env.isSatProofProducing());
+  Assert (options().proof.propProofMode == options::PropProofMode::SKETCH);
   d_solver->flush_proof_trace();
   std::vector<Node> args;
   NodeManager* nm = NodeManager::currentNM();
