@@ -228,7 +228,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
   }
-  //  
+  //
   if (opts.smt.produceProofs)
   {
     // determine the prop proof mode, based on which SAT solver we are using
@@ -979,7 +979,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   // specific to SAT solver
   if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
   {
-    if (opts.proof.propProofMode==options::PropProofMode::PROOF)
+    if (opts.proof.propProofMode == options::PropProofMode::PROOF)
     {
       reason << "(resolution) proofs not supported in cadical";
       return true;
@@ -987,7 +987,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   }
   else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
   {
-    if (opts.proof.propProofMode==options::PropProofMode::SKETCH)
+    if (opts.proof.propProofMode == options::PropProofMode::SKETCH)
     {
       reason << "(DRAT) proof sketch not supported in minisat";
       return true;
