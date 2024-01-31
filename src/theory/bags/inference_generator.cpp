@@ -417,25 +417,23 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   // declare an uninterpreted function uf: Int -> T
   TypeNode domainType = f.getType().getArgTypes()[0];
   TypeNode ufType = d_nm->mkFunctionType(d_nm->integerType(), domainType);
-  Node uf = d_sm->mkSkolemFunction(
-      SkolemFunId::BAGS_MAP_PREIMAGE, {f, A, e});
-  AlwaysAssert(uf.getType()==ufType);
+  Node uf = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE, {f, A, e});
+  AlwaysAssert(uf.getType() == ufType);
 
   // declare uninterpreted function sum: Int -> Int
   TypeNode sumType =
       d_nm->mkFunctionType(d_nm->integerType(), d_nm->integerType());
-  Node sum =
-      d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_SUM, {f, A, e});
-  AlwaysAssert(sum.getType()==sumType);
+  Node sum = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_SUM, {f, A, e});
+  AlwaysAssert(sum.getType() == sumType);
 
   // (= (sum 0) 0)
   Node sum_zero = d_nm->mkNode(Kind::APPLY_UF, sum, d_zero);
   Node baseCase = d_nm->mkNode(Kind::EQUAL, sum_zero, d_zero);
 
   // guess the size of the preimage of e
-  Node preImageSize = d_sm->mkSkolemFunction(
-      SkolemFunId::BAGS_MAP_PREIMAGE_SIZE, {f, A, e});
-  AlwaysAssert(preImageSize.getType()==d_nm->integerType());
+  Node preImageSize =
+      d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_SIZE, {f, A, e});
+  AlwaysAssert(preImageSize.getType() == d_nm->integerType());
 
   // (= (sum preImageSize) (bag.count e skolem))
   Node mapSkolem = registerAndAssertSkolemLemma(n);
@@ -520,8 +518,7 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
   Node A = n[1];
   // declare a fresh skolem of type T
   TypeNode domainType = f.getType().getArgTypes()[0];
-  Node x = d_sm->mkSkolemFunction(
-      SkolemFunId::BAGS_MAP_PREIMAGE, {f, A, y});
+  Node x = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE, {f, A, y});
 
   Node mapSkolem = registerAndAssertSkolemLemma(n);
   Node countY = getMultiplicityTerm(y, mapSkolem);
@@ -577,7 +574,7 @@ InferInfo InferenceGenerator::mapUp2(
       d_nm->mkNode(Kind::EQUAL, d_nm->mkNode(Kind::APPLY_UF, f, x), y).negate();
 
   Node k = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_INDEX,
-                                       {n, uf, preImageSize, y, x});
+                                  {n, uf, preImageSize, y, x});
   Node inRange = d_nm->mkNode(Kind::AND,
                               d_nm->mkNode(Kind::GEQ, k, d_one),
                               d_nm->mkNode(Kind::LEQ, k, preImageSize));

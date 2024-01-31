@@ -467,10 +467,9 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::STRINGS_DEQ_DIFF:
     case SkolemFunId::STRINGS_STOI_NON_DIGIT:
     case SkolemFunId::BAGS_FOLD_CARD:
-    case SkolemFunId::SETS_FOLD_CARD: 
+    case SkolemFunId::SETS_FOLD_CARD:
     case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX:
-      return nm->integerType();
+    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return nm->integerType();
     // string skolems
     case SkolemFunId::RE_FIRST_MATCH_PRE:
     case SkolemFunId::RE_FIRST_MATCH:
