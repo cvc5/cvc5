@@ -442,9 +442,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       // provide the target constant explicitly
       args.push_back(d_tproc.convert(res[1]));
       break;
-    case ProofRule::ARITH_TRICHOTOMY:
-      // argument is redundant
-      return;
     case ProofRule::INSTANTIATE:
     {
       // ignore arguments past the term vector, collect them into an sexpr

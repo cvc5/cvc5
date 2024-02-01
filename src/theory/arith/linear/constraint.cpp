@@ -1851,7 +1851,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         {
           pf = pnm->mkNode(ProofRule::ARITH_TRICHOTOMY,
                            children,
-                           {getProofLiteral()},
+                           {},
                            getProofLiteral());
           break;
         }

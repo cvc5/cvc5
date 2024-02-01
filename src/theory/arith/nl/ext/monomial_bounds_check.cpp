@@ -402,7 +402,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                 proof->addStep(simpleeq,
                                ProofRule::ARITH_TRICHOTOMY,
                                {lb, rb},
-                               {simpleeq});
+                               {});
                 proof->addStep(
                     tmplem[0], ProofRule::AND_INTRO, {exp[0], simpleeq}, {});
                 proof->addStep(tmplem[1],
