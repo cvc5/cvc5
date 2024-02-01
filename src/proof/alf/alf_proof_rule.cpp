@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -20,7 +20,6 @@
 #include "proof/proof_checker.h"
 
 namespace cvc5::internal {
-
 namespace proof {
 
 const char* AlfRuleToString(AlfRule id)
@@ -32,7 +31,6 @@ const char* AlfRuleToString(AlfRule id)
     case AlfRule::SCOPE: return "scope";
     case AlfRule::PROCESS_SCOPE: return "process_scope";
     case AlfRule::CONCAT_CONFLICT_DEQ: return "concat_conflict_deq";
-    case AlfRule::SKOLEM_WITNESS_INTRO: return "skolem_witness_intro";
     //================================================= Undefined rule
     case AlfRule::UNDEFINED: return "undefined";
     default: return "?";
@@ -56,5 +54,4 @@ AlfRule getAlfRule(Node n)
 }
 
 }  // namespace proof
-
 }  // namespace cvc5::internal

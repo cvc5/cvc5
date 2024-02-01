@@ -237,17 +237,6 @@ bool AlfProofPostprocessCallback::update(Node res,
       addAlfStep(AlfRule::CONCAT_CONFLICT_DEQ, res, children, args, *cdp);
     }
     break;
-    case ProofRule::SKOLEM_INTRO:
-    {
-      Node t = SkolemManager::getUnpurifiedForm(args[0]);
-      if (t.getKind() != Kind::WITNESS)
-      {
-        // no change necessary
-        return false;
-      }
-      addAlfStep(AlfRule::SKOLEM_WITNESS_INTRO, res, {}, {t}, *cdp);
-    }
-    break;
     default: return false;
   }
   return true;
