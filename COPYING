@@ -52,9 +52,9 @@ The following file contains third-party software.
 
 The copyright and licensing information of this file is in its header.
 
-cvc5 incorporates MiniSat code (see src/prop/minisat and src/prop/bvminisat),
-excluded from the above copyright.  See src/prop/minisat/LICENSE and
-src/prop/bvminisat/LICENSE for copyright and licensing information.
+cvc5 incorporates MiniSat code (see src/prop/minisat),
+excluded from the above copyright. See licenses/minisat-LICENSE
+for copyright and licensing information.
 
 cvc5 by default links against The GNU Multiple Precision (GMP) Arithmetic
 Library, which is licensed under GNU LGPL v3. See the file
