@@ -294,8 +294,9 @@ InternalSkolemFunId SkolemManager::getInternalId(TNode k) const
   if (isSkolemFunction(k, id, cacheVal) && id == SkolemFunId::INTERNAL)
   {
     Assert(!cacheVal.isNull());
-    Assert(cacheVal.getKind() == Kind::CONST_INTEGER);
-    Rational r = cacheVal.getConst<Rational>();
+    Node cval = cacheVal.getKind()==Kind::SEXPR ? cacheVal[0] : cacheVal;
+    Assert(cval.getKind() == Kind::CONST_INTEGER);
+    Rational r = cval.getConst<Rational>();
     Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
     return static_cast<InternalSkolemFunId>(r.getNumerator().toUnsignedInt());
   }

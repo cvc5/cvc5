@@ -588,7 +588,8 @@ void TermDbSygus::registerEnumerator(Node e,
       Node ff;
       SkolemFunId id;
       sm->isSkolemFunction(f, id, ff);
-      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff;
+      Assert (ff.getKind()==Kind::SEXPR && ff.getNumChildren()==2);
+      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff[1];
     }
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
     std::stringstream ss;
