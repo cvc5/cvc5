@@ -439,25 +439,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       return;
     }
     break;
-    // several strings proof rules require adding the type as the first argument
-    case ProofRule::CONCAT_EQ:
-    case ProofRule::CONCAT_UNIFY:
-    case ProofRule::CONCAT_CSPLIT:
-    {
-      Assert(res.getKind() == Kind::EQUAL);
-      args.push_back(d_tproc.typeAsNode(res[0].getType()));
-    }
-    break;
-    case ProofRule::STRING_LENGTH_POS:
-      args.push_back(d_tproc.typeAsNode(pargs[0].getType()));
-      break;
-    case ProofRule::STRING_REDUCTION:
-    case ProofRule::STRING_EAGER_REDUCTION:
-    {
-      TypeNode towner = theory::strings::utils::getOwnerStringType(pargs[0]);
-      args.push_back(d_tproc.typeAsNode(towner));
-    }
-    break;
     case ProofRule::INT_TIGHT_LB:
     case ProofRule::INT_TIGHT_UB:
       Assert(res.getNumChildren() == 2);
