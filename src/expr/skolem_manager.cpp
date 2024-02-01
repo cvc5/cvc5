@@ -468,6 +468,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
   {
     // Type(cacheVals[0]), i.e skolems that return same type as first argument
     case SkolemFunId::PURIFY:
+    case SkolemFunId::ABSTRACT_VALUE:
       Assert(cacheVals.size() > 0);
       return cacheVals[0].getType();
       break;
