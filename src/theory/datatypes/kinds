@@ -162,4 +162,22 @@ constant CODATATYPE_BOUND_VARIABLE \
     "the kind of expressions representing bound variables in codatatype constants, which are de Bruijn indexed variables; payload is an instance of the cvc5::internal::CodatatypeBoundVariable class (used in models)"
 typerule CODATATYPE_BOUND_VARIABLE ::cvc5::internal::theory::datatypes::CodatatypeBoundVariableTypeRule
 
+
+operator NULLABLE_TYPE 0: "nullable type"
+cardinality NULLABLE_TYPE \
+    "%TYPE%.getDType().getCardinality(%TYPE%)" \
+    "expr/dtype.h"
+well-founded NULLABLE_TYPE \
+    "%TYPE%.getDType().isWellFounded()" \
+    "%TYPE%.getDType().mkGroundTerm(%TYPE%)" \
+    "expr/dtype.h"
+
+enumerator NULLABLE_TYPE \
+    "::cvc5::internal::theory::datatypes::DatatypesEnumerator" \
+    "expr/dtype.h"
+
+operator NULLABLE_LIFT  1: "application of lift operator; first parameter is the lift operator, remaining ones are its arguments"
+
+typerule NULLABLE_LIFT          ::cvc5::internal::theory::datatypes::NullableLiftTypeRule
+
 endtheory
