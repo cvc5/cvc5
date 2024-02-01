@@ -24,6 +24,6 @@
   (@List U) U
   (
     ((substitute_eq_list (@list (= x t) xs) F)  (substitute_eq_list xs (substitute x t F)))
-    ((substitute_eq_list @list.nil @list.nil F) F)
+    ((substitute_eq_list @list.nil F)           F)
   )
 )
