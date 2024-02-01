@@ -1,7 +1,7 @@
 This file contains a summary of important user-visible changes.
 
 **New Features**
-
+- Added support for nullable sorts and lift operator to the theory of datatypes.
 - API: The signature of functions `Solver::mkFiniteFieldSort(const std::string&)`
        and `Solver::mkFiniteFieldElem(const std::string&, const Sort&)` is now
        extended with an additional (optional) parameter to
