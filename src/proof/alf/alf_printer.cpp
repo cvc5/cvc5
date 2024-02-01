@@ -455,12 +455,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       args.push_back(d_tproc.typeAsNode(towner));
     }
     break;
-    case ProofRule::INT_TIGHT_LB:
-    case ProofRule::INT_TIGHT_UB:
-      Assert(res.getNumChildren() == 2);
-      // provide the target constant explicitly
-      args.push_back(d_tproc.convert(res[1]));
-      break;
     case ProofRule::ARITH_TRICHOTOMY:
       // argument is redundant
       return;
