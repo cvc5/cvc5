@@ -52,10 +52,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SQRT: return "SQRT";
     case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
       return "TRANSCENDENTAL_PURIFY_ARG";
-    case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case SkolemFunId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
-    case SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
-      return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
     case SkolemFunId::STRINGS_NUM_OCCUR_RE: return "STRINGS_NUM_OCCUR_RE";
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
@@ -72,7 +69,6 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::RE_FIRST_MATCH: return "RE_FIRST_MATCH";
     case SkolemFunId::RE_FIRST_MATCH_POST: return "RE_FIRST_MATCH_POST";
     case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
-    case SkolemFunId::SEQ_MODEL_BASE_ELEMENT: return "SEQ_MODEL_BASE_ELEMENT";
     case SkolemFunId::BAGS_CARD_CARDINALITY: return "BAGS_CARD_CARDINALITY";
     case SkolemFunId::BAGS_CARD_ELEMENTS: return "BAGS_CARD_ELEMENTS";
     case SkolemFunId::BAGS_CARD_N: return "BAGS_CARD_N";
@@ -103,10 +99,6 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
     case SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
     case SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
-    case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
-    case SkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
-    case SkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
-    case SkolemFunId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
     default: return "?";
   }
 }
@@ -121,9 +113,14 @@ const char* toString(InternalSkolemFunId id)
 {
   switch (id)
   {
+    case InternalSkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
+    case InternalSkolemFunId::SEQ_MODEL_BASE_ELEMENT: return "SEQ_MODEL_BASE_ELEMENT";
     case InternalSkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
     case InternalSkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
     case InternalSkolemFunId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
+    case InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
+      return "QUANTIFIERS_SYNTH_FUN_EMBED";
+    case InternalSkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     default: return "?";
   }
 }
@@ -286,6 +283,22 @@ SkolemFunId SkolemManager::getId(TNode k) const
     return id;
   }
   return SkolemFunId::NONE;
+}
+
+InternalSkolemFunId SkolemManager::getInternalId(TNode k) const
+{
+  SkolemFunId id;
+  Node cacheVal;
+  // if its an internal skolem
+  if (isSkolemFunction(k, id, cacheVal) && id==SkolemFunId::INTERNAL)
+  {
+    Assert (!cacheVal.isNull());
+    Assert (cacheVal.getKind()==Kind::CONST_INTEGER);
+    Rational r = cacheVal.getConst<Rational>();
+    Assert (r.sgn()>=0 && r.getNumerator().fitsUnsignedInt());
+    return static_cast<InternalSkolemFunId>(r.getNumerator().toUnsignedInt());
+  }
+  return InternalSkolemFunId::NONE;
 }
 
 Node SkolemManager::mkDummySkolem(const std::string& prefix,
@@ -501,7 +514,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::SETS_FOLD_CARD:
     case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
     case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX:
-    case SkolemFunId::SkolemFunId::BAGS_CARD_N:return nm->integerType();
+    case SkolemFunId::BAGS_CARD_N:return nm->integerType();
     // string skolems
     case SkolemFunId::RE_FIRST_MATCH_PRE:
     case SkolemFunId::RE_FIRST_MATCH:

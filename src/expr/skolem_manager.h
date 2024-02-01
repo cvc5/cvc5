@@ -54,17 +54,10 @@ enum class SkolemFunId
    * is between -pi and pi
    */
   TRANSCENDENTAL_PURIFY_ARG,
-  /** a shared selector */
-  SHARED_SELECTOR,
   /**
    * The n^th skolem for quantified formula Q. Its arguments are (Q,n).
    */
   QUANTIFIERS_SKOLEMIZE,
-  /**
-   * Quantifiers synth fun embedding, for function-to-synthesize, this the
-   * first order datatype variable for f.
-   */
-  QUANTIFIERS_SYNTH_FUN_EMBED,
   //----- string skolems are cached based on (a, b)
   /** exists k. ( string b occurs k times in string a ) */
   STRINGS_NUM_OCCUR,
@@ -238,8 +231,6 @@ enum class SkolemFunId
    * and it is mapped to y by f.
    */
   SETS_MAP_DOWN_ELEMENT,
-  /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED,
   UNKNOWN
 };
 /** Converts a skolem function name to a string. */
@@ -259,6 +250,8 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
 enum class InternalSkolemFunId
 {
   NONE,
+  /** a shared selector */
+  SHARED_SELECTOR,
   /** Sequence model construction, element for base */
   SEQ_MODEL_BASE_ELEMENT,
   /** the "none" term, for instantiation evaluation */
@@ -266,7 +259,14 @@ enum class InternalSkolemFunId
   /** the "some" term, for instantiation evaluation */
   IEVAL_SOME,
   /** sygus "any constant" placeholder */
-  SYGUS_ANY_CONSTANT
+  SYGUS_ANY_CONSTANT,
+  /**
+   * Quantifiers synth fun embedding, for function-to-synthesize, this the
+   * first order datatype variable for f.
+   */
+  QUANTIFIERS_SYNTH_FUN_EMBED,
+  /** Higher-order type match predicate, see HoTermDb */
+  HO_TYPE_MATCH_PRED
 };
 /** Converts an internal skolem function name to a string. */
 const char* toString(InternalSkolemFunId id);
@@ -407,6 +407,11 @@ class SkolemManager
    * Get skolem function id
    */
   SkolemFunId getId(TNode k) const;
+  /**
+   * Get the internal skolem function id, for skolems whose id is
+   * SkolemFunId::INTERNAL.
+   */
+  InternalSkolemFunId getInternalId(TNode k) const;
   /**
    * Create a skolem constant with the given name, type, and comment. This
    * should only be used if the definition of the skolem does not matter.
