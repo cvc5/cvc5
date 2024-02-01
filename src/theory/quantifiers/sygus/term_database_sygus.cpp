@@ -589,7 +589,7 @@ void TermDbSygus::registerEnumerator(Node e,
       SkolemFunId id;
       sm->isSkolemFunction(f, id, ff);
       // get the argument, which is stored after the internal identifier
-      Assert (ff.getKind()==Kind::SEXPR && ff.getNumChildren()==2);
+      Assert(ff.getKind() == Kind::SEXPR && ff.getNumChildren() == 2);
       d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff[1];
     }
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
