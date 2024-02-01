@@ -94,7 +94,9 @@ class LetBinding
    * @param prefix The prefix to use for introduced variables
    * @param thresh The threshold to use, that is, the number of times a term
    * must appear before being letified.
-   * @param traverseBinders Whether we should traverse binders
+   * @param traverseBinders Whether we should traverse binders, that is, if
+   * this flag is true, we consider terms beneath binders as targets for
+   * letificiation.
    */
   LetBinding(const std::string& prefix,
              uint32_t thresh = 2,
