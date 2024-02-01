@@ -260,8 +260,11 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   const std::vector<Node>& assertions = pfn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pfn->getChildren()[0]->getChildren()[0].get();
 
-  // use a let binding if proofDagGlobal is true
-  LetBinding lbind(d_termLetPrefix);
+  // Use a let binding if proofDagGlobal is true.
+  // We can traverse binders due to the way we print global declare-var, since
+  // terms beneath binders will always have their variables in scope and hence
+  // can be printed in define commands.
+  LetBinding lbind(d_termLetPrefix, 2, true);
   LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
   AlfPrintChannelPre aletify(lbindUse);
   AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
