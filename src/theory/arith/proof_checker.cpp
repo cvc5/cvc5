@@ -322,18 +322,20 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         }
         if (cmps.count(Kind::GT) == 0)
         {
-          if (retk!=Kind::UNDEFINED_KIND)
+          if (retk != Kind::UNDEFINED_KIND)
           {
-            Trace("arith::pf::check") << "Error: No GT and " << retk << std::endl;
+            Trace("arith::pf::check")
+                << "Error: No GT and " << retk << std::endl;
             return Node::null();
           }
           retk = Kind::GT;
         }
         if (cmps.count(Kind::LT) == 0)
         {
-          if (retk!=Kind::UNDEFINED_KIND)
+          if (retk != Kind::UNDEFINED_KIND)
           {
-            Trace("arith::pf::check") << "Error: No LT and " << retk << std::endl;
+            Trace("arith::pf::check")
+                << "Error: No LT and " << retk << std::endl;
             return Node::null();
           }
           retk = Kind::LT;
