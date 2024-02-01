@@ -465,7 +465,7 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
     case ProofRule::ALPHA_EQUIV:
     {
       args.push_back(d_tproc.convert(pargs[0]));
-      std::vector<Node> eqs(pargs.begin()+1, pargs.end());
+      std::vector<Node> eqs(pargs.begin() + 1, pargs.end());
       NodeManager* nm = NodeManager::currentNM();
       Node es = nm->mkNode(Kind::SEXPR, eqs);
       es = d_tproc.convert(es);
