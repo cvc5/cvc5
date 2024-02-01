@@ -39,3 +39,10 @@
       )
    )
 )
+
+; B is the formula to apply to
+; E is a list of equalities
+(declare-rule alpha_equiv ((B Bool) (E @List))
+  :args (B E)
+  :conclusion (substitute_eq_list E B)
+)
