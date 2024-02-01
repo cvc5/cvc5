@@ -307,7 +307,10 @@ Node SkolemCache::mkSkolemFun(SkolemFunId id, Node a, Node b)
   return k;
 }
 
-Node SkolemCache::mkInternalSkolemFunction(InternalSkolemFunId id, TypeNode tn, Node a, Node b)
+Node SkolemCache::mkInternalSkolemFunction(InternalSkolemFunId id,
+                                           TypeNode tn,
+                                           Node a,
+                                           Node b)
 {
   std::vector<Node> cacheVals = getSkolemCacheVals(a, b);
   NodeManager* nm = NodeManager::currentNM();

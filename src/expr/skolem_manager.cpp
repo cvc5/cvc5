@@ -114,7 +114,8 @@ const char* toString(InternalSkolemFunId id)
   switch (id)
   {
     case InternalSkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
-    case InternalSkolemFunId::SEQ_MODEL_BASE_ELEMENT: return "SEQ_MODEL_BASE_ELEMENT";
+    case InternalSkolemFunId::SEQ_MODEL_BASE_ELEMENT:
+      return "SEQ_MODEL_BASE_ELEMENT";
     case InternalSkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
     case InternalSkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
     case InternalSkolemFunId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
@@ -198,10 +199,10 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
 }
 
 Node SkolemManager::mkInternalSkolemFunction(InternalSkolemFunId id,
-                              TypeNode tn,
-                              const std::vector<Node>& cacheVals)
+                                             TypeNode tn,
+                                             const std::vector<Node>& cacheVals)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> cvals;
   cvals.push_back(nm->mkConstInt(Rational(static_cast<uint32_t>(id))));
   cvals.insert(cvals.end(), cacheVals.begin(), cacheVals.end());
@@ -290,12 +291,12 @@ InternalSkolemFunId SkolemManager::getInternalId(TNode k) const
   SkolemFunId id;
   Node cacheVal;
   // if its an internal skolem
-  if (isSkolemFunction(k, id, cacheVal) && id==SkolemFunId::INTERNAL)
+  if (isSkolemFunction(k, id, cacheVal) && id == SkolemFunId::INTERNAL)
   {
-    Assert (!cacheVal.isNull());
-    Assert (cacheVal.getKind()==Kind::CONST_INTEGER);
+    Assert(!cacheVal.isNull());
+    Assert(cacheVal.getKind() == Kind::CONST_INTEGER);
     Rational r = cacheVal.getConst<Rational>();
-    Assert (r.sgn()>=0 && r.getNumerator().fitsUnsignedInt());
+    Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
     return static_cast<InternalSkolemFunId>(r.getNumerator().toUnsignedInt());
   }
   return InternalSkolemFunId::NONE;
@@ -514,7 +515,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::SETS_FOLD_CARD:
     case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
     case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX:
-    case SkolemFunId::BAGS_CARD_N:return nm->integerType();
+    case SkolemFunId::BAGS_CARD_N: return nm->integerType();
     // string skolems
     case SkolemFunId::RE_FIRST_MATCH_PRE:
     case SkolemFunId::RE_FIRST_MATCH:

@@ -173,9 +173,9 @@ class SkolemCache
                    Node b = Node::null());
   /** Same as above, with explicit type */
   Node mkInternalSkolemFunction(InternalSkolemFunId id,
-                        TypeNode tn,
-                        Node a = Node::null(),
-                        Node b = Node::null());
+                                TypeNode tn,
+                                Node a = Node::null(),
+                                Node b = Node::null());
 
  private:
   /**

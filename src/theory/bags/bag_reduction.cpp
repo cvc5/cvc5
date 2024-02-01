@@ -129,12 +129,11 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   TypeNode bagType = A.getType();
   // skolem functions
   Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_N, A);
-  Node uf =
-      sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_ELEMENTS, A);
-  Node unionDisjoint = sm->mkSkolemFunction(
-      SkolemFunId::BAGS_CARD_UNION_DISJOINT, A);
-  Node cardinality = sm->mkSkolemFunction(
-      SkolemFunId::BAGS_CARD_CARDINALITY, A);
+  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_ELEMENTS, A);
+  Node unionDisjoint =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_UNION_DISJOINT, A);
+  Node cardinality =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_CARDINALITY, A);
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =

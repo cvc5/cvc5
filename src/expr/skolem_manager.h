@@ -238,8 +238,7 @@ const char* toString(SkolemFunId id);
 /** Writes a skolem function name to a stream. */
 std::ostream& operator<<(std::ostream& out, SkolemFunId id);
 
-
-/** 
+/**
  * Internal skolem function identifier, used for identifying internal skolems
  * that are not exported as part of the API.
  *
@@ -390,7 +389,7 @@ class SkolemManager
                         Node cacheVal = Node::null());
   /** Same as above, with multiple cache values */
   Node mkSkolemFunction(SkolemFunId id, const std::vector<Node>& cacheVals);
-  /** 
+  /**
    * Same as above, with multiple cache values and an internal skolem id.
    * This will call mkSkolemFunction where the (external) id is
    * SkolemFunId::INTERNAL. The type is provided explicitly.

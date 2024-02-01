@@ -215,7 +215,8 @@ TypeNode SygusGrammar::resolve(bool allowAny)
       for (const Node& rule : d_rules[ntSym])
       {
         if (rule.getKind() == Kind::SKOLEM
-            && sm->getInternalId(rule) == InternalSkolemFunId::SYGUS_ANY_CONSTANT)
+            && sm->getInternalId(rule)
+                   == InternalSkolemFunId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(ntSym);
         }

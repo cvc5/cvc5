@@ -583,7 +583,8 @@ void TermDbSygus::registerEnumerator(Node e,
     if (!f.isNull())
     {
       SkolemManager* sm = nm->getSkolemManager();
-      Assert(sm->getInternalId(f) == InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
+      Assert(sm->getInternalId(f)
+             == InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
       Node ff;
       SkolemFunId id;
       sm->isSkolemFunction(f, id, ff);
