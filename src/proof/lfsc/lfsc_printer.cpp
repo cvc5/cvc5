@@ -72,8 +72,6 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 
   // clear the rules we have warned about
   d_trustWarned.clear();
-  d_useWarned.clear();
-  d_useLfscWarned.clear();
 
   // [1] convert assertions to internal and set up assumption map
   Trace("lfsc-print-debug") << "; print declarations" << std::endl;
@@ -216,14 +214,6 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (ProofRule r : d_trustWarned)
   {
     out << "; WARNING: adding trust step for " << r << std::endl;
-  }
-  for (ProofRule r : d_useWarned)
-  {
-    out << "; USE: rule " << r << std::endl;
-  }
-  for (LfscRule r : d_useLfscWarned)
-  {
-    out << "; USE: LFSC rule " << r << std::endl;
   }
 
   // [6] print the DSL rewrite rule declarations
@@ -464,13 +454,6 @@ void LfscPrinter::printProofLetify(
       pletMap[p] = pid;
       // printPLet opens two parentheses
       cparen = cparen + 2;
-      // debugging
-      /*
-      if (Trace.isOn("lfsc-print-debug"))
-      {
-        out << "; proves " << p->getResult();
-      }
-      */
     }
     out->printEndLine();
   }
@@ -619,7 +602,6 @@ void LfscPrinter::printProofInternal(
             visit.insert(visit.end(), args.begin(), args.end());
             // print the rule name
             out->printOpenRule(cur);
-            d_useWarned.insert(r);
           }
           else
           {
@@ -868,7 +850,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case ProofRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(args[0]);
-      d_useLfscWarned.insert(lr);
       // lambda should be processed elsewhere
       Assert(lr != LfscRule::LAMBDA);
       // Note that `args` has 2 builtin arguments, thus the first real argument
