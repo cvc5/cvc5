@@ -601,7 +601,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   std::shared_ptr<ProofNode> pf;
   if (isProofEnabled())
   {
-    pf = d_pnm->mkNode(ProofRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {eq});
+    pf = d_pnm->mkNode(ProofRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {}, eq);
   }
   d_keepAlive.push_back(eq);
   d_keepAlive.push_back(reason);
