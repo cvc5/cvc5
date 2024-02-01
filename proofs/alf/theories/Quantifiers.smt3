@@ -5,13 +5,13 @@
 (declare-const exists (-> @List Bool Bool) :binder @list)
 
 ; returns the type of the element in the list, if the list is a singleton.
-(program get_witness_type ((x @List))
+(program get_witness_type ((x @List) (xs @List :list))
   (@List) Type
   (
-    ((get_witness_type (@list x @list.nil)) (alf.typeof x))
+    ((get_witness_type (@list x xs)) (alf.typeof x))
   )
 )
-(declare-const witness (-> (! @List :var L) Bool (get_witness_type L)))
+(declare-const witness (-> (! @List :var L) Bool (get_witness_type L)) :binder @list)
 
 ; skolems
 (declare-const @k.QUANTIFIERS_SKOLEMIZE (-> (! Type :var T :implicit) Bool T T))

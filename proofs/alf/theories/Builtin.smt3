@@ -29,7 +29,6 @@
     ((get_lambda_type @list.nil b)    (alf.typeof b))
   )
 )
-
 (declare-const lambda (-> (! Type :var B :implicit) (! @List :var L) (! B :var b) (get_lambda_type L b)) :binder @list)
 
 (declare-const distinct (-> (! Type :var A :implicit) A A Bool) :pairwise and)
