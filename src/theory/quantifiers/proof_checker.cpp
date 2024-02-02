@@ -100,10 +100,10 @@ Node QuantifiersProofRuleChecker::checkInternal(
   else if (id == ProofRule::ALPHA_EQUIV)
   {
     Assert(children.empty());
-    Assert(args.size()==3);
+    Assert(args.size() == 3);
     // must be lists of the same length
     if (args[1].getKind() != Kind::SEXPR || args[2].getKind() != Kind::SEXPR
-      || args[1].getNumChildren()!=args[2].getNumChildren())
+        || args[1].getNumChildren() != args[2].getNumChildren())
     {
       return Node::null();
     }
