@@ -57,15 +57,16 @@
 )
 
 ; N-ary congruence
-
-(program mk_nary_cong_lhs ((U Type) (f (-> U U)) (t1 U) (t2 U) (s1 U) (s2 U)  (tail Bool :list))
+; We use two side conditions for computing each side of the returned equality.
+; This avoids intermediate node construction.
+(program mk_nary_cong_lhs ((U Type) (f (-> U U)) (s1 U) (s2 U)  (tail Bool :list))
     ((-> U U) Bool) Bool
     (
         ((mk_nary_cong_lhs f (and (= s1 s2) tail)) (f s1 (mk_nary_cong_lhs f tail)))
         ((mk_nary_cong_lhs f true)                 (alf.emptylist f))
     )
 )
-(program mk_nary_cong_rhs ((U Type) (f (-> U U)) (t1 U) (t2 U) (s1 U) (s2 U)  (tail Bool :list))
+(program mk_nary_cong_rhs ((U Type) (f (-> U U)) (s1 U) (s2 U)  (tail Bool :list))
     ((-> U U) Bool) Bool
     (
         ((mk_nary_cong_rhs f (and (= s1 s2) tail)) (f s2 (mk_nary_cong_rhs f tail)))
