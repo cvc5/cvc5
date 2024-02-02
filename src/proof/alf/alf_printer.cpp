@@ -533,7 +533,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   {
     size_t tmpId;
     // if scope, do pop the assumption from passumeMap
-    for (size_t i=0, nargs=args.size(); i<nargs; i++)
+    for (size_t i = 0, nargs = args.size(); i < nargs; i++)
     {
       // manually increment proof id counter and premises
       tmpId = d_pfIdCounter;
@@ -555,7 +555,8 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
 size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
 {
   std::pair<const ProofNode*, Node> key(pn, a);
-  std::map<std::pair<const ProofNode*, Node>, size_t>::iterator it = d_ppushMap.find(key);
+  std::map<std::pair<const ProofNode*, Node>, size_t>::iterator it =
+      d_ppushMap.find(key);
   if (it != d_ppushMap.end())
   {
     return it->second;
