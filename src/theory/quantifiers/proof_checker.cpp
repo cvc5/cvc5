@@ -116,9 +116,8 @@ Node QuantifiersProofRuleChecker::checkInternal(
       for (size_t j = 1; j <= 2; j++)
       {
         Node v = args[j][i];
-        std::unordered_set<Node>& av = allVars[j-1];
-        if (v.getKind() != Kind::BOUND_VARIABLE
-            || av.find(v) != av.end())
+        std::unordered_set<Node>& av = allVars[j - 1];
+        if (v.getKind() != Kind::BOUND_VARIABLE || av.find(v) != av.end())
         {
           return Node::null();
         }
