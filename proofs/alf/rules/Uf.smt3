@@ -69,7 +69,7 @@
     ((-> U U) Bool) Bool
     (
         ((mk_nary_cong_rhs f (and (= s1 s2) tail)) (f s2 (mk_nary_cong_rhs f tail)))
-        ((mk_nary_cong_lhs f true)                 (alf.emptylist f))
+        ((mk_nary_cong_rhs f true)                 (alf.emptylist f))
     )
 )
 
