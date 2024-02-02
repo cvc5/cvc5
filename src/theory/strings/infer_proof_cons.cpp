@@ -447,8 +447,7 @@ void InferProofCons::convert(InferenceId infer,
         }
         std::vector<Node> argsC;
         argsC.push_back(nodeIsRev);
-        Node conflict =
-            psb.tryStep(r, childrenC, argsC);
+        Node conflict = psb.tryStep(r, childrenC, argsC);
         if (conflict == conc)
         {
           useBuffer = true;
