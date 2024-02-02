@@ -48,6 +48,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
   switch (pfn->getRule())
   {
     // List of handled rules
+    case ProofRule::SCOPE:
     case ProofRule::REFL:
     case ProofRule::SYMM:
     case ProofRule::TRANS:
@@ -405,18 +406,16 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
 {
   // if we haven't yet allocated a proof id, do it now
   ProofRule r = pn->getRule();
-  if (r == ProofRule::ALF_RULE)
+  if (r == ProofRule::SCOPE)
   {
-    Assert(!pn->getArguments().empty());
-    Node rn = pn->getArguments()[0];
-    AlfRule ar = getAlfRule(rn);
-    if (ar == AlfRule::SCOPE)
+    const std::vector<Node>& args = pn->getArguments();
+    Assert(!args.empty());
+    for (const Node& a : args)
     {
-      Assert(pn->getArguments().size() == 3);
-      size_t aid = allocateAssumePushId(pn);
-      Node a = d_tproc.convert(pn->getArguments()[2]);
+      size_t aid = allocateAssumePushId(pn, a);
+      Node aa = d_tproc.convert(a);
       // print a push
-      out->printAssume(a, aid, true);
+      out->printAssume(aa, aid, true);
     }
   }
 }
@@ -475,7 +474,6 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   Assert(pn->getRule() != ProofRule::ASSUME);
   // if we have yet to allocate a proof id, do it now
   bool wasAlloc = false;
-  bool isPop = false;
   TNode conclusion = d_tproc.convert(pn->getResult());
   TNode conclusionPrint;
   // print conclusion only if option is set, or this is false
@@ -491,20 +489,10 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   {
     const std::vector<Node> aargs = pn->getArguments();
     Node rn = aargs[0];
-    AlfRule ar = getAlfRule(rn);
-    // if scope, do pop the assumption from passumeMap
-    if (ar == AlfRule::SCOPE)
+    // arguments are converted here
+    for (size_t i = 2, nargs = aargs.size(); i < nargs; i++)
     {
-      isPop = true;
-      // note that aargs[1] is not provided, it is consumed as an assumption
-    }
-    else
-    {
-      // arguments are converted here
-      for (size_t i = 2, nargs = aargs.size(); i < nargs; i++)
-      {
-        args.push_back(d_tproc.convert(aargs[i]));
-      }
+      args.push_back(d_tproc.convert(aargs[i]));
     }
   }
   else if (handled)
@@ -541,19 +529,31 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     premises.push_back(pid);
   }
   std::string rname = getRuleName(pn);
-  out->printStep(rname, conclusionPrint, id, premises, args, isPop);
+  if (r == ProofRule::SCOPE)
+  {
+    // if scope, do pop the assumption from passumeMap
+    for (const Node& a : args)
+    {
+      out->printStep(rname, Node::null(), id, premises, args, true);
+    }
+    out->printStep("process_scope", conclusionPrint, id, premises, args);
+  }
+  else
+  {
+    out->printStep(rname, conclusionPrint, id, premises, args);
+  }
 }
 
-size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn)
+size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
 {
-  std::map<const ProofNode*, size_t>::iterator it = d_ppushMap.find(pn);
+  std::pair<const ProofNode*, Node> key(pn, a);
+  std::map<std::pair<const ProofNode*, Node>, size_t>::iterator it = d_ppushMap.find(key);
   if (it != d_ppushMap.end())
   {
     return it->second;
   }
   Assert(pn->getRule() == ProofRule::ALF_RULE);
   // pn is a Alf SCOPE
-  Node a = pn->getArguments()[2];
   bool wasAlloc = false;
   size_t aid = allocateAssumeId(a, wasAlloc);
   // if we assigned an id to the assumption
@@ -563,7 +563,7 @@ size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn)
     d_pfIdCounter++;
     aid = d_pfIdCounter;
   }
-  d_ppushMap[pn] = aid;
+  d_ppushMap[key] = aid;
   return aid;
 }
 
