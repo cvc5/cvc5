@@ -1817,8 +1817,7 @@ void TheoryArithPrivate::outputRestart() {
       "restartVar",
       nm->booleanType(),
       "A boolean variable asserted to be true to force a restart");
-  d_containing.d_im.lemma(
-      restartVar, InferenceId::ARITH_DEMAND_RESTART);
+  d_containing.d_im.lemma(restartVar, InferenceId::ARITH_DEMAND_RESTART);
 }
 
 bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit){
