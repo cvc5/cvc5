@@ -42,7 +42,7 @@
 
 ; B is the formula to apply to
 ; E is a list of equalities
-(declare-rule alpha_equiv ((B Bool) (E @List))
-  :args (B E)
-  :conclusion (= B (substitute_eq_list E B))
+(declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
+  :args (B vs ts)
+  :conclusion (= B (substitute_list vs ts B))
 )

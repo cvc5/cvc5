@@ -19,11 +19,3 @@
     ((substitute_list @list.nil @list.nil F)       F)
   )
 )
-
-(program substitute_eq_list ((T Type) (U Type) (F U) (x T) (t T) (xs @List :list))
-  (@List U) U
-  (
-    ((substitute_eq_list (@list (= x t) xs) F)  (substitute_eq_list xs (substitute x t F)))
-    ((substitute_eq_list @list.nil F)           F)
-  )
-)
