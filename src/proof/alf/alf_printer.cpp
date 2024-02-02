@@ -531,12 +531,20 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   std::string rname = getRuleName(pn);
   if (r == ProofRule::SCOPE)
   {
+    size_t tmpId;
     // if scope, do pop the assumption from passumeMap
-    for (const Node& a : args)
+    for (size_t i=0, nargs=args.size(); i<nargs; i++)
     {
-      out->printStep(rname, Node::null(), id, premises, args, true);
+      // manually increment proof id counter and premises
+      tmpId = d_pfIdCounter;
+      d_pfIdCounter++;
+      out->printStep(rname, Node::null(), tmpId, premises, {}, true);
+      premises.clear();
+      premises.push_back(tmpId);
     }
-    out->printStep("process_scope", conclusionPrint, id, premises, args);
+    std::vector<Node> pargs;
+    pargs.push_back(d_tproc.convert(children[0]->getResult()));
+    out->printStep("process_scope", conclusionPrint, id, premises, pargs);
   }
   else
   {
