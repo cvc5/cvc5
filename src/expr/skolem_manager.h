@@ -165,6 +165,11 @@ enum class SkolemFunId
    */
   BAGS_MAP_PREIMAGE,
   /**
+   * Same as above, but used when f is injective. In this case this is not
+   * indexed, and the returned skolem has type E.
+   */
+  BAGS_MAP_PREIMAGE_INJECTIVE,
+  /**
    * A skolem variable for the size of the preimage of {y} that is unique per
    * terms (bag.map f A), y which might be an element in (bag.map f A). (see the
    * documentation for BAGS_MAP_PREIMAGE)

@@ -260,8 +260,11 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   const std::vector<Node>& assertions = pfn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pfn->getChildren()[0]->getChildren()[0].get();
 
-  // use a let binding if proofDagGlobal is true
-  LetBinding lbind(d_termLetPrefix);
+  // Use a let binding if proofDagGlobal is true.
+  // We can traverse binders due to the way we print global declare-var, since
+  // terms beneath binders will always have their variables in scope and hence
+  // can be printed in define commands.
+  LetBinding lbind(d_termLetPrefix, 2, true);
   LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
   AlfPrintChannelPre aletify(lbindUse);
   AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
@@ -436,31 +439,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       return;
     }
     break;
-    // several strings proof rules require adding the type as the first argument
-    case ProofRule::CONCAT_EQ:
-    case ProofRule::CONCAT_UNIFY:
-    case ProofRule::CONCAT_CSPLIT:
-    {
-      Assert(res.getKind() == Kind::EQUAL);
-      args.push_back(d_tproc.typeAsNode(res[0].getType()));
-    }
-    break;
-    case ProofRule::STRING_LENGTH_POS:
-      args.push_back(d_tproc.typeAsNode(pargs[0].getType()));
-      break;
-    case ProofRule::STRING_REDUCTION:
-    case ProofRule::STRING_EAGER_REDUCTION:
-    {
-      TypeNode towner = theory::strings::utils::getOwnerStringType(pargs[0]);
-      args.push_back(d_tproc.typeAsNode(towner));
-    }
-    break;
-    case ProofRule::INT_TIGHT_LB:
-    case ProofRule::INT_TIGHT_UB:
-      Assert(res.getNumChildren() == 2);
-      // provide the target constant explicitly
-      args.push_back(d_tproc.convert(res[1]));
-      break;
     case ProofRule::ARITH_TRICHOTOMY:
       // argument is redundant
       return;

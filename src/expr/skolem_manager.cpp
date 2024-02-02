@@ -84,6 +84,8 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::BAGS_FOLD_ELEMENTS: return "BAGS_FOLD_ELEMENTS";
     case SkolemFunId::BAGS_FOLD_UNION_DISJOINT: return "BAGS_FOLD_UNION_DISJOINT";
     case SkolemFunId::BAGS_MAP_PREIMAGE: return "BAGS_MAP_PREIMAGE";
+    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
+      return "BAGS_MAP_PREIMAGE_INJECTIVE";
     case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE: return "BAGS_MAP_PREIMAGE_SIZE";
     case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return "BAGS_MAP_PREIMAGE_INDEX";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
@@ -476,6 +478,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::STRINGS_OCCUR_LEN_RE:
     case SkolemFunId::STRINGS_STOI_RESULT:
     case SkolemFunId::STRINGS_ITOS_RESULT:
+    case SkolemFunId::BAGS_MAP_SUM:
     {
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, itype);
@@ -493,7 +496,9 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::STRINGS_DEQ_DIFF:
     case SkolemFunId::STRINGS_STOI_NON_DIGIT:
     case SkolemFunId::BAGS_FOLD_CARD:
-    case SkolemFunId::SETS_FOLD_CARD: return nm->integerType();
+    case SkolemFunId::SETS_FOLD_CARD:
+    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
+    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return nm->integerType();
     // string skolems
     case SkolemFunId::RE_FIRST_MATCH_PRE:
     case SkolemFunId::RE_FIRST_MATCH:
@@ -589,6 +594,18 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       Assert(cacheVals.size() == 3);
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, cacheVals[1].getType());
+    }
+    case SkolemFunId::BAGS_MAP_PREIMAGE:
+    {
+      TypeNode itype = nm->integerType();
+      Assert (cacheVals[0].getType().isFunction());
+      TypeNode retType = cacheVals[0].getType().getArgTypes()[0];
+      return nm->mkFunctionType(itype, retType);
+    }
+    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
+    {
+      Assert (cacheVals[0].getType().isFunction());
+      return cacheVals[0].getType().getArgTypes()[0];
     }
     default: break;
   }

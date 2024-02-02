@@ -196,6 +196,12 @@ def test_is_tuple(solver):
     Sort(solver).isTuple()
 
 
+def test_is_nullable(solver):
+    nullable_sort = solver.mkNullableSort(solver.getRealSort())
+    assert nullable_sort.isNullable()
+    Sort(solver).isNullable()
+
+
 def test_is_record(solver):
     rec_sort = solver.mkRecordSort(("asdf", solver.getRealSort()))
     assert rec_sort.isRecord()
@@ -561,6 +567,16 @@ def test_get_tuple_sorts(solver):
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getTupleSorts()
+
+
+def test_get_nullable_element_sort(solver):
+    nullableSort = solver.mkNullableSort(solver.getIntegerSort())
+    nullableSort.getNullableElementSort()
+    elementSort = nullableSort.getNullableElementSort()
+    assert elementSort == solver.getIntegerSort()
+    bvSort = solver.mkBitVectorSort(32)
+    with pytest.raises(RuntimeError):
+        bvSort.getNullableElementSort()
 
 
 def test_sort_compare(solver):
