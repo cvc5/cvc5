@@ -31,6 +31,10 @@
 (declare-const @k.BAGS_DEQ_DIFF (-> (! Type :var T :implicit) (Bag T) (Bag T) T))
 (declare-const @k.TABLES_GROUP_PART (-> (! Type :var T :implicit) (Bag (Bag T)) T (Bag T)))
 (declare-const @k.TABLES_GROUP_PART_ELEMENT (-> (! Type :var T :implicit) (Bag (Bag T)) (Bag T) T))
+(declare-const @k.BAGS_MAP_PREIMAGE (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U Int T))
+(declare-const @k.BAGS_MAP_SUM (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U Int Int))
+(declare-const @k.BAGS_MAP_PREIMAGE_SIZE (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U Int))
+(declare-const @k.BAGS_MAP_PREIMAGE_INJECTIVE (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U T))
 
 ;(declare-const bag.from_set (# x term (apply f_bag.from_set x)))
 ;(declare-const bag.to_set (# x term (apply f_bag.to_set x)))

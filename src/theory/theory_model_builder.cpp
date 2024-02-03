@@ -1085,6 +1085,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     {
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
                              << ", repSet = " << repSet << endl;
+      Trace("model-builder-debug") << tm->getEqualityEngine()->debugPrintEqc();
       Assert(false);
     }
   }
