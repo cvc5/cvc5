@@ -533,23 +533,30 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   {
     if (args.empty())
     {
-      // if there are no premises, any reference to this proof can just refer to
-      // body
+      // If there are no premises, any reference to this proof can just refer to
+      // body.
       d_pletMap[pn] = premises[0];
     }
     else
     {
+      // Assuming the body of the scope has identifier id_0, the following prints:
+      // (step-pop id_1 :rule scope :premises (id_0))
+      // ...
+      // (step-pop id_n :rule scope :premises (id_{n-1}))
+      // (step id :rule process_scope :premises (id_n) :args (C))
       size_t tmpId;
-      // if scope, do pop the assumption from passumeMap
       for (size_t i = 0, nargs = args.size(); i < nargs; i++)
       {
-        // manually increment proof id counter and premises
+        // Manually increment proof id counter and premises. Note they will only be
+        // used locally here to chain together the pops mentioned above.
         tmpId = d_pfIdCounter;
         d_pfIdCounter++;
         out->printStep(rname, Node::null(), tmpId, premises, {}, true);
+        // The current id is the premises of the next.
         premises.clear();
         premises.push_back(tmpId);
       }
+      // Finish with the process scope step.
       std::vector<Node> pargs;
       pargs.push_back(d_tproc.convert(children[0]->getResult()));
       out->printStep("process_scope", conclusionPrint, id, premises, pargs);
