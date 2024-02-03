@@ -533,7 +533,8 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   {
     if (args.empty())
     {
-      // if there are no premises, any reference to this proof can just refer to body
+      // if there are no premises, any reference to this proof can just refer to
+      // body
       d_pletMap[pn] = premises[0];
     }
     else
