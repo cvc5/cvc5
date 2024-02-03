@@ -1386,11 +1386,10 @@ std::vector<Node> SolverEngine::convertPreprocessedToInput(
   return core;
 }
 
-void SolverEngine::printProof(
-    std::ostream& out,
-    std::shared_ptr<ProofNode> fp,
-    modes::ProofFormat proofFormat,
-    const std::map<Node, std::string>& assertionNames)
+void SolverEngine::printProof(std::ostream& out,
+                              std::shared_ptr<ProofNode> fp,
+                              modes::ProofFormat proofFormat,
+                              const std::map<Node, std::string>& assertionNames)
 {
   // we print in the format based on the proof mode
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
