@@ -188,8 +188,8 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   if (isProofEnabled())
   {
     pf = d_pnm->mkNode(
-        ProofRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {eqC->getProofLiteral()});
-    pf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {eq});
+        ProofRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {}, eqC->getProofLiteral());
+    pf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {eq}, eq);
   }
 
   d_keepAlive.push_back(reason);
@@ -601,7 +601,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   std::shared_ptr<ProofNode> pf;
   if (isProofEnabled())
   {
-    pf = d_pnm->mkNode(ProofRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {eq});
+    pf = d_pnm->mkNode(ProofRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {}, eq);
   }
   d_keepAlive.push_back(eq);
   d_keepAlive.push_back(reason);
