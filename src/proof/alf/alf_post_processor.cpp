@@ -97,7 +97,6 @@ bool AlfProofPostprocessCallback::update(Node res,
 {
   Trace("alf-proof") << "...Alf pre-update " << res << " " << id << " "
                      << children << " / " << args << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
 
   switch (id)
   {

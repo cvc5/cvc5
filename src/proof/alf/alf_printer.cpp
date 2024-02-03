@@ -531,20 +531,28 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   std::string rname = getRuleName(pn);
   if (r == ProofRule::SCOPE)
   {
-    size_t tmpId;
-    // if scope, do pop the assumption from passumeMap
-    for (size_t i = 0, nargs = args.size(); i < nargs; i++)
+    if (args.empty())
     {
-      // manually increment proof id counter and premises
-      tmpId = d_pfIdCounter;
-      d_pfIdCounter++;
-      out->printStep(rname, Node::null(), tmpId, premises, {}, true);
-      premises.clear();
-      premises.push_back(tmpId);
+      // if there are no premises, any reference to this proof can just refer to body
+      d_pletMap[pn] = premises[0];
     }
-    std::vector<Node> pargs;
-    pargs.push_back(d_tproc.convert(children[0]->getResult()));
-    out->printStep("process_scope", conclusionPrint, id, premises, pargs);
+    else
+    {
+      size_t tmpId;
+      // if scope, do pop the assumption from passumeMap
+      for (size_t i = 0, nargs = args.size(); i < nargs; i++)
+      {
+        // manually increment proof id counter and premises
+        tmpId = d_pfIdCounter;
+        d_pfIdCounter++;
+        out->printStep(rname, Node::null(), tmpId, premises, {}, true);
+        premises.clear();
+        premises.push_back(tmpId);
+      }
+      std::vector<Node> pargs;
+      pargs.push_back(d_tproc.convert(children[0]->getResult()));
+      out->printStep("process_scope", conclusionPrint, id, premises, pargs);
+    }
   }
   else
   {
@@ -561,8 +569,6 @@ size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
   {
     return it->second;
   }
-  Assert(pn->getRule() == ProofRule::ALF_RULE);
-  // pn is a Alf SCOPE
   bool wasAlloc = false;
   size_t aid = allocateAssumeId(a, wasAlloc);
   // if we assigned an id to the assumption
