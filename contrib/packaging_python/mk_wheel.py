@@ -113,9 +113,13 @@ setup(
     version=get_cvc5_version(),
     long_description='Python bindings for cvc5',
     url='https://github.com/cvc5/cvc5',
-    license='BSD-3-Clause',
+    license = "BSD-3-Clause AND LGPL-3.0-or-later AND MIT",
+    # BSD-3-Clause      : cvc5 library and Python API
+    # LGPL-3.0-or-later : LibPoly and GMP
+    # MIT               : Pythonic API
     zip_safe=False,
     ext_modules=[CMakeExtension('cvc5')],
     cmdclass=dict(build_ext=CMakeBuild),
-    tests_require=['pytest']
+    tests_require=['pytest'],
+    license_files = ['COPYING', 'licenses/*'],
 )
