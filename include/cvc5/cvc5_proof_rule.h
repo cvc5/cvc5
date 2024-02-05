@@ -363,8 +363,9 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid D, P}{\bot}
    *
-   * where :math:`F_1 \dots F_n` correspond to the input clauses in the
-   * DIMACS file `D` and `P` is a DRAT proof. \endverbatim
+   * where :math:`F_1 \dots F_n` correspond to the clauses in the
+   * DIMACS file given by filename `D` and `P` is a filename of a file storing
+   * a DRAT proof. \endverbatim
    */
   EVALUE(DRAT_REFUTATION),
   /**

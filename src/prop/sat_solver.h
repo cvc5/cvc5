@@ -178,11 +178,12 @@ class CDCLTSatSolver : public SatSolver
 
   /**
    * Get proof, which is used if prop-proof-mode is SKETCH.
-   * Returns a rule r and additional arugments args such that the final proof
+   * Returns a rule r and additional arguments args such that the final proof
    * will be:
    *   (r :premises (c1..cn) :args (F args))
    * where F is a string corresponding to the file name of a DIMACs file
    * for an unsat core of derived clauses (input or theory lemma) c1...cn.
+   * The return type is the above rule and arguments packaged as a std::pair.
    */
   virtual std::pair<ProofRule, std::vector<Node>> getProofSketch() = 0;
 
