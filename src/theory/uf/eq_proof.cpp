@@ -1082,16 +1082,11 @@ Node EqProof::addToProof(CDProof* p,
     }
     // build constant application (f c1 ... cn) and equality (= (f c1 ... cn) c)
     Kind k = d_node[0].getKind();
-    ProofRule r = expr::getCongRule(k, d_node[0].getType());
     std::vector<Node> cargs;
-    if (r == ProofRule::CONG || r == ProofRule::NARY_CONG)
+    ProofRule r = expr::getCongRule(d_node[0], cargs);
+    if (d_node[0].getMetaKind() == kind::metakind::PARAMETERIZED)
     {
-      cargs.push_back(ProofRuleChecker::mkKindNode(k));
-      if (d_node[0].getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        constChildren.insert(constChildren.begin(), d_node[0].getOperator());
-        cargs.push_back(d_node[0].getOperator());
-      }
+      constChildren.insert(constChildren.begin(), d_node[0].getOperator());
     }
     Node constApp = NodeManager::currentNM()->mkNode(k, constChildren);
     Node constEquality = constApp.eqNode(d_node[1]);
@@ -1445,16 +1440,8 @@ Node EqProof::addToProof(CDProof* p,
     children.erase(children.begin());
     // Get node of the function operator over which congruence is being
     // applied.
-    ProofRule r = expr::getCongRule(k, d_node[0].getType());
     std::vector<Node> args;
-    if (r == ProofRule::CONG || r == ProofRule::NARY_CONG)
-    {
-      args.push_back(ProofRuleChecker::mkKindNode(k));
-      if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
-      {
-        args.push_back(conclusion[0].getOperator());
-      }
-    }
+    ProofRule r = expr::getCongRule(d_node[0], args);
     // Add congruence step
     Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
                           << conclusion << " with op " << args[0]

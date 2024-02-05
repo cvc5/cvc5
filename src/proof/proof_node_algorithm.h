@@ -101,11 +101,10 @@ bool containsSubproof(ProofNode* pn,
                       std::unordered_set<const ProofNode*>& visited);
 
 /**
- * @param k The kind of term
- * @param tn The type of term
- * @return the proof rule for congruence over the given kind and type
+ * @param n The term
+ * @return the proof rule for congruence over the given term
  */
-ProofRule getCongRule(Kind k, const TypeNode& tn);
+ProofRule getCongRule(const Node& n, std::vector<Node>& args);
 
 }  // namespace expr
 }  // namespace cvc5::internal
