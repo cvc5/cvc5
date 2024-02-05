@@ -262,7 +262,7 @@ ProofRule getCongRule(Kind k, const TypeNode& tn)
       // use HO_CONG, since HO_APPLY is encoded as native function application
       return ProofRule::HO_CONG;
     case Kind::APPLY_CONSTRUCTOR:
-      // tuples are n-ary, otherwse are fixed
+      // tuples are n-ary, others are fixed
       return tn.isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;
     default: break;
   }

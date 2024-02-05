@@ -162,31 +162,7 @@ bool AlfProofPostprocessCallback::update(Node res,
         addAlfStep(AlfRule::CONG, res, newChildren, {opc}, *cdp);
         return true;
       }
-      // Note that indexed operators are "collected" at the base of ordinary
-      // cong rule applications and don't need special treatment here.
-      Assert(!op.isNull());
-      // Are we doing congruence of an n-ary operator? If so, notice that op
-      // is a binary operator and we must apply congruence in a special way.
-      // Note we use the first block of code if we have more than 2 children.
-      // special case: constructors and apply uf are not treated as n-ary; these
-      // symbols have function types that expect n arguments.
-      bool isNary = false;
-      Node nullt;
-      if (NodeManager::isNAryKind(k))
-      {
-        nullt = d_tproc.getNullTerminator(k, res[0].getType());
-        isNary = !nullt.isNull();
-      }
-      if (isNary)
-      {
-        // use n-ary rule
-        addAlfStep(AlfRule::NARY_CONG, res, children, {op}, *cdp);
-      }
-      else
-      {
-        // use ordinary rule
-        addAlfStep(AlfRule::CONG, res, children, {op}, *cdp);
-      }
+      return false;
     }
     break;
     case ProofRule::CONCAT_CONFLICT:
