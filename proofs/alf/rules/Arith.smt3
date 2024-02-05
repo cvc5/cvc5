@@ -118,33 +118,33 @@
   :conclusion (mk_arith_trichotomy (arith_normalize_lit (not F1)) (arith_normalize_lit (not F2)))
 )
 
-; Returns true if c is a rational between zero and one, inclusive
-(program between_zero_and_one ((R Type) (c R))
-  (R) Bool
+; Returns the greatest integer less than (integer or real) c.
+(program greatestIntLessThan ((R Type) (c R))
+  (R) Int
   (
-    ((between_zero_and_one c)
-      (alf.ite (alf.is_neg c)
-        false
-        (alf.ite (alf.is_eq c 1)
-          true
-          (alf.is_neg (alf.add c (alf.neg 1.0))))))
+    ((greatestIntLessThan c) (let ((ci (alf.to_z c)))
+                               (alf.ite (alf.is_eq (alf.to_q c) (alf.to_q ci))
+                                 (alf.add -1 ci)
+                                 ci)))
   )
 )
 
-; Returns true if c is the greatest integer less than (integer or real) constant
-; t. We compute this via conditions 0 <= c-t ^ (c-t)-1 <= 0.
-(declare-rule int_tight_ub ((s Int) (t Real) (c Int))
+; Implements ProofRule::INT_TIGHT_UB based on the above method.
+(declare-rule int_tight_ub ((R Type) (s Int) (t R))
   :premises ((< s t))
-  :args (c)
-  :requires (((between_zero_and_one (alf.add t (alf.neg c))) true))
-  :conclusion (<= s c)
+  :conclusion (<= s (greatestIntLessThan t))
 )
 
-; Returns true if c2 is the least integer greater than c1. We compute this
-; via conditions 0 <= c1-c2 ^ (c1-c2)-1 <= 0.
-(declare-rule int_tight_lb ((s Int) (t Real) (c Int))
+; Returns the least integer greater than (integer or real) c.
+(program leastIntGreaterThan ((R Type) (c R))
+  (R) Int
+  (
+    ((leastIntGreaterThan c) (alf.add 1 (alf.to_z c)))
+  )
+)
+
+; Implements ProofRule::INT_TIGHT_LB based on the above method.
+(declare-rule int_tight_lb ((R Type) (s Int) (t R))
   :premises ((> s t))
-  :args (c)
-  :requires (((between_zero_and_one (alf.add c (alf.neg t))) true))
-  :conclusion (>= s c)
+  :conclusion (>= s (leastIntGreaterThan t))
 )

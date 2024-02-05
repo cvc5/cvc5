@@ -1,0 +1,12 @@
+(set-logic ALL)
+(set-info :status sat)
+(set-option :produce-models true)
+(declare-fun a () (Nullable Int))
+(declare-fun b () (Nullable Int))
+(declare-fun c () (Nullable Int))
+(declare-fun d () (Nullable Int))
+(declare-fun e () (Nullable Int))
+(declare-fun f () (Nullable Int))
+(assert (distinct a b c d e f))
+
+(check-sat)

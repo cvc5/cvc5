@@ -234,22 +234,7 @@ bool AlfProofPostprocessCallback::update(Node res,
       Assert(children[0].getKind() == Kind::EQUAL);
       Assert(children[0][0].getType().isSequence());
       // must use the sequences version of the rule
-      Node falsen = nm->mkConst(false);
-      std::vector<Node> newArgs = args;
-      Node tn = d_tproc.typeAsNode(children[0][0].getType());
-      newArgs.push_back(tn);
-      addAlfStep(AlfRule::CONCAT_CONFLICT_DEQ, res, children, newArgs, *cdp);
-    }
-    break;
-    case ProofRule::SKOLEM_INTRO:
-    {
-      Node t = SkolemManager::getUnpurifiedForm(args[0]);
-      if (t.getKind() != Kind::WITNESS)
-      {
-        // no change necessary
-        return false;
-      }
-      addAlfStep(AlfRule::SKOLEM_WITNESS_INTRO, res, {}, {t}, *cdp);
+      addAlfStep(AlfRule::CONCAT_CONFLICT_DEQ, res, children, args, *cdp);
     }
     break;
     default: return false;
