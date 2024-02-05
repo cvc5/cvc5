@@ -1082,14 +1082,17 @@ Node EqProof::addToProof(CDProof* p,
     }
     // build constant application (f c1 ... cn) and equality (= (f c1 ... cn) c)
     Kind k = d_node[0].getKind();
-    std::vector<Node> cargs;
-    cargs.push_back(ProofRuleChecker::mkKindNode(k));
-    if (d_node[0].getMetaKind() == kind::metakind::PARAMETERIZED)
-    {
-      constChildren.insert(constChildren.begin(), d_node[0].getOperator());
-      cargs.push_back(d_node[0].getOperator());
-    }
     ProofRule r = expr::getCongRule(k, d_node[0].getType());
+    std::vector<Node> cargs;
+    if (r==ProofRule::CONG || r==ProofRule::NARY_CONG)
+    {
+      cargs.push_back(ProofRuleChecker::mkKindNode(k));
+      if (d_node[0].getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        constChildren.insert(constChildren.begin(), d_node[0].getOperator());
+        cargs.push_back(d_node[0].getOperator());
+      }
+    }
     Node constApp = NodeManager::currentNM()->mkNode(k, constChildren);
     Node constEquality = constApp.eqNode(d_node[1]);
     Trace("eqproof-conv") << "EqProof::addToProof: adding "

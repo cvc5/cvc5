@@ -489,18 +489,21 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           ProofRule congRule = expr::getCongRule(ck, cur.getType());
           std::vector<Node> pfChildren;
           std::vector<Node> pfArgs;
-          if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
+          if (congRule==ProofRule::CONG || congRule==ProofRule::NARY_CONG)
           {
-            // use HO_CONG if the operator changed
-            congRule = ProofRule::HO_CONG;
-            pfChildren.push_back(cur.getOperator().eqNode(children[0]));
-          }
-          else
-          {
-            pfArgs.push_back(ProofRuleChecker::mkKindNode(ck));
-            if (kind::metaKindOf(ck) == kind::metakind::PARAMETERIZED)
+            if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
             {
-              pfArgs.push_back(cur.getOperator());
+              // use HO_CONG if the operator changed
+              congRule = ProofRule::HO_CONG;
+              pfChildren.push_back(cur.getOperator().eqNode(children[0]));
+            }
+            else
+            {
+              pfArgs.push_back(ProofRuleChecker::mkKindNode(ck));
+              if (kind::metaKindOf(ck) == kind::metakind::PARAMETERIZED)
+              {
+                pfArgs.push_back(cur.getOperator());
+              }
             }
           }
           for (size_t i = 0, size = cur.getNumChildren(); i < size; i++)
