@@ -440,6 +440,13 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       return;
     }
     break;
+    case ProofRule::NARY_CONG:
+    {
+      Node op = d_tproc.getOperatorOfTerm(res[0]);
+      args.push_back(d_tproc.convert(op));
+      return;
+    }
+    break;
     case ProofRule::INSTANTIATE:
     {
       // ignore arguments past the term vector, collect them into an sexpr
