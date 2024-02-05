@@ -15,8 +15,8 @@
 
 #include "proof/proof_node_algorithm.h"
 
-#include "proof/proof_rule_checker.h"
 #include "proof/proof_node.h"
+#include "proof/proof_rule_checker.h"
 
 namespace cvc5::internal {
 namespace expr {
@@ -268,10 +268,11 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       // tuples are n-ary, others are fixed
       r = n.getType().isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;
       break;
-    default: 
+    default:
       if (NodeManager::isNAryKind(k))
       {
-        // n-ary operators that are not handled as exceptions above use NARY_CONG
+        // n-ary operators that are not handled as exceptions above use
+        // NARY_CONG
         r = ProofRule::NARY_CONG;
       }
       break;
