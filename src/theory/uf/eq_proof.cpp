@@ -1445,17 +1445,21 @@ Node EqProof::addToProof(CDProof* p,
     children.erase(children.begin());
     // Get node of the function operator over which congruence is being
     // applied.
+    ProofRule r = expr::getCongRule(k, d_node[0].getType());
     std::vector<Node> args;
-    args.push_back(ProofRuleChecker::mkKindNode(k));
-    if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+    if (r==ProofRule::CONG || r==ProofRule::NARY_CONG)
     {
-      args.push_back(conclusion[0].getOperator());
+      args.push_back(ProofRuleChecker::mkKindNode(k));
+      if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+      {
+        args.push_back(conclusion[0].getOperator());
+      }
     }
     // Add congruence step
     Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
                           << conclusion << " with op " << args[0]
                           << " and children " << children << "\n";
-    p->addStep(conclusion, ProofRule::CONG, children, args, true);
+    p->addStep(conclusion, r, children, args, true);
   }
   // higher-order case
   else

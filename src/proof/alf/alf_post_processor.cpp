@@ -135,12 +135,6 @@ bool AlfProofPostprocessCallback::update(Node res,
                          << res[0].getKind() << std::endl;
 
       Kind k = res[0].getKind();
-      if (k == Kind::HO_APPLY)
-      {
-        // HO_APPLY congruence is a single application of HO_CONG
-        cdp->addStep(res, ProofRule::HO_CONG, children, {});
-        return true;
-      }
       // NOTE: as optimization can collect REFL steps. This would subsume
       // the ordinary closure handling
 

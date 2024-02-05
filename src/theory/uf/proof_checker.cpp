@@ -103,7 +103,8 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    if (k == Kind::UNDEFINED_KIND)
+    // cannot use HO_APPLY
+    if (k == Kind::UNDEFINED_KIND || k == Kind::HO_APPLY)
     {
       return Node::null();
     }

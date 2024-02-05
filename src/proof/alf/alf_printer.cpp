@@ -440,6 +440,7 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       return;
     }
     break;
+    case ProofRule::CONG:
     case ProofRule::NARY_CONG:
     {
       Node op = d_tproc.getOperatorOfTerm(res[0]);
