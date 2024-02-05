@@ -35,7 +35,7 @@ class BaseAlfNodeConverter : public NodeConverter
 {
  public:
   /**
-   * Returns the operator of node n. 
+   * Returns the operator of node n.
    */
   virtual Node getOperatorOfTerm(Node n) = 0;
   /**

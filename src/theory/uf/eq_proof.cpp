@@ -18,9 +18,9 @@
 #include "base/configuration.h"
 #include "options/uf_options.h"
 #include "proof/proof.h"
-#include "proof/proof_node_manager.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5::internal {
 namespace theory {

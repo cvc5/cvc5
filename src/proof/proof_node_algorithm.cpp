@@ -264,8 +264,7 @@ ProofRule getCongRule(Kind k, const TypeNode& tn)
     case Kind::APPLY_CONSTRUCTOR:
       // tuples are n-ary, otherwse are fixed
       return tn.isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;
-    default:
-      break;
+    default: break;
   }
   if (NodeManager::isNAryKind(k))
   {
