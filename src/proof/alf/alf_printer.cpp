@@ -438,9 +438,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       return;
     }
     break;
-    case ProofRule::ARITH_TRICHOTOMY:
-      // argument is redundant
-      return;
     case ProofRule::INSTANTIATE:
     {
       // ignore arguments past the term vector, collect them into an sexpr

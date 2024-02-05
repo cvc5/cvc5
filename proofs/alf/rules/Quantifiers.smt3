@@ -34,7 +34,7 @@
       t
       (
         ; special case for witness
-        ((skolem (@k.QUANTIFIERS_SKOLEMIZE (exists (@list x) F) x)) (= t (witness x F)))
+        ((skolem (@k.QUANTIFIERS_SKOLEMIZE (exists (@list x) F) x)) (= t (witness (@list x) F)))
         ((skolem x)                                                 (= t x))
       )
    )

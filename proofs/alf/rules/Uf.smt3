@@ -57,20 +57,27 @@
 )
 
 ; N-ary congruence
-; note that arguments are provided in reverse order to avoid intermediate node construction
-(program mk_nary_cong ((U Type) (f (-> U U)) (t1 U) (t2 U) (s1 U) (s2 U) (tail Bool :list))
-    ((-> U U) U U Bool) Bool
+; We use two side conditions for computing each side of the returned equality.
+; This avoids intermediate node construction.
+(program mk_nary_cong_lhs ((U Type) (f (-> U U)) (s1 U) (s2 U) (tail Bool :list))
+    ((-> U U) Bool) Bool
     (
-        ((mk_nary_cong f t1 t2 (and (= s1 s2) tail)) (mk_nary_cong f (f s1 t1) (f s2 t2) tail))
-        ((mk_nary_cong f t1 t2 true)                 (= t1 t2))
-        ((mk_nary_cong f t1 t2 (= s1 s2))            (= (f s1 t1) (f s2 t2)))
+        ((mk_nary_cong_lhs f (and (= s1 s2) tail)) (f s1 (mk_nary_cong_lhs f tail)))
+        ((mk_nary_cong_lhs f true)                 (alf.emptylist f))
+    )
+)
+(program mk_nary_cong_rhs ((U Type) (f (-> U U)) (s1 U) (s2 U) (tail Bool :list))
+    ((-> U U) Bool) Bool
+    (
+        ((mk_nary_cong_rhs f (and (= s1 s2) tail)) (f s2 (mk_nary_cong_rhs f tail)))
+        ((mk_nary_cong_rhs f true)                 (alf.emptylist f))
     )
 )
 
 (declare-rule nary_cong ((U Type) (E Bool) (f (-> U U)) (nil U))
     :premise-list E and
-    :args (f nil)
-    :conclusion (mk_nary_cong f nil nil E)
+    :args (f)
+    :conclusion (= (mk_nary_cong_lhs f E) (mk_nary_cong_rhs f E))
 )
 
 ; TRUE_INTRO
