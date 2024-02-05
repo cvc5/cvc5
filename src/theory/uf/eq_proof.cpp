@@ -1443,9 +1443,15 @@ Node EqProof::addToProof(CDProof* p,
     std::vector<Node> args;
     ProofRule r = expr::getCongRule(d_node[0], args);
     // Add congruence step
-    Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
-                          << conclusion << " with op " << args[0]
-                          << " and children " << children << "\n";
+    if (TraceIsOn("eqproof-conv"))
+    {
+      Trace("eqproof-conv") << "EqProof::addToProof: build cong step of " << conclusion;
+      if (!args.empty())
+      {
+        Trace("eqproof-conv") << " with op " << args[0];
+      }
+      Trace("eqproof-conv")<< " and children " << children << "\n";
+    }
     p->addStep(conclusion, r, children, args, true);
   }
   // higher-order case
