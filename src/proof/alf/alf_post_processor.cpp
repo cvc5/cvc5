@@ -208,13 +208,8 @@ bool AlfProofPostprocessCallback::update(Node res,
       }
       if (isNary)
       {
-        std::vector<Node> rchildren = children;
-        std::reverse(rchildren.begin(), rchildren.end());
-        std::vector<Node> cargs;
-        cargs.push_back(op);
-        cargs.push_back(nullt);
-        // use n-ary rule, must reverse children
-        addAlfStep(AlfRule::NARY_CONG, res, rchildren, cargs, *cdp);
+        // use n-ary rule
+        addAlfStep(AlfRule::NARY_CONG, res, children, {op}, *cdp);
       }
       else
       {
