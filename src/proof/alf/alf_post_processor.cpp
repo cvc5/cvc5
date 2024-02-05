@@ -148,30 +148,7 @@ bool AlfProofPostprocessCallback::update(Node res,
       Node op = d_tproc.getOperatorOfTerm(res[0]);
       Trace("alf-proof") << "Processing cong for op " << op << " "
                          << op.getType() << std::endl;
-      if (k == Kind::LAMBDA || k == Kind::WITNESS)
-      {
-        Assert(res[1].getKind() == k && res[0][0] == res[1][0]);
-        Node lam1 = d_tproc.convert(res[0]);
-        Node lam2 = d_tproc.convert(res[1]);
-        for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
-        {
-          Assert(lam1.getNumChildren() == 2 && lam2.getNumChildren() == 2);
-          Node varEq = lam1[0].eqNode(lam1[0]);
-          cdp->addStep(varEq, ProofRule::REFL, {}, {lam1[0]});
-          Node bodyEq = i + 1 == nvars ? children[1] : lam1[1].eqNode(lam2[1]);
-          Node lamEq = lam1.eqNode(lam2);
-          Node conclusion = i == 0 ? res : lamEq;
-          addAlfStep(AlfRule::CONG,
-                     conclusion,
-                     {varEq, bodyEq},
-                     {lam1.getOperator()},
-                     *cdp);
-          lam1 = lam1[1];
-          lam2 = lam2[1];
-        }
-        return true;
-      }
-      else if (res[0].isClosure())
+      if (res[0].isClosure())
       {
         Assert(children.size() >= 2);
         // variable lists should be equal
