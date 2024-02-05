@@ -990,10 +990,28 @@ enum ENUM(ProofRule) : uint32_t
    * where :math:`k` is the application kind. Notice that :math:`f` must be
    * provided iff :math:`k` is a parameterized kind, e.g. ``APPLY_UF``. The
    * actual node for :math:`k` is constructible via
-   * ``ProofRuleChecker::mkKindNode``.
+   * ``ProofRuleChecker::mkKindNode``. This rule is used for kinds that
+   * do not have varaidic arity, such as ``Kind::ITE``, ``Kind::EQUAL``, and
+   * so on. It is also used for ``Kind::APPLY_UF`.
    * \endverbatim
    */
   EVALUE(CONG),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- N-ary Congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k}{k(t_1,\dots, t_n) =
+   *   k(f?)(s_1,\dots, s_n)}
+   *
+   * where :math:`k` is the application kind. The actual node for :math:`k` is
+   * constructible via ``ProofRuleChecker::mkKindNode``. This rule is used for
+   * kinds that have variadic arity, such as `Kind::OR`, `Kind::AND`,
+   * `Kind::PLUS` and so on.
+   * \endverbatim
+   */
+  EVALUE(NARY_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**

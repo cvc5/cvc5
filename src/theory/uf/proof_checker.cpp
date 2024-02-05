@@ -30,6 +30,7 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SYMM, this);
   pc->registerChecker(ProofRule::TRANS, this);
   pc->registerChecker(ProofRule::CONG, this);
+  pc->registerChecker(ProofRule::NARY_CONG, this);
   pc->registerChecker(ProofRule::TRUE_INTRO, this);
   pc->registerChecker(ProofRule::TRUE_ELIM, this);
   pc->registerChecker(ProofRule::FALSE_INTRO, this);
@@ -89,7 +90,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     }
     return first.eqNode(curr);
   }
-  else if (id == ProofRule::CONG)
+  else if (id == ProofRule::CONG || id == ProofRule::NARY_CONG)
   {
     Assert(children.size() > 0);
     Assert(args.size() >= 1 && args.size() <= 2);
