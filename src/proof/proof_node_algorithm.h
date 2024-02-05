@@ -102,7 +102,7 @@ bool containsSubproof(ProofNode* pn,
 
 /**
  * Returns the ProofRule to do congruence for a given term.
- * 
+ *
  * @param n The term, i.e. the lhs or rhs of the conclusion of the cong step.
  * @param args The arguments to the application of cong for the given term
  * @return the proof rule for congruence over the given term, which is one
