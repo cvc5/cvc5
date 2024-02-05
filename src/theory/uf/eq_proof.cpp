@@ -1447,7 +1447,7 @@ Node EqProof::addToProof(CDProof* p,
     // applied.
     ProofRule r = expr::getCongRule(k, d_node[0].getType());
     std::vector<Node> args;
-    if (r==ProofRule::CONG || r==ProofRule::NARY_CONG)
+    if (r == ProofRule::CONG || r == ProofRule::NARY_CONG)
     {
       args.push_back(ProofRuleChecker::mkKindNode(k));
       if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
