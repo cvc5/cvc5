@@ -36,10 +36,6 @@ enum class AlfRule : uint32_t
   CONG,
   // n-ary congruence
   NARY_CONG,
-  // scope
-  SCOPE,
-  // process_scope
-  PROCESS_SCOPE,
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED
 };

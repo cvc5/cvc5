@@ -1752,7 +1752,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Trichotomy of the reals**
    *
    * .. math::
-   *   \inferrule{A, B \mid C}{C}
+   *   \inferrule{A, B \mid -}{C}
    *
    * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some order.
    * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.
