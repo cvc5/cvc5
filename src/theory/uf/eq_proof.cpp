@@ -1445,12 +1445,13 @@ Node EqProof::addToProof(CDProof* p,
     // Add congruence step
     if (TraceIsOn("eqproof-conv"))
     {
-      Trace("eqproof-conv") << "EqProof::addToProof: build cong step of " << conclusion;
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: build cong step of " << conclusion;
       if (!args.empty())
       {
         Trace("eqproof-conv") << " with op " << args[0];
       }
-      Trace("eqproof-conv")<< " and children " << children << "\n";
+      Trace("eqproof-conv") << " and children " << children << "\n";
     }
     p->addStep(conclusion, r, children, args, true);
   }
