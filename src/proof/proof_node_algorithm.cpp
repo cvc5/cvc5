@@ -262,7 +262,8 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       // takes arbitrary but we use CONG
       break;
     case Kind::HO_APPLY:
-      // use HO_CONG, since HO_APPLY is encoded as native function application
+      // Use HO_CONG, since HO_APPLY is encoded as native function application.
+      // This requires no arguments so we return.
       return ProofRule::HO_CONG;
     case Kind::APPLY_CONSTRUCTOR:
       // tuples are n-ary, others are fixed
@@ -277,7 +278,7 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       }
       break;
   }
-  // add arguments
+  // Add the arguments
   args.push_back(ProofRuleChecker::mkKindNode(k));
   if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
   {
