@@ -486,7 +486,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           ret = nm->mkNode(ck, children);
           rewritten[curHash] = ret;
           // congruence to show (cur = ret)
-          ProofRule congRule = ProofRule::CONG;
+          ProofRule congRule = expr::getCongRule(ck, cur.getType());
           std::vector<Node> pfChildren;
           std::vector<Node> pfArgs;
           if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())

@@ -20,6 +20,7 @@
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -1088,6 +1089,7 @@ Node EqProof::addToProof(CDProof* p,
       constChildren.insert(constChildren.begin(), d_node[0].getOperator());
       cargs.push_back(d_node[0].getOperator());
     }
+    ProofRule r = expr::getCongRule(k, d_node[0].getType());
     Node constApp = NodeManager::currentNM()->mkNode(k, constChildren);
     Node constEquality = constApp.eqNode(d_node[1]);
     Trace("eqproof-conv") << "EqProof::addToProof: adding "
@@ -1097,10 +1099,10 @@ Node EqProof::addToProof(CDProof* p,
         constEquality, ProofRule::MACRO_SR_PRED_INTRO, {}, {constEquality});
     // build congruence conclusion (= (f t1 ... tn) (f c1 ... cn))
     Node congConclusion = d_node[0].eqNode(constApp);
-    Trace("eqproof-conv") << "EqProof::addToProof: adding  " << ProofRule::CONG
+    Trace("eqproof-conv") << "EqProof::addToProof: adding  " << r
                           << " step for " << congConclusion << " from "
                           << subChildren << "\n";
-    p->addStep(congConclusion, ProofRule::CONG, {subChildren}, cargs, true);
+    p->addStep(congConclusion, r, {subChildren}, cargs, true);
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << ProofRule::TRANS
                           << " step for original conclusion " << d_node << "\n";
     std::vector<Node> transitivityChildren{congConclusion, constEquality};

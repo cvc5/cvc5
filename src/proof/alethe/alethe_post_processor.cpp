@@ -1084,6 +1084,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
     // s1 ... sn))
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
       if (res[0].isClosure())
       {

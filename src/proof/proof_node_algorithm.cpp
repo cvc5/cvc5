@@ -246,5 +246,34 @@ bool containsSubproof(ProofNode* pn,
   return false;
 }
 
+ProofRule getCongRule(Kind k, const TypeNode& tn)
+{
+  switch (k)
+  {
+    case Kind::APPLY_UF:
+    case Kind::DISTINCT:
+    case Kind::FLOATINGPOINT_LT:
+    case Kind::FLOATINGPOINT_LEQ:
+    case Kind::FLOATINGPOINT_GT:
+    case Kind::FLOATINGPOINT_GEQ:
+      // takes arbitrary but we use CONG
+      return ProofRule::CONG;
+    case Kind::HO_APPLY:
+      // use HO_CONG, since HO_APPLY is encoded as native function application
+      return ProofRule::HO_CONG;
+    case Kind::APPLY_CONSTRUCTOR:
+      // tuples are n-ary, otherwse are fixed
+      return tn.isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;
+    default:
+      break;
+  }
+  if (NodeManager::isNAryKind(k))
+  {
+    // n-ary operators that are not handled as exceptions above use NARY_CONG
+    return ProofRule::NARY_CONG;
+  }
+  return ProofRule::CONG;
+}
+
 }  // namespace expr
 }  // namespace cvc5::internal

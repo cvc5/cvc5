@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "cvc5/cvc5_proof_rule.h"
 
 namespace cvc5::internal {
 
@@ -98,6 +99,11 @@ bool containsSubproof(ProofNode* pn, ProofNode* pnc);
 bool containsSubproof(ProofNode* pn,
                       ProofNode* pnc,
                       std::unordered_set<const ProofNode*>& visited);
+
+/**
+ * @return the proof rule for congruence over the given kind and type
+ */
+ProofRule getCongRule(Kind k, const TypeNode& tn);
 
 }  // namespace expr
 }  // namespace cvc5::internal

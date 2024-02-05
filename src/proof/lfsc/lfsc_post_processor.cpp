@@ -189,6 +189,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     }
     break;
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
       Assert(res.getKind() == Kind::EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
