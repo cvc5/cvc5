@@ -489,7 +489,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           ProofRule congRule = expr::getCongRule(ck, cur.getType());
           std::vector<Node> pfChildren;
           std::vector<Node> pfArgs;
-          if (congRule==ProofRule::CONG || congRule==ProofRule::NARY_CONG)
+          if (congRule == ProofRule::CONG || congRule == ProofRule::NARY_CONG)
           {
             if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
             {
