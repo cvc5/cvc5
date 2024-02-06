@@ -161,34 +161,18 @@ Node AlfNodeConverter::postConvert(Node n)
     ss << (r.sgn() == -1 ? "-" : "") << num << "/" << den;
     return mkInternalSymbol(ss.str(), tn);
   }
-  else if (k == Kind::LAMBDA || k == Kind::WITNESS)
-  {
-    // e.g. (lambda ((x1 T1) ... (xn Tk)) P) is
-    // (lambda x1 (lambda x2 ... (lambda xn P)))
-    Node ret = n[1];
-    TypeNode tnr = ret.getType();
-    std::stringstream opName;
-    opName << printer::smt2::Smt2Printer::smtKindString(k);
-    for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
-    {
-      size_t ii = (nchild - 1) - i;
-      Node v = convert(n[0][ii]);
-      // use the body return type for all terms except the last one.
-      tnr = ii == 0 ? n.getType() : nm->mkFunctionType({v.getType()}, tnr);
-      ret = mkInternalApp(opName.str(), {v, ret}, tnr);
-    }
-    return ret;
-  }
   else if (n.isClosure())
   {
     // e.g. (forall ((x1 T1) ... (xn Tk)) P) is
-    // (forall (@list x1 ... xn) P)
+    // (forall ((<name_1> T1) ... (<name_n> Tk)) P) for updated (disambiguated)
+    // variable names.
     std::vector<Node> vars;
     for (const Node& v : n[0])
     {
       vars.push_back(convert(v));
     }
-    Node vl = mkList(vars);
+    // use a bound variable list with the updated variables.
+    Node vl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
     // notice that intentionally we drop annotations here
     std::vector<Node> args;
     args.push_back(vl);

@@ -35,6 +35,9 @@ namespace attr {
   struct TupleDatatypeTag
   {
   };
+  struct NullableDatatypeTag
+  {
+  };
   struct DatatypeIndexTag
   {
   };
@@ -55,6 +58,10 @@ using UnresolvedDatatypeAttr =
 /** Mapping tuples to their datatype type encoding */
 using TupleDatatypeAttr =
     expr::Attribute<expr::attr::TupleDatatypeTag, TypeNode>;
+
+/** Mapping nullables to their datatype type encoding */
+using NullableDatatypeAttr =
+    expr::Attribute<expr::attr::NullableDatatypeTag, TypeNode>;
 
 /** Mapping datatype types to the index of their datatype in node manager */
 using DatatypeIndexAttr = Attribute<attr::DatatypeIndexTag, uint64_t>;
