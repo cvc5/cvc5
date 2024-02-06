@@ -110,17 +110,13 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     }
     Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k
                         << ", metakind=" << kind::metaKindOf(k) << std::endl;
-    if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+    if (args.size()==2)
     {
-      if (args.size() <= 1)
-      {
-        return Node::null();
-      }
       // parameterized kinds require the operator
       lchildren.push_back(args[1]);
       rchildren.push_back(args[1]);
     }
-    else if (args.size() > 1)
+    else if (args.size() > 2)
     {
       return Node::null();
     }
@@ -181,7 +177,10 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   }
   if (id == ProofRule::HO_CONG)
   {
-    Assert(children.size() > 0);
+    if (children.size() != 2)
+    {
+      return Node::null();
+    }
     Assert(args.empty());
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
@@ -196,8 +195,8 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       rchildren.push_back(eqp[1]);
     }
     NodeManager* nm = NodeManager::currentNM();
-    Node l = nm->mkNode(Kind::APPLY_UF, lchildren);
-    Node r = nm->mkNode(Kind::APPLY_UF, rchildren);
+    Node l = nm->mkNode(Kind::HO_APPLY, lchildren);
+    Node r = nm->mkNode(Kind::HO_APPLY, rchildren);
     return l.eqNode(r);
   }
   else if (id == ProofRule::HO_APP_ENCODE)

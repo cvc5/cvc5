@@ -488,16 +488,11 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           // congruence to show (cur = ret)
           std::vector<Node> pfChildren;
           std::vector<Node> pfArgs;
-          ProofRule congRule;
+          ProofRule congRule = expr::getCongRule(cur, pfArgs);
           if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
           {
-            // use HO_CONG if the operator changed
-            congRule = ProofRule::HO_CONG;
+            pfArgs.pop_back();
             pfChildren.push_back(cur.getOperator().eqNode(children[0]));
-          }
-          else
-          {
-            congRule = expr::getCongRule(cur, pfArgs);
           }
           for (size_t i = 0, size = cur.getNumChildren(); i < size; i++)
           {
