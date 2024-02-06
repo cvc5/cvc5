@@ -26,6 +26,10 @@
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -502,7 +506,72 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
       Trace("mbqi-model-exp") << "...M_subsolver(" << q[0][i] << ") == " << mvs[i] << std::endl;
     }
   }
-  /** TODO: update mvs to impact instantiation */
+  NodeManager * nm = NodeManager::currentNM();
+  Node queryCurr = query;
+  for (size_t i=0, msize = mvs.size(); i<msize; i++)
+  {
+    Node v = vars[i];
+    Node m = mvs[i];
+    TypeNode tn = m.getType();
+    Node lamVars;
+    TypeNode retType = tn;
+    std::vector<Node> trules;
+    if (tn.isFunction())
+    {
+      std::vector<TypeNode> argTypes = tn.getArgTypes();
+      retType = tn.getRangeType();
+      std::vector<Node> vs;
+      for (const TypeNode& tnc : argTypes)
+      {
+        Node vc = nm->mkBoundVar(tnc);
+        vs.push_back(vc);
+      }
+      lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
+      trules = vs;
+    }
+    SygusGrammarCons sgc;
+    Node bvl;
+    TypeNode tng = sgc.mkDefaultSygusType(d_env, retType, bvl, trules);
+    Node e = nm->getSkolemManager()->mkDummySkolem("k", tng);
+    if (TraceIsOn("mbqi-model-enum"))
+    {
+      Trace("mbqi-model-enum") << "Enumerate terms for " << retType;
+      if (lamVars.isNull())
+      {
+        Trace("mbqi-model-enum") << ", variable list " << lamVars;  
+      }
+      Trace("mbqi-model-enum") << std::endl;
+      Trace("mbqi-model-enum") << "Based on grammar:" << std::endl;
+      Trace("mbqi-model-enum") << printer::smt2::Smt2Printer::sygusGrammarString(tng) << std::endl;
+    }
+    SygusEnumerator senum(d_env);
+    senum.initialize(e);
+    do
+    {
+      Node ret = senum.getCurrent();
+      if (!ret.isNull())
+      {
+        ret = datatypes::utils::sygusToBuiltin(ret);
+        if (!lamVars.isNull())
+        {
+          ret = nm->mkNode(Kind::LAMBDA, lamVars, ret);
+        }
+        Trace("mbqi-model-enum") << "- Try candidate: " << ret << std::endl;
+        // see if it is still satisfiable, if still SAT, we replace
+        Node queryCheck = query.substitute(TNode(v), TNode(ret));
+        SubsolverSetupInfo ssi(d_env);
+        Result r = checkWithSubsolver(queryCheck, ssi);
+        if (r==Result::SAT)
+        {
+          Trace("mbqi-model-enum") << "...success" << std::endl;
+          mvs[i] = ret;
+          break;
+        }
+        Trace("mbqi-model-enum") << "...failed, try another" << std::endl;
+      }
+    }
+    while (senum.increment());
+  }
 }
   
 Node InstStrategyMbqi::convertFromModel(
