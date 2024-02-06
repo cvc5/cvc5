@@ -130,6 +130,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
+    case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
     case ProofRule::DSL_REWRITE:
     // alf rule is handled
