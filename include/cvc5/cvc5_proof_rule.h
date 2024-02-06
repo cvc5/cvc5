@@ -1371,21 +1371,29 @@ enum ENUM(ProofRule) : uint32_t
    * \mathit{index},b)` is null, in other words, neither is a prefix of the
    * other. Note it may be the case that one side of the equality denotes the
    * empty string.
+   * 
+   * This rule is used exclusively for strings.
    *
-   * Alternatively, if the equality is between sequences, this rule has the
-   * form:
+   * \endverbatim
+   */
+  EVALUE(CONCAT_CONFLICT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Concatenation conflict for disequal characters**
    *
    * .. math::
    *
    *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \deq s_1 \mid b}{\bot}
    *
-   * where t_1 and s_1 are constants of length one, or otherwise one side
-   * of the equality is the empty sequence and t_1 or s_1 corresponding to
+   * where $t_1$ and $s_1$ are constants of length one, or otherwise one side
+   * of the equality is the empty sequence and $t_1$ or $s_1$ corresponding to
    * that side is the empty sequence.
+   * 
+   * This rule is used exclusively for sequences.
    *
    * \endverbatim
    */
-  EVALUE(CONCAT_CONFLICT),
+  EVALUE(CONCAT_CONFLICT_DEQ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation split**
@@ -1744,7 +1752,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Trichotomy of the reals**
    *
    * .. math::
-   *   \inferrule{A, B \mid C}{C}
+   *   \inferrule{A, B \mid -}{C}
    *
    * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some order.
    * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.
