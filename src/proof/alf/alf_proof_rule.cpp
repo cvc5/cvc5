@@ -28,7 +28,6 @@ const char* AlfRuleToString(AlfRule id)
   {
     case AlfRule::CONG: return "cong";
     case AlfRule::NARY_CONG: return "nary_cong";
-    case AlfRule::CONCAT_CONFLICT_DEQ: return "concat_conflict_deq";
     //================================================= Undefined rule
     case AlfRule::UNDEFINED: return "undefined";
     default: return "?";

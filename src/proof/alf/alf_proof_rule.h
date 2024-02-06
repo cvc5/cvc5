@@ -36,8 +36,6 @@ enum class AlfRule : uint32_t
   CONG,
   // n-ary congruence
   NARY_CONG,
-  // concat conflict disequality
-  CONCAT_CONFLICT_DEQ,
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED
 };

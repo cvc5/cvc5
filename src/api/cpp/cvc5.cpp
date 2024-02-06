@@ -7385,12 +7385,21 @@ std::vector<Proof> Solver::getProof(modes::ProofComponent c) const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::string Solver::proofToString(Proof proof, modes::ProofFormat format) const
+std::string Solver::proofToString(
+    Proof proof,
+    modes::ProofFormat format,
+    const std::map<cvc5::Term, std::string>& assertionNames) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   std::ostringstream ss;
-  this->d_slv->printProof(ss, proof.getProofNode(), format);
+  // convert the map's domain to use nodes rather than terms
+  std::map<internal::Node, std::string> nodeAssertionNames;
+  for (const auto& p : assertionNames)
+  {
+    nodeAssertionNames[p.first.getNode()] = p.second;
+  }
+  this->d_slv->printProof(ss, proof.getProofNode(), format, nodeAssertionNames);
   return ss.str();
   ////////
   CVC5_API_TRY_CATCH_END;
