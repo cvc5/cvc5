@@ -26,8 +26,9 @@ runs:
         # only work for the specific CI Python version.
         rm -rf ${{ inputs.build-dir }}/install/lib/python*
 
-        # Copy COPYING file to install directory
+        # Copy COPYING file and licenses directory to install directory
         cp COPYING ${{ inputs.build-dir }}/install/
+        cp -r licenses ${{ inputs.build-dir }}/install/
 
         # Create ZIP file
         pushd ${{ inputs.build-dir }}
