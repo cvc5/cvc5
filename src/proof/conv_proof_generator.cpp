@@ -491,6 +491,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           ProofRule congRule = expr::getCongRule(cur, pfArgs);
           if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
           {
+            congRule = ProofRule::HO_CONG;
             pfArgs.pop_back();
             pfChildren.push_back(cur.getOperator().eqNode(children[0]));
           }

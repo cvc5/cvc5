@@ -264,7 +264,8 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
     case Kind::HO_APPLY:
       // Use HO_CONG, since HO_APPLY is encoded as native function application.
       // This requires no arguments so we return.
-      return ProofRule::HO_CONG;
+      r = ProofRule::HO_CONG;
+      break;
     case Kind::APPLY_CONSTRUCTOR:
       // tuples are n-ary, others are fixed
       r = n.getType().isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;

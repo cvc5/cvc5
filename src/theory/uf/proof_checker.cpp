@@ -177,11 +177,11 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   }
   if (id == ProofRule::HO_CONG)
   {
-    if (children.size() != 2)
+    Kind k;
+    if (!getKind(args[0], k))
     {
       return Node::null();
     }
-    Assert(args.empty());
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
     for (size_t i = 0, nchild = children.size(); i < nchild; ++i)
@@ -195,8 +195,8 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       rchildren.push_back(eqp[1]);
     }
     NodeManager* nm = NodeManager::currentNM();
-    Node l = nm->mkNode(Kind::HO_APPLY, lchildren);
-    Node r = nm->mkNode(Kind::HO_APPLY, rchildren);
+    Node l = nm->mkNode(k, lchildren);
+    Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
   }
   else if (id == ProofRule::HO_APP_ENCODE)
