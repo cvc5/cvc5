@@ -106,6 +106,11 @@ typedef struct Cvc5Grammar Cvc5Grammar;
  */
 typedef struct Cvc5 Cvc5;
 
+/**
+ * A cvc5 term (and sort) manager.
+ */
+typedef struct Cvc5TermManager Cvc5TermManager;
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Result                                                                 */
 /* -------------------------------------------------------------------------- */
@@ -1883,12 +1888,12 @@ void cvc5_grammar_add_any_variable(Cvc5Grammar* grammar, Cvc5Term symbol);
 const char* cvc5_grammar_to_string(const Cvc5Grammar* grammar);
 
 /* -------------------------------------------------------------------------- */
-/* Cvc5                                                                       */
+/* Cvc5TermManager                                                            */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Construct a new instance of a cvc5 solver.
- * @return The cvc5 solver instance.
+ * Construct a new instance of a cvc5 term manager.
+ * @return The cvc5 term manager.
  */
 Cvc5* cvc5_new();
 
@@ -1907,113 +1912,115 @@ void cvc5_delete(Cvc5* cvc5);
  * @param cvc5 The solver instance.
  * @return Sort Boolean.
  */
-Cvc5Sort cvc5_get_boolean_sort(Cvc5* cvc5);
+Cvc5Sort cvc5_get_boolean_sort(Cvc5TermManager* tm);
 
 /**
  * Get the Integer sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return Sort Integer.
  */
-Cvc5Sort cvc5_get_integer_sort(Cvc5* cvc5);
+Cvc5Sort cvc5_get_integer_sort(Cvc5TermManager* tm);
 
 /**
  * Get the Real sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return Sort Real.
  */
-Cvc5Sort cvc5_get_real_sort(Cvc5* cvc5);
+Cvc5Sort cvc5_get_real_sort(Cvc5TermManager* tm);
 
 /**
  * Get the regular expression sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return Sort RegExp.
  */
-Cvc5Sort cvc5_get_regexp_sort(Cvc5* cvc5);
+Cvc5Sort cvc5_get_regexp_sort(Cvc5TermManager* tm);
 
 /**
  * Get the rounding mode sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return Sort RoundingMode.
  */
-Cvc5Sort cvc5_get_rm_sort(Cvc5* cvc5);
+Cvc5Sort cvc5_get_rm_sort(Cvc5TermManager* tm);
 
 /**
  * Get the string sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return Sort String.
  */
-Cvc5Sort cvc5_get_string_sort(Cvc5* cvc5);
+Cvc5Sort cvc5_get_string_sort(Cvc5TermManager* tm);
 
 /**
  * Create an array sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param index The array index sort.
  * @param elem  The array element sort.
  * @return The array sort.
  */
-Cvc5Sort cvc5_mk_array_sort(Cvc5* cvc5, Cvc5Sort index, Cvc5Sort elem);
+Cvc5Sort cvc5_mk_array_sort(Cvc5TermManager* tm, Cvc5Sort index, Cvc5Sort elem);
 
 /**
  * Create a bit-vector sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param size The bit-width of the bit-vector sort.
  * @return The bit-vector sort.
  */
-Cvc5Sort cvc5_mk_bv_sort(Cvc5* cvc5, uint32_t size);
+Cvc5Sort cvc5_mk_bv_sort(Cvc5TermManager* tm, uint32_t size);
 
 /**
  * Create a floating-point sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param exp The bit-width of the exponent of the floating-point sort.
  * @param sig The bit-width of the significand of the floating-point sort.
  */
-Cvc5Sort cvc5_mk_fp_sort(Cvc5* cvc5, uint32_t exp, uint32_t sig);
+Cvc5Sort cvc5_mk_fp_sort(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
 
 /**
  * Create a finite-field sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param size The modulus of the field. Must be prime.
  * @return The finite-field sort.
  */
-Cvc5Sort cvc5_mk_ff_sort(Cvc5* cvc5, const char* size);
+Cvc5Sort cvc5_mk_ff_sort(Cvc5TermManager* tm, const char* size);
 
 /**
  * Create a datatype sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param dtypedecl The datatype declaration from which the sort is created.
  * @return The datatype sort.
  */
-Cvc5Sort cvc5_mk_dt_sort(Cvc5* cvc5, const DatatypeDecl& dtypedecl);
+Cvc5Sort cvc5_mk_dt_sort(Cvc5TermManager* tm, const DatatypeDecl& dtypedecl);
 
 /**
  * Create a vector of datatype sorts.
  * @note The names of the datatype declarations must be distinct.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param size The number of datatype declarations.
  * @param dtypedecls The datatype declarations from which the sort is created.
  * @return The datatype sorts.
  */
-const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5* cvc5,
+const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
                                  size_t size,
                                  const Cvc5DatatypeDecl* dtypedecls);
 /**
  * Create function sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param size The number of domain sorts.
  * @param sorts The sort of the function arguments (the domain sorts).
  * @param codomain The sort of the function return value.
  * @return The function sort.
  */
-Cvc5Sort cvc5_mk_fun_sort(Cvc5* cvc5, const Cvc5Sort* sorts, Cvc5Sort codomain);
+Cvc5Sort cvc5_mk_fun_sort(Cvc5TermManager* tm,
+                          const Cvc5Sort* sorts,
+                          Cvc5Sort codomain);
 
 /**
  * Create a sort parameter.
  * @warning This function is experimental and may change in future versions.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param symbol The name of the sort, may be NULL.
  * @return The sort parameter.
  */
-Cvc5Sort cvc5_mk_param_sort(Cvc5* cvc5, const char* symbol);
+Cvc5Sort cvc5_mk_param_sort(Cvc5TermManager* tm, const char* symbol);
 
 /**
  * Create a predicate sort.
@@ -2024,43 +2031,45 @@ Cvc5Sort cvc5_mk_param_sort(Cvc5* cvc5, const char* symbol);
  * @param sorts The list of sorts of the predicate.
  * @return The predicate sort.
  */
-Cvc5Sort cvc5_mk_predicate_sort(Cvc5* cvc5, size_t size, const Cvc5Sort* sorts);
+Cvc5Sort cvc5_mk_predicate_sort(Cvc5TermManager* tm,
+                                size_t size,
+                                const Cvc5Sort* sorts);
 
 /**
  * Create a record sort
  * @warning This function is experimental and may change in future versions.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param names The names of the fields of the record.
  * @param sorts The sorts of the fields of the record.
  * @return The record sort.
  */
-Cvc5Sort cvc5_mk_record_sort(Cvc5* cvc5,
+Cvc5Sort cvc5_mk_record_sort(Cvc5TermManager* tm,
                              size_t size,
                              const char** names,
                              const Cvc5Sort* sorts);
 /**
  * Create a set sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort of the set elements.
  * @return The set sort.
  */
-Cvc5Sort cvc5_mk_set_sort(Cvc5* cvc5, Cvc5Sort sort);
+Cvc5Sort cvc5_mk_set_sort(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a bag sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort of the bag elements.
  * @return The bag sort.
  */
-Cvc5Sort cvc5_mk_bag_sort(Cvc5* cvc5, Cvc5Sort sort);
+Cvc5Sort cvc5_mk_bag_sort(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a sequence sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param elemSort The sort of the sequence elements.
  * @return The sequence sort.
  */
-Cvc5Sort cvc5_mk_sequence_sort(Cvc5* cvc5, Cvc5Sort sort);
+Cvc5Sort cvc5_mk_sequence_sort(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create an abstract sort. An abstract sort represents a sort for a given
@@ -2083,19 +2092,19 @@ Cvc5Sort cvc5_mk_sequence_sort(Cvc5* cvc5, Cvc5Sort sort);
  *
  * @warning This function is experimental and may change in future versions.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param k The kind of the abstract sort
  * @return The abstract sort.
  */
-Cvc5Sort cvc5_mk_abstract_sort(Cvc5* cvc5, Cvc5SortKind k);
+Cvc5Sort cvc5_mk_abstract_sort(Cvc5TermManager* tm, Cvc5SortKind k);
 
 /**
  * Create an uninterpreted sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param symbol The name of the sort, may be NULL.
  * @return The uninterpreted sort.
  */
-Cvc5Sort cvc5_mk_uninterpreted_sort(Cvc5* cvc5, const char* symbol);
+Cvc5Sort cvc5_mk_uninterpreted_sort(Cvc5TermManager* tm, const char* symbol);
 
 /**
  * Create an unresolved datatype sort.
@@ -2103,14 +2112,14 @@ Cvc5Sort cvc5_mk_uninterpreted_sort(Cvc5* cvc5, const char* symbol);
  * This is for creating yet unresolved sort placeholders for mutually
  * recursive parametric datatypes.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param symbol The symbol of the sort.
  * @param arity The number of sort parameters of the sort.
  * @return The unresolved sort.
  *
  * @warning This function is experimental and may change in future versions.
  */
-Cvc5Sort cvc5_mk_unresolved_dt_sort(Cvc5* cvc5,
+Cvc5Sort cvc5_mk_unresolved_dt_sort(Cvc5TermManager* tm,
                                     const char* symbol,
                                     size_t arity);
 
@@ -2119,23 +2128,25 @@ Cvc5Sort cvc5_mk_unresolved_dt_sort(Cvc5* cvc5,
  *
  * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param symbol The symbol of the sort.
  * @param arity The arity of the sort (must be > 0)
  * @return The uninterpreted sort constructor sort.
  */
-Cvc5Sort cvc5_mk_uninterpreted_sort_constructor_sort(Cvc5* cvc5,
+Cvc5Sort cvc5_mk_uninterpreted_sort_constructor_sort(Cvc5TermManager* tm,
                                                      size_t arity,
                                                      const char* symbol);
 
 /**
  * Create a tuple sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param size The number of sorts.
  * @param sorts The sorts of f the elements of the tuple.
  * @return The tuple sort.
  */
-Cvc5Sort cvc5_mk_tuple_sort(Cvc5* cvc5, size_t size, const Cvc5Sort* sorts);
+Cvc5Sort cvc5_mk_tuple_sort(Cvc5TermManager* tm,
+                            size_t size,
+                            const Cvc5Sort* sorts);
 
 /* .................................................................... */
 /* Create Terms                                                         */
@@ -2143,12 +2154,12 @@ Cvc5Sort cvc5_mk_tuple_sort(Cvc5* cvc5, size_t size, const Cvc5Sort* sorts);
 
 /**
  * Create n-ary term of given kind.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param kind The kind of the term.
  * @param size The number of childrens.
  * @param children The children of the term.
  * @return The Term */
-Cvc5Term cvc5_mk_term(Cvc5* cvc5,
+Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
                       Cvc5Kind kind,
                       size_t size,
                       const Cvc5Term* children);
@@ -2156,25 +2167,25 @@ Cvc5Term cvc5_mk_term(Cvc5* cvc5,
 /**
  * Create n-ary term of given kind from a given operator.
  * Create operators with `cvc5_mk_op()`.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param op The operator.
  * @param size The number of children.
  * @param children The children of the term.
  * @return The Term.
  */
-Cvc5Term cvc5_mk_term(Cvc5* cvc5,
+Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
                       Cvc5Op op,
                       size_t size,
                       const Cvc5Term* children);
 
 /**
  * Create a tuple term.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param size The number of elements in the tuple.
  * @param terms The elements.
  * @return The tuple Term.
  */
-Cvc5Term cvc5_mk_tuple(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
+Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm, size_t size, const Cvc5Term* terms);
 
 /* .................................................................... */
 /* Create Operators                                                     */
@@ -2201,7 +2212,7 @@ Cvc5Term cvc5_mk_tuple(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
  *
  * See `Cvc5Kind` for a description of the parameters.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param kind The kind of the operator.
  * @param size The number of indices of the operator.
  * @param idxs The indices.
@@ -2209,7 +2220,10 @@ Cvc5Term cvc5_mk_tuple(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
  * @note If `idxs` is empty, the Cvc5Op simply wraps the Cvc5Kind. The Cvc5Kind
  * can be used in cvc5_mk_term directly without creating a Cvc5Op first.
  */
-Cvc5Op cvc5_mk_op(Cvc5* cvc5, Cvc5Kind kind, size_t size, const uint32_t* idxs);
+Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
+                  Cvc5Kind kind,
+                  size_t size,
+                  const uint32_t* idxs);
 
 /**
  * Create operator of kind:
@@ -2217,11 +2231,11 @@ Cvc5Op cvc5_mk_op(Cvc5* cvc5, Cvc5Kind kind, size_t size, const uint32_t* idxs);
  *
  * See CKind for a description of the parameters.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param kind The kind of the operator.
  * @param arg The string argument to this operator.
  */
-Cvc5Op cvc5_mk_op(Cvc5* cvc5, Cvc5Kind kind, const char* arg);
+Cvc5Op cvc5_mk_op(Cvc5TermManager* tm, Cvc5Kind kind, const char* arg);
 
 /* .................................................................... */
 /* Create Constants                                                     */
@@ -2229,69 +2243,69 @@ Cvc5Op cvc5_mk_op(Cvc5* cvc5, Cvc5Kind kind, const char* arg);
 
 /**
  * Create a Boolean true constant.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return The true constant.
  */
-Cvc5Term cvc5_mk_true(Cvc5* cvc5);
+Cvc5Term cvc5_mk_true(Cvc5TermManager* tm);
 
 /**
  * Create a Boolean false constant.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return The false constant.
  */
-Cvc5Term cvc5_mk_false(Cvc5* cvc5);
+Cvc5Term cvc5_mk_false(Cvc5TermManager* tm);
 
 /**
  * Create a Boolean constant.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return The Boolean constant.
  * @param val The value of the constant.
  */
-Cvc5Term cvc5_mk_boolean(Cvc5* cvc5, bool val);
+Cvc5Term cvc5_mk_boolean(Cvc5TermManager* tm, bool val);
 
 /**
  * Create a constant representing the number Pi.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return A constant representing Pi.
  */
-Cvc5Term cvc5_mk_pi(Cvc5* cvc5);
+Cvc5Term cvc5_mk_pi(Cvc5TermManager* tm);
 /**
  * Create an integer constant from a string.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param s The string representation of the constant, may represent an
  *          integer (e.g., "123").
  * @return A constant of sort Integer assuming `s` represents an integer)
  */
-Cvc5Term cvc5_mk_integer(Cvc5* cvc5, const char* s);
+Cvc5Term cvc5_mk_integer(Cvc5TermManager* tm, const char* s);
 
 /**
  * Create an integer constant from a c++ int.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param val The value of the constant.
  * @return A constant of sort Integer.
  */
-Cvc5Term cvc5_mk_integer_int64(Cvc5* cvc5, int64_t val);
+Cvc5Term cvc5_mk_integer_int64(Cvc5TermManager* tm, int64_t val);
 
 /**
  * Create a real constant from a string.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param s The string representation of the constant, may represent an
  *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
  * @return A constant of sort Real.
  */
-Cvc5Term cvc5_mk_real(Cvc5* cvc5, const char* s);
+Cvc5Term cvc5_mk_real(Cvc5TermManager* tm, const char* s);
 
 /**
  * Create a real constant from an integer.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param val The value of the constant.
  * @return A constant of sort Integer.
  */
-Cvc5Term cvc5_mk_real_int64(Cvc5* cvc5, int64_t val);
+Cvc5Term cvc5_mk_real_int64(Cvc5TermManager* tm, int64_t val);
 
 /**
  * Create a real constant from a rational.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param num The value of the numerator.
  * @param den The value of the denominator.
  * @return A constant of sort Real.
@@ -2300,111 +2314,111 @@ Cvc5Term cvc5_mk_real_num_den(int64_t num, int64_t den);
 
 /**
  * Create a regular expression all (re.all) term.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return The all term.
  */
-Cvc5Term cvc5_mk_regexp_all(Cvc5* cvc5);
+Cvc5Term cvc5_mk_regexp_all(Cvc5TermManager* tm);
 
 /**
  * Create a regular expression allchar (re.allchar) term.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return The allchar term.
  */
-Cvc5Term cvc5_mk_regexp_all_char(Cvc5* cvc5);
+Cvc5Term cvc5_mk_regexp_all_char(Cvc5TermManager* tm);
 
 /**
  * Create a regular expression none (re.none) term.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return The none term.
  */
-Cvc5Term cvc5_mk_regexp_none(Cvc5* cvc5);
+Cvc5Term cvc5_mk_regexp_none(Cvc5TermManager* tm);
 
 /**
  * Create a constant representing an empty set of the given sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort of the set elements.
  * @return The empty set constant.
  */
-Cvc5Term cvc5_mk_empty_set(Cvc5* cvc5, Cvc5Sort sort);
+Cvc5Term cvc5_mk_empty_set(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a constant representing an empty bag of the given sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort of the bag elements.
  * @return The empty bag constant.
  */
-Cvc5Term cvc5_mk_empty_bag(Cvc5* cvc5, Cvc5Sort sort);
+Cvc5Term cvc5_mk_empty_bag(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a separation logic empty term.
  *
  * @warning This function is experimental and may change in future versions.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @return The separation logic empty term.
  */
-Cvc5Term cvc5_mk_sep_emp(Cvc5* cvc5);
+Cvc5Term cvc5_mk_sep_emp(Cvc5TermManager* tm);
 
 /**
  * Create a separation logic nil term.
  *
  * @warning This function is experimental and may change in future versions.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort of the nil term.
  * @return The separation logic nil term.
  */
-Cvc5Term cvc5_mk_sep_nil(Cvc5* cvc5, Cvc5Sort sort);
+Cvc5Term cvc5_mk_sep_nil(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a String constant from a regular character string which may contain
  * SMT-LIB compatible escape sequences like `\u1234` to encode unicode
  * characters.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param s The string this constant represents.
  * @param use_esc_seq Determines whether escape sequences in `s` should.
  * be converted to the corresponding unicode character
  * @return The String constant.
  */
-Cvc5Term cvc5_mk_string(Cvc5* cvc5, const char* s, bool use_esc_seq);
+Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq);
 
 /**
  * Create a String constant from a wide character string.
  * This function does not support escape sequences as wide character already
  * supports unicode characters.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param s The string this constant represents.
  * @return The String constant.
  */
-Cvc5Term cvc5_mk_string(Cvc5* cvc5, const wchar_t* s);
+Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const wchar_t* s);
 
 /**
  * Create an empty sequence of the given element sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The element sort of the sequence.
  * @return The empty sequence with given element sort.
  */
-Cvc5Term cvc5_mk_empty_sequence(Cvc5* cvc5, Cvc5Sort sort);
+Cvc5Term cvc5_mk_empty_sequence(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a universe set of the given sort.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort of the set elements.
  * @return The universe set constant.
  */
-Cvc5Term cvc5_mk_universe_set(Cvc5* cvc5, Cvc5Sort sort);
+Cvc5Term cvc5_mk_universe_set(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a bit-vector constant of given size and value.
  *
  * @note The given value must fit into a bit-vector of the given size.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param size The bit-width of the bit-vector sort.
  * @param val The value of the constant.
  * @return The bit-vector constant.
  */
-Cvc5Term cvc5_mk_bv_uint64(Cvc5* cvc5, uint32_t size, uint64_t val);
+Cvc5Term cvc5_mk_bv_uint64(Cvc5TermManager* tm, uint32_t size, uint64_t val);
 
 /**
  * Create a bit-vector constant of a given bit-width from a given string of
@@ -2412,14 +2426,17 @@ Cvc5Term cvc5_mk_bv_uint64(Cvc5* cvc5, uint32_t size, uint64_t val);
  *
  * @note The given value must fit into a bit-vector of the given size.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param size The bit-width of the constant.
  * @param s The string representation of the constant.
  * @param base The base of the string representation (`2` for binary, `10` for
  * decimal, and `16` for hexadecimal).
  * @return The bit-vector constant.
  */
-Cvc5Term cvc5_mk_bv(Cvc5* cvc5, uint32_t size, const char* s, uint32_t base);
+Cvc5Term cvc5_mk_bv(Cvc5TermManager* tm,
+                    uint32_t size,
+                    const char* s,
+                    uint32_t base);
 
 /**
  * Create a finite field constant in a given field from a given string
@@ -2428,107 +2445,116 @@ Cvc5Term cvc5_mk_bv(Cvc5* cvc5, uint32_t size, const char* s, uint32_t base);
  * If it is outside this range, it will be reduced modulo size before being
  * constructed.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param value The string representation of the constant.
  * @param sort The field sort.
  *
  */
-Cvc5Term cvc5_mk_ff_elem(Cvc5* cvc5, const char* value, Cvc5Sort sort);
+Cvc5Term cvc5_mk_ff_elem(Cvc5TermManager* tm, const char* value, Cvc5Sort sort);
 
 /**
  * Create a constant array with the provided constant value stored at every
  * index.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort of the constant array (must be an array sort).
  * @param val The constant value to store (must match the sort's element sort).
  * @return The constant array term.
  */
-Cvc5Term cvc5_mk_const_array(Cvc5* cvc5, Cvc5Sort sort, Cvc5Term val);
+Cvc5Term cvc5_mk_const_array(Cvc5TermManager* tm, Cvc5Sort sort, Cvc5Term val);
 
 /**
  * Create a positive infinity floating-point constant (SMT-LIB: `+oo`).
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param exp Number of bits in the exponent.
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_pos_inf(Cvc5* cvc5, uint32_t exp, uint32_t sig);
+Cvc5Term cvc5_mk_fp_pos_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
 
 /**
  * Create a negative infinity floating-point constant (SMT-LIB: `-oo`).
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param exp Number of bits in the exponent.
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_neg_inf(Cvc5* cvc5, uint32_t exp, uint32_t sig);
+Cvc5Term cvc5_mk_fp_neg_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
 
 /**
- * Create a not-a-number floating-point constant (Cvc5* cvc5, SMT-LIB: `NaN`).
- * @param cvc5 The solver instance.
+ * Create a not-a-number floating-point constant (Cvc5TermManager* tm, SMT-LIB:
+ * `NaN`).
+ * @param tm The term manager instance.
  * @param exp Number of bits in the exponent.
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_nan(Cvc5* cvc5, uint32_t exp, uint32_t sig);
+Cvc5Term cvc5_mk_fp_nan(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
 
 /**
- * Create a positive zero floating-point constant (Cvc5* cvc5, SMT-LIB: +zero).
- * @param cvc5 The solver instance.
+ * Create a positive zero floating-point constant (Cvc5TermManager* tm, SMT-LIB:
+ * +zero).
+ * @param tm The term manager instance.
  * @param exp Number of bits in the exponent.
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_pos_zero(Cvc5* cvc5, uint32_t exp, uint32_t sig);
+Cvc5Term cvc5_mk_fp_pos_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
 
 /**
- * Create a negative zero floating-point constant (Cvc5* cvc5, SMT-LIB: -zero).
- * @param cvc5 The solver instance.
+ * Create a negative zero floating-point constant (Cvc5TermManager* tm, SMT-LIB:
+ * -zero).
+ * @param tm The term manager instance.
  * @param exp Number of bits in the exponent.
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_neg_zero(Cvc5* cvc5, uint32_t exp, uint32_t sig);
+Cvc5Term cvc5_mk_fp_neg_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
 
 /**
  * Create a rounding mode value.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param rm The floating point rounding mode this constant represents.
  * @return The rounding mode value.
  */
-Cvc5Term cvc5_mk_rm(Cvc5* cvc5, RoundingMode rm);
+Cvc5Term cvc5_mk_rm(Cvc5TermManager* tm, RoundingMode rm);
 
 /**
  * Create a floating-point value from a bit-vector given in IEEE-754 format.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param exp Size of the exponent.
  * @param sig Size of the significand.
  * @param val Value of the floating-point constant as a bit-vector term.
  * @return The floating-point value.
  */
-Cvc5Term cvc5_mk_fp(Cvc5* cvc5, uint32_t exp, uint32_t sig, Cvc5Term val);
+Cvc5Term cvc5_mk_fp(Cvc5TermManager* tm,
+                    uint32_t exp,
+                    uint32_t sig,
+                    Cvc5Term val);
 /**
  * Create a floating-point value from its three IEEE-754 bit-vector
  * value components (sign bit, exponent, significand).
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sign The sign bit.
  * @param exp  The bit-vector representing the exponent.
  * @param sig The bit-vector representing the significand.
  * @return The floating-point value.
  */
-Cvc5Term cvc5_mk_fp(Cvc5* cvc5, Cvc5Term sign, Cvc5Term exp, Cvc5Term sig);
+Cvc5Term cvc5_mk_fp(Cvc5TermManager* tm,
+                    Cvc5Term sign,
+                    Cvc5Term exp,
+                    Cvc5Term sig);
 
 /**
  * Create a cardinality constraint for an uninterpreted sort.
  *
  * @warning This function is experimental and may change in future versions.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort the cardinality constraint is for.
  * @param upperBound The upper bound on the cardinality of the sort.
  * @return The cardinality constraint.
  */
-Cvc5Term cvc5_mk_cardinality_constraint(Cvc5* cvc5,
+Cvc5Term cvc5_mk_cardinality_constraint(Cvc5TermManager* tm,
                                         Cvc5Sort sort,
                                         uint32_t upperBound);
 
@@ -2548,22 +2574,22 @@ Cvc5Term cvc5_mk_cardinality_constraint(Cvc5* cvc5,
  *     (declare-fun <symbol> () <sort>)
  * \endverbatim
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort of the constant.
  * @param symbol The name of the constant, may be NULL.
  * @return The constant.
  */
-Cvc5Term cvc5_mk_const(Cvc5* cvc5, Cvc5Sort sort, const char* symbol);
+Cvc5Term cvc5_mk_const(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol);
 
 /**
  * Create a bound variable to be used in a binder (i.e., a quantifier, a
  * lambda, or a witness binder).
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param sort The sort of the variable.
  * @param symbol The name of the variable, may be NULL.
  * @return The variable.
  */
-Cvc5Term cvc5_mk_var(Cvc5* cvc5, Cvc5Sort sort, const char* symbol);
+Cvc5Term cvc5_mk_var(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol);
 
 /* .................................................................... */
 /* Create datatype constructor declarations                             */
@@ -2571,11 +2597,12 @@ Cvc5Term cvc5_mk_var(Cvc5* cvc5, Cvc5Sort sort, const char* symbol);
 
 /**
  * Create a datatype constructor declaration.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param name The name of the datatype constructor.
  * @return The DatatypeConstructorDecl.
  */
-Cvc5DatatypeConstructorDecl* cvc5_mk_dt_consdecl(Cvc5* cvc5, const char* name);
+Cvc5DatatypeConstructorDecl* cvc5_mk_dt_consdecl(Cvc5TermManager* tm,
+                                                 const char* name);
 
 /* .................................................................... */
 /* Create datatype declarations                                         */
@@ -2583,12 +2610,14 @@ Cvc5DatatypeConstructorDecl* cvc5_mk_dt_consdecl(Cvc5* cvc5, const char* name);
 
 /**
  * Create a datatype declaration.
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param name The name of the datatype.
  * @param is_codt True if a codatatype is to be constructed.
  * @return The DatatypeDecl.
  */
-Cvc5DatatypeDecl* cvc5_mk_dt_decl(Cvc5* cvc5, const char* name, bool is_codt);
+Cvc5DatatypeDecl* cvc5_mk_dt_decl(Cvc5TermManager* tm,
+                                  const char* name,
+                                  bool is_codt);
 
 /**
  * Create a datatype declaration.
@@ -2596,18 +2625,228 @@ Cvc5DatatypeDecl* cvc5_mk_dt_decl(Cvc5* cvc5, const char* name, bool is_codt);
  *
  * @warning This function is experimental and may change in future versions.
  *
- * @param cvc5 The solver instance.
+ * @param tm The term manager instance.
  * @param name The name of the datatype.
  * @param size The number of sort parameters.
  * @param params A list of sort parameters.
  * @param is_codt True if a codatatype is to be constructed.
  * @return The DatatypeDecl.
  */
-DatatypeDecl cvc5_mk_dt_decl(Cvc5* cvc5,
+DatatypeDecl cvc5_mk_dt_decl(Cvc5TermManager* tm,
                              const char* name,
                              size_t size,
                              const Cvc5Sort* params,
                              bool is_codt);
+
+/* .................................................................... */
+/* SMT-LIB-style Term/Sort Creation                                     */
+/* .................................................................... */
+
+/**
+ * Create datatype sort.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (declare-datatype <symbol> <datatype_decl>)
+ * \endverbatim
+ *
+ * @param tm The term manager instance.
+ * @param symbol The name of the datatype sort.
+ * @param size The number of constructor declarations of the datatype sort.
+ * @param ctors The constructor declarations.
+ * @return The datatype sort.
+ */
+Cvc5Sort cvc5_declare_dt(Cvc5TermManager* tm,
+                         const char* symbol,
+                         size_t size,
+                         const Cvc5DatatypeConstructorDecl* ctors);
+
+/**
+ * Declare n-ary function symbol.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (declare-fun <symbol> ( <sort>* ) <sort>)
+ * \endverbatim
+ *
+ * @param tm The term manager instance.
+ * @param symbol The name of the function.
+ * @param size The number of domain sorts of the function.
+ * @param sorts The domain sorts of the function.
+ * @param sort The codomain sort of the function.
+ * @return The function.
+ */
+Cvc5Term cvc5_declare_fun(Cvc5TermManager* tm,
+                          const char* symbol,
+                          size_t size,
+                          const Cvc5Sort* sorts,
+                          Cvc5Sort sort);
+
+/**
+ * Declare uninterpreted sort.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (declare-sort <symbol> <numeral>)
+ * \endverbatim
+ *
+ * @note This corresponds to
+ *       `cvc5_mk_uninterpreted_sort()` if arity = 0, and to
+ *       `cvc5_mk_uninterpreted_sort_constructor_sort()` if arity > 0.
+ *
+ * @param tm The term manager instance.
+ * @param symbol The name of the sort.
+ * @param arity The arity of the sort.
+ * @return The sort.
+ */
+Cvc5Sort cvc5_declare_sort(Cvc5TermManager* tm,
+                           const char* symbol,
+                           uint32_t arity);
+
+/**
+ * Define n-ary function.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (define-fun <function_def>)
+ * \endverbatim
+ *
+ * @param tm The term manager instance.
+ * @param symbol The name of the function.
+ * @param nbound_vars The number of parameters of the function.
+ * @param bound_vars The parameters.
+ * @param sort The sort of the return value of this function.
+ * @param term The function body.
+ * @param global Determines whether this definition is global (i.e., persists
+ *               when popping the context).
+ * @return The function.
+ */
+Cvc5Term cvc5_define_fun(Cvc5TermManager* tm,
+                         const char* symbol,
+                         size_t nbound_vars,
+                         const Cvc5Term* bound_vars,
+                         const Cvc5Sort sort,
+                         const Cvc5Term term,
+                         bool global);
+
+/**
+ * Define recursive function.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (define-fun-rec <function_def>)
+ * \endverbatim
+ *
+ * @param tm The term manager instance.
+ * @param symbol The name of the function.
+ * @param nbound_vars The number of parameters of the function.
+ * @param bound_vars The parameters to this function.
+ * @param sort The sort of the return value of this function.
+ * @param term The function body.
+ * @param global Determines whether this definition is global (i.e., persists
+ *               when popping the context).
+ * @return The function.
+ */
+Cvc5Term cvc5_define_fun_rec(Cvc5TermManager* tm,
+                             const char* symbol,
+                             size_t nbound_vars,
+                             const Cvc5Term* bound_vars,
+                             const Cvc5Sort sort,
+                             const Cvc5Term term,
+                             bool global);
+
+/**
+ * Define recursive function.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (define-fun-rec <function_def>)
+ * \endverbatim
+ *
+ * Create parameter `fun` with mkConst().
+ *
+ * @param tm The term manager instance.
+ * @param fun The sorted function.
+ * @param nbound_vars The number of parameters of the function.
+ * @param bound_vars The parameters to this function.
+ * @param term The function body.
+ * @param global Determines whether this definition is global (i.e., persists
+ *               when popping the context).
+ * @return The function.
+ */
+Cvc5Term cvc5_define_fun_rec_from_const(Cvc5TermManager* tm,
+                                        Cvc5Term fun,
+                                        size_t nbound_vars,
+                                        const Cvc5Term* bound_vars,
+                                        const Cvc5Term term,
+                                        bool global);
+
+/**
+ * Define recursive functions.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (define-funs-rec
+ *         ( <function_decl>_1 ... <function_decl>_n )
+ *         ( <term>_1 ... <term>_n )
+ *     )
+ * \endverbatim
+ *
+ * Create elements of parameter `funs` with `cvc5_mk_const()`.
+ *
+ * @param tm The term manager instance.
+ * @param nfuns The number of sorted functions.
+ * @param funs The sorted functions.
+ * @param nbound_vars The numbers of parameters for each function.
+ * @param bound_vars The list of parameters to the functions.
+ * @param terms The list of function bodies of the functions.
+ * @param global Determines whether this definition is global (i.e., persists
+ *               when popping the context).
+ */
+void cvc5_define_funs_rec(Cvc5TermManager* tm,
+                          size_t nfuns,
+                          const Cvc5Term* funs,
+                          size_t* nbound_vars,
+                          const Cvc5Term** bound_vars,
+                          const Cvc5Term* terms,
+                          bool global);
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5                                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Construct a new instance of a cvc5 solver.
+ * @return The cvc5 solver instance.
+ */
+Cvc5* cvc5_new();
+
+/**
+ * Delete a cvc5 solver instance.
+ * @param cvc5 The solver instance.
+ */
+void cvc5_delete(Cvc5* cvc5);
 
 /* .................................................................... */
 /* Formula Handling                                                     */
@@ -2696,195 +2935,6 @@ Cvc5Result cvc5_check_sat_assuming(Cvc5* cvc5, Cvc5Term assumption);
 Cvc5Result cvc5_check_sat_assuming(Cvc5* cvc5,
                                    size_t size,
                                    const Cvc5Term* assumptions);
-
-/**
- * Create datatype sort.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (declare-datatype <symbol> <datatype_decl>)
- * \endverbatim
- *
- * @param cvc5 The solver instance.
- * @param symbol The name of the datatype sort.
- * @param size The number of constructor declarations of the datatype sort.
- * @param ctors The constructor declarations.
- * @return The datatype sort.
- */
-Cvc5Sort cvc5_declare_dt(Cvc5* cvc5,
-                         const char* symbol,
-                         size_t size,
-                         const Cvc5DatatypeConstructorDecl* ctors);
-
-/**
- * Declare n-ary function symbol.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (declare-fun <symbol> ( <sort>* ) <sort>)
- * \endverbatim
- *
- * @param cvc5 The solver instance.
- * @param symbol The name of the function.
- * @param size The number of domain sorts of the function.
- * @param sorts The domain sorts of the function.
- * @param sort The codomain sort of the function.
- * @return The function.
- */
-Cvc5Term cvc5_declare_fun(Cvc5* cvc5,
-                          const char* symbol,
-                          size_t size,
-                          const Cvc5Sort* sorts,
-                          Cvc5Sort sort);
-
-/**
- * Declare uninterpreted sort.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (declare-sort <symbol> <numeral>)
- * \endverbatim
- *
- * @note This corresponds to
- *       `cvc5_mk_uninterpreted_sort()` if arity = 0, and to
- *       `cvc5_mk_uninterpreted_sort_constructor_sort()` if arity > 0.
- *
- * @param cvc5 The solver instance.
- * @param symbol The name of the sort.
- * @param arity The arity of the sort.
- * @return The sort.
- */
-Cvc5Sort cvc5_declare_sort(Cvc5* cvc5, const char* symbol, uint32_t arity);
-
-/**
- * Define n-ary function.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (define-fun <function_def>)
- * \endverbatim
- *
- * @param cvc5 The solver instance.
- * @param symbol The name of the function.
- * @param nbound_vars The number of parameters of the function.
- * @param bound_vars The parameters.
- * @param sort The sort of the return value of this function.
- * @param term The function body.
- * @param global Determines whether this definition is global (i.e., persists
- *               when popping the context).
- * @return The function.
- */
-Cvc5Term cvc5_define_fun(Cvc5* cvc5,
-                         const char* symbol,
-                         size_t nbound_vars,
-                         const Cvc5Term* bound_vars,
-                         const Cvc5Sort sort,
-                         const Cvc5Term term,
-                         bool global);
-
-/**
- * Define recursive function.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (define-fun-rec <function_def>)
- * \endverbatim
- *
- * @param cvc5 The solver instance.
- * @param symbol The name of the function.
- * @param nbound_vars The number of parameters of the function.
- * @param bound_vars The parameters to this function.
- * @param sort The sort of the return value of this function.
- * @param term The function body.
- * @param global Determines whether this definition is global (i.e., persists
- *               when popping the context).
- * @return The function.
- */
-Cvc5Term cvc5_define_fun_rec(Cvc5* cvc5,
-                             const char* symbol,
-                             size_t nbound_vars,
-                             const Cvc5Term* bound_vars,
-                             const Cvc5Sort sort,
-                             const Cvc5Term term,
-                             bool global);
-
-/**
- * Define recursive function.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (define-fun-rec <function_def>)
- * \endverbatim
- *
- * Create parameter `fun` with mkConst().
- *
- * @param cvc5 The solver instance.
- * @param fun The sorted function.
- * @param nbound_vars The number of parameters of the function.
- * @param bound_vars The parameters to this function.
- * @param term The function body.
- * @param global Determines whether this definition is global (i.e., persists
- *               when popping the context).
- * @return The function.
- */
-Cvc5Term cvc5_define_fun_rec_from_const(Cvc5* cvc5,
-                                        Cvc5Term fun,
-                                        size_t nbound_vars,
-                                        const Cvc5Term* bound_vars,
-                                        const Cvc5Term term,
-                                        bool global);
-
-/**
- * Define recursive functions.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (define-funs-rec
- *         ( <function_decl>_1 ... <function_decl>_n )
- *         ( <term>_1 ... <term>_n )
- *     )
- * \endverbatim
- *
- * Create elements of parameter `funs` with `cvc5_mk_const()`.
- *
- * @param cvc5 The solver instance.
- * @param nfuns The number of sorted functions.
- * @param funs The sorted functions.
- * @param nbound_vars The numbers of parameters for each function.
- * @param bound_vars The list of parameters to the functions.
- * @param terms The list of function bodies of the functions.
- * @param global Determines whether this definition is global (i.e., persists
- *               when popping the context).
- */
-void cvc5_define_funs_rec(Cvc5* cvc5,
-                          size_t nfuns,
-                          const Cvc5Term* funs,
-                          size_t* nbound_vars,
-                          const Cvc5Term** bound_vars,
-                          const Cvc5Term* terms,
-                          bool global);
-
 /**
  * Get the list of asserted formulas.
  *
@@ -3741,12 +3791,12 @@ Cvc5Term cvc5_synth_fun(Cvc5* cvc5,
  * @param grammar The syntactic constraints.
  * @return The function.
  */
-Cvc5Term synthFun(Cvc5* cvc5,
-                  const char* symbol,
-                  size_t size,
-                  const Cvc5Term* bound_vars,
-                  Cvc5Sort sort,
-                  Cvc5Grammar* grammar);
+Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
+                                     const char* symbol,
+                                     size_t size,
+                                     const Cvc5Term* bound_vars,
+                                     Cvc5Sort sort,
+                                     Cvc5Grammar* grammar);
 
 /**
  * Add a forumla to the set of Sygus constraints.
