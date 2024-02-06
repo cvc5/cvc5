@@ -111,6 +111,16 @@ typedef struct Cvc5 Cvc5;
  */
 typedef struct Cvc5TermManager Cvc5TermManager;
 
+/**
+ * A cvc5 option info.
+ */
+typedef struct Cvc5OptionInfo Cvc5OptionInfo;
+
+/**
+ * A cvc5 proof.
+ */
+typedef struct Cvc5Proof Cvc5Proof;
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Result                                                                 */
 /* -------------------------------------------------------------------------- */
@@ -399,11 +409,18 @@ bool cvc5_sort_is_fun(Cvc5Sort sort);
 bool cvc5_sort_is_predicate(Cvc5Sort sort);
 
 /**
- * Determine if given sort a tuple sort.
+ * Determine if given sort is a tuple sort.
  * @param sort The sort.
  * @return True if given sort is a tuple sort.
  */
 bool cvc5_sort_is_tuple(Cvc5Sort sort);
+
+/**
+ * Determine if given sort is a nullable sort.
+ * @param sort The sort.
+ * @return True if given sort is a nullable sort.
+ */
+bool cvc5_sort_is_nullable(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a record sort.
@@ -572,6 +589,13 @@ Cvc5Sort cvc5_sort_substitute_sorts(Cvc5Sort sort,
  * @return A string representation of the given sort.
  */
 const char* cvc5_sort_to_string(Cvc5Sort sort);
+
+/**
+ * Compute the hash value of a sort.
+ * @param sort The sort.
+ * @return The hash value of the sort.
+ */
+size_t cvc5_sort_hash(Cvc5Sort sort);
 
 /* Datatype constructor sort ------------------------------------------- */
 
@@ -784,11 +808,11 @@ size_t cvc5_sort_tuple_get_length(Cvc5Sort sort);
 const Cvc5Sort* cvc5_sort_tuple_get_element_sorts(Cvc5Sort sort, size_t* size);
 
 /**
- * Compute the hash value of a sort.
+ * Get the element sort of a nullable sort.
  * @param sort The sort.
- * @return The hash value of the sort.
+ * @return The element sort of a nullable sort.
  */
-size_t cvc5_sort_hash(Cvc5Sort sort);
+Cvc5Sort cvc5_sort_nullable_get_element_sort(Cvc5Sort sort);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Op                                                                     */
@@ -1200,26 +1224,26 @@ bool cvc5_get_boolean_value(Cvc5Term term);
  * @param term The term.
  * @return True if the term is a bit-vector value.
  */
-bool cvc5_term_is_bitvector_value(Cvc5Term term);
+bool cvc5_term_is_bv_value(Cvc5Term term);
 /**
  * Get the string representation of a bit-vector value.
- * @note Asserts cvc5_term_is_bitvector_value().
+ * @note Asserts cvc5_term_is_bv_value().
  * @param term The term.
  * @param base `2` for binary, `10` for decimal, and `16` for hexadecimal.
  * @return The string representation of a bit-vector value.
  */
-const char* cvc5_term_get_bitvector_value(Cvc5Term term, uint32_t base);
+const char* cvc5_term_get_bv_value(Cvc5Term term, uint32_t base);
 
 /**
  * Determine if a given term is a finite field value.
  * @param term The term.
  * @return True if the term is a finite field value.
  */
-bool cvc5_term_is_finite_field_value(Cvc5Term term);
+bool cvc5_term_is_ff_value(Cvc5Term term);
 /**
  * Get the string representation of a finite field value (base 10).
  *
- * @note Asserts cvc5_term_is_finite_field_value().
+ * @note Asserts cvc5_term_is_ff_value().
  *
  * @note Uses the integer representative of smallest absolute value.
  *
@@ -1227,7 +1251,7 @@ bool cvc5_term_is_finite_field_value(Cvc5Term term);
  * @return The string representation of the integer representation of the
  *         finite field value.
  */
-const char* cvc5_term_get_finite_field_value(Cvc5Term term);
+const char* cvc5_term_get_ff_value(Cvc5Term term);
 
 /**
  * Determine if a given term is an uninterpreted sort value.
@@ -1975,12 +1999,14 @@ Cvc5Sort cvc5_mk_bv_sort(Cvc5TermManager* tm, uint32_t size);
 Cvc5Sort cvc5_mk_fp_sort(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
 
 /**
- * Create a finite-field sort.
- * @param tm The term manager instance.
+ * Create a finite-field sort from a given string of
+ * base n.
+ *
  * @param size The modulus of the field. Must be prime.
+ * @param base The base of the string representation of `size`.
  * @return The finite-field sort.
  */
-Cvc5Sort cvc5_mk_ff_sort(Cvc5TermManager* tm, const char* size);
+Cvc5Sort cvc5_mk_ff_sort(Cvc5TermManager* tm, const char* size, uint32_t base);
 
 /**
  * Create a datatype sort.
@@ -2186,6 +2212,59 @@ Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
  * @return The tuple Term.
  */
 Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm, size_t size, const Cvc5Term* terms);
+
+/**
+ * Create a nullable some term.
+ * @param term The element value.
+ * @return the Element value wrapped in some constructor.
+ */
+Cvc5Term cvc5_mk_nullable_some(Cvc5TermManager* tm, Cvc5Term term);
+
+/**
+ * Create a selector for nullable term.
+ * @param term A nullable term.
+ * @return The element value of the nullable term.
+ */
+Cvc5Term cvc5_mk_nullable_val(Cvc5Term term);
+/**
+ * Create a null tester for a nullable term.
+ * @param term A nullable term.
+ * @return A tester whether term is null.
+ */
+Cvc5Term cvc5_mk_nullable_is_null(Cvc5Term term);
+/**
+ * Create a some tester for a nullable term.
+ * @param term A nullable term.
+ * @return A tester whether term is some.
+ */
+Cvc5Term cvc5_mk_nullable_is_some(Cvc5Term term);
+
+/**
+ * Create a constant representing an null of the given sort.
+ * @param sort The sort of the Nullable element.
+ * @return The null constant.
+ */
+Cvc5Term cvc5_mk_nullable_null(Cvc5Sort sort);
+/**
+ * Create a term that lifts kind to nullable terms.
+ *
+ * Example:
+ * If we have the term ((_ nullable.lift +) x y),
+ * where x, y of type (Nullable Int), then
+ * kind would be ADD, and args would be [x, y].
+ * This function would return
+ * (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
+ *
+ * @param kind The lifted operator.
+ * @param nargs The number of arguments of the lifted operator.
+ * @param args The arguments of the lifted operator.
+ * @return A term of kind #CVC5_KIND_NULLABLE_LIFT where the first child
+ *         is a lambda expression, and the remaining children are
+ *         the original arguments.
+ */
+Cvc5Term cvc5_mk_nullable_lift(Cvc5Kind kind,
+                               size_t nargs,
+                               Cvc5Term* args) const;
 
 /* .................................................................... */
 /* Create Operators                                                     */
@@ -2440,18 +2519,21 @@ Cvc5Term cvc5_mk_bv(Cvc5TermManager* tm,
 
 /**
  * Create a finite field constant in a given field from a given string
+ * of base n.
  *
- * If size is the field size, the constant needs not be in the range [0,size).
- * If it is outside this range, it will be reduced modulo size before being
- * constructed.
- *
- * @param tm The term manager instance.
  * @param value The string representation of the constant.
- * @param sort The field sort.
+ * @param sort  The field sort.
+ * @param base  The base of the string representation of `value`.
+ *
+ * If `size` is the field size, the constant needs not be in the range
+ * [0,size). If it is outside this range, it will be reduced modulo size
+ * before being constructed.
  *
  */
-Cvc5Term cvc5_mk_ff_elem(Cvc5TermManager* tm, const char* value, Cvc5Sort sort);
-
+Cvc5Term cvc5_mk_ff_elem(Cvc5TermManager* tm,
+                         const char* value,
+                         Cvc5Sort sort,
+                         uint32_t base);
 /**
  * Create a constant array with the provided constant value stored at every
  * index.
@@ -2711,6 +2793,68 @@ Cvc5Term cvc5_declare_fun(Cvc5TermManager* tm,
 Cvc5Sort cvc5_declare_sort(Cvc5TermManager* tm,
                            const char* symbol,
                            uint32_t arity);
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5OptionInfo                                                             */
+/* -------------------------------------------------------------------------- */
+
+struct Cvc5OptionInfo
+{
+  const char* option;
+};
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Proof                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Get the proof rule used by the root step of a given proof.
+ * @return The proof rule.
+ */
+Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof* proof);
+
+/**
+ * Get the conclusion of the root step of a given proof.
+ * @return The conclusion term.
+ */
+Cvc5Term cvc5_proof_get_result(Cvc5Proof* proof);
+
+/**
+ * Get the premises of the root step of a given proof.
+ * @param size Output parameter to store the number of resulting premise proofs.
+ * @return The premise proofs.
+ */
+const Cvc5Proof** cvc5_proof_get_children(Cvc5Proof* proof);
+
+/**
+ * Get the arguments of the root step of a given proof.
+ * @param size Output parameter to store the number of resulting argument terms.
+ * @return The argument terms.
+ */
+const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof* proof);
+
+/**
+ * Prints a proof as a string in a selected proof format mode.
+ * Other aspects of printing are taken from the solver options.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param proof A proof, usually obtained from Solver::getProof().
+ * @param format The proof format used to print the proof.  Must be
+ * `modes::ProofFormat::NONE` if the proof is from a component other than
+ * `modes::ProofComponent::FULL`.
+ * @param assertions_size The number of assertions to names mappings given.
+ * @param assertions The list of assertions that are mapped to
+ *                   `assertions_names`. May be NULL if `assertions_size` is 0.
+ * @param assertion_names The names of the `assertions` (1:1 mapping). May
+ *                        by NULL if `assertions` is NULL.
+ * @return The string representation of the proof in the given format.
+ */
+const char* cvc5_proof_to_string(Cvc5Proof* proof,
+                                 Cvc5ProofFormat format,
+                                 size_t assertions_size,
+                                 Cvc5Term* assertions,
+                                 const char** assertion_names);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
@@ -2992,6 +3136,13 @@ const char* cvc5_get_option(Cvc5* cvc5, const char* option);
 const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size);
 
 /**
+ * Get some information about a given option.
+ * See struct Cvc5OptionInfo for more details on whic information is available.
+ * @return The option information.
+ */
+const Cvc5OptionInfo* cvc5_get_option_info(Cvc5* cvc5, const char* option);
+
+/**
  * Get the set of unsat ("failed") assumptions.
  *
  * SMT-LIB:
@@ -3111,11 +3262,9 @@ const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5, Result* result, size_t* size);
  *
  * @param cvc5 The solver instance.
  * @param c The component of the proof to return
- * @return A string representing the proof. This takes into account
- * :ref:`proof-format-mode <lbl-option-proof-format-mode>` when `c` is
- * `PROOF_COMPONENT_FULL`.
+ * @return An array of proofs.
  */
-const char* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent);
+Cvc5Proof** cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c);
 
 /**
  * Get a list of learned literals that are entailed by the current set of
@@ -3308,7 +3457,7 @@ Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
  *           In either case, we have that @f$(\phi \wedge Q_j)@f$ will
  *           eventually be true or false, for some finite j.
  */
-Cvc5Term cvc5_get_quantifie_relimination_disjunct(Cvc5* cvc5, Cvc5Term q);
+Cvc5Term cvc5_get_quantifier_elimination_disjunct(Cvc5* cvc5, Cvc5Term q);
 
 /**
  * When using separation logic, this sets the location sort and the
@@ -3994,6 +4143,29 @@ Cvc5Term cvc5_find_synth(Cvc5* cvc5,
  * @warning This function is experimental and may change in future versions.
  */
 Cvc5Term cvc5_find_synth_next(Cvc5* cvc5);
+
+/**
+ * Get a snapshot of the current state of the statistic values of this
+ * solver. The returned object is completely decoupled from the solver and
+ * will not change when the solver is used again.
+ * @return A snapshot of the current state of the statistic values.
+ */
+Cvc5Statistics* cvc5_get_stats(Cvc5* cvc5);
+
+/**
+ * Print the statistics to the given file descriptor, suitable for usage in
+ * signal handlers.
+ * @param fd The file descriptor.
+ */
+void cvc5_print_stats_safe(Cvc5* cvc5, int fd);
+
+/**
+ * Determines if the output stream for the given tag is enabled. Tags can be
+ * enabled with the `output` option (and `-o <tag>` on the command line).
+ * Raises an exception when an invalid tag is given.
+ * @return True if the given tag is enabled.
+ */
+bool cvc5_is_output_on(const char* tag);
 
 /**
  * Get a string representation of the version of this solver.
