@@ -95,7 +95,9 @@ class PfManager : protected EnvObj
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
-                  options::ProofFormatMode mode);
+                  options::ProofFormatMode mode,
+                  const std::map<Node, std::string>& assertionNames =
+                      std::map<Node, std::string>());
 
   /**
    * Translate difficulty map. This takes a mapping dmap from preprocessed

@@ -178,7 +178,6 @@ python_extension_module(cvc5_python_base)
 find_package(CVC5PythonicAPI)
 
 set(COPIED_PYTHONIC_FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/LICENSE.txt"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/__init__.py"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/cvc5_pythonic.py"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/cvc5_pythonic_printer.py"
@@ -191,10 +190,42 @@ add_custom_command(
     ${CMAKE_COMMAND} -E copy_directory
     "${CVC5PythonicAPI_BASEDIR}/cvc5_pythonic_api"
     "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic"
+  # Remove the license of the Pythonic API from the package's source files.
+  # The license file is included in the package's dist-info dir by setup()
+  COMMAND
+    ${CMAKE_COMMAND} -E remove
+    "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/LICENSE.txt"
   DEPENDS cvc5_python_base CVC5PythonicAPI
 )
 
 add_custom_target(cvc5_python_api ALL DEPENDS ${COPIED_PYTHONIC_FILES})
+
+set(LICENSE_FILES
+  "${CMAKE_BINARY_DIR}/COPYING"
+  "${CMAKE_BINARY_DIR}/licenses/lgpl-3.0.txt"
+  "${CMAKE_BINARY_DIR}/licenses/pythonic-LICENSE"
+)
+
+add_custom_command(
+  OUTPUT
+    ${LICENSE_FILES}
+  COMMAND
+    ${CMAKE_COMMAND} -E copy
+    "${PROJECT_SOURCE_DIR}/COPYING"
+    "${CMAKE_BINARY_DIR}/COPYING"
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory
+    "${PROJECT_SOURCE_DIR}/licenses"
+    "${CMAKE_BINARY_DIR}/licenses"
+  COMMAND
+    ${CMAKE_COMMAND} -E copy
+    "${CVC5PythonicAPI_BASEDIR}/cvc5_pythonic_api/LICENSE.txt"
+    "${CMAKE_BINARY_DIR}/licenses/pythonic-LICENSE"
+  DEPENDS CVC5PythonicAPI
+)
+
+# Copy license files to build directory where setup() can find them
+add_custom_target(cvc5_python_licenses DEPENDS ${LICENSE_FILES})
 
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file

@@ -50,7 +50,6 @@ bool AlfProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   switch (pn->getRule())
   {
-    case ProofRule::SCOPE:
     case ProofRule::CONG:
     case ProofRule::CONCAT_CONFLICT:
     case ProofRule::SKOLEM_INTRO: return true;
@@ -98,35 +97,9 @@ bool AlfProofPostprocessCallback::update(Node res,
 {
   Trace("alf-proof") << "...Alf pre-update " << res << " " << id << " "
                      << children << " / " << args << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
 
   switch (id)
   {
-    case ProofRule::SCOPE:
-    {
-      // On the first two calls to update, the proof nodes are the outermost
-      // scopes of the proof. These scopes should not be printed in the AletheLF
-      // proof. Instead, the AletheLF proof printer will print the proper scopes
-      // around the proof, which e.g. involves an AletheLF "check" command.
-      if (d_numIgnoredScopes < 2)
-      {
-        d_numIgnoredScopes++;
-        // Note that we do not want to modify the top-most SCOPEs.
-        return false;
-      }
-      Node curr = children[0];
-      for (size_t i = 0, nargs = args.size(); i < nargs; i++)
-      {
-        size_t ii = (nargs - 1) - i;
-        Node next = nm->mkNode(Kind::IMPLIES, args[ii], curr);
-        addAlfStep(AlfRule::SCOPE, next, {curr}, {args[ii]}, *cdp);
-        curr = next;
-      }
-      // convert (=> F1 (=> ... (=> Fn C)...)) to (=> (and F1 ... Fn) C) or
-      // (not (and F1 ... Fn))
-      addAlfStep(AlfRule::PROCESS_SCOPE, res, {curr}, {children[0]}, *cdp);
-    }
-    break;
     case ProofRule::CONG:
     {
       Assert(res.getKind() == Kind::EQUAL);
@@ -148,30 +121,7 @@ bool AlfProofPostprocessCallback::update(Node res,
       Node op = d_tproc.getOperatorOfTerm(res[0]);
       Trace("alf-proof") << "Processing cong for op " << op << " "
                          << op.getType() << std::endl;
-      if (k == Kind::LAMBDA || k == Kind::WITNESS)
-      {
-        Assert(res[1].getKind() == k && res[0][0] == res[1][0]);
-        Node lam1 = d_tproc.convert(res[0]);
-        Node lam2 = d_tproc.convert(res[1]);
-        for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
-        {
-          Assert(lam1.getNumChildren() == 2 && lam2.getNumChildren() == 2);
-          Node varEq = lam1[0].eqNode(lam1[0]);
-          cdp->addStep(varEq, ProofRule::REFL, {}, {lam1[0]});
-          Node bodyEq = i + 1 == nvars ? children[1] : lam1[1].eqNode(lam2[1]);
-          Node lamEq = lam1.eqNode(lam2);
-          Node conclusion = i == 0 ? res : lamEq;
-          addAlfStep(AlfRule::CONG,
-                     conclusion,
-                     {varEq, bodyEq},
-                     {lam1.getOperator()},
-                     *cdp);
-          lam1 = lam1[1];
-          lam2 = lam2[1];
-        }
-        return true;
-      }
-      else if (res[0].isClosure())
+      if (res[0].isClosure())
       {
         Assert(children.size() >= 2);
         // variable lists should be equal
@@ -208,33 +158,14 @@ bool AlfProofPostprocessCallback::update(Node res,
       }
       if (isNary)
       {
-        std::vector<Node> rchildren = children;
-        std::reverse(rchildren.begin(), rchildren.end());
-        std::vector<Node> cargs;
-        cargs.push_back(op);
-        cargs.push_back(nullt);
-        // use n-ary rule, must reverse children
-        addAlfStep(AlfRule::NARY_CONG, res, rchildren, cargs, *cdp);
+        // use n-ary rule
+        addAlfStep(AlfRule::NARY_CONG, res, children, {op}, *cdp);
       }
       else
       {
         // use ordinary rule
         addAlfStep(AlfRule::CONG, res, children, {op}, *cdp);
       }
-    }
-    break;
-    case ProofRule::CONCAT_CONFLICT:
-    {
-      if (children.size() == 1)
-      {
-        // no need to change
-        return false;
-      }
-      Assert(children.size() == 2);
-      Assert(children[0].getKind() == Kind::EQUAL);
-      Assert(children[0][0].getType().isSequence());
-      // must use the sequences version of the rule
-      addAlfStep(AlfRule::CONCAT_CONFLICT_DEQ, res, children, args, *cdp);
     }
     break;
     default: return false;
