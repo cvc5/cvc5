@@ -4642,11 +4642,15 @@ class CVC5_EXPORT Solver
    * @param format The proof format used to print the proof.  Must be
    * `modes::ProofFormat::NONE` if the proof is from a component other than
    * `modes::ProofComponent::FULL`.
+   * @param assertionNames Mapping between assertions and names, if they were
+   * given by the user.
    * @return The string representation of the proof in the given format.
    */
   std::string proofToString(
       Proof proof,
-      modes::ProofFormat format = modes::ProofFormat::DEFAULT) const;
+      modes::ProofFormat format = modes::ProofFormat::DEFAULT,
+      const std::map<cvc5::Term, std::string>& assertionNames =
+          std::map<cvc5::Term, std::string>()) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of
