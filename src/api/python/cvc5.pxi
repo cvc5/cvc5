@@ -1559,7 +1559,7 @@ cdef class Solver:
                 if a < 0 or a >= 2 ** 31:
                     raise ValueError(
                             "Argument {} must fit in a uint32_t".format(a))
-                v.push_back((<uint32_t?> a))
+                v.push_back(<uint32_t?> a)
             op.cop = self.csolver.mkOp(<c_Kind> k.value, v)
         return op
 
@@ -1618,7 +1618,7 @@ cdef class Solver:
                     <const string &> str(val).encode())
         else:
             assert(isinstance(val, int))
-            term.cterm = self.csolver.mkInteger((<int?> val))
+            term.cterm = self.csolver.mkInteger(<int?> val)
         return term
 
     def mkReal(self, numerator, denominator=None):
@@ -3103,7 +3103,7 @@ cdef class Solver:
                    free variables in :math:`y_1...y_n`
                  - If :math:`Q` is :math:`\\exists`, let :math:`(A \\wedge Q_n)`
                    be the formula
-                   :math:`(A \\wedge \\neg (\\phi \wedge Q_1) \\wedge ... \\wedge \\neg (\\phi \\wedge Q_n))`
+                   :math:`(A \\wedge \\neg (\\phi \\wedge Q_1) \\wedge ... \\wedge \\neg (\\phi \\wedge Q_n))`
                    where for each :math:`i = 1...n`, formula
                    :math:`(\\phi \\wedge Q_i)` is the result of calling
                    :py:meth:`getQuantifierEliminationDisjunct()`
@@ -4553,7 +4553,7 @@ cdef class Term:
         return (get0(t), get1(t), term)
 
     def isSetValue(self):
-        """
+        r"""
             A term is a set value if it is considered to be a (canonical)
             constant set value.  A canonical set value is one whose AST is:
 
