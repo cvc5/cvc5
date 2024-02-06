@@ -1462,7 +1462,11 @@ Node EqProof::addToProof(CDProof* p,
     Trace("eqproof-conv") << "EqProof::addToProof: build HO-cong step of "
                           << conclusion << " with children " << children
                           << "\n";
-    p->addStep(conclusion, ProofRule::CONG, children, {ProofRuleChecker::mkKindNode(Kind::APPLY_UF)}, true);
+    p->addStep(conclusion,
+               ProofRule::CONG,
+               children,
+               {ProofRuleChecker::mkKindNode(Kind::APPLY_UF)},
+               true);
   }
   // If the conclusion of the congruence step changed due to the n-ary handling,
   // we obtained for example (= (f (f t1 t2 t3) t4) (f (f t5 t6) t7)), which is

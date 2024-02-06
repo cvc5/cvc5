@@ -110,7 +110,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     }
     Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k
                         << ", metakind=" << kind::metaKindOf(k) << std::endl;
-    if (args.size()==2)
+    if (args.size() == 2)
     {
       // parameterized kinds require the operator
       lchildren.push_back(args[1]);
