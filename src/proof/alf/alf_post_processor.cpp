@@ -168,20 +168,6 @@ bool AlfProofPostprocessCallback::update(Node res,
       }
     }
     break;
-    case ProofRule::CONCAT_CONFLICT:
-    {
-      if (children.size() == 1)
-      {
-        // no need to change
-        return false;
-      }
-      Assert(children.size() == 2);
-      Assert(children[0].getKind() == Kind::EQUAL);
-      Assert(children[0][0].getType().isSequence());
-      // must use the sequences version of the rule
-      addAlfStep(AlfRule::CONCAT_CONFLICT_DEQ, res, children, args, *cdp);
-    }
-    break;
     default: return false;
   }
   return true;
