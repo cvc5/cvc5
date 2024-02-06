@@ -1310,7 +1310,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferruleSC{-\mid F, y_1=z_1,\dots, y_n=z_n}
+   *   \inferruleSC{-\mid F, (y_1 \ldots y_n), (z_1,\dots, z_n)}
    *   {F = F\{y_1\mapsto z_1,\dots,y_n\mapsto z_n\}}
    *   {if $y_1,\dots,y_n, z_1,\dots,z_n$ are unique bound variables}
    *
