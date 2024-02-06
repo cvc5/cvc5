@@ -1587,7 +1587,6 @@ void GetProofCommand::invoke(cvc5::Solver* solver, SymManager* sm)
         ss << "(!" << std::endl;
       }
       // get assertions, and build a map between them and their names
-      std::vector<cvc5::Term> assertions = solver->getAssertions();
       std::map<cvc5::Term, std::string> assertionNames =
           sm->getExpressionNames(true);
       ss << solver->proofToString(p, format, assertionNames);
