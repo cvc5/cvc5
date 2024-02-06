@@ -409,7 +409,6 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
   if (r == ProofRule::SCOPE)
   {
     const std::vector<Node>& args = pn->getArguments();
-    Assert(!args.empty());
     for (const Node& a : args)
     {
       size_t aid = allocateAssumePushId(pn, a);
