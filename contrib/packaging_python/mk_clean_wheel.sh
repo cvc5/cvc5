@@ -60,6 +60,8 @@ rm -rf build_wheel/
 echo "Building pycvc5 wheel"
 
 pushd build_wheel
+# Copy the license files to be included in the wheel
+cmake --build . --target cvc5_python_licenses
 if [ -z "$PLATFORM" ] ; then
   python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
 else

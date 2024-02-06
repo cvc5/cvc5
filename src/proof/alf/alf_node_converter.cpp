@@ -161,24 +161,6 @@ Node AlfNodeConverter::postConvert(Node n)
     ss << (r.sgn() == -1 ? "-" : "") << num << "/" << den;
     return mkInternalSymbol(ss.str(), tn);
   }
-  else if (k == Kind::LAMBDA || k == Kind::WITNESS)
-  {
-    // e.g. (lambda ((x1 T1) ... (xn Tk)) P) is
-    // (lambda x1 (lambda x2 ... (lambda xn P)))
-    Node ret = n[1];
-    TypeNode tnr = ret.getType();
-    std::stringstream opName;
-    opName << printer::smt2::Smt2Printer::smtKindString(k);
-    for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
-    {
-      size_t ii = (nchild - 1) - i;
-      Node v = convert(n[0][ii]);
-      // use the body return type for all terms except the last one.
-      tnr = ii == 0 ? n.getType() : nm->mkFunctionType({v.getType()}, tnr);
-      ret = mkInternalApp(opName.str(), {v, ret}, tnr);
-    }
-    return ret;
-  }
   else if (n.isClosure())
   {
     // e.g. (forall ((x1 T1) ... (xn Tk)) P) is
