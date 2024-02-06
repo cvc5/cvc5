@@ -2712,126 +2712,6 @@ Cvc5Sort cvc5_declare_sort(Cvc5TermManager* tm,
                            const char* symbol,
                            uint32_t arity);
 
-/**
- * Define n-ary function.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (define-fun <function_def>)
- * \endverbatim
- *
- * @param tm The term manager instance.
- * @param symbol The name of the function.
- * @param nbound_vars The number of parameters of the function.
- * @param bound_vars The parameters.
- * @param sort The sort of the return value of this function.
- * @param term The function body.
- * @param global Determines whether this definition is global (i.e., persists
- *               when popping the context).
- * @return The function.
- */
-Cvc5Term cvc5_define_fun(Cvc5TermManager* tm,
-                         const char* symbol,
-                         size_t nbound_vars,
-                         const Cvc5Term* bound_vars,
-                         const Cvc5Sort sort,
-                         const Cvc5Term term,
-                         bool global);
-
-/**
- * Define recursive function.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (define-fun-rec <function_def>)
- * \endverbatim
- *
- * @param tm The term manager instance.
- * @param symbol The name of the function.
- * @param nbound_vars The number of parameters of the function.
- * @param bound_vars The parameters to this function.
- * @param sort The sort of the return value of this function.
- * @param term The function body.
- * @param global Determines whether this definition is global (i.e., persists
- *               when popping the context).
- * @return The function.
- */
-Cvc5Term cvc5_define_fun_rec(Cvc5TermManager* tm,
-                             const char* symbol,
-                             size_t nbound_vars,
-                             const Cvc5Term* bound_vars,
-                             const Cvc5Sort sort,
-                             const Cvc5Term term,
-                             bool global);
-
-/**
- * Define recursive function.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (define-fun-rec <function_def>)
- * \endverbatim
- *
- * Create parameter `fun` with mkConst().
- *
- * @param tm The term manager instance.
- * @param fun The sorted function.
- * @param nbound_vars The number of parameters of the function.
- * @param bound_vars The parameters to this function.
- * @param term The function body.
- * @param global Determines whether this definition is global (i.e., persists
- *               when popping the context).
- * @return The function.
- */
-Cvc5Term cvc5_define_fun_rec_from_const(Cvc5TermManager* tm,
-                                        Cvc5Term fun,
-                                        size_t nbound_vars,
-                                        const Cvc5Term* bound_vars,
-                                        const Cvc5Term term,
-                                        bool global);
-
-/**
- * Define recursive functions.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (define-funs-rec
- *         ( <function_decl>_1 ... <function_decl>_n )
- *         ( <term>_1 ... <term>_n )
- *     )
- * \endverbatim
- *
- * Create elements of parameter `funs` with `cvc5_mk_const()`.
- *
- * @param tm The term manager instance.
- * @param nfuns The number of sorted functions.
- * @param funs The sorted functions.
- * @param nbound_vars The numbers of parameters for each function.
- * @param bound_vars The list of parameters to the functions.
- * @param terms The list of function bodies of the functions.
- * @param global Determines whether this definition is global (i.e., persists
- *               when popping the context).
- */
-void cvc5_define_funs_rec(Cvc5TermManager* tm,
-                          size_t nfuns,
-                          const Cvc5Term* funs,
-                          size_t* nbound_vars,
-                          const Cvc5Term** bound_vars,
-                          const Cvc5Term* terms,
-                          bool global);
-
 /* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -2852,6 +2732,123 @@ void cvc5_delete(Cvc5* cvc5);
 /* Formula Handling                                                     */
 /* .................................................................... */
 
+/**
+ * Define n-ary function.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (define-fun <function_def>)
+ * \endverbatim
+ *
+ * @param cvc5 The cvc5 solver instance.
+ * @param symbol The name of the function.
+ * @param nbound_vars The number of parameters of the function.
+ * @param bound_vars The parameters.
+ * @param sort The sort of the return value of this function.
+ * @param term The function body.
+ * @param global Determines whether this definition is global (i.e., persists
+ *               when popping the context).
+ * @return The function.
+ */
+Cvc5Term cvc5_define_fun(Cvc5* cvc5,
+                         const char* symbol,
+                         size_t nbound_vars,
+                         const Cvc5Term* bound_vars,
+                         const Cvc5Sort sort,
+                         const Cvc5Term term,
+                         bool global);
+
+/**
+ * Define recursive function.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (define-fun-rec <function_def>)
+ * \endverbatim
+ *
+ * @param cvc5 The cvc5 solver instance.
+ * @param symbol The name of the function.
+ * @param nbound_vars The number of parameters of the function.
+ * @param bound_vars The parameters to this function.
+ * @param sort The sort of the return value of this function.
+ * @param term The function body.
+ * @param global Determines whether this definition is global (i.e., persists
+ *               when popping the context).
+ * @return The function.
+ */
+Cvc5Term cvc5_define_fun_rec(Cvc5* cvc5,
+                             const char* symbol,
+                             size_t nbound_vars,
+                             const Cvc5Term* bound_vars,
+                             const Cvc5Sort sort,
+                             const Cvc5Term term,
+                             bool global);
+/**
+ * Define recursive function.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (define-fun-rec <function_def>)
+ * \endverbatim
+ *
+ * Create parameter `fun` with mkConst().
+ *
+ * @param cvc5 The cvc5 solver instance.
+ * @param fun The sorted function.
+ * @param nbound_vars The number of parameters of the function.
+ * @param bound_vars The parameters to this function.
+ * @param term The function body.
+ * @param global Determines whether this definition is global (i.e., persists
+ *               when popping the context).
+ * @return The function.
+ */
+Cvc5Term cvc5_define_fun_rec_from_const(Cvc5* cvc5,
+                                        Cvc5Term fun,
+                                        size_t nbound_vars,
+                                        const Cvc5Term* bound_vars,
+                                        const Cvc5Term term,
+                                        bool global);
+/**
+ * Define recursive functions.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (define-funs-rec
+ *         ( <function_decl>_1 ... <function_decl>_n )
+ *         ( <term>_1 ... <term>_n )
+ *     )
+ * \endverbatim
+ *
+ * Create elements of parameter `funs` with `cvc5_mk_const()`.
+ *
+ * @param cvc5 The cvc5 solver instance.
+ * @param nfuns The number of sorted functions.
+ * @param funs The sorted functions.
+ * @param nbound_vars The numbers of parameters for each function.
+ * @param bound_vars The list of parameters to the functions.
+ * @param terms The list of function bodies of the functions.
+ * @param global Determines whether this definition is global (i.e., persists
+ *               when popping the context).
+ */
+void cvc5_define_funs_rec(Cvc5* cvc5,
+                          size_t nfuns,
+                          const Cvc5Term* funs,
+                          size_t* nbound_vars,
+                          const Cvc5Term** bound_vars,
+                          const Cvc5Term* terms,
+                          bool global);
 /**
  * Simplify a formula without doing "much" work.
  *
