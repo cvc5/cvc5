@@ -536,6 +536,8 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
       lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
       trules = vs;
     }
+    // TODO: could add more symbols to trules to improve the enumerated terms
+    // TODO: could cache the enumerator here for efficiency
     SygusGrammarCons sgc;
     Node bvl;
     TypeNode tng = sgc.mkDefaultSygusType(d_env, retType, bvl, trules);
@@ -543,7 +545,7 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
     if (TraceIsOn("mbqi-model-enum"))
     {
       Trace("mbqi-model-enum") << "Enumerate terms for " << retType;
-      if (lamVars.isNull())
+      if (!lamVars.isNull())
       {
         Trace("mbqi-model-enum") << ", variable list " << lamVars;
       }
@@ -566,11 +568,14 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
         }
         Trace("mbqi-model-enum") << "- Try candidate: " << ret << std::endl;
         // see if it is still satisfiable, if still SAT, we replace
-        Node queryCheck = query.substitute(TNode(v), TNode(ret));
+        Node queryCheck = queryCurr.substitute(TNode(v), TNode(ret));
+        queryCheck = rewrite(queryCheck);
         SubsolverSetupInfo ssi(d_env);
         Result r = checkWithSubsolver(queryCheck, ssi);
         if (r == Result::SAT)
         {
+          // remember the updated query
+          queryCurr = queryCheck;
           Trace("mbqi-model-enum") << "...success" << std::endl;
           mvs[i] = ret;
           break;
