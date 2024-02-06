@@ -52,15 +52,22 @@ The following file contains third-party software.
 
 The copyright and licensing information of this file is in its header.
 
-cvc5 incorporates MiniSat code (see src/prop/minisat and src/prop/bvminisat),
-excluded from the above copyright.  See src/prop/minisat/LICENSE and
-src/prop/bvminisat/LICENSE for copyright and licensing information.
+cvc5 incorporates MiniSat code (see src/prop/minisat),
+excluded from the above copyright. See licenses/minisat-LICENSE
+for copyright and licensing information.
 
 cvc5 by default links against The GNU Multiple Precision (GMP) Arithmetic
-Library, which is licensed under GNU LGPL v3. See the file
+Library, which is licensed under GNU LGPL v3.  See the file
 licenses/lgpl-3.0.txt for a copy of that license.  Note that according to the
 terms of the LGPL, both cvc5's source, and the combined work (cvc5 linked with
 GMP) may (and do) remain under the more permissive modified BSD license.
+
+cvc5 also links against the CaDiCaL library
+(https://github.com/arminbiere/cadical), which is licensed under
+the MIT license.
+See https://raw.githubusercontent.com/arminbiere/cadical/master/LICENSE
+for copyright and licensing information.  Linking cvc5 against
+this library does not affect the license terms of the cvc5 code.
 
 The implementation of the floating point solver in cvc5 depends on symfpu
 (https://github.com/martin-cs/symfpu) written by Martin Brain.
@@ -70,7 +77,6 @@ copyright and licensing information.
 cvc5 optionally links against the following libraries:
 
   ABC                (https://bitbucket.org/alanmi/abc)
-  CaDiCaL            (https://github.com/arminbiere/cadical)
   CryptoMiniSat      (https://github.com/msoos/cryptominisat)
   LibPoly            (https://github.com/SRI-CSL/libpoly)
   libedit            (https://thrysoee.dk/editline)
