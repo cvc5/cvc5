@@ -18,18 +18,18 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
+#include "printer/smt2/smt2_printer.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/quantifiers/sygus/sygus_enumerator.h"
-#include "theory/datatypes/sygus_datatype_utils.h"
-#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -72,7 +72,7 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   FirstOrderModel* fm = d_treg.getModel();
   if (TraceIsOn("mbqi-model-exp"))
   {
-    eq::EqualityEngine * ee = fm->getEqualityEngine();
+    eq::EqualityEngine* ee = fm->getEqualityEngine();
     Trace("mbqi-model-exp") << "=== InstStrategyMbqi::check" << std::endl;
     Trace("mbqi-model-exp") << "Ground model:" << std::endl;
     Trace("mbqi-model-exp") << ee->debugPrintEqc() << std::endl;
@@ -90,7 +90,8 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
     }
     process(q);
   }
-  Trace("mbqi-model-exp") << "=== InstStrategyMbqi::check finished" << std::endl;
+  Trace("mbqi-model-exp") << "=== InstStrategyMbqi::check finished"
+                          << std::endl;
 }
 
 bool InstStrategyMbqi::checkCompleteFor(Node q)
@@ -232,7 +233,8 @@ void InstStrategyMbqi::process(Node q)
   mbqiChecker->setOption("produce-models", "true");
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;
-  Trace("mbqi") << "  query is : " << SkolemManager::getOriginalForm(query) << std::endl;
+  Trace("mbqi") << "  query is : " << SkolemManager::getOriginalForm(query)
+                << std::endl;
   Result r = mbqiChecker->checkSat();
   Trace("mbqi") << "  ...got : " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
@@ -466,14 +468,16 @@ Node InstStrategyMbqi::modelValueToQuery(const Node& t)
   {
     return fm->getValue(t);
   }
-  Trace("mbqi-model-exp") << "-> Choose model value of " << t << "?" << std::endl;
+  Trace("mbqi-model-exp") << "-> Choose model value of " << t << "?"
+                          << std::endl;
   if (t.getType().isFunction())
   {
     const std::vector<Node>& uterms = fm->getTheoryModel()->getUfTerms(t);
     Trace("mbqi-model-exp") << "  #terms=" << uterms.size() << std::endl;
     for (const Node& u : uterms)
     {
-      Trace("mbqi-model-exp") << "    " << u << " == " << fm->getValue(u) << std::endl;
+      Trace("mbqi-model-exp")
+          << "    " << u << " == " << fm->getValue(u) << std::endl;
     }
   }
   Node val = fm->getValue(t);
@@ -483,10 +487,10 @@ Node InstStrategyMbqi::modelValueToQuery(const Node& t)
 }
 
 void InstStrategyMbqi::modelValueFromQuery(const Node& q,
-                           const Node& query,
+                                           const Node& query,
                                            SolverEngine& smt,
-                          const std::vector<Node>& vars,
-                          std::vector<Node>& mvs)
+                                           const std::vector<Node>& vars,
+                                           std::vector<Node>& mvs)
 {
   if (!options().quantifiers.mbqiModelExp)
   {
@@ -494,21 +498,24 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
     return;
   }
   getModelFromSubsolver(smt, vars, mvs);
-  Assert (vars.size()==mvs.size());
+  Assert(vars.size() == mvs.size());
   if (TraceIsOn("mbqi-model-exp"))
   {
-    Trace("mbqi-model-exp") << "<- Get model values for instantiation of " << q << "?" << std::endl;
+    Trace("mbqi-model-exp")
+        << "<- Get model values for instantiation of " << q << "?" << std::endl;
     std::vector<Node> ovars(q[0].begin(), q[0].end());
-    Node querys = query.substitute(vars.begin(), vars.end(), ovars.begin(), ovars.end());
+    Node querys =
+        query.substitute(vars.begin(), vars.end(), ovars.begin(), ovars.end());
     Trace("mbqi-model-exp") << "  query was: " << querys << std::endl;
-    for (size_t i=0, nvars = vars.size(); i<nvars; i++)
+    for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
     {
-      Trace("mbqi-model-exp") << "...M_subsolver(" << q[0][i] << ") == " << mvs[i] << std::endl;
+      Trace("mbqi-model-exp")
+          << "...M_subsolver(" << q[0][i] << ") == " << mvs[i] << std::endl;
     }
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node queryCurr = query;
-  for (size_t i=0, msize = mvs.size(); i<msize; i++)
+  for (size_t i = 0, msize = mvs.size(); i < msize; i++)
   {
     Node v = vars[i];
     Node m = mvs[i];
@@ -538,11 +545,12 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
       Trace("mbqi-model-enum") << "Enumerate terms for " << retType;
       if (lamVars.isNull())
       {
-        Trace("mbqi-model-enum") << ", variable list " << lamVars;  
+        Trace("mbqi-model-enum") << ", variable list " << lamVars;
       }
       Trace("mbqi-model-enum") << std::endl;
       Trace("mbqi-model-enum") << "Based on grammar:" << std::endl;
-      Trace("mbqi-model-enum") << printer::smt2::Smt2Printer::sygusGrammarString(tng) << std::endl;
+      Trace("mbqi-model-enum")
+          << printer::smt2::Smt2Printer::sygusGrammarString(tng) << std::endl;
     }
     SygusEnumerator senum(d_env);
     senum.initialize(e);
@@ -561,7 +569,7 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
         Node queryCheck = query.substitute(TNode(v), TNode(ret));
         SubsolverSetupInfo ssi(d_env);
         Result r = checkWithSubsolver(queryCheck, ssi);
-        if (r==Result::SAT)
+        if (r == Result::SAT)
         {
           Trace("mbqi-model-enum") << "...success" << std::endl;
           mvs[i] = ret;
@@ -569,11 +577,10 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
         }
         Trace("mbqi-model-enum") << "...failed, try another" << std::endl;
       }
-    }
-    while (senum.increment());
+    } while (senum.increment());
   }
 }
-  
+
 Node InstStrategyMbqi::convertFromModel(
     Node t,
     std::unordered_map<Node, Node>& cmap,

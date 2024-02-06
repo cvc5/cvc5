@@ -362,7 +362,8 @@ bool Instantiate::addInstantiationInternal(
   d_instDebugTemp[q]++;
   if (TraceIsOn("inst"))
   {
-    Trace("inst") << "*** Instantiate [" << id  << "] " << q << " with " << std::endl;
+    Trace("inst") << "*** Instantiate [" << id << "] " << q << " with "
+                  << std::endl;
     for (size_t i = 0, size = terms.size(); i < size; i++)
     {
       if (TraceIsOn("inst"))
