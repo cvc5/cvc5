@@ -38,6 +38,8 @@ class SortToTerm
 
   /** Get the type that this sort-to-term represents */
   const TypeNode& getType() const;
+  /** True if equal */
+  bool operator==(const SortToTerm& stt) const;
 
  private:
   SortToTerm();
@@ -45,11 +47,11 @@ class SortToTerm
   std::unique_ptr<TypeNode> d_type;
 };
 
-std::ostream& operator<<(std::ostream& out, const SortToTerm& es);
+std::ostream& operator<<(std::ostream& out, const SortToTerm& stt);
 
 struct SortToTermHashFunction
 {
-  size_t operator()(const SortToTerm& es) const;
+  size_t operator()(const SortToTerm& stt) const;
 };
 
 }  // namespace cvc5::internal

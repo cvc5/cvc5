@@ -48,18 +48,4 @@ bool EmptySet::operator==(const EmptySet& es) const
 {
   return getType() == es.getType();
 }
-
-bool EmptySet::operator!=(const EmptySet& es) const { return !(*this == es); }
-bool EmptySet::operator<(const EmptySet& es) const
-{
-  return getType() < es.getType();
-}
-
-bool EmptySet::operator<=(const EmptySet& es) const
-{
-  return getType() <= es.getType();
-}
-
-bool EmptySet::operator>(const EmptySet& es) const { return !(*this <= es); }
-bool EmptySet::operator>=(const EmptySet& es) const { return !(*this < es); }
 }  // namespace cvc5::internal
