@@ -2759,16 +2759,20 @@ Cvc5Sort cvc5_declare_dt(Cvc5TermManager* tm,
  *
  * @param tm The term manager instance.
  * @param symbol The name of the function.
- * @param size The number of domain sorts of the function.
- * @param sorts The domain sorts of the function.
- * @param sort The codomain sort of the function.
+ * @param size   The number of domain sorts of the function.
+ * @param sorts  The domain sorts of the function.
+ * @param sort   The codomain sort of the function.
+ * @param fresh  If true, then this method always returns a new Term. Otherwise,
+ *               this method will always return the same Term for each call with
+ *               the given sorts and symbol where fresh is false.
  * @return The function.
  */
 Cvc5Term cvc5_declare_fun(Cvc5TermManager* tm,
                           const char* symbol,
                           size_t size,
                           const Cvc5Sort* sorts,
-                          Cvc5Sort sort);
+                          Cvc5Sort sort,
+                          bool fresh);
 
 /**
  * Declare uninterpreted sort.
