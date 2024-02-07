@@ -157,7 +157,7 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
   d_skdm->notifySkolemDefinition(skolem, a);
 }
 
-void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
+void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma, bool volit)
 {
   // ignore constants
   if (a.isConst())
@@ -165,7 +165,16 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
     return;
   }
   // notify the decision engine
-  d_decisionEngine->addAssertion(a, skolem, isLemma);
+  if (volit)
+  {
+    // if volitile, it is a skolem def
+    std::vector<TNode> defs{a};
+    d_decisionEngine->notifyActiveSkolemDefs(defs);
+  }
+  else
+  {
+    d_decisionEngine->addAssertion(a, skolem, isLemma);
+  }
   // notify the preregistrar
   d_prr->addAssertion(a, skolem, isLemma);
 }

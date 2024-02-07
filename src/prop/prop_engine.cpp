@@ -175,6 +175,7 @@ void PropEngine::assertInputFormulas(
 void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
+  bool volit = isLemmaPropertyVolatile(p);
 
   // call preprocessor
   std::vector<theory::SkolemLemma> ppLemmas;
@@ -208,7 +209,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(tplemma, ppLemmas, removable);
+  assertLemmasInternal(tplemma, ppLemmas, removable, volit);
 }
 
 void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
@@ -274,7 +275,8 @@ void PropEngine::assertInternal(
 void PropEngine::assertLemmasInternal(
     TrustNode trn,
     const std::vector<theory::SkolemLemma>& ppLemmas,
-    bool removable)
+    bool removable,
+    bool volit)
 {
   if (!removable)
   {
@@ -311,11 +313,11 @@ void PropEngine::assertLemmasInternal(
     if (!trn.isNull())
     {
       // notify the theory proxy of the lemma
-      d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true);
+      d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true, volit);
     }
     for (const theory::SkolemLemma& lem : ppLemmas)
     {
-      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
+      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true, volit);
     }
   }
   Trace("prop") << "Finish " << trn << std::endl;
@@ -558,7 +560,7 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   TrustNode trnNull;
-  assertLemmasInternal(trnNull, newLemmas, false);
+  assertLemmasInternal(trnNull, newLemmas, false, false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 

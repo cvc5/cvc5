@@ -1717,6 +1717,14 @@ name   = "Quantifiers"
   default    = "true"
   help       = "use store axiom during ho-elim"
 
+[[option]]
+  name       = "instVolatile"
+  category   = "regular"
+  long       = "inst-volatile"
+  type       = "bool"
+  default    = "false"
+  help       = "Instantiations are volatile"
+
 ### SyGuS instantiation options
 
 [[option]]

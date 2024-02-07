@@ -52,7 +52,7 @@ Instantiate::Instantiate(Env& env,
       d_qreg(qr),
       d_treg(tr),
       d_insts(userContext()),
-      d_c_inst_match_trie_dom(userContext()),
+      d_c_inst_match_trie_dom(options().quantifiers.instVolatile ? context() : userContext()),
       d_pfInst(isProofEnabled()
                    ? new CDProof(env, userContext(), "Instantiate::pfInst")
                    : nullptr)
@@ -337,15 +337,20 @@ bool Instantiate::addInstantiationInternal(
 
   // added lemma, which checks for lemma duplication
   bool addedLem = false;
+  LemmaProperty p = LemmaProperty::NONE;
+  if (options().quantifiers.instVolatile)
+  {
+    p = LemmaProperty::VOLATILE;
+  }
   if (hasProof)
   {
     // use proof generator
     addedLem =
-        d_qim.addPendingLemma(lem, id, LemmaProperty::NONE, d_pfInst.get());
+        d_qim.addPendingLemma(lem, id, p, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qim.addPendingLemma(lem, id);
+    addedLem = d_qim.addPendingLemma(lem, id, p);
   }
 
   if (!addedLem)
@@ -619,7 +624,7 @@ Node Instantiate::getInstantiation(Node q,
 bool Instantiate::recordInstantiationInternal(Node q,
                                               const std::vector<Node>& terms)
 {
-  if (options().base.incrementalSolving)
+  if (options().base.incrementalSolving || options().quantifiers.instVolatile)
   {
     Trace("inst-add-debug")
         << "Adding into context-dependent inst trie" << std::endl;
