@@ -21,17 +21,24 @@
 
 namespace cvc5::internal {
 
-std::ostream& operator<<(std::ostream& out, const SortToTerm& asa) {
+std::ostream& operator<<(std::ostream& out, const SortToTerm& asa)
+{
   return out << "sort_to_term(" << asa.getType() << ')';
 }
 
-size_t SortToTermHashFunction::operator()(const SortToTerm& es) const {
+size_t SortToTermHashFunction::operator()(const SortToTerm& es) const
+{
   return std::hash<TypeNode>()(es.getType());
 }
 
-SortToTerm::SortToTerm(const TypeNode& setType) : d_type(new TypeNode(setType)) {}
+SortToTerm::SortToTerm(const TypeNode& setType) : d_type(new TypeNode(setType))
+{
+}
 
-SortToTerm::SortToTerm(const SortToTerm& es) : d_type(new TypeNode(es.getType())) {}
+SortToTerm::SortToTerm(const SortToTerm& es)
+    : d_type(new TypeNode(es.getType()))
+{
+}
 
 SortToTerm::~SortToTerm() {}
 

@@ -38,6 +38,7 @@ class SortToTerm
 
   /** Get the type that this sort-to-term represents */
   const TypeNode& getType() const;
+
  private:
   SortToTerm();
   /** The type */
