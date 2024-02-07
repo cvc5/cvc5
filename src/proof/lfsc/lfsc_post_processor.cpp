@@ -207,9 +207,9 @@ bool LfscProofPostprocessCallback::update(Node res,
         Node pcop = d_tproc.getOperatorOfClosure(res[0], false, true);
         Trace("lfsc-pp-qcong") << "Operator for closure " << cop << std::endl;
         // start with base case body = body'
-        Node curL = children[1][0];
-        Node curR = children[1][1];
-        Node currEq = children[1];
+        Node curL = children[0][0];
+        Node curR = children[0][1];
+        Node currEq = children[0];
         Trace("lfsc-pp-qcong") << "Base congruence " << currEq << std::endl;
         for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
         {
