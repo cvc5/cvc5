@@ -1100,8 +1100,7 @@ Node NodeManager::mkVar(const std::string& name,
   // variable is unique.
   std::vector<Node> cnodes;
   cnodes.push_back(mkConst(String(name, false)));
-  // Since we index only on Node, we must construct use mkGroundValue
-  // to construct a canonical node for the tn.
+  // Since we index only on Node, we must construct a SortToTerm here.
   Node gt = mkConst(SortToTerm(type));
   cnodes.push_back(gt);
   return d_skManager->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, cnodes);
