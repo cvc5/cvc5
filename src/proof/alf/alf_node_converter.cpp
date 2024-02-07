@@ -622,7 +622,6 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
       opName << op;
     }
   }
-  // we only use binary operators
   else
   {
     if (k == Kind::NEG)
@@ -642,6 +641,19 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   if (!indices.empty())
   {
     ret = mkInternalApp(opName.str(), indices, app.getOperator().getType());
+  }
+  else if (n.isClosure())
+  {
+    // the operator of a closure
+    std::vector<Node> vars;
+    for (const Node& v : n[0])
+    {
+      vars.push_back(convert(v));
+    }
+    // can use ordinary cong
+    Node vl = mkList(vars);
+    ret = mkInternalApp(
+            printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
   }
   else
   {
