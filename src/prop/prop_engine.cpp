@@ -313,11 +313,13 @@ void PropEngine::assertLemmasInternal(
     if (!trn.isNull())
     {
       // notify the theory proxy of the lemma
-      d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true, volit);
+      d_theoryProxy->notifyAssertion(
+          trn.getProven(), TNode::null(), true, volit);
     }
     for (const theory::SkolemLemma& lem : ppLemmas)
     {
-      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true, volit);
+      d_theoryProxy->notifyAssertion(
+          lem.getProven(), lem.d_skolem, true, volit);
     }
   }
   Trace("prop") << "Finish " << trn << std::endl;
