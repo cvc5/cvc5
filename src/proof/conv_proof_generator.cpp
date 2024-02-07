@@ -496,7 +496,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
             // We skip the bound variable list and add it as an argument.
             startIndex = 1;
             // The variable list should never change.
-            Assert (cur[0]==ret[0]);
+            Assert(cur[0] == ret[0]);
             pfArgs.push_back(cur[0]);
           }
           else if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
@@ -505,7 +505,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
             pfArgs.pop_back();
             pfChildren.push_back(cur.getOperator().eqNode(children[0]));
           }
-          for (size_t i = startIndex, size = cur.getNumChildren(); i < size; i++)
+          for (size_t i = startIndex, size = cur.getNumChildren(); i < size;
+               i++)
           {
             if (cur[i] == ret[i])
             {

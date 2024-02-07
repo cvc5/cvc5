@@ -119,7 +119,8 @@ bool AlfProofPostprocessCallback::update(Node res,
             printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
         std::vector<Node> newChildren(
             children.begin(),
-            children.begin() + d_tproc.getNumChildrenToProcessForClosure(k)-1);
+            children.begin() + d_tproc.getNumChildrenToProcessForClosure(k)
+                - 1);
         addAlfStep(AlfRule::CONG, res, newChildren, {opc}, *cdp);
         return true;
       }
