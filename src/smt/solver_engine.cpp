@@ -1396,7 +1396,8 @@ std::vector<Node> SolverEngine::convertPreprocessedToInput(
 
 void SolverEngine::printProof(std::ostream& out,
                               std::shared_ptr<ProofNode> fp,
-                              modes::ProofFormat proofFormat)
+                              modes::ProofFormat proofFormat,
+                              const std::map<Node, std::string>& assertionNames)
 {
   // we print in the format based on the proof mode
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
@@ -1413,7 +1414,7 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
-  d_pfManager->printProof(out, fp, mode);
+  d_pfManager->printProof(out, fp, mode, assertionNames);
   out << std::endl;
 }
 

@@ -47,7 +47,7 @@ Before building and installing, the following dependencies should be installed, 
 .. code:: bash
 
   brew install cmake python gmp java
-  pip3 install cython tomli scikit-build pyparsing
+  pip3 install -r contrib/requirements_python_dev.txt
 
 
 Then `cvc5` can be installed from source as follows:

@@ -19,4 +19,3 @@
     ((substitute_list @list.nil @list.nil F)       F)
   )
 )
-
