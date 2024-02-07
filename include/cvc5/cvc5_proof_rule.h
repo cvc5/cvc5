@@ -1293,10 +1293,10 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{\forall x_1\dots x_n.\> F\mid (t_1,\dots,t_n), (id\, (t)?)?}
+   *   \inferrule{\forall x_1\dots x_n.\> F\mid (t_1 \dots t_n), (id\, (t)?)?}
    *   {F\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
    *
-   * The list of terms to instantiate :math:`(t_1,\dots,t_n)` is provided as
+   * The list of terms to instantiate :math:`(t_1 \dots t_n)` is provided as
    * an s-expression as the first argument. The optional argument :math:`id`
    * indicates the inference id that caused the instantiation. The term
    * :math:`t` indicates an additional term (e.g. the trigger) associated with
