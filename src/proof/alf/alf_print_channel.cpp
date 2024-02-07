@@ -58,6 +58,17 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
                                    const std::vector<Node>& args,
                                    bool isPop)
 {
+  printStepInternal(rname, n, i, premises, args, isPop, false);
+}
+
+void AlfPrintChannelOut::printStepInternal(const std::string& rname,
+                      TNode n,
+                      size_t i,
+                      const std::vector<size_t>& premises,
+                      const std::vector<Node>& args,
+                      bool isPop,
+                      bool isTrust)
+{
   d_out << "(" << (isPop ? "step-pop" : "step") << " @p" << i;
   if (!n.isNull())
   {
@@ -65,7 +76,8 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
   }
   d_out << " :rule " << rname;
   bool firstTime = true;
-  if (!premises.empty())
+  // trust takes a premise-list which must be specified even if empty
+  if (!premises.empty() || isTrust)
   {
     d_out << " :premises (";
     for (size_t p : premises)
@@ -113,14 +125,7 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i,
     d_warnedRules.insert(r);
   }
   d_out << "; trust " << r << std::endl;
-  if (premises.empty())
-  {
-    printStep("trust", n, i, premises, {nc}, false);
-  }
-  else
-  {
-    printStep("trust_step", n, i, premises, {nc}, false);
-  }
+  printStepInternal("trust", n, i, premises, {nc}, false, true);
 }
 
 void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
