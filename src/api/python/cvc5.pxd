@@ -242,9 +242,16 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkUninterpretedSortConstructorSort(size_t arity) except +
         Sort mkUninterpretedSortConstructorSort(size_t arity, const string& symbol) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
+        Sort mkNullableSort(Sort elemSort) except +
         Term mkTerm(Op op) except +
         Term mkTerm(Op op, const vector[Term]& children) except +
         Term mkTuple(const vector[Term]& terms) except +
+        Term mkNullableSome(const Term& term) except +
+        Term mkNullableVal(const Term& term) except +
+        Term mkNullableIsNull(const Term& term) except +
+        Term mkNullableIsSome(const Term& term) except +
+        Term mkNullableNull(const Sort& sort) except +
+        Term mkNullableLift(Kind kind, const vector[Term]& args) except +
         Op mkOp(Kind kind) except +
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, const vector[uint32_t]& args) except +
@@ -413,6 +420,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint isFunction() except +
         bint isPredicate() except +
         bint isTuple() except +
+        bint isNullable() except +
         bint isRecord() except +
         bint isArray() except +
         bint isFiniteField() except +
@@ -453,6 +461,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         size_t getDatatypeArity() except +
         size_t getTupleLength() except +
         vector[Sort] getTupleSorts() except +
+        Sort getNullableElementSort() except +
         string toString() except +
 
     cdef cppclass SortHashFunction:

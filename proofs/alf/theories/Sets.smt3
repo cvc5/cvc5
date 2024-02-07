@@ -29,7 +29,7 @@
 (declare-const set.fold (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U U) U (Set T) U))
 
 ; Experimental sets operators.
-(declare-const set.comprehension (-> (! Type :var T :implicit) @List Bool T (Set T)))
+(declare-const set.comprehension (-> (! Type :var T :implicit) @List Bool T (Set T)) :binder @list)
 (declare-const set.insert (-> (! Type :var T :implicit) @List (Set T) (Set T)))
 
 ; Relation operators.
