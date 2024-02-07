@@ -33,7 +33,7 @@ namespace proof {
 
 AlfProofPostprocessCallback::AlfProofPostprocessCallback(ProofNodeManager* pnm,
                                                          AlfNodeConverter& ltp)
-    : d_pnm(pnm), d_tproc(ltp), d_numIgnoredScopes(0)
+    : d_pnm(pnm), d_tproc(ltp)
 {
 }
 
@@ -74,18 +74,6 @@ bool AlfProofPostprocessCallback::addAlfStep(AlfRule rule,
   Trace("alf-proof") << "... add alf step " << conclusion << " " << rule
                           << " " << children << " / " << newArgs << std::endl;
   return cdp.addStep(conclusion, ProofRule::ALF_RULE, children, newArgs);
-}
-
-void AlfProofPostprocessCallback::addReflStep(const Node& n, CDProof& cdp)
-{
-  // share REFL
-  std::map<Node, std::shared_ptr<ProofNode> >::iterator it = d_refl.find(n);
-  if (it == d_refl.end())
-  {
-    d_refl[n] = d_pnm->mkNode(ProofRule::REFL, {}, {n});
-    it = d_refl.find(n);
-  }
-  cdp.addProof(it->second);
 }
 
 bool AlfProofPostprocessCallback::update(Node res,

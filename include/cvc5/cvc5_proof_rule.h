@@ -991,7 +991,7 @@ enum ENUM(ProofRule) : uint32_t
    * provided iff :math:`k` is a parameterized kind, e.g. ``APPLY_UF``. The
    * actual node for :math:`k` is constructible via
    * ``ProofRuleChecker::mkKindNode``. This rule is used for kinds that
-   * do not have varaidic arity, such as ``Kind::ITE``, ``Kind::EQUAL``, and
+   * have a fixed arity, such as ``Kind::ITE``, ``Kind::EQUAL``, and
    * so on. It is also used for ``Kind::APPLY_UF`.
    * \endverbatim
    */
@@ -1003,7 +1003,7 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k}{k(t_1,\dots, t_n) =
-   *   k(f?)(s_1,\dots, s_n)}
+   *   k(s_1,\dots, s_n)}
    *
    * where :math:`k` is the application kind. The actual node for :math:`k` is
    * constructible via ``ProofRuleChecker::mkKindNode``. This rule is used for
@@ -1071,10 +1071,11 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid -}{f(t_1,\dots, t_n) =
-   *   g(s_1,\dots, s_n)}
+   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid k}{k(f, t_1,\dots, t_n) =
+   *   k(g, s_1,\dots, s_n)}
    *
-   * Notice that this rule is only used when the application kinds are ``APPLY_UF``.
+   * Notice that this rule is only used when the application kind :math:`k` is
+   * either ``APPLY_UF`` or ``HO_APPLY``.
    * \endverbatim
    */
   EVALUE(HO_CONG),
