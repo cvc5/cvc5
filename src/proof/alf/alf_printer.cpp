@@ -440,20 +440,8 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
     break;
     case ProofRule::INSTANTIATE:
     {
-      // ignore arguments past the term vector, collect them into an sexpr
-      Node q = pn->getChildren()[0]->getResult();
-      Assert(q.getKind() == Kind::FORALL);
-      // only provide arguments up to the variable list length
-      std::vector<Node> targs;
-      for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
-      {
-        Assert(i < pargs.size());
-        targs.push_back(d_tproc.convert(pargs[i]));
-      }
-      // package as SEXPR, which will subsequently be converted to list
-      NodeManager* nm = NodeManager::currentNM();
-      Node tsp = nm->mkNode(Kind::SEXPR, targs);
-      Node ts = d_tproc.convert(tsp);
+      // ignore arguments past the term vector
+      Node ts = d_tproc.convert(pargs[0]);
       args.push_back(ts);
       return;
     }
