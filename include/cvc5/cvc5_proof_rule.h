@@ -991,8 +991,8 @@ enum ENUM(ProofRule) : uint32_t
    * provided iff :math:`k` is a parameterized kind, e.g. ``APPLY_UF``. The
    * actual node for :math:`k` is constructible via
    * ``ProofRuleChecker::mkKindNode``.
-   * If :math:`k` is a binder kind (e.g. `Kind::FORALL``) then :math:`f` is a
-   * term of kind `Kind::VARIABLE_LIST` denoting the variables bound by both
+   * If :math:`k` is a binder kind (e.g. ``Kind::FORALL``) then :math:`f` is a
+   * term of kind ``Kind::VARIABLE_LIST`` denoting the variables bound by both
    * sides of the conclusion.
    * This rule is used for kinds that have a fixed arity, such as ``Kind::ITE``,
    * ``Kind::EQUAL``, and so on. It is also used for ``Kind::APPLY_UF` where
@@ -1013,8 +1013,8 @@ enum ENUM(ProofRule) : uint32_t
    *
    * where :math:`k` is the application kind. The actual node for :math:`k` is
    * constructible via ``ProofRuleChecker::mkKindNode``. This rule is used for
-   * kinds that have variadic arity, such as `Kind::OR`, `Kind::AND`,
-   * `Kind::PLUS` and so on.
+   * kinds that have variadic arity, such as ``Kind::OR``, ``Kind::AND``,
+   * ``Kind::PLUS`` and so on.
    * \endverbatim
    */
   EVALUE(NARY_CONG),
@@ -1081,7 +1081,7 @@ enum ENUM(ProofRule) : uint32_t
    *   k(g, s_1,\dots, s_n)}
    *
    * Notice that this rule is only used when the application kind :math:`k` is
-   * either ``APPLY_UF`` or ``HO_APPLY``.
+   * either ``Kind::APPLY_UF`` or ``Kind::HO_APPLY``.
    * \endverbatim
    */
   EVALUE(HO_CONG),
