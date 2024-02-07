@@ -136,8 +136,8 @@ struct CutScratchPad {
   }
 };
 
-class GmiInfo;
-class MirInfo;
+struct GmiInfo;
+struct MirInfo;
 class BranchCutInfo;
 
 class ApproxGLPK : public ApproximateSimplex
@@ -257,10 +257,6 @@ class ApproxGLPK : public ApproximateSimplex
   bool replaceSlacksOnCuts();
   bool loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound& tmp);
 
-  double sumInfeasibilities(bool mip) const
-  {
-    return sumInfeasibilities(mip? d_mipProb : d_realProb);
-  }
   double sumInfeasibilities(glp_prob* prob, bool mip) const;
 
   /** UTILITIES FOR DEALING WITH ESTIMATES */
