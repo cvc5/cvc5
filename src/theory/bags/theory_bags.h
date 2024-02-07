@@ -82,6 +82,7 @@ class TheoryBags : public Theory
   Node getCandidateModelValue(TNode) override;
   std::string identify() const override { return "THEORY_BAGS"; }
   void preRegisterTerm(TNode n) override;
+
   void presolve() override;
   void computeCareGraph() override;
   void processCarePairArgs(TNode a, TNode b) override;

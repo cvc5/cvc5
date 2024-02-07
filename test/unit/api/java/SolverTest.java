@@ -389,6 +389,15 @@ class SolverTest
   }
 
   @Test
+  void mkNullableSort() throws CVC5ApiException
+  {
+    assertDoesNotThrow(() -> d_solver.mkNullableSort(d_solver.getIntegerSort()));
+
+    Solver slv = new Solver();
+    assertDoesNotThrow(() -> slv.mkNullableSort(d_solver.getIntegerSort()));
+  }
+
+  @Test
   void mkBitVector() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.mkBitVector(8, 2));
@@ -911,6 +920,66 @@ class SolverTest
     assertDoesNotThrow(() -> slv.mkTuple(new Term[] {slv.mkBitVector(3, "101", 2)}));
 
     assertDoesNotThrow(() -> slv.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+  }
+
+  @Test
+  void mkNullableSome()
+  {
+    assertDoesNotThrow(() -> d_solver.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+    assertDoesNotThrow(() -> d_solver.mkNullableSome(d_solver.mkInteger("5")));
+    assertDoesNotThrow(() -> d_solver.mkNullableSome(d_solver.mkReal("5.3")));
+
+    Solver slv = new Solver();
+    assertDoesNotThrow(() -> slv.mkNullableSome(slv.mkBitVector(3, "101", 2)));
+
+    assertDoesNotThrow(() -> slv.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+  }
+
+  @Test
+  void mkNullableVal()
+  {
+    Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+    Term value = d_solver.mkNullableVal(some);
+    value = d_solver.simplify(value);
+    assertEquals(5, value.getIntegerValue().intValue());
+  }
+
+  @Test
+  void mkNullableIsNull()
+  {
+    Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+    Term value = d_solver.mkNullableIsNull(some);
+    value = d_solver.simplify(value);
+    assertEquals(false, value.getBooleanValue());
+  }
+
+  @Test
+  void mkNullableIsSome()
+  {
+    Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+    Term value = d_solver.mkNullableIsSome(some);
+    value = d_solver.simplify(value);
+    assertEquals(true, value.getBooleanValue());
+  }
+
+  @Test
+  void mkNullableNull()
+  {
+    Sort nullableSort = d_solver.mkNullableSort(d_solver.getBooleanSort());
+    Term nullableNull = d_solver.mkNullableNull(nullableSort);
+    Term value = d_solver.mkNullableIsNull(nullableNull);
+    value = d_solver.simplify(value);
+    assertEquals(true, value.getBooleanValue());
+  }
+
+  @Test
+  void mkNullableLift()
+  {
+    Term some1 = d_solver.mkNullableSome(d_solver.mkInteger(1));
+    Term some2 = d_solver.mkNullableSome(d_solver.mkInteger(2));
+    Term some3 = d_solver.mkNullableLift(Kind.ADD, new Term[] {some1, some2});
+    Term three = d_solver.simplify(d_solver.mkNullableVal(some3));
+    assertEquals(3, three.getIntegerValue().intValue());
   }
 
   @Test
@@ -1846,7 +1915,7 @@ class SolverTest
     assertTrue(res.isUnsat());
     assertDoesNotThrow(() -> d_solver.getProof());
   }
-  
+
   @Test
   void getProofAndProofToString()
   {

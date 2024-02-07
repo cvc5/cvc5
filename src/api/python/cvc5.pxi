@@ -1399,6 +1399,17 @@ cdef class Solver:
         sort.csort = self.csolver.mkTupleSort(v)
         return sort
 
+    def mkNullableSort(self, Sort elemSort):
+        """
+            Create a nullable sort.
+
+            :param elemSort: The sort of the element of the nullable.
+            :return: The nullable sort.
+        """
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.mkNullableSort(elemSort.csort)
+        return sort
+
     def mkTerm(self, kind_or_op, *args):
         """
             Create a term.
@@ -1442,6 +1453,84 @@ cdef class Solver:
         cdef Term result = Term(self)
         result.cterm = self.csolver.mkTuple(cterms)
         return result
+    
+    def mkNullableSome(self, Term term):
+        """
+            Create a nullable some term.
+
+            :param term: The elements value.
+            :return: The element value wrapped in some constructor.
+        """
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.mkNullableSome(term.cterm)
+        return result
+
+    def mkNullableVal(self, Term term):
+        """
+            Create a selector for nullable term.
+
+            :param term: A nullable term.
+            :return: The element value of the nullable term.
+        """
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.mkNullableVal(term.cterm)
+        return result
+    
+    def mkNullableIsNull(self, Term term):
+        """
+            Create a null tester for a nullable term.
+
+            :param term: A nullable term.
+            :return: A tester whether term is null.
+        """
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.mkNullableIsNull(term.cterm)
+        return result
+
+    def mkNullableIsSome(self, Term term):
+        """
+            Create a some tester for a nullable term.
+
+            :param term: A nullable term.
+            :return: A tester whether term is some.
+        """
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.mkNullableIsSome(term.cterm)
+        return result
+
+    def mkNullableNull(self, Sort sort):
+        """
+            Create a constant representing an null of the given sort.
+
+            :param term: The sort of the Nullable element.
+            :return: The null constant.
+        """
+        cdef Term result = Term(self)
+        result.cterm = self.csolver.mkNullableNull(sort.csort)
+        return result
+
+    def mkNullableLift(self, kind, *args):
+        """
+            Create a term that lifts kind to nullable terms.
+            Example:
+            If we have the term ((_ nullable.lift +) x y),
+            where x, y of type (Nullable Int), then
+            kind would be ADD, and args would be [x, y].
+            This function would return
+            (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
+
+            :param kind: The lifted operator.
+            :param args: The arguments of the lifted operator.
+            :return: A term of Kind NULLABLE_LIFT where the first child
+                     is a lambda expression, and the remaining children are
+                     the original arguments.
+        """
+        cdef vector[c_Term] cterms
+        for a in args:
+            cterms.push_back((<Term?> a).cterm)
+        cdef Term result = Term(self)        
+        result.cterm = self.csolver.mkNullableLift(<c_Kind> kind.value, cterms)
+        return result  
 
     def mkOp(self, k, *args):
         """
@@ -1470,7 +1559,7 @@ cdef class Solver:
                 if a < 0 or a >= 2 ** 31:
                     raise ValueError(
                             "Argument {} must fit in a uint32_t".format(a))
-                v.push_back((<uint32_t?> a))
+                v.push_back(<uint32_t?> a)
             op.cop = self.csolver.mkOp(<c_Kind> k.value, v)
         return op
 
@@ -1529,7 +1618,7 @@ cdef class Solver:
                     <const string &> str(val).encode())
         else:
             assert(isinstance(val, int))
-            term.cterm = self.csolver.mkInteger((<int?> val))
+            term.cterm = self.csolver.mkInteger(<int?> val)
         return term
 
     def mkReal(self, numerator, denominator=None):
@@ -3014,7 +3103,7 @@ cdef class Solver:
                    free variables in :math:`y_1...y_n`
                  - If :math:`Q` is :math:`\\exists`, let :math:`(A \\wedge Q_n)`
                    be the formula
-                   :math:`(A \\wedge \\neg (\\phi \wedge Q_1) \\wedge ... \\wedge \\neg (\\phi \\wedge Q_n))`
+                   :math:`(A \\wedge \\neg (\\phi \\wedge Q_1) \\wedge ... \\wedge \\neg (\\phi \\wedge Q_n))`
                    where for each :math:`i = 1...n`, formula
                    :math:`(\\phi \\wedge Q_i)` is the result of calling
                    :py:meth:`getQuantifierEliminationDisjunct()`
@@ -3628,6 +3717,14 @@ cdef class Sort:
         """
         return self.csort.isTuple()
 
+    def isNullable(self):
+        """
+            Determine if this is a nullable sort.
+
+            :return: True if the sort is a nullable sort.
+        """
+        return self.csort.isNullable()
+
     def isRecord(self):
         """
             Determine if this is a record sort.
@@ -4011,7 +4108,17 @@ cdef class Sort:
             sort = Sort(self.solver)
             sort.csort = s
             tuple_sorts.append(sort)
-        return tuple_sorts
+        return tuple_sorts    
+    
+    def getNullableElementSort(self):
+        """
+            :return: The element sort of a nullable sort.
+        """
+        cdef Sort sort = Sort(self.solver)
+        sort.csort = self.csort.getNullableElementSort()
+        return sort
+
+    
 
 
 cdef class Statistics:
@@ -4446,7 +4553,7 @@ cdef class Term:
         return (get0(t), get1(t), term)
 
     def isSetValue(self):
-        """
+        r"""
             A term is a set value if it is considered to be a (canonical)
             constant set value.  A canonical set value is one whose AST is:
 

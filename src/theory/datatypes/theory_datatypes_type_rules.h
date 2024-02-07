@@ -232,6 +232,21 @@ class CodatatypeBoundVariableTypeRule
                               std::ostream* errOut);
 };
 
+/**
+ * Lifting a function to nullable terms.
+ * The type rule checks that all arguments of the function
+ * are nullables, and their element types match the
+ * types of the function arguments.
+ */
+struct NullableLiftTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct NullableLiftTypeRule */
+
 }  // namespace datatypes
 }  // namespace theory
 }  // namespace cvc5::internal

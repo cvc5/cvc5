@@ -40,7 +40,8 @@ source ./$ENVDIR/bin/activate
 
 # install packages
 pip install -q --upgrade pip setuptools auditwheel
-pip install -q Cython pytest tomli scikit-build flex pyparsing 
+pip install -r contrib/requirements_build.txt
+pip install -r contrib/requirements_python_dev.txt
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install -q delocate
@@ -59,6 +60,8 @@ rm -rf build_wheel/
 echo "Building pycvc5 wheel"
 
 pushd build_wheel
+# Copy the license files to be included in the wheel
+cmake --build . --target cvc5_python_licenses
 if [ -z "$PLATFORM" ] ; then
   python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
 else
