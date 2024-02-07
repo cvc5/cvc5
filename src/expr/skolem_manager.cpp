@@ -431,7 +431,8 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       break;
     // Type(cacheVals[1])
     case SkolemFunId::INPUT_VARIABLE:
-      Assert(cacheVals.size()==2 && cacheVals[1].getKind()==Kind::SORT_TO_TYPE);
+      Assert(cacheVals.size() == 2
+             && cacheVals[1].getKind() == Kind::SORT_TO_TYPE);
       return cacheVals[1].getConst<SortToTerm>().getType();
       break;
     // real -> real function
@@ -583,9 +584,9 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     }
     case SkolemFunId::SHARED_SELECTOR:
     {
-      Assert (cacheVals.size()==3);
-      Assert(cacheVals[0].getKind()==Kind::SORT_TO_TYPE);
-      Assert(cacheVals[1].getKind()==Kind::SORT_TO_TYPE);
+      Assert(cacheVals.size() == 3);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TYPE);
+      Assert(cacheVals[1].getKind() == Kind::SORT_TO_TYPE);
       TypeNode dtt = cacheVals[0].getConst<SortToTerm>().getType();
       TypeNode t = cacheVals[1].getConst<SortToTerm>().getType();
       return nm->mkSelectorType(dtt, t);
