@@ -990,9 +990,15 @@ enum ENUM(ProofRule) : uint32_t
    * where :math:`k` is the application kind. Notice that :math:`f` must be
    * provided iff :math:`k` is a parameterized kind, e.g. ``APPLY_UF``. The
    * actual node for :math:`k` is constructible via
-   * ``ProofRuleChecker::mkKindNode``. This rule is used for kinds that
-   * have a fixed arity, such as ``Kind::ITE``, ``Kind::EQUAL``, and
-   * so on. It is also used for ``Kind::APPLY_UF`.
+   * ``ProofRuleChecker::mkKindNode``.
+   * If :math:`k` is a binder kind (e.g. `Kind::FORALL``) then :math:`f` is a
+   * term of kind `Kind::VARIABLE_LIST` denoting the variables bound by both
+   * sides of the conclusion.
+   * This rule is used for kinds that have a fixed arity, such as ``Kind::ITE``,
+   * ``Kind::EQUAL``, and so on. It is also used for ``Kind::APPLY_UF` where
+   * :math:`f` must be provided.
+   * It is not used for equality between ``Kind::HO_APPLY`` terms, which should
+   * use the `HO_CONG` proof rule.
    * \endverbatim
    */
   EVALUE(CONG),
