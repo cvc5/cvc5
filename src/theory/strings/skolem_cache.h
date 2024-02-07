@@ -169,9 +169,13 @@ class SkolemCache
    * finding.
    */
   Node mkSkolemFun(SkolemFunId id,
-                   TypeNode tn,
                    Node a = Node::null(),
                    Node b = Node::null());
+  /** Same as above, with explicit type */
+  Node mkSkolemFunTyped(SkolemFunId id,
+                        TypeNode tn,
+                        Node a = Node::null(),
+                        Node b = Node::null());
 
  private:
   /**
@@ -201,6 +205,11 @@ class SkolemCache
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
   std::unordered_set<Node> d_allSkolems;
+  /**
+   * Get cache vals, which returns the vector of terms from (possibly null)
+   * a and b that should be passed to the skolem manager.
+   */
+  std::vector<Node> getSkolemCacheVals(const Node& a, const Node& b) const;
 };
 
 }  // namespace strings

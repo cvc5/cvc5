@@ -30,7 +30,7 @@ runs:
           flex \
           libfl-dev \
           flexc++
-        python3 -m pip install --user pexpect setuptools tomli
+        python3 -m pip install --user pexpect setuptools tomli pyparsing
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #

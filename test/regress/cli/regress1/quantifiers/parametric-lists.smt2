@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alf
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

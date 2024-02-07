@@ -15,6 +15,7 @@
 
 package tests;
 
+import static io.github.cvc5.Kind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
@@ -96,10 +97,11 @@ class ResultTest
   {
     d_solver.setLogic("QF_NIA");
     d_solver.setOption("incremental", "false");
-    d_solver.setOption("solve-int-as-bv", "32");
-    Sort int_sort = d_solver.getIntegerSort();
-    Term x = d_solver.mkConst(int_sort, "x");
-    d_solver.assertFormula(x.eqTerm(x).notTerm());
+    d_solver.setOption("solve-real-as-int", "true");
+    Sort real_sort = d_solver.getIntegerSort();
+    Term x = d_solver.mkConst(real_sort, "x");
+    d_solver.assertFormula(d_solver.mkTerm(LT, d_solver.mkReal("0.0"), x));
+    d_solver.assertFormula(d_solver.mkTerm(LT, x, d_solver.mkReal("1.0")));
     Result res = d_solver.checkSat();
     assertFalse(res.isSat());
     assertTrue(res.isUnknown());

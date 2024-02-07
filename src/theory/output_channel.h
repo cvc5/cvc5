@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Tim King
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The theory output channel interface.
+ * The theory engine output channel.
  */
 
 #include "cvc5_private.h"
@@ -18,71 +18,48 @@
 #ifndef CVC5__THEORY__OUTPUT_CHANNEL_H
 #define CVC5__THEORY__OUTPUT_CHANNEL_H
 
+#include "expr/node.h"
 #include "proof/trust_node.h"
 #include "theory/incomplete_id.h"
+#include "theory/inference_id.h"
+#include "theory/lemma_property.h"
+#include "theory/theory_id.h"
 #include "util/resource_manager.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
+
+class TheoryEngine;
+
 namespace theory {
-
-/** Properties of lemmas */
-enum class LemmaProperty : uint32_t
-{
-  // default
-  NONE = 0,
-  // whether the lemma is removable
-  REMOVABLE = 1,
-  // whether the processing of the lemma should send atoms to the caller
-  SEND_ATOMS = 2,
-  // whether the lemma is part of the justification for answering "sat"
-  NEEDS_JUSTIFY = 4
-};
-/** Define operator lhs | rhs */
-LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
-/** Define operator lhs |= rhs */
-LemmaProperty& operator|=(LemmaProperty& lhs, LemmaProperty rhs);
-/** Define operator lhs & rhs */
-LemmaProperty operator&(LemmaProperty lhs, LemmaProperty rhs);
-/** Define operator lhs &= rhs */
-LemmaProperty& operator&=(LemmaProperty& lhs, LemmaProperty rhs);
-/** is the removable bit set on p? */
-bool isLemmaPropertyRemovable(LemmaProperty p);
-/** is the send atoms bit set on p? */
-bool isLemmaPropertySendAtoms(LemmaProperty p);
-/** is the needs justify bit set on p? */
-bool isLemmaPropertyNeedsJustify(LemmaProperty p);
-
-/**
- * Writes an lemma property name to a stream.
- *
- * @param out The stream to write to
- * @param p The lemma property to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, LemmaProperty p);
 
 class Theory;
 
 /**
- * Generic "theory output channel" interface.
+ * An output channel for Theory that passes messages back to a TheoryEngine
+ * for a given Theory.
  *
- * All methods can throw unrecoverable cvc5::internal::Exception's unless otherwise
- * documented.
+ * Notice that it has interfaces trustedConflict and trustedLemma which are
+ * used for ensuring that proof generators are associated with the lemmas
+ * and conflicts sent on this output channel.
  */
-class OutputChannel {
+class OutputChannel
+{
+  friend class internal::TheoryEngine;
+
  public:
-  /** Construct an OutputChannel. */
-  OutputChannel() {}
-
-  /**
-   * Destructs an OutputChannel.  This implementation does nothing,
-   * but we need a virtual destructor for safety in case subclasses
-   * have a destructor.
-   */
+  /** Default constructor */
+  OutputChannel();
+  /** Constructor for use by theory */
+  OutputChannel(StatisticsRegistry& sr,
+                TheoryEngine* engine,
+                theory::TheoryId theory);
+  /** Constructor for use by non-theory */
+  OutputChannel(StatisticsRegistry& sr,
+                TheoryEngine* engine,
+                const std::string& name,
+                size_t id = 0);
   virtual ~OutputChannel() {}
-
-  OutputChannel(const OutputChannel&) = delete;
-  OutputChannel& operator=(const OutputChannel&) = delete;
 
   /**
    * With safePoint(), the theory signals that it is at a safe point
@@ -90,8 +67,7 @@ class OutputChannel {
    *
    * @throws Interrupted if the theory can be safely interrupted.
    */
-  virtual void safePoint(Resource r) {}
-
+  virtual void safePoint(Resource r);
   /**
    * Indicate a theory conflict has arisen.
    *
@@ -102,15 +78,14 @@ class OutputChannel {
    * unit conflict) which is assigned TRUE (and T-conflicting) in the
    * current assignment.
    */
-  virtual void conflict(TNode n) = 0;
-
+  virtual void conflict(TNode conflictNode, InferenceId id);
   /**
    * Propagate a theory literal.
    *
    * @param n - a theory consequence at the current decision level
    * @return false if an immediate conflict was encountered
    */
-  virtual bool propagate(TNode n) = 0;
+  virtual bool propagate(TNode literal);
 
   /**
    * Tell the core that a valid theory lemma at decision level 0 has
@@ -119,8 +94,9 @@ class OutputChannel {
    * @param n - a theory lemma valid at decision level 0
    * @param p The properties of the lemma
    */
-  virtual void lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
-
+  virtual void lemma(TNode lemma,
+                     InferenceId id,
+                     LemmaProperty p = LemmaProperty::NONE);
   /**
    * If a decision is made on n that is not requested from a theory, it must be
    * in the phase specified. Note that this is enforced *globally*, i.e., it is
@@ -133,21 +109,19 @@ class OutputChannel {
    * been pre-registered
    * @param phase - the phase to decide on n
    */
-  virtual void preferPhase(TNode n, bool phase) = 0;
-
+  virtual void preferPhase(TNode n, bool phase);
   /**
    * Notification from a theory that it realizes it is model unsound at
    * this SAT context level.  If SAT is later determined by the
    * TheoryEngine, it should actually return an UNKNOWN result.
    */
-  virtual void setModelUnsound(IncompleteId id) = 0;
+  virtual void setModelUnsound(IncompleteId id);
   /**
    * Notification from a theory that it realizes it is refutation unsound at
    * this user context level.  If UNSAT is later determined by the
    * TheoryEngine, it should actually return an UNKNOWN result.
    */
-  virtual void setRefutationUnsound(IncompleteId id) = 0;
-
+  virtual void setRefutationUnsound(IncompleteId id);
   /**
    * "Spend" a "resource."  The meaning is specific to the context in
    * which the theory is operating, and may even be ignored.  The
@@ -159,34 +133,51 @@ class OutputChannel {
    * long-running operations, they cannot rely on resource() to break
    * out of infinite or intractable computations.
    */
-  virtual void spendResource(Resource r) {}
+  virtual void spendResource(Resource r);
 
-  /**
-   * Handle user attribute.
-   * Associates theory t with the attribute attr.  Theory t will be
-   * notified whenever an attribute of name attr is set on a node.
-   * This can happen through, for example, the SMT-LIBv2 language.
-   */
-  virtual void handleUserAttribute(const char* attr, Theory* t) {}
-
-  //---------------------------- new proof
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
    * sends conf on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
-   * the same as OutputChannel.
+   * the same as calling OutputChannel::lemma on conf.
    */
-  virtual void trustedConflict(TrustNode pconf);
+  virtual void trustedConflict(TrustNode pconf, InferenceId id);
   /**
    * Let plem be the pair (Node lem, ProofGenerator * pfg).
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
-   * the same as OutputChannel.
+   * the same as calling OutputChannel::lemma on lem.
    */
-  virtual void trustedLemma(TrustNode lem,
+  virtual void trustedLemma(TrustNode plem,
+                            InferenceId id,
                             LemmaProperty p = LemmaProperty::NONE);
-  //---------------------------- end new proof
-}; /* class OutputChannel */
+  /**
+   * Get the theory identifier
+   */
+  TheoryId getId() const;
+
+ protected:
+  /**
+   * Statistics for a particular theory.
+   */
+  class Statistics
+  {
+   public:
+    Statistics();
+    Statistics(StatisticsRegistry& sr, const std::string& statPrefix);
+    /** Number of calls to conflict, propagate, lemma, preferPhase */
+    IntStat conflicts, propagations, lemmas, preferPhase, trustedConflicts,
+        trustedLemmas;
+  };
+  /** The theory engine we're communicating with. */
+  TheoryEngine* d_engine;
+  /** The name of the owner of this channel. */
+  std::string d_name;
+  /** The statistics of the theory interractions. */
+  Statistics d_statistics;
+  /** The theory owning this channel. */
+  theory::TheoryId d_theory;
+};
 
 }  // namespace theory
 }  // namespace cvc5::internal

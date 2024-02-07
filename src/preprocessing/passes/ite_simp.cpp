@@ -254,7 +254,7 @@ PreprocessingPassResult ITESimp::applyInternal(
     d_preprocContext->spendResource(Resource::PreprocessStep);
     Node simp = simpITE(&d_iteUtilities, (*assertionsToPreprocess)[i]);
     assertionsToPreprocess->replace(i, simp);
-    if (simp.isConst() && !simp.getConst<bool>())
+    if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;
     }

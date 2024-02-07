@@ -16,8 +16,6 @@
 package io.github.cvc5;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Utils
 {
@@ -63,6 +61,19 @@ public class Utils
       terms[i] = new Term(pointers[i]);
     }
     return terms;
+  }
+
+  /**
+   * return proofs array from array of pointers
+   */
+  public static Proof[] getProofs(long[] pointers)
+  {
+    Proof[] proofs = new Proof[pointers.length];
+    for (int i = 0; i < pointers.length; i++)
+    {
+      proofs[i] = new Proof(pointers[i]);
+    }
+    return proofs;
   }
 
   /**
