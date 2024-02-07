@@ -10,10 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Payload class for empty sets.
  */
 
 #include "expr/emptyset.h"
