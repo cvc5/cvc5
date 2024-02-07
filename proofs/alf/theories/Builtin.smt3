@@ -22,7 +22,14 @@
    :chainable and
 )
 
-(declare-const lambda (-> (! Type :var A :implicit) (! Type :var B :implicit) A B (-> A B)))
+(program get_lambda_type ((x @List) (xs @List :list) (B Type))
+  (@List Type) Type
+  (
+    ((get_lambda_type (@list x xs) B) (-> (alf.typeof x) (get_lambda_type xs B)))
+    ((get_lambda_type @list.nil B)    B)
+  )
+)
+(declare-const lambda (-> (! Type :var B :implicit) (! @List :var L) B (get_lambda_type L B)) :binder @list)
 
 (declare-const distinct (-> (! Type :var A :implicit) A A Bool) :pairwise and)
 

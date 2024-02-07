@@ -90,7 +90,17 @@ class LetBinding
   using NodeIdMap = context::CDHashMap<Node, uint32_t>;
 
  public:
-  LetBinding(uint32_t thresh = 2);
+  /**
+   * @param prefix The prefix to use for introduced variables
+   * @param thresh The threshold to use, that is, the number of times a term
+   * must appear before being letified.
+   * @param traverseBinders Whether we should traverse binders, that is, if
+   * this flag is true, we consider terms beneath binders as targets for
+   * letificiation.
+   */
+  LetBinding(const std::string& prefix,
+             uint32_t thresh = 2,
+             bool traverseBinders = false);
   /** Get threshold */
   uint32_t getThreshold() const;
   /**
@@ -121,19 +131,22 @@ class LetBinding
    * @return the identifier for node n, or 0 if it does not have one.
    */
   uint32_t getId(Node n) const;
+  /** Get prefix. */
+  const std::string& getPrefix() const { return d_prefix; }
   /**
    * Convert n based on the state of the let binding. This replaces all
    * letified subterms of n with a fresh variable whose name prefix is the
    * given one.
    *
-   * @param n The node to convert
-   * @param prefix The prefix of variables to convert
+   * @param n The node to conver
    * @param letTop Whether we letify n itself
    * @return the converted node.
    */
-  Node convert(Node n, const std::string& prefix, bool letTop = true) const;
+  Node convert(Node n, bool letTop = true) const;
 
  private:
+  /** The prefix */
+  std::string d_prefix;
   /**
    * Compute the count of sub nodes in n, store in d_count. Additionally,
    * store each node in the domain of d_count in an order in d_visitList
@@ -146,6 +159,8 @@ class LetBinding
   void convertCountToLet();
   /** The dag threshold */
   uint32_t d_thresh;
+  /** Traverse binders? */
+  bool d_traverseBinders;
   /** An internal context */
   context::Context d_context;
   /** Visit list */
@@ -154,7 +169,6 @@ class LetBinding
   NodeIdMap d_count;
   /** The let list */
   NodeList d_letList;
-
  protected:
   /** The let map */
   NodeIdMap d_letMap;

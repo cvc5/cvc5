@@ -107,7 +107,8 @@ TEST_F(TestApiBlackSolver, pow2Large3)
   Term t262 = d_solver.mkTerm(Kind::POW2, {t203});
   Term t536 =
       d_solver.mkTerm(d_solver.mkOp(Kind::INT_TO_BITVECTOR, {49}), {t262});
-  ASSERT_THROW(d_solver.simplify(t536), CVC5ApiException);
+  // should not throw an exception, will not simplify.
+  ASSERT_NO_THROW(d_solver.simplify(t536));
 }
 
 TEST_F(TestApiBlackSolver, recoverableException)
@@ -194,6 +195,22 @@ TEST_F(TestApiBlackSolver, mkFiniteFieldSort)
 {
   ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("31"));
   ASSERT_THROW(d_solver.mkFiniteFieldSort("6"), CVC5ApiException);
+
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("b"), CVC5ApiException);
+
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("1100101", 2));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("10202", 3));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("401", 5));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("791a", 11));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("970f", 16));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("8CC5", 16));
+
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("1100100", 2), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("10201", 3), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("400", 5), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("7919", 11), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("970e", 16), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("8CC4", 16), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkFloatingPointSort)
@@ -399,7 +416,7 @@ TEST_F(TestApiBlackSolver, mkAbstractSort)
 {
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::ARRAY_SORT));
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT));
-  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::TUPLE_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::TUPLE_SORT));  
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::SET_SORT));
   ASSERT_THROW(d_solver.mkAbstractSort(SortKind::BOOLEAN_SORT),
                CVC5ApiException);
@@ -436,6 +453,13 @@ TEST_F(TestApiBlackSolver, mkTupleSort)
 
   Solver slv;
   ASSERT_NO_THROW(slv.mkTupleSort({d_solver.getIntegerSort()}));
+}
+
+TEST_F(TestApiBlackSolver, mkNullableSort)
+{
+  ASSERT_NO_THROW(d_solver.mkNullableSort(d_solver.getIntegerSort()));
+  Solver slv;
+  ASSERT_NO_THROW(slv.mkNullableSort(d_solver.getIntegerSort()));
 }
 
 TEST_F(TestApiBlackSolver, mkBitVector)
@@ -497,12 +521,29 @@ TEST_F(TestApiBlackSolver, mkFiniteFieldElem)
   ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("8", f));
   ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("-1", f));
 
+  ASSERT_THROW(d_solver.mkFiniteFieldElem("a", f), CVC5ApiException);
+
   ASSERT_THROW(d_solver.mkFiniteFieldElem("-1", bv), CVC5ApiException);
 
   ASSERT_EQ(d_solver.mkFiniteFieldElem("-1", f),
             d_solver.mkFiniteFieldElem("6", f));
   ASSERT_EQ(d_solver.mkFiniteFieldElem("1", f),
             d_solver.mkFiniteFieldElem("8", f));
+
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("0", f, 2));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("101", f, 3));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("-10", f, 7));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("abcde", f, 16));
+
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("0", f, 2),
+            d_solver.mkFiniteFieldElem("0", f, 3));
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("11", f, 2),
+            d_solver.mkFiniteFieldElem("10", f, 3));
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("1010", f, 2),
+            d_solver.mkFiniteFieldElem("A", f, 16));
+
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("-22", f, 3),
+            d_solver.mkFiniteFieldElem("10", f, 6));
 }
 
 TEST_F(TestApiBlackSolver, mkVar)
@@ -1054,6 +1095,58 @@ TEST_F(TestApiBlackSolver, mkTuple)
   Solver slv;
   ASSERT_NO_THROW(slv.mkTuple({slv.mkBitVector(3, "101", 2)}));
   ASSERT_NO_THROW(slv.mkTuple({d_solver.mkBitVector(3, "101", 2)}));
+}
+
+TEST_F(TestApiBlackSolver, mkNullableSome)
+{
+  ASSERT_NO_THROW(d_solver.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+  ASSERT_NO_THROW(d_solver.mkNullableSome(d_solver.mkInteger("5")));
+  ASSERT_NO_THROW(d_solver.mkNullableSome(d_solver.mkReal("5.3")));
+  Solver slv;
+  ASSERT_NO_THROW(slv.mkNullableSome(slv.mkBitVector(3, "101", 2)));
+  ASSERT_NO_THROW(slv.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+}
+
+TEST_F(TestApiBlackSolver, mkNullableVal)
+{
+  Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+  Term value = d_solver.mkNullableVal(some);
+  value = d_solver.simplify(value);
+  ASSERT_EQ(5, value.getInt32Value());
+}
+
+TEST_F(TestApiBlackSolver, mkNullableIsNull)
+{
+  Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+  Term value = d_solver.mkNullableIsNull(some);
+  value = d_solver.simplify(value);
+  ASSERT_EQ(false, value.getBooleanValue());
+}
+
+TEST_F(TestApiBlackSolver, mkNullableIsSome)
+{
+  Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+  Term value = d_solver.mkNullableIsSome(some);
+  value = d_solver.simplify(value);
+  ASSERT_EQ(true, value.getBooleanValue());
+}
+
+TEST_F(TestApiBlackSolver, mkNullableNull)
+{
+  Sort nullableSort = d_solver.mkNullableSort(d_solver.getBooleanSort());
+  Term nullableNull = d_solver.mkNullableNull(nullableSort);
+  Term value = d_solver.mkNullableIsNull(nullableNull);
+  value = d_solver.simplify(value);
+  ASSERT_EQ(true, value.getBooleanValue());
+}
+
+TEST_F(TestApiBlackSolver, mkNullableLift)
+{
+  Term some1 = d_solver.mkNullableSome(d_solver.mkInteger(1));
+  Term some2 = d_solver.mkNullableSome(d_solver.mkInteger(2));
+  Term some3 = d_solver.mkNullableLift(Kind::ADD, {some1, some2});
+  Term three = d_solver.simplify(d_solver.mkNullableVal(some3));
+  ASSERT_EQ(3, three.getInt32Value());
 }
 
 TEST_F(TestApiBlackSolver, mkUniverseSet)
@@ -2067,6 +2160,8 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_NO_THROW(printedProof = d_solver.proofToString(
                       proofs[0], modes::ProofFormat::ALETHE));
   ASSERT_NO_THROW(proofs = d_solver.getProof(modes::ProofComponent::SAT));
+  ASSERT_NO_THROW(printedProof = d_solver.proofToString(
+                      proofs[0], modes::ProofFormat::NONE));
   ASSERT_FALSE(printedProof.empty());
 }
 
@@ -3881,6 +3976,62 @@ TEST_F(TestApiBlackSolver, multipleSolvers)
     ASSERT_EQ(value1, value3);
   }
 }
+
+#ifdef CVC5_USE_COCOA
+
+TEST_F(TestApiBlackSolver, basicFiniteField)
+{
+  Solver slv;
+  slv.setOption("produce-models", "true");
+
+  Sort F = slv.mkFiniteFieldSort("5");
+  Term a = slv.mkConst(F, "a");
+  Term b = slv.mkConst(F, "b");
+  ASSERT_EQ("5", F.getFiniteFieldSize());
+
+  Term inv = slv.mkTerm(Kind::EQUAL,
+                        {slv.mkTerm(Kind::FINITE_FIELD_MULT, {a, b}),
+                         slv.mkFiniteFieldElem("1", F)});
+  Term aIsTwo = slv.mkTerm(Kind::EQUAL, {a, slv.mkFiniteFieldElem("2", F)});
+
+  slv.assertFormula(inv);
+  slv.assertFormula(aIsTwo);
+  ASSERT_TRUE(slv.checkSat().isSat());
+  ASSERT_EQ(slv.getValue(a).getFiniteFieldValue(), "2");
+  ASSERT_EQ(slv.getValue(b).getFiniteFieldValue(), "-2");
+
+  Term bIsTwo = slv.mkTerm(Kind::EQUAL, {b, slv.mkFiniteFieldElem("2", F)});
+  slv.assertFormula(bIsTwo);
+  ASSERT_FALSE(slv.checkSat().isSat());
+}
+
+TEST_F(TestApiBlackSolver, basicFiniteFieldBase)
+{
+  Solver slv;
+  slv.setOption("produce-models", "true");
+
+  Sort F = slv.mkFiniteFieldSort("101", 2);
+  Term a = slv.mkConst(F, "a");
+  Term b = slv.mkConst(F, "b");
+  ASSERT_EQ("5", F.getFiniteFieldSize());
+
+  Term inv = slv.mkTerm(Kind::EQUAL,
+                        {slv.mkTerm(Kind::FINITE_FIELD_MULT, {a, b}),
+                         slv.mkFiniteFieldElem("1", F, 3)});
+  Term aIsTwo = slv.mkTerm(Kind::EQUAL, {a, slv.mkFiniteFieldElem("10", F, 2)});
+
+  slv.assertFormula(inv);
+  slv.assertFormula(aIsTwo);
+  ASSERT_TRUE(slv.checkSat().isSat());
+  ASSERT_EQ(slv.getValue(a).getFiniteFieldValue(), "2");
+  ASSERT_EQ(slv.getValue(b).getFiniteFieldValue(), "-2");
+
+  Term bIsTwo = slv.mkTerm(Kind::EQUAL, {b, slv.mkFiniteFieldElem("2", F)});
+  slv.assertFormula(bIsTwo);
+  ASSERT_FALSE(slv.checkSat().isSat());
+}
+
+#endif  // CVC5_USE_COCOA
 
 }  // namespace test
 }  // namespace cvc5::internal

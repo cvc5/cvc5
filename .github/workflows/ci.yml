@@ -12,37 +12,35 @@ jobs:
       matrix:
         include:
           - name: ubuntu:production
-            os: ubuntu-latest
+            os: ubuntu-20.04
             config: production --auto-download --all-bindings --editline --docs
             cache-key: production
             strip-bin: strip
             python-bindings: true
             build-documentation: true
             check-examples: true
-            binary-name: cvc5-Linux
+            package-name: cvc5-Linux
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production
-            os: macos-latest
-            config: production --auto-download --editline
-            # config: production --auto-download --python-bindings --editline
+            os: macos-11
+            config: production --auto-download --all-bindings --editline
             cache-key: production
             strip-bin: strip
-            python-bindings: false  # Temporarily disabling checking of python bindings on MacOS.
+            python-bindings: true
             check-examples: true
-            binary-name: cvc5-macOS
+            package-name: cvc5-macOS
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
  
           - name: macos:production-arm64
-            os: macos-latest
-            config: production --auto-download --editline --arm64
-            # config: production --auto-download --python-bindings --editline --arm64
+            os: macos-11
+            config: production --auto-download --all-bindings --editline --arm64
             cache-key: production-arm64
             strip-bin: strip
-            python-bindings: false  # Temporarily disabling checking of python bindings on MacOS.
-            binary-name: cvc5-macOS-arm64
+            python-bindings: true
+            package-name: cvc5-macOS-arm64
 
           - name: win64:production
             os: ubuntu-latest
@@ -50,8 +48,7 @@ jobs:
             cache-key: productionwin64
             strip-bin: x86_64-w64-mingw32-strip
             windows-build: true
-            binary-name: cvc5-Win64.exe
-            binary-ext: .exe
+            package-name: cvc5-Win64
 
           - name: ubuntu:production-clang
             os: ubuntu-latest
@@ -88,7 +85,7 @@ jobs:
 
     steps:
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
@@ -142,12 +139,22 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
-    - name: Add binary to latest and release
-      if: matrix.binary-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-      uses: ./.github/actions/store-binary
+    - name: Create and add shared package to latest and release
+      if: matrix.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      uses: ./.github/actions/add-package
       with:
-        binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5${{ matrix.binary-ext }}
-        binary-name: ${{ matrix.binary-name }}
+        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
+        package-name: ${{ matrix.package-name }}-shared
+        # when using GITHUB_TOKEN, no further workflows are triggered
+        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
+        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+
+    - name: Create and add static package to latest and release
+      if: matrix.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      uses: ./.github/actions/add-package
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
+        package-name: ${{ matrix.package-name }}-static
         # when using GITHUB_TOKEN, no further workflows are triggered
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}

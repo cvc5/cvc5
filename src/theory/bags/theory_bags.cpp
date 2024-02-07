@@ -23,6 +23,7 @@
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory_bags.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -138,9 +139,10 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node x = sm->mkPurifySkolem(node);
   Node A = node[0];
   TypeNode bagType = A.getType();
-  TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());
+  // use canonical constant to ensure it can be typed
+  Node mkElem = nm->mkGroundValue(bagType);
   // a Null node is used here to get a unique skolem function per bag type
-  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, ufType, Node());
+  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, mkElem);
   Node ufA = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, uf, A);
 
   Node equal = x.eqNode(ufA);
@@ -320,7 +322,9 @@ bool TheoryBags::runInferStep(InferStep s, int effort)
       break;
     }
     case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
-    case CHECK_QUANTIFIED_OPERATIONS: d_solver.checkQuantifiedOperations(); break;
+    case CHECK_QUANTIFIED_OPERATIONS:
+      d_solver.checkQuantifiedOperations();
+      break;
     case CHECK_CARDINALITY_CONSTRAINTS:
       d_cardSolver.checkCardinalityGraph();
       break;
@@ -351,6 +355,13 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
   // a map from bag representatives to their constructed values
   std::map<Node, Node> processedBags;
 
+  Trace("bags-model") << "d_state equality engine:" << std::endl;
+  Trace("bags-model") << d_state.getEqualityEngine()->debugPrintEqc()
+                      << std::endl;
+
+  Trace("bags-model") << "model equality engine:" << std::endl;
+  Trace("bags-model") << m->getEqualityEngine()->debugPrintEqc() << std::endl;
+
   // get the relevant bag equivalence classes
   for (const Node& n : termSet)
   {
@@ -360,8 +371,13 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       // we are only concerned here about bag terms
       continue;
     }
-    Node r = d_state.getRepresentative(n);
 
+    if (!Theory::isLeafOf(n, TheoryId::THEORY_BAGS))
+    {
+      continue;
+    }
+
+    Node r = d_state.getRepresentative(n);
     if (processedBags.find(r) != processedBags.end())
     {
       // skip bags whose representatives are already processed
@@ -477,6 +493,12 @@ void TheoryBags::preRegisterTerm(TNode n)
       d_state.addEqualityEngineTriggerPredicate(n);
     }
     break;
+    case Kind::BAG_MAP:
+    {
+      d_state.checkInjectivity(n[0]);
+      d_equalityEngine->addTerm(n);
+      break;
+    }
     case Kind::BAG_FROM_SET:
     case Kind::BAG_TO_SET:
     case Kind::BAG_IS_SINGLETON:

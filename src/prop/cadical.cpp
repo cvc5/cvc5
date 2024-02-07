@@ -252,12 +252,25 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     {
       return true;
     }
-
     // CaDiCaL may backtrack while importing clauses, which can result in some
     // clauses not being processed. Make sure to add all clauses before
     // checking the model.
     if (!d_new_clauses.empty())
     {
+      Trace("cadical::propagator") << "cb::check_found_model end: new "
+                                      "variables added via theory decision"
+                                   << std::endl;
+      // CaDiCaL expects us to be able to provide a reason for rejecting the
+      // model (it asserts that after this call, cb_has_external_clause()
+      // returns true). However, in this particular case, we want to force
+      // CaDiCaL to give us model values for the new variables that were
+      // introduced (to kick off the assignment notification machinery), we
+      // don't have a reason clause for rejecting the model. CaDiCaL's
+      // expectation will be weakened in the future to allow for this, but for
+      // now we simply add a tautology as reason to pacify CaDiCaL.
+      d_new_clauses.push_back(1);
+      d_new_clauses.push_back(-1);
+      d_new_clauses.push_back(0);
       return false;
     }
 
@@ -307,6 +320,19 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
       }
     } while (d_var_info.size() == size && recheck);
 
+    if (d_var_info.size() != size)
+    {
+      Trace("cadical::propagator") << "cb::check_found_model end: new "
+                                      "variables added via theory check"
+                                   << std::endl;
+      // Same as above, until CaDiCaL's assertion that we have to have
+      // a reason clause for rejecting the model is weakened, we need to
+      // pacify it with a tautology.
+      d_new_clauses.push_back(1);
+      d_new_clauses.push_back(-1);
+      d_new_clauses.push_back(0);
+      return false;
+    }
     bool res = done();
     Trace("cadical::propagator")
         << "cb::check_found_model end: done: " << res << std::endl;
@@ -624,7 +650,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   /**
    * Push user assertion level.
    */
-  void user_push(SatLiteral& alit)
+  void user_push(SatVariable& alit)
   {
     Trace("cadical::propagator")
         << "user push: " << d_active_vars_control.size();
@@ -655,8 +681,6 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     Trace("cadical::propagator")
         << "disable activation lit: " << alit << std::endl;
     d_activation_literals.pop_back();
-    d_solver.add(toCadicalLit(alit));
-    d_solver.add(0);
 
     size_t user_level = current_user_level();
 
@@ -1144,7 +1168,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 void CadicalSolver::initialize(context::Context* context,
                                prop::TheoryProxy* theoryProxy,
                                context::UserContext* userContext,
-                               ProofNodeManager* pnm)
+                               PropPfManager* ppm)
 {
   d_context = context;
   d_proxy = theoryProxy;
@@ -1158,10 +1182,7 @@ void CadicalSolver::push()
 {
   d_context->push();  // SAT context for cvc5
   // New activation literal for pushed user level.
-  // Note that we do not use newVar() here, since activation literals do not
-  // need to be observed. This avoids additional notification overhead for this
-  // variable.
-  SatLiteral alit = SatLiteral(d_nextVarIdx++);
+  SatVariable alit = newVar(false);
   d_propagator->user_push(alit);
 }
 
@@ -1215,8 +1236,6 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
 std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof() { return nullptr; }
-
-SatProofManager* CadicalSolver::getProofManager() { return nullptr; }
 
 /* -------------------------------------------------------------------------- */
 }  // namespace prop

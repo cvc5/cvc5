@@ -20,6 +20,7 @@
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
+#include "options/ff_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
@@ -313,6 +314,16 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   Trace("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
                << endl;
   Trace("smt") << " assertions     : " << ap.size() << endl;
+
+  // ff
+  if (options().ff.ffDisjunctiveBit)
+  {
+    applyPass("ff-disjunctive-bit", ap);
+  }
+  if (options().ff.ffBitsum || options().ff.ffSolver == options::FfSolver::SPLIT_GB)
+  {
+    applyPass("ff-bitsum", ap);
+  }
 
   // ensure rewritten
   applyPass("rewrite", ap);

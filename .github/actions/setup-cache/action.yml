@@ -33,7 +33,7 @@ runs:
   using: composite
   steps:
     - name: Setup ccache cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ccache-dir
         key: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-${{ github.sha }}
@@ -50,7 +50,7 @@ runs:
 
     - name: Setup contrib dependencies cache
       id: contrib-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: deps/install
         key: ${{ inputs.cache-key }}-${{ runner.os }}-contrib-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/**') }}
@@ -63,7 +63,7 @@ runs:
         ./contrib/get-alf-checker
 
     - name: Setup dependencies cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           build-shared/deps
