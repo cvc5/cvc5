@@ -25,12 +25,19 @@ namespace cvc5::internal {
 
 class TypeNode;
 
+/**
+ * Sort-to-term utility, which is used to represent sorts as a term. Example
+ * use cases of this include passing sorts to the arguments of skolems (e.g.
+ * the n^th shared selector of a given datatype and selector type), or for
+ * representing SMT-LIB version 3 terms, where sorts and terms can be freely
+ * mixed.
+ */
 class SortToTerm
 {
  public:
   /**
-   * Constructs an emptyset of the specified type. Note that the argument
-   * is the type of the set itself, NOT the type of the elements.
+   * Constructs an object representing a term corresponding to the specified
+   * type.
    */
   SortToTerm(const TypeNode& setType);
   SortToTerm(const SortToTerm& other);
@@ -43,7 +50,7 @@ class SortToTerm
 
  private:
   SortToTerm();
-  /** The type */
+  /** The type the constant represents */
   std::unique_ptr<TypeNode> d_type;
 };
 
