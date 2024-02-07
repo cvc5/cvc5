@@ -4,9 +4,9 @@
 ;;-------------------- Core
 
 (declare-rule string_length_pos ((U Type) (s U))
-  :args (U s)
+  :args (s)
   :conclusion
-    (or (and (= (str.len s) 0) (= s (mk_emptystr U))) (> (str.len s) 0))
+    (or (and (= (str.len s) 0) (= s (mk_emptystr (alf.typeof s)))) (> (str.len s) 0))
 )
 
 (declare-rule string_length_non_empty ((U Type) (s Type) (t Type))
@@ -18,44 +18,44 @@
 ; the ProofRule::CONCAT_EQ rule
 (declare-rule concat_eq ((U Type) (s U) (t U) (rev Bool))
   :premises ((= s t))
-  :args (U rev)
+  :args (rev)
   :conclusion
     (alf.match ((ss U) (ts U))
       (strip_prefix
-           (string_to_flat_form U s rev) 
-           (string_to_flat_form U t rev))
+           (string_to_flat_form s rev)
+           (string_to_flat_form t rev))
       (((@pair ss ts)
         (= 
-          (string_from_flat_form U ss rev)
-          (string_from_flat_form U ts rev)))))
+          (string_from_flat_form ss rev)
+          (string_from_flat_form ts rev)))))
 )
 
 ; returns true if s1 is a prefix of s, taking into account flattening
-(define string_is_prefix ((U Type) (s U) (s1 U) (rev Bool))
-  (let ((sf (string_to_flat_form U s rev)))
-  (let ((sf1 (string_to_flat_form U s1 rev)))
+(define string_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
+  (let ((sf (string_to_flat_form s rev)))
+  (let ((sf1 (string_to_flat_form s1 rev)))
   (nary.is_prefix str.++ alf.nil sf1 sf)))
 )
 
 ; ProofRule::CONCAT_UNIFY
 (declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
   :premises ((= s t) (= (str.len s1) (str.len t1)))
-  :args (U rev)
-  :requires (((string_is_prefix U s s1 rev) true) ((string_is_prefix U t t1 rev) true))
+  :args (rev)
+  :requires (((string_is_prefix s s1 rev) true) ((string_is_prefix t t1 rev) true))
   :conclusion (= s1 t1)
 )
 
 ; ProofRule::CONCAT_CSPLIT
 (declare-rule concat_csplit ((U Type) (t U) (s U) (u U) (rev Bool))
   :premises ((= t s) (not (= (str.len u) 0)))
-  :args (U rev)
+  :args (rev)
   :conclusion
     (alf.match ((t1 U) (t2 U :list))
-      (string_to_flat_form U t rev)
+      (string_to_flat_form t rev)
       (((str.++ t1 t2)
         (alf.requires t1 u
           (alf.match ((s1 U) (s2 U :list))
-            (string_to_flat_form U s rev)
+            (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires (string_check_length_one s1) true    ; checks if char
                 (= u
@@ -72,8 +72,8 @@
     ; strip the prefix of the equality
     (alf.match ((ss String) (ts String))
       (strip_prefix
-           (string_to_flat_form String s rev)
-           (string_to_flat_form String t rev))
+           (string_to_flat_form s rev)
+           (string_to_flat_form t rev))
       (((@pair ss ts)
           (let ((cs (string_head_or_empty ss)))
           (let ((ct (string_head_or_empty ts)))
@@ -96,13 +96,13 @@
 ; ProofRule::CONCAT_CONFLICT_DEQ, for sequences only
 (declare-rule concat_conflict_deq ((U Type) (s (Seq U)) (t (Seq U)) (x U) (y U) (rev Bool))
   :premises ((= s t) (not (= (seq.unit x) (seq.unit y))))
-  :args (rev (Seq U))
+  :args (rev)
   :conclusion
     ; strip the prefix of the equality
     (alf.match ((ss (Seq U)) (ts (Seq U)))
       (strip_prefix
-           (string_to_flat_form (Seq U) s rev)
-           (string_to_flat_form (Seq U) t rev))
+           (string_to_flat_form s rev)
+           (string_to_flat_form t rev))
       (((@pair ss ts)
           ; take the first character from each side, should give x and y
           (alf.requires (string_head_or_empty ss) (seq.unit x)
@@ -145,11 +145,11 @@
 ;;-------------------- Extended functions 
 
 (declare-rule string_reduction ((U Type) (s U))
-  :args (U s)
-  :conclusion (and (string_reduction_pred s U) (= s (skolem s)))
+  :args (s)
+  :conclusion (and (string_reduction_pred s) (= s (skolem s)))
 )
 
 (declare-rule string_eager_reduction ((U Type) (s U))
-  :args (U s)
-  :conclusion (mk_string_eager_reduction s U)
+  :args (s)
+  :conclusion (mk_string_eager_reduction s)
 )
