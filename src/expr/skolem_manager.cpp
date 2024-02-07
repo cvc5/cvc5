@@ -21,6 +21,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/sort_to_term.h"
 #include "util/rational.h"
 #include "util/string.h"
 
@@ -430,8 +431,8 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       break;
     // Type(cacheVals[1])
     case SkolemFunId::INPUT_VARIABLE:
-      Assert(cacheVals.size() > 1);
-      return cacheVals[1].getType();
+      Assert(cacheVals.size()==2 && cacheVals[1].getKind()==Kind::SORT_TO_TYPE);
+      return cacheVals[1].getConst<SortToTerm>().getType();
       break;
     // real -> real function
     case SkolemFunId::DIV_BY_ZERO:
@@ -579,6 +580,15 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     {
       Assert (cacheVals[0].getType().isFunction());
       return cacheVals[0].getType().getArgTypes()[0];
+    }
+    case SkolemFunId::SHARED_SELECTOR:
+    {
+      Assert (cacheVals.size()==3);
+      Assert(cacheVals[0].getKind()==Kind::SORT_TO_TYPE);
+      Assert(cacheVals[1].getKind()==Kind::SORT_TO_TYPE);
+      TypeNode dtt = cacheVals[0].getConst<SortToTerm>().getType();
+      TypeNode t = cacheVals[1].getConst<SortToTerm>().getType();
+      return nm->mkSelectorType(dtt, t);
     }
     default: break;
   }
