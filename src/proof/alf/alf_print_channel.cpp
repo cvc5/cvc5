@@ -103,7 +103,8 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
   d_out << ")" << std::endl;
 }
 
-void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc)
+void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i,
+                         const std::vector<size_t>& premises, TNode nc)
 {
   Assert(!nc.isNull());
   if (d_warnedRules.find(r) == d_warnedRules.end())
@@ -112,7 +113,14 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc
     d_warnedRules.insert(r);
   }
   d_out << "; trust " << r << std::endl;
-  printStep("trust", n, i, {}, {nc}, false);
+  if (premises.empty())
+  {
+    printStep("trust", n, i, premises, {nc}, false);
+  }
+  else
+  {
+    printStep("trust_step", n, i, premises, {nc}, false);
+  }
 }
 
 void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
@@ -168,7 +176,8 @@ void AlfPrintChannelPre::printStep(const std::string& rname,
   }
 }
 
-void AlfPrintChannelPre::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc)
+void AlfPrintChannelPre::printTrustStep(ProofRule r, TNode n, size_t i,
+                         const std::vector<size_t>& premises, TNode nc)
 {
   Assert(!nc.isNull());
   processInternal(nc);

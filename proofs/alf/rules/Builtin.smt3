@@ -48,6 +48,13 @@
     :conclusion F
 )
 
+; trust, but with an arbitrary list of premises
+(declare-rule trust_step ((P Bool) (F Bool))
+    :premise-list P and
+    :args (F)
+    :conclusion F
+)
+
 (declare-rule identity ((F Bool))
     :premises (F)
     :conclusion F
