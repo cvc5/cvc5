@@ -39,6 +39,7 @@ class EmptySet
 
   const TypeNode& getType() const;
   bool operator==(const EmptySet& es) const;
+
  private:
   EmptySet();
 
