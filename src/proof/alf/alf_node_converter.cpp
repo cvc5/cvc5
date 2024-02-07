@@ -424,6 +424,8 @@ Node AlfNodeConverter::mkNil(TypeNode tn)
 
 Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 {
+  // note this method should remain in sync with getCongRule in
+  // proof_node_algorithm.cpp.
   switch (k)
   {
     case Kind::APPLY_UF:
