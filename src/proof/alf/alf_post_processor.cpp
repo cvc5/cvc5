@@ -105,7 +105,7 @@ bool AlfProofPostprocessCallback::update(Node res,
                          << op.getType() << std::endl;
       if (res[0].isClosure())
       {
-        Assert(children.size() >= 2);
+        Assert(children.size() >= 1);
         // variable lists should be equal
         Assert(res[0][0] == res[1][0]);
         std::vector<Node> vars;
@@ -118,8 +118,8 @@ bool AlfProofPostprocessCallback::update(Node res,
         Node opc = d_tproc.mkInternalApp(
             printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
         std::vector<Node> newChildren(
-            children.begin() + 1,
-            children.begin() + d_tproc.getNumChildrenToProcessForClosure(k));
+            children.begin(),
+            children.begin() + d_tproc.getNumChildrenToProcessForClosure(k)-1);
         addAlfStep(AlfRule::CONG, res, newChildren, {opc}, *cdp);
         return true;
       }

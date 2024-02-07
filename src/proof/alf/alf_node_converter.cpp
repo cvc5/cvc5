@@ -287,7 +287,7 @@ Node AlfNodeConverter::postConvert(Node n)
     ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
     return mkInternalApp(ss.str(), {tnn}, tn);
   }
-  else if (k == Kind::SEXPR)
+  else if (k == Kind::SEXPR || k==Kind::BOUND_VAR_LIST)
   {
     // use generic list
     std::vector<Node> args;
@@ -318,8 +318,8 @@ Node AlfNodeConverter::postConvert(Node n)
 bool AlfNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
-  // don't convert bound variable or instantiation pattern list directly
-  if (k == Kind::BOUND_VAR_LIST || k == Kind::INST_PATTERN_LIST)
+  // don't convert instantiation pattern list directly
+  if (k == Kind::INST_PATTERN_LIST)
   {
     return false;
   }
