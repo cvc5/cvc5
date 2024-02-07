@@ -58,6 +58,7 @@ Instantiate::Instantiate(Env& env,
                    ? new CDProof(env, userContext(), "Instantiate::pfInst")
                    : nullptr)
 {
+  d_useCdInstTrie = (options().base.incrementalSolving || options().quantifiers.instVolatile);
 }
 
 Instantiate::~Instantiate()
@@ -536,7 +537,7 @@ void Instantiate::recordInstantiation(Node q,
 
 bool Instantiate::existsInstantiation(Node q, const std::vector<Node>& terms)
 {
-  if (options().base.incrementalSolving)
+  if (d_useCdInstTrie)
   {
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
@@ -624,7 +625,7 @@ Node Instantiate::getInstantiation(Node q,
 bool Instantiate::recordInstantiationInternal(Node q,
                                               const std::vector<Node>& terms)
 {
-  if (options().base.incrementalSolving || options().quantifiers.instVolatile)
+  if (d_useCdInstTrie)
   {
     Trace("inst-add-debug")
         << "Adding into context-dependent inst trie" << std::endl;
@@ -653,7 +654,7 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
 void Instantiate::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node> >& tvecs)
 {
-  if (options().base.incrementalSolving)
+  if (d_useCdInstTrie)
   {
     std::map<Node, CDInstMatchTrie*>::const_iterator it =
         d_c_inst_match_trie.find(q);
@@ -676,7 +677,7 @@ void Instantiate::getInstantiationTermVectors(
 void Instantiate::getInstantiationTermVectors(
     std::map<Node, std::vector<std::vector<Node> > >& insts)
 {
-  if (options().base.incrementalSolving)
+  if (d_useCdInstTrie)
   {
     for (const auto& t : d_c_inst_match_trie)
     {

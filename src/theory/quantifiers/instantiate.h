@@ -355,6 +355,8 @@ class Instantiate : public QuantifiersUtil
    * A CDProof storing instantiation steps.
    */
   std::unique_ptr<CDProof> d_pfInst;
+  /** Whether we are using context-dependent trie index */
+  bool d_useCdInstTrie;
 };
 
 }  // namespace quantifiers
