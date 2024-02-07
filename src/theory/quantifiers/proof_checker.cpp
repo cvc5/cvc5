@@ -80,8 +80,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
   {
     Assert(children.size() == 1);
     // note we may have more arguments than just the term vector
-    if (children[0].getKind() != Kind::FORALL
-        || args.empty())
+    if (children[0].getKind() != Kind::FORALL || args.empty())
     {
       return Node::null();
     }

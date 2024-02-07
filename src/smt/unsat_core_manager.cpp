@@ -119,7 +119,7 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
       Assert(cs.size() == 1);
       Node q = cs[0]->getResult();
       std::vector<Node> instTerms(tlist.begin(), tlist.end());
-      Assert (instTerms.size()==q[0].getNumChildren());
+      Assert(instTerms.size() == q[0].getNumChildren());
       // the instantiation is a prefix of the arguments up to the number of
       // variables
       itq = insts.find(q);
@@ -132,8 +132,7 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
       if (getDebugInfo)
       {
         const std::vector<Node>& args = cur->getArguments();
-        std::vector<Node> extraArgs(args.begin() + 1,
-                                    args.end());
+        std::vector<Node> extraArgs(args.begin() + 1, args.end());
         if (extraArgs.size() >= 1)
         {
           getInferenceId(extraArgs[0], itq->second.d_inst.back().d_id);
