@@ -63,8 +63,13 @@ class AlfPrintChannel
   {
   }
   /** Print trust step */
-  virtual void printTrustStep(ProofRule r, TNode n, size_t i,
-                         const std::vector<size_t>& premises, TNode conc) {}
+  virtual void printTrustStep(ProofRule r,
+                              TNode n,
+                              size_t i,
+                              const std::vector<size_t>& premises,
+                              TNode conc)
+  {
+  }
 };
 
 /** Prints the proof to output stream d_out */
@@ -83,8 +88,11 @@ class AlfPrintChannelOut : public AlfPrintChannel
                  const std::vector<size_t>& premises,
                  const std::vector<Node>& args,
                  bool isPop = false) override;
-  void printTrustStep(ProofRule r, TNode n, size_t i,
-                         const std::vector<size_t>& premises, TNode conc) override;
+  void printTrustStep(ProofRule r,
+                      TNode n,
+                      size_t i,
+                      const std::vector<size_t>& premises,
+                      TNode conc) override;
 
   /**
    * Print node to stream in the expected format of ALF.
@@ -98,12 +106,12 @@ class AlfPrintChannelOut : public AlfPrintChannel
  private:
   /** Helper for print steps */
   void printStepInternal(const std::string& rname,
-                        TNode n,
-                        size_t i,
-                        const std::vector<size_t>& premises,
-                        const std::vector<Node>& args,
-                        bool isPop,
-                        bool isTrust);
+                         TNode n,
+                         size_t i,
+                         const std::vector<size_t>& premises,
+                         const std::vector<Node>& args,
+                         bool isPop,
+                         bool isTrust);
   /** The output stream */
   std::ostream& d_out;
   /** The let binding */
@@ -134,8 +142,11 @@ class AlfPrintChannelPre : public AlfPrintChannel
                  const std::vector<size_t>& premises,
                  const std::vector<Node>& args,
                  bool isPop = false) override;
-  void printTrustStep(ProofRule r, TNode n, size_t i,
-                         const std::vector<size_t>& premises, TNode conc) override;
+  void printTrustStep(ProofRule r,
+                      TNode n,
+                      size_t i,
+                      const std::vector<size_t>& premises,
+                      TNode conc) override;
 
   /** Get variables we encountered in printing */
   const std::unordered_set<TNode>& getVariables() const;

@@ -62,12 +62,12 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
 }
 
 void AlfPrintChannelOut::printStepInternal(const std::string& rname,
-                      TNode n,
-                      size_t i,
-                      const std::vector<size_t>& premises,
-                      const std::vector<Node>& args,
-                      bool isPop,
-                      bool isTrust)
+                                           TNode n,
+                                           size_t i,
+                                           const std::vector<size_t>& premises,
+                                           const std::vector<Node>& args,
+                                           bool isPop,
+                                           bool isTrust)
 {
   d_out << "(" << (isPop ? "step-pop" : "step") << " @p" << i;
   if (!n.isNull())
@@ -115,8 +115,11 @@ void AlfPrintChannelOut::printStepInternal(const std::string& rname,
   d_out << ")" << std::endl;
 }
 
-void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i,
-                         const std::vector<size_t>& premises, TNode nc)
+void AlfPrintChannelOut::printTrustStep(ProofRule r,
+                                        TNode n,
+                                        size_t i,
+                                        const std::vector<size_t>& premises,
+                                        TNode nc)
 {
   Assert(!nc.isNull());
   if (d_warnedRules.find(r) == d_warnedRules.end())
@@ -181,8 +184,11 @@ void AlfPrintChannelPre::printStep(const std::string& rname,
   }
 }
 
-void AlfPrintChannelPre::printTrustStep(ProofRule r, TNode n, size_t i,
-                         const std::vector<size_t>& premises, TNode nc)
+void AlfPrintChannelPre::printTrustStep(ProofRule r,
+                                        TNode n,
+                                        size_t i,
+                                        const std::vector<size_t>& premises,
+                                        TNode nc)
 {
   Assert(!nc.isNull());
   processInternal(nc);
