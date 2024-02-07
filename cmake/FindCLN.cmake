@@ -44,7 +44,7 @@ if(NOT CLN_FOUND_SYSTEM)
   fail_if_cross_compiling("Windows" "" "CLN" "autoconf fails")
   fail_if_cross_compiling("" "arm" "CLN" "syntax error in configure")
 
-  set(CLN_VERSION "1.3.6")
+  set(CLN_VERSION "1.3.7")
   string(REPLACE "." "-" CLN_TAG ${CLN_VERSION})
 
   find_program(AUTORECONF autoreconf)
@@ -56,7 +56,7 @@ if(NOT CLN_FOUND_SYSTEM)
     CLN-EP
     ${COMMON_EP_CONFIG}
     URL "https://www.ginac.de/CLN/cln.git/?p=cln.git\\\;a=snapshot\\\;h=cln_${CLN_TAG}\\\;sf=tgz"
-    URL_HASH SHA1=71d02b90ef0575f06b7bafb8690f73e8064d8228
+    URL_HASH SHA1=bd6dec17cf1088bdd592794d9239d47c752cf3da
     DOWNLOAD_NAME cln.tgz
     CONFIGURE_COMMAND
       ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ./autogen.sh
