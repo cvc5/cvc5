@@ -38,19 +38,12 @@ class ProofNodeManager;
 class ProofNodeConverterCallback
 {
  public:
-  ProofNodeConverterCallback();
-  virtual ~ProofNodeConverterCallback();
+  ProofNodeConverterCallback() {}
+  virtual ~ProofNodeConverterCallback() {}
   /**
    * Update the proof rule application, store steps in cdp. Return true if
    * the proof changed. It can be assumed that cdp contains proofs of each
    * fact in children.
-   *
-   * If continueUpdate is set to false in this method, then the resulting
-   * proof (the proof of res in cdp) is *not* called back to update by the
-   * proof node updater, nor are its children recursed. Otherwise, by default,
-   * the proof node updater will continue updating the resulting proof and will
-   * recursively update its children. This is analogous to marking REWRITE_DONE
-   * in a rewrite response.
    */
   virtual Node convert(Node res,
                        ProofRule id,
