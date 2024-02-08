@@ -22,8 +22,10 @@ TNode FreeVarCache::getFreeVar(const TypeNode& tn, size_t i)
 {
   return getFreeVar(tn, i, tn);
 }
-  
-TNode FreeVarCache::getFreeVar(const TypeNode& tn, size_t i, const TypeNode& stn)
+
+TNode FreeVarCache::getFreeVar(const TypeNode& tn,
+                               size_t i,
+                               const TypeNode& stn)
 {
   NodeManager* nm = NodeManager::currentNM();
   while (i >= d_fv[tn].size())
@@ -41,17 +43,15 @@ TNode FreeVarCache::getFreeVar(const TypeNode& tn, size_t i, const TypeNode& stn
   return d_fv[stn][i];
 }
 
-TNode FreeVarCache::getFreeVarInc(
-    const TypeNode& tn,
-    std::map<TypeNode, size_t>& var_count)
+TNode FreeVarCache::getFreeVarInc(const TypeNode& tn,
+                                  std::map<TypeNode, size_t>& var_count)
 {
   return getFreeVarInc(tn, var_count, tn);
 }
 
-TNode FreeVarCache::getFreeVarInc(
-    const TypeNode& tn,
-    std::map<TypeNode, size_t>& var_count,
-    const TypeNode& stn)
+TNode FreeVarCache::getFreeVarInc(const TypeNode& tn,
+                                  std::map<TypeNode, size_t>& var_count,
+                                  const TypeNode& stn)
 {
   std::map<TypeNode, size_t>::iterator it = var_count.find(stn);
   if (it == var_count.end())

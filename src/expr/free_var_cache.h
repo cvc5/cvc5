@@ -62,6 +62,7 @@ class FreeVarCache
   size_t getFreeVarId(const Node& n) const;
   /** returns true if n has a cached free variable (in d_fv). */
   bool hasFreeVar(const Node& n);
+
  private:
   /** a cache of fresh variables for each type
    *

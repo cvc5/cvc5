@@ -68,7 +68,8 @@ bool TermDbSygus::reset( Theory::Effort e ) {
   return true;  
 }
 
-TNode TermDbSygus::getFreeVar( const TypeNode& tn, size_t i, bool useSygusType ) {
+TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i, bool useSygusType)
+{
   TypeNode vtn = tn;
   if (useSygusType)
   {
@@ -84,7 +85,9 @@ TNode TermDbSygus::getFreeVar( const TypeNode& tn, size_t i, bool useSygusType )
   return d_fv.getFreeVar(vtn, i, tn);
 }
 
-TNode TermDbSygus::getFreeVarInc( const TypeNode& tn, std::map< TypeNode, size_t >& var_count, bool useSygusType )
+TNode TermDbSygus::getFreeVarInc(const TypeNode& tn,
+                                 std::map<TypeNode, size_t>& var_count,
+                                 bool useSygusType)
 {
   TypeNode vtn = tn;
   if (useSygusType)
@@ -98,22 +101,16 @@ TNode TermDbSygus::getFreeVarInc( const TypeNode& tn, std::map< TypeNode, size_t
       }
     }
   }
-  return d_fv.getFreeVarInc( vtn, var_count, tn );
+  return d_fv.getFreeVarInc(vtn, var_count, tn);
 }
 
-bool TermDbSygus::isFreeVar(const Node& n) const
-{
-  return d_fv.isFreeVar(n);
-}
+bool TermDbSygus::isFreeVar(const Node& n) const { return d_fv.isFreeVar(n); }
 size_t TermDbSygus::getFreeVarId(const Node& n) const
 {
   return d_fv.getFreeVarId(n);
 }
 
-bool TermDbSygus::hasFreeVar( const Node& n ) 
-{
-  return d_fv.hasFreeVar(n);
-}
+bool TermDbSygus::hasFreeVar(const Node& n) { return d_fv.hasFreeVar(n); }
 
 Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 {

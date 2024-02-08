@@ -254,7 +254,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
     }
     if( (unsigned)d_currTermSize[a].get()>ssz ){
       if( TraceIsOn("sygus-sb-fair") ){
-        std::map< TypeNode, size_t > var_count;
+        std::map<TypeNode, size_t> var_count;
         Node templ = getCurrentTemplate( a, var_count );
         Trace("sygus-sb-fair") << "FAIRNESS : we have " <<  d_currTermSize[a].get() << " at search size " << ssz << ", template is " << templ << std::endl;
       }
@@ -1729,7 +1729,9 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
   return true;
 }
 
-Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, size_t >& var_count ) {
+Node SygusExtension::getCurrentTemplate(Node n,
+                                        std::map<TypeNode, size_t>& var_count)
+{
   if( d_active_terms.find( n )!=d_active_terms.end() ){
     TypeNode tn = n.getType();
     IntMap::const_iterator it = d_testers.find( n );

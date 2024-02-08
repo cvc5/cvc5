@@ -664,7 +664,7 @@ private:
    * for fresh variables x1, x2, x3. The map var_count maintains the variable
    * count for generating these fresh variables.
    */
-  Node getCurrentTemplate( Node n, std::map< TypeNode, size_t >& var_count );
+  Node getCurrentTemplate(Node n, std::map<TypeNode, size_t>& var_count);
   //----------------------end search size information
   /** check value
    *
