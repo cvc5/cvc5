@@ -63,16 +63,25 @@ Node AletheNodeConverter::postConvert(Node n)
         uint32_t index;
         if (ProofRuleChecker::getUInt32(cacheVal[1], index))
         {
+          // Since cvc5 *always* skolemize FORALLs, we generate the choice term
+          // assuming it is gonna be introduced via a sko_forall rule, in which
+          // the body of the choice is negated, which means to have universal
+          // quantification of the remaining variables in the choice body, and
+          // the whole thing negated. Likewise, since during Skolemization cvc5
+          // will have negated the body of the original quantifier, we need to
+          // revert that as well.
           Assert(index < quant[0].getNumChildren());
+          Assert(quant[1].getKind() == Kind::NOT);
           Node body =
               index == quant[0].getNumChildren() - 1
                   ? quant[1]
-                  : nm->mkNode(
-                      Kind::EXISTS,
-                      nm->mkNode(Kind::BOUND_VAR_LIST,
-                                 std::vector<Node>{quant[0].begin() + index + 1,
-                                                   quant[0].end()}),
-                      quant[1]);
+                  : nm->mkNode(Kind::FORALL,
+                               nm->mkNode(Kind::BOUND_VAR_LIST,
+                                          std::vector<Node>{
+                                              quant[0].begin() + index + 1,
+                                              quant[0].end()}),
+                               quant[1][0])
+                        .notNode();
           // we need to replace in the body all the free variables (i.e., from 0
           // to index) by their respective choice terms. To do this, we get
           // the skolems for each of these variables, retrieve their

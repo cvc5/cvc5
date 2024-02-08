@@ -78,6 +78,7 @@ void AletheProofPrinter::printTerm(std::ostream& out, TNode n)
   options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
   // We print lambda applications in non-curried manner
   options::ioutils::applyFlattenHOChains(ss, true);
+  options::ioutils::applyDagThresh(ss, 0);
   ss << d_lbind.convert(n, "@p_");
   out << ss.str();
 }
@@ -232,8 +233,9 @@ std::string AletheProofPrinter::printInternal(
         {
           out << "(" << args[j][1] << " " << args[j][1].getType() << ") ";
         }
-        out << "(:= " << args[j][0] << " " << args[j][1] << ")"
-            << (j != args.size() - 1 ? " " : "");
+        out << "(:= " << args[j][0] << " ";
+        printTerm(out, args[j][1]);
+        out  << ")" << (j != args.size() - 1 ? " " : "");
       }
       out << ")";
     }

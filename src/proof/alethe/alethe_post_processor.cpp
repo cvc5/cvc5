@@ -387,6 +387,7 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
+
     case ProofRule::DSL_REWRITE:
     {
       // get the name
@@ -428,6 +429,15 @@ bool AletheProofPostprocessCallback::update(Node res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
                            new_args,
+                           *cdp);
+    }
+    case ProofRule::ARITH_POLY_NORM:
+    {
+      return addAletheStep(AletheRule::RARE_REWRITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {nm->mkRawSymbol("\"arith-poly-norm\"", nm->sExprType())},
                            *cdp);
     }
     case ProofRule::EVALUATE:
@@ -1383,13 +1393,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     //                      ---------------- REFL
     //                       (= F F*sigma')
-    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_n
-    //          (= (exists ((xn Tn)) F) F*sigma')
-    // -----------------------------------------------
-    //                       ...
-    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_2
-    //   (= (exists ((x2 T1) ... (xn Tn)) F) F*sigma')
-    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_1
+    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_1, sigma_2, ..., sigma_n
     //   (= (exists ((x1 T1) ... (xn Tn)) F) F*sigma')
     //
     // where sigma' is the cumulative substitution built from sigma1...sigma_n,
@@ -1437,70 +1441,65 @@ bool AletheProofPostprocessCallback::update(Node res,
         quantKind = Kind::FORALL;
       }
       // add rfl step for final replacement
-      Node curPremise = nm->mkNode(
+      Node premise = nm->mkNode(
           Kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized)));
-      addAletheStep(AletheRule::REFL, curPremise, curPremise, {}, {}, *cdp);
+      addAletheStep(AletheRule::REFL, premise, premise, {}, {}, *cdp);
       std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
-      for (size_t size = quant[0].getNumChildren(), i = size; i > 0; --i)
+      std::vector<Node> skoSubstitutions;
+      for (size_t i = 0, size = quant[0].getNumChildren(); i < size; ++i)
       {
-        // build i-th anchor step, whose argument will be the i-th variable
-        // mapped to a choice term for that variable over the quantifier over
-        // i+1-th to n-th variable over the quant body.
-        Node ithBVars = nm->mkNode(
-            Kind::BOUND_VAR_LIST,
-            std::vector<Node>{bVars.begin() + (size - i), bVars.end()});
-        // What we are currently skolemizing is the quantifier (i-1)-th
-        // variable. So we must take the suffix of variables from that one (note
-        // that when i == 1 the suffix is all the variables)
-        Node curSkolemizing =
-            i == 1 ? quant : nm->mkNode(quantKind, ithBVars, quant[1]);
-        // The choice term is for the (i-1)-th variable defined as the
-        // quantifier with the suffix from the i-th variable. This is the same
-        // as the term we skolemized in the previous iteration. Note that for
-        // the last variable in the suffix this is what was used in the REFL
-        // step. In either case, this is always the lhs of the equality in
-        // curPremise (under the cl). Remember that when doing SKO_FORALL the
-        // body of the choice is negated.
-        Node ithChoice = nm->mkNode(
-            Kind::WITNESS,
-            nm->mkNode(Kind::BOUND_VAR_LIST, quant[0][i - 1]),
-            isExists ? curPremise[1][0] : curPremise[1][0].notNode());
-        Node conclusion =
-            nm->mkNode(Kind::SEXPR,
-                       d_cl,
-                       d_anc.convert(curSkolemizing.eqNode(skolemized)));
-        addAletheStep(skoRule,
-                      conclusion,
-                      conclusion,
-                      {curPremise},
-                      {d_anc.convert(quant[0][i - 1].eqNode(ithChoice))},
-                      *cdp);
-        // update premise
-        curPremise = conclusion;
+        // build i-th argument of the anchor step, which will be the i-th
+        // variable mapped to a choice term for that variable over the
+        // quantifier over i+1-th to n-th variable over the quant body. If i ==
+        // size - 1, then the mapping is just to the body
+        Node choiceBody =
+            i == size - 1
+                ? quant[1]
+                : nm->mkNode(quantKind,
+                             nm->mkNode(Kind::BOUND_VAR_LIST,
+                                        std::vector<Node>{bVars.begin() + i + 1,
+                                                          bVars.end()}),
+                             quant[1]);
+        // The choice term is for the i-th variable, with the body as defined
+        // above. Remember that when doing SKO_FORALL the body of the choice is
+        // negated.
+        Node ithChoice =
+            nm->mkNode(Kind::WITNESS,
+                       nm->mkNode(Kind::BOUND_VAR_LIST, quant[0][i]),
+                       isExists ? choiceBody : choiceBody.notNode());
+        // add to the substitution
+        skoSubstitutions.push_back(quant[0][i].eqNode(ithChoice));
       }
+      Node conclusion = nm->mkNode(
+          Kind::SEXPR, d_cl, d_anc.convert(quant.eqNode(skolemized)));
+      // add the sko step
+      addAletheStep(
+          skoRule, conclusion, conclusion, {premise}, skoSubstitutions, *cdp);
       // add congruence step with NOT for the forall case
       if (!isExists)
       {
-        Node conclusion = nm->mkNode(
-            Kind::SEXPR,
-            d_cl,
-            (curPremise[1][0].notNode()).eqNode(curPremise[1][1].notNode()));
-        addAletheStep(
-            AletheRule::CONG, conclusion, conclusion, {curPremise}, {}, *cdp);
-        curPremise = conclusion;
+        Node newConclusion = nm->mkNode(
+            Kind::SEXPR, d_cl, (quant.notNode()).eqNode(skolemized.notNode()));
+        addAletheStep(AletheRule::CONG,
+                      newConclusion,
+                      newConclusion,
+                      {conclusion},
+                      {},
+                      *cdp);
+        conclusion = newConclusion;
       }
       // now equality resolution reasoning
       Node vp1 = nm->mkNode(
           Kind::SEXPR,
-          {d_cl, curPremise[1].notNode(), children[0].notNode(), res});
+          {d_cl, conclusion[1].notNode(), children[0].notNode(), res});
       addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
       addAletheStep(
           AletheRule::RESOLUTION,
           res,
           nm->mkNode(Kind::SEXPR, d_cl, res),
-          {vp1, curPremise, children[0]},
+          {vp1, conclusion, children[0]},
           d_resPivots
-              ? std::vector<Node>{curPremise[1], d_false, children[0], d_false}
+              ? std::vector<Node>{conclusion[1], d_false, children[0], d_false}
               : std::vector<Node>(),
           *cdp);
       return true;
@@ -1568,20 +1567,25 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ... (zn An)) G*sigma)
     //
     //
-    // -----    ----- REFL  ----- REFL
-    //  VP1 .... VPn         VP
-    // -------------------------- BIND, ((:= (y1 A1) z1) ... (:= (yn An) zn))
-    //         (= F F*sigma)
-    //
-    // VPi: (cl (= yi zi))^
-    // VP: (cl (= G G*sigma))
+    //  ------------------ REFL
+    //  (cl (= G G*sigma))
+    // -------------------- BIND, ((= y1 z1) ... (= yn zn))
+    //  (= F F*sigma)
     //
     // ^ the corresponding proof node is F*sigma
     case ProofRule::ALPHA_EQUIV:
     {
+      std::vector<Node> varEqs;
       // performance optimization
       // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
-      if (res[0].toString() == res[1].toString())
+      bool allSame = true;
+      for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
+      {
+        Node v0 = res[0][0][i], v1 = res[1][0][i];
+        allSame = allSame && v0.getName() == v1.getName();
+        varEqs.push_back(v0.eqNode(v1));
+      }
+      if (allSame)
       {
         return addAletheStep(AletheRule::REFL,
                              res,
@@ -1590,27 +1594,17 @@ bool AletheProofPostprocessCallback::update(Node res,
                              {},
                              *cdp);
       }
-
-      std::vector<Node> new_children;
-      bool success = true;
-      for (size_t i = 1, size = args.size(); i < size; i++)
-      {
-        Node vpi = nm->mkNode(Kind::SEXPR, d_cl, args[i]);
-        new_children.push_back(vpi);
-        success&& addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
-      }
+      // Reflexivity over the quantified bodies
       Node vp = nm->mkNode(
           Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[0][1], res[1][1]));
-      success&& addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
-      new_children.push_back(vp);
-      new_args.insert(new_args.begin(), args.begin() + 1, args.end());
-      return success
-             && addAletheStep(AletheRule::ANCHOR_BIND,
-                              res,
-                              nm->mkNode(Kind::SEXPR, d_cl, res),
-                              new_children,
-                              new_args,
-                              *cdp);
+      addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
+      new_args.insert(new_args.end(), varEqs.begin(), varEqs.end());
+      return addAletheStep(AletheRule::ANCHOR_BIND,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {vp},
+                           new_args,
+                           *cdp);
     }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
