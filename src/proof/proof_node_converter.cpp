@@ -80,7 +80,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(
         pchildren.push_back(it->second);
       }
       std::shared_ptr<ProofNode> ret = processInternal(cur, pchildren);
-      if (ret==nullptr)
+      if (ret == nullptr)
       {
         return nullptr;
       }
@@ -100,18 +100,17 @@ std::shared_ptr<ProofNode> ProofNodeConverter::processInternal(
   CDProof cpf(d_env, nullptr, "ProofNodeConverter::CDProof", false);
   Node res = pf->getResult();
   std::vector<Node> children;
-    for (const std::shared_ptr<ProofNode>& cp : pchildren)
-    {
-        children.push_back(cp->getResult());
-    }
+  for (const std::shared_ptr<ProofNode>& cp : pchildren)
+  {
+    children.push_back(cp->getResult());
+  }
   const std::vector<Node>& args = pf->getArguments();
   Node newRes = d_cb.convert(res, id, children, args, &cpf);
   if (newRes.isNull())
   {
-      return nullptr;
+    return nullptr;
   }
   return cpf.getProofFor(newRes);
 }
 
 }  // namespace cvc5::internal
-
