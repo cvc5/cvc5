@@ -432,7 +432,7 @@ void AlfPrinter::getChildrenFromProofRule(const ProofNode* pn, std::vector<std::
       Node res = pn->getResult();
       if (res[0].isClosure())
       {
-        // Ignore those for any children beyond the required arguments.
+        // Ignore the children after the required arguments.
         // This ensures that we ignore e.g. equalities between patterns
         // which can appear in term conversion proofs.
         size_t arity = kind::metakind::getMinArityForKind(res[0].getKind());

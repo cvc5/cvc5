@@ -101,7 +101,7 @@ bool containsSubproof(ProofNode* pn,
                       std::unordered_set<const ProofNode*>& visited);
 
 /**
- * Returns the ProofRule to do congruence for a given term.
+ * Returns the ProofRule that handles congruence for the given term.
  *
  * @param n The term, i.e. the lhs or rhs of the conclusion of the cong step.
  * @param args The arguments to the application of cong for the given term
