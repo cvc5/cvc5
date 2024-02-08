@@ -347,9 +347,9 @@ class TermDbSygus : protected EnvObj
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
-  /** 
+  /**
    * A cache of fresh variables for each type
-   * 
+   *
    * We store two versions of this list:
    *   index 0: mapping from builtin types to fresh variables of that type,
    *   index 1: mapping from sygus types to fresh varaibles of the type they
