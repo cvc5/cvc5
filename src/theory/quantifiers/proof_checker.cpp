@@ -81,8 +81,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
   {
     Assert(children.size() == 1);
     // note we may have more arguments than just the term vector
-    if (children[0].getKind() != Kind::FORALL
-        || args.size() < children[0][0].getNumChildren())
+    if (children[0].getKind() != Kind::FORALL || args.empty())
     {
       return Node::null();
     }
@@ -92,7 +91,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     for (size_t i = 0, nc = children[0][0].getNumChildren(); i < nc; i++)
     {
       vars.push_back(children[0][0][i]);
-      subs.push_back(args[i]);
+      subs.push_back(args[0][i]);
     }
     Node inst =
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
