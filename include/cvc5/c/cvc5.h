@@ -333,7 +333,8 @@ bool cvc5_sort_is_string(Cvc5Sort sort);
 bool cvc5_sort_is_reg_exp(Cvc5Sort sort);
 
 /**
- * Determine if given sort is the rounding mode sort (SMT-LIB: `RoundingMode`).
+ * Determine if given sort is the rounding mode sort
+ * (SMT-LIB: `Cvc5RoundingMode`).
  * @param sort The sort.
  * @return True if given sort is the rounding mode sort.
  */
@@ -1961,7 +1962,7 @@ Cvc5Sort cvc5_get_regexp_sort(Cvc5TermManager* tm);
 /**
  * Get the rounding mode sort.
  * @param tm The term manager instance.
- * @return Sort RoundingMode.
+ * @return The rounding mode sort.
  */
 Cvc5Sort cvc5_get_rm_sort(Cvc5TermManager* tm);
 
@@ -2191,17 +2192,17 @@ Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
 
 /**
  * Create n-ary term of given kind from a given operator.
- * Create operators with `cvc5_mk_op()`.
+ * Create operators with `cvc5_mk_op()` and `cvc5_mk_op_from_str()`.
  * @param tm The term manager instance.
  * @param op The operator.
  * @param size The number of children.
  * @param children The children of the term.
  * @return The Term.
  */
-Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
-                      Cvc5Op op,
-                      size_t size,
-                      const Cvc5Term* children);
+Cvc5Term cvc5_mk_term_from_op(Cvc5TermManager* tm,
+                              Cvc5Op op,
+                              size_t size,
+                              const Cvc5Term* children);
 
 /**
  * Create a tuple term.
@@ -2313,7 +2314,7 @@ Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
  * @param kind The kind of the operator.
  * @param arg The string argument to this operator.
  */
-Cvc5Op cvc5_mk_op(Cvc5TermManager* tm, Cvc5Kind kind, const char* arg);
+Cvc5Op cvc5_mk_op_from_str(Cvc5TermManager* tm, Cvc5Kind kind, const char* arg);
 
 /* .................................................................... */
 /* Create Constants                                                     */
@@ -2468,7 +2469,7 @@ Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq);
  * @param s The string this constant represents.
  * @return The String constant.
  */
-Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const wchar_t* s);
+Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s);
 
 /**
  * Create an empty sequence of the given element sort.
@@ -2597,7 +2598,7 @@ Cvc5Term cvc5_mk_fp_neg_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
  * @param rm The floating point rounding mode this constant represents.
  * @return The rounding mode value.
  */
-Cvc5Term cvc5_mk_rm(Cvc5TermManager* tm, RoundingMode rm);
+Cvc5Term cvc5_mk_rm(Cvc5TermManager* tm, Cvc5RoundingMode rm);
 
 /**
  * Create a floating-point value from a bit-vector given in IEEE-754 format.
@@ -2620,10 +2621,10 @@ Cvc5Term cvc5_mk_fp(Cvc5TermManager* tm,
  * @param sig The bit-vector representing the significand.
  * @return The floating-point value.
  */
-Cvc5Term cvc5_mk_fp(Cvc5TermManager* tm,
-                    Cvc5Term sign,
-                    Cvc5Term exp,
-                    Cvc5Term sig);
+Cvc5Term cvc5_mk_fp_from_ieee(Cvc5TermManager* tm,
+                              Cvc5Term sign,
+                              Cvc5Term exp,
+                              Cvc5Term sig);
 
 /**
  * Create a cardinality constraint for an uninterpreted sort.
@@ -2713,11 +2714,11 @@ Cvc5DatatypeDecl* cvc5_mk_dt_decl(Cvc5TermManager* tm,
  * @param is_codt True if a codatatype is to be constructed.
  * @return The Cvc5DatatypeDecl.
  */
-Cvc5DatatypeDecl cvc5_mk_dt_decl(Cvc5TermManager* tm,
-                             const char* name,
-                             size_t size,
-                             const Cvc5Sort* params,
-                             bool is_codt);
+Cvc5DatatypeDecl cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
+                                             const char* name,
+                                             size_t size,
+                                             const Cvc5Sort* params,
+                                             bool is_codt);
 
 /* .................................................................... */
 /* SMT-LIB-style Term/Sort Creation                                     */
