@@ -39,6 +39,11 @@ This file contains a summary of important user-visible changes.
        `get-unsat-core-lemmas`.
 - Various bug fixes.
 
+**Changes**
+
+- API: Functions `kindToString(Kind)` and `sortKindToString(SortKind)` are now
+       replaced by `std::to_string(Kind)` and `std::to_string(SortKind)`.
+
 cvc5 1.0.9
 ==========
 Note: This is a pre-release version for the upcoming version 1.1.0.

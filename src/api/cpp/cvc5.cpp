@@ -1128,34 +1128,14 @@ uint32_t maxArity(Kind k)
 
 }  // namespace
 
-std::string kindToString(Kind k)
-{
-  auto it = s_kinds.find(k);
-  if (it == s_kinds.end())
-  {
-    return "UNDEFINED_KIND";
-  }
-  return it->second.second;
-}
-
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
-  return out << kindToString(k);
-}
-
-std::string sortKindToString(SortKind k)
-{
-  auto it = s_sort_kinds.find(k);
-  if (it == s_sort_kinds.end())
-  {
-    return "UNDEFINED_SORT_KIND";
-  }
-  return it->second.second;
+  return out << std::to_string(k);
 }
 
 std::ostream& operator<<(std::ostream& out, SortKind k)
 {
-  return out << sortKindToString(k);
+  return out << std::to_string(k);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2213,7 +2193,7 @@ size_t Op::getNumIndicesHelper() const
       size = d_node->getConst<internal::ProjectOp>().getIndices().size();
       break;
     }
-    default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
+    default: CVC5_API_CHECK(false) << "Unhandled kind " << k;
   }
   return size;
 }
@@ -2404,7 +2384,7 @@ Term Op::getIndexHelper(size_t index) const
     }
     default:
     {
-      CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
+      CVC5_API_CHECK(false) << "Unhandled kind " << k;
       break;
     }
   }
@@ -2421,7 +2401,7 @@ std::string Op::toString() const
   //////// all checks before this line
   if (d_node->isNull())
   {
-    return kindToString(d_kind);
+    return std::to_string(d_kind);
   }
   else
   {
@@ -5535,7 +5515,7 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
          "e.g., mkBitVector().";
   CVC5_API_KIND_CHECK_EXPECTED(
       nchildren >= minArity(kind) && nchildren <= maxArity(kind), kind)
-      << "Terms with kind " << kindToString(kind) << " must have at least "
+      << "Terms with kind " << std::to_string(kind) << " must have at least "
       << minArity(kind) << " children and at most " << maxArity(kind)
       << " children (the one under construction has " << nchildren << ")";
 }
@@ -8264,9 +8244,29 @@ size_t hash<cvc5::Kind>::operator()(cvc5::Kind k) const
   return static_cast<size_t>(k);
 }
 
+std::string to_string(cvc5::Kind k)
+{
+  auto it = cvc5::s_kinds.find(k);
+  if (it == cvc5::s_kinds.end())
+  {
+    return "UNDEFINED_KIND";
+  }
+  return it->second.second;
+}
+
 size_t hash<cvc5::SortKind>::operator()(cvc5::SortKind k) const
 {
   return static_cast<size_t>(k);
+}
+
+std::string to_string(cvc5::SortKind k)
+{
+  auto it = cvc5::s_sort_kinds.find(k);
+  if (it == cvc5::s_sort_kinds.end())
+  {
+    return "UNDEFINED_SORT_KIND";
+  }
+  return it->second.second;
 }
 
 size_t hash<cvc5::Op>::operator()(const cvc5::Op& t) const
