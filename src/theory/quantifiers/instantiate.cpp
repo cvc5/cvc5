@@ -568,10 +568,12 @@ Node Instantiate::getInstantiation(Node q,
   // store the proof of the instantiated body, with (open) assumption q
   if (pf != nullptr)
   {
+    std::vector<Node> pfTerms;
+    // Include the list of terms as an SEXPR.
+    pfTerms.push_back(NodeManager::currentNM()->mkNode(Kind::SEXPR, terms));
     // additional arguments: if the inference id is not unknown, include it,
     // followed by the proof argument if non-null. The latter is used e.g.
     // to track which trigger caused an instantiation.
-    std::vector<Node> pfTerms = terms;
     if (id != InferenceId::UNKNOWN)
     {
       pfTerms.push_back(mkInferenceIdNode(id));

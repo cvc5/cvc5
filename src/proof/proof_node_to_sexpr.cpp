@@ -296,6 +296,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
   switch (r)
   {
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
       if (i == 0)
       {
@@ -339,10 +340,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       break;
     case ProofRule::INSTANTIATE:
     {
-      Assert(!pn->getChildren().empty());
-      Node q = pn->getChildren()[0]->getResult();
-      Assert(q.getKind() == Kind::FORALL);
-      if (i == q[0].getNumChildren())
+      if (i == 1)
       {
         return ArgFormat::INFERENCE_ID;
       }
