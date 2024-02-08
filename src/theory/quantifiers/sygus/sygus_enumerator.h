@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "expr/free_var_cache.h"
 #include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -60,9 +61,8 @@ class SygusEnumerator : public EnumValGenerator
  public:
   /**
    * @param env Reference to the environment
-   * @param tds Pointer to the term database, required if enumShapes or
-   * enumAnyConstHoles is true, or if we want to include symmetry breaking from
-   * lemmas stored in the sygus term database,
+   * @param tds Pointer to the term database, required if we want to include
+   * symmetry breaking from lemmas stored in the sygus term database,
    * @param sec Pointer to the callback, required e.g. if we wish to do
    * conjecture-specific symmetry breaking
    * @param s Pointer to the statistics
@@ -378,12 +378,12 @@ class SygusEnumerator : public EnumValGenerator
     bool increment() override;
 
    private:
-    /** pointer to term database sygus */
-    TermDbSygus* d_tds;
     /** are we enumerating shapes? */
     bool d_enumShapes;
     /** have we initialized the shape enumeration? */
     bool d_enumShapesInit;
+    /** A free variable cache */
+    FreeVarCache d_enumShapesFv;
     /** are we currently inside a increment() call? */
     bool d_isIncrementing;
     /** cache for getCurrent() */
@@ -498,6 +498,9 @@ class SygusEnumerator : public EnumValGenerator
     Node getCurrent() override;
     /** increment the enumerator */
     bool increment() override;
+   private:
+    /** A free variable cache */
+    FreeVarCache d_fv;
   };
   /** the master enumerator for each sygus type */
   std::map<TypeNode, TermEnumMaster> d_masterEnum;
