@@ -59,7 +59,7 @@ class AlfPrinter : protected EnvObj
 
   //-------------
   /**
-   * Get children from proof rule
+   * Select only those children required by the proof rule.
    */
   void getChildrenFromProofRule(const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children);
   /**
