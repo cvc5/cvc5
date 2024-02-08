@@ -204,7 +204,7 @@ TEST_F(TestBlackOptions, setSafe)
     {
       if (alreadySetRegular)
       {
-        // skip if already regular
+        // skip if already set a regular option
         continue;
       }
       alreadySetRegular = true;
