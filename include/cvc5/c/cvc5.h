@@ -22,7 +22,6 @@ extern "C" {
 
 #define CVC5_API_USE_C_ENUMS
 #include <cvc5/cvc5_kind.h>
-#include <cvc5/cvc5_sort_kind.h>
 #include <cvc5/cvc5_types.h>
 #undef CVC5_API_USE_C_ENUMS
 
