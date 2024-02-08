@@ -120,6 +120,17 @@ bool ProofStepBuffer::addStep(ProofRule id,
       std::pair<Node, ProofStep>(expected, ProofStep(id, children, args)));
   return true;
 }
+bool ProofStepBuffer::addTrustedStep(TrustId id,
+                                     const std::vector<Node>& children,
+                                     const std::vector<Node>& args,
+                                     Node conc)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(mkTrustId(id));
+  sargs.push_back(conc);
+  sargs.insert(sargs.end(), args.begin(), args.end());
+  return addStep(ProofRule::TRUST, children, sargs, conc);
+}
 
 void ProofStepBuffer::addSteps(ProofStepBuffer& psb)
 {

@@ -36,24 +36,24 @@ namespace quantifiers {
 /** Number of stages of grammar construction */
 const size_t s_nstages = 2;
 
-TypeNode SygusGrammarCons::mkDefaultSygusType(const Options& opts,
+TypeNode SygusGrammarCons::mkDefaultSygusType(const Env& env,
                                               const TypeNode& range,
                                               const Node& bvl)
 {
-  SygusGrammar g = mkDefaultGrammar(opts, range, bvl);
+  SygusGrammar g = mkDefaultGrammar(env, range, bvl);
   return g.resolve(true);
 }
 
-TypeNode SygusGrammarCons::mkDefaultSygusType(const Options& opts,
+TypeNode SygusGrammarCons::mkDefaultSygusType(const Env& env,
                                               const TypeNode& range,
                                               const Node& bvl,
                                               const std::vector<Node>& trules)
 {
-  SygusGrammar g = mkDefaultGrammar(opts, range, bvl, trules);
+  SygusGrammar g = mkDefaultGrammar(env, range, bvl, trules);
   return g.resolve(true);
 }
 
-SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
+SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
                                                 const TypeNode& range,
                                                 const Node& bvl)
 {
@@ -64,17 +64,17 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     Assert(bvl.getKind() == Kind::BOUND_VAR_LIST);
     trules.insert(trules.end(), bvl.begin(), bvl.end());
   }
-  return mkDefaultGrammar(opts, range, bvl, trules);
+  return mkDefaultGrammar(env, range, bvl, trules);
 }
 
-SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
+SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
                                                 const TypeNode& range,
                                                 const Node& bvl,
                                                 const std::vector<Node>& trules)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::map<TypeNode, std::vector<Node>>::iterator it;
-  SygusGrammar g = mkEmptyGrammar(opts, range, bvl, trules);
+  SygusGrammar g = mkEmptyGrammar(env, range, bvl, trules);
   std::map<TypeNode, std::vector<Node>> typeToNtSym = getTypeToNtSymMap(g);
 
   // get the non-terminal for Booleans
@@ -86,9 +86,39 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     Assert(!it->second.empty());
     ntSymBool = it->second[0];
   }
+  std::vector<Node> trulesAll = trules;
+
+  // Special case: functions can use a lambda at top-level.
+  // Note we do this only for functions at top-level. This ensures we do not
+  // enumerate any terms with free variables since the only non-terminal
+  // production rule for this grammar will be (lambda X. A) for non-terminal
+  // symbol A, where A may have free variables bound in X.
+  if (range.isFunction())
+  {
+    it = typeToNtSym.find(range);
+    Assert(it != typeToNtSym.end());
+    Node ntsymF = it->second[0];
+    std::vector<Node> vars;
+    std::vector<TypeNode> argTypes = range.getArgTypes();
+    for (const TypeNode& tn : argTypes)
+    {
+      Node v = nm->mkBoundVar(tn);
+      vars.push_back(v);
+      // add variable as a terminal
+      trulesAll.push_back(v);
+    }
+    TypeNode rtn = range.getRangeType();
+    it = typeToNtSym.find(rtn);
+    Assert(it != typeToNtSym.end());
+    Node ntsymR = it->second[0];
+    Node lam = nm->mkNode(
+        Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, vars), ntsymR);
+    // add the lambda
+    g.addRule(ntsymF, lam);
+  }
 
   // add the terminal rules
-  for (const Node& r : trules)
+  for (const Node& r : trulesAll)
   {
     TypeNode rt = r.getType();
     it = typeToNtSym.find(rt);
@@ -104,18 +134,18 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     {
       Assert(!gr.second.empty());
       // add rules for each type
-      addDefaultRulesTo(opts, g, gr.second[0], typeToNtSym, i);
+      addDefaultRulesTo(env, g, gr.second[0], typeToNtSym, i);
       // add predicates for the type to the Boolean grammar if it exists
       if (i == 0 && !gr.first.isBoolean() && !ntSymBool.isNull())
       {
         addDefaultPredicateRulesTo(
-            opts, g, gr.second[0], ntSymBool, typeToNtSym);
+            env, g, gr.second[0], ntSymBool, typeToNtSym);
       }
     }
   }
   // Remove disjunctive rules (ITE, OR) if specified. This option is set to
   // false internally for abduction queries.
-  if (!opts.quantifiers.sygusGrammarUseDisj)
+  if (!env.getOptions().quantifiers.sygusGrammarUseDisj)
   {
     const std::vector<Node>& ntSyms = g.getNtSyms();
     for (const Node& sym : ntSyms)
@@ -138,7 +168,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
   return g;
 }
 
-SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
+SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
                                               const TypeNode& range,
                                               const Node& bvl,
                                               const std::vector<Node>& trules)
@@ -184,7 +214,8 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
 
   // construct the non-terminals
   std::vector<Node> ntSyms;
-  options::SygusGrammarConsMode tsgcm = opts.quantifiers.sygusGrammarConsMode;
+  options::SygusGrammarConsMode tsgcm =
+      env.getOptions().quantifiers.sygusGrammarConsMode;
   for (const TypeNode& t : tvec)
   {
     std::stringstream ss;
@@ -227,7 +258,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
 }
 
 void SygusGrammarCons::addDefaultRulesTo(
-    const Options& opts,
+    const Env& env,
     SygusGrammar& g,
     const Node& ntSym,
     const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
@@ -236,7 +267,8 @@ void SygusGrammarCons::addDefaultRulesTo(
   TypeNode tn = ntSym.getType();
   std::vector<Node> prevRules = g.getRulesFor(ntSym);
   NodeManager* nm = NodeManager::currentNM();
-  options::SygusGrammarConsMode tsgcm = opts.quantifiers.sygusGrammarConsMode;
+  options::SygusGrammarConsMode tsgcm =
+      env.getOptions().quantifiers.sygusGrammarConsMode;
   // add constants
   if (stage == 0)
   {
@@ -667,7 +699,8 @@ void SygusGrammarCons::addDefaultRulesTo(
       // decision tree learning) and the grammar is non-trivial.
       considerIte = false;
       if (!prevRules.empty()
-          && opts.quantifiers.sygusUnifPi != options::SygusUnifPiMode::NONE)
+          && env.getOptions().quantifiers.sygusUnifPi
+                 != options::SygusUnifPiMode::NONE)
       {
         considerIte = true;
       }
@@ -694,11 +727,11 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
   {
     return;
   }
+  types.insert(range);
   if (range.isDatatype())
   {
     // special case: datatypes we add itself and its subfield types, taking
     // into account parametric datatypes
-    types.insert(range);
     const DType& dt = range.getDType();
     for (size_t i = 0, size = dt.getNumConstructors(); i < size; ++i)
     {
@@ -717,11 +750,13 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
   {
     // special case: uninterpreted sorts (which include sorts constructed
     // from uninterpreted sort constructors), we only add the sort itself.
-    types.insert(range);
     return;
   }
   // otherwise, get the component types
-  expr::getComponentTypes(range, types);
+  for (unsigned i = 0, nchild = range.getNumChildren(); i < nchild; i++)
+  {
+    collectTypes(range[i], types);
+  }
   // add further types based on theory symbols
   if (range.isStringLike())
   {
@@ -738,7 +773,7 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
 }
 
 void SygusGrammarCons::addDefaultPredicateRulesTo(
-    const Options& opts,
+    const Env& env,
     SygusGrammar& g,
     const Node& ntSym,
     const Node& ntSymBool,
@@ -756,12 +791,14 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
   bool realIntZeroArg = false;
   if (tn.isRealOrInt())
   {
-    realIntZeroArg = (opts.quantifiers.sygusGrammarConsMode
+    realIntZeroArg = (env.getOptions().quantifiers.sygusGrammarConsMode
                       == options::SygusGrammarConsMode::ANY_TERM_CONCISE);
   }
 
-  // add equality per type, if first class
-  if (tn.isFirstClass())
+  // Add equality per type, if first class. We omit function equality if not
+  // higher-order.
+  if (tn.isFirstClass()
+      && (!tn.isFunction() || env.getLogicInfo().isHigherOrder()))
   {
     Trace("sygus-grammar-def") << "...add for EQUAL" << std::endl;
     if (realIntZeroArg)

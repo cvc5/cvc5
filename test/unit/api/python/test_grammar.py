@@ -57,8 +57,6 @@ def test_add_rule(solver):
         g.addRule(nts, solver.mkBoolean(False))
     with pytest.raises(RuntimeError):
         g.addRule(start, solver.mkInteger(0))
-    with pytest.raises(RuntimeError):
-        g.addRule(start, nts)
 
     # expecting no errors
     solver.synthFun("f", {}, boolean, g)
@@ -90,8 +88,7 @@ def test_add_rules(solver):
         g.addRules(nts, [solver.mkBoolean(False)])
     with pytest.raises(RuntimeError):
         g.addRules(start, [solver.mkInteger(0)])
-    with pytest.raises(RuntimeError):
-        g.addRules(start, [nts])
+
     #Expecting no errors
     solver.synthFun("f", {}, boolean, g)
 

@@ -21,13 +21,17 @@ namespace cvc5::internal {
 
 const Integer& FiniteFieldValue::getValue() const { return d_value; }
 
+bool FiniteFieldValue::isZero() const { return d_value.isZero(); }
+
+bool FiniteFieldValue::isOne() const { return d_value.isOne(); }
+
 const Integer& FiniteFieldValue::getFieldSize() const { return d_size; }
 
 Integer FiniteFieldValue::toInteger() const { return d_value; }
 
 Integer FiniteFieldValue::toSignedInteger() const
 {
-  Integer half_size = d_size.divByPow2(1) + 1;
+  Integer half_size = d_size.d_val.divByPow2(1) + 1;
   return (d_value < half_size) ? d_value : d_value - d_size;
 }
 
@@ -39,7 +43,12 @@ std::string FiniteFieldValue::toString() const
 size_t FiniteFieldValue::hash() const
 {
   PairHashFunction<size_t, size_t> h;
-  return h(std::make_pair(d_value.hash(), d_size.hash()));
+  return h(std::make_pair(d_value.hash(), d_size.d_val.hash()));
+}
+
+void FiniteFieldValue::normalize()
+{
+  d_value = d_value.floorDivideRemainder(d_size.d_val);
 }
 
 /* -----------------------------------------------------------------------
@@ -101,7 +110,7 @@ FiniteFieldValue operator-(const FiniteFieldValue& x, const FiniteFieldValue& y)
 
 FiniteFieldValue operator-(const FiniteFieldValue& x)
 {
-  return {x.d_size - x.d_value, x.d_size};
+  return {x.d_size.d_val - x.d_value, x.d_size};
 }
 
 FiniteFieldValue operator*(const FiniteFieldValue& x, const FiniteFieldValue& y)
@@ -123,6 +132,45 @@ FiniteFieldValue FiniteFieldValue::recip() const
   return {d_value.modInverse(d_size), d_size};
 }
 
+/* In-Place Arithmetic --------------------------------------------------- */
+
+FiniteFieldValue& FiniteFieldValue::operator+=(const FiniteFieldValue& y)
+{
+  Assert(d_size == y.d_size)
+      << "Size mismatch: " << d_size << " != " << y.d_size;
+  d_value += y.d_value;
+  normalize();
+  return *this;
+}
+
+FiniteFieldValue& FiniteFieldValue::operator-=(const FiniteFieldValue& y)
+{
+  Assert(d_size == y.d_size)
+      << "Size mismatch: " << d_size << " != " << y.d_size;
+  d_value -= y.d_value;
+  normalize();
+  return *this;
+}
+
+FiniteFieldValue& FiniteFieldValue::operator*=(const FiniteFieldValue& y)
+{
+  Assert(d_size == y.d_size)
+      << "Size mismatch: " << d_size << " != " << y.d_size;
+  d_value *= y.d_value;
+  normalize();
+  return *this;
+}
+
+FiniteFieldValue& FiniteFieldValue::operator/=(const FiniteFieldValue& y)
+{
+  Assert(d_size == y.d_size)
+      << "Size mismatch: " << d_size << " != " << y.d_size;
+  d_value *= y.d_value.modInverse(d_size);
+  normalize();
+  return *this;
+}
+
+
 /* -----------------------------------------------------------------------
  * Output stream
  * ----------------------------------------------------------------------- */
@@ -132,12 +180,23 @@ std::ostream& operator<<(std::ostream& os, const FiniteFieldValue& ff)
   return os << ff.toString();
 }
 
+std::ostream& operator<<(std::ostream& os, const FfSize& ff)
+{
+  return os << ff.d_val;
+}
+
 /* -----------------------------------------------------------------------
  * Static helpers.
  * ----------------------------------------------------------------------- */
 
-FiniteFieldValue FiniteFieldValue::mkZero(const Integer& size) { return {0, size}; }
+FiniteFieldValue FiniteFieldValue::mkZero(const Integer& size)
+{
+  return {0, size};
+}
 
-FiniteFieldValue FiniteFieldValue::mkOne(const Integer& size) { return {1, size}; }
+FiniteFieldValue FiniteFieldValue::mkOne(const Integer& size)
+{
+  return {1, size};
+}
 
 }  // namespace cvc5::internal

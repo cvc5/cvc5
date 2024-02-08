@@ -30,7 +30,7 @@ Compilation on macOS
 
 On macOS, we recommend using `Homebrew <https://brew.sh/>`_ to install the
 dependencies.  We also have a Homebrew Tap available at
-https://github.com/CVC4/homebrew-cvc4 .
+https://github.com/cvc5/homebrew-cvc5.
 Note that linking system libraries statically is
 `strongly discouraged <https://developer.apple.com/library/archive/qa/qa1118/_index.html>`_
 on macOS. Using ``./configure.sh --static`` will thus produce a binary
@@ -118,14 +118,16 @@ versions; more recent versions should be compatible.
 - `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
   or `Clang (>= 5) <https://clang.llvm.org>`_
 - `CMake >= 3.9 <https://cmake.org>`_
-- `Python >= 3.6 and <= 3.10 <https://www.python.org>`_
+- `Python >= 3.6 <https://www.python.org>`_
   + module `tomli <https://pypi.org/project/tomli/>`_
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
-- `GMP v6.1 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
+- `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
-- `Java >= 1.6 <https://www.java.com>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
+For Python, to install these dependencies automatically, please use:
+
+  - `pip install -r contrib/requirements_build.txt`
 
 CaDiCaL (SAT solver)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -175,8 +177,8 @@ may improve performance. It can be downloaded and built automatically. Configure
 cvc5 with ``configure.sh --kissat`` to build with this dependency.
 
 
-LibPoly (Optional polynomial library)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LibPoly >= v0.1.13 (Optional polynomial library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `LibPoly <https://github.com/SRI-CSL/libpoly>`_ is required for CAD-based
 nonlinear reasoning. It can be downloaded and built automatically. Configure
@@ -248,11 +250,23 @@ bindings for ``<lang>``.
 Dependencies for Language Bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Java
+
+  - `JDK >= 1.8 <https://www.java.com>`_
+
 - Python
 
   - `Cython <https://cython.org/>`_ >= 3.0.0
   - `scikit-build <https://pypi.org/project/scikit-build/>`_
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
+  - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
+
+For Python, to install these depedencies automatically, please use:
+
+  - `pip install -r contrib/requirements_python_dev.txt`
+
+If configured with ``--pythonic-path=PATH``, the build system will expect the Pythonic API's source to be at ``PATH``.
+Otherwise, if configured with ``--auto-download``, the build system will download it.
 
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact the cvc5 team via `our issue tracker

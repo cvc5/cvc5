@@ -132,7 +132,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(Smt, produceDifficulty, true, "dumpDifficulty");
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
-      || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
+      || opts.driver.dumpUnsatCoresLemmas || opts.smt.unsatAssumptions
+      || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
     SET_AND_NOTIFY(
@@ -818,8 +819,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       SET_AND_NOTIFY(Arith, nlCov, true, "QF_UFNRA");
       SET_AND_NOTIFY_IF_NOT_USER(
           Arith, nlExt, options::NlExtMode::LIGHT, "QF_UFNRA");
-      SET_AND_NOTIFY_IF_NOT_USER(
-          Arith, nlRlvMode, options::NlRlvMode::INTERLEAVE, "QF_UFNRA");
     }
   }
   else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)

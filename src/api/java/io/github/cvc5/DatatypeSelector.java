@@ -28,11 +28,6 @@ public class DatatypeSelector extends AbstractPointer
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   // endregion
 
   /** @return The Name of this Datatype selector. */

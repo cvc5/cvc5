@@ -18,13 +18,14 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "printer/printer.h"
 #include "proof/alf/alf_proof_rule.h"
 
 namespace cvc5::internal {
 namespace proof {
 
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
-                                       const LetBinding& lbind,
+                                       const LetBinding* lbind,
                                        const std::string& tprefix)
     : d_out(out), d_lbind(lbind), d_termLetPrefix(tprefix)
 {
@@ -53,9 +54,20 @@ void AlfPrintChannelOut::printAssume(TNode n, size_t i, bool isPush)
 void AlfPrintChannelOut::printStep(const std::string& rname,
                                    TNode n,
                                    size_t i,
-                                   const std::vector<Node>& premises,
+                                   const std::vector<size_t>& premises,
                                    const std::vector<Node>& args,
                                    bool isPop)
+{
+  printStepInternal(rname, n, i, premises, args, isPop, false);
+}
+
+void AlfPrintChannelOut::printStepInternal(const std::string& rname,
+                                           TNode n,
+                                           size_t i,
+                                           const std::vector<size_t>& premises,
+                                           const std::vector<Node>& args,
+                                           bool isPop,
+                                           bool reqPremises)
 {
   d_out << "(" << (isPop ? "step-pop" : "step") << " @p" << i;
   if (!n.isNull())
@@ -64,10 +76,11 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
   }
   d_out << " :rule " << rname;
   bool firstTime = true;
-  if (!premises.empty())
+  // if reqPremises is true, we print even if empty
+  if (!premises.empty() || reqPremises)
   {
     d_out << " :premises (";
-    for (const Node& p : premises)
+    for (size_t p : premises)
     {
       if (firstTime)
       {
@@ -77,7 +90,7 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
       {
         d_out << " ";
       }
-      printNodeInternal(d_out, p);
+      d_out << "@p" << p;
     }
     d_out << ")";
   }
@@ -102,7 +115,11 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
   d_out << ")" << std::endl;
 }
 
-void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc)
+void AlfPrintChannelOut::printTrustStep(ProofRule r,
+                                        TNode n,
+                                        size_t i,
+                                        const std::vector<size_t>& premises,
+                                        TNode nc)
 {
   Assert(!nc.isNull());
   if (d_warnedRules.find(r) == d_warnedRules.end())
@@ -111,33 +128,40 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc
     d_warnedRules.insert(r);
   }
   d_out << "; trust " << r << std::endl;
-  printStep("trust", n, i, {}, {nc}, false);
+  // trust takes a premise-list which must be specified even if empty
+  printStepInternal("trust", n, i, premises, {nc}, false, true);
 }
 
 void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
-  std::stringstream ss;
-  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
-  Node nc = d_lbind.convert(n, d_termLetPrefix, true);
-  nc.toStream(ss);
-  std::string s = ss.str();
-  out << s;
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  if (d_lbind)
+  {
+    // use the toStream with custom letification method
+    Printer::getPrinter(out)->toStream(out, n, d_lbind);
+  }
+  else
+  {
+    // just use default print
+    out << n;
+  }
 }
 
 void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
-  // due to use of special names in the node converter, we must clean symbols
-  std::stringstream ss;
-  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
-  tn.toStream(ss);
-  std::string s = ss.str();
-  // cleanSymbols(s);
-  out << s;
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  tn.toStream(out);
 }
 
-AlfPrintChannelPre::AlfPrintChannelPre(LetBinding& lbind) : d_lbind(lbind) {}
+AlfPrintChannelPre::AlfPrintChannelPre(LetBinding* lbind) : d_lbind(lbind) {}
 
-void AlfPrintChannelPre::printNode(TNode n) { d_lbind.process(n); }
+void AlfPrintChannelPre::printNode(TNode n)
+{
+  if (d_lbind)
+  {
+    d_lbind->process(n);
+  }
+}
 
 void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
 {
@@ -147,7 +171,7 @@ void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
 void AlfPrintChannelPre::printStep(const std::string& rname,
                                    TNode n,
                                    size_t i,
-                                   const std::vector<Node>& premises,
+                                   const std::vector<size_t>& premises,
                                    const std::vector<Node>& args,
                                    bool isPop)
 {
@@ -155,15 +179,17 @@ void AlfPrintChannelPre::printStep(const std::string& rname,
   {
     processInternal(n);
   }
-  // don't process premises, even if they may be non-variable, as this
-  // will introduce internal (proof) symbols into the letification
   for (const Node& a : args)
   {
     processInternal(a);
   }
 }
 
-void AlfPrintChannelPre::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc)
+void AlfPrintChannelPre::printTrustStep(ProofRule r,
+                                        TNode n,
+                                        size_t i,
+                                        const std::vector<size_t>& premises,
+                                        TNode nc)
 {
   Assert(!nc.isNull());
   processInternal(nc);
@@ -171,7 +197,10 @@ void AlfPrintChannelPre::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc
 
 void AlfPrintChannelPre::processInternal(const Node& n)
 {
-  d_lbind.process(n);
+  if (d_lbind)
+  {
+    d_lbind->process(n);
+  }
   d_keep.insert(n);  // probably not necessary
   expr::getVariables(n, d_vars, d_varsVisited);
 }

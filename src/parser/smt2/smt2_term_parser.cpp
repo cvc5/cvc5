@@ -1275,7 +1275,8 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     // handles:
     // - testers and updaters indexed by constructor names
     Kind k = d_state.getIndexedOpKind(name);
-    if (k != Kind::APPLY_UPDATER && k != Kind::APPLY_TESTER)
+    if (k != Kind::APPLY_UPDATER && k != Kind::APPLY_TESTER
+        && k != Kind::NULLABLE_LIFT)
     {
       d_lex.parseError(std::string("Unexpected indexed symbol " + name));
     }

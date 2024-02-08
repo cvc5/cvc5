@@ -329,7 +329,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
               {
                 ret = rewriter::ensureReal(ret);
               }
-              return RewriteResponse(REWRITE_AGAIN, ret);
+              return RewriteResponse(REWRITE_AGAIN_FULL, ret);
             }
           }
         }
@@ -346,15 +346,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           }
           return RewriteResponse(REWRITE_AGAIN, ret);
         }
-
-        // Todo improve the exception thrown
-        std::stringstream ss;
-        ss << "The exponent of the POW(^) operator can only be a positive "
-              "integral constant below "
-           << (expr::NodeValue::MAX_CHILDREN + 1) << ". ";
-        ss << "Exception occurred in:" << std::endl;
-        ss << "  " << t;
-        throw LogicException(ss.str());
+        return RewriteResponse(REWRITE_DONE, t);
       }
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);
       default: Unreachable();

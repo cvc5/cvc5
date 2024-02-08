@@ -69,8 +69,12 @@ class AletheProofPrinter : protected EnvObj
    *
    * @param out The stream to write to
    * @param pfn The proof node to be printed
+   * @param assertionNames Mapping between assertions and names, if they were
+   * given by the user.
    */
-  void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+  void print(std::ostream& out,
+             std::shared_ptr<ProofNode> pfn,
+             const std::map<Node, std::string>& assertionNames);
 
  private:
   /** Used for printing the proof node after the initial Alethe anchor has been

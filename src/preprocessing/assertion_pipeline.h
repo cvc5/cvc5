@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/lazy_proof.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
@@ -127,24 +128,25 @@ class AssertionPipeline : protected EnvObj
   void addSubstitutionNode(Node n, ProofGenerator* pg = nullptr);
 
   /**
-   * Conjoin n to the assertion vector at position i. This replaces
-   * d_nodes[i] with the rewritten form of (AND d_nodes[i] n).
-   *
-   * @param i The assertion to replace
-   * @param n The formula to conjoin at position i
-   * @param pg The proof generator that can provide a proof of n
-   */
-  void conjoin(size_t i, Node n, ProofGenerator* pg = nullptr);
-
-  /**
    * Checks whether the assertion at a given index represents substitutions.
    *
    * @param i The index in question
    */
-  bool isSubstsIndex(size_t i)
-  {
-    return d_storeSubstsInAsserts && i == d_substsIndex;
-  }
+  bool isSubstsIndex(size_t i) const;
+  /** Is in conflict? True if this pipeline contains the false assertion */
+  bool isInConflict() const { return d_conflict; }
+  /** Is refutation unsound? */
+  bool isRefutationUnsound() const { return d_isRefutationUnsound; }
+  /** Is model unsound? */
+  bool isModelUnsound() const { return d_isModelUnsound; }
+  /** Is negated? */
+  bool isNegated() const { return d_isNegated; }
+  /** mark refutation unsound */
+  void markRefutationUnsound();
+  /** mark model unsound */
+  void markModelUnsound();
+  /** mark negated */
+  void markNegated();
   //------------------------------------ for proofs
   /**
    * Enable proofs for this assertions pipeline. This must be called
@@ -158,6 +160,11 @@ class AssertionPipeline : protected EnvObj
   bool isProofEnabled() const;
   //------------------------------------ end for proofs
  private:
+  /** Set that we are in conflict */
+  void markConflict();
+  /** Boolean constants */
+  Node d_true;
+  Node d_false;
   /** The list of current assertions */
   std::vector<Node> d_nodes;
 
@@ -182,7 +189,7 @@ class AssertionPipeline : protected EnvObj
    *
    * TODO(#2473): replace by separate vector of substitution assertions.
    */
-  size_t d_substsIndex;
+  std::unordered_set<size_t> d_substsIndices;
 
   /** Index of the first assumption */
   size_t d_assumptionsStart;
@@ -190,6 +197,18 @@ class AssertionPipeline : protected EnvObj
   size_t d_numAssumptions;
   /** The proof generator, if one is provided */
   smt::PreprocessProofGenerator* d_pppg;
+  /** Are we in conflict? */
+  bool d_conflict;
+  /** Is refutation unsound? */
+  bool d_isRefutationUnsound;
+  /** Is model unsound? */
+  bool d_isModelUnsound;
+  /** Is negated? */
+  bool d_isNegated;
+  /**
+   * Maintains proofs for eliminating top-level AND from inputs to this class.
+   */
+  std::unique_ptr<LazyCDProof> d_andElimEpg;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing

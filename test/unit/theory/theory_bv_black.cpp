@@ -43,11 +43,11 @@ class TestTheoryBlackBv : public TestApi
       Op zext = d_solver.mkOp(cvc5::Kind::BITVECTOR_ZERO_EXTEND, {w});
       Term zx = d_solver.mkTerm(zext, {x});
       Term zy = d_solver.mkTerm(zext, {y});
-      Term mul = d_solver.mkTerm(kind, {zx, zy});
+      Term op = d_solver.mkTerm(kind, {zx, zy});
       Op ext = d_solver.mkOp(cvc5::Kind::BITVECTOR_EXTRACT, {2 * w - 1, w});
       Term lhs = d_solver.mkTerm(
           cvc5::Kind::DISTINCT,
-          {d_solver.mkTerm(ext, {mul}), d_solver.mkBitVector(w)});
+          {d_solver.mkTerm(ext, {op}), d_solver.mkBitVector(w)});
       Term rhs = d_solver.mkTerm(kindo, {x, y});
       Term eq = d_solver.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
       d_solver.assertFormula(eq);
@@ -89,20 +89,34 @@ class TestTheoryBlackBv : public TestApi
       Term rhs = d_solver.mkTerm(kindo, {x, y});
       Term eq = d_solver.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
       d_solver.assertFormula(eq);
-      if (d_solver.checkSat().isSat())
-      {
-        std::cout << "x: " << d_solver.getValue(x) << std::endl;
-        std::cout << "y: " << d_solver.getValue(y) << std::endl;
-        std::cout << "op: " << d_solver.getValue(op) << std::endl;
-        std::cout << "max: " << d_solver.getValue(max) << std::endl;
-        std::cout << "lhs: " << d_solver.getValue(lhs) << std::endl;
-        std::cout << "rhs: " << d_solver.getValue(rhs) << std::endl;
-      }
       ASSERT_TRUE(d_solver.checkSat().isUnsat());
       d_solver.pop();
     }
   }
 };
+
+TEST_F(TestTheoryBlackBv, nego)
+{
+  d_solver.setOption("incremental", "true");
+  d_solver.setOption("produce-models", "true");
+  for (uint32_t w = 1; w < 8; ++w)
+  {
+    d_solver.push();
+    Term one = d_solver.mkBitVector(2 * w, 1);
+    Term x = d_solver.mkConst(d_solver.mkBitVectorSort(w), "x");
+    Term lhs = d_solver.mkTerm(
+        cvc5::Kind::EQUAL,
+        {x,
+         d_solver.mkTerm(
+             cvc5::Kind::BITVECTOR_SHL,
+             {d_solver.mkBitVector(w, 1), d_solver.mkBitVector(w, w - 1)})});
+    Term rhs = d_solver.mkTerm(cvc5::Kind::BITVECTOR_NEGO, {x});
+    Term eq = d_solver.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
+    d_solver.assertFormula(eq);
+    ASSERT_TRUE(d_solver.checkSat().isUnsat());
+    d_solver.pop();
+  }
+}
 
 TEST_F(TestTheoryBlackBv, uaddo)
 {

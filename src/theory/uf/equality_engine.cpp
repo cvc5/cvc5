@@ -572,7 +572,9 @@ bool EqualityEngine::assertEquality(TNode eq,
             storePropagatedDisequality(aTag, aSharedId, bSharedId);
             // Notify
             Trace("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ": notifying " << aTag << " for " << d_nodes[aSharedId] << " != " << d_nodes[bSharedId] << std::endl;
-            if (!d_notify->eqNotifyTriggerTermEquality(aTag, d_nodes[aSharedId], d_nodes[bSharedId], false)) {
+            if (!notifyTriggerTermEquality(
+                    aTag, d_nodes[aSharedId], d_nodes[bSharedId], false))
+            {
               break;
             }
           }
@@ -804,7 +806,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
               class1triggers.d_triggers[i1++];
           // since they are both tagged notify of merge
           EqualityNodeId tag2id = class2triggers.d_triggers[i2++];
-          if (!d_notify->eqNotifyTriggerTermEquality(
+          if (!notifyTriggerTermEquality(
                   tag1, d_nodes[tag1id], d_nodes[tag2id], true))
           {
             return false;
@@ -2242,8 +2244,7 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
         << "): already have this trigger in class with " << d_nodes[triggerId]
         << std::endl;
     if (eqNodeId != triggerId
-        && !d_notify->eqNotifyTriggerTermEquality(
-               tag, t, d_nodes[triggerId], true))
+        && !notifyTriggerTermEquality(tag, t, d_nodes[triggerId], true))
     {
       d_done = true;
     }
@@ -2599,7 +2600,7 @@ bool EqualityEngine::propagateTriggerTermDisequalities(
         // Store the propagation
         storePropagatedDisequality(currentTag, myRep, tagRep);
         // Notify
-        if (!d_notify->eqNotifyTriggerTermEquality(
+        if (!notifyTriggerTermEquality(
                 currentTag, d_nodes[myRep], d_nodes[tagRep], false))
         {
           d_done = true;

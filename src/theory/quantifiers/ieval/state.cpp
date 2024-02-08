@@ -41,8 +41,8 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode btype = nm->booleanType();
-  d_none = sm->mkSkolemFunction(SkolemFunId::IEVAL_NONE, btype);
-  d_some = sm->mkSkolemFunction(SkolemFunId::IEVAL_SOME, btype);
+  d_none = sm->mkSkolemFunctionTyped(SkolemFunId::IEVAL_NONE, btype);
+  d_some = sm->mkSkolemFunctionTyped(SkolemFunId::IEVAL_SOME, btype);
 }
 
 bool State::hasInitialized() const { return d_initialized.get(); }
@@ -571,6 +571,7 @@ std::string State::toStringDebugSearch() const
     }
   }
   ss << " ]";
+  (void) nqc;
   Assert(nqc == d_numActiveQuant.get()) << "Active quant mismatch " << ss.str();
   return ss.str();
 }

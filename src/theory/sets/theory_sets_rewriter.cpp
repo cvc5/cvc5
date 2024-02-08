@@ -332,11 +332,17 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }  // Kind::SET_CHOOSE
   case Kind::SET_IS_SINGLETON:
   {
-    if (node[0].getKind() == Kind::SET_SINGLETON)
+    Kind nk = node[0].getKind();
+    if (nk == Kind::SET_EMPTY)
+    {
+      return RewriteResponse(REWRITE_DONE,
+                             NodeManager::currentNM()->mkConst(false));
+    }
+    if (nk == Kind::SET_SINGLETON)
     {
       //(= (is_singleton (singleton x)) is a tautology
       // we return true for (is_singleton (singleton x))
-      return RewriteResponse(REWRITE_AGAIN,
+      return RewriteResponse(REWRITE_DONE,
                              NodeManager::currentNM()->mkConst(true));
     }
     break;

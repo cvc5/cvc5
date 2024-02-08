@@ -44,6 +44,7 @@ namespace cvc5::internal {
 namespace prop {
 class PropEngine;
 class TheoryProxy;
+class PropPfManager;
 }  // namespace prop
 }  // namespace cvc5::internal
 
@@ -123,7 +124,7 @@ public:
         cvc5::internal::prop::TheoryProxy* proxy,
         context::Context* context,
         context::UserContext* userContext,
-        ProofNodeManager* pnm,
+        prop::PropPfManager* ppm,
         bool enableIncremental = false);
  virtual ~Solver();
 
@@ -276,8 +277,10 @@ public:
                      bool b);  // Declare if a variable should be eligible for
                                // selection in the decision heuristic.
 
- // Return the decision trail
- const vec<Lit>& getMiniSatDecisions() { return trail; }
+ // Return the trail, which is the assignment stack that stores all assigments
+ // made in the order they were made. We can use this trail to find decisions
+ // in the order in which they were made.
+ const vec<Lit>& getMiniSatAssignmentTrail() { return trail; }
 
  // Return the order_heap, which is a priority queue of variables ordered with
  // respect to the variable activity. The order heap is made available here
