@@ -21,9 +21,9 @@
 #include <map>
 #include <unordered_set>
 
+#include "expr/free_var_cache.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "expr/free_var_cache.h"
 #include "theory/quantifiers/sygus/enum_val_generator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -498,6 +498,7 @@ class SygusEnumerator : public EnumValGenerator
     Node getCurrent() override;
     /** increment the enumerator */
     bool increment() override;
+
    private:
     /** A free variable cache */
     FreeVarCache d_fv;
