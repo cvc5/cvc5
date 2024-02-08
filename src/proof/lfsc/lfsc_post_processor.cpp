@@ -417,14 +417,15 @@ bool LfscProofPostprocessCallback::update(Node res,
           Assert(i + 1 < qvars.size());
           std::vector<Node> qvarsNew(qvars.begin() + i + 1, qvars.end());
           Assert(!qvarsNew.empty());
+          Assert(qvars[i].getType() == args[0][i].getType());
           std::vector<Node> qchildren;
           TNode v = qvars[i];
-          TNode subs = args[i];
+          TNode subs = args[0][i];
           qchildren.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, qvarsNew));
           qchildren.push_back(conc[1].substitute(v, subs));
           conc = nm->mkNode(Kind::FORALL, qchildren);
         }
-        addLfscRule(cdp, conc, {prevConc}, LfscRule::INSTANTIATE, {args[i]});
+        addLfscRule(cdp, conc, {prevConc}, LfscRule::INSTANTIATE, {args[0][i]});
       }
     }
     break;
