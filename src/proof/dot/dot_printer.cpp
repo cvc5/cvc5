@@ -497,7 +497,7 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
   currentArguments << " :args [ ";
 
   // if cong, special process
-  if (r == ProofRule::CONG)
+  if (r == ProofRule::CONG || r == ProofRule::NARY_CONG)
   {
     AlwaysAssert(args.size() == 1 || args.size() == 2);
     // if two arguments, ignore first and print second
