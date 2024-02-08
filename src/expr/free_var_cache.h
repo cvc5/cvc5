@@ -61,7 +61,7 @@ class FreeVarCache
   /** returns the identifier for a cached free variable. */
   size_t getFreeVarId(const Node& n) const;
   /** returns true if n has a cached free variable (in d_fv). */
-  bool hasFreeVar(const Node& n);
+  bool hasFreeVar(const Node& n) const;
 
  private:
   /** a cache of fresh variables for each type

@@ -204,12 +204,6 @@ class TermDbSygus : protected EnvObj
   TNode getFreeVarInc(const TypeNode& tn,
                       std::map<TypeNode, size_t>& var_count,
                       bool useSygusType = false);
-  /** returns true if n is a cached free variable (in d_fv). */
-  bool isFreeVar(const Node& n) const;
-  /** returns the identifier for a cached free variable. */
-  size_t getFreeVarId(const Node& n) const;
-  /** returns true if n has a cached free variable (in d_fv). */
-  bool hasFreeVar(const Node& n);
   /** get sygus proxy variable
    *
    * Returns a fresh variable of type tn with the SygusPrintProxyAttribute set
@@ -353,8 +347,15 @@ class TermDbSygus : protected EnvObj
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
-  /** a cache of fresh variables for each type */
-  FreeVarCache d_fv;
+  /** 
+   * A cache of fresh variables for each type
+   * 
+   * We store two versions of this list:
+   *   index 0: mapping from builtin types to fresh variables of that type,
+   *   index 1: mapping from sygus types to fresh varaibles of the type they
+   *            encode.
+   */
+  FreeVarCache d_fv[2];
   /** cache of getProxyVariable */
   std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
   //-----------------------------end conversion from sygus to builtin

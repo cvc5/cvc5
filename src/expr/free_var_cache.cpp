@@ -80,7 +80,7 @@ size_t FreeVarCache::getFreeVarId(const Node& n) const
   return it->second;
 }
 
-bool FreeVarCache::hasFreeVar(const Node& n)
+bool FreeVarCache::hasFreeVar(const Node& n) const
 {
   return expr::hasSubterm(n, d_allVars);
 }

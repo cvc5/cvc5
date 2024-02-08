@@ -70,33 +70,29 @@ bool TermDbSygus::reset( Theory::Effort e ) {
 
 TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i, bool useSygusType)
 {
+  size_t sindex = 0;
   TypeNode vtn = tn;
   if (useSygusType && tn.isSygusDatatype())
   {
     vtn = tn.getDType().getSygusType();
+    sindex = 1;
   }
-  return d_fv.getFreeVar(vtn, i, tn);
+  return d_fv[sindex].getFreeVar(vtn, i, tn);
 }
 
 TNode TermDbSygus::getFreeVarInc(const TypeNode& tn,
                                  std::map<TypeNode, size_t>& var_count,
                                  bool useSygusType)
 {
+  size_t sindex = 0;
   TypeNode vtn = tn;
   if (useSygusType && tn.isSygusDatatype())
   {
     vtn = tn.getDType().getSygusType();
+    sindex = 1;
   }
-  return d_fv.getFreeVarInc(vtn, var_count, tn);
+  return d_fv[sindex].getFreeVarInc(vtn, var_count, tn);
 }
-
-bool TermDbSygus::isFreeVar(const Node& n) const { return d_fv.isFreeVar(n); }
-size_t TermDbSygus::getFreeVarId(const Node& n) const
-{
-  return d_fv.getFreeVarId(n);
-}
-
-bool TermDbSygus::hasFreeVar(const Node& n) { return d_fv.hasFreeVar(n); }
 
 Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 {
@@ -290,12 +286,14 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     // this variable was associated by an attribute to a builtin node
     return n.getAttribute(SygusPrintProxyAttribute());
   }
-  Assert(isFreeVar(n));
+  // It should be a free variable allocated with useSygusType = false.
+  Assert(d_fv[0].isFreeVar(n));
   // map to builtin variable type
-  size_t fv_num = getFreeVarId(n);
-  Assert(!dt.getSygusType().isNull());
-  TypeNode vtn = dt.getSygusType();
-  Node ret = getFreeVar(vtn, fv_num);
+  size_t fv_num = d_fv[0].getFreeVarId(n);
+  // Get the corresponding free variable using useSygusType = true. In other
+  // words, the n^th sygus datatype free variable is mapped to the n^th
+  // builtin type free variable.
+  Node ret = getFreeVar(tn, fv_num, true);
   Trace("sygus-db-debug") << "SygusToBuiltin: variable for " << n << " is "
                           << ret << ", fv_num=" << fv_num << std::endl;
   return ret;
@@ -937,11 +935,6 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
       if( n[1].isConst() ){
         if (n[1] == TermUtil::mkTypeValue(n[1].getType(), 0))
         {
-          return true;
-        }
-      }else{
-        // if it has free variables it might be a non-zero constant
-        if( !hasFreeVar( n[1] ) ){
           return true;
         }
       }
