@@ -1083,7 +1083,7 @@ Node EqProof::addToProof(CDProof* p,
     // build constant application (f c1 ... cn) and equality (= (f c1 ... cn) c)
     Kind k = d_node[0].getKind();
     std::vector<Node> cargs;
-    ProofRule r = expr::getCongRule(d_node[0], cargs);
+    ProofRule rule = expr::getCongRule(d_node[0], cargs);
     if (d_node[0].getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       constChildren.insert(constChildren.begin(), d_node[0].getOperator());
@@ -1097,10 +1097,10 @@ Node EqProof::addToProof(CDProof* p,
         constEquality, ProofRule::MACRO_SR_PRED_INTRO, {}, {constEquality});
     // build congruence conclusion (= (f t1 ... tn) (f c1 ... cn))
     Node congConclusion = d_node[0].eqNode(constApp);
-    Trace("eqproof-conv") << "EqProof::addToProof: adding  " << r
+    Trace("eqproof-conv") << "EqProof::addToProof: adding  " << rule
                           << " step for " << congConclusion << " from "
                           << subChildren << "\n";
-    p->addStep(congConclusion, r, {subChildren}, cargs, true);
+    p->addStep(congConclusion, rule, {subChildren}, cargs, true);
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << ProofRule::TRANS
                           << " step for original conclusion " << d_node << "\n";
     std::vector<Node> transitivityChildren{congConclusion, constEquality};
