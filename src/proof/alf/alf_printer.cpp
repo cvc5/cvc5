@@ -421,10 +421,10 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
   }
 }
 
-void AlfPrinter::getChildrenFromProofRule(const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children)
+void AlfPrinter::getChildrenFromProofRule(
+    const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children)
 {
-  const std::vector<std::shared_ptr<ProofNode>>& cc =
-      pn->getChildren();
+  const std::vector<std::shared_ptr<ProofNode>>& cc = pn->getChildren();
   switch (pn->getRule())
   {
     case ProofRule::CONG:
@@ -436,13 +436,12 @@ void AlfPrinter::getChildrenFromProofRule(const ProofNode* pn, std::vector<std::
         // This ensures that we ignore e.g. equalities between patterns
         // which can appear in term conversion proofs.
         size_t arity = kind::metakind::getMinArityForKind(res[0].getKind());
-        children.insert(children.end(), cc.begin(), cc.begin()+arity-1);
+        children.insert(children.end(), cc.begin(), cc.begin() + arity - 1);
         return;
       }
     }
     break;
-    default:
-      break;
+    default: break;
   }
   children.insert(children.end(), cc.begin(), cc.end());
 }

@@ -653,7 +653,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
     // can use ordinary cong
     Node vl = mkList(vars);
     ret = mkInternalApp(
-            printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
+        printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
   }
   else
   {

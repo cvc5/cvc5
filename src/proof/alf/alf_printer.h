@@ -61,7 +61,8 @@ class AlfPrinter : protected EnvObj
   /**
    * Select only those children required by the proof rule.
    */
-  void getChildrenFromProofRule(const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children);
+  void getChildrenFromProofRule(
+      const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children);
   /**
    * Add the arguments of proof node pn to args in the order in which they
    * should be printed. This also ensures the nodes have been converted via the
