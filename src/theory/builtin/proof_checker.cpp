@@ -392,8 +392,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-  else if (id == ProofRule::LFSC_RULE || id == ProofRule::ALETHE_RULE
-           || id == ProofRule::ALF_RULE)
+  else if (id == ProofRule::LFSC_RULE || id == ProofRule::ALETHE_RULE)
   {
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());
