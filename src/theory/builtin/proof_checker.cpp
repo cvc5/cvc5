@@ -61,7 +61,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   // external proof rules
   pc->registerChecker(ProofRule::LFSC_RULE, this);
   pc->registerChecker(ProofRule::ALETHE_RULE, this);
-  pc->registerChecker(ProofRule::ALF_RULE, this);
 
   d_rdb = pc->getRewriteDatabase();
 }
