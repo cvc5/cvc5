@@ -24,6 +24,7 @@
 namespace cvc5::internal {
 
 /**
+ * A class for allocating a list of free variables for provided types.
  */
 class FreeVarCache
 {
