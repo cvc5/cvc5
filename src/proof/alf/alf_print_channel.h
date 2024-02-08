@@ -104,7 +104,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
   void printTypeNodeInternal(std::ostream& out, TypeNode tn);
 
  private:
-  /** 
+  /**
    * Helper for print steps. We set reqPremises to true if we require printing
    * premises even if empty.
    */
