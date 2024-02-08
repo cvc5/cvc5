@@ -33,7 +33,7 @@ namespace proof {
 
 AlfProofPostprocessCallback::AlfProofPostprocessCallback(ProofNodeManager* pnm,
                                                          AlfNodeConverter& ltp)
-    : d_pnm(pnm), d_tproc(ltp), d_numIgnoredScopes(0)
+    : d_pnm(pnm), d_tproc(ltp)
 {
 }
 
@@ -76,18 +76,6 @@ bool AlfProofPostprocessCallback::addAlfStep(AlfRule rule,
   return cdp.addStep(conclusion, ProofRule::ALF_RULE, children, newArgs);
 }
 
-void AlfProofPostprocessCallback::addReflStep(const Node& n, CDProof& cdp)
-{
-  // share REFL
-  std::map<Node, std::shared_ptr<ProofNode> >::iterator it = d_refl.find(n);
-  if (it == d_refl.end())
-  {
-    d_refl[n] = d_pnm->mkNode(ProofRule::REFL, {}, {n});
-    it = d_refl.find(n);
-  }
-  cdp.addProof(it->second);
-}
-
 bool AlfProofPostprocessCallback::update(Node res,
                                          ProofRule id,
                                          const std::vector<Node>& children,
@@ -108,12 +96,6 @@ bool AlfProofPostprocessCallback::update(Node res,
                          << res[0].getKind() << std::endl;
 
       Kind k = res[0].getKind();
-      if (k == Kind::HO_APPLY)
-      {
-        // HO_APPLY congruence is a single application of HO_CONG
-        cdp->addStep(res, ProofRule::HO_CONG, children, {});
-        return true;
-      }
       // NOTE: as optimization can collect REFL steps. This would subsume
       // the ordinary closure handling
 
@@ -123,7 +105,7 @@ bool AlfProofPostprocessCallback::update(Node res,
                          << op.getType() << std::endl;
       if (res[0].isClosure())
       {
-        Assert(children.size() >= 2);
+        Assert(children.size() >= 1);
         // variable lists should be equal
         Assert(res[0][0] == res[1][0]);
         std::vector<Node> vars;
@@ -136,36 +118,13 @@ bool AlfProofPostprocessCallback::update(Node res,
         Node opc = d_tproc.mkInternalApp(
             printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
         std::vector<Node> newChildren(
-            children.begin() + 1,
-            children.begin() + d_tproc.getNumChildrenToProcessForClosure(k));
+            children.begin(),
+            children.begin() + d_tproc.getNumChildrenToProcessForClosure(k)
+                - 1);
         addAlfStep(AlfRule::CONG, res, newChildren, {opc}, *cdp);
         return true;
       }
-      // Note that indexed operators are "collected" at the base of ordinary
-      // cong rule applications and don't need special treatment here.
-      Assert(!op.isNull());
-      // Are we doing congruence of an n-ary operator? If so, notice that op
-      // is a binary operator and we must apply congruence in a special way.
-      // Note we use the first block of code if we have more than 2 children.
-      // special case: constructors and apply uf are not treated as n-ary; these
-      // symbols have function types that expect n arguments.
-      bool isNary = false;
-      Node nullt;
-      if (NodeManager::isNAryKind(k))
-      {
-        nullt = d_tproc.getNullTerminator(k, res[0].getType());
-        isNary = !nullt.isNull();
-      }
-      if (isNary)
-      {
-        // use n-ary rule
-        addAlfStep(AlfRule::NARY_CONG, res, children, {op}, *cdp);
-      }
-      else
-      {
-        // use ordinary rule
-        addAlfStep(AlfRule::CONG, res, children, {op}, *cdp);
-      }
+      return false;
     }
     break;
     default: return false;

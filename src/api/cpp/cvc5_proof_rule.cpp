@@ -100,6 +100,7 @@ const char* toString(ProofRule id)
     case ProofRule::SYMM: return "SYMM";
     case ProofRule::TRANS: return "TRANS";
     case ProofRule::CONG: return "CONG";
+    case ProofRule::NARY_CONG: return "NARY_CONG";
     case ProofRule::TRUE_INTRO: return "TRUE_INTRO";
     case ProofRule::TRUE_ELIM: return "TRUE_ELIM";
     case ProofRule::FALSE_INTRO: return "FALSE_INTRO";

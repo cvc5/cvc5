@@ -261,8 +261,6 @@ void PfManager::printProof(std::ostream& out,
   {
     Assert(fp->getRule() == ProofRule::SCOPE);
     proof::AlfNodeConverter atp;
-    proof::AlfProofPostprocess alfpp(d_env, atp);
-    alfpp.process(fp);
     proof::AlfPrinter alfp(d_env, atp);
     alfp.print(out, fp);
   }
