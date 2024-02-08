@@ -71,16 +71,9 @@ bool TermDbSygus::reset( Theory::Effort e ) {
 TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i, bool useSygusType)
 {
   TypeNode vtn = tn;
-  if (useSygusType)
+  if (useSygusType && tn.isSygusDatatype())
   {
-    if (tn.isDatatype())
-    {
-      const DType& dt = tn.getDType();
-      if (!dt.getSygusType().isNull())
-      {
-        vtn = dt.getSygusType();
-      }
-    }
+    vtn = tn.getDType().getSygusType();
   }
   return d_fv.getFreeVar(vtn, i, tn);
 }
@@ -90,16 +83,9 @@ TNode TermDbSygus::getFreeVarInc(const TypeNode& tn,
                                  bool useSygusType)
 {
   TypeNode vtn = tn;
-  if (useSygusType)
+  if (useSygusType && tn.isSygusDatatype())
   {
-    if (tn.isDatatype())
-    {
-      const DType& dt = tn.getDType();
-      if (!dt.getSygusType().isNull())
-      {
-        vtn = dt.getSygusType();
-      }
-    }
+    vtn = tn.getDType().getSygusType();
   }
   return d_fv.getFreeVarInc(vtn, var_count, tn);
 }

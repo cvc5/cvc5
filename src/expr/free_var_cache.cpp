@@ -28,16 +28,15 @@ TNode FreeVarCache::getFreeVar(const TypeNode& tn,
                                const TypeNode& stn)
 {
   NodeManager* nm = NodeManager::currentNM();
-  while (i >= d_fv[tn].size())
+  while (i >= d_fv[stn].size())
   {
-    Assert(!vtn.isNull());
     Node v = nm->mkBoundVar(tn);
     d_allVars.push_back(v);
     // store its id, which is unique per builtin type, regardless of how it is
     // otherwise cached.
     d_fvId[v] = d_fv[stn].size();
     Trace("free-var-cache") << "Free variable id " << v << " = " << d_fvId[v]
-                            << ", " << tn << std::endl;
+                            << ", " << stn << std::endl;
     d_fv[stn].push_back(v);
   }
   return d_fv[stn][i];
