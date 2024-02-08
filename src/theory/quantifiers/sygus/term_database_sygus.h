@@ -360,8 +360,6 @@ class TermDbSygus : protected EnvObj
    *            encode.
    */
   std::map<TypeNode, std::vector<Node> > d_fv[2];
-  /** Maps free variables to the domain type they are associated with in d_fv */
-  std::map<Node, TypeNode> d_fv_stype;
   /** Id count for free variables terms */
   std::map<TypeNode, size_t> d_fvTypeIdCounter;
   /**
