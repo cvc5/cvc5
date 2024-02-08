@@ -23,6 +23,7 @@ extern "C" {
 #define CVC5_API_USE_C_ENUMS
 #include <cvc5/cvc5_kind.h>
 #include <cvc5/cvc5_types.h>
+#include <cvc5/cvc5_proof_rule.h>
 #undef CVC5_API_USE_C_ENUMS
 
 #include <stdint.h>
@@ -119,6 +120,11 @@ typedef struct Cvc5OptionInfo Cvc5OptionInfo;
  * A cvc5 proof.
  */
 typedef struct Cvc5Proof Cvc5Proof;
+
+/**
+ * A cvc5 statistics instance.
+ */
+typedef struct Cvc5Statistics Cvc5Statistics;
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Result                                                                 */
@@ -2262,9 +2268,7 @@ Cvc5Term cvc5_mk_nullable_null(Cvc5Sort sort);
  *         is a lambda expression, and the remaining children are
  *         the original arguments.
  */
-Cvc5Term cvc5_mk_nullable_lift(Cvc5Kind kind,
-                               size_t nargs,
-                               Cvc5Term* args) const;
+Cvc5Term cvc5_mk_nullable_lift(Cvc5Kind kind, size_t nargs, Cvc5Term* args);
 
 /* .................................................................... */
 /* Create Operators                                                     */
@@ -3045,23 +3049,6 @@ void cvc5_assert_formula(Cvc5* cvc5, Cvc5Term term);
 Cvc5Result cvc5_check_sat(Cvc5* cvc5);
 
 /**
- * Check satisfiability assuming the given formula.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (check-sat-assuming ( <prop_literal> ))
- * \endverbatim
- *
- * @param cvc5 The solver instance.
- * @param assumption The formula to assume.
- * @return The result of the satisfiability check.
- */
-Cvc5Result cvc5_check_sat_assuming(Cvc5* cvc5, Cvc5Term assumption);
-
-/**
  * Check satisfiability assuming the given formulas.
  *
  * SMT-LIB:
@@ -3244,7 +3231,9 @@ void cvc5_get_difficulty(Cvc5* cvc5, size_t* size, Cvc5Term* inputs, Cvc5Term* v
  * @param size The resulting size of the timeout core.
  * @return The timeout core.
  */
-const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5, Result* result, size_t* size);
+const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
+                                      Cvc5Result* result,
+                                      size_t* size);
 
 /**
  * Get a proof associated with the most recent call to checkSat.
@@ -3623,7 +3612,9 @@ Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
  *         current set of assertions and @f$B@f$ is given in the input by
  *         `conj`, or the null term if such a term cannot be found.
  */
-Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj, Cvc5Grammar* grammar);
+Cvc5Term cvc5_get_interpolant_with_grammar(Cvc5* cvc5,
+                                           Cvc5Term conj,
+                                           Cvc5Grammar* grammar);
 
 /**
  * Get the next interpolant. Can only be called immediately after a successful
@@ -3702,7 +3693,9 @@ Cvc5Term cvc5_get_abduct(Cvc5* cvc5, Cvc5Term conj);
  *        the current set of assertions and @f$B@f$ is given in the input by
  *        `conj`, or the null term if such a term cannot be found.
  */
-Cvc5Term cvc5_get_abduct(Cvc5* cvc5, Cvc5Term conj, Cvc5Grammar* grammar);
+Cvc5Term cvc5_get_abduct_with_grammar(Cvc5* cvc5,
+                                      Cvc5Term conj,
+                                      Cvc5Grammar* grammar);
 
 /**
  * Get the next abduct. Can only be called immediately after a successful
@@ -4125,9 +4118,9 @@ Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget fst);
  *
  * @warning This function is experimental and may change in future versions.
  */
-Cvc5Term cvc5_find_synth(Cvc5* cvc5,
-                         Cvc5FindSynthTarget fst,
-                         Cvc5Grammar* grammar);
+Cvc5Term cvc5_find_synth_with_grammar(Cvc5* cvc5,
+                                      Cvc5FindSynthTarget fst,
+                                      Cvc5Grammar* grammar);
 /**
  * Try to find a next target term of interest using sygus enumeration. Must
  * be called immediately after a successful call to find-synth or

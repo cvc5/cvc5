@@ -17,6 +17,7 @@
     || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_KIND_H))
 
 #ifdef CVC5_API_USE_C_ENUMS
+#include <cstddef>
 #undef ENUM
 #define ENUM(name) Cvc5##name
 #else
@@ -27,6 +28,7 @@
 namespace cvc5 {
 #undef ENUM
 #define ENUM(name) class name
+#undef EVALUE
 #define EVALUE(name) name
 #endif
 
