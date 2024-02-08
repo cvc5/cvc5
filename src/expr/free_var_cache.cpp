@@ -16,11 +16,13 @@
 
 namespace cvc5::internal {
 
-TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i, size_t vclass ) {
+TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i, size_t vclass)
+{
   unsigned sindex = 0;
-  std::pair<TypeNode,size_t> key(tn, vclass);
+  std::pair<TypeNode, size_t> key(tn, vclass);
   NodeManager* nm = NodeManager::currentNM();
-  while( i>=d_fv[tn].size() ){
+  while (i >= d_fv[tn].size())
+  {
     Assert(!vtn.isNull());
     Node v = nm->mkBoundVar(tn);
     d_allVars.push_back(v);
@@ -29,21 +31,26 @@ TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i, size_t vclass ) {
     d_fvId[v] = d_fv[key].size();
     Trace("free-var-cache") << "Free variable id " << v << " = " << d_fvId[v]
                             << ", " << tn << std::endl;
-    d_fv[key].push_back( v );
+    d_fv[key].push_back(v);
   }
   return d_fv[key][i];
 }
 
-TNode TermDbSygus::getFreeVarInc(const TypeNode& tn, std::map< std::pair<TypeNode,size_t>, size_t >& var_count, size_t vclass ) {
-  std::pair<TypeNode,size_t> key(tn, vclass);
-  std::map< TypeNode, int >::iterator it = var_count.find( key );
-  if( it==var_count.end() ){
+TNode TermDbSygus::getFreeVarInc(
+    const TypeNode& tn,
+    std::map<std::pair<TypeNode, size_t>, size_t>& var_count,
+    size_t vclass)
+{
+  std::pair<TypeNode, size_t> key(tn, vclass);
+  std::map<TypeNode, int>::iterator it = var_count.find(key);
+  if (it == var_count.end())
+  {
     var_count[key] = 1;
-    return getFreeVar( tn, 0, vclass );
+    return getFreeVar(tn, 0, vclass);
   }
   size_t index = it->second;
   var_count[key]++;
-  return getFreeVar( tn, index, vclass );
+  return getFreeVar(tn, index, vclass);
 }
 
 bool TermDbSygus::isFreeVar(const Node& n) const
@@ -63,9 +70,9 @@ size_t TermDbSygus::getFreeVarId(const Node& n) const
   return it->second;
 }
 
-bool TermDbSygus::hasFreeVar( const Node& n ) {
+bool TermDbSygus::hasFreeVar(const Node& n)
+{
   return expr::hasSubterm(n, d_allVars);
 }
-  
-}  // namespace cvc5::internal
 
+}  // namespace cvc5::internal
