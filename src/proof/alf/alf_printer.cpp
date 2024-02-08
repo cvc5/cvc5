@@ -479,20 +479,8 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
     }
     case ProofRule::INSTANTIATE:
     {
-      // ignore arguments past the term vector, collect them into an sexpr
-      Node q = pn->getChildren()[0]->getResult();
-      Assert(q.getKind() == Kind::FORALL);
-      // only provide arguments up to the variable list length
-      std::vector<Node> targs;
-      for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
-      {
-        Assert(i < pargs.size());
-        targs.push_back(d_tproc.convert(pargs[i]));
-      }
-      // package as SEXPR, which will subsequently be converted to list
-      NodeManager* nm = NodeManager::currentNM();
-      Node tsp = nm->mkNode(Kind::SEXPR, targs);
-      Node ts = d_tproc.convert(tsp);
+      // ignore arguments past the term vector
+      Node ts = d_tproc.convert(pargs[0]);
       args.push_back(ts);
       return;
     }
@@ -537,12 +525,6 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     getArgsFromProofRule(pn, args);
   }
   size_t id = allocateProofId(pn, wasAlloc);
-  // if we don't handle the rule, print trust
-  if (!handled)
-  {
-    out->printTrustStep(pn->getRule(), conclusionPrint, id, conclusion);
-    return;
-  }
   std::vector<size_t> premises;
   // get the premises
   std::map<Node, size_t>::iterator ita;
@@ -564,6 +546,13 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       pid = itp->second;
     }
     premises.push_back(pid);
+  }
+  // if we don't handle the rule, print trust
+  if (!handled)
+  {
+    out->printTrustStep(
+        pn->getRule(), conclusionPrint, id, premises, conclusion);
+    return;
   }
   std::string rname = getRuleName(pn);
   if (r == ProofRule::SCOPE)
