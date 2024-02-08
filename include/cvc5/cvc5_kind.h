@@ -53,7 +53,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(Kind) : int32_t
+enum ENUM(Kind)
 {
   /**
    * Internal kind.
@@ -5758,7 +5758,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(SortKind) : int32_t
+enum ENUM(SortKind)
 {
   /**
    * Internal kind.
