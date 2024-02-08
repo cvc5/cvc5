@@ -385,8 +385,8 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
       printStepPre(out, cur);
       processingChildren[cur] = true;
       // will revisit this proof node
-      const std::vector<std::shared_ptr<ProofNode>>& children =
-          cur->getChildren();
+      std::vector<std::shared_ptr<ProofNode>> children;
+      getChildrenFromProofRule(cur, children);
       // visit each child
       for (const std::shared_ptr<ProofNode>& c : children)
       {
@@ -419,6 +419,32 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
       out->printAssume(aa, aid, true);
     }
   }
+}
+
+void AlfPrinter::getChildrenFromProofRule(const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children)
+{
+  const std::vector<std::shared_ptr<ProofNode>>& cc =
+      pn->getChildren();
+  switch (pn->getRule())
+  {
+    case ProofRule::CONG:
+    {
+      Node res = pn->getResult();
+      if (res[0].isClosure())
+      {
+        // Ignore those for any children beyond the required arguments.
+        // This ensures that we ignore e.g. equalities between patterns
+        // which can appear in term conversion proofs.
+        size_t arity = kind::metakind::getMinArityForKind(res[0].getKind());
+        children.insert(children.end(), cc.begin(), cc.begin()+arity-1);
+        return;
+      }
+    }
+    break;
+    default:
+      break;
+  }
+  children.insert(children.end(), cc.begin(), cc.end());
 }
 
 void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
@@ -493,7 +519,8 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     conclusionPrint = conclusion;
   }
   ProofRule r = pn->getRule();
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  std::vector<std::shared_ptr<ProofNode>> children;
+  getChildrenFromProofRule(pn, children);
   std::vector<Node> args;
   bool handled = isHandled(pn);
   if (r == ProofRule::ALF_RULE)
