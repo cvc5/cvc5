@@ -34,22 +34,34 @@ class FreeVarCache
    * used, for instance, for constructing canonical forms of terms with free
    * variables. This function returns the i^th free variable for type tn.
    */
-  TNode getFreeVar(const TypeNode& tn, size_t i, size_t vclass = 0);
+  TNode getFreeVar(const TypeNode& tn, size_t i);
+  /**
+   * Same as above, but allocates variables of type tn based on stn. This can
+   * be used e.g. if we want to maintain multiple lists of variables of type
+   * tn for different stn.
+   */
+  TNode getFreeVar(const TypeNode& tn, size_t i, const TypeNode& stn);
   /** get free variable and increment
    *
    * This function returns the next free variable for type tn, and increments
    * the counter in var_count for that type.
    */
   TNode getFreeVarInc(const TypeNode& tn,
-                      std::map<std::pair<TypeNode, size_t>, size_t>& var_count,
-                      size_t vclass = 0);
+                      std::map<TypeNode, size_t>& var_count);
+  /**
+   * Same as above, but allocates variables of type tn based on stn. This can
+   * be used e.g. if we want to maintain multiple lists of variables of type
+   * tn for different stn.
+   */
+  TNode getFreeVarInc(const TypeNode& tn,
+                      std::map<TypeNode, size_t>& var_count,
+                      const TypeNode& stn);
   /** returns true if n is a cached free variable (in d_fv). */
   bool isFreeVar(const Node& n) const;
   /** returns the identifier for a cached free variable. */
   size_t getFreeVarId(const Node& n) const;
   /** returns true if n has a cached free variable (in d_fv). */
   bool hasFreeVar(const Node& n);
-
  private:
   /** a cache of fresh variables for each type
    *

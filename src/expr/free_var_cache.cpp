@@ -14,12 +14,17 @@
  */
 #include "expr/free_var_cache.h"
 
+#include "expr/node_algorithm.h"
+
 namespace cvc5::internal {
 
-TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i, size_t vclass)
+TNode FreeVarCache::getFreeVar(const TypeNode& tn, size_t i)
 {
-  unsigned sindex = 0;
-  std::pair<TypeNode, size_t> key(tn, vclass);
+  return getFreeVar(tn, i, tn);
+}
+  
+TNode FreeVarCache::getFreeVar(const TypeNode& tn, size_t i, const TypeNode& stn)
+{
   NodeManager* nm = NodeManager::currentNM();
   while (i >= d_fv[tn].size())
   {
@@ -28,49 +33,55 @@ TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i, size_t vclass)
     d_allVars.push_back(v);
     // store its id, which is unique per builtin type, regardless of how it is
     // otherwise cached.
-    d_fvId[v] = d_fv[key].size();
+    d_fvId[v] = d_fv[stn].size();
     Trace("free-var-cache") << "Free variable id " << v << " = " << d_fvId[v]
                             << ", " << tn << std::endl;
-    d_fv[key].push_back(v);
+    d_fv[stn].push_back(v);
   }
-  return d_fv[key][i];
+  return d_fv[stn][i];
 }
 
-TNode TermDbSygus::getFreeVarInc(
+TNode FreeVarCache::getFreeVarInc(
     const TypeNode& tn,
-    std::map<std::pair<TypeNode, size_t>, size_t>& var_count,
-    size_t vclass)
+    std::map<TypeNode, size_t>& var_count)
 {
-  std::pair<TypeNode, size_t> key(tn, vclass);
-  std::map<TypeNode, int>::iterator it = var_count.find(key);
+  return getFreeVarInc(tn, var_count, tn);
+}
+
+TNode FreeVarCache::getFreeVarInc(
+    const TypeNode& tn,
+    std::map<TypeNode, size_t>& var_count,
+    const TypeNode& stn)
+{
+  std::map<TypeNode, size_t>::iterator it = var_count.find(stn);
   if (it == var_count.end())
   {
-    var_count[key] = 1;
-    return getFreeVar(tn, 0, vclass);
+    var_count[stn] = 1;
+    return getFreeVar(tn, 0, stn);
   }
   size_t index = it->second;
-  var_count[key]++;
-  return getFreeVar(tn, index, vclass);
+  var_count[stn]++;
+  return getFreeVar(tn, index, stn);
 }
 
-bool TermDbSygus::isFreeVar(const Node& n) const
+bool FreeVarCache::isFreeVar(const Node& n) const
 {
   return d_fvId.find(n) != d_fvId.end();
 }
 
-size_t TermDbSygus::getFreeVarId(const Node& n) const
+size_t FreeVarCache::getFreeVarId(const Node& n) const
 {
   std::map<Node, size_t>::const_iterator it = d_fvId.find(n);
   if (it == d_fvId.end())
   {
-    Assert(false) << "TermDbSygus::isFreeVar: " << n
+    Assert(false) << "FreeVarCache::isFreeVar: " << n
                   << " is not a cached free variable.";
     return 0;
   }
   return it->second;
 }
 
-bool TermDbSygus::hasFreeVar(const Node& n)
+bool FreeVarCache::hasFreeVar(const Node& n)
 {
   return expr::hasSubterm(n, d_allVars);
 }

@@ -449,7 +449,7 @@ class SygusEnumerator : public EnumValGenerator
      * vcounter is { Int -> 7 }, then (+ x1 x2) is converted to (+ x7 x8) and
      * vouncter is updated to { Int -> 9 }.
      */
-    Node convertShape(Node n, std::map<TypeNode, int>& vcounter);
+    Node convertShape(Node n, std::map<TypeNode, size_t>& vcounter);
   };
   /** an interpreted value enumerator
    *

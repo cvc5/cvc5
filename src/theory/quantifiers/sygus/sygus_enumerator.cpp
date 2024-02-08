@@ -1046,7 +1046,7 @@ void SygusEnumerator::TermEnumMaster::childrenToShape(
     // don't need to convert constants and unary applications
     return;
   }
-  std::map<TypeNode, int> vcounter;
+  std::map<TypeNode, size_t> vcounter;
   // Buffered child, so that we only compute vcounter if there are more than
   // one children with free variables, since otherwise there is no change.
   // For example, if we are given { C, (+ x1 x2), 1 }, we buffer child (+ x1 x2)
@@ -1087,7 +1087,7 @@ void SygusEnumerator::TermEnumMaster::childrenToShape(
 }
 
 Node SygusEnumerator::TermEnumMaster::convertShape(
-    Node n, std::map<TypeNode, int>& vcounter)
+    Node n, std::map<TypeNode, size_t>& vcounter)
 {
   Assert(d_tds != nullptr);
   NodeManager* nm = NodeManager::currentNM();

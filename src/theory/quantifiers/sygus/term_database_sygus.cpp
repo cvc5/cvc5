@@ -68,91 +68,51 @@ bool TermDbSygus::reset( Theory::Effort e ) {
   return true;  
 }
 
-TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
-  unsigned sindex = 0;
+TNode TermDbSygus::getFreeVar( const TypeNode& tn, size_t i, bool useSygusType ) {
   TypeNode vtn = tn;
-  TypeNode builtinType = tn;
-  if (tn.isDatatype())
+  if (useSygusType)
   {
-    const DType& dt = tn.getDType();
-    if (!dt.getSygusType().isNull())
+    if (tn.isDatatype())
     {
-      builtinType = dt.getSygusType();
-      if (useSygusType)
-      {
-        vtn = builtinType;
-        sindex = 1;
-      }
-    }
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  while( i>=(int)d_fv[sindex][tn].size() ){
-    std::stringstream ss;
-    if( tn.isDatatype() ){
       const DType& dt = tn.getDType();
-      ss << "fv_" << dt.getName() << "_" << i;
-    }else{
-      ss << "fv_" << tn << "_" << i;
-    }
-    Assert(!vtn.isNull());
-    Node v = nm->mkBoundVar(ss.str(), vtn);
-    // store its id, which is unique per builtin type, regardless of how it is
-    // otherwise cached.
-    d_fvId[v] = d_fvTypeIdCounter[builtinType];
-    d_fvTypeIdCounter[builtinType]++;
-    Trace("sygus-db-debug") << "Free variable id " << v << " = " << d_fvId[v]
-                            << ", " << builtinType << std::endl;
-    d_fv[sindex][tn].push_back( v );
-  }
-  return d_fv[sindex][tn][i];
-}
-
-TNode TermDbSygus::getFreeVarInc( TypeNode tn, std::map< TypeNode, int >& var_count, bool useSygusType ) {
-  std::map< TypeNode, int >::iterator it = var_count.find( tn );
-  if( it==var_count.end() ){
-    var_count[tn] = 1;
-    return getFreeVar( tn, 0, useSygusType );
-  }else{
-    int index = it->second;
-    var_count[tn]++;
-    return getFreeVar( tn, index, useSygusType );
-  }
-}
-
-bool TermDbSygus::isFreeVar(Node n) const
-{
-  return d_fvId.find(n) != d_fvId.end();
-}
-size_t TermDbSygus::getFreeVarId(Node n) const
-{
-  std::map<Node, size_t>::const_iterator it = d_fvId.find(n);
-  if (it == d_fvId.end())
-  {
-    Assert(false) << "TermDbSygus::isFreeVar: " << n
-                  << " is not a cached free variable.";
-    return 0;
-  }
-  return it->second;
-}
-
-bool TermDbSygus::hasFreeVar( Node n, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( isFreeVar( n ) ){
-      return true;    
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( hasFreeVar( n[i], visited ) ){
-        return true;
+      if (!dt.getSygusType().isNull())
+      {
+        vtn = dt.getSygusType();
       }
     }
   }
-  return false;
+  return d_fv.getFreeVar(vtn, i, tn);
 }
 
-bool TermDbSygus::hasFreeVar( Node n ) {
-  std::map< Node, bool > visited;
-  return hasFreeVar( n, visited );
+TNode TermDbSygus::getFreeVarInc( const TypeNode& tn, std::map< TypeNode, size_t >& var_count, bool useSygusType )
+{
+  TypeNode vtn = tn;
+  if (useSygusType)
+  {
+    if (tn.isDatatype())
+    {
+      const DType& dt = tn.getDType();
+      if (!dt.getSygusType().isNull())
+      {
+        vtn = dt.getSygusType();
+      }
+    }
+  }
+  return d_fv.getFreeVarInc( vtn, var_count, tn );
+}
+
+bool TermDbSygus::isFreeVar(const Node& n) const
+{
+  return d_fv.isFreeVar(n);
+}
+size_t TermDbSygus::getFreeVarId(const Node& n) const
+{
+  return d_fv.getFreeVarId(n);
+}
+
+bool TermDbSygus::hasFreeVar( const Node& n ) 
+{
+  return d_fv.hasFreeVar(n);
 }
 
 Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
@@ -188,7 +148,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 
 Node TermDbSygus::mkGeneric(const DType& dt,
                             unsigned c,
-                            std::map<TypeNode, int>& var_count,
+                            std::map<TypeNode, size_t>& var_count,
                             std::map<int, Node>& pre,
                             bool doBetaRed)
 {
@@ -224,7 +184,7 @@ Node TermDbSygus::mkGeneric(const DType& dt,
                             std::map<int, Node>& pre,
                             bool doBetaRed)
 {
-  std::map<TypeNode, int> var_count;
+  std::map<TypeNode, size_t> var_count;
   return mkGeneric(dt, c, var_count, pre, doBetaRed);
 }
 
@@ -242,11 +202,11 @@ using CanonizeBuiltinAttribute =
 
 Node TermDbSygus::canonizeBuiltin(Node n)
 {
-  std::map<TypeNode, int> var_count;
+  std::map<TypeNode, size_t> var_count;
   return canonizeBuiltin(n, var_count);
 }
 
-Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
+Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, size_t>& var_count)
 {
   // has it already been computed?
   if (var_count.empty() && n.hasAttribute(CanonizeBuiltinAttribute()))
