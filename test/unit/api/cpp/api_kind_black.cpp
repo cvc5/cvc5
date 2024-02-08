@@ -37,17 +37,17 @@ TEST_F(TestApiKind, kindToString)
     auto kindstr = std::to_string(static_cast<Kind>(k));
     if (k == static_cast<int32_t>(Kind::INTERNAL_KIND))
     {
-      ASSERT_EQ(kindstr, "Kind::INTERNAL_KIND");
+      ASSERT_EQ(kindstr, "INTERNAL_KIND");
     }
     else if (k == static_cast<int32_t>(Kind::UNDEFINED_KIND))
     {
-      ASSERT_EQ(kindstr, "Kind::UNDEFINED_KIND");
+      ASSERT_EQ(kindstr, "UNDEFINED_KIND");
     }
     else
     {
       // If this assertion fails, s_kinds in cvc5.cpp is missing kind k.
-      ASSERT_NE(kindstr, "Kind::UNDEFINED_KIND");
-      ASSERT_NE(kindstr, "Kind::INTERNAL_KIND");
+      ASSERT_NE(kindstr, "UNDEFINED_KIND");
+      ASSERT_NE(kindstr, "INTERNAL_KIND");
     }
   }
 }

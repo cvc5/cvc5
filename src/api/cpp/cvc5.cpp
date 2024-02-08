@@ -107,9 +107,10 @@ struct APIStatistics
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
-#define KIND_ENUM(external_name, internal_name)                  \
-  {                                                              \
-    external_name, std::make_pair(internal_name, #external_name) \
+#define KIND_ENUM(external_name, internal_name)                              \
+  {                                                                          \
+    external_name,                                                           \
+        std::make_pair(internal_name, std::string(#external_name).substr(6)) \
   }
 
 /* Mapping from external (API) kind to internal kind. */
@@ -449,9 +450,10 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
 /* SortKind                                                                   */
 /* -------------------------------------------------------------------------- */
 
-#define SORT_KIND_ENUM(external_name, internal_name)             \
-  {                                                              \
-    external_name, std::make_pair(internal_name, #external_name) \
+#define SORT_KIND_ENUM(external_name, internal_name)                          \
+  {                                                                           \
+    external_name,                                                            \
+        std::make_pair(internal_name, std::string(#external_name).substr(10)) \
   }
 
 /* Mapping from external (API) kind to internal kind. */
@@ -625,6 +627,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_TO_NAT, Kind::BITVECTOR_TO_NAT},
         /* Finite Fields --------------------------------------------------- */
         {internal::Kind::CONST_FINITE_FIELD, Kind::CONST_FINITE_FIELD},
+        {internal::Kind::FINITE_FIELD_BITSUM, Kind::FINITE_FIELD_BITSUM},
         {internal::Kind::FINITE_FIELD_MULT, Kind::FINITE_FIELD_MULT},
         {internal::Kind::FINITE_FIELD_ADD, Kind::FINITE_FIELD_ADD},
         {internal::Kind::FINITE_FIELD_NEG, Kind::FINITE_FIELD_NEG},
@@ -940,77 +943,6 @@ const static std::unordered_map<cvc5::internal::RoundingMode, RoundingMode>
         {cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
          RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
     };
-
-/* -------------------------------------------------------------------------- */
-/* API guard helpers                                                          */
-/* -------------------------------------------------------------------------- */
-
-namespace {
-
-class CVC5ApiExceptionStream
-{
- public:
-  CVC5ApiExceptionStream() {}
-  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
-   * a destructor that throws an exception and in C++11 all destructors
-   * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC5ApiExceptionStream() noexcept(false)
-  {
-    if (std::uncaught_exceptions() == 0)
-    {
-      throw CVC5ApiException(d_stream.str());
-    }
-  }
-
-  std::ostream& ostream() { return d_stream; }
-
- private:
-  std::stringstream d_stream;
-};
-
-class CVC5ApiRecoverableExceptionStream
-{
- public:
-  CVC5ApiRecoverableExceptionStream() {}
-  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
-   * a destructor that throws an exception and in C++11 all destructors
-   * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC5ApiRecoverableExceptionStream() noexcept(false)
-  {
-    if (std::uncaught_exceptions() == 0)
-    {
-      throw CVC5ApiRecoverableException(d_stream.str());
-    }
-  }
-
-  std::ostream& ostream() { return d_stream; }
-
- private:
-  std::stringstream d_stream;
-};
-
-class CVC5ApiUnsupportedExceptionStream
-{
- public:
-  CVC5ApiUnsupportedExceptionStream() {}
-  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
-   * a destructor that throws an exception and in C++11 all destructors
-   * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC5ApiUnsupportedExceptionStream() noexcept(false)
-  {
-    if (std::uncaught_exceptions() == 0)
-    {
-      throw CVC5ApiUnsupportedException(d_stream.str());
-    }
-  }
-
-  std::ostream& ostream() { return d_stream; }
-
- private:
-  std::stringstream d_stream;
-};
-
-}  // namespace
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                    */
