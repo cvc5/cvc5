@@ -644,14 +644,10 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   }
   else if (n.isClosure())
   {
-    // the operator of a closure
-    std::vector<Node> vars;
-    for (const Node& v : n[0])
-    {
-      vars.push_back(convert(v));
-    }
-    // can use ordinary cong
-    Node vl = mkList(vars);
+    // The operator of a closure by convention includes its variable list.
+    // This is required for cong over binders.
+    Node vl = convert(n[0]);
+    // the type of this term is irrelevant, just use vl's type
     ret = mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
   }
