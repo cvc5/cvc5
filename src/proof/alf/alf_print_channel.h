@@ -104,14 +104,17 @@ class AlfPrintChannelOut : public AlfPrintChannel
   void printTypeNodeInternal(std::ostream& out, TypeNode tn);
 
  private:
-  /** Helper for print steps */
+  /** 
+   * Helper for print steps. We set reqPremises to true if we require printing
+   * premises even if empty.
+   */
   void printStepInternal(const std::string& rname,
                          TNode n,
                          size_t i,
                          const std::vector<size_t>& premises,
                          const std::vector<Node>& args,
                          bool isPop,
-                         bool isTrust);
+                         bool reqPremises);
   /** The output stream */
   std::ostream& d_out;
   /** The let binding */
