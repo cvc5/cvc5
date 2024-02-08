@@ -991,14 +991,14 @@ enum ENUM(ProofRule) : uint32_t
    * provided iff :math:`k` is a parameterized kind, e.g. 
    * `cvc5::Kind::APPLY_UF`. The actual node for
    * :math:`k` is constructible via ``ProofRuleChecker::mkKindNode``.
-   * If :math:`k` is a binder kind (e.g. `cvc5::Kind::FORALL`) then :math:`f` is
-   * a term of kind `cvc5::Kind::VARIABLE_LIST` 
+   * If :math:`k` is a binder kind (e.g. ``cvc5::Kind::FORALL``) then :math:`f`
+   * is a term of kind `cvc5::Kind::VARIABLE_LIST` 
    * denoting the variables bound by both sides of the conclusion.
    * This rule is used for kinds that have a fixed arity, such as
-   * `cvc5::Kind::ITE`,`cvc5::Kind::EQUAL`, and so on. It is also used for 
-   * `cvc5::Kind::APPLY_UF` where :math:`f` must be provided.
+   * ``cvc5::Kind::ITE``, ``cvc5::Kind::EQUAL``, and so on. It is also used for 
+   * ``cvc5::Kind::APPLY_UF`` where :math:`f` must be provided.
    * It is not used for equality between
-   * `cvc5::Kind::HO_APPLY` terms, which should
+   * ``cvc5::Kind::HO_APPLY`` terms, which should
    * use the :cpp:enumerator:`HO_CONG <cvc5::ProofRule::HO_CONG>` proof rule.
    * \endverbatim
    */
@@ -1014,8 +1014,8 @@ enum ENUM(ProofRule) : uint32_t
    *
    * where :math:`k` is the application kind. The actual node for :math:`k` is
    * constructible via ``ProofRuleChecker::mkKindNode``. This rule is used for
-   * kinds that have variadic arity, such as `cvc5::Kind::AND`,
-   * `cvc5::Kind::PLUS` and so on.
+   * kinds that have variadic arity, such as ``cvc5::Kind::AND``,
+   * ``cvc5::Kind::PLUS`` and so on.
    * \endverbatim
    */
   EVALUE(NARY_CONG),
