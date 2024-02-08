@@ -2120,7 +2120,8 @@ void SolverEngine::setOption(const std::string& key,
       {
         // option exception
         std::stringstream ss;
-        ss << "cannot set two regular options (" << key << " and " << d_safeOptsRegularOption << ") when safeOptions is true";
+        ss << "cannot set two regular options (" << key << " and "
+           << d_safeOptsRegularOption << ") when safeOptions is true";
         throw OptionException(ss.str());
       }
     }
