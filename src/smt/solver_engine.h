@@ -1115,6 +1115,11 @@ class CVC5_EXPORT SolverEngine
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
 
+  /** Have we set a regular option yet? (for --safe-options) */
+  bool d_safeOptsSetRegularOption;
+  /** The regular option */
+  std::string d_safeOptsRegularOption;
+  
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
 
