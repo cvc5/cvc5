@@ -485,12 +485,6 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     getArgsFromProofRule(pn, args);
   }
   size_t id = allocateProofId(pn, wasAlloc);
-  // if we don't handle the rule, print trust
-  if (!handled)
-  {
-    out->printTrustStep(pn->getRule(), conclusionPrint, id, conclusion);
-    return;
-  }
   std::vector<size_t> premises;
   // get the premises
   std::map<Node, size_t>::iterator ita;
@@ -512,6 +506,13 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       pid = itp->second;
     }
     premises.push_back(pid);
+  }
+  // if we don't handle the rule, print trust
+  if (!handled)
+  {
+    out->printTrustStep(
+        pn->getRule(), conclusionPrint, id, premises, conclusion);
+    return;
   }
   std::string rname = getRuleName(pn);
   if (r == ProofRule::SCOPE)
