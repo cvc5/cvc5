@@ -16,17 +16,20 @@
 #if (!defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_CPP_KIND_H)) \
     || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_KIND_H))
 
+#include <cstdint>
+
 #ifdef CVC5_API_USE_C_ENUMS
+#include <cstddef>
 #undef ENUM
 #define ENUM(name) Cvc5##name
 #else
 #include <cvc5/cvc5_export.h>
 
-#include <cstdint>
 #include <ostream>
 namespace cvc5 {
 #undef ENUM
 #define ENUM(name) class name
+#undef EVALUE
 #define EVALUE(name) name
 #endif
 
@@ -5737,7 +5740,7 @@ struct CVC5_EXPORT hash<cvc5::Kind>
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef EVALUE
-#define EVALUE(name) CVC5_SORTKIND_##name
+#define EVALUE(name) CVC5_SORT_KIND_##name
 #endif
 
 #ifndef CVC5_API_USE_C_ENUMS
