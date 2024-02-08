@@ -131,7 +131,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
-    case ProofRule::DSL_REWRITE:return true;
+    case ProofRule::DSL_REWRITE: return true;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator

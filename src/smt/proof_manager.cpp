@@ -237,8 +237,8 @@ void PfManager::printProof(std::ostream& out,
   // user asks for the proof again (in non-incremental mode). We don't need to
   // clone if the printing below does not modify the proof, which is the case
   // for proof formats ALF and NONE.
-  if (mode != options::ProofFormatMode::ALF &&
-      mode != options::ProofFormatMode::NONE)
+  if (mode != options::ProofFormatMode::ALF
+      && mode != options::ProofFormatMode::NONE)
   {
     fp = fp->clone();
   }
