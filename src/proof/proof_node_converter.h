@@ -89,7 +89,7 @@ class ProofNodeConverter : protected EnvObj
 
  private:
   /** The callback */
-  ProofNodeUpdaterCallback& d_cb;
+  ProofNodeConverterCallback& d_cb;
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
