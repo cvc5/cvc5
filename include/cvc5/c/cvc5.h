@@ -2013,7 +2013,7 @@ Cvc5Sort cvc5_mk_ff_sort(Cvc5TermManager* tm, const char* size, uint32_t base);
  * @param dtypedecl The datatype declaration from which the sort is created.
  * @return The datatype sort.
  */
-Cvc5Sort cvc5_mk_dt_sort(Cvc5TermManager* tm, const DatatypeDecl& dtypedecl);
+Cvc5Sort cvc5_mk_dt_sort(Cvc5TermManager* tm, const Cvc5DatatypeDecl& dtypedecl);
 
 /**
  * Create a vector of datatype sorts.
@@ -2694,7 +2694,7 @@ Cvc5DatatypeConstructorDecl* cvc5_mk_dt_consdecl(Cvc5TermManager* tm,
  * @param tm The term manager instance.
  * @param name The name of the datatype.
  * @param is_codt True if a codatatype is to be constructed.
- * @return The DatatypeDecl.
+ * @return The Cvc5DatatypeDecl.
  */
 Cvc5DatatypeDecl* cvc5_mk_dt_decl(Cvc5TermManager* tm,
                                   const char* name,
@@ -2711,9 +2711,9 @@ Cvc5DatatypeDecl* cvc5_mk_dt_decl(Cvc5TermManager* tm,
  * @param size The number of sort parameters.
  * @param params A list of sort parameters.
  * @param is_codt True if a codatatype is to be constructed.
- * @return The DatatypeDecl.
+ * @return The Cvc5DatatypeDecl.
  */
-DatatypeDecl cvc5_mk_dt_decl(Cvc5TermManager* tm,
+Cvc5DatatypeDecl cvc5_mk_dt_decl(Cvc5TermManager* tm,
                              const char* name,
                              size_t size,
                              const Cvc5Sort* params,
