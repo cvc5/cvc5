@@ -21,6 +21,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/resolution_proofs_util.h"
+#include "proof/subtype_elim_proof_converter.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -29,7 +30,6 @@
 #include "theory/strings/infer_proof_cons.h"
 #include "theory/theory.h"
 #include "util/rational.h"
-#include "proof/subtype_elim_proof_converter.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
@@ -1134,13 +1134,13 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
-  
+
   // test
   SubtypeElimConverterCallback secc(d_env);
   ProofNodeConverter subtypeConvert(d_env, secc);
   std::shared_ptr<ProofNode> pfc = subtypeConvert.process(pf);
-  AlwaysAssert (pfc!=nullptr);
-  
+  AlwaysAssert(pfc != nullptr);
+
   // take stats and check pedantic
   d_finalCb.initializeUpdate();
   d_finalizer.process(pf);
