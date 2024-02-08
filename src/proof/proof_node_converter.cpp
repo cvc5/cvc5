@@ -18,15 +18,15 @@
 namespace cvc5::internal {
 
 ProofNodeConverter::ProofNodeConverter(Env& env,
-                ProofNodeConverterCallback& cb,
-                bool autoSym) : EnvObj(env), d_cb(cb)
-                {
-                    
-                }
-
-std::shared_ptr<ProofNode> ProofNodeConverter::process(std::shared_ptr<ProofNode> pf)
+                                       ProofNodeConverterCallback& cb,
+                                       bool autoSym)
+    : EnvObj(env), d_cb(cb)
 {
+}
 
+std::shared_ptr<ProofNode> ProofNodeConverter::process(
+    std::shared_ptr<ProofNode> pf)
+{
   // The list of proof nodes we are currently traversing beneath. This is used
   // for checking for cycles in the overall proof.
   std::vector<std::shared_ptr<ProofNode>> traversing;
@@ -47,8 +47,10 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(std::shared_ptr<ProofNode
     pft = pft->getChildren()[0];
   }
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
-  std::unordered_map<std::shared_ptr<ProofNode>, std::shared_ptr<ProofNode>> visited;
-  std::unordered_map<std::shared_ptr<ProofNode>, std::shared_ptr<ProofNode>>::iterator it;
+  std::unordered_map<std::shared_ptr<ProofNode>, std::shared_ptr<ProofNode>>
+      visited;
+  std::unordered_map<std::shared_ptr<ProofNode>,
+                     std::shared_ptr<ProofNode>>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pf);
@@ -78,7 +80,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(std::shared_ptr<ProofNode
       continue;
     }
     visit.pop_back();
-    if (it->second==nullptr)
+    if (it->second == nullptr)
     {
       Assert(!traversing.empty());
       traversing.pop_back();
@@ -88,7 +90,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(std::shared_ptr<ProofNode
       for (const std::shared_ptr<ProofNode>& cp : ccp)
       {
         it = visited.find(cp);
-        Assert (it != visited.end());
+        Assert(it != visited.end());
         pchildren.push_back(it->second);
       }
       std::shared_ptr<ProofNode> ret = processInternal(cur);
@@ -97,12 +99,14 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(std::shared_ptr<ProofNode
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
 }
 
-std::shared_ptr<ProofNode> ProofNodeConverter::processInternal(std::shared_ptr<ProofNode> pf, const std::vector<std::shared_ptr<ProofNode>>& pchildren)
+std::shared_ptr<ProofNode> ProofNodeConverter::processInternal(
+    std::shared_ptr<ProofNode> pf,
+    const std::vector<std::shared_ptr<ProofNode>>& pchildren)
 {
   ProofRule id = cur->getRule();
   // use CDProof to open a scope for which the callback updates
   CDProof cpf(d_env, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
-  
+
   // TODO
   return pf;
 }

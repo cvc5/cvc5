@@ -79,14 +79,15 @@ class ProofNodeConverter : protected EnvObj
    * callbacks automatically introduce SYMM steps.
    */
   ProofNodeConverter(Env& env,
-                      ProofNodeConverterCallback& cb,
-                      bool autoSym = true);
+                     ProofNodeConverterCallback& cb,
+                     bool autoSym = true);
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
    */
   std::shared_ptr<ProofNode> process(std::shared_ptr<ProofNode> pf);
-private:
+
+ private:
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
   /**
@@ -98,7 +99,9 @@ private:
    * respect to the original proof. For example, if (SCOPE P :args (A B)), we
    * may call this method on P with fa = { A, B }.
    */
-  std::shared_ptr<ProofNode> processInternal(std::shared_ptr<ProofNode> pf, const std::vector<std::shared_ptr<ProofNode>>& pchildren);
+  std::shared_ptr<ProofNode> processInternal(
+      std::shared_ptr<ProofNode> pf,
+      const std::vector<std::shared_ptr<ProofNode>>& pchildren);
 };
 
 }  // namespace cvc5::internal
