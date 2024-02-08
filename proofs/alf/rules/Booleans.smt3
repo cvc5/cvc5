@@ -13,6 +13,22 @@
 (define removeSelf ((l Bool) (C Bool))
     (alf.ite (alf.is_eq l C) false (nary.remove or false l C)))
 
+(program to_clause ((F1 Bool) (F2 Bool :list))
+  (Bool) Bool
+  (
+    ((to_clause (or F1 F2)) (or F1 F2))
+    ((to_clause false)      false)
+    ((to_clause F1)         (or F1))
+  )
+)
+(program from_clause ((F1 Bool) (F2 Bool :list))
+  (Bool) Bool
+  (
+    ((from_clause (or F1 F2)) (alf.ite (alf.is_eq F2 false) F1 (or F1 F2)))
+    ((from_clause F1)         F1)
+  )
+)
+
 ; RESOLUTION
 (program resolve ((C1 Bool) (C2 Bool) (pol Bool) (L Bool))
     (Bool Bool Bool Bool) Bool
@@ -20,9 +36,9 @@
       ((resolve C1 C2 pol L)
         (let ((lp (alf.ite pol L (not L))))
         (let ((ln (alf.ite pol (not L) L)))
-            (alf.from_list or (alf.concat or
-                    (removeSelf lp (alf.to_list or C1))
-                    (removeSelf ln (alf.to_list or C2)))))))
+            (from_clause (alf.concat or
+                    (removeSelf lp (to_clause C1))
+                    (removeSelf ln (to_clause C2)))))))
     )
 )
 
@@ -37,14 +53,14 @@
 (program chainResolveRec ((C1 Bool) (C2 Bool) (Cs Bool :list) (pol Bool) (L Bool) (args Bool :list))
     (Bool Bool Bool) Bool
     (
-        ((chainResolveRec C1 true true)              (alf.from_list or C1))
+        ((chainResolveRec C1 true true)              (from_clause C1))
         ((chainResolveRec C1 (and C2 Cs) (and pol L args))
             (chainResolveRec
                 (let ((lp (alf.ite pol L (not L))))
                 (let ((ln (alf.ite pol (not L) L)))
                     (alf.concat or
                             (removeSelf lp C1)
-                            (removeSelf ln (alf.to_list or C2))))) Cs args))
+                            (removeSelf ln (to_clause C2))))) Cs args))
     )
 )
 
@@ -59,7 +75,7 @@
     :conclusion
         (alf.match ((C1 Bool) (C2 Bool :list))
             Cs
-            (((and C1 C2) (chainResolveRec (alf.to_list or C1) C2 args))))
+            (((and C1 C2) (chainResolveRec (to_clause C1) C2 args))))
 )
 
 ; FACTORING
@@ -79,7 +95,7 @@
 
 (declare-rule factoring ((C Bool))
     :premises (C)
-    :conclusion (alf.from_list or (factorLiterals false C))
+    :conclusion (from_clause (factorLiterals false C))
 )
 
 (declare-rule reordering ((C1 Bool) (C2 Bool))
