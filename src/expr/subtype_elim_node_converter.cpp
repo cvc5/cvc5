@@ -23,7 +23,7 @@ SubtypeElimNodeConverter::SubtypeElimNodeConverter() {}
 
 bool SubtypeElimNodeConverter::isRealTypeStrict(TypeNode tn)
 {
-  return tn.isReal() && !tn.isInteger();
+  return tn.isReal();
 }
 
 Node SubtypeElimNodeConverter::postConvert(Node n)
