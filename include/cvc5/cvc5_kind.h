@@ -16,6 +16,8 @@
 #if (!defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_CPP_KIND_H)) \
     || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_KIND_H))
 
+#include <cstdint>
+
 #ifdef CVC5_API_USE_C_ENUMS
 #include <cstddef>
 #undef ENUM
@@ -23,7 +25,6 @@
 #else
 #include <cvc5/cvc5_export.h>
 
-#include <cstdint>
 #include <ostream>
 namespace cvc5 {
 #undef ENUM
@@ -55,7 +56,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(Kind)
+enum ENUM(Kind) : int32_t
 {
   /**
    * Internal kind.
@@ -5760,7 +5761,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(SortKind)
+enum ENUM(SortKind) : int32_t
 {
   /**
    * Internal kind.
