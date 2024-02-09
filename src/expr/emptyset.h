@@ -10,16 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Payload class for empty sets.
  */
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__EMPTY_SET_H
-#define CVC5__EMPTY_SET_H
+#ifndef CVC5__EXPR__EMPTY_SET_H
+#define CVC5__EXPR__EMPTY_SET_H
 
 #include <iosfwd>
 #include <memory>
@@ -42,11 +39,6 @@ class EmptySet
 
   const TypeNode& getType() const;
   bool operator==(const EmptySet& es) const;
-  bool operator!=(const EmptySet& es) const;
-  bool operator<(const EmptySet& es) const;
-  bool operator<=(const EmptySet& es) const;
-  bool operator>(const EmptySet& es) const;
-  bool operator>=(const EmptySet& es) const;
 
  private:
   EmptySet();
