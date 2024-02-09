@@ -1196,24 +1196,16 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (res[0].isClosure())
       {
         std::vector<Node> vpis;
-        bool success = true;
-        for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
-             i++)
+        for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; i++)
         {
-          Node vpi = children[0][0][i].eqNode(children[0][1][i]);
-          new_args.push_back(vpi);
-          vpi = nm->mkNode(Kind::SEXPR, d_cl, vpi);
-          vpis.push_back(vpi);
-          success &= addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
+          new_args.push_back(res[0][0][i].eqNode(res[1][0][i]));
         }
-        vpis.push_back(children[1]);
-        return success
-               && addAletheStep(AletheRule::ANCHOR_BIND,
-                                res,
-                                nm->mkNode(Kind::SEXPR, d_cl, res),
-                                vpis,
-                                new_args,
-                                *cdp);
+        return addAletheStep(AletheRule::ANCHOR_BIND,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             children,
+                             new_args,
+                             *cdp);
       }
       return addAletheStep(AletheRule::CONG,
                            res,
