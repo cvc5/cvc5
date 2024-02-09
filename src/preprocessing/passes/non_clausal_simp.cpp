@@ -54,9 +54,6 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
       d_llpg(options().smt.produceProofs ? new smt::PreprocessProofGenerator(
                  d_env, userContext(), "NonClausalSimp::llpg")
                                          : nullptr),
-      d_llra(options().smt.produceProofs ? new LazyCDProof(
-                 d_env, nullptr, userContext(), "NonClausalSimp::llra")
-                                         : nullptr),
       d_tsubsList(userContext())
 {
 }
@@ -409,36 +406,13 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   if (!learnedLitsToConjoin.empty())
   {
-    size_t replIndex = assertionsToPreprocess->size() - 1;
-    Node newConj = nm->mkAnd(learnedLitsToConjoin);
     Trace("non-clausal-simplify")
-        << "non-clausal simplification, reassert: " << newConj << std::endl;
-    ProofGenerator* pg = nullptr;
-    if (isProofEnabled())
+        << "non-clausal simplification, reassert: " << learnedLitsToConjoin
+        << std::endl;
+    for (const Node& lit : learnedLitsToConjoin)
     {
-      // justify in d_llra
-      for (const Node& lit : learnedLitsToConjoin)
-      {
-        d_llra->addLazyStep(lit, d_llpg.get());
-      }
-      if (learnedLitsToConjoin.size() > 1)
-      {
-        d_llra->addStep(
-            newConj, ProofRule::AND_INTRO, learnedLitsToConjoin, {});
-        pg = d_llra.get();
-      }
-      else
-      {
-        // otherwise we ask the learned literal proof generator directly
-        pg = d_llpg.get();
-      }
+      assertionsToPreprocess->push_back(lit, false, d_llpg.get());
     }
-    // ------- from d_llpg    --------- from d_llpg
-    //  conj[0]       ....    d_conj[n]
-    // -------------------------------- AND_INTRO
-    //  newConj
-    // where newConj is conjoined at the given index
-    assertionsToPreprocess->conjoin(replIndex, newConj, pg);
   }
 
   // Note that typically ttls.apply(assert)==assert here.

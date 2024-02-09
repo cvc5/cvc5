@@ -105,7 +105,8 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
           pnm->mkNode(ProofRule::CONTRA,
                       {pnm->mkNode(ProofRule::ARITH_TRICHOTOMY,
                                    {pnm->mkAssume(less.negate()), pfNotRawEq},
-                                   {greater}),
+                                   {},
+                                   greater),
                        pnm->mkAssume(greater.negate())},
                       {});
       std::vector<Node> assumptions = {

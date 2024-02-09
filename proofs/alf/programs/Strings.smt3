@@ -74,9 +74,9 @@
 
 ; Compute the reduction predicate for (str.substr x n m) of sort U.
 (program string_reduction_substr ((U Type) (x U) (n Int) (m Int))
-  (U Int Int Type) Bool
+  (U Int Int) Bool
   (
-    ((string_reduction_substr x n m U)
+    ((string_reduction_substr x n m)
       (let ((k (skolem (str.substr x n m))))
       (let ((npm (+ n m)))
       (let ((k1 (skolem (skolem_prefix x n))))
@@ -91,16 +91,16 @@
                 (= (str.len k2) 0))
             (<= (str.len k) m))
         ; else branch
-        (= k (mk_emptystr U))
+        (= k (mk_emptystr (alf.typeof x)))
         ))))))
   )
 )
 
 ; Compute the reduction predicate for (str.indexof x y n) of sort U.
 (program string_reduction_indexof ((U Type) (x U) (y U) (n Int))
-  (U U Int Type) Bool
+  (U U Int) Bool
   (
-    ((string_reduction_indexof x y n U)
+    ((string_reduction_indexof x y n)
       (let ((k (skolem (str.indexof x y n))))
       (let ((xn (str.substr x n (- (str.len x) n))))
       (let ((k1 (skolem (skolem_first_ctn_pre xn y))))
@@ -109,7 +109,7 @@
         (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
         (= k (alf.neg 1))
         (ite
-          (= y (mk_emptystr U))
+          (= y (mk_emptystr (alf.typeof x)))
           (= k n)
           (and (= xn (str.++ k1 y k2))
               (not (str.contains
@@ -121,10 +121,10 @@
 ; Compute the reduction predicate for term t of sort s. Note that the operators
 ; listed in comments are missing from the signature currently.
 (program string_reduction_pred ((U Type) (x U) (y U) (n Int) (m Int))
-  (U Type) Bool
+  (U) Bool
   (
-    ((string_reduction_pred (str.substr x n m) U) (string_reduction_substr x n m U))
-    ((string_reduction_pred (str.indexof x y n) U) (string_reduction_indexof x y n U))
+    ((string_reduction_pred (str.substr x n m)) (string_reduction_substr x n m))
+    ((string_reduction_pred (str.indexof x y n)) (string_reduction_indexof x y n))
     ; str.update
     ; str.from_int
     ; str.to_int
@@ -179,11 +179,11 @@
 
 ; Compute the eager reduction predicate of term t of type U.
 (program mk_string_eager_reduction ((U Type) (x U) (y U) (n Int) (m Int))
-  (U Type) Bool
+  (U) Bool
   (
-    ((mk_string_eager_reduction (str.to_code x) U) (string_eager_reduction_to_code x))
-    ((mk_string_eager_reduction (str.contains x y) U) (string_eager_reduction_contains x y))
-    ((mk_string_eager_reduction (str.indexof x y n) U) (string_eager_reduction_indexof x y n))
+    ((mk_string_eager_reduction (str.to_code x)) (string_eager_reduction_to_code x))
+    ((mk_string_eager_reduction (str.contains x y)) (string_eager_reduction_contains x y))
+    ((mk_string_eager_reduction (str.indexof x y n)) (string_eager_reduction_indexof x y n))
   )
 )
 
@@ -380,9 +380,9 @@
 ; (1) convert s to n-ary form if it is not already a str.++ application,
 ; (2) flatten so that its constant prefix,
 ; (3) (optionally) reverse.
-(define string_to_flat_form ((U Type) (s U) (rev Bool))
+(define string_to_flat_form ((U Type :implicit) (s U) (rev Bool))
   ; intro, flatten, reverse
-  (string_rev rev (string_flatten (nary.intro str.++ (mk_emptystr U) alf.nil s)))
+  (string_rev rev (string_flatten (nary.intro str.++ (mk_emptystr (alf.typeof s)) alf.nil s)))
 )
 
 ; Converts a term in "flat form" to a term that is in a form that corresponds
@@ -391,7 +391,7 @@
 ; (1) (optionally) reverse,
 ; (2) collect constants
 ; (3) eliminate n-ary form to its element if the term is a singleton list.
-(define string_from_flat_form ((U Type) (s U) (rev Bool))
+(define string_from_flat_form ((U Type :implicit) (s U) (rev Bool))
   ; reverse, collect, elim
-  (nary.elim str.++ alf.nil (mk_emptystr U) (string_collect (string_rev rev s)))
+  (nary.elim str.++ alf.nil (mk_emptystr (alf.typeof s)) (string_collect (string_rev rev s)))
 )

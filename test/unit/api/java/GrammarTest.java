@@ -69,7 +69,6 @@ class GrammarTest
     assertThrows(CVC5ApiException.class, () -> g.addRule(start, nullTerm));
     assertThrows(CVC5ApiException.class, () -> g.addRule(nts, d_solver.mkBoolean(false)));
     assertThrows(CVC5ApiException.class, () -> g.addRule(start, d_solver.mkInteger(0)));
-    assertThrows(CVC5ApiException.class, () -> g.addRule(start, nts));
 
     d_solver.synthFun("f", new Term[] {}, bool, g);
 
@@ -98,7 +97,6 @@ class GrammarTest
         CVC5ApiException.class, () -> g.addRules(nts, new Term[] {d_solver.mkBoolean(false)}));
     assertThrows(
         CVC5ApiException.class, () -> g.addRules(start, new Term[] {d_solver.mkInteger(0)}));
-    assertThrows(CVC5ApiException.class, () -> g.addRules(start, new Term[] {nts}));
 
     d_solver.synthFun("f", new Term[] {}, bool, g);
 

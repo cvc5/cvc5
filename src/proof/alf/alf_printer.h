@@ -36,7 +36,7 @@ namespace proof {
 class AlfPrinter : protected EnvObj
 {
  public:
-  AlfPrinter(Env& env, AlfNodeConverter& atp);
+  AlfPrinter(Env& env, BaseAlfNodeConverter& atp);
   ~AlfPrinter() {}
 
   /**
@@ -58,6 +58,11 @@ class AlfPrinter : protected EnvObj
   static std::string getRuleName(const ProofNode* pfn);
 
   //-------------
+  /**
+   * Select only those children required by the proof rule.
+   */
+  void getChildrenFromProofRule(
+      const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children);
   /**
    * Add the arguments of proof node pn to args in the order in which they
    * should be printed. This also ensures the nodes have been converted via the
@@ -84,7 +89,7 @@ class AlfPrinter : protected EnvObj
    * return the identifier. pn should be an application of ProofNode::ALF_RULE
    * with AlfRule::SCOPE.
    */
-  size_t allocateAssumePushId(const ProofNode* pn);
+  size_t allocateAssumePushId(const ProofNode* pn, const Node& a);
   /**
    * Allocate (if necessary) the identifier for an assume step for the
    * assumption for formula n and return the identifier. Note this identifier is
@@ -96,17 +101,14 @@ class AlfPrinter : protected EnvObj
    * Allocate (if necessary) the identifier for step
    */
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
-  /** Mapping from proof identifiers X to nodes named @pX which represent
-   * premises */
-  Node allocatePremise(size_t id);
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
   /** Reference to the term processor */
-  AlfNodeConverter& d_tproc;
+  BaseAlfNodeConverter& d_tproc;
   /** Assume id counter */
   size_t d_pfIdCounter;
   /** Mapping scope proofs to identifiers */
-  std::map<const ProofNode*, size_t> d_ppushMap;
+  std::map<std::pair<const ProofNode*, Node>, size_t> d_ppushMap;
   /** Mapping proofs to identifiers */
   std::map<const ProofNode*, size_t> d_pletMap;
   /** Mapping assumed formulas to identifiers */

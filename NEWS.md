@@ -1,7 +1,7 @@
 This file contains a summary of important user-visible changes.
 
 **New Features**
-
+- Added support for nullable sorts and lift operator to the theory of datatypes.
 - API: The signature of functions `Solver::mkFiniteFieldSort(const std::string&)`
        and `Solver::mkFiniteFieldElem(const std::string&, const Sort&)` is now
        extended with an additional (optional) parameter to
@@ -18,11 +18,9 @@ This file contains a summary of important user-visible changes.
        to print proof components to a string with a specified proof format.
 - Support for the AletheLF (ALF) proof format. This format combines the
   strengths of the Alethe and LFSC proof formats, namely it borrows much of the
-  syntax of Alethe, while being based on a logical framework like LFSC. This
-  proof format is currently under development and is planned to the default
-  proof format used cvc5 in future releases.
-  * API: The option `--proof-format=alf` can be used to print proofs in the
-         AletheLF format.
+  syntax of Alethe, while being based on a logical framework like LFSC.
+  * API: The option `--proof-format=alf` prints proofs in the AletheLF format.
+         This option is enabled by default.
   * The ALF proof checker (alfc) is available for download via the script
     `./contrib/get-alf-checker`.
 - CaDiCaL is now integrated via the IPASIR-UP interface as CDCL(T) SAT solver.
@@ -39,9 +37,11 @@ This file contains a summary of important user-visible changes.
        theory lemmas that were relevant to showing the last query was
        unsatisfiable. This is also avialable via the SMT-LIB command
        `get-unsat-core-lemmas`.
+- Various bug fixes.
 
 cvc5 1.0.9
 ==========
+Note: This is a pre-release version for the upcoming version 1.1.0.
 
 - SMT-LIB: The syntax for 0-ary tuples has been changed for the purposes of
            disambiguation. The new syntax for 0-ary tuple sort is `UnitTuple`

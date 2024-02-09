@@ -28,10 +28,29 @@ namespace cvc5::internal {
 namespace proof {
 
 /**
+ * Base class for node converters used in the ALF printer. Extends node
+ * conversion with a typeAsNode routine.
+ */
+class BaseAlfNodeConverter : public NodeConverter
+{
+ public:
+  /**
+   * Returns the operator of node n.
+   */
+  virtual Node getOperatorOfTerm(Node n) = 0;
+  /**
+   * Type as node, returns a node that prints in the form that ALF will
+   * interpret as the type tni. This method is required since types can be
+   * passed as arguments to terms and proof rules.
+   */
+  virtual Node typeAsNode(TypeNode tni) = 0;
+};
+
+/**
  * This is a helper class for the ALF printer that converts nodes into
  * form that ALF expects. It should only be used by the ALF printer.
  */
-class AlfNodeConverter : public NodeConverter
+class AlfNodeConverter : public BaseAlfNodeConverter
 {
  public:
   AlfNodeConverter();
@@ -46,7 +65,7 @@ class AlfNodeConverter : public NodeConverter
    * where it is important to get the term corresponding to the operator for
    * a term. An example is for the base REFL step of nested CONG.
    */
-  Node getOperatorOfTerm(Node n);
+  Node getOperatorOfTerm(Node n) override;
   /**
    * Get the null terminator for kind k and type tn. The type tn can be
    * omitted if applications of kind k do not have parametric type.
@@ -78,9 +97,9 @@ class AlfNodeConverter : public NodeConverter
   /**
    * Type as node, returns a node that prints in the form that ALF will
    * interpret as the type tni. This method is required since types can be
-   * passed as arguments to terms.
+   * passed as arguments to terms and proof rules.
    */
-  Node typeAsNode(TypeNode tni);
+  Node typeAsNode(TypeNode tni) override;
   /**
    * Number of children for closure that we should process. In particular,
    * we ignore patterns for FORALL, so this method returns 2, indicating we

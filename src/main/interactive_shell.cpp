@@ -108,6 +108,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   }
 
   // initialize for incremental string input
+  d_parser->setStringInput(d_lang, "", INPUT_FILENAME);
   d_usingEditline = false;
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
@@ -309,7 +310,8 @@ restart:
     }
   }
 
-  d_parser->setStringInput(d_lang, input, INPUT_FILENAME);
+  // set new string input, without a new parser
+  d_parser->setStringInputInternal(input, INPUT_FILENAME);
 
   /* There may be more than one command in the input. Build up a
      sequence. */

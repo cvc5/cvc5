@@ -236,6 +236,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_TO_NAT),
         /* Finite Fields --------------------------------------------------- */
         KIND_ENUM(Kind::CONST_FINITE_FIELD, internal::Kind::CONST_FINITE_FIELD),
+        KIND_ENUM(Kind::FINITE_FIELD_BITSUM,
+                  internal::Kind::FINITE_FIELD_BITSUM),
         KIND_ENUM(Kind::FINITE_FIELD_MULT, internal::Kind::FINITE_FIELD_MULT),
         KIND_ENUM(Kind::FINITE_FIELD_ADD, internal::Kind::FINITE_FIELD_ADD),
         KIND_ENUM(Kind::FINITE_FIELD_NEG, internal::Kind::FINITE_FIELD_NEG),
@@ -305,6 +307,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::MATCH_CASE, internal::Kind::MATCH_CASE),
         KIND_ENUM(Kind::MATCH_BIND_CASE, internal::Kind::MATCH_BIND_CASE),
         KIND_ENUM(Kind::TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT),
+        KIND_ENUM(Kind::NULLABLE_LIFT, internal::Kind::NULLABLE_LIFT),
         /* Separation Logic ------------------------------------------------- */
         KIND_ENUM(Kind::SEP_NIL, internal::Kind::SEP_NIL),
         KIND_ENUM(Kind::SEP_EMP, internal::Kind::SEP_EMP),
@@ -485,6 +488,7 @@ const static std::unordered_map<SortKind,
         SORT_KIND_ENUM(SortKind::SET_SORT, internal::Kind::SET_TYPE),
         SORT_KIND_ENUM(SortKind::STRING_SORT, internal::Kind::TYPE_CONSTANT),
         SORT_KIND_ENUM(SortKind::TUPLE_SORT, internal::Kind::TUPLE_TYPE),
+        SORT_KIND_ENUM(SortKind::NULLABLE_SORT, internal::Kind::NULLABLE_TYPE),
         SORT_KIND_ENUM(SortKind::UNINTERPRETED_SORT, internal::Kind::SORT_TYPE),
         SORT_KIND_ENUM(SortKind::LAST_SORT_KIND, internal::Kind::LAST_KIND),
     };
@@ -624,6 +628,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::FINITE_FIELD_MULT, Kind::FINITE_FIELD_MULT},
         {internal::Kind::FINITE_FIELD_ADD, Kind::FINITE_FIELD_ADD},
         {internal::Kind::FINITE_FIELD_NEG, Kind::FINITE_FIELD_NEG},
+        {internal::Kind::FINITE_FIELD_BITSUM, Kind::FINITE_FIELD_BITSUM},
         /* FP -------------------------------------------------------------- */
         {internal::Kind::CONST_FLOATINGPOINT, Kind::CONST_FLOATINGPOINT},
         {internal::Kind::CONST_ROUNDINGMODE, Kind::CONST_ROUNDINGMODE},
@@ -698,6 +703,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::MATCH_BIND_CASE, Kind::MATCH_BIND_CASE},
         {internal::Kind::TUPLE_PROJECT, Kind::TUPLE_PROJECT},
         {internal::Kind::TUPLE_PROJECT_OP, Kind::TUPLE_PROJECT},
+        {internal::Kind::NULLABLE_LIFT, Kind::NULLABLE_LIFT},
         /* Separation Logic ------------------------------------------------ */
         {internal::Kind::SEP_NIL, Kind::SEP_NIL},
         {internal::Kind::SEP_EMP, Kind::SEP_EMP},
@@ -844,6 +850,7 @@ const static std::
             {internal::Kind::SEQUENCE_TYPE, SortKind::SEQUENCE_SORT},
             {internal::Kind::SET_TYPE, SortKind::SET_SORT},
             {internal::Kind::TUPLE_TYPE, SortKind::TUPLE_SORT},
+            {internal::Kind::NULLABLE_TYPE, SortKind::NULLABLE_SORT},
         };
 
 /* Set of kinds for indexed operators */
@@ -1129,7 +1136,7 @@ std::string kindToString(Kind k)
   auto it = s_kinds.find(k);
   if (it == s_kinds.end())
   {
-    return "UNDEFINED_KIND";
+    return "Kind::UNDEFINED_KIND";
   }
   return it->second.second;
 }
@@ -1144,7 +1151,7 @@ std::string sortKindToString(SortKind k)
   auto it = s_sort_kinds.find(k);
   if (it == s_sort_kinds.end())
   {
-    return "UNDEFINED_SORT_KIND";
+    return "Kind::UNDEFINED_SORT_KIND";
   }
   return it->second.second;
 }
@@ -1542,6 +1549,15 @@ bool Sort::isTuple() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isTuple();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Sort::isNullable() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isNullable();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2037,6 +2053,17 @@ std::vector<Sort> Sort::getTupleSorts() const
   CVC5_API_CHECK(d_type->isTuple()) << "Not a tuple sort.";
   //////// all checks before this line
   return typeNodeVectorToSorts(d_nm, d_type->getTupleTypes());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Sort Sort::getNullableElementSort() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(isNullable()) << "Not a nullable sort.";
+  //////// all checks before this line
+  return Sort(d_nm, d_type->getNullableElementType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4679,9 +4706,6 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
          "predeclaration";
   CVC5_API_CHECK(ntSymbol.d_node->getType().isInstanceOf(rule.d_node->getType()))
       << "Expected ntSymbol and rule to have the same sort";
-  CVC5_API_ARG_CHECK_EXPECTED(!containsFreeVariables(rule), rule)
-      << "a term whose free variables are limited to synthFun "
-         "parameters and non-terminal symbols of the grammar";
   //////// all checks before this line
   d_sg->addRule(*ntSymbol.d_node, *rule.d_node);
   ////////
@@ -4700,13 +4724,6 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
                               ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-  for (size_t i = 0, n = rules.size(); i < n; ++i)
-  {
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !containsFreeVariables(rules[i]), rules[i], rules, i)
-        << "a term whose free variables are limited to synthFun "
-           "parameters and non-terminal symbols of the grammar";
-  }
   //////// all checks before this line
   d_sg->addRules(*ntSymbol.d_node, Term::termVectorToNodes(rules));
   ////////
@@ -4763,21 +4780,6 @@ Sort Grammar::resolve()
   return Sort(d_nm, d_sg->resolve());
   ////////
   CVC5_API_TRY_CATCH_END;
-}
-
-bool Grammar::containsFreeVariables(const Term& rule) const
-{
-  // we allow the argument list and non-terminal symbols to be in scope
-  std::unordered_set<internal::TNode> scope;
-  for (const internal::Node& var : d_sg->getSygusVars())
-  {
-    scope.emplace(var);
-  }
-  for (const internal::Node& ntsym : d_sg->getNtSyms())
-  {
-    scope.emplace(ntsym);
-  }
-  return internal::expr::hasFreeVariablesScope(*rule.d_node, scope);
 }
 
 std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
@@ -5827,6 +5829,16 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Sort Solver::mkNullableSort(const Sort& sort) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_DOMAIN_SORT(sort);
+  //////// all checks before this line
+  return Sort(d_nm, d_nm->mkNullableType(sort.getTypeNode()));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 /* Create consts                                                              */
 /* -------------------------------------------------------------------------- */
 
@@ -6258,6 +6270,32 @@ Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) cons
   CVC5_API_TRY_CATCH_END;
 }
 
+Term Solver::mkNullableLift(Kind kind, const std::vector<Term>& args) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<internal::Node> vars;
+  for (const Term& t : args)
+  {
+    internal::TypeNode type = t.d_node->getType();
+    internal::TypeNode elementType = type[0];
+    internal::Node var = d_nm->mkBoundVar(elementType);
+    vars.push_back(var);
+  }
+  internal::Node varList = d_nm->mkNode(internal::Kind::BOUND_VAR_LIST, vars);
+  internal::Kind internalKind = extToIntKind(kind);
+  internal::Node body = d_nm->mkNode(internalKind, vars);
+  internal::Node lambda = d_nm->mkNode(internal::Kind::LAMBDA, varList, body);
+  std::vector<internal::Node> nodes;
+  nodes.push_back(lambda);
+  auto argNodes = Term::termVectorToNodes(args);
+  nodes.insert(nodes.end(), argNodes.begin(), argNodes.end());
+
+  return Term(d_nm, d_nm->mkNode(internal::Kind::NULLABLE_LIFT, nodes));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 /* Create constants                                                           */
 /* -------------------------------------------------------------------------- */
 
@@ -6370,13 +6408,101 @@ Term Solver::mkTuple(const std::vector<Term>& terms) const
     typeNodes.push_back(n.getType());
   }
   internal::TypeNode tn = d_nm->mkTupleType(typeNodes);
-  internal::DType dt = tn.getDType();
+  const internal::DType& dt = tn.getDType();
   internal::NodeBuilder nb(extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[0].getConstructor();
   nb.append(args);
   internal::Node res = nb.constructNode();
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkNullableSome(const Term& term) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(term);
+  //////// all checks before this line
+  internal::Node arg = *term.d_node;
+  internal::TypeNode typeNode = arg.getType();
+  internal::TypeNode tn = d_nm->mkNullableType(typeNode);
+  const internal::DType& dt = tn.getDType();
+  internal::NodeBuilder nb(extToIntKind(Kind::APPLY_CONSTRUCTOR));
+  nb << dt[1].getConstructor();
+  nb.append(arg);
+  internal::Node res = nb.constructNode();
+  (void)res.getType(true); /* kick off type checking */
+  return Term(d_nm, res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkNullableNull(const Sort& sort) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isNullable(), sort) << "nullable sort";
+  CVC5_API_ARG_CHECK_EXPECTED(d_nm == sort.d_nm, sort)
+      << "nullable sort associated with the node manager of this solver object";
+  //////// all checks before this line
+  internal::TypeNode tn = sort.getTypeNode();
+  const internal::DType& dt = tn.getDType();
+  internal::NodeBuilder nb(extToIntKind(Kind::APPLY_CONSTRUCTOR));
+  nb << dt[0].getConstructor();
+  internal::Node res = nb.constructNode();
+  (void)res.getType(true); /* kick off type checking */
+  return Term(d_nm, res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkNullableVal(const Term& term) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(term);
+  //////// all checks before this line
+  internal::Node arg = (*term.d_node);
+  internal::TypeNode tn = arg.getType();
+  const internal::DType& dt = tn.getDType();
+  internal::Node sel = dt[1][0].getSelector();
+  internal::Node applySel =
+      d_nm->mkNode(internal::Kind::APPLY_SELECTOR, sel, arg);
+  (void)applySel.getType(true); /* kick off type checking */
+  return Term(d_nm, applySel);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkNullableIsNull(const Term& term) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(term);
+  //////// all checks before this line
+  internal::Node arg = (*term.d_node);
+  internal::TypeNode tn = arg.getType();
+  const internal::DType& dt = tn.getDType();
+  internal::Node tester = dt[0].getTester();
+  internal::Node applyTester =
+      d_nm->mkNode(internal::Kind::APPLY_TESTER, tester, arg);
+  (void)applyTester.getType(true); /* kick off type checking */
+  return Term(d_nm, applyTester);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkNullableIsSome(const Term& term) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(term);
+  //////// all checks before this line
+  internal::Node arg = (*term.d_node);
+  internal::TypeNode tn = arg.getType();
+  const internal::DType& dt = tn.getDType();
+  internal::Node tester = dt[1].getTester();
+  internal::Node applyTester =
+      d_nm->mkNode(internal::Kind::APPLY_TESTER, tester, arg);
+  (void)applyTester.getType(true); /* kick off type checking */
+  return Term(d_nm, applyTester);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6687,7 +6813,7 @@ Term Solver::defineFun(const std::string& symbol,
   // the sort of the body must match the return sort
   CVC5_API_CHECK(term.d_node->getType() == *sort.d_type)
       << "Invalid sort of function body '" << term << "', expected '" << sort
-      << "'";
+      << "', found '" << term.getSort() << "'";
 
   std::vector<Sort> domain_sorts;
   for (const auto& bv : bound_vars)
@@ -7166,6 +7292,9 @@ std::vector<Term> Solver::getUnsatCoreLemmas(void) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
       << "Cannot get unsat core lemmas unless explicitly enabled "
          "(try --produce-unsat-cores)";
+  CVC5_API_CHECK(d_slv->getOptions().smt.unsatCoresMode
+                 == internal::options::UnsatCoresMode::SAT_PROOF)
+      << "Cannot get unsat core lemmas unless SAT proofs are enabled";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
       << "Cannot get unsat core unless in unsat mode.";
   //////// all checks before this line
@@ -7259,12 +7388,21 @@ std::vector<Proof> Solver::getProof(modes::ProofComponent c) const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::string Solver::proofToString(Proof proof, modes::ProofFormat format) const
+std::string Solver::proofToString(
+    Proof proof,
+    modes::ProofFormat format,
+    const std::map<cvc5::Term, std::string>& assertionNames) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   std::ostringstream ss;
-  this->d_slv->printProof(ss, proof.getProofNode(), format);
+  // convert the map's domain to use nodes rather than terms
+  std::map<internal::Node, std::string> nodeAssertionNames;
+  for (const auto& p : assertionNames)
+  {
+    nodeAssertionNames[p.first.getNode()] = p.second;
+  }
+  this->d_slv->printProof(ss, proof.getProofNode(), format, nodeAssertionNames);
   return ss.str();
   ////////
   CVC5_API_TRY_CATCH_END;
