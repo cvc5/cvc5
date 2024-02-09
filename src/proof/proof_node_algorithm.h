@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
@@ -98,6 +99,16 @@ bool containsSubproof(ProofNode* pn, ProofNode* pnc);
 bool containsSubproof(ProofNode* pn,
                       ProofNode* pnc,
                       std::unordered_set<const ProofNode*>& visited);
+
+/**
+ * Returns the ProofRule that handles congruence for the given term.
+ *
+ * @param n The term, i.e. the lhs or rhs of the conclusion of the cong step.
+ * @param args The arguments to the application of cong for the given term
+ * @return the proof rule for congruence over the given term, which is one
+ * of CONG, NARY_CONG or HO_CONG.
+ */
+ProofRule getCongRule(const Node& n, std::vector<Node>& args);
 
 }  // namespace expr
 }  // namespace cvc5::internal
