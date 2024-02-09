@@ -39,7 +39,7 @@ class SortToTerm
    * Constructs an object representing a term corresponding to the specified
    * type.
    */
-  SortToTerm(const TypeNode& setType);
+  SortToTerm(const TypeNode& sort);
   SortToTerm(const SortToTerm& other);
   ~SortToTerm();
 
