@@ -13,7 +13,10 @@
  * The cvc5 C API.
  */
 
+extern "C" {
 #include <cvc5/c/cvc5.h>
+}
+
 #include <cvc5/cvc5.h>
 
 #include <iostream>
