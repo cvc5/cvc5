@@ -184,6 +184,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * where uf: Int -> E is a skolem function, and E is the type of elements of A
    */
   EVALUE(BAGS_MAP_PREIMAGE),
+  EVALUE(BAGS_MAP_PREIMAGE_INJECTIVE),
   /**
    * A skolem variable for the size of the preimage of {y} that is unique per
    * terms (bag.map f A), y which might be an element in (bag.map f A). (see the
