@@ -48,10 +48,12 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
   switch (pfn->getRule())
   {
     // List of handled rules
+    case ProofRule::SCOPE:
     case ProofRule::REFL:
     case ProofRule::SYMM:
     case ProofRule::TRANS:
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     case ProofRule::HO_CONG:
     case ProofRule::TRUE_INTRO:
     case ProofRule::TRUE_ELIM:
@@ -128,6 +130,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
+    case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
     case ProofRule::DSL_REWRITE:
     // alf rule is handled
@@ -260,8 +263,11 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   const std::vector<Node>& assertions = pfn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pfn->getChildren()[0]->getChildren()[0].get();
 
-  // use a let binding if proofDagGlobal is true
-  LetBinding lbind(d_termLetPrefix);
+  // Use a let binding if proofDagGlobal is true.
+  // We can traverse binders due to the way we print global declare-var, since
+  // terms beneath binders will always have their variables in scope and hence
+  // can be printed in define commands.
+  LetBinding lbind(d_termLetPrefix, 2, true);
   LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
   AlfPrintChannelPre aletify(lbindUse);
   AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
@@ -379,8 +385,8 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
       printStepPre(out, cur);
       processingChildren[cur] = true;
       // will revisit this proof node
-      const std::vector<std::shared_ptr<ProofNode>>& children =
-          cur->getChildren();
+      std::vector<std::shared_ptr<ProofNode>> children;
+      getChildrenFromProofRule(cur, children);
       // visit each child
       for (const std::shared_ptr<ProofNode>& c : children)
       {
@@ -402,20 +408,42 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
 {
   // if we haven't yet allocated a proof id, do it now
   ProofRule r = pn->getRule();
-  if (r == ProofRule::ALF_RULE)
+  if (r == ProofRule::SCOPE)
   {
-    Assert(!pn->getArguments().empty());
-    Node rn = pn->getArguments()[0];
-    AlfRule ar = getAlfRule(rn);
-    if (ar == AlfRule::SCOPE)
+    const std::vector<Node>& args = pn->getArguments();
+    for (const Node& a : args)
     {
-      Assert(pn->getArguments().size() == 3);
-      size_t aid = allocateAssumePushId(pn);
-      Node a = d_tproc.convert(pn->getArguments()[2]);
+      size_t aid = allocateAssumePushId(pn, a);
+      Node aa = d_tproc.convert(a);
       // print a push
-      out->printAssume(a, aid, true);
+      out->printAssume(aa, aid, true);
     }
   }
+}
+
+void AlfPrinter::getChildrenFromProofRule(
+    const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children)
+{
+  const std::vector<std::shared_ptr<ProofNode>>& cc = pn->getChildren();
+  switch (pn->getRule())
+  {
+    case ProofRule::CONG:
+    {
+      Node res = pn->getResult();
+      if (res[0].isClosure())
+      {
+        // Ignore the children after the required arguments.
+        // This ensures that we ignore e.g. equalities between patterns
+        // which can appear in term conversion proofs.
+        size_t arity = kind::metakind::getMinArityForKind(res[0].getKind());
+        children.insert(children.end(), cc.begin(), cc.begin() + arity - 1);
+        return;
+      }
+    }
+    break;
+    default: break;
+  }
+  children.insert(children.end(), cc.begin(), cc.end());
 }
 
 void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
@@ -436,50 +464,23 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       return;
     }
     break;
-    // several strings proof rules require adding the type as the first argument
-    case ProofRule::CONCAT_EQ:
-    case ProofRule::CONCAT_UNIFY:
-    case ProofRule::CONCAT_CSPLIT:
+    case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
-      Assert(res.getKind() == Kind::EQUAL);
-      args.push_back(d_tproc.typeAsNode(res[0].getType()));
-    }
-    break;
-    case ProofRule::STRING_LENGTH_POS:
-      args.push_back(d_tproc.typeAsNode(pargs[0].getType()));
-      break;
-    case ProofRule::STRING_REDUCTION:
-    case ProofRule::STRING_EAGER_REDUCTION:
-    {
-      TypeNode towner = theory::strings::utils::getOwnerStringType(pargs[0]);
-      args.push_back(d_tproc.typeAsNode(towner));
-    }
-    break;
-    case ProofRule::INT_TIGHT_LB:
-    case ProofRule::INT_TIGHT_UB:
-      Assert(res.getNumChildren() == 2);
-      // provide the target constant explicitly
-      args.push_back(d_tproc.convert(res[1]));
-      break;
-    case ProofRule::ARITH_TRICHOTOMY:
-      // argument is redundant
+      Node op = d_tproc.getOperatorOfTerm(res[0]);
+      args.push_back(d_tproc.convert(op));
       return;
+    }
+    break;
+    case ProofRule::HO_CONG:
+    {
+      // argument is ignored
+      return;
+    }
     case ProofRule::INSTANTIATE:
     {
-      // ignore arguments past the term vector, collect them into an sexpr
-      Node q = pn->getChildren()[0]->getResult();
-      Assert(q.getKind() == Kind::FORALL);
-      // only provide arguments up to the variable list length
-      std::vector<Node> targs;
-      for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
-      {
-        Assert(i < pargs.size());
-        targs.push_back(d_tproc.convert(pargs[i]));
-      }
-      // package as SEXPR, which will subsequently be converted to list
-      NodeManager* nm = NodeManager::currentNM();
-      Node tsp = nm->mkNode(Kind::SEXPR, targs);
-      Node ts = d_tproc.convert(tsp);
+      // ignore arguments past the term vector
+      Node ts = d_tproc.convert(pargs[0]);
       args.push_back(ts);
       return;
     }
@@ -497,7 +498,6 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   Assert(pn->getRule() != ProofRule::ASSUME);
   // if we have yet to allocate a proof id, do it now
   bool wasAlloc = false;
-  bool isPop = false;
   TNode conclusion = d_tproc.convert(pn->getResult());
   TNode conclusionPrint;
   // print conclusion only if option is set, or this is false
@@ -506,27 +506,18 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     conclusionPrint = conclusion;
   }
   ProofRule r = pn->getRule();
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  std::vector<std::shared_ptr<ProofNode>> children;
+  getChildrenFromProofRule(pn, children);
   std::vector<Node> args;
   bool handled = isHandled(pn);
   if (r == ProofRule::ALF_RULE)
   {
     const std::vector<Node> aargs = pn->getArguments();
     Node rn = aargs[0];
-    AlfRule ar = getAlfRule(rn);
-    // if scope, do pop the assumption from passumeMap
-    if (ar == AlfRule::SCOPE)
+    // arguments are converted here
+    for (size_t i = 2, nargs = aargs.size(); i < nargs; i++)
     {
-      isPop = true;
-      // note that aargs[1] is not provided, it is consumed as an assumption
-    }
-    else
-    {
-      // arguments are converted here
-      for (size_t i = 2, nargs = aargs.size(); i < nargs; i++)
-      {
-        args.push_back(d_tproc.convert(aargs[i]));
-      }
+      args.push_back(d_tproc.convert(aargs[i]));
     }
   }
   else if (handled)
@@ -534,12 +525,6 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     getArgsFromProofRule(pn, args);
   }
   size_t id = allocateProofId(pn, wasAlloc);
-  // if we don't handle the rule, print trust
-  if (!handled)
-  {
-    out->printTrustStep(pn->getRule(), conclusionPrint, id, conclusion);
-    return;
-  }
   std::vector<size_t> premises;
   // get the premises
   std::map<Node, size_t>::iterator ita;
@@ -562,20 +547,62 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     }
     premises.push_back(pid);
   }
+  // if we don't handle the rule, print trust
+  if (!handled)
+  {
+    out->printTrustStep(
+        pn->getRule(), conclusionPrint, id, premises, conclusion);
+    return;
+  }
   std::string rname = getRuleName(pn);
-  out->printStep(rname, conclusionPrint, id, premises, args, isPop);
+  if (r == ProofRule::SCOPE)
+  {
+    if (args.empty())
+    {
+      // If there are no premises, any reference to this proof can just refer to
+      // the body.
+      d_pletMap[pn] = premises[0];
+    }
+    else
+    {
+      // Assuming the body of the scope has identifier id_0, the following prints:
+      // (step-pop id_1 :rule scope :premises (id_0))
+      // ...
+      // (step-pop id_n :rule scope :premises (id_{n-1}))
+      // (step id :rule process_scope :premises (id_n) :args (C))
+      size_t tmpId;
+      for (size_t i = 0, nargs = args.size(); i < nargs; i++)
+      {
+        // Manually increment proof id counter and premises. Note they will only be
+        // used locally here to chain together the pops mentioned above.
+        tmpId = d_pfIdCounter;
+        d_pfIdCounter++;
+        out->printStep(rname, Node::null(), tmpId, premises, {}, true);
+        // The current id is the premises of the next.
+        premises.clear();
+        premises.push_back(tmpId);
+      }
+      // Finish with the process scope step.
+      std::vector<Node> pargs;
+      pargs.push_back(d_tproc.convert(children[0]->getResult()));
+      out->printStep("process_scope", conclusionPrint, id, premises, pargs);
+    }
+  }
+  else
+  {
+    out->printStep(rname, conclusionPrint, id, premises, args);
+  }
 }
 
-size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn)
+size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
 {
-  std::map<const ProofNode*, size_t>::iterator it = d_ppushMap.find(pn);
+  std::pair<const ProofNode*, Node> key(pn, a);
+  std::map<std::pair<const ProofNode*, Node>, size_t>::iterator it =
+      d_ppushMap.find(key);
   if (it != d_ppushMap.end())
   {
     return it->second;
   }
-  Assert(pn->getRule() == ProofRule::ALF_RULE);
-  // pn is a Alf SCOPE
-  Node a = pn->getArguments()[2];
   bool wasAlloc = false;
   size_t aid = allocateAssumeId(a, wasAlloc);
   // if we assigned an id to the assumption
@@ -585,7 +612,7 @@ size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn)
     d_pfIdCounter++;
     aid = d_pfIdCounter;
   }
-  d_ppushMap[pn] = aid;
+  d_ppushMap[key] = aid;
   return aid;
 }
 

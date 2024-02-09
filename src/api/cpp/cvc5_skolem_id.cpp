@@ -52,7 +52,6 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::RE_FIRST_MATCH: return "RE_FIRST_MATCH";
     case SkolemFunId::RE_FIRST_MATCH_POST: return "RE_FIRST_MATCH_POST";
     case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
-    case SkolemFunId::SEQ_MODEL_BASE_ELEMENT: return "SEQ_MODEL_BASE_ELEMENT";
     case SkolemFunId::BAGS_CARD_CARDINALITY: return "BAGS_CARD_CARDINALITY";
     case SkolemFunId::BAGS_CARD_ELEMENTS: return "BAGS_CARD_ELEMENTS";
     case SkolemFunId::BAGS_CARD_N: return "BAGS_CARD_N";
@@ -82,11 +81,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
     case SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
     case SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
-    case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
-    case SkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
-    case SkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
     case SkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
-    case SkolemFunId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
     default: return "?";
   }
 }

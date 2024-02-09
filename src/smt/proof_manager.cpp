@@ -229,7 +229,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
 
 void PfManager::printProof(std::ostream& out,
                            std::shared_ptr<ProofNode> fp,
-                           options::ProofFormatMode mode)
+                           options::ProofFormatMode mode,
+                           const std::map<Node, std::string>& assertionNames)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   // We don't want to invalidate the proof nodes in fp, since these may be
@@ -250,8 +251,6 @@ void PfManager::printProof(std::ostream& out,
   {
     Assert(fp->getRule() == ProofRule::SCOPE);
     proof::AlfNodeConverter atp;
-    proof::AlfProofPostprocess alfpp(d_env, atp);
-    alfpp.process(fp);
     proof::AlfPrinter alfp(d_env, atp);
     alfp.print(out, fp);
   }
@@ -262,7 +261,7 @@ void PfManager::printProof(std::ostream& out,
         d_env, anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
     proof::AletheProofPrinter vpp(d_env);
-    vpp.print(out, fp);
+    vpp.print(out, fp, assertionNames);
   }
   else if (mode == options::ProofFormatMode::LFSC)
   {

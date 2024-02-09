@@ -157,8 +157,6 @@ enum ENUM(SkolemFunId) : uint32_t
    * i = 0, ..., n.
    */
   EVALUE(RE_UNFOLD_POS_COMPONENT),
-  /** Sequence model construction, element for base */
-  EVALUE(SEQ_MODEL_BASE_ELEMENT),
   EVALUE(BAGS_CARD_CARDINALITY),
   EVALUE(BAGS_CARD_ELEMENTS),
   EVALUE(BAGS_CARD_N),
@@ -253,17 +251,8 @@ enum ENUM(SkolemFunId) : uint32_t
    * and it is mapped to y by f.
    */
   EVALUE(SETS_MAP_DOWN_ELEMENT),
-  /** Higher-order type match predicate, see HoTermDb */
-  EVALUE(HO_TYPE_MATCH_PRED),
-  //-------------------- internal
   /** abstract value for a term t */
   EVALUE(ABSTRACT_VALUE),
-  /** the "none" term, for instantiation evaluation */
-  EVALUE(IEVAL_NONE),
-  /** the "some" term, for instantiation evaluation */
-  EVALUE(IEVAL_SOME),
-  /** sygus "any constant" placeholder */
-  EVALUE(SYGUS_ANY_CONSTANT),
   //================================================= Unknown rule
   EVALUE(NONE),
 };

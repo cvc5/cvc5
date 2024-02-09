@@ -118,13 +118,16 @@ versions; more recent versions should be compatible.
 - `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
   or `Clang (>= 5) <https://clang.llvm.org>`_
 - `CMake >= 3.9 <https://cmake.org>`_
-- `Python >= 3.6 and <= 3.10 <https://www.python.org>`_
+- `Python >= 3.6 <https://www.python.org>`_
   + module `tomli <https://pypi.org/project/tomli/>`_
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
+For Python, to install these dependencies automatically, please use:
+
+  - `pip install -r contrib/requirements_build.txt`
 
 CaDiCaL (SAT solver)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -257,6 +260,10 @@ Dependencies for Language Bindings
   - `scikit-build <https://pypi.org/project/scikit-build/>`_
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
   - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
+
+For Python, to install these depedencies automatically, please use:
+
+  - `pip install -r contrib/requirements_python_dev.txt`
 
 If configured with ``--pythonic-path=PATH``, the build system will expect the Pythonic API's source to be at ``PATH``.
 Otherwise, if configured with ``--auto-download``, the build system will download it.

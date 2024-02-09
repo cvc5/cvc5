@@ -1166,8 +1166,7 @@ Node SolverEngine::getValue(const Node& t) const
     {
       // construct the skolem function
       SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
-      Node a = skm->mkSkolemFunctionTyped(
-          SkolemFunId::ABSTRACT_VALUE, rtn, resultNode);
+      Node a = skm->mkSkolemFunction(SkolemFunId::ABSTRACT_VALUE, resultNode);
       // add to top-level substitutions if applicable
       theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
       if (!tsm.get().hasSubstitution(resultNode))
@@ -1388,7 +1387,8 @@ std::vector<Node> SolverEngine::convertPreprocessedToInput(
 
 void SolverEngine::printProof(std::ostream& out,
                               std::shared_ptr<ProofNode> fp,
-                              modes::ProofFormat proofFormat)
+                              modes::ProofFormat proofFormat,
+                              const std::map<Node, std::string>& assertionNames)
 {
   // we print in the format based on the proof mode
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
@@ -1405,7 +1405,7 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
-  d_pfManager->printProof(out, fp, mode);
+  d_pfManager->printProof(out, fp, mode, assertionNames);
   out << std::endl;
 }
 

@@ -1047,7 +1047,8 @@ class CVC5_EXPORT SolverEngine
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
-                  modes::ProofFormat proofFormat);
+                  modes::ProofFormat proofFormat,
+                  const std::map<Node, std::string>& assertionNames);
 
   /* Members -------------------------------------------------------------- */
 
