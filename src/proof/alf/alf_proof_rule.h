@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -24,35 +24,35 @@
 #include "expr/node.h"
 
 namespace cvc5::internal {
-
 namespace proof {
 
+/**
+ * Custom rules that vary from the internal signature of cvc5.
+ * For details, see signatures defined in proofs/alf/Cvc5.smt3.
+ */
 enum class AlfRule : uint32_t
 {
+  // congruence
   CONG,
+  // n-ary congruence
   NARY_CONG,
-  SCOPE,
-  PROCESS_SCOPE,
-  CONCAT_CONFLICT_DEQ,
-  SKOLEM_WITNESS_INTRO,
-  // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED
 };
 
 /**
- * Converts an Alethe proof rule to a string.
+ * Converts an ALF proof rule to a string.
  *
- * @param id The Alethe proof rule
- * @return The name of the Alethe proof rule
+ * @param id The ALF proof rule
+ * @return The name of the ALF proof rule
  */
 const char* AlfRuleToString(AlfRule id);
 
 /**
- * Writes an Alf proof rule name to a stream.
+ * Writes an ALF proof rule name to a stream.
  *
  * @param out The stream to write to
- * @param id The Alf proof rule to write to the stream
+ * @param id The ALF proof rule to write to the stream
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, AlfRule id);
@@ -61,7 +61,6 @@ std::ostream& operator<<(std::ostream& out, AlfRule id);
 AlfRule getAlfRule(Node n);
 
 }  // namespace proof
-
 }  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__ALF__ALF_PROOF_RULE_H */

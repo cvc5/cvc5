@@ -988,12 +988,37 @@ enum ENUM(ProofRule) : uint32_t
    *   k(f?)(s_1,\dots, s_n)}
    *
    * where :math:`k` is the application kind. Notice that :math:`f` must be
-   * provided iff :math:`k` is a parameterized kind, e.g. ``APPLY_UF``. The
-   * actual node for :math:`k` is constructible via
-   * ``ProofRuleChecker::mkKindNode``.
+   * provided iff :math:`k` is a parameterized kind, e.g. 
+   * `cvc5::Kind::APPLY_UF`. The actual node for
+   * :math:`k` is constructible via ``ProofRuleChecker::mkKindNode``.
+   * If :math:`k` is a binder kind (e.g. ``cvc5::Kind::FORALL``) then :math:`f`
+   * is a term of kind ``cvc5::Kind::VARIABLE_LIST``
+   * denoting the variables bound by both sides of the conclusion.
+   * This rule is used for kinds that have a fixed arity, such as
+   * ``cvc5::Kind::ITE``, ``cvc5::Kind::EQUAL``, and so on. It is also used for
+   * ``cvc5::Kind::APPLY_UF`` where :math:`f` must be provided.
+   * It is not used for equality between
+   * ``cvc5::Kind::HO_APPLY`` terms, which should
+   * use the :cpp:enumerator:`HO_CONG <cvc5::ProofRule::HO_CONG>` proof rule.
    * \endverbatim
    */
   EVALUE(CONG),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- N-ary Congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k}{k(t_1,\dots, t_n) =
+   *   k(s_1,\dots, s_n)}
+   *
+   * where :math:`k` is the application kind. The actual node for :math:`k` is
+   * constructible via ``ProofRuleChecker::mkKindNode``. This rule is used for
+   * kinds that have variadic arity, such as ``cvc5::Kind::AND``,
+   * ``cvc5::Kind::PLUS`` and so on.
+   * \endverbatim
+   */
+  EVALUE(NARY_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**
@@ -1053,10 +1078,11 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid -}{f(t_1,\dots, t_n) =
-   *   g(s_1,\dots, s_n)}
+   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid k}{k(f, t_1,\dots, t_n) =
+   *   k(g, s_1,\dots, s_n)}
    *
-   * Notice that this rule is only used when the application kinds are ``APPLY_UF``.
+   * Notice that this rule is only used when the application kind :math:`k` is
+   * either `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`.
    * \endverbatim
    */
   EVALUE(HO_CONG),
@@ -1293,13 +1319,15 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{\forall x_1\dots x_n.\> F\mid t_1,\dots,t_n, (id\, (t)?)?}
+   *   \inferrule{\forall x_1\dots x_n.\> F\mid (t_1 \dots t_n), (id\, (t)?)?}
    *   {F\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
    *
-   * The optional argument :math:`id` indicates the inference id that caused the
-   * instantiation. The term :math:`t` indicates an additional term (e.g. the trigger)
-   * associated with the instantiation, which depends on the id. If the id
-   * has prefix ``QUANTIFIERS_INST_E_MATCHING``, then :math:`t` is the trigger that
+   * The list of terms to instantiate :math:`(t_1 \dots t_n)` is provided as
+   * an s-expression as the first argument. The optional argument :math:`id`
+   * indicates the inference id that caused the instantiation. The term
+   * :math:`t` indicates an additional term (e.g. the trigger) associated with
+   * the instantiation, which depends on the id. If the id has prefix
+   * ``QUANTIFIERS_INST_E_MATCHING``, then :math:`t` is the trigger that
    * generated the instantiation.
    * \endverbatim
    */
@@ -1310,7 +1338,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferruleSC{-\mid F, y_1=z_1,\dots, y_n=z_n}
+   *   \inferruleSC{-\mid F, (y_1 \ldots y_n), (z_1,\dots, z_n)}
    *   {F = F\{y_1\mapsto z_1,\dots,y_n\mapsto z_n\}}
    *   {if $y_1,\dots,y_n, z_1,\dots,z_n$ are unique bound variables}
    *
@@ -1371,21 +1399,29 @@ enum ENUM(ProofRule) : uint32_t
    * \mathit{index},b)` is null, in other words, neither is a prefix of the
    * other. Note it may be the case that one side of the equality denotes the
    * empty string.
+   * 
+   * This rule is used exclusively for strings.
    *
-   * Alternatively, if the equality is between sequences, this rule has the
-   * form:
+   * \endverbatim
+   */
+  EVALUE(CONCAT_CONFLICT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Core rules -- Concatenation conflict for disequal characters**
    *
    * .. math::
    *
    *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \deq s_1 \mid b}{\bot}
    *
-   * where t_1 and s_1 are constants of length one, or otherwise one side
-   * of the equality is the empty sequence and t_1 or s_1 corresponding to
+   * where $t_1$ and $s_1$ are constants of length one, or otherwise one side
+   * of the equality is the empty sequence and $t_1$ or $s_1$ corresponding to
    * that side is the empty sequence.
+   * 
+   * This rule is used exclusively for sequences.
    *
    * \endverbatim
    */
-  EVALUE(CONCAT_CONFLICT),
+  EVALUE(CONCAT_CONFLICT_DEQ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation split**
@@ -1744,7 +1780,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Trichotomy of the reals**
    *
    * .. math::
-   *   \inferrule{A, B \mid C}{C}
+   *   \inferrule{A, B \mid -}{C}
    *
    * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some order.
    * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.

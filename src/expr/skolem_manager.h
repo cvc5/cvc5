@@ -231,6 +231,8 @@ enum class SkolemFunId
    * and it is mapped to y by f.
    */
   SETS_MAP_DOWN_ELEMENT,
+  /** a shared selector */
+  SHARED_SELECTOR,
   UNKNOWN
 };
 /** Converts a skolem function name to a string. */
@@ -249,8 +251,6 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
 enum class InternalSkolemFunId
 {
   NONE,
-  /** a shared selector */
-  SHARED_SELECTOR,
   /** Sequence model construction, element for base */
   SEQ_MODEL_BASE_ELEMENT,
   /** the "none" term, for instantiation evaluation */

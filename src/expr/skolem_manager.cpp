@@ -21,6 +21,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/sort_to_term.h"
 #include "util/rational.h"
 #include "util/string.h"
 
@@ -99,6 +100,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
     case SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
     case SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
+    case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     default: return "?";
   }
 }
@@ -113,7 +115,6 @@ const char* toString(InternalSkolemFunId id)
 {
   switch (id)
   {
-    case InternalSkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case InternalSkolemFunId::SEQ_MODEL_BASE_ELEMENT:
       return "SEQ_MODEL_BASE_ELEMENT";
     case InternalSkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
@@ -474,8 +475,9 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       break;
     // Type(cacheVals[1])
     case SkolemFunId::INPUT_VARIABLE:
-      Assert(cacheVals.size() > 1);
-      return cacheVals[1].getType();
+      Assert(cacheVals.size() == 2
+             && cacheVals[1].getKind() == Kind::SORT_TO_TERM);
+      return cacheVals[1].getConst<SortToTerm>().getType();
       break;
     // real -> real function
     case SkolemFunId::DIV_BY_ZERO:
@@ -627,6 +629,15 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     {
       Assert (cacheVals[0].getType().isFunction());
       return cacheVals[0].getType().getArgTypes()[0];
+    }
+    case SkolemFunId::SHARED_SELECTOR:
+    {
+      Assert(cacheVals.size() == 3);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      Assert(cacheVals[1].getKind() == Kind::SORT_TO_TERM);
+      TypeNode dtt = cacheVals[0].getConst<SortToTerm>().getType();
+      TypeNode t = cacheVals[1].getConst<SortToTerm>().getType();
+      return nm->mkSelectorType(dtt, t);
     }
     default: break;
   }

@@ -19,6 +19,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "expr/type_matcher.h"
 #include "util/rational.h"
 
@@ -925,10 +926,11 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   std::stringstream ss;
   ss << "sel_" << index;
   SkolemManager* sm = nm->getSkolemManager();
-  TypeNode stype = nm->mkSelectorType(dtt, t);
-  Node nindex = nm->mkConstInt(Rational(index));
-  s = sm->mkInternalSkolemFunction(
-      InternalSkolemFunId::SHARED_SELECTOR, stype, {nindex});
+  std::vector<Node> cacheVals;
+  cacheVals.push_back(nm->mkConst(SortToTerm(dtt)));
+  cacheVals.push_back(nm->mkConst(SortToTerm(t)));
+  cacheVals.push_back(nm->mkConstInt(Rational(index)));
+  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, cacheVals);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
