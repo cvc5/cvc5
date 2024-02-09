@@ -24,9 +24,9 @@
 #include "theory/quantifiers/query_generator_sample_sat.h"
 #include "theory/quantifiers/query_generator_unsat.h"
 #include "theory/quantifiers/rewrite_verifier.h"
+#include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -218,14 +218,13 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   // ENUM is the only find synth target that makes sense to print grammar terms
   // with; the others return terms that do not coincide with the enumerated
   // term.
-  if (fst==modes::FindSynthTarget::ENUM)
+  if (fst == modes::FindSynthTarget::ENUM)
   {
     if (isOutputOn(OutputTag::SYGUS_SOL_GTERM))
     {
       Node psol = getPrintableSygusToBuiltin(n);
       d_env.output(OutputTag::SYGUS_SOL_GTERM)
-          << "(sygus-sol-gterm " << psol << " :" << fst << ")"
-          << std::endl;
+          << "(sygus-sol-gterm " << psol << " :" << fst << ")" << std::endl;
     }
   }
   d_bufferIndex = 1;
