@@ -16,6 +16,7 @@
 #include "proof/proof_node_algorithm.h"
 
 #include "proof/proof_node.h"
+#include "proof/proof_rule_checker.h"
 
 namespace cvc5::internal {
 namespace expr {
@@ -244,6 +245,47 @@ bool containsSubproof(ProofNode* pn,
     }
   }
   return false;
+}
+
+ProofRule getCongRule(const Node& n, std::vector<Node>& args)
+{
+  Kind k = n.getKind();
+  ProofRule r = ProofRule::CONG;
+  switch (k)
+  {
+    case Kind::APPLY_UF:
+    case Kind::DISTINCT:
+    case Kind::FLOATINGPOINT_LT:
+    case Kind::FLOATINGPOINT_LEQ:
+    case Kind::FLOATINGPOINT_GT:
+    case Kind::FLOATINGPOINT_GEQ:
+      // takes arbitrary but we use CONG
+      break;
+    case Kind::HO_APPLY:
+      // Use HO_CONG, since HO_APPLY is encoded as native function application.
+      // This requires no arguments so we return.
+      r = ProofRule::HO_CONG;
+      break;
+    case Kind::APPLY_CONSTRUCTOR:
+      // tuples are n-ary, others are fixed
+      r = n.getType().isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;
+      break;
+    default:
+      if (NodeManager::isNAryKind(k))
+      {
+        // n-ary operators that are not handled as exceptions above use
+        // NARY_CONG
+        r = ProofRule::NARY_CONG;
+      }
+      break;
+  }
+  // Add the arguments
+  args.push_back(ProofRuleChecker::mkKindNode(k));
+  if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+  {
+    args.push_back(n.getOperator());
+  }
+  return r;
 }
 
 }  // namespace expr
