@@ -25,10 +25,8 @@ set(CLN_FOUND_SYSTEM FALSE)
 if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
   set(CLN_FOUND_SYSTEM TRUE)
 
-  file(STRINGS ${CLN_INCLUDE_DIR}/cln/version.h CLN_VERSION
-       REGEX "^#define[\t ]+CL_VERSION .*"
-  )
-  string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" CLN_VERSION "${CLN_VERSION}")
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(CLN cln)
 
   check_system_version("CLN")
 endif()
