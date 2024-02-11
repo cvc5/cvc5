@@ -35,7 +35,7 @@ if(cryptominisat5_FOUND)
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
-  set(CryptoMiniSat_VERSION "5.11.15")
+  set(CryptoMiniSat_VERSION "5.11.21")
 
   check_ep_downloaded("CryptoMiniSat-EP")
   if(NOT CryptoMiniSat-EP_DOWNLOADED)
@@ -54,7 +54,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
     CryptoMiniSat-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/msoos/cryptominisat/archive/refs/tags/${CryptoMiniSat_VERSION}.tar.gz
-    URL_HASH SHA1=bb2215ab421d429bf5a165f7e30aa99e8c2b103d
+    URL_HASH SHA1=d97510a186af8eaecc3ecf38dad345e0758288a5
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                # make sure not to register with cmake
                -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON
