@@ -44,10 +44,10 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: macos:production-arm64-mingw
+          - name: macos:production-arm64-cross
             os: macos-11
             config: production --auto-download --all-bindings --editline --arm64
-            cache-key: production-arm64-mingw
+            cache-key: production-arm64-cross
             strip-bin: strip
             python-bindings: true
             package-name: cvc5-macOS-arm64
