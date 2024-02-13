@@ -137,6 +137,12 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
     }
     break;
+    case ProofRule::ARITH_SUM_UB:
+    {
+      Assert (resc.getNumChildren()==2);
+      
+    }
+    break;
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
