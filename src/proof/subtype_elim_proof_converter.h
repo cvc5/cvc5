@@ -50,6 +50,13 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
                CDProof* cdp) override;
 
  private:
+  /** Try with */
+  bool tryWith(ProofRule id,
+               const std::vector<Node>& children,
+               const std::vector<Node>& args,
+               Node resc,
+               Node& newRes,
+               CDProof* cdp);
   /** The node converter */
   SubtypeElimNodeConverter d_nconv;
   /** The proof checker we are using */

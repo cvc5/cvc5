@@ -73,11 +73,13 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(
       traversing.pop_back();
       const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
       std::vector<std::shared_ptr<ProofNode>> pchildren;
+        Trace("ajr-temp") << "CONVERT " << cur->getRule() << std::endl;
       for (const std::shared_ptr<ProofNode>& cp : ccp)
       {
         it = visited.find(cp);
         Assert(it != visited.end());
         pchildren.push_back(it->second);
+          Trace("ajr-temp") << "- " << cp->getRule() << " " << cp->getResult() << " ... " << it->second->getResult() << std::endl;
       }
       std::shared_ptr<ProofNode> ret = processInternal(cur, pchildren);
       if (ret == nullptr)

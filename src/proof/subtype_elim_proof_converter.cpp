@@ -39,29 +39,27 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     cargs.push_back(d_nconv.convert(a));
   }
+  //Node resc = d_nconv.convert(res);
   // see if proof rule still works
-  Node newRes = d_pc->checkDebug(id, children, cargs);
-  if (newRes.isNull())
+  Node resc = d_nconv.convert(res);
+  Node newRes;
+  // if either failed or succeeded outright
+  if (tryWith(id, children, cargs, resc, newRes, cdp))
   {
-    AlwaysAssert(false) << "Failed to convert subtyping " << id;
-    Trace("ajr-temp") << "Failed to convert subtyping " << id << std::endl;
-    Trace("ajr-temp") << "Premises: " << children << std::endl;
-    Trace("ajr-temp") << "Args: " << cargs << std::endl;
-    // FAILED
-    return Node::null();
-  }
-  Node newResc = d_nconv.convert(newRes);
-  if (newResc == newRes)
-  {
-    // rule worked
-    cdp->addStep(newRes, id, children, cargs);
+    if (newRes.isNull())
+    {
+      Trace("ajr-temp") << "Failed to convert subtyping " << id << std::endl;
+      Trace("ajr-temp") << "Premises: " << children << std::endl;
+      Trace("ajr-temp") << "Args: " << cargs << std::endl;
+      AlwaysAssert(false) << "Failed to convert subtyping " << id;
+    }
     return newRes;
   }
   Trace("ajr-temp") << "Introduction of subtyping via rule " << id << std::endl;
   Trace("ajr-temp") << "Premises: " << children << std::endl;
   Trace("ajr-temp") << "Args: " << cargs << std::endl;
   Trace("ajr-temp") << "...gives " << newRes << std::endl;
-  Trace("ajr-temp") << "...wants " << newResc << std::endl;
+  Trace("ajr-temp") << "...wants " << resc << std::endl;
   bool success = false;
   switch (id)
   {
@@ -69,8 +67,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::NARY_CONG:
     {
       success = true;
-      Node lhs = newResc[0];
-      Node rhs = newResc[1];
+      Node lhs = resc[0];
+      Node rhs = resc[1];
       NodeManager* nm = NodeManager::currentNM();
       for (size_t i = 0, nchild = lhs.getNumChildren(); i < nchild; i++)
       {
@@ -94,11 +92,11 @@ Node SubtypeElimConverterCallback::convert(Node res,
         for (size_t j = 0; j < 2; j++)
         {
           newR[j] = nm->mkNode(Kind::TO_REAL, newRes[j][i]);
-          if (newR[j] != newResc[j][i])
+          if (newR[j] != resc[j][i])
           {
             // if e.g. (to_real 0) = 0.0, prove by evaluate
-            Node eq = j == 1 ? newR[j].eqNode(newResc[j][i])
-                             : newResc[j][i].eqNode(newR[j]);
+            Node eq = j == 1 ? newR[j].eqNode(resc[j][i])
+                             : resc[j][i].eqNode(newR[j]);
             Node peq = d_pc->checkDebug(ProofRule::EVALUATE, {}, {newR[j]});
             if (!CDProof::isSame(eq, peq))
             {
@@ -134,11 +132,39 @@ Node SubtypeElimConverterCallback::convert(Node res,
         }
         break;
       }
+      if (success)
+      {
+        newRes = resc;
+      }
     }
     break;
     case ProofRule::ARITH_MULT_POS:
-    case ProofRule::ARITH_MULT_NEG: break;
-    case ProofRule::MACRO_ARITH_SCALE_SUM_UB: break;
+    case ProofRule::ARITH_MULT_NEG: 
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      std::vector<Node> typedArgs;
+      typedArgs.push_back(nm->mkConstRealOrInt(args[1][0].getType(), args[0].getConst<Rational>()));
+      typedArgs.push_back(args[1]);
+      if (tryWith(id, children, typedArgs, resc, newRes, cdp))
+      {
+        success = !newRes.isNull();
+      }
+    }
+      break;
+    case ProofRule::MACRO_ARITH_SCALE_SUM_UB: 
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      std::vector<Node> typedArgs;
+      for (size_t i=0, nargs=args.size(); i<nargs; i++)
+      {
+        typedArgs.push_back(nm->mkConstRealOrInt(children[i][0].getType(), args[i].getConst<Rational>()));
+      }
+      if (tryWith(id, children, typedArgs, resc, newRes, cdp))
+      {
+        success = !newRes.isNull();
+      }
+    }
+      break;
     case ProofRule::MACRO_SR_EQ_INTRO:
     case ProofRule::SKOLEM_INTRO: break;
     case ProofRule::TRUST_THEORY_REWRITE: break;
@@ -146,10 +172,30 @@ Node SubtypeElimConverterCallback::convert(Node res,
   }
   if (success)
   {
-    return newResc;
+    return newRes;
   }
   AlwaysAssert(false) << "Introduction of subtyping via rule " << id;
   return Node::null();
+}
+
+bool SubtypeElimConverterCallback::tryWith(ProofRule id,
+                                           const std::vector<Node>& children,
+                                           const std::vector<Node>& args,
+                                           Node resc,
+               Node& newRes,
+               CDProof* cdp)
+{
+  newRes = d_pc->checkDebug(id, children, args);
+  if (!newRes.isNull())
+  {
+    // check if the new result has subtyping
+    if (resc == newRes)
+    {
+      cdp->addStep(newRes, id, children, args);
+      return true;
+    }
+  }
+  return true;
 }
 
 }  // namespace cvc5::internal
