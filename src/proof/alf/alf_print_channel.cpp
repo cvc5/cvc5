@@ -19,7 +19,6 @@
 
 #include "expr/node_algorithm.h"
 #include "printer/printer.h"
-#include "proof/alf/alf_proof_rule.h"
 
 namespace cvc5::internal {
 namespace proof {

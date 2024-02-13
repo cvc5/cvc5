@@ -25,7 +25,6 @@
 #include "expr/subs.h"
 #include "options/main_options.h"
 #include "printer/printer.h"
-#include "proof/alf/alf_proof_rule.h"
 #include "proof/proof_node_to_sexpr.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
@@ -132,9 +131,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
-    case ProofRule::DSL_REWRITE:
-    // alf rule is handled
-    case ProofRule::ALF_RULE: return true;
+    case ProofRule::DSL_REWRITE: return true;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
@@ -224,15 +221,8 @@ bool AlfPrinter::canEvaluate(Node n) const
 
 std::string AlfPrinter::getRuleName(const ProofNode* pfn)
 {
-  std::string name;
   ProofRule r = pfn->getRule();
-  switch (r)
-  {
-    case ProofRule::ALF_RULE:
-      name = AlfRuleToString(getAlfRule(pfn->getArguments()[0]));
-      break;
-    default: name = toString(pfn->getRule()); break;
-  }
+  std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
     return std::tolower(c);
   });
@@ -510,17 +500,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   getChildrenFromProofRule(pn, children);
   std::vector<Node> args;
   bool handled = isHandled(pn);
-  if (r == ProofRule::ALF_RULE)
-  {
-    const std::vector<Node> aargs = pn->getArguments();
-    Node rn = aargs[0];
-    // arguments are converted here
-    for (size_t i = 2, nargs = aargs.size(); i < nargs; i++)
-    {
-      args.push_back(d_tproc.convert(aargs[i]));
-    }
-  }
-  else if (handled)
+  if (handled)
   {
     getArgsFromProofRule(pn, args);
   }
