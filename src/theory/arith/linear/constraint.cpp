@@ -1788,7 +1788,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           TypeNode type = plit[0].getType();
           for (Rational r : *getFarkasCoefficients())
           {
-            farkasCoeffs.push_back(nm->mkConstReal(Rational(r)));
+            farkasCoeffs.push_back(nm->mkConstRealOrInt(Rational(r)));
           }
 
           // Apply the scaled-sum rule.
@@ -2091,8 +2091,8 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
         ProofRule::MACRO_SR_PRED_TRANSFORM,
         {d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                        {pf_neg_la, pf_neg_lb},
-                       {nm->mkConstRealOrInt(type, Rational(-1 * sndSign)),
-                        nm->mkConstRealOrInt(type, Rational(sndSign))})},
+                       {nm->mkConstRealOrInt(Rational(-1 * sndSign)),
+                        nm->mkConstRealOrInt(Rational(sndSign))})},
         {nm->mkConst(false)});
     std::vector<Node> as;
     std::transform(orN.begin(), orN.end(), std::back_inserter(as), [](Node n) {

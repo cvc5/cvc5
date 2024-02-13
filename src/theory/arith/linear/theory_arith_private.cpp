@@ -4519,7 +4519,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         std::transform(coeffs->begin(),
                        coeffs->end(),
                        std::back_inserter(farkasCoefficients),
-                       [nm](const Rational& r) { return nm->mkConstReal(r); });
+                       [nm](const Rational& r) { return nm->mkConstRealOrInt(r); });
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
