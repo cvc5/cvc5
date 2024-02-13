@@ -19,18 +19,19 @@
 #define CVC5__PROOF__SUBTYPE_ELIM_PROOF_CONVERTER_H
 
 #include "expr/node.h"
-#include "proof/proof_node_converter.h"
 #include "expr/subtype_elim_node_converter.h"
+#include "proof/proof_node_converter.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
-  
+
 class ProofChecker;
 
 /**
  * A virtual callback class for converting ProofNode.
  */
-class SubtypeElimConverterCallback : public ProofNodeConverterCallback, protected EnvObj
+class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
+                                     protected EnvObj
 {
  public:
   SubtypeElimConverterCallback(Env& env);
@@ -39,15 +40,16 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback, protecte
    * Update the proof rule application, store steps in cdp. Return true if
    * the proof changed. It can be assumed that cdp contains proofs of each
    * fact in children.
-   * 
+   *
    * Returns the desired conclusion of this step
    */
   Node convert(Node res,
-                       ProofRule id,
-                       const std::vector<Node>& children,
-                       const std::vector<Node>& args,
-                       CDProof* cdp) override;
-private:
+               ProofRule id,
+               const std::vector<Node>& children,
+               const std::vector<Node>& args,
+               CDProof* cdp) override;
+
+ private:
   /** The node converter */
   SubtypeElimNodeConverter d_nconv;
   /** The proof checker we are using */
