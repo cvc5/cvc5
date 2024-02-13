@@ -27,6 +27,7 @@
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/linear/partial_model.h"
@@ -1784,14 +1785,15 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           NodeManager* nm = NodeManager::currentNM();
 
           // Enumerate d_farkasCoefficients as nodes.
-          std::vector<Node> farkasCoeffs;
+          std::vector<Node> farkasCoeffsPre;
           TypeNode type = plit[0].getType();
           size_t cindex = 0;
           for (Rational r : *getFarkasCoefficients())
           {
-            farkasCoeffs.push_back(nm->mkConstRealOrInt(farkasChildren[cindex]->getResult()[0].getType(), Rational(r)));
+            farkasCoeffsPre.push_back(nm->mkConstRealOrInt(Rational(r)));
             cindex++;
           }
+          std::vector<Node> farkasCoeffs = getMacroSumUbCoeff(farkasChildren, farkasCoeffsPre);
 
           // Apply the scaled-sum rule.
           std::shared_ptr<ProofNode> sumPf =
