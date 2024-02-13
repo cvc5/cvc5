@@ -27,9 +27,7 @@ runs:
           libedit-dev \
           libgmp-dev \
           libtinfo-dev \
-          flex \
-          libfl-dev \
-          flexc++
+          libfl-dev
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -72,7 +70,6 @@ runs:
           ccache \
           gmp \
           pkgconfig \
-          flex \
           gnu-sed
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
