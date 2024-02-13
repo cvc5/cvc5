@@ -75,7 +75,7 @@ void BagSolver::checkBasicOperations()
         case Kind::BAG_INTER_MIN: checkIntersectionMin(n); break;
         case Kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case Kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
-        case Kind::BAG_SETOF: checkDuplicateRemoval(n); break;
+        case Kind::BAG_SETOF: checkSetof(n); break;
         case Kind::BAG_FILTER: checkFilter(n); break;
         case Kind::TABLE_PRODUCT: checkProduct(n); break;
         case Kind::TABLE_JOIN: checkJoin(n); break;
@@ -258,7 +258,7 @@ void BagSolver::checkDifferenceRemove(const Node& n)
   }
 }
 
-void BagSolver::checkDuplicateRemoval(Node n)
+void BagSolver::checkSetof(Node n)
 {
   Assert(n.getKind() == Kind::BAG_SETOF);
   set<Node> elements;
@@ -270,7 +270,7 @@ void BagSolver::checkDuplicateRemoval(Node n)
 
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.duplicateRemoval(n, d_state.getRepresentative(e));
+    InferInfo i = d_ig.setof(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }

@@ -98,7 +98,7 @@ class BagsRewriter : public TheoryRewriter
    *  - (bag.setof (bag x n)) = (bag x 1)
    *     where n is a positive constant
    */
-  BagsRewriteResponse rewriteDuplicateRemoval(const TNode& n) const;
+  BagsRewriteResponse rewriteSetof(const TNode& n) const;
 
   /**
    * rewrites for n include:

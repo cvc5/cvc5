@@ -171,14 +171,14 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode DuplicateRemovalTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetofTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
 }
-TypeNode DuplicateRemovalTypeRule::computeType(NodeManager* nodeManager,
-                                               TNode n,
-                                               bool check,
-                                               std::ostream* errOut)
+TypeNode SetofTypeRule::computeType(NodeManager* nodeManager,
+                                    TNode n,
+                                    bool check,
+                                    std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::BAG_SETOF);
   TypeNode bagType = n[0].getType(check);

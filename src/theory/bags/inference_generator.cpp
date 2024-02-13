@@ -309,7 +309,7 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
+InferInfo InferenceGenerator::setof(Node n, Node e)
 {
   Assert(n.getKind() == Kind::BAG_SETOF && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());

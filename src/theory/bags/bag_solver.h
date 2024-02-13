@@ -95,7 +95,7 @@ class BagSolver : protected EnvObj
   /** apply inference rules for difference remove */
   void checkDifferenceRemove(const Node& n);
   /** apply inference rules for duplicate removal operator */
-  void checkDuplicateRemoval(Node n);
+  void checkSetof(Node n);
   /** apply non negative constraints for multiplicities */
   void checkNonNegativeCountTerms(const Node& bag, const Node& element);
   /** apply inference rules for disequal bag terms */

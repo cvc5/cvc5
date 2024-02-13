@@ -132,7 +132,7 @@ Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
   {
     case Kind::BAG_MAKE: return evaluateMakeBag(n);
     case Kind::BAG_COUNT: return evaluateBagCount(n);
-    case Kind::BAG_SETOF: return evaluateDuplicateRemoval(n);
+    case Kind::BAG_SETOF: return evaluateSetof(n);
     case Kind::BAG_UNION_DISJOINT: return evaluateUnionDisjoint(n);
     case Kind::BAG_UNION_MAX: return evaluateUnionMax(n);
     case Kind::BAG_INTER_MIN: return evaluateIntersectionMin(n);
@@ -298,7 +298,7 @@ Node BagsUtils::evaluateBagCount(TNode n)
   return nm->mkConstInt(Rational(0));
 }
 
-Node BagsUtils::evaluateDuplicateRemoval(TNode n)
+Node BagsUtils::evaluateSetof(TNode n)
 {
   Assert(n.getKind() == Kind::BAG_SETOF);
 

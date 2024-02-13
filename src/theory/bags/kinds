@@ -89,7 +89,7 @@ typerule BAG_DIFFERENCE_REMOVE   ::cvc5::internal::theory::bags::BinaryOperatorT
 typerule BAG_SUBBAG              ::cvc5::internal::theory::bags::SubBagTypeRule
 typerule BAG_COUNT               ::cvc5::internal::theory::bags::CountTypeRule
 typerule BAG_MEMBER              ::cvc5::internal::theory::bags::MemberTypeRule
-typerule BAG_SETOF   ::cvc5::internal::theory::bags::DuplicateRemovalTypeRule
+typerule BAG_SETOF   ::cvc5::internal::theory::bags::SetofTypeRule
 typerule BAG_MAKE                ::cvc5::internal::theory::bags::BagMakeTypeRule
 typerule BAG_EMPTY               ::cvc5::internal::theory::bags::EmptyBagTypeRule
 typerule BAG_CARD                ::cvc5::internal::theory::bags::CardTypeRule

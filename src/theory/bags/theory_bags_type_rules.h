@@ -85,14 +85,14 @@ struct MemberTypeRule
 /**
  * Type rule for bag.setof to check the argument is of a bag.
  */
-struct DuplicateRemovalTypeRule
+struct SetofTypeRule
 {
   static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
                               std::ostream* errOut);
-}; /* struct DuplicateRemovalTypeRule */
+}; /* struct SetofTypeRule */
 
 /**
  * Type rule for (bag op e) operator to check the sort of e matches the sort

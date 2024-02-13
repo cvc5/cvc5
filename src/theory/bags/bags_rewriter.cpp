@@ -78,7 +78,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
     {
       case Kind::BAG_MAKE: response = rewriteMakeBag(n); break;
       case Kind::BAG_COUNT: response = rewriteBagCount(n); break;
-      case Kind::BAG_SETOF: response = rewriteDuplicateRemoval(n); break;
+      case Kind::BAG_SETOF: response = rewriteSetof(n); break;
       case Kind::BAG_UNION_MAX: response = rewriteUnionMax(n); break;
       case Kind::BAG_UNION_DISJOINT: response = rewriteUnionDisjoint(n); break;
       case Kind::BAG_INTER_MIN: response = rewriteIntersectionMin(n); break;
@@ -202,7 +202,7 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
-BagsRewriteResponse BagsRewriter::rewriteDuplicateRemoval(const TNode& n) const
+BagsRewriteResponse BagsRewriter::rewriteSetof(const TNode& n) const
 {
   Assert(n.getKind() == Kind::BAG_SETOF);
   if (n[0].getKind() == Kind::BAG_MAKE && n[0][1].isConst()

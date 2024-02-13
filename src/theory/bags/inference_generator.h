@@ -190,7 +190,7 @@ class InferenceGenerator
    *    (ite (>= (bag.count e A) 1) 1 0))))
    * where skolem is a fresh variable equals (bag.setof A)
    */
-  InferInfo duplicateRemoval(Node n, Node e);
+  InferInfo setof(Node n, Node e);
   /**
    * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
    * @param n is (as bag.empty (Bag E))

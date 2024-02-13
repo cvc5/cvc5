@@ -210,7 +210,7 @@ class BagsUtils
    * @return a constant bag constructed from the elements in A where each
    * element has multiplicity one
    */
-  static Node evaluateDuplicateRemoval(TNode n);
+  static Node evaluateSetof(TNode n);
 
   /**
    * evaluates union disjoint node such that the returned node is a canonical
