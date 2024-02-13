@@ -138,7 +138,7 @@
             (alf.match ((tk String) (M Bool :list))
             (re_unfold_pos_concat t r)
             (((@pair tk M)
-                (alf.from_list and (and (= t tk) M))))))
+                (let ((teq (= t tk))) (alf.ite (alf.is_eq M true) teq (and teq M)))))))
     ))
 )
 
