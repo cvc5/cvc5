@@ -29,6 +29,14 @@ namespace quantifiers {
 
 /**
  * InstStrategySubConflict
+ * 
+ * This strategy invokes a subsolver for the current set of asserted literals.
+ * For example say L1 ... Ln are asserted.
+ * If the call to the subsolver is unsat, it adds two kinds of lemmas:
+ * (1) An "unsat core" lemma of the form ~(Li1 ... Lij) for the unsat core
+ * computed by the subsolver,
+ * (2) Instantiation lemmas Li => Li[t/x] for relevant instantiations of
+ * quantified formulas Li, as determined by the proof.
  */
 class InstStrategySubConflict : public QuantifiersModule
 {

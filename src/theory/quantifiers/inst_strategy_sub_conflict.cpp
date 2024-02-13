@@ -39,19 +39,15 @@ InstStrategySubConflict::InstStrategySubConflict(
   // we start with the provided options
   d_subOptions.copyValues(options());
   // requires full proofs
-  if (options().quantifiers.quantSubCbqiinst)
-  {
-    d_subOptions.writeSmt().produceProofs = true;
-    // don't do simplification, which can preprocess quantifiers to those not
-    // occurring in the main solver
-    d_subOptions.writeSmt().simplificationMode =
-        options::SimplificationMode::NONE;
-  }
+  d_subOptions.writeSmt().produceProofs = true;
+  // don't do simplification, which can preprocess quantifiers to those not
+  // occurring in the main solver
+  d_subOptions.writeSmt().simplificationMode =
+      options::SimplificationMode::NONE;
+  // requires unsat cores
   d_subOptions.writeSmt().produceUnsatCores = true;
   // don't do this strategy
   d_subOptions.writeQuantifiers().quantSubCbqi = false;
-  // disable checking
-  //smt::SetDefaults::disableChecking(d_subOptions);
 }
 
 void InstStrategySubConflict::reset_round(Theory::Effort e) {}
@@ -64,10 +60,6 @@ bool InstStrategySubConflict::needsCheck(Theory::Effort e)
 void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
 {
   if (quant_e != QEFFORT_CONFLICT)
-  {
-    return;
-  }
-  if (options().quantifiers.quantSubCbqiLastCall && e != Theory::EFFORT_LAST_CALL)
   {
     return;
   }
@@ -125,41 +117,38 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
   size_t addedLemmas = 0;
   if (r.getStatus() == Result::UNSAT)
   {
-    if (options().quantifiers.quantSubCbqiinst)
+    // now get relevant instantiations
+    std::map<Node, InstantiationList> insts;
+    std::map<Node, std::vector<Node>> sks;
+    findConflict->getRelevantQuantTermVectors(insts, sks);
+    Instantiate* qinst = d_qim.getInstantiate();
+    size_t triedLemmas = 0;
+    for (std::pair<const Node, InstantiationList>& i : insts)
     {
-      // now get relevant instantiations
-      std::map<Node, InstantiationList> insts;
-      std::map<Node, std::vector<Node>> sks;
-      findConflict->getRelevantQuantTermVectors(insts, sks);
-      Instantiate* qinst = d_qim.getInstantiate();
-      size_t triedLemmas = 0;
-      for (std::pair<const Node, InstantiationList>& i : insts)
+      // ensure we have this quantified formula asserted
+      Node q = i.first;
+      if (quants.find(q) == quants.end())
       {
-        // ensure we have this quantified formula asserted
-        Node q = i.first;
-        if (quants.find(q) == quants.end())
-        {
-          // the conflict is not complete
-          continue;
-        }
-        // otherwise instantiate
-        std::vector<InstantiationVec>& ilist = i.second.d_inst;
-        for (InstantiationVec& vec : ilist)
-        {
-          if (qinst->addInstantiation(
-                  q, vec.d_vec, InferenceId::QUANTIFIERS_INST_SUB_CONFLICT))
-          {
-            addedLemmas++;
-          }
-          triedLemmas++;
-        }
+        // the conflict is not complete
+        continue;
       }
-      // Note that it may be the case that addedLemmas = 0 and we found a
-      // conflict. This indicates that the current assertions are unsat,
-      // and can be shown independent of quantified formulas. We will backtrack
-      // regardless since we assert the unsat core below.
-      Trace("qscf-engine-debug") << addedLemmas << "/" << triedLemmas << " instantiated" << std::endl;
+      // otherwise instantiate
+      std::vector<InstantiationVec>& ilist = i.second.d_inst;
+      for (InstantiationVec& vec : ilist)
+      {
+        if (qinst->addInstantiation(
+                q, vec.d_vec, InferenceId::QUANTIFIERS_INST_SUB_CONFLICT))
+        {
+          addedLemmas++;
+        }
+        triedLemmas++;
+      }
     }
+    // Note that it may be the case that addedLemmas = 0 and we found a
+    // conflict. This indicates that the current assertions are unsat,
+    // and can be shown independent of quantified formulas. We will backtrack
+    // regardless since we assert the unsat core below.
+    Trace("qscf-engine-debug") << addedLemmas << "/" << triedLemmas << " instantiated" << std::endl;
     // Add the computed unsat core as a conflict, which will cause a backtrack.
     UnsatCore uc = findConflict->getUnsatCore();
     Node ucc = NodeManager::currentNM()->mkAnd(uc.getCore());

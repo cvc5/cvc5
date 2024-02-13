@@ -807,22 +807,6 @@ name   = "Quantifiers"
   default    = "0"
   help       = "timeout (in milliseconds) for subsolver calls for sub-cbqi."
 
-[[option]]
-  name       = "quantSubCbqiLastCall"
-  category   = "regular"
-  long       = "sub-cbqi-last-call"
-  type       = "bool"
-  default    = "true"
-  help       = "Enable conflict-based instantiation subsolver strategy only at last call"
-
-[[option]]
-  name       = "quantSubCbqiinst"
-  category   = "regular"
-  long       = "sub-cbqi-inst"
-  type       = "bool"
-  default    = "true"
-  help       = "Enable instantiations for sub-cbqi"
-
 ### Induction options
 
 [[option]]
