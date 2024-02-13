@@ -22,14 +22,15 @@
 #include <unordered_set>
 #include <vector>
 
-#include "proof/proof_node.h"
 #include "expr/node.h"
+#include "proof/proof_node.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs, const std::vector<Node>& coeffs);
+std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
+                                     const std::vector<Node>& coeffs);
 
 }  // namespace arith
 }  // namespace theory

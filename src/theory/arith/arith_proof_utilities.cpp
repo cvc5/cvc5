@@ -21,21 +21,23 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs, const std::vector<Node>& coeffs)
+std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
+                                     const std::vector<Node>& coeffs)
 {
-  Assert (pfs.size()==coeffs.size());
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(pfs.size() == coeffs.size());
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> ret;
   TypeNode itype = nm->integerType();
   TypeNode rtype = nm->realType();
   // For each coefficient, we must use a real if the lhs or rhs of the relation
   // is a real, or if the coefficient is not integral.
-  for (size_t i=0, ncoeff=coeffs.size(); i<ncoeff; i++)
+  for (size_t i = 0, ncoeff = coeffs.size(); i < ncoeff; i++)
   {
-    Assert (coeffs[i].isConst());
+    Assert(coeffs[i].isConst());
     Node res = pfs[i]->getResult();
     const Rational& r = coeffs[i].getConst<Rational>();
-    bool isReal = !r.isIntegral() || res[0].getType().isReal() || res[1].getType().isReal();
+    bool isReal = !r.isIntegral() || res[0].getType().isReal()
+                  || res[1].getType().isReal();
     ret.push_back(nm->mkConstRealOrInt(isReal ? rtype : itype, r));
   }
   return ret;
@@ -44,4 +46,3 @@ std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs, const std::vect
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
-
