@@ -231,9 +231,9 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
       ss << "@" << id;
       k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
     }
-    if (id==SkolemFunId::PURIFY)
+    if (id == SkolemFunId::PURIFY)
     {
-      Assert (cacheVal.getType()==tn);
+      Assert(cacheVal.getType() == tn);
       // set unpurified form attribute for k
       UnpurifiedFormAttribute ufa;
       k.setAttribute(ufa, cacheVal);

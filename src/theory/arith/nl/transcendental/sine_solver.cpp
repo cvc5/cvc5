@@ -248,14 +248,13 @@ void SineSolver::checkInitialRefine()
           //   t > 0  =>  sin(t) < t
           //   t < 0  =>  sin(t) > t
           Node tzero = nm->mkConstRealOrInt(t[0].getType(), Rational(0));
-          Node lem =
-              nm->mkNode(Kind::AND,
-                         nm->mkNode(Kind::IMPLIES,
-                                    nm->mkNode(Kind::GT, t[0], tzero),
-                                    nm->mkNode(Kind::LT, t, t[0])),
-                         nm->mkNode(Kind::IMPLIES,
-                                    nm->mkNode(Kind::LT, t[0], tzero),
-                                    nm->mkNode(Kind::GT, t, t[0])));
+          Node lem = nm->mkNode(Kind::AND,
+                                nm->mkNode(Kind::IMPLIES,
+                                           nm->mkNode(Kind::GT, t[0], tzero),
+                                           nm->mkNode(Kind::LT, t, t[0])),
+                                nm->mkNode(Kind::IMPLIES,
+                                           nm->mkNode(Kind::LT, t[0], tzero),
+                                           nm->mkNode(Kind::GT, t, t[0])));
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {

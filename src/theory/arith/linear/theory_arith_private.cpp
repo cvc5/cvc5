@@ -1416,8 +1416,8 @@ TrustNode TheoryArithPrivate::dioCutting()
       std::vector<Pf> args{pfGt, pfLt};
       std::vector<Node> coeffsPre{nm->mkConstReal(-1), nm->mkConstReal(1)};
       std::vector<Node> coeffs = getMacroSumUbCoeff(args, coeffsPre);
-      Pf pfSum = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
-                               args,coeffs);
+      Pf pfSum =
+          d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffs);
       Node falsen = nm->mkConst(false);
       Pf pfBot = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                {pfSum},

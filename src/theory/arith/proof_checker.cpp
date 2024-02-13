@@ -215,7 +215,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
           }
         }
         if (children[i][0].getType().isReal()
-                || children[i][1].getType().isReal())
+            || children[i][1].getType().isReal())
         {
           if (args[i].getType().isInteger())
           {

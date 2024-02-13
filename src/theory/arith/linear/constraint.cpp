@@ -1128,8 +1128,8 @@ TrustNode Constraint::split()
     std::vector<Pf> args{gtPf, ltPf};
     std::vector<Node> coeffsPre{nm->mkConstReal(-1), nm->mkConstReal(1)};
     std::vector<Node> coeffs = getMacroSumUbCoeff(args, coeffsPre);
-    auto sumPf =
-        d_database->d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffs);
+    auto sumPf = d_database->d_pnm->mkNode(
+        ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffs);
     auto botPf = d_database->d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
     std::vector<Node> a = {leqNode.negate(), geqNode.negate()};
@@ -2093,7 +2093,8 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
                                    {blit});
     int sndSign = negateSecond ? -1 : 1;
     std::vector<Pf> args{pf_neg_la, pf_neg_lb};
-    std::vector<Node> coeffsPre{nm->mkConstReal(Rational(-1 * sndSign)), nm->mkConstReal(Rational(sndSign))};
+    std::vector<Node> coeffsPre{nm->mkConstReal(Rational(-1 * sndSign)),
+                                nm->mkConstReal(Rational(sndSign))};
     std::vector<Node> coeffs = getMacroSumUbCoeff(args, coeffsPre);
     auto bot_pf = d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM,
