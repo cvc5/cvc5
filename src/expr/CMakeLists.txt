@@ -97,6 +97,8 @@ libcvc5_add_sources(
   dtype_selector.cpp
   sequence.cpp
   sequence.h
+  sort_to_term.cpp
+  sort_to_term.h
   subs.cpp
   subs.h
   sygus_datatype.cpp

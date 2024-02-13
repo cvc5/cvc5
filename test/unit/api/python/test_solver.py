@@ -359,6 +359,12 @@ def test_mk_tuple_sort(solver):
     slv = cvc5.Solver()
     slv.mkTupleSort(solver.getIntegerSort())
 
+def test_mk_nullable_sort(solver):
+    nullable_sort = solver.mkNullableSort(solver.getBooleanSort())
+    nullable_null = solver.mkNullableNull(nullable_sort)
+    value = solver.mkNullableIsNull(nullable_null)
+    value = solver.simplify(value)
+    assert True==value.getBooleanValue()
 
 def test_mk_bit_vector(solver):
     solver.mkBitVector(8, 2)
@@ -1002,6 +1008,45 @@ def test_mk_tuple(solver):
     slv.mkTuple([slv.mkBitVector(3, "101", 2)])
     slv.mkTuple([solver.mkBitVector(3, "101", 2)])
 
+def test_mk_nullable_some(solver):
+    solver.mkNullableSome(solver.mkBitVector(3, "101", 2))
+    solver.mkNullableSome(solver.mkInteger("5"))
+    solver.mkNullableSome(solver.mkReal("5.3"))
+    slv = cvc5.Solver()
+    slv.mkNullableSome(slv.mkNullableSome(solver.mkBitVector(3, "101", 2)))
+    slv.mkNullableSome(solver.mkNullableSome(solver.mkBitVector(3, "101", 2)))
+
+def test_mk_nullable_val(solver):    
+    some = solver.mkNullableSome(solver.mkInteger("5"))
+    value = solver.mkNullableVal(some)
+    value = solver.simplify(value)
+    assert 5==int(value.getIntegerValue())
+
+def test_mk_nullable_is_null(solver):    
+    some = solver.mkNullableSome(solver.mkInteger("5"))
+    value = solver.mkNullableIsNull(some)
+    value = solver.simplify(value)
+    assert False==value.getBooleanValue()
+
+def test_mk_nullable_is_some(solver):    
+    some = solver.mkNullableSome(solver.mkInteger("5"))
+    value = solver.mkNullableIsSome(some)
+    value = solver.simplify(value)
+    assert True==value.getBooleanValue()
+
+def test_mk_nullable_null(solver):    
+    nullable_sort = solver.mkNullableSort(solver.getBooleanSort())
+    nullable_null = solver.mkNullableNull(nullable_sort)
+    value = solver.mkNullableIsNull(nullable_null)
+    value = solver.simplify(value)
+    assert True == value.getBooleanValue()
+
+def test_mk_nullable_lift(solver):    
+    some1 = solver.mkNullableSome(solver.mkInteger(1))
+    some2 = solver.mkNullableSome(solver.mkInteger(2))
+    some3 = solver.mkNullableLift(Kind.ADD, some1, some2)
+    three = solver.simplify(solver.mkNullableVal(some3))    
+    assert 3 == int(three.getIntegerValue())
 
 def test_mk_universe_set(solver):
     solver.mkUniverseSet(solver.getBooleanSort())

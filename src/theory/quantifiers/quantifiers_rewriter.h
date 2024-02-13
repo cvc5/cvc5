@@ -218,6 +218,13 @@ class QuantifiersRewriter : public TheoryRewriter
 
  private:
   /**
+   * Do trivial merging of the prenex of quantified formula q, e.g.
+   * (forall ((x Int)) (forall ((y Int)) (P x y))) --->
+   * (forall ((x Int) (y Int)) (P x y)).
+   * This is done until fixed point.
+   */
+  Node mergePrenex(const Node& q);
+  /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
   bool getVarElimInternal(Node body,

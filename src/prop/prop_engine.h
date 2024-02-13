@@ -135,6 +135,16 @@ class PropEngine : protected EnvObj
   void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
 
   /**
+   * This is called when a theory propagation was explained with texp.
+   * In other words, texp corresponds to a formula that was added to the SAT
+   * solver. This method is only used for proofs. It stores the proof of the
+   * clause corresponding to texp in the proof CNF stream.
+   *
+   * @param texp The explained propagation.
+   */
+  void notifyExplainedPropagation(TrustNode texp);
+
+  /**
    * Configure the preferred phase of a decision variable. This occurs
    * *globally*, i.e., even if the literal is untranslated by user pop and
    * retranslated, it keeps this phase.
@@ -296,9 +306,6 @@ class PropEngine : protected EnvObj
    */
   bool properExplanation(TNode node, TNode expl) const;
 
-  /** Retrieve this modules proof CNF stream. */
-  ProofCnfStream* getProofCnfStream();
-
   /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
    * well as to the given assertions. */
   void checkProof(const context::CDList<Node>& assertions);
@@ -415,8 +422,6 @@ class PropEngine : protected EnvObj
 
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
-  /** Proof-producing CNF converter */
-  std::unique_ptr<ProofCnfStream> d_pfCnfStream;
   /** A default proof generator for theory lemmas */
   CDProof d_theoryLemmaPg;
 

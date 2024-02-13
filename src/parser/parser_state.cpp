@@ -460,10 +460,20 @@ Term ParserState::applyTypeAscription(Term t, Sort s)
   }
   else if (k == Kind::APPLY_CONSTRUCTOR)
   {
-    std::vector<Term> children(t.begin(), t.end());
-    // apply type ascription to the operator and reconstruct
-    children[0] = applyTypeAscription(children[0], s);
-    t = d_solver->mkTerm(Kind::APPLY_CONSTRUCTOR, children);
+    // For nullable.null we do not have a kind.
+    // so we need to check the sort here.
+    if (s.isNullable())
+    {
+      // parsing (as nullable.null (Nullable T))
+      t = d_solver->mkNullableNull(s);
+    }
+    else
+    {
+      std::vector<Term> children(t.begin(), t.end());
+      // apply type ascription to the operator and reconstruct
+      children[0] = applyTypeAscription(children[0], s);
+      t = d_solver->mkTerm(Kind::APPLY_CONSTRUCTOR, children);
+    }
   }
   // !!! temporary until datatypes are refactored in the new API
   Sort etype = t.getSort();

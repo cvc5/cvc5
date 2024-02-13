@@ -54,7 +54,8 @@ void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
   Assert(d_rules.find(ntSym) != d_rules.cend());
   Assert(tn.isInstanceOf(ntSym.getType()));
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node anyConst = sm->mkSkolemFunction(SkolemFunId::SYGUS_ANY_CONSTANT, tn);
+  Node anyConst =
+      sm->mkInternalSkolemFunction(InternalSkolemFunId::SYGUS_ANY_CONSTANT, tn);
   addRule(ntSym, anyConst);
 }
 
@@ -163,7 +164,7 @@ void addSygusConstructor(DType& dt,
   SkolemManager* sm = nm->getSkolemManager();
   std::stringstream ss;
   if (rule.getKind() == Kind::SKOLEM
-      && sm->getId(rule) == SkolemFunId::SYGUS_ANY_CONSTANT)
+      && sm->getInternalId(rule) == InternalSkolemFunId::SYGUS_ANY_CONSTANT)
   {
     ss << dt.getName() << "_any_constant";
     dt.addSygusConstructor(rule, ss.str(), {rule.getType()}, 0);
@@ -214,7 +215,8 @@ TypeNode SygusGrammar::resolve(bool allowAny)
       for (const Node& rule : d_rules[ntSym])
       {
         if (rule.getKind() == Kind::SKOLEM
-            && sm->getId(rule) == SkolemFunId::SYGUS_ANY_CONSTANT)
+            && sm->getInternalId(rule)
+                   == InternalSkolemFunId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(ntSym);
         }

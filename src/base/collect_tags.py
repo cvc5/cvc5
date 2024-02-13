@@ -33,7 +33,7 @@ special_collectors = [
     {
         'patterns' : ['assertions::pre-{}', 'assertions::post-{}'],
         'collector' : lambda basedir:
-            re.findall('registerPassInfo\("([a-z-]+)"',
+            re.findall(r'registerPassInfo\("([a-z-]+)"',
                 open(os.path.join(basedir, 'preprocessing', 'preprocessing_pass_registry.cpp')).read()
             )
     }
