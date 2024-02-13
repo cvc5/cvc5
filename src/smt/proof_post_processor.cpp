@@ -1136,10 +1136,13 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_updater.process(pf);
 
   // test
-  SubtypeElimConverterCallback secc(d_env);
-  ProofNodeConverter subtypeConvert(d_env, secc);
-  std::shared_ptr<ProofNode> pfc = subtypeConvert.process(pf);
-  AlwaysAssert(pfc != nullptr);
+  if (options().proof.proofElimSubtypes)
+  {
+    SubtypeElimConverterCallback secc(d_env);
+    ProofNodeConverter subtypeConvert(d_env, secc);
+    std::shared_ptr<ProofNode> pfc = subtypeConvert.process(pf);
+    AlwaysAssert(pfc != nullptr);
+  }
 
   // take stats and check pedantic
   d_finalCb.initializeUpdate();
