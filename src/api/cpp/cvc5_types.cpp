@@ -14,14 +14,51 @@
  * the language bindings are generated automatically.
  */
 
+#include <cvc5/cvc5.h>
 #include <cvc5/cvc5_types.h>
 
 #include <iostream>
+#include <sstream>
 
 #include "base/check.h"
 
 namespace cvc5 {
+std::ostream& operator<<(std::ostream& out, RoundingMode rm)
+{
+  switch (rm)
+  {
+    case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
+      out << "ROUND_NEAREST_TIES_TO_EVEN";
+      break;
+    case RoundingMode::ROUND_TOWARD_POSITIVE:
+      out << "ROUND_TOWARD_POSITIVE";
+      break;
+    case RoundingMode::ROUND_TOWARD_NEGATIVE:
+      out << "ROUND_TOWARD_NEGATIVE";
+      break;
+    case RoundingMode::ROUND_TOWARD_ZERO: out << "ROUND_TOWARD_ZERO"; break;
+    case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+      out << "ROUND_NEAREST_TIES_TO_AWAY";
+      break;
+    default:
+      throw CVC5ApiException("unhandled enum value '"
+                             + std::to_string(static_cast<int32_t>(rm))
+                             + "' encountered");
+  }
+  return out;
+}
+}  // namespace cvc5
 
+namespace std {
+std::string to_string(cvc5::RoundingMode rm)
+{
+  std::stringstream ss;
+  ss << rm;
+  return ss.str();
+}
+}  // namespace std
+
+namespace cvc5 {
 std::ostream& operator<<(std::ostream& out, UnknownExplanation e)
 {
   switch (e)
@@ -40,83 +77,150 @@ std::ostream& operator<<(std::ostream& out, UnknownExplanation e)
       out << "REQUIRES_CHECK_AGAIN";
       break;
     case UnknownExplanation::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
-    default: Unhandled() << e;
+    default:
+      throw CVC5ApiException("unhandled enum value '"
+                             + std::to_string(static_cast<int32_t>(e))
+                             + "' encountered");
   }
   return out;
 }
-
 }  // namespace cvc5
 
-namespace cvc5::modes {
-
-std::ostream& operator<<(std::ostream& out, BlockModelsMode bmode)
+namespace std {
+std::string to_string(cvc5::UnknownExplanation exp)
 {
-  switch (bmode)
+  std::stringstream ss;
+  ss << exp;
+  return ss.str();
+}
+}  // namespace std
+
+namespace cvc5::modes {
+std::ostream& operator<<(std::ostream& out, BlockModelsMode mode)
+{
+  switch (mode)
   {
-    case BlockModelsMode::LITERALS: out << "literals"; break;
-    case BlockModelsMode::VALUES: out << "values"; break;
+    case BlockModelsMode::LITERALS: out << "LITERALS"; break;
+    case BlockModelsMode::VALUES: out << "VALUES"; break;
     default: out << "?";
   }
   return out;
 }
 
+}  // namespace cvc5::modes
+
+namespace std {
+std::string to_string(cvc5::modes::BlockModelsMode mode)
+{
+  std::stringstream ss;
+  ss << mode;
+  return ss.str();
+}
+}  // namespace std
+
+namespace cvc5::modes {
 std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
 {
   switch (ltype)
   {
-    case LearnedLitType::PREPROCESS_SOLVED: out << "preprocess_solved"; break;
-    case LearnedLitType::PREPROCESS: out << "preprocess"; break;
-    case LearnedLitType::INPUT: out << "input"; break;
-    case LearnedLitType::SOLVABLE: out << "solvable"; break;
-    case LearnedLitType::CONSTANT_PROP: out << "constant_prop"; break;
-    case LearnedLitType::INTERNAL: out << "internal"; break;
-    case LearnedLitType::UNKNOWN: out << "unknown"; break;
+    case LearnedLitType::PREPROCESS_SOLVED: out << "PREPROCESS_SOLVED"; break;
+    case LearnedLitType::PREPROCESS: out << "PREPROCESS"; break;
+    case LearnedLitType::INPUT: out << "INPUT"; break;
+    case LearnedLitType::SOLVABLE: out << "SOLVABLE"; break;
+    case LearnedLitType::CONSTANT_PROP: out << "CONSTANT_PROP"; break;
+    case LearnedLitType::INTERNAL: out << "INTERNAL"; break;
+    case LearnedLitType::UNKNOWN: out << "UNKNOWN"; break;
     default: out << "?";
   }
   return out;
 }
+}  // namespace cvc5::modes
+
+namespace std {
+std::string to_string(cvc5::modes::LearnedLitType type)
+{
+  std::stringstream ss;
+  ss << type;
+  return ss.str();
+}
+}  // namespace std
+
+namespace cvc5::modes {
 std::ostream& operator<<(std::ostream& out, ProofComponent pc)
 {
   switch (pc)
   {
-    case ProofComponent::RAW_PREPROCESS: out << "raw_preprocess"; break;
-    case ProofComponent::PREPROCESS: out << "preprocess"; break;
-    case ProofComponent::SAT: out << "sat"; break;
-    case ProofComponent::THEORY_LEMMAS: out << "theory_lemmas"; break;
-    case ProofComponent::FULL: out << "full"; break;
+    case ProofComponent::RAW_PREPROCESS: out << "RAW_PREPROCESS"; break;
+    case ProofComponent::PREPROCESS: out << "PREPROCESS"; break;
+    case ProofComponent::SAT: out << "SAT"; break;
+    case ProofComponent::THEORY_LEMMAS: out << "THEORY_LEMMAS"; break;
+    case ProofComponent::FULL: out << "FULL"; break;
     default: out << "?";
   }
   return out;
 }
+}  // namespace cvc5::modes
 
-std::ostream& operator<<(std::ostream& out, ProofFormat pc)
+namespace std {
+std::string to_string(cvc5::modes::ProofComponent pc)
 {
-  switch (pc)
-  {
-    case ProofFormat::NONE: out << "none"; break;
-    case ProofFormat::DOT: out << "dot"; break;
-    case ProofFormat::LFSC: out << "lfsc"; break;
-    case ProofFormat::ALETHE: out << "alethe"; break;
-    case ProofFormat::DEFAULT: out << "default"; break;
-    default: out << "?";
-  }
-  return out;
+  std::stringstream ss;
+  ss << pc;
+  return ss.str();
 }
+}  // namespace std
 
-std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
+namespace cvc5::modes {
+std::ostream& operator<<(std::ostream& out, ProofFormat format)
 {
-  switch (fst)
+  switch (format)
   {
-    case FindSynthTarget::ENUM: out << "enum"; break;
-    case FindSynthTarget::REWRITE: out << "rewrite"; break;
-    case FindSynthTarget::REWRITE_UNSOUND: out << "rewrite_unsound"; break;
-    case FindSynthTarget::REWRITE_INPUT: out << "rewrite_input"; break;
-    case FindSynthTarget::QUERY: out << "query"; break;
+    case ProofFormat::NONE: out << "NONE"; break;
+    case ProofFormat::DOT: out << "DOT"; break;
+    case ProofFormat::LFSC: out << "LFSC"; break;
+    case ProofFormat::ALETHE: out << "ALETHE"; break;
+    case ProofFormat::DEFAULT: out << "DEFAULT"; break;
     default: out << "?";
   }
   return out;
 }
+}  // namespace cvc5::modes
 
+namespace std {
+std::string to_string(cvc5::modes::ProofFormat format)
+{
+  std::stringstream ss;
+  ss << format;
+  return ss.str();
+}
+}  // namespace std
+
+namespace cvc5::modes {
+std::ostream& operator<<(std::ostream& out, FindSynthTarget target)
+{
+  switch (target)
+  {
+    case FindSynthTarget::ENUM: out << "ENUM"; break;
+    case FindSynthTarget::REWRITE: out << "REWRITE"; break;
+    case FindSynthTarget::REWRITE_UNSOUND: out << "REWRITE_UNSOUND"; break;
+    case FindSynthTarget::REWRITE_INPUT: out << "REWRITE_INPUT"; break;
+    case FindSynthTarget::QUERY: out << "QUERY"; break;
+    default: out << "?";
+  }
+  return out;
+}
+}  // namespace cvc5::modes
+
+namespace std {
+std::string to_string(cvc5::modes::FindSynthTarget target)
+{
+  std::stringstream ss;
+  ss << target;
+  return ss.str();
+}
+}  // namespace std
+
+namespace cvc5::modes {
 std::ostream& operator<<(std::ostream& out, InputLanguage lang)
 {
   switch (lang)
@@ -128,5 +232,13 @@ std::ostream& operator<<(std::ostream& out, InputLanguage lang)
   }
   return out;
 }
-
 }  // namespace cvc5::modes
+
+namespace std {
+std::string to_string(cvc5::modes::InputLanguage lang)
+{
+  std::stringstream ss;
+  ss << lang;
+  return ss.str();
+}
+}  // namespace std
