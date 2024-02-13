@@ -26,8 +26,8 @@
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "theory/arith/arith_utilities.h"
 #include "theory/arith/arith_proof_utilities.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/linear/partial_model.h"
@@ -1793,7 +1793,8 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
             farkasCoeffsPre.push_back(nm->mkConstRealOrInt(Rational(r)));
             cindex++;
           }
-          std::vector<Node> farkasCoeffs = getMacroSumUbCoeff(farkasChildren, farkasCoeffsPre);
+          std::vector<Node> farkasCoeffs =
+              getMacroSumUbCoeff(farkasChildren, farkasCoeffsPre);
 
           // Apply the scaled-sum rule.
           std::shared_ptr<ProofNode> sumPf =

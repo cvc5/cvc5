@@ -29,6 +29,7 @@
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
 #include "context/context.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
@@ -41,11 +42,10 @@
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
-#include "cvc5/cvc5_proof_rule.h"
 #include "smt/logic_exception.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/approx_simplex.h"
 #include "theory/arith/linear/arith_static_learner.h"
@@ -4523,7 +4523,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
             std::back_inserter(farkasCoefficientsPre),
             [nm](const Rational& r) { return nm->mkConstRealOrInt(r); });
         // ensure correct types
-        std::vector<Node> farkasCoefficients = getMacroSumUbCoeff(conflictPfs, farkasCoefficientsPre);
+        std::vector<Node> farkasCoefficients =
+            getMacroSumUbCoeff(conflictPfs, farkasCoefficientsPre);
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
