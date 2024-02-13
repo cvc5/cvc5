@@ -281,8 +281,8 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
           d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                         {isZeroPf, pf},
                         // Trick for getting correct, opposing signs.
-                        {nm->mkConstRealOrInt(Rational(-1 * cSign)),
-                         nm->mkConstRealOrInt(Rational(cSign))});
+                        {nm->mkConstRealOrInt(isZeroPf->getResult()[0].getType(), Rational(-1 * cSign)),
+                         nm->mkConstRealOrInt(pf->getResult()[0].getType(), Rational(cSign))});
       const auto botPf = d_pnm->mkNode(
           ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};

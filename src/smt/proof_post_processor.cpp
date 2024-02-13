@@ -932,7 +932,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
       Node scalarCmp = nm->mkNode(
-          isPos ? Kind::GT : Kind::LT, scalar, nm->mkConstInt(Rational(0)));
+          isPos ? Kind::GT : Kind::LT, scalar, nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue =
           steps.tryStep(ProofRule::EVALUATE, {}, {scalarCmp});

@@ -1414,7 +1414,7 @@ TrustNode TheoryArithPrivate::dioCutting()
           d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt}, lt);
       Pf pfSum = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                                {pfGt, pfLt},
-                               {nm->mkConstReal(-1), nm->mkConstReal(1)});
+                               {nm->mkConstRealOrInt(pfGt->getResult()[0].getType(), Rational(-1)), nm->mkConstRealOrInt(pfLt->getResult()[0].getType(), Rational(1))});
       Node falsen = nm->mkConst(false);
       Pf pfBot = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                {pfSum},
@@ -4496,7 +4496,10 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
       if (isProofEnabled())
       {
         // We can prove this lemma from Farkas...
+        // Collect the farkas coefficients, as nodes.
+        auto nm = NodeManager::currentNM();
         std::vector<std::shared_ptr<ProofNode>> conflictPfs;
+        std::vector<Node> farkasCoefficients;
         Node pfLit = implied->getNegation()->getProofLiteral();
         TypeNode type = pfLit[0].getType();
         // Assume the negated getLiteral version of the implied constaint
@@ -4506,21 +4509,17 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
                           {d_pnm->mkAssume(implied->getLiteral().negate())},
                           {pfLit},
                           pfLit));
+        farkasCoefficients.push_back(nm->mkConstRealOrInt(type, (*coeffs)[0]));
         // Add the explaination proofs.
+        size_t cindex = 1;
         for (const auto constraint : explain)
         {
           NodeBuilder nb;
-          conflictPfs.push_back(constraint->externalExplainByAssertions(nb));
+          std::shared_ptr<ProofNode> pf = constraint->externalExplainByAssertions(nb);
+          conflictPfs.push_back(pf);
+          farkasCoefficients.push_back(nm->mkConstRealOrInt(pf->getResult()[0].getType(), (*coeffs)[cindex]));
+          cindex++;
         }
-        // Collect the farkas coefficients, as nodes.
-        std::vector<Node> farkasCoefficients;
-        farkasCoefficients.reserve(coeffs->size());
-        auto nm = NodeManager::currentNM();
-        std::transform(
-            coeffs->begin(),
-            coeffs->end(),
-            std::back_inserter(farkasCoefficients),
-            [nm](const Rational& r) { return nm->mkConstRealOrInt(r); });
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,

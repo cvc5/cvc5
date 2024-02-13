@@ -196,6 +196,7 @@ bool SubtypeElimConverterCallback::tryWith(ProofRule id,
       cdp->addStep(newRes, id, children, args);
       return true;
     }
+    return false;
   }
   return true;
 }
