@@ -152,22 +152,16 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
     }
     break;
-    case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
+    case ProofRule::MACRO_SR_EQ_INTRO:
     {
-      NodeManager* nm = NodeManager::currentNM();
-      std::vector<Node> typedArgs;
-      for (size_t i = 0, nargs = args.size(); i < nargs; i++)
-      {
-        typedArgs.push_back(nm->mkConstRealOrInt(children[i][0].getType(),
-                                                 args[i].getConst<Rational>()));
-      }
-      if (tryWith(id, children, typedArgs, resc, newRes, cdp))
+      // just use MACRO_SR_PRED_INTRO, where the converted result can be used.
+      cargs[0] = resc;
+      if (tryWith(ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp))
       {
         success = !newRes.isNull();
       }
     }
-    break;
-    case ProofRule::MACRO_SR_EQ_INTRO:
+      break;
     case ProofRule::SKOLEM_INTRO: break;
     case ProofRule::TRUST_THEORY_REWRITE: break;
     default: break;
