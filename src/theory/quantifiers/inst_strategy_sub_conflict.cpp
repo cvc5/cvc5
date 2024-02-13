@@ -129,7 +129,10 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
       Node q = i.first;
       if (quants.find(q) == quants.end())
       {
-        // the conflict is not complete
+        // We ignore this instantiation. We could throw a debug assertion
+        // failure to catch these, however, there is no strong guarantee
+        // that our preprocessor will preserve the shapes of all quantified
+        // formulas, hence we just continue.
         continue;
       }
       // otherwise instantiate
