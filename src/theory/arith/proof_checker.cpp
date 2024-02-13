@@ -214,13 +214,20 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
         }
-        if (args[i].getType().isInteger()
-            && (children[i][0].getType().isReal()
-                || children[i][1].getType().isReal()))
+        if (children[i][0].getType().isReal()
+                || children[i][1].getType().isReal())
         {
-          // Should use real for predicates over reals. This is only
-          // necessary for avoiding spurious usage of mixed arithmetic, but we
-          // check here to avoid potential issues with --proof-elim-subtypes.
+          if (args[i].getType().isInteger())
+          {
+            // Should use real for predicates over reals. This is only
+            // necessary for avoiding spurious usage of mixed arithmetic, but we
+            // check here to avoid potential issues with --proof-elim-subtypes.
+            return Node::null();
+          }
+        }
+        else if (args[i].getType().isReal() && scalar.isIntegral())
+        {
+          // conversely, don't use (integral) real for integer relation.
           return Node::null();
         }
         // Check sign
