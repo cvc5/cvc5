@@ -35,7 +35,7 @@ std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
   {
     Assert(coeffs[i].isConst());
     Node res = pfs[i]->getResult();
-    Assert (res.getType().isBoolean() && res.getNumChildren()==2);
+    Assert(res.getType().isBoolean() && res.getNumChildren() == 2);
     const Rational& r = coeffs[i].getConst<Rational>();
     bool isReal = !r.isIntegral() || res[0].getType().isReal()
                   || res[1].getType().isReal();

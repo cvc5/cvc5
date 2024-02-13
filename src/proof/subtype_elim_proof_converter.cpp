@@ -48,14 +48,16 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     if (newRes.isNull())
     {
-      Trace("pf-subtype-elim") << "Failed to convert subtyping " << id << std::endl;
+      Trace("pf-subtype-elim")
+          << "Failed to convert subtyping " << id << std::endl;
       Trace("pf-subtype-elim") << "Premises: " << children << std::endl;
       Trace("pf-subtype-elim") << "Args: " << cargs << std::endl;
       AlwaysAssert(false) << "Failed to convert subtyping " << id;
     }
     return newRes;
   }
-  Trace("pf-subtype-elim") << "Introduction of subtyping via rule " << id << std::endl;
+  Trace("pf-subtype-elim") << "Introduction of subtyping via rule " << id
+                           << std::endl;
   Trace("pf-subtype-elim") << "Premises: " << children << std::endl;
   Trace("pf-subtype-elim") << "Args: " << cargs << std::endl;
   Trace("pf-subtype-elim") << "...gives " << newRes << std::endl;
@@ -125,7 +127,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
               tchildren.push_back(newREq[1]);
             }
             cdp->addStep(eqNew, ProofRule::TRANS, tchildren, {});
-            Trace("pf-subtype-elim") << "...via trans " << tchildren << std::endl;
+            Trace("pf-subtype-elim")
+                << "...via trans " << tchildren << std::endl;
           }
           continue;
         }
@@ -139,8 +142,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
     break;
     case ProofRule::ARITH_SUM_UB:
     {
-      Assert (resc.getNumChildren()==2);
-      
+      Assert(resc.getNumChildren() == 2);
     }
     break;
     case ProofRule::ARITH_MULT_POS:
@@ -161,12 +163,17 @@ Node SubtypeElimConverterCallback::convert(Node res,
     {
       // just use MACRO_SR_PRED_INTRO, where the converted result can be used.
       cargs[0] = resc;
-      if (tryWith(ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp))
+      if (tryWith(ProofRule::MACRO_SR_PRED_INTRO,
+                  children,
+                  cargs,
+                  resc,
+                  newRes,
+                  cdp))
       {
         success = !newRes.isNull();
       }
     }
-      break;
+    break;
     case ProofRule::SKOLEM_INTRO: break;
     case ProofRule::TRUST_THEORY_REWRITE: break;
     default: break;
