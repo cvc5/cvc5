@@ -39,8 +39,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     cargs.push_back(d_nconv.convert(a));
   }
-  //Node resc = d_nconv.convert(res);
-  // see if proof rule still works
+  // Node resc = d_nconv.convert(res);
+  //  see if proof rule still works
   Node resc = d_nconv.convert(res);
   Node newRes;
   // if either failed or succeeded outright
@@ -139,32 +139,34 @@ Node SubtypeElimConverterCallback::convert(Node res,
     }
     break;
     case ProofRule::ARITH_MULT_POS:
-    case ProofRule::ARITH_MULT_NEG: 
+    case ProofRule::ARITH_MULT_NEG:
     {
       NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> typedArgs;
-      typedArgs.push_back(nm->mkConstRealOrInt(args[1][0].getType(), args[0].getConst<Rational>()));
+      typedArgs.push_back(nm->mkConstRealOrInt(args[1][0].getType(),
+                                               args[0].getConst<Rational>()));
       typedArgs.push_back(args[1]);
       if (tryWith(id, children, typedArgs, resc, newRes, cdp))
       {
         success = !newRes.isNull();
       }
     }
-      break;
-    case ProofRule::MACRO_ARITH_SCALE_SUM_UB: 
+    break;
+    case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
     {
       NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> typedArgs;
-      for (size_t i=0, nargs=args.size(); i<nargs; i++)
+      for (size_t i = 0, nargs = args.size(); i < nargs; i++)
       {
-        typedArgs.push_back(nm->mkConstRealOrInt(children[i][0].getType(), args[i].getConst<Rational>()));
+        typedArgs.push_back(nm->mkConstRealOrInt(children[i][0].getType(),
+                                                 args[i].getConst<Rational>()));
       }
       if (tryWith(id, children, typedArgs, resc, newRes, cdp))
       {
         success = !newRes.isNull();
       }
     }
-      break;
+    break;
     case ProofRule::MACRO_SR_EQ_INTRO:
     case ProofRule::SKOLEM_INTRO: break;
     case ProofRule::TRUST_THEORY_REWRITE: break;
@@ -182,8 +184,8 @@ bool SubtypeElimConverterCallback::tryWith(ProofRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args,
                                            Node resc,
-               Node& newRes,
-               CDProof* cdp)
+                                           Node& newRes,
+                                           CDProof* cdp)
 {
   newRes = d_pc->checkDebug(id, children, args);
   if (!newRes.isNull())
