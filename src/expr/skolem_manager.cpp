@@ -154,6 +154,8 @@ Node SkolemManager::mkPurifySkolem(Node t,
     {
       d_gens[exists] = pg;
     }
+    UnpurifiedFormAttribute ufa;
+    k.setAttribute(ufa, t);
   }
   else
   {
