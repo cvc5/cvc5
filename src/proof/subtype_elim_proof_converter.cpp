@@ -48,18 +48,18 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     if (newRes.isNull())
     {
-      Trace("ajr-temp") << "Failed to convert subtyping " << id << std::endl;
-      Trace("ajr-temp") << "Premises: " << children << std::endl;
-      Trace("ajr-temp") << "Args: " << cargs << std::endl;
+      Trace("pf-subtype-elim") << "Failed to convert subtyping " << id << std::endl;
+      Trace("pf-subtype-elim") << "Premises: " << children << std::endl;
+      Trace("pf-subtype-elim") << "Args: " << cargs << std::endl;
       AlwaysAssert(false) << "Failed to convert subtyping " << id;
     }
     return newRes;
   }
-  Trace("ajr-temp") << "Introduction of subtyping via rule " << id << std::endl;
-  Trace("ajr-temp") << "Premises: " << children << std::endl;
-  Trace("ajr-temp") << "Args: " << cargs << std::endl;
-  Trace("ajr-temp") << "...gives " << newRes << std::endl;
-  Trace("ajr-temp") << "...wants " << resc << std::endl;
+  Trace("pf-subtype-elim") << "Introduction of subtyping via rule " << id << std::endl;
+  Trace("pf-subtype-elim") << "Premises: " << children << std::endl;
+  Trace("pf-subtype-elim") << "Args: " << cargs << std::endl;
+  Trace("pf-subtype-elim") << "...gives " << newRes << std::endl;
+  Trace("pf-subtype-elim") << "...wants " << resc << std::endl;
   bool success = false;
   switch (id)
   {
@@ -78,14 +78,13 @@ Node SubtypeElimConverterCallback::convert(Node res,
         {
           continue;
         }
-        // e.g. t=t becomes (to_real t)=(to_real t) or 0=0 becomes 0.0=0.0?
+        // e.g. t=t becomes (to_real t)=(to_real t) or 0=0 becomes 0.0=0.0
         if (lhs[i] == rhs[i])
         {
           cdp->addStep(eqNew, ProofRule::REFL, {}, {lhs[i]});
           continue;
         }
-        // maybe t=s becomes (to_real t)=(to_real s), or t=0 becomes
-        // (to_real t)=0.0?
+        // t=s becomes (to_real t)=(to_real s), or t=0 becomes (to_real t)=0.0
         Node newR[2];
         Node newREq[2];
         bool needsTrans = false;
@@ -112,7 +111,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
           Node nk = ProofRuleChecker::mkKindNode(Kind::TO_REAL);
           Node ceq = newR[0].eqNode(newR[1]);
           cdp->addStep(ceq, ProofRule::CONG, {children[i]}, {nk});
-          Trace("ajr-temp") << "...via " << ceq << std::endl;
+          Trace("pf-subtype-elim") << "...via " << ceq << std::endl;
           if (needsTrans)
           {
             std::vector<Node> tchildren;
@@ -126,7 +125,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
               tchildren.push_back(newREq[1]);
             }
             cdp->addStep(eqNew, ProofRule::TRANS, tchildren, {});
-            Trace("ajr-temp") << "...via trans " << tchildren << std::endl;
+            Trace("pf-subtype-elim") << "...via trans " << tchildren << std::endl;
           }
           continue;
         }
