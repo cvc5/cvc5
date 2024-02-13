@@ -214,6 +214,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
         }
+        // check for spurious mixed arithmetic
         if (children[i][0].getType().isReal()
             || children[i][1].getType().isReal())
         {

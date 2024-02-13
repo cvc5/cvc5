@@ -1137,7 +1137,7 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   // now, process
   d_updater.process(pf);
 
-  // test
+  // eliminate subtypes if option is specified
   if (options().proof.proofElimSubtypes)
   {
     SubtypeElimConverterCallback secc(d_env);
