@@ -16,15 +16,15 @@
 #if (!defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_CPP_KIND_H)) \
     || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_KIND_H))
 
-#include <cstdint>
-
 #ifdef CVC5_API_USE_C_ENUMS
-#include <cstddef>
+#include <stddef.h>
+#include <stdint.h>
 #undef ENUM
 #define ENUM(name) Cvc5##name
 #else
 #include <cvc5/cvc5_export.h>
 
+#include <cstdint>
 #include <ostream>
 namespace cvc5 {
 #undef ENUM
