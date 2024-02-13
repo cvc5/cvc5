@@ -25,6 +25,7 @@
 #include <iosfwd>
 namespace cvc5 {
 #define ENUM(name) class name
+#undef EVALUE
 #define EVALUE(name) name
 #endif
 

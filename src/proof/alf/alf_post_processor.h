@@ -62,13 +62,6 @@ class AlfProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** Reference to the node converter */
   AlfNodeConverter& d_tproc;
   /**
-   * Are we in the first 2 calls to update? This is to distinguish the top-most
-   * SCOPEs.
-   */
-  uint8_t d_numIgnoredScopes;
-  /** Optimization to only do unique refl */
-  std::map<Node, std::shared_ptr<ProofNode> > d_refl;
-  /**
    * Add a ALF step to the proof cdp with given conclusion, children and args.
    */
   bool addAlfStep(AlfRule rule,
@@ -76,8 +69,6 @@ class AlfProofPostprocessCallback : public ProofNodeUpdaterCallback
                   const std::vector<Node>& children,
                   const std::vector<Node>& args,
                   CDProof& cdp);
-  /** Add a refl step to the proof for n */
-  void addReflStep(const Node& n, CDProof& cdp);
 };
 
 /**
