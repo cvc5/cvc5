@@ -2429,7 +2429,7 @@ class CVC5_EXPORT DatatypeConstructor
   /**
    * Iterator for the selectors of a datatype constructor.
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class DatatypeConstructor;  // to access constructor
 
@@ -2699,7 +2699,7 @@ class CVC5_EXPORT Datatype
   /**
    * Iterator for the constructors of a datatype.
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class Datatype;  // to access constructor
 
