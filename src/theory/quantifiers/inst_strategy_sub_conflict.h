@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * All eager quantifier instantiation
+ * Subsolver conflict quantifier instantiation
  */
 
 #include "cvc5_private.h"

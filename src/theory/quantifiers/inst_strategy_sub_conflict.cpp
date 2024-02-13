@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * All eager quantifier instantiation
+ * Subsolver conflict quantifier instantiation
  */
 
 #include "theory/quantifiers/inst_strategy_sub_conflict.h"
