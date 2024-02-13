@@ -26,9 +26,14 @@ if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
   set(CLN_FOUND_SYSTEM TRUE)
 
   file(STRINGS ${CLN_INCLUDE_DIR}/cln/version.h CLN_VERSION
-       REGEX "^#define[\t ]+CL_VERSION .*"
+       REGEX "^#define[\t ]+CL_VERSION.*"
   )
-  string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" CLN_VERSION "${CLN_VERSION}")
+  if(CLN_VERSION MATCHES
+     "MAJOR ([0-9]+).*MINOR ([0-9]+).*PATCHLEVEL ([0-9]+)")
+    string(CONCAT CLN_VERSION ${CMAKE_MATCH_1} "." ${CMAKE_MATCH_2} "." ${CMAKE_MATCH_3})
+  else()
+    string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" CLN_VERSION "${CLN_VERSION}")
+  endif()
 
   check_system_version("CLN")
 endif()
