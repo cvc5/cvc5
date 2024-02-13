@@ -988,12 +988,37 @@ enum ENUM(ProofRule) : uint32_t
    *   k(f?)(s_1,\dots, s_n)}
    *
    * where :math:`k` is the application kind. Notice that :math:`f` must be
-   * provided iff :math:`k` is a parameterized kind, e.g. ``APPLY_UF``. The
-   * actual node for :math:`k` is constructible via
-   * ``ProofRuleChecker::mkKindNode``.
+   * provided iff :math:`k` is a parameterized kind, e.g. 
+   * `cvc5::Kind::APPLY_UF`. The actual node for
+   * :math:`k` is constructible via ``ProofRuleChecker::mkKindNode``.
+   * If :math:`k` is a binder kind (e.g. ``cvc5::Kind::FORALL``) then :math:`f`
+   * is a term of kind ``cvc5::Kind::VARIABLE_LIST``
+   * denoting the variables bound by both sides of the conclusion.
+   * This rule is used for kinds that have a fixed arity, such as
+   * ``cvc5::Kind::ITE``, ``cvc5::Kind::EQUAL``, and so on. It is also used for
+   * ``cvc5::Kind::APPLY_UF`` where :math:`f` must be provided.
+   * It is not used for equality between
+   * ``cvc5::Kind::HO_APPLY`` terms, which should
+   * use the :cpp:enumerator:`HO_CONG <cvc5::ProofRule::HO_CONG>` proof rule.
    * \endverbatim
    */
   EVALUE(CONG),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- N-ary Congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k}{k(t_1,\dots, t_n) =
+   *   k(s_1,\dots, s_n)}
+   *
+   * where :math:`k` is the application kind. The actual node for :math:`k` is
+   * constructible via ``ProofRuleChecker::mkKindNode``. This rule is used for
+   * kinds that have variadic arity, such as ``cvc5::Kind::AND``,
+   * ``cvc5::Kind::PLUS`` and so on.
+   * \endverbatim
+   */
+  EVALUE(NARY_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**
@@ -1053,10 +1078,11 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid -}{f(t_1,\dots, t_n) =
-   *   g(s_1,\dots, s_n)}
+   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid k}{k(f, t_1,\dots, t_n) =
+   *   k(g, s_1,\dots, s_n)}
    *
-   * Notice that this rule is only used when the application kinds are ``APPLY_UF``.
+   * Notice that this rule is only used when the application kind :math:`k` is
+   * either `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`.
    * \endverbatim
    */
   EVALUE(HO_CONG),
@@ -2190,20 +2216,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALETHE_RULE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- AletheLF**
-   *
-   * Place holder for AletheLF rules.
-   *
-   * .. math::
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external AletheLF
-   * calculus. \endverbatim
-   */
-  EVALUE(ALF_RULE),
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),

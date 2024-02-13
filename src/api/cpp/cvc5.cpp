@@ -236,6 +236,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_TO_NAT),
         /* Finite Fields --------------------------------------------------- */
         KIND_ENUM(Kind::CONST_FINITE_FIELD, internal::Kind::CONST_FINITE_FIELD),
+        KIND_ENUM(Kind::FINITE_FIELD_BITSUM,
+                  internal::Kind::FINITE_FIELD_BITSUM),
         KIND_ENUM(Kind::FINITE_FIELD_MULT, internal::Kind::FINITE_FIELD_MULT),
         KIND_ENUM(Kind::FINITE_FIELD_ADD, internal::Kind::FINITE_FIELD_ADD),
         KIND_ENUM(Kind::FINITE_FIELD_NEG, internal::Kind::FINITE_FIELD_NEG),
@@ -626,6 +628,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::FINITE_FIELD_MULT, Kind::FINITE_FIELD_MULT},
         {internal::Kind::FINITE_FIELD_ADD, Kind::FINITE_FIELD_ADD},
         {internal::Kind::FINITE_FIELD_NEG, Kind::FINITE_FIELD_NEG},
+        {internal::Kind::FINITE_FIELD_BITSUM, Kind::FINITE_FIELD_BITSUM},
         /* FP -------------------------------------------------------------- */
         {internal::Kind::CONST_FLOATINGPOINT, Kind::CONST_FLOATINGPOINT},
         {internal::Kind::CONST_ROUNDINGMODE, Kind::CONST_ROUNDINGMODE},
@@ -1133,7 +1136,7 @@ std::string kindToString(Kind k)
   auto it = s_kinds.find(k);
   if (it == s_kinds.end())
   {
-    return "UNDEFINED_KIND";
+    return "Kind::UNDEFINED_KIND";
   }
   return it->second.second;
 }
@@ -1148,7 +1151,7 @@ std::string sortKindToString(SortKind k)
   auto it = s_sort_kinds.find(k);
   if (it == s_sort_kinds.end())
   {
-    return "UNDEFINED_SORT_KIND";
+    return "Kind::UNDEFINED_SORT_KIND";
   }
   return it->second.second;
 }
@@ -7161,6 +7164,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::VoidInfo{}};
           },
           [&info](const internal::options::OptionInfo::ValueInfo<bool>& vi) {
@@ -7170,6 +7175,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
           },
           [&info](
@@ -7180,6 +7187,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::ValueInfo<std::string>{vi.defaultValue,
                                                    vi.currentValue}};
           },
@@ -7191,6 +7200,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::NumberInfo<int64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7202,6 +7213,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::NumberInfo<uint64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7212,6 +7225,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::NumberInfo<double>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7222,6 +7237,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::ModeInfo{
                     vi.defaultValue, vi.currentValue, vi.modes}};
           },
