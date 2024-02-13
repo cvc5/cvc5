@@ -37,12 +37,15 @@ This file contains a summary of important user-visible changes.
        theory lemmas that were relevant to showing the last query was
        unsatisfiable. This is also avialable via the SMT-LIB command
        `get-unsat-core-lemmas`.
-- Various bug fixes.
 
 **Changes**
 
 - API: Functions `kindToString(Kind)` and `sortKindToString(SortKind)` are now
-       replaced by `std::to_string(Kind)` and `std::to_string(SortKind)`.
+       deprecated and replaced by `std::to_string(Kind)` and
+       `std::to_string(SortKind)`. They will be removed in the next minor
+       release.
+
+- Various bug fixes.
 
 cvc5 1.0.9
 ==========

@@ -1128,9 +1128,29 @@ uint32_t maxArity(Kind k)
 
 }  // namespace
 
+std::string kindToString(Kind k)
+{
+  auto it = s_kinds.find(k);
+  if (it == s_kinds.end())
+  {
+    return "UNDEFINED_KIND";
+  }
+  return it->second.second;
+}
+
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
   return out << std::to_string(k);
+}
+
+std::string sortKindToString(SortKind k)
+{
+  auto it = s_sort_kinds.find(k);
+  if (it == s_sort_kinds.end())
+  {
+    return "UNDEFINED_SORT_KIND";
+  }
+  return it->second.second;
 }
 
 std::ostream& operator<<(std::ostream& out, SortKind k)

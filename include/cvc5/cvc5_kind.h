@@ -5687,6 +5687,15 @@ typedef enum ENUM(Kind) ENUM(Kind);
 const char* cvc5_kind_to_string(Cvc5Kind kind);
 #else
 /**
+ * Get the string representation of a given kind.
+ * @param kind The kind
+ * @return The string representation.
+ * @note This function is deprecated and replaced by
+ *       `std::to_string(Kind kind)`. It will be removed in a future release.
+ */
+[[deprecated("use std::to_string(Kind) instead.")]] std::string kindToString(
+    Kind kind) CVC5_EXPORT;
+/**
  * Serialize a kind to given stream.
  * @param out  The output stream.
  * @param kind The kind to be serialized to the given output stream.
@@ -5977,6 +5986,16 @@ typedef enum ENUM(SortKind) ENUM(SortKind);
  */
 const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
 #else
+/**
+ * Get the string representation of a given kind.
+ * @param k the sort kind
+ * @return the string representation of kind k
+ * @note This function is deprecated and replaced by
+ *       `std::to_string(SortKind kind)`. It will be removed in a future
+ *       release.
+ */
+[[deprecated("use std::to_string(SortKind) instead.")]] std::string
+sortKindToString(SortKind k) CVC5_EXPORT;
 /**
  * Serialize a kind to given stream.
  * @param out the output stream
