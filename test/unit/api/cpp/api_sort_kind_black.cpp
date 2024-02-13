@@ -37,7 +37,7 @@ TEST_F(TestApiKind, sortKindToString)
   {
     SortKind sk = static_cast<SortKind>(k);
     ss << sk << std::endl;
-    auto kindstr = sortKindToString(sk);
+    auto kindstr = std::to_string(sk);
     if (k == static_cast<int32_t>(SortKind::INTERNAL_SORT_KIND))
     {
       ASSERT_EQ(kindstr, "SortKind::INTERNAL_SORT_KIND");

@@ -110,7 +110,7 @@ namespace cvc5 {
 /** Check if given kind is a valid kind. */
 #define CVC5_API_KIND_CHECK(kind)     \
   CVC5_API_CHECK(isDefinedKind(kind)) \
-      << "Invalid kind '" << kindToString(kind) << "'";
+      << "Invalid kind '" << std::to_string(kind) << "'";
 
 /**
  * Check if given kind is a valid kind.
@@ -122,7 +122,7 @@ namespace cvc5 {
   ? (void)0                                      \
   : cvc5::internal::OstreamVoider()              \
           & CVC5ApiExceptionStream().ostream()   \
-                << "Invalid kind '" << kindToString(kind) << "', expected "
+                << "Invalid kind '" << std::to_string(kind) << "', expected "
 
 /* -------------------------------------------------------------------------- */
 /* Argument checks.                                                           */
