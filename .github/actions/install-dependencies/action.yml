@@ -70,7 +70,6 @@ runs:
 
         brew install \
           ccache \
-          cln \
           gmp \
           pkgconfig \
           flex \

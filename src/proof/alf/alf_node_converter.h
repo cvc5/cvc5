@@ -35,6 +35,10 @@ class BaseAlfNodeConverter : public NodeConverter
 {
  public:
   /**
+   * Returns the operator of node n.
+   */
+  virtual Node getOperatorOfTerm(Node n) = 0;
+  /**
    * Type as node, returns a node that prints in the form that ALF will
    * interpret as the type tni. This method is required since types can be
    * passed as arguments to terms and proof rules.
@@ -61,7 +65,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * where it is important to get the term corresponding to the operator for
    * a term. An example is for the base REFL step of nested CONG.
    */
-  Node getOperatorOfTerm(Node n);
+  Node getOperatorOfTerm(Node n) override;
   /**
    * Get the null terminator for kind k and type tn. The type tn can be
    * omitted if applications of kind k do not have parametric type.
