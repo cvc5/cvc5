@@ -307,17 +307,6 @@ Node SkolemCache::mkSkolemFun(SkolemFunId id, Node a, Node b)
   return k;
 }
 
-Node SkolemCache::mkSkolemFunTyped(SkolemFunId id, TypeNode tn, Node a, Node b)
-{
-  std::vector<Node> cacheVals = getSkolemCacheVals(a, b);
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Assert(!tn.isNull());
-  Node k = sm->mkSkolemFunctionTyped(id, tn, cacheVals);
-  d_allSkolems.insert(k);
-  return k;
-}
-
 std::vector<Node> SkolemCache::getSkolemCacheVals(const Node& a,
                                                   const Node& b) const
 {
