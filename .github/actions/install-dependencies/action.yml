@@ -30,7 +30,6 @@ runs:
           flex \
           libfl-dev \
           flexc++
-        python3 -m pip install --user pexpect setuptools tomli pyparsing
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -71,12 +70,10 @@ runs:
 
         brew install \
           ccache \
-          cln \
           gmp \
           pkgconfig \
           flex \
           gnu-sed
-        python3 -m pip install --user pexpect setuptools tomli pyparsing
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -88,15 +85,21 @@ runs:
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
         echo "::endgroup::"
 
+    - name: Install Python modules for building and testing
+      shell: bash
+      run: |
+        echo "::group::Install Python modules for building and testing"
+        python3 -m pip install --user -r contrib/requirements_build.txt
+        python3 -m pip install --user pexpect # For interactive shell tests
+        echo "::endgroup::"
+
     - name: Install software for Python bindings
       if: inputs.with-python-bindings == 'true'
       shell: bash
       run: |
         echo "::group::Install software for Python bindings"
         python3 -m pip install -q --upgrade pip
-        python3 -m pip install --user pytest scikit-build
-        python3 -m pytest --version
-        python3 -m pip install --user Cython==3.*
+        python3 -m pip install --user -r contrib/requirements_python_dev.txt
         # Add binary path of user site-packages to PATH
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
         echo "::endgroup::"

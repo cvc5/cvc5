@@ -570,7 +570,7 @@ class CVC5_EXPORT Sort
   bool isPredicate() const;
 
   /**
-   * Determine if this a tuple sort.
+   * Determine if this is a tuple sort.
    * @return True if this sort is a tuple sort.
    */
   bool isTuple() const;
@@ -2429,7 +2429,7 @@ class CVC5_EXPORT DatatypeConstructor
   /**
    * Iterator for the selectors of a datatype constructor.
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class DatatypeConstructor;  // to access constructor
 
@@ -2699,7 +2699,7 @@ class CVC5_EXPORT Datatype
   /**
    * Iterator for the constructors of a datatype.
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class Datatype;  // to access constructor
 
@@ -5483,6 +5483,7 @@ class CVC5_EXPORT Solver
   /**
    * Print the statistics to the given file descriptor, suitable for usage in
    * signal handlers.
+   * @param fd The file descriptor.
    */
   void printStatisticsSafe(int fd) const;
 
