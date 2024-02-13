@@ -29,7 +29,7 @@ namespace quantifiers {
 
 /**
  * InstStrategySubConflict
- * 
+ *
  * This strategy invokes a subsolver for the current set of asserted literals.
  * For example say L1 ... Ln are asserted.
  * If the call to the subsolver is unsat, it adds two kinds of lemmas:

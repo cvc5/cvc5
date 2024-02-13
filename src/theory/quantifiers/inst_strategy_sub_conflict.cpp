@@ -17,11 +17,11 @@
 
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
-#include "theory/quantifiers/instantiation_list.h"
-#include "theory/quantifiers/instantiate.h"
-#include "theory/smt_engine_subsolver.h"
 #include "proof/unsat_core.h"
 #include "smt/set_defaults.h"
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/instantiation_list.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -148,7 +148,8 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
     // conflict. This indicates that the current assertions are unsat,
     // and can be shown independent of quantified formulas. We will backtrack
     // regardless since we assert the unsat core below.
-    Trace("qscf-engine-debug") << addedLemmas << "/" << triedLemmas << " instantiated" << std::endl;
+    Trace("qscf-engine-debug")
+        << addedLemmas << "/" << triedLemmas << " instantiated" << std::endl;
     // Add the computed unsat core as a conflict, which will cause a backtrack.
     UnsatCore uc = findConflict->getUnsatCore();
     Node ucc = NodeManager::currentNM()->mkAnd(uc.getCore());
