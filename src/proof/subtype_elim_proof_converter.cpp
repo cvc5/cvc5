@@ -43,7 +43,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
   //  see if proof rule still works
   Node resc = d_nconv.convert(res);
   // in very rare cases a direct child may already be the proof we want
-  if (std::find(children.begin(),children.end(),resc)!=children.end())
+  if (std::find(children.begin(), children.end(), resc) != children.end())
   {
     return resc;
   }
@@ -152,11 +152,11 @@ Node SubtypeElimConverterCallback::convert(Node res,
         // ...
         // ---
         // src
-        // --- prove 
+        // --- prove
         // tgt
         //
         // ----------------------- SCOPE {sc, relOld}
-        
+
         success = true;
       }
     }
