@@ -437,9 +437,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       std::vector<Node> newArgs;
       std::vector<Node> cargs;
-      if (id==ProofRule::CHAIN_RESOLUTION)
+      if (id == ProofRule::CHAIN_RESOLUTION)
       {
-        for (size_t i=0, nargs=args[0].getNumChildren(); i<nargs; i++)
+        for (size_t i = 0, nargs = args[0].getNumChildren(); i < nargs; i++)
         {
           cargs.push_back(args[0][i]);
           cargs.push_back(args[1][i]);
