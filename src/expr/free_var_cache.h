@@ -51,20 +51,11 @@ class FreeVarCache
   bool hasFreeVar(const Node& n) const;
 
  private:
-  /** a cache of fresh variables for each type
-   *
-   * We store two versions of this list:
-   *   index 0: mapping from builtin types to fresh variables of that type,
-   *   index 1: mapping from sygus types to fresh varaibles of the type they
-   *            encode.
-   */
+  /** a cache of fresh variables for each type */
   std::map<TypeNode, std::vector<Node> > d_fv;
   /**
-   * Maps free variables to a unique identifier for their builtin type. Notice
-   * that, e.g. free variables of type Int and those that are of a sygus
-   * datatype type that encodes Int must have unique identifiers. This is
-   * to ensure that sygusToBuiltin for non-ground terms maps variables to
-   * unique variabales.
+   * Maps free variables to a unique identifier for their type, which is their
+   * index in the vector d_fv for their type.
    */
   std::map<Node, size_t> d_fvId;
   /** All variables allocated by this class */
