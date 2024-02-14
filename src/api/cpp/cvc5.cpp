@@ -631,7 +631,6 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::FINITE_FIELD_MULT, Kind::FINITE_FIELD_MULT},
         {internal::Kind::FINITE_FIELD_ADD, Kind::FINITE_FIELD_ADD},
         {internal::Kind::FINITE_FIELD_NEG, Kind::FINITE_FIELD_NEG},
-        {internal::Kind::FINITE_FIELD_BITSUM, Kind::FINITE_FIELD_BITSUM},
         /* FP -------------------------------------------------------------- */
         {internal::Kind::CONST_FLOATINGPOINT, Kind::CONST_FLOATINGPOINT},
         {internal::Kind::CONST_ROUNDINGMODE, Kind::CONST_ROUNDINGMODE},
