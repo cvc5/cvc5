@@ -169,14 +169,19 @@ Node SubtypeElimConverterCallback::convert(Node res,
     break;
     case ProofRule::MACRO_SR_EQ_INTRO:
     {
-      // just use the more general rule MACRO_SR_PRED_INTRO, where the converted
-      // result can be used.
+      // Just use the more general rule MACRO_SR_PRED_INTRO, where the converted
+      // result can be used. This is used to handle the case where
+      // MACRO_SR_EQ_INTRO was used during solving.
       cargs[0] = resc;
       success = tryWith(
           ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp);
     }
     break;
-    case ProofRule::TRUST_THEORY_REWRITE: break;
+    case ProofRule::INSTANTIATE:
+    {
+      // TODO
+    }
+      break;
     default: break;
   }
   if (success)
