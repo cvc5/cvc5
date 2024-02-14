@@ -37,7 +37,7 @@ const char* cvc5_kind_to_string(Cvc5Kind kind)
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_KIND(kind);
-  str = "CVC5_KIND_" + kindToString(static_cast<cvc5::Kind>(kind));
+  str = "CVC5_KIND_" + std::to_string(static_cast<cvc5::Kind>(kind));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
@@ -56,7 +56,7 @@ const char* cvc5_sort_kind_to_string(Cvc5SortKind kind)
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_SORT_KIND(kind);
-  str = "CVC5_SORT_KIND_" + sortKindToString(static_cast<cvc5::SortKind>(kind));
+  str = "CVC5_SORT_KIND_" + std::to_string(static_cast<cvc5::SortKind>(kind));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
