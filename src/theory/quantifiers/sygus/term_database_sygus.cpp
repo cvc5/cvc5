@@ -288,7 +288,7 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     // this variable was associated by an attribute to a builtin node
     return n.getAttribute(SygusPrintProxyAttribute());
   }
-  // It should be a free variable allocated with useSygusType = false.
+  // It should be a free variable allocated by this class.
   Assert(d_fv.isFreeVar(n));
   Node ret = getBuiltinFreeVarFor(n);
   Trace("sygus-db-debug") << "SygusToBuiltin: variable for " << n << " is "
