@@ -35,6 +35,7 @@ TEST_F(TestApiKind, kindToString)
        ++k)
   {
     auto kindstr = std::to_string(static_cast<Kind>(k));
+    ASSERT_EQ(kindToString(static_cast<Kind>(k)), kindstr);
     if (k == static_cast<int32_t>(Kind::INTERNAL_KIND))
     {
       ASSERT_EQ(kindstr, "INTERNAL_KIND");
