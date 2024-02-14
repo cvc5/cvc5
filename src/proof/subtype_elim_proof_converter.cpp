@@ -42,6 +42,11 @@ Node SubtypeElimConverterCallback::convert(Node res,
   // Node resc = d_nconv.convert(res);
   //  see if proof rule still works
   Node resc = d_nconv.convert(res);
+  // in very rare cases a direct child may already be the proof we want
+  if (std::find(children.begin(),children.end(),resc)!=children.end())
+  {
+    return resc;
+  }
   Node newRes;
   // check if succeeds with no changes
   if (tryWith(id, children, cargs, resc, newRes, cdp))
@@ -75,20 +80,27 @@ Node SubtypeElimConverterCallback::convert(Node res,
       success = true;
       Node lhs = resc[0];
       Node rhs = resc[1];
+      std::vector<Node> newChildren;
       for (size_t i = 0, nchild = lhs.getNumChildren(); i < nchild; i++)
       {
+        // eqOld is what was proven with the converted children
         Node eqOld = newRes[0][i].eqNode(newRes[1][i]);
+        // eqNew is what is necessary to prove
         Node eqNew = lhs[i].eqNode(rhs[i]);
-        // prove equality
+        // eqOld and eqNew should essentially vary only in their types, e.g.
+        // (= t s) vs. (= (to_real t) (to_real s)),
+        // (= t 0) vs. (= (to_real t) 0.0), etc. We call prove to prove the
+        // updated equality.
         if (!prove(eqOld, eqNew, cdp))
         {
           success = false;
           break;
         }
+        newChildren.push_back(eqNew);
       }
       if (success)
       {
-        newRes = resc;
+        success = tryWith(id, newChildren, cargs, resc, newRes, cdp);
       }
     }
     break;
@@ -100,6 +112,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       Assert(resc[0].getNumChildren() == children.size());
       Assert(resc[1].getNumChildren() == children.size());
       std::vector<Node> newChildren;
+      // reprove what is necessary for the sum for each child
       for (size_t i = 0, nchild = children.size(); i < nchild; i++)
       {
         Node newRel = nm->mkNode(children[i].getKind(), resc[0][i], resc[1][i]);
@@ -110,6 +123,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
         }
         newChildren.push_back(newRel);
       }
+      // proof with the original rule and updated children should now work
       if (success)
       {
         success = tryWith(
@@ -120,6 +134,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
+      // This handles the case where we multiply an integer relation by
+      // a rational.
       NodeManager* nm = NodeManager::currentNM();
       Node sc = resc[0][0];
       Node relOld = resc[0][1];
@@ -133,7 +149,15 @@ Node SubtypeElimConverterCallback::convert(Node res,
         cdp->addStep(antec, ProofRule::AND_INTRO, {sc, relNew}, {});
         cdp->addStep(relNewMult, ProofRule::MODUS_PONENS, {antec, rimpl}, {});
         cdp->addStep(resc, ProofRule::SCOPE, {relNewMult}, {sc, relOld});
-        return resc;
+        // ...
+        // ---
+        // src
+        // --- prove 
+        // tgt
+        //
+        // ----------------------- SCOPE {sc, relOld}
+        
+        success = true;
       }
     }
     break;
@@ -151,7 +175,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
   }
   if (success)
   {
-    return newRes;
+    return resc;
   }
   AlwaysAssert(false) << "Introduction of subtyping via rule " << id;
   return Node::null();
@@ -229,7 +253,7 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
       std::vector<Node> tchildren;
       if (convEq[0][0] != convEq[0][1])
       {
-        // flip
+        // flip, proven by auto-sym.
         tchildren.push_back(convEq[0][1].eqNode(convEq[0][0]));
       }
       tchildren.push_back(csrc);
@@ -239,6 +263,15 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
       }
       cdp->addStep(tgt, ProofRule::TRANS, tchildren, {});
       Trace("pf-subtype-elim") << "...via trans " << tchildren << std::endl;
+      //                       ...
+      // -------------- EVAL   ---
+      // conv[0]=tgt[0]        src
+      // -------------- SYMM   ----CONG{TO_REAL} -------------- EVAL
+      // tgt[0]=conv[0]        conv              conv[1]=tgt[1]
+      // ------------------------------------------------------ TRANS
+      // tgt
+      //
+      // where conv is (to_real src[0]) = (to_real src[1]).
     }
   }
   else
@@ -256,6 +289,18 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
       cdp->addStep(fullEq, ProofRule::TRANS, {rewriteEq, congEq}, {});
     }
     cdp->addStep(tgt, ProofRule::EQ_RESOLVE, {src, fullEq}, {});
+    //                                  -------------- -------------- EVAL(x2)
+    //                                  conv[0]=tgt[0] conv[1]=tgt[1]
+    //       ---------- THEORY_REWRITE  ----------------------------- CONG{~}
+    // ...   src = conv                 conv = tgt
+    // ---   ------------------------------------------------ TRANS
+    // src   src = tgt
+    // ------------------------------------------------------ EQ_RESOLVE
+    // tgt
+    //
+    // where conv is (to_real src[0]) = (to_real src[1]).
+    // Note that we assume a theory rewrite step for proving e.g.
+    // (< t s) = (< (to_real t) (to_real s)).
     return true;
   }
   return true;
