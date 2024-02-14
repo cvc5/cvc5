@@ -177,21 +177,6 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   return exc_arg;
 }
 
-bool DivByZeroSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
-{
-  TypeNode tn = nvn.getType();
-  Node nbv = tds->sygusToBuiltin(nvn, tn);
-  Node nbvr = d_rewriter->extendedRewrite(nbv);
-  if (tds->involvesDivByZero(nbvr))
-  {
-    Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
-                           << " involves div-by-zero regardless of "
-                           << tds->sygusToBuiltin(x) << std::endl;
-    return true;
-  }
-  return false;
-}
-
 void NegContainsSygusInvarianceTest::init(Node e,
                                           std::vector<std::vector<Node> >& ex,
                                           std::vector<Node>& exo,
