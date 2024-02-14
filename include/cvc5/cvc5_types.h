@@ -25,6 +25,7 @@
 #include <iosfwd>
 namespace cvc5 {
 #define ENUM(name) class name
+#undef EVALUE
 #define EVALUE(name) name
 #endif
 
@@ -565,9 +566,9 @@ const char* cvc5_input_language_to_string(Cvc5InputLanguage lang);
  * @return The output stream
  */
 std::ostream& operator<<(std::ostream& out, InputLanguage lang) CVC5_EXPORT;
-#endif
 
 }  // namespace cvc5::modes
+#endif
 
 #endif
 

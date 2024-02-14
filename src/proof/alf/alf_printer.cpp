@@ -25,7 +25,6 @@
 #include "expr/subs.h"
 #include "options/main_options.h"
 #include "printer/printer.h"
-#include "proof/alf/alf_proof_rule.h"
 #include "proof/proof_node_to_sexpr.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
@@ -53,6 +52,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::SYMM:
     case ProofRule::TRANS:
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     case ProofRule::HO_CONG:
     case ProofRule::TRUE_INTRO:
     case ProofRule::TRUE_ELIM:
@@ -131,9 +131,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
-    case ProofRule::DSL_REWRITE:
-    // alf rule is handled
-    case ProofRule::ALF_RULE: return true;
+    case ProofRule::DSL_REWRITE: return true;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
@@ -223,15 +221,8 @@ bool AlfPrinter::canEvaluate(Node n) const
 
 std::string AlfPrinter::getRuleName(const ProofNode* pfn)
 {
-  std::string name;
   ProofRule r = pfn->getRule();
-  switch (r)
-  {
-    case ProofRule::ALF_RULE:
-      name = AlfRuleToString(getAlfRule(pfn->getArguments()[0]));
-      break;
-    default: name = toString(pfn->getRule()); break;
-  }
+  std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
     return std::tolower(c);
   });
@@ -384,8 +375,8 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
       printStepPre(out, cur);
       processingChildren[cur] = true;
       // will revisit this proof node
-      const std::vector<std::shared_ptr<ProofNode>>& children =
-          cur->getChildren();
+      std::vector<std::shared_ptr<ProofNode>> children;
+      getChildrenFromProofRule(cur, children);
       // visit each child
       for (const std::shared_ptr<ProofNode>& c : children)
       {
@@ -420,6 +411,31 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
   }
 }
 
+void AlfPrinter::getChildrenFromProofRule(
+    const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children)
+{
+  const std::vector<std::shared_ptr<ProofNode>>& cc = pn->getChildren();
+  switch (pn->getRule())
+  {
+    case ProofRule::CONG:
+    {
+      Node res = pn->getResult();
+      if (res[0].isClosure())
+      {
+        // Ignore the children after the required arguments.
+        // This ensures that we ignore e.g. equalities between patterns
+        // which can appear in term conversion proofs.
+        size_t arity = kind::metakind::getMinArityForKind(res[0].getKind());
+        children.insert(children.end(), cc.begin(), cc.begin() + arity - 1);
+        return;
+      }
+    }
+    break;
+    default: break;
+  }
+  children.insert(children.end(), cc.begin(), cc.end());
+}
+
 void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
                                       std::vector<Node>& args)
 {
@@ -438,6 +454,19 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       return;
     }
     break;
+    case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
+    {
+      Node op = d_tproc.getOperatorOfTerm(res[0]);
+      args.push_back(d_tproc.convert(op));
+      return;
+    }
+    break;
+    case ProofRule::HO_CONG:
+    {
+      // argument is ignored
+      return;
+    }
     case ProofRule::INSTANTIATE:
     {
       // ignore arguments past the term vector
@@ -467,30 +496,15 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     conclusionPrint = conclusion;
   }
   ProofRule r = pn->getRule();
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  std::vector<std::shared_ptr<ProofNode>> children;
+  getChildrenFromProofRule(pn, children);
   std::vector<Node> args;
   bool handled = isHandled(pn);
-  if (r == ProofRule::ALF_RULE)
-  {
-    const std::vector<Node> aargs = pn->getArguments();
-    Node rn = aargs[0];
-    // arguments are converted here
-    for (size_t i = 2, nargs = aargs.size(); i < nargs; i++)
-    {
-      args.push_back(d_tproc.convert(aargs[i]));
-    }
-  }
-  else if (handled)
+  if (handled)
   {
     getArgsFromProofRule(pn, args);
   }
   size_t id = allocateProofId(pn, wasAlloc);
-  // if we don't handle the rule, print trust
-  if (!handled)
-  {
-    out->printTrustStep(pn->getRule(), conclusionPrint, id, conclusion);
-    return;
-  }
   std::vector<size_t> premises;
   // get the premises
   std::map<Node, size_t>::iterator ita;
@@ -512,6 +526,13 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       pid = itp->second;
     }
     premises.push_back(pid);
+  }
+  // if we don't handle the rule, print trust
+  if (!handled)
+  {
+    out->printTrustStep(
+        pn->getRule(), conclusionPrint, id, premises, conclusion);
+    return;
   }
   std::string rname = getRuleName(pn);
   if (r == ProofRule::SCOPE)

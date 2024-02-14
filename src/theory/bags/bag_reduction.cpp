@@ -127,19 +127,13 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   Node one = nm->mkConstInt(Rational(1));
   // types
   TypeNode bagType = A.getType();
-  TypeNode elementType = A.getType().getBagElementType();
-  TypeNode integerType = nm->integerType();
-  TypeNode ufType = nm->mkFunctionType(integerType, elementType);
-  TypeNode cardinalityType = nm->mkFunctionType(integerType, integerType);
-  TypeNode unionDisjointType = nm->mkFunctionType(integerType, bagType);
   // skolem functions
-  Node n = sm->mkSkolemFunctionTyped(SkolemFunId::BAGS_CARD_N, integerType, A);
-  Node uf =
-      sm->mkSkolemFunctionTyped(SkolemFunId::BAGS_CARD_ELEMENTS, ufType, A);
-  Node unionDisjoint = sm->mkSkolemFunctionTyped(
-      SkolemFunId::BAGS_CARD_UNION_DISJOINT, unionDisjointType, A);
-  Node cardinality = sm->mkSkolemFunctionTyped(
-      SkolemFunId::BAGS_CARD_CARDINALITY, cardinalityType, A);
+  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_N, A);
+  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_ELEMENTS, A);
+  Node unionDisjoint =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_UNION_DISJOINT, A);
+  Node cardinality =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_CARDINALITY, A);
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =

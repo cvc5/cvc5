@@ -296,6 +296,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
   switch (r)
   {
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
       if (i == 0)
       {
