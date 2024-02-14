@@ -242,12 +242,12 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       }
       else
       {
-        Assert(args[i] == falseNode);
+        Assert(pols[i] == falseNode);
         lhsElim = lits[i].notNode();
         rhsElim = lits[i];
       }
       // The index of the child corresponding to the current rhs clause
-      size_t childIndex = i / 2 + 1;
+      size_t childIndex = i + 1;
       // Get rhs clause. It's a singleton if not an OR node or if equal to
       // rhsElim
       if (children[childIndex].getKind() != Kind::OR

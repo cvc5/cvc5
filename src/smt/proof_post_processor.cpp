@@ -444,12 +444,13 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     // first generate the naive chain_resolution
     std::vector<Node> pols;
     std::vector<Node> lits;
-    Assert ((args.size()+1)%2==0)
+    Assert ((args.size()+1)%2==0);
     for (size_t i=1, nargs=args.size(); i<nargs; i = i+2)
     {
       pols.push_back(args[i]);
       lits.push_back(args[i+1]);
     }
+    NodeManager * nm = NodeManager::currentNM();
     std::vector<Node> chainResArgs;
     chainResArgs.push_back(nm->mkNode(Kind::SEXPR, pols));
     chainResArgs.push_back(nm->mkNode(Kind::SEXPR, lits));
@@ -481,7 +482,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       return chainConclusion;
     }
     size_t initProofSize = cdp->getNumProofNodes();
-    NodeManager* nm = NodeManager::currentNM();
     // If we got here, then chainConclusion is NECESSARILY an OR node
     Assert(chainConclusion.getKind() == Kind::OR);
     // get the literals in the chain conclusion
