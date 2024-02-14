@@ -221,8 +221,8 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     Node pols = args[0];
     Node lits = args[1];
     if (children[0].getKind() != Kind::OR
-        || (pols[0] == trueNode && children[0] == lits[1])
-        || (pols[0] == falseNode && children[0] == lits[1].notNode()))
+        || (pols[0] == trueNode && children[0] == lits[0])
+        || (pols[0] == falseNode && children[0] == lits[0].notNode()))
     {
       lhsClause.push_back(children[0]);
     }
@@ -259,7 +259,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       {
         rhsClause = {children[childIndex].begin(), children[childIndex].end()};
       }
-      Trace("bool-pfcheck") << i / 2 << "-th res link:\n";
+      Trace("bool-pfcheck") << i << "-th res link:\n";
       Trace("bool-pfcheck") << "\t - lhsClause: " << lhsClause << "\n";
       Trace("bool-pfcheck") << "\t\t - lhsElim: " << lhsElim << "\n";
       Trace("bool-pfcheck") << "\t - rhsClause: " << rhsClause << "\n";

@@ -450,6 +450,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       pols.push_back(args[i]);
       lits.push_back(args[i+1]);
     }
+    Assert (pols.size()==children.size()-1);
     NodeManager * nm = NodeManager::currentNM();
     std::vector<Node> chainResArgs;
     chainResArgs.push_back(nm->mkNode(Kind::SEXPR, pols));
@@ -511,7 +512,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     //
     // Thus we rely on the standard utility to determine if args[0] is singleton
     // based on the premises and arguments of the resolution
-    if (proof::isSingletonClause(args[0], children, chainResArgs))
+    std::vector<Node> chainResArgsOrig{args.begin() + 1, args.end()};
+    if (proof::isSingletonClause(args[0], children, chainResArgsOrig))
     {
       conclusionLits.push_back(args[0]);
     }
