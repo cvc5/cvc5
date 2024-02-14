@@ -44,7 +44,7 @@ class ProofNodeConverterCallback
    * Update the proof rule application, store steps in cdp. Return a non-null
    * formula if successful, which should be given a closed proof in cdp. It can
    * be assumed that cdp contains proofs of each fact in children.
-   * 
+   *
    * @param res The original conclusion of the proof node,
    * @param id The original id of the proof node,
    * @param children The *converted* conclusions of the children of the proof
