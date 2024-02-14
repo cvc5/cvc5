@@ -59,7 +59,7 @@ TEST_F(TestApiTypes, printEnum)
       "invalid proof format");
   std::string expected =
       "CVC5_KIND_LT CVC5_SORT_KIND_ARRAY_SORT RTZ UNKNOWN_REASON literals "
-      "preprocess full enum SMT_LIB_2_6 lfsc";
+      "preprocess full enum smt_lib_2_6 lfsc";
   std::stringstream ss;
   ss << cvc5_kind_to_string(CVC5_KIND_LT) << " ";
   ss << cvc5_sort_kind_to_string(CVC5_SORT_KIND_ARRAY_SORT) << " ";

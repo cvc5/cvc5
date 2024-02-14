@@ -217,9 +217,9 @@ std::ostream& operator<<(std::ostream& out, InputLanguage lang)
 {
   switch (lang)
   {
-    case InputLanguage::SMT_LIB_2_6: out << "SMT_LIB_2_6"; break;
-    case InputLanguage::SYGUS_2_1: out << "SYGUS_2_1"; break;
-    case InputLanguage::UNKNOWN: out << "UNKNOWN"; break;
+    case InputLanguage::SMT_LIB_2_6: out << "smt_lib_2_6"; break;
+    case InputLanguage::SYGUS_2_1: out << "sygus_2_1"; break;
+    case InputLanguage::UNKNOWN: out << "unknown"; break;
     default: out << "?";
   }
   return out;

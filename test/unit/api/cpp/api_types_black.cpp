@@ -33,7 +33,7 @@ TEST_F(TestApiTypes, printEnum)
   std::string expected =
       "LT ARRAY_SORT RTZ UNKNOWN_REASON literals preprocess full "
       "enum "
-      "SMT_LIB_2_6 lfsc";
+      "smt_lib_2_6 lfsc";
   {
     std::stringstream ss;
     ss << cvc5::Kind::LT << " ";
