@@ -582,12 +582,15 @@ void TermDbSygus::registerEnumerator(Node e,
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator";
     if (!f.isNull())
     {
+      SkolemManager* sm = nm->getSkolemManager();
+      Assert(sm->getInternalId(f)
+             == InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
       Node ff;
       SkolemFunId id;
-      SkolemManager* sm = nm->getSkolemManager();
       sm->isSkolemFunction(f, id, ff);
-      Assert(id == SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
-      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff;
+      // get the argument, which is stored after the internal identifier
+      Assert(ff.getKind() == Kind::SEXPR && ff.getNumChildren() == 2);
+      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff[1];
     }
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
     std::stringstream ss;

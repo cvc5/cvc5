@@ -287,7 +287,7 @@ Node AlfNodeConverter::postConvert(Node n)
     ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
     return mkInternalApp(ss.str(), {tnn}, tn);
   }
-  else if (k == Kind::SEXPR)
+  else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
   {
     // use generic list
     std::vector<Node> args;
@@ -318,8 +318,8 @@ Node AlfNodeConverter::postConvert(Node n)
 bool AlfNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
-  // don't convert bound variable or instantiation pattern list directly
-  if (k == Kind::BOUND_VAR_LIST || k == Kind::INST_PATTERN_LIST)
+  // don't convert instantiation pattern list directly
+  if (k == Kind::INST_PATTERN_LIST)
   {
     return false;
   }
@@ -424,6 +424,8 @@ Node AlfNodeConverter::mkNil(TypeNode tn)
 
 Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 {
+  // note this method should remain in sync with getCongRule in
+  // proof_node_algorithm.cpp.
   switch (k)
   {
     case Kind::APPLY_UF:
@@ -620,7 +622,6 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
       opName << op;
     }
   }
-  // we only use binary operators
   else
   {
     if (k == Kind::NEG)
@@ -640,6 +641,15 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   if (!indices.empty())
   {
     ret = mkInternalApp(opName.str(), indices, app.getOperator().getType());
+  }
+  else if (n.isClosure())
+  {
+    // The operator of a closure by convention includes its variable list.
+    // This is required for cong over binders.
+    Node vl = convert(n[0]);
+    // the type of this term is irrelevant, just use vl's type
+    ret = mkInternalApp(
+        printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
   }
   else
   {
