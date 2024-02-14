@@ -80,7 +80,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(
         Assert(it != visited.end());
         pchildren.push_back(it->second);
         Trace("pf-convert") << "- " << cp->getRule() << " " << cp->getResult()
-                          << " ... " << it->second->getResult() << std::endl;
+                            << " ... " << it->second->getResult() << std::endl;
       }
       std::shared_ptr<ProofNode> ret = processInternal(cur, pchildren);
       if (ret == nullptr)

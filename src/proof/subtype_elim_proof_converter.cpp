@@ -46,7 +46,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
   // check if succeeds with no changes
   if (tryWith(id, children, cargs, resc, newRes, cdp))
   {
-    Assert (newRes==resc);
+    Assert(newRes == resc);
     return resc;
   }
   else if (newRes.isNull())
@@ -95,12 +95,12 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_SUM_UB:
     {
       success = true;
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       Assert(resc.getNumChildren() == 2);
-      Assert(resc[0].getNumChildren()==children.size());
-      Assert(resc[1].getNumChildren()==children.size());
+      Assert(resc[0].getNumChildren() == children.size());
+      Assert(resc[1].getNumChildren() == children.size());
       std::vector<Node> newChildren;
-      for (size_t i=0, nchild=children.size(); i<nchild; i++)
+      for (size_t i = 0, nchild = children.size(); i < nchild; i++)
       {
         Node newRel = nm->mkNode(children[i].getKind(), resc[0][i], resc[1][i]);
         if (!prove(children[i], newRel, cdp))
@@ -112,19 +112,15 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
       if (success)
       {
-        success = tryWith(ProofRule::ARITH_SUM_UB,
-                    newChildren,
-                    {},
-                    resc,
-                    newRes,
-                    cdp);
+        success = tryWith(
+            ProofRule::ARITH_SUM_UB, newChildren, {}, resc, newRes, cdp);
       }
     }
     break;
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       Node sc = resc[0][0];
       Node relOld = resc[0][1];
       Node relNew = nm->mkNode(relOld.getKind(), resc[1][0][1], resc[1][1][1]);
@@ -143,14 +139,11 @@ Node SubtypeElimConverterCallback::convert(Node res,
     break;
     case ProofRule::MACRO_SR_EQ_INTRO:
     {
-      // just use the more general rule MACRO_SR_PRED_INTRO, where the converted result can be used.
+      // just use the more general rule MACRO_SR_PRED_INTRO, where the converted
+      // result can be used.
       cargs[0] = resc;
-      success = tryWith(ProofRule::MACRO_SR_PRED_INTRO,
-                  children,
-                  cargs,
-                  resc,
-                  newRes,
-                  cdp);
+      success = tryWith(
+          ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp);
     }
     break;
     case ProofRule::TRUST_THEORY_REWRITE: break;
@@ -184,21 +177,24 @@ bool SubtypeElimConverterCallback::tryWith(ProofRule id,
   return false;
 }
 
-bool SubtypeElimConverterCallback::prove(const Node& src, const Node& tgt, CDProof* cdp)
+bool SubtypeElimConverterCallback::prove(const Node& src,
+                                         const Node& tgt,
+                                         CDProof* cdp)
 {
-  Assert (src.getKind()==tgt.getKind());
-  Assert (src.getNumChildren()==2);
-  Assert (tgt.getNumChildren()==2);
-  if (tgt==src)
+  Assert(src.getKind() == tgt.getKind());
+  Assert(src.getNumChildren() == 2);
+  Assert(tgt.getNumChildren() == 2);
+  if (tgt == src)
   {
     return true;
   }
-  if (tgt.getKind()==Kind::EQUAL && tgt[0]==tgt[1])
+  if (tgt.getKind() == Kind::EQUAL && tgt[0] == tgt[1])
   {
     cdp->addStep(tgt, ProofRule::REFL, {}, {tgt[0]});
     return true;
   }
-  Trace("pf-subtype-elim") << "Prove " << src << " => " << tgt << "?" << std::endl;
+  Trace("pf-subtype-elim") << "Prove " << src << " => " << tgt << "?"
+                           << std::endl;
   // t=s becomes (to_real t)=(to_real s), or t=0 becomes (to_real t)=0.0
   Node conv[2];
   Node convEq[2];
@@ -211,7 +207,7 @@ bool SubtypeElimConverterCallback::prove(const Node& src, const Node& tgt, CDPro
     {
       // if e.g. (to_real 0) = 0.0, prove by evaluate
       Node peq = d_pc->checkDebug(ProofRule::EVALUATE, {}, {conv[j]});
-      if (peq!=convEq[j])
+      if (peq != convEq[j])
       {
         return false;
       }
@@ -223,36 +219,36 @@ bool SubtypeElimConverterCallback::prove(const Node& src, const Node& tgt, CDPro
     }
   }
   Node csrc = nm->mkNode(src.getKind(), conv[0], conv[1]);
-  if (tgt.getKind()==Kind::EQUAL)
+  if (tgt.getKind() == Kind::EQUAL)
   {
     Node nk = ProofRuleChecker::mkKindNode(Kind::TO_REAL);
     cdp->addStep(csrc, ProofRule::CONG, {src}, {nk});
     Trace("pf-subtype-elim") << "...via " << csrc << std::endl;
-    if (csrc!=tgt)
+    if (csrc != tgt)
     {
       std::vector<Node> tchildren;
-      if (convEq[0][0]!=convEq[0][1])
+      if (convEq[0][0] != convEq[0][1])
       {
         // flip
         tchildren.push_back(convEq[0][1].eqNode(convEq[0][0]));
       }
       tchildren.push_back(csrc);
-      if (convEq[1][0]!=convEq[1][1])
+      if (convEq[1][0] != convEq[1][1])
       {
         tchildren.push_back(convEq[1]);
       }
       cdp->addStep(tgt, ProofRule::TRANS, tchildren, {});
-      Trace("pf-subtype-elim")
-          << "...via trans " << tchildren << std::endl;
+      Trace("pf-subtype-elim") << "...via trans " << tchildren << std::endl;
     }
   }
   else
   {
-    Trace("pf-subtype-elim") << "prove via " << src << ", " << convEq[0] << ", " << convEq[1] << std::endl;
+    Trace("pf-subtype-elim") << "prove via " << src << ", " << convEq[0] << ", "
+                             << convEq[1] << std::endl;
     Node rewriteEq = src.eqNode(csrc);
     Node fullEq = src.eqNode(tgt);
     cdp->addStep(rewriteEq, ProofRule::TRUST_THEORY_REWRITE, {}, {rewriteEq});
-    if (csrc!=tgt)
+    if (csrc != tgt)
     {
       Node congEq = csrc.eqNode(tgt);
       Node nk = ProofRuleChecker::mkKindNode(csrc.getKind());
