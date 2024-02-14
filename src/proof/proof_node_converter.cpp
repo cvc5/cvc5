@@ -99,13 +99,14 @@ std::shared_ptr<ProofNode> ProofNodeConverter::processInternal(
     const std::vector<std::shared_ptr<ProofNode>>& pchildren)
 {
   ProofRule id = pf->getRule();
-  // use CDProof to open a scope for which the callback updates
+  // use CDProof to open a scope for which the callback converts
   CDProof cpf(d_env, nullptr, "ProofNodeConverter::CDProof", false);
   Node res = pf->getResult();
   std::vector<Node> children;
   for (const std::shared_ptr<ProofNode>& cp : pchildren)
   {
     children.push_back(cp->getResult());
+    cpf.addProof(cp);
   }
   const std::vector<Node>& args = pf->getArguments();
   Node newRes = d_cb.convert(res, id, children, args, &cpf);
