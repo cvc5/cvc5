@@ -1661,6 +1661,7 @@ set(regress_0_tests
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-mem-eval-large.smt2
   regress0/strings/re-mem-include-rewrite.smt2
+  regress0/strings/re-none-rewrites.smt2
   regress0/strings/re-syntax.smt2
   regress0/strings/re.all.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
@@ -2125,6 +2126,14 @@ set(regress_1_tests
   regress1/constarr3.smt2
   regress1/cores/issue5604.smt2
   regress1/cores/issue6988-arith-sanity.smt2
+  regress1/datatypes/nullables/nullables1.smt2
+  regress1/datatypes/nullables/nullables2.smt2
+  regress1/datatypes/nullables/nullables3.smt2
+  regress1/datatypes/nullables/nullables4.smt2
+  regress1/datatypes/nullables/nullables5.smt2
+  regress1/datatypes/nullables/nullables6.smt2
+  regress1/datatypes/nullables/nullables7.smt2
+  regress1/datatypes/nullables/nullables8.smt2
   regress1/datatypes/acyclicity-sr-ground096.smt2
   regress1/datatypes/cee-prs-small-dd2.smt2
   regress1/datatypes/dt-color-2.6.smt2
@@ -2502,6 +2511,7 @@ set(regress_1_tests
   regress1/quantifiers/choice-move-delta-relt.smt2
   regress1/quantifiers/const.cvc.smt2
   regress1/quantifiers/constfunc.cvc.smt2
+  regress1/quantifiers/dd.binary_trees.adb_1105_16_loop_invariant_init_1.smt2 
   regress1/quantifiers/dd.bug812-ieval.smt2
   regress1/quantifiers/ddatv-delta2.smt2
   regress1/quantifiers/dt-tc-opt-small.smt2

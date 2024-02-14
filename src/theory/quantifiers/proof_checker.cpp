@@ -80,8 +80,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
   {
     Assert(children.size() == 1);
     // note we may have more arguments than just the term vector
-    if (children[0].getKind() != Kind::FORALL
-        || args.size() < children[0][0].getNumChildren())
+    if (children[0].getKind() != Kind::FORALL || args.empty())
     {
       return Node::null();
     }
@@ -91,7 +90,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     for (size_t i = 0, nc = children[0][0].getNumChildren(); i < nc; i++)
     {
       vars.push_back(children[0][0][i]);
-      subs.push_back(args[i]);
+      subs.push_back(args[0][i]);
     }
     Node inst =
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
@@ -100,33 +99,31 @@ Node QuantifiersProofRuleChecker::checkInternal(
   else if (id == ProofRule::ALPHA_EQUIV)
   {
     Assert(children.empty());
-    if (args[0].getKind() != Kind::FORALL)
+    Assert(args.size() == 3);
+    // must be lists of the same length
+    if (args[1].getKind() != Kind::SEXPR || args[2].getKind() != Kind::SEXPR
+        || args[1].getNumChildren() != args[2].getNumChildren())
     {
       return Node::null();
     }
-    // arguments must be equalities that are bound variables that are
-    // pairwise unique
+    // arguments must be lists of bound variables that are pairwise unique
     std::unordered_set<Node> allVars[2];
     std::vector<Node> vars;
     std::vector<Node> newVars;
-    for (size_t i = 1, nargs = args.size(); i < nargs; i++)
+    for (size_t i = 0, nargs = args[1].getNumChildren(); i < nargs; i++)
     {
-      if (args[i].getKind() != Kind::EQUAL)
+      for (size_t j = 1; j <= 2; j++)
       {
-        return Node::null();
-      }
-      for (size_t j = 0; j < 2; j++)
-      {
-        Node v = args[i][j];
-        if (v.getKind() != Kind::BOUND_VARIABLE
-            || allVars[j].find(v) != allVars[j].end())
+        Node v = args[j][i];
+        std::unordered_set<Node>& av = allVars[j - 1];
+        if (v.getKind() != Kind::BOUND_VARIABLE || av.find(v) != av.end())
         {
           return Node::null();
         }
-        allVars[j].insert(v);
+        av.insert(v);
       }
-      vars.push_back(args[i][0]);
-      newVars.push_back(args[i][1]);
+      vars.push_back(args[1][i]);
+      newVars.push_back(args[2][i]);
     }
     Node renamedBody = args[0].substitute(
         vars.begin(), vars.end(), newVars.begin(), newVars.end());

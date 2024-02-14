@@ -28,12 +28,22 @@
 )
 
 (declare-rule skolem_intro ((T Type) (t T))
-  :args ((skolem t))
-  :conclusion (= (skolem t) t)
+  :args (t)
+  :conclusion 
+    (alf.match ((T Type) (x T) (F Bool))
+      t
+      (
+        ; special case for witness
+        ((skolem (@k.QUANTIFIERS_SKOLEMIZE (exists (@list x) F) x)) (= t (witness (@list x) F)))
+        ((skolem x)                                                 (= t x))
+      )
+   )
 )
 
-; special case for now
-(declare-rule skolem_witness_intro ((T Type) (x T) (F Bool))
-  :args ((witness x F))
-  :conclusion (= (skolem (@k.QUANTIFIERS_SKOLEMIZE (exists (@list x) F) x)) (witness x F))
+; B is the formula to apply to
+; vs is a list of variables to substitution for the variable list ts
+; Note we don't currently check whether this is valid renaming.
+(declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
+  :args (B vs ts)
+  :conclusion (= B (substitute_list vs ts B))
 )
