@@ -361,7 +361,6 @@ class TermDbSygus : protected EnvObj
  private:
   /** computes the map d_min_type_depth */
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
-  bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
  private:
   /**
@@ -415,8 +414,6 @@ class TermDbSygus : protected EnvObj
 
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
-  /** involves div-by-zero */
-  bool involvesDivByZero( Node n );
   /** get anchor */
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
