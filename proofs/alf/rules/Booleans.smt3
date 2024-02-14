@@ -57,9 +57,9 @@
 ; CHAIN_RESOLUTION
 ; Applies multiple steps of resolution but leaves the first argument in n-ary form.
 (program chainResolveRec ((C1 Bool) (C2 Bool) (Cs Bool :list) (pol Bool) (pols @List :list) (L Bool) (lits @List :list))
-    (Bool Bool Bool) Bool
+    (Bool Bool @List @List) Bool
     (
-        ((chainResolveRec C1 @list.nil @list.nil)         (from_clause C1))
+        ((chainResolveRec C1 true @list.nil @list.nil)         (from_clause C1))
         ((chainResolveRec C1 (and C2 Cs) (@list pol pols) (@list L lits))
             (chainResolveRec
                 (let ((lp (alf.ite pol L (not L))))
@@ -75,7 +75,7 @@
 ; `Cs` is a conjunction or the premise clauses.
 ; `args` is a conjunction where the alternating conjuncts are polarity and
 ;        pivot literal.
-(declare-rule chain_resolution ((Cs Bool) (pols @List) (lits @Lit))
+(declare-rule chain_resolution ((Cs Bool) (pols @List) (lits @List))
     :premise-list Cs and
     :args (pols lits)
     :conclusion
