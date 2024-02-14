@@ -98,6 +98,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
         }
         newChildren.push_back(eqNew);
       }
+      // proof with the original rule and updated children should now work
       if (success)
       {
         success = tryWith(id, newChildren, cargs, resc, newRes, cdp);
@@ -149,14 +150,19 @@ Node SubtypeElimConverterCallback::convert(Node res,
         cdp->addStep(antec, ProofRule::AND_INTRO, {sc, relNew}, {});
         cdp->addStep(relNewMult, ProofRule::MODUS_PONENS, {antec, rimpl}, {});
         cdp->addStep(resc, ProofRule::SCOPE, {relNewMult}, {sc, relOld});
-        // ...
-        // ---
-        // src
-        // --- prove
-        // tgt
+        //            ----- ASSUME
+        //            t~s
+        // --- ASSUME ----- prove, using method below
+        // c>0        t'~s'
+        // --------------- AND_INTRO ------------------------------ ARITH_MULT_X
+        // (and c>0 t'~s')           (=> (and c>0 t'~s') (c*t'~c*s'))
+        // ----------------------------------------------------- MODUS_PONENS
+        // (c*t'~c*s')
+        // ----------------------- SCOPE {c>0, t~s}
+        // (=> (and c>0 t~s) (c*t'~c*s'))
         //
-        // ----------------------- SCOPE {sc, relOld}
-
+        // there t'~s' is a predicate over reals and t~s is a mixed integer
+        // predicate.
         success = true;
       }
     }
