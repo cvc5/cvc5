@@ -986,40 +986,6 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
   return false;
 }
 
-bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    Kind k = n.getKind();
-    if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
-        || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
-        || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL)
-    {
-      if( n[1].isConst() ){
-        if (n[1] == TermUtil::mkTypeValue(n[1].getType(), 0))
-        {
-          return true;
-        }
-      }else{
-        // if it has free variables it might be a non-zero constant
-        if( !hasFreeVar( n[1] ) ){
-          return true;
-        }
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( involvesDivByZero( n[i], visited ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermDbSygus::involvesDivByZero( Node n ) {
-  std::map< Node, bool > visited;
-  return involvesDivByZero( n, visited );
-}
-
 Node TermDbSygus::getAnchor( Node n ) {
   if (n.getKind() == Kind::APPLY_SELECTOR)
   {
