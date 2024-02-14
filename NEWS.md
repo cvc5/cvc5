@@ -1,7 +1,21 @@
 This file contains a summary of important user-visible changes.
 
 **New Features**
+
 - Added support for nullable sorts and lift operator to the theory of datatypes.
+
+**Changes**
+
+- API: Functions `kindToString(Kind)` and `sortKindToString(SortKind)` are now
+       deprecated and replaced by `std::to_string(Kind)` and
+       `std::to_string(SortKind)`. They will be removed in the next minor
+       release.
+
+cvc5 1.1.0
+==========
+
+**New Features**
+
 - API: The signature of functions `Solver::mkFiniteFieldSort(const std::string&)`
        and `Solver::mkFiniteFieldElem(const std::string&, const Sort&)` is now
        extended with an additional (optional) parameter to
@@ -40,15 +54,11 @@ This file contains a summary of important user-visible changes.
 
 **Changes**
 
-- API: Functions `kindToString(Kind)` and `sortKindToString(SortKind)` are now
-       deprecated and replaced by `std::to_string(Kind)` and
-       `std::to_string(SortKind)`. They will be removed in the next minor
-       release.
-
 - Various bug fixes.
 
 cvc5 1.0.9
 ==========
+
 Note: This is a pre-release version for the upcoming version 1.1.0.
 
 - SMT-LIB: The syntax for 0-ary tuples has been changed for the purposes of
