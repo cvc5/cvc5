@@ -18,8 +18,7 @@
 
 namespace cvc5::internal {
 
-TNode FreeVarCache::getFreeVar(const TypeNode& tn,
-                               size_t i)
+TNode FreeVarCache::getFreeVar(const TypeNode& tn, size_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
   while (i >= d_fv[tn].size())
@@ -28,7 +27,8 @@ TNode FreeVarCache::getFreeVar(const TypeNode& tn,
     d_allVars.push_back(v);
     // store its id
     d_fvId[v] = d_fv[tn].size();
-    Trace("free-var-cache") << "Free variable id " << v << " = " << d_fvId[v] << std::endl;
+    Trace("free-var-cache")
+        << "Free variable id " << v << " = " << d_fvId[v] << std::endl;
     d_fv[tn].push_back(v);
   }
   return d_fv[tn][i];

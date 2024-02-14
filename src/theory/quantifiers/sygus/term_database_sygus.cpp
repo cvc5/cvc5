@@ -18,9 +18,9 @@
 #include <sstream>
 
 #include "base/check.h"
+#include "expr/bound_var_manager.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
-#include "expr/bound_var_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -42,7 +42,8 @@ namespace quantifiers {
 struct SygusBuiltinFreeVarAttributeId
 {
 };
-using SygusBuiltinFreeVarAttribute = expr::Attribute<SygusBuiltinFreeVarAttributeId, Node>;
+using SygusBuiltinFreeVarAttribute =
+    expr::Attribute<SygusBuiltinFreeVarAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
 {
@@ -138,7 +139,7 @@ Node TermDbSygus::mkGeneric(const DType& dt,
       Trace("sygus-db-debug") << "From pre: " << a << std::endl;
     }else{
       TypeNode tna = dt[c].getArgType(i);
-      a = getFreeVarInc( tna, var_count );
+      a = getFreeVarInc(tna, var_count);
       if (tna.isSygusDatatype())
       {
         a = getBuiltinFreeVarFor(a);
@@ -299,7 +300,7 @@ Node TermDbSygus::getBuiltinFreeVarFor(const Node& v)
 {
   Assert(d_fv.isFreeVar(v));
   const TypeNode& tn = v.getType();
-  Assert (tn.isSygusDatatype());
+  Assert(tn.isSygusDatatype());
   const TypeNode& vtn = tn.getDType().getSygusType();
   BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
   return bvm->mkBoundVar<SygusBuiltinFreeVarAttribute>(v, vtn);
