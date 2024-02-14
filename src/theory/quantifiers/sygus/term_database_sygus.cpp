@@ -20,6 +20,7 @@
 #include "base/check.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
+#include "expr/bound_var_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -36,6 +37,12 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+/** An attribute for mapping sygus variables to builtin variables */
+struct SygusBuiltinFreeVarAttributeId
+{
+};
+using SygusBuiltinFreeVarAttribute = expr::Attribute<SygusBuiltinFreeVarAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
 {
@@ -68,30 +75,15 @@ bool TermDbSygus::reset( Theory::Effort e ) {
   return true;  
 }
 
-TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i, bool useSygusType)
+TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i)
 {
-  size_t sindex = 0;
-  TypeNode vtn = tn;
-  if (useSygusType && tn.isSygusDatatype())
-  {
-    vtn = tn.getDType().getSygusType();
-    sindex = 1;
-  }
-  return d_fv[sindex].getFreeVar(vtn, i, tn);
+  return d_fv.getFreeVar(tn, i);
 }
 
 TNode TermDbSygus::getFreeVarInc(const TypeNode& tn,
-                                 std::map<TypeNode, size_t>& var_count,
-                                 bool useSygusType)
+                                 std::map<TypeNode, size_t>& var_count)
 {
-  size_t sindex = 0;
-  TypeNode vtn = tn;
-  if (useSygusType && tn.isSygusDatatype())
-  {
-    vtn = tn.getDType().getSygusType();
-    sindex = 1;
-  }
-  return d_fv[sindex].getFreeVarInc(vtn, var_count, tn);
+  return d_fv.getFreeVarInc(tn, var_count);
 }
 
 Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
@@ -146,7 +138,11 @@ Node TermDbSygus::mkGeneric(const DType& dt,
       Trace("sygus-db-debug") << "From pre: " << a << std::endl;
     }else{
       TypeNode tna = dt[c].getArgType(i);
-      a = getFreeVarInc( tna, var_count, true );
+      a = getFreeVarInc( tna, var_count );
+      if (tna.isSygusDatatype())
+      {
+        a = getBuiltinFreeVarFor(a);
+      }
     }
     Trace("sygus-db-debug")
         << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
@@ -199,7 +195,12 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, size_t>& var_count)
   // it is symbolic if it represents "any constant"
   if (n.getKind() == Kind::APPLY_SELECTOR)
   {
-    ret = getFreeVarInc(n[0].getType(), var_count, true);
+    TypeNode tn = n[0].getType();
+    ret = getFreeVarInc(tn, var_count);
+    if (tn.isSygusDatatype())
+    {
+      ret = getBuiltinFreeVarFor(ret);
+    }
   }
   else if (n.getKind() != Kind::APPLY_CONSTRUCTOR)
   {
@@ -287,16 +288,21 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     return n.getAttribute(SygusPrintProxyAttribute());
   }
   // It should be a free variable allocated with useSygusType = false.
-  Assert(d_fv[0].isFreeVar(n));
-  // map to builtin variable type
-  size_t fv_num = d_fv[0].getFreeVarId(n);
-  // Get the corresponding free variable using useSygusType = true. In other
-  // words, the n^th sygus datatype free variable is mapped to the n^th
-  // builtin type free variable.
-  Node ret = getFreeVar(tn, fv_num, true);
+  Assert(d_fv.isFreeVar(n));
+  Node ret = getBuiltinFreeVarFor(n);
   Trace("sygus-db-debug") << "SygusToBuiltin: variable for " << n << " is "
-                          << ret << ", fv_num=" << fv_num << std::endl;
+                          << ret << std::endl;
   return ret;
+}
+
+Node TermDbSygus::getBuiltinFreeVarFor(const Node& v)
+{
+  Assert(d_fv.isFreeVar(v));
+  const TypeNode& tn = v.getType();
+  Assert (tn.isSygusDatatype());
+  const TypeNode& vtn = tn.getDType().getSygusType();
+  BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
+  return bvm->mkBoundVar<SygusBuiltinFreeVarAttribute>(v, vtn);
 }
 
 bool TermDbSygus::registerSygusType(TypeNode tn)

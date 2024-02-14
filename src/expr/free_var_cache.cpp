@@ -18,48 +18,34 @@
 
 namespace cvc5::internal {
 
-TNode FreeVarCache::getFreeVar(const TypeNode& tn, size_t i)
-{
-  return getFreeVar(tn, i, tn);
-}
-
 TNode FreeVarCache::getFreeVar(const TypeNode& tn,
-                               size_t i,
-                               const TypeNode& stn)
+                               size_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  while (i >= d_fv[stn].size())
+  while (i >= d_fv[tn].size())
   {
     Node v = nm->mkBoundVar(tn);
     d_allVars.push_back(v);
     // store its id
-    d_fvId[v] = d_fv[stn].size();
-    Trace("free-var-cache") << "Free variable id " << v << " = " << d_fvId[v]
-                            << ", " << stn << std::endl;
-    d_fv[stn].push_back(v);
+    d_fvId[v] = d_fv[tn].size();
+    Trace("free-var-cache") << "Free variable id " << v << " = " << d_fvId[v] << std::endl;
+    d_fv[tn].push_back(v);
   }
-  return d_fv[stn][i];
+  return d_fv[tn][i];
 }
 
 TNode FreeVarCache::getFreeVarInc(const TypeNode& tn,
                                   std::map<TypeNode, size_t>& var_count)
 {
-  return getFreeVarInc(tn, var_count, tn);
-}
-
-TNode FreeVarCache::getFreeVarInc(const TypeNode& tn,
-                                  std::map<TypeNode, size_t>& var_count,
-                                  const TypeNode& stn)
-{
-  std::map<TypeNode, size_t>::iterator it = var_count.find(stn);
+  std::map<TypeNode, size_t>::iterator it = var_count.find(tn);
   if (it == var_count.end())
   {
-    var_count[stn] = 1;
-    return getFreeVar(tn, 0, stn);
+    var_count[tn] = 1;
+    return getFreeVar(tn, 0);
   }
   size_t index = it->second;
-  var_count[stn]++;
-  return getFreeVar(tn, index, stn);
+  var_count[tn]++;
+  return getFreeVar(tn, index);
 }
 
 bool FreeVarCache::isFreeVar(const Node& n) const

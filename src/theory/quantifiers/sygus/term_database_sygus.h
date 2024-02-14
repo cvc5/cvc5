@@ -192,18 +192,15 @@ class TermDbSygus : protected EnvObj
    * This class caches a list of free variables for each type, which are
    * used, for instance, for constructing canonical forms of terms with free
    * variables. This function returns the i^th free variable for type tn.
-   * If useSygusType is true, then this function returns a variable of the
-   * analog type for sygus type tn (see d_fv for details).
    */
-  TNode getFreeVar(const TypeNode& tn, size_t i, bool useSygusType = false);
+  TNode getFreeVar(const TypeNode& tn, size_t i);
   /** get free variable and increment
    *
    * This function returns the next free variable for type tn, and increments
    * the counter in var_count for that type.
    */
   TNode getFreeVarInc(const TypeNode& tn,
-                      std::map<TypeNode, size_t>& var_count,
-                      bool useSygusType = false);
+                      std::map<TypeNode, size_t>& var_count);
   /** get sygus proxy variable
    *
    * Returns a fresh variable of type tn with the SygusPrintProxyAttribute set
@@ -349,15 +346,12 @@ class TermDbSygus : protected EnvObj
   //-----------------------------conversion from sygus to builtin
   /**
    * A cache of fresh variables for each type
-   *
-   * We store two versions of this list:
-   *   index 0: mapping from builtin types to fresh variables of that type,
-   *   index 1: mapping from sygus types to fresh varaibles of the type they
-   *            encode.
    */
-  FreeVarCache d_fv[2];
+  FreeVarCache d_fv;
   /** cache of getProxyVariable */
   std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
+  /** Get builtin free variable for sygus datatype variable v */
+  Node getBuiltinFreeVarFor(const Node& v);
   //-----------------------------end conversion from sygus to builtin
   // TODO :issue #1235 : below here needs refactor
  public:
