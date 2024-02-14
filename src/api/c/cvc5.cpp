@@ -70,7 +70,7 @@ const char* cvc5_rm_to_string(Cvc5RoundingMode rm)
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_RM(rm);
-  str = "CVC5_RM_" + std::to_string(static_cast<cvc5::RoundingMode>(rm));
+  str = std::to_string(static_cast<cvc5::RoundingMode>(rm));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
@@ -84,8 +84,7 @@ const char* cvc5_unknown_explanation_to_string(Cvc5UnknownExplanation exp)
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_UNKNOWN_EXPLANATION(exp);
-  str = "CVC5_UNKNOWN_EXPLANATION_"
-        + std::to_string(static_cast<cvc5::UnknownExplanation>(exp));
+  str = std::to_string(static_cast<cvc5::UnknownExplanation>(exp));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
@@ -99,8 +98,7 @@ const char* cvc5_modes_learned_lit_type_to_string(Cvc5LearnedLitType type)
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_LEARNED_LIT_TYPE(type);
-  str = "CVC5_LEARNED_LIT_TYPE_"
-        + std::to_string(static_cast<cvc5::modes::LearnedLitType>(type));
+  str = std::to_string(static_cast<cvc5::modes::LearnedLitType>(type));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
@@ -114,8 +112,7 @@ const char* cvc5_modes_block_models_mode_to_string(Cvc5BlockModelsMode mode)
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_BLOCK_MODELS_MODE(mode);
-  str = "CVC5_BLOCK_MODELS_MODE_"
-        + std::to_string(static_cast<cvc5::modes::BlockModelsMode>(mode));
+  str = std::to_string(static_cast<cvc5::modes::BlockModelsMode>(mode));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
@@ -129,8 +126,7 @@ const char* cvc5_modes_proof_component_to_string(Cvc5ProofComponent pc)
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF_COMPONENT(pc);
-  str = "CVC5_PROOF_COMPONENT_"
-        + std::to_string(static_cast<cvc5::modes::ProofComponent>(pc));
+  str = std::to_string(static_cast<cvc5::modes::ProofComponent>(pc));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
@@ -144,8 +140,7 @@ const char* cvc5_modes_proof_format_to_string(Cvc5ProofFormat format)
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF_FORMAT(format);
-  str = "CVC5_PROOF_FORMAT_"
-        + std::to_string(static_cast<cvc5::modes::ProofFormat>(format));
+  str = std::to_string(static_cast<cvc5::modes::ProofFormat>(format));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
@@ -160,8 +155,7 @@ const char* cvc5_modes_find_synthesis_target_to_string(
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_FIND_SYNTH_TARGET(target);
-  str = "CVC5_FIND_SYNTH_TARGET_"
-        + std::to_string(static_cast<cvc5::modes::FindSynthTarget>(target));
+  str = std::to_string(static_cast<cvc5::modes::FindSynthTarget>(target));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
@@ -175,8 +169,7 @@ const char* cvc5_modes_input_language_to_string(Cvc5InputLanguage lang)
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_INPUT_LANGUAGE(lang);
-  str = "CVC5_INPUT_LANGUAGE_"
-        + std::to_string(static_cast<cvc5::modes::InputLanguage>(lang));
+  str = std::to_string(static_cast<cvc5::modes::InputLanguage>(lang));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }

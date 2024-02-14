@@ -58,11 +58,8 @@ TEST_F(TestApiTypes, printEnum)
       cvc5_modes_proof_format_to_string(static_cast<Cvc5ProofFormat>(-5)),
       "invalid proof format");
   std::string expected =
-      "CVC5_KIND_LT CVC5_SORT_KIND_ARRAY_SORT CVC5_RM_ROUND_TOWARD_ZERO "
-      "CVC5_UNKNOWN_EXPLANATION_UNKNOWN_REASON CVC5_BLOCK_MODELS_MODE_LITERALS "
-      "CVC5_LEARNED_LIT_TYPE_PREPROCESS CVC5_PROOF_COMPONENT_FULL "
-      "CVC5_FIND_SYNTH_TARGET_ENUM CVC5_INPUT_LANGUAGE_SMT_LIB_2_6 "
-      "CVC5_PROOF_FORMAT_LFSC";
+      "CVC5_KIND_LT CVC5_SORT_KIND_ARRAY_SORT RTZ UNKNOWN_REASON literals "
+      "preprocess full enum SMT_LIB_2_6 lfsc";
   std::stringstream ss;
   ss << cvc5_kind_to_string(CVC5_KIND_LT) << " ";
   ss << cvc5_sort_kind_to_string(CVC5_SORT_KIND_ARRAY_SORT) << " ";

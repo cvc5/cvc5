@@ -27,19 +27,11 @@ std::ostream& operator<<(std::ostream& out, RoundingMode rm)
 {
   switch (rm)
   {
-    case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
-      out << "ROUND_NEAREST_TIES_TO_EVEN";
-      break;
-    case RoundingMode::ROUND_TOWARD_POSITIVE:
-      out << "ROUND_TOWARD_POSITIVE";
-      break;
-    case RoundingMode::ROUND_TOWARD_NEGATIVE:
-      out << "ROUND_TOWARD_NEGATIVE";
-      break;
-    case RoundingMode::ROUND_TOWARD_ZERO: out << "ROUND_TOWARD_ZERO"; break;
-    case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
-      out << "ROUND_NEAREST_TIES_TO_AWAY";
-      break;
+    case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN: out << "RNE"; break;
+    case RoundingMode::ROUND_TOWARD_POSITIVE: out << "RTP"; break;
+    case RoundingMode::ROUND_TOWARD_NEGATIVE: out << "RTN"; break;
+    case RoundingMode::ROUND_TOWARD_ZERO: out << "RTZ"; break;
+    case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY: out << "RNA"; break;
     default:
       throw CVC5ApiException("unhandled enum value '"
                              + std::to_string(static_cast<int32_t>(rm))
@@ -100,8 +92,8 @@ std::ostream& operator<<(std::ostream& out, BlockModelsMode mode)
 {
   switch (mode)
   {
-    case BlockModelsMode::LITERALS: out << "LITERALS"; break;
-    case BlockModelsMode::VALUES: out << "VALUES"; break;
+    case BlockModelsMode::LITERALS: out << "literals"; break;
+    case BlockModelsMode::VALUES: out << "values"; break;
     default: out << "?";
   }
   return out;
@@ -123,13 +115,13 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
 {
   switch (ltype)
   {
-    case LearnedLitType::PREPROCESS_SOLVED: out << "PREPROCESS_SOLVED"; break;
-    case LearnedLitType::PREPROCESS: out << "PREPROCESS"; break;
-    case LearnedLitType::INPUT: out << "INPUT"; break;
-    case LearnedLitType::SOLVABLE: out << "SOLVABLE"; break;
-    case LearnedLitType::CONSTANT_PROP: out << "CONSTANT_PROP"; break;
-    case LearnedLitType::INTERNAL: out << "INTERNAL"; break;
-    case LearnedLitType::UNKNOWN: out << "UNKNOWN"; break;
+    case LearnedLitType::PREPROCESS_SOLVED: out << "preprocess_solved"; break;
+    case LearnedLitType::PREPROCESS: out << "preprocess"; break;
+    case LearnedLitType::INPUT: out << "input"; break;
+    case LearnedLitType::SOLVABLE: out << "solvable"; break;
+    case LearnedLitType::CONSTANT_PROP: out << "constant_prop"; break;
+    case LearnedLitType::INTERNAL: out << "internal"; break;
+    case LearnedLitType::UNKNOWN: out << "unknown"; break;
     default: out << "?";
   }
   return out;
@@ -150,11 +142,11 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc)
 {
   switch (pc)
   {
-    case ProofComponent::RAW_PREPROCESS: out << "RAW_PREPROCESS"; break;
-    case ProofComponent::PREPROCESS: out << "PREPROCESS"; break;
-    case ProofComponent::SAT: out << "SAT"; break;
-    case ProofComponent::THEORY_LEMMAS: out << "THEORY_LEMMAS"; break;
-    case ProofComponent::FULL: out << "FULL"; break;
+    case ProofComponent::RAW_PREPROCESS: out << "raw_preprocess"; break;
+    case ProofComponent::PREPROCESS: out << "preprocess"; break;
+    case ProofComponent::SAT: out << "sat"; break;
+    case ProofComponent::THEORY_LEMMAS: out << "theory_lemmas"; break;
+    case ProofComponent::FULL: out << "full"; break;
     default: out << "?";
   }
   return out;
@@ -175,11 +167,11 @@ std::ostream& operator<<(std::ostream& out, ProofFormat format)
 {
   switch (format)
   {
-    case ProofFormat::NONE: out << "NONE"; break;
-    case ProofFormat::DOT: out << "DOT"; break;
-    case ProofFormat::LFSC: out << "LFSC"; break;
-    case ProofFormat::ALETHE: out << "ALETHE"; break;
-    case ProofFormat::DEFAULT: out << "DEFAULT"; break;
+    case ProofFormat::NONE: out << "none"; break;
+    case ProofFormat::DOT: out << "dot"; break;
+    case ProofFormat::LFSC: out << "lfsc"; break;
+    case ProofFormat::ALETHE: out << "alethe"; break;
+    case ProofFormat::DEFAULT: out << "default"; break;
     default: out << "?";
   }
   return out;
@@ -200,11 +192,11 @@ std::ostream& operator<<(std::ostream& out, FindSynthTarget target)
 {
   switch (target)
   {
-    case FindSynthTarget::ENUM: out << "ENUM"; break;
-    case FindSynthTarget::REWRITE: out << "REWRITE"; break;
-    case FindSynthTarget::REWRITE_UNSOUND: out << "REWRITE_UNSOUND"; break;
-    case FindSynthTarget::REWRITE_INPUT: out << "REWRITE_INPUT"; break;
-    case FindSynthTarget::QUERY: out << "QUERY"; break;
+    case FindSynthTarget::ENUM: out << "enum"; break;
+    case FindSynthTarget::REWRITE: out << "rewrite"; break;
+    case FindSynthTarget::REWRITE_UNSOUND: out << "rewrite_unsound"; break;
+    case FindSynthTarget::REWRITE_INPUT: out << "rewrite_input"; break;
+    case FindSynthTarget::QUERY: out << "query"; break;
     default: out << "?";
   }
   return out;
