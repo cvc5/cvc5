@@ -61,6 +61,8 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
   SubtypeElimNodeConverter d_nconv;
   /** The proof checker we are using */
   ProofChecker* d_pc;
+  /** Prove */
+  bool prove(const Node& src, const Node& tgt, CDProof* cdp);
 };
 
 }  // namespace cvc5::internal

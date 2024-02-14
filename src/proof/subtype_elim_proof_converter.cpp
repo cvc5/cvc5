@@ -71,68 +71,16 @@ Node SubtypeElimConverterCallback::convert(Node res,
       success = true;
       Node lhs = resc[0];
       Node rhs = resc[1];
-      NodeManager* nm = NodeManager::currentNM();
       for (size_t i = 0, nchild = lhs.getNumChildren(); i < nchild; i++)
       {
         Node eqOld = newRes[0][i].eqNode(newRes[1][i]);
         Node eqNew = lhs[i].eqNode(rhs[i]);
-        if (eqOld == eqNew)
+        // prove equality
+        if (!prove(eqOld, eqNew, cdp))
         {
-          continue;
+          success = false;
+          break;
         }
-        // e.g. t=t becomes (to_real t)=(to_real t) or 0=0 becomes 0.0=0.0
-        if (lhs[i] == rhs[i])
-        {
-          cdp->addStep(eqNew, ProofRule::REFL, {}, {lhs[i]});
-          continue;
-        }
-        // t=s becomes (to_real t)=(to_real s), or t=0 becomes (to_real t)=0.0
-        Node newR[2];
-        Node newREq[2];
-        bool needsTrans = false;
-        for (size_t j = 0; j < 2; j++)
-        {
-          newR[j] = nm->mkNode(Kind::TO_REAL, newRes[j][i]);
-          if (newR[j] != resc[j][i])
-          {
-            // if e.g. (to_real 0) = 0.0, prove by evaluate
-            Node eq = j == 1 ? newR[j].eqNode(resc[j][i])
-                             : resc[j][i].eqNode(newR[j]);
-            Node peq = d_pc->checkDebug(ProofRule::EVALUATE, {}, {newR[j]});
-            if (!CDProof::isSame(eq, peq))
-            {
-              success = false;
-              break;
-            }
-            newREq[j] = eq;
-            needsTrans = true;
-          }
-        }
-        if (success)
-        {
-          Node nk = ProofRuleChecker::mkKindNode(Kind::TO_REAL);
-          Node ceq = newR[0].eqNode(newR[1]);
-          cdp->addStep(ceq, ProofRule::CONG, {children[i]}, {nk});
-          Trace("pf-subtype-elim") << "...via " << ceq << std::endl;
-          if (needsTrans)
-          {
-            std::vector<Node> tchildren;
-            if (!newREq[0].isNull())
-            {
-              tchildren.push_back(newREq[0]);
-            }
-            tchildren.push_back(ceq);
-            if (!newREq[1].isNull())
-            {
-              tchildren.push_back(newREq[1]);
-            }
-            cdp->addStep(eqNew, ProofRule::TRANS, tchildren, {});
-            Trace("pf-subtype-elim")
-                << "...via trans " << tchildren << std::endl;
-          }
-          continue;
-        }
-        break;
       }
       if (success)
       {
@@ -148,20 +96,23 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
-      NodeManager* nm = NodeManager::currentNM();
-      std::vector<Node> typedArgs;
-      typedArgs.push_back(nm->mkConstRealOrInt(args[1][0].getType(),
-                                               args[0].getConst<Rational>()));
-      typedArgs.push_back(args[1]);
-      if (tryWith(id, children, typedArgs, resc, newRes, cdp))
+      NodeManager * nm = NodeManager::currentNM();
+      Node sc = resc[0][0];
+      Node relOld = resc[0][1];
+      Node relNew = nm->mkNode(resc[1].getKind(), resc[1][0][1], resc[1][1][1]);
+      if (prove(relOld, relNew, cdp))
       {
-        success = !newRes.isNull();
+        Node relNewMult = resc[1];
+        Node rimpl = nm->mkNode(Kind::IMPLIES, sc, relNewMult);
+        cdp->addStep(rimpl, id, {}, {args[0], relNew});
+        cdp->addStep(relNewMult, ProofRule::MODUS_PONENS, {rimpl, sc}, {});
+        cdp->addStep(resc, ProofRule::SCOPE, {relNewMult}, {sc, relOld});
       }
     }
     break;
     case ProofRule::MACRO_SR_EQ_INTRO:
     {
-      // just use MACRO_SR_PRED_INTRO, where the converted result can be used.
+      // just use the more general rule MACRO_SR_PRED_INTRO, where the converted result can be used.
       cargs[0] = resc;
       if (tryWith(ProofRule::MACRO_SR_PRED_INTRO,
                   children,
@@ -174,7 +125,6 @@ Node SubtypeElimConverterCallback::convert(Node res,
       }
     }
     break;
-    case ProofRule::SKOLEM_INTRO: break;
     case ProofRule::TRUST_THEORY_REWRITE: break;
     default: break;
   }
@@ -203,6 +153,71 @@ bool SubtypeElimConverterCallback::tryWith(ProofRule id,
       return true;
     }
     return false;
+  }
+  return true;
+}
+
+bool SubtypeElimConverterCallback::prove(const Node& src, const Node& tgt, CDProof* cdp)
+{
+  Assert (src.getKind()==tgt.getKind());
+  Assert (src.getNumChildren()==2);
+  Assert (tgt.getNumChildren()==2);
+  if (tgt==src)
+  {
+    return true;
+  }
+  if (tgt.getKind()==Kind::EQUAL && tgt[0]==tgt[1])
+  {
+    cdp->addStep(tgt, ProofRule::REFL, {}, {tgt[0]});
+    return true;
+  }
+  Trace("pf-subtype-elim") << "Prove " << src << " => " << tgt << "?" << std::endl;
+  // t=s becomes (to_real t)=(to_real s), or t=0 becomes (to_real t)=0.0
+  Node conv[2];
+  Node convEq[2];
+  NodeManager* nm = NodeManager::currentNM();
+  for (size_t j = 0; j < 2; j++)
+  {
+    conv[j] = nm->mkNode(Kind::TO_REAL, src[j]);
+    if (conv[j] != tgt[j])
+    {
+      // if e.g. (to_real 0) = 0.0, prove by evaluate
+      Node eq = j == 1 ? conv[j].eqNode(tgt[j])
+                        : tgt[j].eqNode(conv[j]);
+      Node peq = d_pc->checkDebug(ProofRule::EVALUATE, {}, {conv[j]});
+      if (!CDProof::isSame(eq, peq))
+      {
+        return false;
+      }
+      convEq[j] = eq;
+    }
+  }
+  if (tgt.getKind()==Kind::EQUAL)
+  {
+    Node nk = ProofRuleChecker::mkKindNode(Kind::TO_REAL);
+    Node ceq = conv[0].eqNode(conv[1]);
+    cdp->addStep(ceq, ProofRule::CONG, {src}, {nk});
+    Trace("pf-subtype-elim") << "...via " << ceq << std::endl;
+    if (ceq!=tgt)
+    {
+      std::vector<Node> tchildren;
+      if (!convEq[0].isNull())
+      {
+        tchildren.push_back(convEq[0]);
+      }
+      tchildren.push_back(ceq);
+      if (!convEq[1].isNull())
+      {
+        tchildren.push_back(convEq[1]);
+      }
+      cdp->addStep(tgt, ProofRule::TRANS, tchildren, {});
+      Trace("pf-subtype-elim")
+          << "...via trans " << tchildren << std::endl;
+    }
+  }
+  else
+  {
+    Trace("pf-subtype-elim") << "prove via " << src << ", " << convEq[0] << ", " << convEq[1] << std::endl;
   }
   return true;
 }
