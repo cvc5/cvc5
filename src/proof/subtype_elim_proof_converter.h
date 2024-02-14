@@ -54,7 +54,7 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
   bool tryWith(ProofRule id,
                const std::vector<Node>& children,
                const std::vector<Node>& args,
-               Node resc,
+               Node expected,
                Node& newRes,
                CDProof* cdp);
   /** The node converter */
