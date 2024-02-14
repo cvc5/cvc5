@@ -37,13 +37,7 @@ TNode FreeVarCache::getFreeVar(const TypeNode& tn, size_t i)
 TNode FreeVarCache::getFreeVarInc(const TypeNode& tn,
                                   std::map<TypeNode, size_t>& var_count)
 {
-  std::map<TypeNode, size_t>::iterator it = var_count.find(tn);
-  if (it == var_count.end())
-  {
-    var_count[tn] = 1;
-    return getFreeVar(tn, 0);
-  }
-  size_t index = it->second;
+  size_t index = var_count[tn];
   var_count[tn]++;
   return getFreeVar(tn, index);
 }
