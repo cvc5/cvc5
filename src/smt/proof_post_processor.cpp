@@ -442,7 +442,17 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   {
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
-    std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
+    std::vector<Node> pols;
+    std::vector<Node> lits;
+    Assert ((args.size()+1)%2==0)
+    for (size_t i=1, nargs=args.size(); i<nargs; i = i+2)
+    {
+      pols.push_back(args[i]);
+      lits.push_back(args[i+1]);
+    }
+    std::vector<Node> chainResArgs;
+    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, pols));
+    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, lits));
     Node chainConclusion = d_pc->checkDebug(
         ProofRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";

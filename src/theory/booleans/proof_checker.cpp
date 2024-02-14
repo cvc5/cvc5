@@ -190,7 +190,9 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   if (id == ProofRule::CHAIN_RESOLUTION)
   {
     Assert(children.size() > 1);
-    Assert(args.size() == 2 * (children.size() - 1));
+    Assert(args.size() == 2);
+    Assert(args[0].getNumChildren() == (children.size() - 1));
+    Assert(args[1].getNumChildren() == (children.size() - 1));
     Trace("bool-pfcheck") << "chain_res:\n" << push;
     NodeManager* nm = NodeManager::currentNM();
     Node trueNode = nm->mkConst(true);
@@ -214,11 +216,13 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     // If the child is not an OR, it is a singleton clause and we take the
     // child itself as the clause. Otherwise the child can only be a singleton
     // clause if the child itself is used as a resolution literal, i.e. if the
-    // first child equal to the first pivot (which is args[1] or
-    // args[1].notNote() depending on the polarity).
+    // first child equal to the first pivot (which is args[1][0] or
+    // args[1][0].notNode() depending on the polarity).
+    Node pols = args[0];
+    Node lits = args[1];
     if (children[0].getKind() != Kind::OR
-        || (args[0] == trueNode && children[0] == args[1])
-        || (args[0] == falseNode && children[0] == args[1].notNode()))
+        || (pols[0] == trueNode && children[0] == lits[1])
+        || (pols[0] == falseNode && children[0] == lits[1].notNode()))
     {
       lhsClause.push_back(children[0]);
     }
@@ -228,19 +232,19 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     // Traverse the links, which amounts to for each pair of args removing a
     // literal from the lhs and a literal from the lhs.
-    for (size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
+    for (size_t i = 0, argsSize = pols.getNumChildren(); i < argsSize; i++)
     {
       // Polarity determines how the pivot occurs in lhs and rhs
-      if (args[i] == trueNode)
+      if (pols[i] == trueNode)
       {
-        lhsElim = args[i + 1];
-        rhsElim = args[i + 1].notNode();
+        lhsElim = lits[i];
+        rhsElim = lits[i].notNode();
       }
       else
       {
         Assert(args[i] == falseNode);
-        lhsElim = args[i + 1].notNode();
-        rhsElim = args[i + 1];
+        lhsElim = lits[i].notNode();
+        rhsElim = lits[i];
       }
       // The index of the child corresponding to the current rhs clause
       size_t childIndex = i / 2 + 1;

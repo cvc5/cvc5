@@ -272,7 +272,8 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkCResolution(
 {
   auto* nm = NodeManager::currentNM();
   std::vector<std::shared_ptr<ProofNode>> children = {clause};
-  std::vector<Node> args;
+  std::vector<Node> pols;
+  std::vector<Node> lits;
   Assert(lits.size() == polarity.size());
   for (std::size_t i = 0, n = lits.size(); i < n; ++i)
   {
@@ -295,9 +296,12 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkCResolution(
     {
       children.emplace_back(assume(lit));
     }
-    args.emplace_back(nm->mkConst(pol));
-    args.emplace_back(lit);
+    pols.emplace_back(nm->mkConst(pol));
+    lits.emplace_back(lit);
   }
+  std::vector<Node> args;
+  args.push_back(nm->mkNode(Kind::SEXPR, pols));
+  args.push_back(nm->mkNode(Kind::SEXPR, lits));
   return mkProof(ProofRule::CHAIN_RESOLUTION, children, args);
 }
 
