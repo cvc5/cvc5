@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A utility for updating proof nodes.
+ * A utility for converting proof nodes.
  */
 
 #include "proof/proof_node_converter.h"
@@ -33,7 +33,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(
   // for checking for cycles in the overall proof.
   std::vector<std::shared_ptr<ProofNode>> traversing;
   std::shared_ptr<ProofNode> pft = pf;
-  Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
+  Trace("pf-process") << "ProofNodeConverter::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, std::shared_ptr<ProofNode>>
       visited;
   std::unordered_map<std::shared_ptr<ProofNode>,
@@ -58,7 +58,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(
             != traversing.end())
         {
           Unhandled()
-              << "ProofNodeUpdater::processInternal: cyclic proof! (use "
+              << "ProofNodeConverter::processInternal: cyclic proof! (use "
                  "--proof-check=eager)"
               << std::endl;
         }
@@ -90,7 +90,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
+  Trace("pf-process") << "ProofNodeConverter::process: finished" << std::endl;
   return visited[pf];
 }
 

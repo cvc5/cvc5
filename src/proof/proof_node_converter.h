@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A utility for updating proof nodes.
+ * A utility for converting proof nodes.
  */
 
 #include "cvc5_private.h"
@@ -32,8 +32,8 @@ class ProofNode;
 class ProofNodeManager;
 
 /**
- * A virtual callback class for updating ProofNode. An example use case of this
- * class is to eliminate a proof rule by expansion.
+ * A virtual callback class for converting ProofNode. An example use case of
+ * this class is to transform a proof so that it does not use mixed arithmetic.
  */
 class ProofNodeConverterCallback
 {
@@ -41,9 +41,19 @@ class ProofNodeConverterCallback
   ProofNodeConverterCallback() {}
   virtual ~ProofNodeConverterCallback() {}
   /**
-   * Update the proof rule application, store steps in cdp. Return true if
-   * the proof changed. It can be assumed that cdp contains proofs of each
-   * fact in children.
+   * Update the proof rule application, store steps in cdp. Return a non-null
+   * formula if successful, which should be given a closed proof in cdp. It can
+   * be assumed that cdp contains proofs of each fact in children.
+   * 
+   * @param res The original conclusion of the proof node,
+   * @param id The original id of the proof node,
+   * @param children The *converted* conclusions of the children of the proof
+   * node. Note these may have different conclusions than they had in the
+   * original proof.
+   * @param arg The original arguments of the proof node,
+   * @param cdp The proof to add to
+   * @return a fomula F such that cdp has a closed proof of F, or null if we
+   * fail to convert.
    */
   virtual Node convert(Node res,
                        ProofRule id,
@@ -53,14 +63,13 @@ class ProofNodeConverterCallback
 };
 
 /**
- * A generic class for updating ProofNode. It is parameterized by a callback
+ * A generic class for converting ProofNode. It is parameterized by a callback
  * class. Its process method runs this callback on all subproofs of a provided
- * ProofNode application that meet some criteria
- * (ProofNodeUpdaterCallback::shouldUpdate)
- * and overwrites them based on the update procedure of the callback
- * (ProofNodeUpdaterCallback::update), which uses local CDProof objects that
- * should be filled in the callback for each ProofNode to update. This update
- * process is applied in a *pre-order* traversal.
+ * ProofNode application and reconstructs a proof based on the results of the
+ * callback. This class uses local CDProof objects that should be filled in the
+ * callback for each ProofNode to create for the conversion. This update
+ * process is applied in a *post-order* traversal, where the converted children
+ * are provided to the callback.
  */
 class ProofNodeConverter : protected EnvObj
 {
@@ -75,7 +84,7 @@ class ProofNodeConverter : protected EnvObj
                      ProofNodeConverterCallback& cb,
                      bool autoSym = true);
   /**
-   * Post-process, which performs the main post-processing technique described
+   * Process, which performs the main conversion technique described
    * above.
    */
   std::shared_ptr<ProofNode> process(std::shared_ptr<ProofNode> pf);
@@ -84,13 +93,11 @@ class ProofNodeConverter : protected EnvObj
   /** The callback */
   ProofNodeConverterCallback& d_cb;
   /**
-   * Post-process, which performs the main post-processing technique described
-   * above.
+   * Helper method for process.
    *
    * @param pf The proof to process
-   * @param fa The assumptions of the scope that fa is a subproof of with
-   * respect to the original proof. For example, if (SCOPE P :args (A B)), we
-   * may call this method on P with fa = { A, B }.
+   * @param pchildren The converted children of pf, which may have different
+   * conclusions from the children of pf.
    */
   std::shared_ptr<ProofNode> processInternal(
       std::shared_ptr<ProofNode> pf,
