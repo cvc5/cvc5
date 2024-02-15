@@ -32,40 +32,31 @@ SygusTermEnumerator::SygusTermEnumerator(Env& env,
   SkolemManager* sm = nm->getSkolemManager();
   d_enum = sm->mkDummySkolem("enum", tn);
   d_internal.initialize(d_enum);
-  d_current = getCurrent();
 }
 
-Node SygusTermEnumerator::getNext()
-{
-  if (!d_current.isNull())
-  {
-    const Node& ret = d_current;
-    d_current = Node::null();
-    return ret;
-  }
+bool SygusTermEnumerator::increment()
+{ 
   while (d_internal.increment())
   {
-    const Node& c = getCurrent();
-    if (!c.isNull())
+    if (!d_internal.getCurrent().isNull())
     {
-      d_current = Node::null();
-      return c;
+      return true;
     }
   }
-  return Node::null();
+  return false;
 }
 
-bool SygusTermEnumerator::increment() { return d_internal.increment(); }
+bool SygusTermEnumerator::incrementPartial() { return d_internal.increment(); }
 
 Node SygusTermEnumerator::getCurrent()
 {
-  d_current = getSygusToBuiltin(d_internal.getCurrent());
-  return d_current;
+  const Node& c = d_internal.getCurrent();
+  if (c.isNull())
+  {
+    return c;
+  }
+  return theory::datatypes::utils::sygusToBuiltin(c);
 }
 
-Node SygusTermEnumerator::getSygusToBuiltin(const Node& n)
-{
-  return theory::datatypes::utils::sygusToBuiltin(n);
-}
 
 }  // namespace cvc5::internal
