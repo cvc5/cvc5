@@ -37,6 +37,8 @@ libcvc5_add_sources(
   emptyset.h
   emptybag.cpp
   emptybag.h
+  free_var_cache.cpp
+  free_var_cache.h
   function_array_const.cpp
   function_array_const.h
   kind_map.h
