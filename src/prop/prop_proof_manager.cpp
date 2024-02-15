@@ -386,6 +386,7 @@ std::vector<Node> PropPfManager::getUnsatCoreClauses(bool minimal,
   cset.insert(lemmas.begin(), lemmas.end());
 
   // go back and minimize assumptions if minimal is true
+  bool computedClauses = false;
   if (minimal)
   {
     Trace("cnf-input-min") << "Make cadical..." << std::endl;
@@ -471,6 +472,7 @@ std::vector<Node> PropPfManager::getUnsatCoreClauses(bool minimal,
         clauses.emplace_back(litToNode[lit]);
         aclauses.emplace_back(litToNodeAbs[lit]);
       }
+      computedClauses = true;
       if (outDimacs)
       {
         csms.dumpDimacs(*outDimacs, aclauses);
@@ -481,17 +483,16 @@ std::vector<Node> PropPfManager::getUnsatCoreClauses(bool minimal,
       // should never happen, if it does, we revert to the entire input
       Trace("cnf-input-min") << "...got sat" << std::endl;
       Assert(false) << "Failed to minimize DIMACS";
-      clauses.insert(clauses.end(), cset.begin(), cset.end());
-      if (outDimacs)
-      {
-        d_pfCnfStream.dumpDimacs(*outDimacs, clauses);
-      }
     }
     delete csm;
   }
-  else
+  if (!computedClauses)
   {
     clauses.insert(clauses.end(), cset.begin(), cset.end());
+    if (outDimacs)
+    {
+      d_pfCnfStream.dumpDimacs(*outDimacs, clauses);
+    }
   }
   return clauses;
 }
