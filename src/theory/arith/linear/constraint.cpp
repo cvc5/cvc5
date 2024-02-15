@@ -1849,10 +1849,8 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         }
         case ArithProofType::TrichotomyAP:
         {
-          pf = pnm->mkNode(ProofRule::ARITH_TRICHOTOMY,
-                           children,
-                           {getProofLiteral()},
-                           getProofLiteral());
+          pf = pnm->mkNode(
+              ProofRule::ARITH_TRICHOTOMY, children, {}, getProofLiteral());
           break;
         }
         case ArithProofType::InternalAssumeAP:

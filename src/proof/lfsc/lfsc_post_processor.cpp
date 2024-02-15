@@ -189,6 +189,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     }
     break;
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
       Assert(res.getKind() == Kind::EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
@@ -206,9 +207,9 @@ bool LfscProofPostprocessCallback::update(Node res,
         Node pcop = d_tproc.getOperatorOfClosure(res[0], false, true);
         Trace("lfsc-pp-qcong") << "Operator for closure " << cop << std::endl;
         // start with base case body = body'
-        Node curL = children[1][0];
-        Node curR = children[1][1];
-        Node currEq = children[1];
+        Node curL = children[0][0];
+        Node curR = children[0][1];
+        Node currEq = children[0];
         Trace("lfsc-pp-qcong") << "Base congruence " << currEq << std::endl;
         for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
         {
@@ -417,14 +418,15 @@ bool LfscProofPostprocessCallback::update(Node res,
           Assert(i + 1 < qvars.size());
           std::vector<Node> qvarsNew(qvars.begin() + i + 1, qvars.end());
           Assert(!qvarsNew.empty());
+          Assert(qvars[i].getType() == args[0][i].getType());
           std::vector<Node> qchildren;
           TNode v = qvars[i];
-          TNode subs = args[i];
+          TNode subs = args[0][i];
           qchildren.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, qvarsNew));
           qchildren.push_back(conc[1].substitute(v, subs));
           conc = nm->mkNode(Kind::FORALL, qchildren);
         }
-        addLfscRule(cdp, conc, {prevConc}, LfscRule::INSTANTIATE, {args[i]});
+        addLfscRule(cdp, conc, {prevConc}, LfscRule::INSTANTIATE, {args[0][i]});
       }
     }
     break;

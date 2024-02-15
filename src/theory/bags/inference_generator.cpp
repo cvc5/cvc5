@@ -878,9 +878,8 @@ InferInfo InferenceGenerator::groupPartCount(Node n, Node B, Node part)
   Node A_notEmpty = A.eqNode(empty).notNode();
   inferInfo.d_premises.push_back(A_notEmpty);
 
-  Node x = d_sm->mkSkolemFunctionTyped(SkolemFunId::TABLES_GROUP_PART_ELEMENT,
-                                       bagType.getBagElementType(),
-                                       {n, B});
+  Node x =
+      d_sm->mkSkolemFunction(SkolemFunId::TABLES_GROUP_PART_ELEMENT, {n, B});
   d_state->registerPartElementSkolem(n, x);
   Node part_x = d_nm->mkNode(Kind::APPLY_UF, part, x);
   part_x = registerAndAssertSkolemLemma(part_x);

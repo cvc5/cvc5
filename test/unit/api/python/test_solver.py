@@ -2027,7 +2027,7 @@ def test_get_statistics(solver):
     assert s['cvc5::TERM'] == {
             'defaulted': False,
             'internal': False,
-            'value': {'Kind::GEQ': 3, 'Kind::OR': 1}}
+            'value': {'GEQ': 3, 'OR': 1}}
     assert s.get(True, False) != {}
 
 def test_set_info(solver):
