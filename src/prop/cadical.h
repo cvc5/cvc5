@@ -88,10 +88,10 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   std::vector<Node> getOrderHeap() const override;
 
-  /** Get proof, not used */
+  /** Get proof, unimplemented by this solver. */
   std::shared_ptr<ProofNode> getProof() override;
 
-  /** Get proof sketch */
+  /** Get proof sketch. */
   std::pair<ProofRule, std::vector<Node>> getProofSketch() override;
 
  private:
@@ -146,7 +146,11 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   bool d_logProofs;
   /** The proof file */
   std::string d_pfFile;
-  /** Whether we are in SAT mode */
+  /**
+   * Whether we are in SAT mode. If true, the SAT solver returned satisfiable
+   * so that we know whether we are allowed to query model values from the
+   * solver.
+   */
   bool d_inSatMode;
   /** The variable representing true. */
   SatVariable d_true;
