@@ -16,17 +16,11 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
-#include <numeric>  // for std::iota
-#include <sstream>
-
 #include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/quantifiers/cegqi/ceg_instantiator.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/quantifiers/sygus/sygus_grammar_red.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_util.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
+#include "expr/sygus_grammar.h"
+#include "theory/type_enumerator.h"
 
 using namespace cvc5::internal::kind;
 
