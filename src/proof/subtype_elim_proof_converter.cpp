@@ -181,7 +181,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
     {
       // TODO
     }
-      break;
+    break;
     default: break;
   }
   if (success)
