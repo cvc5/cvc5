@@ -45,9 +45,26 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   const std::vector<Node>& nts = sg.getNtSyms();
   Trace("sygus-grammar-norm") << "Reconstructed grammar " << nts << std::endl;
   bool changed = false;
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  std::vector<Node> incNtSyms;
   for (const Node& v : nts)
   {
     const std::vector<Node>& rules = sg.getRulesFor(v);
+    if (v!=nts[0] && rules.size()==1 && !DTypeConstructor::isSygusAnyConstantOp(rules[0]))
+    {
+      Node rs = rules[0].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      for (Node& s : subs)
+      {
+        TNode tv = v;
+        TNode ts = rs;
+        s = s.substitute(tv, ts);
+      }
+      vars.push_back(v);
+      subs.push_back(rs);
+      continue;
+    }
+    incNtSyms.push_back(v);
     Trace("sygus-grammar-norm") << "Rules " << v << " " << rules << std::endl;
     for (const Node& r : rules)
     {
@@ -72,7 +89,22 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
       }
     }
   }
-  if (changed)
+  if (!vars.empty())
+  {
+    Trace("sygus-grammar-norm") << "Substitution " << vars << " -> " << subs << std::endl;
+    SygusGrammar sgu(svars, incNtSyms);
+    for (const Node& v : incNtSyms)
+    {
+      const std::vector<Node>& rules = sg.getRulesFor(v);
+      for (const Node& r : rules)
+      {
+        Node rs = r.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+        sgu.addRule(v, rs);
+      }
+    }
+    return sgu.resolve();
+  }
+  else if (changed)
   {
     return sg.resolve();
   }
