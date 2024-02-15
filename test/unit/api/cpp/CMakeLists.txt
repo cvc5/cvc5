@@ -32,3 +32,9 @@ cvc5_add_unit_test_black(proof_black api/cpp)
 cvc5_add_unit_test_white(command_black api/cpp)
 cvc5_add_unit_test_white(symbol_manager_black api/cpp)
 cvc5_add_unit_test_white(input_parser_black api/cpp)
+
+set_source_files_properties(api_deprecated_black.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+# suppress deprecated warnings to not error in CI
+cvc5_add_unit_test_black(api_deprecated_black api/cpp)
