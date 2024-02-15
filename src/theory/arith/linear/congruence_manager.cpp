@@ -277,12 +277,14 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       TypeNode type = isZero[0].getType();
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
-      const auto sumPf =
-          d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
-                        {isZeroPf, pf},
-                        // Trick for getting correct, opposing signs.
-                        {nm->mkConstRealOrInt(type, Rational(-1 * cSign)),
-                         nm->mkConstRealOrInt(type, Rational(cSign))});
+      const auto sumPf = d_pnm->mkNode(
+          ProofRule::MACRO_ARITH_SCALE_SUM_UB,
+          {isZeroPf, pf},
+          // Trick for getting correct, opposing signs.
+          {nm->mkConstRealOrInt(isZeroPf->getResult()[0].getType(),
+                                Rational(-1 * cSign)),
+           nm->mkConstRealOrInt(pf->getResult()[0].getType(),
+                                Rational(cSign))});
       const auto botPf = d_pnm->mkNode(
           ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};
