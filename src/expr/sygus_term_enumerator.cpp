@@ -21,12 +21,17 @@
 namespace cvc5::internal {
 
 SygusTermEnumerator::SygusTermEnumerator(Env& env,
-                                 const TypeNode& tn,
-                                 bool enumShapes,
-                                 bool enumAnyConstHoles,
-                                 size_t numConstants)
-    : d_internal(
-        env, nullptr, nullptr, nullptr, enumShapes, enumAnyConstHoles, numConstants)
+                                         const TypeNode& tn,
+                                         bool enumShapes,
+                                         bool enumAnyConstHoles,
+                                         size_t numConstants)
+    : d_internal(env,
+                 nullptr,
+                 nullptr,
+                 nullptr,
+                 enumShapes,
+                 enumAnyConstHoles,
+                 numConstants)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -35,7 +40,7 @@ SygusTermEnumerator::SygusTermEnumerator(Env& env,
 }
 
 bool SygusTermEnumerator::increment()
-{ 
+{
   while (d_internal.increment())
   {
     if (!d_internal.getCurrent().isNull())
@@ -57,6 +62,5 @@ Node SygusTermEnumerator::getCurrent()
   }
   return theory::datatypes::utils::sygusToBuiltin(c);
 }
-
 
 }  // namespace cvc5::internal
