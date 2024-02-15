@@ -1790,7 +1790,6 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           for (Rational r : *getFarkasCoefficients())
           {
             farkasCoeffs.push_back(nm->mkConstRealOrInt(Rational(r)));
-            cindex++;
           }
           std::vector<Node> farkasCoeffsUse =
               getMacroSumUbCoeff(farkasChildren, farkasCoeffs);
