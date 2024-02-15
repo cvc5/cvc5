@@ -1787,7 +1787,6 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           // Enumerate d_farkasCoefficients as nodes.
           std::vector<Node> farkasCoeffsPre;
           TypeNode type = plit[0].getType();
-          size_t cindex = 0;
           for (Rational r : *getFarkasCoefficients())
           {
             farkasCoeffsPre.push_back(nm->mkConstRealOrInt(Rational(r)));
