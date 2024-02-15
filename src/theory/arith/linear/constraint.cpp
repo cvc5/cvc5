@@ -1126,10 +1126,10 @@ TrustNode Constraint::split()
     auto ltPf = d_database->d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM, {nGeqPf}, {ltNode});
     std::vector<Pf> args{gtPf, ltPf};
-    std::vector<Node> coeffsPre{nm->mkConstReal(-1), nm->mkConstReal(1)};
-    std::vector<Node> coeffs = getMacroSumUbCoeff(args, coeffsPre);
+    std::vector<Node> coeffs{nm->mkConstReal(-1), nm->mkConstReal(1)};
+    std::vector<Node> coeffsUse = getMacroSumUbCoeff(args, coeffs);
     auto sumPf = d_database->d_pnm->mkNode(
-        ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffs);
+        ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffsUse);
     auto botPf = d_database->d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
     std::vector<Node> a = {leqNode.negate(), geqNode.negate()};
@@ -1785,22 +1785,22 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           NodeManager* nm = NodeManager::currentNM();
 
           // Enumerate d_farkasCoefficients as nodes.
-          std::vector<Node> farkasCoeffsPre;
+          std::vector<Node> farkasCoeffs;
           TypeNode type = plit[0].getType();
           size_t cindex = 0;
           for (Rational r : *getFarkasCoefficients())
           {
-            farkasCoeffsPre.push_back(nm->mkConstRealOrInt(Rational(r)));
+            farkasCoeffs.push_back(nm->mkConstRealOrInt(Rational(r)));
             cindex++;
           }
-          std::vector<Node> farkasCoeffs =
-              getMacroSumUbCoeff(farkasChildren, farkasCoeffsPre);
+          std::vector<Node> farkasCoeffsUse =
+              getMacroSumUbCoeff(farkasChildren, farkasCoeffs);
 
           // Apply the scaled-sum rule.
           std::shared_ptr<ProofNode> sumPf =
               pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                           farkasChildren,
-                          farkasCoeffs);
+                          farkasCoeffsUse);
 
           // Provable rewrite the result
           Node falsen = nm->mkConst(false);
@@ -2093,12 +2093,12 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
                                    {blit});
     int sndSign = negateSecond ? -1 : 1;
     std::vector<Pf> args{pf_neg_la, pf_neg_lb};
-    std::vector<Node> coeffsPre{nm->mkConstReal(Rational(-1 * sndSign)),
-                                nm->mkConstReal(Rational(sndSign))};
-    std::vector<Node> coeffs = getMacroSumUbCoeff(args, coeffsPre);
+    std::vector<Node> coeffs{nm->mkConstReal(Rational(-1 * sndSign)),
+                             nm->mkConstReal(Rational(sndSign))};
+    std::vector<Node> coeffsUse = getMacroSumUbCoeff(args, coeffs);
     auto bot_pf = d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM,
-        {d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffs)},
+        {d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffsUse)},
         {nm->mkConst(false)});
     std::vector<Node> as;
     std::transform(orN.begin(), orN.end(), std::back_inserter(as), [](Node n) {
