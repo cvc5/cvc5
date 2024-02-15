@@ -930,8 +930,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       TNode child = children[i];
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp = nm->mkNode(
-          isPos ? Kind::GT : Kind::LT, scalar, nm->mkConstInt(Rational(0)));
+      Node scalarCmp =
+          nm->mkNode(isPos ? Kind::GT : Kind::LT,
+                     scalar,
+                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue =
           steps.tryStep(ProofRule::EVALUATE, {}, {scalarCmp});
@@ -1133,6 +1135,7 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
+
   // take stats and check pedantic
   d_finalCb.initializeUpdate();
   d_finalizer.process(pf);
