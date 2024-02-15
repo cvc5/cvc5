@@ -68,7 +68,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::LFSC_RULE, this);
   pc->registerChecker(ProofRule::ALETHE_RULE, this);
   pc->registerChecker(ProofRule::LEAN_RULE, this);
-  pc->registerChecker(ProofRule::ALF_RULE, this);
 
   pc->registerChecker(ProofRule::THEORY_REWRITE, this);
 
@@ -403,8 +402,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     return args[0];
   }
   else if (id == ProofRule::LFSC_RULE || id == ProofRule::ALETHE_RULE
-           || id == ProofRule::LEAN_RULE
-           || id == ProofRule::ALF_RULE)
+           || id == ProofRule::LEAN_RULE)
   {
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());

@@ -86,8 +86,7 @@ class AlfPrinter : protected EnvObj
   void printStepPost(AlfPrintChannel* out, const ProofNode* pn);
   /**
    * Allocate (if necessary) the identifier for an assume-push step for pn and
-   * return the identifier. pn should be an application of ProofNode::ALF_RULE
-   * with AlfRule::SCOPE.
+   * return the identifier. pn should be an application of ProofRule::SCOPE.
    */
   size_t allocateAssumePushId(const ProofNode* pn, const Node& a);
   /**

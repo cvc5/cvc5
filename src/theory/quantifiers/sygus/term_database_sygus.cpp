@@ -582,12 +582,15 @@ void TermDbSygus::registerEnumerator(Node e,
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator";
     if (!f.isNull())
     {
+      SkolemManager* sm = nm->getSkolemManager();
+      Assert(sm->getInternalId(f)
+             == InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
       Node ff;
       SkolemFunId id;
-      SkolemManager* sm = nm->getSkolemManager();
       sm->isSkolemFunction(f, id, ff);
-      Assert(id == SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
-      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff;
+      // get the argument, which is stored after the internal identifier
+      Assert(ff.getKind() == Kind::SEXPR && ff.getNumChildren() == 2);
+      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff[1];
     }
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
     std::stringstream ss;
@@ -981,40 +984,6 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
   // (and b1 b2) <---- (not (or (not b1) (not b2)))
   // (or b1 b2)  <---- (not (and (not b1) (not b2)))
   return false;
-}
-
-bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    Kind k = n.getKind();
-    if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
-        || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
-        || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL)
-    {
-      if( n[1].isConst() ){
-        if (n[1] == TermUtil::mkTypeValue(n[1].getType(), 0))
-        {
-          return true;
-        }
-      }else{
-        // if it has free variables it might be a non-zero constant
-        if( !hasFreeVar( n[1] ) ){
-          return true;
-        }
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( involvesDivByZero( n[i], visited ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermDbSygus::involvesDivByZero( Node n ) {
-  std::map< Node, bool > visited;
-  return involvesDivByZero( n, visited );
 }
 
 Node TermDbSygus::getAnchor( Node n ) {
