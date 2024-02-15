@@ -286,6 +286,8 @@ void DType::addSygusConstructor(Node op,
                                 const std::vector<TypeNode>& cargs,
                                 int weight)
 {
+  AlwaysAssert (d_scs.find(op)==d_scs.end());
+  d_scs.insert(op);
   // avoid name clashes
   std::stringstream ss;
   ss << getName() << "_" << getNumConstructors() << "_" << cname;
@@ -306,45 +308,6 @@ void DType::addSygusConstructor(Node op,
 void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
 {
   Assert(!d_resolved);
-  // We can be in a case where the only rule specified was
-  // (Constant T), in which case we have not yet added a constructor. We
-  // ensure an arbitrary constant is added in this case. We additionally
-  // add a constant if the grammar has only non-nullary constructors, since this
-  // ensures the datatype is well-founded (see 3423).
-  // Notice we only want to do this for sygus datatypes that are user-provided.
-  // At the moment, the condition !allow_all implies the grammar is
-  // user-provided and hence may require a default constant.
-  // For the SyGuS API, we could consider requiring the user to explicitly add
-  // the "any constant" constructor with a call instead of passing a flag. This
-  // would make the block of code unnecessary.
-  if (allowConst && !allowAll)
-  {
-    // if I don't already have a constant (0-ary constructor)
-    bool hasConstant = false;
-    for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
-    {
-      if ((*this)[i].getNumArgs() == 0)
-      {
-        hasConstant = true;
-        break;
-      }
-    }
-    if (!hasConstant)
-    {
-      // add an arbitrary one
-      NodeManager* nm = NodeManager::currentNM();
-      Node op = nm->mkGroundTerm(st);
-      // use same naming convention as SygusDatatype
-      std::stringstream ss;
-      ss << getName() << "_" << getNumConstructors() << "_" << op;
-      // it has zero weight
-      std::shared_ptr<DTypeConstructor> c =
-          std::make_shared<DTypeConstructor>(ss.str(), 0);
-      c->setSygus(op);
-      addConstructor(c);
-    }
-  }
-
   d_sygusType = st;
   d_sygusBvl = bvl;
   d_sygusAllowConst = allowConst || allowAll;

@@ -515,6 +515,48 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn)
 
 TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
 {
+  Assert(tn.isSygusDatatype());
+  std::vector<Node> svars;
+  if (!sygus_vars.isNull())
+  {
+    svars.insert(svars.end(), sygus_vars.begin(), sygus_vars.end());
+  }
+  Trace("sygus-grammar-norm") << "Normalize " << tn.getDType() << std::endl;
+  SygusGrammar sg(svars, tn);
+  const std::vector<Node>& nts = sg.getNtSyms();
+  Trace("sygus-grammar-norm") << "Reconstructed grammar " << nts << std::endl;
+  bool changed = false;
+  for (const Node& v : nts)
+  {
+    const std::vector<Node>& rules = sg.getRulesFor(v);
+    Trace("sygus-grammar-norm") << "Rules " << v << " " << rules << std::endl;
+    for (const Node& r : rules)
+    {
+      if (DTypeConstructor::isSygusAnyConstantOp(r))
+      {
+        TypeNode vtn = v.getType();
+        Trace("sygus-grammar-norm") << "...any constant " << r << " " << vtn << std::endl;
+        // if the cardinality is <3, we expand (Constant T) to concrete list.
+        if (vtn.isCardinalityLessThan(3))
+        {
+          changed = true;
+          sg.removeRule(v, r);
+          TypeEnumerator te(vtn);
+          while (!te.isFinished())
+          {
+            Node c = *te;
+            sg.addRule(v, c);
+            ++te;
+          }
+        }
+      }
+    }
+  }
+  if (changed)
+  {
+    return sg.resolve();
+  }
+  return tn;
   /* Normalize all types in tn */
   d_sygus_vars = sygus_vars;
   normalizeSygusRec(tn);

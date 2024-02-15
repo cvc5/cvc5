@@ -38,6 +38,11 @@ class SygusGrammar
    */
   SygusGrammar(const std::vector<Node>& sygusVars,
                const std::vector<Node>& ntSyms);
+  /** 
+   * Reconstruct grammar from sygus datatype
+   */
+  SygusGrammar(const std::vector<Node>& sygusVars,
+               const TypeNode& sdt);
 
   /**
    * Add \p rule to the set of rules corresponding to \p ntSym.

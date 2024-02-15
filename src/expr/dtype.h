@@ -640,6 +640,8 @@ class DType
       d_sharedSel;
   /**  A cache for getCardinalityClass. */
   mutable std::map<TypeNode, CardinalityClass> d_cardClass;
+  /** */
+  std::unordered_set<Node> d_scs;
 }; /* class DType */
 
 /**

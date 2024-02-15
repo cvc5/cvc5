@@ -18,9 +18,11 @@
 #include <sstream>
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 
 namespace cvc5::internal {
 
@@ -34,11 +36,77 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
   }
 }
 
+SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars, const TypeNode& sdt) : d_sygusVars(sygusVars)
+{
+  Assert (sdt.isSygusDatatype());
+  std::vector<TypeNode> tnlist;
+  // ensure that sdt is first
+  tnlist.push_back(sdt);
+  std::map<TypeNode, Node> ntsyms;
+  NodeManager * nm = NodeManager::currentNM();
+  for (size_t i=0; i<tnlist.size(); i++)
+  {
+    TypeNode tn = tnlist[i];
+    Assert (tn.isSygusDatatype());
+    const DType& dt = tn.getDType();
+    std::stringstream ss;
+    ss << dt.getName();
+    Node v = nm->mkBoundVar(ss.str(), dt.getSygusType());
+    ntsyms[tn] = v;
+    d_ntSyms.push_back(v);
+    d_rules.emplace(v, std::vector<Node>{});
+    // process the subfield types
+    std::unordered_set<TypeNode> tns = dt.getSubfieldTypes();
+    for (const TypeNode& tnsc : tns)
+    {
+      if (tnsc.isSygusDatatype() && std::find(tnlist.begin(), tnlist.end(), tnsc)==tnlist.end())
+      {
+        tnlist.push_back(tnsc);
+      }
+    }
+  }
+  std::map<TypeNode, Node>::iterator itn;
+  for (const TypeNode& tn : tnlist)
+  {
+    if (!tn.isSygusDatatype())
+    {
+      continue;
+    }
+    Node nts = ntsyms[tn];
+    const DType& dt = tn.getDType();
+    for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    {
+      const DTypeConstructor& cons = dt[i];
+      if (cons.isSygusAnyConstant())
+      {
+        addAnyConstant(nts, cons[0].getRangeType());
+        continue;
+      }
+      Node op = cons.getSygusOp();
+      std::vector<Node> args;
+      for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+      {
+        TypeNode argType = cons[j].getRangeType();
+        itn = ntsyms.find(argType);
+        Assert (itn!=ntsyms.end()) << "Missing " << argType << " in " << op;
+        args.push_back(itn->second);
+      }
+      Node rule = theory::datatypes::utils::mkSygusTerm(op, args, true);
+      addRule(nts, rule);
+    }
+  }
+}
+
 void SygusGrammar::addRule(const Node& ntSym, const Node& rule)
 {
   Assert(d_rules.find(ntSym) != d_rules.cend());
   Assert(rule.getType().isInstanceOf(ntSym.getType()));
-  d_rules[ntSym].push_back(rule);
+  // avoid duplication
+  std::vector<Node>& rs = d_rules[ntSym];
+  if (std::find(rs.begin(), rs.end(), rule)==rs.end())
+  {
+    rs.push_back(rule);
+  }
 }
 
 void SygusGrammar::addRules(const Node& ntSym, const std::vector<Node>& rules)
