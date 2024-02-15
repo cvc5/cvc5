@@ -20,6 +20,13 @@
     ((arith_rel_sum = <=) <=)
   )
 )
+(program arith_mk_zero ((T Type))
+  (Type) T
+  (
+    ((arith_mk_zero Real) 0.0)
+    ((arith_mk_zero Int)  0)
+  )
+)
 
 (program mk_arith_sum_ub ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U) (tail Bool :list))
     (Bool) Bool
@@ -47,7 +54,7 @@
 
 (declare-rule arith_mult_pos ((T Type) (m T) (F Bool))
   :args (m F)
-  :conclusion (=> (and (> m 0) F) (mk_arith_mult_pos m F))
+  :conclusion (=> (and (> m (arith_mk_zero (alf.typeof m))) F) (mk_arith_mult_pos m F))
 )
 
 (program arith_rel_inv ((T Type) (U Type) (S Type))
@@ -71,7 +78,7 @@
 
 (declare-rule arith_mult_neg ((T Type) (m T) (F Bool))
   :args (m F)
-  :conclusion (=> (and (< m 0) F) (mk_arith_mult_neg m F))
+  :conclusion (=> (and (< m (arith_mk_zero (alf.typeof m))) F) (mk_arith_mult_neg m F))
 )
 
 (program arith_rel_trichotomy ((T Type) (U Type) (S Type))

@@ -21,6 +21,7 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/partial_model.h"
@@ -277,12 +278,13 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       TypeNode type = isZero[0].getType();
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
+      std::vector<std::shared_ptr<ProofNode>> pfs{isZeroPf, pf};
+      // Trick for getting correct, opposing signs.
+      std::vector<Node> coeff{nm->mkConstInt(Rational(-1 * cSign)),
+                              nm->mkConstInt(Rational(cSign))};
+      std::vector<Node> coeffUse = getMacroSumUbCoeff(pfs, coeff);
       const auto sumPf =
-          d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
-                        {isZeroPf, pf},
-                        // Trick for getting correct, opposing signs.
-                        {nm->mkConstRealOrInt(type, Rational(-1 * cSign)),
-                         nm->mkConstRealOrInt(type, Rational(cSign))});
+          d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, pfs, coeffUse);
       const auto botPf = d_pnm->mkNode(
           ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};
