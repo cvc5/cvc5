@@ -32,7 +32,7 @@ namespace quantifiers {
 class SygusGrammarNorm;
 class TermDbSygus;
 
-/** 
+/**
  * Utility for normalizing SyGuS grammars to avoid spurious enumerations
  */
 class SygusGrammarNorm : protected EnvObj

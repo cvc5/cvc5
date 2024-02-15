@@ -34,10 +34,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusGrammarNorm::SygusGrammarNorm(Env& env)
-    : EnvObj(env)
-{
-}
+SygusGrammarNorm::SygusGrammarNorm(Env& env) : EnvObj(env) {}
 
 TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
 {
