@@ -963,16 +963,6 @@ CadicalSolver::CadicalSolver(Env& env,
       d_inSatMode(false),
       d_statistics(registry, name)
 {
-  if (logProofs)
-  {
-    d_pfFile = options().driver.filename + ".drat_proof.txt";
-    if (!options().proof.dratBinaryFormat)
-    {
-      d_solver->set("binary", 0);
-    }
-    d_solver->set("inprocessing", 0);
-    d_solver->trace_proof(d_pfFile.c_str());
-  }
 }
 
 void CadicalSolver::init()
@@ -992,6 +982,17 @@ void CadicalSolver::init()
   d_solver->add(0);
   d_solver->add(-toCadicalVar(d_false));
   d_solver->add(0);
+
+  if (d_logProofs)
+  {
+    d_pfFile = options().driver.filename + ".drat_proof.txt";
+    if (!options().proof.dratBinaryFormat)
+    {
+      d_solver->set("binary", 0);
+    }
+    d_solver->set("inprocessing", 0);
+    d_solver->trace_proof(d_pfFile.c_str());
+  }
 }
 
 CadicalSolver::~CadicalSolver() {}
