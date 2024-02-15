@@ -36,18 +36,20 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
   }
 }
 
-SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars, const TypeNode& sdt) : d_sygusVars(sygusVars)
+SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
+                           const TypeNode& sdt)
+    : d_sygusVars(sygusVars)
 {
-  Assert (sdt.isSygusDatatype());
+  Assert(sdt.isSygusDatatype());
   std::vector<TypeNode> tnlist;
   // ensure that sdt is first
   tnlist.push_back(sdt);
   std::map<TypeNode, Node> ntsyms;
-  NodeManager * nm = NodeManager::currentNM();
-  for (size_t i=0; i<tnlist.size(); i++)
+  NodeManager* nm = NodeManager::currentNM();
+  for (size_t i = 0; i < tnlist.size(); i++)
   {
     TypeNode tn = tnlist[i];
-    Assert (tn.isSygusDatatype());
+    Assert(tn.isSygusDatatype());
     const DType& dt = tn.getDType();
     std::stringstream ss;
     ss << dt.getName();
@@ -59,7 +61,8 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars, const TypeNode& s
     std::unordered_set<TypeNode> tns = dt.getSubfieldTypes();
     for (const TypeNode& tnsc : tns)
     {
-      if (tnsc.isSygusDatatype() && std::find(tnlist.begin(), tnlist.end(), tnsc)==tnlist.end())
+      if (tnsc.isSygusDatatype()
+          && std::find(tnlist.begin(), tnlist.end(), tnsc) == tnlist.end())
       {
         tnlist.push_back(tnsc);
       }
@@ -88,7 +91,7 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars, const TypeNode& s
       {
         TypeNode argType = cons[j].getRangeType();
         itn = ntsyms.find(argType);
-        Assert (itn!=ntsyms.end()) << "Missing " << argType << " in " << op;
+        Assert(itn != ntsyms.end()) << "Missing " << argType << " in " << op;
         args.push_back(itn->second);
       }
       Node rule = theory::datatypes::utils::mkSygusTerm(op, args, true);
@@ -103,7 +106,7 @@ void SygusGrammar::addRule(const Node& ntSym, const Node& rule)
   Assert(rule.getType().isInstanceOf(ntSym.getType()));
   // avoid duplication
   std::vector<Node>& rs = d_rules[ntSym];
-  if (std::find(rs.begin(), rs.end(), rule)==rs.end())
+  if (std::find(rs.begin(), rs.end(), rule) == rs.end())
   {
     rs.push_back(rule);
   }

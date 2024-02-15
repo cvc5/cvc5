@@ -535,7 +535,8 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
       if (DTypeConstructor::isSygusAnyConstantOp(r))
       {
         TypeNode vtn = v.getType();
-        Trace("sygus-grammar-norm") << "...any constant " << r << " " << vtn << std::endl;
+        Trace("sygus-grammar-norm")
+            << "...any constant " << r << " " << vtn << std::endl;
         // if the cardinality is <3, we expand (Constant T) to concrete list.
         if (vtn.isCardinalityLessThan(3))
         {
