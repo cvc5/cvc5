@@ -20,11 +20,13 @@
 namespace cvc5::internal {
 
 SygusEnumerator::SygusEnumerator(Env& env,
-                const TypeNode& tn,
-                SygusEnumeratorCallback* sec,
-                bool enumShapes,
-                bool enumAnyConstHoles,
-                size_t numConstants) : d_internal(env, nullptr, sec, nullptr, enumShapes, enumAnyConstHoles, numConstants)
+                                 const TypeNode& tn,
+                                 SygusEnumeratorCallback* sec,
+                                 bool enumShapes,
+                                 bool enumAnyConstHoles,
+                                 size_t numConstants)
+    : d_internal(
+        env, nullptr, sec, nullptr, enumShapes, enumAnyConstHoles, numConstants)
 {
   d_enum = NodeManager::currentNM()->mkDummySkolem(tn);
   d_internal.initialize(d_enum);
@@ -50,10 +52,7 @@ Node SygusEnumerator::getNext()
   return Node::null();
 }
 
-bool SygusEnumerator::increment()
-{
-  return d_internal.increment();
-}
+bool SygusEnumerator::increment() { return d_internal.increment(); }
 
 Node SygusEnumerator::getCurrent()
 {
