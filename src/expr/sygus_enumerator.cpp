@@ -30,22 +30,23 @@ SygusEnumerator::SygusEnumerator(Env& env,
 {
   d_enum = NodeManager::currentNM()->mkDummySkolem(tn);
   d_internal.initialize(d_enum);
-  d_first = getCurrent();
+  d_current = getCurrent();
 }
 
 Node SygusEnumerator::getNext()
 {
-  if (!d_first.isNull())
+  if (!d_current.isNull())
   {
-    const Node& ret = d_first;
-    d_first = Node::null();
+    const Node& ret = d_current;
+    d_current = Node::null();
     return ret;
   }
   while (d_internal.increment())
   {
-    Node c = getCurrent();
+    const Node& c = getCurrent();
     if (!c.isNull())
     {
+      d_current = Node::null();
       return c;
     }
   }
@@ -56,8 +57,8 @@ bool SygusEnumerator::increment() { return d_internal.increment(); }
 
 Node SygusEnumerator::getCurrent()
 {
-  const Node& ret = d_internal.getCurrent();
-  return getSygusToBuiltin(ret);
+  d_current = getSygusToBuiltin(d_internal.getCurrent());
+  return d_current;
 }
 
 Node SygusEnumerator::getSygusToBuiltin(const Node& n)

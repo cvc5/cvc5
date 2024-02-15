@@ -80,8 +80,8 @@ class SygusEnumerator : public EnumValGenerator
   theory::quantifiers::SygusEnumerator d_internal;
   /** The enumerator, a dummy skolem passed to the above class */
   Node d_enum;
-  /** The first term */
-  Node d_first;
+  /** The current enum */
+  Node d_current;
 };
 
 }  // namespace cvc5::internal
