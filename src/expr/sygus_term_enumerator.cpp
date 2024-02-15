@@ -13,27 +13,29 @@
  * sygus_enumerator
  */
 
-#include "expr/sygus_enumerator.h"
+#include "expr/sygus_term_enumerator.h"
 
+#include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 
 namespace cvc5::internal {
 
-SygusEnumerator::SygusEnumerator(Env& env,
+SygusTermEnumerator::SygusTermEnumerator(Env& env,
                                  const TypeNode& tn,
-                                 SygusEnumeratorCallback* sec,
                                  bool enumShapes,
                                  bool enumAnyConstHoles,
                                  size_t numConstants)
     : d_internal(
-        env, nullptr, sec, nullptr, enumShapes, enumAnyConstHoles, numConstants)
+        env, nullptr, nullptr, nullptr, enumShapes, enumAnyConstHoles, numConstants)
 {
-  d_enum = NodeManager::currentNM()->mkDummySkolem(tn);
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  d_enum = sm->mkDummySkolem("enum", tn);
   d_internal.initialize(d_enum);
   d_current = getCurrent();
 }
 
-Node SygusEnumerator::getNext()
+Node SygusTermEnumerator::getNext()
 {
   if (!d_current.isNull())
   {
@@ -53,17 +55,17 @@ Node SygusEnumerator::getNext()
   return Node::null();
 }
 
-bool SygusEnumerator::increment() { return d_internal.increment(); }
+bool SygusTermEnumerator::increment() { return d_internal.increment(); }
 
-Node SygusEnumerator::getCurrent()
+Node SygusTermEnumerator::getCurrent()
 {
   d_current = getSygusToBuiltin(d_internal.getCurrent());
   return d_current;
 }
 
-Node SygusEnumerator::getSygusToBuiltin(const Node& n)
+Node SygusTermEnumerator::getSygusToBuiltin(const Node& n)
 {
-  return datatypes::utils::sygusToBuiltin(n);
+  return theory::datatypes::utils::sygusToBuiltin(n);
 }
 
 }  // namespace cvc5::internal
