@@ -171,11 +171,6 @@ class SkolemCache
   Node mkSkolemFun(SkolemFunId id,
                    Node a = Node::null(),
                    Node b = Node::null());
-  /** Same as above, with explicit type */
-  Node mkSkolemFunTyped(SkolemFunId id,
-                        TypeNode tn,
-                        Node a = Node::null(),
-                        Node b = Node::null());
 
  private:
   /**

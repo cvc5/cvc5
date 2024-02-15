@@ -118,6 +118,11 @@ void Smt2State::addBitvectorOperators()
   addOperator(Kind::BITVECTOR_USUBO, "bvusubo");
   addOperator(Kind::BITVECTOR_SSUBO, "bvssubo");
   addOperator(Kind::BITVECTOR_SDIVO, "bvsdivo");
+  if (!strictModeEnabled())
+  {
+    addOperator(Kind::BITVECTOR_ITE, "bvite");
+  }
+
 
   addIndexedOperator(Kind::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(Kind::BITVECTOR_REPEAT, "repeat");
