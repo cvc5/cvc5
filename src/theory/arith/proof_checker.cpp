@@ -222,7 +222,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
           {
             // Should use real for predicates over reals. This is only
             // necessary for avoiding spurious usage of mixed arithmetic, but we
-            // check here to avoid potential issues with --proof-elim-subtypes.
+            // check here to be pedantic.
             return Node::null();
           }
         }

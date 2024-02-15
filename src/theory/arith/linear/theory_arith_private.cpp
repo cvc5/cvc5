@@ -1414,10 +1414,10 @@ TrustNode TheoryArithPrivate::dioCutting()
       Pf pfLt =
           d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt}, lt);
       std::vector<Pf> args{pfGt, pfLt};
-      std::vector<Node> coeffsPre{nm->mkConstReal(-1), nm->mkConstReal(1)};
-      std::vector<Node> coeffs = getMacroSumUbCoeff(args, coeffsPre);
+      std::vector<Node> coeffs{nm->mkConstReal(-1), nm->mkConstReal(1)};
+      std::vector<Node> coeffsUse = getMacroSumUbCoeff(args, coeffs);
       Pf pfSum =
-          d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffs);
+          d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffsUse);
       Node falsen = nm->mkConst(false);
       Pf pfBot = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                {pfSum},
@@ -4522,16 +4522,16 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         std::transform(
             coeffs->begin(),
             coeffs->end(),
-            std::back_inserter(farkasCoefficientsPre),
+            std::back_inserter(farkasCoefficients),
             [nm](const Rational& r) { return nm->mkConstRealOrInt(r); });
         // ensure correct types
-        std::vector<Node> farkasCoefficients =
-            getMacroSumUbCoeff(conflictPfs, farkasCoefficientsPre);
+        std::vector<Node> farkasCoefficientsUse =
+            getMacroSumUbCoeff(conflictPfs, farkasCoefficients);
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                                    conflictPfs,
-                                   farkasCoefficients);
+                                   farkasCoefficientsUse);
         Node falsen = nm->mkConst(false);
         auto botPf = d_pnm->mkNode(
             ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {falsen}, falsen);
