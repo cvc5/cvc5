@@ -139,7 +139,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
         << "Getting candidate skeletons : " << std::endl;
   }
   std::vector<Node> candidate_skeletons;
-  std::map<TypeNode, int> free_var_count;
+  std::map<TypeNode, size_t> free_var_count;
   std::vector<Node> sk_vars;
   std::map<Node, Node> sk_vars_to_subs;
   for (unsigned i = 0, size = candidates.size(); i < size; i++)
@@ -345,7 +345,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
 }
 
 Node SygusRepairConst::getSkeleton(Node n,
-                                   std::map<TypeNode, int>& free_var_count,
+                                   std::map<TypeNode, size_t>& free_var_count,
                                    std::vector<Node>& sk_vars,
                                    std::map<Node, Node>& sk_vars_to_subs,
                                    bool useConstantsAsHoles)

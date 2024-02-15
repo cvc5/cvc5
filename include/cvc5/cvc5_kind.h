@@ -16,15 +16,15 @@
 #if (!defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_CPP_KIND_H)) \
     || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_KIND_H))
 
-#include <cstdint>
-
 #ifdef CVC5_API_USE_C_ENUMS
-#include <cstddef>
+#include <stddef.h>
+#include <stdint.h>
 #undef ENUM
 #define ENUM(name) Cvc5##name
 #else
 #include <cvc5/cvc5_export.h>
 
+#include <cstdint>
 #include <ostream>
 namespace cvc5 {
 #undef ENUM
@@ -5713,9 +5713,11 @@ const char* cvc5_kind_to_string(Cvc5Kind kind);
  * Get the string representation of a given kind.
  * @param kind The kind
  * @return The string representation.
+ * @note This function is deprecated and replaced by
+ *       `std::to_string(Kind kind)`. It will be removed in a future release.
  */
-std::string kindToString(Kind kind) CVC5_EXPORT;
-
+[[deprecated("use std::to_string(Kind) instead.")]] std::string kindToString(
+    Kind kind) CVC5_EXPORT;
 /**
  * Serialize a kind to given stream.
  * @param out  The output stream.
@@ -5725,6 +5727,15 @@ std::string kindToString(Kind kind) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream& out, Kind kind) CVC5_EXPORT;
 
 }  // namespace cvc5
+
+namespace std {
+/**
+ * Get the string representation of a given kind.
+ * @param kind The kind
+ * @return The string representation.
+ */
+std::string to_string(cvc5::Kind kind);
+}
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -6002,9 +6013,12 @@ const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
  * Get the string representation of a given kind.
  * @param k the sort kind
  * @return the string representation of kind k
+ * @note This function is deprecated and replaced by
+ *       `std::to_string(SortKind kind)`. It will be removed in a future
+ *       release.
  */
-std::string sortKindToString(SortKind k) CVC5_EXPORT;
-
+[[deprecated("use std::to_string(SortKind) instead.")]] std::string
+sortKindToString(SortKind k) CVC5_EXPORT;
 /**
  * Serialize a kind to given stream.
  * @param out the output stream
@@ -6014,6 +6028,15 @@ std::string sortKindToString(SortKind k) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream& out, SortKind k) CVC5_EXPORT;
 
 }  // namespace cvc5
+
+namespace std {
+/**
+ * Get the string representation of a given kind.
+ * @param k the sort kind
+ * @return the string representation of kind k
+ */
+std::string to_string(cvc5::SortKind k);
+}
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS

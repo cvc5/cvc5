@@ -18,7 +18,6 @@
     || (defined(CVC5_API_USE_C_ENUMS)               \
         && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
-#include <iosfwd>
 #include <cstdint>
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -27,7 +26,7 @@
 #else
 #include <cvc5/cvc5_export.h>
 
-#include <cstdint>
+#include <iosfwd>
 #include <ostream>
 namespace cvc5 {
 #undef ENUM
@@ -2216,20 +2215,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALETHE_RULE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- AletheLF**
-   *
-   * Place holder for AletheLF rules.
-   *
-   * .. math::
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external AletheLF
-   * calculus. \endverbatim
-   */
-  EVALUE(ALF_RULE),
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),

@@ -2451,7 +2451,7 @@ class CVC5_EXPORT DatatypeConstructor
   /**
    * Iterator for the selectors of a datatype constructor.
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class DatatypeConstructor;  // to access constructor
 
@@ -2721,7 +2721,7 @@ class CVC5_EXPORT Datatype
   /**
    * Iterator for the constructors of a datatype.
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class Datatype;  // to access constructor
 
@@ -3138,6 +3138,8 @@ struct CVC5_EXPORT OptionInfo
   bool setByUser;
   /** Whether this is an expert option */
   bool isExpert;
+  /** Whether this is a regular option */
+  bool isRegular;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,

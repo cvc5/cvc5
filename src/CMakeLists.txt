@@ -15,6 +15,8 @@
 
 # Collect libcvc5 source files
 libcvc5_add_sources(
+  api/c/cvc5.cpp
+  api/c/cvc5_checks.h
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
@@ -145,14 +147,10 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
-  proof/alf/alf_post_processor.cpp
-  proof/alf/alf_post_processor.h
   proof/alf/alf_print_channel.cpp
   proof/alf/alf_print_channel.h
   proof/alf/alf_printer.cpp
   proof/alf/alf_printer.h
-  proof/alf/alf_proof_rule.cpp
-  proof/alf/alf_proof_rule.h
   proof/annotation_proof_generator.cpp
   proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
@@ -370,6 +368,8 @@ libcvc5_add_sources(
   theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
+  theory/arith/arith_proof_utilities.cpp
+  theory/arith/arith_proof_utilities.h
   theory/arith/arith_rewriter.cpp
   theory/arith/arith_rewriter.h
   theory/arith/arith_subs.cpp
