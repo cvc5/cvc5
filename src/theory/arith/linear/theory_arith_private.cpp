@@ -4516,8 +4516,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
           conflictPfs.push_back(constraint->externalExplainByAssertions(nb));
         }
         // Collect the farkas coefficients, as nodes.
-        std::vector<Node> farkasCoefficientsPre;
-        farkasCoefficientsPre.reserve(coeffs->size());
+        std::vector<Node> farkasCoefficients;
+        farkasCoefficients.reserve(coeffs->size());
         auto nm = NodeManager::currentNM();
         std::transform(
             coeffs->begin(),
