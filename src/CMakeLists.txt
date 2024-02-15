@@ -367,6 +367,8 @@ libcvc5_add_sources(
   theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
+  theory/arith/arith_proof_utilities.cpp
+  theory/arith/arith_proof_utilities.h
   theory/arith/arith_rewriter.cpp
   theory/arith/arith_rewriter.h
   theory/arith/arith_subs.cpp
