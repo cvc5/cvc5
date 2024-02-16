@@ -405,7 +405,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Boolean -- N-ary Resolution**
    *
    * .. math::
-   *   \inferrule{C_1 \dots C_n \mid pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
+   *   \inferrule{C_1 \dots C_n \mid (pol_1 \dots pol_{n-1}), (L_1 \dots L_{n-1})}{C}
    *
    * where
    *
@@ -416,6 +416,8 @@ enum ENUM(ProofRule) : uint32_t
    * - let :math:`C_1' = C_1`,
    * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond{L_{i-1},
    *   \mathit{pol}_{i-1}} C_i'`
+   *
+   * Note the list of polarities and pivots are provided as s-expressions.
    *
    * The result of the chain resolution is :math:`C = C_n'`
    * \endverbatim
