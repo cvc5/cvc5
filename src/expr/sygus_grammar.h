@@ -119,7 +119,7 @@ class SygusGrammar
    * Get lambda for rule
    */
   Node getLambdaForRule(const Node& r, std::map<Node, Node>& ntSymMap) const;
-  
+
  private:
   /** Input variables to the corresponding function/invariant to synthesize.*/
   std::vector<Node> d_sygusVars;

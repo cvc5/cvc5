@@ -192,7 +192,7 @@ Node purifySygusGNode(const Node& n,
 {
   NodeManager* nm = NodeManager::currentNM();
   // if n is non-terminal
-  if (std::find(nts.begin(), nts.end(), n)!=nts.end())
+  if (std::find(nts.begin(), nts.end(), n) != nts.end())
   {
     Node ret = nm->mkBoundVar(n.getType());
     ntSymMap[ret] = n;
@@ -263,10 +263,10 @@ void addSygusConstructor(DType& dt,
     std::unordered_map<Node, TypeNode>::const_iterator it;
     for (const Node& a : args)
     {
-      Assert (ntSymMap.find(a)!=ntSymMap.end());
+      Assert(ntSymMap.find(a) != ntSymMap.end());
       Node na = ntSymMap[a];
       it = ntsToUnres.find(na);
-      Assert (it!=ntsToUnres.end());
+      Assert(it != ntsToUnres.end());
       cargs.push_back(it->second);
     }
     ss << op.getKind();
@@ -280,13 +280,14 @@ void addSygusConstructor(DType& dt,
   }
 }
 
-Node SygusGrammar::getLambdaForRule(const Node& r, std::map<Node, Node>& ntSymMap) const
+Node SygusGrammar::getLambdaForRule(const Node& r,
+                                    std::map<Node, Node>& ntSymMap) const
 {
   std::vector<Node> args;
   Node rp = purifySygusGNode(r, args, ntSymMap, d_ntSyms);
   if (!args.empty())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     return nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, args), rp);
   }
   return r;
