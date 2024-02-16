@@ -94,7 +94,7 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
         Assert(itn != ntsyms.end()) << "Missing " << argType << " in " << op;
         args.push_back(itn->second);
       }
-      Node rule = theory::datatypes::utils::mkSygusTerm(op, args);
+      Node rule = theory::datatypes::utils::mkSygusTerm(op, args, true);
       addRule(nts, rule);
     }
   }
@@ -180,29 +180,30 @@ void SygusGrammar::removeRule(const Node& ntSym, const Node& rule)
  *
  * @param n The node to purify.
  * @param args The free variables in the node returned by this method.
- * @param cargs The types of the arguments of the sygus constructor.
- * @param ntsToUnres Mapping from non-terminals to their unresolved types.
+ * @param ntSymMap Map from each variable in args to the non-terminal they were
+ * introduced for.
+ * @param nts The list of non-terminal symbols
  * @return The purfied node.
  */
 Node purifySygusGNode(const Node& n,
                       std::vector<Node>& args,
-                      std::vector<TypeNode>& cargs,
-                      const std::unordered_map<Node, TypeNode>& ntsToUnres)
+                      std::map<Node, Node>& ntSymMap,
+                      const std::vector<Node>& nts)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, TypeNode>::const_iterator itn = ntsToUnres.find(n);
-  if (itn != ntsToUnres.cend())
+  // if n is non-terminal
+  if (std::find(nts.begin(), nts.end(), n)!=nts.end())
   {
     Node ret = nm->mkBoundVar(n.getType());
+    ntSymMap[ret] = n;
     args.push_back(ret);
-    cargs.push_back(itn->second);
     return ret;
   }
   std::vector<Node> pchildren;
   bool childChanged = false;
   for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
   {
-    Node ptermc = purifySygusGNode(n[i], args, cargs, ntsToUnres);
+    Node ptermc = purifySygusGNode(n[i], args, ntSymMap, nts);
     pchildren.push_back(ptermc);
     childChanged = childChanged || ptermc != n[i];
   }
@@ -241,6 +242,7 @@ bool isId(const Node& n)
  */
 void addSygusConstructor(DType& dt,
                          const Node& rule,
+                         const std::vector<Node>& nts,
                          const std::unordered_map<Node, TypeNode>& ntsToUnres)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -255,8 +257,18 @@ void addSygusConstructor(DType& dt,
   else
   {
     std::vector<Node> args;
+    std::map<Node, Node> ntSymMap;
+    Node op = purifySygusGNode(rule, args, ntSymMap, nts);
     std::vector<TypeNode> cargs;
-    Node op = purifySygusGNode(rule, args, cargs, ntsToUnres);
+    std::unordered_map<Node, TypeNode>::const_iterator it;
+    for (const Node& a : args)
+    {
+      Assert (ntSymMap.find(a)!=ntSymMap.end());
+      Node na = ntSymMap[a];
+      it = ntsToUnres.find(na);
+      Assert (it!=ntsToUnres.end());
+      cargs.push_back(it->second);
+    }
     ss << op.getKind();
     if (!args.empty())
     {
@@ -266,6 +278,18 @@ void addSygusConstructor(DType& dt,
     // assign identity rules a weight of 0.
     dt.addSygusConstructor(op, ss.str(), cargs, isId(op) ? 0 : -1);
   }
+}
+
+Node SygusGrammar::getLambdaForRule(const Node& r, std::map<Node, Node>& ntSymMap) const
+{
+  std::vector<Node> args;
+  Node rp = purifySygusGNode(r, args, ntSymMap, d_ntSyms);
+  if (!args.empty())
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    return nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, args), rp);
+  }
+  return r;
 }
 
 TypeNode SygusGrammar::resolve(bool allowAny)
@@ -303,7 +327,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
         {
           allowConsts.insert(ntSym);
         }
-        addSygusConstructor(dt, rule, ntsToUnres);
+        addSygusConstructor(dt, rule, d_ntSyms, ntsToUnres);
       }
       bool allowConst = allowConsts.find(ntSym) != allowConsts.end();
       dt.setSygus(ntSym.getType(), bvl, allowConst || allowAny, allowAny);
