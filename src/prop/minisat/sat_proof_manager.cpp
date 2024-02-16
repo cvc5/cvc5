@@ -13,7 +13,7 @@
  * Implementation of the proof manager for Minisat.
  */
 
-#include "prop/sat_proof_manager.h"
+#include "prop/minisat/sat_proof_manager.h"
 
 #include "options/proof_options.h"
 #include "proof/proof_node_algorithm.h"
