@@ -25,6 +25,9 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 namespace cvc5::internal {
+
+class Env;
+
 namespace theory {
 
 // ----------------------- sygus datatype attributes
@@ -232,6 +235,8 @@ void setExpandedDefinitionForm(Node op, Node eop);
  * otherwise.
  */
 Node getExpandedDefinitionForm(Node op);
+/** Compute expanded definition form for all operators in sygus datatype tn */
+void computeExpandedDefinitionForms(Env& env, const TypeNode& tn);
 // ------------------------ end sygus utils
 
 }  // namespace utils

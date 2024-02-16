@@ -61,7 +61,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
         TypeNode vtn = v.getType();
         Trace("sygus-grammar-norm")
             << "...any constant " << r << " " << vtn << std::endl;
-        // if the cardinality is <3, we expand (Constant T) to concrete list.
+        // if the cardinality is less than 3, we expand (Constant T) to concrete list.
         if (vtn.isCardinalityLessThan(3))
         {
           changed = true;
@@ -99,7 +99,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   TypeNode tnn;
   if (!vars.empty())
   {
-    // if we inlined any type
+    // if we inlined any type, apply the substitution to all rules
     Trace("sygus-grammar-norm") << "Process inlined substitution " << vars
                                 << " -> " << subs << std::endl;
     SygusGrammar sgu(svars, incNtSyms);
@@ -126,36 +126,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     return tn;
   }
   // ensure the expanded definition forms are set
-  std::unordered_set<TypeNode> processed;
-  std::vector<TypeNode> toProcess;
-  toProcess.push_back(tnn);
-  size_t index = 0;
-  while (index < toProcess.size())
-  {
-    TypeNode tnp = toProcess[index];
-    index++;
-    Assert(tnp.isSygusDatatype());
-    const DType& dt = tnp.getDType();
-    const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
-        dt.getConstructors();
-    for (const std::shared_ptr<DTypeConstructor>& c : cons)
-    {
-      Node op = c->getSygusOp();
-      Node eop = d_env.getTopLevelSubstitutions().apply(op);
-      eop = rewrite(eop);
-      datatypes::utils::setExpandedDefinitionForm(op, eop);
-      // also must consider the arguments
-      for (size_t j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
-      {
-        TypeNode tnc = c->getArgType(j);
-        if (tnc.isSygusDatatype() && processed.find(tnc) == processed.end())
-        {
-          toProcess.push_back(tnc);
-          processed.insert(tnc);
-        }
-      }
-    }
-  }
+  datatypes::utils::computeExpandedDefinitionForms(d_env, tnn);
   return tnn;
 }
 
