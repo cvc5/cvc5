@@ -1,0 +1,10 @@
+; COMMAND-LINE: --check-proofs --proof-granularity=dsl-rewrite
+(set-logic QF_SLIA)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(declare-const i Int)
+(assert (not (= (str.len (str.++ x y z w)) (+ (str.len x) (str.len y) (str.len z) (str.len w)))))
+(set-info :status unsat)
+(check-sat)
