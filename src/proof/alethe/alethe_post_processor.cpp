@@ -74,7 +74,10 @@ bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 bool AletheProofPostprocessCallback::shouldUpdatePost(
     std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
 {
-  Assert(!pn->getArguments().empty());
+  if (pn->getArguments().empty())
+  {
+    return false;
+  }
   AletheRule rule = getAletheRule(pn->getArguments()[0]);
   return rule == AletheRule::RESOLUTION_OR || rule == AletheRule::REORDERING
          || rule == AletheRule::CONTRACTION;
@@ -176,9 +179,10 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     //================================================= Core rules
     //======================== Assume and Scope
+    // nothing happens
     case ProofRule::ASSUME:
     {
-      return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
+      return false;
     }
     // See proof_rule.h for documentation on the SCOPE rule. This comment uses
     // variable names as introduced there. Since the SCOPE rule originally
@@ -2009,8 +2013,12 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
 {
   // This method is called only when the premise is used as a singleton
   // clause. If its proof however concludes a non-singleton clause it'll fail
-  // the test below and we must change its proof.
+  // the test below and we must change its proof. Assumptions are ignored.
   std::shared_ptr<ProofNode> premisePf = cdp->getProofFor(premise);
+  if (premisePf->getRule() == ProofRule::ASSUME)
+  {
+    return false;
+  }
   Node premisePfConclusion = premisePf->getArguments()[2];
   if (premisePfConclusion.getNumChildren() <= 2
       || premisePfConclusion[0] != d_cl)
@@ -2057,12 +2065,8 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   // step will be present in cdp connecting premiseChildConclusion to
   // premiseChildPf (since by default adding an ASSUME step will not rewrite an
   // existing proof for a node).
-  addAletheStep(AletheRule::ASSUME,
-                premiseChildConclusion,
-                premiseChildConclusion,
-                {},
-                {},
-                *cdp);
+  cdp->addStep(
+      premiseChildConclusion, ProofRule::ASSUME, {}, {premiseChildConclusion});
   // equate it to what we expect, use equiv elim and resolution to
   // obtain a proof the expected
   Node equiv = premiseChildConclusion.eqNode(premise);
@@ -2140,19 +2144,19 @@ bool AletheProofPostprocessCallback::updatePost(
           && (args[polIdx] != d_true || args[pivIdx] != children[0]))
       {
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
-        Node childConclusion = childPf->getArguments()[2];
-        AletheRule childRule = getAletheRule(childPf->getArguments()[0]);
+        bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
+        Node childConclusion = childPfIsAssume? childPf->getResult() : childPf->getArguments()[2];
         // if child conclusion is of the form (sexpr cl (or ...)), then we need
         // to add an OR step, since this child must not be a singleton
-        if ((childConclusion.getNumChildren() == 2 && childConclusion[0] == d_cl
-             && childConclusion[1].getKind() == Kind::OR)
-            || (childRule == AletheRule::ASSUME
-                && childConclusion.getKind() == Kind::OR))
+        if ((childPfIsAssume && childConclusion.getKind() == Kind::OR)
+            || (childConclusion.getNumChildren() == 2
+                && childConclusion[0] == d_cl
+                && childConclusion[1].getKind() == Kind::OR))
         {
           hasUpdated = true;
           // Add or step
           std::vector<Node> subterms{d_cl};
-          if (childRule == AletheRule::ASSUME)
+          if (childPfIsAssume)
           {
             subterms.insert(
                 subterms.end(), childConclusion.begin(), childConclusion.end());
@@ -2209,18 +2213,17 @@ bool AletheProofPostprocessCallback::updatePost(
             continue;
           }
           std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
-          Node childConclusion = childPf->getArguments()[2];
-          AletheRule childRule = getAletheRule(childPf->getArguments()[0]);
+          bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
+          Node childConclusion = childPfIsAssume? childPf->getResult() : childPf->getArguments()[2];
           // Add or step
-          if ((childConclusion.getNumChildren() == 2
-               && childConclusion[0] == d_cl
-               && childConclusion[1].getKind() == Kind::OR)
-              || (childRule == AletheRule::ASSUME
-                  && childConclusion.getKind() == Kind::OR))
+          if ((childPfIsAssume && childConclusion.getKind() == Kind::OR)
+              || (childConclusion.getNumChildren() == 2
+                  && childConclusion[0] == d_cl
+                  && childConclusion[1].getKind() == Kind::OR))
           {
             hasUpdated = true;
             std::vector<Node> lits{d_cl};
-            if (childRule == AletheRule::ASSUME)
+            if (childPfIsAssume)
             {
               lits.insert(
                   lits.end(), childConclusion.begin(), childConclusion.end());
@@ -2299,16 +2302,17 @@ bool AletheProofPostprocessCallback::updatePost(
     case AletheRule::CONTRACTION:
     {
       std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
-      Node childConclusion = childPf->getArguments()[2];
-      AletheRule childRule = getAletheRule(childPf->getArguments()[0]);
-      if ((childConclusion.getNumChildren() == 2 && childConclusion[0] == d_cl
-           && childConclusion[1].getKind() == Kind::OR)
-          || (childRule == AletheRule::ASSUME
-              && childConclusion.getKind() == Kind::OR))
+      bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
+      Node childConclusion =
+          childPfIsAssume ? childPf->getResult() : childPf->getArguments()[2];
+      if ((childPfIsAssume && childConclusion.getKind() == Kind::OR)
+          || (childConclusion.getNumChildren() == 2
+              && childConclusion[0] == d_cl
+              && childConclusion[1].getKind() == Kind::OR))
       {
         // Add or step for child
         std::vector<Node> subterms{d_cl};
-        if (getAletheRule(childPf->getArguments()[0]) == AletheRule::ASSUME)
+        if (childPfIsAssume)
         {
           subterms.insert(
               subterms.end(), childConclusion.begin(), childConclusion.end());
@@ -2377,7 +2381,7 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
   if (childPf->getRule() == ProofRule::ALETHE_RULE
       && ((childPf->getArguments()[2].getNumChildren() == 2
            && childPf->getArguments()[2][1] == d_false)
-          || childPf->getArguments()[2] == d_false))
+          || childPf->getResult() == d_false))
   {
     Node notFalse =
         nm->mkNode(Kind::SEXPR, d_cl, d_false.notNode());  // (cl (not false))
@@ -2394,16 +2398,17 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
     children[0] = newChild;
   }
 
-  // Sanitize original assumptions and create a placeholder proof step to hold
-  // them.
-  Assert(id == ProofRule::SCOPE);
-  std::vector<Node> sanitizedArgs{
-      nm->mkConstInt(static_cast<uint32_t>(AletheRule::UNDEFINED)), res, res};
-  for (const Node& arg : args)
-  {
-    sanitizedArgs.push_back(d_anc.convert(arg, false));
-  }
-  return cdp->addStep(res, ProofRule::ALETHE_RULE, children, sanitizedArgs);
+  // Sanitize original assumptions and create a double scope to hold them, where
+  // the first scope is empty. This is needed because of the expected form a
+  // proof node to be printed
+  std::vector<Node> sanitizedArgs;
+  std::transform(args.begin(),
+                 args.end(),
+                 std::back_inserter(sanitizedArgs),
+                 [this](Node a) { return d_anc.convert(a, false); });
+  Node placeHolder = nm->mkNode(Kind::SEXPR, res);
+  cdp->addStep(placeHolder, ProofRule::SCOPE, children, sanitizedArgs);
+  return cdp->addStep(res, ProofRule::SCOPE, {placeHolder}, {});
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(

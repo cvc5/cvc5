@@ -37,12 +37,26 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                         const std::vector<Node>& fa,
                                         bool& continueUpdate)
 {
+  ProofRule r = pn->getRule();
+  if (r == ProofRule::ASSUME)
+  {
+    d_lbind.process(pn->getResult());
+    return false;
+  }
   const std::vector<Node>& args = pn->getArguments();
+  if (r == ProofRule::SCOPE)
+  {
+    for (size_t i = 0, size = args.size(); i < size; ++i)
+    {
+      d_lbind.process(args[i]);
+    }
+    return false;
+  }
   // Letification done on the converted terms (thus from the converted
   // conclusion) and potentially on arguments, which means to ignore the first
   // two arguments (which are the Alethe rule and the original conclusion).
   AlwaysAssert(args.size() > 2)
-      << "res: " << pn->getResult() << "\nid: " << getAletheRule(args[0]);
+      << "res: " << pn->getResult() << "\nid: " << pn->getRule();
   for (size_t i = 2, size = args.size(); i < size; ++i)
   {
     Trace("alethe-printer") << "Process " << args[i] << "\n";
@@ -60,7 +74,6 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     }
     d_lbind.process(args[i]);
   }
-
   return false;
 }
 
@@ -89,6 +102,8 @@ void AletheProofPrinter::print(
     const std::map<Node, std::string>& assertionNames)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
+  // ignore outer scope
+  pfn = pfn->getChildren()[0];
   std::shared_ptr<ProofNode> innerPf = pfn->getChildren()[0];
   AlwaysAssert(innerPf);
 
@@ -120,7 +135,7 @@ void AletheProofPrinter::print(
   const std::vector<Node>& args = pfn->getArguments();
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
-  for (size_t i = 3, size = args.size(); i < size; i++)
+  for (size_t i = 0, size = args.size(); i < size; i++)
   {
     auto it = assertionNames.find(args[i]);
     if (it != assertionNames.end())
@@ -130,8 +145,8 @@ void AletheProofPrinter::print(
     }
     else
     {  // assumptions are always being declared
-      out << "(assume a" << i - 3 << " ";
-      assumptions[args[i]] = "a" + std::to_string(i - 3);
+      out << "(assume a" << i << " ";
+      assumptions[args[i]] = "a" + std::to_string(i);
     }
     printTerm(out, args[i]);
     out << ")\n";
@@ -153,38 +168,25 @@ std::string AletheProofPrinter::printInternal(
   int step_id = current_step_id;
   const std::vector<Node>& args = pfn->getArguments();
 
-  // If the proof node is untranslated a problem might have occured during
-  // postprocessing
-  if (args.size() < 3 || pfn->getRule() != ProofRule::ALETHE_RULE)
+  // Assumptions are printed at the anchor and therefore have to be in the list
+  // of assumptions when an assume is reached. Since assumptions are
+  // untranslated, it's handled as a special case here.
+  if (pfn->getRule() == ProofRule::ASSUME)
   {
     Trace("alethe-printer")
-        << "... printing failed! Encountered untranslated Node. "
-        << pfn->getResult() << " " << pfn->getRule() << " "
-        << " / " << args << std::endl;
-    return "";
+        << "... reached assumption " << pfn->getResult() << std::endl;
+    Node res = pfn->getResult();
+
+    auto it = assumptions.find(res);
+    Assert(it != assumptions.end()) << "Assumption has not been printed yet! "
+                                    << res << "/" << assumptions << std::endl;
+    Trace("alethe-printer") << "... found assumption in list " << it->second
+                            << ": " << res << "/" << assumptions << std::endl;
+    return it->second;
   }
 
   // Get the alethe proof rule
   AletheRule arule = getAletheRule(args[0]);
-
-  // Assumptions are printed at the anchor and therefore have to be in the list
-  // of assumptions when an assume is reached.
-  if (arule == AletheRule::ASSUME)
-  {
-    Trace("alethe-printer")
-        << "... reached assumption " << pfn->getResult() << " " << arule << " "
-        << " / " << args << " " << std::endl;
-
-    auto it = assumptions.find(args[2]);
-    Assert(it != assumptions.end())
-        << "Assumption has not been printed yet! " << args[2] << "/"
-        << assumptions << std::endl;
-    Trace("alethe-printer")
-        << "... found assumption in list " << it->second << ": " << args[2]
-        << "/" << assumptions << std::endl;
-    return it->second;
-  }
-
   // If the current step is already printed return its id
   auto it = steps.find(pfn);
   if (it != steps.end())

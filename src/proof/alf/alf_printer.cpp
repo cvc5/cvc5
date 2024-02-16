@@ -274,6 +274,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   Assert (pfn->getChildren()[0]->getRule()==ProofRule::SCOPE);
   const std::vector<Node>& assertions = pfn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pfn->getChildren()[0]->getChildren()[0].get();
+  Trace("test") << *pnBody << "\n";
 
   // Use a let binding if proofDagGlobal is true.
   // We can traverse binders due to the way we print global declare-var, since
@@ -488,7 +489,7 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
     }
     case ProofRule::ALETHE_RULE:
     {
-      Assert (args.size()>=3);
+      Assert (pargs.size()>=3) << *pn;
       // ignore the first argument, which specifies the rule and the second
       // argument which stores a conclusion
       args.insert(args.end(), pargs.begin()+3, pargs.end());
