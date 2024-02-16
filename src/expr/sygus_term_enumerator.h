@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * sygus_enumerator
+ * sygus_term_enumerator
  */
 
 #include "cvc5_private.h"
@@ -33,7 +33,7 @@ namespace cvc5::internal {
  * embedding is considered in order of sygus term size
  * (TermDb::getSygusTermSize).
  *
- * It also can be configured to enumerates sygus terms with free variables,
+ * It also can be configured to enumerate sygus terms with free variables,
  * (as opposed to variables bound in the formal arguments list of the
  * function-to-synthesize), where each free variable appears in exactly one
  * subterm. For grammar:
@@ -51,7 +51,7 @@ namespace cvc5::internal {
  *   do
  *   {
  *     terms.push_back(enum.getCurrent());
- *   }while (enum.increment());
+ *   } while (enum.increment());
  */
 class SygusTermEnumerator
 {
@@ -103,4 +103,4 @@ class SygusTermEnumerator
 
 }  // namespace cvc5::internal
 
-#endif /* CVC5__EXPR__SYGUS_ENUMERATOR_H */
+#endif /* CVC5__EXPR__SYGUS_TERM_ENUMERATOR_H */

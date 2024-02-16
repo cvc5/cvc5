@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * sygus_enumerator
+ * sygus_term_enumerator
  */
 
 #include "expr/sygus_term_enumerator.h"
