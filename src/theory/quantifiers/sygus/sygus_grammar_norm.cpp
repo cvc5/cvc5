@@ -23,6 +23,7 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/trust_substitutions.h"
 #include "theory/type_enumerator.h"
+#include "expr/subs.h"
 
 using namespace cvc5::internal::kind;
 
@@ -47,8 +48,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   const std::vector<Node>& nts = sg.getNtSyms();
   Trace("sygus-grammar-norm") << "Reconstructed grammar " << nts << std::endl;
   bool changed = false;
-  std::vector<Node> vars;
-  std::vector<Node> subs;
+  Subs inlineRules;
   std::vector<Node> incNtSyms;
   for (const Node& v : nts)
   {
@@ -82,35 +82,29 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     if (v != nts[0] && rulesPost.size() == 1
         && !DTypeConstructor::isSygusAnyConstantOp(rulesPost[0]))
     {
-      Node rs = rulesPost[0].substitute(
-          vars.begin(), vars.end(), subs.begin(), subs.end());
-      for (Node& s : subs)
-      {
-        TNode tv = v;
-        TNode ts = rs;
-        s = s.substitute(tv, ts);
-      }
-      vars.push_back(v);
-      subs.push_back(rs);
+      Node rs = inlineRules.apply(rulesPost[0]);
+      // apply the current to the range
+      Subs icurr;
+      icurr.add(v, rs);
+      icurr.applyToRange(inlineRules);
+      inlineRules.add(v, rs);
       // don't include this symbol in the final construction below
       continue;
     }
     incNtSyms.push_back(v);
   }
   TypeNode tnn;
-  if (!vars.empty())
+  if (!inlineRules.empty())
   {
     // if we inlined any type, apply the substitution to all rules
-    Trace("sygus-grammar-norm") << "Process inlined substitution " << vars
-                                << " -> " << subs << std::endl;
+    Trace("sygus-grammar-norm") << "Process inlined substitution " << inlineRules.toString() << std::endl;
     SygusGrammar sgu(svars, incNtSyms);
     for (const Node& v : incNtSyms)
     {
       const std::vector<Node>& rules = sg.getRulesFor(v);
       for (const Node& r : rules)
       {
-        Node rs =
-            r.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+        Node rs = inlineRules.apply(r);
         sgu.addRule(v, rs);
       }
     }
