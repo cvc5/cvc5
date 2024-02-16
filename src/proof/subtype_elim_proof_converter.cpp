@@ -287,7 +287,8 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
     Node rewriteEq = src.eqNode(csrc);
     Node fullEq = src.eqNode(tgt);
     // we use a trust id here.
-    cdp->addTrustedStep(rewriteEq, TrustId::ARITH_PRED_CAST_TYPE, {}, {rewriteEq});
+    cdp->addTrustedStep(
+        rewriteEq, TrustId::ARITH_PRED_CAST_TYPE, {}, {rewriteEq});
     if (csrc != tgt)
     {
       Node congEq = csrc.eqNode(tgt);
