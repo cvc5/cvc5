@@ -61,7 +61,8 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
         TypeNode vtn = v.getType();
         Trace("sygus-grammar-norm")
             << "...any constant " << r << " " << vtn << std::endl;
-        // if the cardinality is less than 3, we expand (Constant T) to concrete list.
+        // if the cardinality is less than 3, we expand (Constant T) to concrete
+        // list.
         if (vtn.isCardinalityLessThan(3))
         {
           changed = true;
