@@ -147,10 +147,11 @@ void SygusGrammar::removeNonTerminal(const Node& ntSym)
 {
   std::unordered_map<Node, std::vector<Node>>::iterator itr =
       d_rules.find(ntSym);
-  Assert (itr!=d_rules.end());
+  Assert(itr != d_rules.end());
   d_rules.erase(itr);
-  std::vector<Node>::iterator it = std::find(d_ntSyms.begin(), d_ntSyms.end(), ntSym);
-  Assert (it != d_ntSyms.end());
+  std::vector<Node>::iterator it =
+      std::find(d_ntSyms.begin(), d_ntSyms.end(), ntSym);
+  Assert(it != d_ntSyms.end());
   d_ntSyms.erase(it);
 }
 

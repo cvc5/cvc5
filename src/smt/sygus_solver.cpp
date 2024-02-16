@@ -34,9 +34,9 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/trust_substitutions.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
@@ -586,9 +586,7 @@ void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
       // ensures we don't try to expand e.g. bitvector extract operators,
       // whose type is undefined, and thus should not be passed to
       // expandDefinitions.
-      Node eop = op.isConst()
-                     ? op
-                     : d_env.getTopLevelSubstitutions().apply(op);
+      Node eop = op.isConst() ? op : d_env.getTopLevelSubstitutions().apply(op);
       eop = rewrite(eop);
       datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments

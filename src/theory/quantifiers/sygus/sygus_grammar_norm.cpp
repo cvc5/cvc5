@@ -17,12 +17,12 @@
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
 #include "expr/dtype_cons.h"
-#include "options/quantifiers_options.h"
-#include "theory/datatypes/sygus_datatype_utils.h"
 #include "expr/sygus_grammar.h"
-#include "theory/type_enumerator.h"
+#include "options/quantifiers_options.h"
 #include "smt/env.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/trust_substitutions.h"
+#include "theory/type_enumerator.h"
 
 using namespace cvc5::internal::kind;
 
@@ -78,9 +78,11 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     }
     // now see if there is only one rule, if so, we can inline it
     const std::vector<Node>& rulesPost = sg.getRulesFor(v);
-    if (v!=nts[0] && rulesPost.size()==1 && !DTypeConstructor::isSygusAnyConstantOp(rulesPost[0]))
+    if (v != nts[0] && rulesPost.size() == 1
+        && !DTypeConstructor::isSygusAnyConstantOp(rulesPost[0]))
     {
-      Node rs = rulesPost[0].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      Node rs = rulesPost[0].substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
       for (Node& s : subs)
       {
         TNode tv = v;
@@ -98,14 +100,16 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   if (!vars.empty())
   {
     // if we inlined any type
-    Trace("sygus-grammar-norm") << "Process inlined substitution " << vars << " -> " << subs << std::endl;
+    Trace("sygus-grammar-norm") << "Process inlined substitution " << vars
+                                << " -> " << subs << std::endl;
     SygusGrammar sgu(svars, incNtSyms);
     for (const Node& v : incNtSyms)
     {
       const std::vector<Node>& rules = sg.getRulesFor(v);
       for (const Node& r : rules)
       {
-        Node rs = r.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+        Node rs =
+            r.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
         sgu.addRule(v, rs);
       }
     }
@@ -144,8 +148,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
       for (size_t j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
       {
         TypeNode tnc = c->getArgType(j);
-        if (tnc.isSygusDatatype()
-            && processed.find(tnc) == processed.end())
+        if (tnc.isSygusDatatype() && processed.find(tnc) == processed.end())
         {
           toProcess.push_back(tnc);
           processed.insert(tnc);
