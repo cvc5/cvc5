@@ -286,7 +286,8 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
                              << convEq[1] << std::endl;
     Node rewriteEq = src.eqNode(csrc);
     Node fullEq = src.eqNode(tgt);
-    cdp->addStep(rewriteEq, ProofRule::TRUST_THEORY_REWRITE, {}, {rewriteEq});
+    // we use a trust id here.
+    cdp->addTrustedStep(rewriteEq, TrustId::ARITH_PRED_CAST_TYPE, {}, {rewriteEq});
     if (csrc != tgt)
     {
       Node congEq = csrc.eqNode(tgt);
@@ -297,7 +298,7 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
     cdp->addStep(tgt, ProofRule::EQ_RESOLVE, {src, fullEq}, {});
     //                                  -------------- -------------- EVAL(x2)
     //                                  conv[0]=tgt[0] conv[1]=tgt[1]
-    //       ---------- THEORY_REWRITE  ----------------------------- CONG{~}
+    //       ---------- CAST_TYPE       ----------------------------- CONG{~}
     // ...   src = conv                 conv = tgt
     // ---   ------------------------------------------------ TRANS
     // src   src = tgt
