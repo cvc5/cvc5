@@ -6380,19 +6380,6 @@ Term Solver::mkTerm(const Op& op, const std::vector<Term>& children) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkSkolem(SkolemFunId id, const std::vector<Term>& children) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_TERMS(children);
-  //////// all checks before this line
-  std::vector<internal::Node> nchildren = Term::termVectorToNodes(children);
-  internal::SkolemManager* skm = d_nm->getSkolemManager();
-  internal::Node k = skm->mkSkolemFunction(id, nchildren);
-  return Term(d_nm, k);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Term Solver::mkTuple(const std::vector<Term>& terms) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

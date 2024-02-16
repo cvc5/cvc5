@@ -3766,11 +3766,6 @@ class CVC5_EXPORT Solver
   Term mkNullableLift(Kind kind, const std::vector<Term>& args) const;
 
   /* .................................................................... */
-  /* Create Skolems                                                       */
-  /* .................................................................... */
-  Term mkSkolem(SkolemFunId id, const std::vector<Term>& children = {}) const;
-
-  /* .................................................................... */
   /* Create Operators                                                     */
   /* .................................................................... */
 
