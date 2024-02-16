@@ -87,6 +87,7 @@ cdef extern from "Python.h":
 cdef c_hash[c_Op] cophash = c_hash[c_Op]()
 cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
 cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
+cdef c_hash[c_Proof] cproofhash = c_hash[c_Proof]()
 
 
 cdef class SymbolManager:
@@ -4856,6 +4857,15 @@ cdef class Proof:
     def __cinit__(self, Solver solver):
         self.solver = solver
 
+    def __eq__(self, Proof other):
+        return self.cproof == other.cproof
+
+    def __ne__(self, Proof other):
+        return self.cproof != other.cproof
+
+    def __hash__(self):
+        return cproofhash(self.cproof)
+
     def getRule(self):
         """
             :return: The proof rule used by the root step of the proof.
@@ -4892,4 +4902,3 @@ cdef class Proof:
             term.cterm = a
             args.append(term)
         return args
-

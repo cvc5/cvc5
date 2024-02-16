@@ -3362,6 +3362,7 @@ std::ostream& operator<<(std::ostream& out,
 class CVC5_EXPORT Proof
 {
   friend class Solver;
+  friend struct std::hash<Proof>;
 
  public:
   /** @return The proof rule used by the root step of the proof. */
@@ -3389,16 +3390,42 @@ class CVC5_EXPORT Proof
    */
   Proof();
 
+  /**
+   * Operator overloading for referential equality of two proofs.
+   * @param p The proof to compare to for equality.
+   * @return True if both proofs point to the same internal proof object.
+   */
+  bool operator==(const Proof& p) const;
+
+  /**
+   * Referential disequality operator.
+   * @param p The proof to compare to for disequality.
+   * @return True if proofs point to different internal proof objects.
+   */
+  bool operator!=(const Proof& p) const;
+
  private:
   /** Construct a proof by wrapping a ProofNode. */
   Proof(const std::shared_ptr<internal::ProofNode> p);
 
-  /** @return The internal proof node wrapped by this proof object. */
-  const std::shared_ptr<internal::ProofNode>& getProofNode(void) const;
-
   /** The internal proof node wrapped by this proof object. */
-  std::shared_ptr<internal::ProofNode> d_proof_node;
+  std::shared_ptr<internal::ProofNode> d_proofNode;
 };
+
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for Proofs.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Proof>
+{
+  size_t operator()(const cvc5::Proof& p) const;
+};
+}  // namespace std
+
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
