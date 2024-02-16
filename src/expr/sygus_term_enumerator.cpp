@@ -42,7 +42,8 @@ SygusTermEnumerator::SygusTermEnumerator(Env& env,
   {
     if (!increment())
     {
-      Warning() << "Could not initialize enumeration for " << tn << ", no values found";
+      Warning() << "Could not initialize enumeration for " << tn
+                << ", no values found";
     }
   }
 }
