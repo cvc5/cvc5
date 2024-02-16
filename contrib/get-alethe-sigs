@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+# utility function to download a file
+function download {
+  if [ -x "$(command -v wget)" ]; then
+    wget -c -O "$2" "$1"
+  elif [ -x "$(command -v curl)" ]; then
+    curl -L "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
+
+CVC_DIR=$(dirname $(dirname "$0"))
+mkdir -p $CVC_DIR/deps
+pushd $CVC_DIR/deps
+
+BASE_DIR=`pwd`
+mkdir -p $BASE_DIR/tmp/
+
+##### Alethe Signatures
+TMP_DIR="$BASE_DIR/tmp/alethe"
+mkdir -p $TMP_DIR
+
+# download and unpack the Alethe signatures
+SIGS_VERSION="d815759cb0837772a689812bef0d2a2fe881a1c9"
+download "https://github.com/cvc5/AletheInAlf/archive/$SIGS_VERSION.tar.gz" $BASE_DIR/tmp/alethe_sigs.tgz
+tar --strip 1 -xzf $BASE_DIR/tmp/alethe_sigs.tgz -C $TMP_DIR
+
+##### Copy signatures to correct folder
+
+# The Alethe signatures go into the main cvc5 drectory
+SIGS_DIR="$BASE_DIR/../proofs/alf/alethe"
+
+# install signatures and scripts
+mkdir -p $SIGS_DIR
+cp -r $TMP_DIR/signature/* $SIGS_DIR
+
+mkdir -p $BASE_DIR/bin
+
+cat << EOF > $BASE_DIR/bin/alethe_gen_and_check.sh
+#!/usr/bin/env bash
+
+echo "=== Generate proof: \$@"
+$BASE_DIR/bin/alethe_gen.sh \$@ > alfc.proof.smt3
+
+echo "=== Check proof with SIGS"
+$BASE_DIR/bin/alfc_check.sh alfc.proof.smt3
+EOF
+chmod +x $BASE_DIR/bin/alethe_gen_and_check.sh
+
+cat << EOF > $BASE_DIR/bin/alethe_gen.sh
+#!/usr/bin/env bash
+
+# call cvc5 and remove the first line of the output (should be "unsat")
+echo "(include \"$CVC_DIR/proof/alf/alethe/Alethe.smt3\")"
+\$@ --dump-proofs --proof-format=alf --proof-granularity=theory-rewrite | tail -n +2
+EOF
+chmod +x $BASE_DIR/bin/alethe_gen.sh
+
+popd
+
+echo ""
+echo "========== How to use the Alethe signatures =========="
+echo "To install the AletheLF checker run:"
+echo "  $CVC_DIR/contrib/get-alf-checker"
+echo "Generate an Alethe proof with cvc5:"
+echo "  $CVC_DIR/deps/bin/alethe_gen.sh cvc5 <options> <input file>"
+echo "Check a generated proof:"
+echo "  $CVC_DIR/deps/bin/alfc_check.sh <proof file>"
+echo "Run cvc5 and check the generated proof:"
+echo "  $CVC_DIR/deps/bin/alethe_gen_and_check.sh cvc5 <options> <input file>"
