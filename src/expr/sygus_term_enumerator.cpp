@@ -37,6 +37,15 @@ SygusTermEnumerator::SygusTermEnumerator(Env& env,
   SkolemManager* sm = nm->getSkolemManager();
   d_enum = sm->mkDummySkolem("enum", tn);
   d_internal.initialize(d_enum);
+  // ensure current is non-null
+  while (d_internal.getCurrent().isNull())
+  {
+    if (!d_internal.increment())
+    {
+      Assert(false) << "No values in enumeration";
+      break;
+    }
+  }
 }
 
 bool SygusTermEnumerator::increment()
