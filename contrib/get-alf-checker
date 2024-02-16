@@ -40,11 +40,11 @@ popd
 ##### signatures
 
 # The ALFC signatures live in the main cvc5 repository
-SIG_DIR="$BASE_DIR/../proofs/alf"
+SIG_DIR="$BASE_DIR/../proofs/alf/cvc5"
 
 # install signatures and scripts
-mkdir -p $BASE_DIR/share/alf
-cp -r $SIG_DIR $BASE_DIR/share
+mkdir -p $BASE_DIR/share/alf/cvc5
+cp -r $SIG_DIR $BASE_DIR/share/alf/
 
 cat << EOF > $BASE_DIR/bin/alfc_gen_and_check.sh
 #!/usr/bin/env bash
