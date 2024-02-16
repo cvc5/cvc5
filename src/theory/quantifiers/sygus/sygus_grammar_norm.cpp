@@ -17,13 +17,13 @@
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
 #include "expr/dtype_cons.h"
+#include "expr/subs.h"
 #include "expr/sygus_grammar.h"
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/trust_substitutions.h"
 #include "theory/type_enumerator.h"
-#include "expr/subs.h"
 
 using namespace cvc5::internal::kind;
 
@@ -97,7 +97,8 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   if (!inlineRules.empty())
   {
     // if we inlined any type, apply the substitution to all rules
-    Trace("sygus-grammar-norm") << "Process inlined substitution " << inlineRules.toString() << std::endl;
+    Trace("sygus-grammar-norm") << "Process inlined substitution "
+                                << inlineRules.toString() << std::endl;
     SygusGrammar sgu(svars, incNtSyms);
     for (const Node& v : incNtSyms)
     {

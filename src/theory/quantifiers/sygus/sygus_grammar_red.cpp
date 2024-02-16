@@ -45,7 +45,7 @@ void SygusRedundantCons::minimize(SygusGrammar& g)
       // redundant.
       for (const Node& t : tset)
       {
-        if (allTerms.find(t)!=allTerms.end())
+        if (allTerms.find(t) != allTerms.end())
         {
           g.removeRule(v, r);
           dup = true;
@@ -55,19 +55,19 @@ void SygusRedundantCons::minimize(SygusGrammar& g)
       // if not a duplicate, remember all the variants
       if (!dup)
       {
-        allTerms.insert(tset.begin(),tset.end());
+        allTerms.insert(tset.begin(), tset.end());
       }
     }
   }
 }
 
-std::unordered_set<Node> SygusRedundantCons::getGenericList(const SygusGrammar& g,
-                                        const Node& r)
+std::unordered_set<Node> SygusRedundantCons::getGenericList(
+    const SygusGrammar& g, const Node& r)
 {
   std::unordered_set<Node> tset;
   std::map<Node, Node> ntSymMap;
   Node lam = g.getLambdaForRule(r, ntSymMap);
-  
+
   return tset;
 }
 

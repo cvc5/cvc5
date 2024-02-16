@@ -21,8 +21,8 @@
 #include <unordered_set>
 
 #include "expr/node.h"
-#include "smt/env_obj.h"
 #include "expr/sygus_grammar.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -44,6 +44,7 @@ class SygusRedundantCons : protected EnvObj
   ~SygusRedundantCons() {}
   /** Minimize grammar */
   void minimize(SygusGrammar& g);
+
  private:
   /** get generic list
    *
@@ -66,8 +67,7 @@ class SygusRedundantCons : protected EnvObj
    *   and( x1, x2, x3 ) and and( x2, x1, x3 )
    * to terms.
    */
-  std::unordered_set<Node> getGenericList(const SygusGrammar& g,
-                      const Node& r);
+  std::unordered_set<Node> getGenericList(const SygusGrammar& g, const Node& r);
 };
 
 }  // namespace quantifiers
