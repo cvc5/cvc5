@@ -177,11 +177,6 @@ Node SubtypeElimConverterCallback::convert(Node res,
           ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp);
     }
     break;
-    case ProofRule::INSTANTIATE:
-    {
-      // TODO
-    }
-    break;
     default: break;
   }
   if (success)
