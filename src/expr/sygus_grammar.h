@@ -116,7 +116,12 @@ class SygusGrammar
   std::string toString() const;
 
   /**
-   * Get lambda for rule
+   * Get lambda for rule. This returns a lambda of the form
+   *   (lambda (x1...xn) r')
+   * where r' is the result of replacing each occurrence of a non-terminal
+   * from this grammar in r by a fresh variable. All variables introduced in
+   * this way are included in x1...xn. An entry is added to ntSymMap for each
+   * variable xi mapping it to the non-terminal that it replaced.
    */
   Node getLambdaForRule(const Node& r, std::map<Node, Node>& ntSymMap) const;
 
