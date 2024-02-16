@@ -89,7 +89,6 @@
                      (! Type :var U :implicit)
                      T U (arith_typeunion T U)))
 
-; Currently unary negation cannot use overload.
-(declare-const u- (-> (! Type :var T :implicit)
-                      (! T :requires ((is_arith_type T) true))
-                      T))
+(declare-const - (-> (! Type :var T :implicit)
+                     (! T :requires ((is_arith_type T) true))
+                     T))
