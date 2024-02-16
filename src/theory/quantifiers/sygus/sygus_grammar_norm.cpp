@@ -145,6 +145,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
         }
       }
     }
+    return tnn;
   }
   return tn;
 }
