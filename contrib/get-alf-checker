@@ -61,7 +61,7 @@ cat << EOF > $BASE_DIR/bin/alfc_gen.sh
 #!/usr/bin/env bash
 
 # call cvc5 and remove the first line of the output (should be "unsat")
-echo "(include \"$BASE_DIR/share/alf/Cvc5.smt3\")"
+echo "(include \"$BASE_DIR/share/alf/cvc5/Cvc5.smt3\")"
 \$@ --dump-proofs --proof-format=alf --proof-granularity=theory-rewrite | tail -n +2
 EOF
 chmod +x $BASE_DIR/bin/alfc_gen.sh
