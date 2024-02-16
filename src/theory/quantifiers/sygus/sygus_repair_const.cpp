@@ -216,7 +216,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   // may e.g. introduce non-linear arithmetic in linear logics.
   std::unique_ptr<SolverEngine> repcChecker;
   LogicInfo lall("ALL");
-  SubsolverSetupInfo ssi(d_env.getOptions(), lall, d_env.getSepLocType(), d_env.getSepDataType());
+  SubsolverSetupInfo ssi(
+      d_env.getOptions(), lall, d_env.getSepLocType(), d_env.getSepDataType());
   // initialize the subsolver using the standard method
   initializeSubsolver(repcChecker,
                       ssi,
