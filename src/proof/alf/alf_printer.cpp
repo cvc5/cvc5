@@ -486,9 +486,10 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
     }
     case ProofRule::ALETHE_RULE:
     {
+      Assert (args.size()>=3);
       // ignore the first argument, which specifies the rule and the second
       // argument which stores a conclusion
-      args.insert(args.end(), pargs.begin()+2, pargs.end());
+      args.insert(args.end(), pargs.begin()+3, pargs.end());
       return;
     }
     default: break;
@@ -505,7 +506,17 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   Assert(pn->getRule() != ProofRule::ASSUME);
   // if we have yet to allocate a proof id, do it now
   bool wasAlloc = false;
-  TNode conclusion = d_tproc.convert(pn->getResult());
+  TNode conclusion;
+  if (pn->getRule()==ProofRule::ALETHE_RULE)
+  {
+    const std::vector<Node>& aargs = pn->getArguments();
+    Assert (aargs.size()>=3);
+    conclusion = aargs[2];
+  }
+  else
+  {
+    conclusion = d_tproc.convert(pn->getResult());
+  }
   TNode conclusionPrint;
   // print conclusion only if option is set, or this is false
   if (options().proof.proofPrintConclusion || conclusion == d_false)

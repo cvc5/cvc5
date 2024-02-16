@@ -275,7 +275,12 @@ void PfManager::printProof(std::ostream& out,
     vpfpp.process(fp);
     // print using ALF printer
     proof::AlfPrinter alfp(d_env, anc);
-    alfp.print(out, fp);
+    // Add empty scope since definitions are flattened
+    // TODO: eliminate this by ensuring that the AletheProofPostprocess
+    // preserves the outermost 2 SCOPE.
+    std::vector<Node> emptyAssumps;
+    std::shared_ptr<ProofNode> fps = d_pnm->mkScope(fp, emptyAssumps, false);
+    alfp.print(out, fps);
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
