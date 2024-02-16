@@ -94,7 +94,7 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
         Assert(itn != ntsyms.end()) << "Missing " << argType << " in " << op;
         args.push_back(itn->second);
       }
-      Node rule = theory::datatypes::utils::mkSygusTerm(op, args, true);
+      Node rule = theory::datatypes::utils::mkSygusTerm(op, args);
       addRule(nts, rule);
     }
   }

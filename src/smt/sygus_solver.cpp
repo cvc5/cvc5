@@ -34,6 +34,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/trust_substitutions.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
@@ -587,7 +588,7 @@ void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
       // expandDefinitions.
       Node eop = op.isConst()
                      ? op
-                     : d_smtSolver.getPreprocessor()->applySubstitutions(op);
+                     : d_env.getTopLevelSubstitutions().apply(op);
       eop = rewrite(eop);
       datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments
