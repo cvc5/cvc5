@@ -85,6 +85,32 @@ class DatatypesRewriter : public TheoryRewriter
   static Node expandMatch(Node n);
   /** expand defintions */
   TrustNode expandDefinition(Node n) override;
+  /**
+   * Expand a nullable lift term with an ite expression.
+   * Example:
+   * input : (nullable.lift f x y) where f is a function
+   *         and x,y are nullable terms.
+   * output: (ite
+   *           (or (nullable.is_null x) (nullable.is_null y))
+   *           (nullable.null)
+   *           (f (nullable.val x) (nullable.val y))
+   *         )
+   * @pre Higher-order logic is enabled.
+   * @param n A nullable lift term.
+   * @return An ite expression.
+   */
+  Node expandNullableLift(Node n);
+
+  /**
+   * Rewrite nullable lift terms as null if any of the arguments is null,
+   * or return the some of applying the function (first child) to values
+   * if all arguments are some constants.
+   * - input : (nullable.lift f x1 ... (nullable.null) ... xn))
+   *   output: (nullable.null)
+   * - input : (nullable.lift f (nullable.some c1) ... (nullable.some cn))
+   *   output: (f c1 ... cn)
+   */
+  RewriteResponse rewriteNullableLift(TNode n);
 
  private:
   /** rewrite constructor term in */

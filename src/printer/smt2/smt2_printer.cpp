@@ -511,7 +511,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   }
 
   Kind k = n.getKind();
-  if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE)
+  if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE
+      || k == Kind::NULLABLE_TYPE)
   {
     const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
     if (dt.isTuple())
@@ -531,6 +532,11 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         }
         out << ")";
       }
+      return true;
+    }
+    if (dt.isNullable())
+    {
+      out << "(Nullable " << dt[1][0].getRangeType() << ")";
     }
     else
     {
@@ -835,6 +841,18 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
           out << "tuple";
         }
       }
+      if (dt.isNullable())
+      {
+        stillNeedToPrintParams = false;
+        if (n.getNumChildren() == 0)
+        {
+          out << "(as nullable.null " << n.getType() << ")";
+        }
+        else
+        {
+          out << "nullable.some";
+        }
+      }
       break;
     }
     case Kind::APPLY_SELECTOR:
@@ -846,20 +864,40 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         stillNeedToPrintParams = false;
         out << "(_ tuple.select " << DType::indexOf(op) << ")";
       }
+      else if (dt.isNullable())
+      {
+        stillNeedToPrintParams = false;
+        out << "nullable.val";
+      }
     }
     break;
     case Kind::APPLY_TESTER:
     {
-      stillNeedToPrintParams = false;
       Node op = n.getOperator();
       size_t cindex = DType::indexOf(op);
       const DType& dt = DType::datatypeOf(op);
-      out << "(_ is ";
-      toStream(out,
-               dt[cindex].getConstructor(),
-               lbind,
-               toDepth < 0 ? toDepth : toDepth - 1);
-      out << ")";
+      if (dt.isNullable())
+      {
+        stillNeedToPrintParams = false;
+        if (cindex == 0)
+        {
+          out << "nullable.is_null";
+        }
+        else
+        {
+          out << "nullable.is_some";
+        }
+      }
+      else
+      {
+        stillNeedToPrintParams = false;
+        out << "(_ is ";
+        toStream(out,
+                 dt[cindex].getConstructor(),
+                 lbind,
+                 toDepth < 0 ? toDepth : toDepth - 1);
+        out << ")";
+      }
     }
     break;
     case Kind::APPLY_UPDATER:
@@ -1129,7 +1167,9 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::APPLY_TESTER: return "is";
     case Kind::APPLY_UPDATER: return "update";
     case Kind::TUPLE_TYPE: return "Tuple";
+    case Kind::NULLABLE_TYPE: return "Nullable";
     case Kind::TUPLE_PROJECT: return "tuple.project";
+    case Kind::NULLABLE_LIFT: return "nullable.lift";
 
     // set theory
     case Kind::SET_EMPTY: return "set.empty";
