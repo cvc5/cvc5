@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__SAT_PROOF_MANAGER_H
-#define CVC5__SAT_PROOF_MANAGER_H
+#ifndef CVC5__PROP__MINISAT__SAT_PROOF_MANAGER_H
+#define CVC5__PROP__MINISAT__SAT_PROOF_MANAGER_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -26,7 +26,7 @@
 #include "proof/lazy_proof_chain.h"
 #include "proof/trust_node.h"
 #include "prop/minisat/core/SolverTypes.h"
-#include "prop/opt_clauses_manager.h"
+#include "prop/minisat/opt_clauses_manager.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 
