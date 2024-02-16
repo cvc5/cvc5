@@ -78,7 +78,8 @@ std::unordered_set<Node> SygusRedundantCons::getGenericList(
   else
   {
     // group by non-terminal
-    std::vector<std::pair<Node, size_t>> ntlist;
+    std::vector<std::pair<Node, size_t>> vlist;
+    std::vector<Node> ntlist;
     std::map<Node, std::vector<Node>> ntvMap;
     BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
     std::map<Node, size_t> ntindex;
@@ -87,7 +88,11 @@ std::unordered_set<Node> SygusRedundantCons::getGenericList(
       Assert(mapToNtSym.find(v) != mapToNtSym.end());
       Node nts = mapToNtSym[v];
       std::vector<Node>& vs = ntvMap[nts];
-      ntlist.emplace_back(nts, vs.size());
+      if (vs.empty())
+      {
+        ntlist.push_back(nts);
+      }
+      vlist.emplace_back(nts, vs.size());
       Node cacheVal = BoundVarManager::getCacheValue(nts, vs.size());
       vs.push_back(
           bvm->mkBoundVar<GrammarRedFreeVarAttribute>(cacheVal, nts.getType()));
