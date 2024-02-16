@@ -305,7 +305,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       const std::unordered_set<TNode>& vars = aletify.getVariables();
       for (TNode v : vars)
       {
-        if (v.getKind() == Kind::BOUND_VARIABLE)
+        if (v.getKind() == Kind::BOUND_VARIABLE && v.getType().isFirstClass())
         {
           outVars << "(declare-var " << v << " " << v.getType() << ")"
                   << std::endl;
