@@ -15,9 +15,9 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 
+#include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "theory/rewriter.h"
-#include "expr/attribute.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -32,7 +32,7 @@ struct GrammarRedFreeVarAttributeId
 };
 using GrammarRedFreeVarAttribute =
     expr::Attribute<GrammarRedFreeVarAttributeId, Node>;
-  
+
 void SygusRedundantCons::minimize(SygusGrammar& g)
 {
   const std::vector<Node>& nts = g.getNtSyms();
@@ -71,25 +71,26 @@ std::unordered_set<Node> SygusRedundantCons::getGenericList(
   std::unordered_set<Node> tset;
   std::map<Node, Node> mapToNtSym;
   Node lam = g.getLambdaForRule(r, mapToNtSym);
-  if (lam.getKind()!=Kind::LAMBDA)
+  if (lam.getKind() != Kind::LAMBDA)
   {
     tset.insert(lam);
   }
   else
   {
     // group by non-terminal
-    std::vector<std::pair<Node,size_t>> ntlist;
+    std::vector<std::pair<Node, size_t>> ntlist;
     std::map<Node, std::vector<Node>> ntvMap;
-    BoundVarManager * bvm = NodeManager::currentNM()->getBoundVarManager();
+    BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
     std::map<Node, size_t> ntindex;
     for (const Node& v : lam[0])
     {
-      Assert (mapToNtSym.find(v)!=mapToNtSym.end());
+      Assert(mapToNtSym.find(v) != mapToNtSym.end());
       Node nts = mapToNtSym[v];
       std::vector<Node>& vs = ntvMap[nts];
       ntlist.emplace_back(nts, vs.size());
       Node cacheVal = BoundVarManager::getCacheValue(nts, vs.size());
-      vs.push_back(bvm->mkBoundVar<GrammarRedFreeVarAttribute>(cacheVal, nts.getType()));
+      vs.push_back(
+          bvm->mkBoundVar<GrammarRedFreeVarAttribute>(cacheVal, nts.getType()));
     }
   }
   return tset;
