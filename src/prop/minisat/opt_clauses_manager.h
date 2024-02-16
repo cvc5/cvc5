@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROP__OPT_CLAUSES_MANAGER_H
-#define CVC5__PROP__OPT_CLAUSES_MANAGER_H
+#ifndef CVC5__PROP__MINISAT__OPT_CLAUSES_MANAGER_H
+#define CVC5__PROP__MINISAT__OPT_CLAUSES_MANAGER_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"

@@ -254,7 +254,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
     }
     if( (unsigned)d_currTermSize[a].get()>ssz ){
       if( TraceIsOn("sygus-sb-fair") ){
-        std::map< TypeNode, int > var_count;
+        std::map<TypeNode, size_t> var_count;
         Node templ = getCurrentTemplate( a, var_count );
         Trace("sygus-sb-fair") << "FAIRNESS : we have " <<  d_currTermSize[a].get() << " at search size " << ssz << ", template is " << templ << std::endl;
       }
@@ -1054,7 +1054,7 @@ Node SygusExtension::registerSearchValue(Node a,
     return nv;
   }
   Trace("sygus-sb-debug2") << "Registering search value " << n << " -> " << nv << std::endl;
-  std::map<TypeNode, int> var_count;
+  std::map<TypeNode, size_t> var_count;
   Node cnv = d_tds->canonizeBuiltin(nv, var_count);
   Trace("sygus-sb-debug") << "  ...canonized value is " << cnv << std::endl;
   SearchCache& sca = d_cache[a];
@@ -1192,7 +1192,7 @@ void SygusExtension::registerSymBreakLemmaForValue(
     Node val,
     quantifiers::SygusInvarianceTest& et,
     Node valr,
-    std::map<TypeNode, int>& var_count)
+    std::map<TypeNode, size_t>& var_count)
 {
   TypeNode tn = val.getType();
   Node x = getFreeVar(tn);
@@ -1734,7 +1734,9 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
   return true;
 }
 
-Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count ) {
+Node SygusExtension::getCurrentTemplate(Node n,
+                                        std::map<TypeNode, size_t>& var_count)
+{
   if( d_active_terms.find( n )!=d_active_terms.end() ){
     TypeNode tn = n.getType();
     IntMap::const_iterator it = d_testers.find( n );
