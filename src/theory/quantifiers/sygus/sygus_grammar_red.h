@@ -18,11 +18,11 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
 
-#include <map>
-#include <vector>
+#include <unordered_set>
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "expr/sygus_grammar.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -42,53 +42,9 @@ class SygusRedundantCons : protected EnvObj
  public:
   SygusRedundantCons(Env& env) : EnvObj(env) {}
   ~SygusRedundantCons() {}
-  /** register type tn
-   *
-   * qe : pointer to the quantifiers engine,
-   * tn : the (sygus) type to compute redundant constructors for
-   */
-  void initialize(TermDbSygus* tds, TypeNode tn);
-  /** Get the indices of the redundant constructors of the register type */
-  void getRedundant(std::vector<unsigned>& indices);
-  /**
-   * This function returns true if the i^th constructor of the registered type
-   * is redundant.
-   */
-  bool isRedundant(unsigned i);
-
+  /** Minimize grammar */
+  void minimize(SygusGrammar& g);
  private:
-  /** the registered type */
-  TypeNode d_type;
-  /** redundant status
-   *
-   * For each constructor, status indicating whether the constructor is
-   * redundant, where:
-   *
-   * 0 : not redundant,
-   * 1 : redundant since another constructor can be used to construct values for
-   * this constructor.
-   *
-   * For example, for grammar:
-   *   A -> C > B | B < C | not D
-   *   B -> x | y
-   *   C -> 0 | 1 | C+C
-   *   D -> B >= C
-   * If A is register with this class, then we store may store { 0, 1, 0 },
-   * noting that the second constructor of A can be simulated with the first.
-   * Notice that the third constructor is not considered redundant.
-   */
-  std::vector<int> d_sygus_red_status;
-  /**
-   * Map from constructor indices to the generic term for that constructor,
-   * where the generic term for a constructor is the (canonical) term returned
-   * by a call to TermDbSygus::mkGeneric.
-   */
-  std::map<unsigned, Node> d_gen_terms;
-  /**
-   * Map from the rewritten form of generic terms for constructors of the
-   * registered type to their corresponding constructor index.
-   */
-  std::map<Node, unsigned> d_gen_cons;
   /** get generic list
    *
    * This function constructs all well-typed variants of a term of the form
@@ -110,12 +66,8 @@ class SygusRedundantCons : protected EnvObj
    *   and( x1, x2, x3 ) and and( x2, x1, x3 )
    * to terms.
    */
-  void getGenericList(TermDbSygus* tds,
-                      const DType& dt,
-                      unsigned c,
-                      unsigned index,
-                      std::map<int, Node>& pre,
-                      std::vector<Node>& terms);
+  std::unordered_set<Node> getGenericList(const SygusGrammar& g,
+                      const Node& r);
 };
 
 }  // namespace quantifiers
