@@ -33,7 +33,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(
   // for checking for cycles in the overall proof.
   std::vector<std::shared_ptr<ProofNode>> traversing;
   std::shared_ptr<ProofNode> pft = pf;
-  Trace("pf-process") << "ProofNodeConverter::process" << std::endl;
+  Trace("pf-convert") << "ProofNodeConverter::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, std::shared_ptr<ProofNode>>
       visited;
   std::unordered_map<std::shared_ptr<ProofNode>,
@@ -90,7 +90,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::process(
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  Trace("pf-process") << "ProofNodeConverter::process: finished" << std::endl;
+  Trace("pf-convert") << "ProofNodeConverter::process: finished" << std::endl;
   return visited[pf];
 }
 
