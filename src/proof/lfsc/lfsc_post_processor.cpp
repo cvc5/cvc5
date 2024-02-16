@@ -147,7 +147,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       for (size_t i = 1, size = children.size(); i < size; i++)
       {
         std::vector<Node> newChildren{cur, children[i]};
-        std::vector<Node> newArgs{args[(i - 1) * 2], args[(i - 1) * 2 + 1]};
+        std::vector<Node> newArgs{args[0][i - 1], args[1][i - 1]};
         cur = d_pc->checkDebug(ProofRule::RESOLUTION, newChildren, newArgs);
         cdp->addStep(cur, ProofRule::RESOLUTION, newChildren, newArgs);
       }
