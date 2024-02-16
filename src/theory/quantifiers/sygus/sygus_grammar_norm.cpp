@@ -52,22 +52,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   std::vector<Node> incNtSyms;
   for (const Node& v : nts)
   {
-    // TODO: move after
     const std::vector<Node>& rules = sg.getRulesFor(v);
-    if (v!=nts[0] && rules.size()==1 && !DTypeConstructor::isSygusAnyConstantOp(rules[0]))
-    {
-      Node rs = rules[0].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-      for (Node& s : subs)
-      {
-        TNode tv = v;
-        TNode ts = rs;
-        s = s.substitute(tv, ts);
-      }
-      vars.push_back(v);
-      subs.push_back(rs);
-      continue;
-    }
-    incNtSyms.push_back(v);
     Trace("sygus-grammar-norm") << "Rules " << v << " " << rules << std::endl;
     for (const Node& r : rules)
     {
@@ -91,11 +76,29 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
         }
       }
     }
+    // now see if there is only one rule, if so, we can inline it
+    const std::vector<Node>& rulesPost = sg.getRulesFor(v);
+    if (v!=nts[0] && rulesPost.size()==1 && !DTypeConstructor::isSygusAnyConstantOp(rulesPost[0]))
+    {
+      Node rs = rulesPost[0].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      for (Node& s : subs)
+      {
+        TNode tv = v;
+        TNode ts = rs;
+        s = s.substitute(tv, ts);
+      }
+      vars.push_back(v);
+      subs.push_back(rs);
+      // don't include this symbol in the final construction below
+      continue;
+    }
+    incNtSyms.push_back(v);
   }
   TypeNode tnn;
   if (!vars.empty())
   {
-    Trace("sygus-grammar-norm") << "Substitution " << vars << " -> " << subs << std::endl;
+    // if we inlined any type
+    Trace("sygus-grammar-norm") << "Process inlined substitution " << vars << " -> " << subs << std::endl;
     SygusGrammar sgu(svars, incNtSyms);
     for (const Node& v : incNtSyms)
     {
@@ -110,44 +113,47 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   }
   else if (changed)
   {
+    // otherwise if we modified
     tnn = sg.resolve();
   }
-  if (!tnn.isNull())
+  else
   {
-    std::unordered_set<TypeNode> processed;
-    std::vector<TypeNode> toProcess;
-    toProcess.push_back(tnn);
-    size_t index = 0;
-    while (index < toProcess.size())
+    // no change, just return original
+    return tn;
+  }
+  // ensure the expanded definition forms are set
+  std::unordered_set<TypeNode> processed;
+  std::vector<TypeNode> toProcess;
+  toProcess.push_back(tnn);
+  size_t index = 0;
+  while (index < toProcess.size())
+  {
+    TypeNode tnp = toProcess[index];
+    index++;
+    Assert(tnp.isSygusDatatype());
+    const DType& dt = tnp.getDType();
+    const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
+        dt.getConstructors();
+    for (const std::shared_ptr<DTypeConstructor>& c : cons)
     {
-      TypeNode tnp = toProcess[index];
-      index++;
-      Assert(tnp.isSygusDatatype());
-      const DType& dt = tnp.getDType();
-      const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
-          dt.getConstructors();
-      for (const std::shared_ptr<DTypeConstructor>& c : cons)
+      Node op = c->getSygusOp();
+      Node eop = d_env.getTopLevelSubstitutions().apply(op);
+      eop = rewrite(eop);
+      datatypes::utils::setExpandedDefinitionForm(op, eop);
+      // also must consider the arguments
+      for (size_t j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
       {
-        Node op = c->getSygusOp();
-        Node eop = d_env.getTopLevelSubstitutions().apply(op);
-        eop = rewrite(eop);
-        datatypes::utils::setExpandedDefinitionForm(op, eop);
-        // also must consider the arguments
-        for (size_t j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
+        TypeNode tnc = c->getArgType(j);
+        if (tnc.isSygusDatatype()
+            && processed.find(tnc) == processed.end())
         {
-          TypeNode tnc = c->getArgType(j);
-          if (tnc.isSygusDatatype()
-              && processed.find(tnc) == processed.end())
-          {
-            toProcess.push_back(tnc);
-            processed.insert(tnc);
-          }
+          toProcess.push_back(tnc);
+          processed.insert(tnc);
         }
       }
     }
-    return tnn;
   }
-  return tn;
+  return tnn;
 }
 
 }  // namespace quantifiers
