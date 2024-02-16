@@ -38,12 +38,11 @@ SygusTermEnumerator::SygusTermEnumerator(Env& env,
   d_enum = sm->mkDummySkolem("enum", tn);
   d_internal.initialize(d_enum);
   // ensure current is non-null
-  while (d_internal.getCurrent().isNull())
+  if (d_internal.getCurrent().isNull())
   {
-    if (!d_internal.increment())
+    if (!increment())
     {
-      Assert(false) << "No values in enumeration";
-      break;
+      Warning() << "Could not initialize enumeration for " << tn << ", no values found";
     }
   }
 }

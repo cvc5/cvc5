@@ -59,8 +59,6 @@ class SygusTermEnumerator
   /**
    * @param env Reference to the environment
    * @param tn The sygus datatype that encodes the grammar
-   * @param sec Pointer to the callback, required e.g. if we wish to do
-   * conjecture-specific symmetry breaking
    * @param enumShapes If true, this enumerator will generate terms having any
    * number of free variables
    * @param enumAnyConstHoles If true, this enumerator will generate terms where
