@@ -178,6 +178,15 @@ void SetDefaults::setDefaultsPre(Options& opts)
                      options::UnsatCoresMode::SAT_PROOF,
                      "enabling proofs");
     }
+    if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE
+        && opts.proof.proofGranularityMode
+               < options::ProofGranularityMode::THEORY_REWRITE)
+    {
+      SET_AND_NOTIFY(Proof,
+                     proofGranularityMode,
+                     options::ProofGranularityMode::THEORY_REWRITE,
+                     "Alethe requires granularity at least theory-rewrite");
+    }
   }
   if (!opts.smt.produceProofs)
   {
