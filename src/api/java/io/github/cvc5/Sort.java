@@ -316,6 +316,17 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isTuple(long pointer);
 
   /**
+   * Determine if this a nullable sort.
+   * @return True if this sort is a nullable sort.
+   */
+  public boolean isNullable()
+  {
+    return isNullable(pointer);
+  }
+
+  private native boolean isNullable(long pointer);
+
+  /**
    * Determine if this is a record sort.
    * @api.note This method is experimental and may change in future versions.
    * @return True if the sort is a record sort.
@@ -832,4 +843,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native long[] getTupleSorts(long pointer);
+
+  /**
+   * @return The element sort of a nullable sort.
+   */
+  public Sort getNullableElementSort()
+  {
+    long sortPointer = getNullableElementSort(pointer);
+    return new Sort(sortPointer);
+  }
+
+  private native long getNullableElementSort(long pointer);
 }

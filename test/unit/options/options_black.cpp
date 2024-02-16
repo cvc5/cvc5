@@ -191,6 +191,7 @@ TEST_F(TestBlackOptions, setSafe)
                                     "version"};
   // set safe options to true
   d_solver.setOption("safe-options", "true");
+  bool alreadySetRegular = false;
   for (const auto& name : options::getNames())
   {
     auto info = d_solver.getOptionInfo(name);
@@ -198,6 +199,15 @@ TEST_F(TestBlackOptions, setSafe)
     if (info.isExpert)
     {
       continue;
+    }
+    if (info.isRegular)
+    {
+      if (alreadySetRegular)
+      {
+        // skip if already set a regular option
+        continue;
+      }
+      alreadySetRegular = true;
     }
     if (muted.count(name))
     {
