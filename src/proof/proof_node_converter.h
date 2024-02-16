@@ -41,7 +41,7 @@ class ProofNodeConverterCallback
   ProofNodeConverterCallback() {}
   virtual ~ProofNodeConverterCallback() {}
   /**
-   * Update the proof rule application, store steps in cdp. Return a non-null
+   * Convert the proof rule application, store steps in cdp. Return a non-null
    * formula if successful, which should be given a closed proof in cdp. It can
    * be assumed that cdp contains proofs of each fact in children.
    *
@@ -69,7 +69,8 @@ class ProofNodeConverterCallback
  * callback. This class uses local CDProof objects that should be filled in the
  * callback for each ProofNode to create for the conversion. This update
  * process is applied in a *post-order* traversal, where the converted children
- * are provided to the callback.
+ * are provided to the callback. It returns nullptr if the conversion failed,
+ * i.e. if the callback returned Node::null() for any proof step.
  */
 class ProofNodeConverter : protected EnvObj
 {
