@@ -310,6 +310,65 @@ class AlfTester(Tester):
             print_ok("OK")
         return exit_code
 
+class AletheAlfTester(Tester):
+
+    def __init__(self):
+        super().__init__("alethe-alf")
+
+    def applies(self, benchmark_info):
+        return (
+            benchmark_info.benchmark_ext != ".sy"
+            and benchmark_info.expected_output.strip() == "unsat"
+        )
+
+    def run_internal(self, benchmark_info):
+        exit_code = EXIT_OK
+        with tempfile.NamedTemporaryFile() as tmpf:
+            cvc5_args = benchmark_info.command_line_args + [
+                "--dump-proofs",
+                "--proof-format=alethe-alf",
+                "--proof-granularity=theory-rewrite",
+                "--proof-print-conclusion",
+            ]
+            output, error, exit_status = run_process(
+                [benchmark_info.cvc5_binary]
+                + cvc5_args
+                + [benchmark_info.benchmark_basename],
+                benchmark_info.benchmark_dir,
+                benchmark_info.timeout,
+            )
+            alf_sig_dir = os.path.abspath(g_args.alf_sig_dir)
+            tmpf.write(("(include \"" + alf_sig_dir + "/alethe/Alethe.smt3\")").encode())
+            tmpf.write(output.strip("unsat\n".encode()))
+            tmpf.flush()
+            output, error = output.decode(), error.decode()
+            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
+                                               error, cvc5_args)
+            if ("step" not in output) and ("assume" not in output):
+                print_error("Empty proof")
+                print()
+                print_outputs(output, error)
+                return EXIT_FAILURE
+            if exit_code != EXIT_OK:
+                return exit_code
+            output, error, exit_status = run_process(
+                [benchmark_info.alfc_binary] +
+                [tmpf.name],
+                benchmark_info.benchmark_dir,
+                timeout=benchmark_info.timeout,
+            )
+            output, error = output.decode(), error.decode()
+            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
+                                               error, cvc5_args)
+            if "success" not in output:
+                print_error("Invalid proof")
+                print()
+                print_outputs(output, error)
+                return EXIT_FAILURE
+        if exit_code == EXIT_OK:
+            print_ok("OK")
+        return exit_code
+
 class ModelTester(Tester):
 
     def __init__(self):
@@ -442,7 +501,8 @@ g_testers = {
     "abduct": AbductTester(),
     "dump": DumpTester(),
     "dsl-proof": DslProofTester(),
-    "alf": AlfTester()
+    "alf": AlfTester(),
+    "alethe-alf": AletheAlfTester()
 }
 
 g_default_testers = [
@@ -750,6 +810,8 @@ def run_regression(
                     testers.remove("dsl-proof")
                 if "alf" in testers:
                     testers.remove("alf")
+                if "alethe-alf" in testers:
+                    testers.remove("alethe-alf")
 
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()

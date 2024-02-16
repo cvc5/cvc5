@@ -266,6 +266,17 @@ void PfManager::printProof(std::ostream& out,
     proof::AlfPrinter alfp(d_env, atp);
     alfp.print(out, fp);
   }
+  else if (mode == options::ProofFormatMode::ALETHE_ALF)
+  {
+    // convert using Alethe post-processor
+    proof::AletheNodeConverter anc;
+    proof::AletheProofPostprocess vpfpp(
+        d_env, anc, options().proof.proofAletheResPivots);
+    vpfpp.process(fp);
+    // print using ALF printer
+    proof::AlfPrinter alfp(d_env, anc);
+    alfp.print(out, fp);
+  }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;

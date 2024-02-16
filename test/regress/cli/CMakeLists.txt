@@ -3803,6 +3803,7 @@ set(testers
   dump
   dsl-proof
   alf
+  alethe-alf
 )
 
 foreach(tester ${testers})

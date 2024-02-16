@@ -37,13 +37,7 @@ class BaseAlfNodeConverter : public NodeConverter
   /**
    * Returns the operator of node n.
    */
-  virtual Node getOperatorOfTerm(Node n) = 0;
-  /**
-   * Type as node, returns a node that prints in the form that ALF will
-   * interpret as the type tni. This method is required since types can be
-   * passed as arguments to terms and proof rules.
-   */
-  virtual Node typeAsNode(TypeNode tni) = 0;
+  virtual Node getOperatorOfTerm(Node n) { return n.getOperator(); }
 };
 
 /**
@@ -99,7 +93,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * interpret as the type tni. This method is required since types can be
    * passed as arguments to terms and proof rules.
    */
-  Node typeAsNode(TypeNode tni) override;
+  Node typeAsNode(TypeNode tni);
   /**
    * Number of children for closure that we should process. In particular,
    * we ignore patterns for FORALL, so this method returns 2, indicating we

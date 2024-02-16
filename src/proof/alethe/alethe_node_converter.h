@@ -20,6 +20,7 @@
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
+#include "proof/alf/alf_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -28,7 +29,7 @@ namespace proof {
  * This is a helper class for the Alethe post-processor that converts nodes into
  * the form that Alethe expects.
  */
-class AletheNodeConverter : public NodeConverter
+class AletheNodeConverter : public BaseAlfNodeConverter
 {
  public:
   AletheNodeConverter() {}

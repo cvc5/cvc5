@@ -29,6 +29,7 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "proof/alethe/alethe_proof_rule.h"
 
 namespace cvc5::internal {
 
@@ -131,7 +132,8 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
-    case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::DSL_REWRITE:
+    case ProofRule::ALETHE_RULE: return true;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
@@ -222,6 +224,24 @@ bool AlfPrinter::canEvaluate(Node n) const
 std::string AlfPrinter::getRuleName(const ProofNode* pfn)
 {
   ProofRule r = pfn->getRule();
+  switch (r)
+  {
+    case ProofRule::DSL_REWRITE:
+      // TODO
+      break;
+    case ProofRule::ALETHE_RULE:
+    {
+      const std::vector<Node>& args = pfn->getArguments();
+      Assert (!args.empty());
+      AletheRule ar = getAletheRule(args[0]);
+      std::stringstream ss;
+      ss << ar;
+      return ss.str();
+    }
+    break;
+    default:
+      break;
+  }
   std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
     return std::tolower(c);
@@ -462,6 +482,13 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       // ignore arguments past the term vector
       Node ts = d_tproc.convert(pargs[0]);
       args.push_back(ts);
+      return;
+    }
+    case ProofRule::ALETHE_RULE:
+    {
+      // ignore the first argument, which specifies the rule and the second
+      // argument which stores a conclusion
+      args.insert(args.end(), pargs.begin()+2, pargs.end());
       return;
     }
     default: break;
