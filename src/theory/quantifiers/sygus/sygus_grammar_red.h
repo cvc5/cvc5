@@ -30,20 +30,22 @@ namespace quantifiers {
 
 class TermDbSygus;
 
-/** SygusRedundantCons
+/** SygusGrammarReduce
  *
  * This class computes the subset of indices of the constructors of a sygus type
  * that are redundant. To use this class, first call initialize( qe, tn ),
  * where tn is a sygus tn. Then, use getRedundant and/or isRedundant to get the
  * indicies of the constructors of tn that are redundant.
  */
-class SygusRedundantCons : protected EnvObj
+class SygusGrammarReduce : protected EnvObj
 {
  public:
-  SygusRedundantCons(Env& env) : EnvObj(env) {}
-  ~SygusRedundantCons() {}
-  /** Minimize grammar */
+  SygusGrammarReduce(Env& env) : EnvObj(env) {}
+  ~SygusGrammarReduce() {}
+  /** Minimize grammar g */
   void minimize(SygusGrammar& g);
+  /** Minimize non-terminal ntsym of grammar g */
+  void minimize(SygusGrammar& g, const Node& ntsym);
 
  private:
   /** get generic list
@@ -75,8 +77,9 @@ class SygusRedundantCons : protected EnvObj
                          const std::vector<Node>& ntlist,
                          std::map<Node, std::vector<Node>>& ntvMap,
                          size_t ntindex,
-                         size_t vindex,
-                         size_t count);
+                         size_t vindex);
+  /** */
+  std::vector<Node> d_cacheValues;
 };
 
 }  // namespace quantifiers

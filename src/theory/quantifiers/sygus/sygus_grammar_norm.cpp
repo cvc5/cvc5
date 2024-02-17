@@ -22,6 +22,7 @@
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/trust_substitutions.h"
 #include "theory/type_enumerator.h"
 
@@ -50,6 +51,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   bool changed = false;
   Subs inlineRules;
   std::vector<Node> incNtSyms;
+  SygusGrammarReduce sgr(d_env);
   for (const Node& v : nts)
   {
     const std::vector<Node>& rules = sg.getRulesFor(v);
@@ -76,6 +78,11 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
           }
         }
       }
+    }
+    // remove the redundant rules if sygusMinGrammar is true
+    if (options().quantifiers.sygusMinGrammar)
+    {
+      sgr.minimize(sg, v);
     }
     // now see if there is only one rule, if so, we can inline it
     const std::vector<Node>& rulesPost = sg.getRulesFor(v);
@@ -107,6 +114,11 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
       {
         Node rs = inlineRules.apply(r);
         sgu.addRule(v, rs);
+      }
+      // reduce again
+      if (options().quantifiers.sygusMinGrammar)
+      {
+        sgr.minimize(sgu, v);
       }
     }
     tnn = sgu.resolve();

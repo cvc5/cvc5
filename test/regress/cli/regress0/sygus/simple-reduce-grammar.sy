@@ -1,0 +1,9 @@
+(synth-fun f ((x Int) (y Int)) Bool
+  ((Start Bool) (StartInt Int) (StartBool2 Bool))
+  (
+    (Start Bool ((< StartInt StartInt) (> StartInt StartInt) (not StartBool2) true false))
+    (StartInt Int (0 1 x y))
+    (StartBool2 Bool ((>= StartInt StartInt)))
+  )
+)
+(check-synth)
