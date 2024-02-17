@@ -51,7 +51,6 @@ enum ENUM(SkolemFunId) : uint32_t
 {
   /** The skolem is not exported */
   EVALUE(INTERNAL),
-  
   /** input variable with a given name */
   EVALUE(INPUT_VARIABLE),
   /** purification skolem for a term t */

@@ -3661,7 +3661,7 @@ std::vector<Term> Term::getSkolemArguments() const
   SkolemFunId id;
   skm->isSkolemFunction(*d_node, id, cacheVal);
   std::vector<Term> args;
-  if (cacheVal.isNull())
+  if (!cacheVal.isNull())
   {
     if (cacheVal.getKind() == internal::Kind::SEXPR)
     {

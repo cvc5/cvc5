@@ -39,7 +39,6 @@ struct UnpurifiedFormAttributeId
 };
 typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
 
-
 const char* toString(InternalSkolemFunId id)
 {
   switch (id)
