@@ -82,7 +82,6 @@ std::unordered_set<Node> SygusRedundantCons::getGenericList(
     std::vector<Node> ntlist;
     std::map<Node, std::vector<Node>> ntvMap;
     BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
-    std::map<Node, size_t> ntindex;
     for (const Node& v : lam[0])
     {
       Assert(mapToNtSym.find(v) != mapToNtSym.end());
@@ -97,8 +96,52 @@ std::unordered_set<Node> SygusRedundantCons::getGenericList(
       vs.push_back(
           bvm->mkBoundVar<GrammarRedFreeVarAttribute>(cacheVal, nts.getType()));
     }
+    getGenericListRec(lam, tset, vlist, ntlist, ntvMap, 0, 0, 0);
   }
   return tset;
+}
+
+void SygusRedundantCons::getGenericListRec(const Node& lam,
+                        std::unordered_set<Node>& tset,
+                        const std::vector<std::pair<Node, size_t>>& vlist,
+                      const std::vector<Node>& ntlist,
+                      std::map<Node, std::vector<Node>>& ntvMap,
+                      size_t ntindex,
+                        size_t vindex,
+                        size_t count)
+{
+  if (ntindex==ntlist.size())
+  {
+    std::vector<Node> args;
+    args.push_back(lam);
+    for (const std::pair<Node, size_t>& v : vlist)
+    {
+      args.push_back(ntvMap[v.first][v.second]);
+    }
+    Node app = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, args);
+    app = extendedRewrite(app);
+    tset.insert(app);
+    return;
+  }
+  Node nts = ntlist[ntindex];
+  std::vector<Node>& ntvs = ntvMap[nts];
+  Assert (vindex<ntvs.size());
+  // don't consider swaps beyond >=5
+  size_t endIndex = vindex+1;
+  while (count<5 && endIndex<ntvs.size())
+  {
+    endIndex++;
+    count++;
+  }
+  for (size_t i=vindex; i<endIndex; i++)
+  {
+    // swap the variables
+    std::swap(ntvs[i], ntvs[vindex]);
+    // recurse
+    getGenericListRec(lam, tset, vlist, ntlist, ntvMap, ntindex, vindex+1, count);
+    // revert
+    std::swap(ntvs[i], ntvs[vindex]);
+  }
 }
 
 }  // namespace quantifiers

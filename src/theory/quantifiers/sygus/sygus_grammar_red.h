@@ -68,6 +68,15 @@ class SygusRedundantCons : protected EnvObj
    * to terms.
    */
   std::unordered_set<Node> getGenericList(const SygusGrammar& g, const Node& r);
+
+  void getGenericListRec(const Node& lam,
+                         std::unordered_set<Node>& tset,
+                         const std::vector<std::pair<Node, size_t>>& vlist,
+                        const std::vector<Node>& ntlist,
+                        std::map<Node, std::vector<Node>>& ntvMap,
+                        size_t ntindex,
+                         size_t vindex,
+                         size_t count);
 };
 
 }  // namespace quantifiers
