@@ -57,7 +57,9 @@ void SygusGrammarReduce::minimize(SygusGrammar& g, const Node& v)
     {
       if (allTerms.find(t) != allTerms.end())
       {
-        Trace("sygus-grammar-red") << "... " << r << " is duplicate since we already have variant " << t << std::endl;
+        Trace("sygus-grammar-red")
+            << "... " << r << " is duplicate since we already have variant "
+            << t << std::endl;
         g.removeRule(v, r);
         dup = true;
         break;
@@ -69,7 +71,6 @@ void SygusGrammarReduce::minimize(SygusGrammar& g, const Node& v)
       allTerms.insert(tset.begin(), tset.end());
     }
   }
-
 }
 
 std::unordered_set<Node> SygusGrammarReduce::getGenericList(
@@ -87,8 +88,8 @@ std::unordered_set<Node> SygusGrammarReduce::getGenericList(
   }
   else
   {
-    // otherwise, consider permutations of all variables introduced for the same non-terminal
-    // group by non-terminal to set up variable swapping
+    // otherwise, consider permutations of all variables introduced for the same
+    // non-terminal group by non-terminal to set up variable swapping
     std::vector<std::pair<Node, size_t>> vlist;
     std::vector<Node> ntlist;
     std::map<Node, std::vector<Node>> ntvMap;
@@ -132,8 +133,9 @@ void SygusGrammarReduce::getGenericListRec(
     size_t ntindex,
     size_t vindex)
 {
-  // to avoid exponential behavior, stop if we have more than 10 variants already
-  if (tset.size()>=10)
+  // to avoid exponential behavior, stop if we have more than 10 variants
+  // already
+  if (tset.size() >= 10)
   {
     return;
   }
@@ -156,15 +158,14 @@ void SygusGrammarReduce::getGenericListRec(
   if (vindex == ntvs.size())
   {
     // go to next non-terminal
-    return getGenericListRec(lam, tset, vlist, ntlist, ntvMap, ntindex+1, 0);
+    return getGenericListRec(lam, tset, vlist, ntlist, ntvMap, ntindex + 1, 0);
   }
   for (size_t i = vindex, nvars = ntvs.size(); i < nvars; i++)
   {
     // swap the variables
     std::swap(ntvs[i], ntvs[vindex]);
     // recurse
-    getGenericListRec(
-        lam, tset, vlist, ntlist, ntvMap, ntindex, vindex + 1);
+    getGenericListRec(lam, tset, vlist, ntlist, ntvMap, ntindex, vindex + 1);
     // revert
     std::swap(ntvs[i], ntvs[vindex]);
   }
