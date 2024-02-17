@@ -101,16 +101,17 @@ std::unordered_set<Node> SygusRedundantCons::getGenericList(
   return tset;
 }
 
-void SygusRedundantCons::getGenericListRec(const Node& lam,
-                        std::unordered_set<Node>& tset,
-                        const std::vector<std::pair<Node, size_t>>& vlist,
-                      const std::vector<Node>& ntlist,
-                      std::map<Node, std::vector<Node>>& ntvMap,
-                      size_t ntindex,
-                        size_t vindex,
-                        size_t count)
+void SygusRedundantCons::getGenericListRec(
+    const Node& lam,
+    std::unordered_set<Node>& tset,
+    const std::vector<std::pair<Node, size_t>>& vlist,
+    const std::vector<Node>& ntlist,
+    std::map<Node, std::vector<Node>>& ntvMap,
+    size_t ntindex,
+    size_t vindex,
+    size_t count)
 {
-  if (ntindex==ntlist.size())
+  if (ntindex == ntlist.size())
   {
     std::vector<Node> args;
     args.push_back(lam);
@@ -125,20 +126,21 @@ void SygusRedundantCons::getGenericListRec(const Node& lam,
   }
   Node nts = ntlist[ntindex];
   std::vector<Node>& ntvs = ntvMap[nts];
-  Assert (vindex<ntvs.size());
+  Assert(vindex < ntvs.size());
   // don't consider swaps beyond >=5
-  size_t endIndex = vindex+1;
-  while (count<5 && endIndex<ntvs.size())
+  size_t endIndex = vindex + 1;
+  while (count < 5 && endIndex < ntvs.size())
   {
     endIndex++;
     count++;
   }
-  for (size_t i=vindex; i<endIndex; i++)
+  for (size_t i = vindex; i < endIndex; i++)
   {
     // swap the variables
     std::swap(ntvs[i], ntvs[vindex]);
     // recurse
-    getGenericListRec(lam, tset, vlist, ntlist, ntvMap, ntindex, vindex+1, count);
+    getGenericListRec(
+        lam, tset, vlist, ntlist, ntvMap, ntindex, vindex + 1, count);
     // revert
     std::swap(ntvs[i], ntvs[vindex]);
   }
