@@ -120,14 +120,19 @@ void SygusRedundantCons::getGenericListRec(
       args.push_back(ntvMap[v.first][v.second]);
     }
     Node app = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, args);
+    // apply extended rewriting to maximize chances for duplication
     app = extendedRewrite(app);
     tset.insert(app);
     return;
   }
   Node nts = ntlist[ntindex];
   std::vector<Node>& ntvs = ntvMap[nts];
-  Assert(vindex < ntvs.size());
-  // don't consider swaps beyond >=5
+  if (vindex == ntvs.size())
+  {
+    // go to next non-terminal
+    return getGenericListRec(lam, tset, vlist, ntlist, ntvMap, ntindex+1, 0, count);
+  }
+  // don't consider swaps beyond 5 to avoid exponential behavior
   size_t endIndex = vindex + 1;
   while (count < 5 && endIndex < ntvs.size())
   {
