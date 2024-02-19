@@ -17,18 +17,23 @@
 
 #include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 namespace cvc5::internal {
 
-SygusTermEnumerator::SygusTermEnumerator(
-    Env& env,
-    const TypeNode& tn,
-    theory::quantifiers::SygusEnumeratorCallback* sec,
-    bool enumShapes,
-    bool enumAnyConstHoles,
-    size_t numConstants)
-    : d_internal(
-        env, nullptr, sec, nullptr, enumShapes, enumAnyConstHoles, numConstants)
+SygusTermEnumerator::SygusTermEnumerator(Env& env,
+                                         const TypeNode& tn,
+                                         SygusTermEnumeratorCallback* sec,
+                                         bool enumShapes,
+                                         bool enumAnyConstHoles,
+                                         size_t numConstants)
+    : d_internal(new theory::quantifiers::SygusEnumerator(env,
+                                                          nullptr,
+                                                          sec,
+                                                          nullptr,
+                                                          enumShapes,
+                                                          enumAnyConstHoles,
+                                                          numConstants))
 {
   // Ensure we have computed the expanded definition form of all operators in
   // grammar, which is important if the grammar involves terms that have
@@ -37,9 +42,9 @@ SygusTermEnumerator::SygusTermEnumerator(
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   d_enum = sm->mkDummySkolem("enum", tn);
-  d_internal.initialize(d_enum);
+  d_internal->initialize(d_enum);
   // ensure current is non-null
-  if (d_internal.getCurrent().isNull())
+  if (d_internal->getCurrent().isNull())
   {
     if (!increment())
     {
@@ -51,9 +56,9 @@ SygusTermEnumerator::SygusTermEnumerator(
 
 bool SygusTermEnumerator::increment()
 {
-  while (d_internal.increment())
+  while (d_internal->increment())
   {
-    if (!d_internal.getCurrent().isNull())
+    if (!d_internal->getCurrent().isNull())
     {
       return true;
     }
@@ -61,11 +66,11 @@ bool SygusTermEnumerator::increment()
   return false;
 }
 
-bool SygusTermEnumerator::incrementPartial() { return d_internal.increment(); }
+bool SygusTermEnumerator::incrementPartial() { return d_internal->increment(); }
 
 Node SygusTermEnumerator::getCurrent()
 {
-  const Node& c = d_internal.getCurrent();
+  const Node& c = d_internal->getCurrent();
   if (c.isNull())
   {
     return c;
