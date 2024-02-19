@@ -654,7 +654,7 @@ Kind Smt2State::getClosureKind(const std::string& name)
   return Kind::UNDEFINED_KIND;
 }
 
-Term Smt2State::bindDefineFunRec(
+Term Smt2State::setupDefineFunRecScope(
     const std::string& fname,
     const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
     Sort t,
@@ -674,9 +674,7 @@ Term Smt2State::bindDefineFunRec(
   {
     ft = d_solver->mkFunctionSort(sorts, ft);
   }
-
-  // allow overloading
-  return bindVar(fname, ft, true);
+  return d_solver->mkConst(ft, fname);
 }
 
 void Smt2State::pushDefineFunRecScope(
@@ -686,7 +684,7 @@ void Smt2State::pushDefineFunRecScope(
     std::vector<Term>& bvs)
 {
   pushScope();
-
+  defineVar(func.getSymbol(), func, true);
   // bound variables are those that are explicitly named in the preamble
   // of the define-fun(s)-rec command, we define them here
   for (const std::pair<std::string, Sort>& svn : sortedVarNames)

@@ -430,7 +430,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       std::vector<Term> flattenVars;
       std::vector<Term> bvs;
       Term func =
-          d_state.bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
+          d_state.setupDefineFunRecScope(fname, sortedVarNames, t, flattenVars);
       d_state.pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs);
       Term expr = d_tparser.parseTerm();
       d_state.popScope();
@@ -463,7 +463,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         Sort t = d_tparser.parseSort();
         std::vector<Term> flattenVars;
         Term func =
-            d_state.bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
+            d_state.setupDefineFunRecScope(fname, sortedVarNames, t, flattenVars);
         funcs.push_back(func);
 
         // add to lists (need to remember for when parsing the bodies)

@@ -35,19 +35,17 @@ def check_iteractive_shell_parser_inc():
 
     # Open cvc5
     child = pexpect.spawn("bin/cvc5", timeout=1)
-
-cvc5> (define-fun-rec p () Bool true)
-cvc5> (define-fun-rec
-... > q () Bool
-... > true)
-
     # We expect to see the cvc5 prompt
     child.expect("cvc5> ")
     sendline(child, "(define-fun-rec")
     sendline(child, "p () Bool")
     sendline(child, "false)")
     expect_exact(child, "cvc5> ")
-    sendline(child,"(assert p)")
+    sendline(child, "(define-funs-rec")
+    sendline(child, "((q () Bool))")
+    sendline(child, "(false))")
+    expect_exact(child, "cvc5> ")
+    sendline(child,"(assert (or p q))")
     expect_exact(child, "cvc5> ")
     sendline(child,"(check-sat)")
     expect_exact(child,"unsat\r\ncvc5> ")
