@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"

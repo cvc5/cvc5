@@ -15,6 +15,7 @@
  */
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "base/configuration.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
