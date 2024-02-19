@@ -42,7 +42,8 @@ class SygusTermEnumeratorCallback
    * Notice that returning false indicates that n should not be considered as a
    * subterm of any other term in the enumeration.
    *
-   * @param n The SyGuS term
+   * @param n The SyGuS term, which is a deep embedding of the next term to
+   * enumerate.
    * @param bterms The (rewritten, builtin) terms we have already enumerated
    * @return true if n should be considered in the enumeration.
    */
