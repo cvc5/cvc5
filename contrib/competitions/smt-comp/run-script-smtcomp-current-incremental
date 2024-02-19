@@ -26,7 +26,7 @@ function runcvc5 {
   # we run in this way for line-buffered input, otherwise memory's a
   # concern (plus it mimics what we'll end up getting from an
   # application-track trace runner?)
-  $cvc5 --incremental --force-logic="$logic" -L smt2.6 --print-success --no-type-checking --no-interactive --no-flex-parser --no-stdin-input-per-line --fp-exp "$@" <&0-
+  $cvc5 --incremental --force-logic="$logic" -L smt2.6 --print-success --no-type-checking --no-interactive --fp-exp "$@" <&0-
 }
 
 case "$logic" in
