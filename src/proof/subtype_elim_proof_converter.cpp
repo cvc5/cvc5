@@ -300,7 +300,7 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
     cdp->addStep(tgt, ProofRule::EQ_RESOLVE, {src, fullEq}, {});
     //                                  -------------- -------------- EVAL(x2)
     //                                  conv[0]=tgt[0] conv[1]=tgt[1]
-    //       ---------- CAST_TYPE       ----------------------------- CONG{~}
+    //       ---------- AP_CAST_TYPE    ----------------------------- CONG{~}
     // ...   src = conv                 conv = tgt
     // ---   ------------------------------------------------ TRANS
     // src   src = tgt
