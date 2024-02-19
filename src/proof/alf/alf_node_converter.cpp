@@ -654,7 +654,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   if (reqCast)
   {
     // - prints as e.g. (alf.as - (-> Int Int)).
-    if (k==Kind::NEG || k==Kind::SUB)
+    if (k == Kind::NEG || k == Kind::SUB)
     {
       std::vector<Node> asChildren;
       asChildren.push_back(ret);

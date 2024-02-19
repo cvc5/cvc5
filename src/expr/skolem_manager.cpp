@@ -167,8 +167,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   // the original form of k can be computed by calling getOriginalForm, but
   // it is not computed here
 
-  Trace("sk-manager-skolem")
-      << "skolem: " << k << " purify " << t << std::endl;
+  Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
 
