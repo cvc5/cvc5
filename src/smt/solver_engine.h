@@ -126,7 +126,8 @@ class CVC5_EXPORT SolverEngine
    */
   bool isFullyInited() const;
   /**
-   * Return true if a checkSatisfiability() has been made.
+   * Return true if a call to check-sat, check-synth, get-abduct, get-interpol
+   * has been made and completed.
    */
   bool isQueryMade() const;
   /** Return the user context level.  */
