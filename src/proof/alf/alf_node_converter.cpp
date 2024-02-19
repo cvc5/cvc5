@@ -542,6 +542,17 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
         {
           opName << "is-tuple";
         }
+        else if (dt.isNullable())
+        {
+          if (cindex == 0)
+          {
+            opName << "nullable.is_null";
+          }
+          else
+          {
+            opName << "nullable.is_some";
+          }
+        }
         else
         {
           opName << "is-" << dt[cindex].getConstructor();
