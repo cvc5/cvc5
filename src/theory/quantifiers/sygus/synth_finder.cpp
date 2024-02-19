@@ -52,7 +52,7 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const TypeNode& gtn)
 
   // initialize the enumerator with the given callback
   d_enum.reset(new SygusTermEnumerator(d_env, gtn, d_ecb.get()));
-  
+
   // initialize the expression miner
   initializeInternal(d_fstu, gtn);
 }
