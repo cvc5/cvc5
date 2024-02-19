@@ -4861,7 +4861,7 @@ cdef class Proof:
             :return: The proof rule used by the root step of the proof.
         """
         return ProofRule(<int> self.cproof.getRule())
-    
+
     def getResult(self):
         """
             :return: The conclusion of the root step of the proof.
@@ -4869,7 +4869,7 @@ cdef class Proof:
         term = Term(self.solver)
         term.cterm = self.cproof.getResult()
         return term
-    
+
     def getChildren(self):
         """
             :return: The premises of the root step of the proof.
