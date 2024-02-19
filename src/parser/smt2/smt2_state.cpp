@@ -674,7 +674,8 @@ Term Smt2State::setupDefineFunRecScope(
   {
     ft = d_solver->mkFunctionSort(sorts, ft);
   }
-  return d_solver->mkConst(ft, fname);
+  // bind now, with overloading
+  return bindVar(fname, ft, true);
 }
 
 void Smt2State::pushDefineFunRecScope(
@@ -684,7 +685,6 @@ void Smt2State::pushDefineFunRecScope(
     std::vector<Term>& bvs)
 {
   pushScope();
-  defineVar(func.getSymbol(), func, true);
   // bound variables are those that are explicitly named in the preamble
   // of the define-fun(s)-rec command, we define them here
   for (const std::pair<std::string, Sort>& svn : sortedVarNames)
