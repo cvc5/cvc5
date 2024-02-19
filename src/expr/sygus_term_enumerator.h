@@ -22,6 +22,9 @@
 
 namespace cvc5::internal {
 
+namespace theory::quantifiers {
+  class SygusEnumeratorCallback;
+}
 /**
  * SygusTermEnumerator
  *
@@ -59,6 +62,8 @@ class SygusTermEnumerator
   /**
    * @param env Reference to the environment
    * @param tn The sygus datatype that encodes the grammar
+   * @param sec Pointer to an (optional) callback, required e.g. if we wish to
+   * do conjecture-specific symmetry breaking
    * @param enumShapes If true, this enumerator will generate terms having any
    * number of free variables
    * @param enumAnyConstHoles If true, this enumerator will generate terms where
@@ -68,6 +73,7 @@ class SygusTermEnumerator
    */
   SygusTermEnumerator(Env& env,
                       const TypeNode& tn,
+                      theory::quantifiers::SygusEnumeratorCallback* sec = nullptr,
                       bool enumShapes = false,
                       bool enumAnyConstHoles = false,
                       size_t numConstants = 5);

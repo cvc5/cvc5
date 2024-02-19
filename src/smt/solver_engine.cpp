@@ -85,6 +85,7 @@
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
 #include "util/string.h"
+#include "expr/sygus_term_enumerator.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"

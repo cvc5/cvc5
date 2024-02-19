@@ -23,6 +23,7 @@
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "util/resource_manager.h"
+#include "expr/sygus_term_enumerator.h"
 
 namespace cvc5::internal {
 namespace smt {
