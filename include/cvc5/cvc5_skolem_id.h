@@ -51,20 +51,58 @@ enum ENUM(SkolemFunId) : uint32_t
 {
   /** The skolem is not exported */
   EVALUE(INTERNAL),
-  /** input variable with a given name */
+  /** 
+   * Input variable with a given name
+   * 
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` A string constant corresponding to the name of the variable
+   *   - ``2:`` A term that represents the sort of the variable.
+   */
   EVALUE(INPUT_VARIABLE),
-  /** purification skolem for a term t */
+  /** 
+   * Purification skolem for a term.
+   * 
+   * - Number of skolem arguments: ``1``
+   *   - ``1:`` The term that this skolem purifies.
+   */
   EVALUE(PURIFY),
-  /** array diff to witness (not (= A B)) */
+  /** 
+   * Array diff to witness the disequality (not (= A B)).
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The first array.
+   *   - ``2:`` The second array.
+   */
   EVALUE(ARRAY_DEQ_DIFF),
-  /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
+  /** 
+   * The function for division by zero. This is semantically equivalent to the
+   * SMT-LIB term (lambda ((x Real)) (/ x 0.0)).
+   *
+   * - Number of skolem arguments: ``0``
+   */
   EVALUE(DIV_BY_ZERO),
-  /** an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
+  /** 
+   * The function for integer division by zero. This is semantically equivalent
+   * to the SMT-LIB term (lambda ((x Int)) (div x 0)).
+   *
+   * - Number of skolem arguments: ``0``
+   */
   EVALUE(INT_DIV_BY_ZERO),
-  /** an uninterpreted function f s.t. f(x) = x mod 0 */
+  /** 
+   * The function for integer modulus by zero. This is semantically equivalent
+   * to the SMT-LIB term (lambda ((x Int)) (mod x 0)).
+   *
+   * - Number of skolem arguments: ``0``
+   */
   EVALUE(MOD_BY_ZERO),
-  /** an uninterpreted function f s.t. f(x) = sqrt(x) */
+  /** 
+   * The function for square root, which is used for ensuring that sqrt is
+   * functional.
+   *
+   * - Number of skolem arguments: ``0``
+   */
   EVALUE(SQRT),
+  //---------------------------------------------
   /**
    * Argument used to purify trancendental function app f(x).
    * For sin(x), this is a variable that is assumed to be in phase with x that
@@ -77,11 +115,6 @@ enum ENUM(SkolemFunId) : uint32_t
    * The n^th skolem for quantified formula Q. Its arguments are (Q,n).
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
-  /**
-   * Quantifiers synth fun embedding, for function-to-synthesize, this the
-   * first order datatype variable for f.
-   */
-  EVALUE(QUANTIFIERS_SYNTH_FUN_EMBED),
   //----- string skolems are cached based on (a, b)
   /** exists k. ( string b occurs k times in string a ) */
   EVALUE(STRINGS_NUM_OCCUR),
@@ -239,7 +272,13 @@ enum ENUM(SkolemFunId) : uint32_t
    * of A
    */
   EVALUE(SETS_CHOOSE),
-  /** set diff to witness (not (= A B)) */
+  /** 
+   * Array diff to witness the disequality (not (= A B)).
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The first set.
+   *   - ``2:`` The second set.
+   */
   EVALUE(SETS_DEQ_DIFF),
   EVALUE(SETS_FOLD_CARD),
   EVALUE(SETS_FOLD_COMBINE),
