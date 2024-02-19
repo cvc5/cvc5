@@ -598,7 +598,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         std::vector<Node> msu;
         std::vector<Node> mexp;
         msu.insert(msu.end(), ms.begin(), ms.end());
-        std::map<TypeNode, int> var_count;
+        std::map<TypeNode, size_t> var_count;
         for (unsigned k = 0; k < vs.size(); k++)
         {
           vsit.setUpdatedTerm(msu[k]);
