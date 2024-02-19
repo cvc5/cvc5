@@ -462,8 +462,8 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
             d_tparser.parseSortedVarList();
         Sort t = d_tparser.parseSort();
         std::vector<Term> flattenVars;
-        Term func =
-            d_state.setupDefineFunRecScope(fname, sortedVarNames, t, flattenVars);
+        Term func = d_state.setupDefineFunRecScope(
+            fname, sortedVarNames, t, flattenVars);
         funcs.push_back(func);
 
         // add to lists (need to remember for when parsing the bodies)

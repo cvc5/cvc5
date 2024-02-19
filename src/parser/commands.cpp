@@ -884,8 +884,8 @@ std::string DeclarationDefinitionCommand::getSymbol() const { return d_symbol; }
 
 bool tryBindToTerm(SymManager* sm,
                    const std::string& sym,
-                                              Term t,
-                                              bool doOverload,
+                   Term t,
+                   bool doOverload,
                    std::ostream* out = nullptr)
 {
   if (!sm->bind(sym, t, true))
@@ -1247,7 +1247,7 @@ void DefineFunctionRecCommand::invoke(cvc5::Solver* solver, SymManager* sm)
     // bind each, returning if failure if we fail to bind
     for (const Term& f : d_funcs)
     {
-      Assert (t.hasSymbol());
+      Assert(t.hasSymbol());
       const std::string s = f.getSymbol();
       if (!tryBindToTerm(sm, s, f, true))
       {
