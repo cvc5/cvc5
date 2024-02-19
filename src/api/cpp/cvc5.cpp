@@ -7641,6 +7641,10 @@ Term Solver::getInterpolant(const Term& conj) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
+  CVC5_API_CHECK(!d_slv->isQueryMade()
+                 || d_slv->getOptions().base.incrementalSolving)
+      << "Cannot make multiple getInterpolant unless incremental solving is enabled "
+         "(try --incremental)";
   //////// all checks before this line
   internal::TypeNode nullType;
   internal::Node result = d_slv->getInterpolant(*conj.d_node, nullType);
@@ -7656,6 +7660,10 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
+  CVC5_API_CHECK(!d_slv->isQueryMade()
+                 || d_slv->getOptions().base.incrementalSolving)
+      << "Cannot make multiple getInterpolant unless incremental solving is enabled "
+         "(try --incremental)";
   //////// all checks before this line
   internal::Node result =
       d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
@@ -7686,6 +7694,10 @@ Term Solver::getAbduct(const Term& conj) const
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
+  CVC5_API_CHECK(!d_slv->isQueryMade()
+                 || d_slv->getOptions().base.incrementalSolving)
+      << "Cannot make multiple getAbduct unless incremental solving is enabled "
+         "(try --incremental)";
   //////// all checks before this line
   internal::TypeNode nullType;
   internal::Node result = d_slv->getAbduct(*conj.d_node, nullType);
@@ -7700,6 +7712,10 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
+  CVC5_API_CHECK(!d_slv->isQueryMade()
+                 || d_slv->getOptions().base.incrementalSolving)
+      << "Cannot make multiple getAbduct unless incremental solving is enabled "
+         "(try --incremental)";
   //////// all checks before this line
   internal::Node result =
       d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type);
@@ -8064,7 +8080,7 @@ SynthResult Solver::checkSynth() const
       << "Cannot checkSynth unless sygus is enabled (use --sygus)";
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
-      << "Cannot make multiple queries unless incremental solving is enabled "
+      << "Cannot make multiple checkSynth unless incremental solving is enabled "
          "(try --incremental)";
   //////// all checks before this line
   return d_slv->checkSynth();
