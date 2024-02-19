@@ -7644,8 +7644,7 @@ Term Solver::getInterpolant(const Term& conj) const
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
       << "Cannot make multiple getInterpolant unless incremental solving is "
-         "enabled "
-         "(try --incremental)";
+         "enabled (try --incremental)";
   //////// all checks before this line
   internal::TypeNode nullType;
   internal::Node result = d_slv->getInterpolant(*conj.d_node, nullType);
@@ -7664,8 +7663,7 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
       << "Cannot make multiple getInterpolant unless incremental solving is "
-         "enabled "
-         "(try --incremental)";
+         "enabled (try --incremental)";
   //////// all checks before this line
   internal::Node result =
       d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
@@ -8083,8 +8081,7 @@ SynthResult Solver::checkSynth() const
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
       << "Cannot make multiple checkSynth unless incremental solving is "
-         "enabled "
-         "(try --incremental)";
+         "enabled (try --incremental)";
   //////// all checks before this line
   return d_slv->checkSynth();
   ////////
