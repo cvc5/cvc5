@@ -72,8 +72,7 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   // purify skolem for (> 1.0 0.0).
   if (n.isVar())
   {
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* skm = nm->getSkolemManager();
+    SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
     SkolemFunId id;
     Node cacheVal;
     if (skm->isSkolemFunction(n, id, cacheVal))
