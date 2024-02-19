@@ -1096,6 +1096,14 @@ name   = "Quantifiers"
   help       = "statically minimize sygus grammars"
 
 [[option]]
+  name       = "sygusInlineGrammar"
+  category   = "regular"
+  long       = "sygus-inline-grammar"
+  type       = "bool"
+  default    = "true"
+  help       = "statically inline non-terminals with only one production rule in sygus grammars"
+
+[[option]]
   name       = "sygusAddConstGrammar"
   category   = "regular"
   long       = "sygus-add-const-grammar"

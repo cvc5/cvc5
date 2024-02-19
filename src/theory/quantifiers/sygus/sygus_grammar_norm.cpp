@@ -63,8 +63,8 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
         TypeNode vtn = v.getType();
         Trace("sygus-grammar-norm")
             << "...any constant " << r << " " << vtn << std::endl;
-        // if the cardinality is less than 3, we expand (Constant T) to concrete
-        // list.
+        // If the cardinality is less than 3, we replace (Constant T) with a
+        // concrete list.
         if (vtn.isCardinalityLessThan(3))
         {
           changed = true;
@@ -84,19 +84,22 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     {
       sgr.minimize(sg, v);
     }
-    // now see if there is only one rule, if so, we can inline it
-    const std::vector<Node>& rulesPost = sg.getRulesFor(v);
-    if (v != nts[0] && rulesPost.size() == 1
-        && !DTypeConstructor::isSygusAnyConstantOp(rulesPost[0]))
+    if (options().quantifiers.sygusInlineGrammar)
     {
-      Node rs = inlineRules.apply(rulesPost[0]);
-      // apply the current to the range
-      Subs icurr;
-      icurr.add(v, rs);
-      icurr.applyToRange(inlineRules);
-      inlineRules.add(v, rs);
-      // don't include this symbol in the final construction below
-      continue;
+      // now see if there is only one rule, if so, we can inline it
+      const std::vector<Node>& rulesPost = sg.getRulesFor(v);
+      if (v != nts[0] && rulesPost.size() == 1
+          && !DTypeConstructor::isSygusAnyConstantOp(rulesPost[0]))
+      {
+        Node rs = inlineRules.apply(rulesPost[0]);
+        // apply the current to the range
+        Subs icurr;
+        icurr.add(v, rs);
+        icurr.applyToRange(inlineRules);
+        inlineRules.add(v, rs);
+        // don't include this symbol in the final construction below
+        continue;
+      }
     }
     incNtSyms.push_back(v);
   }
@@ -125,7 +128,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   }
   else if (changed)
   {
-    // otherwise if we modified
+    // otherwise recompute the type if we modified
     tnn = sg.resolve();
   }
   else
