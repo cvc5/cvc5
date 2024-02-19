@@ -38,6 +38,10 @@ class SygusGrammar
    */
   SygusGrammar(const std::vector<Node>& sygusVars,
                const std::vector<Node>& ntSyms);
+  /**
+   * Reconstruct grammar from sygus datatype
+   */
+  SygusGrammar(const std::vector<Node>& sygusVars, const TypeNode& sdt);
 
   /**
    * Add \p rule to the set of rules corresponding to \p ntSym.
@@ -66,6 +70,12 @@ class SygusGrammar
    * @param ntSym The non-terminal allowed to be any input variable.
    */
   void addAnyVariable(const Node& ntSym);
+
+  /**
+   * Remove non-terminal \p ntSym from the grammar.
+   * @param ntSym The non-terminal from which the rule is removed.
+   */
+  void removeNonTerminal(const Node& ntSym);
 
   /**
    * Remove \p rule from the set of rules corresponding to \p ntSym.
@@ -104,6 +114,16 @@ class SygusGrammar
    * @return A string representation of this grammar.
    */
   std::string toString() const;
+
+  /**
+   * Get lambda for rule. This returns a lambda of the form
+   *   (lambda (x1...xn) r')
+   * where r' is the result of replacing each occurrence of a non-terminal
+   * from this grammar in r by a fresh variable. All variables introduced in
+   * this way are included in x1...xn. An entry is added to ntSymMap for each
+   * variable xi mapping it to the non-terminal that it replaced.
+   */
+  Node getLambdaForRule(const Node& r, std::map<Node, Node>& ntSymMap) const;
 
  private:
   /** Input variables to the corresponding function/invariant to synthesize.*/
