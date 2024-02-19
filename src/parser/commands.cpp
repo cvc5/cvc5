@@ -1247,7 +1247,7 @@ void DefineFunctionRecCommand::invoke(cvc5::Solver* solver, SymManager* sm)
     // bind each, returning if failure if we fail to bind
     for (const Term& f : d_funcs)
     {
-      Assert(t.hasSymbol());
+      Assert(f.hasSymbol());
       const std::string s = f.getSymbol();
       if (!tryBindToTerm(sm, s, f, true))
       {
