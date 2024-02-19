@@ -122,6 +122,7 @@ class SygusGrammar
    * from this grammar in r by a fresh variable. All variables introduced in
    * this way are included in x1...xn. An entry is added to ntSymMap for each
    * variable xi mapping it to the non-terminal that it replaced.
+   * Returns r itself if it has no non-terminals.
    */
   Node getLambdaForRule(const Node& r, std::map<Node, Node>& ntSymMap) const;
 
