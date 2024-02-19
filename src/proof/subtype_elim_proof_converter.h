@@ -60,7 +60,7 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
                CDProof* cdp) override;
 
  private:
-  /** 
+  /**
    * Try to prove expected via the given rule, children, and arguments. Return
    * true if this proves expected, otherwise we return false and set newRes
    * to what was proven by (id, children, args).
@@ -73,7 +73,7 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
                Node expected,
                Node& newRes,
                CDProof* cdp);
-  /** 
+  /**
    * Prove, which attempts to prove tgt from src, where:
    * - src is an arithmetic predicate of the form (~ t s),
    * - tgt is an arithmetic predicate of the form (~ t' s') where t' (resp. s)
