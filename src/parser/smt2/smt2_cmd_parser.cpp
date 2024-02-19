@@ -421,9 +421,9 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     // (define-fun-rec <symbol> (<sorted_var>*) <sort> <term>)
     case Token::DEFINE_FUN_REC_TOK:
     {
+      d_state.checkThatLogicIsSet();
       // outermost scope to handle the definition of the function
       d_state.pushScope();
-      d_state.checkThatLogicIsSet();
       std::string fname = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
       d_state.checkUserSymbol(fname);
       std::vector<std::pair<std::string, Sort>> sortedVarNames =
@@ -450,9 +450,9 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     // <function_dec> := (<symbol> (<sorted_var>*) <sort>)
     case Token::DEFINE_FUNS_REC_TOK:
     {
+      d_state.checkThatLogicIsSet();
       // outermost scope to handle the definition of the functions
       d_state.pushScope();
-      d_state.checkThatLogicIsSet();
       d_lex.eatToken(Token::LPAREN_TOK);
       std::vector<Term> funcs;
       std::vector<std::vector<std::pair<std::string, Sort>>> sortedVarNamesList;
