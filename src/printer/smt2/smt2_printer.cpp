@@ -609,6 +609,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   }
   else if (k == Kind::HO_APPLY && options::ioutils::getFlattenHOChains(out))
   {
+    out << "(";
     // collapse "@" chains, i.e.
     //
     // ((a b) c) --> (a b c)
