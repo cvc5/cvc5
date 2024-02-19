@@ -110,7 +110,6 @@ void SolverEngineState::notifyCheckSynthResult(const SynthResult& r)
 
 void SolverEngineState::notifyGetAbduct(bool success)
 {
-  d_queryMade = true;
   if (success)
   {
     // successfully generated an abduct, update to abduct state
@@ -125,7 +124,6 @@ void SolverEngineState::notifyGetAbduct(bool success)
 
 void SolverEngineState::notifyGetInterpol(bool success)
 {
-  d_queryMade = true;
   if (success)
   {
     // successfully generated an interpolant, update to interpol state
@@ -140,7 +138,6 @@ void SolverEngineState::notifyGetInterpol(bool success)
 
 void SolverEngineState::notifyFindSynth(bool success)
 {
-  d_queryMade = true;
   if (success)
   {
     d_smtMode = SmtMode::FIND_SYNTH;

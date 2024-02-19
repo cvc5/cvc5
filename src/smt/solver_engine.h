@@ -126,8 +126,9 @@ class CVC5_EXPORT SolverEngine
    */
   bool isFullyInited() const;
   /**
-   * Return true if a call to check-sat, check-synth, get-abduct, get-interpol
-   * has been made and completed.
+   * Return true if a call to check-sat or check-synth has been made and
+   * completed. Other calls (e.g. get-interpolant, get-abduct, get-qe) do not
+   * impact this, since they are handled independently via subsolvers.
    */
   bool isQueryMade() const;
   /** Return the user context level.  */
