@@ -83,7 +83,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       std::vector<Node> newChildren;
       for (size_t i = 0, nchild = lhs.getNumChildren(); i < nchild; i++)
       {
-        // eqOld is what was proven with the converted children
+        // eqOld is what was proven with the converted i-th child
         Node eqOld = newRes[0][i].eqNode(newRes[1][i]);
         // eqNew is what is necessary to prove
         Node eqNew = lhs[i].eqNode(rhs[i]);
