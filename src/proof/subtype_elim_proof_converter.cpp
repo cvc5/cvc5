@@ -39,8 +39,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     cargs.push_back(d_nconv.convert(a));
   }
-  // Node resc = d_nconv.convert(res);
-  //  see if proof rule still works
+  // get the converted form of the conclusion, which we must prove.
   Node resc = d_nconv.convert(res);
   // in very rare cases a direct child may already be the proof we want
   if (std::find(children.begin(), children.end(), resc) != children.end())
@@ -56,11 +55,12 @@ Node SubtypeElimConverterCallback::convert(Node res,
   }
   else if (newRes.isNull())
   {
+    // This case means we have nothing to work with. This should likely never
+    // happen.
     Trace("pf-subtype-elim")
         << "Failed to convert subtyping " << id << std::endl;
     Trace("pf-subtype-elim") << "Premises: " << children << std::endl;
     Trace("pf-subtype-elim") << "Args: " << cargs << std::endl;
-    AlwaysAssert(false) << "Failed to convert subtyping " << id;
     return newRes;
   }
   // otherwise, newRes is what is proven from the rule without changes,
