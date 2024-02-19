@@ -49,13 +49,12 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const TypeNode& gtn)
   // clear the buffer
   d_bufferIndex = 0;
   d_buffer.clear();
-  NodeManager* nm = NodeManager::currentNM();
-
-  // initialize the expression miner
-  initializeInternal(d_fstu, gtn);
 
   // initialize the enumerator with the given callback
   d_enum.reset(new SygusTermEnumerator(d_env, gtn, d_ecb.get()));
+  
+  // initialize the expression miner
+  initializeInternal(d_fstu, gtn);
 }
 
 bool SynthFinder::increment()
