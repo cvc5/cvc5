@@ -1,0 +1,8 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+; EXPECT-ERROR: (error "Cannot make multiple queries unless incremental solving is enabled (try --incremental)")
+(set-logic LIA)
+(synth-fun f ((x Int)) Int)
+(check-synth)
+(check-synth)
+
