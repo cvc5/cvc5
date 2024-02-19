@@ -28,7 +28,11 @@ namespace cvc5::internal {
 class ProofChecker;
 
 /**
- * A virtual callback class for converting ProofNode.
+ * A callback class for converting proofs to those that do not involve
+ * mixed arithmetic. We update all proofs proving F to those proving
+ * d_nconv.convert(F), where d_nconv is the utility that eliminates mixed
+ * arithmetic from F. Moreover all arguments t in proof nodes are
+ * d_nconv.convert(t).
  */
 class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
                                      protected EnvObj
