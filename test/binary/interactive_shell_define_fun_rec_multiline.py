@@ -29,8 +29,8 @@ def sendline(child, s):
 
 def check_iteractive_shell_define_fun_rec_multiline():
     """
-    Interacts with cvc5's interactive shell and checks that parser declarations are
-    managed properly in incremental mode.
+    Interacts with cvc5's interactive shell and checks that define-fun-rec
+    commands that span multiple lines are properly handled.
     """
 
     # Open cvc5
