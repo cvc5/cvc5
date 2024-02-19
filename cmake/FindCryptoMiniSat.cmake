@@ -35,7 +35,7 @@ if(cryptominisat5_FOUND)
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
-  set(CryptoMiniSat_VERSION "5.8.0")
+  set(CryptoMiniSat_VERSION "5.11.21")
 
   check_ep_downloaded("CryptoMiniSat-EP")
   if(NOT CryptoMiniSat-EP_DOWNLOADED)
@@ -54,10 +54,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
     CryptoMiniSat-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/msoos/cryptominisat/archive/refs/tags/${CryptoMiniSat_VERSION}.tar.gz
-    URL_HASH SHA1=f79dfa1ffc6c9c75b3a33f76d3a89a3df2b3f4c2
-    PATCH_COMMAND
-      patch <SOURCE_DIR>/src/packedmatrix.h
-      ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CryptoMiniSat-patch-ba6f76e3.patch
+    URL_HASH SHA1=d97510a186af8eaecc3ecf38dad345e0758288a5
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                # make sure not to register with cmake
                -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON

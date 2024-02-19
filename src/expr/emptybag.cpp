@@ -52,17 +52,4 @@ bool EmptyBag::operator==(const EmptyBag& es) const
   return getType() == es.getType();
 }
 
-bool EmptyBag::operator!=(const EmptyBag& es) const { return !(*this == es); }
-bool EmptyBag::operator<(const EmptyBag& es) const
-{
-  return getType() < es.getType();
-}
-
-bool EmptyBag::operator<=(const EmptyBag& es) const
-{
-  return getType() <= es.getType();
-}
-
-bool EmptyBag::operator>(const EmptyBag& es) const { return !(*this <= es); }
-bool EmptyBag::operator>=(const EmptyBag& es) const { return !(*this < es); }
 }  // namespace cvc5::internal

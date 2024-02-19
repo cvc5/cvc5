@@ -37,6 +37,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::CONCAT_EQ, this);
   pc->registerChecker(ProofRule::CONCAT_UNIFY, this);
   pc->registerChecker(ProofRule::CONCAT_CONFLICT, this);
+  pc->registerChecker(ProofRule::CONCAT_CONFLICT_DEQ, this);
   pc->registerChecker(ProofRule::CONCAT_SPLIT, this);
   pc->registerChecker(ProofRule::CONCAT_CSPLIT, this);
   pc->registerChecker(ProofRule::CONCAT_LPROP, this);
@@ -179,7 +180,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       }
       return children[1][0][0].eqNode(children[1][1][0]);
     }
-    else if (id == ProofRule::CONCAT_CONFLICT)
+    else if (id == ProofRule::CONCAT_CONFLICT
+             || id == ProofRule::CONCAT_CONFLICT_DEQ)
     {
       Assert(children.size() >= 1 && children.size() <= 2);
       if (!t0.isConst() || !s0.isConst())
@@ -196,9 +198,9 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         return Node::null();
       }
       // if a disequality was provided, ensure that it is correct
-      if (children.size() == 2)
+      if (id == ProofRule::CONCAT_CONFLICT_DEQ)
       {
-        if (children[1].getKind() != Kind::NOT
+        if (children.size() != 2 || children[1].getKind() != Kind::NOT
             || children[1][0].getKind() != Kind::EQUAL
             || children[1][0][0] != t0 || children[1][0][1] != s0)
         {
@@ -207,7 +209,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       }
       else if (t0.getType().isSequence())
       {
-        // we require the disequality for sequences
+        // we require the CONCAT_CONFLICT_DEQ for sequences
         return Node::null();
       }
       return nm->mkConst(false);

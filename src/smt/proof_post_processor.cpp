@@ -442,7 +442,19 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   {
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
-    std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
+    std::vector<Node> pols;
+    std::vector<Node> lits;
+    Assert((args.size() + 1) % 2 == 0);
+    for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
+    {
+      pols.push_back(args[i]);
+      lits.push_back(args[i + 1]);
+    }
+    Assert(pols.size() == children.size() - 1);
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> chainResArgs;
+    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, pols));
+    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, lits));
     Node chainConclusion = d_pc->checkDebug(
         ProofRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
@@ -471,7 +483,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       return chainConclusion;
     }
     size_t initProofSize = cdp->getNumProofNodes();
-    NodeManager* nm = NodeManager::currentNM();
     // If we got here, then chainConclusion is NECESSARILY an OR node
     Assert(chainConclusion.getKind() == Kind::OR);
     // get the literals in the chain conclusion
@@ -501,7 +512,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     //
     // Thus we rely on the standard utility to determine if args[0] is singleton
     // based on the premises and arguments of the resolution
-    if (proof::isSingletonClause(args[0], children, chainResArgs))
+    std::vector<Node> chainResArgsOrig{args.begin() + 1, args.end()};
+    if (proof::isSingletonClause(args[0], children, chainResArgsOrig))
     {
       conclusionLits.push_back(args[0]);
     }
@@ -930,8 +942,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       TNode child = children[i];
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp = nm->mkNode(
-          isPos ? Kind::GT : Kind::LT, scalar, nm->mkConstInt(Rational(0)));
+      Node scalarCmp =
+          nm->mkNode(isPos ? Kind::GT : Kind::LT,
+                     scalar,
+                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue =
           steps.tryStep(ProofRule::EVALUATE, {}, {scalarCmp});
@@ -1133,6 +1147,7 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
+
   // take stats and check pedantic
   d_finalCb.initializeUpdate();
   d_finalizer.process(pf);

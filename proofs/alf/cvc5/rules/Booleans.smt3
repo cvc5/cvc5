@@ -1,0 +1,390 @@
+(include "../theories/Builtin.smt3")
+(include "../theories/Ints.smt3")
+
+(include "../programs/Nary.smt3")
+
+; SPLIT
+(declare-rule split ((F Bool))
+    :args (F)
+    :conclusion (or F (not F))
+)
+
+; `to_clause F` converts `F` to a "clause".
+; In particular, if `F` is not an or-application or false, we return (or F),
+; otherwise `F` is unchanged.
+(program to_clause ((F1 Bool) (F2 Bool :list))
+  (Bool) Bool
+  (
+    ((to_clause (or F1 F2)) (or F1 F2))
+    ((to_clause false)      false)
+    ((to_clause F1)         (or F1))
+  )
+)
+; `from_clause F` converts "clause" `F` to a formula.
+; In particular, if `F` is (or F), we return `F`, otherwise `F` is unchanged.
+(program from_clause ((F1 Bool) (F2 Bool :list))
+  (Bool) Bool
+  (
+    ((from_clause (or F1 F2)) (alf.ite (alf.is_eq F2 false) F1 (or F1 F2)))
+    ((from_clause F1)         F1)
+  )
+)
+
+; Extension of `nary.remove or l C`, that returns `false` if `C` is `l`
+(define removeSelf ((l Bool) (C Bool))
+    (alf.ite (alf.is_eq l C) false (nary.remove or false l C)))
+
+
+; RESOLUTION
+(program resolve ((C1 Bool) (C2 Bool) (pol Bool) (L Bool))
+    (Bool Bool Bool Bool) Bool
+    (
+      ((resolve C1 C2 pol L)
+        (let ((lp (alf.ite pol L (not L))))
+        (let ((ln (alf.ite pol (not L) L)))
+            (from_clause (alf.concat or
+                    (removeSelf lp (to_clause C1))
+                    (removeSelf ln (to_clause C2)))))))
+    )
+)
+
+(declare-rule resolution ((C1 Bool) (C2 Bool) (pol Bool) (L Bool))
+    :premises (C1 C2)
+    :args (pol L)
+    :conclusion (resolve C1 C2 pol L)
+)
+
+; CHAIN_RESOLUTION
+; Applies multiple steps of resolution but leaves the first argument in n-ary form.
+(program chainResolveRec ((C1 Bool) (C2 Bool) (Cs Bool :list) (pol Bool) (pols @List :list) (L Bool) (lits @List :list))
+    (Bool Bool @List @List) Bool
+    (
+        ((chainResolveRec C1 true @list.nil @list.nil)         (from_clause C1))
+        ((chainResolveRec C1 (and C2 Cs) (@list pol pols) (@list L lits))
+            (chainResolveRec
+                (let ((lp (alf.ite pol L (not L))))
+                (let ((ln (alf.ite pol (not L) L)))
+                    (alf.concat or
+                            (removeSelf lp C1)
+                            (removeSelf ln (to_clause C2))))) Cs pols lits))
+    )
+)
+
+; This is a chain or resolution steps as described in the cvc5 proof rule
+; documentation.
+; `Cs` is a conjunction or the premise clauses.
+; `pols` and `lits` are lists of the same length denoting the polarities and
+;    the pivot literals respectively.
+(declare-rule chain_resolution ((Cs Bool) (pols @List) (lits @List))
+    :premise-list Cs and
+    :args (pols lits)
+    :conclusion
+        (alf.match ((C1 Bool) (C2 Bool :list))
+            Cs
+            (((and C1 C2) (chainResolveRec (to_clause C1) C2 pols lits))))
+)
+
+; FACTORING
+; factorLiterals xs x returns x with duplicates removed, xs is a list of
+; literals we have seen before.
+(program factorLiterals ((xs Bool :list) (l Bool) (ls Bool :list))
+    (Bool Bool) Bool
+    (
+        ((factorLiterals xs (or l ls)) (let ((cond (alf.is_neg (alf.find or xs l))))
+                                       (let ((ret (factorLiterals
+                                                    (alf.ite cond (alf.cons or l xs) xs)
+                                                    ls)))
+                                            (alf.ite cond (alf.cons or l ret) ret))))
+        ((factorLiterals xs false)      false)
+    )
+)
+
+(declare-rule factoring ((C Bool))
+    :premises (C)
+    :conclusion (from_clause (factorLiterals false C))
+)
+
+(declare-rule reordering ((C1 Bool) (C2 Bool))
+    :premises (C1)
+    :args (C2)
+    :requires (((nary.is_subset or false C1 C2) true))
+    :conclusion C2
+)
+
+; EQ_RESOLVE
+(declare-rule eq_resolve ((F1 Bool) (F2 Bool))
+    :premises (F1 (= F1 F2))
+    :conclusion F2
+)
+
+; MODUS_PONENS
+(declare-rule modus_ponens ((F1 Bool) (F2 Bool))
+    :premises (F1 (=> F1 F2))
+    :conclusion F2
+)
+
+; NOT_NOT_ELIM
+(declare-rule not_not_elim ((F Bool))
+    :premises ((not (not F)))
+    :conclusion F
+)
+
+; CONTRA
+(declare-rule contra ((F Bool))
+    :premises (F (not F))
+    :conclusion false
+)
+
+; AND_ELIM
+(declare-rule and_elim ((Fs Bool) (i Int))
+    :premises (Fs)
+    :args (i)
+    :conclusion (alf.extract and Fs i)
+)
+
+; AND_INTRO
+(declare-rule and_intro ((F Bool))
+    :premise-list F and
+    :conclusion F
+)
+
+; NOT_OR_ELIM
+(declare-rule not_or_elim ((Fs Bool) (i Int))
+    :premises ((not Fs))
+    :args (i)
+    :conclusion (not (alf.extract or Fs i))
+)
+
+; IMPLIES_ELIM
+(declare-rule implies_elim ((F1 Bool) (F2 Bool))
+    :premises ((=> F1 F2))
+    :conclusion (or (not F1) F2)
+)
+
+; NOT_IMPLIES_ELIM1
+(declare-rule not_implies_elim1 ((F1 Bool) (F2 Bool))
+    :premises ((not (=> F1 F2)))
+    :conclusion F1
+)
+
+; NOT_IMPLIES_ELIM2
+(declare-rule not_implies_elim2 ((F1 Bool) (F2 Bool))
+    :premises ((not (=> F1 F2)))
+    :conclusion (not F2)
+)
+
+; EQUIV_ELIM1
+(declare-rule equiv_elim1 ((F1 Bool) (F2 Bool))
+    :premises ((= F1 F2))
+    :conclusion (or (not F1) F2)
+)
+
+; EQUIV_ELIM2
+(declare-rule equiv_elim2 ((F1 Bool) (F2 Bool))
+    :premises ((= F1 F2))
+    :conclusion (or F1 (not F2))
+)
+
+; NOT_EQUIV_ELIM1
+(declare-rule not_equiv_elim1 ((F1 Bool) (F2 Bool))
+    :premises ((not (= F1 F2)))
+    :conclusion (or F1 F2)
+)
+
+; NOT_EQUIV_ELIM2
+(declare-rule not_equiv_elim2 ((F1 Bool) (F2 Bool))
+    :premises ((not (= F1 F2)))
+    :conclusion (or (not F1) (not F2))
+)
+
+; XOR_ELIM1
+(declare-rule xor_elim1 ((F1 Bool) (F2 Bool))
+    :premises ((xor F1 F2))
+    :conclusion (or F1 F2)
+)
+
+; XOR_ELIM2
+(declare-rule xor_elim2 ((F1 Bool) (F2 Bool))
+    :premises ((xor F1 F2))
+    :conclusion (or (not F1) (not F2))
+)
+
+; NOT_XOR_ELIM1
+(declare-rule not_xor_elim1 ((F1 Bool) (F2 Bool))
+    :premises ((not (xor F1 F2)))
+    :conclusion (or F1 (not F2))
+)
+
+; NOT_XOR_ELIM2
+(declare-rule not_xor_elim2 ((F1 Bool) (F2 Bool))
+    :premises ((not (xor F1 F2)))
+    :conclusion (or (not F1) F2)
+)
+
+; ITE_ELIM1
+(declare-rule ite_elim1 ((C Bool) (F1 Bool) (F2 Bool))
+    :premises ((ite C F1 F2))
+    :conclusion (or (not C) F1)
+)
+
+; ITE_ELIM2
+(declare-rule ite_elim2 ((C Bool) (F1 Bool) (F2 Bool))
+    :premises ((ite C F1 F2))
+    :conclusion (or C F2)
+)
+
+; NOT_ITE_ELIM1
+(declare-rule not_ite_elim1 ((C Bool) (F1 Bool) (F2 Bool))
+    :premises ((not (ite C F1 F2)))
+    :conclusion (or (not C) (not F1))
+)
+
+; NOT_ITE_ELIM2
+(declare-rule not_ite_elim2 ((C Bool) (F1 Bool) (F2 Bool))
+    :premises ((not (ite C F1 F2)))
+    :conclusion (or C (not F2))
+)
+
+; NOT_AND
+
+; lowerNotAnd c
+; Moves a negation into a disjunction.
+; `lowerNotAnd (and l1 .. ln) = (or (not l1) ... (not ln))`
+(program lowerNotAnd ((l Bool) (ls Bool :list))
+    (Bool) Bool
+    (
+        ((lowerNotAnd true)       false) ; Terminator changes
+        ((lowerNotAnd (and l ls)) (alf.cons or (not l) (lowerNotAnd ls)))
+    )
+)
+
+(declare-rule not_and ((F Bool))
+    :premises ((not F))
+    :conclusion (lowerNotAnd F)
+)
+
+; CNF_AND_POS
+(declare-rule cnf_and_pos ((Fs Bool) (i Int))
+    :args (Fs i)
+    :conclusion (or (not Fs) (alf.extract and Fs i))
+)
+
+; CNF_AND_NEG
+(declare-rule cnf_and_neg ((Fs Bool))
+    :args (Fs)
+    :conclusion (alf.cons or Fs (lowerNotAnd Fs))
+)
+
+; CNF_OR_POS
+(declare-rule cnf_or_pos ((Fs Bool :list))
+    :args (Fs)
+    :conclusion (or (not Fs) Fs)
+)
+
+; CNF_OR_NEG
+(declare-rule cnf_or_neg ((Fs Bool) (i Int))
+    :args (Fs i)
+    :conclusion (or Fs (not (alf.extract or Fs i)))
+)
+
+; CNF_IMPLIES_POS
+(declare-rule cnf_implies_pos ((F1 Bool) (F2 Bool))
+    :args ((=> F1 F2))
+    :conclusion (or (not (=> F1 F2)) (not F1) F2)
+)
+
+; CNF_IMPLIES_NEG1
+(declare-rule cnf_implies_neg1 ((F1 Bool) (F2 Bool))
+    :args ((=> F1 F2))
+    :conclusion (or (=> F1 F2) F1)
+)
+
+; CNF_IMPLIES_NEG2
+(declare-rule cnf_implies_neg2 ((F1 Bool) (F2 Bool))
+    :args ((=> F1 F2))
+    :conclusion (or (=> F1 F2) (not F2))
+)
+
+; CNF_EQUIV_POS1
+(declare-rule cnf_equiv_pos1 ((F1 Bool) (F2 Bool))
+    :args ((= F1 F2))
+    :conclusion (or (not (= F1 F2)) (not F1) F2)
+)
+
+; CNF_EQUIV_POS2
+(declare-rule cnf_equiv_pos2 ((F1 Bool) (F2 Bool))
+    :args ((= F1 F2))
+    :conclusion (or (not (= F1 F2)) F1 (not F2))
+)
+
+; CNF_EQUIV_NEG1
+(declare-rule cnf_equiv_neg1 ((F1 Bool) (F2 Bool))
+    :args ((= F1 F2))
+    :conclusion (or (= F1 F2) F1 F2)
+)
+
+; CNF_EQUIV_NEG2
+(declare-rule cnf_equiv_neg2 ((F1 Bool) (F2 Bool))
+    :args ((= F1 F2))
+    :conclusion (or (= F1 F2) (not F1) (not F2))
+)
+
+; CNF_XOR_POS1
+(declare-rule cnf_xor_pos1 ((F1 Bool) (F2 Bool))
+    :args ((xor F1 F2))
+    :conclusion (or (not (xor F1 F2)) F1 F2)
+)
+
+; CNF_XOR_POS2
+(declare-rule cnf_xor_pos2 ((F1 Bool) (F2 Bool))
+    :args ((xor F1 F2))
+    :conclusion (or (not (xor F1 F2)) (not F1) (not F2))
+)
+
+; CNF_XOR_NEG1
+(declare-rule cnf_xor_neg1 ((F1 Bool) (F2 Bool))
+    :args ((xor F1 F2))
+    :conclusion (or (xor F1 F2) (not F1) F2)
+)
+
+; CNF_XOR_NEG2
+(declare-rule cnf_xor_neg2 ((F1 Bool) (F2 Bool))
+    :args ((xor F1 F2))
+    :conclusion (or (xor F1 F2) F1 (not F2))
+)
+
+; CNF_ITE_POS1
+(declare-rule cnf_ite_pos1 ((C Bool) (F1 Bool) (F2 Bool))
+    :args ((ite C F1 F2))
+    :conclusion (or (not (ite C F1 F2)) (not C) F1)
+)
+
+; CNF_ITE_POS2
+(declare-rule cnf_ite_pos2 ((C Bool) (F1 Bool) (F2 Bool))
+    :args ((ite C F1 F2))
+    :conclusion (or (not (ite C F1 F2)) C F2)
+)
+
+; CNF_ITE_POS3
+(declare-rule cnf_ite_pos3 ((C Bool) (F1 Bool) (F2 Bool))
+    :args ((ite C F1 F2))
+    :conclusion (or (not (ite C F1 F2)) F1 F2)
+)
+
+; CNF_ITE_NEG1
+(declare-rule cnf_ite_neg1 ((C Bool) (F1 Bool) (F2 Bool))
+    :args ((ite C F1 F2))
+    :conclusion (or (ite C F1 F2) (not C) (not F1))
+)
+
+; CNF_ITE_NEG2
+(declare-rule cnf_ite_neg2 ((C Bool) (F1 Bool) (F2 Bool))
+    :args ((ite C F1 F2))
+    :conclusion (or (ite C F1 F2) C (not F2))
+)
+
+; CNF_ITE_NEG3
+(declare-rule cnf_ite_neg3 ((C Bool) (F1 Bool) (F2 Bool))
+    :args ((ite C F1 F2))
+    :conclusion (or (ite C F1 F2) (not F1) (not F2))
+)
