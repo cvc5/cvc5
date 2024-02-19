@@ -27,7 +27,7 @@ def sendline(child, s):
     child.sendline(s)
     child.expect_exact(s+'\r\n')
 
-def check_iteractive_shell_parser_inc():
+def check_iteractive_shell_define_fun_rec_multiline():
     """
     Interacts with cvc5's interactive shell and checks that parser declarations are
     managed properly in incremental mode.
@@ -37,6 +37,8 @@ def check_iteractive_shell_parser_inc():
     child = pexpect.spawn("bin/cvc5", timeout=1)
     # We expect to see the cvc5 prompt
     child.expect("cvc5> ")
+    sendline(child, "(set-logic ALL)")
+    expect_exact(child, "cvc5> ")
     sendline(child, "(define-fun-rec")
     sendline(child, "p () Bool")
     sendline(child, "false)")
@@ -68,7 +70,7 @@ def main():
 
     # If any of the "steps" fail, the pexpect will raise a Python will exit
     # with a non-zero error code
-    sys.exit(check_iteractive_shell_parser_inc())
+    sys.exit(check_iteractive_shell_define_fun_rec_multiline())
 
 if __name__ == "__main__":
     main()
