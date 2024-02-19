@@ -26,8 +26,8 @@
 #include "theory/quantifiers/query_generator_unsat.h"
 #include "theory/quantifiers/rewrite_verifier.h"
 #include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
-#include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5::internal {

@@ -27,7 +27,7 @@
 namespace cvc5::internal {
 
 namespace theory::quantifiers {
-class SygusEnumerator;  
+class SygusEnumerator;
 }
 /**
  * A virtual callback for whether to consider terms in an enumeration.
@@ -49,7 +49,7 @@ class SygusTermEnumeratorCallback
    */
   virtual bool addTerm(const Node& n, std::unordered_set<Node>& bterms) = 0;
 };
-  
+
 /**
  * SygusTermEnumerator
  *
@@ -96,13 +96,12 @@ class SygusTermEnumerator
    * @param numConstants The number of interpreted constants to consider for
    * each size in any-constant constructors.
    */
-  SygusTermEnumerator(
-      Env& env,
-      const TypeNode& tn,
-      SygusTermEnumeratorCallback* sec = nullptr,
-      bool enumShapes = false,
-      bool enumAnyConstHoles = false,
-      size_t numConstants = 5);
+  SygusTermEnumerator(Env& env,
+                      const TypeNode& tn,
+                      SygusTermEnumeratorCallback* sec = nullptr,
+                      bool enumShapes = false,
+                      bool enumAnyConstHoles = false,
+                      size_t numConstants = 5);
   ~SygusTermEnumerator() {}
   /**
    * Increment. If true, we ensure that getCurrent() is non-null. If false,

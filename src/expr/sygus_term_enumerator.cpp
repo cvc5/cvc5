@@ -15,21 +15,25 @@
 
 #include "expr/sygus_term_enumerator.h"
 
-#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 namespace cvc5::internal {
 
-SygusTermEnumerator::SygusTermEnumerator(
-    Env& env,
-    const TypeNode& tn,
-    SygusTermEnumeratorCallback* sec,
-    bool enumShapes,
-    bool enumAnyConstHoles,
-    size_t numConstants)
-    : d_internal(new theory::quantifiers::SygusEnumerator(
-        env, nullptr, sec, nullptr, enumShapes, enumAnyConstHoles, numConstants))
+SygusTermEnumerator::SygusTermEnumerator(Env& env,
+                                         const TypeNode& tn,
+                                         SygusTermEnumeratorCallback* sec,
+                                         bool enumShapes,
+                                         bool enumAnyConstHoles,
+                                         size_t numConstants)
+    : d_internal(new theory::quantifiers::SygusEnumerator(env,
+                                                          nullptr,
+                                                          sec,
+                                                          nullptr,
+                                                          enumShapes,
+                                                          enumAnyConstHoles,
+                                                          numConstants))
 {
   // Ensure we have computed the expanded definition form of all operators in
   // grammar, which is important if the grammar involves terms that have

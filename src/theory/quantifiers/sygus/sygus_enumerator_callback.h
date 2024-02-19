@@ -21,9 +21,9 @@
 #include <unordered_set>
 
 #include "expr/node.h"
+#include "expr/sygus_term_enumerator.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/extended_rewrite.h"
-#include "expr/sygus_term_enumerator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -38,7 +38,8 @@ class TermDbSygus;
  * Class for callbacks in the fast enumerator. This class provides custom
  * criteria for whether or not enumerated values should be considered.
  */
-class SygusEnumeratorCallback : public SygusTermEnumeratorCallback, protected EnvObj
+class SygusEnumeratorCallback : public SygusTermEnumeratorCallback,
+                                protected EnvObj
 {
  public:
   SygusEnumeratorCallback(Env& env,
