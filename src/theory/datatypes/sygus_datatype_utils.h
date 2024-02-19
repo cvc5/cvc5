@@ -226,7 +226,7 @@ unsigned getSygusTermSize(Node n);
  * otherwise.
  */
 Node getExpandedDefinitionForm(Node op);
-/** 
+/**
  * Compute expanded definition form for all operators in sygus datatype tn,
  * recursively. This ensures that getExpandedDefinitionForm can be called
  * on all operators in tn, and moreover that mkSygusTerm can be called on

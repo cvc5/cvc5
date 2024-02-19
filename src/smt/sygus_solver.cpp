@@ -585,8 +585,7 @@ void SygusSolver::checkDefinitionsSygusDt(const Node& fn, TypeNode tn) const
       for (unsigned j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
       {
         TypeNode tnc = c->getArgType(j);
-        if (tnc.isSygusDatatype()
-            && processed.find(tnc) == processed.end())
+        if (tnc.isSygusDatatype() && processed.find(tnc) == processed.end())
         {
           toProcess.push_back(tnc);
           processed.insert(tnc);
