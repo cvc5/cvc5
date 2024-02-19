@@ -2057,16 +2057,12 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   std::shared_ptr<ProofNode> premiseChildPf =
       premisePf->getChildren()[0]->getChildren()[0];
   Node premiseChildConclusion = premiseChildPf->getResult();
-  // Note that we need to add this proof node explicitly (i.e., as an ASSUME
-  // step) to cdp because cdp does not have a step for
-  // premiseChildConclusion. Rather it is only present in cdp as a descendant of
-  // premisePf (which is in cdp), so if premisePf is to be lost, then so will
-  // premiseChildPf. By adding the ASSUME step for premiseChildConclusion, a
-  // step will be present in cdp connecting premiseChildConclusion to
-  // premiseChildPf (since by default adding an ASSUME step will not rewrite an
-  // existing proof for a node).
-  cdp->addStep(
-      premiseChildConclusion, ProofRule::ASSUME, {}, {premiseChildConclusion});
+  // Note that we need to add this proof node explicitly to cdp because it does
+  // not have a step for premiseChildConclusion. Rather it is only present in
+  // cdp as a descendant of premisePf (which is in cdp), so if premisePf is to
+  // be lost, then so will premiseChildPf. By adding premiseChildPf explicitly,
+  // it can be retrieved to justify premiseChildConclusion when requested.
+  cdp->addProof(premiseChildPf);
   // equate it to what we expect, use equiv elim and resolution to
   // obtain a proof the expected
   Node equiv = premiseChildConclusion.eqNode(premise);
