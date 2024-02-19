@@ -2378,10 +2378,10 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
 
   // convert inner proof, i.e., children[0], if its conclusion is (cl false) or
   // if it's a false assumption
-  if (childPf->getRule() == ProofRule::ALETHE_RULE
-      && ((childPf->getArguments()[2].getNumChildren() == 2
-           && childPf->getArguments()[2][1] == d_false)
-          || childPf->getResult() == d_false))
+  if ((childPf->getRule() == ProofRule::ALETHE_RULE
+       && childPf->getArguments()[2].getNumChildren() == 2
+       && childPf->getArguments()[2][1] == d_false)
+      || childPf->getResult() == d_false)
   {
     Node notFalse =
         nm->mkNode(Kind::SEXPR, d_cl, d_false.notNode());  // (cl (not false))
