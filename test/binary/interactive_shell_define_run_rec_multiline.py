@@ -11,8 +11,8 @@
 # directory for licensing information.
 # #############################################################################
 #
-# A simple test file to interact with cvc5 via the interactive shell in
-# incremental mode.
+# A simple test file to interact with cvc5 via the interactive shell with
+# define-fun-rec.
 ##
 
 import sys
