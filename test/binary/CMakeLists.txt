@@ -46,6 +46,13 @@ if (USE_EDITLINE)
     )
     set_tests_properties(interactive_shell_parser_inc PROPERTIES LABELS "binary")
     add_test(
+      NAME interactive_shell_parser_inc
+      COMMAND
+      "${Python_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/binary/interactive_shell_rec_multiline.py"
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+    )
+    set_tests_properties(interactive_shell_rec_multiline PROPERTIES LABELS "binary")
+    add_test(
       NAME issue_10258
       COMMAND
       "${Python_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/binary/issue_10258.py"
