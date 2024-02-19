@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/sygus/synth_finder.h"
 
+#include "expr/sygus_term_enumerator.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -25,7 +26,6 @@
 #include "theory/quantifiers/query_generator_unsat.h"
 #include "theory/quantifiers/rewrite_verifier.h"
 #include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
-#include "expr/sygus_term_enumerator.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5::internal {
@@ -92,7 +92,8 @@ class SygusEnumeratorCallbackNoSym : public SygusEnumeratorCallback
   Node getCacheValue(const Node& n, const Node& bn) override { return bn; }
 };
 
-void SynthFinder::initializeInternal(modes::FindSynthTarget fst, const TypeNode& gtn)
+void SynthFinder::initializeInternal(modes::FindSynthTarget fst,
+                                     const TypeNode& gtn)
 {
   options::SygusQueryGenMode qmode = options().quantifiers.sygusQueryGen;
 

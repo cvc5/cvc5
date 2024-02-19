@@ -20,19 +20,15 @@
 
 namespace cvc5::internal {
 
-SygusTermEnumerator::SygusTermEnumerator(Env& env,
-                                         const TypeNode& tn,
-                      theory::quantifiers::SygusEnumeratorCallback* sec,
-                                         bool enumShapes,
-                                         bool enumAnyConstHoles,
-                                         size_t numConstants)
-    : d_internal(env,
-                 nullptr,
-                 sec,
-                 nullptr,
-                 enumShapes,
-                 enumAnyConstHoles,
-                 numConstants)
+SygusTermEnumerator::SygusTermEnumerator(
+    Env& env,
+    const TypeNode& tn,
+    theory::quantifiers::SygusEnumeratorCallback* sec,
+    bool enumShapes,
+    bool enumAnyConstHoles,
+    size_t numConstants)
+    : d_internal(
+        env, nullptr, sec, nullptr, enumShapes, enumAnyConstHoles, numConstants)
 {
   // Ensure we have computed the expanded definition form of all operators in
   // grammar, which is important if the grammar involves terms that have

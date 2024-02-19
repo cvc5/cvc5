@@ -25,6 +25,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
+#include "expr/sygus_term_enumerator.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
@@ -85,7 +86,6 @@
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
 #include "util/string.h"
-#include "expr/sygus_term_enumerator.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
