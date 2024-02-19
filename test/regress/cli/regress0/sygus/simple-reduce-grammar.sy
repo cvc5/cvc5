@@ -1,3 +1,6 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic ALL)
 (synth-fun f ((x Int) (y Int)) Bool
   ((Start Bool) (StartInt Int) (StartBool2 Bool))
   (
