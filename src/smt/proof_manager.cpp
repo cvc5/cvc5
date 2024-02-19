@@ -283,7 +283,7 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
-    proof::AletheProofPrinter vpp(d_env);
+    proof::AletheProofPrinter vpp(d_env, anc);
     vpp.print(out, fp, assertionNames);
   }
   else if (mode == options::ProofFormatMode::LFSC)

@@ -77,10 +77,11 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   return false;
 }
 
-AletheProofPrinter::AletheProofPrinter(Env& env)
+AletheProofPrinter::AletheProofPrinter(Env& env, AletheNodeConverter& anc)
     : EnvObj(env),
       d_lbind(options().printer.dagThresh ? options().printer.dagThresh + 1
                                           : 0),
+      d_anc(anc),
       d_cb(new LetUpdaterPfCallback(d_lbind))
 {
 }
@@ -173,10 +174,8 @@ std::string AletheProofPrinter::printInternal(
   // untranslated, it's handled as a special case here.
   if (pfn->getRule() == ProofRule::ASSUME)
   {
-    Trace("alethe-printer")
-        << "... reached assumption " << pfn->getResult() << std::endl;
-    Node res = pfn->getResult();
-
+    Node res = d_anc.convert(pfn->getResult());
+    Trace("alethe-printer") << "... reached assumption " << res << std::endl;
     auto it = assumptions.find(res);
     Assert(it != assumptions.end()) << "Assumption has not been printed yet! "
                                     << res << "/" << assumptions << std::endl;

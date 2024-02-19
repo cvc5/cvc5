@@ -18,6 +18,7 @@
 #ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
 #define CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
 
+#include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_let_binding.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_updater.h"
@@ -61,7 +62,7 @@ class LetUpdaterPfCallback : public ProofNodeUpdaterCallback
 class AletheProofPrinter : protected EnvObj
 {
  public:
-  AletheProofPrinter(Env& env);
+  AletheProofPrinter(Env& env, AletheNodeConverter& anc);
   ~AletheProofPrinter() {}
   /**
    * This method prints a proof node that has been transformed into the Alethe
@@ -114,6 +115,9 @@ class AletheProofPrinter : protected EnvObj
 
   /** The let binder for printing with sharing. */
   AletheLetBinding d_lbind;
+
+  /** The Alethe node converter */
+  AletheNodeConverter& d_anc;
 
   /** The callback used for computing the let binding. */
   std::unique_ptr<LetUpdaterPfCallback> d_cb;
