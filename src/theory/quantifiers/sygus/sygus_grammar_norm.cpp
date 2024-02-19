@@ -133,8 +133,6 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     // no change, just return original
     return tn;
   }
-  // ensure the expanded definition forms are set
-  datatypes::utils::computeExpandedDefinitionForms(d_env, tnn);
   return tnn;
 }
 

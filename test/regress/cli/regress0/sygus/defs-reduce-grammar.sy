@@ -1,0 +1,13 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic ALL)
+(define-fun pfalse ((x Int) (y Int)) Bool false)
+(synth-fun f ((x Int) (y Int)) Bool
+  ((Start Bool) (StartInt Int))
+  (
+    (Start Bool ((pfalse (+ 1 1) (+ StartInt 2))))
+    (StartInt Int (0))
+  )
+)
+(constraint (not (f 3 3)))
+(check-synth)
