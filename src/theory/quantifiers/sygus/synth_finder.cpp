@@ -50,7 +50,8 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const TypeNode& gtn)
   d_bufferIndex = 0;
   d_buffer.clear();
 
-  // initialize the enumerator with the given callback
+  // initialize the enumerator with the given callback, which also will ensure
+  // that expanded definition forms are set on gtn.
   d_enum.reset(new SygusTermEnumerator(d_env, gtn, d_ecb.get()));
 
   // initialize the expression miner
