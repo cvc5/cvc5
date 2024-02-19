@@ -507,7 +507,7 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
   return mkInternalSymbol(name, ret, useRawSym);
 }
 
-Node AlfNodeConverter::getOperatorOfTerm(Node n, bool isHigherOrder)
+Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
 {
   Assert(n.hasOperator());
   NodeManager* nm = NodeManager::currentNM();
@@ -651,8 +651,9 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool isHigherOrder)
   {
     ret = args.empty() ? app : app.getOperator();
   }
-  if (isHigherOrder)
+  if (reqCast)
   {
+    // - prints as e.g. (alf.as - (-> Int Int)).
     if (k==Kind::NEG || k==Kind::SUB)
     {
       std::vector<Node> asChildren;

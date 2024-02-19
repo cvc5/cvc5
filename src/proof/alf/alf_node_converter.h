@@ -37,11 +37,12 @@ class BaseAlfNodeConverter : public NodeConverter
   /**
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
-   * @param isHigherOrder Will the operator be printed in a higher-order
-   * context? This makes a difference e.g. for symbols with overloading.
+   * @param reqCast Will the operator be printed in a context where it needs
+   * disambiguation (alf.as)? This makes a difference e.g. for symbols with
+   * overloading.
    * @return the operator.
    */
-  virtual Node getOperatorOfTerm(Node n, bool isHigherOrder = false) = 0;
+  virtual Node getOperatorOfTerm(Node n, bool reqCast = false) = 0;
   /**
    * Type as node, returns a node that prints in the form that ALF will
    * interpret as the type tni. This method is required since types can be
@@ -67,11 +68,12 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * Return the properly named operator for n of the form (f t1 ... tn), where
    * f could be interpreted or uninterpreted.
    * @param n The term whose operator we wish to retrieve.
-   * @param isHigherOrder Will the operator be printed in a higher-order
-   * context? This makes a difference e.g. for symbols with overloading.
+   * @param reqCast Will the operator be printed in a context where it needs
+   * disambiguation (alf.as)? This makes a difference e.g. for symbols with
+   * overloading.
    * @return the operator.
    */
-  Node getOperatorOfTerm(Node n, bool isHigherOrder = false) override;
+  Node getOperatorOfTerm(Node n, bool reqCast = false) override;
   /**
    * Get the null terminator for kind k and type tn. The type tn can be
    * omitted if applications of kind k do not have parametric type.
