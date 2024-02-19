@@ -46,12 +46,12 @@ if (USE_EDITLINE)
     )
     set_tests_properties(interactive_shell_parser_inc PROPERTIES LABELS "binary")
     add_test(
-      NAME interactive_shell_rec_multiline
+      NAME interactive_shell_define_fun_rec_multiline
       COMMAND
-      "${Python_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/binary/interactive_shell_rec_multiline.py"
+      "${Python_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/binary/interactive_shell_define_fun_rec_multiline.py"
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
-    set_tests_properties(interactive_shell_rec_multiline PROPERTIES LABELS "binary")
+    set_tests_properties(interactive_shell_define_fun_rec_multiline PROPERTIES LABELS "binary")
     add_test(
       NAME issue_10258
       COMMAND
