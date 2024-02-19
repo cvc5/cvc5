@@ -196,8 +196,9 @@ class SygusSolver : protected EnvObj
   void checkSynthSolution(Assertions& as, const std::map<Node, Node>& solMap);
   /**
    * Check definitions in sygus datatype tn, which ensures that all
-   * sygus constructors that are used to build values of sygus datatype
-   * tn are associated with their expanded definition form.
+   * sygus constructors do not have illegal free variables.
+   * We do not yet compute expanded definition form, which is done in the
+   * internal solver.
    */
   void checkDefinitionsSygusDt(const Node& fn, TypeNode tn) const;
   /** List to vector helper */
