@@ -56,6 +56,8 @@ enum class TrustId : uint32_t
   SUBS_MAP,
   /** A proof of a substitution x=t that could not be shown by rewrite */
   SUBS_EQ,
+  /** A step of the form (~ s t) = (~ (to_real s) (to_real t)) */
+  ARITH_PRED_CAST_TYPE,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
 };
