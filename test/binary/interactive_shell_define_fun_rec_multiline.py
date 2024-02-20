@@ -18,14 +18,17 @@
 import sys
 import pexpect
 
+def error_message(s):
+    return "Unexpected output '" + s + "'"
+
 def expect_exact(child, s):
     child.expect_exact(s)
-    assert child.before == b""
-    assert child.after == s.encode('UTF-8')
+    assert child.before == b"", error_message(child.before.decode('UTF-8'))
+    assert child.after == s.encode('UTF-8'), error_message(child.after)
 
 def sendline(child, s):
     child.sendline(s)
-    child.expect_exact(s+'\r\n')
+    expect_exact(child, s+'\r\n')
 
 def check_iteractive_shell_define_fun_rec_multiline():
     """
@@ -40,11 +43,15 @@ def check_iteractive_shell_define_fun_rec_multiline():
     sendline(child, "(set-logic ALL)")
     expect_exact(child, "cvc5> ")
     sendline(child, "(define-fun-rec")
+    expect_exact(child, "... > ")
     sendline(child, "p () Bool")
+    expect_exact(child, "... > ")
     sendline(child, "false)")
     expect_exact(child, "cvc5> ")
     sendline(child, "(define-funs-rec")
+    expect_exact(child, "... > ")
     sendline(child, "((q () Bool))")
+    expect_exact(child, "... > ")
     sendline(child, "(false))")
     expect_exact(child, "cvc5> ")
     sendline(child,"(assert (or p q))")
