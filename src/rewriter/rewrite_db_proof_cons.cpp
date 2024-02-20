@@ -888,7 +888,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       if (!d_currFixedPointConc.isNull())
       {
         // currently avoid accidental loops: arbitrarily bound to 1000
-        continueFixedPoint = steps.size() <= d_fixedPointLimit;
+        continueFixedPoint = steps.size() <= s_fixedPointLimit;
         Assert(d_currFixedPointConc.getKind() == Kind::EQUAL);
         steps.push_back(d_currFixedPointConc[1]);
         stepsSubs.emplace_back(d_currFixedPointSubs.begin(),
