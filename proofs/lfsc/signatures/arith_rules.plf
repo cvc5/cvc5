@@ -21,34 +21,36 @@
     (holds res))))))))
 
 ; Computes the conclusion of the ProofRule::ARITH_MULT_POS rule.
-(function sc_arith_mult_pos ((m term) (f term)) term
+(function sc_arith_mult_pos ((m term) (f term) (u sort)) term
   (let r (sc_arith_get_rel f)
   (let lhs (sc_arith_get_lhs f)
   (let rhs (sc_arith_get_rhs f)
-    (=> (and (sc_arith_>_zero m) (and f true))
+    (=> (and (sc_arith_>_zero m u) (and f true))
         (apply (apply r (sc_arith_mult m lhs)) (sc_arith_mult m rhs)))))))
 
 (declare arith_mult_pos
   (! res term
   (! m term
   (! f term
-  (! r (^ (sc_arith_mult_pos m f) res)
-    (holds res))))))
+  (! u sort
+  (! r (^ (sc_arith_mult_pos m f u) res)
+    (holds res)))))))
 
 ; Computes the conclusion of the ProofRule::ARITH_MULT_NEG rule.
-(function sc_arith_mult_neg ((m term) (f term)) term
+(function sc_arith_mult_neg ((m term) (f term) (u sort)) term
   (let r (sc_arith_get_rel f)
   (let lhs (sc_arith_get_lhs f)
   (let rhs (sc_arith_get_rhs f)
-    (=> (and (sc_arith_<_zero m) (and f true))
+    (=> (and (sc_arith_<_zero m u) (and f true))
         (apply (apply (sc_arith_rel_inv r) (sc_arith_mult m lhs)) (sc_arith_mult m rhs)))))))
         
 (declare arith_mult_neg
   (! res term
   (! m term
   (! f term
-  (! r (^ (sc_arith_mult_neg m f) res)
-    (holds res))))))
+  (! u sort
+  (! r (^ (sc_arith_mult_neg m f u) res)
+    (holds res)))))))
 
 ; Computes the conclusion of the ProofRule::ARITH_TRICHOTOMY rule.
 (function sc_arith_trichotomy ((f1 term) (f2 term)) term

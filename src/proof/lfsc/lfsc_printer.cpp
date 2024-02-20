@@ -762,7 +762,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
-      pf << h << as[0] << as[1];
+      pf << h << as[0] << as[1] << d_tproc.convertType(as[0].getType());
     }
     break;
     case ProofRule::ARITH_TRICHOTOMY:

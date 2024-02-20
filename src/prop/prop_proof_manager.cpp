@@ -22,7 +22,7 @@
 #include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_proof_manager.h"
-#include "prop/sat_proof_manager.h"
+#include "prop/minisat/sat_proof_manager.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/env.h"

@@ -229,6 +229,13 @@ TEST_F(TestApiBlackSort, isTuple)
   ASSERT_NO_THROW(Sort().isTuple());
 }
 
+TEST_F(TestApiBlackSort, isNullable)
+{
+  Sort tup_sort = d_solver.mkNullableSort(d_solver.getRealSort());
+  ASSERT_TRUE(tup_sort.isNullable());
+  ASSERT_NO_THROW(Sort().isNullable());
+}
+
 TEST_F(TestApiBlackSort, isRecord)
 {
   Sort rec_sort =
@@ -625,6 +632,16 @@ TEST_F(TestApiBlackSort, getTupleSorts)
   ASSERT_NO_THROW(tupleSort.getTupleSorts());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   ASSERT_THROW(bvSort.getTupleSorts(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSort, getNullableElementSort)
+{
+  Sort nullableSort = d_solver.mkNullableSort(d_solver.getIntegerSort());
+  ASSERT_NO_THROW(nullableSort.getNullableElementSort());
+  Sort elementSort = nullableSort.getNullableElementSort();
+  ASSERT_EQ(elementSort, d_solver.getIntegerSort());
+  Sort bvSort = d_solver.mkBitVectorSort(32);
+  ASSERT_THROW(bvSort.getNullableElementSort(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, sortCompare)
