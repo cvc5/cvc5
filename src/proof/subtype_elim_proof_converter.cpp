@@ -39,8 +39,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     cargs.push_back(d_nconv.convert(a));
   }
-  // Node resc = d_nconv.convert(res);
-  //  see if proof rule still works
+  // get the converted form of the conclusion, which we must prove.
   Node resc = d_nconv.convert(res);
   // in very rare cases a direct child may already be the proof we want
   if (std::find(children.begin(), children.end(), resc) != children.end())
@@ -56,11 +55,12 @@ Node SubtypeElimConverterCallback::convert(Node res,
   }
   else if (newRes.isNull())
   {
+    // This case means we have nothing to work with. This should likely never
+    // happen.
     Trace("pf-subtype-elim")
         << "Failed to convert subtyping " << id << std::endl;
     Trace("pf-subtype-elim") << "Premises: " << children << std::endl;
     Trace("pf-subtype-elim") << "Args: " << cargs << std::endl;
-    AlwaysAssert(false) << "Failed to convert subtyping " << id;
     return newRes;
   }
   // otherwise, newRes is what is proven from the rule without changes,
@@ -83,7 +83,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       std::vector<Node> newChildren;
       for (size_t i = 0, nchild = lhs.getNumChildren(); i < nchild; i++)
       {
-        // eqOld is what was proven with the converted children
+        // eqOld is what was proven with the converted i-th child
         Node eqOld = newRes[0][i].eqNode(newRes[1][i]);
         // eqNew is what is necessary to prove
         Node eqNew = lhs[i].eqNode(rhs[i]);
@@ -136,7 +136,21 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_MULT_NEG:
     {
       // This handles the case where we multiply an integer relation by
-      // a rational.
+      // a rational. We tranform the proof as follows:
+      //
+      //            ----- ASSUME
+      //            t~s
+      // --- ASSUME ----- prove, using method below
+      // c>0        t'~s'
+      // --------------- AND_INTRO ------------------------------ ARITH_MULT_X
+      // (and c>0 t'~s')           (=> (and c>0 t'~s') (c*t'~c*s'))
+      // ----------------------------------------------------- MODUS_PONENS
+      // (c*t'~c*s')
+      // ----------------------- SCOPE {c>0, t~s}
+      // (=> (and c>0 t~s) (c*t'~c*s'))
+      //
+      // there t'~s' is a predicate over reals and t~s is a mixed integer
+      // predicate.
       NodeManager* nm = NodeManager::currentNM();
       Node sc = resc[0][0];
       Node relOld = resc[0][1];
@@ -150,19 +164,6 @@ Node SubtypeElimConverterCallback::convert(Node res,
         cdp->addStep(antec, ProofRule::AND_INTRO, {sc, relNew}, {});
         cdp->addStep(relNewMult, ProofRule::MODUS_PONENS, {antec, rimpl}, {});
         cdp->addStep(resc, ProofRule::SCOPE, {relNewMult}, {sc, relOld});
-        //            ----- ASSUME
-        //            t~s
-        // --- ASSUME ----- prove, using method below
-        // c>0        t'~s'
-        // --------------- AND_INTRO ------------------------------ ARITH_MULT_X
-        // (and c>0 t'~s')           (=> (and c>0 t'~s') (c*t'~c*s'))
-        // ----------------------------------------------------- MODUS_PONENS
-        // (c*t'~c*s')
-        // ----------------------- SCOPE {c>0, t~s}
-        // (=> (and c>0 t~s) (c*t'~c*s'))
-        //
-        // there t'~s' is a predicate over reals and t~s is a mixed integer
-        // predicate.
         success = true;
       }
     }
@@ -175,11 +176,6 @@ Node SubtypeElimConverterCallback::convert(Node res,
       cargs[0] = resc;
       success = tryWith(
           ProofRule::MACRO_SR_PRED_INTRO, children, cargs, resc, newRes, cdp);
-    }
-    break;
-    case ProofRule::INSTANTIATE:
-    {
-      // TODO
     }
     break;
     default: break;
@@ -291,7 +287,9 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
                              << convEq[1] << std::endl;
     Node rewriteEq = src.eqNode(csrc);
     Node fullEq = src.eqNode(tgt);
-    cdp->addStep(rewriteEq, ProofRule::TRUST_THEORY_REWRITE, {}, {rewriteEq});
+    // we use a trust id here.
+    cdp->addTrustedStep(
+        rewriteEq, TrustId::ARITH_PRED_CAST_TYPE, {}, {rewriteEq});
     if (csrc != tgt)
     {
       Node congEq = csrc.eqNode(tgt);
@@ -302,7 +300,7 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
     cdp->addStep(tgt, ProofRule::EQ_RESOLVE, {src, fullEq}, {});
     //                                  -------------- -------------- EVAL(x2)
     //                                  conv[0]=tgt[0] conv[1]=tgt[1]
-    //       ---------- THEORY_REWRITE  ----------------------------- CONG{~}
+    //       ---------- AP_CAST_TYPE    ----------------------------- CONG{~}
     // ...   src = conv                 conv = tgt
     // ---   ------------------------------------------------ TRANS
     // src   src = tgt
