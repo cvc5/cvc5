@@ -252,13 +252,12 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 1);
     Assert(args[0].getType().isRealOrInt());
     Node s = nm->mkNode(Kind::SINE, args[0]);
-    Node tzero = nm->mkConstRealOrInt(args[0].getType(), Rational(0));
     return nm->mkNode(Kind::AND,
                       nm->mkNode(Kind::IMPLIES,
-                                 nm->mkNode(Kind::GT, args[0], tzero),
+                                 nm->mkNode(Kind::GT, args[0], zero),
                                  nm->mkNode(Kind::LT, s, args[0])),
                       nm->mkNode(Kind::IMPLIES,
-                                 nm->mkNode(Kind::LT, args[0], tzero),
+                                 nm->mkNode(Kind::LT, args[0], zero),
                                  nm->mkNode(Kind::GT, s, args[0])));
   }
   else if (id == ProofRule::ARITH_TRANS_SINE_TANGENT_PI)
