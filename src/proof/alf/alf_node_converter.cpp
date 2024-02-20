@@ -287,7 +287,7 @@ Node AlfNodeConverter::postConvert(Node n)
     ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
     return mkInternalApp(ss.str(), {tnn}, tn);
   }
-  else if (k == Kind::SEXPR)
+  else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
   {
     // use generic list
     std::vector<Node> args;
@@ -318,8 +318,8 @@ Node AlfNodeConverter::postConvert(Node n)
 bool AlfNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
-  // don't convert bound variable or instantiation pattern list directly
-  if (k == Kind::BOUND_VAR_LIST || k == Kind::INST_PATTERN_LIST)
+  // don't convert instantiation pattern list directly
+  if (k == Kind::INST_PATTERN_LIST)
   {
     return false;
   }
@@ -424,6 +424,8 @@ Node AlfNodeConverter::mkNil(TypeNode tn)
 
 Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 {
+  // note this method should remain in sync with getCongRule in
+  // proof_node_algorithm.cpp.
   switch (k)
   {
     case Kind::APPLY_UF:
@@ -505,7 +507,7 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
   return mkInternalSymbol(name, ret, useRawSym);
 }
 
-Node AlfNodeConverter::getOperatorOfTerm(Node n)
+Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
 {
   Assert(n.hasOperator());
   NodeManager* nm = NodeManager::currentNM();
@@ -539,6 +541,17 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         if (dt.isTuple())
         {
           opName << "is-tuple";
+        }
+        else if (dt.isNullable())
+        {
+          if (cindex == 0)
+          {
+            opName << "nullable.is_null";
+          }
+          else
+          {
+            opName << "nullable.is_some";
+          }
         }
         else
         {
@@ -620,13 +633,8 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
       opName << op;
     }
   }
-  // we only use binary operators
   else
   {
-    if (k == Kind::NEG)
-    {
-      opName << "u";
-    }
     opName << printer::smt2::Smt2Printer::smtKindString(k);
     if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
         || k == Kind::INTS_MODULUS_TOTAL)
@@ -641,9 +649,29 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   {
     ret = mkInternalApp(opName.str(), indices, app.getOperator().getType());
   }
+  else if (n.isClosure())
+  {
+    // The operator of a closure by convention includes its variable list.
+    // This is required for cong over binders.
+    Node vl = convert(n[0]);
+    // the type of this term is irrelevant, just use vl's type
+    ret = mkInternalApp(
+        printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
+  }
   else
   {
     ret = args.empty() ? app : app.getOperator();
+  }
+  if (reqCast)
+  {
+    // - prints as e.g. (alf.as - (-> Int Int)).
+    if (k == Kind::NEG || k == Kind::SUB)
+    {
+      std::vector<Node> asChildren;
+      asChildren.push_back(ret);
+      asChildren.push_back(typeAsNode(ret.getType()));
+      ret = mkInternalApp("alf.as", asChildren, n.getType());
+    }
   }
   Trace("alf-term-process-debug2") << "...return " << ret << std::endl;
   return ret;

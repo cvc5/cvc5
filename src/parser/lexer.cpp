@@ -95,6 +95,9 @@ Token Lexer::nextToken()
 
 Token Lexer::peekToken()
 {
+  // since d_peeked is first in, last out, we should not peek more than once
+  // or the order is swapped.
+  Assert(d_peeked.empty());
   // parse next token
   Token t = nextTokenInternal();
   // reinsert it immediately

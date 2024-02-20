@@ -59,6 +59,11 @@ class AlfPrinter : protected EnvObj
 
   //-------------
   /**
+   * Select only those children required by the proof rule.
+   */
+  void getChildrenFromProofRule(
+      const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children);
+  /**
    * Add the arguments of proof node pn to args in the order in which they
    * should be printed. This also ensures the nodes have been converted via the
    * ALF node converter.
@@ -81,8 +86,7 @@ class AlfPrinter : protected EnvObj
   void printStepPost(AlfPrintChannel* out, const ProofNode* pn);
   /**
    * Allocate (if necessary) the identifier for an assume-push step for pn and
-   * return the identifier. pn should be an application of ProofNode::ALF_RULE
-   * with AlfRule::SCOPE.
+   * return the identifier. pn should be an application of ProofRule::SCOPE.
    */
   size_t allocateAssumePushId(const ProofNode* pn, const Node& a);
   /**
