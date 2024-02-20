@@ -164,6 +164,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }
+  Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
 

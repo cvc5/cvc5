@@ -21,6 +21,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/resolution_proofs_util.h"
+#include "proof/subtype_elim_proof_converter.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -1147,6 +1148,15 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
+
+  // eliminate subtypes if option is specified
+  if (options().proof.proofElimSubtypes)
+  {
+    SubtypeElimConverterCallback secc(d_env);
+    ProofNodeConverter subtypeConvert(d_env, secc);
+    std::shared_ptr<ProofNode> pfc = subtypeConvert.process(pf);
+    AlwaysAssert(pfc != nullptr);
+  }
 
   // take stats and check pedantic
   d_finalCb.initializeUpdate();

@@ -48,6 +48,14 @@ name   = "Proof"
   help       = "Dagify terms in proofs using global definitions"
 
 [[option]]
+  name       = "proofElimSubtypes"
+  category   = "expert"
+  long       = "proof-elim-subtypes"
+  type       = "bool"
+  default    = "false"
+  help       = "Eliminate subtypes (mixed arithmetic) in proofs"
+
+[[option]]
   name       = "proofPedantic"
   category   = "expert"
   long       = "proof-pedantic=N"
