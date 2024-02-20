@@ -30,6 +30,7 @@
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
+#include "util/random.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -515,10 +516,17 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
   }
   NodeManager* nm = NodeManager::currentNM();
   Node queryCurr = query;
+  std::vector<size_t> indices;
   for (size_t i = 0, msize = mvs.size(); i < msize; i++)
   {
-    Node v = vars[i];
-    Node m = mvs[i];
+    indices.push_back(i);
+  }
+  std::shuffle(indices.begin(), indices.end(), Random::getRandom());
+  for (size_t i = 0, msize = mvs.size(); i < msize; i++)
+  {
+    size_t ii = indices[i];
+    Node v = vars[ii];
+    Node m = mvs[ii];
     TypeNode tn = m.getType();
     Node lamVars;
     TypeNode retType = tn;
@@ -536,6 +544,15 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
       lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
       trules = vs;
     }
+    else if (tn.isUninterpretedSort())
+    {
+      continue;
+    }
+    // NOTE: get free symbols from body of quantified formula here??
+    std::unordered_set<Node> syms;
+    expr::getSymbols(q[1], syms);
+    trules.insert(trules.end(), syms.begin(), syms.end());
+    Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;
     // TODO: could add more symbols to trules to improve the enumerated terms
     // TODO: could cache the enumerator here for efficiency
     SygusGrammarCons sgc;
@@ -570,6 +587,13 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
         // see if it is still satisfiable, if still SAT, we replace
         Node queryCheck = queryCurr.substitute(TNode(v), TNode(ret));
         queryCheck = rewrite(queryCheck);
+        Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
+        // since we may have free constants from the grammar, we must ensure
+        // their model value is considered.
+  std::unordered_map<Node, Node> tmpConvertMap;
+  std::map<TypeNode, std::unordered_set<Node> > freshVarType;
+        queryCheck = convertToQuery(queryCheck, tmpConvertMap, freshVarType);
+        Trace("mbqi-model-enum") << "...converted " << queryCheck << std::endl;
         SubsolverSetupInfo ssi(d_env);
         Result r = checkWithSubsolver(queryCheck, ssi);
         if (r == Result::SAT)
@@ -577,7 +601,7 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
           // remember the updated query
           queryCurr = queryCheck;
           Trace("mbqi-model-enum") << "...success" << std::endl;
-          mvs[i] = ret;
+          mvs[ii] = ret;
           break;
         }
         Trace("mbqi-model-enum") << "...failed, try another" << std::endl;
