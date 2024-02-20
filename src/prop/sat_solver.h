@@ -183,7 +183,7 @@ class CDCLTSatSolver : public SatSolver
    *   (r :premises (c1..cn) :args (F args))
    * where F is a string corresponding to the file name of a DIMACs file
    * for an unsat core of derived clauses (input or theory lemma) c1...cn.
-   * @return the above rule and arguments packaged as a std::pair.
+   * @return The above rule and arguments packaged as a std::pair.
    */
   virtual std::pair<ProofRule, std::vector<Node>> getProofSketch() = 0;
 
