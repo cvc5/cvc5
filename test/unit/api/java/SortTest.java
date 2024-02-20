@@ -237,6 +237,14 @@ class SortTest
   }
 
   @Test
+  void isNullable()
+  {
+    Sort sort = d_solver.mkNullableSort(d_solver.getRealSort());
+    assertTrue(sort.isNullable());
+    assertDoesNotThrow(() -> new Sort().isNullable());
+  }
+
+  @Test
   void isRecord()
   {
     Sort rec_sort =
@@ -643,6 +651,17 @@ class SortTest
     assertDoesNotThrow(() -> tupleSort.getTupleSorts());
     Sort bvSort = d_solver.mkBitVectorSort(32);
     assertThrows(CVC5ApiException.class, () -> bvSort.getTupleSorts());
+  }
+
+  @Test
+  void getNullableElementSort() throws CVC5ApiException
+  {
+    Sort nullableSort = d_solver.mkNullableSort(d_solver.getIntegerSort());
+    assertDoesNotThrow(() -> nullableSort.getNullableElementSort());
+    Sort elementSort = nullableSort.getNullableElementSort();
+    assertEquals(elementSort, d_solver.getIntegerSort());
+    Sort bvSort = d_solver.mkBitVectorSort(32);
+    assertThrows(CVC5ApiException.class, () -> bvSort.getNullableElementSort());
   }
 
   @Test

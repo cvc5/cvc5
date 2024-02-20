@@ -252,7 +252,6 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     {
       return true;
     }
-
     // CaDiCaL may backtrack while importing clauses, which can result in some
     // clauses not being processed. Make sure to add all clauses before
     // checking the model.
@@ -1169,7 +1168,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 void CadicalSolver::initialize(context::Context* context,
                                prop::TheoryProxy* theoryProxy,
                                context::UserContext* userContext,
-                               ProofNodeManager* pnm)
+                               PropPfManager* ppm)
 {
   d_context = context;
   d_proxy = theoryProxy;
@@ -1237,8 +1236,6 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
 std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof() { return nullptr; }
-
-SatProofManager* CadicalSolver::getProofManager() { return nullptr; }
 
 /* -------------------------------------------------------------------------- */
 }  // namespace prop

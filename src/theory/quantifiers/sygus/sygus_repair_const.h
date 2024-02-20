@@ -152,7 +152,7 @@ class SygusRepairConst : protected EnvObj
    * useConstantsAsHoles affects which terms we consider to be repairable.
    */
   Node getSkeleton(Node n,
-                   std::map<TypeNode, int>& free_var_count,
+                   std::map<TypeNode, size_t>& free_var_count,
                    std::vector<Node>& sk_vars,
                    std::map<Node, Node>& sk_vars_to_subs,
                    bool useConstantsAsHoles);

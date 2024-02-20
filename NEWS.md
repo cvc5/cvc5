@@ -1,7 +1,7 @@
 This file contains a summary of important user-visible changes.
 
 **New Features**
-
+- Added support for nullable sorts and lift operator to the theory of datatypes.
 - API: The signature of functions `Solver::mkFiniteFieldSort(const std::string&)`
        and `Solver::mkFiniteFieldElem(const std::string&, const Sort&)` is now
        extended with an additional (optional) parameter to
@@ -37,6 +37,14 @@ This file contains a summary of important user-visible changes.
        theory lemmas that were relevant to showing the last query was
        unsatisfiable. This is also avialable via the SMT-LIB command
        `get-unsat-core-lemmas`.
+
+**Changes**
+
+- API: Functions `kindToString(Kind)` and `sortKindToString(SortKind)` are now
+       deprecated and replaced by `std::to_string(Kind)` and
+       `std::to_string(SortKind)`. They will be removed in the next minor
+       release.
+
 - Various bug fixes.
 
 cvc5 1.0.9

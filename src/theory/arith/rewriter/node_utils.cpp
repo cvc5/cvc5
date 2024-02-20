@@ -86,10 +86,8 @@ TNode removeToReal(TNode t) { return t.getKind() == Kind::TO_REAL ? t[0] : t; }
 Node maybeEnsureReal(TypeNode tn, TNode t)
 {
   // if we require being a real
-  if (!tn.isInteger())
+  if (tn.isReal())
   {
-    // ensure that t has type real
-    Assert(tn.isReal());
     return ensureReal(t);
   }
   return t;

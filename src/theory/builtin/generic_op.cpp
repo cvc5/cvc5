@@ -285,6 +285,9 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
       case Kind::BITVECTOR_ROTATE_RIGHT:
         Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorRotateRight(numerals[0]));
+      case Kind::BITVECTOR_BITOF:
+        Assert(numerals.size() == 1);
+        return nm->mkConst(BitVectorBitOf(numerals[0]));
       case Kind::INT_TO_BITVECTOR:
         Assert(numerals.size() == 1);
         return nm->mkConst(IntToBitVector(numerals[0]));
@@ -303,6 +306,10 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
         Assert(numerals.size() == 2);
         return nm->mkConst(
             FloatingPointToFPSignedBitVector(numerals[0], numerals[1]));
+      case Kind::FLOATINGPOINT_TO_FP_FROM_UBV:
+        Assert(numerals.size() == 2);
+        return nm->mkConst(
+            FloatingPointToFPUnsignedBitVector(numerals[0], numerals[1]));
       case Kind::FLOATINGPOINT_TO_FP_FROM_REAL:
         Assert(numerals.size() == 2);
         return nm->mkConst(FloatingPointToFPReal(numerals[0], numerals[1]));

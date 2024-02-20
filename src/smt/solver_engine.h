@@ -1047,7 +1047,8 @@ class CVC5_EXPORT SolverEngine
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
-                  modes::ProofFormat proofFormat);
+                  modes::ProofFormat proofFormat,
+                  const std::map<Node, std::string>& assertionNames);
 
   /* Members -------------------------------------------------------------- */
 
@@ -1113,6 +1114,11 @@ class CVC5_EXPORT SolverEngine
   LogicInfo d_userLogic;
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
+
+  /** Have we set a regular option yet? (for --safe-options) */
+  bool d_safeOptsSetRegularOption;
+  /** The regular option we set (for --safe-options) */
+  std::string d_safeOptsRegularOption;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

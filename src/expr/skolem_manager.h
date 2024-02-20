@@ -30,10 +30,14 @@ class ProofGenerator;
 enum class SkolemFunId
 {
   NONE,
+  /** An internal skolem */
+  INTERNAL,
   /** input variable with a given name */
   INPUT_VARIABLE,
   /** purification skolem for a term t */
   PURIFY,
+  /** abstract value for a term t */
+  ABSTRACT_VALUE,
   /** array diff to witness (not (= A B)) */
   ARRAY_DEQ_DIFF,
   /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
@@ -50,17 +54,10 @@ enum class SkolemFunId
    * is between -pi and pi
    */
   TRANSCENDENTAL_PURIFY_ARG,
-  /** a shared selector */
-  SHARED_SELECTOR,
   /**
    * The n^th skolem for quantified formula Q. Its arguments are (Q,n).
    */
   QUANTIFIERS_SKOLEMIZE,
-  /**
-   * Quantifiers synth fun embedding, for function-to-synthesize, this the
-   * first order datatype variable for f.
-   */
-  QUANTIFIERS_SYNTH_FUN_EMBED,
   //----- string skolems are cached based on (a, b)
   /** exists k. ( string b occurs k times in string a ) */
   STRINGS_NUM_OCCUR,
@@ -135,8 +132,6 @@ enum class SkolemFunId
    * i = 0, ..., n.
    */
   RE_UNFOLD_POS_COMPONENT,
-  /** Sequence model construction, element for base */
-  SEQ_MODEL_BASE_ELEMENT,
   BAGS_CARD_CARDINALITY,
   BAGS_CARD_ELEMENTS,
   BAGS_CARD_N,
@@ -164,6 +159,11 @@ enum class SkolemFunId
    * where uf: Int -> E is a skolem function, and E is the type of elements of A
    */
   BAGS_MAP_PREIMAGE,
+  /**
+   * Same as above, but used when f is injective. In this case this is not
+   * indexed, and the returned skolem has type E.
+   */
+  BAGS_MAP_PREIMAGE_INJECTIVE,
   /**
    * A skolem variable for the size of the preimage of {y} that is unique per
    * terms (bag.map f A), y which might be an element in (bag.map f A). (see the
@@ -231,23 +231,46 @@ enum class SkolemFunId
    * and it is mapped to y by f.
    */
   SETS_MAP_DOWN_ELEMENT,
-  /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED,
-  //-------------------- internal
-  /** abstract value for a term t */
-  ABSTRACT_VALUE,
-  /** the "none" term, for instantiation evaluation */
-  IEVAL_NONE,
-  /** the "some" term, for instantiation evaluation */
-  IEVAL_SOME,
-  /** sygus "any constant" placeholder */
-  SYGUS_ANY_CONSTANT,
+  /** a shared selector */
+  SHARED_SELECTOR,
   UNKNOWN
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);
 /** Writes a skolem function name to a stream. */
 std::ostream& operator<<(std::ostream& out, SkolemFunId id);
+
+/**
+ * Internal skolem function identifier, used for identifying internal skolems
+ * that are not exported as part of the API.
+ *
+ * This is a subclassification of skolems whose SkolemFunId is INTERNAL. It is
+ * used to generate canonical skolems but without exporting to the API. Skolems
+ * can be created using mkInternalSkolemFunction below.
+ */
+enum class InternalSkolemFunId
+{
+  NONE,
+  /** Sequence model construction, element for base */
+  SEQ_MODEL_BASE_ELEMENT,
+  /** the "none" term, for instantiation evaluation */
+  IEVAL_NONE,
+  /** the "some" term, for instantiation evaluation */
+  IEVAL_SOME,
+  /** sygus "any constant" placeholder */
+  SYGUS_ANY_CONSTANT,
+  /**
+   * Quantifiers synth fun embedding, for function-to-synthesize, this the
+   * first order datatype variable for f.
+   */
+  QUANTIFIERS_SYNTH_FUN_EMBED,
+  /** Higher-order type match predicate, see HoTermDb */
+  HO_TYPE_MATCH_PRED
+};
+/** Converts an internal skolem function name to a string. */
+const char* toString(InternalSkolemFunId id);
+/** Writes an internal skolem function name to a stream. */
+std::ostream& operator<<(std::ostream& out, InternalSkolemFunId id);
 
 /**
  * A manager for skolems that can be used in proofs. This is designed to be
@@ -356,7 +379,6 @@ class SkolemManager
    * as well.
    *
    * @param id The identifier of the skolem function
-   * @param tn The type of the returned skolem function
    * @param cacheVal A cache value. The returned skolem function will be
    * unique to the pair (id, cacheVal). This value is required, for instance,
    * for skolem functions that are in fact families of skolem functions,
@@ -364,12 +386,17 @@ class SkolemManager
    * @return The skolem function.
    */
   Node mkSkolemFunction(SkolemFunId id,
-                        TypeNode tn,
                         Node cacheVal = Node::null());
   /** Same as above, with multiple cache values */
-  Node mkSkolemFunction(SkolemFunId id,
-                        TypeNode tn,
-                        const std::vector<Node>& cacheVals);
+  Node mkSkolemFunction(SkolemFunId id, const std::vector<Node>& cacheVals);
+  /**
+   * Same as above, with multiple cache values and an internal skolem id.
+   * This will call mkSkolemFunction where the (external) id is
+   * SkolemFunId::INTERNAL. The type is provided explicitly.
+   */
+  Node mkInternalSkolemFunction(InternalSkolemFunId id,
+                                TypeNode tn,
+                                const std::vector<Node>& cacheVals = {});
   /**
    * Is k a skolem function? Returns true if k was generated by the above
    * call. Updates the arguments to the values used when constructing it.
@@ -379,6 +406,11 @@ class SkolemManager
    * Get skolem function id
    */
   SkolemFunId getId(TNode k) const;
+  /**
+   * Get the internal skolem function id, for skolems whose id is
+   * SkolemFunId::INTERNAL.
+   */
+  InternalSkolemFunId getInternalId(TNode k) const;
   /**
    * Create a skolem constant with the given name, type, and comment. This
    * should only be used if the definition of the skolem does not matter.
@@ -446,6 +478,14 @@ class SkolemManager
    * by this node manager.
    */
   size_t d_skolemCounter;
+  /** Same as mkSkolemFunction, with explicit type */
+  Node mkSkolemFunctionTyped(SkolemFunId id,
+                             TypeNode tn,
+                             Node cacheVal = Node::null());
+  /** Same as above, with multiple cache values and explicit Type */
+  Node mkSkolemFunctionTyped(SkolemFunId id,
+                             TypeNode tn,
+                             const std::vector<Node>& cacheVals);
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
@@ -457,6 +497,8 @@ class SkolemManager
                     const std::string& prefix,
                     const TypeNode& type,
                     int flags = SKOLEM_DEFAULT);
+  /** Get type for skolem */
+  TypeNode getTypeFor(SkolemFunId id, const std::vector<Node>& cacheVals);
 };
 
 }  // namespace cvc5::internal
