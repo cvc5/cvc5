@@ -260,7 +260,7 @@ class RewriteDbProofCons : protected EnvObj
   /** Total number of rewrites we proved successfully */
   IntStat d_statTotalInputSuccess;
   /** Fixed point limit */
-  static size_t d_fixedPointLimit;
+  static size_t s_fixedPointLimit;
 };
 
 }  // namespace rewriter

@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace rewriter {
 
 // fixed point limit set to 1000
-size_t RewriteDbProofCons::d_fixedPointLimit = 1000;
+size_t RewriteDbProofCons::s_fixedPointLimit = 1000;
 
 RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
     : EnvObj(env),
