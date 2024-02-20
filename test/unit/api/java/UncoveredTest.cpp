@@ -99,6 +99,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << cvc5::kindToString(cvc5::Kind::EQUAL);
   ss << cvc5::SortKind::ARRAY_SORT << std::to_string(cvc5::SortKind::ARRAY_SORT)
      << cvc5::sortKindToString(cvc5::SortKind::ARRAY_SORT);
+  ss << cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE
+     << std::to_string(cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE);
   ss << cvc5::UnknownExplanation::UNKNOWN_REASON
      << std::to_string(cvc5::UnknownExplanation::UNKNOWN_REASON);
   ss << cvc5::modes::BlockModelsMode::LITERALS
