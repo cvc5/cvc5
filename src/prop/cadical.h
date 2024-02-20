@@ -148,8 +148,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::string d_pfFile;
   /**
    * Whether we are in SAT mode. If true, the SAT solver returned satisfiable
-   * so that we know whether we are allowed to query model values from the
-   * solver.
+   * and we are allowed to query model values from the solver.
    */
   bool d_inSatMode;
   /** The variable representing true. */
