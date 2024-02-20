@@ -56,6 +56,7 @@ class RewriteDbProofCons : protected EnvObj
    * @param mid The method id (the kind of rewrite)
    * @param recLimit The recursion limit for this call
    * @param stepLimit The step limit for this call.
+   * @return true if we successfully added a proof of (= a b) to cdp
    */
   bool prove(CDProof* cdp,
              const Node& a,

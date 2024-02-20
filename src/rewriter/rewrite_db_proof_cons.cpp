@@ -914,11 +914,10 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       target = target.substitute(TNode(placeholder), TNode(step));
       cacheProofSubPlaceholder(currContext, placeholder, source, target);
 
-      ProvenInfo dpi;
+      ProvenInfo& dpi = d_pcache[source.eqNode(target)];
       dpi.d_id = pi.d_id;
       dpi.d_vars = vars;
       dpi.d_subs = stepSubs;
-      d_pcache[source.eqNode(target)] = dpi;
 
       currConc = expr::narySubstitute(currConc, vars, stepSubs);
       currContext = currConc;
