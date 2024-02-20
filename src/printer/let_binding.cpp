@@ -19,8 +19,12 @@
 
 namespace cvc5::internal {
 
-LetBinding::LetBinding(uint32_t thresh)
-    : d_thresh(thresh),
+LetBinding::LetBinding(const std::string& prefix,
+                       uint32_t thresh,
+                       bool traverseBinders)
+    : d_prefix(prefix),
+      d_thresh(thresh),
+      d_traverseBinders(traverseBinders),
       d_context(),
       d_visitList(&d_context),
       d_count(&d_context),
@@ -75,7 +79,7 @@ uint32_t LetBinding::getId(Node n) const
   return (*it).second;
 }
 
-Node LetBinding::convert(Node n, const std::string& prefix, bool letTop) const
+Node LetBinding::convert(Node n, bool letTop) const
 {
   if (d_letMap.empty())
   {
@@ -101,7 +105,7 @@ Node LetBinding::convert(Node n, const std::string& prefix, bool letTop) const
       {
         // make the let variable
         std::stringstream ss;
-        ss << prefix << id;
+        ss << d_prefix << id;
         visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
       }
       else if (cur.isClosure())
@@ -155,20 +159,17 @@ void LetBinding::updateCounts(Node n)
   {
     cur = visit.back();
     it = d_count.find(cur);
+    // do not traverse beneath quantifiers if d_traverseBinders is false.
+    if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST
+        || (!d_traverseBinders && cur.isClosure()))
+    {
+      visit.pop_back();
+      continue;
+    }
     if (it == d_count.end())
     {
-      // do not traverse beneath quantifiers
-      if (cur.getNumChildren() == 0 || cur.isClosure())
-      {
-        d_visitList.push_back(cur);
-        d_count[cur] = 1;
-        visit.pop_back();
-      }
-      else
-      {
-        d_count[cur] = 0;
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
+      d_count[cur] = 0;
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
     else
     {
@@ -191,12 +192,7 @@ void LetBinding::convertCountToLet()
   NodeIdMap::const_iterator itc;
   for (const Node& n : d_visitList)
   {
-    if (n.getNumChildren() == 0)
-    {
-      // do not letify terms with no children
-      continue;
-    }
-    else if (d_letMap.find(n) != d_letMap.end())
+    if (d_letMap.find(n) != d_letMap.end())
     {
       // already letified, perhaps at a lower context
       continue;

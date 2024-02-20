@@ -1,0 +1,25 @@
+(include "../theories/Arith.smt3")
+
+(declare-const FiniteField (-> Int Type))
+
+; A finite field constant is a term having 2 integer children.
+; NOTE: we do not support the native syntax.
+(declare-const ff.value
+    (-> (! Int :var p) Int (FiniteField p)))
+
+(declare-const ff.add
+    (-> (! Int :var p :implicit)
+        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+)
+(declare-const ff.neg
+    (-> (! Int :var p :implicit)
+        (FiniteField p) (FiniteField p))
+)
+(declare-const ff.mul
+    (-> (! Int :var p :implicit)
+        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+)
+(declare-const ff.bitsum
+    (-> (! Int :var p :implicit)
+        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+)

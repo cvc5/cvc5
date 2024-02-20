@@ -43,5 +43,11 @@ cvc5_add_python_api_unit_test(test_op test_op.py)
 cvc5_add_python_api_unit_test(test_result test_result.py)
 cvc5_add_python_api_unit_test(test_synth_result test_synth_result.py)
 cvc5_add_python_api_unit_test(test_proof test_proof.py)
+cvc5_add_python_api_unit_test(test_command test_command.py)
+cvc5_add_python_api_unit_test(test_input_parser test_input_parser.py)
+cvc5_add_python_api_unit_test(test_symbol_manager test_symbol_manager.py)
 
+set_source_files_properties(test_uncovered.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 cvc5_add_unit_test_black(test_uncovered api/python)

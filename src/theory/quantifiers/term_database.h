@@ -233,8 +233,6 @@ class TermDb : public QuantifiersUtil {
   NodeDbListMap d_opMap;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
-  /** whether master equality engine is UF-inconsistent */
-  bool d_consistent_ee;
   /** boolean terms */
   Node d_true;
   Node d_false;
@@ -266,11 +264,6 @@ class TermDb : public QuantifiersUtil {
    */
   std::map<TypeNode, Node> d_ho_type_match_pred;
   //----------------------------- implementation-specific
-  /**
-   * Reset internal, called when reset(e) is called. Returning false will cause
-   * the overall reset to terminate early, returning false.
-   */
-  virtual bool resetInternal(Theory::Effort e);
   /**
    * Finish reset internal, called at the end of reset(e). Returning false will
    * cause the overall reset to return false.

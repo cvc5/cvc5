@@ -24,11 +24,11 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiKind : public ::testing::Test
+class TestApiSortKind : public ::testing::Test
 {
 };
 
-TEST_F(TestApiKind, sortKindToString)
+TEST_F(TestApiSortKind, sortKindToString)
 {
   std::stringstream ss;
   for (int32_t k = static_cast<int32_t>(SortKind::INTERNAL_SORT_KIND);
@@ -37,20 +37,20 @@ TEST_F(TestApiKind, sortKindToString)
   {
     SortKind sk = static_cast<SortKind>(k);
     ss << sk << std::endl;
-    auto kindstr = sortKindToString(sk);
+    auto kindstr = std::to_string(sk);
     if (k == static_cast<int32_t>(SortKind::INTERNAL_SORT_KIND))
     {
-      ASSERT_EQ(kindstr, "SortKind::INTERNAL_SORT_KIND");
+      ASSERT_EQ(kindstr, "INTERNAL_SORT_KIND");
     }
     else if (k == static_cast<int32_t>(SortKind::UNDEFINED_SORT_KIND))
     {
-      ASSERT_EQ(kindstr, "SortKind::UNDEFINED_SORT_KIND");
+      ASSERT_EQ(kindstr, "UNDEFINED_SORT_KIND");
     }
     else
     {
       // If this assertion fails, s_kinds in cvc5.cpp is missing kind k.
-      ASSERT_NE(kindstr, "SortKind::UNDEFINED_SORT_KIND");
-      ASSERT_NE(kindstr, "SortKind::INTERNAL_SORT_KIND");
+      ASSERT_NE(kindstr, "UNDEFINED_SORT_KIND");
+      ASSERT_NE(kindstr, "INTERNAL_SORT_KIND");
     }
   }
 }

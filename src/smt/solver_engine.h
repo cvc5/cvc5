@@ -180,9 +180,15 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Set an aspect of the current SMT execution environment.
+   * @param key The option to set
+   * @param value The value to set
+   * @param fromUser Whether this option was set by the user. This impacts
+   * whether we enable checks e.g. when --safe-options is enabled.
    * @throw OptionException, ModalException
    */
-  void setOption(const std::string& key, const std::string& value);
+  void setOption(const std::string& key,
+                 const std::string& value,
+                 bool fromUser = false);
 
   /** Set is internal subsolver.
    *
@@ -1041,7 +1047,8 @@ class CVC5_EXPORT SolverEngine
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
-                  modes::ProofFormat proofFormat);
+                  modes::ProofFormat proofFormat,
+                  const std::map<Node, std::string>& assertionNames);
 
   /* Members -------------------------------------------------------------- */
 
@@ -1107,6 +1114,11 @@ class CVC5_EXPORT SolverEngine
   LogicInfo d_userLogic;
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
+
+  /** Have we set a regular option yet? (for --safe-options) */
+  bool d_safeOptsSetRegularOption;
+  /** The regular option we set (for --safe-options) */
+  std::string d_safeOptsRegularOption;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

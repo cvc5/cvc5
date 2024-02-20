@@ -110,6 +110,7 @@ void Smt2State::addBitvectorOperators()
   addOperator(Kind::BITVECTOR_SGE, "bvsge");
   addOperator(Kind::BITVECTOR_REDOR, "bvredor");
   addOperator(Kind::BITVECTOR_REDAND, "bvredand");
+  addOperator(Kind::BITVECTOR_NEGO, "bvnego");
   addOperator(Kind::BITVECTOR_UADDO, "bvuaddo");
   addOperator(Kind::BITVECTOR_SADDO, "bvsaddo");
   addOperator(Kind::BITVECTOR_UMULO, "bvumulo");
@@ -117,6 +118,11 @@ void Smt2State::addBitvectorOperators()
   addOperator(Kind::BITVECTOR_USUBO, "bvusubo");
   addOperator(Kind::BITVECTOR_SSUBO, "bvssubo");
   addOperator(Kind::BITVECTOR_SDIVO, "bvsdivo");
+  if (!strictModeEnabled())
+  {
+    addOperator(Kind::BITVECTOR_ITE, "bvite");
+  }
+
 
   addIndexedOperator(Kind::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(Kind::BITVECTOR_REPEAT, "repeat");
@@ -158,6 +164,15 @@ void Smt2State::addDatatypesOperators()
     defineVar("tuple.unit", d_solver->mkTuple({}));
     addIndexedOperator(Kind::UNDEFINED_KIND, "tuple.select");
     addIndexedOperator(Kind::UNDEFINED_KIND, "tuple.update");
+    Sort btype = d_solver->getBooleanSort();
+    defineVar("nullable.null",
+              d_solver->mkNullableNull(d_solver->mkNullableSort(btype)));
+    addOperator(Kind::APPLY_CONSTRUCTOR, "nullable.some");
+    addOperator(Kind::APPLY_SELECTOR, "nullable.val");
+    addOperator(Kind::NULLABLE_LIFT, "nullable.lift");
+    addOperator(Kind::APPLY_TESTER, "nullable.is_null");
+    addOperator(Kind::APPLY_TESTER, "nullable.is_some");
+    addIndexedOperator(Kind::NULLABLE_LIFT, "nullable.lift");
   }
 }
 
@@ -282,7 +297,7 @@ void Smt2State::addSepOperators()
 void Smt2State::addCoreSymbols()
 {
   defineType("Bool", d_solver->getBooleanSort(), true);
-  Sort tupleSort = d_solver->mkTupleSort({});
+  Sort tupleSort = d_solver->mkTupleSort({});  
   defineType("Relation", d_solver->mkSetSort(tupleSort), true);
   defineType("Table", d_solver->mkBagSort(tupleSort), true);
   defineVar("true", d_solver->mkTrue(), true);
@@ -568,7 +583,10 @@ Term Smt2State::mkIndexedOp(Kind k,
   if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER)
   {
     Assert(symbols.size() == 1);
-    Assert(!args.empty());
+    if (args.empty())
+    {
+      parseError("Expected argument to tester/updater");
+    }
     const std::string& cname = symbols[0];
     // must be declared
     checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
@@ -720,6 +738,7 @@ std::unique_ptr<Cmd> Smt2State::invConstraint(
 
 void Smt2State::setLogic(std::string name)
 {
+  bool smLogicAlreadySet = getSymbolManager()->isLogicSet();
   // if logic is already set, this is an error
   if (d_logicSet)
   {
@@ -970,9 +989,17 @@ void Smt2State::setLogic(std::string name)
     addSepOperators();
   }
 
-  // builtin symbols of the logic are declared at context level zero, hence
-  // we push the outermost scope here
-  pushScope(true);
+  // Builtin symbols of the logic are declared at context level zero, hence
+  // we push the outermost scope in the symbol manager here.
+  // We only do this if the logic has not already been set, in which case we have already
+  // pushed the outermost context (and this method redeclares the symbols which does
+  // not impact the symbol manager).
+  // TODO (cvc5-projects #693): refactor this so that this method is moved to the
+  // symbol manager and only called once per symbol manager.
+  if (!smLogicAlreadySet)
+  {
+    pushScope(true);
+  }
 }
 
 Grammar* Smt2State::mkGrammar(const std::vector<Term>& boundVars,
@@ -1160,6 +1187,26 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       Trace("parser") << "++ " << *i << std::endl;
     }
   }
+  if (p.d_kind == Kind::NULLABLE_LIFT)
+  {
+    auto it = d_operatorKindMap.find(p.d_name);
+    if (it == d_operatorKindMap.end())
+    {
+      // the lifted symbol is not a defined kind. So we construct a normal
+      // term.
+      // Input : ((_ nullable.lift f) x y)
+      // output: (nullable.lift f x y)
+      ParserState::checkDeclaration(p.d_name, DeclarationCheck::CHECK_DECLARED);
+      Term function = getVariable(p.d_name);
+      args.insert(args.begin(), function);
+      return d_solver->mkTerm(Kind::NULLABLE_LIFT, args);
+    }
+    else
+    {
+      Kind liftedKind = getOperatorKind(p.d_name);
+      return d_solver->mkNullableLift(liftedKind, args);
+    }
+  }
   if (!p.d_indices.empty())
   {
     Op op;
@@ -1306,8 +1353,51 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       }
       else if (kind == Kind::APPLY_CONSTRUCTOR)
       {
-        // tuple application
-        return d_solver->mkTuple(args);
+        if (p.d_name == "tuple")
+        {
+          // tuple application
+          return d_solver->mkTuple(args);
+        }
+        else if (p.d_name == "nullable.some")
+        {
+          return d_solver->mkNullableSome(args[0]);
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << "Unknown APPLY_CONSTRUCTOR symbol '" << p.d_name << "'";
+          parseError(ss.str());
+        }
+      }
+      else if (kind == Kind::APPLY_SELECTOR)
+      {
+        if (p.d_name == "nullable.val")
+        {
+          return d_solver->mkNullableVal(args[0]);
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << "Unknown APPLY_SELECTOR symbol '" << p.d_name << "'";
+          parseError(ss.str());
+        }
+      }
+      else if (kind == Kind::APPLY_TESTER)
+      {
+        if (p.d_name == "nullable.is_null")
+        {
+          return d_solver->mkNullableIsNull(args[0]);
+        }
+        else if (p.d_name == "nullable.is_some")
+        {
+          return d_solver->mkNullableIsSome(args[0]);
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << "Unknown APPLY_TESTER symbol '" << p.d_name << "'";
+          parseError(ss.str());
+        }
       }
       Trace("parser") << "Got builtin kind " << kind << " for name"
                       << std::endl;
@@ -1591,6 +1681,14 @@ Sort Smt2State::getParametricSort(const std::string& name,
   else if (name == "Tuple" && !strictModeEnabled())
   {
     t = d_solver->mkTupleSort(args);
+  }
+  else if (name == "Nullable" && !strictModeEnabled())
+  {
+    if (args.size() != 1)
+    {
+      parseError("Illegal nullable type.");
+    }
+    t = d_solver->mkNullableSort(args[0]);
   }
   else if (name == "Relation" && !strictModeEnabled())
   {

@@ -240,10 +240,14 @@ void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
       }
     }
     if( !last_all_stars ){
-      Trace("fmc-cover-simplify") << "Need to modify last entry to be all stars." << std::endl;
-      Trace("fmc-cover-simplify") << "Before: " << std::endl;
-      debugPrint("fmc-cover-simplify",Node::null(), mc);
-      Trace("fmc-cover-simplify") << std::endl;
+      if (TraceIsOn("fmc-cover-simplify"))
+      {
+        Trace("fmc-cover-simplify")
+            << "Need to modify last entry to be all stars." << std::endl;
+        Trace("fmc-cover-simplify") << "Before: " << std::endl;
+        debugPrint("fmc-cover-simplify", Node::null(), mc);
+        Trace("fmc-cover-simplify") << std::endl;
+      }
       std::vector< Node > cond;
       cond.insert( cond.end(), d_cond.begin(), d_cond.end() );
       d_cond.clear();
@@ -266,9 +270,12 @@ void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
       }
       Trace("fmc-cover-simplify") << "Finished re-adding entries." << std::endl;
       basic_simplify( m );
-      Trace("fmc-cover-simplify") << "After: " << std::endl;
-      debugPrint("fmc-cover-simplify",Node::null(), mc);
-      Trace("fmc-cover-simplify") << std::endl;
+      if (TraceIsOn("fmc-cover-simplify"))
+      {
+        Trace("fmc-cover-simplify") << "After: " << std::endl;
+        debugPrint("fmc-cover-simplify", Node::null(), mc);
+        Trace("fmc-cover-simplify") << std::endl;
+      }
     }
   }
   Trace("fmc-simplify") << "finish simplify, #cond = " << d_cond.size() << std::endl;
@@ -360,6 +367,12 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
   if (!m->areFunctionValuesEnabled())
   {
     // nothing to do if no functions
+    return true;
+  }
+  // if higher-order, we must use the standard assignment method
+  if (logicInfo().isHigherOrder())
+  {
+    TheoryEngineModelBuilder::assignFunctions(m);
     return true;
   }
   FirstOrderModelFmc* fm = d_fm.get();
@@ -521,15 +534,21 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       fm->d_models[op]->addEntry(fm, entry_conds[indices[i]], values[indices[i]]);
     }
 
-    Trace("fmc-model-simplify") << "Before simplification : " << std::endl;
-    fm->d_models[op]->debugPrint("fmc-model-simplify", op, this);
-    Trace("fmc-model-simplify") << std::endl;
+    if (TraceIsOn("fmc-model-simplify"))
+    {
+      Trace("fmc-model-simplify") << "Before simplification : " << std::endl;
+      fm->d_models[op]->debugPrint("fmc-model-simplify", op, this);
+      Trace("fmc-model-simplify") << std::endl;
+    }
 
     Trace("fmc-model-simplify") << "Simplifying " << op << "..." << std::endl;
     fm->d_models[op]->simplify( this, fm );
 
-    fm->d_models[op]->debugPrint("fmc-model", op, this);
-    Trace("fmc-model") << std::endl;
+    if (TraceIsOn("fmc-model"))
+    {
+      fm->d_models[op]->debugPrint("fmc-model", op, this);
+      Trace("fmc-model") << std::endl;
+    }
 
     //for debugging
     /*
@@ -557,6 +576,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     if (!m->hasAssignedFunctionDefinition(it->first))
     {
       Node f_def = getFunctionValue(fm, it->first, "$x");
+      Trace("model-builder-debug") << "...assign via fmc" << std::endl;
       m->assignFunctionDefinition(it->first, f_def);
     }
   }
@@ -661,10 +681,14 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
     // model check the quantifier
     doCheck(fmfmc, f, d_quant_models[f], f[1]);
     std::vector<Node>& mcond = d_quant_models[f].d_cond;
-    Trace("fmc") << "Definition for quantifier " << f << " is : " << std::endl;
     Assert(!mcond.empty());
-    d_quant_models[f].debugPrint("fmc", Node::null(), this);
-    Trace("fmc") << std::endl;
+    if (TraceIsOn("fmc"))
+    {
+      Trace("fmc") << "Definition for quantifier " << f
+                   << " is : " << std::endl;
+      d_quant_models[f].debugPrint("fmc", Node::null(), this);
+      Trace("fmc") << std::endl;
+    }
 
     // consider all entries going to non-true
     Instantiate* instq = d_qim.getInstantiate();
@@ -863,9 +887,12 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
                                              Node f,
                                              Node c)
 {
-  Trace("fmc-exh") << "----Exhaustive instantiate based on " << c << " ";
-  debugPrintCond("fmc-exh", c, true);
-  Trace("fmc-exh")<< std::endl;
+  if (TraceIsOn("fmc-exh"))
+  {
+    Trace("fmc-exh") << "----Exhaustive instantiate based on " << c << " ";
+    debugPrintCond("fmc-exh", c, true);
+    Trace("fmc-exh") << std::endl;
+  }
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
   RepBoundFmcEntry rbfe(d_env, qbi, d_qstate, d_treg, f, c, d_fm.get());
   RepSetIterator riter(fm->getRepSet(), &rbfe);
@@ -891,8 +918,11 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
         // constants do not appear in instantiations.
         Node rr = riter.getCurrentTerm(i, !tn.isClosedEnumerable());
         Node r = fm->getRepresentative(rr);
-        debugPrint("fmc-exh-debug", r);
-        Trace("fmc-exh-debug") << " (term : " << rr << ")";
+        if (TraceIsOn("fmc-exh-debug"))
+        {
+          debugPrint("fmc-exh-debug", r);
+          Trace("fmc-exh-debug") << " (term : " << rr << ")";
+        }
         ev_inst.push_back( r );
         inst.push_back( rr );
       }
@@ -1048,14 +1078,20 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
         doInterpretedCompose( fm, f, d, n, children, 0, cond, val );
       }
     }
-    Trace("fmc-debug") << "Simplify the definition..." << std::endl;
-    d.debugPrint("fmc-debug", Node::null(), this);
+    if (TraceIsOn("fmc-debug"))
+    {
+      Trace("fmc-debug") << "Simplify the definition..." << std::endl;
+      d.debugPrint("fmc-debug", Node::null(), this);
+    }
     d.simplify(this, fm);
     Trace("fmc-debug") << "Done simplifying" << std::endl;
   }
-  Trace("fmc-debug") << "Definition for " << n << " is : " << std::endl;
-  d.debugPrint("fmc-debug", Node::null(), this);
-  Trace("fmc-debug") << std::endl;
+  if (TraceIsOn("fmc-debug"))
+  {
+    Trace("fmc-debug") << "Definition for " << n << " is : " << std::endl;
+    d.debugPrint("fmc-debug", Node::null(), this);
+    Trace("fmc-debug") << std::endl;
+  }
 }
 
 void FullModelChecker::doNegate( Def & dc ) {
@@ -1132,9 +1168,12 @@ void FullModelChecker::doVariableRelation( FirstOrderModelFmc * fm, Node f, Def 
 }
 
 void FullModelChecker::doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, Def & d, Node op, std::vector< Def > & dc ) {
-  Trace("fmc-uf-debug") << "Definition : " << std::endl;
-  fm->d_models[op]->debugPrint("fmc-uf-debug", op, this);
-  Trace("fmc-uf-debug") << std::endl;
+  if (TraceIsOn("fmc-uf-debug"))
+  {
+    Trace("fmc-uf-debug") << "Definition : " << std::endl;
+    fm->d_models[op]->debugPrint("fmc-uf-debug", op, this);
+    Trace("fmc-uf-debug") << std::endl;
+  }
 
   std::vector< Node > cond;
   mkCondDefaultVec(fm, f, cond);
@@ -1145,12 +1184,16 @@ void FullModelChecker::doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, 
 void FullModelChecker::doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, Def & d,
                                                Def & df, std::vector< Def > & dc, int index,
                                                std::vector< Node > & cond, std::vector<Node> & val ) {
-  Trace("fmc-uf-process") << "process at " << index << std::endl;
-  for( unsigned i=1; i<cond.size(); i++) {
-    debugPrint("fmc-uf-process", cond[i], true);
-    Trace("fmc-uf-process") << " ";
+  if (TraceIsOn("fmc-uf-process"))
+  {
+    Trace("fmc-uf-process") << "process at " << index << std::endl;
+    for (unsigned i = 1; i < cond.size(); i++)
+    {
+      debugPrint("fmc-uf-process", cond[i], true);
+      Trace("fmc-uf-process") << " ";
+    }
+    Trace("fmc-uf-process") << std::endl;
   }
-  Trace("fmc-uf-process") << std::endl;
   if (index==(int)dc.size()) {
     //we have an entry, now do actual compose
     std::map< int, Node > entries;
@@ -1189,12 +1232,17 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
                                                 std::map< int, Node > & entries, int index,
                                                 std::vector< Node > & cond, std::vector< Node > & val,
                                                 EntryTrie & curr ) {
-  Trace("fmc-uf-process") << "compose " << index << " / " << val.size() << std::endl;
-  for( unsigned i=1; i<cond.size(); i++) {
-    debugPrint("fmc-uf-process", cond[i], true);
-    Trace("fmc-uf-process") << " ";
+  if (TraceIsOn("fmc-uf-process"))
+  {
+    Trace("fmc-uf-process")
+        << "compose " << index << " / " << val.size() << std::endl;
+    for (unsigned i = 1; i < cond.size(); i++)
+    {
+      debugPrint("fmc-uf-process", cond[i], true);
+      Trace("fmc-uf-process") << " ";
+    }
+    Trace("fmc-uf-process") << std::endl;
   }
-  Trace("fmc-uf-process") << std::endl;
   if (index==(int)val.size()) {
     Node c = mkCond(cond);
     Trace("fmc-uf-entry") << "Entry : " << c << " -> index[" << curr.d_data << "]" << std::endl;
@@ -1250,12 +1298,17 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
 void FullModelChecker::doInterpretedCompose( FirstOrderModelFmc * fm, Node f, Def & d, Node n,
                                              std::vector< Def > & dc, int index,
                                              std::vector< Node > & cond, std::vector<Node> & val ) {
-  Trace("fmc-if-process") << "int compose " << index << " / " << dc.size() << std::endl;
-  for( unsigned i=1; i<cond.size(); i++) {
-    debugPrint("fmc-if-process", cond[i], true);
-    Trace("fmc-if-process") << " ";
+  if (TraceIsOn("fmc-if-process"))
+  {
+    Trace("fmc-if-process")
+        << "int compose " << index << " / " << dc.size() << std::endl;
+    for (unsigned i = 1; i < cond.size(); i++)
+    {
+      debugPrint("fmc-if-process", cond[i], true);
+      Trace("fmc-if-process") << " ";
+    }
+    Trace("fmc-if-process") << std::endl;
   }
-  Trace("fmc-if-process") << std::endl;
   if ( index==(int)dc.size() ){
     Node c = mkCond(cond);
     Node v = evaluateInterpreted(n, val);

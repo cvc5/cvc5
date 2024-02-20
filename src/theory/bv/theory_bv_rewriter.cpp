@@ -644,6 +644,14 @@ RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite) {
   }
 }
 
+RewriteResponse TheoryBVRewriter::RewriteNego(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<NegoEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN, resultNode);
+}
+
 RewriteResponse TheoryBVRewriter::RewriteUaddo(TNode node, bool prerewrite)
 {
   Node resultNode =
@@ -763,6 +771,7 @@ void TheoryBVRewriter::initializeRewrites()
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ULTBV)] = RewriteUltBv;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SLTBV)] = RewriteSltBv;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ITE)] = RewriteITEBv;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_NEGO)] = RewriteNego;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UADDO)] = RewriteUaddo;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SADDO)] = RewriteSaddo;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UMULO)] = RewriteUmulo;

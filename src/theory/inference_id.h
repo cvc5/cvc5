@@ -212,7 +212,9 @@ enum class InferenceId
   BAGS_DIFFERENCE_REMOVE,
   BAGS_DUPLICATE_REMOVAL,
   BAGS_MAP_DOWN,
-  BAGS_MAP_UP,
+  BAGS_MAP_DOWN_INJECTIVE,
+  BAGS_MAP_UP1,
+  BAGS_MAP_UP2,
   BAGS_FILTER_DOWN,
   BAGS_FILTER_UP,
   BAGS_FOLD,
@@ -918,6 +920,8 @@ enum class InferenceId
   UF_CARD_SPLIT,
   //-------------------- end cardinality extension to UF
   //-------------------- HO extension to UF
+  // A care graph split due to HO
+  UF_HO_CG_SPLIT,
   // Encodes an n-ary application as a chain of binary HO_APPLY applications
   //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
   UF_HO_APP_ENCODE,

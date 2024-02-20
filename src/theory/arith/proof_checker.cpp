@@ -82,7 +82,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
              || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
       Node lhs = args[1][0];
       Node rhs = args[1][1];
-      Node zero = nm->mkConstInt(Rational(0));
+      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::GT, mult, zero), args[1]}),
@@ -101,7 +101,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
       Node lhs = args[1][0];
       Node rhs = args[1][1];
-      Node zero = nm->mkConstInt(Rational(0));
+      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::LT, mult, zero), args[1]}),
@@ -214,6 +214,23 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
         }
+        // check for spurious mixed arithmetic
+        if (children[i][0].getType().isReal()
+            || children[i][1].getType().isReal())
+        {
+          if (args[i].getType().isInteger())
+          {
+            // Should use real for predicates over reals. This is only
+            // necessary for avoiding spurious usage of mixed arithmetic, but we
+            // check here to be pedantic.
+            return Node::null();
+          }
+        }
+        else if (args[i].getType().isReal() && scalar.isIntegral())
+        {
+          // conversely, don't use (integral) real for integer relation.
+          return Node::null();
+        }
         // Check sign
         switch (children[i].getKind())
         {
@@ -310,29 +327,37 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
     {
       Node a = negateProofLiteral(children[0]);
       Node b = negateProofLiteral(children[1]);
-      Node c = args[0];
-      if (a[0] == b[0] && b[0] == c[0] && a[1] == b[1] && b[1] == c[1])
+      if (a[0] == b[0] && a[1] == b[1])
       {
         std::set<Kind> cmps;
         cmps.insert(a.getKind());
         cmps.insert(b.getKind());
-        cmps.insert(c.getKind());
+        Kind retk = Kind::UNDEFINED_KIND;
         if (cmps.count(Kind::EQUAL) == 0)
         {
-          Trace("arith::pf::check") << "Error: No = " << std::endl;
-          return Node::null();
+          retk = Kind::EQUAL;
         }
         if (cmps.count(Kind::GT) == 0)
         {
-          Trace("arith::pf::check") << "Error: No > " << std::endl;
-          return Node::null();
+          if (retk != Kind::UNDEFINED_KIND)
+          {
+            Trace("arith::pf::check")
+                << "Error: No GT and " << retk << std::endl;
+            return Node::null();
+          }
+          retk = Kind::GT;
         }
         if (cmps.count(Kind::LT) == 0)
         {
-          Trace("arith::pf::check") << "Error: No < " << std::endl;
-          return Node::null();
+          if (retk != Kind::UNDEFINED_KIND)
+          {
+            Trace("arith::pf::check")
+                << "Error: No LT and " << retk << std::endl;
+            return Node::null();
+          }
+          retk = Kind::LT;
         }
-        return args[0];
+        return nm->mkNode(retk, a[0], a[1]);
       }
       else
       {
@@ -340,7 +365,6 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
             << "Error: Different polynomials / values" << std::endl;
         Trace("arith::pf::check") << "  a: " << a << std::endl;
         Trace("arith::pf::check") << "  b: " << b << std::endl;
-        Trace("arith::pf::check") << "  c: " << c << std::endl;
         return Node::null();
       }
       // Check that all have the same constant:

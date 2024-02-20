@@ -105,10 +105,23 @@ class CVC5_EXPORT CVC5ApiException : public std::exception
    */
   const char* what() const noexcept override { return d_msg.c_str(); }
 
+  /**
+   * Printing: feel free to redefine toStream().  When overridden in
+   * a derived class, it's recommended that this method print the
+   * type of exception before the actual message.
+   */
+  virtual void toStream(std::ostream& os) const { os << d_msg; }
+
  private:
   /** The stored error message. */
   std::string d_msg;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const CVC5ApiException& e)
+{
+  e.toStream(os);
+  return os;
+}
 
 /**
  * A recoverable API exception.
@@ -557,10 +570,16 @@ class CVC5_EXPORT Sort
   bool isPredicate() const;
 
   /**
-   * Determine if this a tuple sort.
+   * Determine if this is a tuple sort.
    * @return True if this sort is a tuple sort.
    */
   bool isTuple() const;
+
+  /**
+   * Determine if this is a nullable sort.
+   * @return True if the sort is a nullable sort.
+   */
+  bool isNullable() const;
 
   /**
    * Determine if this is a record sort.
@@ -870,6 +889,11 @@ class CVC5_EXPORT Sort
    * @return The element sorts of a tuple sort.
    */
   std::vector<Sort> getTupleSorts() const;
+
+  /**
+   * @return The element sort of a nullable sort.
+   */
+  Sort getNullableElementSort() const;
 
   /* --------------------------------------------------------------------- */
 
@@ -2405,7 +2429,7 @@ class CVC5_EXPORT DatatypeConstructor
   /**
    * Iterator for the selectors of a datatype constructor.
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class DatatypeConstructor;  // to access constructor
 
@@ -2675,7 +2699,7 @@ class CVC5_EXPORT Datatype
   /**
    * Iterator for the constructors of a datatype.
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class Datatype;  // to access constructor
 
@@ -2957,14 +2981,6 @@ class CVC5_EXPORT Grammar
    */
   Sort resolve();
 
-  /**
-   * Check if \p rule contains variables that are neither parameters of
-   * the corresponding synthFun nor non-terminals.
-   * @param rule The non-terminal allowed to be any constant.
-   * @return True if \p rule contains free variables and false otherwise.
-   */
-  bool containsFreeVariables(const Term& rule) const;
-
   /** The node manager associated with this grammar. */
   internal::NodeManager* d_nm;
   /** The internal representation of this grammar. */
@@ -3098,6 +3114,10 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> aliases;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
+  /** Whether this is an expert option */
+  bool isExpert;
+  /** Whether this is a regular option */
+  bool isRegular;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,
@@ -3488,11 +3508,14 @@ class CVC5_EXPORT Solver
   Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a finite-field sort.
-   * @param size the modulus of the field. Must be prime.
+   * Create a finite-field sort from a given string of
+   * base n.
+   *
+   * @param size The modulus of the field. Must be prime.
+   * @param base The base of the string representation of `size`.
    * @return The finite-field sort.
    */
-  Sort mkFiniteFieldSort(const std::string& size) const;
+  Sort mkFiniteFieldSort(const std::string& size, uint32_t base = 10) const;
 
   /**
    * Create a datatype sort.
@@ -3640,6 +3663,13 @@ class CVC5_EXPORT Solver
    */
   Sort mkTupleSort(const std::vector<Sort>& sorts) const;
 
+  /**
+   * Create a nullable sort.
+   * @param sort The sort of the element of the nullable.
+   * @return The nullable sort.
+   */
+  Sort mkNullableSort(const Sort& sort) const;
+
   /* .................................................................... */
   /* Create Terms                                                         */
   /* .................................................................... */
@@ -3666,6 +3696,52 @@ class CVC5_EXPORT Solver
    * @return The tuple Term.
    */
   Term mkTuple(const std::vector<Term>& terms) const;
+  /**
+   * Create a nullable some term.
+   * @param term The element value.
+   * @return the Element value wrapped in some constructor.
+   */
+  Term mkNullableSome(const Term& term) const;
+  /**
+   * Create a selector for nullable term.
+   * @param term A nullable term.
+   * @return The element value of the nullable term.
+   */
+  Term mkNullableVal(const Term& term) const;
+  /**
+   * Create a null tester for a nullable term.
+   * @param term A nullable term.
+   * @return A tester whether term is null.
+   */
+  Term mkNullableIsNull(const Term& term) const;
+  /**
+   * Create a some tester for a nullable term.
+   * @param term A nullable term.
+   * @return A tester whether term is some.
+   */
+  Term mkNullableIsSome(const Term& term) const;
+
+  /**
+   * Create a constant representing an null of the given sort.
+   * @param sort The sort of the Nullable element.
+   * @return The null constant.
+   */
+  Term mkNullableNull(const Sort& sort) const;
+  /**
+   * Create a term that lifts kind to nullable terms.
+   * Example:
+   * If we have the term ((_ nullable.lift +) x y),
+   * where x, y of type (Nullable Int), then
+   * kind would be ADD, and args would be [x, y].
+   * This function would return
+   * (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
+   * @param kind The lifted operator.
+   * @param args The arguments of the lifted operator.
+   * @return A term of Kind NULLABLE_LIFT where the first child
+   * is a lambda expression, and the remaining children are
+   * the original arguments.
+   */
+  Term mkNullableLift(Kind kind, const std::vector<Term>& args) const;
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -3892,16 +3968,19 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a finite field constant in a given field from a given string
-   *
-   * If size is the field size, the constant needs not be in the range [0,size).
-   * If it is outside this range, it will be reduced modulo size before being
-   * constructed.
+   * of base n.
    *
    * @param value The string representation of the constant.
-   * @param sort The field sort.
+   * @param sort  The field sort.
+   * @param base  The base of the string representation of `value`.
    *
+   * If `size` is the field size, the constant needs not be in the range
+   * [0,size). If it is outside this range, it will be reduced modulo size
+   * before being constructed.
    */
-  Term mkFiniteFieldElem(const std::string& value, const Sort& sort) const;
+  Term mkFiniteFieldElem(const std::string& value,
+                         const Sort& sort,
+                         uint32_t base = 10) const;
 
   /**
    * Create a constant array with the provided constant value stored at every
@@ -4565,11 +4644,15 @@ class CVC5_EXPORT Solver
    * @param format The proof format used to print the proof.  Must be
    * `modes::ProofFormat::NONE` if the proof is from a component other than
    * `modes::ProofComponent::FULL`.
+   * @param assertionNames Mapping between assertions and names, if they were
+   * given by the user.
    * @return The string representation of the proof in the given format.
    */
   std::string proofToString(
       Proof proof,
-      modes::ProofFormat format = modes::ProofFormat::DEFAULT) const;
+      modes::ProofFormat format = modes::ProofFormat::DEFAULT,
+      const std::map<cvc5::Term, std::string>& assertionNames =
+          std::map<cvc5::Term, std::string>()) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of
@@ -5400,6 +5483,7 @@ class CVC5_EXPORT Solver
   /**
    * Print the statistics to the given file descriptor, suitable for usage in
    * signal handlers.
+   * @param fd The file descriptor.
    */
   void printStatisticsSafe(int fd) const;
 

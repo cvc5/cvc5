@@ -10,7 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Finite fields theory
+ * Finite fields theory.
+ *
+ * There is a subtheory for each prime p that handles the field Fp. Essentially
+ * the common theory just multiplexes the sub-theories.
+ *
+ * NB: while most of FF does not build without CoCoA, this class does. So, it
+ * has many ifdef blocks that throw errors without CoCoA.
  */
 
 #include "theory/ff/theory_ff.h"
@@ -24,8 +30,10 @@
 
 #include "expr/node_traversal.h"
 #include "options/ff_options.h"
+#include "theory/ff/util.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
+#include "util/result.h"
 #include "util/statistics_registry.h"
 #include "util/utility.h"
 
@@ -86,9 +94,14 @@ void TheoryFiniteFields::postCheck(Effort level)
   NodeManager* nm = NodeManager::currentNM();
   for (auto& subTheory : d_subTheories)
   {
-    subTheory.second.postCheck(level);
-    if (subTheory.second.inConflict())
+    Result r = subTheory.second.postCheck(level);
+    if (r.getStatus() == Result::UNKNOWN && level >= EFFORT_FULL)
     {
+      d_im.setModelUnsound(IncompleteId::UNKNOWN);
+    }
+    else if (r.getStatus() == Result::UNSAT)
+    {
+      Assert(subTheory.second.inConflict());
       const Node conflict = nm->mkAnd(subTheory.second.conflict());
       Trace("ff::conflict") << "ff::conflict : " << conflict << std::endl;
       d_im.conflict(conflict, InferenceId::FF_LEMMA);

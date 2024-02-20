@@ -1,0 +1,16 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status
+(set-logic DTLIA)
+(declare-datatype List
+  ((nil)
+   (cons (head Int) (tail List))))
+(synth-fun f ((x List)) Bool
+  ((b Bool)
+   (c Int)
+   (l List))
+  ((b Bool (true false ((_ is nil) l) ((_ is cons) l)))
+   (c Int (0 1))
+   (l List (nil x (cons c l)))))
+(constraint (= (f nil) true))
+(constraint (forall ((i Int) (l List)) (= (f (cons i l)) false)))
+(check-synth)

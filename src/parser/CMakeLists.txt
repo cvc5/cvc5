@@ -35,7 +35,6 @@ set(libcvc5parser_src_files
   parse_op.h
   parser_state.cpp
   parser_state.h
-  parser_exception.h
   parser_utils.cpp
   parser_utils.h
   smt2/smt2_state.cpp
@@ -69,7 +68,7 @@ add_library(cvc5parserapi-objs OBJECT ${libcvc5parserapi_src_files})
 set_target_properties(cvc5parserapi-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(cvc5parserapi-objs PUBLIC -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 
-add_dependencies(cvc5parser-objs gen-expr)
+add_dependencies(cvc5parser-objs gen-expr gen-options)
 add_dependencies(cvc5parserapi-objs cvc5parser-objs gen-expr)
 
 add_library(cvc5parser
