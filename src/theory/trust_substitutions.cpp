@@ -28,7 +28,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
                                            MethodId ids)
     : EnvObj(env),
       d_ctx(c),
-      d_subs(c),
+      d_subs(c, env.getRewriter()),
       d_tsubs(c),
       d_tspb(nullptr),
       d_subsPg(nullptr),
@@ -141,11 +141,11 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
   }
 }
 
-TrustNode TrustSubstitutionMap::applyTrusted(Node n, Rewriter* r)
+TrustNode TrustSubstitutionMap::applyTrusted(Node n)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
                       << std::endl;
-  Node ns = d_subs.apply(n, r);
+  Node ns = d_subs.apply(n);
   Trace("trust-subs") << "...subs " << ns << std::endl;
   if (n == ns)
   {
@@ -168,10 +168,7 @@ TrustNode TrustSubstitutionMap::applyTrusted(Node n, Rewriter* r)
   return TrustNode::mkTrustRewrite(n, ns, this);
 }
 
-Node TrustSubstitutionMap::apply(Node n, Rewriter* r)
-{
-  return d_subs.apply(n, r);
-}
+Node TrustSubstitutionMap::apply(Node n) { return d_subs.apply(n); }
 
 std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
 {

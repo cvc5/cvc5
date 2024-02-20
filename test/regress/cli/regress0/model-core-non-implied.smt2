@@ -3,6 +3,8 @@
 ; EXPECT: sat
 ; EXPECT: (
 ; EXPECT: define-fun
+; EXPECT: define-fun
+; EXPECT: define-fun
 ; EXPECT: )
 (set-logic QF_LIA)
 (declare-fun x () Int)

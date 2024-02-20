@@ -22,8 +22,9 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
-SubstitutionMap::SubstitutionMap(context::Context* context)
+SubstitutionMap::SubstitutionMap(context::Context* context, Rewriter* r)
     : d_context(),
+      d_rewriter(r),
       d_substitutions(context ? context : &d_context),
       d_substitutionCache(),
       d_cacheInvalidated(false),
@@ -57,7 +58,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
   Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
 
   if (d_substitutions.empty()) {
-    return t;
+    return rewrite(t);
   }
 
   // Do a topological sort of the subexpressions and substitute them
@@ -147,7 +148,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
         }
       }
       Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << endl;
-      cache[current] = result;
+      cache[current] = rewrite(result);
       toVisit.pop_back();
     }
     else
@@ -180,7 +181,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
       {
         // No children, so we're done
         Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << endl;
-        cache[current] = current;
+        cache[current] = rewrite(current);
         toVisit.pop_back();
       }
     }
@@ -201,6 +202,7 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
   // putting it here is easier to diagnose
   Assert(x != t) << "cannot substitute a term for itself";
 
+  // don't rewrite yet
   d_substitutions[x] = t;
 
   // Also invalidate the cache if necessary
@@ -230,7 +232,6 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
 }
 
 Node SubstitutionMap::apply(TNode t,
-                            Rewriter* r,
                             std::set<TNode>* tracker,
                             const ShouldTraverseCallback* stc)
 {
@@ -247,14 +248,8 @@ Node SubstitutionMap::apply(TNode t,
   Node result = internalSubstitute(t, d_substitutionCache, tracker, stc);
   Trace("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
-  if (r != nullptr)
-  {
-    Node orig = result;
-    result = r->rewrite(result);
-    Assert(r->rewrite(result) == result)
-        << "Non-idempotent rewrite: " << orig << " --> " << result << " --> "
-        << r->rewrite(result);
-  }
+  Assert(rewrite(result) == result)
+      << "Non-idempotent rewrite: " << result << " --> " << rewrite(result);
 
   return result;
 }
@@ -265,6 +260,11 @@ void SubstitutionMap::print(ostream& out) const {
   for (; it != it_end; ++ it) {
     out << (*it).first << " -> " << (*it).second << endl;
   }
+}
+
+Node SubstitutionMap::rewrite(TNode node) const
+{
+  return d_rewriter ? d_rewriter->rewrite(node) : Node(node);
 }
 
 }  // namespace theory
