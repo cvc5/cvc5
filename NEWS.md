@@ -11,27 +11,42 @@ This file contains a summary of important user-visible changes.
     deprecated and replaced by `std::to_string(Kind)` and
     `std::to_string(SortKind)`. They will be removed in the next minor release.
 
+cvc5 1.1.1
+==========
+
+## Changes
+
+- Fixed a bug when piping input from stdin, which caused cvc5 to have degraded
+  performance. This bug could also cause cvc5 to throw spurious parser errors.
+
+
 cvc5 1.1.0
 ==========
 
 ## New Features
 
 - **API**
-  * The signature of functions `Solver::mkFiniteFieldSort(const std::string&)`
+  * The **signature** of functions `Solver::mkFiniteFieldSort(const std::string&)`
     and `Solver::mkFiniteFieldElem(const std::string&, const Sort&)` is now
     extended with an additional (optional) parameter to
     `Solver::mkFiniteFieldSort(const std::string& size, uint32_t base)` and
     `Solver::mkFiniteFieldElem(const string& value, const Sort& sort, uint32_t base)`
     to configure the base of the string representation of the given string
     parameters.
-  * A new API for proofs is available. The new `Proof` class represents a node
+  * A **new API for proofs** is available. The new `Proof` class represents a node
     of the proof tree. Function
     `Solver::getProof(modes::ProofComponent c = modes::ProofComponent::FULL)`
     returns the root proof nodes of a proof component as a vector. Function
     `Solver::proofToString(std::vector<Proof> proof, modes::ProofFormat format, modes::ProofComponent component)`
     can be used to print proof components to a string with a specified proof
     format.
-  * Added a variant of timeout cores that accepts a set of assumptions. This
+  * Added support for **parsing** inputs from file, string, or input stream. We
+    provide an `InputParser`, `SymbolManager`, and `Command` class for reading
+    inputs (see `include/cvc5_parser.h`). Example use cases of these classes
+    are available at https://cvc5.github.io/docs/cvc5-1.1.1/examples/parser.html
+    and https://cvc5.github.io/docs/cvc5-1.1.1/examples/parser_sym_manager.html.
+    These interfaces are also available in the Java and Python APIs.
+  * Added a variant of **timeout cores** that accepts a set of assumptions. This
     is available via the API method `Solver::getTimeoutCoreAssuming` or the
     SMT-LIB command `get-timeout-core-assuming`, which accept a list of
     formulas to assume, while all current assertions are implicitly included
@@ -40,7 +55,7 @@ cvc5 1.1.0
     lemmas that were relevant to showing the last query was unsatisfiable. This
     is also avialable via the SMT-LIB command `get-unsat-core-lemmas`.
 
-- Support for the AletheLF (ALF) proof format. This format combines the
+- Support for the **AletheLF (ALF) proof format**. This format combines the
   strengths of the Alethe and LFSC proof formats, namely it borrows much of the
   syntax of Alethe, while being based on a logical framework like LFSC.
   * **API**
@@ -49,11 +64,11 @@ cvc5 1.1.0
   * The ALF proof checker (alfc) is available for download via the script
     `./contrib/get-alf-checker`.
 
-- CaDiCaL is now integrated via the IPASIR-UP interface as CDCL(T) SAT solver.
-  The CDCL(T) SAT solver can be configured via option `--sat-solver`. Currently,
-  MiniSat is still default. Note that CaDiCaL cannot be used as the CDCL(T) SAT
-  engine when proof production is enabled. In that case, option `--sat-solver`
-  will default back to MiniSat.
+- **CaDiCaL** is now integrated via the IPASIR-UP interface as **CDCL(T) SAT
+  solver**. The CDCL(T) SAT solver can be configured via option `--sat-solver`.
+  Currently, MiniSat is still default. Note that CaDiCaL cannot be used as the
+  CDCL(T) SAT engine when proof production is enabled. In that case, option
+  `--sat-solver` will default back to MiniSat.
 
 ## Changes
 
