@@ -590,8 +590,8 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
         Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
         // since we may have free constants from the grammar, we must ensure
         // their model value is considered.
-  std::unordered_map<Node, Node> tmpConvertMap;
-  std::map<TypeNode, std::unordered_set<Node> > freshVarType;
+        std::unordered_map<Node, Node> tmpConvertMap;
+        std::map<TypeNode, std::unordered_set<Node> > freshVarType;
         queryCheck = convertToQuery(queryCheck, tmpConvertMap, freshVarType);
         Trace("mbqi-model-enum") << "...converted " << queryCheck << std::endl;
         SubsolverSetupInfo ssi(d_env);
