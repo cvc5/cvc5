@@ -183,9 +183,9 @@ Node SubtypeElimConverterCallback::convert(Node res,
   if (!success)
   {
     // if we did not succeed, just add a trust step
-    Trace("pf-subtype-elim-warn") << "WARNING: Introduction of subtyping via rule " << id;
-    cdp->addTrustedStep(
-        resc, TrustId::SUBTYPE_ELIMINATION, children, {});
+    Trace("pf-subtype-elim-warn")
+        << "WARNING: Introduction of subtyping via rule " << id;
+    cdp->addTrustedStep(resc, TrustId::SUBTYPE_ELIMINATION, children, {});
   }
   return resc;
 }
