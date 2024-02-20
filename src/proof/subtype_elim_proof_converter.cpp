@@ -180,12 +180,14 @@ Node SubtypeElimConverterCallback::convert(Node res,
     break;
     default: break;
   }
-  if (success)
+  if (!success)
   {
-    return resc;
+    // if we did not succeed, just add a trust step
+    Trace("pf-subtype-elim-warn") << "WARNING: Introduction of subtyping via rule " << id;
+    cdp->addTrustedStep(
+        resc, TrustId::SUBTYPE_ELIMINATION, children, {});
   }
-  AlwaysAssert(false) << "Introduction of subtyping via rule " << id;
-  return Node::null();
+  return resc;
 }
 
 bool SubtypeElimConverterCallback::tryWith(ProofRule id,
@@ -310,7 +312,6 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
     // where conv is (to_real src[0]) = (to_real src[1]).
     // Note that we assume a theory rewrite step for proving e.g.
     // (< t s) = (< (to_real t) (to_real s)).
-    return true;
   }
   return true;
 }
