@@ -2718,11 +2718,11 @@ Cvc5DatatypeDecl* cvc5_mk_dt_decl(Cvc5TermManager* tm,
  * @param is_codt True if a codatatype is to be constructed.
  * @return The Cvc5DatatypeDecl.
  */
-Cvc5DatatypeDecl cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
-                                             const char* name,
-                                             size_t size,
-                                             const Cvc5Sort* params,
-                                             bool is_codt);
+Cvc5DatatypeDecl* cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
+                                              const char* name,
+                                              size_t size,
+                                              const Cvc5Sort* params,
+                                              bool is_codt);
 
 /* .................................................................... */
 /* SMT-LIB-style Term/Sort Creation                                     */
@@ -3046,7 +3046,7 @@ void cvc5_assert_formula(Cvc5* cvc5, Cvc5Term term);
  * @param cvc5 The solver instance.
  * @return The result of the satisfiability check.
  */
-Cvc5Result cvc5_check_sat(Cvc5* cvc5);
+Cvc5Result* cvc5_check_sat(Cvc5* cvc5);
 
 /**
  * Check satisfiability assuming the given formulas.
@@ -3064,9 +3064,9 @@ Cvc5Result cvc5_check_sat(Cvc5* cvc5);
  * @param assumptions The formulas to assume.
  * @return The result of the satisfiability check.
  */
-Cvc5Result cvc5_check_sat_assuming(Cvc5* cvc5,
-                                   size_t size,
-                                   const Cvc5Term* assumptions);
+Cvc5Result* cvc5_check_sat_assuming(Cvc5* cvc5,
+                                    size_t size,
+                                    const Cvc5Term* assumptions);
 /**
  * Get the list of asserted formulas.
  *
@@ -4031,7 +4031,7 @@ void cvc5_add_sygus_inv_constraint(
  *         getSynthSolutions, "no solution" if it was determined there is no
  *         solution, or "unknown" otherwise.
  */
-Cvc5SynthResult cvc5_check_synth(Cvc5* cvc5);
+Cvc5SynthResult* cvc5_check_synth(Cvc5* cvc5);
 
 /**
  * Try to find a next solution for the synthesis conjecture corresponding to
@@ -4053,7 +4053,7 @@ Cvc5SynthResult cvc5_check_synth(Cvc5* cvc5);
  *         getSynthSolutions, "no solution" if it was determined there is no
  *         solution, or "unknown" otherwise.
  */
-Cvc5SynthResult cvc5_check_synth_next(Cvc5* cvc5);
+Cvc5SynthResult* cvc5_check_synth_next(Cvc5* cvc5);
 
 /**
  * Get the synthesis solution of the given term. This function should be

@@ -15,6 +15,8 @@
 
 #include "expr/subtype_elim_node_converter.h"
 
+#include "expr/skolem_manager.h"
+
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -23,7 +25,7 @@ SubtypeElimNodeConverter::SubtypeElimNodeConverter() {}
 
 bool SubtypeElimNodeConverter::isRealTypeStrict(TypeNode tn)
 {
-  return tn.isReal() && !tn.isInteger();
+  return tn.isReal();
 }
 
 Node SubtypeElimNodeConverter::postConvert(Node n)
@@ -65,6 +67,22 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
       }
     }
     return nm->mkNode(k, children);
+  }
+  // convert skolems as well, e.g. the purify skolem for (> 1 0.0) becomes the
+  // purify skolem for (> 1.0 0.0).
+  if (n.isVar())
+  {
+    SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
+    SkolemFunId id;
+    Node cacheVal;
+    if (skm->isSkolemFunction(n, id, cacheVal))
+    {
+      Node cacheValc = convert(cacheVal);
+      if (cacheValc != cacheVal)
+      {
+        return skm->mkSkolemFunction(id, cacheValc);
+      }
+    }
   }
   return n;
 }

@@ -37,6 +37,8 @@ libcvc5_add_sources(
   emptyset.h
   emptybag.cpp
   emptybag.h
+  free_var_cache.cpp
+  free_var_cache.h
   function_array_const.cpp
   function_array_const.h
   kind_map.h
@@ -105,6 +107,8 @@ libcvc5_add_sources(
   sygus_datatype.h
   sygus_grammar.cpp
   sygus_grammar.h
+  sygus_term_enumerator.cpp
+  sygus_term_enumerator.h
   variadic_trie.cpp
   variadic_trie.h
 )
