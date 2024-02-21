@@ -1,4 +1,3 @@
-; COMMAND-LINE: --produce-proofs --proof-granularity=dsl-rewrite --dag-thres=0
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_UFBVLIA)
