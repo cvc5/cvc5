@@ -444,20 +444,10 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::CHAIN_RESOLUTION:
-    {
-      // we combine into a list
-      NodeManager* nm = NodeManager::currentNM();
-      Node argsList = nm->mkNode(Kind::AND, pargs);
-      argsList = d_tproc.convert(argsList);
-      args.push_back(argsList);
-      return;
-    }
-    break;
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
     {
-      Node op = d_tproc.getOperatorOfTerm(res[0]);
+      Node op = d_tproc.getOperatorOfTerm(res[0], true);
       args.push_back(d_tproc.convert(op));
       return;
     }

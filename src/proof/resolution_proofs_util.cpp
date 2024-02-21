@@ -494,19 +494,24 @@ Node eliminateCrowdingLits(bool reorderPremises,
     childrenResArgs.insert(childrenResArgs.end(),
                            newArgs.begin() + (2 * start) - 1,
                            newArgs.begin() + (2 * end) + 1);
+    std::vector<Node> cpols;
+    std::vector<Node> clits;
+    for (size_t i = 0, ncargs = childrenResArgs.size(); i < ncargs; i = i + 2)
+    {
+      cpols.push_back(childrenResArgs[i]);
+      clits.push_back(childrenResArgs[i + 1]);
+    }
+    std::vector<Node> cargs;
+    cargs.push_back(nm->mkNode(Kind::SEXPR, cpols));
+    cargs.push_back(nm->mkNode(Kind::SEXPR, clits));
     Trace("crowding-lits") << "\tres children: " << childrenRes << "\n";
     Trace("crowding-lits") << "\tres args: " << childrenResArgs << "\n";
-    resPlaceHolder = pnm->getChecker()->checkDebug(ProofRule::CHAIN_RESOLUTION,
-                                                   childrenRes,
-                                                   childrenResArgs,
-                                                   Node::null(),
-                                                   "");
+    resPlaceHolder = pnm->getChecker()->checkDebug(
+        ProofRule::CHAIN_RESOLUTION, childrenRes, cargs, Node::null(), "");
     Trace("crowding-lits") << "resPlaceHorder: " << resPlaceHolder << "\n";
     Trace("crowding-lits") << "-------\n";
-    cdp->addStep(resPlaceHolder,
-                 ProofRule::CHAIN_RESOLUTION,
-                 childrenRes,
-                 childrenResArgs);
+    cdp->addStep(
+        resPlaceHolder, ProofRule::CHAIN_RESOLUTION, childrenRes, cargs);
     // I need to add factoring if end < children.size(). Otherwise, this is
     // to be handled by the caller
     if (end < childrenSize - 1)

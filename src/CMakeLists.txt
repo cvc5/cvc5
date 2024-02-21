@@ -201,6 +201,8 @@ libcvc5_add_sources(
   proof/proof_node.h
   proof/proof_node_algorithm.cpp
   proof/proof_node_algorithm.h
+  proof/proof_node_converter.cpp
+  proof/proof_node_converter.h
   proof/proof_node_to_sexpr.cpp
   proof/proof_node_to_sexpr.h
   proof/proof_node_manager.cpp
@@ -214,6 +216,8 @@ libcvc5_add_sources(
   proof/proof_step_buffer.h
   proof/resolution_proofs_util.cpp
   proof/resolution_proofs_util.h
+  proof/subtype_elim_proof_converter.cpp
+  proof/subtype_elim_proof_converter.h
   proof/trust_id.cpp
   proof/trust_id.h
   proof/trust_node.cpp
@@ -257,11 +261,13 @@ libcvc5_add_sources(
   prop/minisat/mtl/Sort.h
   prop/minisat/mtl/Vec.h
   prop/minisat/mtl/XAlloc.h
+  prop/minisat/opt_clauses_manager.cpp
+  prop/minisat/opt_clauses_manager.h
+  prop/minisat/sat_proof_manager.cpp
+  prop/minisat/sat_proof_manager.h
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
-  prop/opt_clauses_manager.cpp
-  prop/opt_clauses_manager.h
   prop/proof_cnf_stream.cpp
   prop/proof_cnf_stream.h
   prop/proof_post_processor.cpp
@@ -272,8 +278,6 @@ libcvc5_add_sources(
   prop/prop_proof_manager.h
   prop/registrar.h
   prop/sat_solver.h
-  prop/sat_proof_manager.cpp
-  prop/sat_proof_manager.h
   prop/sat_solver_factory.cpp
   prop/sat_solver_factory.h
   prop/sat_solver_types.cpp
