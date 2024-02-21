@@ -245,6 +245,8 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       }
       else if (k == Kind::CONST_BITVECTOR)
       {
+        // The bitwidth does not matter here, since the logic for normalizing
+        // polynomials considers the semantics of overflow.
         BitVector bv = cur.getConst<BitVector>();
         visited[cur].addMonomial(null, Rational(bv.getValue()));
         visit.pop_back();
