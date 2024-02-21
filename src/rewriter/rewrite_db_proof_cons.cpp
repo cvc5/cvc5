@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace rewriter {
 
 // fixed point limit set to 1000
-size_t RewriteDbProofCons::d_fixedPointLimit = 1000;
+size_t RewriteDbProofCons::s_fixedPointLimit = 1000;
 
 RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
     : EnvObj(env),
@@ -888,7 +888,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       if (!d_currFixedPointConc.isNull())
       {
         // currently avoid accidental loops: arbitrarily bound to 1000
-        continueFixedPoint = steps.size() <= d_fixedPointLimit;
+        continueFixedPoint = steps.size() <= s_fixedPointLimit;
         Assert(d_currFixedPointConc.getKind() == Kind::EQUAL);
         steps.push_back(d_currFixedPointConc[1]);
         stepsSubs.emplace_back(d_currFixedPointSubs.begin(),
@@ -914,11 +914,10 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       target = target.substitute(TNode(placeholder), TNode(step));
       cacheProofSubPlaceholder(currContext, placeholder, source, target);
 
-      ProvenInfo dpi;
+      ProvenInfo& dpi = d_pcache[source.eqNode(target)];
       dpi.d_id = pi.d_id;
       dpi.d_vars = vars;
       dpi.d_subs = stepSubs;
-      d_pcache[source.eqNode(target)] = dpi;
 
       currConc = expr::narySubstitute(currConc, vars, stepSubs);
       currContext = currConc;

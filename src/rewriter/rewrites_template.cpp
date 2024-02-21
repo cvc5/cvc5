@@ -44,11 +44,12 @@ ${rules}$
 
 bool isInternalDslProofRule(DslProofRule drule)
 {
-return drule == DslProofRule::FAIL || drule == DslProofRule::REFL
-       || drule == DslProofRule::EVAL || drule == DslProofRule::TRANS
-       || drule == DslProofRule::CONG || drule == DslProofRule::CONG_EVAL
-       || drule == DslProofRule::TRUE_ELIM || drule == DslProofRule::TRUE_INTRO
-       || drule == DslProofRule::ARITH_POLY_NORM;
+  return drule == DslProofRule::FAIL || drule == DslProofRule::REFL
+         || drule == DslProofRule::EVAL || drule == DslProofRule::TRANS
+         || drule == DslProofRule::CONG || drule == DslProofRule::CONG_EVAL
+         || drule == DslProofRule::TRUE_ELIM
+         || drule == DslProofRule::TRUE_INTRO
+         || drule == DslProofRule::ARITH_POLY_NORM;
 }
 
 const char* toString(DslProofRule drule)
