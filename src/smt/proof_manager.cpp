@@ -195,7 +195,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
       Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): make "
                             "unified scope...\n";
       return d_pnm->mkScope(
-          pfn, assertions, false, options().proof.proofPruneInput);
+          pfn, assertions, true, options().proof.proofPruneInput);
     }
     case ProofScopeMode::DEFINITIONS_AND_ASSERTIONS:
     {
@@ -206,7 +206,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
       std::vector<Node> unifiedAssertions;
       getAssertions(as, unifiedAssertions);
       Pf pf = d_pnm->mkScope(
-          pfn, unifiedAssertions, false, options().proof.proofPruneInput);
+          pfn, unifiedAssertions, true, options().proof.proofPruneInput);
       // if this is violated, there is unsoundness since we have shown
       // false that does not depend on the input.
       AlwaysAssert(pf->getRule() == ProofRule::SCOPE);

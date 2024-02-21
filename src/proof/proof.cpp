@@ -181,7 +181,7 @@ bool CDProof::addStep(Node expected,
   }
 
   // the user may have provided SYMM of an assumption
-  if (id == ProofRule::SYMM)
+  if (d_autoSymm && id == ProofRule::SYMM)
   {
     Assert(pchildren.size() == 1);
     if (isAssumption(pchildren[0].get()))
