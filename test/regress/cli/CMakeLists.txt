@@ -2245,6 +2245,7 @@ set(regress_1_tests
   regress1/datatypes/nullables/nullables6.smt2
   regress1/datatypes/nullables/nullables7.smt2
   regress1/datatypes/nullables/nullables8.smt2
+  regress1/datatypes/nullables/nullable-lift-unsat.smt2
   regress1/datatypes/acyclicity-sr-ground096.smt2
   regress1/datatypes/cee-prs-small-dd2.smt2
   regress1/datatypes/dt-color-2.6.smt2

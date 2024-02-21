@@ -92,17 +92,29 @@ TEST_F(TestApiBlackUncovered, term_iterators)
   it++;
 }
 
-TEST_F(TestApiBlackUncovered, streaming_operators)
+TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
 {
   std::stringstream ss;
-  ss << cvc5::SortKind::ARRAY_SORT;
-  ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
-  ss << cvc5::modes::BlockModelsMode::LITERALS;
-  ss << cvc5::modes::LearnedLitType::PREPROCESS;
-  ss << cvc5::modes::ProofComponent::FULL;
-  ss << cvc5::modes::FindSynthTarget::ENUM;
-  ss << cvc5::modes::InputLanguage::SMT_LIB_2_6;
-  ss << cvc5::modes::ProofFormat::LFSC;
+  ss << cvc5::Kind::EQUAL << std::to_string(cvc5::Kind::EQUAL)
+     << cvc5::kindToString(cvc5::Kind::EQUAL);
+  ss << cvc5::SortKind::ARRAY_SORT << std::to_string(cvc5::SortKind::ARRAY_SORT)
+     << cvc5::sortKindToString(cvc5::SortKind::ARRAY_SORT);
+  ss << cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE
+     << std::to_string(cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE);
+  ss << cvc5::UnknownExplanation::UNKNOWN_REASON
+     << std::to_string(cvc5::UnknownExplanation::UNKNOWN_REASON);
+  ss << cvc5::modes::BlockModelsMode::LITERALS
+     << std::to_string(cvc5::modes::BlockModelsMode::LITERALS);
+  ss << cvc5::modes::LearnedLitType::PREPROCESS
+     << std::to_string(cvc5::modes::LearnedLitType::PREPROCESS);
+  ss << cvc5::modes::ProofComponent::FULL
+     << std::to_string(cvc5::modes::ProofComponent::FULL);
+  ss << cvc5::modes::FindSynthTarget::ENUM
+     << std::to_string(cvc5::modes::FindSynthTarget::ENUM);
+  ss << cvc5::modes::InputLanguage::SMT_LIB_2_6
+     << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
+  ss << cvc5::modes::ProofFormat::LFSC
+     << std::to_string(cvc5::modes::ProofFormat::LFSC);
   ss << cvc5::ProofRule::ASSUME;
   ss << cvc5::Result();
   ss << cvc5::Op();
