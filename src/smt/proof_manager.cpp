@@ -172,14 +172,6 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     d_pfpp->setAssertions(assertions, false);
   }
   d_pfpp->process(pfn, pppg);
-  std::vector<Node> fassumps2;
-  expr::getFreeAssumptions(pfn.get(), fassumps2);
-  Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): assertions "
-                        "post-process are:\n";
-  for (const Node& n : fassumps2)
-  {
-    Trace("smt-proof") << "- " << n << std::endl;
-  }
 
   switch (scopeMode)
   {
