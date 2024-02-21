@@ -180,7 +180,8 @@ bool CDProof::addStep(Node expected,
     pchildren.push_back(pc);
   }
 
-  // the user may have provided SYMM of an assumption
+  // The user may have provided SYMM of an assumption. This block is only
+  // necessary if d_autoSymm is enabled.
   if (d_autoSymm && id == ProofRule::SYMM)
   {
     Assert(pchildren.size() == 1);
