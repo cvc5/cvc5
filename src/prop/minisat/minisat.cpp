@@ -172,9 +172,6 @@ void MinisatSatSolver::setupOptions() {
 
 ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable)
 {
-  // We disable marking clauses as removable since this has a negative
-  // impact on performance.
-  removable = false;
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
   ClauseId clause_id = ClauseIdError;
