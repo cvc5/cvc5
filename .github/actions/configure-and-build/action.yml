@@ -13,6 +13,8 @@ inputs:
     type: boolean
   strip-bin:
     default: ""
+  shell:
+    default: bash
 outputs:
   shared-build-dir:
     description: build directory of the shared build
@@ -28,7 +30,7 @@ runs:
       # Boolean inputs are actually strings:
       # https://github.com/actions/runner/issues/1483
       if: inputs.build-shared == '' || inputs.build-shared == 'true'
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Shared build"
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
@@ -36,7 +38,9 @@ runs:
         
         # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
         cd build-shared/ && pwd=$(pwd)
-        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
+        if [[ "$RUNNER_OS" != "Windows" ]]; then
+          $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
+        fi
         
         make -j${{ env.num_proc }}
 
@@ -48,14 +52,16 @@ runs:
       # Boolean inputs are actually strings:
       # https://github.com/actions/runner/issues/1483
       if: inputs.build-static == '' || inputs.build-static == 'true'
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Static build"
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
           --prefix=$(pwd)/build-static/install --werror --static --name=build-static --no-java-bindings
 
         cd build-static/ && pwd=$(pwd)
-        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
+        if [[ "$RUNNER_OS" != "Windows" ]]; then
+          $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
+        fi
 
         make -j${{ env.num_proc }}
 
@@ -67,7 +73,8 @@ runs:
         echo "::endgroup::"
         
     - name: Reset ccache base_dir
-      shell: bash
+      if: runner.os != 'Windows'
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Reset ccache base_dir"
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir =" $CCACHE_CONFIGPATH
