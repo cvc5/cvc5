@@ -171,6 +171,7 @@ std::ostream& operator<<(std::ostream& out, ProofFormat format)
     case ProofFormat::DOT: out << "dot"; break;
     case ProofFormat::LFSC: out << "lfsc"; break;
     case ProofFormat::ALETHE: out << "alethe"; break;
+    case ProofFormat::ALF: out << "alf"; break;
     case ProofFormat::DEFAULT: out << "default"; break;
     default: out << "?";
   }
