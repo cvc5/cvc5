@@ -18,9 +18,6 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_SUB_CONFLICT_H
 #define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_SUB_CONFLICT_H
 
-#include <map>
-#include <unordered_map>
-
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
