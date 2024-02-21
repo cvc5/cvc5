@@ -8064,7 +8064,7 @@ SynthResult Solver::checkSynth() const
       << "Cannot checkSynth unless sygus is enabled (use --sygus)";
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
-      << "Cannot make multiple checkSynth unless incremental solving is "
+      << "Cannot make multiple checkSynth calls unless incremental solving is "
          "enabled (try --incremental)";
   //////// all checks before this line
   return d_slv->checkSynth();
