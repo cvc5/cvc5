@@ -1157,6 +1157,8 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     ProofNodeConverter subtypeConvert(d_env, secc);
     std::shared_ptr<ProofNode> pfc = subtypeConvert.process(pf);
     AlwaysAssert(pfc != nullptr);
+    // now update
+    d_env.getProofNodeManager()->updateNode(pf.get(), pfc.get());
   }
 
   // take stats and check pedantic
