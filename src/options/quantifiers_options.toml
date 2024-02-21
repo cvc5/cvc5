@@ -805,7 +805,7 @@ name   = "Quantifiers"
   long       = "sub-cbqi-timeout=N"
   type       = "uint64_t"
   default    = "0"
-  help       = "timeout (in milliseconds) for subsolver calls for sub-cbqi."
+  help       = "Timeout (in milliseconds) for subsolver calls for sub-cbqi"
 
 ### Induction options
 
