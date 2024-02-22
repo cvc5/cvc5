@@ -73,6 +73,12 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     Trace("rpc") << "...success (basic)" << std::endl;
     return true;
   }
+  // if there are quantifiers, fail immediately
+  if (expr::hasBoundVar(a) || expr::hasBoundVar(b))
+  {
+    Trace("rpc") << "...fail (out of scope)" << std::endl;
+    return false;
+  }
   ++d_statTotalInputs;
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   // prove the equality
