@@ -45,6 +45,7 @@ if (USE_EDITLINE)
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
     set_tests_properties(interactive_shell_parser_inc PROPERTIES LABELS "binary")
+# TODO (see #10414): test this regardless of the guard
 if (NOT APPLE)
     add_test(
       NAME interactive_shell_define_fun_rec_multiline
