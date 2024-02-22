@@ -721,8 +721,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           if (isInternalDslProofRule(pcur.d_id))
           {
             // premises are the steps, stored in d_vars
-            ps.insert(
-                ps.end(), pcur.d_vars.begin(), pcur.d_vars.end());
+            ps.insert(ps.end(), pcur.d_vars.begin(), pcur.d_vars.end());
             if (pcur.d_id == DslProofRule::CONG
                 || pcur.d_id == DslProofRule::CONG_EVAL)
             {
