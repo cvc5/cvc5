@@ -180,8 +180,9 @@ bool CDProof::addStep(Node expected,
     pchildren.push_back(pc);
   }
 
-  // the user may have provided SYMM of an assumption
-  if (id == ProofRule::SYMM)
+  // The user may have provided SYMM of an assumption. This block is only
+  // necessary if d_autoSymm is enabled.
+  if (d_autoSymm && id == ProofRule::SYMM)
   {
     Assert(pchildren.size() == 1);
     if (isAssumption(pchildren[0].get()))
@@ -255,6 +256,21 @@ void CDProof::notifyNewProof(Node expected)
       Trace("cdproof") << "  no connect" << std::endl;
     }
   }
+}
+
+bool CDProof::addTrustedStep(Node expected,
+                             TrustId id,
+                             const std::vector<Node>& children,
+                             const std::vector<Node>& args,
+                             bool ensureChildren,
+                             CDPOverwrite opolicy)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(mkTrustId(id));
+  sargs.push_back(expected);
+  sargs.insert(sargs.end(), args.begin(), args.end());
+  return addStep(
+      expected, ProofRule::TRUST, children, sargs, ensureChildren, opolicy);
 }
 
 bool CDProof::addStep(Node expected,

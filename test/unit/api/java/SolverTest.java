@@ -25,6 +25,7 @@ import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
+import io.github.cvc5.modes.ProofFormat;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -385,6 +386,15 @@ class SolverTest
 
     Solver slv = new Solver();
     assertDoesNotThrow(() -> slv.mkTupleSort(new Sort[] {d_solver.getIntegerSort()}));
+  }
+
+  @Test
+  void mkNullableSort() throws CVC5ApiException
+  {
+    assertDoesNotThrow(() -> d_solver.mkNullableSort(d_solver.getIntegerSort()));
+
+    Solver slv = new Solver();
+    assertDoesNotThrow(() -> slv.mkNullableSort(d_solver.getIntegerSort()));
   }
 
   @Test
@@ -910,6 +920,66 @@ class SolverTest
     assertDoesNotThrow(() -> slv.mkTuple(new Term[] {slv.mkBitVector(3, "101", 2)}));
 
     assertDoesNotThrow(() -> slv.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+  }
+
+  @Test
+  void mkNullableSome()
+  {
+    assertDoesNotThrow(() -> d_solver.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+    assertDoesNotThrow(() -> d_solver.mkNullableSome(d_solver.mkInteger("5")));
+    assertDoesNotThrow(() -> d_solver.mkNullableSome(d_solver.mkReal("5.3")));
+
+    Solver slv = new Solver();
+    assertDoesNotThrow(() -> slv.mkNullableSome(slv.mkBitVector(3, "101", 2)));
+
+    assertDoesNotThrow(() -> slv.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+  }
+
+  @Test
+  void mkNullableVal()
+  {
+    Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+    Term value = d_solver.mkNullableVal(some);
+    value = d_solver.simplify(value);
+    assertEquals(5, value.getIntegerValue().intValue());
+  }
+
+  @Test
+  void mkNullableIsNull()
+  {
+    Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+    Term value = d_solver.mkNullableIsNull(some);
+    value = d_solver.simplify(value);
+    assertEquals(false, value.getBooleanValue());
+  }
+
+  @Test
+  void mkNullableIsSome()
+  {
+    Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+    Term value = d_solver.mkNullableIsSome(some);
+    value = d_solver.simplify(value);
+    assertEquals(true, value.getBooleanValue());
+  }
+
+  @Test
+  void mkNullableNull()
+  {
+    Sort nullableSort = d_solver.mkNullableSort(d_solver.getBooleanSort());
+    Term nullableNull = d_solver.mkNullableNull(nullableSort);
+    Term value = d_solver.mkNullableIsNull(nullableNull);
+    value = d_solver.simplify(value);
+    assertEquals(true, value.getBooleanValue());
+  }
+
+  @Test
+  void mkNullableLift()
+  {
+    Term some1 = d_solver.mkNullableSome(d_solver.mkInteger(1));
+    Term some2 = d_solver.mkNullableSome(d_solver.mkInteger(2));
+    Term some3 = d_solver.mkNullableLift(Kind.ADD, new Term[] {some1, some2});
+    Term three = d_solver.simplify(d_solver.mkNullableVal(some3));
+    assertEquals(3, three.getIntegerValue().intValue());
   }
 
   @Test
@@ -1847,6 +1917,48 @@ class SolverTest
   }
 
   @Test
+  void getProofAndProofToString()
+  {
+    d_solver.setOption("produce-proofs", "true");
+
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Sort intSort = d_solver.getIntegerSort();
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
+    Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
+
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    Term f = d_solver.mkConst(uToIntSort, "f");
+    Term p = d_solver.mkConst(intPredSort, "p");
+    Term zero = d_solver.mkInteger(0);
+    Term one = d_solver.mkInteger(1);
+    Term f_x = d_solver.mkTerm(Kind.APPLY_UF, f, x);
+    Term f_y = d_solver.mkTerm(Kind.APPLY_UF, f, y);
+    Term sum = d_solver.mkTerm(Kind.ADD, f_x, f_y);
+    Term p_0 = d_solver.mkTerm(Kind.APPLY_UF, p, zero);
+    Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_x));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_y));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, sum, one));
+    d_solver.assertFormula(p_0);
+    d_solver.assertFormula(p_f_y.notTerm());
+    assertTrue(d_solver.checkSat().isUnsat());
+
+    Proof[] proofs = d_solver.getProof();
+    assertNotEquals(0, proofs.length);
+    String printedProof = d_solver.proofToString(proofs[0]);
+    assertFalse(printedProof.isEmpty());
+    printedProof = d_solver.proofToString(proofs[0], ProofFormat.ALETHE);
+    assertFalse(printedProof.isEmpty());
+
+    proofs = d_solver.getProof(ProofComponent.SAT);
+    assertNotEquals(0, proofs.length);
+    printedProof = d_solver.proofToString(proofs[0], ProofFormat.NONE);
+    assertFalse(printedProof.isEmpty());
+  }
+
+  @Test
   void getUnsatCoreLemmas1()
   {
     d_solver.assertFormula(d_solver.mkFalse());
@@ -1987,6 +2099,26 @@ class SolverTest
     assertTrue(res.first.isUnsat());
     assertTrue(res.second.length == 1);
     assertEquals(res.second[0], ff);
+  }
+
+  @Test
+  void getTimeoutCoreAssuming() throws CVC5ApiException
+  {
+    d_solver.setOption("produce-unsat-cores", "true");
+    Term ff = d_solver.mkBoolean(false);
+    Term tt = d_solver.mkBoolean(true);
+    d_solver.assertFormula(tt);
+    Pair<Result, Term[]> res = d_solver.getTimeoutCoreAssuming(new Term[] {ff, tt});
+    assertTrue(res.first.isUnsat());
+    assertTrue(res.second.length == 1);
+    assertEquals(res.second[0], ff);
+  }
+
+  @Test
+  void getTimeoutCoreAssumingEmpty() throws CVC5ApiException
+  {
+    d_solver.setOption("produce-unsat-cores", "true");
+    assertThrows(CVC5ApiException.class, () -> d_solver.getTimeoutCoreAssuming(new Term[] {}));
   }
 
   @Test

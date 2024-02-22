@@ -96,9 +96,8 @@ void BagSolver::checkBasicOperations()
   }
 }
 
-
 void BagSolver::checkQuantifiedOperations()
-{ 
+{
   for (const Node& bag : d_state.getBags())
   {
     // iterate through all bags terms in each equivalent class
@@ -126,8 +125,6 @@ void BagSolver::checkQuantifiedOperations()
     }
   }
 }
-
-
 
 set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
 {
@@ -292,33 +289,50 @@ void BagSolver::checkMap(Node n)
   Assert(n.getKind() == Kind::BAG_MAP);
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
-  for (const Node& z : downwards)
+  for (const Node& x : upwards)
   {
-    Node y = d_state.getRepresentative(z);
-    if (!d_mapCache.count(n))
-    {
-      std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node>>> nMap =
-          std::make_shared<context::CDHashMap<Node, std::pair<Node, Node>>>(
-              userContext());
-      d_mapCache[n] = nMap;
-    }
-    if (!d_mapCache[n].get()->count(y))
-    {
-      auto [downInference, uf, preImageSize] = d_ig.mapDown(n, y);
-      d_im.lemmaTheoryInference(&downInference);
-      std::pair<Node, Node> yPair = std::make_pair(uf, preImageSize);
-      d_mapCache[n].get()->insert(y, yPair);
-    }
+    InferInfo upInference = d_ig.mapUp1(n, x);
+    d_im.lemmaTheoryInference(&upInference);
+  }
 
-    context::CDHashMap<Node, std::pair<Node, Node>>::iterator it =
-        d_mapCache[n].get()->find(y);
-
-    auto [uf, preImageSize] = it->second;
-
-    for (const Node& x : upwards)
+  if (d_state.isInjective(n[0]))
+  {
+    for (const Node& z : downwards)
     {
-      InferInfo upInference = d_ig.mapUp(n, uf, preImageSize, y, x);
+      InferInfo upInference = d_ig.mapDownInjective(n, z);
       d_im.lemmaTheoryInference(&upInference);
+    }
+  }
+  else
+  {
+    for (const Node& z : downwards)
+    {
+      Node y = d_state.getRepresentative(z);
+      if (!d_mapCache.count(n))
+      {
+        std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node>>> nMap =
+            std::make_shared<context::CDHashMap<Node, std::pair<Node, Node>>>(
+                userContext());
+        d_mapCache[n] = nMap;
+      }
+      if (!d_mapCache[n].get()->count(y))
+      {
+        auto [downInference, uf, preImageSize] = d_ig.mapDown(n, y);
+        d_im.lemmaTheoryInference(&downInference);
+        std::pair<Node, Node> yPair = std::make_pair(uf, preImageSize);
+        d_mapCache[n].get()->insert(y, yPair);
+      }
+
+      context::CDHashMap<Node, std::pair<Node, Node>>::iterator it =
+          d_mapCache[n].get()->find(y);
+
+      auto [uf, preImageSize] = it->second;
+
+      for (const Node& x : upwards)
+      {
+        InferInfo upInference = d_ig.mapUp2(n, uf, preImageSize, y, x);
+        d_im.lemmaTheoryInference(&upInference);
+      }
     }
   }
 }

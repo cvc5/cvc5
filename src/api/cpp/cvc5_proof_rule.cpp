@@ -27,7 +27,7 @@ const char* toString(ProofRule id)
     case ProofRule::ASSUME: return "ASSUME";
     case ProofRule::SCOPE: return "SCOPE";
     case ProofRule::SUBS: return "SUBS";
-    case ProofRule::REWRITE: return "REWRITE";
+    case ProofRule::MACRO_REWRITE: return "MACRO_REWRITE";
     case ProofRule::EVALUATE: return "EVALUATE";
     case ProofRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
@@ -38,20 +38,8 @@ const char* toString(ProofRule id)
     case ProofRule::DSL_REWRITE: return "DSL_REWRITE";
     case ProofRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
-    case ProofRule::THEORY_LEMMA: return "THEORY_LEMMA";
-    case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
-    case ProofRule::PREPROCESS: return "PREPROCESS";
-    case ProofRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
-    case ProofRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
-    case ProofRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
-    case ProofRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
-    case ProofRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
-    case ProofRule::TRUST_REWRITE: return "TRUST_REWRITE";
-    case ProofRule::TRUST_FLATTENING_REWRITE: return "TRUST_FLATTENING_REWRITE";
-    case ProofRule::TRUST_SUBS: return "TRUST_SUBS";
-    case ProofRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
-    case ProofRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
-    case ProofRule::THEORY_INFERENCE: return "THEORY_INFERENCE";
+    case ProofRule::TRUST: return "TRUST";
+    case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
     //================================================= Boolean rules
     case ProofRule::RESOLUTION: return "RESOLUTION";
@@ -111,6 +99,7 @@ const char* toString(ProofRule id)
     case ProofRule::SYMM: return "SYMM";
     case ProofRule::TRANS: return "TRANS";
     case ProofRule::CONG: return "CONG";
+    case ProofRule::NARY_CONG: return "NARY_CONG";
     case ProofRule::TRUE_INTRO: return "TRUE_INTRO";
     case ProofRule::TRUE_ELIM: return "TRUE_ELIM";
     case ProofRule::FALSE_INTRO: return "FALSE_INTRO";
@@ -126,7 +115,7 @@ const char* toString(ProofRule id)
     case ProofRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case ProofRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
     //================================================= Bit-Vector rules
-    case ProofRule::BV_BITBLAST: return "BV_BITBLAST";
+    case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
@@ -140,11 +129,11 @@ const char* toString(ProofRule id)
     case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
-    case ProofRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     //================================================= String rules
     case ProofRule::CONCAT_EQ: return "CONCAT_EQ";
     case ProofRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
     case ProofRule::CONCAT_CONFLICT: return "CONCAT_CONFLICT";
+    case ProofRule::CONCAT_CONFLICT_DEQ: return "CONCAT_CONFLICT_DEQ";
     case ProofRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
     case ProofRule::CONCAT_CSPLIT: return "CONCAT_CSPLIT";
     case ProofRule::CONCAT_LPROP: return "CONCAT_LPROP";
@@ -162,7 +151,7 @@ const char* toString(ProofRule id)
     case ProofRule::RE_ELIM: return "RE_ELIM";
     case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
-    case ProofRule::STRING_INFERENCE: return "STRING_INFERENCE";
+    case ProofRule::MACRO_STRING_INFERENCE: return "MACRO_STRING_INFERENCE";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
     case ProofRule::ARITH_SUM_UB: return "ARITH_SUM_UB";

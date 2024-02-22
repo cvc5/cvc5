@@ -21,6 +21,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/resolution_proofs_util.h"
+#include "proof/subtype_elim_proof_converter.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -262,10 +263,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       Node eq = ts.eqNode(tr);
       // apply REWRITE proof rule
-      if (!updateInternal(eq, ProofRule::REWRITE, {}, rargs, cdp))
+      if (!updateInternal(eq, ProofRule::MACRO_REWRITE, {}, rargs, cdp))
       {
         // if not elimianted, add as step
-        cdp->addStep(eq, ProofRule::REWRITE, {}, rargs);
+        cdp->addStep(eq, ProofRule::MACRO_REWRITE, {}, rargs);
       }
       tchildren.push_back(eq);
     }
@@ -442,7 +443,19 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   {
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
-    std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
+    std::vector<Node> pols;
+    std::vector<Node> lits;
+    Assert((args.size() + 1) % 2 == 0);
+    for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
+    {
+      pols.push_back(args[i]);
+      lits.push_back(args[i + 1]);
+    }
+    Assert(pols.size() == children.size() - 1);
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> chainResArgs;
+    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, pols));
+    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, lits));
     Node chainConclusion = d_pc->checkDebug(
         ProofRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
@@ -471,7 +484,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       return chainConclusion;
     }
     size_t initProofSize = cdp->getNumProofNodes();
-    NodeManager* nm = NodeManager::currentNM();
     // If we got here, then chainConclusion is NECESSARILY an OR node
     Assert(chainConclusion.getKind() == Kind::OR);
     // get the literals in the chain conclusion
@@ -501,7 +513,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     //
     // Thus we rely on the standard utility to determine if args[0] is singleton
     // based on the premises and arguments of the resolution
-    if (proof::isSingletonClause(args[0], children, chainResArgs))
+    std::vector<Node> chainResArgsOrig{args.begin() + 1, args.end()};
+    if (proof::isSingletonClause(args[0], children, chainResArgsOrig))
     {
       conclusionLits.push_back(args[0]);
     }
@@ -782,7 +795,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
             << eq << std::endl
             << eqq << std::endl
             << "from " << children << " applied to " << t << std::endl;
-        cdp->addStep(eqq, ProofRule::TRUST_SUBS, children, {eqq});
+        cdp->addTrustedStep(eqq, TrustId::SUBS_NO_ELABORATE, children, {});
       }
     }
     else
@@ -791,7 +804,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     return eqq;
   }
-  else if (id == ProofRule::REWRITE)
+  else if (id == ProofRule::MACRO_REWRITE)
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
@@ -817,15 +830,16 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         // did not have a proof of rewriting, probably isExtEq is true
         if (isExtEq)
         {
-          // update to THEORY_REWRITE with idr
+          // update to TRUST_THEORY_REWRITE with idr
           Assert(args.size() >= 1);
           Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
-          cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
+          cdp->addStep(
+              eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
         else
         {
           // this should never be applied
-          cdp->addStep(eq, ProofRule::TRUST_REWRITE, {}, {eq});
+          cdp->addTrustedStep(eq, TrustId::REWRITE_NO_ELABORATE, {}, {});
         }
       }
       else
@@ -863,7 +877,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
           Node mid = mkMethodId(midi);
-          cdp->addStep(eqd, ProofRule::REWRITE, {}, {retCurr, mid});
+          cdp->addStep(eqd, ProofRule::MACRO_REWRITE, {}, {retCurr, mid});
           transEq.push_back(eqd);
         }
         retCurr = retDef;
@@ -885,7 +899,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         // in this case, must be a non-standard rewrite kind
         Assert(args.size() >= 2);
         targs.push_back(args[1]);
-        Node eqpp = expandMacros(ProofRule::THEORY_REWRITE, {}, targs, cdp);
+        Node eqpp =
+            expandMacros(ProofRule::TRUST_THEORY_REWRITE, {}, targs, cdp);
         transEq.push_back(eqp);
         if (eqpp.isNull())
         {
@@ -928,8 +943,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       TNode child = children[i];
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp = nm->mkNode(
-          isPos ? Kind::GT : Kind::LT, scalar, nm->mkConstInt(Rational(0)));
+      Node scalarCmp =
+          nm->mkNode(isPos ? Kind::GT : Kind::LT,
+                     scalar,
+                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue =
           steps.tryStep(ProofRule::EVALUATE, {}, {scalarCmp});
@@ -959,7 +976,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
                           << std::endl;
     return sumBounds;
   }
-  else if (id == ProofRule::STRING_INFERENCE)
+  else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {
     // get the arguments
     Node conc;
@@ -976,7 +993,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       }
     }
   }
-  else if (id == ProofRule::BV_BITBLAST)
+  else if (id == ProofRule::MACRO_BV_BITBLAST)
   {
     bv::BBProof bb(d_env, nullptr, true);
     Node eq = args[0];
@@ -1003,15 +1020,16 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     TheoryId tid = THEORY_LAST;
     MethodId mid = MethodId::RW_REWRITE;
     // if theory rewrite, get diagnostic information
-    if (id == ProofRule::THEORY_REWRITE)
+    if (id == ProofRule::TRUST_THEORY_REWRITE)
     {
       builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
       getMethodId(args[2], mid);
     }
     int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
+    int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
     // attempt to reconstruct the proof of the equality into cdp using the
     // rewrite database proof reconstructor
-    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit))
+    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
     {
       // If we made (= res true) above, conclude the original res.
       if (reqTrueElim)
@@ -1024,9 +1042,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     // otherwise no update
   }
-
-  // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
-
   return Node::null();
 }
 
@@ -1134,6 +1149,18 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
+
+  // eliminate subtypes if option is specified
+  if (options().proof.proofElimSubtypes)
+  {
+    SubtypeElimConverterCallback secc(d_env);
+    ProofNodeConverter subtypeConvert(d_env, secc);
+    std::shared_ptr<ProofNode> pfc = subtypeConvert.process(pf);
+    AlwaysAssert(pfc != nullptr);
+    // now update
+    d_env.getProofNodeManager()->updateNode(pf.get(), pfc.get());
+  }
+
   // take stats and check pedantic
   d_finalCb.initializeUpdate();
   d_finalizer.process(pf);

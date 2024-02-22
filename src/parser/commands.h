@@ -180,9 +180,8 @@ class CVC5_EXPORT EchoCommand : public Cmd
   std::string getOutput() const;
 
   void invoke(cvc5::Solver* solver, parser::SymManager* sm) override;
-  void invoke(cvc5::Solver* solver,
-              parser::SymManager* sm,
-              std::ostream& out) override;
+  /** The result is the printed string */
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
 
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -1045,6 +1044,7 @@ class CVC5_EXPORT GetDifficultyCommand : public Cmd
 class CVC5_EXPORT GetTimeoutCoreCommand : public Cmd
 {
  public:
+  GetTimeoutCoreCommand(const std::vector<Term>& assumptions);
   GetTimeoutCoreCommand();
   cvc5::Result getResult() const;
   const std::vector<cvc5::Term>& getTimeoutCore() const;
@@ -1060,6 +1060,8 @@ class CVC5_EXPORT GetTimeoutCoreCommand : public Cmd
   cvc5::Solver* d_solver;
   /** The symbol manager we were invoked with */
   parser::SymManager* d_sm;
+  /** Assumptions */
+  std::vector<Term> d_assumptions;
   /** the result of the timeout core call */
   std::pair<cvc5::Result, std::vector<cvc5::Term>> d_result;
 };

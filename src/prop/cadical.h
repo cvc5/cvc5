@@ -22,6 +22,7 @@
 
 #include <cadical.hpp>
 
+#include "context/cdhashset.h"
 #include "prop/sat_solver.h"
 #include "smt/env_obj.h"
 
@@ -70,7 +71,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   void initialize(context::Context* context,
                   prop::TheoryProxy* theoryProxy,
                   context::UserContext* userContext,
-                  ProofNodeManager* pnm) override;
+                  PropPfManager* ppm) override;
   void push() override;
 
   void pop() override;
@@ -88,8 +89,6 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::vector<Node> getOrderHeap() const override;
 
   std::shared_ptr<ProofNode> getProof() override;
-
-  SatProofManager* getProofManager() override;
 
  private:
   /**
@@ -122,8 +121,6 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::unique_ptr<CaDiCaL::Solver> d_solver;
   /** The CaDiCaL terminator (for termination via resource manager). */
   std::unique_ptr<CaDiCaL::Terminator> d_terminator;
-  /** Flag indicating if SAT solver is in search(). */
-  bool d_in_search = false;
 
   /** Context for synchronizing the SAT solver when in CDCL(T) mode. */
   context::Context* d_context = nullptr;

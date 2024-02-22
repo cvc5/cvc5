@@ -20,7 +20,100 @@
 #ifndef CVC5__API__CHECKS_H
 #define CVC5__API__CHECKS_H
 
+#include <cvc5/cvc5.h>
+
+#include <sstream>
+
+#include "base/modal_exception.h"
+#include "options/option_exception.h"
+
 namespace cvc5 {
+
+#define CVC5_API_TRY_CATCH_BEGIN \
+  try                            \
+  {
+#define CVC5_API_TRY_CATCH_END                         \
+  }                                                    \
+  catch (const internal::OptionException& e)           \
+  {                                                    \
+    throw CVC5ApiOptionException(e.getMessage());      \
+  }                                                    \
+  catch (const internal::RecoverableModalException& e) \
+  {                                                    \
+    throw CVC5ApiRecoverableException(e.getMessage()); \
+  }                                                    \
+  catch (const internal::Exception& e)                 \
+  {                                                    \
+    throw CVC5ApiException(e.getMessage());            \
+  }                                                    \
+  catch (const std::invalid_argument& e) { throw CVC5ApiException(e.what()); }
+
+/* -------------------------------------------------------------------------- */
+/* API guard helpers                                                          */
+/* -------------------------------------------------------------------------- */
+
+class CVC5ApiExceptionStream
+{
+ public:
+  CVC5ApiExceptionStream() {}
+  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
+   * a destructor that throws an exception and in C++11 all destructors
+   * default to noexcept(true) (else this triggers a call to std::terminate). */
+  ~CVC5ApiExceptionStream() noexcept(false)
+  {
+    if (std::uncaught_exceptions() == 0)
+    {
+      throw CVC5ApiException(d_stream.str());
+    }
+  }
+
+  std::ostream& ostream() { return d_stream; }
+
+ private:
+  std::stringstream d_stream;
+};
+
+class CVC5ApiRecoverableExceptionStream
+{
+ public:
+  CVC5ApiRecoverableExceptionStream() {}
+  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
+   * a destructor that throws an exception and in C++11 all destructors
+   * default to noexcept(true) (else this triggers a call to std::terminate). */
+  ~CVC5ApiRecoverableExceptionStream() noexcept(false)
+  {
+    if (std::uncaught_exceptions() == 0)
+    {
+      throw CVC5ApiRecoverableException(d_stream.str());
+    }
+  }
+
+  std::ostream& ostream() { return d_stream; }
+
+ private:
+  std::stringstream d_stream;
+};
+
+class CVC5ApiUnsupportedExceptionStream
+{
+ public:
+  CVC5ApiUnsupportedExceptionStream() {}
+  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
+   * a destructor that throws an exception and in C++11 all destructors
+   * default to noexcept(true) (else this triggers a call to std::terminate). */
+  ~CVC5ApiUnsupportedExceptionStream() noexcept(false)
+  {
+    if (std::uncaught_exceptions() == 0)
+    {
+      throw CVC5ApiUnsupportedException(d_stream.str());
+    }
+  }
+
+  std::ostream& ostream() { return d_stream; }
+
+ private:
+  std::stringstream d_stream;
+};
 
 /* -------------------------------------------------------------------------- */
 /* Basic check macros.                                                        */
@@ -33,7 +126,7 @@ namespace cvc5 {
 #define CVC5_API_CHECK(cond) \
   CVC5_PREDICT_TRUE(cond)    \
   ? (void)0                  \
-  : cvc5::internal::OstreamVoider() & CVC5ApiExceptionStream().ostream()
+  : cvc5::internal::OstreamVoider() & cvc5::CVC5ApiExceptionStream().ostream()
 
 /**
  * The base check macro for throwing recoverable exceptions.
@@ -43,7 +136,7 @@ namespace cvc5 {
   CVC5_PREDICT_TRUE(cond)                \
   ? (void)0                              \
   : cvc5::internal::OstreamVoider()      \
-          & CVC5ApiRecoverableExceptionStream().ostream()
+          & cvc5::CVC5ApiRecoverableExceptionStream().ostream()
 
 /**
  * The base check macro for throwing unsupported exceptions.
@@ -53,7 +146,7 @@ namespace cvc5 {
   CVC5_PREDICT_TRUE(cond)                \
   ? (void)0                              \
   : cvc5::internal::OstreamVoider()      \
-          & CVC5ApiUnsupportedExceptionStream().ostream()
+          & cvc5::CVC5ApiUnsupportedExceptionStream().ostream()
 
 /* -------------------------------------------------------------------------- */
 /* Not null checks.                                                           */
@@ -88,7 +181,7 @@ namespace cvc5 {
 /** Check if given kind is a valid kind. */
 #define CVC5_API_KIND_CHECK(kind)     \
   CVC5_API_CHECK(isDefinedKind(kind)) \
-      << "Invalid kind '" << kindToString(kind) << "'";
+      << "Invalid kind '" << std::to_string(kind) << "'";
 
 /**
  * Check if given kind is a valid kind.
@@ -100,7 +193,7 @@ namespace cvc5 {
   ? (void)0                                      \
   : cvc5::internal::OstreamVoider()              \
           & CVC5ApiExceptionStream().ostream()   \
-                << "Invalid kind '" << kindToString(kind) << "', expected "
+                << "Invalid kind '" << std::to_string(kind) << "', expected "
 
 /* -------------------------------------------------------------------------- */
 /* Argument checks.                                                           */

@@ -339,4 +339,14 @@ parameterized APPLY_INDEXED_SYMBOLIC APPLY_INDEXED_SYMBOLIC_OP 1: "generic index
 typerule APPLY_INDEXED_SYMBOLIC_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule APPLY_INDEXED_SYMBOLIC ::cvc5::internal::theory::builtin::ApplyIndexedSymbolicTypeRule
 
+
+# constants
+constant SORT_TO_TERM \
+  class \
+  SortToTerm \
+  ::cvc5::internal::SortToTermHashFunction \
+  "expr/sort_to_term.h" \
+  "term representing a sort; payload is an instance of the cvc5::internal::SortToTerm class"
+typerule SORT_TO_TERM "SimpleTypeRule<RBuiltinOperator>"
+
 endtheory

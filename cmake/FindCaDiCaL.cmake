@@ -23,18 +23,37 @@ find_library(CaDiCaL_LIBRARIES NAMES cadical)
 
 set(CaDiCaL_FOUND_SYSTEM FALSE)
 if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
-  set(CaDiCaL_FOUND_SYSTEM TRUE)
+  # Try to compile our version file
+  try_run(RUN_RESULT_VAR
+    COMPILE_RESULT_VAR
+    SOURCE_FROM_CONTENT CaDiCaL_version.cpp
+    "
+    #include <cadical.hpp>
+    #include <iostream>
 
-  # Unfortunately it is not part of the headers
-  find_program(CaDiCaL_BINARY NAMES cadical)
-  if(CaDiCaL_BINARY)
-    execute_process(
-      COMMAND ${CaDiCaL_BINARY} --version OUTPUT_VARIABLE CaDiCaL_VERSION
-    )
-  else()
+    int main(void)
+    {
+      std::cout << CaDiCaL::Solver::version() << std::endl;
+      return 0;
+    }
+    "
+    LINK_LIBRARIES ${CaDiCaL_LIBRARIES}
+    RUN_OUTPUT_VARIABLE CaDiCaL_VERSION
+  )
+
+  # If this failed to compile or run, we have bigger issues
+  if (NOT ${RUN_RESULT_VAR} EQUAL 0 OR NOT ${COMPILE_RESULT_VAR})
     set(CaDiCaL_VERSION "")
   endif()
 
+  # Minimum supported version
+  set(CaDiCaL_FIND_VERSION "1.6.0")
+
+  # Set FOUND_SYSTEM to true; check_system_version will unset this if the
+  # version is less than the minimum required
+  set(CaDiCaL_FOUND_SYSTEM TRUE)
+
+  # Check the version against the required version
   check_system_version("CaDiCaL")
 endif()
 
@@ -47,8 +66,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-1.7.2")
-  set(CaDiCaL_CHECKSUM "6c144884fd04cf998fa3c353c9649a0a4d46578c")
+  set(CaDiCaL_VERSION "rel-1.7.4")
+  set(CaDiCaL_CHECKSUM "9cc70c65c80f40c0c13b57cb43ea2a6804cae4eb")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare

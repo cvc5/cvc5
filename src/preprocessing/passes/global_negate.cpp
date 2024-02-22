@@ -19,6 +19,7 @@
 
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -35,33 +36,14 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
   Assert(!assertions.empty());
   Trace("cegqi-gn") << "Global negate : " << std::endl;
   // collect free variables in all assertions
-  std::vector<Node> free_vars;
-  std::vector<TNode> visit;
+  std::unordered_set<Node> syms;
   std::unordered_set<TNode> visited;
   for (const Node& as : assertions)
   {
     Trace("cegqi-gn") << "  " << as << std::endl;
-    TNode cur = as;
-    // compute free variables
-    visit.push_back(cur);
-    do
-    {
-      cur = visit.back();
-      visit.pop_back();
-      if (visited.find(cur) == visited.end())
-      {
-        visited.insert(cur);
-        if (cur.isVar() && cur.getKind() != Kind::BOUND_VARIABLE)
-        {
-          free_vars.push_back(cur);
-        }
-        for (const TNode& cn : cur)
-        {
-          visit.push_back(cn);
-        }
-      }
-    } while (!visit.empty());
+    expr::getSymbols(as, syms, visited);
   }
+  std::vector<Node> free_vars(syms.begin(), syms.end());
 
   Node body;
   if (assertions.size() == 1)
@@ -108,11 +90,17 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   NodeManager* nm = NodeManager::currentNM();
   Node simplifiedNode = simplify(assertionsToPreprocess->ref(), nm);
   Node trueNode = nm->mkConst(true);
+  // mark as negated
+  assertionsToPreprocess->markNegated();
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     if (i == 0)
     {
       assertionsToPreprocess->replace(i, simplifiedNode);
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
     else
     {

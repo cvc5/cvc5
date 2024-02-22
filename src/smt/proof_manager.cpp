@@ -21,6 +21,7 @@
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
+#include "proof/alf/alf_printer.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
@@ -87,7 +88,7 @@ PfManager::PfManager(Env& env)
         != options::ProofGranularityMode::REWRITE)
     {
       d_pfpp->setEliminateRule(ProofRule::SUBS);
-      d_pfpp->setEliminateRule(ProofRule::REWRITE);
+      d_pfpp->setEliminateRule(ProofRule::MACRO_REWRITE);
       if (options().proof.proofGranularityMode
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
@@ -96,8 +97,8 @@ PfManager::PfManager(Env& env)
       }
     }
     // theory-specific lazy proof reconstruction
-    d_pfpp->setEliminateRule(ProofRule::STRING_INFERENCE);
-    d_pfpp->setEliminateRule(ProofRule::BV_BITBLAST);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -198,7 +199,9 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
       getAssertions(as, unifiedAssertions);
       Pf pf = d_pnm->mkScope(
           pfn, unifiedAssertions, true, options().proof.proofPruneInput);
-      Assert(pf->getRule() == ProofRule::SCOPE);
+      // if this is violated, there is unsoundness since we have shown
+      // false that does not depend on the input.
+      AlwaysAssert(pf->getRule() == ProofRule::SCOPE);
       // 2. Extract minimum unified assertions from the scope node.
       std::unordered_set<Node> minUnifiedAssertions;
       minUnifiedAssertions.insert(pf->getArguments().cbegin(),
@@ -225,12 +228,16 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
 
 void PfManager::printProof(std::ostream& out,
                            std::shared_ptr<ProofNode> fp,
-                           options::ProofFormatMode mode)
+                           options::ProofFormatMode mode,
+                           const std::map<Node, std::string>& assertionNames)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
-  // if we are in incremental mode, we don't want to invalidate the proof
-  // nodes in fp, since these may be reused in further check-sat calls
-  if (options().base.incrementalSolving
+  // We don't want to invalidate the proof nodes in fp, since these may be
+  // reused in further check-sat calls, or they may be used again if the
+  // user asks for the proof again (in non-incremental mode). We don't need to
+  // clone if the printing below does not modify the proof, which is the case
+  // for proof formats ALF and NONE.
+  if (mode != options::ProofFormatMode::ALF
       && mode != options::ProofFormatMode::NONE)
   {
     fp = fp->clone();
@@ -242,6 +249,13 @@ void PfManager::printProof(std::ostream& out,
     proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
+  else if (mode == options::ProofFormatMode::ALF)
+  {
+    Assert(fp->getRule() == ProofRule::SCOPE);
+    proof::AlfNodeConverter atp;
+    proof::AlfPrinter alfp(d_env, atp);
+    alfp.print(out, fp);
+  }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;
@@ -249,7 +263,7 @@ void PfManager::printProof(std::ostream& out,
         d_env, anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
     proof::AletheProofPrinter vpp(d_env);
-    vpp.print(out, fp);
+    vpp.print(out, fp, assertionNames);
   }
   else if (mode == options::ProofFormatMode::LFSC)
   {

@@ -218,14 +218,6 @@ name   = "Quantifiers"
   help = "Quantifiers module considers only ground terms connected to current assertions."
 
 [[option]]
-  name       = "termDbCd"
-  category   = "expert"
-  long       = "term-db-cd"
-  type       = "bool"
-  default    = "true"
-  help       = "register terms in term database based on the SAT context"
-
-[[option]]
   name       = "registerQuantBodyTerms"
   category   = "expert"
   long       = "register-quant-body-terms"
@@ -764,22 +756,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "cbqi experimental variable ordering"
-
-[[option]]
-  name       = "cbqiEagerTest"
-  category   = "expert"
-  long       = "cbqi-eager-test"
-  type       = "bool"
-  default    = "true"
-  help       = "optimization, test cbqi instances eagerly"
-
-[[option]]
-  name       = "cbqiEagerCheckRd"
-  category   = "expert"
-  long       = "cbqi-eager-check-rd"
-  type       = "bool"
-  default    = "true"
-  help       = "optimization, eagerly check relevant domain of matched position"
 
 [[option]]
   name       = "cbqiSkipRd"

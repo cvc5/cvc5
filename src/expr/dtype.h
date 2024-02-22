@@ -213,6 +213,9 @@ class DType
   /** set that this datatype is a tuple */
   void setTuple();
 
+  /** set that this datatype is a nullable */
+  void setNullable();
+
   /** set that this datatype is a record */
   void setRecord();
 
@@ -242,6 +245,9 @@ class DType
 
   /** is this a tuple datatype? */
   bool isTuple() const;
+
+  /** is this a nullable datatype? */
+  bool isNullable() const;
 
   /** is this a record datatype? */
   bool isRecord() const;
@@ -570,6 +576,8 @@ class DType
   bool d_isCo;
   /** whether the datatype is a tuple */
   bool d_isTuple;
+  /** whether the datatype is a nullable */
+  bool d_isNullable;
   /** whether the datatype is a record */
   bool d_isRecord;
   /** the constructors of this datatype */

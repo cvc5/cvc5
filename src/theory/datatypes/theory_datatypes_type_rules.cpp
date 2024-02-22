@@ -637,6 +637,54 @@ TypeNode CodatatypeBoundVariableTypeRule::computeType(NodeManager* nodeManager,
   return n.getConst<CodatatypeBoundVariable>().getType();
 }
 
+TypeNode NullableLiftTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode NullableLiftTypeRule::computeType(NodeManager* nodeManager,
+                                           TNode n,
+                                           bool check,
+                                           std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::NULLABLE_LIFT);
+  if (check)
+  {
+    std::vector<TypeNode> argTypes;
+    TypeNode functionType = n[0].getType(check);
+    if (!functionType.isFunction())
+    {
+      std::stringstream ss;
+      ss << "Argument 0 '" << n[0] << "' in term " << n << " has type '"
+         << functionType << "' which is not a function type.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> funArgTypes = functionType.getArgTypes();
+    for (size_t i = 1; i < n.getNumChildren(); i++)
+    {
+      TypeNode argType = n[i].getType(check);
+      if (!argType.isNullable())
+      {
+        std::stringstream ss;
+        ss << "Argument " << i << " '" << n[i] << "' in term " << n
+           << " has type '" << argType << "' which is not a nullable type.";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+      TypeNode elementType = argType[0];
+      if (funArgTypes[i - 1] != elementType)
+      {
+        std::stringstream ss;
+        ss << "Argument " << (i - 1) << " in function '" << n[0] << " has type "
+           << funArgTypes[i - 1] << ". Expected '" << n[i] << "' to have type "
+           << nodeManager->mkNullableType(funArgTypes[i - 1]) << " instead of "
+           << argType;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+  }
+  return nodeManager->mkNullableType(n[0].getType().getRangeType());
+}
+
 }  // namespace datatypes
 }  // namespace theory
 }  // namespace cvc5::internal

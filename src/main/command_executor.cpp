@@ -71,6 +71,13 @@ void CommandExecutor::storeOptionsAsOriginal()
   d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
 
+void CommandExecutor::setOptionInternal(const std::string& key,
+                                        const std::string& value)
+{
+  // set option, marked not from user.
+  d_solver->d_slv->setOption(key, value, false);
+}
+
 void CommandExecutor::printStatistics(std::ostream& out) const
 {
   if (d_solver->getOptionInfo("stats").boolValue())
@@ -97,7 +104,7 @@ bool CommandExecutor::doCommand(Command* cmd)
 {
   // formerly was guarded by verbosity > 2
   Trace("cmd-exec") << "Invoking: " << *cmd << std::endl;
-  return doCommandSingleton(cmd->toCmd());
+  return doCommandSingleton(cmd->d_cmd.get());
 }
 
 void CommandExecutor::reset()
@@ -166,6 +173,12 @@ bool CommandExecutor::doCommandSingleton(Cmd* cmd)
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
+    if (d_solver->getOptionInfo("dump-unsat-cores-lemmas").boolValue()
+        && isResultUnsat)
+    {
+      getterCommands.emplace_back(new GetUnsatCoreLemmasCommand());
+    }
+
     if (d_solver->getOptionInfo("dump-difficulty").boolValue()
         && (isResultUnsat || isResultSat || res.isUnknown()))
     {
@@ -198,7 +211,7 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
   {
-    solver->getOutput("raw-benchmark") << cmd->toString();
+    solver->getOutput("raw-benchmark") << cmd->toString() << std::endl;
   }
 
   // In parse-only mode, we do not invoke any of the commands except define-*
@@ -207,7 +220,8 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<ResetCommand*>(cmd) == nullptr
       && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr
-      && dynamic_cast<DatatypeDeclarationCommand*>(cmd) == nullptr)
+      && dynamic_cast<DatatypeDeclarationCommand*>(cmd) == nullptr
+      && dynamic_cast<DefineFunctionRecCommand*>(cmd) == nullptr)
   {
     return true;
   }

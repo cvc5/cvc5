@@ -32,8 +32,6 @@
 #include <iostream>
 #include <string>
 
-#include "parser/parser_exception.h"
-
 using namespace cvc5;
 using namespace cvc5::internal;
 using namespace cvc5::parser;
@@ -47,10 +45,6 @@ int main()
     return runTest();
   }
   catch (cvc5::CVC5ApiException& e)
-  {
-    std::cerr << e.getMessage() << std::endl;
-  }
-  catch (ParserException& e)
   {
     std::cerr << e.getMessage() << std::endl;
   }
@@ -70,8 +64,8 @@ std::string parse(std::string instr,
 
   std::string declarations;
 
-    declarations =
-        "\
+  declarations =
+      "\
   (declare-sort U 0)\n\
   (declare-fun f (U) U)\n\
   (declare-fun x () U)\n\
@@ -81,7 +75,7 @@ std::string parse(std::string instr,
   ";
 
   cvc5::Solver solver;
-  std::string ilang = "LANG_SMTLIB_V2_6";
+  modes::InputLanguage ilang = modes::InputLanguage::SMT_LIB_2_6;
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);
@@ -93,18 +87,24 @@ std::string parse(std::string instr,
   // we don't need to execute the commands, but we DO need to parse them to
   // get the declarations
   std::stringstream tmp;
-  while (std::unique_ptr<Command> c = parser.nextCommand())
+  Command c;
+  while (true)
   {
+    c = parser.nextCommand();
+    if (c.isNull())
+    {
+      break;
+    }
     // invoke the command, which may bind symbols
-    c->invoke(&solver, &symman, tmp);
+    c.invoke(&solver, &symman, tmp);
   }
   assert(parser.done());  // parser should be done
   std::stringstream ssi;
   ssi << instr;
   parser.setStreamInput(ilang, ss, "internal-buffer");
-  cvc5::Term e = parser.nextExpression();
+  cvc5::Term e = parser.nextTerm();
   std::string s = e.toString();
-  assert(parser.nextExpression().isNull());  // next expr should be null
+  assert(parser.nextTerm().isNull());  // next expr should be null
   return s;
 }
 
