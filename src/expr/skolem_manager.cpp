@@ -431,7 +431,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::MOD_BY_ZERO:
     case SkolemFunId::STRINGS_OCCUR_INDEX:
     case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemFunId::STRINGS_OCCUR_LEN:
     case SkolemFunId::STRINGS_OCCUR_LEN_RE:
     case SkolemFunId::STRINGS_STOI_RESULT:
     case SkolemFunId::STRINGS_ITOS_RESULT:
