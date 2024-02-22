@@ -487,6 +487,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     Node transEqStart = target[0].eqNode(transEq[0]);
     // proves both
     pi->d_id = DslProofRule::TRANS;
+    pi->d_vars.clear();
     pi->d_vars.push_back(transEqStart);
     pi->d_vars.push_back(transEq);
     Trace("rpc-debug2") << "...original equality was " << transEqStart
@@ -721,7 +722,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           {
             // premises are the steps, stored in d_vars
             ps.insert(
-                premises[cur].end(), pcur.d_vars.begin(), pcur.d_vars.end());
+                ps.end(), pcur.d_vars.begin(), pcur.d_vars.end());
             if (pcur.d_id == DslProofRule::CONG
                 || pcur.d_id == DslProofRule::CONG_EVAL)
             {

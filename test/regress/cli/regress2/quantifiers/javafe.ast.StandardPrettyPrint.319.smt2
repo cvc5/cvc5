@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dsl-proof
 (set-logic AUFLIA)
 (set-info :source | Simplify Theorem Prover Benchmark Suite |)
 (set-info :smt-lib-version 2.6)
