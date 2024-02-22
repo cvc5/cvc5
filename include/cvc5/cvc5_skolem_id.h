@@ -52,10 +52,11 @@ enum ENUM(SkolemFunId) : uint32_t
   /** The skolem is not exported */
   EVALUE(INTERNAL),
   /** 
-   * The input variable with a given name.
+   * The input variable with a given name. This is used when the option
+   * fresh-declarations is set to false.
    * 
    * - Number of skolem arguments: ``2``
-   *   - ``1:`` A string constant corresponding to the name of the variable
+   *   - ``1:`` A string constant corresponding to the name of the variable.
    *   - ``2:`` A term that represents the sort of the variable.
    */
   EVALUE(INPUT_VARIABLE),
@@ -105,8 +106,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(SQRT),
   /**
-   * Argument used to purify trancendental function app f(x).
-   * For sin(x), this is a variable that is assumed to be in phase with x that
+   * Argument used to purify trancendental function app (f x).
+   * For (sin f), this is a variable that is assumed to be in phase with x that
    * is between -pi and pi
    *
    * - Number of skolem arguments: ``1``
@@ -134,34 +135,58 @@ enum ENUM(SkolemFunId) : uint32_t
    *            of the n^th variable in the variable list of Q.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
-  //---------------------------------------------
-  //----- string skolems are cached based on (a, b)
   /** 
-   * exists k. ( string b occurs k times in string a )
+   * An integer corresponding to the number of times a string occurs in another
+   * string. This is used to reason about str.replace_all.
+   * 
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The first string.
+   *   - ``2:`` The second string.
    */
   EVALUE(STRINGS_NUM_OCCUR),
-  /** exists k. ( regular expression b can be matched k times in a ) */
-  EVALUE(STRINGS_NUM_OCCUR_RE),
-  /** For function k: Int -> Int
-   *   exists k.
-   *     forall 0 <= x <= n,
-   *       k(x) is the end index of the x^th occurrence of b in a
-   *   where n is the number of occurrences of b in a, and k(0)=0.
+  /** 
+   * A function k: Int -> Int such that forall x -> 0...n, k(x) is the end
+   * index of the x^th occurrence of a string b in string a, where n is the
+   * number of occurrences of b in a, and k(0)=0. This is used to reason about
+   * str.replace_all.
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The first string.
+   *   - ``2:`` The second string.
    */
   EVALUE(STRINGS_OCCUR_INDEX),
-  /** Same, but where b is a regular expression */
+  /**
+   * Analogous to STRINGS_NUM_OCCUR, but for regular expressions.
+   * An integer corresponding to the number of times a regular expression can
+   * be matched in a string.  This is used to reason about str.replace_all_re.
+   * 
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The string to match.
+   *   - ``2:`` The regular expression to find.
+   */
+  EVALUE(STRINGS_NUM_OCCUR_RE),
+  /** 
+   * Analogous to STRINGS_OCCUR_INDEX, but for regular expressions.
+   * A function k: Int -> Int such that forall x -> 0...n, k(x) is the end
+   * index of the x^th occurrence of a regular expression R in string a, where
+   * n is the number of occurrences of R in a, and k(0)=0. This is used
+   * to reason about str.replace_all_re.
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The string to match.
+   *   - ``2:`` The regular expression to find.
+   */
   EVALUE(STRINGS_OCCUR_INDEX_RE),
   /**
-   * For function k: Int -> Int
-   *   exists k.
-   *     forall 0 <= x < n,
-   *       k(x) is the length of the x^th occurrence of b in a (excluding
-   *       matches of empty strings)
-   *   where b is a regular expression, n is the number of occurrences of b
-   *   in a, and k(0)=0.
+   * A function k: Int -> Int, where forall x -> 0...n, k(x) is the length of
+   * the x^th occurrence of R in a (excluding matches of empty strings) where R
+   * is a regular expression, n is the number of occurrences of R in a, and
+   * k(0)=0.
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The string to match.
+   *   - ``2:`` The regular expression to find.
    */
-  EVALUE(STRINGS_OCCUR_LEN),
-  /** Same, but where b is a regular expression */
   EVALUE(STRINGS_OCCUR_LEN_RE),
   /**
    * Diff index for disequalities a != b => substr(a,k,1) != substr(b,k,1)
