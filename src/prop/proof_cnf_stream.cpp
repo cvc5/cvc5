@@ -391,8 +391,8 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
     bool added = d_cnfStream.assertClause(node, clause);
     if (added)
     {
-      Node clauseNode = nodeManager()->mkNode(
-          Kind::OR, node[0].notNode(), node[1]);
+      Node clauseNode =
+          nodeManager()->mkNode(Kind::OR, node[0].notNode(), node[1]);
       d_proof->addStep(clauseNode, ProofRule::IMPLIES_ELIM, {node}, {});
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertImplies: IMPLIES_ELIM added "
@@ -712,8 +712,8 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   added = d_cnfStream.assertClause(node.negate(), a, b, ~lit);
   if (added)
   {
-    Node clauseNode = nodeManager()->mkNode(
-        Kind::OR, node.notNode(), node[0], node[1]);
+    Node clauseNode =
+        nodeManager()->mkNode(Kind::OR, node.notNode(), node[0], node[1]);
     d_proof->addStep(clauseNode, ProofRule::CNF_XOR_POS1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_POS1 added "
                  << clauseNode << "\n";
@@ -732,8 +732,8 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   added = d_cnfStream.assertClause(node, a, ~b, lit);
   if (added)
   {
-    Node clauseNode = nodeManager()->mkNode(
-        Kind::OR, node, node[0], node[1].notNode());
+    Node clauseNode =
+        nodeManager()->mkNode(Kind::OR, node, node[0], node[1].notNode());
     d_proof->addStep(clauseNode, ProofRule::CNF_XOR_NEG2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_NEG2 added "
                  << clauseNode << "\n";
@@ -742,8 +742,8 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   added = d_cnfStream.assertClause(node, ~a, b, lit);
   if (added)
   {
-    Node clauseNode = nodeManager()->mkNode(
-        Kind::OR, node, node[0].notNode(), node[1]);
+    Node clauseNode =
+        nodeManager()->mkNode(Kind::OR, node, node[0].notNode(), node[1]);
     d_proof->addStep(clauseNode, ProofRule::CNF_XOR_NEG1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_NEG1 added "
                  << clauseNode << "\n";

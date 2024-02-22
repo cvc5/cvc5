@@ -126,7 +126,7 @@ void SortInference::initialize(const std::vector<Node>& assertions)
   Trace("sort-inference-proc") << "Calculating sort inference..." << std::endl;
   // process all assertions
   std::map<Node, int> visited;
-  NodeManager * nm = nodeManager();
+  NodeManager* nm = nodeManager();
   int btId = getIdForType( nm->booleanType() );
   for (const Node& a : assertions)
   {

@@ -67,10 +67,11 @@ void CoveringsSolver::initLastCall(const std::vector<Node>& assertions)
     std::vector<Node> processed = d_eqsubs.eliminateEqualities(assertions);
     if (d_eqsubs.hasConflict())
     {
-        Node lem = nodeManager()->mkAnd(d_eqsubs.getConflict()).negate();
-        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_COVERING_CONFLICT, nullptr);
-        Trace("nl-cov") << "Found conflict: " << lem << std::endl;
-        return;
+      Node lem = nodeManager()->mkAnd(d_eqsubs.getConflict()).negate();
+      d_im.addPendingLemma(
+          lem, InferenceId::ARITH_NL_COVERING_CONFLICT, nullptr);
+      Trace("nl-cov") << "Found conflict: " << lem << std::endl;
+      return;
     }
     if (TraceIsOn("nl-cov"))
     {
@@ -252,8 +253,7 @@ void CoveringsSolver::addToModel(TNode var, TNode value) const
     else if (svalue.getKind() == Kind::CONST_RATIONAL)
     {
       Assert(svalue.getConst<Rational>().isIntegral());
-      svalue =
-          nodeManager()->mkConstInt(svalue.getConst<Rational>());
+      svalue = nodeManager()->mkConstInt(svalue.getConst<Rational>());
     }
   }
   Trace("nl-cov") << "-> " << var << " = " << svalue << std::endl;

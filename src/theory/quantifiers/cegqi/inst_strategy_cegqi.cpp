@@ -56,8 +56,8 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(userContext()),
-      d_small_const_multiplier(nodeManager()->mkConstReal(
-          Rational(1) / Rational(1000000))),
+      d_small_const_multiplier(
+          nodeManager()->mkConstReal(Rational(1) / Rational(1000000))),
       d_small_const(d_small_const_multiplier),
       d_freeDeltaLb(userContext(), false)
 {
@@ -101,8 +101,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     Node ceBody = d_qreg.getInstConstantBody(q);
     if( !ceBody.isNull() ){
       //add counterexample lemma
-      Node lem = nodeManager()->mkNode(
-          Kind::OR, ceLit.negate(), ceBody.negate());
+      Node lem =
+          nodeManager()->mkNode(Kind::OR, ceLit.negate(), ceBody.negate());
       //require any decision on cel to be phase=true
       d_qim.addPendingPhaseRequirement(ceLit, true);
       Trace("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
@@ -497,7 +497,7 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
   {
     return it->second;
   }
-  NodeManager * nm = nodeManager();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node g = sm->mkDummySkolem("g", nm->booleanType());
   // ensure that it is a SAT literal

@@ -143,11 +143,10 @@ void InferenceManager::assertInference(Node fact,
                                        std::vector<Node>& exp,
                                        int inferType)
 {
-  Node exp_n = exp.empty()
-                   ? d_true
-                   : (exp.size() == 1
-                          ? exp[0]
-                          : nodeManager()->mkNode(Kind::AND, exp));
+  Node exp_n =
+      exp.empty()
+          ? d_true
+          : (exp.size() == 1 ? exp[0] : nodeManager()->mkNode(Kind::AND, exp));
   assertInference(fact, id, exp_n, inferType);
 }
 
@@ -158,9 +157,8 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
 {
   if (!conc.empty())
   {
-    Node fact = conc.size() == 1
-                    ? conc[0]
-                    : nodeManager()->mkNode(Kind::AND, conc);
+    Node fact =
+        conc.size() == 1 ? conc[0] : nodeManager()->mkNode(Kind::AND, conc);
     assertInference(fact, id, exp, inferType);
   }
 }
@@ -169,11 +167,10 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
                                        std::vector<Node>& exp,
                                        int inferType)
 {
-  Node exp_n = exp.empty()
-                   ? d_true
-                   : (exp.size() == 1
-                          ? exp[0]
-                          : nodeManager()->mkNode(Kind::AND, exp));
+  Node exp_n =
+      exp.empty()
+          ? d_true
+          : (exp.size() == 1 ? exp[0] : nodeManager()->mkNode(Kind::AND, exp));
   assertInference(conc, id, exp_n, inferType);
 }
 

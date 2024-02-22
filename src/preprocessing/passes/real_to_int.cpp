@@ -84,10 +84,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             }
             Node cc = coeffs.empty()
                           ? Node::null()
-                          : (coeffs.size() == 1
-                                 ? coeffs[0]
-                                 : rewrite(nodeManager()->mkNode(
-                                     Kind::MULT, coeffs)));
+                          : (coeffs.size() == 1 ? coeffs[0]
+                                                : rewrite(nodeManager()->mkNode(
+                                                    Kind::MULT, coeffs)));
             std::vector<Node> sum;
             for (std::map<Node, Node>::iterator itm = msum.begin();
                  itm != msum.end();
@@ -98,9 +97,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               Node s;
               if (c.isNull())
               {
-                c = cc.isNull()
-                        ? nodeManager()->mkConstInt(Rational(1))
-                        : cc;
+                c = cc.isNull() ? nodeManager()->mkConstInt(Rational(1)) : cc;
               }
               else
               {
@@ -120,8 +117,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                 Node vv = realToIntInternal(v, cache, var_eq);
                 if (vv.getType().isInteger())
                 {
-                  sum.push_back(
-                      nodeManager()->mkNode(Kind::MULT, c, vv));
+                  sum.push_back(nodeManager()->mkNode(Kind::MULT, c, vv));
                 }
                 else
                 {

@@ -575,11 +575,11 @@ bool SingleInvocationPartition::isAntiSkolemizableType(Node f)
 
 Node SingleInvocationPartition::getConjunct(int index)
 {
-  return d_conjuncts[index].empty() ? nodeManager()->mkConst(true)
-                                    : (d_conjuncts[index].size() == 1
-                                           ? d_conjuncts[index][0]
-                                           : nodeManager()->mkNode(
-                                               Kind::AND, d_conjuncts[index]));
+  return d_conjuncts[index].empty()
+             ? nodeManager()->mkConst(true)
+             : (d_conjuncts[index].size() == 1
+                    ? d_conjuncts[index][0]
+                    : nodeManager()->mkNode(Kind::AND, d_conjuncts[index]));
 }
 
 void SingleInvocationPartition::debugPrint(const char* c)

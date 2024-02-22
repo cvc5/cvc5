@@ -42,8 +42,8 @@ TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
 {
   // must use function models when ufHo is enabled
   Assert(d_enableFuncModels || !logicInfo().isHigherOrder());
-  d_true = nodeManager()->mkConst( true );
-  d_false = nodeManager()->mkConst( false );
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 TheoryModel::~TheoryModel() {}

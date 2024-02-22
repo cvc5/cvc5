@@ -73,8 +73,7 @@ bool BvIntroPow2::isPowerOfTwo(TNode node)
   TNode a = t[0];
   TNode b = t[1];
   if (bv::utils::getSize(t) < 2) return false;
-  Node diff =
-      rewrite(nodeManager()->mkNode(Kind::BITVECTOR_SUB, a, b));
+  Node diff = rewrite(nodeManager()->mkNode(Kind::BITVECTOR_SUB, a, b));
   return (diff.isConst()
           && (bv::utils::isOne(diff) || bv::utils::isOnes(diff)));
 }

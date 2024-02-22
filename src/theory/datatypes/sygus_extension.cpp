@@ -128,8 +128,7 @@ void SygusExtension::assertFact(Node n, bool polarity)
       Assert(its != d_szinfo.end());
       Node mt = its->second->getOrMkMeasureValue();
       //it relates the measure term to arithmetic
-      Node blem =
-          n.eqNode(nodeManager()->mkNode(Kind::LEQ, mt, n[1]));
+      Node blem = n.eqNode(nodeManager()->mkNode(Kind::LEQ, mt, n[1]));
       d_im.lemma(blem, InferenceId::DATATYPES_SYGUS_FAIR_SIZE);
     }
     if( polarity ){
@@ -425,9 +424,8 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
         }
         Assert(!disj.empty());
         if( excl ){
-          cond = disj.size() == 1
-                     ? disj[0]
-                     : nodeManager()->mkNode(Kind::AND, disj);
+          cond = disj.size() == 1 ? disj[0]
+                                  : nodeManager()->mkNode(Kind::AND, disj);
         }
       }
       else
@@ -1199,8 +1197,7 @@ void SygusExtension::registerSymBreakLemmaForValue(
   unsigned sz = utils::getSygusTermSize(val);
   std::vector<Node> exp;
   d_tds->getExplain()->getExplanationFor(x, val, exp, et, valr, var_count, sz);
-  Node lem = exp.size() == 1 ? exp[0]
-                             : nodeManager()->mkNode(Kind::AND, exp);
+  Node lem = exp.size() == 1 ? exp[0] : nodeManager()->mkNode(Kind::AND, exp);
   lem = lem.negate();
   Trace("sygus-sb-exc") << "  ........exc lemma is " << lem << ", size = " << sz
                         << std::endl;
@@ -1611,8 +1608,7 @@ void SygusExtension::check()
         {
           Node prog_sz = nodeManager()->mkNode(Kind::DT_SIZE, prog);
           Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
-          Node progv_sz =
-              nodeManager()->mkNode(Kind::DT_SIZE, progv);
+          Node progv_sz = nodeManager()->mkNode(Kind::DT_SIZE, progv);
 
           Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv
                             << ", size = " << prog_szv << std::endl;

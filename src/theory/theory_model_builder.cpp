@@ -1385,9 +1385,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
     }
   }
   Node val = nodeManager()->mkNode(
-      Kind::LAMBDA,
-      nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args),
-      curr);
+      Kind::LAMBDA, nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args), curr);
   Trace("model-builder-debug") << "...assign via ho function" << std::endl;
   m->assignFunctionDefinition(f, val);
 }

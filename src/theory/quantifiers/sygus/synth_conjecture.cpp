@@ -827,9 +827,8 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values,
   }
   if (!exp.empty())
   {
-    Node exc_lem = exp.size() == 1
-                       ? exp[0]
-                       : nodeManager()->mkNode(Kind::AND, exp);
+    Node exc_lem =
+        exp.size() == 1 ? exp[0] : nodeManager()->mkNode(Kind::AND, exp);
     exc_lem = exc_lem.negate();
     Trace("cegqi-lemma") << "Cegqi::Lemma : exclude current solution : "
                          << exc_lem << " by " << id << std::endl;
@@ -1125,9 +1124,8 @@ Node SynthConjecture::getSymmetryBreakingPredicate(
 
   if (!sb_lemmas.empty())
   {
-    return sb_lemmas.size() == 1
-               ? sb_lemmas[0]
-               : nodeManager()->mkNode(Kind::AND, sb_lemmas);
+    return sb_lemmas.size() == 1 ? sb_lemmas[0]
+                                 : nodeManager()->mkNode(Kind::AND, sb_lemmas);
   }
   else
   {

@@ -66,8 +66,8 @@ TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc)
       d_eval_unfold(new SygusEvalUnfold(env, this)),
       d_ochecker(oc)
 {
-  d_true = nodeManager()->mkConst( true );
-  d_false = nodeManager()->mkConst( false );
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 void TermDbSygus::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }

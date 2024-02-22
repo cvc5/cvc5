@@ -150,8 +150,8 @@ void InstMatchGenerator::initialize(Node q,
           }
           else
           {
-            d_pattern = nodeManager()->mkNode(
-                d_match_pattern.getKind(), mp, mpo);
+            d_pattern =
+                nodeManager()->mkNode(d_match_pattern.getKind(), mp, mpo);
           }
         }
         d_eq_class_rel = mpo;

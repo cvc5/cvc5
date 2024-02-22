@@ -907,7 +907,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
             }else if( children.size()==1 ){
               lhs = children[0];
             }else{
-              lhs = nodeManager()->mkNode( k, children );
+              lhs = nodeManager()->mkNode(k, children);
             }
             Node sum;
             if( v==d_vars[index] ){
@@ -921,7 +921,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
                   kn = Kind::SUB;
                 }
                 if( kn!=k ){
-                  sum = nodeManager()->mkNode( kn, v, lhs );
+                  sum = nodeManager()->mkNode(kn, v, lhs);
                 }
               }
             }
@@ -937,7 +937,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
             }
           }else{
             //must show that constraint is met
-            Node sum = nodeManager()->mkNode( k, children );
+            Node sum = nodeManager()->mkNode(k, children);
             Node eq = sum.eqNode( v );
             if (!entailmentTest(eq))
             {

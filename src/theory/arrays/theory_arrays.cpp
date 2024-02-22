@@ -1738,8 +1738,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   if (!constArr.isNull()) {
     for( ; it < i_a->size(); ++it) {
       TNode i = (*i_a)[it];
-      Node selConst =
-          nodeManager()->mkNode(Kind::SELECT, constArr, i);
+      Node selConst = nodeManager()->mkNode(Kind::SELECT, constArr, i);
       if (!d_equalityEngine->hasTerm(selConst))
       {
         preRegisterTermInternal(selConst);

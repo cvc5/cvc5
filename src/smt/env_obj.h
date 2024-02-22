@@ -52,7 +52,7 @@ class EnvObj
 
   /** Get a pointer to the node manager */
   NodeManager* nodeManager() const;
-  
+
   /**
    * Rewrite a node.
    * This is a wrapper around theory::Rewriter::rewrite via Env.

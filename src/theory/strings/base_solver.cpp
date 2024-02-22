@@ -368,8 +368,8 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         // x or y is not a valid code point
         Node scr = utils::mkCodeRange(s, d_cardSize);
         Node tcr = utils::mkCodeRange(t, d_cardSize);
-        Node conc = nodeManager()->mkNode(
-            Kind::OR, scr.notNode(), tcr.notNode());
+        Node conc =
+            nodeManager()->mkNode(Kind::OR, scr.notNode(), tcr.notNode());
         // We do not explain exp for two reasons. First, we are
         // caching this inference based on the user context and thus
         // it should not depend on the current explanation. Second,

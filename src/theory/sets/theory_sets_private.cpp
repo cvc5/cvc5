@@ -460,8 +460,8 @@ void TheorySetsPrivate::checkDownwardsClosure()
                                 << ", eq_set = " << eq_set << std::endl;
             if (!options().sets.setsProxyLemmas)
             {
-              Node nmem = nodeManager()->mkNode(
-                  Kind::SET_MEMBER, mem[0], eq_set);
+              Node nmem =
+                  nodeManager()->mkNode(Kind::SET_MEMBER, mem[0], eq_set);
               nmem = rewrite(nmem);
               std::vector<Node> exp;
               exp.push_back(mem);
@@ -476,10 +476,9 @@ void TheorySetsPrivate::checkDownwardsClosure()
             {
               // use proxy set
               Node k = d_treg.getProxy(eq_set);
-              Node pmem =
-                  nodeManager()->mkNode(Kind::SET_MEMBER, mem[0], k);
-              Node nmem = nodeManager()->mkNode(
-                  Kind::SET_MEMBER, mem[0], eq_set);
+              Node pmem = nodeManager()->mkNode(Kind::SET_MEMBER, mem[0], k);
+              Node nmem =
+                  nodeManager()->mkNode(Kind::SET_MEMBER, mem[0], eq_set);
               nmem = rewrite(nmem);
               std::vector<Node> exp;
               if (d_state.areEqual(mem, pmem))
@@ -488,8 +487,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
               }
               else
               {
-                nmem = nodeManager()->mkNode(
-                    Kind::OR, pmem.negate(), nmem);
+                nmem = nodeManager()->mkNode(Kind::OR, pmem.negate(), nmem);
               }
               d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
             }
@@ -1360,8 +1358,7 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
       Node s = e->d_singleton;
       if (!s.isNull())
       {
-        Node pexp = nodeManager()->mkNode(
-            Kind::AND, atom, atom[1].eqNode(s));
+        Node pexp = nodeManager()->mkNode(Kind::AND, atom, atom[1].eqNode(s));
         if (s.getKind() == Kind::SET_SINGLETON)
         {
           if (s[0] != atom[0])

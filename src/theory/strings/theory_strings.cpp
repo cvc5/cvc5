@@ -106,8 +106,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
   d_zero = nodeManager()->mkConstInt(Rational(0));
   d_one = nodeManager()->mkConstInt(Rational(1));
   d_neg_one = nodeManager()->mkConstInt(Rational(-1));
-  d_true = nodeManager()->mkConst( true );
-  d_false = nodeManager()->mkConst( false );
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 
   // set up the extended function callback
   d_extTheoryCb.d_esolver = &d_esolver;

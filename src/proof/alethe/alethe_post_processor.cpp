@@ -2249,8 +2249,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  std::vector<Node> newArgs{nodeManager()->mkConstInt(
-      Rational(static_cast<uint32_t>(rule)))};
+  std::vector<Node> newArgs{
+      nodeManager()->mkConstInt(Rational(static_cast<uint32_t>(rule)))};
   newArgs.push_back(res);
   newArgs.push_back(d_anc.convert(conclusion));
   for (const Node& arg : args)

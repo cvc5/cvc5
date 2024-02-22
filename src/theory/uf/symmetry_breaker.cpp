@@ -420,8 +420,7 @@ Node SymmetryBreaker::normInternal(TNode n, size_t level) {
       CVC5_FALLTHROUGH;
     case Kind::XOR:
       // commutative binary operator handling
-      return n[1] < n[0] ? nodeManager()->mkNode(k, n[1], n[0])
-                         : Node(n);
+      return n[1] < n[0] ? nodeManager()->mkNode(k, n[1], n[0]) : Node(n);
 
     default:
       // Normally T-rewriting is enough; only special cases (like

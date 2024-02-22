@@ -653,8 +653,7 @@ bool RegExpSolver::deriveRegExp(Node x,
         }
         Node left = utils::mkConcat(vec_nodes, x.getType());
         left = rewrite(left);
-        conc =
-            nodeManager()->mkNode(Kind::STRING_IN_REGEXP, left, dc);
+        conc = nodeManager()->mkNode(Kind::STRING_IN_REGEXP, left, dc);
       }
     }
     std::vector<Node> iexp = ant;

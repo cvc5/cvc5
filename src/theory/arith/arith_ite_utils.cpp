@@ -232,8 +232,8 @@ const Integer& ArithIteUtils::gcdIte(Node n){
 Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
   if(n.isConst()){
     Assert(n.getType().isRealOrInt());
-    return nodeManager()->mkConstRealOrInt(
-        n.getType(), n.getConst<Rational>() * q);
+    return nodeManager()->mkConstRealOrInt(n.getType(),
+                                           n.getConst<Rational>() * q);
   }else{
     Assert(n.getKind() == Kind::ITE);
     Assert(n.getType().isInteger());

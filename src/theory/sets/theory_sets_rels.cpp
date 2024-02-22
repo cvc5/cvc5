@@ -374,7 +374,7 @@ void TheorySetsRels::check(Theory::Effort level)
                     nodeManager()->mkNode(
                         Kind::NOT,
                         nodeManager()->mkNode(Kind::DISTINCT,
-                                                         existing_members)));
+                                              existing_members)));
               }
               Assert(reasons.size() >= 1);
               sendInfer(new_membership,
@@ -781,13 +781,13 @@ void TheorySetsRels::check(Theory::Effort level)
             Kind::EQUAL, fst_element_end, snd_element_begin));
       }
       if( tc_rel != reasons[i][1] && tc_rel[0] != reasons[i][1] ) {
-        all_reasons.push_back(nodeManager()->mkNode(
-            Kind::EQUAL, tc_rel[0], reasons[i][1]));
+        all_reasons.push_back(
+            nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons[i][1]));
       }
     }
     if( tc_rel != reasons.back()[1] && tc_rel[0] != reasons.back()[1] ) {
-      all_reasons.push_back(nodeManager()->mkNode(
-          Kind::EQUAL, tc_rel[0], reasons.back()[1]));
+      all_reasons.push_back(
+          nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons.back()[1]));
     }
     if( all_reasons.size() > 1) {
       sendInfer(nm->mkNode(Kind::SET_MEMBER, tc_mem, tc_rel),
@@ -861,20 +861,14 @@ void TheorySetsRels::check(Theory::Effort level)
       r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
     Node reason   = exp;
-    Node mem1 =
-        nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
-    Node mem2 =
-        nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
-    Node fact_1 =
-        nodeManager()->mkNode(Kind::SET_MEMBER, mem1, pt_rel[0]);
-    Node fact_2 =
-        nodeManager()->mkNode(Kind::SET_MEMBER, mem2, pt_rel[1]);
+    Node mem1 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
+    Node mem2 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
+    Node fact_1 = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, pt_rel[0]);
+    Node fact_2 = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, pt_rel[1]);
 
     if( pt_rel != exp[1] ) {
       reason = nodeManager()->mkNode(
-          Kind::AND,
-          exp,
-          nodeManager()->mkNode(Kind::EQUAL, pt_rel, exp[1]));
+          Kind::AND, exp, nodeManager()->mkNode(Kind::EQUAL, pt_rel, exp[1]));
     }
     sendInfer(fact_1, InferenceId::SETS_RELS_PRODUCT_SPLIT, reason);
     sendInfer(fact_2, InferenceId::SETS_RELS_PRODUCT_SPLIT, reason);
@@ -929,10 +923,8 @@ void TheorySetsRels::check(Theory::Effort level)
     for(; i < tup_len; ++i) {
       r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
-    Node mem1 =
-        nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
-    Node mem2 =
-        nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
+    Node mem1 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
+    Node mem2 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
 
     computeTupleReps(mem1);
     computeTupleReps(mem2);
@@ -954,11 +946,9 @@ void TheorySetsRels::check(Theory::Effort level)
           reason,
           nodeManager()->mkNode(Kind::EQUAL, join_rel, exp[1]));
     }
-    Node fact =
-        nodeManager()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
+    Node fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
-    fact =
-        nodeManager()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
+    fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
     makeSharedTerm(shared_x);
   }
@@ -1347,10 +1337,10 @@ void TheorySetsRels::check(Theory::Effort level)
         makeSharedTerm(element);
         tuple_elements.push_back(element);
       }
-      Node tuple_reduct = nodeManager()->mkNode(
-          Kind::APPLY_CONSTRUCTOR, tuple_elements);
-      tuple_reduct = nodeManager()->mkNode(
-          Kind::SET_MEMBER, tuple_reduct, n[1]);
+      Node tuple_reduct =
+          nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, tuple_elements);
+      tuple_reduct =
+          nodeManager()->mkNode(Kind::SET_MEMBER, tuple_reduct, n[1]);
       Node tuple_reduction_lemma =
           nodeManager()->mkNode(Kind::EQUAL, n, tuple_reduct);
       sendInfer(tuple_reduction_lemma, InferenceId::SETS_RELS_TUPLE_REDUCTION, d_trueNode);

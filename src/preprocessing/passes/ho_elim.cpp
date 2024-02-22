@@ -546,8 +546,7 @@ TypeNode HoElim::getUSort(TypeNode tn)
     TypeNode s;
     if (typeChanged)
     {
-      TypeNode ntn =
-          nodeManager()->mkFunctionType(argTypes, rangeType);
+      TypeNode ntn = nodeManager()->mkFunctionType(argTypes, rangeType);
       s = getUSort(ntn);
     }
     else

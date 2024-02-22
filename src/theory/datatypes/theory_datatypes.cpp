@@ -67,8 +67,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_checker(env.getOptions().datatypes.dtSharedSelectors),
       d_cpacb(*this)
 {
-
-  d_true = nodeManager()->mkConst( true );
+  d_true = nodeManager()->mkConst(true);
   d_zero = nodeManager()->mkConstInt(Rational(0));
 
   // indicate we are using the default theory state object
@@ -890,8 +889,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     Trace("dt-collapse-sel")
         << "selector index is " << selectorIndex << std::endl;
     wrong = selectorIndex<0;
-    r = nodeManager()->mkNode(
-        Kind::APPLY_SELECTOR, s.getOperator(), c);
+    r = nodeManager()->mkNode(Kind::APPLY_SELECTOR, s.getOperator(), c);
   }
   if( !r.isNull() ){
     Node rrs;
@@ -1609,10 +1607,9 @@ void TheoryDatatypes::checkSplit()
           {
             Node assumption = n.eqNode(itrs->second);
             assumptions.push_back(assumption);
-            Node lemma =
-                assumptions.size() == 1
-                    ? assumptions[0]
-                    : nodeManager()->mkNode(Kind::OR, assumptions);
+            Node lemma = assumptions.size() == 1
+                             ? assumptions[0]
+                             : nodeManager()->mkNode(Kind::OR, assumptions);
             Trace("dt-singleton") << "*************Singleton equality lemma "
                                   << lemma << std::endl;
             d_im.lemma(lemma, InferenceId::DATATYPES_REC_SINGLETON_EQ);

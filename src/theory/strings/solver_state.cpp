@@ -111,8 +111,7 @@ Node SolverState::getLengthExp(Node t,
   {
     exp.push_back(te.eqNode(lengthTerm));
   }
-  return rewrite(
-      nodeManager()->mkNode(Kind::STRING_LENGTH, lengthTerm));
+  return rewrite(nodeManager()->mkNode(Kind::STRING_LENGTH, lengthTerm));
 }
 
 Node SolverState::getLength(Node t, std::vector<Node>& exp, bool minExp)
