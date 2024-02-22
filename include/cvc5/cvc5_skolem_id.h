@@ -52,7 +52,7 @@ enum ENUM(SkolemFunId) : uint32_t
   /** The skolem is not exported */
   EVALUE(INTERNAL),
   /** 
-   * Input variable with a given name
+   * The input variable with a given name.
    * 
    * - Number of skolem arguments: ``2``
    *   - ``1:`` A string constant corresponding to the name of the variable
@@ -60,14 +60,16 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(INPUT_VARIABLE),
   /** 
-   * Purification skolem for a term.
+   * The purification skolem for a term. This is a variable that is semantically
+   * equivalent to the argument term t.
    * 
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` The term that this skolem purifies.
+   *   - ``1:`` The term t that this skolem purifies.
    */
   EVALUE(PURIFY),
   /** 
-   * Array diff to witness the disequality (not (= A B)).
+   * The array diff skolem, which is the witness k for the inference
+   * (=> (not (= A B)) (not (= (select A k) (select B k)))).
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first array.
@@ -97,7 +99,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(MOD_BY_ZERO),
   /** 
    * The function for square root, which is used for ensuring that sqrt is
-   * functional.
+   * functional. This is a function of sort (-> Real Real).
    *
    * - Number of skolem arguments: ``0``
    */
@@ -258,7 +260,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(BAGS_MAP_SUM),
   /** 
-   * Bag diff to witness the disequality (not (= A B)).
+   * The bag diff skolem, which is the witness k for the inference
+   * (=> (not (= A B)) (not (= (bag.count k A) (bag.count k B)))).
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first bag.
@@ -299,7 +302,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(SETS_CHOOSE),
   /** 
-   * Set diff to witness the disequality (not (= A B)).
+   * The set diff skolem, which is the witness k for the inference
+   * (=> (not (= A B)) (not (= (set.member k A) (set.member k B)))).
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first set.
