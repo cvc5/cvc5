@@ -119,7 +119,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
 
 void PropEngine::finishInit()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
   d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
@@ -486,11 +486,11 @@ Node PropEngine::getValue(TNode node) const
   SatValue v = d_satSolver->value(lit);
   if (v == SAT_VALUE_TRUE)
   {
-    return NodeManager::currentNM()->mkConst(true);
+    return nodeManager()->mkConst(true);
   }
   else if (v == SAT_VALUE_FALSE)
   {
-    return NodeManager::currentNM()->mkConst(false);
+    return nodeManager()->mkConst(false);
   }
   else
   {

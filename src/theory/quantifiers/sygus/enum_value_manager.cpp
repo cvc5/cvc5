@@ -171,7 +171,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
   if (!inc)
   {
     // No more concrete values generated from absE.
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     d_ev_curr_active_gen = Node::null();
     std::vector<Node> exp;
     // If we are a basic enumerator, a single abstract value maps to *all*

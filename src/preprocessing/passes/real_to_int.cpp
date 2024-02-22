@@ -49,7 +49,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     Node ret = n;
     if (n.getNumChildren() > 0)
@@ -86,7 +86,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                           ? Node::null()
                           : (coeffs.size() == 1
                                  ? coeffs[0]
-                                 : rewrite(NodeManager::currentNM()->mkNode(
+                                 : rewrite(nodeManager()->mkNode(
                                      Kind::MULT, coeffs)));
             std::vector<Node> sum;
             for (std::map<Node, Node>::iterator itm = msum.begin();
@@ -99,7 +99,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               if (c.isNull())
               {
                 c = cc.isNull()
-                        ? NodeManager::currentNM()->mkConstInt(Rational(1))
+                        ? nodeManager()->mkConstInt(Rational(1))
                         : cc;
               }
               else
@@ -121,7 +121,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                 if (vv.getType().isInteger())
                 {
                   sum.push_back(
-                      NodeManager::currentNM()->mkNode(Kind::MULT, c, vv));
+                      nodeManager()->mkNode(Kind::MULT, c, vv));
                 }
                 else
                 {

@@ -164,7 +164,7 @@ Result SynthVerify::verify(Node query)
 
 Node SynthVerify::preprocessQueryInternal(Node query)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("cegqi-debug") << "pre-rewritten query : " << query << std::endl;
   // simplify the lemma based on the term database sygus utility
   query = d_tds->rewriteNode(query);

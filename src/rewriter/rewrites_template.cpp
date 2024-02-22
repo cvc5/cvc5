@@ -28,7 +28,7 @@ namespace rewriter {
 
 void addRules(RewriteDb& db)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   // Variables
   // clang-format off
@@ -81,7 +81,7 @@ std::ostream& operator<<(std::ostream& out, DslProofRule drule)
 
 Node mkDslProofRuleNode(DslProofRule i)
 {
-  return NodeManager::currentNM()->mkConstInt(
+  return nodeManager()->mkConstInt(
       Rational(static_cast<uint32_t>(i)));
 }
 

@@ -56,7 +56,7 @@ bool EmbeddingConverter::hasSyntaxRestrictions(Node q)
 void EmbeddingConverter::collectTerms(
     Node n, std::map<TypeNode, std::unordered_set<Node>>& consts)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;
   std::vector<TNode> visit;
@@ -112,7 +112,7 @@ Node EmbeddingConverter::process(Node q,
   std::map<TypeNode, std::unordered_set<Node>> exc_cons;
   std::map<TypeNode, std::unordered_set<Node>> inc_cons;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   std::vector<Node> ebvl;
   for (unsigned i = 0; i < q[0].getNumChildren(); i++)
@@ -206,7 +206,7 @@ Node EmbeddingConverter::process(Node q,
   Assert(q[0].getNumChildren() == ebvl.size());
   Assert(d_synth_fun_vars.empty());
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   std::vector<Node> qchildren;
   Node qbody_subs = q[1];
@@ -287,7 +287,7 @@ Node EmbeddingConverter::process(Node q,
 
 Node EmbeddingConverter::convertToEmbedding(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;

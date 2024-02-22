@@ -133,7 +133,7 @@ Node BoolToBV::lowerAssertion(const TNode& assertion, bool allowIteIntroduction)
   if (newAssertionType.isBitVector())
   {
     Assert(newAssertionType.getBitVectorSize() == 1);
-    newAssertion = NodeManager::currentNM()->mkNode(
+    newAssertion = nodeManager()->mkNode(
         Kind::EQUAL, newAssertion, bv::utils::mkOne(1));
     newAssertionType = newAssertion.getType();
   }
@@ -193,7 +193,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     return;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind new_kind = k;
   switch (k)
   {
@@ -363,7 +363,7 @@ Node BoolToBV::lowerIte(const TNode& node)
 void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 {
   Kind k = n.getKind();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   NodeBuilder builder(new_kind);
 
   Trace("bool-to-bv") << "BoolToBV::rebuildNode with " << n

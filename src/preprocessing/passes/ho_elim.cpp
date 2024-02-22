@@ -36,12 +36,12 @@ namespace passes {
 HoElim::HoElim(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ho-elim")
 {
-  d_hoElimSc = NodeManager::currentNM()->mkSortConstructor("@ho-elim-sort", 1);
+  d_hoElimSc = nodeManager()->mkSortConstructor("@ho-elim-sort", 1);
 }
 
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node>::iterator it;
   std::vector<Node> visit;
@@ -159,7 +159,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 Node HoElim::eliminateHo(Node n)
 {
   Trace("ho-elim-assert") << "Ho-elim assertion: " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> preReplace;
@@ -318,7 +318,7 @@ PreprocessingPassResult HoElim::applyInternal(
     return PreprocessingPassResult::NO_CONFLICT;
   }
   // step [1]: apply lambda lifting to eliminate all lambdas
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<Node> axioms;
   if (options().quantifiers.hoElim)
   {
@@ -496,7 +496,7 @@ Node HoElim::getHoApplyUf(TypeNode tn)
   {
     std::vector<TypeNode> remArgTypes;
     remArgTypes.insert(remArgTypes.end(), argTypes.begin() + 1, argTypes.end());
-    tr = NodeManager::currentNM()->mkFunctionType(remArgTypes, tr);
+    tr = nodeManager()->mkFunctionType(remArgTypes, tr);
   }
   TypeNode tnr = getUSort(tr);
 
@@ -508,7 +508,7 @@ Node HoElim::getHoApplyUf(TypeNode tnf, TypeNode tna, TypeNode tnr)
   std::map<TypeNode, Node>::iterator it = d_hoApplyUf.find(tnf);
   if (it == d_hoApplyUf.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
 
     std::vector<TypeNode> hoTypeArgs;
@@ -547,13 +547,13 @@ TypeNode HoElim::getUSort(TypeNode tn)
     if (typeChanged)
     {
       TypeNode ntn =
-          NodeManager::currentNM()->mkFunctionType(argTypes, rangeType);
+          nodeManager()->mkFunctionType(argTypes, rangeType);
       s = getUSort(ntn);
     }
     else
     {
       // make the uninterpreted sort, given by (ho-elim-sort tn)
-      s = NodeManager::currentNM()->mkSort(d_hoElimSc, {tn});
+      s = nodeManager()->mkSort(d_hoElimSc, {tn});
     }
     d_ftypeMap[tn] = s;
     return s;

@@ -49,7 +49,7 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const TypeNode& gtn)
   // clear the buffer
   d_bufferIndex = 0;
   d_buffer.clear();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   // make the enumerator variable
   Node e = nm->mkBoundVar(gtn);

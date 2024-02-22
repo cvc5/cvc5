@@ -61,9 +61,9 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_higher_order_kinds_enabled(false),
       d_cpacb(cpacb)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
 }
 
 TheorySetsPrivate::~TheorySetsPrivate()
@@ -460,7 +460,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
                                 << ", eq_set = " << eq_set << std::endl;
             if (!options().sets.setsProxyLemmas)
             {
-              Node nmem = NodeManager::currentNM()->mkNode(
+              Node nmem = nodeManager()->mkNode(
                   Kind::SET_MEMBER, mem[0], eq_set);
               nmem = rewrite(nmem);
               std::vector<Node> exp;
@@ -477,8 +477,8 @@ void TheorySetsPrivate::checkDownwardsClosure()
               // use proxy set
               Node k = d_treg.getProxy(eq_set);
               Node pmem =
-                  NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem[0], k);
-              Node nmem = NodeManager::currentNM()->mkNode(
+                  nodeManager()->mkNode(Kind::SET_MEMBER, mem[0], k);
+              Node nmem = nodeManager()->mkNode(
                   Kind::SET_MEMBER, mem[0], eq_set);
               nmem = rewrite(nmem);
               std::vector<Node> exp;
@@ -488,7 +488,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
               }
               else
               {
-                nmem = NodeManager::currentNM()->mkNode(
+                nmem = nodeManager()->mkNode(
                     Kind::OR, pmem.negate(), nmem);
               }
               d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
@@ -504,7 +504,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
 void TheorySetsPrivate::checkUpwardsClosure()
 {
   // upwards closure
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const std::map<Kind, std::map<Node, std::map<Node, Node> > >& boi =
       d_state.getBinaryOpIndex();
   for (const std::pair<const Kind, std::map<Node, std::map<Node, Node> > >&
@@ -657,7 +657,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
           for (const std::pair<const Node, Node>& it2 : smems)
           {
             Node e = it2.second[0];
-            TypeNode tn = NodeManager::currentNM()->mkSetType(e.getType());
+            TypeNode tn = nodeManager()->mkSetType(e.getType());
             Node u;
             std::map<TypeNode, Node>::iterator itu = univ_set.find(tn);
             if (itu == univ_set.end())
@@ -700,7 +700,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
 
 void TheorySetsPrivate::checkFilterUp()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const std::vector<Node>& filterTerms = d_state.getFilterTerms();
 
   for (const Node& term : filterTerms)
@@ -734,7 +734,7 @@ void TheorySetsPrivate::checkFilterUp()
 
 void TheorySetsPrivate::checkFilterDown()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const std::vector<Node>& filterTerms = d_state.getFilterTerms();
   for (const Node& term : filterTerms)
   {
@@ -764,7 +764,7 @@ void TheorySetsPrivate::checkFilterDown()
 
 void TheorySetsPrivate::checkMapUp()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const context::CDHashSet<Node>& mapTerms = d_state.getMapTerms();
 
   for (const Node& term : mapTerms)
@@ -814,7 +814,7 @@ void TheorySetsPrivate::checkMapUp()
 
 void TheorySetsPrivate::checkMapDown()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   const context::CDHashSet<Node>& mapTerms = d_state.getMapTerms();
   for (const Node& term : mapTerms)
@@ -991,7 +991,7 @@ void TheorySetsPrivate::checkGroup(Node n)
 void TheorySetsPrivate::groupNotEmpty(Node n)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TypeNode bagType = n.getType();
   Node A = n[0];
   Node emptyPart = nm->mkConst(EmptySet(A.getType()));
@@ -1012,7 +1012,7 @@ void TheorySetsPrivate::groupUp1(Node n, Node x, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
   Assert(x.getType() == n[0].getType().getSetElementType());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Node A = n[0];
   TypeNode setType = A.getType();
@@ -1043,7 +1043,7 @@ void TheorySetsPrivate::groupUp2(Node n, Node x, Node part)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
   Assert(x.getType() == n[0].getType().getSetElementType());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node A = n[0];
   TypeNode setType = A.getType();
 
@@ -1064,7 +1064,7 @@ void TheorySetsPrivate::groupDown(Node n, Node B, Node x, Node part)
   Assert(n.getKind() == Kind::RELATION_GROUP);
   Assert(B.getType() == n.getType().getSetElementType());
   Assert(x.getType() == n[0].getType().getSetElementType());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node A = n[0];
   TypeNode setType = A.getType();
 
@@ -1088,7 +1088,7 @@ void TheorySetsPrivate::groupPartMember(Node n, Node B, Node part)
   Assert(n.getKind() == Kind::RELATION_GROUP);
   Assert(B.getType() == n.getType().getSetElementType());
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
 
   Node A = n[0];
@@ -1124,7 +1124,7 @@ void TheorySetsPrivate::groupSameProjection(
   Assert(B.getType() == n.getType().getSetElementType());
   Assert(x.getType() == n[0].getType().getSetElementType());
   Assert(y.getType() == n[0].getType().getSetElementType());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Node A = n[0];
   TypeNode setType = A.getType();
@@ -1166,7 +1166,7 @@ void TheorySetsPrivate::groupSamePart(Node n, Node B, Node x, Node y, Node part)
   Assert(B.getType() == n.getType().getSetElementType());
   Assert(x.getType() == n[0].getType().getSetElementType());
   Assert(y.getType() == n[0].getType().getSetElementType());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node A = n[0];
   TypeNode setType = A.getType();
 
@@ -1208,7 +1208,7 @@ Node TheorySetsPrivate::defineSkolemPartFunction(Node n)
   Node A = n[0];
 
   // declare an uninterpreted function part: T -> (Relation T)
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node part = sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART, {n});
   return part;
@@ -1216,7 +1216,7 @@ Node TheorySetsPrivate::defineSkolemPartFunction(Node n)
 
 Node TheorySetsPrivate::registerAndAssertSkolemLemma(Node& n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node skolem = sm->mkPurifySkolem(n);
   Node lemma = n.eqNode(skolem);
@@ -1230,7 +1230,7 @@ void TheorySetsPrivate::checkDisequalities()
 {
   // disequalities
   Trace("sets") << "TheorySetsPrivate: check disequalities..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   for (NodeBoolMap::const_iterator it = d_deq.begin(); it != d_deq.end(); ++it)
   {
@@ -1281,7 +1281,7 @@ void TheorySetsPrivate::checkDisequalities()
 
 void TheorySetsPrivate::checkReduceComprehensions()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   const std::vector<Node>& comps = d_state.getComprehensionSets();
   for (const Node& n : comps)
@@ -1360,7 +1360,7 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
       Node s = e->d_singleton;
       if (!s.isNull())
       {
-        Node pexp = NodeManager::currentNM()->mkNode(
+        Node pexp = nodeManager()->mkNode(
             Kind::AND, atom, atom[1].eqNode(s));
         if (s.getKind() == Kind::SET_SINGLETON)
         {
@@ -1475,7 +1475,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
 {
   Trace("sets-model") << "Set collect model values" << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::map<Node, Node> mvals;
   // If cardinality is enabled, we need to use the ordered equivalence class
   // list computed by the cardinality solver, where sets equivalence classes
@@ -1675,7 +1675,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   // where uf: (Set E) -> E is a skolem function, and E is the type of elements
   // of A
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node x = sm->mkPurifySkolem(node);
   Node A = node[0];
@@ -1685,7 +1685,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   Node mkElem = nm->mkGroundValue(setType);
   // a Null node is used here to get a unique skolem function per set type
   Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, mkElem);
-  Node ufA = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, uf, A);
+  Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);
 
   Node equal = x.eqNode(ufA);
   Node emptySet = nm->mkConst(EmptySet(setType));
@@ -1714,7 +1714,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
   // (exists ((x: T)) (= A (singleton x)))
   // where T is the sort of elements of A
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node set = rewritten[0];
 
   std::map<Node, Node>::iterator it = d_isSingletonNodes.find(rewritten);

@@ -359,7 +359,7 @@ Node SygusRepairConst::getSkeleton(Node n,
         << "Var to subs : " << sk_var << " -> " << n << std::endl;
     return sk_var;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // get the most general candidate skeleton of n
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -430,7 +430,7 @@ Node SygusRepairConst::getFoQuery(Node body,
                                   const std::vector<Node>& candidate_skeletons,
                                   const std::vector<Node>& sk_vars)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Trace("sygus-repair-const") << "  Substitute skeletons..." << std::endl;
   body = body.substitute(candidates.begin(),

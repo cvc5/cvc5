@@ -142,7 +142,7 @@ void MinisatSatSolver::initialize(context::Context* context,
   SatProofManager* spfm = d_minisat->getProofManager();
   if (spfm)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     spfm->registerSatAssumptions({nm->mkConst(true)});
   }
 }

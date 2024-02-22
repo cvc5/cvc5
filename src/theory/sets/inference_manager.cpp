@@ -30,8 +30,8 @@ namespace sets {
 InferenceManager::InferenceManager(Env& env, Theory& t, SolverState& s)
     : InferenceManagerBuffered(env, t, s, "theory::sets::"), d_state(s)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
   d_tid = mkTrustId(TrustId::THEORY_INFERENCE);
   d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
@@ -48,7 +48,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     Node lem = fact;
     if (exp != d_true)
     {
-      lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, fact);
+      lem = nodeManager()->mkNode(Kind::IMPLIES, exp, fact);
     }
     addPendingLemma(lem, id);
     return true;
@@ -106,7 +106,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     Node lem = fact;
     if (exp != d_true)
     {
-      lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, fact);
+      lem = nodeManager()->mkNode(Kind::IMPLIES, exp, fact);
     }
     addPendingLemma(lem, id);
     return true;
@@ -147,7 +147,7 @@ void InferenceManager::assertInference(Node fact,
                    ? d_true
                    : (exp.size() == 1
                           ? exp[0]
-                          : NodeManager::currentNM()->mkNode(Kind::AND, exp));
+                          : nodeManager()->mkNode(Kind::AND, exp));
   assertInference(fact, id, exp_n, inferType);
 }
 
@@ -160,7 +160,7 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
   {
     Node fact = conc.size() == 1
                     ? conc[0]
-                    : NodeManager::currentNM()->mkNode(Kind::AND, conc);
+                    : nodeManager()->mkNode(Kind::AND, conc);
     assertInference(fact, id, exp, inferType);
   }
 }
@@ -173,14 +173,14 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
                    ? d_true
                    : (exp.size() == 1
                           ? exp[0]
-                          : NodeManager::currentNM()->mkNode(Kind::AND, exp));
+                          : nodeManager()->mkNode(Kind::AND, exp));
   assertInference(conc, id, exp_n, inferType);
 }
 
 void InferenceManager::split(Node n, InferenceId id, int reqPol)
 {
   n = rewrite(n);
-  Node lem = NodeManager::currentNM()->mkNode(Kind::OR, n, n.negate());
+  Node lem = nodeManager()->mkNode(Kind::OR, n, n.negate());
   // send the lemma
   lemma(lem, id);
   Trace("sets-lemma") << "Sets::Lemma split : " << lem << std::endl;

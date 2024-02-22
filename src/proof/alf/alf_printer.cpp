@@ -37,8 +37,8 @@ namespace proof {
 AlfPrinter::AlfPrinter(Env& env, BaseAlfNodeConverter& atp)
     : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
 {
-  d_pfType = NodeManager::currentNM()->mkSort("proofType");
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_pfType = nodeManager()->mkSort("proofType");
+  d_false = nodeManager()->mkConst(false);
 }
 
 bool AlfPrinter::isHandled(const ProofNode* pfn) const

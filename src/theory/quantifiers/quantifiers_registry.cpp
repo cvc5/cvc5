@@ -39,7 +39,7 @@ void QuantifiersRegistry::registerQuantifier(Node q)
     return;
   }
   Assert(q.getKind() == Kind::FORALL);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("quantifiers-engine")
       << "Instantiation constants for " << q << " : " << std::endl;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)

@@ -36,7 +36,7 @@ namespace bags {
 CardSolver::CardSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env), d_state(s), d_ig(&s, &im), d_im(im)
 {
-  d_nm = NodeManager::currentNM();
+  d_nm = nodeManager();
   d_zero = d_nm->mkConstInt(Rational(0));
   d_one = d_nm->mkConstInt(Rational(1));
   d_true = d_nm->mkConst(true);

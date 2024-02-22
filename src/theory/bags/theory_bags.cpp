@@ -100,7 +100,7 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     {
       std::vector<Node> asserts;
       Node ret = BagReduction::reduceFoldOperator(atom, asserts);
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node andNode = nm->mkNode(Kind::AND, asserts);
       d_im.lemma(andNode, InferenceId::BAGS_FOLD);
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret
@@ -134,7 +134,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   // where uf: (Bag E) -> E is a skolem function, and E is the type of elements
   // of A
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node x = sm->mkPurifySkolem(node);
   Node A = node[0];
@@ -143,7 +143,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node mkElem = nm->mkGroundValue(bagType);
   // a Null node is used here to get a unique skolem function per bag type
   Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, mkElem);
-  Node ufA = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, uf, A);
+  Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);
 
   Node equal = x.eqNode(ufA);
   Node emptyBag = nm->mkConst(EmptyBag(bagType));
@@ -193,7 +193,7 @@ void TheoryBags::collectBagsAndCountTerms()
       {
         // for terms (bag x c) we need to store x by registering the count term
         // (bag.count x (bag x c))
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Node count = nm->mkNode(Kind::BAG_COUNT, n[0], n);
         d_ig.registerCountTerm(count);
       }
@@ -406,7 +406,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     }
     Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);
     constructedBag = rewrite(constructedBag);
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     if (d_state.hasCardinalityTerms())
     {
       if (d_cardSolver.isLeaf(n))

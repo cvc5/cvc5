@@ -47,7 +47,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_statTotalInputSuccess(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputSuccess"))
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -343,7 +343,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     {
       rchildren.insert(rchildren.begin(), target[0].getOperator());
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node tappc = nm->mkNode(target[0].getKind(), rchildren);
     if (doEvaluate(tappc) != r2)
     {
@@ -654,7 +654,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
 bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 {
   // note we could use single internal cdp to improve subproof sharing
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, std::vector<Node>> premises;
   std::unordered_map<TNode, std::vector<Node>> pfArgs;
