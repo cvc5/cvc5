@@ -79,10 +79,20 @@ void PolyNorm::modCoeffs(const Rational& c)
   Assert(c.isIntegral());
   const Integer& ci = c.getNumerator();
   // mod the coefficient by constant
+  std::vector<Node> zeroes;
   for (std::pair<const Node, Rational>& m : d_polyNorm)
   {
     Assert(m.second.isIntegral());
     m.second = Rational(m.second.getNumerator().euclidianDivideRemainder(ci));
+    if (m.second.sgn()==0)
+    {
+      zeroes.push_back(m.first);
+    }
+  }
+  // go back and erase monomials that became zero
+  for (const Node& z : zeroes)
+  {
+    d_polyNorm.erase(z);
   }
 }
 
