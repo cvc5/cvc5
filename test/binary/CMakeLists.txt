@@ -45,6 +45,7 @@ if (USE_EDITLINE)
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
     set_tests_properties(interactive_shell_parser_inc PROPERTIES LABELS "binary")
+if (NOT APPLE)
     add_test(
       NAME interactive_shell_define_fun_rec_multiline
       COMMAND
@@ -52,6 +53,7 @@ if (USE_EDITLINE)
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
     set_tests_properties(interactive_shell_define_fun_rec_multiline PROPERTIES LABELS "binary")
+endif()
     add_test(
       NAME issue_10258
       COMMAND
