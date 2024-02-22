@@ -1045,6 +1045,11 @@ void SolverEngine::declarePool(const Node& p,
   qe->declarePool(p, initValue);
 }
 
+void SolverEngine::declareOracleFun(Node var)
+{
+  // FIXME
+}
+
 void SolverEngine::declareOracleFun(
     Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn)
 {
@@ -1071,7 +1076,7 @@ void SolverEngine::declareOracleFun(
   }
   else
   {
-    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    outputs.push_back(nm->mkBoundVar(tn));
     app = var;
   }
   // makes equality assumption
@@ -1085,8 +1090,37 @@ void SolverEngine::declareOracleFun(
   // the oracle function
   var.setAttribute(theory::OracleInterfaceAttribute(), o);
   // define the oracle interface
+  defineOracleInterfaceInternal(inputs, outputs, assume, constraint, o);
+}
+
+void SolverEngine::defineOracleInterface(
+    const std::vector<Node>& inputs,
+    const std::vector<Node>& outputs,
+    Node assume,
+    Node constraint,
+    std::function<std::vector<Node>(const std::vector<Node>&)> fn)
+{
+  finishInit();
+  d_ctxManager->doPendingPops();
+  // make the oracle constant
+  Oracle oracle(fn);
+  Node o = NodeManager::currentNM()->mkOracle(oracle);
+  // define the oracle interface
+  defineOracleInterfaceInternal(inputs, outputs, assume, constraint, o);
+}
+
+void SolverEngine::defineOracleInterfaceInternal(
+    const std::vector<Node>& inputs,
+    const std::vector<Node>& outputs,
+    Node assume,
+    Node constraint,
+    Node o)
+{
+  Assert(o.getKind() == kind::ORACLE);
+  // make the oracle interface quantified formula
   Node q = quantifiers::OracleEngine::mkOracleInterface(
       inputs, outputs, assume, constraint, o);
+  Trace("smt") << "Assert oracle interface quantifier: " << q << std::endl;
   // assert it
   assertFormula(q);
 }
