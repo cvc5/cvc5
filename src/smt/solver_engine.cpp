@@ -100,7 +100,7 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 
 SolverEngine::SolverEngine(const Options* optr)
-    : d_env(new Env(optr)),
+    : d_env(new Env(optr, NodeManager::currentNM())),
       d_state(new SolverEngineState(*d_env.get())),
       d_ctxManager(nullptr),
       d_routListener(new ResourceOutListener(*this)),

@@ -24,6 +24,11 @@ namespace cvc5::internal {
 
 EnvObj::EnvObj(Env& env) : d_env(env) {}
 
+NodeManager* EnvObj::nodeManager() const
+{
+  return d_env.nodeManager();
+}
+
 Node EnvObj::rewrite(TNode node) const
 {
   return d_env.getRewriter()->rewrite(node);

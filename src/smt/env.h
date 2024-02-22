@@ -69,11 +69,14 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(const Options* opts);
+  Env(NodeManager * nm, const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
   /* Access to members------------------------------------------------------- */
+  /** Get a pointer to the node manager */
+  NodeManager* getNodeManager();
+  
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();
 
@@ -273,6 +276,8 @@ class Env
   void shutdown();
   /* Members ---------------------------------------------------------------- */
 
+  /** Pointer to the node manager */
+  NodeManager * d_nm;
   /** The SAT context owned by this Env */
   std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */
