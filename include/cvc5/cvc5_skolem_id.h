@@ -102,21 +102,41 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``0``
    */
   EVALUE(SQRT),
-  //---------------------------------------------
   /**
    * Argument used to purify trancendental function app f(x).
    * For sin(x), this is a variable that is assumed to be in phase with x that
    * is between -pi and pi
+   *
+   * - Number of skolem arguments: ``1``
+   *   - ``1:`` The application of a trancendental function.
    */
   EVALUE(TRANSCENDENTAL_PURIFY_ARG),
-  /** a shared selector */
+  /** 
+   * A shared datatype selector, see Reynolds et. al. "Datatypes with Shared
+   * Selectors", IJCAR 2018. Represents a selector that can extract fields
+   * of multiple constructors.
+   *
+   * - Number of skolem arguments: ``3``
+   *   - ``1:`` A term that represents the datatype we are extracting from.
+   *   - ``2:`` A term that represents the sort of field we are extracting.
+   *   - ``3:`` An integer n such that this shared selector returns the n^th
+   *            subfield term of the given sort.
+   */
   EVALUE(SHARED_SELECTOR),
   /**
-   * The n^th skolem for quantified formula Q. Its arguments are (Q,n).
+   * The n^th skolem for quantified formula Q.
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The quantified formula Q.
+   *   - ``2:`` An integer n, where this skolem corresponds to the skolemization
+   *            of the n^th variable in the variable list of Q.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
+  //---------------------------------------------
   //----- string skolems are cached based on (a, b)
-  /** exists k. ( string b occurs k times in string a ) */
+  /** 
+   * exists k. ( string b occurs k times in string a )
+   */
   EVALUE(STRINGS_NUM_OCCUR),
   /** exists k. ( regular expression b can be matched k times in a ) */
   EVALUE(STRINGS_NUM_OCCUR_RE),
@@ -237,7 +257,13 @@ enum ENUM(SkolemFunId) : uint32_t
    * sum(i) = sum (i-1) + (bag.count (uf i) A)
    */
   EVALUE(BAGS_MAP_SUM),
-  /** bag diff to witness (not (= A B)) */
+  /** 
+   * Bag diff to witness the disequality (not (= A B)).
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The first bag.
+   *   - ``2:`` The second bag.
+   */
   EVALUE(BAGS_DEQ_DIFF),
   /** Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
    * this uninterpreted function maps elements of A to their parts in the
@@ -273,7 +299,7 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(SETS_CHOOSE),
   /** 
-   * Array diff to witness the disequality (not (= A B)).
+   * Set diff to witness the disequality (not (= A B)).
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first set.
