@@ -184,6 +184,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
                      options::UnsatCoresMode::SAT_PROOF,
                      "enabling proofs");
     }
+    // note that this test assumes that granularity modes are ordered and
+    // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
+    // levels
     if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE
         && opts.proof.proofGranularityMode
                < options::ProofGranularityMode::THEORY_REWRITE)

@@ -1828,7 +1828,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
    *
-   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`.
+   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
+   * method normalizes polynomials over arithmetic or bitvectors.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM),

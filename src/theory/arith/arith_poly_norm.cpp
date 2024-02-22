@@ -25,7 +25,7 @@ namespace arith {
 
 void PolyNorm::addMonomial(TNode x, const Rational& c, bool isNeg)
 {
-  // if zero, ignore
+  // if zero, ignore since adding zero is a no-op.
   if (c.sgn() == 0)
   {
     return;
@@ -73,15 +73,14 @@ void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
   }
 }
 
-void PolyNorm::mod(const Rational& c)
+void PolyNorm::modCoeffs(const Rational& c)
 {
   Assert(c.sgn() != 0);
   Assert(c.isIntegral());
   const Integer& ci = c.getNumerator();
-  // multiply by constant
+  // mod the coefficient by constant
   for (std::pair<const Node, Rational>& m : d_polyNorm)
   {
-    // c1*x*c2 = (c1*c2)*x
     Assert(m.second.isIntegral());
     m.second = Rational(m.second.getNumerator().euclidianDivideRemainder(ci));
   }
@@ -246,6 +245,8 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       }
       else if (k == Kind::CONST_BITVECTOR)
       {
+        // The bitwidth does not matter here, since the logic for normalizing
+        // polynomials considers the semantics of overflow.
         BitVector bv = cur.getConst<BitVector>();
         visited[cur].addMonomial(null, Rational(bv.getValue()));
         visit.pop_back();
@@ -363,7 +364,8 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   {
     return false;
   }
-  // the type of nodes are considering
+  // Compute the type of nodes are considering. We must ensure that a and b
+  // have comparable type, or else we fail here.
   TypeNode eqtn;
   if (k == Kind::EQUAL)
   {
@@ -402,8 +404,8 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
     {
       // for bitvectors, take modulo 2^w on coefficients
       Rational w = Rational(Integer(2).pow(eqtn.getBitVectorSize()));
-      pa.mod(w);
-      pb.mod(w);
+      pa.modCoeffs(w);
+      pb.modCoeffs(w);
     }
     // Check for equality. notice that we don't insist on any type here.
     return pa.isEqual(pb);
