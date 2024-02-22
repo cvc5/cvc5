@@ -227,8 +227,8 @@ def preprocess_rule(rule, decls):
 class RewriteDb:
     name: str
     filename: str
-    ids: list[str]
-    printer_code: list[str]
+    ids: list
+    printer_code: list
 
     @property
     def function_name(self):
