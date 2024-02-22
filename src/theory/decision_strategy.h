@@ -142,7 +142,8 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
 };
 
 /**
- * Special case of above where we only wish to allocate a single literal L_1.
+ * Special case of above where we only wish to allocate a (dynamic) vector
+ * of literals.
  */
 class DecisionStrategyVector : public DecisionStrategyFmf
 {
@@ -155,7 +156,7 @@ class DecisionStrategyVector : public DecisionStrategyFmf
   Node mkLiteral(unsigned n) override;
   /** identify */
   std::string identify() const override { return d_name; }
-
+  /** Add that literal n should be decided after the current list of literals */
   void addLiteral(const Node& n);
 
  private:

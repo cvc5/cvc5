@@ -112,7 +112,15 @@ class OracleEngine : public QuantifiersModule
    * oracle interface quantified formulas?
    */
   bool d_consistencyCheckPassed;
-  /** For ensuring */
+  /**
+   * A decision strategy that prefers equating arguments of oracles to
+   * values that we have already evaluated the oracle on. For example, if
+   * we have an application (f a) of oracle function f, then if a=5 in one
+   * model, we may generate the lemma (=> (= a 5) (= (f a) 10)), where 10 is
+   * result of calling f on 5. This decision strategy will henceforth decide
+   * (= a 5) -> true. This ensures that we don't invoke f for evaluating (f a)
+   * again until we are sure that (= a 5) cannot be made true.
+   */
   DecisionStrategyVector d_dstrat;
 };
 
