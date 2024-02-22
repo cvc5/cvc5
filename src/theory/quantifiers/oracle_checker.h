@@ -58,7 +58,7 @@ class OracleChecker : protected EnvObj, public NodeConverter
    * check whether we have evalauted the oracle associated with f on input
    * c. If not, we invoke the oracle; otherwise we retrieve its cached value.
    * If this output d' is not d, then this method returns the formula d' = f(c).
-   * 
+   *
    * @return The lemma corresponding to the equality above, or null if the
    * oracle already is known to generate the correct value.
    */
