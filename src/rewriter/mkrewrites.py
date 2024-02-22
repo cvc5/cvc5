@@ -252,8 +252,6 @@ def gen_individual_rewrite_db(rewrites_file: str, template):
         f"Rewrites name must be an identifier: {output_name}"
     output_file = f"rewrites-{output_name}.cpp"
 
-    print(f"Creating rewrites for: {rewrites_file}, name={output_name}")
-
     parser = Parser()
     with open(rewrites_file, 'r') as f:
         rules = parser.parse_rules(f.read())
