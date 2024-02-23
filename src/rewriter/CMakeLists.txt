@@ -60,7 +60,7 @@ add_custom_command(
     DEPENDS
       ${mkrewrites_script}
       ${REWRITES_FILES}
-      ${CMAKE_CURRENT_LIST_DIR}/individual_rewrites_template.cpp
+      ${CMAKE_CURRENT_LIST_DIR}/theory_rewrites_template.cpp
       ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.cpp
       ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.h
     COMMENT

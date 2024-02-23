@@ -334,7 +334,7 @@ def gen_rewrite_db(args):
 
     decls = []
     rewrites = []
-    individual_rewrites_cpp = read_tpl(args.src_dir, 'individual_rewrites_template.cpp')
+    individual_rewrites_cpp = read_tpl(args.src_dir, 'theory_rewrites_template.cpp')
 
     printer_code = []
     ids = []
