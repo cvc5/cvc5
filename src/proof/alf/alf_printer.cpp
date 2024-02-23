@@ -521,7 +521,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   if (!handled)
   {
     out->printTrustStep(
-        pn->getRule(), conclusionPrint, id, premises, conclusion);
+        pn->getRule(), conclusionPrint, id, premises, pn->getArguments(), conclusion);
     return;
   }
   std::string rname = getRuleName(pn);

@@ -67,6 +67,7 @@ class AlfPrintChannel
                               TNode n,
                               size_t i,
                               const std::vector<size_t>& premises,
+                              const std::vector<Node>& args,
                               TNode conc)
   {
   }
@@ -92,6 +93,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
                       TNode n,
                       size_t i,
                       const std::vector<size_t>& premises,
+                      const std::vector<Node>& args,
                       TNode conc) override;
 
   /**
@@ -149,6 +151,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
                       TNode n,
                       size_t i,
                       const std::vector<size_t>& premises,
+                      const std::vector<Node>& args,
                       TNode conc) override;
 
   /** Get variables we encountered in printing */
