@@ -205,7 +205,7 @@ bool AlfPrinter::canEvaluate(Node n) const
         case Kind::BITVECTOR_ADD:
         case Kind::BITVECTOR_SUB:
         case Kind::BITVECTOR_NEG:
-        case Kind::BITVECTOR_MUL:
+        case Kind::BITVECTOR_MULT:
         case Kind::BITVECTOR_AND:
         case Kind::BITVECTOR_OR: break;
         default:
