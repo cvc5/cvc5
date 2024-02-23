@@ -31,19 +31,16 @@ libcvc5_add_sources(
 
 set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)
 
-function(to_rewrites_name input output)
-  cmake_path(GET input PARENT_PATH input_parent)
-  cmake_path(GET input_parent FILENAME output)
-  set(output ${output} PARENT_SCOPE)
-endfunction()
-
 set(REWRITE_OUTPUT_FILES
   rewrites.cpp
   rewrites.h
 )
 foreach(rewrite_in IN LISTS REWRITES_FILES)
-  cmake_path(GET rewrite_in PARENT_PATH rewrite_parent)
-  cmake_path(GET rewrite_parent FILENAME rewrite_name)
+  # Equivalent in CMake 3.20+
+  #cmake_path(GET rewrite_in PARENT_PATH rewrite_parent)
+  #cmake_path(GET rewrite_parent FILENAME rewrite_name)
+  get_filename_component(rewrite_parent ${rewrite_in} DIRECTORY)
+  get_filename_component(rewrite_name ${rewrite_parent} NAME)
   list(APPEND REWRITE_OUTPUT_FILES "rewrites-${rewrite_name}.cpp")
 endforeach()
 
