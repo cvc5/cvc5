@@ -349,27 +349,27 @@ EvalResult Evaluator::evalInternal(
         // application, invoke the rewrite step, ensure the rewritten term is
         // processed, then set the result of the indexed symbolic term to that
         // term.
-        currNodeVal = reconstruct(currNode, results, evalAsNode);
-        currNodeVal = builtin::TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(currNodeVal);
+        Node cval = reconstruct(currNode, results, evalAsNode);
+        cval = builtin::TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(cval);
         // if we did not eliminate, then we fail to evaluate
         if (currNodeVal.getKind()==Kind::APPLY_INDEXED_SYMBOLIC)
         {
           results[currNode] = EvalResult();
-          evalAsNode[currNode] = currNodeVal;
+          evalAsNode[currNode] = cval;
           continue;
         }
-        itr = results.find(currNodeVal);
+        itr = results.find(cval);
         if (itr == results.end())
         {
           // first compute the value of the rewritten form
-          queue.emplace_back(currNodeVal);
+          queue.emplace_back(cval);
           continue;
         }
         if (itr->second.d_tag == EvalResult::INVALID)
         {
           // failed to evaluate the converted node
           results[currNode] = EvalResult();
-          evalAsNode[currNode] = currNodeVal;
+          evalAsNode[currNode] = cval;
         }
         else
         {
