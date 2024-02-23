@@ -584,15 +584,16 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
           ret = nm->mkNode(Kind::LAMBDA, lamVars, ret);
         }
         Trace("mbqi-model-enum") << "- Try candidate: " << ret << std::endl;
+        std::unordered_map<Node, Node> tmpConvertMap;
+        std::map<TypeNode, std::unordered_set<Node> > freshVarType;
+        Node retc = convertToQuery(ret, tmpConvertMap, freshVarType);
+        Trace("mbqi-model-enum") << "- Converted candidate: " << retc << std::endl;
         // see if it is still satisfiable, if still SAT, we replace
-        Node queryCheck = queryCurr.substitute(TNode(v), TNode(ret));
+        Node queryCheck = queryCurr.substitute(TNode(v), TNode(retc));
         queryCheck = rewrite(queryCheck);
         Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
         // since we may have free constants from the grammar, we must ensure
         // their model value is considered.
-        std::unordered_map<Node, Node> tmpConvertMap;
-        std::map<TypeNode, std::unordered_set<Node> > freshVarType;
-        queryCheck = convertToQuery(queryCheck, tmpConvertMap, freshVarType);
         Trace("mbqi-model-enum") << "...converted " << queryCheck << std::endl;
         SubsolverSetupInfo ssi(d_env);
         Result r = checkWithSubsolver(queryCheck, ssi);
@@ -601,6 +602,7 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
           // remember the updated query
           queryCurr = queryCheck;
           Trace("mbqi-model-enum") << "...success" << std::endl;
+          Trace("mbqi-model-enum") << "use " << ret << std::endl;
           mvs[ii] = ret;
           break;
         }
