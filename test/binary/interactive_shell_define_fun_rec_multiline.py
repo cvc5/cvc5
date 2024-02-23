@@ -11,8 +11,8 @@
 # directory for licensing information.
 # #############################################################################
 #
-# A simple test file to interact with cvc5 via the interactive shell in
-# incremental mode.
+# A simple test file to interact with cvc5 via the interactive shell with
+# define-fun-rec.
 ##
 
 import sys
@@ -30,33 +30,34 @@ def sendline(child, s):
     child.sendline(s)
     expect_exact(child, s+'\r\n')
 
-def check_iteractive_shell_parser_inc():
+def check_iteractive_shell_define_fun_rec_multiline():
     """
-    Interacts with cvc5's interactive shell and checks that parser declarations are
-    managed properly in incremental mode.
+    Interacts with cvc5's interactive shell and checks that define-fun-rec
+    commands that span multiple lines are properly handled.
     """
 
     # Open cvc5
     child = pexpect.spawn("bin/cvc5", timeout=1)
-
     # We expect to see the cvc5 prompt
     child.expect("cvc5> ")
     sendline(child, "(set-logic ALL)")
     expect_exact(child, "cvc5> ")
-    sendline(child,"(set-option :incremental true)")
-    expect_exact(child,"cvc5> ")
-    sendline(child,"(push)")
-    expect_exact(child,"cvc5> ")
-    sendline(child,"(declare-fun x () Int)")
-    expect_exact(child,"cvc5> ")
+    sendline(child, "(define-fun-rec")
+    expect_exact(child, "... > ")
+    sendline(child, "p () Bool")
+    expect_exact(child, "... > ")
+    sendline(child, "false)")
+    expect_exact(child, "cvc5> ")
+    sendline(child, "(define-funs-rec")
+    expect_exact(child, "... > ")
+    sendline(child, "((q () Bool))")
+    expect_exact(child, "... > ")
+    sendline(child, "(false))")
+    expect_exact(child, "cvc5> ")
+    sendline(child,"(assert (or p q))")
+    expect_exact(child, "cvc5> ")
     sendline(child,"(check-sat)")
-    expect_exact(child,"sat\r\ncvc5> ")
-    sendline(child,"(pop)")
-    expect_exact(child,"cvc5> ")
-    sendline(child,"(declare-fun x () Int)")
-    expect_exact(child,"cvc5> ")
-    sendline(child,"(check-sat)")
-    expect_exact(child,"sat\r\ncvc5> ")
+    expect_exact(child,"unsat\r\ncvc5> ")
 
     return 0
 
@@ -76,7 +77,7 @@ def main():
 
     # If any of the "steps" fail, the pexpect will raise a Python will exit
     # with a non-zero error code
-    sys.exit(check_iteractive_shell_parser_inc())
+    sys.exit(check_iteractive_shell_define_fun_rec_multiline())
 
 if __name__ == "__main__":
     main()
