@@ -882,15 +882,32 @@ DeclarationDefinitionCommand::DeclarationDefinitionCommand(
 
 std::string DeclarationDefinitionCommand::getSymbol() const { return d_symbol; }
 
+bool tryBindToTerm(SymManager* sm,
+                   const std::string& sym,
+                   Term t,
+                   bool doOverload,
+                   std::ostream* out = nullptr)
+{
+  if (!sm->bind(sym, t, true))
+  {
+    if (out)
+    {
+      (*out) << "Cannot bind " << sym << " to symbol of type " << t.getSort();
+      (*out) << ", maybe the symbol has already been defined?";
+    }
+    return false;
+  }
+  return true;
+}
+
 bool DeclarationDefinitionCommand::bindToTerm(SymManager* sm,
-                                              cvc5::Term t,
+                                              Term t,
                                               bool doOverload)
 {
-  if (!sm->bind(d_symbol, t, true))
+  if (!tryBindToTerm(sm, d_symbol, t, doOverload))
   {
     std::stringstream ss;
-    ss << "Cannot bind " << d_symbol << " to symbol of type " << t.getSort();
-    ss << ", maybe the symbol has already been defined?";
+    tryBindToTerm(sm, d_symbol, t, doOverload, &ss);
     d_commandStatus = new CommandFailure(ss.str());
     return false;
   }
@@ -1227,6 +1244,19 @@ void DefineFunctionRecCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
+    // bind each, returning if failure if we fail to bind
+    for (const Term& f : d_funcs)
+    {
+      Assert(f.hasSymbol());
+      const std::string s = f.getSymbol();
+      if (!tryBindToTerm(sm, s, f, true))
+      {
+        std::stringstream ss;
+        tryBindToTerm(sm, s, f, true, &ss);
+        d_commandStatus = new CommandFailure(ss.str());
+        return;
+      }
+    }
     bool global = sm->getGlobalDeclarations();
     solver->defineFunsRec(d_funcs, d_formals, d_formulas, global);
     d_commandStatus = CommandSuccess::instance();

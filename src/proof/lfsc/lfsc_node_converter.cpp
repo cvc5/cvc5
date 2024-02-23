@@ -671,6 +671,11 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       std::string name = tn.getUninterpretedSortConstructor().getName();
       op = getSymbolInternal(k, ftype, name, false);
     }
+    else if (k == Kind::NULLABLE_TYPE)
+    {
+      TypeNode ftype = nm->mkFunctionType(d_sortType, d_sortType);
+      op = getSymbolInternal(k, ftype, "Nullable", false);
+    }
     else
     {
       std::map<Kind, Node>::iterator it = d_typeKindToNodeCons.find(k);
