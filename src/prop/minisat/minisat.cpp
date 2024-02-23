@@ -313,6 +313,12 @@ std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
   return d_minisat->getProof();
 }
 
+std::pair<ProofRule, std::vector<Node>> MinisatSatSolver::getProofSketch()
+{
+  Unimplemented() << "getProofSketch for Minisat not supported";
+  return std::pair<ProofRule, std::vector<Node>>();
+}
+
 /** Incremental interface */
 
 uint32_t MinisatSatSolver::getAssertionLevel() const

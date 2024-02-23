@@ -173,10 +173,21 @@ void SetDefaults::setDefaultsPre(Options& opts)
     if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
       SET_AND_NOTIFY(Smt, produceUnsatCores, true, "enabling proofs");
-      SET_AND_NOTIFY(Smt,
-                     unsatCoresMode,
-                     options::UnsatCoresMode::SAT_PROOF,
-                     "enabling proofs");
+      if (options().prop.satSolver == options::SatSolverMode::MINISAT)
+      {
+        // if full proofs are available in minisat, use them for unsat cores
+        SET_AND_NOTIFY(Smt,
+                       unsatCoresMode,
+                       options::UnsatCoresMode::SAT_PROOF,
+                       "enabling proofs, minisat");
+      }
+      else
+      {
+        SET_AND_NOTIFY(Smt,
+                       unsatCoresMode,
+                       options::UnsatCoresMode::ASSUMPTIONS,
+                       "enabling proofs, non-minisat");
+      }
     }
     // note that this test assumes that granularity modes are ordered and
     // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
@@ -229,6 +240,22 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
   }
+  //
+  if (opts.smt.produceProofs)
+  {
+    // determine the prop proof mode, based on which SAT solver we are using
+    if (!opts.proof.propProofModeWasSetByUser)
+    {
+      if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
+      {
+        // use SAT_EXTERNAL_PROVE for cadical by default
+        SET_AND_NOTIFY(Proof,
+                       propProofMode,
+                       options::PropProofMode::SAT_EXTERNAL_PROVE,
+                       "cadical");
+      }
+    }
+  }
 
   // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
   // for proof mode.
@@ -237,7 +264,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   Assert(opts.smt.produceProofs
          == (opts.smt.proofMode != options::ProofMode::OFF));
 
-  // if we requiring disabling proofs, disable them now
+  // if we requiring disabling options due to proofs, disable them now
   if (opts.smt.produceProofs)
   {
     std::stringstream reasonNoProofs;
@@ -960,6 +987,23 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   {
     reason << "deep restarts";
     return true;
+  }
+  // specific to SAT solver
+  if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
+  {
+    if (opts.proof.propProofMode == options::PropProofMode::PROOF)
+    {
+      reason << "(resolution) proofs not supported in cadical";
+      return true;
+    }
+  }
+  else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
+  {
+    if (opts.proof.propProofMode == options::PropProofMode::SKETCH)
+    {
+      reason << "(DRAT) proof sketch not supported in minisat";
+      return true;
+    }
   }
   return false;
 }

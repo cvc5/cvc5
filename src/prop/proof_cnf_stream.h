@@ -65,6 +65,7 @@ class ProofCnfStream : protected EnvObj
    */
   void convertAndAssert(
       TNode node, bool negated, bool removable, bool input, ProofGenerator* pg);
+
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -89,6 +90,13 @@ class ProofCnfStream : protected EnvObj
    * Returns the Boolean variables from the input problem.
    */
   void getBooleanVariables(std::vector<TNode>& outputVariables) const;
+
+  /**
+   * Dump dimacs of the given clauses to the given output stream.
+   * We use the identifiers for literals computed by this class. All literals
+   * in clauses should be assigned by this class already.
+   */
+  void dumpDimacs(std::ostream& out, const std::vector<Node>& clauses);
 
  private:
   /**
