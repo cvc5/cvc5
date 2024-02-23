@@ -587,7 +587,8 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
         std::unordered_map<Node, Node> tmpConvertMap;
         std::map<TypeNode, std::unordered_set<Node> > freshVarType;
         Node retc = convertToQuery(ret, tmpConvertMap, freshVarType);
-        Trace("mbqi-model-enum") << "- Converted candidate: " << retc << std::endl;
+        Trace("mbqi-model-enum")
+            << "- Converted candidate: " << retc << std::endl;
         // see if it is still satisfiable, if still SAT, we replace
         Node queryCheck = queryCurr.substitute(TNode(v), TNode(retc));
         queryCheck = rewrite(queryCheck);
