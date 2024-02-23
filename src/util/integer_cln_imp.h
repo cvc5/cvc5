@@ -74,8 +74,8 @@ class Integer
   Integer(unsigned long int z) : d_value(z) {}
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-  Integer(int64_t z) : d_value(static_cast<long>(z)) {}
-  Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
+  Integer(int64_t z) : d_value(z) {}
+  Integer(uint64_t z) : d_value(z) {}
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /** Destructor. */
