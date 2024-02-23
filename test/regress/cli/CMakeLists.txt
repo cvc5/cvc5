@@ -1847,6 +1847,7 @@ set(regress_0_tests
   regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/sygus-no-wf.sy
+  regress0/sygus/sygus-no-incremental-err.sy
   regress0/sygus/sygus-uf.sy
   regress0/sygus/uminus_one.sy
   regress0/sygus/univ_3-long-repeat-conflict.sy

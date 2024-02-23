@@ -135,8 +135,9 @@ class SolverEngineState : protected EnvObj
    */
   bool isFullyInited() const;
   /**
-   * Return true if a notifyCheckSat call has been made, e.g. a query has been
-   * issued to the SolverEngine.
+   * @return True if a call to check-sat or check-synth has been made and
+   * completed. Other calls (e.g., get-interpolant, get-abduct, get-qe) do not
+   * impact this, since they are handled independently via subsolvers.
    */
   bool isQueryMade() const;
   /** Get the status of the last check-sat */
