@@ -841,8 +841,8 @@ void TheorySetsPrivate::checkMapDown()
       //     (set.member x A)
       //     (= (f x) y))
       // )
-      Node x = sm->mkSkolemFunction(
-          SkolemFunId::SETS_MAP_DOWN_ELEMENT, elementType, {term, y});
+      Node x =
+          sm->mkSkolemFunction(SkolemFunId::SETS_MAP_DOWN_ELEMENT, {term, y});
 
       d_state.registerMapSkolemElement(term, x);
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
@@ -1103,7 +1103,6 @@ void TheorySetsPrivate::groupPartMember(Node n, Node B, Node part)
   exp.push_back(A_notEmpty);
 
   Node x = sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART_ELEMENT,
-                                setType.getSetElementType(),
                                 {n, B});
   d_state.registerPartElementSkolem(n, x);
   Node part_x = nm->mkNode(Kind::APPLY_UF, part, x);
@@ -1207,15 +1206,11 @@ Node TheorySetsPrivate::defineSkolemPartFunction(Node n)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
   Node A = n[0];
-  TypeNode relationType = A.getType();
-  TypeNode elementType = relationType.getSetElementType();
 
   // declare an uninterpreted function part: T -> (Relation T)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  TypeNode partType = nm->mkFunctionType(elementType, relationType);
-  Node part =
-      sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART, partType, {n});
+  Node part = sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART, {n});
   return part;
 }
 
@@ -1269,9 +1264,7 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq);
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
-    TypeNode elementType = deq[0].getType().getSetElementType();
-    Node x = sm->mkSkolemFunction(
-        SkolemFunId::SETS_DEQ_DIFF, elementType, {deq[0], deq[1]});
+    Node x = sm->mkSkolemFunction(SkolemFunId::SETS_DEQ_DIFF, {deq[0], deq[1]});
     Node mem1 = nm->mkNode(Kind::SET_MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(Kind::SET_MEMBER, x, deq[1]);
     Node lem =
@@ -1688,9 +1681,10 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);
-  TypeNode ufType = nm->mkFunctionType(setType, setType.getSetElementType());
+  // use canonical constant to ensure it can be typed
+  Node mkElem = nm->mkGroundValue(setType);
   // a Null node is used here to get a unique skolem function per set type
-  Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, ufType, Node());
+  Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, mkElem);
   Node ufA = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, uf, A);
 
   Node equal = x.eqNode(ufA);

@@ -46,8 +46,8 @@ Before building and installing, the following dependencies should be installed, 
 
 .. code:: bash
 
-  brew install cmake python cython gmp java
-  pip3 install tomli scikit-build pyparsing
+  brew install cmake python gmp java
+  pip3 install -r contrib/requirements_python_dev.txt
 
 
 Then `cvc5` can be installed from source as follows:
@@ -59,7 +59,7 @@ Then `cvc5` can be installed from source as follows:
   ./configure.sh --python-bindings --auto-download
   cd build
   make cvc5_python_api              # add -jN for parallel build using N threads
-  export PYTHONPATH=“<path-to-local-cvc5-repo>/build/src/api/python/:$PYTHONPATH”
+  export PYTHONPATH="<path-to-local-cvc5-repo>/build/src/api/python/:$PYTHONPATH"
 
 And to make sure that it works:
 

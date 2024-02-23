@@ -99,6 +99,7 @@ const char* toString(ProofRule id)
     case ProofRule::SYMM: return "SYMM";
     case ProofRule::TRANS: return "TRANS";
     case ProofRule::CONG: return "CONG";
+    case ProofRule::NARY_CONG: return "NARY_CONG";
     case ProofRule::TRUE_INTRO: return "TRUE_INTRO";
     case ProofRule::TRUE_ELIM: return "TRUE_ELIM";
     case ProofRule::FALSE_INTRO: return "FALSE_INTRO";
@@ -132,6 +133,7 @@ const char* toString(ProofRule id)
     case ProofRule::CONCAT_EQ: return "CONCAT_EQ";
     case ProofRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
     case ProofRule::CONCAT_CONFLICT: return "CONCAT_CONFLICT";
+    case ProofRule::CONCAT_CONFLICT_DEQ: return "CONCAT_CONFLICT_DEQ";
     case ProofRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
     case ProofRule::CONCAT_CSPLIT: return "CONCAT_CSPLIT";
     case ProofRule::CONCAT_LPROP: return "CONCAT_LPROP";
@@ -194,7 +196,6 @@ const char* toString(ProofRule id)
     //================================================= External rules
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
-    case ProofRule::ALF_RULE: return "ALF_RULE";
     //================================================= Unknown rule
     case ProofRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

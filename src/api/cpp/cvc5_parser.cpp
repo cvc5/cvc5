@@ -309,10 +309,17 @@ void InputParser::setStringInput(modes::InputLanguage lang,
   // initialize the parser
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
-  d_parser->setStringInput(input, name);
+  setStringInputInternal(input, name);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
+
+void InputParser::setStringInputInternal(const std::string& input,
+                                         const std::string& name)
+{
+  d_parser->setStringInput(input, name);
+}
+
 void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
                                             const std::string& name)
 {

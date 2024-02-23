@@ -225,7 +225,7 @@ void SygusReconstruct::fast(Node sol, TypeNode stn, int8_t& reconstructed)
   sti.initialize(d_tds, stn);
   std::vector<TypeNode> stns;
   sti.getSubfieldTypes(stns);
-  std::map<cvc5::internal::TypeNode, int> varCount;
+  std::map<TypeNode, size_t> varCount;
 
   // add the constructors for each sygus datatype to the pool
   for (const TypeNode& cstn : stns)

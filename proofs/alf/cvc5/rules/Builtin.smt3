@@ -1,0 +1,64 @@
+(include "../theories/Builtin.smt3")
+
+; SCOPE
+(declare-rule scope
+  ((F Bool) (G Bool))
+  :assumption F
+  :premises (G)
+  :args ()
+  :conclusion (=> F G)
+)
+
+; `extract_antec F C` returns the antecedant of F up to C,
+; e.g. returns (and G1 G2) when F is (=> G1 (=> G2 C)), or true if F is C.
+(program extract_antec_rec
+   ((C Bool) (F1 Bool) (F2 Bool))
+   (Bool Bool) Bool
+   (
+   ((extract_antec_rec C C)          true)
+   ((extract_antec_rec (=> F1 F2) C) (alf.cons and F1 (extract_antec_rec F2 C)))
+   )
+)
+; Calls the above method if necessary.
+; Singleton case is handled here to avoid constructing AND with single child.
+(program extract_antec
+   ((C Bool) (F Bool))
+   (Bool Bool) Bool
+   (
+   ((extract_antec (=> F C) C) F)
+   ((extract_antec F C)        (extract_antec_rec F C))
+   )
+)
+(program run_process_scope
+   ((C Bool) (F Bool))
+   (Bool Bool) Bool
+   (
+   ((run_process_scope F false) (not (extract_antec F false)))
+   ((run_process_scope F C) (=> (extract_antec F C) C))
+   )
+)
+
+; this rule processes the result of n scopes into the conclusion expected by ProofRule::SCOPE
+(declare-rule process_scope
+  ((C Bool) (F Bool))
+  :premises (F)
+  :args (C)
+  :conclusion (run_process_scope F C)
+)
+
+(declare-rule remove_term_formula_axiom ((T Type) (b Bool) (t1 T) (t2 T))
+  :args ((ite b t1 t2))
+  :conclusion
+    (let ((k (ite b t1 t2))) (ite b (= k t1) (= k t2))))
+
+; trust with an arbitrary list of premises
+(declare-rule trust ((P Bool) (F Bool))
+    :premise-list P and
+    :args (F)
+    :conclusion F
+)
+
+(declare-rule identity ((F Bool))
+    :premises (F)
+    :conclusion F
+)

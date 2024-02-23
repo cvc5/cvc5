@@ -47,7 +47,18 @@ enum LengthStatus
   LENGTH_GEQ_ONE
 };
 
-class InferenceManager;
+class InferInfo;
+
+class InferSideEffectProcess
+{
+ public:
+  InferSideEffectProcess() {}
+  virtual ~InferSideEffectProcess() {}
+  /** Process lemma */
+  virtual TrustNode processLemma(InferInfo& ii, LemmaProperty& p) = 0;
+  /** Called when ii is ready to be processed as a fact */
+  virtual void processFact(InferInfo& ii, ProofGenerator*& pg) = 0;
+};
 
 /**
  * An inference. This is a class to track an unprocessed call to either
@@ -80,7 +91,7 @@ class InferInfo : public TheoryInference
   /** Process internal fact */
   Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
   /** Pointer to the class used for processing this info */
-  InferenceManager* d_sim;
+  InferSideEffectProcess* d_sim;
   /** Whether it is the reverse form of the above id */
   bool d_idRev;
   /** The conclusion */

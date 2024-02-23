@@ -37,6 +37,7 @@
 #include "theory/ff/util.h"
 #include "theory/theory.h"
 #include "util/integer.h"
+#include "util/result.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -75,7 +76,7 @@ class SubTheory : protected EnvObj, public FieldObj
    *
    * Does nothing below full effort.
    */
-  void postCheck(Theory::Effort);
+  Result postCheck(Theory::Effort);
 
   /**
    * Has a conflict been detected?

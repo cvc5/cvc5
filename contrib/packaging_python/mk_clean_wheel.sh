@@ -25,6 +25,7 @@
 
 PYTHONBIN=$1
 CONFIG="$2"
+PLATFORM="$3"
 PYVERSION=$($PYTHONBIN -c "import sys; print(sys.implementation.name + sys.version.split()[0])")
 
 # This is needed because of scikit, otherwise it will include files from another
@@ -38,8 +39,9 @@ $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
 # install packages
-pip install -q --upgrade pip setuptools auditwheel
-pip install -q Cython pytest tomli scikit-build flex pyparsing 
+pip install -q --upgrade pip auditwheel
+pip install -r contrib/requirements_build.txt
+pip install -r contrib/requirements_python_dev.txt
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install -q delocate
@@ -58,7 +60,13 @@ rm -rf build_wheel/
 echo "Building pycvc5 wheel"
 
 pushd build_wheel
-python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
+# Copy the license files to be included in the wheel
+cmake --build . --target cvc5_python_licenses
+if [ -z "$PLATFORM" ] ; then
+  python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
+else
+  python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist --plat-name $PLATFORM
+fi
 
 cd dist
 

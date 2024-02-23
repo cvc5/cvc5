@@ -19,6 +19,7 @@
 
 #include "options/base_options.h"
 #include "options/decision_options.h"
+#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "proof/clause_id.h"
@@ -108,7 +109,7 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
 void MinisatSatSolver::initialize(context::Context* context,
                                   TheoryProxy* theoryProxy,
                                   context::UserContext* userContext,
-                                  ProofNodeManager* pnm)
+                                  PropPfManager* ppm)
 {
   d_context = context;
 
@@ -125,12 +126,25 @@ void MinisatSatSolver::initialize(context::Context* context,
                               theoryProxy,
                               d_context,
                               userContext,
-                              pnm,
+                              ppm,
                               options().base.incrementalSolving
                                   || options().decision.decisionMode
                                          != options::DecisionMode::INTERNAL);
 
   d_statistics.init(d_minisat);
+
+  // Since the prop engine asserts "true" to the CNF stream regardless of what
+  // is in the input (see PropEngine::finishInit), if a real "true" assertion is
+  // made to the SAT solver via the Proof CNF stream, that would be ignored,
+  // since there is already "true" in the CNF stream. Thus the SAT proof would
+  // not have True as an assumption, which can lead to issues when building its
+  // proof. To prevent this problem, we track it directly here.
+  SatProofManager* spfm = d_minisat->getProofManager();
+  if (spfm)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    spfm->registerSatAssumptions({nm->mkConst(true)});
+  }
 }
 
 // Like initialize() above, but called just before each search when in
@@ -293,13 +307,9 @@ std::vector<Node> MinisatSatSolver::getOrderHeap() const
   return d_minisat->getMiniSatOrderHeap();
 }
 
-SatProofManager* MinisatSatSolver::getProofManager()
-{
-  return d_minisat->getProofManager();
-}
-
 std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
 {
+  Assert(d_env.isSatProofProducing());
   return d_minisat->getProof();
 }
 
