@@ -239,6 +239,7 @@ void ConflictProcessor::decomposeLemma(const Node& lem,
 Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
                                              const Node& tgtLit) const
 {
+  Trace("confp-subs-debug") << "...try " << tgtLit << std::endl;
   Node ev = s.apply(tgtLit);
   Trace("confp-subs-debug") << "...apply " << ev << std::endl;
   // use the extended rewriter if option is set
@@ -326,7 +327,7 @@ bool ConflictProcessor::isAssignEq(const SubstitutionMap& s,
         continue;
       }
       // otherwise check cyclic
-      Node ns = rewrite(s.apply(n[1 - i]));
+      Node ns = s.apply(n[1 - i]);
       if (expr::hasSubterm(ns, n[i]))
       {
         continue;
