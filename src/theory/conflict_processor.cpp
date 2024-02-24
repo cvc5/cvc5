@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An assigner
+ * Conflict processor module
  */
 
 #include "theory/conflict_processor.h"

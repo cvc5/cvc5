@@ -19,7 +19,6 @@
 
 #include "base/map_util.h"
 #include "decision/decision_engine.h"
-#include "expr/assigner.h"
 #include "expr/attribute.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
@@ -34,8 +33,6 @@
 #include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
-#include "smt/solver_engine_state.h"
-#include "theory/assigner_infer.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/ee_manager_central.h"

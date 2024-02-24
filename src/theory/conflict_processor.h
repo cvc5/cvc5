@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An assigner
+ * Conflict processor module
  */
 
 #include "cvc5_public.h"
@@ -44,7 +44,6 @@ class ConflictProcessor : protected EnvObj
   TheoryEngine* d_engine;
   Node d_true;
   Node d_nullNode;
-  bool d_doGeneralize;
   /** Statistics about the conflict processor */
   struct Statistics
   {
