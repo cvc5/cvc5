@@ -19,6 +19,7 @@
 
 #include "base/map_util.h"
 #include "decision/decision_engine.h"
+#include "expr/assigner.h"
 #include "expr/attribute.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
@@ -27,13 +28,14 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
-#include "smt/solver_engine_state.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_ensure_closed.h"
 #include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
+#include "smt/solver_engine_state.h"
+#include "theory/assigner_infer.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/ee_manager_central.h"
@@ -249,7 +251,8 @@ TheoryEngine::TheoryEngine(Env& env)
       d_false(),
       d_interrupted(false),
       d_inPreregister(false),
-      d_factsAsserted(context(), false)
+      d_factsAsserted(context(), false),
+      d_cp(nullptr)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
@@ -261,6 +264,11 @@ TheoryEngine::TheoryEngine(Env& env)
   if (options().smt.sortInference)
   {
     d_sortInfer.reset(new SortInference(env));
+  }
+  if (options().theory.conflictProcessMode
+      != options::ConflictProcessMode::NONE)
+  {
+    d_cp.reset(new ConflictProcessor(env, this));
   }
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -1437,6 +1445,17 @@ void TheoryEngine::lemma(TrustNode tlemma,
   // spendResource();
   Assert(tlemma.getKind() == TrustNodeKind::LEMMA
          || tlemma.getKind() == TrustNodeKind::CONFLICT);
+
+  // minimize or generalize conflict
+  if (d_cp)
+  {
+    TrustNode tproc = d_cp->processLemma(tlemma);
+    if (!tproc.isNull())
+    {
+      tlemma = tproc;
+    }
+  }
+
   // get the node
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();

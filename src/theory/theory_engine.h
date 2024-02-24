@@ -29,6 +29,7 @@
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 #include "theory/atom_requests.h"
+#include "theory/conflict_processor.h"
 #include "theory/inference_id.h"
 #include "theory/interrupted.h"
 #include "theory/output_channel.h"
@@ -656,7 +657,8 @@ class TheoryEngine : protected EnvObj
   std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
   /** The list of modules */
   std::vector<theory::TheoryEngineModule*> d_modules;
-
+  /** Conflict processor */
+  std::unique_ptr<theory::ConflictProcessor> d_cp;
 }; /* class TheoryEngine */
 
 }  // namespace cvc5::internal

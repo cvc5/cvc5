@@ -32,8 +32,7 @@ ConflictProcessor::ConflictProcessor(Env& env, TheoryEngine* te)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
-  options::ConflictProcessMode mode = options().theory.conflictProcessMode;
-  Assert(mode != options::ConflictProcessMode::NONE);
+  Assert(options().theory.conflictProcessMode != options::ConflictProcessMode::NONE);
 }
 
 TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
@@ -370,30 +369,6 @@ void ConflictProcessor::getEntailedEq(const Node& tc,
     entval[it->second] = ctmp;
   }
 }
-
-bool ConflictProcessor::isAssignmentClashVec(const Node& a,
-                                             const std::vector<Node>& entval)
-{
-  if (entval.size() == 1)
-  {
-    return isAssignmentClash(a, entval[0]);
-  }
-  Assert(a.getKind() == Kind::SEXPR && a.getNumChildren() == entval.size());
-  for (size_t i = 0, nval = entval.size(); i < nval; i++)
-  {
-    if (isAssignmentClash(a[i], entval[i]))
-    {
-      return true;
-    }
-  }
-  return false;
-}
-bool ConflictProcessor::isAssignmentClash(const Node& a, const Node& b)
-{
-  Assert(!a.isNull());
-  return !b.isNull() && a.isConst() && b.isConst() && a != b;
-}
-
 
 bool ConflictProcessor::isAssignEq(const Node& n, Node& v, Node& c, bool reqConst)
 {
