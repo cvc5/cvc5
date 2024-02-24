@@ -32,7 +32,8 @@ ConflictProcessor::ConflictProcessor(Env& env, TheoryEngine* te)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
-  Assert(options().theory.conflictProcessMode != options::ConflictProcessMode::NONE);
+  Assert(options().theory.conflictProcessMode
+         != options::ConflictProcessMode::NONE);
 }
 
 TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
@@ -64,7 +65,8 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   Subs sf;
   sf.add(s.d_vars, s.d_subs);
   s.applyToRange(sf);
-  Trace("confp") << "- Substitution (fixed-point): " << sf.toString() << std::endl;
+  Trace("confp") << "- Substitution (fixed-point): " << sf.toString()
+                 << std::endl;
   // check if the substitution implies one of the tgtLit, if not, we are done
   Node tgtLit;
   for (TNode tlit : tgtLits)
@@ -88,7 +90,8 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
     for (TNode tlit : tgtLitsCheck)
     {
       Node v, ss;
-      if (tlit.getKind()==Kind::NOT && isAssignEq(s, tlit[0], v, ss, false) && !selim.contains(v))
+      if (tlit.getKind()==Kind::NOT && isAssignEq(s, tlit[0], v, ss, false) &&
+    !selim.contains(v))
       {
         Node sss = selim.apply(ss);
         auxExplain.push_back(tlit);
@@ -107,9 +110,8 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
         Node tlits = selim.apply(tlit);
         if (checkSubstitution(s, tlits, true))
         {
-          Trace("confp") << "...found target using " << selim.size() << " auxiliary equalities" << std::endl;
-          tgtLit = tlit;
-          tgtLitFinal = tlits;
+          Trace("confp") << "...found target using " << selim.size() << "
+    auxiliary equalities" << std::endl; tgtLit = tlit; tgtLitFinal = tlits;
           break;
         }
       }
@@ -133,13 +135,14 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   {
     minimized = true;
     ++d_stats.d_minLemmas;
-    Trace("confp") << "Target suffices " << tgtLit << " for more than one disjunct" << std::endl;
+    Trace("confp") << "Target suffices " << tgtLit
+                   << " for more than one disjunct" << std::endl;
   }
   // minimize the substitution here
   if (s.d_vars.size() > 1)
   {
     std::vector<Node> toErase;
-    for (size_t i=0, nvars = s.d_vars.size(); i<nvars; i++)
+    for (size_t i = 0, nvars = s.d_vars.size(); i < nvars; i++)
     {
       // try eliminating the substitution
       Node v = s.d_vars[i];
@@ -148,7 +151,8 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       Subs sfn;
       sfn.add(s.d_vars, s.d_subs);
       s.applyToRange(sfn);
-      Trace("confp") << "--- try substitution without " << v << ": " << sfn.toString() << std::endl;
+      Trace("confp") << "--- try substitution without " << v << ": "
+                     << sfn.toString() << std::endl;
       if (checkSubstitution(sfn, tgtLit, true))
       {
         toErase.push_back(v);
@@ -171,7 +175,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
     }
   }
 
-  //bool isConflict = lem.getKind() == TrustNodeKind::CONFLICT;
+  // bool isConflict = lem.getKind() == TrustNodeKind::CONFLICT;
   if (minimized)
   {
     Trace("confp") << "...SUCCESS" << std::endl;
@@ -372,7 +376,8 @@ ConflictProcessor::Statistics::Statistics(StatisticsRegistry& sr)
 {
 }
 
-bool ConflictProcessor::isAssignEq(const Subs& s, const Node& n, Node& v, Node& c, bool reqConst) const
+bool ConflictProcessor::isAssignEq(
+    const Subs& s, const Node& n, Node& v, Node& c, bool reqConst) const
 {
   Kind k = n.getKind();
   if (k == Kind::EQUAL)
@@ -390,7 +395,7 @@ bool ConflictProcessor::isAssignEq(const Subs& s, const Node& n, Node& v, Node& 
           continue;
         }
         // otherwise check cyclic
-        Node ns = rewrite(s.apply(n[1-i]));
+        Node ns = rewrite(s.apply(n[1 - i]));
         if (expr::hasSubterm(ns, n[i]))
         {
           continue;
@@ -403,7 +408,6 @@ bool ConflictProcessor::isAssignEq(const Subs& s, const Node& n, Node& v, Node& 
   }
   return false;
 }
-
 
 }  // namespace theory
 }  // namespace cvc5::internal

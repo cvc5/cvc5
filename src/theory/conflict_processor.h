@@ -62,7 +62,11 @@ class ConflictProcessor : protected EnvObj
                       std::vector<TNode>& tgtLits) const;
   Node evaluateSubstitution(const Subs& s, const Node& tgtLit) const;
   bool checkSubstitution(const Subs& s, const Node& tgtLit, bool expect) const;
-  bool isAssignEq(const Subs& s,const Node& n, Node& v, Node& c, bool reqConst = true) const;
+  bool isAssignEq(const Subs& s,
+                  const Node& n,
+                  Node& v,
+                  Node& c,
+                  bool reqConst = true) const;
 };
 
 }  // namespace theory
