@@ -37,7 +37,10 @@ namespace cvc5::internal {
 namespace proof {
 
 std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
+  {Kind::BITVECTOR_COMP, AletheRule::BV_BITBLAST_STEP_BVCOMP},
   {Kind::BITVECTOR_ULT, AletheRule::BV_BITBLAST_STEP_BVULT},
+  {Kind::BITVECTOR_ULE, AletheRule::BV_BITBLAST_STEP_BVULE},
+  {Kind::BITVECTOR_SLT, AletheRule::BV_BITBLAST_STEP_BVSLT},
   {Kind::BITVECTOR_AND, AletheRule::BV_BITBLAST_STEP_BVAND},
   {Kind::BITVECTOR_OR, AletheRule::BV_BITBLAST_STEP_BVOR},
   {Kind::BITVECTOR_XOR, AletheRule::BV_BITBLAST_STEP_BVXOR},
@@ -49,6 +52,7 @@ std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
   {Kind::BITVECTOR_CONCAT, AletheRule::BV_BITBLAST_STEP_CONCAT},
   {Kind::CONST_BITVECTOR, AletheRule::BV_BITBLAST_STEP_CONST},
   {Kind::BITVECTOR_EXTRACT, AletheRule::BV_BITBLAST_STEP_EXTRACT},
+  {Kind::BITVECTOR_SIGN_EXTEND, AletheRule::BV_BITBLAST_STEP_SIGN_EXTEND},
   {Kind::EQUAL, AletheRule::BV_BITBLAST_STEP_BVEQUAL},
   // TODO add support
   {Kind::BITVECTOR_UDIV, AletheRule::HOLE},
