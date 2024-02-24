@@ -73,8 +73,8 @@ name   = "Theory Layer"
   long       = "conflict-process=MODE"
   type       = "ConflictProcessMode"
   default    = "NONE"
-  help       = "mode for managing equalities across theory solvers"
-  help_mode  = "Defines mode for managing equalities across theory solvers."
+  help       = "mode for processing theory conflicts"
+  help_mode  = "Defines mode for processing theory conflicts."
 [[option.mode.NONE]]
   name = "none"
   help = "Do not post-process conflicts from theory solvers."
@@ -84,15 +84,3 @@ name   = "Theory Layer"
 [[option.mode.MINIMIZE]]
   name = "min"
   help = "Do simple minimization for conflicts from theory solvers."
-[[option.mode.GENERALIZE_ALL]]
-  name = "gen-all"
-  help = "Do minimization and generalization (via assigners) for conflicts from theory solvers."
-[[option.mode.GENERALIZE_ALL_MINUS_ONE]]
-  name = "gen-all-minus-one"
-  help = "Do minimization and generalization (via assigners) for conflicts from theory solvers. Generalize if at most one failure"
-[[option.mode.GENERALIZE_MAJORITY]]
-  name = "gen-majority"
-  help = "Do minimization and generalization (via assigners) for conflicts from theory solvers. Generalize if majority."
-[[option.mode.GENERALIZE_ANY]]
-  name = "gen-any"
-  help = "Do minimization and generalization (via assigners) for conflicts from theory solvers. Generalized if any."

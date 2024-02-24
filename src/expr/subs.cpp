@@ -25,27 +25,12 @@ bool Subs::empty() const { return d_vars.empty(); }
 
 size_t Subs::size() const { return d_vars.size(); }
 
-size_t Subs::getIndex(const Node& v) const
-{
-  std::vector<Node>::const_iterator it =
-      std::find(d_vars.begin(), d_vars.end(), v);
-  return std::distance(d_vars.begin(), it);
-}
-
-bool Subs::contains(const Node& v) const
+bool Subs::contains(Node v) const
 {
   return std::find(d_vars.begin(), d_vars.end(), v) != d_vars.end();
 }
 
-void Subs::erase(const Node& v)
-{
-  Assert(contains(v));
-  size_t index = getIndex(v);
-  d_vars.erase(d_vars.begin() + index);
-  d_subs.erase(d_subs.begin() + index);
-}
-
-Node Subs::getSubs(const Node& v) const
+Node Subs::getSubs(Node v) const
 {
   std::vector<Node>::const_iterator it =
       std::find(d_vars.begin(), d_vars.end(), v);
@@ -181,7 +166,7 @@ std::string Subs::toString() const
   {
     if (i > 0)
     {
-      ss << ", ";
+      ss << " ";
     }
     ss << d_vars[i] << " -> " << d_subs[i];
   }
