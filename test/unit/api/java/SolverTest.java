@@ -889,6 +889,10 @@ class SolverTest
                                d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm)));
 
     // mkTerm(Op op, Term child1, Term child2, Term child3) const
+    assertDoesNotThrow(
+        ()
+            -> d_solver.mkTerm(
+                opterm2, d_solver.mkInteger(1), d_solver.mkInteger(1), d_solver.mkInteger(1)));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, a, b, a));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.mkTerm(opterm2, d_solver.mkInteger(1), d_solver.mkInteger(1), new Term()));
