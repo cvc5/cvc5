@@ -22,11 +22,12 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
-SubstitutionMap::SubstitutionMap(context::Context* context)
+SubstitutionMap::SubstitutionMap(context::Context* context, bool compress)
     : d_context(),
       d_substitutions(context ? context : &d_context),
       d_substitutionCache(),
       d_cacheInvalidated(false),
+      d_compress(compress),
       d_cacheInvalidator(context ? context : &d_context, d_cacheInvalidated)
 {
 }
@@ -82,25 +83,28 @@ Node SubstitutionMap::internalSubstitute(TNode t,
     NodeMap::iterator find2 = d_substitutions.find(current);
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
-      Assert(rhs != current);
-      find = cache.find(rhs);
-      if (find == cache.end())
+      if(rhs != current)
       {
-        // visit the RHS
-        toVisit.push_back((TNode)rhs);
+        find = cache.find(rhs);
+        if (find == cache.end())
+        {
+          // visit the RHS
+          toVisit.push_back((TNode)rhs);
+          continue;
+        }
+        // update the substitution map if using compression
+        if (tracker == nullptr && d_compress)
+        {
+          d_substitutions[current] = cache[rhs];
+        }
+        cache[current] = cache[rhs];
+        toVisit.pop_back();
+        if (tracker != nullptr)
+        {
+          tracker->insert(current);
+        }
         continue;
       }
-      if (tracker == nullptr)
-      {
-        d_substitutions[current] = cache[rhs];
-      }
-      cache[current] = cache[rhs];
-      toVisit.pop_back();
-      if (tracker != nullptr)
-      {
-        tracker->insert(current);
-      }
-      continue;
     }
 
     // Not yet substituted, so process
@@ -128,21 +132,27 @@ Node SubstitutionMap::internalSubstitute(TNode t,
           find2 = d_substitutions.find(result);
           if (find2 != d_substitutions.end()) {
             Node rhs = (*find2).second;
-            Assert(rhs != result);
-            find = cache.find(rhs);
-            if (find == cache.end())
+            if (rhs != result)
             {
-              // visit the RHS
-              toVisit.push_back((TNode)rhs);
-              continue;
+              find = cache.find(rhs);
+              if (find == cache.end())
+              {
+                // visit the RHS
+                toVisit.push_back((TNode)rhs);
+                continue;
+              }
+              // update the substitution map if using compression
+              if (d_compress)
+              {
+                d_substitutions[result] = cache[rhs];
+              }
+              cache[result] = cache[rhs];
+              if (tracker != nullptr)
+              {
+                tracker->insert(result);
+              }
+              result = cache[rhs];
             }
-            d_substitutions[result] = cache[rhs];
-            cache[result] = cache[rhs];
-            if (tracker != nullptr)
-            {
-              tracker->insert(result);
-            }
-            result = cache[rhs];
           }
         }
       }
@@ -195,11 +205,8 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
   // don't check type equal here, since this utility may be used in conversions
   // that change the types of terms
   Trace("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
-  Assert(d_substitutions.find(x) == d_substitutions.end());
-
-  // this causes a later assert-fail (the rhs != current one, above) anyway
-  // putting it here is easier to diagnose
-  Assert(x != t) << "cannot substitute a term for itself";
+  // shouldn't use compression if updating
+  Assert (d_substitutions.find(x)==d_substitutions.end() || !d_compress);
 
   d_substitutions[x] = t;
 
@@ -224,6 +231,17 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
       d_substitutionCache[(*it).first] = d_substitutions[(*it).first];
     }
   }
+  if (invalidateCache) {
+    d_cacheInvalidated = true;
+  }
+}
+
+void SubstitutionMap::eraseSubstitution(TNode x, bool invalidateCache)
+{
+  // shouldn't use compression
+  Assert (!d_compress);
+  Assert (d_substitutions.find(x)!=d_substitutions.end());
+  d_substitutions[x] = x;
   if (invalidateCache) {
     d_cacheInvalidated = true;
   }
@@ -265,6 +283,13 @@ void SubstitutionMap::print(ostream& out) const {
   for (; it != it_end; ++ it) {
     out << (*it).first << " -> " << (*it).second << endl;
   }
+}
+
+std::string SubstitutionMap::toString() const
+{
+  std::stringstream ss;
+  print(ss);
+  return ss.str();
 }
 
 }  // namespace theory

@@ -41,7 +41,8 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   ++d_stats.d_initLemmas;
   Node lemma = lem.getProven();
   lemma = rewrite(lemma);
-  Subs s;
+  // do not use compression
+  SubstitutionMap s(nullptr, false);
   std::map<Node, Node> varToExp;
   std::vector<TNode> tgtLits;
   // decompose lemma into AND( s ) => OR( tgtLits )
@@ -62,71 +63,22 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
     Trace("confp") << "...FAIL (test)" << std::endl;
     return TrustNode::null();
   }
-  Subs sf;
-  sf.add(s.d_vars, s.d_subs);
-  s.applyToRange(sf);
-  Trace("confp") << "- Substitution (fixed-point): " << sf.toString()
-                 << std::endl;
   // check if the substitution implies one of the tgtLit, if not, we are done
   Node tgtLit;
   for (TNode tlit : tgtLits)
   {
-    if (checkSubstitution(sf, tlit, true))
+    if (checkSubstitution(s, tlit, true))
     {
       tgtLit = tlit;
       break;
     }
   }
-  // the form of the target literal as it will appear in the final lemma.
-  Node tgtLitFinal;
   std::vector<Node> auxExplain;
   if (tgtLit.isNull())
   {
-    /*
-    // NOTE: could do unification here
-    Subs selim;
-    std::vector<TNode> tgtLitsCheck = tgtLits;
-    tgtLits.clear();
-    for (TNode tlit : tgtLitsCheck)
-    {
-      Node v, ss;
-      if (tlit.getKind()==Kind::NOT && isAssignEq(s, tlit[0], v, ss, false) &&
-    !selim.contains(v))
-      {
-        Node sss = selim.apply(ss);
-        auxExplain.push_back(tlit);
-        selim.add(v, sss);
-      }
-      else
-      {
-        tgtLits.push_back(tlit);
-      }
-    }
-    // check tgtLits again
-    if (!selim.empty())
-    {
-      for (TNode tlit : tgtLits)
-      {
-        Node tlits = selim.apply(tlit);
-        if (checkSubstitution(s, tlits, true))
-        {
-          Trace("confp") << "...found target using " << selim.size() << "
-    auxiliary equalities" << std::endl; tgtLit = tlit; tgtLitFinal = tlits;
-          break;
-        }
-      }
-    }
-    */
-    if (tgtLit.isNull())
-    {
-      Trace("confp-debug") << "No target for " << lemma << std::endl;
-      Trace("confp") << "...FAIL (no target found)" << std::endl;
-      return TrustNode::null();
-    }
-  }
-  else
-  {
-    tgtLitFinal = tgtLit;
+    Trace("confp-debug") << "No target for " << lemma << std::endl;
+    Trace("confp") << "...FAIL (no target found)" << std::endl;
+    return TrustNode::null();
   }
   bool minimized = false;
   // we are minimized if there were multiple target literals and we found a
@@ -139,28 +91,25 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
                    << " for more than one disjunct" << std::endl;
   }
   // minimize the substitution here
-  if (s.d_vars.size() > 1)
+  std::unordered_map<Node, Node> smap = s.getSubstitutions();
+  if (smap.size() > 1)
   {
     std::vector<Node> toErase;
-    for (size_t i = 0, nvars = s.d_vars.size(); i < nvars; i++)
+    for (std::pair<const Node, Node>& ss : smap)
     {
       // try eliminating the substitution
-      Node v = s.d_vars[i];
-      Node sprev = s.d_subs[i];
-      s.d_subs[i] = v;
-      Subs sfn;
-      sfn.add(s.d_vars, s.d_subs);
-      s.applyToRange(sfn);
-      Trace("confp") << "--- try substitution without " << v << ": "
-                     << sfn.toString() << std::endl;
-      if (checkSubstitution(sfn, tgtLit, true))
+      Node v = ss.first;
+      s.eraseSubstitution(v);
+      Trace("confp") << "--- try substitution without " << v << std::endl;
+      if (checkSubstitution(s, tgtLit, true))
       {
         toErase.push_back(v);
       }
       else
       {
         Trace("confp") << "...did not work on " << tgtLit << std::endl;
-        s.d_subs[i] = sprev;
+        // add it back
+        s.addSubstitution(v, ss.second);
       }
     }
     if (!toErase.empty())
@@ -169,7 +118,6 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       for (const Node& v : toErase)
       {
         varToExp.erase(v);
-        s.erase(v);
         Trace("confp") << "Substitution is unnecessary for " << v << std::endl;
       }
     }
@@ -196,13 +144,13 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       }
     }
     clause.insert(clause.end(), auxExplain.begin(), auxExplain.end());
-    if (tgtLitFinal.getKind() == Kind::OR)
+    if (tgtLit.getKind() == Kind::OR)
     {
-      clause.insert(clause.end(), tgtLitFinal.begin(), tgtLitFinal.end());
+      clause.insert(clause.end(), tgtLit.begin(), tgtLit.end());
     }
     else
     {
-      clause.push_back(tgtLitFinal);
+      clause.push_back(tgtLit);
     }
     Node genLem = nm->mkOr(clause);
     Trace("confp") << "...processed lemma is " << genLem << std::endl;
@@ -215,7 +163,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
 }
 
 void ConflictProcessor::decomposeLemma(const Node& lem,
-                                       Subs& s,
+                                       SubstitutionMap& s,
                                        std::map<Node, Node>& varToExp,
                                        std::vector<TNode>& tgtLits) const
 {
@@ -262,46 +210,12 @@ void ConflictProcessor::decomposeLemma(const Node& lem,
           Node ctmp;
           if (isAssignEq(s, cur[0], vtmp, ctmp, false))
           {
-            Assert(s.getSubs(vtmp).isNull());
+            Assert(!s.hasSubstitution(vtmp));
             // use as a substitution
-            s.add(vtmp, ctmp);
+            s.addSubstitution(vtmp, ctmp);
             varToExp[vtmp] = cur[0];
             continue;
           }
-#if 0
-          // FIXME: this requires recursive tracking of explanations
-          // apply the current substitution to the equality first
-          Node curs = rewrite(s.apply(cur[0]));
-          if (curs.getKind()!=Kind::EQUAL)
-          {
-            // it evaluates under substitution already, take as target
-            tgtLits.push_back(cur);
-            continue;
-          }
-          else if (isAssignEq(curs, vtmp, ctmp, false))
-          {
-            if (expr::hasSubterm(ctmp, vtmp))
-            {
-              // cyclic, just take as target
-              tgtLits.push_back(cur);
-              continue;
-            }
-            // should not have a value already
-            Assert (s.getSubs(vtmp).isNull());
-            Node cprev = s.getSubs(vtmp);
-            // go back and apply to range of the current substitution
-            if (!s.empty())
-            {
-              Subs ns;
-              ns.add(vtmp, ctmp);
-              ns.applyToRange(s);
-            }
-            // use as a substitution
-            s.add(vtmp, ctmp);
-            varToExp[vtmp] = cur[0];
-            continue;
-          }
-#endif
         }
         else if (k == Kind::AND)
         {
@@ -321,15 +235,17 @@ void ConflictProcessor::decomposeLemma(const Node& lem,
   } while (!visit.empty());
 }
 
-Node ConflictProcessor::evaluateSubstitution(const Subs& s,
+Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
                                              const Node& tgtLit) const
 {
-  Node ev = evaluate(tgtLit, s.d_vars, s.d_subs);
+  Node ev = s.apply(tgtLit);
+  Trace("confp-subs-debug") << "...apply " << ev << std::endl;
   ev = extendedRewrite(ev);
+  Trace("confp-subs-debug") << "...rewrite " << ev << std::endl;
   return ev;
 }
 
-bool ConflictProcessor::checkSubstitution(const Subs& s,
+bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
                                           const Node& tgtLit,
                                           bool expect) const
 {
@@ -377,34 +293,31 @@ ConflictProcessor::Statistics::Statistics(StatisticsRegistry& sr)
 }
 
 bool ConflictProcessor::isAssignEq(
-    const Subs& s, const Node& n, Node& v, Node& c, bool reqConst) const
+    const SubstitutionMap& s, const Node& n, Node& v, Node& c, bool reqConst) const
 {
-  Kind k = n.getKind();
-  if (k == Kind::EQUAL)
+  Assert (n.getKind()==Kind::EQUAL);
+  for (size_t i = 0; i < 2; i++)
   {
-    for (size_t i = 0; i < 2; i++)
+    if (!n[i].isVar() || s.hasSubstitution(n[i]))
     {
-      if (!n[i].isVar() || !s.getSubs(n[i]).isNull())
+      continue;
+    }
+    if (!n[1 - i].isConst())
+    {
+      if (reqConst)
       {
         continue;
       }
-      if (!n[1 - i].isConst())
+      // otherwise check cyclic
+      Node ns = rewrite(s.apply(n[1 - i]));
+      if (expr::hasSubterm(ns, n[i]))
       {
-        if (reqConst)
-        {
-          continue;
-        }
-        // otherwise check cyclic
-        Node ns = rewrite(s.apply(n[1 - i]));
-        if (expr::hasSubterm(ns, n[i]))
-        {
-          continue;
-        }
+        continue;
       }
-      v = n[i];
-      c = n[1 - i];
-      return true;
     }
+    v = n[i];
+    c = n[1 - i];
+    return true;
   }
   return false;
 }
