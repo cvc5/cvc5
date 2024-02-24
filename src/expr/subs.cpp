@@ -181,7 +181,7 @@ std::string Subs::toString() const
   {
     if (i > 0)
     {
-      ss << " ";
+      ss << ", ";
     }
     ss << d_vars[i] << " -> " << d_subs[i];
   }

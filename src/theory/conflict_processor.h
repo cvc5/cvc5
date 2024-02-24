@@ -62,13 +62,7 @@ class ConflictProcessor : protected EnvObj
                       std::vector<TNode>& tgtLits) const;
   Node evaluateSubstitution(const Subs& s, const Node& tgtLit) const;
   bool checkSubstitution(const Subs& s, const Node& tgtLit, bool expect) const;
-  /**
-   * Get entailed equalities from literal cube tc.
-   */
-  static void getEntailedEq(const Node& tc,
-                            const std::map<Node, size_t>& vindex,
-                            std::vector<Node>& entval);
-  static bool isAssignEq(const Node& n, Node& v, Node& c, bool reqConst = true);
+  bool isAssignEq(const Subs& s,const Node& n, Node& v, Node& c, bool reqConst = true) const;
 };
 
 }  // namespace theory
