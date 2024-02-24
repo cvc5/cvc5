@@ -656,6 +656,8 @@ libcvc5_add_sources(
   theory/combination_care_graph.h
   theory/combination_engine.cpp
   theory/combination_engine.h
+  theory/conflict_processor.cpp
+  theory/conflict_processor.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
   theory/datatypes/inference.cpp
