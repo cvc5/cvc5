@@ -992,8 +992,8 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
 
     for (TNode n : curr)
     {
-      auto [it, inserted] = parent.emplace(n, curr);
-      if (inserted)
+      // if we successfully inserted
+      if (parent.emplace(n, curr).second)
       {
         toVisit.emplace_back(n);
       }
