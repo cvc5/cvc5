@@ -292,10 +292,13 @@ ConflictProcessor::Statistics::Statistics(StatisticsRegistry& sr)
 {
 }
 
-bool ConflictProcessor::isAssignEq(
-    const SubstitutionMap& s, const Node& n, Node& v, Node& c, bool reqConst) const
+bool ConflictProcessor::isAssignEq(const SubstitutionMap& s,
+                                   const Node& n,
+                                   Node& v,
+                                   Node& c,
+                                   bool reqConst) const
 {
-  Assert (n.getKind()==Kind::EQUAL);
+  Assert(n.getKind() == Kind::EQUAL);
   for (size_t i = 0; i < 2; i++)
   {
     if (!n[i].isVar() || s.hasSubstitution(n[i]))

@@ -83,7 +83,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
     NodeMap::iterator find2 = d_substitutions.find(current);
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
-      if(rhs != current)
+      if (rhs != current)
       {
         find = cache.find(rhs);
         if (find == cache.end())
@@ -206,7 +206,7 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
   // that change the types of terms
   Trace("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
   // shouldn't use compression if updating
-  Assert (d_substitutions.find(x)==d_substitutions.end() || !d_compress);
+  Assert(d_substitutions.find(x) == d_substitutions.end() || !d_compress);
 
   d_substitutions[x] = t;
 
@@ -239,10 +239,11 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
 void SubstitutionMap::eraseSubstitution(TNode x, bool invalidateCache)
 {
   // shouldn't use compression
-  Assert (!d_compress);
-  Assert (d_substitutions.find(x)!=d_substitutions.end());
+  Assert(!d_compress);
+  Assert(d_substitutions.find(x) != d_substitutions.end());
   d_substitutions[x] = x;
-  if (invalidateCache) {
+  if (invalidateCache)
+  {
     d_cacheInvalidated = true;
   }
 }

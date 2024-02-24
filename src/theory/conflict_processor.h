@@ -22,8 +22,8 @@
 #include "expr/subs.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
-#include "util/statistics_stats.h"
 #include "theory/substitutions.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 
@@ -62,7 +62,9 @@ class ConflictProcessor : protected EnvObj
                       std::map<Node, Node>& varToExp,
                       std::vector<TNode>& tgtLits) const;
   Node evaluateSubstitution(const SubstitutionMap& s, const Node& tgtLit) const;
-  bool checkSubstitution(const SubstitutionMap& s, const Node& tgtLit, bool expect) const;
+  bool checkSubstitution(const SubstitutionMap& s,
+                         const Node& tgtLit,
+                         bool expect) const;
   bool isAssignEq(const SubstitutionMap& s,
                   const Node& n,
                   Node& v,
