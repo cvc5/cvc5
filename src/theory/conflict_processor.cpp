@@ -248,6 +248,10 @@ Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
   else
   {
     ev = rewrite(ev);
+    if (ev.getKind()==Kind::EQUAL)
+    {
+      ev = rewriteEqualityExt(ev);
+    }
   }
   Trace("confp-subs-debug") << "...rewrite " << ev << std::endl;
   return ev;
