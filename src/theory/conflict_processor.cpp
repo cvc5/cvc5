@@ -241,6 +241,7 @@ Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
 {
   Node ev = s.apply(tgtLit);
   Trace("confp-subs-debug") << "...apply " << ev << std::endl;
+  // use the extended rewriter if option is set
   if (d_useExtRewriter)
   {
     ev = extendedRewrite(ev);
@@ -248,6 +249,7 @@ Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
   else
   {
     ev = rewrite(ev);
+    // also try the extended equality rewriter
     if (ev.getKind()==Kind::EQUAL)
     {
       ev = rewriteEqualityExt(ev);
