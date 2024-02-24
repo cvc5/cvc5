@@ -84,3 +84,6 @@ name   = "Theory Layer"
 [[option.mode.MINIMIZE]]
   name = "min"
   help = "Do simple minimization for conflicts from theory solvers."
+[[option.mode.MINIMIZE_EXT]]
+  name = "min-ext"
+  help = "Do minimization for conflicts from theory solvers, relying on the extended rewriter."

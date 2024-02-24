@@ -32,7 +32,9 @@ ConflictProcessor::ConflictProcessor(Env& env, TheoryEngine* te)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
-  Assert(options().theory.conflictProcessMode
+  options::ConflictProcessMode mode = options().theory.conflictProcessMode;
+  d_useExtRewriter = (mode==options::ConflictProcessMode::MINIMIZE_EXT);
+  Assert(mode
          != options::ConflictProcessMode::NONE);
 }
 
@@ -240,7 +242,14 @@ Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
 {
   Node ev = s.apply(tgtLit);
   Trace("confp-subs-debug") << "...apply " << ev << std::endl;
-  ev = extendedRewrite(ev);
+  if (d_useExtRewriter)
+  {
+    ev = extendedRewrite(ev);
+  }
+  else
+  {
+    ev = rewrite(ev);
+  }
   Trace("confp-subs-debug") << "...rewrite " << ev << std::endl;
   return ev;
 }

@@ -205,8 +205,12 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
   // don't check type equal here, since this utility may be used in conversions
   // that change the types of terms
   Trace("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
-  // shouldn't use compression if updating
+  // shouldn't use compression if replacing a current substitution, or otherwise the range of other d_substitutions can be out of sync
   Assert(d_substitutions.find(x) == d_substitutions.end() || !d_compress);
+
+  // this causes a later assert-fail (the rhs != current one, above) anyway
+  // putting it here is easier to diagnose
+  Assert(x != t) << "cannot substitute a term for itself";
 
   d_substitutions[x] = t;
 

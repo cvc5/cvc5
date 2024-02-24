@@ -45,6 +45,8 @@ class ConflictProcessor : protected EnvObj
   TheoryEngine* d_engine;
   Node d_true;
   Node d_nullNode;
+  /** Use the extended rewriter? */
+  bool d_useExtRewriter;
   /** Statistics about the conflict processor */
   struct Statistics
   {
