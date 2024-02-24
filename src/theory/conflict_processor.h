@@ -55,47 +55,21 @@ class ConflictProcessor : protected EnvObj
     IntStat d_lemmas;
     /** Total number of minimized lemmas */
     IntStat d_minLemmas;
-    /** Total number of generalized lemmas */
-    IntStat d_genLemmas;
   };
   Statistics d_stats;
   void decomposeLemma(const Node& lem,
                       Subs& s,
                       std::map<Node, Node>& varToExp,
                       std::vector<TNode>& tgtLits) const;
-  bool hasAssigner(const Node& lit) const;
   Node evaluateSubstitution(const Subs& s, const Node& tgtLit) const;
   bool checkSubstitution(const Subs& s, const Node& tgtLit, bool expect) const;
-  bool checkTgtGeneralizes(Assigner* a,
-                           Node& tgtLit,
-                           Node& tgtLitFinal,
-                           const Subs& s,
-                           bool& isConflict);
-  /**
-   * Called when checkSubstitution { v -> s }, tgtLit returns true.
-   * Returns a node that also implies tgtLit that is weaker than (= v s).
-   *
-   * if any assignment s' for v in a is also such that
-   * checkSubstitution { v -> s' } tgtLit returns true.
-   */
-  Node checkSubsGeneralizes(Assigner* a,
-                            const std::vector<Node>& vs,
-                            const Node& tgtLit,
-                            const Subs& orig,
-                            bool& isConflict);
-  /**
-   * Cache of checkGeneralizes, storing (a->getSatLiteral, v, tgtLit)
-   */
-  std::map<std::pair<Node, Node>, Node> d_genCache;
   /**
    * Get entailed equalities from literal cube tc.
    */
   static void getEntailedEq(const Node& tc,
                             const std::map<Node, size_t>& vindex,
                             std::vector<Node>& entval);
-  static bool isAssignmentClashVec(const Node& a,
-                                   const std::vector<Node>& entval);
-  static bool isAssignmentClash(const Node& a, const Node& b);
+  static bool isAssignEq(const Node& n, Node& v, Node& c, bool reqConst = true);
 };
 
 }  // namespace theory

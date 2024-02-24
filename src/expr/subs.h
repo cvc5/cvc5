@@ -41,10 +41,14 @@ class Subs
   bool empty() const;
   /** The size of the substitution */
   size_t size() const;
+  /** Get the index of variable v */
+  size_t getIndex(const Node& v) const;
   /** Does the substitution contain v? */
-  bool contains(Node v) const;
+  bool contains(const Node& v) const;
+  /** Erase the substitution for v */
+  void erase(const Node& v);
   /** Get the substitution for v if it exists, or null otherwise */
-  Node getSubs(Node v) const;
+  Node getSubs(const Node& v) const;
   /** Find the substitution for v, or return std::nullopt */
   std::optional<Node> find(TNode v) const;
   /** Add v -> k for fresh skolem of the same type as v */
