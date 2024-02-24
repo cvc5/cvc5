@@ -157,7 +157,7 @@ Term ParserState::bindVar(const std::string& name,
                           bool doOverload)
 {
   Trace("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
-  Term expr = d_solver->mkConst(type, name);
+  Term expr = d_solver->getTermManager().mkConst(type, name);
   defineVar(name, expr, doOverload);
   return expr;
 }
@@ -166,7 +166,7 @@ Term ParserState::bindBoundVar(const std::string& name, const Sort& type)
 {
   Trace("parser") << "bindBoundVar(" << name << ", " << type << ")"
                   << std::endl;
-  Term expr = d_solver->mkVar(type, name);
+  Term expr = d_solver->getTermManager().mkVar(type, name);
   defineVar(name, expr);
   return expr;
 }
@@ -252,7 +252,7 @@ void ParserState::defineParameterizedType(const std::string& name,
 Sort ParserState::mkSort(const std::string& name)
 {
   Trace("parser") << "newSort(" << name << ")" << std::endl;
-  Sort type = d_solver->mkUninterpretedSort(name);
+  Sort type = d_solver->getTermManager().mkUninterpretedSort(name);
   defineType(name, type);
   return type;
 }
@@ -261,14 +261,15 @@ Sort ParserState::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  Sort type = d_solver->mkUninterpretedSortConstructorSort(arity, name);
+  Sort type = d_solver->getTermManager().mkUninterpretedSortConstructorSort(
+      arity, name);
   defineType(name, vector<Sort>(arity), type);
   return type;
 }
 
 Sort ParserState::mkUnresolvedType(const std::string& name)
 {
-  Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name);
+  Sort unresolved = d_solver->getTermManager().mkUnresolvedDatatypeSort(name);
   defineType(name, unresolved);
   return unresolved;
 }
@@ -276,7 +277,8 @@ Sort ParserState::mkUnresolvedType(const std::string& name)
 Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
                                               size_t arity)
 {
-  Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, arity);
+  Sort unresolved =
+      d_solver->getTermManager().mkUnresolvedDatatypeSort(name, arity);
   defineType(name, vector<Sort>(arity), unresolved);
   return unresolved;
 }
@@ -286,7 +288,8 @@ Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
 {
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, params.size());
+  Sort unresolved =
+      d_solver->getTermManager().mkUnresolvedDatatypeSort(name, params.size());
   defineType(name, params, unresolved);
   Sort t = getParametricSort(name, params);
   return unresolved;
@@ -306,7 +309,8 @@ std::vector<Sort> ParserState::mkMutualDatatypeTypes(
 {
   try
   {
-    std::vector<Sort> types = d_solver->mkDatatypeSorts(datatypes);
+    std::vector<Sort> types =
+        d_solver->getTermManager().mkDatatypeSorts(datatypes);
 
     Assert(datatypes.size() == types.size());
 
@@ -370,13 +374,14 @@ Sort ParserState::flattenFunctionType(std::vector<Sort>& sorts,
   if (range.isFunction())
   {
     std::vector<Sort> domainTypes = range.getFunctionDomainSorts();
+    TermManager& tm = d_solver->getTermManager();
     for (unsigned i = 0, size = domainTypes.size(); i < size; i++)
     {
       sorts.push_back(domainTypes[i]);
       // the introduced variable is internal (not parsable)
       std::stringstream ss;
       ss << "__flatten_var_" << i;
-      Term v = d_solver->mkVar(domainTypes[i], ss.str());
+      Term v = tm.mkVar(domainTypes[i], ss.str());
       flattenVars.push_back(v);
     }
     range = range.getFunctionCodomainSort();
@@ -409,16 +414,17 @@ Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
   Sort newRange = flattenFunctionType(sorts, range);
   if (!sorts.empty())
   {
-    return d_solver->mkFunctionSort(sorts, newRange);
+    return d_solver->getTermManager().mkFunctionSort(sorts, newRange);
   }
   return newRange;
 }
 
 Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 {
-  for (unsigned i = 0; i < args.size(); i++)
+  TermManager& tm = d_solver->getTermManager();
+  for (size_t i = 0; i < args.size(); i++)
   {
-    expr = d_solver->mkTerm(Kind::HO_APPLY, {expr, args[i]});
+    expr = tm.mkTerm(Kind::HO_APPLY, {expr, args[i]});
   }
   return expr;
 }
@@ -426,13 +432,14 @@ Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 Term ParserState::applyTypeAscription(Term t, Sort s)
 {
   Kind k = t.getKind();
+  TermManager& tm = d_solver->getTermManager();
   if (k == Kind::SET_EMPTY)
   {
-    t = d_solver->mkEmptySet(s);
+    t = tm.mkEmptySet(s);
   }
   else if (k == Kind::BAG_EMPTY)
   {
-    t = d_solver->mkEmptyBag(s);
+    t = tm.mkEmptyBag(s);
   }
   else if (k == Kind::CONST_SEQUENCE)
   {
@@ -448,15 +455,15 @@ Term ParserState::applyTypeAscription(Term t, Sort s)
       ss << "Cannot apply a type ascription to a non-empty sequence";
       parseError(ss.str());
     }
-    t = d_solver->mkEmptySequence(s.getSequenceElementSort());
+    t = tm.mkEmptySequence(s.getSequenceElementSort());
   }
   else if (k == Kind::SET_UNIVERSE)
   {
-    t = d_solver->mkUniverseSet(s);
+    t = tm.mkUniverseSet(s);
   }
   else if (k == Kind::SEP_NIL)
   {
-    t = d_solver->mkSepNil(s);
+    t = tm.mkSepNil(s);
   }
   else if (k == Kind::APPLY_CONSTRUCTOR)
   {
@@ -465,14 +472,14 @@ Term ParserState::applyTypeAscription(Term t, Sort s)
     if (s.isNullable())
     {
       // parsing (as nullable.null (Nullable T))
-      t = d_solver->mkNullableNull(s);
+      t = tm.mkNullableNull(s);
     }
     else
     {
       std::vector<Term> children(t.begin(), t.end());
       // apply type ascription to the operator and reconstruct
       children[0] = applyTypeAscription(children[0], s);
-      t = d_solver->mkTerm(Kind::APPLY_CONSTRUCTOR, children);
+      t = tm.mkTerm(Kind::APPLY_CONSTRUCTOR, children);
     }
   }
   // !!! temporary until datatypes are refactored in the new API
@@ -672,7 +679,7 @@ Term ParserState::mkCharConstant(const std::string& s)
          && s.size() <= 5 && s.size() > 0)
       << "Unexpected string for hexadecimal character " << s;
   wchar_t val = static_cast<wchar_t>(std::stoul(s, 0, 16));
-  return d_solver->mkString(std::wstring(1, val));
+  return d_solver->getTermManager().mkString(std::wstring(1, val));
 }
 
 uint32_t stringToUnsigned(const std::string& str)

@@ -904,7 +904,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       bool isInv = (tok == Token::SYNTH_INV_TOK);
       if (isInv)
       {
-        range = d_state.getSolver()->getBooleanSort();
+        range = d_state.getSolver()->getTermManager().getBooleanSort();
       }
       else
       {

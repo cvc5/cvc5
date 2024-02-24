@@ -40,7 +40,7 @@ class TestCommandBlack : public TestParser
   {
     std::stringstream ss;
     ss << cmdStr << std::endl;
-    InputParser parser(&d_solver, d_symman.get());
+    InputParser parser(d_solver.get(), d_symman.get());
     parser.setStreamInput(
         modes::InputLanguage::SMT_LIB_2_6, ss, "command_black");
     return parser.nextCommand();
@@ -54,11 +54,11 @@ TEST_F(TestCommandBlack, invoke)
   // set logic command can be executed
   cmd = parseCommand("(set-logic QF_LIA)");
   ASSERT_NE(cmd.isNull(), true);
-  cmd.invoke(&d_solver, d_symman.get(), out);
+  cmd.invoke(d_solver.get(), d_symman.get(), out);
   // get model not available
   cmd = parseCommand("(get-model)");
   ASSERT_NE(cmd.isNull(), true);
-  cmd.invoke(&d_solver, d_symman.get(), out);
+  cmd.invoke(d_solver.get(), d_symman.get(), out);
   std::string result = out.str();
   ASSERT_EQ(
       "(error \"Cannot get model unless model generation is enabled (try "
