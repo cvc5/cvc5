@@ -34,6 +34,7 @@
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "theory/combination_care_graph.h"
+#include "theory/conflict_processor.h"
 #include "theory/decision_manager.h"
 #include "theory/ee_manager_central.h"
 #include "theory/partition_generator.h"
@@ -49,7 +50,6 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
-#include "theory/conflict_processor.h"
 
 using namespace std;
 

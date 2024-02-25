@@ -73,8 +73,7 @@ class ConflictProcessor : protected EnvObj
   bool checkSubstitution(const SubstitutionMap& s,
                          const Node& tgtLit,
                          bool& isConst) const;
-  bool checkSubstitution(const SubstitutionMap& s,
-                         const Node& tgtLit) const;
+  bool checkSubstitution(const SubstitutionMap& s, const Node& tgtLit) const;
   bool isAssignEq(const SubstitutionMap& s,
                   const Node& n,
                   Node& v,
