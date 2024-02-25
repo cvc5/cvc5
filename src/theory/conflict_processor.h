@@ -32,6 +32,11 @@ class Assigner;
 
 namespace theory {
 
+/**
+ * IDEAS: Use top-level substitutions? combine with inprocess?
+ * duplication under substitution?
+ * infer substitutions for terms? f(t) where FV(t) not in sigma
+ */
 class ConflictProcessor : protected EnvObj
 {
  public:
@@ -64,6 +69,10 @@ class ConflictProcessor : protected EnvObj
                       std::map<Node, Node>& varToExp,
                       std::vector<TNode>& tgtLits) const;
   Node evaluateSubstitution(const SubstitutionMap& s, const Node& tgtLit) const;
+  bool checkSubstitution(const SubstitutionMap& s,
+                         const Node& tgtLit,
+                         bool expect,
+                         bool& isConst) const;
   bool checkSubstitution(const SubstitutionMap& s,
                          const Node& tgtLit,
                          bool expect) const;

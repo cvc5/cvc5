@@ -66,60 +66,92 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   }
   // check if the substitution implies one of the tgtLit, if not, we are done
   Node tgtLit;
+  std::vector<TNode> tgtLitsNc;
   for (TNode tlit : tgtLits)
   {
-    if (checkSubstitution(s, tlit, true))
+    bool isConst = false;
+    if (checkSubstitution(s, tlit, true, isConst))
     {
       tgtLit = tlit;
       break;
     }
+    else if (!isConst)
+    {
+      tgtLitsNc.push_back(tlit);
+    }
+    else
+    {
+      Trace("confp-debug") << "...filter " << tlit << std::endl;
+    }
   }
+  bool minimized = false;
   std::vector<Node> auxExplain;
   if (tgtLit.isNull())
   {
     Trace("confp-debug") << "No target for " << lemma << std::endl;
-    Trace("confp") << "...FAIL (no target found)" << std::endl;
-    return TrustNode::null();
-  }
-  bool minimized = false;
-  // we are minimized if there were multiple target literals and we found a
-  // single one that sufficed
-  if (tgtLits.size() > 1)
-  {
-    minimized = true;
-    ++d_stats.d_minLemmas;
-    Trace("confp") << "Target suffices " << tgtLit
-                   << " for more than one disjunct" << std::endl;
-  }
-  // minimize the substitution here
-  std::unordered_map<Node, Node> smap = s.getSubstitutions();
-  if (smap.size() > 1)
-  {
-    std::vector<Node> toErase;
-    for (std::pair<const Node, Node>& ss : smap)
-    {
-      // try eliminating the substitution
-      Node v = ss.first;
-      s.eraseSubstitution(v);
-      Trace("confp") << "--- try substitution without " << v << std::endl;
-      if (checkSubstitution(s, tgtLit, true))
-      {
-        toErase.push_back(v);
-      }
-      else
-      {
-        Trace("confp") << "...did not work on " << tgtLit << std::endl;
-        // add it back
-        s.addSubstitution(v, ss.second);
-      }
-    }
-    if (!toErase.empty())
+    // remove redundant
+    if (tgtLitsNc.size()<tgtLits.size())
     {
       minimized = true;
-      for (const Node& v : toErase)
+      Trace("confp") << "...SUCCESS (filtered " << (tgtLits.size()-tgtLitsNc.size()) << "/" << tgtLits.size() << ")" << std::endl;
+    }
+    else
+    {
+      return TrustNode::null();
+    }
+    // just take the OR as target
+    tgtLit = NodeManager::currentNM()->mkOr(tgtLitsNc);
+    // now try more aggressive substitutions?
+  }
+  else
+  {
+    if (tgtLits.size() > 1)
+    {
+      // we are minimized if there were multiple target literals and we found a
+      // single one that sufficed
+      minimized = true;
+      Trace("confp") << "...SUCCESS (target out of " << tgtLits.size() << ")" << std::endl;
+      Trace("confp") << "Target suffices " << tgtLit
+                    << " for more than one disjunct" << std::endl;
+    }
+    // NOTE: this substitution only applies when we found a literal, so it is not done above
+    // minimize the substitution here
+    std::unordered_map<Node, Node> smap = s.getSubstitutions();
+    if (smap.size() > 1)
+    {
+      std::vector<Node> toErase;
+      for (std::pair<const Node, Node>& ss : smap)
       {
-        varToExp.erase(v);
-        Trace("confp") << "Substitution is unnecessary for " << v << std::endl;
+        // try eliminating the substitution
+        Node v = ss.first;
+        s.eraseSubstitution(v);
+        Trace("confp") << "--- try substitution without " << v << std::endl;
+        if (checkSubstitution(s, tgtLit, true))
+        {
+          toErase.push_back(v);
+        }
+        else
+        {
+          Trace("confp") << "...did not work on " << tgtLit << std::endl;
+          // add it back
+          s.addSubstitution(v, ss.second);
+        }
+      }
+      if (!toErase.empty())
+      {
+        if (TraceIsOn("confp"))
+        {
+          if (!minimized)
+          {
+            Trace("confp") << "...SUCCESS (min subs " << toErase.size() << "/" << smap.size() << ")" << std::endl;
+          }
+        }
+        minimized = true;
+        for (const Node& v : toErase)
+        {
+          varToExp.erase(v);
+          Trace("confp") << "Substitution is unnecessary for " << v << std::endl;
+        }
       }
     }
   }
@@ -127,7 +159,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   // bool isConflict = lem.getKind() == TrustNodeKind::CONFLICT;
   if (minimized)
   {
-    Trace("confp") << "...SUCCESS" << std::endl;
+    ++d_stats.d_minLemmas;
     NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> clause;
     for (std::pair<const Node, Node>& e : varToExp)
@@ -264,6 +296,14 @@ bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
                                           const Node& tgtLit,
                                           bool expect) const
 {
+  bool isConst;
+  return checkSubstitution(s, tgtLit, expect, isConst);
+}
+bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
+                                          const Node& tgtLit,
+                                          bool expect,
+                         bool& isConst) const
+{
   Node tgtAtom = tgtLit;
   if (tgtAtom.getKind() == Kind::NOT)
   {
@@ -283,21 +323,25 @@ bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
         // failure if all children must be a given value
         if (expect == (k == Kind::AND))
         {
+          isConst = false;
           return false;
         }
         hasNonConst = true;
       }
       else if (sn.getConst<bool>() == (k == Kind::OR))
       {
+        isConst = true;
         // success if short circuits to desired value
         return expect == (k == Kind::OR);
       }
     }
+    isConst = !hasNonConst;
     return !hasNonConst;
   }
   // otherwise, rewrite
   Node stgtAtom = evaluateSubstitution(s, tgtAtom);
-  return stgtAtom.isConst() && stgtAtom.getConst<bool>() == expect;
+  isConst = stgtAtom.isConst();
+  return isConst && stgtAtom.getConst<bool>() == expect;
 }
 
 ConflictProcessor::Statistics::Statistics(StatisticsRegistry& sr)
