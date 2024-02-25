@@ -90,10 +90,12 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   {
     Trace("confp-debug") << "No target for " << lemma << std::endl;
     // remove redundant
-    if (tgtLitsNc.size()<tgtLits.size())
+    if (tgtLitsNc.size() < tgtLits.size())
     {
       minimized = true;
-      Trace("confp") << "...SUCCESS (filtered " << (tgtLits.size()-tgtLitsNc.size()) << "/" << tgtLits.size() << ")" << std::endl;
+      Trace("confp") << "...SUCCESS (filtered "
+                     << (tgtLits.size() - tgtLitsNc.size()) << "/"
+                     << tgtLits.size() << ")" << std::endl;
     }
     else
     {
@@ -110,12 +112,13 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       // we are minimized if there were multiple target literals and we found a
       // single one that sufficed
       minimized = true;
-      Trace("confp") << "...SUCCESS (target out of " << tgtLits.size() << ")" << std::endl;
+      Trace("confp") << "...SUCCESS (target out of " << tgtLits.size() << ")"
+                     << std::endl;
       Trace("confp") << "Target suffices " << tgtLit
-                    << " for more than one disjunct" << std::endl;
+                     << " for more than one disjunct" << std::endl;
     }
-    // NOTE: this substitution only applies when we found a literal, so it is not done above
-    // minimize the substitution here
+    // NOTE: this substitution only applies when we found a literal, so it is
+    // not done above minimize the substitution here
     std::unordered_map<Node, Node> smap = s.getSubstitutions();
     if (smap.size() > 1)
     {
@@ -143,14 +146,16 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
         {
           if (!minimized)
           {
-            Trace("confp") << "...SUCCESS (min subs " << toErase.size() << "/" << smap.size() << ")" << std::endl;
+            Trace("confp") << "...SUCCESS (min subs " << toErase.size() << "/"
+                           << smap.size() << ")" << std::endl;
           }
         }
         minimized = true;
         for (const Node& v : toErase)
         {
           varToExp.erase(v);
-          Trace("confp") << "Substitution is unnecessary for " << v << std::endl;
+          Trace("confp") << "Substitution is unnecessary for " << v
+                         << std::endl;
         }
       }
     }
@@ -283,7 +288,7 @@ Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
   {
     ev = rewrite(ev);
     // also try the extended equality rewriter
-    if (ev.getKind()==Kind::EQUAL)
+    if (ev.getKind() == Kind::EQUAL)
     {
       ev = rewriteEqualityExt(ev);
     }
@@ -302,7 +307,7 @@ bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
 bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
                                           const Node& tgtLit,
                                           bool expect,
-                         bool& isConst) const
+                                          bool& isConst) const
 {
   Node tgtAtom = tgtLit;
   if (tgtAtom.getKind() == Kind::NOT)
