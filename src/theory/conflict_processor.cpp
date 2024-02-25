@@ -68,22 +68,44 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   // check if the substitution implies one of the tgtLit, if not, we are done
   Node tgtLit;
   std::vector<TNode> tgtLitsNc;
+  std::map<Node, Node> evMap;
+  std::map<Node, Node>::iterator itm;
   for (TNode tlit : tgtLits)
   {
-    bool isConst = false;
-    if (checkSubstitution(s, tlit, isConst))
+    Node ev = evaluateSubstitution(s, tlit);
+    Trace("confp-debug") << "eval " << tlit << " is " << ev << std::endl;
+    if (ev==d_true)
     {
       tgtLit = tlit;
       break;
     }
-    else if (!isConst)
+    else if (ev==d_false)
     {
-      tgtLitsNc.push_back(tlit);
+      Trace("confp-debug") << "...filter implied " << tlit << std::endl;
+      continue;
     }
-    else
+    if (!ev.isNull())
     {
-      Trace("confp-debug") << "...filter " << tlit << std::endl;
+      itm = evMap.find(ev);
+      if (itm!=evMap.end())
+      {
+        Trace("confp-debug") << "...filter duplicate " << tlit << std::endl;
+        continue;
+      }
+      // look for negation??
+      Node evn = ev.negate();
+      itm = evMap.find(evn);
+      if (itm!=evMap.end())
+      {
+        tgtLitsNc.clear();
+        Trace("confp-debug") << "...contradiction " << itm->second << " and " << tlit << std::endl;
+        tgtLitsNc.push_back(itm->second);
+        tgtLitsNc.push_back(tlit);
+        break;
+      }
     }
+    tgtLitsNc.push_back(tlit);
+    evMap[ev] = tlit;
   }
   bool minimized = false;
   std::vector<Node> auxExplain;
@@ -274,7 +296,7 @@ void ConflictProcessor::decomposeLemma(const Node& lem,
   } while (!visit.empty());
 }
 
-Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
+Node ConflictProcessor::evaluateSubstitutionLit(const SubstitutionMap& s,
                                              const Node& tgtLit) const
 {
   Trace("confp-subs-debug") << "...try " << tgtLit << std::endl;
@@ -298,15 +320,8 @@ Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
   return ev;
 }
 
-bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
-                                          const Node& tgtLit) const
-{
-  bool isConst;
-  return checkSubstitution(s, tgtLit, isConst);
-}
-bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
-                                          const Node& tgtLit,
-                                          bool& isConst) const
+Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
+                                             const Node& tgtLit) const
 {
   bool polarity = true;
   Node tgtAtom = tgtLit;
@@ -322,31 +337,40 @@ bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
     bool hasNonConst = false;
     for (const Node& n : tgtAtom)
     {
-      Node sn = evaluateSubstitution(s, n);
+      Node sn = evaluateSubstitutionLit(s, n);
       if (!sn.isConst())
       {
         // failure if all children must be a given value
         if (polarity == (k == Kind::AND))
         {
-          isConst = false;
-          return false;
+          // we don't bother computing the rest
+          return Node::null();
         }
         hasNonConst = true;
       }
       else if (sn.getConst<bool>() == (k == Kind::OR))
       {
-        isConst = true;
-        // success if short circuits to desired value
-        return polarity == (k == Kind::OR);
+        // short circuits to value
+        return polarity ? sn : (k==Kind::OR ? d_false : d_true);
       }
     }
-    isConst = !hasNonConst;
-    return !hasNonConst;
+    // if non-constant, we don't bother computing
+    return hasNonConst ? Node::null() : (k==Kind::OR ? d_true : d_false);
   }
   // otherwise, rewrite
-  Node stgtAtom = evaluateSubstitution(s, tgtAtom);
-  isConst = stgtAtom.isConst();
-  return isConst && stgtAtom.getConst<bool>() == polarity;
+  Node ret = evaluateSubstitutionLit(s, tgtAtom);
+  if (!polarity)
+  {
+    return ret.isConst() ? (ret.getConst<bool>() ? d_false : d_true) : ret.negate();
+  }
+  return ret;
+}
+
+bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
+                                          const Node& tgtLit) const
+{
+  Node ev = evaluateSubstitution(s, tgtLit);
+  return ev==d_true;
 }
 
 ConflictProcessor::Statistics::Statistics(StatisticsRegistry& sr)

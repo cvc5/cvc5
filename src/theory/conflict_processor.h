@@ -69,10 +69,8 @@ class ConflictProcessor : protected EnvObj
                       SubstitutionMap& s,
                       std::map<Node, Node>& varToExp,
                       std::vector<TNode>& tgtLits) const;
+  Node evaluateSubstitutionLit(const SubstitutionMap& s, const Node& tgtLit) const;
   Node evaluateSubstitution(const SubstitutionMap& s, const Node& tgtLit) const;
-  bool checkSubstitution(const SubstitutionMap& s,
-                         const Node& tgtLit,
-                         bool& isConst) const;
   bool checkSubstitution(const SubstitutionMap& s, const Node& tgtLit) const;
   bool isAssignEq(const SubstitutionMap& s,
                   const Node& n,
