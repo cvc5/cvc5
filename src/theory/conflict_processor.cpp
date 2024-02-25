@@ -270,7 +270,7 @@ void ConflictProcessor::decomposeLemma(const Node& lem,
           // maybe substitution?
           Node vtmp;
           Node ctmp;
-          if (isAssignEq(s, cur[0], vtmp, ctmp, false))
+          if (isAssignEq(s, cur[0], vtmp, ctmp))
           {
             Assert(!s.hasSubstitution(vtmp));
             // use as a substitution
@@ -385,8 +385,7 @@ ConflictProcessor::Statistics::Statistics(StatisticsRegistry& sr)
 bool ConflictProcessor::isAssignEq(const SubstitutionMap& s,
                                    const Node& n,
                                    Node& v,
-                                   Node& c,
-                                   bool reqConst) const
+                                   Node& c) const
 {
   Assert(n.getKind() == Kind::EQUAL);
   for (size_t i = 0; i < 2; i++)
@@ -395,18 +394,11 @@ bool ConflictProcessor::isAssignEq(const SubstitutionMap& s,
     {
       continue;
     }
-    if (!n[1 - i].isConst())
+    // otherwise check cyclic
+    Node ns = s.apply(n[1 - i]);
+    if (expr::hasSubterm(ns, n[i]))
     {
-      if (reqConst)
-      {
-        continue;
-      }
-      // otherwise check cyclic
-      Node ns = s.apply(n[1 - i]);
-      if (expr::hasSubterm(ns, n[i]))
-      {
-        continue;
-      }
+      continue;
     }
     v = n[i];
     c = n[1 - i];

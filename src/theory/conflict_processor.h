@@ -76,8 +76,7 @@ class ConflictProcessor : protected EnvObj
   bool isAssignEq(const SubstitutionMap& s,
                   const Node& n,
                   Node& v,
-                  Node& c,
-                  bool reqConst = true) const;
+                  Node& c) const;
 };
 
 }  // namespace theory
