@@ -49,6 +49,7 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
+#include "theory/conflict_processor.h"
 
 using namespace std;
 

@@ -29,7 +29,6 @@
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 #include "theory/atom_requests.h"
-#include "theory/conflict_processor.h"
 #include "theory/inference_id.h"
 #include "theory/interrupted.h"
 #include "theory/output_channel.h"
@@ -91,6 +90,7 @@ class RelevanceManager;
 class Rewriter;
 class SharedSolver;
 class TheoryModel;
+class ConflictProcessor;
 
 }  // namespace theory
 

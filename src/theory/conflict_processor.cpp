@@ -32,6 +32,7 @@ ConflictProcessor::ConflictProcessor(Env& env, TheoryEngine* te)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
+  d_false = nm->mkConst(false);
   options::ConflictProcessMode mode = options().theory.conflictProcessMode;
   d_useExtRewriter = (mode == options::ConflictProcessMode::MINIMIZE_EXT);
   Assert(mode != options::ConflictProcessMode::NONE);
@@ -70,7 +71,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   for (TNode tlit : tgtLits)
   {
     bool isConst = false;
-    if (checkSubstitution(s, tlit, true, isConst))
+    if (checkSubstitution(s, tlit, isConst))
     {
       tgtLit = tlit;
       break;
@@ -129,7 +130,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
         Node v = ss.first;
         s.eraseSubstitution(v);
         Trace("confp") << "--- try substitution without " << v << std::endl;
-        if (checkSubstitution(s, tgtLit, true))
+        if (checkSubstitution(s, tgtLit))
         {
           toErase.push_back(v);
         }
@@ -298,22 +299,21 @@ Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
 }
 
 bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
-                                          const Node& tgtLit,
-                                          bool expect) const
+                                          const Node& tgtLit) const
 {
   bool isConst;
-  return checkSubstitution(s, tgtLit, expect, isConst);
+  return checkSubstitution(s, tgtLit, isConst);
 }
 bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
                                           const Node& tgtLit,
-                                          bool expect,
                                           bool& isConst) const
 {
+  bool polarity = true;
   Node tgtAtom = tgtLit;
   if (tgtAtom.getKind() == Kind::NOT)
   {
     tgtAtom = tgtAtom[0];
-    expect = !expect;
+    polarity = !polarity;
   }
   // optimize for OR, since we may have generalized a target
   Kind k = tgtAtom.getKind();
@@ -326,7 +326,7 @@ bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
       if (!sn.isConst())
       {
         // failure if all children must be a given value
-        if (expect == (k == Kind::AND))
+        if (polarity == (k == Kind::AND))
         {
           isConst = false;
           return false;
@@ -337,7 +337,7 @@ bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
       {
         isConst = true;
         // success if short circuits to desired value
-        return expect == (k == Kind::OR);
+        return polarity == (k == Kind::OR);
       }
     }
     isConst = !hasNonConst;
@@ -346,7 +346,7 @@ bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
   // otherwise, rewrite
   Node stgtAtom = evaluateSubstitution(s, tgtAtom);
   isConst = stgtAtom.isConst();
-  return isConst && stgtAtom.getConst<bool>() == expect;
+  return isConst && stgtAtom.getConst<bool>() == polarity;
 }
 
 ConflictProcessor::Statistics::Statistics(StatisticsRegistry& sr)

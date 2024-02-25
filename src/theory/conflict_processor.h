@@ -49,6 +49,7 @@ class ConflictProcessor : protected EnvObj
   /** The parent engine */
   TheoryEngine* d_engine;
   Node d_true;
+  Node d_false;
   Node d_nullNode;
   /** Use the extended rewriter? */
   bool d_useExtRewriter;
@@ -71,11 +72,9 @@ class ConflictProcessor : protected EnvObj
   Node evaluateSubstitution(const SubstitutionMap& s, const Node& tgtLit) const;
   bool checkSubstitution(const SubstitutionMap& s,
                          const Node& tgtLit,
-                         bool expect,
                          bool& isConst) const;
   bool checkSubstitution(const SubstitutionMap& s,
-                         const Node& tgtLit,
-                         bool expect) const;
+                         const Node& tgtLit) const;
   bool isAssignEq(const SubstitutionMap& s,
                   const Node& n,
                   Node& v,
