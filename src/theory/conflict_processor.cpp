@@ -74,12 +74,12 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   {
     Node ev = evaluateSubstitution(s, tlit);
     Trace("confp-debug") << "eval " << tlit << " is " << ev << std::endl;
-    if (ev==d_true)
+    if (ev == d_true)
     {
       tgtLit = tlit;
       break;
     }
-    else if (ev==d_false)
+    else if (ev == d_false)
     {
       Trace("confp-debug") << "...filter implied " << tlit << std::endl;
       continue;
@@ -87,7 +87,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
     if (!ev.isNull())
     {
       itm = evMap.find(ev);
-      if (itm!=evMap.end())
+      if (itm != evMap.end())
       {
         Trace("confp-debug") << "...filter duplicate " << tlit << std::endl;
         continue;
@@ -95,10 +95,11 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       // look for negation??
       Node evn = ev.negate();
       itm = evMap.find(evn);
-      if (itm!=evMap.end())
+      if (itm != evMap.end())
       {
         tgtLitsNc.clear();
-        Trace("confp-debug") << "...contradiction " << itm->second << " and " << tlit << std::endl;
+        Trace("confp-debug") << "...contradiction " << itm->second << " and "
+                             << tlit << std::endl;
         tgtLitsNc.push_back(itm->second);
         tgtLitsNc.push_back(tlit);
         break;
@@ -297,7 +298,7 @@ void ConflictProcessor::decomposeLemma(const Node& lem,
 }
 
 Node ConflictProcessor::evaluateSubstitutionLit(const SubstitutionMap& s,
-                                             const Node& tgtLit) const
+                                                const Node& tgtLit) const
 {
   Trace("confp-subs-debug") << "...try " << tgtLit << std::endl;
   Node ev = s.apply(tgtLit);
@@ -351,17 +352,18 @@ Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
       else if (sn.getConst<bool>() == (k == Kind::OR))
       {
         // short circuits to value
-        return polarity ? sn : (k==Kind::OR ? d_false : d_true);
+        return polarity ? sn : (k == Kind::OR ? d_false : d_true);
       }
     }
     // if non-constant, we don't bother computing
-    return hasNonConst ? Node::null() : (k==Kind::OR ? d_true : d_false);
+    return hasNonConst ? Node::null() : (k == Kind::OR ? d_true : d_false);
   }
   // otherwise, rewrite
   Node ret = evaluateSubstitutionLit(s, tgtAtom);
   if (!polarity)
   {
-    return ret.isConst() ? (ret.getConst<bool>() ? d_false : d_true) : ret.negate();
+    return ret.isConst() ? (ret.getConst<bool>() ? d_false : d_true)
+                         : ret.negate();
   }
   return ret;
 }
@@ -370,7 +372,7 @@ bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
                                           const Node& tgtLit) const
 {
   Node ev = evaluateSubstitution(s, tgtLit);
-  return ev==d_true;
+  return ev == d_true;
 }
 
 ConflictProcessor::Statistics::Statistics(StatisticsRegistry& sr)
