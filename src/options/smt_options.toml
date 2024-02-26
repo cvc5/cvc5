@@ -522,3 +522,18 @@ name   = "SMT Layer"
   type       = "uint64_t"
   default    = "10000"
   help       = "timeout (in milliseconds) for satisfiability checks for timeout cores"
+
+[[option]]
+  name       = "toCoreMode"
+  category   = "expert"
+  long       = "timeout-core-mode=MODE"
+  type       = "TimeoutCoreMode"
+  default    = "MINIMAL"
+  help       = "mode for timeout cores"
+  help_mode  = "Mode for timeout cores"
+[[option.mode.MINIMAL]]
+  name = "minimal"
+  help = "timeout cores are selected to be minimal"
+[[option.mode.APPROXIMATE]]
+  name = "approx"
+  help = "timeout cores are selected in a way that does not guarantee minimality"
