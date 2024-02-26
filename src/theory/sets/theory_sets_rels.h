@@ -167,6 +167,7 @@ class TheorySetsRels : protected EnvObj
                      std::unordered_set<Node>& seen);
 
   void composeMembersForRels( Node );
+  void applyTableJoinUp(Node);
   void computeMembersForBinOpRel( Node );
   void computeMembersForIdenTerm( Node );
   void computeMembersForUnaryOpRel( Node );

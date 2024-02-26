@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
@@ -973,91 +974,61 @@ void TheorySetsRels::check(Theory::Effort level)
     makeSharedTerm(shared_x);
   }
 
-  void TheorySetsRels::applyTableJoinRule(Node join_rel,
-                                          Node join_rel_rep,
-                                          Node exp)
+  void TheorySetsRels::applyTableJoinRule(Node n, Node nRep, Node exp)
   {
     Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
                            "RELATION_TABLE_JOIN rule on joined term = "
-                        << join_rel << ", its representative = " << join_rel_rep
+                        << n << ", its representative = " << nRep
                         << " with explanation = " << exp << std::endl;
-    if (d_rel_nodes.find(join_rel) == d_rel_nodes.end())
+    if (d_rel_nodes.find(n) == d_rel_nodes.end())
     {
       Trace("rels-debug")
-          << "\n[Theory::Rels] Apply RELATION_JOIN-COMPOSE rule on term: "
-          << join_rel << " with explanation: " << exp << std::endl;
+          << "\n[Theory::Rels] Apply RELATION_TABLE_JOIN-COMPOSE rule on term: "
+          << n << " with explanation: " << exp << std::endl;
 
-      computeMembersForBinOpRel(join_rel);
-      d_rel_nodes.insert(join_rel);
+      computeMembersForBinOpRel(n);
+      d_rel_nodes.insert(n);
     }
-
-    Node mem = exp[0];
+    NodeManager* nm = NodeManager::currentNM();
+    Node A = n[0];
+    Node B = n[1];
+    Node e = exp[0];
     std::vector<Node> r1_element;
     std::vector<Node> r2_element;
-    Node r1_rep = getRepresentative(join_rel[0]);
-    Node r2_rep = getRepresentative(join_rel[1]);
-    TypeNode shared_type =
-        r2_rep.getType().getSetElementType().getTupleTypes()[0];
-    Node shared_x = d_skCache.mkTypedSkolemCached(
-        shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
-    const DType& dt1 = join_rel[0].getType().getSetElementType().getDType();
-    unsigned int s1_len =
-        join_rel[0].getType().getSetElementType().getTupleLength();
-    unsigned int tup_len =
-        join_rel.getType().getSetElementType().getTupleLength();
+    Node repA = getRepresentative(A);
+    Node repB = getRepresentative(B);
 
-    unsigned int i = 0;
-    r1_element.push_back(dt1[0].getConstructor());
-    for (; i < s1_len - 1; ++i)
-    {
-      r1_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
-    }
-    r1_element.push_back(shared_x);
-    const DType& dt2 = join_rel[1].getType().getSetElementType().getDType();
-    r2_element.push_back(dt2[0].getConstructor());
-    r2_element.push_back(shared_x);
-    for (; i < tup_len; ++i)
-    {
-      r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
-    }
-    Node mem1 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
-    Node mem2 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
+    TypeNode tupleAType = A.getType().getSetElementType();
+    TypeNode tupleBType = B.getType().getSetElementType();
+    size_t tupleALength = tupleAType.getTupleLength();
+    size_t productTupleLength =
+        n.getType().getSetElementType().getTupleLength();
 
-    computeTupleReps(mem1);
-    computeTupleReps(mem2);
+    std::vector<Node> elements = TupleUtils::getTupleElements(e);
+    Node a = TupleUtils::constructTupleFromElements(
+        tupleAType, elements, 0, tupleALength - 1);
+    Node b = TupleUtils::constructTupleFromElements(
+        tupleBType, elements, tupleALength, productTupleLength - 1);
 
-    std::vector<Node> elements =
-        d_membership_trie[r1_rep].findTerms(d_tuple_reps[mem1]);
+    computeTupleReps(a);
+    computeTupleReps(b);
 
-    for (unsigned int j = 0; j < elements.size(); j++)
+    const std::vector<uint32_t>& indices =
+        n.getOperator().getConst<ProjectOp>().getIndices();
+    Node joinConstraints = d_trueNode;
+    for (size_t i = 0; i < indices.size(); i += 2)
     {
-      std::vector<Node> new_tup;
-      new_tup.push_back(elements[j]);
-      new_tup.insert(new_tup.end(),
-                     d_tuple_reps[mem2].begin() + 1,
-                     d_tuple_reps[mem2].end());
-      if (d_membership_trie[r2_rep].existsTerm(new_tup) != Node::null())
-      {
-        return;
-      }
+      Node x = elements[indices[i]];
+      Node y = elements[tupleALength + indices[i + 1]];
+      Node equal = x.eqNode(y);
+      joinConstraints = joinConstraints.andNode(equal);
     }
-    Node reason = exp;
-    if (join_rel != exp[1])
-    {
-      reason = NodeManager::currentNM()->mkNode(
-          Kind::AND,
-          reason,
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, join_rel, exp[1]));
-    }
-    Node fact =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
-    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
-    fact =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
-    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
-    makeSharedTerm(shared_x);
+
+    Node constraint1 = nm->mkNode(Kind::SET_MEMBER, a, A);
+    Node constraint2 = nm->mkNode(Kind::SET_MEMBER, b, B);
+    Node reason = joinConstraints.andNode(exp);
+    Node conclusion = constraint1.andNode(constraint2);
+    sendInfer(conclusion, InferenceId::SETS_RELS_TABLE_JOIN_DOWN, reason);
   }
 
   /*
@@ -1166,7 +1137,24 @@ void TheorySetsRels::check(Theory::Effort level)
       default:
         break;
     }
-    composeMembersForRels(rel);
+    Kind k = rel.getKind();
+    switch (k)
+    {
+      case Kind::RELATION_JOIN:
+      case Kind::RELATION_PRODUCT:
+      {
+        composeMembersForRels(rel);
+        break;
+      }
+      case Kind::RELATION_TABLE_JOIN:
+      {
+        applyTableJoinUp(rel);
+        break;
+      }
+      default:
+        Assert(false) << "No implementation for up rules for kind " << k
+                      << std::endl;
+    }
   }
 
   // Bottom-up fashion to compute unary relation
@@ -1322,6 +1310,94 @@ void TheorySetsRels::check(Theory::Effort level)
       }
     }
 
+  }
+
+  void TheorySetsRels::applyTableJoinUp(Node n)
+  {
+    Assert(n.getKind() == Kind::RELATION_TABLE_JOIN);
+    Trace("rels-debug")
+        << "[Theory::Rels] Start composing members for relation = " << n
+        << std::endl;
+    Node a = n[0];
+    Node b = n[1];
+    Node aRep = getRepresentative(a);
+    Node bRep = getRepresentative(b);
+
+    if (d_rReps_memberReps_cache.find(aRep) == d_rReps_memberReps_cache.end()
+        || d_rReps_memberReps_cache.find(bRep)
+               == d_rReps_memberReps_cache.end())
+    {
+      // no members found for a, b
+      return;
+    }
+
+    NodeManager* nm = NodeManager::currentNM();
+
+    std::vector<Node> aMemberships = d_rReps_memberReps_exp_cache[aRep];
+    std::vector<Node> bMemberships = d_rReps_memberReps_exp_cache[bRep];
+    const std::vector<uint32_t>& indices =
+        n.getOperator().getConst<ProjectOp>().getIndices();
+    for (unsigned int i = 0; i < aMemberships.size(); i++)
+    {
+      for (unsigned int j = 0; j < bMemberships.size(); j++)
+      {
+        Node aConstraint = aMemberships[i];
+        Node bConstraint = bMemberships[j];
+        Node e1 = aConstraint[0];
+        Node e2 = bConstraint[0];
+        TypeNode elementType = n.getType().getSetElementType();
+        Node tuple = TupleUtils::concatTuples(elementType, e1, e2);
+        std::vector<Node> reasons;
+
+        std::vector<Node> aElements = TupleUtils::getTupleElements(e1);
+        std::vector<Node> bElements = TupleUtils::getTupleElements(e2);
+
+        // whether e1, e2 have matching join elements
+        bool notMatched = false;
+        for (size_t k = 0; k < indices.size(); k += 2)
+        {
+          Node x = aElements[indices[k]];
+          Node y = bElements[indices[k + 1]];
+
+          // Since we require notification r1_rmost and r2_lmost are equal,
+          // they must be shared terms of theory of sets. Hence, we make the
+          // following calls to makeSharedTerm to ensure this is the case.
+          makeSharedTerm(x);
+          makeSharedTerm(y);
+
+          if (!areEqual(x, y))
+          {
+            notMatched = true;
+            break;
+          }
+          else if (x != y)
+          {
+            Trace("rels-debug") << "...equal" << std::endl;
+            reasons.push_back(nm->mkNode(Kind::EQUAL, x, y));
+          }
+        }
+
+        if (notMatched)
+        {
+          continue;
+        }
+
+        Node fact = nm->mkNode(Kind::SET_MEMBER, tuple, n);
+        reasons.push_back(aConstraint);
+        reasons.push_back(bConstraint);
+        if (a != aConstraint[1])
+        {
+          reasons.push_back(nm->mkNode(Kind::EQUAL, a, aConstraint[1]));
+        }
+        if (b != bConstraint[1])
+        {
+          reasons.push_back(nm->mkNode(Kind::EQUAL, b, bConstraint[1]));
+        }
+        sendInfer(fact,
+                  InferenceId::SETS_RELS_TABLE_JOIN_UP,
+                  nm->mkNode(Kind::AND, reasons));
+      }
+    }
   }
 
   void TheorySetsRels::processInference(Node conc, InferenceId id, Node exp)
