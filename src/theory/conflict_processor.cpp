@@ -46,7 +46,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   // do not use compression
   SubstitutionMap s(nullptr, false);
   std::map<Node, Node> varToExp;
-  std::vector<TNode> tgtLits;
+  std::vector<Node> tgtLits;
   // decompose lemma into AND( s ) => OR( tgtLits )
   decomposeLemma(lemma, s, varToExp, tgtLits);
   // if we didn't infer a substitution, we are done
@@ -67,10 +67,10 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   }
   // check if the substitution implies one of the tgtLit, if not, we are done
   Node tgtLit;
-  std::vector<TNode> tgtLitsNc;
+  std::vector<Node> tgtLitsNc;
   std::map<Node, Node> evMap;
   std::map<Node, Node>::iterator itm;
-  for (TNode tlit : tgtLits)
+  for (const Node& tlit : tgtLits)
   {
     Node ev = evaluateSubstitution(s, tlit);
     Trace("confp-debug") << "eval " << tlit << " is " << ev << std::endl;
@@ -123,6 +123,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
     }
     else
     {
+      Trace("confp") << "...FAIL (no target)" << std::endl;
       return TrustNode::null();
     }
     // just take the OR as target
@@ -227,7 +228,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
 void ConflictProcessor::decomposeLemma(const Node& lem,
                                        SubstitutionMap& s,
                                        std::map<Node, Node>& varToExp,
-                                       std::vector<TNode>& tgtLits) const
+                                       std::vector<Node>& tgtLits) const
 {
   // visit is implicitly negated
   std::unordered_set<TNode> visited;

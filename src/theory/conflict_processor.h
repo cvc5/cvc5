@@ -68,7 +68,7 @@ class ConflictProcessor : protected EnvObj
   void decomposeLemma(const Node& lem,
                       SubstitutionMap& s,
                       std::map<Node, Node>& varToExp,
-                      std::vector<TNode>& tgtLits) const;
+                      std::vector<Node>& tgtLits) const;
   Node evaluateSubstitutionLit(const SubstitutionMap& s,
                                const Node& tgtLit) const;
   Node evaluateSubstitution(const SubstitutionMap& s, const Node& tgtLit) const;
