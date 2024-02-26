@@ -26,7 +26,7 @@ int main(void)
   slv.setOption("solve-bv-as-int", "iand");
   Sort s12 = slv.getIntegerSort();
   Term t13 = slv.mkConst(s12, "_x11");
-  Term t25 = slv.mkTerm(slv.mkOp(Kind::INT_TO_BITVECTOR, {4124876294}), {t13});
+  Term t25 = slv.mkTerm(slv.mkOp(Kind::INT_TO_BITVECTOR, {6294}), {t13});
   Term t66 = slv.mkTerm(Kind::BITVECTOR_SLTBV, {t25, t25});
   Term t154 = slv.mkTerm(Kind::BITVECTOR_SGT, {t66, t66});
   Term query = slv.mkTerm(Kind::AND, {t154, t154, t154, t154});

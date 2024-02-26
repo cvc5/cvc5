@@ -259,6 +259,7 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
     case Kind::FLOATINGPOINT_LEQ:
     case Kind::FLOATINGPOINT_GT:
     case Kind::FLOATINGPOINT_GEQ:
+    case Kind::NULLABLE_LIFT:
       // takes arbitrary but we use CONG
       break;
     case Kind::HO_APPLY:

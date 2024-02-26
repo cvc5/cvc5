@@ -126,7 +126,9 @@ class CVC5_EXPORT SolverEngine
    */
   bool isFullyInited() const;
   /**
-   * Return true if a checkSatisfiability() has been made.
+   * @return True if a call to check-sat or check-synth has been made and
+   * completed. Other calls (e.g., get-interpolant, get-abduct, get-qe) do not
+   * impact this, since they are handled independently via subsolvers.
    */
   bool isQueryMade() const;
   /** Return the user context level.  */
@@ -1114,6 +1116,11 @@ class CVC5_EXPORT SolverEngine
   LogicInfo d_userLogic;
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
+
+  /** Have we set a regular option yet? (for --safe-options) */
+  bool d_safeOptsSetRegularOption;
+  /** The regular option we set (for --safe-options) */
+  std::string d_safeOptsRegularOption;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

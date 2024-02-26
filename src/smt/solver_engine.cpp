@@ -114,6 +114,7 @@ SolverEngine::SolverEngine(const Options* optr)
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
       d_userLogicSet(false),
+      d_safeOptsSetRegularOption(false),
       d_isInternalSubsolver(false),
       d_stats(nullptr)
 {
@@ -1402,6 +1403,7 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::ALETHE:
       mode = options::ProofFormatMode::ALETHE;
       break;
+    case modes::ProofFormat::ALF: mode = options::ProofFormatMode::ALF; break;
     case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
@@ -2106,6 +2108,22 @@ void SolverEngine::setOption(const std::string& key,
       ss << "expert option " << key
          << " cannot be set when safeOptions is true";
       throw OptionException(ss.str());
+    }
+    else if (oinfo.category == options::OptionInfo::Category::REGULAR)
+    {
+      if (!d_safeOptsSetRegularOption)
+      {
+        d_safeOptsSetRegularOption = true;
+        d_safeOptsRegularOption = key;
+      }
+      else
+      {
+        // option exception
+        std::stringstream ss;
+        ss << "cannot set two regular options (" << key << " and "
+           << d_safeOptsRegularOption << ") when safeOptions is true";
+        throw OptionException(ss.str());
+      }
     }
   }
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
