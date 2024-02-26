@@ -11,6 +11,8 @@ This file contains a summary of important user-visible changes.
     deprecated and replaced by `std::to_string(Kind)` and
     `std::to_string(SortKind)`. They will be removed in the next minor release.
 
+- Renamed `bag.duplicate_removal` to `bag.setof`.
+
 cvc5 1.1.1
 ==========
 
