@@ -865,6 +865,7 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::SET_FILTER, "set.filter");
     addOperator(Kind::SET_FOLD, "set.fold");
     addOperator(Kind::RELATION_JOIN, "rel.join");
+    addOperator(Kind::RELATION_TABLE_JOIN, "rel.table_join");
     addOperator(Kind::RELATION_PRODUCT, "rel.product");
     addOperator(Kind::RELATION_TRANSPOSE, "rel.transpose");
     addOperator(Kind::RELATION_TCLOSURE, "rel.tclosure");
