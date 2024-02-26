@@ -57,16 +57,20 @@ bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
   return k == Kind::REGEXP_LOOP || k == Kind::BITVECTOR_EXTRACT
          || k == Kind::BITVECTOR_REPEAT || k == Kind::BITVECTOR_ZERO_EXTEND
          || k == Kind::BITVECTOR_SIGN_EXTEND || k == Kind::BITVECTOR_ROTATE_LEFT
-         || k == Kind::BITVECTOR_ROTATE_RIGHT || k == Kind::INT_TO_BITVECTOR || k==Kind::BITVECTOR_BITOF
-         || k == Kind::IAND || k == Kind::FLOATINGPOINT_TO_FP_FROM_FP
+         || k == Kind::BITVECTOR_ROTATE_RIGHT || k == Kind::INT_TO_BITVECTOR
+         || k == Kind::BITVECTOR_BITOF || k == Kind::IAND
+         || k == Kind::FLOATINGPOINT_TO_FP_FROM_FP
          || k == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || k == Kind::FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == Kind::FLOATINGPOINT_TO_FP_FROM_REAL 
-         || k == Kind::FLOATINGPOINT_TO_FP_FROM_UBV || k == Kind::FLOATINGPOINT_TO_SBV || k == Kind::FLOATINGPOINT_TO_UBV
+         || k == Kind::FLOATINGPOINT_TO_FP_FROM_REAL
+         || k == Kind::FLOATINGPOINT_TO_FP_FROM_UBV
+         || k == Kind::FLOATINGPOINT_TO_SBV || k == Kind::FLOATINGPOINT_TO_UBV
          || k == Kind::FLOATINGPOINT_TO_SBV_TOTAL
-         || k == Kind::FLOATINGPOINT_TO_UBV_TOTAL || k == Kind::RELATION_AGGREGATE
-         || k == Kind::RELATION_PROJECT || k == Kind::RELATION_GROUP || k == Kind::TABLE_PROJECT
-         || k == Kind::TABLE_AGGREGATE || k == Kind::TABLE_JOIN || k == Kind::TABLE_GROUP;
+         || k == Kind::FLOATINGPOINT_TO_UBV_TOTAL
+         || k == Kind::RELATION_AGGREGATE || k == Kind::RELATION_PROJECT
+         || k == Kind::RELATION_GROUP || k == Kind::TABLE_PROJECT
+         || k == Kind::RELATION_TABLE_JOIN || k == Kind::TABLE_AGGREGATE
+         || k == Kind::TABLE_JOIN || k == Kind::TABLE_GROUP;
 }
 
 bool GenericOp::isIndexedOperatorKind(Kind k)
@@ -193,6 +197,7 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
     break;
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_TABLE_JOIN:
     case Kind::RELATION_GROUP:
     case Kind::TABLE_PROJECT:
     case Kind::TABLE_AGGREGATE:
@@ -322,6 +327,8 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
         return nm->mkConst(Kind::RELATION_AGGREGATE_OP, ProjectOp(numerals));
       case Kind::RELATION_PROJECT:
         return nm->mkConst(Kind::RELATION_PROJECT_OP, ProjectOp(numerals));
+      case Kind::RELATION_TABLE_JOIN:
+        return nm->mkConst(Kind::RELATION_TABLE_JOIN_OP, ProjectOp(numerals));
       case Kind::RELATION_GROUP:
         return nm->mkConst(Kind::RELATION_GROUP_OP, ProjectOp(numerals));
       case Kind::TABLE_PROJECT:
