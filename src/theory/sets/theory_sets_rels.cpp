@@ -100,6 +100,14 @@ void TheorySetsRels::check(Theory::Effort level)
             applyJoinRule( join_terms[j], rel_rep, exp );
           }
         }
+        if (kind_terms.find(Kind::RELATION_TABLE_JOIN) != kind_terms.end())
+        {
+          std::vector<Node>& join_terms = kind_terms[Kind::RELATION_TABLE_JOIN];
+          for (unsigned int j = 0; j < join_terms.size(); j++)
+          {
+            applyTableJoinRule(join_terms[j], rel_rep, exp);
+          }
+        }
         if (kind_terms.find(Kind::RELATION_PRODUCT) != kind_terms.end())
         {
           std::vector<Node>& product_terms = kind_terms[Kind::RELATION_PRODUCT];
@@ -150,7 +158,8 @@ void TheorySetsRels::check(Theory::Effort level)
                             << " terms of kind " << k_t_it->first << std::endl;
         std::vector<Node>::iterator term_it = k_t_it->second.begin();
         if (k_t_it->first == Kind::RELATION_JOIN
-            || k_t_it->first == Kind::RELATION_PRODUCT)
+            || k_t_it->first == Kind::RELATION_PRODUCT
+            || k_t_it->first == Kind::RELATION_TABLE_JOIN)
         {
           while (term_it != k_t_it->second.end())
           {
@@ -258,6 +267,7 @@ void TheorySetsRels::check(Theory::Effort level)
         {
           if (eqc_node.getKind() == Kind::RELATION_TRANSPOSE
               || eqc_node.getKind() == Kind::RELATION_JOIN
+              || eqc_node.getKind() == Kind::RELATION_TABLE_JOIN
               || eqc_node.getKind() == Kind::RELATION_PRODUCT
               || eqc_node.getKind() == Kind::RELATION_TCLOSURE
               || eqc_node.getKind() == Kind::RELATION_JOIN_IMAGE
@@ -963,6 +973,93 @@ void TheorySetsRels::check(Theory::Effort level)
     makeSharedTerm(shared_x);
   }
 
+  void TheorySetsRels::applyTableJoinRule(Node join_rel,
+                                          Node join_rel_rep,
+                                          Node exp)
+  {
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                           "RELATION_TABLE_JOIN rule on joined term = "
+                        << join_rel << ", its representative = " << join_rel_rep
+                        << " with explanation = " << exp << std::endl;
+    if (d_rel_nodes.find(join_rel) == d_rel_nodes.end())
+    {
+      Trace("rels-debug")
+          << "\n[Theory::Rels] Apply RELATION_JOIN-COMPOSE rule on term: "
+          << join_rel << " with explanation: " << exp << std::endl;
+
+      computeMembersForBinOpRel(join_rel);
+      d_rel_nodes.insert(join_rel);
+    }
+
+    Node mem = exp[0];
+    std::vector<Node> r1_element;
+    std::vector<Node> r2_element;
+    Node r1_rep = getRepresentative(join_rel[0]);
+    Node r2_rep = getRepresentative(join_rel[1]);
+    TypeNode shared_type =
+        r2_rep.getType().getSetElementType().getTupleTypes()[0];
+    Node shared_x = d_skCache.mkTypedSkolemCached(
+        shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
+    const DType& dt1 = join_rel[0].getType().getSetElementType().getDType();
+    unsigned int s1_len =
+        join_rel[0].getType().getSetElementType().getTupleLength();
+    unsigned int tup_len =
+        join_rel.getType().getSetElementType().getTupleLength();
+
+    unsigned int i = 0;
+    r1_element.push_back(dt1[0].getConstructor());
+    for (; i < s1_len - 1; ++i)
+    {
+      r1_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
+    }
+    r1_element.push_back(shared_x);
+    const DType& dt2 = join_rel[1].getType().getSetElementType().getDType();
+    r2_element.push_back(dt2[0].getConstructor());
+    r2_element.push_back(shared_x);
+    for (; i < tup_len; ++i)
+    {
+      r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
+    }
+    Node mem1 =
+        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
+    Node mem2 =
+        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
+
+    computeTupleReps(mem1);
+    computeTupleReps(mem2);
+
+    std::vector<Node> elements =
+        d_membership_trie[r1_rep].findTerms(d_tuple_reps[mem1]);
+
+    for (unsigned int j = 0; j < elements.size(); j++)
+    {
+      std::vector<Node> new_tup;
+      new_tup.push_back(elements[j]);
+      new_tup.insert(new_tup.end(),
+                     d_tuple_reps[mem2].begin() + 1,
+                     d_tuple_reps[mem2].end());
+      if (d_membership_trie[r2_rep].existsTerm(new_tup) != Node::null())
+      {
+        return;
+      }
+    }
+    Node reason = exp;
+    if (join_rel != exp[1])
+    {
+      reason = NodeManager::currentNM()->mkNode(
+          Kind::AND,
+          reason,
+          NodeManager::currentNM()->mkNode(Kind::EQUAL, join_rel, exp[1]));
+    }
+    Node fact =
+        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
+    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
+    fact =
+        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
+    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
+    makeSharedTerm(shared_x);
+  }
+
   /*
    * transpose-occur rule:    (a, b) IS_IN X   (RELATION_TRANSPOSE X) in T
    *                         ---------------------------------------
@@ -1045,6 +1142,7 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       case Kind::RELATION_JOIN:
       case Kind::RELATION_PRODUCT:
+      case Kind::RELATION_TABLE_JOIN:
       {
         computeMembersForBinOpRel(rel[0]);
         break;
@@ -1060,6 +1158,7 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       case Kind::RELATION_JOIN:
       case Kind::RELATION_PRODUCT:
+      case Kind::RELATION_TABLE_JOIN:
       {
         computeMembersForBinOpRel(rel[1]);
         break;
@@ -1078,7 +1177,8 @@ void TheorySetsRels::check(Theory::Effort level)
       case Kind::RELATION_TRANSPOSE:
       case Kind::RELATION_TCLOSURE: computeMembersForUnaryOpRel(rel[0]); break;
       case Kind::RELATION_JOIN:
-      case Kind::RELATION_PRODUCT: computeMembersForBinOpRel(rel[0]); break;
+      case Kind::RELATION_PRODUCT:
+      case Kind::RELATION_TABLE_JOIN: computeMembersForBinOpRel(rel[0]); break;
       default:
         break;
     }
@@ -1242,8 +1342,9 @@ void TheorySetsRels::check(Theory::Effort level)
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
     return k == Kind::RELATION_TRANSPOSE || k == Kind::RELATION_PRODUCT
-           || k == Kind::RELATION_JOIN || k == Kind::RELATION_TCLOSURE
-           || k == Kind::RELATION_IDEN || k == Kind::RELATION_JOIN_IMAGE;
+           || k == Kind::RELATION_JOIN || k == Kind::RELATION_TABLE_JOIN
+           || k == Kind::RELATION_TCLOSURE || k == Kind::RELATION_IDEN
+           || k == Kind::RELATION_JOIN_IMAGE;
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {

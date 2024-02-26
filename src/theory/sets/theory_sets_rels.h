@@ -149,6 +149,7 @@ class TheorySetsRels : protected EnvObj
   void applyTransposeRule( Node rel, Node rel_rep, Node exp );
   void applyProductRule( Node rel, Node rel_rep, Node exp );
   void applyJoinRule( Node rel, Node rel_rep, Node exp);
+  void applyTableJoinRule(Node join_rel, Node join_rel_rep, Node exp);
   void applyJoinImageRule( Node mem_rep, Node rel_rep, Node exp);
   void applyIdenRule( Node mem_rep, Node rel_rep, Node exp);
   void applyTCRule( Node mem, Node rel, Node rel_rep, Node exp);
