@@ -107,9 +107,10 @@ struct APIStatistics
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
-#define KIND_ENUM(external_name, internal_name)                  \
-  {                                                              \
-    external_name, std::make_pair(internal_name, #external_name) \
+#define KIND_ENUM(external_name, internal_name)                              \
+  {                                                                          \
+    external_name,                                                           \
+        std::make_pair(internal_name, std::string(#external_name).substr(6)) \
   }
 
 /* Mapping from external (API) kind to internal kind. */
@@ -445,9 +446,10 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
 /* SortKind                                                                   */
 /* -------------------------------------------------------------------------- */
 
-#define SORT_KIND_ENUM(external_name, internal_name)             \
-  {                                                              \
-    external_name, std::make_pair(internal_name, #external_name) \
+#define SORT_KIND_ENUM(external_name, internal_name)                          \
+  {                                                                           \
+    external_name,                                                            \
+        std::make_pair(internal_name, std::string(#external_name).substr(10)) \
   }
 
 /* Mapping from external (API) kind to internal kind. */
@@ -621,10 +623,10 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_TO_NAT, Kind::BITVECTOR_TO_NAT},
         /* Finite Fields --------------------------------------------------- */
         {internal::Kind::CONST_FINITE_FIELD, Kind::CONST_FINITE_FIELD},
+        {internal::Kind::FINITE_FIELD_BITSUM, Kind::FINITE_FIELD_BITSUM},
         {internal::Kind::FINITE_FIELD_MULT, Kind::FINITE_FIELD_MULT},
         {internal::Kind::FINITE_FIELD_ADD, Kind::FINITE_FIELD_ADD},
         {internal::Kind::FINITE_FIELD_NEG, Kind::FINITE_FIELD_NEG},
-        {internal::Kind::FINITE_FIELD_BITSUM, Kind::FINITE_FIELD_BITSUM},
         /* FP -------------------------------------------------------------- */
         {internal::Kind::CONST_FLOATINGPOINT, Kind::CONST_FLOATINGPOINT},
         {internal::Kind::CONST_ROUNDINGMODE, Kind::CONST_ROUNDINGMODE},
@@ -935,77 +937,6 @@ const static std::unordered_map<cvc5::internal::RoundingMode, RoundingMode>
     };
 
 /* -------------------------------------------------------------------------- */
-/* API guard helpers                                                          */
-/* -------------------------------------------------------------------------- */
-
-namespace {
-
-class CVC5ApiExceptionStream
-{
- public:
-  CVC5ApiExceptionStream() {}
-  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
-   * a destructor that throws an exception and in C++11 all destructors
-   * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC5ApiExceptionStream() noexcept(false)
-  {
-    if (std::uncaught_exceptions() == 0)
-    {
-      throw CVC5ApiException(d_stream.str());
-    }
-  }
-
-  std::ostream& ostream() { return d_stream; }
-
- private:
-  std::stringstream d_stream;
-};
-
-class CVC5ApiRecoverableExceptionStream
-{
- public:
-  CVC5ApiRecoverableExceptionStream() {}
-  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
-   * a destructor that throws an exception and in C++11 all destructors
-   * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC5ApiRecoverableExceptionStream() noexcept(false)
-  {
-    if (std::uncaught_exceptions() == 0)
-    {
-      throw CVC5ApiRecoverableException(d_stream.str());
-    }
-  }
-
-  std::ostream& ostream() { return d_stream; }
-
- private:
-  std::stringstream d_stream;
-};
-
-class CVC5ApiUnsupportedExceptionStream
-{
- public:
-  CVC5ApiUnsupportedExceptionStream() {}
-  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
-   * a destructor that throws an exception and in C++11 all destructors
-   * default to noexcept(true) (else this triggers a call to std::terminate). */
-  ~CVC5ApiUnsupportedExceptionStream() noexcept(false)
-  {
-    if (std::uncaught_exceptions() == 0)
-    {
-      throw CVC5ApiUnsupportedException(d_stream.str());
-    }
-  }
-
-  std::ostream& ostream() { return d_stream; }
-
- private:
-  std::stringstream d_stream;
-};
-
-}  // namespace
-
-/* -------------------------------------------------------------------------- */
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -1136,7 +1067,7 @@ std::string kindToString(Kind k)
 
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
-  return out << kindToString(k);
+  return out << std::to_string(k);
 }
 
 std::string sortKindToString(SortKind k)
@@ -1151,7 +1082,7 @@ std::string sortKindToString(SortKind k)
 
 std::ostream& operator<<(std::ostream& out, SortKind k)
 {
-  return out << sortKindToString(k);
+  return out << std::to_string(k);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2209,7 +2140,7 @@ size_t Op::getNumIndicesHelper() const
       size = d_node->getConst<internal::ProjectOp>().getIndices().size();
       break;
     }
-    default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
+    default: CVC5_API_CHECK(false) << "Unhandled kind " << k;
   }
   return size;
 }
@@ -2400,7 +2331,7 @@ Term Op::getIndexHelper(size_t index) const
     }
     default:
     {
-      CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
+      CVC5_API_CHECK(false) << "Unhandled kind " << k;
       break;
     }
   }
@@ -2417,7 +2348,7 @@ std::string Op::toString() const
   //////// all checks before this line
   if (d_node->isNull())
   {
-    return kindToString(d_kind);
+    return std::to_string(d_kind);
   }
   else
   {
@@ -5531,7 +5462,7 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
          "e.g., mkBitVector().";
   CVC5_API_KIND_CHECK_EXPECTED(
       nchildren >= minArity(kind) && nchildren <= maxArity(kind), kind)
-      << "Terms with kind " << kindToString(kind) << " must have at least "
+      << "Terms with kind " << std::to_string(kind) << " must have at least "
       << minArity(kind) << " children and at most " << maxArity(kind)
       << " children (the one under construction has " << nchildren << ")";
 }
@@ -7157,6 +7088,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::VoidInfo{}};
           },
           [&info](const internal::options::OptionInfo::ValueInfo<bool>& vi) {
@@ -7166,6 +7099,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
           },
           [&info](
@@ -7176,6 +7111,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::ValueInfo<std::string>{vi.defaultValue,
                                                    vi.currentValue}};
           },
@@ -7187,6 +7124,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::NumberInfo<int64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7198,6 +7137,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::NumberInfo<uint64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7208,6 +7149,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::NumberInfo<double>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7218,6 +7161,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::REGULAR,
                 OptionInfo::ModeInfo{
                     vi.defaultValue, vi.currentValue, vi.modes}};
           },
@@ -8110,6 +8055,10 @@ SynthResult Solver::checkSynth() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
       << "Cannot checkSynth unless sygus is enabled (use --sygus)";
+  CVC5_API_CHECK(!d_slv->isQueryMade()
+                 || d_slv->getOptions().base.incrementalSolving)
+      << "Cannot make multiple checkSynth calls unless incremental solving is "
+         "enabled (try --incremental)";
   //////// all checks before this line
   return d_slv->checkSynth();
   ////////
@@ -8260,9 +8209,29 @@ size_t hash<cvc5::Kind>::operator()(cvc5::Kind k) const
   return static_cast<size_t>(k);
 }
 
+std::string to_string(cvc5::Kind k)
+{
+  auto it = cvc5::s_kinds.find(k);
+  if (it == cvc5::s_kinds.end())
+  {
+    return "UNDEFINED_KIND";
+  }
+  return it->second.second;
+}
+
 size_t hash<cvc5::SortKind>::operator()(cvc5::SortKind k) const
 {
   return static_cast<size_t>(k);
+}
+
+std::string to_string(cvc5::SortKind k)
+{
+  auto it = cvc5::s_sort_kinds.find(k);
+  if (it == cvc5::s_sort_kinds.end())
+  {
+    return "UNDEFINED_SORT_KIND";
+  }
+  return it->second.second;
 }
 
 size_t hash<cvc5::Op>::operator()(const cvc5::Op& t) const

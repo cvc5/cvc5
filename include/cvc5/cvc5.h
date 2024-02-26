@@ -3116,6 +3116,8 @@ struct CVC5_EXPORT OptionInfo
   bool setByUser;
   /** Whether this is an expert option */
   bool isExpert;
+  /** Whether this is a regular option */
+  bool isRegular;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,

@@ -18,7 +18,6 @@
     || (defined(CVC5_API_USE_C_ENUMS)               \
         && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
-#include <iosfwd>
 #include <cstdint>
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -27,7 +26,7 @@
 #else
 #include <cvc5/cvc5_export.h>
 
-#include <cstdint>
+#include <iosfwd>
 #include <ostream>
 namespace cvc5 {
 #undef ENUM
@@ -394,7 +393,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Boolean -- N-ary Resolution**
    *
    * .. math::
-   *   \inferrule{C_1 \dots C_n \mid pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
+   *   \inferrule{C_1 \dots C_n \mid (pol_1 \dots pol_{n-1}), (L_1 \dots L_{n-1})}{C}
    *
    * where
    *
@@ -405,6 +404,8 @@ enum ENUM(ProofRule) : uint32_t
    * - let :math:`C_1' = C_1`,
    * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond{L_{i-1},
    *   \mathit{pol}_{i-1}} C_i'`
+   *
+   * Note the list of polarities and pivots are provided as s-expressions.
    *
    * The result of the chain resolution is :math:`C = C_n'`
    * \endverbatim
@@ -1803,7 +1804,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
    *
-   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`.
+   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
+   * method normalizes polynomials over arithmetic or bitvectors.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM),
@@ -2216,20 +2218,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALETHE_RULE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- AletheLF**
-   *
-   * Place holder for AletheLF rules.
-   *
-   * .. math::
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external AletheLF
-   * calculus. \endverbatim
-   */
-  EVALUE(ALF_RULE),
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),
