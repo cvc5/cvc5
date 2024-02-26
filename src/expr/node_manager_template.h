@@ -423,6 +423,13 @@ class NodeManager
   TypeNode mkTupleType(const std::vector<TypeNode>& types);
 
   /**
+   * Make a nullable type from the given type.
+   * @param type An element type.
+   * @returns The nullable type.
+   */
+  TypeNode mkNullableType(const TypeNode& type);
+
+  /**
    * Make a record type with the description from rec.
    *
    * @param rec a description of the record
@@ -814,6 +821,7 @@ class NodeManager
                           const std::vector<TypeNode>& types,
                           unsigned index = 0);
   };
+
   /** Same as above, for records */
   class RecTypeCache
   {
@@ -1028,6 +1036,8 @@ class NodeManager
   std::map<std::pair<std::string, size_t>, TypeNode> d_nfreshSorts;
 
   TupleTypeCache d_tt_cache;
+  /** a mapping from the element types to nullable datatypes */
+  std::map<TypeNode, TypeNode> d_nt_cache;
   RecTypeCache d_rt_cache;
 }; /* class NodeManager */
 

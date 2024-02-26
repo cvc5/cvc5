@@ -132,7 +132,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(Smt, produceDifficulty, true, "dumpDifficulty");
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
-      || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
+      || opts.driver.dumpUnsatCoresLemmas || opts.smt.unsatAssumptions
+      || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
     SET_AND_NOTIFY(
@@ -176,6 +177,18 @@ void SetDefaults::setDefaultsPre(Options& opts)
                      unsatCoresMode,
                      options::UnsatCoresMode::SAT_PROOF,
                      "enabling proofs");
+    }
+    // note that this test assumes that granularity modes are ordered and
+    // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
+    // levels
+    if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE
+        && opts.proof.proofGranularityMode
+               < options::ProofGranularityMode::THEORY_REWRITE)
+    {
+      SET_AND_NOTIFY(Proof,
+                     proofGranularityMode,
+                     options::ProofGranularityMode::THEORY_REWRITE,
+                     "Alethe requires granularity at least theory-rewrite");
     }
   }
   if (!opts.smt.produceProofs)

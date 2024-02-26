@@ -67,21 +67,13 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node A = node[2];
   Node zero = nm->mkConstInt(Rational(0));
   Node one = nm->mkConstInt(Rational(1));
-  // types
-  TypeNode bagType = A.getType();
-  TypeNode elementType = A.getType().getBagElementType();
-  TypeNode integerType = nm->integerType();
-  TypeNode ufType = nm->mkFunctionType(integerType, elementType);
-  TypeNode resultType = t.getType();
-  TypeNode combineType = nm->mkFunctionType(integerType, resultType);
-  TypeNode unionDisjointType = nm->mkFunctionType(integerType, bagType);
   // skolem functions
-  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_CARD, integerType, A);
-  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_ELEMENTS, ufType, A);
-  Node unionDisjoint = sm->mkSkolemFunction(
-      SkolemFunId::BAGS_FOLD_UNION_DISJOINT, unionDisjointType, A);
-  Node combine = sm->mkSkolemFunction(
-      SkolemFunId::BAGS_FOLD_COMBINE, combineType, {f, t, A});
+  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_CARD, A);
+  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_ELEMENTS, A);
+  Node unionDisjoint =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_UNION_DISJOINT, A);
+  Node combine =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_COMBINE, {f, t, A});
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =
@@ -102,7 +94,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node combine_i_equal =
       combine_i.eqNode(nm->mkNode(Kind::APPLY_UF, f, uf_i, combine_iMinusOne));
   Node unionDisjoint_0_equal =
-      unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
+      unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(A.getType())));
   Node singleton = nm->mkNode(Kind::BAG_MAKE, uf_i, one);
 
   Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
@@ -135,18 +127,13 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   Node one = nm->mkConstInt(Rational(1));
   // types
   TypeNode bagType = A.getType();
-  TypeNode elementType = A.getType().getBagElementType();
-  TypeNode integerType = nm->integerType();
-  TypeNode ufType = nm->mkFunctionType(integerType, elementType);
-  TypeNode cardinalityType = nm->mkFunctionType(integerType, integerType);
-  TypeNode unionDisjointType = nm->mkFunctionType(integerType, bagType);
   // skolem functions
-  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_N, integerType, A);
-  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_ELEMENTS, ufType, A);
-  Node unionDisjoint = sm->mkSkolemFunction(
-      SkolemFunId::BAGS_CARD_UNION_DISJOINT, unionDisjointType, A);
-  Node cardinality = sm->mkSkolemFunction(
-      SkolemFunId::BAGS_CARD_CARDINALITY, cardinalityType, A);
+  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_N, A);
+  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_ELEMENTS, A);
+  Node unionDisjoint =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_UNION_DISJOINT, A);
+  Node cardinality =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_CARDINALITY, A);
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =
