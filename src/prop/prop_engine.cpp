@@ -209,7 +209,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(tplemma, ppLemmas, removable, false);
+  assertLemmasInternal(tplemma, ppLemmas, removable, local);
 }
 
 void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)

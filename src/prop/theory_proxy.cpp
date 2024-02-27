@@ -185,10 +185,13 @@ void TheoryProxy::notifyAssertion(Node a,
   }
   else if (skolem.isNull() || !d_dmTrackActiveSkDefs)
   {
-    // otherwise, if it is not a skolem definition, or we are treating
+    // Otherwise, if it is not a skolem definition, or we are treating
     // skolem definitions as ordinary assertions, we add it now.
     d_decisionEngine->addAssertions(assertions);
   }
+  // Otherwise, it is a skolem definition that will be activated dynamically
+  // in TheoryProxy::theoryCheck.
+
   // notify the preregistrar
   d_prr->addAssertion(a, skolem, isLemma);
 }
