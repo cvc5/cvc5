@@ -158,13 +158,15 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
       // we use @ as a prefix, which follows the SMT-LIB standard indicating
       // internal symbols starting with @ or . are reserved for internal use.
       std::stringstream ss;
-      if (id==SkolemFunId::INTERNAL)
+      if (id == SkolemFunId::INTERNAL)
       {
         Node cval = cacheVal.getKind() == Kind::SEXPR ? cacheVal[0] : cacheVal;
         Assert(cval.getKind() == Kind::CONST_INTEGER);
         Rational r = cval.getConst<Rational>();
         Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
-        ss << "@" << static_cast<InternalSkolemFunId>(r.getNumerator().toUnsignedInt());
+        ss << "@"
+           << static_cast<InternalSkolemFunId>(
+                  r.getNumerator().toUnsignedInt());
       }
       else
       {
