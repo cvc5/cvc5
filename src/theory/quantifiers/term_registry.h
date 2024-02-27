@@ -140,10 +140,10 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<EntailmentCheck> d_echeck;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
-  /** oracle checker */
-  std::unique_ptr<OracleChecker> d_ochecker;
   /** virtual term substitution term cache for arithmetic instantiation */
   std::unique_ptr<VtsTermCache> d_vtsCache;
+  /** oracle checker */
+  std::unique_ptr<OracleChecker> d_ochecker;
   /** the instantiation evaluator manager */
   std::unique_ptr<ieval::InstEvaluatorManager> d_ievalMan;
   /** inversion utility for BV instantiation */
