@@ -1,0 +1,11 @@
+; DISABLE-TESTER: dump
+; REQUIRES: no-competition
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+; EXPECT: (error "Cannot make multiple checkSynth calls unless incremental solving is enabled (try --incremental)")
+; EXIT: 1
+(set-logic LIA)
+(synth-fun f ((x Int)) Int)
+(check-synth)
+(check-synth)
+

@@ -27,8 +27,14 @@ cvc5_add_unit_test_white(op_white api/cpp)
 cvc5_add_unit_test_white(solver_white api/cpp)
 cvc5_add_unit_test_black(synth_result_black api/cpp)
 cvc5_add_unit_test_white(term_white api/cpp)
-cvc5_add_unit_test_white(types_black api/cpp)
+cvc5_add_unit_test_white(api_types_black api/cpp)
 cvc5_add_unit_test_black(proof_black api/cpp)
 cvc5_add_unit_test_white(command_black api/cpp)
 cvc5_add_unit_test_white(symbol_manager_black api/cpp)
 cvc5_add_unit_test_white(input_parser_black api/cpp)
+
+# suppress deprecated warnings to not error in CI
+set_source_files_properties(api_deprecated_black.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+cvc5_add_unit_test_black(api_deprecated_black api/cpp)

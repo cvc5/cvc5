@@ -436,15 +436,28 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::CHAIN_RESOLUTION:
     {
       std::vector<Node> newArgs;
+      std::vector<Node> cargs;
+      if (id == ProofRule::CHAIN_RESOLUTION)
+      {
+        for (size_t i = 0, nargs = args[0].getNumChildren(); i < nargs; i++)
+        {
+          cargs.push_back(args[0][i]);
+          cargs.push_back(args[1][i]);
+        }
+      }
+      else
+      {
+        cargs = args;
+      }
       // checker expects opposite order. We always keep the pivots because we
       // need them to compute in updatePost whether we will add OR steps. If
       // d_resPivots is off we will remove the pivots after that.
-      for (size_t i = 0, size = args.size(); i < size; i = i + 2)
+      for (size_t i = 0, size = cargs.size(); i < size; i = i + 2)
       {
-        newArgs.push_back(args[i + 1]);
-        newArgs.push_back(args[i]);
+        newArgs.push_back(cargs[i + 1]);
+        newArgs.push_back(cargs[i]);
       }
-      if (!isSingletonClause(res, children, args))
+      if (!isSingletonClause(res, children, cargs))
       {
         return addAletheStepFromOr(
             AletheRule::RESOLUTION_OR, res, children, newArgs, *cdp);

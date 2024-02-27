@@ -370,12 +370,13 @@ void LfscPrinter::printTypeDefinition(
   }
   else if (tn.isDatatype())
   {
-    if (tn.getKind() == Kind::PARAMETRIC_DATATYPE)
+    const DType& dt = tn.getDType();
+    if (tn.getKind() == Kind::PARAMETRIC_DATATYPE || dt.isNullable())
     {
       // skip the instance of a parametric datatype
+      // nullables don't need printing
       return;
     }
-    const DType& dt = tn.getDType();
     if (dt.isTuple())
     {
       const DTypeConstructor& cons = dt[0];
@@ -762,7 +763,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
-      pf << h << as[0] << as[1];
+      pf << h << as[0] << as[1] << d_tproc.convertType(as[0].getType());
     }
     break;
     case ProofRule::ARITH_TRICHOTOMY:

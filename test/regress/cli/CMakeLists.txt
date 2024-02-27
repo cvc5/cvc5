@@ -464,6 +464,109 @@ set(regress_0_tests
   regress0/bv/fuzz40.delta01.smtv1.smt2
   regress0/bv/fuzz40.smtv1.smt2
   regress0/bv/fuzz41.smtv1.smt2
+  regress0/bv/holes/add-two.smt2
+  regress0/bv/holes/add-zero.smt2
+  regress0/bv/holes/and-flatten.smt2
+  regress0/bv/holes/and-simplify-1.smt2
+  regress0/bv/holes/and-simplify-2.smt2
+  regress0/bv/holes/and-zero.smt2
+  regress0/bv/holes/ashr-by-const-0.smt2
+  regress0/bv/holes/ashr-by-const-1.smt2 # Could not find rule
+  regress0/bv/holes/ashr-by-const-2.smt2 # Could not find rule?
+  regress0/bv/holes/ashr-zero.smt2
+  regress0/bv/holes/bitwise-not-or.smt2
+  regress0/bv/holes/commutative-add.smt2
+  regress0/bv/holes/commutative-add.smt2 # Subsumed by ARITH_POLY_NORM
+  regress0/bv/holes/commutative-xor.smt2
+  regress0/bv/holes/comp-eliminate.smt2 # Redundant, does not test bv-comp-eliminate
+  regress0/bv/holes/concat-extract-merge.smt2
+  regress0/bv/holes/concat-flatten.smt2
+  regress0/bv/holes/concat-to-mult.smt2
+  regress0/bv/holes/extract-bitwise-and.smt2
+  regress0/bv/holes/extract-bitwise-or.smt2
+  regress0/bv/holes/extract-bitwise-xor.smt2
+  regress0/bv/holes/extract-concat.smt2
+  regress0/bv/holes/extract-extract.smt2
+  regress0/bv/holes/extract-mult-leading-bit.smt2
+  regress0/bv/holes/extract-sign-extend-3.smt2
+  regress0/bv/holes/extract-whole.smt2
+  regress0/bv/holes/ite-const-children-1.smt2
+  regress0/bv/holes/ite-const-children-2.smt2
+  regress0/bv/holes/ite-equal-children.smt2
+  regress0/bv/holes/ite-equal-cond-1.smt2
+  regress0/bv/holes/ite-equal-cond-2.smt2
+  regress0/bv/holes/ite-equal-cond-3.smt2
+  regress0/bv/holes/ite-merge-else-else.smt2
+  regress0/bv/holes/ite-merge-else-if.smt2
+  regress0/bv/holes/ite-merge-then-else.smt2 # Roundabout method used
+  regress0/bv/holes/ite-merge-then-if.smt2
+  regress0/bv/holes/lshr-by-const-0.smt2
+  regress0/bv/holes/lshr-by-const-1.smt2
+  regress0/bv/holes/lshr-by-const-2.smt2
+  regress0/bv/holes/lt-self.smt2 # Roundabout method
+  regress0/bv/holes/merge-sign-extend-2.smt2
+  regress0/bv/holes/merge-sign-extend-3.smt2
+  regress0/bv/holes/mul-flatten.smt2
+  regress0/bv/holes/mul-one.smt2
+  regress0/bv/holes/mul-zero.smt2
+  regress0/bv/holes/mult-distrib-1.smt2
+  regress0/bv/holes/mult-distrib-2.smt2
+  regress0/bv/holes/mult-distrib-const-add.smt2
+  regress0/bv/holes/mult-distrib-const-neg.smt2
+  regress0/bv/holes/mult-distrib-const-sub.smt2
+  regress0/bv/holes/mult-pow2-2b.smt2 # Could not find rule
+  regress0/bv/holes/mult-slt-mult-1.smt2
+  regress0/bv/holes/mult-slt-mult-2.smt2
+  regress0/bv/holes/neg-add.smt2
+  regress0/bv/holes/neg-idemp.smt2     # Subsumed by ARITH_POLY_NORM
+  regress0/bv/holes/neg-mult.smt2 # O(exp) roundabout
+  regress0/bv/holes/neg-sub.smt2
+  regress0/bv/holes/not-neq.smt2
+  regress0/bv/holes/not-sle.smt2 # Roundabout method (constant size, so it should be ok)
+  regress0/bv/holes/not-ule.smt2 # Roundabout method (constant size, so it should be ok)
+  regress0/bv/holes/not-xor.smt2     # Roundabout method
+  regress0/bv/holes/or-simplify-1.smt2
+  regress0/bv/holes/or-simplify-2.smt2
+  regress0/bv/holes/redand-eliminate.smt2
+  regress0/bv/holes/redor-eliminate.smt2
+  regress0/bv/holes/repeat-eliminate-1.smt2 # O(1) roundabout
+  regress0/bv/holes/repeat-eliminate-2.smt2 # O(1) roundabout
+  regress0/bv/holes/rotate-left-eliminate-1.smt2
+  regress0/bv/holes/sdiv-eliminate-fewer-bitwise-ops.smt2 # O(n) roundabout
+  regress0/bv/holes/sgt-eliminate.smt2
+  regress0/bv/holes/shl-by-const-0.smt2
+  regress0/bv/holes/shl-by-const-1.smt2
+  regress0/bv/holes/shl-by-const-2.smt2
+  regress0/bv/holes/shl-zero.smt2
+  regress0/bv/holes/sign-extend-eliminate.smt2 # Roundabout method used
+  regress0/bv/holes/sign-extend-ult-const-1.smt2
+  regress0/bv/holes/sign-extend-ult-const-3.smt2
+  regress0/bv/holes/sle-self.smt2 # Roundabout method
+  regress0/bv/holes/slt-eliminate.smt2 # O(exp) Roundabout method used
+  regress0/bv/holes/slt-zero.smt2
+  regress0/bv/holes/smod-eliminate-fewer-bitwise-ops.smt2
+  regress0/bv/holes/srem-eliminate-fewer-bitwise-ops.smt2
+  regress0/bv/holes/srem-eliminate.smt2
+  regress0/bv/holes/ssubo-eliminate.smt2
+  regress0/bv/holes/sub-eliminate.smt2 # O(1) ARITH_POLY_NORM
+  regress0/bv/holes/udiv-pow2-1p.smt2
+  regress0/bv/holes/udiv-zero.smt2
+  regress0/bv/holes/uge-eliminate.smt2
+  regress0/bv/holes/ugt-eliminate.smt2
+  regress0/bv/holes/ult-add-one.smt2
+  regress0/bv/holes/ult-one.smt2
+  regress0/bv/holes/urem-pow2.smt2
+  regress0/bv/holes/urem-self.smt2
+  regress0/bv/holes/usubo-eliminate.smt2
+  regress0/bv/holes/xor-duplicate.smt2
+  regress0/bv/holes/xor-not.smt2 # Roundabout method
+  regress0/bv/holes/xor-simplify-2.smt2
+  regress0/bv/holes/xor-simplify-3.smt2
+  regress0/bv/holes/zero-extend-eliminate.smt2
+  regress0/bv/holes/zero-extend-eq-const-1.smt2
+  regress0/bv/holes/zero-extend-eq-const-2.smt2
+  regress0/bv/holes/zero-extend-ult-const-1.smt2
+  regress0/bv/holes/zero-extend-ult-const-2.smt2
   regress0/bv/incorrect1.delta01.smtv1.smt2
   regress0/bv/inequality00.smt2
   regress0/bv/inequality01.smt2
@@ -1144,6 +1247,14 @@ set(regress_0_tests
   regress0/proj-issue645-abs-value-subs.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/cyclic-ucp.smt2
+  regress0/proofs/bvrewrite-concat-merge.smt2
+  regress0/proofs/bvrewrite-extract.smt2
+  regress0/proofs/bvrewrite-ite.smt2
+  regress0/proofs/bvrewrite-shlbyconst.smt2
+  regress0/proofs/dsl-no-eval.smt2
+  regress0/proofs/dsl-rule-comp-types.smt2
+  regress0/proofs/fixed-point-rew.smt2
+  regress0/proofs/fixed-point-rew-conc.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/issue10278-pf-clone.smt2
   regress0/proofs/issue8983-trust-subs.smt2
@@ -1247,6 +1358,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
+  regress0/quantifiers/dd.german169-lemma-inp.smt2
   regress0/quantifiers/dd.ho-matching-enum.smt2
   regress0/quantifiers/dd.ricart-ieval.smt2
   regress0/quantifiers/dd.javafe-ieval.smt2
@@ -1736,6 +1848,7 @@ set(regress_0_tests
   regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/sygus-no-wf.sy
+  regress0/sygus/sygus-no-incremental-err.sy
   regress0/sygus/sygus-uf.sy
   regress0/sygus/uminus_one.sy
   regress0/sygus/univ_3-long-repeat-conflict.sy
@@ -2033,8 +2146,8 @@ set(regress_1_tests
   regress1/bags/ctor_previous_sat.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
-  regress1/bags/duplicate_removal1.smt2
-  regress1/bags/duplicate_removal2.smt2
+  regress1/bags/setof1.smt2
+  regress1/bags/setof2.smt2
   regress1/bags/emptybag1.smt2
   regress1/bags/filter1.smt2
   regress1/bags/filter2.smt2
@@ -2134,6 +2247,7 @@ set(regress_1_tests
   regress1/datatypes/nullables/nullables6.smt2
   regress1/datatypes/nullables/nullables7.smt2
   regress1/datatypes/nullables/nullables8.smt2
+  regress1/datatypes/nullables/nullable-lift-unsat.smt2
   regress1/datatypes/acyclicity-sr-ground096.smt2
   regress1/datatypes/cee-prs-small-dd2.smt2
   regress1/datatypes/dt-color-2.6.smt2
@@ -2334,7 +2448,6 @@ set(regress_1_tests
   regress1/nl/issue9183-3.smt2
   regress1/nl/issue9183-4.smt2
   regress1/nl/issue9183-5.smt2
-  regress1/nl/issue9420-ll.smt2
   regress1/nl/issue9472-2-cmv.smt2
   regress1/nl/issue9480-pow-pow2.smt2
   regress1/nl/issue9611-lrew.smt2
@@ -3571,6 +3684,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # times out after #10396
+  regress1/nl/issue9420-ll.smt2
   # times out on various builds
   regress1/nl/proj-issue231.smt2
   # times out after changes to nl-ext in #8236
