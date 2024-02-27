@@ -169,7 +169,7 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
 void TheoryProxy::notifyAssertion(Node a,
                                   TNode skolem,
                                   bool isLemma,
-                                  bool volit)
+                                  bool local)
 {
   // ignore constants
   if (a.isConst())
@@ -178,7 +178,8 @@ void TheoryProxy::notifyAssertion(Node a,
   }
   // notify the decision engine
   std::vector<TNode> assertions{a};
-  if (volit || (!skolem.isNull() && d_dmTrackActiveSkDefs))
+  // if it is marked local or the decision engine tracks skolem definitions
+  if (local || (!skolem.isNull() && d_dmTrackActiveSkDefs))
   {
     // if volitile, it is a skolem def
     d_decisionEngine->addLocalAssertions(assertions);

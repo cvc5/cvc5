@@ -1718,12 +1718,12 @@ name   = "Quantifiers"
   help       = "use store axiom during ho-elim"
 
 [[option]]
-  name       = "instVolatile"
+  name       = "instLocal"
   category   = "regular"
-  long       = "inst-volatile"
+  long       = "inst-local"
   type       = "bool"
   default    = "false"
-  help       = "Instantiations are volatile"
+  help       = "Instantiations are local to the SAT context"
 
 ### SyGuS instantiation options
 

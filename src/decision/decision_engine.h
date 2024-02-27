@@ -47,16 +47,14 @@ class DecisionEngine : protected EnvObj
   /** Is the DecisionEngine in a state where it has solved everything? */
   virtual bool isDone() = 0;
   /**
-   * If skolem is null, notify this class that assertion is an (input)
-   * assertion, not corresponding to a skolem definition.
-   *
-   * If skolem is non-null, notify this class that lem is the skolem definition
-   * for skolem, which is a part of the current assertions.
+   * Adds assertions lems to satisfy that persist in the user context.
+   * All input assertions and relevant lemmas are added via this call.
    */
   virtual void addAssertions(std::vector<TNode>& lems) = 0;
   /**
-   * Notify this class that the list of lemmas defs are now active in the
-   * current SAT context.
+   * Adds assertions lems to satisfy that persist in the SAT context.
+   * By default, only skolem definitions from input and lemmas are added via
+   * this call.
    */
   virtual void addLocalAssertions(std::vector<TNode>& lems) {}
 

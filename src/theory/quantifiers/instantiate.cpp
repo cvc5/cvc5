@@ -53,13 +53,13 @@ Instantiate::Instantiate(Env& env,
       d_treg(tr),
       d_insts(userContext()),
       d_c_inst_match_trie_dom(
-          options().quantifiers.instVolatile ? context() : userContext()),
+          options().quantifiers.instLocal ? context() : userContext()),
       d_pfInst(isProofEnabled()
                    ? new CDProof(env, userContext(), "Instantiate::pfInst")
                    : nullptr)
 {
   d_useCdInstTrie =
-      (options().base.incrementalSolving || options().quantifiers.instVolatile);
+      (options().base.incrementalSolving || options().quantifiers.instLocal);
 }
 
 Instantiate::~Instantiate()
@@ -341,9 +341,9 @@ bool Instantiate::addInstantiationInternal(
   // added lemma, which checks for lemma duplication
   bool addedLem = false;
   LemmaProperty p = LemmaProperty::NONE;
-  if (options().quantifiers.instVolatile)
+  if (options().quantifiers.instLocal)
   {
-    p = LemmaProperty::VOLATILE;
+    p = LemmaProperty::LOCAL;
   }
   if (hasProof)
   {

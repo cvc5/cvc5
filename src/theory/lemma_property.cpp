@@ -53,9 +53,9 @@ bool isLemmaPropertyNeedsJustify(LemmaProperty p)
   return (p & LemmaProperty::NEEDS_JUSTIFY) != LemmaProperty::NONE;
 }
 
-bool isLemmaPropertyVolatile(LemmaProperty p)
+bool isLemmaPropertyLocal(LemmaProperty p)
 {
-  return (p & LemmaProperty::VOLATILE) != LemmaProperty::NONE;
+  return (p & LemmaProperty::LOCAL) != LemmaProperty::NONE;
 }
 
 std::ostream& operator<<(std::ostream& out, LemmaProperty p)
@@ -79,9 +79,9 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     {
       out << " NEEDS_JUSTIFY";
     }
-    if (isLemmaPropertyVolatile(p))
+    if (isLemmaPropertyLocal(p))
     {
-      out << " VOLATILE";
+      out << " LOCAL";
     }
     out << " }";
   }

@@ -101,7 +101,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   void notifyAssertion(Node lem,
                        TNode skolem = TNode::null(),
                        bool isLemma = false,
-                       bool volit = false);
+                       bool local = false);
 
   void theoryCheck(theory::Theory::Effort effort);
 
