@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/proof_options.h"
+#include "proof/proof_node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
@@ -72,6 +73,12 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     return true;
+  }
+  // if there are quantifiers, fail immediately
+  if (expr::hasBoundVar(a) || expr::hasBoundVar(b))
+  {
+    Trace("rpc") << "...fail (out of scope)" << std::endl;
+    return false;
   }
   ++d_statTotalInputs;
   Trace("rpc-debug") << "- convert to internal" << std::endl;
@@ -487,6 +494,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     Node transEqStart = target[0].eqNode(transEq[0]);
     // proves both
     pi->d_id = DslProofRule::TRANS;
+    pi->d_vars.clear();
     pi->d_vars.push_back(transEqStart);
     pi->d_vars.push_back(transEq);
     Trace("rpc-debug2") << "...original equality was " << transEqStart
@@ -720,8 +728,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           if (isInternalDslProofRule(pcur.d_id))
           {
             // premises are the steps, stored in d_vars
-            ps.insert(
-                premises[cur].end(), pcur.d_vars.begin(), pcur.d_vars.end());
+            ps.insert(ps.end(), pcur.d_vars.begin(), pcur.d_vars.end());
             if (pcur.d_id == DslProofRule::CONG
                 || pcur.d_id == DslProofRule::CONG_EVAL)
             {
@@ -780,7 +787,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       }
       else if (pcur.d_id == DslProofRule::CONG)
       {
-        cdp->addStep(cur, ProofRule::CONG, ps, pfArgs[cur]);
+        // get the appropriate CONG rule
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(cur[0], cargs);
+        cdp->addStep(cur, cr, ps, cargs);
       }
       else if (pcur.d_id == DslProofRule::CONG_EVAL)
       {
@@ -982,8 +992,8 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
 
     for (TNode n : curr)
     {
-      auto [it, inserted] = parent.emplace(n, curr);
-      if (inserted)
+      // if we successfully inserted
+      if (parent.emplace(n, curr).second)
       {
         toVisit.emplace_back(n);
       }

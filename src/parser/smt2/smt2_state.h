@@ -158,7 +158,8 @@ class Smt2State : public ParserState
    */
   bool getTesterName(Term cons, std::string& name) override;
 
-  /** Make function defined by a define-fun(s)-rec command.
+  /**
+   * Make function defined by a define-fun(s)-rec command and bind it.
    *
    * fname : the name of the function.
    * sortedVarNames : the list of variable arguments for the function.
@@ -172,7 +173,7 @@ class Smt2State : public ParserState
    * added to flattenVars in this function if the function is given a function
    * range type.
    */
-  Term bindDefineFunRec(
+  Term setupDefineFunRecScope(
       const std::string& fname,
       const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
       Sort t,
@@ -193,7 +194,7 @@ class Smt2State : public ParserState
    * This function:
    * (1) Calls ParserState::pushScope().
    * (2) Computes the bound variable list for the quantified formula
-   *     that defined this definition and stores it in bvs.
+   *     that defined this definition and stores it in bvs and binds it.
    */
   void pushDefineFunRecScope(
       const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
