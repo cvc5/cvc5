@@ -1,0 +1,34 @@
+(include "../programs/Nary.smt3")
+
+(declare-const UnitTuple Type)
+(declare-const Tuple (-> Type Type Type) :right-assoc-nil UnitTuple)
+
+(declare-const tuple.unit UnitTuple)
+(declare-const tuple (-> (! Type :var T :implicit) (! Type :var U :implicit)
+                         T U (alf.cons Tuple T U)) :right-assoc-nil tuple.unit)
+(declare-const tuple.select
+    (-> (! Type :var T :implicit)
+        (! Int :var i) T (alf.extract Tuple T i)))
+(declare-const tuple.update
+    (-> (! Type :var T :implicit) (! Type :var S :implicit)
+        Int T S T))
+(declare-const is-tuple (-> (! Type :var T :implicit) T Bool))
+
+(declare-const Nullable (-> Type Type))
+(declare-const nullable.null (-> (! Type :var T) (Nullable T)))
+(declare-const nullable.some (-> (! Type :var T :implicit) T (Nullable T)))
+(declare-const nullable.is_some (-> (! Type :var T :implicit) (Nullable T) Bool))
+(declare-const nullable.is_null (-> (! Type :var T :implicit) (Nullable T) Bool))
+(declare-const nullable.val (-> (! Type :var T :implicit) (Nullable T) T))
+
+(program get_type_nullable.lift ((T Type) (U Type))
+    (Type) Type
+    (
+      ((get_type_nullable.lift (-> T U)) (-> (Nullable T) (get_type_nullable.lift U)))
+      ((get_type_nullable.lift U)        (Nullable U))
+    )
+)
+(declare-const nullable.lift (-> (! Type :var F :implicit) F (get_type_nullable.lift F)))
+
+; skolems
+;SHARED_SELECTOR

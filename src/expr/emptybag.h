@@ -39,11 +39,6 @@ class EmptyBag
 
   const TypeNode& getType() const;
   bool operator==(const EmptyBag& es) const;
-  bool operator!=(const EmptyBag& es) const;
-  bool operator<(const EmptyBag& es) const;
-  bool operator<=(const EmptyBag& es) const;
-  bool operator>(const EmptyBag& es) const;
-  bool operator>=(const EmptyBag& es) const;
 
  private:
   EmptyBag();

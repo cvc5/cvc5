@@ -56,6 +56,11 @@ void QuantifiersModules::initialize(Env& env,
     d_qcf.reset(new QuantConflictFind(env, qs, qim, qr, tr));
     modules.push_back(d_qcf.get());
   }
+  if (options.quantifiers.quantSubCbqi)
+  {
+    d_issc.reset(new InstStrategySubConflict(env, qs, qim, qr, tr));
+    modules.push_back(d_issc.get());
+  }
   if (options.quantifiers.conjectureGen)
   {
     d_sg_gen.reset(new ConjectureGenerator(env, qs, qim, qr, tr));

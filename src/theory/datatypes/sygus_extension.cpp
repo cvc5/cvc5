@@ -254,7 +254,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
     }
     if( (unsigned)d_currTermSize[a].get()>ssz ){
       if( TraceIsOn("sygus-sb-fair") ){
-        std::map< TypeNode, int > var_count;
+        std::map<TypeNode, size_t> var_count;
         Node templ = getCurrentTemplate( a, var_count );
         Trace("sygus-sb-fair") << "FAIRNESS : we have " <<  d_currTermSize[a].get() << " at search size " << ssz << ", template is " << templ << std::endl;
       }
@@ -1054,7 +1054,7 @@ Node SygusExtension::registerSearchValue(Node a,
     return nv;
   }
   Trace("sygus-sb-debug2") << "Registering search value " << n << " -> " << nv << std::endl;
-  std::map<TypeNode, int> var_count;
+  std::map<TypeNode, size_t> var_count;
   Node cnv = d_tds->canonizeBuiltin(nv, var_count);
   Trace("sygus-sb-debug") << "  ...canonized value is " << cnv << std::endl;
   SearchCache& sca = d_cache[a];
@@ -1073,109 +1073,114 @@ Node SygusExtension::registerSearchValue(Node a,
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = utils::getSygusTermSize(nv);
-    if( d_tds->involvesDivByZero( bvr ) ){
-      quantifiers::DivByZeroSygusInvarianceTest dbzet(d_env.getRewriter());
-      Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in "
-                                   << bv << std::endl;
-      registerSymBreakLemmaForValue(a, nv, dbzet, Node::null(), var_count);
-      return Node::null();
-    }else{
-      std::unordered_map<Node, Node>& scasv = sca.d_search_val[tn];
-      std::unordered_map<Node, unsigned>& scasvs = sca.d_search_val_sz[tn];
-      std::unordered_map<Node, Node>::iterator itsv = scasv.find(bvr);
-      Node bad_val_bvr;
-      bool by_examples = false;
-      if (itsv == scasv.end())
+    std::unordered_map<Node, Node>& scasv = sca.d_search_val[tn];
+    std::unordered_map<Node, unsigned>& scasvs = sca.d_search_val_sz[tn];
+    std::unordered_map<Node, Node>::iterator itsv = scasv.find(bvr);
+    Node bad_val_bvr;
+    bool by_examples = false;
+    if (itsv == scasv.end())
+    {
+      // Is it equivalent under examples?
+      Node bvr_equiv;
+      if (aconj != nullptr && options().datatypes.sygusSymBreakPbe)
       {
-        // Is it equivalent under examples?
-        Node bvr_equiv;
-        if (aconj != nullptr && options().datatypes.sygusSymBreakPbe)
+        // If the enumerator has examples, see if it is equivalent up to its
+        // examples with a previous term.
+        quantifiers::ExampleEvalCache* eec = aconj->getExampleEvalCache(a);
+        if (eec != nullptr)
         {
-          // If the enumerator has examples, see if it is equivalent up to its
-          // examples with a previous term.
-          quantifiers::ExampleEvalCache* eec = aconj->getExampleEvalCache(a);
-          if (eec != nullptr)
-          {
-            bvr_equiv = eec->addSearchVal(tn, bvr);
-          }
-        }
-        if( !bvr_equiv.isNull() ){
-          if( bvr_equiv!=bvr ){
-            Trace("sygus-sb-debug") << "......adding search val for " << bvr << " returned " << bvr_equiv << std::endl;
-            Assert(scasv.find(bvr_equiv) != scasv.end());
-            Trace("sygus-sb-debug")
-                << "......search value was " << scasv[bvr_equiv] << std::endl;
-            if( TraceIsOn("sygus-sb-exc") ){
-              Node prev = d_tds->sygusToBuiltin(scasv[bvr_equiv], tn);
-              Trace("sygus-sb-exc") << "  ......programs " << prev << " and " << bv << " are equivalent up to examples." << std::endl;
-            }
-            bad_val_bvr = bvr_equiv;
-            by_examples = true;
-          }
-        }
-        //store rewritten values, regardless of whether it will be considered
-        scasv[bvr] = nv;
-        scasvs[bvr] = sz;
-      }
-      else
-      {
-        bad_val_bvr = bvr;
-        if( TraceIsOn("sygus-sb-exc") ){
-          Node prev_bv = d_tds->sygusToBuiltin( itsv->second, tn );
-          Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
+          bvr_equiv = eec->addSearchVal(tn, bvr);
         }
       }
-
-      if( !bad_val_bvr.isNull() ){
-        Node bad_val = nv;
-        Node bad_val_o = scasv[bad_val_bvr];
-        Assert(scasvs.find(bad_val_bvr) != scasvs.end());
-        unsigned prev_sz = scasvs[bad_val_bvr];
-        bool doFlip = (prev_sz > sz);
-        if (doFlip)
+      if (!bvr_equiv.isNull())
+      {
+        if (bvr_equiv != bvr)
         {
-          //swap : the excluded value is the previous
-          scasvs[bad_val_bvr] = sz;
-          bad_val = scasv[bad_val_bvr];
-          bad_val_o = nv;
+          Trace("sygus-sb-debug") << "......adding search val for " << bvr
+                                  << " returned " << bvr_equiv << std::endl;
+          Assert(scasv.find(bvr_equiv) != scasv.end());
+          Trace("sygus-sb-debug")
+              << "......search value was " << scasv[bvr_equiv] << std::endl;
           if (TraceIsOn("sygus-sb-exc"))
           {
-            Trace("sygus-sb-exc") << "Flip : exclude ";
-            quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val);
-            Trace("sygus-sb-exc") << " instead of ";
-            quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val_o);
-            Trace("sygus-sb-exc") << ", since its size is " << sz << " < "
-                                  << prev_sz << std::endl;
+            Node prev = d_tds->sygusToBuiltin(scasv[bvr_equiv], tn);
+            Trace("sygus-sb-exc")
+                << "  ......programs " << prev << " and " << bv
+                << " are equivalent up to examples." << std::endl;
           }
-          sz = prev_sz;
+          bad_val_bvr = bvr_equiv;
+          by_examples = true;
         }
-        if( TraceIsOn("sygus-sb-exc") ){
-          Node bad_val_bv = d_tds->sygusToBuiltin( bad_val, tn );
-          Trace("sygus-sb-exc") << "  ........exclude : " << bad_val_bv;
-          if( by_examples ){
-            Trace("sygus-sb-exc") << " (by examples)";
-          }
-          Trace("sygus-sb-exc") << std::endl;
-        }
-        Assert(utils::getSygusTermSize(bad_val) == sz);
+      }
+      // store rewritten values, regardless of whether it will be considered
+      scasv[bvr] = nv;
+      scasvs[bvr] = sz;
+    }
+    else
+    {
+      bad_val_bvr = bvr;
+      if (TraceIsOn("sygus-sb-exc"))
+      {
+        Node prev_bv = d_tds->sygusToBuiltin(itsv->second, tn);
+        Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv
+                              << " rewrite to " << bvr << "." << std::endl;
+      }
+    }
 
-        // generalize the explanation for why the analog of bad_val
-        // is equivalent to bvr
-        quantifiers::EquivSygusInvarianceTest eset(d_env.getRewriter());
-        eset.init(d_tds, tn, aconj, a, bvr);
-
-        Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
-        registerSymBreakLemmaForValue(a, bad_val, eset, bad_val_o, var_count);
-
-        // other generalization criteria go here
-
-        // If the exclusion was flipped, we are excluding a previous value
-        // instead of the current one. Hence, the current value is a legal
-        // value that we will consider.
-        if (!doFlip)
+    if (!bad_val_bvr.isNull())
+    {
+      Node bad_val = nv;
+      Node bad_val_o = scasv[bad_val_bvr];
+      Assert(scasvs.find(bad_val_bvr) != scasvs.end());
+      unsigned prev_sz = scasvs[bad_val_bvr];
+      bool doFlip = (prev_sz > sz);
+      if (doFlip)
+      {
+        // swap : the excluded value is the previous
+        scasvs[bad_val_bvr] = sz;
+        bad_val = scasv[bad_val_bvr];
+        bad_val_o = nv;
+        if (TraceIsOn("sygus-sb-exc"))
         {
-          return Node::null();
+          Trace("sygus-sb-exc") << "Flip : exclude ";
+          quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val);
+          Trace("sygus-sb-exc") << " instead of ";
+          quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val_o);
+          Trace("sygus-sb-exc")
+              << ", since its size is " << sz << " < " << prev_sz << std::endl;
         }
+        sz = prev_sz;
+      }
+      if (TraceIsOn("sygus-sb-exc"))
+      {
+        Node bad_val_bv = d_tds->sygusToBuiltin(bad_val, tn);
+        Trace("sygus-sb-exc") << "  ........exclude : " << bad_val_bv;
+        if (by_examples)
+        {
+          Trace("sygus-sb-exc") << " (by examples)";
+        }
+        Trace("sygus-sb-exc") << std::endl;
+      }
+      Assert(utils::getSygusTermSize(bad_val) == sz);
+
+      // generalize the explanation for why the analog of bad_val
+      // is equivalent to bvr
+      quantifiers::EquivSygusInvarianceTest eset(d_env.getRewriter());
+      eset.init(d_tds, tn, aconj, a, bvr);
+
+      Trace("sygus-sb-mexp-debug")
+          << "Minimize explanation for eval[" << d_tds->sygusToBuiltin(bad_val)
+          << "] = " << bvr << std::endl;
+      registerSymBreakLemmaForValue(a, bad_val, eset, bad_val_o, var_count);
+
+      // other generalization criteria go here
+
+      // If the exclusion was flipped, we are excluding a previous value
+      // instead of the current one. Hence, the current value is a legal
+      // value that we will consider.
+      if (!doFlip)
+      {
+        return Node::null();
       }
     }
   }
@@ -1187,7 +1192,7 @@ void SygusExtension::registerSymBreakLemmaForValue(
     Node val,
     quantifiers::SygusInvarianceTest& et,
     Node valr,
-    std::map<TypeNode, int>& var_count)
+    std::map<TypeNode, size_t>& var_count)
 {
   TypeNode tn = val.getType();
   Node x = getFreeVar(tn);
@@ -1729,7 +1734,9 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
   return true;
 }
 
-Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count ) {
+Node SygusExtension::getCurrentTemplate(Node n,
+                                        std::map<TypeNode, size_t>& var_count)
+{
   if( d_active_terms.find( n )!=d_active_terms.end() ){
     TypeNode tn = n.getType();
     IntMap::const_iterator it = d_testers.find( n );

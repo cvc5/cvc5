@@ -234,32 +234,36 @@ if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
 endif ()
 
-#-----------------------------------------------------------------------------#
-# Use ld.mold if available, otherwise use ld.gold if available
+# Changing the default linker on MSYS prevents the build system from
+# using the GMP system library if available
+if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles"))
+  #-----------------------------------------------------------------------------#
+  # Use ld.mold if available, otherwise use ld.gold if available
 
-set(USE_EXPLICIT_LINKER_FLAG FALSE)
-execute_process(COMMAND ${CMAKE_C_COMPILER}
-                -fuse-ld=mold
-                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_MOLD_VERSION)
-if ("${LD_MOLD_VERSION}" MATCHES "mold")
-  set(USE_EXPLICIT_LINKER_FLAG TRUE)
-  set(EXPLICIT_LINKER_FLAG " -fuse-ld=mold")
-  message(STATUS "Using mold linker.")
-else ()
+  set(USE_EXPLICIT_LINKER_FLAG FALSE)
   execute_process(COMMAND ${CMAKE_C_COMPILER}
-                  -fuse-ld=gold
-                  -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
-  if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+                  -fuse-ld=mold
+                  -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_MOLD_VERSION)
+  if ("${LD_MOLD_VERSION}" MATCHES "mold")
     set(USE_EXPLICIT_LINKER_FLAG TRUE)
-    set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
-    message(STATUS "Using GNU gold linker.")
+    set(EXPLICIT_LINKER_FLAG " -fuse-ld=mold")
+    message(STATUS "Using mold linker.")
+  else ()
+    execute_process(COMMAND ${CMAKE_C_COMPILER}
+                    -fuse-ld=gold
+                    -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
+    if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+      set(USE_EXPLICIT_LINKER_FLAG TRUE)
+      set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
+      message(STATUS "Using GNU gold linker.")
+    endif ()
   endif ()
-endif ()
-if (USE_EXPLICIT_LINKER_FLAG)
-  string(APPEND CMAKE_EXE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
-  string(APPEND CMAKE_SHARED_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
-  string(APPEND CMAKE_MODULE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
-endif ()
+  if (USE_EXPLICIT_LINKER_FLAG)
+    string(APPEND CMAKE_EXE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+    string(APPEND CMAKE_MODULE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+  endif ()
+endif()
 
 #-----------------------------------------------------------------------------#
 # Use interprocedural optimization if requested
@@ -360,7 +364,7 @@ if(NOT DEFINED PYTHON_EXECUTABLE)
   set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
 endif()
 
-find_package(GMP 6.1 REQUIRED)
+find_package(GMP 6.3 REQUIRED)
 
 if(ENABLE_ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
@@ -473,7 +477,7 @@ if(USE_KISSAT)
 endif()
 
 if(USE_POLY)
-  find_package(Poly REQUIRED)
+  find_package(Poly 0.1.13 REQUIRED)
   add_definitions(-DCVC5_USE_POLY)
   set(CVC5_USE_POLY_IMP 1)
 else()

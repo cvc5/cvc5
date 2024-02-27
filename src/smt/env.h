@@ -52,6 +52,10 @@ namespace theory {
 class Evaluator;
 class Rewriter;
 class TrustSubstitutionMap;
+
+namespace quantifiers {
+class OracleChecker;
+}
 }
 
 /**
@@ -259,6 +263,9 @@ class Env
   /** get the separation logic data type */
   TypeNode getSepDataType() const;
 
+  /** get oracle checker */
+  theory::quantifiers::OracleChecker* getOracleChecker() const;
+
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -326,6 +333,8 @@ class Env
   /** The separation logic location and data types */
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
+  /** oracle checker */
+  std::unique_ptr<theory::quantifiers::OracleChecker> d_ochecker;
 }; /* class Env */
 
 }  // namespace cvc5::internal

@@ -389,6 +389,15 @@ class SolverTest
   }
 
   @Test
+  void mkNullableSort() throws CVC5ApiException
+  {
+    assertDoesNotThrow(() -> d_solver.mkNullableSort(d_solver.getIntegerSort()));
+
+    Solver slv = new Solver();
+    assertDoesNotThrow(() -> slv.mkNullableSort(d_solver.getIntegerSort()));
+  }
+
+  @Test
   void mkBitVector() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.mkBitVector(8, 2));
@@ -880,6 +889,24 @@ class SolverTest
                                d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm)));
 
     // mkTerm(Op op, Term child1, Term child2, Term child3) const
+    Sort ssort = d_solver.getStringSort();
+    Sort isort = d_solver.getIntegerSort();
+    Sort xsort = d_solver.mkTupleSort(new Sort[] {ssort, ssort, isort});
+    Sort ysort = d_solver.mkTupleSort(new Sort[] {ssort, isort});
+    Term f = d_solver.defineFun("f",
+        new Term[] {d_solver.mkVar(xsort, "x"), d_solver.mkVar(ysort, "y")},
+        ysort,
+        d_solver.mkTuple(new Term[] {d_solver.mkString("a"),
+            d_solver.mkTerm(ADD, d_solver.mkInteger(1), d_solver.mkInteger(2))}));
+    Term tup = d_solver.mkTuple(
+        new Term[] {d_solver.mkString("foo"), d_solver.mkString("bar"), d_solver.mkInteger(1)});
+    assertDoesNotThrow(
+        ()
+            -> d_solver.mkTerm(d_solver.mkOp(RELATION_AGGREGATE, 0),
+                f,
+                d_solver.mkTuple(new Term[] {d_solver.mkString(""), d_solver.mkInteger(0)}),
+                d_solver.mkTerm(SET_SINGLETON, tup)));
+
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, a, b, a));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.mkTerm(opterm2, d_solver.mkInteger(1), d_solver.mkInteger(1), new Term()));
@@ -911,6 +938,66 @@ class SolverTest
     assertDoesNotThrow(() -> slv.mkTuple(new Term[] {slv.mkBitVector(3, "101", 2)}));
 
     assertDoesNotThrow(() -> slv.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+  }
+
+  @Test
+  void mkNullableSome()
+  {
+    assertDoesNotThrow(() -> d_solver.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+    assertDoesNotThrow(() -> d_solver.mkNullableSome(d_solver.mkInteger("5")));
+    assertDoesNotThrow(() -> d_solver.mkNullableSome(d_solver.mkReal("5.3")));
+
+    Solver slv = new Solver();
+    assertDoesNotThrow(() -> slv.mkNullableSome(slv.mkBitVector(3, "101", 2)));
+
+    assertDoesNotThrow(() -> slv.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+  }
+
+  @Test
+  void mkNullableVal()
+  {
+    Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+    Term value = d_solver.mkNullableVal(some);
+    value = d_solver.simplify(value);
+    assertEquals(5, value.getIntegerValue().intValue());
+  }
+
+  @Test
+  void mkNullableIsNull()
+  {
+    Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+    Term value = d_solver.mkNullableIsNull(some);
+    value = d_solver.simplify(value);
+    assertEquals(false, value.getBooleanValue());
+  }
+
+  @Test
+  void mkNullableIsSome()
+  {
+    Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+    Term value = d_solver.mkNullableIsSome(some);
+    value = d_solver.simplify(value);
+    assertEquals(true, value.getBooleanValue());
+  }
+
+  @Test
+  void mkNullableNull()
+  {
+    Sort nullableSort = d_solver.mkNullableSort(d_solver.getBooleanSort());
+    Term nullableNull = d_solver.mkNullableNull(nullableSort);
+    Term value = d_solver.mkNullableIsNull(nullableNull);
+    value = d_solver.simplify(value);
+    assertEquals(true, value.getBooleanValue());
+  }
+
+  @Test
+  void mkNullableLift()
+  {
+    Term some1 = d_solver.mkNullableSome(d_solver.mkInteger(1));
+    Term some2 = d_solver.mkNullableSome(d_solver.mkInteger(2));
+    Term some3 = d_solver.mkNullableLift(Kind.ADD, new Term[] {some1, some2});
+    Term three = d_solver.simplify(d_solver.mkNullableVal(some3));
+    assertEquals(3, three.getIntegerValue().intValue());
   }
 
   @Test
@@ -1846,7 +1933,7 @@ class SolverTest
     assertTrue(res.isUnsat());
     assertDoesNotThrow(() -> d_solver.getProof());
   }
-  
+
   @Test
   void getProofAndProofToString()
   {
