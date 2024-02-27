@@ -18,13 +18,14 @@
 using namespace cvc5;
 int main(void)
 {
-  Solver solver;
+  TermManager tm;
+  Solver solver(tm);
   solver.setOption("incremental", "false");
   solver.setOption("check-abducts", "true");
   solver.setOption("cegis-sample", "trust");
   solver.setOption("produce-abducts", "true");
-  Sort s0 = solver.getBooleanSort();
-  Term t1 = solver.mkConst(s0, "_x0");
+  Sort s0 = tm.getBooleanSort();
+  Term t1 = tm.mkConst(s0, "_x0");
   Term t2 = solver.getAbduct(t1);
 
   return 0;

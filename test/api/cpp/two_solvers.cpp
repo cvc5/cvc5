@@ -21,11 +21,12 @@
 using namespace cvc5;
 using namespace std;
 
-int main() {
-  Solver s1;
-  Solver s2;
-  Result r = s1.checkSatAssuming(s1.mkBoolean(false));
-  Result r2 = s2.checkSatAssuming(s2.mkBoolean(false));
+int main()
+{
+  TermManager tm;
+  Solver s1(tm);
+  Solver s2(tm);
+  Result r = s1.checkSatAssuming(tm.mkBoolean(false));
+  Result r2 = s2.checkSatAssuming(tm.mkBoolean(false));
   return r.isUnsat() && r2.isUnsat() ? 0 : 1;
 }
-

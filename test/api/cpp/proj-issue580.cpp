@@ -18,17 +18,18 @@
 using namespace cvc5;
 int main(void)
 {
-  Solver solver;
+  TermManager tm;
+  Solver solver(tm);
   solver.setOption("incremental", "false");
   solver.setOption("produce-abducts", "true");
   solver.setOption("sygus-grammar-cons", "any-term-concise");
-  Sort s0 = solver.getRealSort();
-  Sort s1 = solver.mkSequenceSort(s0);
-  Term t2 = solver.mkConst(s1, "_x0");
-  Term t3 = solver.mkTerm(Kind::SEQ_UNIT, {t2});
+  Sort s0 = tm.getRealSort();
+  Sort s1 = tm.mkSequenceSort(s0);
+  Term t2 = tm.mkConst(s1, "_x0");
+  Term t3 = tm.mkTerm(Kind::SEQ_UNIT, {t2});
   Sort s4 = t3.getSort();
-  Op o5 = solver.mkOp(Kind::SEQ_CONTAINS);
-  Term t6 = solver.mkTerm(o5, {t3, t3});
+  Op o5 = tm.mkOp(Kind::SEQ_CONTAINS);
+  Term t6 = tm.mkTerm(o5, {t3, t3});
   Sort s7 = t6.getSort();
   solver.assertFormula(t6);
   Term t8 = solver.getAbduct(t6);
