@@ -48,6 +48,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_cnfStream(nullptr),
       d_decisionEngine(nullptr),
       d_trackActiveSkDefs(false),
+      d_dmTrackActiveSkDefs(false),
       d_theoryEngine(theoryEngine),
       d_queue(context()),
       d_tpp(env, *theoryEngine),
@@ -84,6 +85,7 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
     if (options().decision.jhSkolemRlvMode
         == options::JutificationSkolemRlvMode::ASSERT)
     {
+      d_dmTrackActiveSkDefs = true;
       d_trackActiveSkDefs = true;
     }
   }
@@ -178,8 +180,7 @@ void TheoryProxy::notifyAssertion(Node a,
   std::vector<TNode> assertions{a};
   if (volit
       || (!skolem.isNull()
-          && options().decision.jhSkolemRlvMode
-                 == options::JutificationSkolemRlvMode::ASSERT))
+          && d_dmTrackActiveSkDefs))
   {
     // if volitile, it is a skolem def
     d_decisionEngine->addLocalAssertions(assertions);
@@ -238,7 +239,10 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       {
         // notify the decision engine of the skolem definitions that have become
         // active due to the assertion.
-        d_decisionEngine->addLocalAssertions(activeSkolemDefs);
+        if (d_dmTrackActiveSkDefs)
+        {
+          d_decisionEngine->addLocalAssertions(activeSkolemDefs);
+        }
         d_prr->notifyActiveSkolemDefs(activeSkolemDefs);
         // if we are doing a FULL effort check (propagating with no remaining
         // decisions) and a new skolem definition becomes active, then the SAT
