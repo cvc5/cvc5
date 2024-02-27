@@ -58,7 +58,8 @@ Instantiate::Instantiate(Env& env,
                    ? new CDProof(env, userContext(), "Instantiate::pfInst")
                    : nullptr)
 {
-  d_useCdInstTrie = (options().base.incrementalSolving || options().quantifiers.instVolatile);
+  d_useCdInstTrie =
+      (options().base.incrementalSolving || options().quantifiers.instVolatile);
 }
 
 Instantiate::~Instantiate()

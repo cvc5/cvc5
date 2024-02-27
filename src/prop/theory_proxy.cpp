@@ -81,7 +81,8 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
       || dmode == options::DecisionMode::STOPONLY)
   {
     d_decisionEngine.reset(new decision::JustificationStrategy(d_env, ss, cs));
-    if (options().decision.jhSkolemRlvMode == options::JutificationSkolemRlvMode::ASSERT)
+    if (options().decision.jhSkolemRlvMode
+        == options::JutificationSkolemRlvMode::ASSERT)
     {
       d_trackActiveSkDefs = true;
     }
@@ -175,7 +176,10 @@ void TheoryProxy::notifyAssertion(Node a,
   }
   // notify the decision engine
   std::vector<TNode> assertions{a};
-  if (volit || (!skolem.isNull() && options().decision.jhSkolemRlvMode == options::JutificationSkolemRlvMode::ASSERT))
+  if (volit
+      || (!skolem.isNull()
+          && options().decision.jhSkolemRlvMode
+                 == options::JutificationSkolemRlvMode::ASSERT))
   {
     // if volitile, it is a skolem def
     d_decisionEngine->addLocalAssertions(assertions);
