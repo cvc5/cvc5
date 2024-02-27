@@ -178,14 +178,15 @@ void TheoryProxy::notifyAssertion(Node a,
   }
   // notify the decision engine
   std::vector<TNode> assertions{a};
-  // If it is marked local or if it is a skolem definition, and the decision
-  // engine tracks skolem definitions.
-  if (local || (!skolem.isNull() && d_dmTrackActiveSkDefs))
+  if (local)
   {
+    // If it is marked local, add as local assertions.
     d_decisionEngine->addLocalAssertions(assertions);
   }
-  else
+  else if (skolem.isNull() || !d_dmTrackActiveSkDefs)
   {
+    // otherwise, if it is not a skolem definition, or we are treating
+    // skolem definitions as ordinary assertions, we add it now.
     d_decisionEngine->addAssertions(assertions);
   }
   // notify the preregistrar
