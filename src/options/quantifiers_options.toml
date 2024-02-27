@@ -1725,6 +1725,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "Instantiations are local to the SAT context"
 
+[[option]]
+  name       = "instRemovable"
+  category   = "regular"
+  long       = "inst-removable"
+  type       = "bool"
+  default    = "false"
+  help       = "Instantiations are removable"
+
 ### SyGuS instantiation options
 
 [[option]]
