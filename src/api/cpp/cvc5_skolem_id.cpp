@@ -80,7 +80,6 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
     case SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
     case SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
-    case SkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     default: return "?";
   }
 }

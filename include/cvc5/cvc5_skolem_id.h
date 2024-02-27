@@ -202,21 +202,40 @@ enum ENUM(SkolemFunId) : uint32_t
   //-----
   /**
    * A function used to define intermediate results of str.replace_all and
-   * str.replace_re_all applications.
+   * str.replace_re_all applications. This denotes a function of type
+   * (-> Int String) or (-> Int (Seq T)) that denotes the result of processing
+   * the string or sequence after processing the n^th occurrence of string
+   * or match of the regular expression in the given replace_all term.
+   * 
+   * - Number of skolem arguments: ``1``
+   *   - ``1:`` The application of replace_all or replace_all_re.
    */
   EVALUE(STRINGS_REPLACE_ALL_RESULT),
   /**
    * A function used to define intermediate results of str.from_int
-   * applications.
+   * applications. This is a function k of type (-> Int Int) denoting the result
+   * of processing the first n digits of the argument.
+   *
+   * - Number of skolem arguments: ``1``
+   *   - ``1:`` The argument to str.from_int.
    */
   EVALUE(STRINGS_ITOS_RESULT),
   /**
-   * A function used to define intermediate results of str.to_int
-   * applications.
+   * A function used to define intermediate results of str.from_int
+   * applications. This is a function k of type (-> Int String) denoting the
+   * result of processing the first n characters of the argument.
+   *
+   * - Number of skolem arguments: ``1``
+   *   - ``1:`` The argument to str.to_int.
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
-   * An index containing a non-digit in a string, used when (str.to_int a) = -1.
+   * An index containing a non-digit in a string, used when (str.to_int a) is
+   * equal to -1. This is an integer that returns an index for which the
+   * argument string is not a digit if one exists, or is unconstrained otherwise.
+   *
+   * - Number of skolem arguments: ``1``
+   *   - ``1:`` The argument to str.to_int.
    */
   EVALUE(STRINGS_STOI_NON_DIGIT),
   /**
@@ -352,8 +371,6 @@ enum ENUM(SkolemFunId) : uint32_t
    * and it is mapped to y by f.
    */
   EVALUE(SETS_MAP_DOWN_ELEMENT),
-  /** abstract value for a term t */
-  EVALUE(ABSTRACT_VALUE),
   //================================================= Unknown rule
   EVALUE(NONE),
 };

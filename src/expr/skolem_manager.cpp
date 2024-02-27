@@ -51,6 +51,7 @@ const char* toString(InternalSkolemFunId id)
     case InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case InternalSkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
+    case InternalSkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     default: return "?";
   }
 }
@@ -263,13 +264,7 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
 
 bool SkolemManager::isAbstractValue(TNode n) const
 {
-  SkolemFunId id;
-  Node cacheVal;
-  if (isSkolemFunction(n, id, cacheVal))
-  {
-    return id == SkolemFunId::ABSTRACT_VALUE;
-  }
-  return false;
+  return (getInternalId(n)==InternalSkolemFunId::ABSTRACT_VALUE);
 }
 
 Node SkolemManager::getOriginalForm(Node n)
@@ -408,7 +403,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
   {
     // Type(cacheVals[0]), i.e skolems that return same type as first argument
     case SkolemFunId::PURIFY:
-    case SkolemFunId::ABSTRACT_VALUE:
       Assert(cacheVals.size() > 0);
       return cacheVals[0].getType();
       break;
