@@ -961,6 +961,11 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     reason << "deep restarts";
     return true;
   }
+  if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
+  {
+    reason << "lemma inprocessing";
+    return true;
+  }
   return false;
 }
 
