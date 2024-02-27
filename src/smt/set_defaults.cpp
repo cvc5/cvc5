@@ -963,6 +963,8 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   }
   if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
   {
+    // lemma inprocessing introduces depencencies from learned unit literals
+    // that are not tracked.
     reason << "lemma inprocessing";
     return true;
   }
