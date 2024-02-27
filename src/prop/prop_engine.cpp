@@ -175,6 +175,7 @@ void PropEngine::assertInputFormulas(
 void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
+  bool local = isLemmaPropertyLocal(p);
 
   // call preprocessor
   std::vector<theory::SkolemLemma> ppLemmas;
