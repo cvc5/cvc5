@@ -189,7 +189,14 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(STRINGS_OCCUR_LEN_RE),
   /**
-   * Diff index for disequalities a != b => substr(a,k,1) != substr(b,k,1)
+   * Difference index for string disequalities, such that k is the witness for
+   * the inference
+   *  (=> (not (= a b)) (not (= (substr a k 1) (substr b k 1))))
+   * where note that `k` may be out of bounds for at most of of a,b.
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The first string.
+   *   - ``2:`` The second string.
    */
   EVALUE(STRINGS_DEQ_DIFF),
   //-----
