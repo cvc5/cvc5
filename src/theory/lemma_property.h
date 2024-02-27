@@ -34,8 +34,10 @@ enum class LemmaProperty : uint32_t
   SEND_ATOMS = 2,
   // whether the lemma is part of the justification for answering "sat"
   NEEDS_JUSTIFY = 4,
+  // the lemma can be inprocessed
+  INPROCESS = 8,
   // the lemma is local to the SAT context
-  LOCAL = 8
+  LOCAL = 16
 };
 /** Define operator lhs | rhs */
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
@@ -51,6 +53,8 @@ bool isLemmaPropertyRemovable(LemmaProperty p);
 bool isLemmaPropertySendAtoms(LemmaProperty p);
 /** is the needs justify bit set on p? */
 bool isLemmaPropertyNeedsJustify(LemmaProperty p);
+/** is the inprocess bit set on p? */
+bool isLemmaPropertyInprocess(LemmaProperty p);
 /** is the local bit set on p? */
 bool isLemmaPropertyLocal(LemmaProperty p);
 

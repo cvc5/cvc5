@@ -41,7 +41,6 @@ TermRegistry::TermRegistry(Env& env,
                                            : new TermDb(env, qs, qr)),
       d_echeck(new EntailmentCheck(env, qs, *d_termDb.get())),
       d_sygusTdb(nullptr),
-      d_ochecker(nullptr),
       d_vtsCache(new VtsTermCache(env)),
       d_ievalMan(new ieval::InstEvaluatorManager(env, qs, *d_termDb.get())),
       d_qmodel(nullptr)
@@ -58,7 +57,7 @@ TermRegistry::TermRegistry(Env& env,
   if (options().quantifiers.sygus || options().quantifiers.sygusInst)
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new TermDbSygus(env, qs, d_ochecker.get()));
+    d_sygusTdb.reset(new TermDbSygus(env, qs));
   }
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
 }
