@@ -53,7 +53,7 @@ void SharedSolver::preRegister(TNode atom)
   // which depends on whether sharing is enabled.
   // If sharing is disabled, we use PreRegisterVisitor, which keeps a global
   // SAT-context dependent cache of terms visited.
-  // If sharing is disabled, we use SharedTermsVisitor which does *not* keep a
+  // If sharing is enabled, we use SharedTermsVisitor which does *not* keep a
   // global cache. This is because shared terms must be associated with the
   // given atom, and thus it must traverse the set of subterms in each atom.
   // See term_registration_visitor.h for more details.
