@@ -57,9 +57,12 @@ class OracleChecker : protected EnvObj, public NodeConverter
    * For example, calling this method with app = f(c) and val = d will
    * check whether we have evalauted the oracle associated with f on input
    * c. If not, we invoke the oracle; otherwise we retrieve its cached value.
-   * If this output d' is not d, then this method adds d' = f(c) to lemmas.
+   * If this output d' is not d, then this method returns the formula d' = f(c).
+   *
+   * @return The lemma corresponding to the equality above, or null if the
+   * oracle already is known to generate the correct value.
    */
-  bool checkConsistent(Node app, Node val, std::vector<Node>& lemmas);
+  Node checkConsistent(Node app, Node val);
   /**
    * Evaluate an oracle application. Given input f(c), where f is an oracle
    * function symbol, this returns the result of invoking the oracle associated
