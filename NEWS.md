@@ -29,6 +29,8 @@ cvc5 1.1.2
 - Fixes the parsing of `define-fun-rec` and `define-funs-rec` in interactive
   mode.
 
+- Renamed `bag.duplicate_removal` to `bag.setof`.
+
 cvc5 1.1.1
 ==========
 

@@ -2146,8 +2146,8 @@ set(regress_1_tests
   regress1/bags/ctor_previous_sat.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
-  regress1/bags/duplicate_removal1.smt2
-  regress1/bags/duplicate_removal2.smt2
+  regress1/bags/setof1.smt2
+  regress1/bags/setof2.smt2
   regress1/bags/emptybag1.smt2
   regress1/bags/filter1.smt2
   regress1/bags/filter2.smt2
