@@ -48,6 +48,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_cnfStream(nullptr),
       d_decisionEngine(nullptr),
       d_trackActiveSkDefs(false),
+      d_dmTrackActiveSkDefs(false),
       d_theoryEngine(theoryEngine),
       d_queue(context()),
       d_tpp(env, *theoryEngine),
@@ -81,6 +82,12 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
       || dmode == options::DecisionMode::STOPONLY)
   {
     d_decisionEngine.reset(new decision::JustificationStrategy(d_env, ss, cs));
+    if (options().decision.jhSkolemRlvMode
+        == options::JutificationSkolemRlvMode::ASSERT)
+    {
+      d_dmTrackActiveSkDefs = true;
+      d_trackActiveSkDefs = true;
+    }
   }
   else
   {
@@ -89,8 +96,10 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
   // make the theory preregistrar
   d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
   // compute if we need to track skolem definitions
-  d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs()
-                        || d_prr->needsActiveSkolemDefs();
+  if (d_prr->needsActiveSkolemDefs())
+  {
+    d_trackActiveSkDefs = true;
+  }
   d_cnfStream = cs;
 }
 
@@ -157,7 +166,10 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
   d_skdm->notifySkolemDefinition(skolem, a);
 }
 
-void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
+void TheoryProxy::notifyAssertion(Node a,
+                                  TNode skolem,
+                                  bool isLemma,
+                                  bool local)
 {
   // ignore constants
   if (a.isConst())
@@ -165,7 +177,17 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
     return;
   }
   // notify the decision engine
-  d_decisionEngine->addAssertion(a, skolem, isLemma);
+  std::vector<TNode> assertions{a};
+  // If it is marked local or if it is a skolem definition, and the decision
+  // engine tracks skolem definitions.
+  if (local || (!skolem.isNull() && d_dmTrackActiveSkDefs))
+  {
+    d_decisionEngine->addLocalAssertions(assertions);
+  }
+  else
+  {
+    d_decisionEngine->addAssertions(assertions);
+  }
   // notify the preregistrar
   d_prr->addAssertion(a, skolem, isLemma);
 }
@@ -216,7 +238,10 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       {
         // notify the decision engine of the skolem definitions that have become
         // active due to the assertion.
-        d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+        if (d_dmTrackActiveSkDefs)
+        {
+          d_decisionEngine->addLocalAssertions(activeSkolemDefs);
+        }
         d_prr->notifyActiveSkolemDefs(activeSkolemDefs);
         // if we are doing a FULL effort check (propagating with no remaining
         // decisions) and a new skolem definition becomes active, then the SAT

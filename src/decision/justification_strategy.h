@@ -144,25 +144,17 @@ class JustificationStrategy : public DecisionEngine
    */
   bool isDone() override;
   /**
-   * If skolem is null, notify this class that assertion is an (input)
-   * assertion, not corresponding to a skolem definition.
-   *
-   * If skolem is non-null, notify this class that lem is the skolem definition
-   * for skolem, which is a part of the current assertions.
+   * Adds assertions lems to satisfy that persist in the user context.
+   * All input assertions and lemmas not marked "local" are added via this call.
    */
-  void addAssertion(TNode lem, TNode skolem, bool isLemma) override;
+  void addAssertions(std::vector<TNode>& lems) override;
   /**
-   * Notify this class that the list of lemmas defs are now active in the
-   * current SAT context. This is triggered when a literal lit is sent to
-   * TheoryEngine that contains skolems we have yet to see in the current SAT
-   * context, where defs are the skolem definitions for each such skolem.
+   * Adds assertions lems to satisfy that persist in the SAT context.
+   * This is triggered when a literal lit is sent to TheoryEngine that contains
+   * skolems we have yet to see in the current SAT context, where lems are the
+   * skolem definitions for each such skolem.
    */
-  void notifyActiveSkolemDefs(std::vector<TNode>& defs) override;
-  /**
-   * We need notification of active skolem definitions when our skolem
-   * relevance policy is JutificationSkolemRlvMode::ASSERT.
-   */
-  bool needsActiveSkolemDefs() const override;
+  void addLocalAssertions(std::vector<TNode>& lems) override;
 
  private:
   /**
