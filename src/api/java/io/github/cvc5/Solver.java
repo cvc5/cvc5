@@ -664,8 +664,8 @@ public class Solver extends AbstractPointer
    */
   public Term mkTerm(Op op, Term child1, Term child2, Term child3)
   {
-    long termPointer =
-        mkTerm(op.getPointer(), child1.getPointer(), child2.getPointer(), child3.getPointer());
+    long termPointer = mkTerm(
+        pointer, op.getPointer(), child1.getPointer(), child2.getPointer(), child3.getPointer());
     return new Term(termPointer);
   }
 
