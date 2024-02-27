@@ -1309,7 +1309,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
   {
     tem->notifyLemma(texplanation.getProven(),
                      InferenceId::EXPLAINED_PROPAGATION,
-                     LemmaProperty::REMOVABLE,
+                     LemmaProperty::NONE,
                      {},
                      {});
   }
@@ -1611,14 +1611,14 @@ void TheoryEngine::conflict(TrustNode tconflict,
       tconf.debugCheckClosed(
           options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
-    lemma(tconf, id, LemmaProperty::REMOVABLE);
+    lemma(tconf, id, LemmaProperty::NONE);
   }
   else
   {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     // pass the trust node that was sent from the theory
-    lemma(tconflict, id, LemmaProperty::REMOVABLE, theoryId);
+    lemma(tconflict, id, LemmaProperty::NONE, theoryId);
   }
 }
 

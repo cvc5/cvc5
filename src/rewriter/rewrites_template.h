@@ -33,11 +33,21 @@ enum class DslProofRule : uint32_t
   FAIL = 0,
   REFL,
   EVAL,
+  // the following rules can be generated temporarily during reconstruction
+  TRANS,
+  CONG,
+  CONG_EVAL,
+  TRUE_ELIM,
+  TRUE_INTRO,
+  ARITH_POLY_NORM,
   // Generated rule ids
   // clang-format off
   ${rule_ids}$
   // clang-format on
 };
+
+/** Is internal rule? */
+bool isInternalDslProofRule(DslProofRule drule);
 
 /**
  * The body of this method is auto-generated. This populates the provided

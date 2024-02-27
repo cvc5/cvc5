@@ -1026,9 +1026,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       getMethodId(args[2], mid);
     }
     int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
+    int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
     // attempt to reconstruct the proof of the equality into cdp using the
     // rewrite database proof reconstructor
-    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit))
+    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
     {
       // If we made (= res true) above, conclude the original res.
       if (reqTrueElim)
@@ -1156,6 +1157,8 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     ProofNodeConverter subtypeConvert(d_env, secc);
     std::shared_ptr<ProofNode> pfc = subtypeConvert.process(pf);
     AlwaysAssert(pfc != nullptr);
+    // now update
+    d_env.getProofNodeManager()->updateNode(pf.get(), pfc.get());
   }
 
   // take stats and check pedantic

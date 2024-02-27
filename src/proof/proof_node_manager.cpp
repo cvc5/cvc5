@@ -112,7 +112,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     bool doMinimize,
     Node expected)
 {
-  if (!ensureClosed)
+  if (!ensureClosed && !doMinimize)
   {
     return mkNode(ProofRule::SCOPE, {pf}, assumps, expected);
   }
@@ -220,6 +220,10 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       }
       Trace("pnm-scope") << "...finished" << std::endl;
       acu.insert(aMatch);
+      continue;
+    }
+    if (!ensureClosed)
+    {
       continue;
     }
     // If we did not find a match, it is an error, since all free assumptions
