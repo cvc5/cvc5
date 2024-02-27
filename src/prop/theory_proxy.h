@@ -215,7 +215,7 @@ class TheoryProxy : protected EnvObj, public Registrar
    */
   bool d_trackActiveSkDefs;
   /**
-   * Whether the decision engine needs to track active skolem definitions as 
+   * Whether the decision engine needs to track active skolem definitions as
    * local assertions.
    */
   bool d_dmTrackActiveSkDefs;

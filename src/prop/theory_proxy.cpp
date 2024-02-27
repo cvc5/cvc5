@@ -178,9 +178,7 @@ void TheoryProxy::notifyAssertion(Node a,
   }
   // notify the decision engine
   std::vector<TNode> assertions{a};
-  if (volit
-      || (!skolem.isNull()
-          && d_dmTrackActiveSkDefs))
+  if (volit || (!skolem.isNull() && d_dmTrackActiveSkDefs))
   {
     // if volitile, it is a skolem def
     d_decisionEngine->addLocalAssertions(assertions);
