@@ -924,7 +924,6 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     }
     break;
     // kinds that don't print their operator
-    case Kind::APPLY_INDEXED_SYMBOLIC:  // operator is printed as kind
     case Kind::SEXPR:
     case Kind::INSTANTIATED_SORT_TYPE:
     case Kind::PARAMETRIC_DATATYPE:
