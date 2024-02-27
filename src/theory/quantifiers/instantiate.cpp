@@ -58,6 +58,9 @@ Instantiate::Instantiate(Env& env,
                    ? new CDProof(env, userContext(), "Instantiate::pfInst")
                    : nullptr)
 {
+  // We need to use context-dependent trie if incremental or if inst-local is
+  // set to true. The context is determined above when initializing
+  // d_c_inst_match_trie_dom.
   d_useCdInstTrie =
       (options().base.incrementalSolving || options().quantifiers.instLocal);
 }
