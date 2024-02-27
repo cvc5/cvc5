@@ -436,15 +436,28 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::CHAIN_RESOLUTION:
     {
       std::vector<Node> newArgs;
+      std::vector<Node> cargs;
+      if (id == ProofRule::CHAIN_RESOLUTION)
+      {
+        for (size_t i = 0, nargs = args[0].getNumChildren(); i < nargs; i++)
+        {
+          cargs.push_back(args[0][i]);
+          cargs.push_back(args[1][i]);
+        }
+      }
+      else
+      {
+        cargs = args;
+      }
       // checker expects opposite order. We always keep the pivots because we
       // need them to compute in updatePost whether we will add OR steps. If
       // d_resPivots is off we will remove the pivots after that.
-      for (size_t i = 0, size = args.size(); i < size; i = i + 2)
+      for (size_t i = 0, size = cargs.size(); i < size; i = i + 2)
       {
-        newArgs.push_back(args[i + 1]);
-        newArgs.push_back(args[i]);
+        newArgs.push_back(cargs[i + 1]);
+        newArgs.push_back(cargs[i]);
       }
-      if (!isSingletonClause(res, children, args))
+      if (!isSingletonClause(res, children, cargs))
       {
         return addAletheStepFromOr(
             AletheRule::RESOLUTION_OR, res, children, newArgs, *cdp);
@@ -1084,6 +1097,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
     // s1 ... sn))
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
       if (res[0].isClosure())
       {
@@ -1438,7 +1452,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       for (size_t i = 0, size = children[0][0].getNumChildren(); i < size; i++)
       {
-        new_args.push_back(children[0][0][i].eqNode(args[i]));
+        new_args.push_back(children[0][0][i].eqNode(args[0][i]));
       }
       Node vp1 = nm->mkNode(
           Kind::SEXPR, d_cl, nm->mkNode(Kind::OR, children[0].notNode(), res));

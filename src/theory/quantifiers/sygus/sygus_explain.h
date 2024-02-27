@@ -207,7 +207,7 @@ class SygusExplain : protected EnvObj
                          std::vector<Node>& exp,
                          SygusInvarianceTest& et,
                          Node vnr,
-                         std::map<TypeNode, int>& var_count,
+                         std::map<TypeNode, size_t>& var_count,
                          unsigned& sz);
   void getExplanationFor(Node n,
                          Node vn,
@@ -218,7 +218,7 @@ class SygusExplain : protected EnvObj
                          Node vn,
                          std::vector<Node>& exp,
                          SygusInvarianceTest& et,
-                         std::map<TypeNode, int>& var_count,
+                         std::map<TypeNode, size_t>& var_count,
                          bool strict = true);
 
  private:
@@ -234,7 +234,7 @@ class SygusExplain : protected EnvObj
                          Node n,
                          Node vn,
                          std::vector<Node>& exp,
-                         std::map<TypeNode, int>& var_count,
+                         std::map<TypeNode, size_t>& var_count,
                          SygusInvarianceTest& et,
                          Node vnr,
                          Node& vnr_exp,

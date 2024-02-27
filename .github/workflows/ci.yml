@@ -35,17 +35,35 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
  
           - name: macos:production-arm64
+            os: macos-14
+            config: production --auto-download --all-bindings --editline
+            cache-key: production-arm64
+            strip-bin: strip
+            python-bindings: true
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: macos:production-arm64-cross
             os: macos-11
             config: production --auto-download --all-bindings --editline --arm64
-            cache-key: production-arm64
+            cache-key: production-arm64-cross
             strip-bin: strip
             python-bindings: true
             package-name: cvc5-macOS-arm64
 
           - name: win64:production
+            os: windows-2019
+            config: production --auto-download --win64-native
+            cache-key: production-win64-native
+            strip-bin: strip
+            windows-build: true
+            shell: 'msys2 {0}'
+
+          - name: win64:production-cross
             os: ubuntu-latest
             config: production --auto-download --win64
-            cache-key: productionwin64
+            cache-key: production-win64-cross
             strip-bin: x86_64-w64-mingw32-strip
             windows-build: true
             package-name: cvc5-Win64
@@ -93,11 +111,13 @@ jobs:
         with-documentation: ${{ matrix.build-documentation }}
         with-python-bindings: ${{ matrix.python-bindings }}
         windows-build: ${{ matrix.windows-build }}
+        shell: ${{ matrix.shell }}
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
       with:
         cache-key: ${{ matrix.cache-key }}
+        shell: ${{ matrix.shell }}
 
     - name: Configure and build
       id: configure-and-build
@@ -108,8 +128,10 @@ jobs:
         build-shared: ${{ matrix.build-shared }}
         build-static: ${{ matrix.build-static }}
         strip-bin: ${{ matrix.strip-bin }}
+        shell: ${{ matrix.shell }}
 
     - name: ccache Statistics
+      if: runner.os != 'Windows'
       run: ccache -s
 
     - name: Run tests

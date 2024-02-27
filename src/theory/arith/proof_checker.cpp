@@ -82,7 +82,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
              || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
       Node lhs = args[1][0];
       Node rhs = args[1][1];
-      Node zero = nm->mkConstInt(Rational(0));
+      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::GT, mult, zero), args[1]}),
@@ -101,7 +101,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
       Node lhs = args[1][0];
       Node rhs = args[1][1];
-      Node zero = nm->mkConstInt(Rational(0));
+      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::LT, mult, zero), args[1]}),
@@ -213,6 +213,23 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
             Trace("arith::pf::check")
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
+        }
+        // check for spurious mixed arithmetic
+        if (children[i][0].getType().isReal()
+            || children[i][1].getType().isReal())
+        {
+          if (args[i].getType().isInteger())
+          {
+            // Should use real for predicates over reals. This is only
+            // necessary for avoiding spurious usage of mixed arithmetic, but we
+            // check here to be pedantic.
+            return Node::null();
+          }
+        }
+        else if (args[i].getType().isReal() && scalar.isIntegral())
+        {
+          // conversely, don't use (integral) real for integer relation.
+          return Node::null();
         }
         // Check sign
         switch (children[i].getKind())

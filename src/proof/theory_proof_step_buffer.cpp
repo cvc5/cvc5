@@ -196,7 +196,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
     // pre-rewrite in the Boolean rewriter, will always hold under the
     // standard rewriter.
     Node congEq = oldn.eqNode(n);
-    addStep(ProofRule::CONG,
+    addStep(ProofRule::NARY_CONG,
             childrenEqs,
             {ProofRuleChecker::mkKindNode(Kind::OR)},
             congEq);

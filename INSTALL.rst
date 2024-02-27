@@ -117,12 +117,14 @@ versions; more recent versions should be compatible.
 
 - `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
   or `Clang (>= 5) <https://clang.llvm.org>`_
-- `CMake >= 3.9 <https://cmake.org>`_
+- `CMake >= 3.12 <https://cmake.org>`_
+- `GNU Make <https://www.gnu.org/software/make/>`_
+  or `Ninja <https://ninja-build.org/>`_
 - `Python >= 3.6 <https://www.python.org>`_
   + module `tomli <https://pypi.org/project/tomli/>`_
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
-- `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
+- `CaDiCaL >= 1.6.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
 For Python, to install these dependencies automatically, please use:
