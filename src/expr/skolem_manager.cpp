@@ -264,7 +264,7 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
 
 bool SkolemManager::isAbstractValue(TNode n) const
 {
-  return (getInternalId(n)==InternalSkolemFunId::ABSTRACT_VALUE);
+  return (getInternalId(n) == InternalSkolemFunId::ABSTRACT_VALUE);
 }
 
 Node SkolemManager::getOriginalForm(Node n)
