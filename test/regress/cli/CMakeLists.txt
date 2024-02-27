@@ -1358,6 +1358,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
+  regress0/quantifiers/dd.german169-lemma-inp.smt2
   regress0/quantifiers/dd.ho-matching-enum.smt2
   regress0/quantifiers/dd.ricart-ieval.smt2
   regress0/quantifiers/dd.javafe-ieval.smt2

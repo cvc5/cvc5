@@ -33,7 +33,9 @@ enum class LemmaProperty : uint32_t
   // whether the processing of the lemma should send atoms to the caller
   SEND_ATOMS = 2,
   // whether the lemma is part of the justification for answering "sat"
-  NEEDS_JUSTIFY = 4
+  NEEDS_JUSTIFY = 4,
+  // the lemma can be inprocessed
+  INPROCESS = 8
 };
 /** Define operator lhs | rhs */
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
@@ -49,6 +51,8 @@ bool isLemmaPropertyRemovable(LemmaProperty p);
 bool isLemmaPropertySendAtoms(LemmaProperty p);
 /** is the needs justify bit set on p? */
 bool isLemmaPropertyNeedsJustify(LemmaProperty p);
+/** is the inprocess bit set on p? */
+bool isLemmaPropertyInprocess(LemmaProperty p);
 
 /**
  * Writes an lemma property name to a stream.

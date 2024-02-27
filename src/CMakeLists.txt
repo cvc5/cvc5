@@ -246,6 +246,8 @@ libcvc5_add_sources(
   prop/kissat.h
   prop/learned_db.cpp
   prop/learned_db.h
+  prop/lemma_inprocess.cpp
+  prop/lemma_inprocess.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -881,6 +883,8 @@ libcvc5_add_sources(
   theory/quantifiers/inst_strategy_mbqi.h
   theory/quantifiers/inst_strategy_pool.cpp
   theory/quantifiers/inst_strategy_pool.h
+  theory/quantifiers/inst_strategy_sub_conflict.cpp
+  theory/quantifiers/inst_strategy_sub_conflict.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
   theory/quantifiers/instantiation_list.cpp
