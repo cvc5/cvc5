@@ -61,13 +61,14 @@ void SolverEngineState::notifyCheckSat()
         "(try --incremental)");
   }
 
-  // Note that a query has been made and we are in assert mode
-  d_queryMade = true;
+  // Note we are in assert mode
   d_smtMode = SmtMode::ASSERT;
 }
 
 void SolverEngineState::notifyCheckSatResult(const Result& r)
 {
+  // Note that a query has been made
+  d_queryMade = true;
   // Remember the status
   d_status = r;
   // Check against expected status, if it is set
@@ -94,6 +95,7 @@ void SolverEngineState::notifyCheckSatResult(const Result& r)
 
 void SolverEngineState::notifyCheckSynthResult(const SynthResult& r)
 {
+  d_queryMade = true;
   if (r.getStatus() == SynthResult::SOLUTION)
   {
     // successfully generated a synthesis solution, update to synth state
