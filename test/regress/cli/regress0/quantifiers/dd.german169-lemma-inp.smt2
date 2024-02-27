@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --lemma-inprocess=full
 ; COMMAND-LINE: --lemma-inprocess=full --lemma-inprocess-subs=all --lemma-inprocess-infer-eq-lit
+; COMMAND-LINE: --lemma-inprocess=light
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
