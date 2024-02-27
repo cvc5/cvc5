@@ -53,17 +53,12 @@ class DecisionEngine : protected EnvObj
    * If skolem is non-null, notify this class that lem is the skolem definition
    * for skolem, which is a part of the current assertions.
    */
-  virtual void addAssertion(TNode lem, TNode skolem, bool isLemma) = 0;
+  virtual void addAssertions(std::vector<TNode>& lems) = 0;
   /**
    * Notify this class that the list of lemmas defs are now active in the
    * current SAT context.
    */
-  virtual void notifyActiveSkolemDefs(std::vector<TNode>& defs) {}
-  /**
-   * Track active skolem defs, whether we need to call the above method
-   * when appropriate.
-   */
-  virtual bool needsActiveSkolemDefs() const { return false; }
+  virtual void addLocalAssertions(std::vector<TNode>& lems) {}
 
  protected:
   /** Get next internal, the engine-specific implementation of getNext */
@@ -83,7 +78,7 @@ class DecisionEngineEmpty : public DecisionEngine
  public:
   DecisionEngineEmpty(Env& env);
   bool isDone() override;
-  void addAssertion(TNode lem, TNode skolem, bool isLemma) override;
+  void addAssertions(std::vector<TNode>& lems) override;
 
  protected:
   prop::SatLiteral getNextInternal(bool& stopSearch) override;

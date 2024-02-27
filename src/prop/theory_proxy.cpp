@@ -81,6 +81,10 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
       || dmode == options::DecisionMode::STOPONLY)
   {
     d_decisionEngine.reset(new decision::JustificationStrategy(d_env, ss, cs));
+    if (options().decision.jhSkolemRlvMode == options::JutificationSkolemRlvMode::ASSERT)
+    {
+      d_trackActiveSkDefs = true;
+    }
   }
   else
   {
@@ -89,8 +93,10 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
   // make the theory preregistrar
   d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
   // compute if we need to track skolem definitions
-  d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs()
-                        || d_prr->needsActiveSkolemDefs();
+  if (d_prr->needsActiveSkolemDefs())
+  {
+    d_trackActiveSkDefs = true;
+  }
   d_cnfStream = cs;
 }
 
@@ -168,15 +174,15 @@ void TheoryProxy::notifyAssertion(Node a,
     return;
   }
   // notify the decision engine
-  if (volit)
+  std::vector<TNode> assertions{a};
+  if (volit || (!skolem.isNull() && options().decision.jhSkolemRlvMode == options::JutificationSkolemRlvMode::ASSERT))
   {
     // if volitile, it is a skolem def
-    std::vector<TNode> defs{a};
-    d_decisionEngine->notifyActiveSkolemDefs(defs);
+    d_decisionEngine->addLocalAssertions(assertions);
   }
   else
   {
-    d_decisionEngine->addAssertion(a, skolem, isLemma);
+    d_decisionEngine->addAssertions(assertions);
   }
   // notify the preregistrar
   d_prr->addAssertion(a, skolem, isLemma);
@@ -228,7 +234,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       {
         // notify the decision engine of the skolem definitions that have become
         // active due to the assertion.
-        d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+        d_decisionEngine->addLocalAssertions(activeSkolemDefs);
         d_prr->notifyActiveSkolemDefs(activeSkolemDefs);
         // if we are doing a FULL effort check (propagating with no remaining
         // decisions) and a new skolem definition becomes active, then the SAT

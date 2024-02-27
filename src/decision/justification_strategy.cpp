@@ -449,39 +449,21 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
 
 bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
-void JustificationStrategy::addAssertion(TNode lem, TNode skolem, bool isLemma)
+void JustificationStrategy::addAssertions(std::vector<TNode>& lems)
 {
-  Trace("jh-assert") << "addAssertion " << lem << " / " << skolem << std::endl;
-  if (skolem.isNull())
-  {
-    std::vector<TNode> toProcess{lem};
-    insertToAssertionList(toProcess, false);
-  }
-  else if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
-  {
-    // just add to main assertions list
-    std::vector<TNode> toProcess;
-    toProcess.push_back(lem);
-    insertToAssertionList(toProcess, false);
-  }
-}
-bool JustificationStrategy::needsActiveSkolemDefs() const
-{
-  return d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT;
+  Trace("jh-assert") << "addAssertions " << lems << std::endl;
+  insertToAssertionList(lems, false);
 }
 
-void JustificationStrategy::notifyActiveSkolemDefs(std::vector<TNode>& defs)
+void JustificationStrategy::addLocalAssertions(std::vector<TNode>& lems)
 {
-  Trace("jh-assert") << "notifyActiveSkolemDefs: " << defs << std::endl;
-  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT)
-  {
-    // assertion processed makes all skolems in assertion active,
-    // which triggers their definitions to becoming relevant
-    insertToAssertionList(defs, true);
-    // NOTE: if we had a notifyAsserted callback, we could update tracking
-    // triggers, pop stack to where a child implied that a node on the current
-    // stack is justified.
-  }
+  Trace("jh-assert") << "addLocalAssertions: " << lems << std::endl;
+  // assertion processed makes all skolems in assertion active,
+  // which triggers their definitions to becoming relevant
+  insertToAssertionList(lems, true);
+  // NOTE: if we had a notifyAsserted callback, we could update tracking
+  // triggers, pop stack to where a child implied that a node on the current
+  // stack is justified.
 }
 
 void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
