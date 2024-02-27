@@ -79,6 +79,7 @@ class TheorySetsRewriter : public TheoryRewriter
    * Rewrite set comprehension
    */
   RewriteResponse postRewriteComprehension(TNode n);
+  RewriteResponse postRewriteTableJoin(TNode n);
   /**
    *  rewrites for n include:
    *  - (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))
