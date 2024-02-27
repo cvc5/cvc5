@@ -1,4 +1,3 @@
-; COMMAND-LINE: --produce-proofs --proof-granularity=dsl-rewrite --dag-thres=0
 ; EXPECT: unsat
 (set-logic QF_BV)
 (set-info :status unsat)

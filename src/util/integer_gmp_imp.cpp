@@ -40,30 +40,8 @@ Integer::Integer(const std::string& s, unsigned base)
 {}
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-Integer::Integer(int64_t z)
-{
-  if (std::numeric_limits<signed long int>::min() <= z
-      && z <= std::numeric_limits<signed long int>::max())
-  {
-    d_value = static_cast<signed long int>(z);
-  }
-  else
-  {
-    d_value = std::to_string(z);
-  }
-}
-Integer::Integer(uint64_t z)
-{
-  if (std::numeric_limits<unsigned long int>::min() <= z
-      && z <= std::numeric_limits<unsigned long int>::max())
-  {
-    d_value = static_cast<unsigned long int>(z);
-  }
-  else
-  {
-    d_value = std::to_string(z);
-  }
-}
+Integer::Integer(int64_t z) : d_value(construct_mpz(z)) {}
+Integer::Integer(uint64_t z) : d_value(construct_mpz(z)) {}
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
 Integer& Integer::operator=(const Integer& x)

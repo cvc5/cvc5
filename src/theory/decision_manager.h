@@ -70,6 +70,7 @@ class DecisionManager
     //  other words, if these strategies did not go before other decisions, we
     //  might be non-terminating instead of answering "sat" with a solution
     //  within a given a bound.
+    STRAT_ORACLE_ARG_VALUE,
     STRAT_UF_COMBINED_CARD,
     STRAT_UF_CARD,
     STRAT_DT_SYGUS_ENUM_ACTIVE,
