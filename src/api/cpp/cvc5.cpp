@@ -1195,7 +1195,7 @@ Sort::Sort() : d_tm(nullptr), d_type(new internal::TypeNode()) {}
 
 Sort::~Sort()
 {
-  // Assert(isNull() || d_tm != nullptr);
+  Assert(isNull() || d_tm != nullptr);
   d_type.reset();
 }
 
@@ -2032,7 +2032,7 @@ Op::Op(TermManager* tm, const Kind k, const internal::Node& n)
 
 Op::~Op()
 {
-  // Assert(isNull() || d_tm != nullptr);
+  Assert(isNull() || d_tm != nullptr);
   d_node.reset();
 }
 
@@ -2337,7 +2337,7 @@ std::string Op::toString() const
   {
     CVC5_API_CHECK(!d_node->isNull())
         << "Expecting a non-null internal expression";
-    // Assert(isNull() || d_tm != nullptr);
+    Assert(isNull() || d_tm != nullptr);
     return d_node->toString();
   }
   ////////
@@ -2376,7 +2376,7 @@ Term::Term(TermManager* tm, const internal::Node& n) : d_tm(tm)
 
 Term::~Term()
 {
-  // Assert(isNull() || d_tm != nullptr);
+  Assert(isNull() || d_tm != nullptr);
   d_node.reset();
 }
 

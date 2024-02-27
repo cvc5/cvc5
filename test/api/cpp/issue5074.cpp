@@ -21,7 +21,7 @@ int main()
 {
   TermManager tm;
   Solver slv(tm);
-  Term c1 = tm.mkConst(slv.getIntegerSort());
+  Term c1 = tm.mkConst(tm.getIntegerSort());
   Term t6 = tm.mkTerm(Kind::STRING_FROM_CODE, {c1});
   Term t12 = tm.mkTerm(Kind::STRING_TO_REGEXP, {t6});
   Term t14 = tm.mkTerm(Kind::STRING_REPLACE_RE, {t6, t12, t6});

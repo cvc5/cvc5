@@ -4195,10 +4195,10 @@ class CVC5_EXPORT Solver
    * Constructor.
    * @return The Solver.
    * @warning This constructor is deprecated and replaced by
-   *          `Solver::Solver(TermManager*)`. It will be removed in a future
+   *          `Solver::Solver(TermManager&)`. It will be removed in a future
    *          release.
    */
-  [[deprecated("Use Solver::Solver(TermManager*) instead")]] Solver();
+  [[deprecated("Use Solver::Solver(TermManager&) instead")]] Solver();
   /**
    * Constructor.
    *
