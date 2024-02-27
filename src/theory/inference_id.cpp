@@ -138,6 +138,7 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
     case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
     case InferenceId::BAGS_MAP_DOWN: return "BAGS_MAP_DOWN";
+    case InferenceId::BAGS_MAP_DOWN_INJECTIVE: return "BAGS_MAP_DOWN_INJECTIVE";
     case InferenceId::BAGS_MAP_UP1: return "BAGS_MAP_UP1";
     case InferenceId::BAGS_MAP_UP2: return "BAGS_MAP_UP2";
     case InferenceId::BAGS_FILTER_DOWN: return "BAGS_FILTER_DOWN";
@@ -233,6 +234,9 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_INST_CBQI_CONFLICT";
     case InferenceId::QUANTIFIERS_INST_CBQI_PROP:
       return "QUANTIFIERS_INST_CBQI_PROP";
+    case InferenceId::QUANTIFIERS_INST_SUB_CONFLICT:
+      return "QUANTIFIERS_INST_SUB_CONFLICT";
+    case InferenceId::QUANTIFIERS_SUB_UC: return "QUANTIFIERS_SUB_UC";
     case InferenceId::QUANTIFIERS_INST_FMF_EXH:
       return "QUANTIFIERS_INST_FMF_EXH";
     case InferenceId::QUANTIFIERS_INST_FMF_FMC:

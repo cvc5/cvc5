@@ -95,11 +95,10 @@ class Rational
   Rational(unsigned long int n) : d_value(n, 1) { d_value.canonicalize(); }
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-  Rational(int64_t n) : d_value(static_cast<long>(n), 1)
-  {
-    d_value.canonicalize();
-  }
-  Rational(uint64_t n) : d_value(static_cast<unsigned long>(n), 1)
+  // to avoid truncation, we convert the input value to an mpz and then build
+  // the mpq.
+  Rational(int64_t n) : d_value(construct_mpz(n), 1) { d_value.canonicalize(); }
+  Rational(uint64_t n) : d_value(construct_mpz(n), 1)
   {
     d_value.canonicalize();
   }
@@ -126,13 +125,13 @@ class Rational
   }
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-  Rational(int64_t n, int64_t d)
-      : d_value(static_cast<long>(n), static_cast<long>(d))
+  // to avoid truncation, we convert the input value to an mpz and then build
+  // the mpq.
+  Rational(int64_t n, int64_t d) : d_value(construct_mpz(n), construct_mpz(d))
   {
     d_value.canonicalize();
   }
-  Rational(uint64_t n, uint64_t d)
-      : d_value(static_cast<unsigned long>(n), static_cast<unsigned long>(d))
+  Rational(uint64_t n, uint64_t d) : d_value(construct_mpz(n), construct_mpz(d))
   {
     d_value.canonicalize();
   }

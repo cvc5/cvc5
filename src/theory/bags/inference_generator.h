@@ -255,6 +255,22 @@ class InferenceGenerator
    * and skolem is a fresh variable equals (bag.map f A))
    */
   std::tuple<InferInfo, Node, Node> mapDown(Node n, Node e);
+
+  /**
+   * @pre option bagsInjectiveMaps is true
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param y is a node of Type T
+   * @return an inference that represents the following conjunction
+   * (and
+   *   (= (bag.count x A) (bag.count y skolem))
+   *   (= (f x) y)
+   * )
+   * where skolem is a fresh variable equals (bag.map f A))
+   * and x is a fresh variable unique per n, y.
+   */
+  InferInfo mapDownInjective(Node n, Node y);
+
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
@@ -341,7 +357,7 @@ class InferenceGenerator
   InferInfo productDown(Node n, Node e);
 
   /**
-   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
+   * @param n is ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
    * @param e1 an element of the form (tuple a1 ... am)
    * @param e2 an element of the form (tuple b1 ... bn)
    * @return  an inference that represents the following
@@ -357,7 +373,7 @@ class InferenceGenerator
   InferInfo joinUp(Node n, Node e1, Node e2);
 
   /**
-   * @param n is a (table.product A B) where A, B are tables
+   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
    * @param e an element of the form (tuple a1 ... am b1 ... bn)
    * @return an inference that represents the following
    * (=> (bag.member e skolem)

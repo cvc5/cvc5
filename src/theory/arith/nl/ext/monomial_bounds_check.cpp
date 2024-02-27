@@ -319,8 +319,9 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           {
             Node exp = nm->mkNode(
                 Kind::AND,
-                nm->mkNode(
-                    mmv_sign == 1 ? Kind::GT : Kind::LT, mult, d_data->d_zero),
+                nm->mkNode(mmv_sign == 1 ? Kind::GT : Kind::LT,
+                           mult,
+                           nm->mkConstRealOrInt(mult.getType(), Rational(0))),
                 d_ci_exp[x][coeff][rhs]);
             Node iblem = nm->mkNode(Kind::IMPLIES, exp, infer);
             Node iblem_rw = rewrite(iblem);
@@ -399,10 +400,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                  {exp[1][0]},
                                  {rb});
                 }
-                proof->addStep(simpleeq,
-                               ProofRule::ARITH_TRICHOTOMY,
-                               {lb, rb},
-                               {simpleeq});
+                proof->addStep(
+                    simpleeq, ProofRule::ARITH_TRICHOTOMY, {lb, rb}, {});
                 proof->addStep(
                     tmplem[0], ProofRule::AND_INTRO, {exp[0], simpleeq}, {});
                 proof->addStep(tmplem[1],
