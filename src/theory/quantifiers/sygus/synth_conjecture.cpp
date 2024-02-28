@@ -395,6 +395,14 @@ bool SynthConjecture::doCheck()
         constructed_cand = true;
       }
     }
+    else
+    {
+      Trace("sygus-engine-debug") << "...no candidates to repair" << std::endl;
+    }
+}
+  else
+  {
+    Trace("sygus-engine-debug") << "...not repairing" << std::endl;
   }
 
   bool printDebug = isOutputOn(OutputTag::SYGUS);

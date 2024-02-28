@@ -108,15 +108,15 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
           d_secd = std::make_unique<SygusEnumeratorCallback>(
               d_env, d_tds, &d_stats, d_eec.get());
         }
-        // if sygus repair const is enabled, we enumerate terms with free
-        // variables as arguments to any-constant constructors
+        // if sygus repair const is enabled, we will enumerate terms with
+        // arbitrary constants as arguments to any-constant constructors.
         d_evg = std::make_unique<SygusEnumerator>(
             d_env,
             d_tds,
             d_secd.get(),
             &d_stats,
             false,
-            options().quantifiers.sygusRepairConst,
+            false,
             options().quantifiers.sygusEnumFastNumConsts);
       }
     }
