@@ -186,6 +186,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (d_queries.find(fo_body) != d_queries.end())
   {
     Trace("sygus-repair-const") << "...duplicate query." << std::endl;
+    // can exclude the skeleton if the previous query was unsat
     if (d_unsatQueries.find(fo_body) != d_unsatQueries.end())
     {
       excludeSkeleton(candidates, candidate_skeletons);
@@ -231,9 +232,9 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (r.getStatus() == Result::UNSAT)
   {
     d_unsatQueries.insert(fo_body);
+    // can exclude the skeleton
     excludeSkeleton(candidates, candidate_skeletons);
     Trace("sygus-engine") << "...failed (unsat)" << std::endl;
-    // can exclude the skeleton
     return false;
   }
   else if (r.isUnknown())
