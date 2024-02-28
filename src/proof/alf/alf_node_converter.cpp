@@ -507,7 +507,7 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
   return mkInternalSymbol(name, ret, useRawSym);
 }
 
-Node AlfNodeConverter::getOperatorOfTerm(Node n)
+Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
 {
   Assert(n.hasOperator());
   NodeManager* nm = NodeManager::currentNM();
@@ -541,6 +541,17 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         if (dt.isTuple())
         {
           opName << "is-tuple";
+        }
+        else if (dt.isNullable())
+        {
+          if (cindex == 0)
+          {
+            opName << "nullable.is_null";
+          }
+          else
+          {
+            opName << "nullable.is_some";
+          }
         }
         else
         {
@@ -624,10 +635,6 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   }
   else
   {
-    if (k == Kind::NEG)
-    {
-      opName << "u";
-    }
     opName << printer::smt2::Smt2Printer::smtKindString(k);
     if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
         || k == Kind::INTS_MODULUS_TOTAL)
@@ -654,6 +661,17 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   else
   {
     ret = args.empty() ? app : app.getOperator();
+  }
+  if (reqCast)
+  {
+    // - prints as e.g. (alf.as - (-> Int Int)).
+    if (k == Kind::NEG || k == Kind::SUB)
+    {
+      std::vector<Node> asChildren;
+      asChildren.push_back(ret);
+      asChildren.push_back(typeAsNode(ret.getType()));
+      ret = mkInternalApp("alf.as", asChildren, n.getType());
+    }
   }
   Trace("alf-term-process-debug2") << "...return " << ret << std::endl;
   return ret;

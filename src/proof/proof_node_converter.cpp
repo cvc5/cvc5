@@ -114,6 +114,7 @@ std::shared_ptr<ProofNode> ProofNodeConverter::processInternal(
   {
     return nullptr;
   }
+  Trace("pf-convert") << "Get proof for " << newRes << std::endl;
   return cpf.getProofFor(newRes);
 }
 

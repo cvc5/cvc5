@@ -58,13 +58,13 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc)
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
     : EnvObj(env),
       d_qstate(qs),
       d_syexp(new SygusExplain(env, this)),
       d_funDefEval(new FunDefEvaluator(env)),
       d_eval_unfold(new SygusEvalUnfold(env, this)),
-      d_ochecker(oc)
+      d_ochecker(env.getOracleChecker())
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );

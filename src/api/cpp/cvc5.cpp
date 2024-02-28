@@ -355,15 +355,11 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BAG_SUBBAG, internal::Kind::BAG_SUBBAG),
         KIND_ENUM(Kind::BAG_COUNT, internal::Kind::BAG_COUNT),
         KIND_ENUM(Kind::BAG_MEMBER, internal::Kind::BAG_MEMBER),
-        KIND_ENUM(Kind::BAG_DUPLICATE_REMOVAL,
-                  internal::Kind::BAG_DUPLICATE_REMOVAL),
+        KIND_ENUM(Kind::BAG_SETOF, internal::Kind::BAG_SETOF),
         KIND_ENUM(Kind::BAG_MAKE, internal::Kind::BAG_MAKE),
         KIND_ENUM(Kind::BAG_EMPTY, internal::Kind::BAG_EMPTY),
         KIND_ENUM(Kind::BAG_CARD, internal::Kind::BAG_CARD),
         KIND_ENUM(Kind::BAG_CHOOSE, internal::Kind::BAG_CHOOSE),
-        KIND_ENUM(Kind::BAG_IS_SINGLETON, internal::Kind::BAG_IS_SINGLETON),
-        KIND_ENUM(Kind::BAG_FROM_SET, internal::Kind::BAG_FROM_SET),
-        KIND_ENUM(Kind::BAG_TO_SET, internal::Kind::BAG_TO_SET),
         KIND_ENUM(Kind::BAG_MAP, internal::Kind::BAG_MAP),
         KIND_ENUM(Kind::BAG_FILTER, internal::Kind::BAG_FILTER),
         KIND_ENUM(Kind::BAG_FOLD, internal::Kind::BAG_FOLD),
@@ -752,14 +748,11 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BAG_SUBBAG, Kind::BAG_SUBBAG},
         {internal::Kind::BAG_COUNT, Kind::BAG_COUNT},
         {internal::Kind::BAG_MEMBER, Kind::BAG_MEMBER},
-        {internal::Kind::BAG_DUPLICATE_REMOVAL, Kind::BAG_DUPLICATE_REMOVAL},
+        {internal::Kind::BAG_SETOF, Kind::BAG_SETOF},
         {internal::Kind::BAG_MAKE, Kind::BAG_MAKE},
         {internal::Kind::BAG_EMPTY, Kind::BAG_EMPTY},
         {internal::Kind::BAG_CARD, Kind::BAG_CARD},
         {internal::Kind::BAG_CHOOSE, Kind::BAG_CHOOSE},
-        {internal::Kind::BAG_IS_SINGLETON, Kind::BAG_IS_SINGLETON},
-        {internal::Kind::BAG_FROM_SET, Kind::BAG_FROM_SET},
-        {internal::Kind::BAG_TO_SET, Kind::BAG_TO_SET},
         {internal::Kind::BAG_MAP, Kind::BAG_MAP},
         {internal::Kind::BAG_FILTER, Kind::BAG_FILTER},
         {internal::Kind::BAG_FOLD, Kind::BAG_FOLD},
@@ -8062,6 +8055,10 @@ SynthResult Solver::checkSynth() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
       << "Cannot checkSynth unless sygus is enabled (use --sygus)";
+  CVC5_API_CHECK(!d_slv->isQueryMade()
+                 || d_slv->getOptions().base.incrementalSolving)
+      << "Cannot make multiple checkSynth calls unless incremental solving is "
+         "enabled (try --incremental)";
   //////// all checks before this line
   return d_slv->checkSynth();
   ////////
