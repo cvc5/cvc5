@@ -343,16 +343,13 @@ class Env
   /** The separation logic location and data types */
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
-<<<<<<< HEAD
   /**
    * List of plugins, to be used in any theory engine that uses this
    * environment
    */
   std::vector<Plugin*> d_plugins;
-=======
   /** oracle checker */
   std::unique_ptr<theory::quantifiers::OracleChecker> d_ochecker;
->>>>>>> 3d74425f9520dee224b15a25b56eacb60b5c06aa
 }; /* class Env */
 
 }  // namespace cvc5::internal
