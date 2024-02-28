@@ -21,6 +21,7 @@
 
 #include "options/printer_options.h"
 #include "proof/alethe/alethe_proof_rule.h"
+#include "util/smt2_quote_string.h"
 
 namespace cvc5::internal {
 
@@ -138,11 +139,18 @@ void AletheProofPrinter::print(
   // Print assumptions and add them to the list but do not print anchor.
   for (size_t i = 0, size = args.size(); i < size; i++)
   {
-    auto it = assertionNames.find(args[i]);
+    // seach name with original assumption rather than its conversion
+    Assert(d_anc.d_convToOriginalAssumption.find(args[i])
+           != d_anc.d_convToOriginalAssumption.end());
+    Node original = d_anc.d_convToOriginalAssumption[args[i]];
+    auto it = assertionNames.find(original);
     if (it != assertionNames.end())
     {
-      out << "(assume " << it->second << " ";
-      assumptions[args[i]] = it->second;
+      // Since names can be strings that were originally quoted, we must see if
+      // the quotes need to be added back.
+      std::string quotedName = quoteSymbol(it->second);
+      out << "(assume " << quotedName << " ";
+      assumptions[args[i]] = quotedName;
     }
     else
     {  // assumptions are always being declared
@@ -175,6 +183,7 @@ std::string AletheProofPrinter::printInternal(
   if (pfn->getRule() == ProofRule::ASSUME)
   {
     Node res = d_anc.convert(pfn->getResult());
+    Assert(!res.isNull());
     Trace("alethe-printer") << "... reached assumption " << res << std::endl;
     auto it = assumptions.find(res);
     Assert(it != assumptions.end()) << "Assumption has not been printed yet! "

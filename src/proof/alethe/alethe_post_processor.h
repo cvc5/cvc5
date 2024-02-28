@@ -34,7 +34,8 @@ class AletheProofPostprocessCallback : protected EnvObj,
  public:
   AletheProofPostprocessCallback(Env& env,
                                  AletheNodeConverter& anc,
-                                 bool resPivots);
+                                 bool resPivots,
+                                 std::string* reasonForConversionFailure);
   ~AletheProofPostprocessCallback() {}
   /** Should proof pn be updated? Only if its top-level proof rule is not an
    *  Alethe proof rule.
@@ -151,6 +152,8 @@ class AletheProofPostprocessCallback : protected EnvObj,
   /** Nodes corresponding to the Boolean values. */
   Node d_true;
   Node d_false;
+
+  std::string* d_reasonForConversionFailure;
 };
 
 /**
@@ -162,12 +165,24 @@ class AletheProofPostprocess : protected EnvObj
  public:
   AletheProofPostprocess(Env& env, AletheNodeConverter& anc, bool resPivots);
   ~AletheProofPostprocess();
-  /** post-process */
-  void process(std::shared_ptr<ProofNode> pf);
+  /** post-process
+   *
+   * Converts pf to the Alethe proof calculus, if possible, in which case it
+   * returns true. Otherwise, returns false. The conversion may fail if the
+   * proof contains unsupported elements in the Alethe proof calculus. Examples
+   * of such elements are datatypes, uncategorized Skolems etc.
+   *
+   * The argument reasonForConversionFailure stores the reason for failure, if
+   * any.
+   */
+  bool process(std::shared_ptr<ProofNode> pf,
+               std::string& reasonForConversionFailure);
 
  private:
   /** The post process callback */
   AletheProofPostprocessCallback d_cb;
+
+  std::string d_reasonForConversionFailure;
 };
 
 }  // namespace proof

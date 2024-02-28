@@ -17,6 +17,7 @@
 
 #include "options/base_options.h"
 #include "options/main_options.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
@@ -269,22 +270,39 @@ void PfManager::printProof(std::ostream& out,
   else if (mode == options::ProofFormatMode::ALETHE_ALF)
   {
     // convert using Alethe post-processor
+    std::string reasonForConversionFailure;
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
-    vpfpp.process(fp);
-    // print using ALF printer
-    proof::AlfPrinter alfp(d_env, anc);
-    alfp.print(out, fp);
+    if (vpfpp.process(fp, reasonForConversionFailure))
+    {
+      // print using ALF printer
+      proof::AlfPrinter alfp(d_env, anc);
+      alfp.print(out, fp);
+    }
+    else
+    {
+      out << "(error \"" << reasonForConversionFailure << "\")";
+    }
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
+    options::ProofCheckMode oldMode =options().proof.proofCheck;
+    d_pnm->getChecker()->setProofCheckMode(options::ProofCheckMode::NONE);
+    std::string reasonForConversionFailure;
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
-    vpfpp.process(fp);
-    proof::AletheProofPrinter vpp(d_env, anc);
-    vpp.print(out, fp, assertionNames);
+    if (vpfpp.process(fp, reasonForConversionFailure))
+    {
+      proof::AletheProofPrinter vpp(d_env, anc);
+      vpp.print(out, fp, assertionNames);
+    }
+    else
+    {
+      out << "(error " << reasonForConversionFailure << ")";
+    }
+    d_pnm->getChecker()->setProofCheckMode(oldMode);
   }
   else if (mode == options::ProofFormatMode::LFSC)
   {

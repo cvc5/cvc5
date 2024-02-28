@@ -59,8 +59,14 @@ std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
 };
 
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    Env& env, AletheNodeConverter& anc, bool resPivots)
-    : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
+    Env& env,
+    AletheNodeConverter& anc,
+    bool resPivots,
+    std::string* reasonForConversionFailure)
+    : EnvObj(env),
+      d_anc(anc),
+      d_resPivots(resPivots),
+      d_reasonForConversionFailure(reasonForConversionFailure)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());
@@ -72,13 +78,14 @@ bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                   const std::vector<Node>& fa,
                                                   bool& continueUpdate)
 {
-  return pn->getRule() != ProofRule::ALETHE_RULE;
+  return d_reasonForConversionFailure->empty()
+         && pn->getRule() != ProofRule::ALETHE_RULE;
 }
 
 bool AletheProofPostprocessCallback::shouldUpdatePost(
     std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
 {
-  if (pn->getArguments().empty())
+  if (!d_reasonForConversionFailure->empty() || pn->getArguments().empty())
   {
     return false;
   }
@@ -262,20 +269,14 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       // Build vp1
       std::vector<Node> negNode{d_cl};
-      std::vector<Node> sanitized_args;
       for (const Node& arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
-        sanitized_args.push_back(d_anc.convert(arg));
       }
       negNode.push_back(children[0]);  // (cl (not F1) ... (not Fn) F)
       Node vp1 = nm->mkNode(Kind::SEXPR, negNode);
-      success &= addAletheStep(AletheRule::ANCHOR_SUBPROOF,
-                               vp1,
-                               vp1,
-                               children,
-                               sanitized_args,
-                               *cdp);
+      success &= addAletheStep(
+          AletheRule::ANCHOR_SUBPROOF, vp1, vp1, children, args, *cdp);
 
       Node andNode, vp3;
       if (args.size() == 1)
@@ -1439,6 +1440,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // negation, i.e., (not ...).
     case ProofRule::SKOLEMIZE:
     {
+      bool success = true;
       AletheRule skoRule;
       bool isExists;
       Node quant, skolemized;
@@ -1460,9 +1462,15 @@ bool AletheProofPostprocessCallback::update(Node res,
         quantKind = Kind::FORALL;
       }
       // add rfl step for final replacement
+      Node conv = d_anc.maybeConvert(quant[1].eqNode(skolemized));
+      if (conv.isNull())
+      {
+        *d_reasonForConversionFailure = d_anc.d_error;
+        return false;
+      }
       Node premise = nm->mkNode(
-          Kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized)));
-      addAletheStep(AletheRule::REFL, premise, premise, {}, {}, *cdp);
+          Kind::SEXPR, d_cl, conv);
+      success &= addAletheStep(AletheRule::REFL, premise, premise, {}, {}, *cdp);
       std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
       std::vector<Node> skoSubstitutions;
       for (size_t i = 0, size = quant[0].getNumChildren(); i < size; ++i)
@@ -1489,17 +1497,18 @@ bool AletheProofPostprocessCallback::update(Node res,
         // add to the substitution
         skoSubstitutions.push_back(quant[0][i].eqNode(ithChoice));
       }
+      Assert(!d_anc.convert(quant.eqNode(skolemized)).isNull());
       Node conclusion = nm->mkNode(
           Kind::SEXPR, d_cl, d_anc.convert(quant.eqNode(skolemized)));
       // add the sko step
-      addAletheStep(
+      success &= addAletheStep(
           skoRule, conclusion, conclusion, {premise}, skoSubstitutions, *cdp);
       // add congruence step with NOT for the forall case
       if (!isExists)
       {
         Node newConclusion = nm->mkNode(
             Kind::SEXPR, d_cl, (quant.notNode()).eqNode(skolemized.notNode()));
-        addAletheStep(AletheRule::CONG,
+        success &= addAletheStep(AletheRule::CONG,
                       newConclusion,
                       newConclusion,
                       {conclusion},
@@ -1511,17 +1520,18 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp1 = nm->mkNode(
           Kind::SEXPR,
           {d_cl, conclusion[1].notNode(), children[0].notNode(), res});
-      addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
-      addAletheStep(
-          AletheRule::RESOLUTION,
-          res,
-          nm->mkNode(Kind::SEXPR, d_cl, res),
-          {vp1, conclusion, children[0]},
-          d_resPivots
-              ? std::vector<Node>{conclusion[1], d_false, children[0], d_false}
-              : std::vector<Node>(),
-          *cdp);
-      return true;
+      success &= addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
+      return success
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(Kind::SEXPR, d_cl, res),
+                              {vp1, conclusion, children[0]},
+                              d_resPivots ? std::vector<Node>{conclusion[1],
+                                                              d_false,
+                                                              children[0],
+                                                              d_false}
+                                          : std::vector<Node>(),
+                              *cdp);
     }
     // ======== Bitvector
     //
@@ -1534,7 +1544,15 @@ bool AletheProofPostprocessCallback::update(Node res,
           || k == Kind::BITVECTOR_SHL || k == Kind::BITVECTOR_LSHR
           || k == Kind::BITVECTOR_ASHR)
       {
-        Unreachable() << "Unsupported bit-blasting in Alethe of " << k << "\n";
+        std::stringstream ss;
+        ss << "Bit-blasting of " << k << " is not supported in Alethe.";
+        *d_reasonForConversionFailure = ss.str();
+      }
+      Node conv = d_anc.maybeConvert(res);
+      if (conv.isNull())
+      {
+        *d_reasonForConversionFailure = d_anc.d_error;
+        return false;
       }
       // if the term being bitblasted is a variable or a nonbv term, then this
       // is a "bitblast var" step
@@ -1543,7 +1561,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                ? AletheRule::BV_BITBLAST_STEP_VAR
                                : it->second,
                            res,
-                           nm->mkNode(Kind::SEXPR, d_cl, d_anc.convert(res)),
+                           nm->mkNode(Kind::SEXPR, d_cl, conv),
                            children,
                            {},
                            *cdp);
@@ -2037,8 +2055,7 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
     return false;
   }
   // If this resolution child is used as a singleton OR but the rule
-  // justifying it concludes a clause, then we are necessarily in this
-  // scenario:
+  // justifying it concludes a clause, then we are often in this scenario:
   //
   // (or t1 ... tn)
   // -------------- OR
@@ -2052,55 +2069,108 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   // a literal as well, and its node clashed with the conclusion of the
   // FACTORING/REORDERING step.
   //
-  // The solution is to *not* use FACTORING/REORDERING (which in Alethe
-  // operate on clauses) but generate a proof to obtain (via rewriting) the
-  // expected node (or t1' ... tn') from the original node (or t1 ... tn).
+  // When this is happening at one level, as in the example above, a solution is
+  // to *not* use FACTORING/REORDERING (which in Alethe operate on clauses) but
+  // generate a proof to obtain (via rewriting) the expected node (or t1' ...
+  // tn') from the original node (or t1 ... tn).
+  //
+  // However, this may have happened in a complex proof in which we'd have no
+  // easy way to get access to (or t1 ... tn), in which case we delive (cl (or
+  // t1' ... tn')) by introducing n or_neg steps, similarly to the translation
+  // of EQ_RESOLVE.
   NodeManager* nm = NodeManager::currentNM();
   Trace("alethe-proof") << "\n";
   CVC5_UNUSED AletheRule premiseProofRule =
       getAletheRule(premisePf->getArguments()[0]);
   CVC5_UNUSED AletheRule premiseChildProofRule =
       getAletheRule(premisePf->getChildren()[0]->getArguments()[0]);
-  Assert((premiseProofRule == AletheRule::CONTRACTION
+  if ((premiseProofRule == AletheRule::CONTRACTION
           || premiseProofRule == AletheRule::REORDERING)
-         && premiseChildProofRule == AletheRule::OR);
-  // get great grand child
-  std::shared_ptr<ProofNode> premiseChildPf =
-      premisePf->getChildren()[0]->getChildren()[0];
-  Node premiseChildConclusion = premiseChildPf->getResult();
-  // Note that we need to add this proof node explicitly to cdp because it does
-  // not have a step for premiseChildConclusion. Rather it is only present in
-  // cdp as a descendant of premisePf (which is in cdp), so if premisePf is to
-  // be lost, then so will premiseChildPf. By adding premiseChildPf explicitly,
-  // it can be retrieved to justify premiseChildConclusion when requested.
-  cdp->addProof(premiseChildPf);
-  // equate it to what we expect, use equiv elim and resolution to
-  // obtain a proof the expected
-  Node equiv = premiseChildConclusion.eqNode(premise);
-  addAletheStep(AletheRule::ALL_SIMPLIFY,
-                equiv,
-                nm->mkNode(Kind::SEXPR, d_cl, equiv),
-                {},
-                {},
-                *cdp);
-  Node equivElim = nm->mkNode(
-      Kind::SEXPR,
-      {d_cl, equiv.notNode(), premiseChildConclusion.notNode(), premise});
-  addAletheStep(AletheRule::EQUIV_POS2, equivElim, equivElim, {}, {}, *cdp);
+         && premiseChildProofRule == AletheRule::OR)
+  {
+    // get great grand child
+    std::shared_ptr<ProofNode> premiseChildPf =
+        premisePf->getChildren()[0]->getChildren()[0];
+    Node premiseChildConclusion = premiseChildPf->getResult();
+    // Note that we need to add this proof node explicitly to cdp because it
+    // does not have a step for premiseChildConclusion. Rather it is only
+    // present in cdp as a descendant of premisePf (which is in cdp), so if
+    // premisePf is to be lost, then so will premiseChildPf. By adding
+    // premiseChildPf explicitly, it can be retrieved to justify
+    // premiseChildConclusion when requested.
+    cdp->addProof(premiseChildPf);
+    // equate it to what we expect, use equiv elim and resolution to
+    // obtain a proof the expected
+    Node equiv = premiseChildConclusion.eqNode(premise);
+    bool success = addAletheStep(AletheRule::ALL_SIMPLIFY,
+                                 equiv,
+                                 nm->mkNode(Kind::SEXPR, d_cl, equiv),
+                                 {},
+                                 {},
+                                 *cdp);
+    Node equivElim = nm->mkNode(
+        Kind::SEXPR,
+        {d_cl, equiv.notNode(), premiseChildConclusion.notNode(), premise});
+    success &= addAletheStep(
+        AletheRule::EQUIV_POS2, equivElim, equivElim, {}, {}, *cdp);
+    Node newPremise = nm->mkNode(Kind::SEXPR, d_cl, premise);
+    Trace("alethe-proof") << "Reverted handling as a clause for converting "
+                          << premiseChildConclusion << " into " << premise
+                          << std::endl;
+    return success
+           && addAletheStep(AletheRule::RESOLUTION,
+                            newPremise,
+                            newPremise,
+                            {equivElim, equiv, premiseChildConclusion},
+                            d_resPivots
+                                ? std::vector<Node>{equiv,
+                                                    d_false,
+                                                    premiseChildConclusion,
+                                                    d_false}
+                                : std::vector<Node>(),
+                            *cdp);
+  }
+  // Derive (cl (or t1' ... tn')) from (cl t1' ... tn') (i.e., the premise) with a subproof
+  //
+  //             -----------------------  ...  --------------------- OR_NEG
+  //   premise   (cl premise, (not t1'))  ...  (cl premise, (not tn'))
+  //  ---------------------------- RESOLUTION
+  //  (cl premise ... premise)
+  //  ---------------------------- CONTRACTION
+  //         (cl premise)
+  std::vector<Node> resPremises{premise};
+  std::vector<Node> resArgs;
+  std::vector<Node> contractionPremiseChildren{d_cl};
+  bool success = true;
+  for (const Node& n : premise)
+  {
+    Node nNeg = n.notNode();
+    resPremises.push_back(nm->mkNode(Kind::SEXPR, d_cl, premise, nNeg));
+    success &= addAletheStep(AletheRule::OR_NEG,
+                             resPremises.back(),
+                             resPremises.back(),
+                             {},
+                             {},
+                             *cdp);
+    resArgs.push_back(nNeg);
+    resArgs.push_back(d_true);
+    contractionPremiseChildren.push_back(premise);
+  }
+  Node contractionPremise = nm->mkNode(Kind::SEXPR, contractionPremiseChildren);
+  success &= addAletheStep(AletheRule::RESOLUTION,
+                           contractionPremise,
+                           contractionPremise,
+                           resPremises,
+                           d_resPivots ? resArgs : std::vector<Node>(),
+                           *cdp);
   Node newPremise = nm->mkNode(Kind::SEXPR, d_cl, premise);
-  addAletheStep(
-      AletheRule::RESOLUTION,
-      newPremise,
-      newPremise,
-      {equivElim, equiv, premiseChildConclusion},
-      d_resPivots
-          ? std::vector<Node>{equiv, d_false, premiseChildConclusion, d_false}
-          : std::vector<Node>(),
-      *cdp);
-  Trace("alethe-proof") << "Reverted handling as a clause for converting "
-                        << premiseChildConclusion << " into " << premise
-                        << std::endl;
-  return true;
+  return success
+         && addAletheStep(AletheRule::CONTRACTION,
+                          newPremise,
+                          newPremise,
+                          {contractionPremise},
+                          {},
+                          *cdp);
 }
 
 // Adds an OR rule to the premises of a step if the premise is not a clause and
@@ -2120,6 +2190,7 @@ bool AletheProofPostprocessCallback::updatePost(
   AletheRule rule = getAletheRule(args[0]);
   Trace("alethe-proof") << "...Alethe post-update " << rule << " / " << res
                         << " / args: " << args << std::endl;
+  bool success = true;
   switch (rule)
   {
     // In the case of a resolution rule the rule might originally have been a
@@ -2175,7 +2246,7 @@ bool AletheProofPostprocessCallback::updatePost(
                             childConclusion[1].end());
           }
           Node newConclusion = nm->mkNode(Kind::SEXPR, subterms);
-          addAletheStep(AletheRule::OR,
+          success &= addAletheStep(AletheRule::OR,
                         newConclusion,
                         newConclusion,
                         {children[0]},
@@ -2214,6 +2285,7 @@ bool AletheProofPostprocessCallback::updatePost(
           // the arguments will have been converted to witness form already, so
           // we also check whether after conversion the child is still not the
           // same (in the case where we'd need to have them different)
+          Assert(!d_anc.convert(children[i]).isNull());
           if (args[polIdx] == d_false
               && args[pivIdx] == d_anc.convert(children[i]))
           {
@@ -2242,7 +2314,7 @@ bool AletheProofPostprocessCallback::updatePost(
                           childConclusion[1].end());
             }
             Node conclusion = nm->mkNode(Kind::SEXPR, lits);
-            addAletheStep(AletheRule::OR,
+            success &= addAletheStep(AletheRule::OR,
                           conclusion,
                           conclusion,
                           {children[i]},
@@ -2276,7 +2348,7 @@ bool AletheProofPostprocessCallback::updatePost(
                      d_resPivots
                          ? args
                          : std::vector<Node>{args.begin(), args.begin() + 3});
-        return true;
+        return success;
       }
       Trace("alethe-proof") << "... no update\n";
       return false;
@@ -2331,14 +2403,14 @@ bool AletheProofPostprocessCallback::updatePost(
                           childConclusion[1].end());
         }
         Node newChild = nm->mkNode(Kind::SEXPR, subterms);
-        addAletheStep(
+        success &= addAletheStep(
             AletheRule::OR, newChild, newChild, {children[0]}, {}, *cdp);
         Trace("alethe-proof")
             << "Added OR step in finalizer to child " << childConclusion
             << " / " << newChild << std::endl;
         // update res step
         cdp->addStep(res, ProofRule::ALETHE_RULE, {newChild}, args);
-        return true;
+        return success;
       }
       Trace("alethe-proof") << "... no update\n";
       return false;
@@ -2380,6 +2452,7 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
                                                const std::vector<Node>& args,
                                                CDProof* cdp)
 {
+  bool success = true;
   NodeManager* nm = NodeManager::currentNM();
   std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
 
@@ -2394,8 +2467,8 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
         nm->mkNode(Kind::SEXPR, d_cl, d_false.notNode());  // (cl (not false))
     Node newChild = nm->mkNode(Kind::SEXPR, d_cl);         // (cl)
 
-    addAletheStep(AletheRule::FALSE, notFalse, notFalse, {}, {}, *cdp);
-    addAletheStep(
+    success &= addAletheStep(AletheRule::FALSE, notFalse, notFalse, {}, {}, *cdp);
+    success &= addAletheStep(
         AletheRule::RESOLUTION,
         newChild,
         newChild,
@@ -2407,15 +2480,27 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
 
   // Sanitize original assumptions and create a double scope to hold them, where
   // the first scope is empty. This is needed because of the expected form a
-  // proof node to be printed
+  // proof node to be printed. Note that this
   std::vector<Node> sanitizedArgs;
-  std::transform(args.begin(),
-                 args.end(),
-                 std::back_inserter(sanitizedArgs),
-                 [this](Node a) { return d_anc.convert(a, false); });
+  for (const Node& a : args)
+  {
+    Node conv = d_anc.maybeConvert(a);
+    if (conv.isNull())
+    {
+      *d_reasonForConversionFailure = d_anc.d_error;
+      success = false;
+      break;
+    }
+    // avoid repeated assumptions
+    if (std::find(sanitizedArgs.begin(), sanitizedArgs.end(), conv) == sanitizedArgs.end())
+    {
+      d_anc.d_convToOriginalAssumption[conv] = a;
+      sanitizedArgs.push_back(conv);
+    }
+  }
   Node placeHolder = nm->mkNode(Kind::SEXPR, res);
   cdp->addStep(placeHolder, ProofRule::SCOPE, children, sanitizedArgs);
-  return cdp->addStep(res, ProofRule::SCOPE, {placeHolder}, {});
+  return success && cdp->addStep(res, ProofRule::SCOPE, {placeHolder}, {});
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
@@ -2429,10 +2514,22 @@ bool AletheProofPostprocessCallback::addAletheStep(
   std::vector<Node> newArgs{NodeManager::currentNM()->mkConstInt(
       Rational(static_cast<uint32_t>(rule)))};
   newArgs.push_back(res);
-  newArgs.push_back(d_anc.convert(conclusion));
+  Node conv = d_anc.maybeConvert(conclusion);
+  if (conv.isNull())
+  {
+    *d_reasonForConversionFailure = d_anc.d_error;
+    return false;
+  }
+  newArgs.push_back(conv);
   for (const Node& arg : args)
   {
-    newArgs.push_back(d_anc.convert(arg));
+    conv = d_anc.maybeConvert(arg);
+    if (conv.isNull())
+    {
+      *d_reasonForConversionFailure = d_anc.d_error;
+      return false;
+    }
+    newArgs.push_back(conv);
   }
   Trace("alethe-proof") << "... add alethe step " << res << " / " << conclusion
                         << " " << rule << " " << children << " / " << newArgs
@@ -2456,13 +2553,14 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
 AletheProofPostprocess::AletheProofPostprocess(Env& env,
                                                AletheNodeConverter& anc,
                                                bool resPivots)
-    : EnvObj(env), d_cb(env, anc, resPivots)
+    : EnvObj(env), d_cb(env, anc, resPivots, &d_reasonForConversionFailure)
 {
 }
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
+bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf,
+                                     std::string& reasonForConversionFailure)
 {
   // first two nodes are scopes for definitions and other assumptions. We
   // process only the internal proof node. And we merge these two scopes
@@ -2474,6 +2572,12 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   // Translate proof node
   ProofNodeUpdater updater(d_env, d_cb, false, false);
   updater.process(internalProof);
+
+  if (!d_reasonForConversionFailure.empty())
+  {
+    reasonForConversionFailure = d_reasonForConversionFailure;
+    return false;
+  }
 
   // In the Alethe proof format the final step has to be (cl). However, after
   // the translation it might be (cl false). In that case additional steps are
@@ -2500,6 +2604,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
     d_env.getProofNodeManager()->updateNode(pf.get(), npn.get());
     Trace("pf-process-debug") << "...update node finished." << std::endl;
   }
+  return true;
 }
 
 }  // namespace proof
