@@ -52,9 +52,9 @@ class TermDbSygus;
 class SygusRepairConst : protected EnvObj
 {
  public:
-  SygusRepairConst(Env& env, 
-              QuantifiersInferenceManager& qim, 
-              TermDbSygus* tds);
+  SygusRepairConst(Env& env,
+                   QuantifiersInferenceManager& qim,
+                   TermDbSygus* tds);
   ~SygusRepairConst() {}
   /** initialize
    *
@@ -173,10 +173,10 @@ class SygusRepairConst : protected EnvObj
                   const std::vector<Node>& candidate_skeletons,
                   const std::vector<Node>& sk_vars);
   /**
-   * Exclude the skeleton 
+   * Exclude the skeleton
    */
   void excludeSkeleton(const std::vector<Node>& candidates,
-                      const std::vector<Node>& candidate_skeletons);
+                       const std::vector<Node>& candidate_skeletons);
 };
 
 }  // namespace quantifiers

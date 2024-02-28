@@ -24,9 +24,9 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::internal::kind;
@@ -35,8 +35,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusRepairConst::SygusRepairConst(Env& env, 
-              QuantifiersInferenceManager& qim,  TermDbSygus* tds)
+SygusRepairConst::SygusRepairConst(Env& env,
+                                   QuantifiersInferenceManager& qim,
+                                   TermDbSygus* tds)
     : EnvObj(env), d_qim(qim), d_tds(tds), d_allow_constant_grammar(false)
 {
 }
@@ -149,7 +150,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     Node cv = candidate_values[i];
     Node skeleton = getSkeleton(
         cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
-    Assert (skeleton.getType()==cv.getType());
+    Assert(skeleton.getType() == cv.getType());
     if (TraceIsOn("sygus-repair-const"))
     {
       std::stringstream ss;
@@ -193,7 +194,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (d_queries.find(fo_body) != d_queries.end())
   {
     Trace("sygus-repair-const") << "...duplicate query." << std::endl;
-    if (d_unsatQueries.find(fo_body)!=d_unsatQueries.end())
+    if (d_unsatQueries.find(fo_body) != d_unsatQueries.end())
     {
       excludeSkeleton(candidates, candidate_skeletons);
     }
@@ -333,7 +334,7 @@ Node SygusRepairConst::getSkeleton(Node n,
                                    bool useConstantsAsHoles)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * skm = nm->getSkolemManager();
+  SkolemManager* skm = nm->getSkolemManager();
   // get the most general candidate skeleton of n
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -410,24 +411,27 @@ Node SygusRepairConst::getFoQuery(Node body,
   return body;
 }
 
-void SygusRepairConst::excludeSkeleton(const std::vector<Node>& candidates,
-                    const std::vector<Node>& candidate_skeletons)
+void SygusRepairConst::excludeSkeleton(
+    const std::vector<Node>& candidates,
+    const std::vector<Node>& candidate_skeletons)
 {
-  Assert (candidates.size()==candidate_skeletons.size());
+  Assert(candidates.size() == candidate_skeletons.size());
   std::vector<Node> exp;
   for (size_t i = 0, tsize = candidates.size(); i < tsize; i++)
   {
     Node cprog = candidates[i];
     Node cval = candidate_skeletons[i];
-    Trace("sygus-repair-const-debug") << "Explain " << cprog << " == " << cval << std::endl;
+    Trace("sygus-repair-const-debug")
+        << "Explain " << cprog << " == " << cval << std::endl;
     // add to explanation of exclusion
     d_tds->getExplain()->getExplanationForEquality(cprog, cval, exp);
   }
   Node exc_lem = NodeManager::currentNM()->mkAnd(exp);
   exc_lem = exc_lem.negate();
-  d_qim.lemma(exc_lem, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE_SKELETON);
+  d_qim.lemma(exc_lem,
+              InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE_SKELETON);
 }
-  
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
