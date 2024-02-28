@@ -107,10 +107,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
                                       std::vector<Node>& repair_cv)
 {
-  return repairSolution(d_base_inst,
-                        candidates,
-                        candidate_values,
-                        repair_cv);
+  return repairSolution(d_base_inst, candidates, candidate_values, repair_cv);
 }
 
 bool SygusRepairConst::repairSolution(Node sygusBody,
@@ -144,8 +141,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   for (unsigned i = 0, size = candidates.size(); i < size; i++)
   {
     Node cv = candidate_values[i];
-    Node skeleton = getSkeleton(
-        cv, free_var_count, sk_vars);
+    Node skeleton = getSkeleton(cv, free_var_count, sk_vars);
     Assert(skeleton.getType() == cv.getType());
     if (TraceIsOn("sygus-repair-const"))
     {
