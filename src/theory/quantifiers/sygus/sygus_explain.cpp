@@ -136,7 +136,7 @@ void SygusExplain::getExplanationForEquality(Node n,
   // since builtin types occur in grammar, types are comparable but not
   // necessarily equal
   Assert(n.getType() == vn.getType());
-  if (n == vn || vn.getKind() == Kind::BOUND_VARIABLE)
+  if (n == vn)
   {
     return;
   }
