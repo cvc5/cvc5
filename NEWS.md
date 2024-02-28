@@ -37,7 +37,8 @@ cvc5 1.1.1
 
 - Added support for **forward declarations** (feature `:fwd-decls`) in **SyGuS**
   inputs. This allows functions-to-synthesize to include previous
-  functions-to-synthesize in their grammars.
+  functions-to-synthesize in their grammars. This feature is enabled by default
+  for all SyGuS inputs.
 
 ## Changes
 
