@@ -399,7 +399,7 @@ bool SynthConjecture::doCheck()
     {
       Trace("sygus-engine-debug") << "...no candidates to repair" << std::endl;
     }
-}
+  }
   else
   {
     Trace("sygus-engine-debug") << "...not repairing" << std::endl;
