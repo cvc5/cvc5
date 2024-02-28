@@ -457,6 +457,8 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_COMPLETE_ENUM,
   // infeasible due to side condition (e.g. for abduction)
   QUANTIFIERS_SYGUS_SC_INFEASIBLE,
+  // exclusion of a skeleton based on sygus repair const
+  QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE_SKELETON,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,

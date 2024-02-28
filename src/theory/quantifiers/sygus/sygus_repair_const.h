@@ -31,6 +31,7 @@ class LogicInfo;
 namespace theory {
 namespace quantifiers {
 
+class QuantifiersInferenceManager;
 class TermDbSygus;
 
 /** SygusRepairConst
@@ -51,7 +52,9 @@ class TermDbSygus;
 class SygusRepairConst : protected EnvObj
 {
  public:
-  SygusRepairConst(Env& env, TermDbSygus* tds);
+  SygusRepairConst(Env& env, 
+              QuantifiersInferenceManager& qim, 
+              TermDbSygus* tds);
   ~SygusRepairConst() {}
   /** initialize
    *
@@ -108,6 +111,8 @@ class SygusRepairConst : protected EnvObj
   static bool mustRepair(Node n);
 
  private:
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
   /**
@@ -121,12 +126,10 @@ class SygusRepairConst : protected EnvObj
    * this class is a no-op.
    */
   bool d_allow_constant_grammar;
-  /** map from skeleton variables to first-order variables */
-  std::map<Node, Node> d_sk_to_fo;
-  /** reverse map of d_sk_to_fo */
-  std::map<Node, Node> d_fo_to_sk;
   /** a cache of satisfiability queries of the form [***] above we have tried */
   std::unordered_set<Node> d_queries;
+  /** The queries that were unsat */
+  std::unordered_set<Node> d_unsatQueries;
   /**
    * Register information for sygus type tn, tprocessed stores the set of
    * already registered types.
@@ -169,46 +172,11 @@ class SygusRepairConst : protected EnvObj
                   const std::vector<Node>& candidates,
                   const std::vector<Node>& candidate_skeletons,
                   const std::vector<Node>& sk_vars);
-  /** fit to logic
-   *
-   * This function ensures that a query of the form [***] above fits the given
-   * logic. In our approach for constant repair, replacing constants by
-   * variables may introduce e.g. non-linearity. If non-linear arithmetic is
-   * not enabled, we must undo some of the variables we introduced when
-   * inferring candidate skeletons.
-   *
-   * body is the (sygus) form of the original synthesis conjecture we are
-   * considering in this call.
-   *
-   * This function may remove variables from sk_vars and the map
-   * sk_vars_to_subs. The skeletons candidate_skeletons are obtained by
-   * getSkeleton(...) on the resulting vectors. If this function returns a
-   * non-null node n', then n' is getFoQuery(...) on the resulting vectors, and
-   * n' is in the given logic. The function may return null if it is not
-   * possible to find a n' of this form.
-   *
-   * It uses the function below to choose which variables to remove from
-   * sk_vars.
+  /**
+   * Exclude the skeleton 
    */
-  Node fitToLogic(Node body,
-                  const LogicInfo& logic,
-                  Node n,
-                  const std::vector<Node>& candidates,
-                  std::vector<Node>& candidate_skeletons,
-                  std::vector<Node>& sk_vars,
-                  std::map<Node, Node>& sk_vars_to_subs);
-  /** get fit to logic exclusion variable
-   *
-   * If n is not in the given logic, then this method either returns false,
-   * or returns true and sets exvar to some variable in the domain of
-   * d_fo_to_sk, that must be replaced by a constant for n to be in the given
-   * logic. For example, for logic linear arithemic, for input:
-   *    x * y = 5
-   * where x is in the domain of d_fo_to_sk, this function returns true and sets
-   * exvar to x.
-   * If n is in the given logic, this method returns true.
-   */
-  bool getFitToLogicExcludeVar(const LogicInfo& logic, Node n, Node& exvar);
+  void excludeSkeleton(const std::vector<Node>& candidates,
+                      const std::vector<Node>& candidate_skeletons);
 };
 
 }  // namespace quantifiers
