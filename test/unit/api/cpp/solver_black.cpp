@@ -1207,20 +1207,6 @@ TEST_F(TestApiBlackSolver, declareSortFresh)
   ASSERT_FALSE(t2 == t5);
 }
 
-TEST_F(TestApiBlackSolver, defineSort)
-{
-  Sort sortVar0 = d_tm.mkParamSort("T0");
-  Sort sortVar1 = d_tm.mkParamSort("T1");
-  Sort intSort = d_tm.getIntegerSort();
-  Sort realSort = d_tm.getRealSort();
-  Sort arraySort0 = d_tm.mkArraySort(sortVar0, sortVar0);
-  Sort arraySort1 = d_tm.mkArraySort(sortVar0, sortVar1);
-  // Now create instantiations of the defined sorts
-  ASSERT_NO_THROW(arraySort0.substitute(sortVar0, intSort));
-  ASSERT_NO_THROW(
-      arraySort1.substitute({sortVar0, sortVar1}, {intSort, realSort}));
-}
-
 TEST_F(TestApiBlackSolver, defineFun)
 {
   Sort bvSort = d_tm.mkBitVectorSort(32);
@@ -1652,43 +1638,6 @@ TEST_F(TestApiBlackSolver, declarePool)
   // cannot pass null sort
   Sort nullSort;
   ASSERT_THROW(d_solver->declarePool("i", nullSort, {}), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, getOp)
-{
-  Sort bv32 = d_tm.mkBitVectorSort(32);
-  Term a = d_tm.mkConst(bv32, "a");
-  Op ext = d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {2, 1});
-  Term exta = d_tm.mkTerm(ext, {a});
-
-  ASSERT_FALSE(a.hasOp());
-  ASSERT_THROW(a.getOp(), CVC5ApiException);
-  ASSERT_TRUE(exta.hasOp());
-  ASSERT_EQ(exta.getOp(), ext);
-
-  // Test Datatypes -- more complicated
-  DatatypeDecl consListSpec = d_tm.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons = d_tm.mkDatatypeConstructorDecl("cons");
-  cons.addSelector("head", d_tm.getIntegerSort());
-  cons.addSelectorSelf("tail");
-  consListSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil = d_tm.mkDatatypeConstructorDecl("nil");
-  consListSpec.addConstructor(nil);
-  Sort consListSort = d_tm.mkDatatypeSort(consListSpec);
-  Datatype consList = consListSort.getDatatype();
-
-  Term consTerm = consList.getConstructor("cons").getTerm();
-  Term nilTerm = consList.getConstructor("nil").getTerm();
-  Term headTerm = consList["cons"].getSelector("head").getTerm();
-
-  Term listnil = d_tm.mkTerm(Kind::APPLY_CONSTRUCTOR, {nilTerm});
-  Term listcons1 = d_tm.mkTerm(Kind::APPLY_CONSTRUCTOR,
-                               {consTerm, d_tm.mkInteger(1), listnil});
-  Term listhead = d_tm.mkTerm(Kind::APPLY_SELECTOR, {headTerm, listcons1});
-
-  ASSERT_TRUE(listnil.hasOp());
-  ASSERT_TRUE(listcons1.hasOp());
-  ASSERT_TRUE(listhead.hasOp());
 }
 
 TEST_F(TestApiBlackSolver, getOption)
