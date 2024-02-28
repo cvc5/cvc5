@@ -412,6 +412,12 @@ void SygusRepairConst::excludeSkeleton(
   for (size_t i = 0, tsize = candidates.size(); i < tsize; i++)
   {
     Node cprog = candidates[i];
+    if (!d_tds->isPassiveEnumerator(cprog))
+    {
+      // if any candidate is actively generated (i.e. fast), we do not add
+      // the lemma below.
+      return;
+    }
     Node cval = candidate_skeletons[i];
     Trace("sygus-repair-const-debug")
         << "Explain " << cprog << " == " << cval << std::endl;

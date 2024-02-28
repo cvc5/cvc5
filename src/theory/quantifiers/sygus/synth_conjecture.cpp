@@ -826,12 +826,15 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values,
   {
     Node cprog = d_candidates[i];
     Assert(d_tds->isEnumerator(cprog));
-    if (d_tds->isPassiveEnumerator(cprog))
+    if (!d_tds->isPassiveEnumerator(cprog))
     {
-      Node cval = values[i];
-      // add to explanation of exclusion
-      d_tds->getExplain()->getExplanationForEquality(cprog, cval, exp);
+      // If any candidate is actively generated, then we should not add the
+      // lemma below. We never mix fast and smart enumerators.
+      return;
     }
+    Node cval = values[i];
+    // add to explanation of exclusion
+    d_tds->getExplain()->getExplanationForEquality(cprog, cval, exp);
   }
   if (!exp.empty())
   {
