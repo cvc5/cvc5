@@ -173,6 +173,12 @@ bool CommandExecutor::doCommandSingleton(Cmd* cmd)
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
+    if (d_solver->getOptionInfo("dump-unsat-cores-lemmas").boolValue()
+        && isResultUnsat)
+    {
+      getterCommands.emplace_back(new GetUnsatCoreLemmasCommand());
+    }
+
     if (d_solver->getOptionInfo("dump-difficulty").boolValue()
         && (isResultUnsat || isResultSat || res.isUnknown()))
     {
@@ -205,7 +211,7 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
   {
-    solver->getOutput("raw-benchmark") << cmd->toString();
+    solver->getOutput("raw-benchmark") << cmd->toString() << std::endl;
   }
 
   // In parse-only mode, we do not invoke any of the commands except define-*
@@ -214,7 +220,8 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<ResetCommand*>(cmd) == nullptr
       && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr
-      && dynamic_cast<DatatypeDeclarationCommand*>(cmd) == nullptr)
+      && dynamic_cast<DatatypeDeclarationCommand*>(cmd) == nullptr
+      && dynamic_cast<DefineFunctionRecCommand*>(cmd) == nullptr)
   {
     return true;
   }

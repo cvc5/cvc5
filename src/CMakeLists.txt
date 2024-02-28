@@ -15,6 +15,8 @@
 
 # Collect libcvc5 source files
 libcvc5_add_sources(
+  api/c/cvc5.cpp
+  api/c/cvc5_checks.h
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
@@ -74,6 +76,8 @@ libcvc5_add_sources(
   preprocessing/passes/extended_rewriter_pass.h
   preprocessing/passes/ff_bitsum.cpp
   preprocessing/passes/ff_bitsum.h
+  preprocessing/passes/ff_disjunctive_bit.cpp
+  preprocessing/passes/ff_disjunctive_bit.h
   preprocessing/passes/foreign_theory_rewrite.cpp
   preprocessing/passes/foreign_theory_rewrite.h
   preprocessing/passes/fun_def_fmf.cpp
@@ -142,14 +146,10 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
-  proof/alf/alf_post_processor.cpp
-  proof/alf/alf_post_processor.h
   proof/alf/alf_print_channel.cpp
   proof/alf/alf_print_channel.h
   proof/alf/alf_printer.cpp
   proof/alf/alf_printer.h
-  proof/alf/alf_proof_rule.cpp
-  proof/alf/alf_proof_rule.h
   proof/annotation_proof_generator.cpp
   proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
@@ -201,6 +201,8 @@ libcvc5_add_sources(
   proof/proof_node.h
   proof/proof_node_algorithm.cpp
   proof/proof_node_algorithm.h
+  proof/proof_node_converter.cpp
+  proof/proof_node_converter.h
   proof/proof_node_to_sexpr.cpp
   proof/proof_node_to_sexpr.h
   proof/proof_node_manager.cpp
@@ -214,6 +216,8 @@ libcvc5_add_sources(
   proof/proof_step_buffer.h
   proof/resolution_proofs_util.cpp
   proof/resolution_proofs_util.h
+  proof/subtype_elim_proof_converter.cpp
+  proof/subtype_elim_proof_converter.h
   proof/trust_id.cpp
   proof/trust_id.h
   proof/trust_node.cpp
@@ -242,6 +246,8 @@ libcvc5_add_sources(
   prop/kissat.h
   prop/learned_db.cpp
   prop/learned_db.h
+  prop/lemma_inprocess.cpp
+  prop/lemma_inprocess.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -257,11 +263,13 @@ libcvc5_add_sources(
   prop/minisat/mtl/Sort.h
   prop/minisat/mtl/Vec.h
   prop/minisat/mtl/XAlloc.h
+  prop/minisat/opt_clauses_manager.cpp
+  prop/minisat/opt_clauses_manager.h
+  prop/minisat/sat_proof_manager.cpp
+  prop/minisat/sat_proof_manager.h
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
-  prop/opt_clauses_manager.cpp
-  prop/opt_clauses_manager.h
   prop/proof_cnf_stream.cpp
   prop/proof_cnf_stream.h
   prop/proof_post_processor.cpp
@@ -272,8 +280,6 @@ libcvc5_add_sources(
   prop/prop_proof_manager.h
   prop/registrar.h
   prop/sat_solver.h
-  prop/sat_proof_manager.cpp
-  prop/sat_proof_manager.h
   prop/sat_solver_factory.cpp
   prop/sat_solver_factory.h
   prop/sat_solver_types.cpp
@@ -367,6 +373,8 @@ libcvc5_add_sources(
   theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
+  theory/arith/arith_proof_utilities.cpp
+  theory/arith/arith_proof_utilities.h
   theory/arith/arith_rewriter.cpp
   theory/arith/arith_rewriter.h
   theory/arith/arith_subs.cpp
@@ -695,6 +703,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/cocoa_encoder.cpp
+  theory/ff/cocoa_encoder.h
   theory/ff/cocoa_util.cpp
   theory/ff/cocoa_util.h
   theory/ff/core.cpp
@@ -703,6 +713,8 @@ libcvc5_add_sources(
   theory/ff/multi_roots.h
   theory/ff/parse.cpp
   theory/ff/parse.h
+  theory/ff/split_gb.cpp
+  theory/ff/split_gb.h
   theory/ff/stats.cpp
   theory/ff/stats.h
   theory/ff/sub_theory.cpp
@@ -871,6 +883,8 @@ libcvc5_add_sources(
   theory/quantifiers/inst_strategy_mbqi.h
   theory/quantifiers/inst_strategy_pool.cpp
   theory/quantifiers/inst_strategy_pool.h
+  theory/quantifiers/inst_strategy_sub_conflict.cpp
+  theory/quantifiers/inst_strategy_sub_conflict.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
   theory/quantifiers/instantiation_list.cpp

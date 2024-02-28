@@ -180,7 +180,7 @@ class InferenceGenerator
    */
   InferInfo differenceRemove(Node n, Node e);
   /**
-   * @param n is (bag.duplicate_removal A) where A is a bag of type (Bag E)
+   * @param n is (bag.setof A) where A is a bag of type (Bag E)
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
@@ -188,9 +188,9 @@ class InferenceGenerator
    *   (=
    *    (bag.count e skolem)
    *    (ite (>= (bag.count e A) 1) 1 0))))
-   * where skolem is a fresh variable equals (bag.duplicate_removal A)
+   * where skolem is a fresh variable equals (bag.setof A)
    */
-  InferInfo duplicateRemoval(Node n, Node e);
+  InferInfo setof(Node n, Node e);
   /**
    * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
    * @param n is (as bag.empty (Bag E))
@@ -257,6 +257,32 @@ class InferenceGenerator
   std::tuple<InferInfo, Node, Node> mapDown(Node n, Node e);
 
   /**
+   * @pre option bagsInjectiveMaps is true
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param y is a node of Type T
+   * @return an inference that represents the following conjunction
+   * (and
+   *   (= (bag.count x A) (bag.count y skolem))
+   *   (= (f x) y)
+   * )
+   * where skolem is a fresh variable equals (bag.map f A))
+   * and x is a fresh variable unique per n, y.
+   */
+  InferInfo mapDownInjective(Node n, Node y);
+
+  /**
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param x is an element of type E
+   * @return an inference that represents the following implication
+   * (<=
+   *   (bag.count x A)
+   *   (bag.count (f x) skolem)
+   * where skolem is a fresh variable equals (bag.map f A))
+   */
+  InferInfo mapUp1(Node n, Node x);
+  /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param uf is an uninterpreted function Int -> E
@@ -275,7 +301,7 @@ class InferenceGenerator
    *       (= (uf skolem) x)))))
    * where skolem is a fresh variable
    */
-  InferInfo mapUp(Node n, Node uf, Node preImageSize, Node y, Node x);
+  InferInfo mapUp2(Node n, Node uf, Node preImageSize, Node y, Node x);
 
   /**
    * @param n is (bag.filter p A) where p is a function (-> E Bool),
@@ -331,7 +357,7 @@ class InferenceGenerator
   InferInfo productDown(Node n, Node e);
 
   /**
-   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
+   * @param n is ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
    * @param e1 an element of the form (tuple a1 ... am)
    * @param e2 an element of the form (tuple b1 ... bn)
    * @return  an inference that represents the following
@@ -347,7 +373,7 @@ class InferenceGenerator
   InferInfo joinUp(Node n, Node e1, Node e2);
 
   /**
-   * @param n is a (table.product A B) where A, B are tables
+   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
    * @param e an element of the form (tuple a1 ... am b1 ... bn)
    * @return an inference that represents the following
    * (=> (bag.member e skolem)

@@ -82,11 +82,6 @@ class NonClausalSimp : public PreprocessingPass
   /** the learned literal preprocess proof generator */
   std::unique_ptr<smt::PreprocessProofGenerator> d_llpg;
   /**
-   * An lazy proof for learned literals that are reasserted into the assertions
-   * pipeline by this class.
-   */
-  std::unique_ptr<LazyCDProof> d_llra;
-  /**
    * A context-dependent list of trust substitution maps, which are required
    * for storing proofs.
    */

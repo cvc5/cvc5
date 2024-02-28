@@ -434,19 +434,10 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
   if (it == d_arithSkolem.end())
   {
     NodeManager* nm = NodeManager::currentNM();
-    TypeNode tn;
-    if (id == SkolemFunId::DIV_BY_ZERO || id == SkolemFunId::SQRT)
-    {
-      tn = nm->realType();
-    }
-    else
-    {
-      tn = nm->integerType();
-    }
     Node skolem;
     SkolemManager* sm = nm->getSkolemManager();
     // introduce the skolem function
-    skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
+    skolem = sm->mkSkolemFunction(id);
     // cache it
     d_arithSkolem[id] = skolem;
     return skolem;

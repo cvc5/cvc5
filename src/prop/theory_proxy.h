@@ -26,6 +26,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
+#include "prop/lemma_inprocess.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "prop/theory_preregistrar.h"
@@ -106,25 +107,6 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
-  /** Notify that current propagation inserted at lower level than current.
-   *
-   * This method should be called by the SAT solver when the explanation of the
-   * current propagation is added at lower level than the current user level.
-   * It'll trigger a call to the ProofCnfStream to notify it that the proof of
-   * this propagation should be saved in case it's needed after this user
-   * context is popped.
-   */
-  void notifyCurrPropagationInsertedAtLevel(int explLevel);
-  /** Notify that added clause was inserted at lower level than current.
-   *
-   * As above, but for clauses asserted into the SAT solver. This cannot be done
-   * in terms of "current added clause" because the clause added at a lower
-   * level could be for example a lemma derived at a prior moment whose
-   * assertion the SAT solver delayed.
-   *
-   * NOTE: this is only used for Minisat proofs.
-   */
-  void notifySatClauseInsertedAtLevel(const SatClause& clause, int clLevel);
   /**
    * Notify SAT clause. This should be called whenever the SAT solver learns
    * a SAT clause. It notifies user plugins of the added clauses.
@@ -222,6 +204,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Get literal type using ZLL utility */
   modes::LearnedLitType getLiteralType(const Node& lit) const;
 
+  /** Inprocess lemma */
+  TrustNode inprocessLemma(TrustNode& trn);
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
@@ -252,6 +237,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
+
+  /** The inprocess utility */
+  std::unique_ptr<LemmaInprocess> d_lemip;
 
   /** Preregister policy */
   std::unique_ptr<TheoryPreregistrar> d_prr;

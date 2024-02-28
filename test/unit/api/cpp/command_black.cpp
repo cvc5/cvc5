@@ -74,7 +74,7 @@ TEST_F(TestCommandBlack, toString)
   cmd = parseCommand("(set-logic QF_LIA )");
   ASSERT_NE(cmd.isNull(), true);
   // note normalizes wrt whitespace
-  ASSERT_EQ(cmd.toString(), "(set-logic QF_LIA)\n");
+  ASSERT_EQ(cmd.toString(), "(set-logic QF_LIA)");
   std::stringstream ss;
   ss << cmd;
   ASSERT_EQ(cmd.toString(), ss.str());

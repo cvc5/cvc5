@@ -1,0 +1,98 @@
+(include "../theories/Builtin.smt3")
+
+(declare-sort Int 0)
+(declare-sort Real 0)
+
+(declare-consts <numeral> Int)
+(declare-consts <rational> Real)
+
+; arith_typeunion
+;   @param x a type
+;   @param y a Type
+;   @return the "union" of x and y.
+; The returned type is the type of the result of mixed arithmetic operators taking arguments x and y.
+(program arith_typeunion ()
+    (Type Type) Type
+    (
+      ((arith_typeunion Int Int) Int)
+      ((arith_typeunion Real Real) Real)
+      ((arith_typeunion Real Int) Real)
+      ((arith_typeunion Int Real) Real)
+    )
+)
+
+; is_arith_type
+;   @param x
+;   @returns true if x is Int or Real
+(program is_arith_type ()
+    (Type) Bool
+    (
+      ((is_arith_type Int) true)
+      ((is_arith_type Real) true)
+    )
+)
+
+; Core operators of arithmetic, which are used in mixed Int/Real arithmetic.
+; Using integer nil terminators ensures typing is accurate.
+(declare-const + (-> (! Type :var T :implicit)
+                     (! Type :var U :implicit)
+                     T U (arith_typeunion T U)) :right-assoc-nil 0)
+(declare-const - (-> (! Type :var T :implicit)
+                     (! Type :var U :implicit)
+                     T U (arith_typeunion T U)) :left-assoc)
+(declare-const * (-> (! Type :var T :implicit)
+                     (! Type :var U :implicit)
+                     T U (arith_typeunion T U)) :right-assoc-nil 1)
+
+; Core arithmetic predicates
+(declare-const < (-> (! Type :var T :implicit)
+                     (! Type :var U :implicit)
+                     (! T :requires ((is_arith_type T) true))
+                     (! U :requires ((is_arith_type U) true))
+                     Bool)
+                     :chainable and)
+(declare-const <= (-> (! Type :var T :implicit)
+                      (! Type :var U :implicit)
+                      (! T :requires ((is_arith_type T) true))
+                      (! U :requires ((is_arith_type U) true))
+                      Bool)
+                      :chainable and)
+(declare-const > (-> (! Type :var T :implicit)
+                     (! Type :var U :implicit)
+                     (! T :requires ((is_arith_type T) true))
+                     (! U :requires ((is_arith_type U) true))
+                     Bool)
+                     :chainable and)
+(declare-const >= (-> (! Type :var T :implicit)
+                      (! Type :var U :implicit)
+                      (! T :requires ((is_arith_type T) true))
+                      (! U :requires ((is_arith_type U) true))
+                      Bool)
+                      :chainable and)
+
+; Conversion functions.
+(declare-const to_real (-> (! Type :var T :implicit)
+                           (! T :requires ((is_arith_type T) true))
+                           Real))
+(declare-const to_int (-> (! Type :var T :implicit)
+                          (! T :requires ((is_arith_type T) true))
+                          Int))
+(declare-const is_int (-> (! Type :var T :implicit)
+                          (! T :requires ((is_arith_type T) true))
+                          Bool))
+(declare-const abs (-> (! Type :var T :implicit)
+                       (! T :requires ((is_arith_type T) true))
+                       T))
+
+; Power function.
+(declare-const ^ (-> (! Type :var T :implicit)
+                     (! Type :var U :implicit)
+                     T U (arith_typeunion T U)))
+
+; Unary negation, which is overloaded with binary subtraction. We distinguish
+; these two operators in ALFC based on their arity when applied, and with
+; alf.as when they are used in higher-order contexts, e.g. as an argument to
+; the cong proof rule.
+(declare-const - (-> (! Type :var T :implicit)
+                     (! T :requires ((is_arith_type T) true))
+                     T))

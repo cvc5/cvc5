@@ -27,6 +27,7 @@
 #include "proof/conv_proof_generator.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
+#include "theory/quantifiers/oracle_checker.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/trust_substitutions.h"
@@ -77,6 +78,11 @@ void Env::finishInit(ProofNodeManager* pnm)
   }
   d_topLevelSubs.reset(
       new theory::TrustSubstitutionMap(*this, d_userContext.get()));
+
+  if (d_options.quantifiers.oracles)
+  {
+    d_ochecker.reset(new theory::quantifiers::OracleChecker(*this));
+  }
 }
 
 void Env::shutdown()
@@ -266,5 +272,10 @@ void Env::declareSepHeap(TypeNode locT, TypeNode dataT)
 
 void Env::addPlugin(Plugin* p) { d_plugins.push_back(p); }
 const std::vector<Plugin*>& Env::getPlugins() const { return d_plugins; }
+
+theory::quantifiers::OracleChecker* Env::getOracleChecker() const
+{
+  return d_ochecker.get();
+}
 
 }  // namespace cvc5::internal

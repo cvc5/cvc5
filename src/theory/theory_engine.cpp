@@ -566,6 +566,23 @@ void TheoryEngine::check(Theory::Effort effort) {
     {
       if (!d_inConflict && !needCheck())
       {
+        // if some theory believes there is a conflict, but it is was not
+        // processed, we mark incomplete.
+        for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST;
+             ++theoryId)
+        {
+          Theory* theory = d_theoryTable[theoryId];
+          if (theory && theory->getTheoryState() != nullptr)
+          {
+            if (theory->getTheoryState()->isInConflict())
+            {
+              setModelUnsound(theoryId,
+                              IncompleteId::UNPROCESSED_THEORY_CONFLICT);
+              Assert(false) << "Unprocessed theory conflict from " << theoryId;
+              break;
+            }
+          }
+        }
         // Do post-processing of model from the theories (e.g. used for
         // THEORY_SEP to construct heap model)
         d_tc->postProcessModel(d_modelUnsound.get());
@@ -1304,7 +1321,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
   {
     tem->notifyLemma(texplanation.getProven(),
                      InferenceId::EXPLAINED_PROPAGATION,
-                     LemmaProperty::REMOVABLE,
+                     LemmaProperty::NONE,
                      {},
                      {});
   }
@@ -1606,14 +1623,14 @@ void TheoryEngine::conflict(TrustNode tconflict,
       tconf.debugCheckClosed(
           options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
-    lemma(tconf, id, LemmaProperty::REMOVABLE);
+    lemma(tconf, id, LemmaProperty::NONE);
   }
   else
   {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     // pass the trust node that was sent from the theory
-    lemma(tconflict, id, LemmaProperty::REMOVABLE, theoryId);
+    lemma(tconflict, id, LemmaProperty::NONE, theoryId);
   }
 }
 

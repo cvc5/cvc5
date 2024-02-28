@@ -63,7 +63,8 @@ TheoryProxy::TheoryProxy(Env& env,
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
       || isOutputOn(OutputTag::LEARNED_LITS)
       || options().smt.produceLearnedLiterals
-      || options().parallel.computePartitions > 0;
+      || options().parallel.computePartitions > 0
+      || options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
@@ -93,6 +94,10 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
   // compute if we need to track skolem definitions
   d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs()
                         || d_prr->needsActiveSkolemDefs();
+  if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
+  {
+    d_lemip.reset(new LemmaInprocess(d_env, cs, *d_zll.get()));
+  }
   d_cnfStream = cs;
 }
 
@@ -258,7 +263,10 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     Assert(options().smt.proofMode != options::ProofMode::FULL
            || tte.getGenerator());
-    d_propEngine->getProofCnfStream()->convertPropagation(tte);
+    // notify the prop engine of the explanation, which is only relevant if
+    // we are proof producing for the purposes of storing the CNF of the
+    // explanation.
+    d_propEngine->notifyExplainedPropagation(tte);
   }
   Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
@@ -285,19 +293,6 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
     }
     Trace("sat-proof") << ss.str() << "\n";
   }
-}
-
-void TheoryProxy::notifyCurrPropagationInsertedAtLevel(int explLevel)
-{
-  d_propEngine->getProofCnfStream()->notifyCurrPropagationInsertedAtLevel(
-      explLevel);
-}
-
-void TheoryProxy::notifySatClauseInsertedAtLevel(const SatClause& clause,
-                                                 int clLevel)
-{
-  d_propEngine->getProofCnfStream()->notifyClauseInsertedAtLevel(clause,
-                                                                 clLevel);
 }
 
 void TheoryProxy::notifySatClause(const SatClause& clause)
@@ -510,6 +505,12 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
     return d_zll->getLearnedZeroLevelLiteralsForRestart();
   }
   return {};
+}
+
+TrustNode TheoryProxy::inprocessLemma(TrustNode& trn)
+{
+  Assert(d_lemip != nullptr);
+  return d_lemip->inprocessLemma(trn);
 }
 
 }  // namespace prop

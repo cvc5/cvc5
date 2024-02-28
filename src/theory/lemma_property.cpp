@@ -53,6 +53,11 @@ bool isLemmaPropertyNeedsJustify(LemmaProperty p)
   return (p & LemmaProperty::NEEDS_JUSTIFY) != LemmaProperty::NONE;
 }
 
+bool isLemmaPropertyInprocess(LemmaProperty p)
+{
+  return (p & LemmaProperty::INPROCESS) != LemmaProperty::NONE;
+}
+
 std::ostream& operator<<(std::ostream& out, LemmaProperty p)
 {
   if (p == LemmaProperty::NONE)
@@ -73,6 +78,10 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     if (isLemmaPropertyNeedsJustify(p))
     {
       out << " NEEDS_JUSTIFY";
+    }
+    if (isLemmaPropertyInprocess(p))
+    {
+      out << " INPROCESS";
     }
     out << " }";
   }

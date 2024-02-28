@@ -207,26 +207,6 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
   std::vector<Node> d_exo;
 };
 
-/** DivByZeroSygusInvarianceTest
- *
- * This class tests whether a sygus term involves
- * division by zero.
- *
- * For example the test for:
- *    ( x + ( y/0 )*2 )
- * is invariant on the contents of _ below:
- *    ( _ + ( _/0 )*_ )
- */
-class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
-{
- public:
-  DivByZeroSygusInvarianceTest(Rewriter* r) : SygusInvarianceTest(r) {}
-
- protected:
-  /** checks whether nvn involves division by zero. */
-  bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
-};
-
 /** NegContainsSygusInvarianceTest
 *
 * This class is used to construct a minimal shape of a term that cannot

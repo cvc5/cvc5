@@ -96,7 +96,13 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     size_t lsize = sts.getTypeSize(lam.getType());
     for (const Node& v : syms)
     {
-      size_t vsize = sts.getTypeSize(v.getType());
+      TypeNode tn = v.getType();
+      if (!tn.isFirstClass())
+      {
+        // don't need to worry about constructor/selector/testers/etc.
+        continue;
+      }
+      size_t vsize = sts.getTypeSize(tn);
       if (vsize>=lsize)
       {
         shouldLift = true;
