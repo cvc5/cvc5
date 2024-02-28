@@ -186,22 +186,6 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     return false;
   }
   d_queries.insert(fo_body);
-
-  // check whether it is not in the current logic, e.g. non-linear arithmetic.
-  // if so, undo replacements until it is in the current logic.
-  const LogicInfo& logic = logicInfo();
-  if (logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())
-  {
-    fo_body = fitToLogic(sygusBody,
-                         logic,
-                         fo_body,
-                         candidates,
-                         candidate_skeletons,
-                         sk_vars,
-                         sk_vars_to_subs);
-    Trace("sygus-repair-const-debug")
-        << "...after fit-to-logic : " << fo_body << std::endl;
-  }
   Assert(!expr::hasFreeVar(fo_body));
 
   if (fo_body.isNull() || sk_vars.empty())
@@ -228,9 +212,12 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   }
 
   Trace("sygus-engine") << "Repairing previous solution..." << std::endl;
-  // make the satisfiability query
+  // Make the satisfiability query. We use the "ALL" logic, since the subcall
+  // may e.g. introduce non-linear arithmetic in linear logics.
   std::unique_ptr<SolverEngine> repcChecker;
-  SubsolverSetupInfo ssi(d_env);
+  LogicInfo lall("ALL");
+  SubsolverSetupInfo ssi(
+      d_env.getOptions(), lall, d_env.getSepLocType(), d_env.getSepDataType());
   // initialize the subsolver using the standard method
   initializeSubsolver(repcChecker,
                       ssi,
@@ -522,102 +509,6 @@ Node SygusRepairConst::getFoQuery(Node body,
   Node fo_body = visited[body];
   Trace("sygus-repair-const-debug") << "  ...got : " << fo_body << std::endl;
   return fo_body;
-}
-
-Node SygusRepairConst::fitToLogic(Node body,
-                                  const LogicInfo& logic,
-                                  Node n,
-                                  const std::vector<Node>& candidates,
-                                  std::vector<Node>& candidate_skeletons,
-                                  std::vector<Node>& sk_vars,
-                                  std::map<Node, Node>& sk_vars_to_subs)
-{
-  std::vector<Node> rm_var;
-  Node exc_var;
-  while (getFitToLogicExcludeVar(logic, n, exc_var))
-  {
-    if (exc_var.isNull())
-    {
-      return n;
-    }
-    Trace("sygus-repair-const") << "...exclude " << exc_var
-                                << " due to logic restrictions." << std::endl;
-    TNode tvar = exc_var;
-    Assert(sk_vars_to_subs.find(exc_var) != sk_vars_to_subs.end());
-    TNode tsubs = sk_vars_to_subs[exc_var];
-    // revert the substitution
-    for (unsigned i = 0, size = candidate_skeletons.size(); i < size; i++)
-    {
-      candidate_skeletons[i] = candidate_skeletons[i].substitute(tvar, tsubs);
-    }
-    // remove the variable
-    sk_vars_to_subs.erase(exc_var);
-    std::vector<Node>::iterator it =
-        std::find(sk_vars.begin(), sk_vars.end(), exc_var);
-    Assert(it != sk_vars.end());
-    sk_vars.erase(it);
-    // reconstruct the query
-    n = getFoQuery(body, candidates, candidate_skeletons, sk_vars);
-    // reset the exclusion variable
-    exc_var = Node::null();
-  }
-  return Node::null();
-}
-
-bool SygusRepairConst::getFitToLogicExcludeVar(const LogicInfo& logic,
-                                               Node n,
-                                               Node& exvar)
-{
-  bool restrictLA = logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear();
-
-  // should have at least one restriction
-  Assert(restrictLA);
-
-  std::unordered_set<TNode> visited;
-  std::unordered_set<TNode>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited.insert(cur);
-      Kind ck = cur.getKind();
-      bool isArithDivKind =
-          (ck == Kind::DIVISION_TOTAL || ck == Kind::INTS_DIVISION_TOTAL
-           || ck == Kind::INTS_MODULUS_TOTAL);
-      Assert(ck != Kind::DIVISION && ck != Kind::INTS_DIVISION
-             && ck != Kind::INTS_MODULUS);
-      if (restrictLA && (ck == Kind::NONLINEAR_MULT || isArithDivKind))
-      {
-        for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)
-        {
-          Node ccur = cur[j];
-          std::map<Node, Node>::iterator itf = d_fo_to_sk.find(ccur);
-          if (itf != d_fo_to_sk.end())
-          {
-            if (ck == Kind::NONLINEAR_MULT || (isArithDivKind && j == 1))
-            {
-              exvar = itf->second;
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-      for (const Node& ccur : cur)
-      {
-        visit.push_back(ccur);
-      }
-    }
-  } while (!visit.empty());
-
-  return true;
 }
 
 }  // namespace quantifiers
