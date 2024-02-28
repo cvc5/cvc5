@@ -62,4 +62,4 @@ class Plugin
 
 }  // namespace cvc5::internal
 
-#endif /*CVC5__EXPR__ORACLE_H*/
+#endif /*CVC5__EXPR__PLUGIN_H*/

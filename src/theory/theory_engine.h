@@ -658,7 +658,7 @@ class TheoryEngine : protected EnvObj
   std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
   /** The list of modules */
   std::vector<theory::TheoryEngineModule*> d_modules;
-  /** User pluging modules */
+  /** User plugin modules */
   std::vector<std::unique_ptr<theory::PluginModule>> d_userPlugins;
 
 }; /* class TheoryEngine */

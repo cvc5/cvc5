@@ -62,4 +62,4 @@ class PluginModule : public TheoryEngineModule
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__PARTITION__GENERATOR_H */
+#endif /* CVC5__THEORY__PLUGIN_MODULE_H */
