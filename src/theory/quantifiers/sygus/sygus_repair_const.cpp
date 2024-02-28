@@ -350,6 +350,7 @@ Node SygusRepairConst::getSkeleton(Node n,
     {
       if (isRepairable(cur, useConstantsAsHoles))
       {
+        // replace the argument of the any-constant constructor with a skolem
         Node sk_var = d_tds->getFreeVarInc(cur[0].getType(), free_var_count);
         sk_var = skm->mkPurifySkolem(sk_var);
         sk_vars.push_back(sk_var);
