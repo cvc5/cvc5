@@ -5,15 +5,15 @@ cvc5 1.1.2
 
 ## New Features
 
-- Added support for nullable sorts and lift operator to the theory of datatypes.
-- Adds a new strategy `--sub-cbqi` (disabled by default) for quantifier
-  instantiation which uses subsolvers to compute unsat cores of instantiations
+- Added support for **nullable** sorts and lift operator to the theory of **datatypes**.
+- Adds a new strategy `--sub-cbqi` (disabled by default) for **quantifier
+  instantiation** which uses subsolvers to compute unsat cores of instantiations
   that are used in proofs of unsatisfiability.
 
 ## Changes
 
 - SAT clauses are no longer marked as removable in MiniSat. This change
-  improves performance overall on quantifier-free logics with arithmetic and
+  **improves performance** overall on quantifier-free logics with arithmetic and
   strings.
 - **API**
   * Functions `kindToString(Kind)` and `sortKindToString(SortKind)` are now
@@ -35,7 +35,7 @@ cvc5 1.1.1
 
 ## New Features
 
-- Added support for forward declarations (feature `:fwd-decls`) in SyGuS
+- Added support for **forward declarations** (feature `:fwd-decls`) in **SyGuS**
   inputs. This allows functions-to-synthesize to include previous
   functions-to-synthesize in their grammars.
 
