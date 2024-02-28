@@ -2081,11 +2081,7 @@ CRef Solver::updateLemmas() {
         }
         SatClause satClause;
         MinisatSatSolver::toSatClause(ca[lemma_ref], satClause);
-<<<<<<< HEAD
-        d_proxy->notifySatClauseInsertedAtLevel(satClause, clauseLevel);
-=======
         d_pfManager->notifyClauseInsertedAtLevel(satClause, clauseLevel);
->>>>>>> 3d74425f9520dee224b15a25b56eacb60b5c06aa
       }
       if (removable) {
         clauses_removable.push(lemma_ref);
