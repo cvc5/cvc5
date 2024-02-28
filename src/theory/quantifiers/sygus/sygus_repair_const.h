@@ -77,25 +77,21 @@ class SygusRepairConst : protected EnvObj
    * Moreover, it is the case that
    *    repair_cv[j] != candidate_values[j], for at least one j.
    * We always consider applications of the "any constant" constructors in
-   * candidate_values to be repairable. In addition, if the flag
-   * useConstantsAsHoles is true, we consider all constants whose (sygus) type
-   * admit alls constants to be repairable.
+   * candidate_values to be repairable.
    * The repaired solution has the property that it satisfies the synthesis
    * conjecture whose body is given by sygusBody.
    */
   bool repairSolution(Node sygusBody,
                       const std::vector<Node>& candidates,
                       const std::vector<Node>& candidate_values,
-                      std::vector<Node>& repair_cv,
-                      bool useConstantsAsHoles = false);
+                      std::vector<Node>& repair_cv);
   /**
    * Same as above, but where sygusBody is the body (base_inst) provided to the
    * call to initialize of this class.
    */
   bool repairSolution(const std::vector<Node>& candidates,
                       const std::vector<Node>& candidate_values,
-                      std::vector<Node>& repair_cv,
-                      bool useConstantsAsHoles = false);
+                      std::vector<Node>& repair_cv);
   /**
    * Return whether this module has the possibility to repair solutions. This is
    * true if this module has been initialized, and at least one candidate has
@@ -138,11 +134,9 @@ class SygusRepairConst : protected EnvObj
   /** is repairable?
    *
    * This returns true if n can be repaired by this class. In particular, we
-   * return true if n is an "any constant" constructor, or it is a constructor
-   * for a constant in a type that allows all constants and useConstantsAsHoles
-   * is true.
+   * return true if n is an "any constant" constructor.
    */
-  static bool isRepairable(Node n, bool useConstantsAsHoles);
+  static bool isRepairable(Node n);
   /** get skeleton
    *
    * Returns a skeleton for sygus datatype value n, where the subterms of n that
@@ -151,14 +145,11 @@ class SygusRepairConst : protected EnvObj
    * replacement are taken from TermDbSygus, where we track indices
    * in free_var_count. Variables we introduce in this way are added to sk_vars.
    * The mapping sk_vars_to_subs contains entries v -> c, where v is a
-   * variable in sk_vars, and c is the term in n that it replaced. The flag
-   * useConstantsAsHoles affects which terms we consider to be repairable.
+   * variable in sk_vars, and c is the term in n that it replaced.
    */
   Node getSkeleton(Node n,
                    std::map<TypeNode, size_t>& free_var_count,
-                   std::vector<Node>& sk_vars,
-                   std::map<Node, Node>& sk_vars_to_subs,
-                   bool useConstantsAsHoles);
+                   std::vector<Node>& sk_vars);
   /** get first-order query
    *
    * This function returns a formula that is equivalent to the negation of the

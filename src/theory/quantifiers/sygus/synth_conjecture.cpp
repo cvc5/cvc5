@@ -390,7 +390,7 @@ bool SynthConjecture::doCheck()
       }
       d_repair_index++;
       if (d_sygus_rconst->repairSolution(
-              d_candidates, fail_cvs, candidate_values, true))
+              d_candidates, fail_cvs, candidate_values))
       {
         constructed_cand = true;
       }

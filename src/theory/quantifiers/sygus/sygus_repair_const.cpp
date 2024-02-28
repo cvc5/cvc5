@@ -105,21 +105,18 @@ bool SygusRepairConst::isActive() const
 
 bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
-                                      std::vector<Node>& repair_cv,
-                                      bool useConstantsAsHoles)
+                                      std::vector<Node>& repair_cv)
 {
   return repairSolution(d_base_inst,
                         candidates,
                         candidate_values,
-                        repair_cv,
-                        useConstantsAsHoles);
+                        repair_cv);
 }
 
 bool SygusRepairConst::repairSolution(Node sygusBody,
                                       const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
-                                      std::vector<Node>& repair_cv,
-                                      bool useConstantsAsHoles)
+                                      std::vector<Node>& repair_cv)
 {
   Assert(candidates.size() == candidate_values.size());
 
@@ -144,12 +141,11 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   std::vector<Node> candidate_skeletons;
   std::map<TypeNode, size_t> free_var_count;
   std::vector<Node> sk_vars;
-  std::map<Node, Node> sk_vars_to_subs;
   for (unsigned i = 0, size = candidates.size(); i < size; i++)
   {
     Node cv = candidate_values[i];
     Node skeleton = getSkeleton(
-        cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
+        cv, free_var_count, sk_vars);
     Assert(skeleton.getType() == cv.getType());
     if (TraceIsOn("sygus-repair-const"))
     {
@@ -294,7 +290,7 @@ bool SygusRepairConst::mustRepair(Node n)
     {
       visited.insert(cur);
       Assert(cur.getKind() == Kind::APPLY_CONSTRUCTOR);
-      if (isRepairable(cur, false))
+      if (isRepairable(cur))
       {
         return true;
       }
@@ -308,7 +304,7 @@ bool SygusRepairConst::mustRepair(Node n)
   return false;
 }
 
-bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
+bool SygusRepairConst::isRepairable(Node n)
 {
   if (n.getKind() != Kind::APPLY_CONSTRUCTOR)
   {
@@ -329,9 +325,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
 
 Node SygusRepairConst::getSkeleton(Node n,
                                    std::map<TypeNode, size_t>& free_var_count,
-                                   std::vector<Node>& sk_vars,
-                                   std::map<Node, Node>& sk_vars_to_subs,
-                                   bool useConstantsAsHoles)
+                                   std::vector<Node>& sk_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* skm = nm->getSkolemManager();
@@ -348,7 +342,7 @@ Node SygusRepairConst::getSkeleton(Node n,
     it = visited.find(cur);
     if (it == visited.end())
     {
-      if (isRepairable(cur, useConstantsAsHoles))
+      if (isRepairable(cur))
       {
         // replace the argument of the any-constant constructor with a skolem
         Node sk_var = d_tds->getFreeVarInc(cur[0].getType(), free_var_count);
