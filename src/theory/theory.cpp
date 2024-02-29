@@ -285,12 +285,12 @@ void Theory::computeCareGraph()
     TypeNode aType = a.getType();
     for (size_t j = i + 1; j < ssize; ++j)
     {
-    TNode b = sharedTerms[j];
-    if (b.getType() != aType)
-    {
+      TNode b = sharedTerms[j];
+      if (b.getType() != aType)
+      {
         // We don't care about the terms of different types
         continue;
-    }
+      }
       switch (d_valuation.getEqualityStatus(a, b)) {
       case EQUALITY_TRUE_AND_PROPAGATED:
       case EQUALITY_FALSE_AND_PROPAGATED:
