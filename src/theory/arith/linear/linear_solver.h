@@ -15,10 +15,10 @@
 
 #pragma once
 
+#include "context/cdhashmap.h"
 #include "smt/env_obj.h"
 #include "theory/arith/linear/theory_arith_private.h"
 #include "theory/theory.h"
-#include "context/cdhashmap.h"
 
 namespace cvc5::internal {
 namespace theory {

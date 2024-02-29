@@ -15,8 +15,8 @@
 
 #include "theory/arith/linear/linear_solver.h"
 
-#include "theory/arith/arith_rewriter.h"
 #include "expr/attribute.h"
+#include "theory/arith/arith_rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -37,10 +37,7 @@ void LinearSolver::finishInit(eq::EqualityEngine* ee)
 void LinearSolver::preRegisterTerm(TNode n) { d_internal.preRegisterTerm(n); }
 void LinearSolver::propagate(Theory::Effort e) { d_internal.propagate(e); }
 
-TrustNode LinearSolver::explain(TNode n)
-{
-  return d_internal.explain(n);
-}
+TrustNode LinearSolver::explain(TNode n) { return d_internal.explain(n); }
 
 void LinearSolver::collectModelValues(const std::set<Node>& termSet,
                                       std::map<Node, Node>& arithModel,
@@ -79,10 +76,7 @@ bool LinearSolver::preCheck(Theory::Effort level, bool newFacts)
 {
   return d_internal.preCheck(level, newFacts);
 }
-void LinearSolver::preNotifyFact(TNode fact)
-{
-  d_internal.preNotifyFact(fact);
-}
+void LinearSolver::preNotifyFact(TNode fact) { d_internal.preNotifyFact(fact); }
 bool LinearSolver::postCheck(Theory::Effort level)
 {
   return d_internal.postCheck(level);
@@ -106,10 +100,7 @@ void LinearSolver::outputTrustedConflict(TrustNode conf, InferenceId id)
   d_im.trustedConflict(conf, id);
 }
 
-void LinearSolver::outputPropagate(TNode lit)
-{
-  d_im.propagateLit(lit);
-}
+void LinearSolver::outputPropagate(TNode lit) { d_im.propagateLit(lit); }
 
 void LinearSolver::spendResource(Resource r) { d_im.spendResource(r); }
 
