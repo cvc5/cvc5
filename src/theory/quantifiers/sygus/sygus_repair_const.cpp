@@ -131,7 +131,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
       TermDbSygus::toStreamSygus(ss, candidate_values[i]);
       Trace("sygus-repair-const")
           << "  " << candidates[i] << " -> " << ss.str() << std::endl;
-      Trace("sygus-repair-const") << "From " << candidate_values[i] << std::endl;
+      Trace("sygus-repair-const")
+          << "From " << candidate_values[i] << std::endl;
     }
     Trace("sygus-repair-const")
         << "Getting candidate skeletons : " << std::endl;

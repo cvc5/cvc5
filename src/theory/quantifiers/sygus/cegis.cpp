@@ -360,7 +360,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
           Kind::OR, d_parent->getConjecture().negate(), expn.negate());
       d_qim.addPendingLemma(
           expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
-      Trace("cegis") << "...solution was processed via repair, success = " << ret << std::endl;
+      Trace("cegis") << "...solution was processed via repair, success = "
+                     << ret << std::endl;
       return ret;
     }
   }
