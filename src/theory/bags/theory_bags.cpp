@@ -76,11 +76,9 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(Kind::BAG_DIFFERENCE_SUBTRACT);
   d_equalityEngine->addFunctionKind(Kind::BAG_DIFFERENCE_REMOVE);
   d_equalityEngine->addFunctionKind(Kind::BAG_COUNT);
-  d_equalityEngine->addFunctionKind(Kind::BAG_DUPLICATE_REMOVAL);
+  d_equalityEngine->addFunctionKind(Kind::BAG_SETOF);
   d_equalityEngine->addFunctionKind(Kind::BAG_MAKE);
   d_equalityEngine->addFunctionKind(Kind::BAG_CARD);
-  d_equalityEngine->addFunctionKind(Kind::BAG_FROM_SET);
-  d_equalityEngine->addFunctionKind(Kind::BAG_TO_SET);
   d_equalityEngine->addFunctionKind(Kind::BAG_PARTITION);
   d_equalityEngine->addFunctionKind(Kind::TABLE_PRODUCT);
   d_equalityEngine->addFunctionKind(Kind::TABLE_PROJECT);
@@ -499,9 +497,6 @@ void TheoryBags::preRegisterTerm(TNode n)
       d_equalityEngine->addTerm(n);
       break;
     }
-    case Kind::BAG_FROM_SET:
-    case Kind::BAG_TO_SET:
-    case Kind::BAG_IS_SINGLETON:
     case Kind::BAG_PARTITION:
     {
       std::stringstream ss;

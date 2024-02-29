@@ -1358,6 +1358,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
+  regress0/quantifiers/dd.german169-lemma-inp.smt2
   regress0/quantifiers/dd.ho-matching-enum.smt2
   regress0/quantifiers/dd.ricart-ieval.smt2
   regress0/quantifiers/dd.javafe-ieval.smt2
@@ -2145,8 +2146,8 @@ set(regress_1_tests
   regress1/bags/ctor_previous_sat.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
-  regress1/bags/duplicate_removal1.smt2
-  regress1/bags/duplicate_removal2.smt2
+  regress1/bags/setof1.smt2
+  regress1/bags/setof2.smt2
   regress1/bags/emptybag1.smt2
   regress1/bags/filter1.smt2
   regress1/bags/filter2.smt2

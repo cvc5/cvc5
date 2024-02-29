@@ -3812,7 +3812,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BAG_MEMBER),
   /**
-   * Bag duplicate removal.
+   * Bag setof.
    *
    * Eliminate duplicates in a given bag. The returned bag contains exactly the
    * same elements in the given bag, but with multiplicity one.
@@ -3835,7 +3835,7 @@ enum ENUM(Kind) : int32_t
    *              future versions.
    * \endrst
    */
-  EVALUE(BAG_DUPLICATE_REMOVAL),
+  EVALUE(BAG_SETOF),
   /**
    * Bag make.
    *
@@ -3908,73 +3908,7 @@ enum ENUM(Kind) : int32_t
    *              future versions.
    * \endrst
    */
-  EVALUE(BAG_CHOOSE),
-  /**
-   * Bag is singleton tester.
-   *
-   * - Arity: ``1``
-   *
-   *   - ``1:`` Term of bag Sort
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  EVALUE(BAG_IS_SINGLETON),
-  /**
-   * Conversion from set to bag.
-   *
-   * - Arity: ``1``
-   *
-   *   - ``1:`` Term of set Sort
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  EVALUE(BAG_FROM_SET),
-  /**
-   * Conversion from bag to set.
-   *
-   * - Arity: ``1``
-   *
-   *   - ``1:`` Term of bag Sort
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  EVALUE(BAG_TO_SET),
+  EVALUE(BAG_CHOOSE),  
   /**
    * Bag map.
    *

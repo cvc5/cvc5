@@ -252,6 +252,8 @@ libcvc5_add_sources(
   prop/kissat.h
   prop/learned_db.cpp
   prop/learned_db.h
+  prop/lemma_inprocess.cpp
+  prop/lemma_inprocess.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
