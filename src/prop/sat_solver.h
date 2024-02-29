@@ -178,7 +178,7 @@ class CDCLTSatSolver : public SatSolver
 
   /**
    * Get proof sketch, which is used if option prop-proof-mode is SKETCH.
-   * @return A rule r and additional arguments args such that the final proof
+   * Get a rule r and additional arguments args such that the final proof
    * will be:
    *   (r :premises (c1..cn) :args (F args))
    * where F is a string corresponding to the file name of a DIMACs file
