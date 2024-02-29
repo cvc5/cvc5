@@ -131,6 +131,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
       TermDbSygus::toStreamSygus(ss, candidate_values[i]);
       Trace("sygus-repair-const")
           << "  " << candidates[i] << " -> " << ss.str() << std::endl;
+      Trace("sygus-repair-const") << "From " << candidate_values[i] << std::endl;
     }
     Trace("sygus-repair-const")
         << "Getting candidate skeletons : " << std::endl;
@@ -186,11 +187,6 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (d_queries.find(fo_body) != d_queries.end())
   {
     Trace("sygus-repair-const") << "...duplicate query." << std::endl;
-    // can exclude the skeleton if the previous query was unsat
-    if (d_unsatQueries.find(fo_body) != d_unsatQueries.end())
-    {
-      excludeSkeleton(candidates, candidate_skeletons);
-    }
     return false;
   }
   d_queries.insert(fo_body);
@@ -232,8 +228,6 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (r.getStatus() == Result::UNSAT)
   {
     d_unsatQueries.insert(fo_body);
-    // can exclude the skeleton
-    excludeSkeleton(candidates, candidate_skeletons);
     Trace("sygus-engine") << "...failed (unsat)" << std::endl;
     return false;
   }
@@ -401,33 +395,6 @@ Node SygusRepairConst::getFoQuery(Node body,
   body = d_tds->rewriteNode(body);
   Trace("sygus-repair-const-debug") << "  ...got : " << body << std::endl;
   return body;
-}
-
-void SygusRepairConst::excludeSkeleton(
-    const std::vector<Node>& candidates,
-    const std::vector<Node>& candidate_skeletons)
-{
-  Assert(candidates.size() == candidate_skeletons.size());
-  std::vector<Node> exp;
-  for (size_t i = 0, tsize = candidates.size(); i < tsize; i++)
-  {
-    Node cprog = candidates[i];
-    if (!d_tds->isPassiveEnumerator(cprog))
-    {
-      // if any candidate is actively generated (i.e. fast), we do not add
-      // the lemma below.
-      return;
-    }
-    Node cval = candidate_skeletons[i];
-    Trace("sygus-repair-const-debug")
-        << "Explain " << cprog << " == " << cval << std::endl;
-    // add to explanation of exclusion
-    d_tds->getExplain()->getExplanationForEquality(cprog, cval, exp);
-  }
-  Node exc_lem = NodeManager::currentNM()->mkAnd(exp);
-  exc_lem = exc_lem.negate();
-  d_qim.lemma(exc_lem,
-              InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE_SKELETON);
 }
 
 }  // namespace quantifiers

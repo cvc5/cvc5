@@ -163,11 +163,6 @@ class SygusRepairConst : protected EnvObj
                   const std::vector<Node>& candidates,
                   const std::vector<Node>& candidate_skeletons,
                   const std::vector<Node>& sk_vars);
-  /**
-   * Exclude the skeleton
-   */
-  void excludeSkeleton(const std::vector<Node>& candidates,
-                       const std::vector<Node>& candidate_skeletons);
 };
 
 }  // namespace quantifiers
