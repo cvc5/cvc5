@@ -24,7 +24,9 @@ using namespace cvc5;
 int main()
 {
   // Create a term manager
+  //! [docs-cpp-quickstart-0 start]
   TermManager tm;
+  //! [docs-cpp-quickstart-0 end]
   // Create a solver
   //! [docs-cpp-quickstart-1 start]
   Solver solver(tm);
