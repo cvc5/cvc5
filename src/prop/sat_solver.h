@@ -177,7 +177,7 @@ class CDCLTSatSolver : public SatSolver
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
   /**
-   * Get proof, which is used if option prop-proof-mode is SKETCH.
+   * Get proof sketch, which is used if option prop-proof-mode is SKETCH.
    * @return A rule r and additional arguments args such that the final proof
    * will be:
    *   (r :premises (c1..cn) :args (F args))
