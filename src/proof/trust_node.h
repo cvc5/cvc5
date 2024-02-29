@@ -96,6 +96,10 @@ class TrustNode
   /** Make a trust node, replacing the original generator */
   static TrustNode mkReplaceGenTrustNode(const TrustNode& orig,
                                          ProofGenerator* g);
+  /** Make a trust node with the given explicit arguments. */
+  static TrustNode mkTrustNode(TrustNodeKind tnk,
+                               Node p,
+                               ProofGenerator* g = nullptr);
   /** The null proven node */
   static TrustNode null();
   ~TrustNode() {}

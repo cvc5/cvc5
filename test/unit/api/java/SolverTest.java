@@ -889,6 +889,24 @@ class SolverTest
                                d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm)));
 
     // mkTerm(Op op, Term child1, Term child2, Term child3) const
+    Sort ssort = d_solver.getStringSort();
+    Sort isort = d_solver.getIntegerSort();
+    Sort xsort = d_solver.mkTupleSort(new Sort[] {ssort, ssort, isort});
+    Sort ysort = d_solver.mkTupleSort(new Sort[] {ssort, isort});
+    Term f = d_solver.defineFun("f",
+        new Term[] {d_solver.mkVar(xsort, "x"), d_solver.mkVar(ysort, "y")},
+        ysort,
+        d_solver.mkTuple(new Term[] {d_solver.mkString("a"),
+            d_solver.mkTerm(ADD, d_solver.mkInteger(1), d_solver.mkInteger(2))}));
+    Term tup = d_solver.mkTuple(
+        new Term[] {d_solver.mkString("foo"), d_solver.mkString("bar"), d_solver.mkInteger(1)});
+    assertDoesNotThrow(
+        ()
+            -> d_solver.mkTerm(d_solver.mkOp(RELATION_AGGREGATE, 0),
+                f,
+                d_solver.mkTuple(new Term[] {d_solver.mkString(""), d_solver.mkInteger(0)}),
+                d_solver.mkTerm(SET_SINGLETON, tup)));
+
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, a, b, a));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.mkTerm(opterm2, d_solver.mkInteger(1), d_solver.mkInteger(1), new Term()));

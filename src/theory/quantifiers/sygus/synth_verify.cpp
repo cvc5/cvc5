@@ -174,7 +174,7 @@ Node SynthVerify::preprocessQueryInternal(Node query)
   {
     // if non-constant, we may need to add recursive function definitions
     FunDefEvaluator* feval = d_tds->getFunDefEvaluator();
-    OracleChecker* ochecker = d_tds->getOracleChecker();
+    OracleChecker* ochecker = d_env.getOracleChecker();
     const std::vector<Node>& fdefs = feval->getDefinitions();
     if (!fdefs.empty() || (ochecker != nullptr && ochecker->hasOracles()))
     {

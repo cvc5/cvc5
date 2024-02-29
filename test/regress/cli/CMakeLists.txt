@@ -1358,6 +1358,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
+  regress0/quantifiers/dd.german169-lemma-inp.smt2
   regress0/quantifiers/dd.ho-matching-enum.smt2
   regress0/quantifiers/dd.ricart-ieval.smt2
   regress0/quantifiers/dd.javafe-ieval.smt2
@@ -1847,6 +1848,7 @@ set(regress_0_tests
   regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/sygus-no-wf.sy
+  regress0/sygus/sygus-no-incremental-err.sy
   regress0/sygus/sygus-uf.sy
   regress0/sygus/uminus_one.sy
   regress0/sygus/univ_3-long-repeat-conflict.sy
@@ -2144,8 +2146,8 @@ set(regress_1_tests
   regress1/bags/ctor_previous_sat.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
-  regress1/bags/duplicate_removal1.smt2
-  regress1/bags/duplicate_removal2.smt2
+  regress1/bags/setof1.smt2
+  regress1/bags/setof2.smt2
   regress1/bags/emptybag1.smt2
   regress1/bags/filter1.smt2
   regress1/bags/filter2.smt2
@@ -2446,7 +2448,6 @@ set(regress_1_tests
   regress1/nl/issue9183-3.smt2
   regress1/nl/issue9183-4.smt2
   regress1/nl/issue9183-5.smt2
-  regress1/nl/issue9420-ll.smt2
   regress1/nl/issue9472-2-cmv.smt2
   regress1/nl/issue9480-pow-pow2.smt2
   regress1/nl/issue9611-lrew.smt2
@@ -3223,6 +3224,7 @@ set(regress_1_tests
   regress1/sygus/crcy-si.sy
   regress1/sygus/cube-nia.sy
   regress1/sygus/d10160.sy
+  regress1/sygus/discussion-10435.sy
   regress1/sygus/discPresent.sy
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
@@ -3325,6 +3327,7 @@ set(regress_1_tests
   regress1/sygus/no-mention.sy
   regress1/sygus/once_2.sy
   regress1/sygus/only-const-grammar.sy
+  regress1/sygus/only-const-grammar2.sy
   regress1/sygus/pbe_multi.sy
   regress1/sygus/phone-1-long.sy
   regress1/sygus/planning-unif.sy
@@ -3682,6 +3685,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # times out after #10396
+  regress1/nl/issue9420-ll.smt2
   # times out on various builds
   regress1/nl/proj-issue231.smt2
   # times out after changes to nl-ext in #8236
