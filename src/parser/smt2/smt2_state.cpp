@@ -118,6 +118,11 @@ void Smt2State::addBitvectorOperators()
   addOperator(Kind::BITVECTOR_USUBO, "bvusubo");
   addOperator(Kind::BITVECTOR_SSUBO, "bvssubo");
   addOperator(Kind::BITVECTOR_SDIVO, "bvsdivo");
+  if (!strictModeEnabled())
+  {
+    addOperator(Kind::BITVECTOR_ITE, "bvite");
+  }
+
 
   addIndexedOperator(Kind::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(Kind::BITVECTOR_REPEAT, "repeat");
@@ -649,7 +654,7 @@ Kind Smt2State::getClosureKind(const std::string& name)
   return Kind::UNDEFINED_KIND;
 }
 
-Term Smt2State::bindDefineFunRec(
+Term Smt2State::setupDefineFunRecScope(
     const std::string& fname,
     const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
     Sort t,
@@ -669,8 +674,7 @@ Term Smt2State::bindDefineFunRec(
   {
     ft = d_solver->mkFunctionSort(sorts, ft);
   }
-
-  // allow overloading
+  // bind now, with overloading
   return bindVar(fname, ft, true);
 }
 
@@ -681,7 +685,6 @@ void Smt2State::pushDefineFunRecScope(
     std::vector<Term>& bvs)
 {
   pushScope();
-
   // bound variables are those that are explicitly named in the preamble
   // of the define-fun(s)-rec command, we define them here
   for (const std::pair<std::string, Sort>& svn : sortedVarNames)
@@ -895,13 +898,10 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::BAG_SUBBAG, "bag.subbag");
     addOperator(Kind::BAG_COUNT, "bag.count");
     addOperator(Kind::BAG_MEMBER, "bag.member");
-    addOperator(Kind::BAG_DUPLICATE_REMOVAL, "bag.duplicate_removal");
+    addOperator(Kind::BAG_SETOF, "bag.setof");
     addOperator(Kind::BAG_MAKE, "bag");
     addOperator(Kind::BAG_CARD, "bag.card");
     addOperator(Kind::BAG_CHOOSE, "bag.choose");
-    addOperator(Kind::BAG_IS_SINGLETON, "bag.is_singleton");
-    addOperator(Kind::BAG_FROM_SET, "bag.from_set");
-    addOperator(Kind::BAG_TO_SET, "bag.to_set");
     addOperator(Kind::BAG_MAP, "bag.map");
     addOperator(Kind::BAG_FILTER, "bag.filter");
     addOperator(Kind::BAG_FOLD, "bag.fold");

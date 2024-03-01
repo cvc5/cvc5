@@ -1,5 +1,6 @@
 ; EXPECT: feasible
-; COMMAND-LINE: --sygus-out=status --lang=sygus2
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-sygus-pbe
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-sygus-repair-const
 (set-logic LIA)
 
 (synth-fun f ((x Int) (y Int)) Int

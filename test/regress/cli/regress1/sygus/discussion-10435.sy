@@ -1,0 +1,33 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic BV)
+(set-option :produce-models true)
+
+(define-sort Byte () (_ BitVec 8))
+(define-sort Bit () (_ BitVec 1))
+
+(define-fun bit-setter ((bitno (_ BitVec 3)) (y Bit) (x Byte)) Byte
+            (ite (= bitno #b111)
+                 (concat y ((_ extract 6 0) x))
+                 (concat ((_ extract 7 7) x) y ((_ extract 5 0) x))))
+
+(synth-fun tbd ((x Byte) (y Bit)) Byte
+           ((Start Byte) (bitno (_ BitVec 3)))
+           ((Start Byte (
+                         x
+                         (bit-setter bitno y x)
+                         ))
+            (bitno (_ BitVec 3) ((Constant (_ BitVec 3))))
+))
+
+(declare-var x Byte)
+(declare-var y Bit)
+
+(constraint
+ (let ((result (tbd x y)))
+   (and
+    (= ((_ extract 7 7) result) y)
+    (= ((_ extract 6 0) result) ((_ extract 6 0) x))
+)))
+
+(check-synth)

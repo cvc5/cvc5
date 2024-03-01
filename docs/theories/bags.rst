@@ -33,7 +33,7 @@ a `cvc5::Solver solver` object.
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Difference subtract  | ``(bag.difference_subtract X Y)``            | ``Term t = solver.mkTerm(Kind::BAG_DIFFERENCE_SUBTRACT, {X, Y});``      |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Duplicate elimination| ``(bag.duplicate_removal X)``                | ``Term t = solver.mkTerm(Kind::BAG_DUPLICATE_REMOVAL, {X});``           |
+| Duplicate elimination| ``(bag.setof X)``                            | ``Term t = solver.mkTerm(Kind::BAG_SETOF, {X});``                       |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Membership           | ``(bag.member x X)``                         | ``Term x = solver.mkConst(solver.getStringSort(), "x");``               |
 |                      |                                              |                                                                         |
@@ -70,7 +70,7 @@ The semantics of supported bag operators is given in the table below.
 +-----------------------------------------------------+-------------------------+------------------------------------------------------------------------------------+
 | difference remove :math:`m_1 \setminus\setminus m_2`| bag.difference_remove   | :math:`\forall e. \; (m_1 \setminus\setminus m_2)(e) = ite(m_2(e) = 0, m_1(e), 0)` |
 +-----------------------------------------------------+-------------------------+------------------------------------------------------------------------------------+
-| duplicate elimination  :math:`\delta(m)`            | bag.duplicate_removal   | :math:`\forall e. \; (\delta(m))(e) = ite(1 \leq m(e), 1, 0)`                      |
+| setof :math:`\delta(m)`                             | bag.setof               | :math:`\forall e. \; (\delta(m))(e) = ite(1 \leq m(e), 1, 0)`                      |
 +-----------------------------------------------------+-------------------------+------------------------------------------------------------------------------------+
 | subbag :math:`m_1 \subseteq m_2`                    | bag.subbag              | :math:`\forall e. \; m_1(e) \leq m_2(e)`                                           |
 +-----------------------------------------------------+-------------------------+------------------------------------------------------------------------------------+

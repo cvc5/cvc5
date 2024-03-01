@@ -111,10 +111,10 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     Node q = pn->getChildren()[0]->getResult();
     const std::vector<Node>& args = pn->getArguments();
-    if (args.size() > q[0].getNumChildren())
+    if (args.size() > 1)
     {
       InferenceId id;
-      if (getInferenceId(args[q[0].getNumChildren()], id))
+      if (getInferenceId(args[1], id))
       {
         d_instRuleIds << id;
       }
