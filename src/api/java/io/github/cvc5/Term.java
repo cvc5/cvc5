@@ -677,11 +677,13 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    */
   public Triplet<Long, Long, Term> getFloatingPointValue()
   {
-    Triplet<Long, Long, Long> triplet = getFloatingPointValue(pointer);
-    return new Triplet<>(triplet.first, triplet.second, new Term(triplet.third));
+    Triplet<String, String, Long> triplet = getFloatingPointValue(pointer);
+    Long exponent = Long.valueOf(triplet.first);
+    Long significand = Long.valueOf(triplet.second);
+    return new Triplet<>(exponent, significand, new Term(triplet.third));
   }
 
-  private native Triplet<Long, Long, Long> getFloatingPointValue(long pointer);
+  private native Triplet<String, String, Long> getFloatingPointValue(long pointer);
 
   /**
    * @return True if the term is a set value.
