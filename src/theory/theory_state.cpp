@@ -21,7 +21,11 @@ namespace cvc5::internal {
 namespace theory {
 
 TheoryState::TheoryState(Env& env, Valuation val)
-    : EnvObj(env), d_valuation(val), d_ee(nullptr), d_conflict(context(), false)
+    : EnvObj(env),
+      d_valuation(val),
+      d_ee(nullptr),
+      d_conflict(context(), false),
+      d_sharedTerms(context())
 {
 }
 
@@ -207,6 +211,8 @@ context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
 }
 
 Valuation& TheoryState::getValuation() { return d_valuation; }
+
+void TheoryState::addSharedTerm(TNode node) { d_sharedTerms.push_back(node); }
 
 }  // namespace theory
 }  // namespace cvc5::internal
