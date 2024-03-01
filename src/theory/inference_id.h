@@ -210,7 +210,7 @@ enum class InferenceId
   BAGS_INTERSECTION_MIN,
   BAGS_DIFFERENCE_SUBTRACT,
   BAGS_DIFFERENCE_REMOVE,
-  BAGS_DUPLICATE_REMOVAL,
+  BAGS_SETOF,
   BAGS_MAP_DOWN,
   BAGS_MAP_DOWN_INJECTIVE,
   BAGS_MAP_UP1,
@@ -342,6 +342,10 @@ enum class InferenceId
   QUANTIFIERS_INST_CBQI_CONFLICT,
   // propagating instantiation from conflict-based instantiation
   QUANTIFIERS_INST_CBQI_PROP,
+  // conflicting instantiation from sub conflict-based instantiation
+  QUANTIFIERS_INST_SUB_CONFLICT,
+  // unsat core from sub conflict-based instantiation
+  QUANTIFIERS_SUB_UC,
   // instantiation from naive exhaustive instantiation in finite model finding
   QUANTIFIERS_INST_FMF_EXH,
   // instantiation from finite model finding based on its model-based algorithm

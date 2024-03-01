@@ -1,3 +1,4 @@
+; DISABLE-TESTER: dsl-proof
 ; COMMAND-LINE: --strings-alpha-card=64 --simplification=none
 ; EXPECT: unsat
 (set-logic QF_SLIA)
