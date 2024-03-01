@@ -20,6 +20,7 @@ import os
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
+from pathlib import Path
 from rw_parser import Parser
 from node import *
 from util import *
@@ -235,7 +236,7 @@ class RewriteDb:
         return f"addRewrites_{self.name}"
 
 
-def gen_individual_rewrite_db(rewrites_file: str, template):
+def gen_individual_rewrite_db(rewrites_file: Path, template):
     """
     Create rewrite rules from one file only.
     """
@@ -246,10 +247,8 @@ def gen_individual_rewrite_db(rewrites_file: str, template):
         }}
     '''
     # calculate the output file name
-    from pathlib import Path
-    output_name = Path(rewrites_file).parent.name
-    assert output_name.isalpha(), \
-        f"Rewrites name must be an identifier: {output_name}"
+    output_name = f"{rewrites_file.parent.name}-{rewrites_file.name}"
+    assert output_name.replace('-', '_').isidentifier(), f"{output_name} must be an identifier"
     output_file = f"rewrites-{output_name}.cpp"
 
     parser = Parser()
@@ -310,7 +309,7 @@ def gen_individual_rewrite_db(rewrites_file: str, template):
                          block_code='\n'.join(block)))
 
     db = RewriteDb(
-        name=output_name,
+        name=output_name.replace('-', '_'),
         filename=output_file,
         ids=ids,
         printer_code=printer_code,
@@ -343,7 +342,7 @@ def gen_rewrite_db(args):
     decl_individual_rewrites = []
     call_individual_rewrites = []
     for rewrites_file in args.rewrites_files:
-        db = gen_individual_rewrite_db(rewrites_file, individual_rewrites_cpp)
+        db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp)
         ids += db.ids
         printer_code += db.printer_code
         decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
