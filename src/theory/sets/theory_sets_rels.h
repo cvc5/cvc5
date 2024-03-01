@@ -34,6 +34,12 @@ namespace sets {
 
 class TheorySetsPrivate;
 
+/**
+ * A prefix tree for tuples and their elements' representatives. 
+ * Suppose we have a tuple representative t = <e1, ..., en>,
+ * then the tuple tree would be 
+ * e1 -> e2 -> ... -> e_n -> t
+*/
 class TupleTrie {
 public:
   /** the data */
@@ -100,7 +106,9 @@ class TheorySetsRels : protected EnvObj
   NodeSet                       d_shared_terms;
 
   std::unordered_set<Node> d_rel_nodes;
+  /** a map from tuples to their elements' representatives*/
   std::map< Node, std::vector<Node> >           d_tuple_reps;
+  /** a map from relation terms to their member tuples*/
   std::map< Node, TupleTrie >                   d_membership_trie;
 
   /** Symbolic tuple variables that has been reduced to concrete ones */

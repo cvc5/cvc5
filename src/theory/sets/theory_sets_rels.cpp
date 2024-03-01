@@ -1024,15 +1024,15 @@ void TheorySetsRels::check(Theory::Effort level)
       joinConstraints = joinConstraints.andNode(equal);
     }
 
-    Node constraint1 = nm->mkNode(Kind::SET_MEMBER, a, A);
-    Node constraint2 = nm->mkNode(Kind::SET_MEMBER, b, B);
+    Node fact1 = nm->mkNode(Kind::SET_MEMBER, a, A);
+    Node fact2 = nm->mkNode(Kind::SET_MEMBER, b, B);
     Node reason = joinConstraints.andNode(exp);
     if (n != exp[1])
     {
       reason = reason.andNode(n.eqNode(exp[1]));
-    }
-    Node conclusion = constraint1.andNode(constraint2);
-    sendInfer(conclusion, InferenceId::SETS_RELS_TABLE_JOIN_DOWN, reason);
+    }    
+    sendInfer(fact1, InferenceId::SETS_RELS_TABLE_JOIN_DOWN, reason);
+    sendInfer(fact2, InferenceId::SETS_RELS_TABLE_JOIN_DOWN, reason);
   }
 
   /*
@@ -1604,7 +1604,7 @@ void TheorySetsRels::check(Theory::Effort level)
   bool TupleTrie::addTerm( Node n, std::vector< Node >& reps, int argIndex ){
     if( argIndex==(int)reps.size() ){
       if( d_data.empty() ){
-        //store n in d_data (this should be interpretted as the "data" and not as a reference to a child)
+        //store n in d_data (this should be interpreted as the "data" and not as a reference to a child)
         d_data[n].clear();
         return true;
       }else{
