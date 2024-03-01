@@ -954,9 +954,10 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
 }
 
 void ProofCnfStream::dumpDimacs(std::ostream& out,
-                                const std::vector<Node>& clauses)
+                                const std::vector<Node>& clauses,
+                                std::vector<Node>& auxUnits)
 {
-  d_cnfStream.dumpDimacs(out, clauses);
+  d_cnfStream.dumpDimacs(out, clauses, auxUnits);
 }
 
 }  // namespace prop

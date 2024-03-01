@@ -93,10 +93,16 @@ class ProofCnfStream : protected EnvObj
 
   /**
    * Dump dimacs of the given clauses to the given output stream.
-   * We use the identifiers for literals computed by this class. All literals
-   * in clauses should be assigned by this class already.
+   * For details, see cnf_stream.h.
    */
   void dumpDimacs(std::ostream& out, const std::vector<Node>& clauses);
+  /**
+   * Same as above, but also prints additional "auxliary unit" clauses.
+   * For details, see cnf_stream.h.
+   */
+  void dumpDimacs(std::ostream& out,
+                  const std::vector<Node>& clauses,
+                  std::vector<Node>& auxUnits);
 
  private:
   /**

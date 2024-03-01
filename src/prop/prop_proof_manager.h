@@ -172,14 +172,37 @@ class PropPfManager : protected EnvObj
   std::vector<Node> getInputClauses();
   /** Retrieve the clauses derived from lemmas */
   std::vector<Node> getLemmaClauses();
+  /** Return lemmas used in the SAT proof. */
+  std::vector<Node> getUnsatCoreClauses(std::ostream* outDimacs = nullptr);
   /**
-   * Return a subset of input clauses + lemma clauses that is unsat.
-   * If minimal is true, we spawn a copy of CaDiCaL to (re)minimize this set.
-   * If outDimacs is non-null, we output to it a DIMACS representation of the
-   * returned set of clauses.
+   * Get minimized assumptions. Returns a vector of nodes which is a
+   * subset of the assumptions (d_assumptions) that appear in the unsat
+   * core. This should be called only an unsat core is available (after
+   * an unsatisfiable check-sat).
    */
-  std::vector<Node> getUnsatCoreClauses(bool minimal,
-                                        std::ostream* outDimacs = nullptr);
+  std::vector<Node> getMinimizedAssumptions();
+  /**
+   * Calculate a subset of cset that is propositionally unsatisfiable.
+   * If sucessful, return true and store this in uc.
+   *
+   * @param cset The set of formulas to compute an unsat core for
+   * @param uc The set of formulas returned as the unsat core
+   * @param outDimacs If provided, we write the DIMACS output of uc to this
+   * stream
+   */
+  bool reproveUnsatCore(const std::unordered_set<Node>& cset,
+                        std::vector<Node>& uc,
+                        std::ostream* outDimacs = nullptr,
+                        CDProof* cdp = nullptr);
+  /**
+   * Add a proof of false to cdp whose free assumptions are a subset of the
+   * clauses (after CNF conversion), which is a union of:
+   * (1) assumptions (d_assumptions),
+   * (2) input clauses (d_inputClauses),
+   * (3) lemma clauses (d_lemmaClauses).
+   * The choice of what to add to cdp is dependent on the prop-proof-mode.
+   */
+  void getProofInternal(CDProof* cdp);
   /** The proofs of this proof manager, which are saved once requested (note the
    * cache is for both the request of the full proof (true) or not (false)).
    *
