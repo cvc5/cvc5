@@ -67,9 +67,9 @@ chmod +x $BASE_DIR/bin/alethe-check.sh
 
 echo ""
 echo "========== How to use Carcara =========="
-echo "Generate a Alethe proof with cvc5 (for terms printed without sharing, use --dag-thresh=0):"
+echo "Generate an Alethe proof with cvc5 (for terms printed without sharing, use --dag-thresh=0):"
 echo "  $CVC_DIR/deps/bin/cvc5-alethe-proof.sh cvc5 <input file> <options>"
-echo "Check a generated proof:"
+echo "Check a proof:"
 echo "  $CVC_DIR/deps/bin/alethe-check.sh <proof file> <input file>"
 echo "Run cvc5 and check the generated proof:"
 echo "  $CVC_DIR/deps/bin/cvc5-alethe-check.sh cvc5 <input file> <options>"
