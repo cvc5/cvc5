@@ -1,3 +1,5 @@
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-codatatypes ((list 0)) (((cons (head Int) (tail list)))))

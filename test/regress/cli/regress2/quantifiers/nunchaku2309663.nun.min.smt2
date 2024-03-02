@@ -1,5 +1,7 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --finite-model-find
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((nat__ 0)) (((Suc__ (_select_Suc___0 nat__)) (zero__))))

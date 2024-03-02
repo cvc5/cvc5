@@ -1,3 +1,5 @@
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_ALL)
 (set-info :status unsat)
 
@@ -17,7 +19,7 @@
 (declare-const dr Int)
 (declare-const r Loc)
 
-(define-fun ten-tree0 ((x Loc) (d Int)) Bool 
+(define-fun ten-tree0 ((x Loc) (d Int)) Bool
 (or (and sep.emp (= x (as sep.nil Loc))) (and (sep (pto x (node d l r)) (and sep.emp (= l (as sep.nil Loc))) (and sep.emp (= r (as sep.nil Loc)))) (= dl (- d 10)) (= dr (+ d 10)))))
 
 (declare-const dy Int)
@@ -25,7 +27,7 @@
 (declare-const dz Int)
 (declare-const z Loc)
 
-(define-fun ord-tree0 ((x Loc) (d Int)) Bool 
+(define-fun ord-tree0 ((x Loc) (d Int)) Bool
 (or (and sep.emp (= x (as sep.nil Loc))) (and (sep (pto x (node d y z)) (and sep.emp (= y (as sep.nil Loc))) (and sep.emp (= z (as sep.nil Loc)))) (<= dy d) (<= d dz))))
 
 ;------- f -------

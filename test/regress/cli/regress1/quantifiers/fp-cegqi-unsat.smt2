@@ -1,3 +1,5 @@
+;; FP not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-info :smt-lib-version 2.6)
 (set-logic FPLRA)
 (set-info :status unsat)

@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; HO not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic HO_UFLIA)
 (set-info :status unsat)
 (declare-fun f (Int Int Int) Int)

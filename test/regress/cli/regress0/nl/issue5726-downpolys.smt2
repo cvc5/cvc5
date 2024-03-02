@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --nl-ext=none --nl-cov
 ; REQUIRES: poly
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_NRA)
 (declare-fun x () Real)
 (declare-fun y () Real)

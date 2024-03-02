@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --enum-inst --enum-inst-stratify
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort $$unsorted 0)
 (declare-fun ssNder1_0 () Bool)

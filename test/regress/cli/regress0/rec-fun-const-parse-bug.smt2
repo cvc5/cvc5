@@ -1,3 +1,5 @@
+;; define-funs-rec not supported in Alethe.
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 

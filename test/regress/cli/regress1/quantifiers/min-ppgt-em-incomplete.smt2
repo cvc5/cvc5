@@ -1,3 +1,5 @@
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort S 0)
@@ -22,4 +24,3 @@
 (assert (forall ((i Int)) (! (not (s e (j (R (vec (j (R (vec l)) c))) i))) :qid Q2)))
 (assert (exists ((z Int)) (! (B (b (s e (j (R (vec (j (R (vec (j (R (vec (h (cm a) (t (K (O err) 0 n) 1) (add (D 1))))) r))) c))) z)))) :qid Q3)))
 (check-sat)
-

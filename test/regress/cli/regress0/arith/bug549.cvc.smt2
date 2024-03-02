@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; unsupported operator ^
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental false)
 (declare-fun a () Real)

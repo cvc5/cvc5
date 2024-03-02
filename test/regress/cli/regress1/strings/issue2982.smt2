@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --strings-exp --re-elim=agg
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 
 (declare-fun var_0 () String)

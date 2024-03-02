@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
+;; HO not supported in Alethe
+; DISABLE-TESTER: alethe
 
 (set-option :incremental false)
 (set-logic HO_ALL)

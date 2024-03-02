@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --nl-ext=full
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_NIA)
 (declare-const n Int)
 (declare-const i1 Int)

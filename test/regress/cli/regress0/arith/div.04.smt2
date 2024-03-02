@@ -1,3 +1,5 @@
+;; unsupported logic
+; DISABLE-TESTER: alethe
 (set-logic QF_NRA)
 (set-info :smt-lib-version 2.6)
 (set-info :status unsat)

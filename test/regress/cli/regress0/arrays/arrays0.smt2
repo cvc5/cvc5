@@ -1,8 +1,10 @@
+;; introduces arrays Skolem
+; DISABLE-TESTER: alethe
 (set-logic QF_AX)
 (set-info :source |
 Benchmarks used in the followin paper:
 Big proof engines as little proof engines: new results on rewrite-based satisfiability procedure
-Alessandro Armando, Maria Paola Bonacina, Silvio Ranise, Stephan Schulz. 
+Alessandro Armando, Maria Paola Bonacina, Silvio Ranise, Stephan Schulz.
 PDPAR'05
 http://www.ai.dist.unige.it/pdpar05/
 

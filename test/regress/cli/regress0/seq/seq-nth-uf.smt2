@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --strings-exp
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_UFSLIA)
 (set-info :status unsat)
 (declare-fun a () (Seq Int))

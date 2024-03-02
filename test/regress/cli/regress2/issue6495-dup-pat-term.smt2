@@ -1,6 +1,8 @@
 ; COMMAND-LINE: -i -q
 ; EXPECT: unsat
 ; DISABLE-TESTER: alf
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort |T@[Int]Int| 0)

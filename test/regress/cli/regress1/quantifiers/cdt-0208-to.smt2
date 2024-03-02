@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort A$ 0)
@@ -765,4 +767,3 @@
 (assert (! (forall ((?v0 A_llist$) (?v1 A_llist_a_llist_prod_a_llist_fun$) (?v2 A_llist_a_llist_prod$) (?v3 A_llist$) (?v4 A_llist_a_llist_prod_a_llist_fun$) (?v5 A_llist_a_llist_prod_set$)) (=> (and (= ?v0 (fun_app$cp ?v1 ?v2)) (and (= ?v3 (fun_app$cp ?v4 ?v2)) (fun_app$i (set.member$ ?v2) ?v5))) (fun_app$i (set.member$ (pair$ ?v0 ?v3)) (image2$ ?v5 ?v1 ?v4)))) :named a419))
 (assert (! (forall ((?v0 A_llist$) (?v1 A_llist$)) (= (the$ (fun_app$ad uncurry$a (fun_app$aa (uwt$ ?v0) ?v1))) (pair$ ?v0 ?v1))) :named a420))
 (check-sat)
-

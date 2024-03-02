@@ -1,7 +1,9 @@
 ; COMMAND-LINE: --nl-ext=full --nl-ext-tplanes
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_UFNRAT)
 (set-info :status unsat)
 (declare-fun x () Real)
-(assert (or (< (sin 0.2) (- 0.1)) (> (sin (- 0.05)) 0.05))) 
+(assert (or (< (sin 0.2) (- 0.1)) (> (sin (- 0.05)) 0.05)))
 (check-sat)

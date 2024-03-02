@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-option :print-success false)
 (set-logic AUFLIAFS)
 (set-info :status unsat)

@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --strings-exp
 ; COMMAND-LINE: --strings-exp --re-elim=agg
+;; introduces RE Skolem
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (set-info :status unsat)
 (declare-fun a () String)

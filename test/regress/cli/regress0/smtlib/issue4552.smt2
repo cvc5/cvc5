@@ -2,6 +2,8 @@
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: unsat
+;; define-const is not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic UF)
 (set-option :global-declarations true)
 

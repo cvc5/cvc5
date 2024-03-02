@@ -1,4 +1,6 @@
 ; DISABLE-TESTER: lfsc
+;; unsupported bitblasting of bvurem
+; DISABLE-TESTER: alethe
 ; DISABLE-TESTER: dsl-proof
 (set-logic QF_BV)
 (set-info :status unsat)
@@ -31,25 +33,25 @@
 (declare-fun a0 () (_ BitVec 10))
 
 (assert
-(or 
-(and 
-	(= a (_ bv0 12))
-	(or (not (= (bvudiv x1 a) (bvudiv x2 a)))
-	    (not (= (bvudiv x1 a) (bvudiv x3 a)))
-	    (not (= (bvudiv x2 a) (bvudiv x3 a))))
-	(or (and (= x1 y1) (= y1 x2))
-	    (and (= x1 z1) (= z1 x2)))
-	(or (and (= x2 y2) (= y2 x3))
-	    (and (= x2 z2) (= z2 x3))))
+(or
+(and
+  (= a (_ bv0 12))
+  (or (not (= (bvudiv x1 a) (bvudiv x2 a)))
+      (not (= (bvudiv x1 a) (bvudiv x3 a)))
+      (not (= (bvudiv x2 a) (bvudiv x3 a))))
+  (or (and (= x1 y1) (= y1 x2))
+      (and (= x1 z1) (= z1 x2)))
+  (or (and (= x2 y2) (= y2 x3))
+      (and (= x2 z2) (= z2 x3))))
 
-(and 
-	(= a0 (_ bv0 10))
-	(or (not (= (bvurem x01 a0) (bvurem x02 a0)))
-	    (not (= (bvurem x01 a0) (bvurem x03 a0)))
-	    (not (= (bvurem x02 a0) (bvurem x03 a0))))
-	(or (and (= x01 y01) (= y01 x02))
-	    (and (= x01 z01) (= z01 x02)))
-	(or (and (= x02 y02) (= y02 x03))
-	    (and (= x02 z02) (= z02 x03))))))
-	    
+(and
+  (= a0 (_ bv0 10))
+  (or (not (= (bvurem x01 a0) (bvurem x02 a0)))
+      (not (= (bvurem x01 a0) (bvurem x03 a0)))
+      (not (= (bvurem x02 a0) (bvurem x03 a0))))
+  (or (and (= x01 y01) (= y01 x02))
+      (and (= x01 z01) (= z01 x02)))
+  (or (and (= x02 y02) (= y02 x03))
+      (and (= x02 z02) (= z02 x03))))))
+
 (check-sat)

@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --nl-ext-tf-tplanes
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_NRAT)
 (set-info :status unsat)
 (declare-fun x1 () Real)

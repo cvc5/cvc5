@@ -1,6 +1,8 @@
 ; COMMAND-LINE: -i
 ; EXPECT: unsat
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_NRAT)
 (declare-const r0 Real)
 (assert (! (>= (sin 97111.0) r0 r0 r0 97111.0) :named IP_3))

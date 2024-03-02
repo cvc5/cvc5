@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --bv-intro-pow2
 ; DISABLE-TESTER: unsat-core
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-info :smt-lib-version 2.6)
 (set-logic QF_BV)
 (set-info :status unsat)

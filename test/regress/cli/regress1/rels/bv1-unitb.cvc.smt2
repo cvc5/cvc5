@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-logic ALL)
 (declare-datatypes ((unitb 0)) (((ub (data (_ BitVec 1))))))

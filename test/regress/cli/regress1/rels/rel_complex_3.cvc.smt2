@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-option :incremental true)
 (set-logic ALL)
 
@@ -33,4 +35,3 @@
 (check-sat)
 
 (pop 1)
-

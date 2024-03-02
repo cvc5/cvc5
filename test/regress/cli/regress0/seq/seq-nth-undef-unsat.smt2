@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --strings-exp
 ;EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun s () (Seq Int))
 (declare-fun n () Int)
@@ -14,4 +16,3 @@
 (assert (< n (seq.len s)))
 (assert (> (seq.len s) 0))
 (check-sat)
-

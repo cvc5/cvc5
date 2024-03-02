@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --strings-exp --strings-fmf
 ; EXPECT: unsat
+;; unsupported str.rev operator
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun x () String)

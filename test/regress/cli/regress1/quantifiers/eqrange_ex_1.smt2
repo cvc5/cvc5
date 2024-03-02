@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --arrays-exp
 ; EXPECT: unsat
 ; DISABLE-TESTER: dsl-proof
+;; unsupported eqrange operator
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :produce-models true)

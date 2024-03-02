@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :check-proofs true)
 (declare-datatypes ((d 0)) (((c (s Bool)) (_c (_s Bool)))))

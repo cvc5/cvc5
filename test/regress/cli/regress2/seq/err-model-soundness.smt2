@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --strings-exp
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort E 0)
 (declare-fun x () (Seq E))

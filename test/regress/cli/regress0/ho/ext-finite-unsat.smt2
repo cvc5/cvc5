@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; HO not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic HO_UF)
 (set-info :status unsat)
 (declare-sort U 0)

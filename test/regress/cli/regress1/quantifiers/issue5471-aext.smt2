@@ -1,3 +1,5 @@
+;; introduces div_by_zero Skolem
+; DISABLE-TESTER: alethe
 (set-logic NRA)
 (set-option :sygus-inst true)
 (set-option :strings-exp true)

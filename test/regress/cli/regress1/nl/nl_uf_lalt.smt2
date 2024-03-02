@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --decision=justification
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_UFNIA)
 (set-info :status unsat)
 (declare-fun c (Int) Int)

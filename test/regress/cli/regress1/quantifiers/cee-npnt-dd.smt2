@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --ee-mode=distributed
 ; COMMAND-LINE: --ee-mode=central
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :fmf-bound true)

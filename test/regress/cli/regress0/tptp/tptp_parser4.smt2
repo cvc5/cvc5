@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --finite-model-find
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort $$unsorted 0)

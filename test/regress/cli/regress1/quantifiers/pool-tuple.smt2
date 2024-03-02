@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --no-cbqi --no-e-matching
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-pool P (Tuple Int Int) ())
 (declare-pool Q Int (0 1 2))

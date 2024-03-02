@@ -1,3 +1,5 @@
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_NIA)
 (set-info :status unsat)
 (declare-fun ld () Int)

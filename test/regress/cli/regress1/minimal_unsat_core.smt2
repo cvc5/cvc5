@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --minimal-unsat-cores
+;; introduces div_by_zero Skolem
+; DISABLE-TESTER: alethe
 (set-logic QF_NIA)
 (set-info :status unsat)
 (declare-fun n () Int)

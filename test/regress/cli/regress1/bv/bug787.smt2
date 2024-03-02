@@ -1,5 +1,7 @@
-; COMMAND-LINE: --bitblast=eager 
+; COMMAND-LINE: --bitblast=eager
 ; EXPECT: unsat
+;; eager bit-blasting not supported by Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_BV)
 (set-info :status unsat)
 (define-fun hamming-weight ((bv (_ BitVec 4))) (_ BitVec 4)
@@ -88,4 +90,3 @@
        (centered (index-bit (_ bv3 4) v0) v0))
       (_ bv8 8)))))
 (check-sat)
-

@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-logic ALL)
 (declare-datatypes ((unit 0)) (((u))))

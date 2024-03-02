@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --ieval=use
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-fun q (Int) Bool)
 (declare-fun k (Int Int) Int)

@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --ieval=use
 ; EXPECT: unsat
+;; Unary OR is not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-const x9 Bool)
 (declare-fun p () Int)

@@ -2,6 +2,8 @@
 ; COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic QF_UFBV)
 (declare-fun z$n0s32 () (_ BitVec 32))
 (declare-fun dataOut () (_ BitVec 32))
@@ -52,7 +54,7 @@
 (assert
  (= z$25 (ite (= stageOne$next z$23) (_ bv1 1) (_ bv0 1))))
 
- 
+
 (assert
  (= z$32 (ite (= tmp_stageOne$next stageOne) (_ bv1 1) (_ bv0 1))))
 (assert

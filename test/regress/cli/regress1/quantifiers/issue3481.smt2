@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --enum-inst --enum-inst-limit=2
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 
 ;; produced by cvc4_16.drv ;;
 (set-info :smt-lib-version 2.6)
@@ -40,7 +42,7 @@
 
 (define-fun real__ref___projection ((a real__ref)) Real (real__content a))
 
-(define-fun us_private__ref___projection ((a us_private__ref)) us_private 
+(define-fun us_private__ref___projection ((a us_private__ref)) us_private
   (us_private__content a))
 
 (define-fun in_range ((x Int)) Bool (or (= x 0) (= x 1)))
@@ -68,7 +70,7 @@
 
 (declare-datatypes ((integer__ref 0))
 (((integer__refqtmk (integer__content integer)))))
-(define-fun integer__ref_integer__content__projection ((a integer__ref)) integer 
+(define-fun integer__ref_integer__content__projection ((a integer__ref)) integer
   (integer__content a))
 
 (define-fun to_rep ((x integer)) Int (integerqtint x))
@@ -82,26 +84,26 @@
 
 (declare-datatypes ((positive__ref 0))
 (((positive__refqtmk (positive__content positive)))))
-(define-fun positive__ref_positive__content__projection ((a positive__ref)) positive 
+(define-fun positive__ref_positive__content__projection ((a positive__ref)) positive
   (positive__content a))
 
 (declare-datatypes ((us_split_fields 0))
 (((us_split_fieldsqtmk
   (rec__test_route__point__x integer)(rec__test_route__point__y integer)))))
-(define-fun us_split_fields_rec__test_route__point__x__projection ((a us_split_fields)) integer 
+(define-fun us_split_fields_rec__test_route__point__x__projection ((a us_split_fields)) integer
   (rec__test_route__point__x a))
 
-(define-fun us_split_fields_rec__test_route__point__y__projection ((a us_split_fields)) integer 
+(define-fun us_split_fields_rec__test_route__point__y__projection ((a us_split_fields)) integer
   (rec__test_route__point__y a))
 
 (declare-datatypes ((us_split_fields__ref 0))
 (((us_split_fields__refqtmk (us_split_fields__content us_split_fields)))))
-(define-fun us_split_fields__ref___split_fields__content__projection ((a us_split_fields__ref)) us_split_fields 
+(define-fun us_split_fields__ref___split_fields__content__projection ((a us_split_fields__ref)) us_split_fields
   (us_split_fields__content a))
 
 (declare-datatypes ((us_rep 0))
 (((us_repqtmk (us_split_fields1 us_split_fields)))))
-(define-fun us_rep___split_fields__projection ((a us_rep)) us_split_fields 
+(define-fun us_rep___split_fields__projection ((a us_rep)) us_split_fields
   (us_split_fields1 a))
 
 
@@ -129,27 +131,27 @@
 
 (declare-datatypes ((point__ref 0))
 (((point__refqtmk (point__content us_rep)))))
-(define-fun point__ref_point__content__projection ((a point__ref)) us_rep 
+(define-fun point__ref_point__content__projection ((a point__ref)) us_rep
   (point__content a))
 
 (declare-datatypes ((us_rep1 0))
 (((us_repqtmk1
   (rec__test_route__point_acc__is_null_pointer Bool)(rec__test_route__point_acc__pointer_address Int)(rec__test_route__point_acc__pointer_value us_rep)))))
-(define-fun us_rep_rec__test_route__point_acc__is_null_pointer__projection ((a us_rep1)) Bool 
+(define-fun us_rep_rec__test_route__point_acc__is_null_pointer__projection ((a us_rep1)) Bool
   (rec__test_route__point_acc__is_null_pointer a))
 
-(define-fun us_rep_rec__test_route__point_acc__pointer_address__projection ((a us_rep1)) Int 
+(define-fun us_rep_rec__test_route__point_acc__pointer_address__projection ((a us_rep1)) Int
   (rec__test_route__point_acc__pointer_address a))
 
-(define-fun us_rep_rec__test_route__point_acc__pointer_value__projection ((a us_rep1)) us_rep 
+(define-fun us_rep_rec__test_route__point_acc__pointer_value__projection ((a us_rep1)) us_rep
   (rec__test_route__point_acc__pointer_value a))
 
 (declare-datatypes ((us_rep__ref 0))
 (((us_rep__refqtmk (us_rep__content us_rep1)))))
-(define-fun us_rep__ref___rep__content__projection ((a us_rep__ref)) us_rep1 
+(define-fun us_rep__ref___rep__content__projection ((a us_rep__ref)) us_rep1
   (us_rep__content a))
 
-(define-fun rec__test_route__point_acc__pointer_value__pred ((a us_rep1)) Bool 
+(define-fun rec__test_route__point_acc__pointer_value__pred ((a us_rep1)) Bool
   (not (= (rec__test_route__point_acc__is_null_pointer a) true)))
 
 (declare-const us_null_pointer us_rep1)
@@ -162,7 +164,7 @@
 
 (declare-datatypes ((t1b__ref 0))
 (((t1b__refqtmk (t1b__content us_rep1)))))
-(define-fun t1b__ref_t1b__content__projection ((a t1b__ref)) us_rep1 
+(define-fun t1b__ref_t1b__content__projection ((a t1b__ref)) us_rep1
   (t1b__content a))
 
 (declare-sort us_main_type 0)
@@ -170,18 +172,18 @@
 (declare-datatypes ((us_rep2 0))
 (((us_repqtmk2
   (rec__test_route__route_acc__is_null_pointer Bool)(rec__test_route__route_acc__pointer_address Int)(rec__test_route__route_acc__pointer_value_abstr us_main_type)))))
-(define-fun us_rep_rec__test_route__route_acc__is_null_pointer__projection ((a us_rep2)) Bool 
+(define-fun us_rep_rec__test_route__route_acc__is_null_pointer__projection ((a us_rep2)) Bool
   (rec__test_route__route_acc__is_null_pointer a))
 
-(define-fun us_rep_rec__test_route__route_acc__pointer_address__projection ((a us_rep2)) Int 
+(define-fun us_rep_rec__test_route__route_acc__pointer_address__projection ((a us_rep2)) Int
   (rec__test_route__route_acc__pointer_address a))
 
-(define-fun us_rep_rec__test_route__route_acc__pointer_value_abstr__projection ((a us_rep2)) us_main_type 
+(define-fun us_rep_rec__test_route__route_acc__pointer_value_abstr__projection ((a us_rep2)) us_main_type
   (rec__test_route__route_acc__pointer_value_abstr a))
 
 (declare-datatypes ((us_rep__ref1 0))
 (((us_rep__refqtmk1 (us_rep__content1 us_rep2)))))
-(define-fun us_rep__ref___rep__content__2__projection ((a us_rep__ref1)) us_rep2 
+(define-fun us_rep__ref___rep__content__2__projection ((a us_rep__ref1)) us_rep2
   (us_rep__content1 a))
 
 
@@ -189,7 +191,7 @@
 
 (declare-datatypes ((t4b__ref 0))
 (((t4b__refqtmk (t4b__content us_rep2)))))
-(define-fun t4b__ref_t4b__content__projection ((a t4b__ref)) us_rep2 
+(define-fun t4b__ref_t4b__content__projection ((a t4b__ref)) us_rep2
   (t4b__content a))
 
 (declare-fun length (us_rep2) Int)
@@ -218,40 +220,40 @@
 
 (declare-datatypes ((natural__ref 0))
 (((natural__refqtmk (natural__content natural)))))
-(define-fun natural__ref_natural__content__projection ((a natural__ref)) natural 
+(define-fun natural__ref_natural__content__projection ((a natural__ref)) natural
   (natural__content a))
 
 (declare-const dummy6 us_rep1)
 
 (declare-datatypes ((point_acc__ref 0))
 (((point_acc__refqtmk (point_acc__content us_rep1)))))
-(define-fun point_acc__ref_point_acc__content__projection ((a point_acc__ref)) us_rep1 
+(define-fun point_acc__ref_point_acc__content__projection ((a point_acc__ref)) us_rep1
   (point_acc__content a))
 
 (declare-const dummy7 us_rep2)
 
 (declare-datatypes ((route_acc__ref 0))
 (((route_acc__refqtmk (route_acc__content us_rep2)))))
-(define-fun route_acc__ref_route_acc__content__projection ((a route_acc__ref)) us_rep2 
+(define-fun route_acc__ref_route_acc__content__projection ((a route_acc__ref)) us_rep2
   (route_acc__content a))
 
 (declare-datatypes ((us_split_fields2 0))
 (((us_split_fieldsqtmk1
   (rec__test_route__route__current us_rep1)(rec__test_route__route__rest us_rep2)))))
-(define-fun us_split_fields_rec__test_route__route__current__projection ((a us_split_fields2)) us_rep1 
+(define-fun us_split_fields_rec__test_route__route__current__projection ((a us_split_fields2)) us_rep1
   (rec__test_route__route__current a))
 
-(define-fun us_split_fields_rec__test_route__route__rest__projection ((a us_split_fields2)) us_rep2 
+(define-fun us_split_fields_rec__test_route__route__rest__projection ((a us_split_fields2)) us_rep2
   (rec__test_route__route__rest a))
 
 (declare-datatypes ((us_split_fields__ref1 0))
 (((us_split_fields__refqtmk1 (us_split_fields__content1 us_split_fields2)))))
-(define-fun us_split_fields__ref___split_fields__content__2__projection ((a us_split_fields__ref1)) us_split_fields2 
+(define-fun us_split_fields__ref___split_fields__content__2__projection ((a us_split_fields__ref1)) us_split_fields2
   (us_split_fields__content1 a))
 
 (declare-datatypes ((us_rep3 0))
 (((us_repqtmk3 (us_split_fields3 us_split_fields2)))))
-(define-fun us_rep___split_fields__2__projection ((a us_rep3)) us_split_fields2 
+(define-fun us_rep___split_fields__2__projection ((a us_rep3)) us_split_fields2
   (us_split_fields3 a))
 
 (declare-const value__size1 Int)
@@ -280,17 +282,17 @@
 
 (declare-datatypes ((route__ref 0))
 (((route__refqtmk (route__content us_rep3)))))
-(define-fun route__ref_route__content__projection ((a route__ref)) us_rep3 
+(define-fun route__ref_route__content__projection ((a route__ref)) us_rep3
   (route__content a))
 
 (declare-fun us_open (us_main_type) us_rep3)
 
 (declare-fun us_close (us_rep3) us_main_type)
 
-(define-fun rec__test_route__route_acc__pointer_value ((a us_rep2)) us_rep3 
+(define-fun rec__test_route__route_acc__pointer_value ((a us_rep2)) us_rep3
   (us_open (rec__test_route__route_acc__pointer_value_abstr a)))
 
-(define-fun rec__test_route__route_acc__pointer_value__pred ((a us_rep2)) Bool 
+(define-fun rec__test_route__route_acc__pointer_value__pred ((a us_rep2)) Bool
   (not (= (rec__test_route__route_acc__is_null_pointer a) true)))
 
 (declare-const us_null_pointer1 us_rep2)
@@ -304,7 +306,7 @@
 
 (declare-datatypes ((t5b__ref 0))
 (((t5b__refqtmk (t5b__content us_rep2)))))
-(define-fun t5b__ref_t5b__content__projection ((a t5b__ref)) us_rep2 
+(define-fun t5b__ref_t5b__content__projection ((a t5b__ref)) us_rep2
   (t5b__content a))
 
 (declare-fun nth_x (us_rep2 Int) Int)
@@ -342,14 +344,14 @@
 
 (declare-datatypes ((int_array__ref 0))
 (((int_array__refqtmk (int_array__content us_t)))))
-(define-fun int_array__ref_int_array__content__projection ((a int_array__ref)) us_t 
+(define-fun int_array__ref_int_array__content__projection ((a int_array__ref)) us_t
   (int_array__content a))
 
 (declare-const dummy11 us_rep2)
 
 (declare-datatypes ((t9b__ref 0))
 (((t9b__refqtmk (t9b__content us_rep2)))))
-(define-fun t9b__ref_t9b__content__projection ((a t9b__ref)) us_rep2 
+(define-fun t9b__ref_t9b__content__projection ((a t9b__ref)) us_rep2
   (t9b__content a))
 
 
@@ -357,14 +359,14 @@
 
 (declare-datatypes ((t21b__ref 0))
 (((t21b__refqtmk (t21b__content us_rep2)))))
-(define-fun t21b__ref_t21b__content__projection ((a t21b__ref)) us_rep2 
+(define-fun t21b__ref_t21b__content__projection ((a t21b__ref)) us_rep2
   (t21b__content a))
 
 (declare-const dummy13 us_rep1)
 
 (declare-datatypes ((t22b__ref 0))
 (((t22b__refqtmk (t22b__content us_rep1)))))
-(define-fun t22b__ref_t22b__content__projection ((a t22b__ref)) us_rep1 
+(define-fun t22b__ref_t22b__content__projection ((a t22b__ref)) us_rep1
   (t22b__content a))
 
 (declare-fun nth_point (us_rep2 Int) us_rep1)
@@ -401,14 +403,14 @@
 
 (declare-datatypes ((t29b__ref 0))
 (((t29b__refqtmk (t29b__content us_rep2)))))
-(define-fun t29b__ref_t29b__content__projection ((a t29b__ref)) us_rep2 
+(define-fun t29b__ref_t29b__content__projection ((a t29b__ref)) us_rep2
   (t29b__content a))
 
 (declare-const dummy15 us_rep1)
 
 (declare-datatypes ((t34b__ref 0))
 (((t34b__refqtmk (t34b__content us_rep1)))))
-(define-fun t34b__ref_t34b__content__projection ((a t34b__ref)) us_rep1 
+(define-fun t34b__ref_t34b__content__projection ((a t34b__ref)) us_rep1
   (t34b__content a))
 
 (declare-const attr__ATTRIBUTE_ADDRESS4 Int)
@@ -476,7 +478,7 @@
         test_route__shift_nth_x__p__assume) (rec__test_route__point_acc__is_null_pointer
                                             temp___brower_235))))
      (= (length temp___borrowed_236) (length o2))))))
-							     
+
 (assert (not (=>
      (and
      (and

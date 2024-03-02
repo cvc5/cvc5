@@ -1,5 +1,7 @@
 ; DISABLE-TESTER: lfsc
 ; EXPECT: unsat
+;; unsupported bitblasting of bvurem
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental false)
 (declare-fun x () (_ BitVec 4))

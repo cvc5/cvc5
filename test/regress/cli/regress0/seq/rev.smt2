@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --seq-array=eager
 ; DISABLE-TESTER: unsat-core
 ; timeout with unsat cores
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (set-info :status unsat)
 

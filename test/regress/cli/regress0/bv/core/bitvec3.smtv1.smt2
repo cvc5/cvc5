@@ -1,5 +1,7 @@
 ; COMMAND-LINE:
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-info :source "Hand-crafted bit-vector benchmarks.  Some are from the SVC benchmark suite.
 Contributed by Vijay Ganesh (vganesh@stanford.edu).  Translated into SMT-LIB

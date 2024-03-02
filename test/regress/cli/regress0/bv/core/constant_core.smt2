@@ -1,11 +1,13 @@
 ; COMMAND-LINE:
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic QF_BV)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-fun x () (_ BitVec 3))
-(assert (and 
+(assert (and
 (= ((_ extract 1 0) x) (concat ((_ extract 1 1) x) ((_ extract 0 0) x)))
 (= ((_ extract 0 0) x) ((_ extract 1 1) x))
 (= ((_ extract 2 2) x) ((_ extract 1 1) x))

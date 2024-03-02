@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --lang=smt2.6
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatype Color ( ( red ) ( green ) ( blue ) ))

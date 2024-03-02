@@ -1,6 +1,8 @@
+;; slow conversion
+; DISABLE-TESTER: alethe
 (set-logic QF_IDL)
 (set-info :source |
-Queuing lock algorithm by Kazuhiro Ogata (ogata@jaist.ac.jp). 
+Queuing lock algorithm by Kazuhiro Ogata (ogata@jaist.ac.jp).
 Translated into CVC format by Leonardo de Moura.
 
 This benchmark was automatically translated into SMT-LIB format from

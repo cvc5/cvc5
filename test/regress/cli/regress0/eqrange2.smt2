@@ -1,3 +1,5 @@
+;; unsupported eqrange operator
+; DISABLE-TESTER: alethe
 (set-logic AUFBV)
 (set-option :arrays-exp true)
 (set-info :status unsat)

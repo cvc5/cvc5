@@ -1,3 +1,5 @@
+;; unsupported bvite operator
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_BV)
@@ -6,8 +8,8 @@
 (declare-const c (_ BitVec 1))
 (declare-const x (_ BitVec 4))
 (assert (not (=
-	(bvite c #b0 #b1)
-	(bvnot c)
-	)))
+  (bvite c #b0 #b1)
+  (bvnot c)
+  )))
 (check-sat)
 (exit)

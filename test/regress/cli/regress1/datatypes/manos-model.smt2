@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((tuple2!879 0)) (((tuple2!879!880 (_1!881 Int) (_2!882 Int)))))

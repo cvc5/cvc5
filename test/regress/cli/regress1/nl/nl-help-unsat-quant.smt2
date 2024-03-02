@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --nl-ext=full
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic UFNIA)
 (set-info :status unsat)
 (set-info :source |Benchmarks from the paper: "Extending Sledgehammer with SMT Solvers" by Jasmin Blanchette, Sascha Bohme, and Lawrence C. Paulson, CADE 2011.  Translated to SMT2 by Andrew Reynolds and Morgan Deters.|)

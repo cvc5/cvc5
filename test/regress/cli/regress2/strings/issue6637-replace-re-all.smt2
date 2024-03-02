@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --strings-exp
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (declare-fun a () String)
 (assert (= (str.len a) 2))

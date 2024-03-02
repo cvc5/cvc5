@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --no-jh-rlv-order
 ; EXPECT: unsat
+;; introduces div_by_zero Skolem
+; DISABLE-TESTER: alethe
 (set-logic AUFBVFPDTNIRA)
 (set-info :status unsat)
 (set-info :smt-lib-version 2.6)

@@ -1,3 +1,5 @@
+;; Bags not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (set-info :status unsat)
 (set-option :uf-lazy-ll true)

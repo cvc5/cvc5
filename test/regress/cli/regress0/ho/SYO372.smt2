@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --mbqi
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (set-info :status unsat)
 (declare-sort $$unsorted 0)

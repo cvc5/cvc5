@@ -3,6 +3,7 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: alf
+; DISABLE-TESTER: alethe
 (set-logic QF_UFLIA)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")

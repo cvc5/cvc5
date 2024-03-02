@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-const x (Array Bool Bool))
 (declare-const x4 (Array Bool (Array Bool Bool)))

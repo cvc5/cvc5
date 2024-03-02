@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --strings-exp
+;; operator str.indexof_re not supported
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (declare-const x String)
 (assert (or

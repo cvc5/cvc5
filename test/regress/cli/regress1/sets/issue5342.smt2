@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --sets-ext
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun S () (Set Int))

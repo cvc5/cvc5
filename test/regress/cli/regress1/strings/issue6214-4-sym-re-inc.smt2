@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun a () String)
 (declare-fun b () String)

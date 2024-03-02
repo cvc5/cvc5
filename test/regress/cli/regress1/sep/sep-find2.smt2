@@ -1,3 +1,5 @@
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_SEP_LIA)
 (set-info :status unsat)
 (declare-heap (Int Int))
@@ -13,7 +15,7 @@
 (declare-const a1 Int)
 (declare-const a2 Int)
 
-(assert (and 
+(assert (and
 (sep (pto x1 a1) (pto x2 a2) (pto x4 a2) (pto x5 a2) (pto x6 a2) (pto x7 a2))
 (sep (pto x1 a1) (pto x3 a2))
 ))

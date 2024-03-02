@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --sygus-inst
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort a 0)
 (declare-datatypes ((t 0)) (((L (s a)))))

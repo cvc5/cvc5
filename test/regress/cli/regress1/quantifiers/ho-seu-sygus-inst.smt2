@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --sygus-inst
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-sort u 0)
 (declare-fun tptp.funcImageSingleton () Bool)
@@ -26,4 +28,3 @@
 (assert (= tptp.funcImageSingleton (forall ((A u) (B u) (Xf u)) (=> (@ (@ (@ tptp.func A) B) Xf) (forall ((Xx u)) (=> (@ (@ tptp.in Xx) A) (@ tptp.singleton (@ (@ tptp.dsetconstr B) (lambda ((Xy u)) (@ (@ tptp.in (@ (@ tptp.kpair Xx) Xy)) Xf))))))))))
 (assert (not (=> tptp.dsetconstrEL (=> tptp.theprop (=> tptp.funcImageSingleton (forall ((A u) (B u) (Xf u)) (=> (@ (@ (@ tptp.func A) B) Xf) (forall ((Xx u)) (=> (@ (@ tptp.in Xx) A) (@ (@ tptp.in (@ tptp.setunion (@ (@ tptp.dsetconstr B) (lambda ((Xy u)) (@ (@ tptp.in (@ (@ tptp.kpair Xx) Xy)) Xf))))) B))))))))))
 (check-sat)
-

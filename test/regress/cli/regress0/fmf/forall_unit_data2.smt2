@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort a 0)
 (declare-datatypes ((prod 0)) (((Pair (gx a) (gy a)))))

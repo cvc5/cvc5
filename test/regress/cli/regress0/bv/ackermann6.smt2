@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --ackermann
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic QF_UFBV)
 
 (declare-sort S 0)
@@ -28,4 +30,3 @@
 
 (check-sat)
 (exit)
-

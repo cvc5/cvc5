@@ -1,3 +1,5 @@
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :nl-ext light)

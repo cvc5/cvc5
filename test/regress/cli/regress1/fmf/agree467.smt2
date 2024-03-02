@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
 ; DISABLE-TESTER: alf
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 ; Preamble  --------------
 (set-logic AUFDTLIA)
 (set-info :status unsat)

@@ -1,3 +1,5 @@
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_ALL)
 (set-info :status unsat)
 (set-option :produce-models true)

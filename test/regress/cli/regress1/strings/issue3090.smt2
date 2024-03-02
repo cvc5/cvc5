@@ -1,3 +1,5 @@
+;; introduces RE Skolem
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :strings-exp true)
 (set-info :status unsat)

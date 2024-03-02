@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --mbqi
 ; EXPECT: unsat
+;; HO not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-sort $$unsorted 0)
 (declare-fun tptp.in ($$unsorted $$unsorted) Bool)

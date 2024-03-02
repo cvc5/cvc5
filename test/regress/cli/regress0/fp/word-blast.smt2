@@ -2,6 +2,8 @@
 ; DISABLE-TESTER: dsl-proof
 ; COMMAND-LINE: --fp-lazy-wb
 ; EXPECT: unsat
+;; FP is not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_BVFP)
 (declare-fun meters_ackermann!0 () (_ BitVec 64))
 (assert

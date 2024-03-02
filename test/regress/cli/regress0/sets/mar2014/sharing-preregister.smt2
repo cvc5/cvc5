@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_UFLIAFS)
 (declare-fun a () Int)
 (declare-fun b () Int)

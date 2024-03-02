@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --strings-exp --seq-array=eager
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (set-info :status unsat)
 

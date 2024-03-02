@@ -1,5 +1,7 @@
 ;COMMAND-LINE: --dt-nested-rec --strings-exp
 ;EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun tickleBool (Bool) Bool)
 (assert (and (tickleBool true) (tickleBool false)))

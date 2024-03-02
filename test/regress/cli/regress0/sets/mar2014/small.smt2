@@ -1,5 +1,7 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --simplification=none
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 
 ; demostrates core issue with UniqueZipper.hs.1030minimized.cvc4.smt2
 ; unlike original benchmark, this is unsat.

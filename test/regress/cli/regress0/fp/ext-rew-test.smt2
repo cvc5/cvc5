@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --ext-rew-prep=agg
 ; EXPECT: unsat
+;; FP is not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-info :smt-lib-version 2.6)
 (set-logic QF_FP)
 (set-info :category "crafted")

@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
+;; introduces RE Skolem
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-const X String)

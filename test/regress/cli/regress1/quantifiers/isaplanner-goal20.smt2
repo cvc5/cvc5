@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --quant-ind --conjecture-gen
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic UFDTLIA)
 (set-info :status unsat)
 (declare-datatypes ((Nat 0)) (((succ (pred Nat)) (zero))
@@ -63,4 +65,3 @@
 (assert (not (forall ((l Lst)) (= (len (sort l)) (len l)) )))
 (check-sat)
 (exit)
-

@@ -1,8 +1,10 @@
 ; COMMAND-LINE: --seq-array=lazy
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (declare-fun s () (Seq Int))
 (declare-fun j () Int)
-(assert (and 
+(assert (and
   (= (seq.unit 0) (str.update s 0 (seq.unit 0)))
   (distinct
     (seq.nth s j)

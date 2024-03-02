@@ -5,6 +5,8 @@
 ; COMMAND-LINE: --iand-mode=bitwise --bvand-integer-granularity=3
 ; COMMAND-LINE: --iand-mode=bitwise --bvand-integer-granularity=4
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_NIA)
 (set-info :status unsat)
 (declare-fun x () Int)

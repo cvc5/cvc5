@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental false)
 (declare-datatypes ((nat 0)(nat2 0)) (((succ (pred nat2)) (zero))((succ2 (pred2 nat)) (zero2))))

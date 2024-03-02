@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; introduces div_by_zero Skolem
+; DISABLE-TESTER: alethe
 (set-logic QF_NIA)
 (set-info :smt-lib-version 2.6)
 (set-info :status unsat)

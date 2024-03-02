@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental true)
 (declare-datatypes ((DT1 0)) (((DT1_a) (DT1_b) (DT1_c) (DT1_d) (DT1_e) (DT1_f) (DT1_g) (DT1_h) (DT1_i) (DT1_j) (DT1_k) (DT1_l) (DT1_m) (DT1_n) (DT1_o) (DT1_p) (DT1_q) (DT1_r) (DT1_s) (DT1_t) (DT1_u) (DT1_v) (DT1_w) (DT1_x) (DT1_y) (DT1_z))))
@@ -30,4 +32,3 @@
 (check-sat)
 
 (pop 1)
-

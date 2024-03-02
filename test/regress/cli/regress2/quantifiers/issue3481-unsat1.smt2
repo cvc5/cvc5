@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 
 ;; produced by cvc4_16.drv ;;
 (set-logic AUFBVDTNIRA)
@@ -42,7 +44,7 @@
 
 (define-fun real__ref___projection ((a real__ref)) Real (real__content a))
 
-(define-fun us_private__ref___projection ((a us_private__ref)) us_private 
+(define-fun us_private__ref___projection ((a us_private__ref)) us_private
   (us_private__content a))
 
 (define-fun abs1 ((x Int)) Int (ite (<= 0 x) x (- x)))
@@ -197,7 +199,7 @@
 
 (declare-datatypes ((integer__ref 0))
 (((integer__refqtmk (integer__content integer)))))
-(define-fun integer__ref_integer__content__projection ((a integer__ref)) integer 
+(define-fun integer__ref_integer__content__projection ((a integer__ref)) integer
   (integer__content a))
 
 (define-fun dynamic_invariant ((temp___expr_18 Int) (temp___is_init_14 Bool)

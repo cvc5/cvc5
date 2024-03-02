@@ -1,8 +1,10 @@
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_ALL)
 (set-info :status unsat)
 
 ; What was the bug?
-; 
+;
 ; When asserting equality to equality engine, correct reason
 ; was not being sent (the fact itself was being sent as reason)
 

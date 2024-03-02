@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --strings-exp
+;; introduces RE Skolem
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (declare-fun a () String)
 ; A complicated way of saying a = "b"

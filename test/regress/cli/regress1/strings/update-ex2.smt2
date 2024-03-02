@@ -1,3 +1,5 @@
+;; unsupported str.update operator
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (set-option :strings-exp true)
 (set-info :status unsat)

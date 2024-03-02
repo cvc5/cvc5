@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --finite-model-find --uf-ss=no-minimal
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-datatypes ((Statement!1556 0) (Expression!1578 0) (List!1617 0)) (
 ((Assign!1557 (varID!1558 (_ BitVec 32)) (expr!1559 Expression!1578)) (Block!1560 (body!1561 List!1617)) (For!1562 (init!1563 Statement!1556) (expr!1564 Expression!1578) (step!1565 Statement!1556) (body!1566 Statement!1556)) (IfThenElse!1567 (expr!1568 Expression!1578) (then!1569 Statement!1556) (elze!1570 Statement!1556)) (Print!1571 (msg!1572 (_ BitVec 32)) (varID!1573 (_ BitVec 32))) (Skip!1574) (While!1575 (expr!1576 Expression!1578) (body!1577 Statement!1556)))

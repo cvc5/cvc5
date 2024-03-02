@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((St 0) (Ex 0) (List!2293 0))

@@ -1,10 +1,12 @@
 ; COMMAND-LINE: --fmf-fun
 ; EXPECT: unsat
+;; introduces div_by_zero Skolem
+; DISABLE-TESTER: alethe
 (set-logic UFNIA)
 (set-info :status unsat)
-(define-fun-rec pow ((a Int)(b Int)) Int 
-    (ite (<= b 0) 
-         1 
+(define-fun-rec pow ((a Int)(b Int)) Int
+    (ite (<= b 0)
+         1
          (* a (pow a (- b 1)))))
 
 (declare-fun x () Int)

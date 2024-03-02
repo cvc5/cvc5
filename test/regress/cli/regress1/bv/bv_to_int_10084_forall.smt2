@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --solve-bv-as-int=iand
 ; EXPECT: unsat
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 
 ;; produced by cvc4_16.drv ;;
 (set-logic AUFBVFPDTNIRA)
@@ -69,4 +71,3 @@
             (=> (f1__function_guard (f1 Tuple0) Tuple0) (= (f1 Tuple0) 1)))))))))
 
 (check-sat)
-

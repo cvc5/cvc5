@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic LRA)
 (declare-const x Bool)

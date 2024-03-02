@@ -2,6 +2,8 @@
 ; DISABLE-TESTER: alf
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: unsat
+;; FP not supported in Alethe
+; DISABLE-TESTER: alethe
 
 (set-logic FP)
 (set-info :source |Written by Mathias Preiner for issue #2932|)
@@ -13,8 +15,8 @@
 (declare-const t FP)
 (assert
   (distinct
-    (= t (fp.roundToIntegral RNA t))  
-    (exists ((x FP)) (= (fp.roundToIntegral RNA x) t)) 
+    (= t (fp.roundToIntegral RNA t))
+    (exists ((x FP)) (= (fp.roundToIntegral RNA x) t))
  )
 )
 (check-sat)

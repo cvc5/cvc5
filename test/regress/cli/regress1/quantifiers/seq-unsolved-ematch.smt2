@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --strings-exp --full-saturate-quant
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 
 (declare-fun s () (Seq Int))

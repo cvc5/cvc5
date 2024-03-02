@@ -1,8 +1,10 @@
+;; slow conversion
+; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-info :source "CADE ATP System competition. See http://www.cs.miami.edu/~tptp/CASC
- for more information. 
+ for more information.
 
-This benchmark was obtained by trying to find a finite model of a first-order 
+This benchmark was obtained by trying to find a finite model of a first-order
 formula (Albert Oliveras).")
 (set-info :status unsat)
 (set-info :category "crafted")

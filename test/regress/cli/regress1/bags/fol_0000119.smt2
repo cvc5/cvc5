@@ -1,3 +1,5 @@
+;; Bags are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 
 (set-option :fmf-bound true)

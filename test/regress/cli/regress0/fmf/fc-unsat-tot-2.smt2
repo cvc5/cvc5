@@ -1,3 +1,5 @@
+;; unsupported fmf.card operator
+; DISABLE-TESTER: alethe
 (set-logic UFC)
 (set-info :status unsat)
 

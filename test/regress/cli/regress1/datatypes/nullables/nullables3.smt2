@@ -1,4 +1,6 @@
 ; DISABLE-TESTER: alf
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun x () (Nullable Int))

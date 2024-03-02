@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
+;; introduces STRINGS_ITOS_RESULT Skolem
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-const x Int)

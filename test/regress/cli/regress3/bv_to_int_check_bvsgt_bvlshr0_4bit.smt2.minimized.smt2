@@ -5,6 +5,8 @@
 ; COMMAND-LINE:  --solve-bv-as-int=iand --iand-mode=bitwise
 ; COMMAND-LINE:  --solve-bv-as-int=iand --iand-mode=value
 ; EXPECT: unsat
+;; unsupported int.pow2 operator
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun t () (_ BitVec 4))
 (declare-fun s () (_ BitVec 4))

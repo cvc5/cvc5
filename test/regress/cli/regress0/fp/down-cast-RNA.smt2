@@ -1,6 +1,7 @@
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: unsat
-
+;; FP is not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_FP)
 (set-info :source |Written by Andres Noetzli for issue #2183|)
 (set-info :smt-lib-version 2.6)

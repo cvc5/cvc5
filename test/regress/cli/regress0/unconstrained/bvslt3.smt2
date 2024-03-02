@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --unconstrained-simp
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic QF_AUFBVLIA)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")

@@ -1,3 +1,5 @@
+;; Datatypes are not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-info :smt-lib-version 2.6)
 (set-logic UFDT)
 (set-info :status unsat)
@@ -63,7 +65,7 @@
 (declare-fun case_enat$ (Nat_bool_fun$) Bool_enat_bool_fun_fun$)
 (declare-fun greatest$a () Nat_bool_fun_nat_fun$)
 (declare-fun greatestM$ (Nat_nat_fun$) Nat_bool_fun_nat_fun$)
-(assert (and 
+(assert (and
 (forall ((?v0 Nat$) (?v1 A_stream_bool_fun$) (?v2 A_stream$)) (=> (fun_app$a (less$a (enat$ ?v0)) (sfirst$ ?v1 ?v2)) (not (fun_app$f ?v1 (sdrop$ ?v0 ?v2)))) )
 (not (fun_app$a (less_eq$a (sfirst$ p$ omega$)) (enat$ (suc$ ia$))))
 (fun_app$f p$ (sdrop$ (suc$ ia$) omega$))

@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --strings-exp
+;; operator str.indexof_re_a not supported
+; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (declare-fun i () Int)
 (declare-fun a () String)

@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --full-saturate-quant --no-ho-matching --ho-elim-store-ax
 ; EXPECT: unsat
+;; HO not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-sort $$unsorted 0)
 (declare-sort tptp.a 0)

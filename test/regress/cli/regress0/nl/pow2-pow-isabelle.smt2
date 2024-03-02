@@ -1,7 +1,9 @@
-; COMMAND-LINE: --solve-bv-as-int=sum --nl-ext-tplanes 
+; COMMAND-LINE: --solve-bv-as-int=sum --nl-ext-tplanes
 ; EXPECT: unsat
 ; causes exception with large exponents on some builds
 ; DISABLE-TESTER: unsat-core
+;; operator pow2 not supported
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun x$ () (_ BitVec 32))
 (declare-fun y$ () (_ BitVec 32))

@@ -1,3 +1,5 @@
+;; slow conversion
+; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-info :source "Relaxation of the Mixed-Integer Programming
 optimization problem pp08a from the MIPLIB (http://miplib.zib.de/)

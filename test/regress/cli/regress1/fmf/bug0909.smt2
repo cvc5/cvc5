@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 ; Preamble  --------------
 (set-option :produce-models true)
 (set-logic ALL)

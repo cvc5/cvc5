@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --jh-rlv-order
 ; EXPECT: unsat
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-logic ALL)
 

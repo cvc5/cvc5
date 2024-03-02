@@ -7,6 +7,8 @@
 ; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=sum
 ; COMMAND-LINE: --solve-bv-as-int=bv
 ; EXPECT: unsat
+;; unsupported int.pow2 operator
+; DISABLE-TESTER: alethe
 (set-logic QF_BV)
 (declare-fun s () (_ BitVec 4))
 (declare-fun t () (_ BitVec 4))
