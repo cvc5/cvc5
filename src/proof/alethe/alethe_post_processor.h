@@ -100,6 +100,8 @@ class AletheProofPostprocessCallback : protected EnvObj,
    *of more than one argument it corresponds to or otherwise it is the identity.
    **/
   Node d_cl;
+  /** Util for substitutions */
+  Node d_becomes;
   /**
    * This method adds a new ALETHE_RULE step to the proof, with `rule` as the
    * first argument, the original conclusion `res` as the second and

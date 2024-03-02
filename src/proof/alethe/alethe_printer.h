@@ -86,25 +86,24 @@ class AletheProofPrinter : protected EnvObj
    *
    * @param out The stream to write to
    * @param pfn The proof node to be printed
-   * @param assumptions The list of assumptions made before the current step,
-   * that are visible as premises to that step
-   * @param steps The list of steps occurring before the current step, that are
-   * visible as premises to that step
-   * @param current_prefix The current prefix which is updated whenever a
-   * subproof is encountered E.g., the prefix "t19.t2." is used when we are
-   * under a subproof started at step "t19" and another at "t2" without leaving
-   * the first subproof.
-   * @param current_step_id The id of a step within a subproof (without the
-   * prefix).
-   * @return The full id (including the prefix) of the last step of pfn.
+   * @param assumptionsMap Map from proof nodes to their ids. Since these ids
+   * are arbitrary symbols for assumptions (which could be defined using user
+   * names), the map ranges over strings. Note that since subproofs may not
+   * refer to steps outside of them, this map is fresh for each subproof.
+   * @param pfMap Map from proof nodes to their ids. Since the step ids are auto
+   * generated, we rely on integers. As above, this map is fresh per subproof.
+   * @param prefix The prefix to be used when printing ids. E.g., the prefix
+   * "t19.t2." is used when we are under a subproof started at step "t19" and
+   * another at "t2" without leaving the first subproof.
    */
-  std::string printInternal(
+  void printInternal(
       std::ostream& out,
+      const std::string& prefix,
+      size_t& id,
       std::shared_ptr<ProofNode> pfn,
-      std::unordered_map<Node, std::string>& assumptions,
-      std::unordered_map<std::shared_ptr<ProofNode>, std::string>& steps,
-      std::string current_prefix,
-      uint32_t& current_step_id);
+      std::unordered_map<Node, std::string>& assumptionsMap,
+      std::unordered_map<std::shared_ptr<ProofNode>, std::string>& pfMap);
+
 
   /** Print term into stream
    *
@@ -112,6 +111,12 @@ class AletheProofPrinter : protected EnvObj
    * for converting the term before printing.
    */
   void printTerm(std::ostream& out, TNode n);
+
+  void printStepId(
+      std::ostream& out,
+      std::shared_ptr<ProofNode> pfn,
+      std::unordered_map<Node, std::string>& assumptionsMap,
+      std::unordered_map<std::shared_ptr<ProofNode>, std::string>& pfMap);
 
   /** The let binder for printing with sharing. */
   AletheLetBinding d_lbind;
