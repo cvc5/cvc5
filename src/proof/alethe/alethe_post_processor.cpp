@@ -2434,7 +2434,7 @@ bool AletheProofPostprocessCallback::updatePost(
         polIdx = 2 * (i - 1) + 3 + 1;
         pivIdx = 2 * (i - 1) + 3;
         if (children[i].getKind() == Kind::OR
-            && (args[polIdx] != d_false || args[pivIdx] != children[i]))
+            && (args[polIdx] != d_false || args[pivIdx] != d_anc.convert(children[i])))
         {
           // the arguments will have been converted to witness form already, so
           // we also check whether after conversion the child is still not the
@@ -2483,7 +2483,7 @@ bool AletheProofPostprocessCallback::updatePost(
         // premise is a singleton but the rule concluding it yields a clause.
         else if (children[i].getKind() == Kind::OR)
         {
-          Assert(args[polIdx] == d_false && args[pivIdx] == children[i]);
+          Assert(args[polIdx] == d_false && args[pivIdx] == d_anc.convert(children[i]));
           if (maybeReplacePremiseProof(children[i], cdp))
           {
             hasUpdated = true;
