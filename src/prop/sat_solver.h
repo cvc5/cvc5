@@ -170,7 +170,22 @@ class CDCLTSatSolver : public SatSolver
    */
   virtual std::vector<Node> getOrderHeap() const = 0;
 
+  /**
+   * Get proof, which is used if option prop-proof-mode is PROOF.
+   * @return a complete proof computed by this SAT solver.
+   */
   virtual std::shared_ptr<ProofNode> getProof() = 0;
+
+  /**
+   * Get proof sketch, which is used if option prop-proof-mode is SKETCH.
+   * Get a rule r and additional arguments args such that the final proof
+   * will be:
+   *   (r :premises (c1..cn) :args (F args))
+   * where F is a string corresponding to the file name of a DIMACs file
+   * for an unsat core of derived clauses (input or theory lemma) c1...cn.
+   * @return The above rule and arguments packaged as a std::pair.
+   */
+  virtual std::pair<ProofRule, std::vector<Node>> getProofSketch() = 0;
 
 }; /* class CDCLTSatSolver */
 

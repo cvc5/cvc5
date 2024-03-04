@@ -497,7 +497,7 @@ void TermDbSygus::registerEnumerator(Node e,
   // values for arguments of any-constant constructors (in sygus_explain.cpp),
   // hence those blocking lemmas are refutation unsound. For simplicity, we
   // mark unsound once and for all at the beginning, meaning we do not
-  // answer "infeasible" when using smart enuemration + any-constant
+  // answer "infeasible" when using smart enumeration + any-constant
   // constructors. Using --sygus-repair-const on the other hand avoids this
   // incompleteness, which is checked here.
   if (!isActiveGen && usingAnyConst && !options().quantifiers.sygusRepairConst)

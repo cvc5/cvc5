@@ -247,6 +247,8 @@ libcvc5_add_sources(
   prop/kissat.h
   prop/learned_db.cpp
   prop/learned_db.h
+  prop/lemma_inprocess.cpp
+  prop/lemma_inprocess.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -418,6 +420,8 @@ libcvc5_add_sources(
   theory/arith/linear/fc_simplex.h
   theory/arith/linear/infer_bounds.cpp
   theory/arith/linear/infer_bounds.h
+  theory/arith/linear/linear_solver.cpp
+  theory/arith/linear/linear_solver.h
   theory/arith/linear/linear_equality.cpp
   theory/arith/linear/linear_equality.h
   theory/arith/linear/matrix.cpp

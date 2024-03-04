@@ -865,11 +865,12 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_Term_getFloatingPointValue(
   auto [exponent, significand, term] = current->getFloatingPointValue();
   Term* termPointer = new Term(term);
 
+  jstring e = env->NewStringUTF(std::to_string(exponent).c_str());
+  jstring s = env->NewStringUTF(std::to_string(significand).c_str());
+
   // Long longObject = new Long(pointer)
   jclass longClass = env->FindClass("Ljava/lang/Long;");
   jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
-  jobject e = env->NewObject(longClass, longConstructor, exponent);
-  jobject s = env->NewObject(longClass, longConstructor, significand);
   jobject t = env->NewObject(longClass, longConstructor, termPointer);
 
   // Triplet triplet = new Triplet<Long, Long, Long>(e, s, t);
