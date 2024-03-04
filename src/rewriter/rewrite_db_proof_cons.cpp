@@ -58,7 +58,6 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                const Node& b,
                                theory::TheoryId tid,
                                MethodId mid,
-                               int64_t startRecLimit,
                                int64_t recLimit,
                                int64_t stepLimit)
 {
@@ -85,31 +84,14 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   // prove the equality
   Node eq = a.eqNode(b);
-  bool success = false;
-  for (int64_t i = startRecLimit; i <= recLimit; i++)
-  {
-    Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-    if (proveEq(cdp, eq, eq, i, stepLimit))
-    {
-      success = true;
-      break;
-    }
-  }
+  bool success = proveEq(cdp, eq, eq, recLimit, stepLimit);
   if (!success)
   {
     Node eqi = d_rdnc.convert(eq);
     // if converter didn't make a difference, don't try to prove again
     if (eqi != eq)
     {
-      for (int64_t i = startRecLimit; i <= recLimit; i++)
-      {
-        Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-        if (proveEq(cdp, eq, eqi, i, stepLimit))
-        {
-          success = true;
-          break;
-        }
-      }
+      success = proveEq(cdp, eq, eqi, recLimit, stepLimit);
     }
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
