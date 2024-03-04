@@ -36,12 +36,13 @@ set(REWRITE_OUTPUT_FILES
   rewrites.h
 )
 foreach(rewrite_in IN LISTS REWRITES_FILES)
-  # Equivalent in CMake 3.20+
   #cmake_path(GET rewrite_in PARENT_PATH rewrite_parent)
   #cmake_path(GET rewrite_parent FILENAME rewrite_name)
+
   get_filename_component(rewrite_parent ${rewrite_in} DIRECTORY)
-  get_filename_component(rewrite_name ${rewrite_parent} NAME)
-  list(APPEND REWRITE_OUTPUT_FILES "rewrites-${rewrite_name}.cpp")
+  get_filename_component(rewrite_name ${rewrite_in} NAME)
+  get_filename_component(rewrite_dir ${rewrite_parent} NAME)
+  list(APPEND REWRITE_OUTPUT_FILES "rewrites-${rewrite_dir}-${rewrite_name}.cpp")
 endforeach()
 
 libcvc5_add_sources(GENERATED
