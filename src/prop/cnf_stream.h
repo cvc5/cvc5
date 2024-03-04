@@ -179,7 +179,7 @@ class CnfStream : protected EnvObj
    *
    * Here, we would print the DIMACS:
    *
-   * p cnf 3 3
+   * p cnf 4 4
    * -1 -2 0
    * 3 4 0
    * 2 0
