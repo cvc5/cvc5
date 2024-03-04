@@ -214,8 +214,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /**
-   * Whether we need to track active skolem definitions for the preregistrar
-   * or for the decision engine.
+   * True if we need to track active skolem definitions for the preregistrar,
+   * false to track for the decision engine.
    */
   bool d_trackActiveSkDefs;
   /**
