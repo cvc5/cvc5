@@ -62,7 +62,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * has no effect.
    */
   void setEliminateRule(ProofRule rule);
-  /** 
+  /**
    * Set collecting all trusted rules. All proofs of trusted rules can be
    * obtained by getTrustedProofs below.
    */
