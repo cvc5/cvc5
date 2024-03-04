@@ -310,7 +310,6 @@ bool isAssocComm(Kind k)
     case Kind::BITVECTOR_OR:
     case Kind::FINITE_FIELD_ADD:
     case Kind::FINITE_FIELD_MULT:
-      // known to have null terminator independent of type
       return true;
     default: break;
   }
