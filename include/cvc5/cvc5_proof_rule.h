@@ -382,17 +382,6 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(DRAT_REFUTATION),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **SAT external prove Refutation**
-   *
-   * .. math::
-   *   \inferrule{F_1 \dots F_n \mid D}{\bot}
-   *
-   * where :math:`F_1 \dots F_n` correspond to the input clauses in the
-   * DIMACS file `D`. \endverbatim
-   */
-  EVALUE(SAT_EXTERNAL_PROVE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Resolution**
    *
    * .. math::
