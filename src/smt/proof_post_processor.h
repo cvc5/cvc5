@@ -62,13 +62,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * has no effect.
    */
   void setEliminateRule(ProofRule rule);
-  /** set eliminate all trusted rules via DSL */
-  void setEliminateAllTrustedRules();
+  /** 
+   * Set collecting all trusted rules. All proofs of trusted rules can be
+   * obtained by getTrustedProofs below.
+   */
+  void setCollectAllTrustedRules();
   /**
-   * Get eliminate proofs, which is the set of all trusted proofs
+   * Get trusted proofs, which is the set of all trusted proofs
    * that were encountered in the last call to process.
    */
-  std::unordered_set<std::shared_ptr<ProofNode>>& getEliminateProofs();
+  std::unordered_set<std::shared_ptr<ProofNode>>& getTrustedProofs();
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
@@ -94,8 +97,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<ProofRule, std::hash<ProofRule>> d_elimRules;
-  /** Whether we are trying to eliminate any trusted rule via the DSL */
-  bool d_elimAllTrusted;
+  /** Whether we are trying to collecting any trusted rule */
+  bool d_collectAllTrusted;
   /** Set of all proofs to attempt to reconstruct */
   std::unordered_set<std::shared_ptr<ProofNode>> d_rconsPf;
   /** Whether we post-process assumptions in scope. */

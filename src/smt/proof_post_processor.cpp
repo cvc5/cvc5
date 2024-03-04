@@ -43,7 +43,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
       d_pc(nullptr),
       d_pppg(nullptr),
       d_wfpm(env),
-      d_elimAllTrusted(false),
+      d_collectAllTrusted(false),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -62,13 +62,13 @@ void ProofPostprocessCallback::setEliminateRule(ProofRule rule)
   d_elimRules.insert(rule);
 }
 
-void ProofPostprocessCallback::setEliminateAllTrustedRules()
+void ProofPostprocessCallback::setCollectAllTrustedRules()
 {
-  d_elimAllTrusted = true;
+  d_collectAllTrusted = true;
 }
 
 std::unordered_set<std::shared_ptr<ProofNode>>&
-ProofPostprocessCallback::getEliminateProofs()
+ProofPostprocessCallback::getTrustedProofs()
 {
   return d_rconsPf;
 }
@@ -79,7 +79,7 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   ProofRule id = pn->getRule();
   // if we eliminate all trusted rules, remember this for later
-  if (d_elimAllTrusted
+  if (d_collectAllTrusted
       && (id == ProofRule::TRUST_THEORY_REWRITE || id == ProofRule::TRUST))
   {
     d_rconsPf.insert(pn);
@@ -1119,11 +1119,11 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_updater.process(pf);
 
   // run the reconstruction algorithm on the proofs to eliminate
-  std::unordered_set<std::shared_ptr<ProofNode>>& eproofs =
-      d_cb.getEliminateProofs();
-  if (!eproofs.empty())
+  std::unordered_set<std::shared_ptr<ProofNode>>& tproofs =
+      d_cb.getTrustedProofs();
+  if (!tproofs.empty())
   {
-    d_ppdsl->reconstruct(eproofs);
+    d_ppdsl->reconstruct(tproofs);
   }
 
   // eliminate subtypes if option is specified
@@ -1158,7 +1158,7 @@ void ProofPostprocess::setEliminateRule(ProofRule rule)
 
 void ProofPostprocess::setEliminateAllTrustedRules()
 {
-  d_cb.setEliminateAllTrustedRules();
+  d_cb.setCollectAllTrustedRules();
 }
 
 void ProofPostprocess::setAssertions(const std::vector<Node>& assertions,
