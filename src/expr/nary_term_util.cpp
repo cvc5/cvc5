@@ -297,5 +297,119 @@ Node narySubstitute(Node src,
   return visited[src];
 }
 
+bool isAssocComm(Kind k)
+{
+  switch (k)
+  {
+    case Kind::OR:
+    case Kind::AND:
+    case Kind::SEP_STAR:
+    case Kind::REGEXP_UNION:
+    case Kind::REGEXP_INTER:
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_OR:
+    case Kind::FINITE_FIELD_ADD:
+    case Kind::FINITE_FIELD_MULT:
+      // known to have null terminator independent of type
+      return true;
+    default: break;
+  }
+  return false;
+}
+
+bool isAssoc(Kind k)
+{
+  switch (k)
+  {
+    case Kind::STRING_CONCAT:
+    case Kind::REGEXP_CONCAT: return true;
+    default: break;
+  }
+  return false;
+}
+
+struct NormalFormTag
+{
+};
+using NormalFormAttr = expr::Attribute<NormalFormTag, Node>;
+
+Node getNormalForm(Node a)
+{
+  NormalFormAttr nfa;
+  Node an = a.getAttribute(nfa);
+  if (!an.isNull())
+  {
+    // already computed
+    return an;
+  }
+  Kind k = a.getKind();
+  bool ac = isAssocComm(k);
+  if (!ac && !isAssoc(k))
+  {
+    // not associative, return self
+    a.setAttribute(nfa, a);
+    return a;
+  }
+  TypeNode atn = a.getType();
+  Node nt = getNullTerminator(k, atn);
+  if (nt.isNull())
+  {
+    // no null terminator, likely abstract type, return self
+    a.setAttribute(nfa, a);
+    return a;
+  }
+  std::vector<Node> toProcess;
+  toProcess.insert(toProcess.end(), a.rbegin(), a.rend());
+  std::vector<Node> children;
+  Node cur;
+  do
+  {
+    cur = toProcess.back();
+    toProcess.pop_back();
+    if (cur == nt)
+    {
+      // ignore null terminator (which is the neutral element)
+      continue;
+    }
+    else if (cur.getKind() == k)
+    {
+      // flatten
+      toProcess.insert(toProcess.end(), cur.rbegin(), cur.rend());
+    }
+    else if (!ac
+             || std::find(children.begin(), children.end(), cur)
+                    == children.end())
+    {
+      // add to final children if not commutative or if not a duplicate
+      children.push_back(cur);
+    }
+  } while (!toProcess.empty());
+  if (ac)
+  {
+    // sort if commutative
+    std::sort(children.begin(), children.end());
+  }
+  an = children.empty() ? nt
+                        : (children.size() == 1
+                               ? children[0]
+                               : NodeManager::currentNM()->mkNode(k, children));
+  a.setAttribute(nfa, an);
+  return an;
+}
+
+bool isNorm(Node a, Node b)
+{
+  Node an = getNormalForm(a);
+  Node bn = getNormalForm(b);
+  // note we compare three possibilities, to handle cases like
+  // (or (and b true) false) == (and b true),
+  // where N((or (and b true) false)) = (and b true),
+  //       N((and b true)) = b.
+  // In other words, one of the terms may be an element of the
+  // normalization of the other, which itself normalizes. Comparing
+  // all three ensures we are robust
+  return (an == bn) || (a == bn) || (an == b);
+}
+
 }  // namespace expr
 }  // namespace cvc5::internal

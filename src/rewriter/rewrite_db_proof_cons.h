@@ -63,6 +63,7 @@ class RewriteDbProofCons : protected EnvObj
              const Node& b,
              theory::TheoryId tid,
              MethodId mid,
+             int64_t startRecLimit,
              int64_t recLimit,
              int64_t stepLimit);
 
