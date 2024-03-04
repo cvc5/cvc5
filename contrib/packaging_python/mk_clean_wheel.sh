@@ -48,7 +48,7 @@ fi
 echo "Configuring"
 rm -rf build_wheel/
 
-./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY
+./configure.sh $CONFIG --python-bindings --name=build_wheel
 
 # building wheel
 echo "Building pycvc5 wheel"
