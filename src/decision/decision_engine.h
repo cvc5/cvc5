@@ -49,12 +49,14 @@ class DecisionEngine : protected EnvObj
   /**
    * Adds assertions lems to satisfy that persist in the user context.
    * All input assertions and relevant lemmas are added via this call.
+   * @param lems The lemmas to add.
    */
   virtual void addAssertions(const std::vector<TNode>& lems) = 0;
   /**
    * Adds assertions lems to satisfy that persist in the SAT context.
    * By default, only skolem definitions from input and lemmas are added via
    * this call.
+   * @param lems The lemmas to add.
    */
   virtual void addLocalAssertions(const std::vector<TNode>& lems) {}
 
