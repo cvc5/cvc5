@@ -142,8 +142,6 @@ void Smt2State::addFiniteFieldOperators()
 
 void Smt2State::addDatatypesOperators()
 {
-  TermManager& tm = d_solver->getTermManager();
-
   ParserState::addOperator(Kind::APPLY_CONSTRUCTOR);
   ParserState::addOperator(Kind::APPLY_TESTER);
   ParserState::addOperator(Kind::APPLY_SELECTOR);
@@ -163,11 +161,11 @@ void Smt2State::addDatatypesOperators()
     // (for the 0-ary tuple), and a operator, hence we call both addOperator
     // and defineVar here.
     addOperator(Kind::APPLY_CONSTRUCTOR, "tuple");
-    defineVar("tuple.unit", tm.mkTuple({}));
+    defineVar("tuple.unit", d_tm.mkTuple({}));
     addIndexedOperator(Kind::UNDEFINED_KIND, "tuple.select");
     addIndexedOperator(Kind::UNDEFINED_KIND, "tuple.update");
-    Sort btype = tm.getBooleanSort();
-    defineVar("nullable.null", tm.mkNullableNull(tm.mkNullableSort(btype)));
+    Sort btype = d_tm.getBooleanSort();
+    defineVar("nullable.null", d_tm.mkNullableNull(d_tm.mkNullableSort(btype)));
     addOperator(Kind::APPLY_CONSTRUCTOR, "nullable.some");
     addOperator(Kind::APPLY_SELECTOR, "nullable.val");
     addOperator(Kind::NULLABLE_LIFT, "nullable.lift");
@@ -179,7 +177,7 @@ void Smt2State::addDatatypesOperators()
 
 void Smt2State::addStringOperators()
 {
-  defineVar("re.all", d_solver->getTermManager().mkRegexpAll());
+  defineVar("re.all", d_tm.mkRegexpAll());
   addOperator(Kind::STRING_CONCAT, "str.++");
   addOperator(Kind::STRING_LENGTH, "str.len");
   addOperator(Kind::STRING_SUBSTR, "str.substr");
@@ -283,11 +281,10 @@ void Smt2State::addFloatingPointOperators()
 
 void Smt2State::addSepOperators()
 {
-  TermManager& tm = d_solver->getTermManager();
-  defineVar("sep.emp", tm.mkSepEmp());
+  defineVar("sep.emp", d_tm.mkSepEmp());
   // the Boolean sort is a placeholder here since we don't have type info
   // without type annotation
-  defineVar("sep.nil", tm.mkSepNil(tm.getBooleanSort()));
+  defineVar("sep.nil", d_tm.mkSepNil(d_tm.getBooleanSort()));
   addOperator(Kind::SEP_STAR, "sep");
   addOperator(Kind::SEP_PTO, "pto");
   addOperator(Kind::SEP_WAND, "wand");
@@ -298,13 +295,12 @@ void Smt2State::addSepOperators()
 
 void Smt2State::addCoreSymbols()
 {
-  TermManager& tm = d_solver->getTermManager();
-  defineType("Bool", tm.getBooleanSort(), true);
-  Sort tupleSort = tm.mkTupleSort({});
-  defineType("Relation", tm.mkSetSort(tupleSort), true);
-  defineType("Table", tm.mkBagSort(tupleSort), true);
-  defineVar("true", tm.mkTrue(), true);
-  defineVar("false", tm.mkFalse(), true);
+  defineType("Bool", d_tm.getBooleanSort(), true);
+  Sort tupleSort = d_tm.mkTupleSort({});
+  defineType("Relation", d_tm.mkSetSort(tupleSort), true);
+  defineType("Table", d_tm.mkBagSort(tupleSort), true);
+  defineVar("true", d_tm.mkTrue(), true);
+  defineVar("false", d_tm.mkFalse(), true);
   addOperator(Kind::AND, "and");
   addOperator(Kind::DISTINCT, "distinct");
   addOperator(Kind::EQUAL, "=");
@@ -481,7 +477,6 @@ bool Smt2State::getTesterName(Term cons, std::string& name)
 Term Smt2State::mkIndexedConstant(const std::string& name,
                                   const std::vector<uint32_t>& numerals)
 {
-  TermManager& tm = d_solver->getTermManager();
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
   {
     if (name == "+oo")
@@ -490,7 +485,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       {
         parseError("Unexpected number of numerals for +oo.");
       }
-      return tm.mkFloatingPointPosInf(numerals[0], numerals[1]);
+      return d_tm.mkFloatingPointPosInf(numerals[0], numerals[1]);
     }
     else if (name == "-oo")
     {
@@ -498,7 +493,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       {
         parseError("Unexpected number of numerals for -oo.");
       }
-      return tm.mkFloatingPointNegInf(numerals[0], numerals[1]);
+      return d_tm.mkFloatingPointNegInf(numerals[0], numerals[1]);
     }
     else if (name == "NaN")
     {
@@ -506,7 +501,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       {
         parseError("Unexpected number of numerals for NaN.");
       }
-      return tm.mkFloatingPointNaN(numerals[0], numerals[1]);
+      return d_tm.mkFloatingPointNaN(numerals[0], numerals[1]);
     }
     else if (name == "+zero")
     {
@@ -514,7 +509,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       {
         parseError("Unexpected number of numerals for +zero.");
       }
-      return tm.mkFloatingPointPosZero(numerals[0], numerals[1]);
+      return d_tm.mkFloatingPointPosZero(numerals[0], numerals[1]);
     }
     else if (name == "-zero")
     {
@@ -522,7 +517,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       {
         parseError("Unexpected number of numerals for -zero.");
       }
-      return tm.mkFloatingPointNegZero(numerals[0], numerals[1]);
+      return d_tm.mkFloatingPointNegZero(numerals[0], numerals[1]);
     }
   }
 
@@ -534,7 +529,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       parseError("Unexpected number of numerals for bit-vector constant.");
     }
     std::string bvStr = name.substr(2);
-    return tm.mkBitVector(numerals[0], bvStr, 10);
+    return d_tm.mkBitVector(numerals[0], bvStr, 10);
   }
 
   // NOTE: Theory parametric constants go here
@@ -573,7 +568,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       Sort t = getSort(symbols[0]);
       // convert second symbol back to a numeral
       uint32_t ubound = stringToUnsigned(symbols[1]);
-      return d_solver->getTermManager().mkCardinalityConstraint(t, ubound);
+      return d_tm.mkCardinalityConstraint(t, ubound);
     }
   }
   parseError(std::string("Unknown indexed literal `") + name + "'");
@@ -676,7 +671,7 @@ Term Smt2State::setupDefineFunRecScope(
 
   if (!sorts.empty())
   {
-    ft = d_solver->getTermManager().mkFunctionSort(sorts, ft);
+    ft = d_tm.mkFunctionSort(sorts, ft);
   }
   // bind now, with overloading
   return bindVar(fname, ft, true);
@@ -740,7 +735,6 @@ std::unique_ptr<Cmd> Smt2State::invConstraint(
 
 void Smt2State::setLogic(std::string name)
 {
-  TermManager& tm = d_solver->getTermManager();
   bool smLogicAlreadySet = getSymbolManager()->isLogicSet();
   // if logic is already set, this is an error
   if (d_logicSet)
@@ -779,7 +773,7 @@ void Smt2State::setLogic(std::string name)
   {
     if (d_logic.areIntegersUsed())
     {
-      defineType("Int", tm.getIntegerSort(), true);
+      defineType("Int", d_tm.getIntegerSort(), true);
       addArithmeticOperators();
       if (!strictModeEnabled() || !d_logic.isLinear())
       {
@@ -792,7 +786,7 @@ void Smt2State::setLogic(std::string name)
 
     if (d_logic.areRealsUsed())
     {
-      defineType("Real", tm.getRealSort(), true);
+      defineType("Real", d_tm.getRealSort(), true);
       addArithmeticOperators();
       addOperator(Kind::DIVISION, "/");
       if (!strictModeEnabled())
@@ -810,7 +804,7 @@ void Smt2State::setLogic(std::string name)
 
     if (d_logic.areTranscendentalsUsed())
     {
-      defineVar("real.pi", tm.mkPi());
+      defineVar("real.pi", d_tm.mkPi());
       addTranscendentalOperators();
     }
     if (!strictModeEnabled())
@@ -846,7 +840,7 @@ void Smt2State::setLogic(std::string name)
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES))
   {
     const std::vector<Sort> types;
-    defineType("UnitTuple", tm.mkTupleSort(types), true);
+    defineType("UnitTuple", d_tm.mkTupleSort(types), true);
     addDatatypesOperators();
   }
 
@@ -854,9 +848,9 @@ void Smt2State::setLogic(std::string name)
   {
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    Sort btype = tm.getBooleanSort();
-    defineVar("set.empty", tm.mkEmptySet(tm.mkSetSort(btype)));
-    defineVar("set.universe", tm.mkUniverseSet(btype));
+    Sort btype = d_tm.getBooleanSort();
+    defineVar("set.empty", d_tm.mkEmptySet(d_tm.mkSetSort(btype)));
+    defineVar("set.universe", d_tm.mkUniverseSet(btype));
 
     addOperator(Kind::SET_UNION, "set.union");
     addOperator(Kind::SET_INTER, "set.inter");
@@ -893,8 +887,8 @@ void Smt2State::setLogic(std::string name)
   {
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    Sort btype = tm.getBooleanSort();
-    defineVar("bag.empty", tm.mkEmptyBag(tm.mkBagSort(btype)));
+    Sort btype = d_tm.getBooleanSort();
+    defineVar("bag.empty", d_tm.mkEmptyBag(d_tm.mkBagSort(btype)));
     addOperator(Kind::BAG_UNION_MAX, "bag.union_max");
     addOperator(Kind::BAG_UNION_DISJOINT, "bag.union_disjoint");
     addOperator(Kind::BAG_INTER_MIN, "bag.inter_min");
@@ -928,15 +922,15 @@ void Smt2State::setLogic(std::string name)
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {
-    defineType("String", tm.getStringSort(), true);
-    defineType("RegLan", tm.getRegExpSort(), true);
-    defineType("Int", tm.getIntegerSort(), true);
+    defineType("String", d_tm.getStringSort(), true);
+    defineType("RegLan", d_tm.getRegExpSort(), true);
+    defineType("Int", d_tm.getIntegerSort(), true);
 
-    defineVar("re.none", tm.mkRegexpNone());
-    defineVar("re.allchar", tm.mkRegexpAllchar());
+    defineVar("re.none", d_tm.mkRegexpNone());
+    defineVar("re.allchar", d_tm.mkRegexpAllchar());
 
     // Boolean is a placeholder
-    defineVar("seq.empty", tm.mkEmptySequence(tm.getBooleanSort()));
+    defineVar("seq.empty", d_tm.mkEmptySequence(d_tm.getBooleanSort()));
 
     addStringOperators();
   }
@@ -948,29 +942,29 @@ void Smt2State::setLogic(std::string name)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
   {
-    defineType("RoundingMode", tm.getRoundingModeSort(), true);
-    defineType("Float16", tm.mkFloatingPointSort(5, 11), true);
-    defineType("Float32", tm.mkFloatingPointSort(8, 24), true);
-    defineType("Float64", tm.mkFloatingPointSort(11, 53), true);
-    defineType("Float128", tm.mkFloatingPointSort(15, 113), true);
+    defineType("RoundingMode", d_tm.getRoundingModeSort(), true);
+    defineType("Float16", d_tm.mkFloatingPointSort(5, 11), true);
+    defineType("Float32", d_tm.mkFloatingPointSort(8, 24), true);
+    defineType("Float64", d_tm.mkFloatingPointSort(11, 53), true);
+    defineType("Float128", d_tm.mkFloatingPointSort(15, 113), true);
 
     defineVar("RNE",
-              tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+              d_tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
     defineVar("roundNearestTiesToEven",
-              tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+              d_tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
     defineVar("RNA",
-              tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+              d_tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
     defineVar("roundNearestTiesToAway",
-              tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
-    defineVar("RTP", tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE));
+              d_tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+    defineVar("RTP", d_tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE));
     defineVar("roundTowardPositive",
-              tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE));
-    defineVar("RTN", tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE));
+              d_tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE));
+    defineVar("RTN", d_tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE));
     defineVar("roundTowardNegative",
-              tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE));
-    defineVar("RTZ", tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
+              d_tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE));
+    defineVar("RTZ", d_tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
     defineVar("roundTowardZero",
-              tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
+              d_tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
 
     addFloatingPointOperators();
   }
@@ -1089,9 +1083,9 @@ Term Smt2State::mkRealOrIntFromNumeral(const std::string& str)
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
       && !d_logic.areIntegersUsed())
   {
-    return d_solver->getTermManager().mkReal(str);
+    return d_tm.mkReal(str);
   }
-  return d_solver->getTermManager().mkInteger(str);
+  return d_tm.mkInteger(str);
 }
 
 void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
@@ -1116,7 +1110,7 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
       // of the given type. The kind INTERNAL_KIND is used to mark that we
       // are a placeholder.
       p.d_kind = Kind::INTERNAL_KIND;
-      p.d_expr = d_solver->getTermManager().mkConst(type, "_placeholder_");
+      p.d_expr = d_tm.mkConst(type, "_placeholder_");
       return;
     }
     else if (p.d_name.find("ff") == 0)
@@ -1129,7 +1123,7 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
            << " but found sort: " << type;
         parseError(ss.str());
       }
-      p.d_expr = d_solver->getTermManager().mkFiniteFieldElem(rest, type);
+      p.d_expr = d_tm.mkFiniteFieldElem(rest, type);
       return;
     }
     if (p.d_expr.isNull())
@@ -1171,7 +1165,6 @@ Term Smt2State::parseOpToExpr(ParseOp& p)
 
 Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
 {
-  TermManager& tm = d_solver->getTermManager();
   bool isBuiltinOperator = false;
   // the builtin kind of the overall return expression
   Kind kind = Kind::NULL_TERM;
@@ -1196,12 +1189,12 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       ParserState::checkDeclaration(p.d_name, DeclarationCheck::CHECK_DECLARED);
       Term function = getVariable(p.d_name);
       args.insert(args.begin(), function);
-      return tm.mkTerm(Kind::NULLABLE_LIFT, args);
+      return d_tm.mkTerm(Kind::NULLABLE_LIFT, args);
     }
     else
     {
       Kind liftedKind = getOperatorKind(p.d_name);
-      return tm.mkNullableLift(liftedKind, args);
+      return d_tm.mkNullableLift(liftedKind, args);
     }
   }
   if (!p.d_indices.empty())
@@ -1219,7 +1212,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         if (nchildren == 1)
         {
           kind = Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
-          op = tm.mkOp(kind, p.d_indices);
+          op = d_tm.mkOp(kind, p.d_indices);
         }
         else if (nchildren > 2 || nchildren == 0)
         {
@@ -1244,17 +1237,17 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
           if (t.isFloatingPoint())
           {
             kind = Kind::FLOATINGPOINT_TO_FP_FROM_FP;
-            op = tm.mkOp(kind, p.d_indices);
+            op = d_tm.mkOp(kind, p.d_indices);
           }
           else if (t.isInteger() || t.isReal())
           {
             kind = Kind::FLOATINGPOINT_TO_FP_FROM_REAL;
-            op = tm.mkOp(kind, p.d_indices);
+            op = d_tm.mkOp(kind, p.d_indices);
           }
           else
           {
             kind = Kind::FLOATINGPOINT_TO_FP_FROM_SBV;
-            op = tm.mkOp(kind, p.d_indices);
+            op = d_tm.mkOp(kind, p.d_indices);
           }
         }
       }
@@ -1287,12 +1280,13 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         Term ret;
         if (isSelect)
         {
-          ret = tm.mkTerm(Kind::APPLY_SELECTOR, {dt[0][n].getTerm(), args[0]});
+          ret =
+              d_tm.mkTerm(Kind::APPLY_SELECTOR, {dt[0][n].getTerm(), args[0]});
         }
         else
         {
-          ret = tm.mkTerm(Kind::APPLY_UPDATER,
-                          {dt[0][n].getUpdaterTerm(), args[0], args[1]});
+          ret = d_tm.mkTerm(Kind::APPLY_UPDATER,
+                            {dt[0][n].getUpdaterTerm(), args[0], args[1]});
         }
         Trace("parser") << "applyParseOp: return selector/updater " << ret
                         << std::endl;
@@ -1306,9 +1300,9 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     else
     {
       // otherwise, an ordinary operator
-      op = tm.mkOp(k, p.d_indices);
+      op = d_tm.mkOp(k, p.d_indices);
     }
-    return tm.mkTerm(op, args);
+    return d_tm.mkTerm(op, args);
   }
   else if (p.d_kind != Kind::NULL_TERM)
   {
@@ -1344,19 +1338,19 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
           || kind == Kind::RELATION_AGGREGATE || kind == Kind::RELATION_PROJECT)
       {
         std::vector<uint32_t> indices;
-        Op op = tm.mkOp(kind, indices);
-        return tm.mkTerm(op, args);
+        Op op = d_tm.mkOp(kind, indices);
+        return d_tm.mkTerm(op, args);
       }
       else if (kind == Kind::APPLY_CONSTRUCTOR)
       {
         if (p.d_name == "tuple")
         {
           // tuple application
-          return tm.mkTuple(args);
+          return d_tm.mkTuple(args);
         }
         else if (p.d_name == "nullable.some")
         {
-          return tm.mkNullableSome(args[0]);
+          return d_tm.mkNullableSome(args[0]);
         }
         else
         {
@@ -1369,7 +1363,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         if (p.d_name == "nullable.val")
         {
-          return tm.mkNullableVal(args[0]);
+          return d_tm.mkNullableVal(args[0]);
         }
         else
         {
@@ -1382,11 +1376,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         if (p.d_name == "nullable.is_null")
         {
-          return tm.mkNullableIsNull(args[0]);
+          return d_tm.mkNullableIsNull(args[0]);
         }
         else if (p.d_name == "nullable.is_some")
         {
-          return tm.mkNullableIsSome(args[0]);
+          return d_tm.mkNullableIsSome(args[0]);
         }
         else
         {
@@ -1470,7 +1464,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
            << "computed const type: " << constVal.getSort();
         parseError(ss.str());
       }
-      Term ret = tm.mkConstArray(sort, constVal);
+      Term ret = d_tm.mkConstArray(sort, constVal);
       Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
       return ret;
     }
@@ -1531,7 +1525,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
           Sort s = i.getSort();
           if (s.isInteger())
           {
-            i = tm.mkTerm(Kind::TO_REAL, {i});
+            i = d_tm.mkTerm(Kind::TO_REAL, {i});
           }
         }
       }
@@ -1550,12 +1544,12 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         // (- n) denotes a negative value
         std::stringstream suminus;
         suminus << "-" << args[0].getIntegerValue();
-        Term ret = tm.mkInteger(suminus.str());
+        Term ret = d_tm.mkInteger(suminus.str());
         Trace("parser") << "applyParseOp: return negative constant " << ret
                         << std::endl;
         return ret;
       }
-      Term ret = tm.mkTerm(Kind::NEG, {args[0]});
+      Term ret = d_tm.mkTerm(Kind::NEG, {args[0]});
       Trace("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
@@ -1565,7 +1559,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       // (/ m n) or (/ (- m) n) denote values in reals
       std::stringstream sdiv;
       sdiv << args[0].getIntegerValue() << "/" << args[1].getIntegerValue();
-      Term ret = tm.mkReal(sdiv.str());
+      Term ret = d_tm.mkReal(sdiv.str());
       Trace("parser") << "applyParseOp: return rational constant " << ret
                       << std::endl;
       return ret;
@@ -1580,13 +1574,13 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       }
       if (isConstBv(args[0]) && isConstBv(args[1]) && isConstBv(args[2]))
       {
-        Term ret = tm.mkFloatingPoint(args[0], args[1], args[2]);
+        Term ret = d_tm.mkFloatingPoint(args[0], args[1], args[2]);
         Trace("parser") << "applyParseOp: return floating-point value " << ret
                         << std::endl;
         return ret;
       }
     }
-    Term ret = tm.mkTerm(kind, args);
+    Term ret = d_tm.mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
     return ret;
@@ -1610,7 +1604,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         Trace("parser") << "Partial application of " << args[0];
         Trace("parser") << " : #argTypes = " << arity;
         Trace("parser") << ", #args = " << args.size() - 1 << std::endl;
-        Term ret = tm.mkTerm(Kind::HO_APPLY, args);
+        Term ret = d_tm.mkTerm(Kind::HO_APPLY, args);
         Trace("parser") << "applyParseOp: return curry higher order " << ret
                         << std::endl;
         // must curry the partial application
@@ -1625,7 +1619,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
   }
   Trace("parser") << "Try default term construction for kind " << kind
                   << " #args = " << args.size() << "..." << std::endl;
-  Term ret = tm.mkTerm(kind, args);
+  Term ret = d_tm.mkTerm(kind, args);
   Trace("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
 }
@@ -1633,7 +1627,6 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
 Sort Smt2State::getParametricSort(const std::string& name,
                                   const std::vector<Sort>& args)
 {
-  TermManager& tm = d_solver->getTermManager();
   if (args.empty())
   {
     parseError(
@@ -1648,7 +1641,7 @@ Sort Smt2State::getParametricSort(const std::string& name,
     {
       parseError("Illegal array type.");
     }
-    t = tm.mkArraySort(args[0], args[1]);
+    t = d_tm.mkArraySort(args[0], args[1]);
   }
   else if (name == "Set" && isTheoryEnabled(internal::theory::THEORY_SETS))
   {
@@ -1656,7 +1649,7 @@ Sort Smt2State::getParametricSort(const std::string& name,
     {
       parseError("Illegal set type.");
     }
-    t = tm.mkSetSort(args[0]);
+    t = d_tm.mkSetSort(args[0]);
   }
   else if (name == "Bag" && isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
@@ -1664,7 +1657,7 @@ Sort Smt2State::getParametricSort(const std::string& name,
     {
       parseError("Illegal bag type.");
     }
-    t = tm.mkBagSort(args[0]);
+    t = d_tm.mkBagSort(args[0]);
   }
   else if (name == "Seq" && !strictModeEnabled()
            && isTheoryEnabled(internal::theory::THEORY_STRINGS))
@@ -1673,11 +1666,11 @@ Sort Smt2State::getParametricSort(const std::string& name,
     {
       parseError("Illegal sequence type.");
     }
-    t = tm.mkSequenceSort(args[0]);
+    t = d_tm.mkSequenceSort(args[0]);
   }
   else if (name == "Tuple" && !strictModeEnabled())
   {
-    t = tm.mkTupleSort(args);
+    t = d_tm.mkTupleSort(args);
   }
   else if (name == "Nullable" && !strictModeEnabled())
   {
@@ -1685,17 +1678,17 @@ Sort Smt2State::getParametricSort(const std::string& name,
     {
       parseError("Illegal nullable type.");
     }
-    t = tm.mkNullableSort(args[0]);
+    t = d_tm.mkNullableSort(args[0]);
   }
   else if (name == "Relation" && !strictModeEnabled())
   {
-    Sort tupleSort = tm.mkTupleSort(args);
-    t = tm.mkSetSort(tupleSort);
+    Sort tupleSort = d_tm.mkTupleSort(args);
+    t = d_tm.mkSetSort(tupleSort);
   }
   else if (name == "Table" && !strictModeEnabled())
   {
-    Sort tupleSort = tm.mkTupleSort(args);
-    t = tm.mkBagSort(tupleSort);
+    Sort tupleSort = d_tm.mkTupleSort(args);
+    t = d_tm.mkBagSort(tupleSort);
   }
   else if (name == "->" && isHoEnabled())
   {
@@ -1718,7 +1711,6 @@ Sort Smt2State::getParametricSort(const std::string& name,
 Sort Smt2State::getIndexedSort(const std::string& name,
                                const std::vector<std::string>& numerals)
 {
-  TermManager& tm = d_solver->getTermManager();
   Sort ret;
   if (name == "BitVec")
   {
@@ -1731,7 +1723,7 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal bitvector size: 0");
     }
-    ret = tm.mkBitVectorSort(n0);
+    ret = d_tm.mkBitVectorSort(n0);
   }
   else if (name == "FiniteField")
   {
@@ -1739,7 +1731,7 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal finite field type.");
     }
-    ret = tm.mkFiniteFieldSort(numerals.front());
+    ret = d_tm.mkFiniteFieldSort(numerals.front());
   }
   else if (name == "FloatingPoint")
   {
@@ -1757,7 +1749,7 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal floating-point significand size");
     }
-    ret = tm.mkFloatingPointSort(n0, n1);
+    ret = d_tm.mkFloatingPointSort(n0, n1);
   }
   else
   {
@@ -1849,13 +1841,13 @@ Term Smt2State::mkAnd(const std::vector<Term>& es) const
 {
   if (es.size() == 0)
   {
-    return d_solver->getTermManager().mkTrue();
+    return d_tm.mkTrue();
   }
   else if (es.size() == 1)
   {
     return es[0];
   }
-  return d_solver->getTermManager().mkTerm(Kind::AND, es);
+  return d_tm.mkTerm(Kind::AND, es);
 }
 
 bool Smt2State::isConstInt(const Term& t)
