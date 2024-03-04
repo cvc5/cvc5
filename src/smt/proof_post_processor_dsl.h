@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The module for final processing proof nodes.
+ * The module for post-processing proof nodes for DSL rewrite reconstruction.
  */
 
 #include "cvc5_private.h"
@@ -39,7 +39,8 @@ class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
   ProofPostprocessDsl(Env& env, rewriter::RewriteDb* rdb);
 
   /**
-   * Run the DSL reconstruction on each proof in pfs.
+   * Run the DSL reconstruction on each proof in pfs. This updates pfs
+   * in-place based on the rewrite rule reconstruction algorithm.
    */
   void reconstruct(std::unordered_set<std::shared_ptr<ProofNode>>& pfs);
 

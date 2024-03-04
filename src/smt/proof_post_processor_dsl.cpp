@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The module for final processing proof nodes.
+ * The module for post-processing proof nodes for DSL rewrite reconstruction.
  */
 
 #include "smt/proof_post_processor_dsl.h"
