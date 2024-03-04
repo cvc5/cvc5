@@ -79,13 +79,11 @@ bool ProofPostprocessDsl::update(Node res,
     getMethodId(args[2], mid);
   }
   int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
-  int64_t startRecLimit =
-      options().proof.proofRewriteRconsStratifyRec ? 0 : recLimit;
   int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
   // attempt to reconstruct the proof of the equality into cdp using the
   // rewrite database proof reconstructor
   if (d_rdbPc.prove(
-          cdp, res[0], res[1], tid, mid, startRecLimit, recLimit, stepLimit))
+          cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
   {
     // If we made (= res true) above, conclude the original res.
     if (reqTrueElim)
