@@ -64,6 +64,11 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   void setEliminateRule(ProofRule rule);
   /** set eliminate all trusted rules via DSL */
   void setEliminateAllTrustedRules();
+  /**
+   * Get eliminate proofs, which is the set of all trusted proofs
+   * that were encountered in the last call to process.
+   */
+  std::unordered_set<std::shared_ptr<ProofNode>>& getEliminateProofs();
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
