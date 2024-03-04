@@ -38,12 +38,10 @@ namespace cvc5::internal {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
-                                                   rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
     : EnvObj(env),
       d_pc(nullptr),
       d_pppg(nullptr),
-      d_rdbPc(env, rdb),
       d_wfpm(env),
       d_elimAllTrusted(false),
       d_updateScopedAssumptions(updateScopedAssumptions)
@@ -69,11 +67,24 @@ void ProofPostprocessCallback::setEliminateAllTrustedRules()
   d_elimAllTrusted = true;
 }
 
+std::unordered_set<std::shared_ptr<ProofNode>>&
+ProofPostprocessCallback::getEliminateProofs()
+{
+  return d_rconsPf;
+}
+
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                             const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
   ProofRule id = pn->getRule();
+  // if we eliminate all trusted rules, remember this for later
+  if (d_elimAllTrusted
+      && (id == ProofRule::TRUST_THEORY_REWRITE || id == ProofRule::TRUST))
+  {
+    d_rconsPf.insert(pn);
+    return false;
+  }
   if (shouldExpand(id))
   {
     return true;
@@ -171,15 +182,7 @@ bool ProofPostprocessCallback::updateInternal(Node res,
 
 bool ProofPostprocessCallback::shouldExpand(ProofRule id) const
 {
-  if (d_elimRules.find(id) != d_elimRules.end())
-  {
-    return true;
-  }
-  if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
-  {
-    return true;
-  }
-  return false;
+  return d_elimRules.find(id) != d_elimRules.end();
 }
 
 Node ProofPostprocessCallback::expandMacros(ProofRule id,
@@ -1003,45 +1006,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
     return eq;
   }
-  else if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
-  {
-    if (res.isNull())
-    {
-      res = d_pc->checkDebug(id, children, args);
-      Assert(!res.isNull());
-    }
-    bool reqTrueElim = false;
-    // if not an equality, make (= res true).
-    if (res.getKind() != Kind::EQUAL)
-    {
-      res = res.eqNode(d_true);
-      reqTrueElim = true;
-    }
-    TheoryId tid = THEORY_LAST;
-    MethodId mid = MethodId::RW_REWRITE;
-    // if theory rewrite, get diagnostic information
-    if (id == ProofRule::TRUST_THEORY_REWRITE)
-    {
-      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-      getMethodId(args[2], mid);
-    }
-    int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
-    int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
-    // attempt to reconstruct the proof of the equality into cdp using the
-    // rewrite database proof reconstructor
-    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
-    {
-      // If we made (= res true) above, conclude the original res.
-      if (reqTrueElim)
-      {
-        cdp->addStep(res[0], ProofRule::TRUE_ELIM, {res}, {});
-        res = res[0];
-      }
-      // if successful, we update the proof
-      return res;
-    }
-    // otherwise no update
-  }
   return Node::null();
 }
 
@@ -1131,12 +1095,16 @@ ProofPostprocess::ProofPostprocess(Env& env,
                                    rewriter::RewriteDb* rdb,
                                    bool updateScopedAssumptions)
     : EnvObj(env),
-      d_cb(env, rdb, updateScopedAssumptions),
+      d_cb(env, updateScopedAssumptions),
       // the update merges subproofs
       d_updater(env, d_cb, options().proof.proofPpMerge),
       d_finalCb(env),
       d_finalizer(env, d_finalCb)
 {
+  if (rdb != nullptr)
+  {
+    d_ppdsl.reset(new ProofPostprocessDsl(env, rdb));
+  }
 }
 
 ProofPostprocess::~ProofPostprocess() {}
@@ -1149,6 +1117,14 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
+
+  // run the reconstruction algorithm on the proofs to eliminate
+  std::unordered_set<std::shared_ptr<ProofNode>>& eproofs =
+      d_cb.getEliminateProofs();
+  if (!eproofs.empty())
+  {
+    d_ppdsl->reconstruct(eproofs);
+  }
 
   // eliminate subtypes if option is specified
   if (options().proof.proofElimSubtypes)
