@@ -778,5 +778,67 @@ CnfStream::Statistics::Statistics(StatisticsRegistry& sr,
 {
 }
 
+void CnfStream::dumpDimacs(std::ostream& out, const std::vector<Node>& clauses)
+{
+  std::vector<Node> auxUnits;
+  dumpDimacsInternal(out, clauses, auxUnits, false);
+}
+
+void CnfStream::dumpDimacs(std::ostream& out,
+                           const std::vector<Node>& clauses,
+                           std::vector<Node>& auxUnits)
+{
+  dumpDimacsInternal(out, clauses, auxUnits, true);
+}
+
+void CnfStream::dumpDimacsInternal(std::ostream& out,
+                                   const std::vector<Node>& clauses,
+                                   std::vector<Node>& auxUnits,
+                                   bool printAuxUnits)
+{
+  std::stringstream dclauses;
+  SatVariable maxVar = 0;
+  // get the unsat core from cadical
+  std::stringstream auclauses;
+  for (const Node& i : clauses)
+  {
+    std::vector<Node> lits;
+    if (i.getKind() == Kind::OR)
+    {
+      lits.insert(lits.end(), i.begin(), i.end());
+    }
+    else
+    {
+      lits.push_back(i);
+    }
+    Trace("dimacs-debug") << "Print " << i << std::endl;
+    for (const Node& l : lits)
+    {
+      bool negated = l.getKind() == Kind::NOT;
+      const Node& atom = negated ? l[0] : l;
+      SatLiteral lit = getLiteral(atom);
+      SatVariable v = lit.getSatVariable();
+      maxVar = v > maxVar ? v : maxVar;
+      dclauses << (negated ? "-" : "") << v << " ";
+      Trace("dimacs-debug") << "DIMACS " << v << " " << atom << std::endl;
+      // print the literal as an auxilary unit if applicable
+      if (printAuxUnits && atom.getKind() == Kind::OR
+          && std::find(clauses.begin(), clauses.end(), atom) != clauses.end()
+          && std::find(auxUnits.begin(), auxUnits.end(), atom)
+                 == auxUnits.end())
+      {
+        auxUnits.push_back(atom);
+        auclauses << v << " 0" << std::endl;
+      }
+    }
+    dclauses << "0" << std::endl;
+  }
+
+  out << "p cnf " << maxVar << " " << (clauses.size() + auxUnits.size())
+      << std::endl;
+  out << dclauses.str();
+  out << auclauses.str();
+}
+
 }  // namespace prop
 }  // namespace cvc5::internal
