@@ -169,17 +169,17 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(EVALUATE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- normalization**
+   * **Builtin theory -- associative/commutative normalization**
    *
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
    *
-   * where :math:`\texttt{expr::isNorm(t, s)} = \top`. This
+   * where :math:`\texttt{expr::isACNorm(t, s)} = \top`. This
    * method normalizes based on associativity, commutativity, idempotency, and
    * neutral elements.
    * \endverbatim
    */
-  EVALUE(NORM),
+  EVALUE(AC_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting equality introduction**

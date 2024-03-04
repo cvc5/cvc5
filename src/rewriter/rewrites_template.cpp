@@ -50,7 +50,7 @@ bool isInternalDslProofRule(DslProofRule drule)
          || drule == DslProofRule::TRUE_ELIM
          || drule == DslProofRule::TRUE_INTRO
          || drule == DslProofRule::ARITH_POLY_NORM
-         || drule == DslProofRule::NORM;
+         || drule == DslProofRule::AC_NORM;
 }
 
 const char* toString(DslProofRule drule)
@@ -67,7 +67,7 @@ const char* toString(DslProofRule drule)
     case DslProofRule::TRUE_INTRO: return "TRUE_INTRO";
     case DslProofRule::ARITH_POLY_NORM:
       return "ARITH_POLY_NORM";
-    case DslProofRule::NORM:return "NORM";
+    case DslProofRule::AC_NORM:return "AC_NORM";
       // clang-format off
 ${printer}$
     default : Unreachable();

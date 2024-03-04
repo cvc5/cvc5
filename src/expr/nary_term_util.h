@@ -86,7 +86,7 @@ Node getNormalForm(Node a);
  * @param b The second term
  * @return true if a and b were successfully shown to be equal.
  */
-bool isNorm(Node a, Node b);
+bool isACNorm(Node a, Node b);
 
 }  // namespace expr
 }  // namespace cvc5::internal
