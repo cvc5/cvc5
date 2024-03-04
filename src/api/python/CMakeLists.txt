@@ -116,8 +116,7 @@ add_custom_command(
     ${CVC5_PYTHON_BASE_LIB}
   COMMAND
     # Force a new build if any dependency has changed
-    ${CMAKE_COMMAND} -E remove cvc5_python_base.cpp &&
-    ${CMAKE_COMMAND} -E remove cvc5/cvc5_python_base.${PYTHON_EXT}
+    ${CMAKE_COMMAND} -E remove cvc5_python_base.cpp cvc5/cvc5_python_base.${PYTHON_EXT}
   COMMAND
     "${Python_EXECUTABLE}" setup.py build_ext --inplace
   MAIN_DEPENDENCY
