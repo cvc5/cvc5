@@ -147,21 +147,21 @@ class JustificationStrategy : public DecisionEngine
    * Adds assertions lems to satisfy that persist in the user context.
    * All input assertions and lemmas not marked "local" are added via this call.
    */
-  void addAssertions(std::vector<TNode>& lems) override;
+  void addAssertions(const std::vector<TNode>& lems) override;
   /**
    * Adds assertions lems to satisfy that persist in the SAT context.
    * This is triggered when a literal lit is sent to TheoryEngine that contains
    * skolems we have yet to see in the current SAT context, where lems are the
    * skolem definitions for each such skolem.
    */
-  void addLocalAssertions(std::vector<TNode>& lems) override;
+  void addLocalAssertions(const std::vector<TNode>& lems) override;
 
  private:
   /**
    * Helper method to insert assertions in `toProcess` to `d_assertions` or
    * `d_skolemAssertions` based on `useSkolemList`.
    */
-  void insertToAssertionList(std::vector<TNode>& toProcess, bool useSkolemList);
+  void insertToAssertionList(const std::vector<TNode>& lems, bool useSkolemList);
   /**
    * Refresh current assertion. This ensures that d_stack has a current
    * assertion to satisfy. If it does not already have one, we take the next

@@ -449,26 +449,22 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
 
 bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
-void JustificationStrategy::addAssertions(std::vector<TNode>& lems)
+void JustificationStrategy::addAssertions(const std::vector<TNode>& lems)
 {
   Trace("jh-assert") << "addAssertions " << lems << std::endl;
   insertToAssertionList(lems, false);
 }
 
-void JustificationStrategy::addLocalAssertions(std::vector<TNode>& lems)
+void JustificationStrategy::addLocalAssertions(const std::vector<TNode>& lems)
 {
   Trace("jh-assert") << "addLocalAssertions: " << lems << std::endl;
-  // assertion processed makes all skolems in assertion active,
-  // which triggers their definitions to becoming relevant
   insertToAssertionList(lems, true);
-  // NOTE: if we had a notifyAsserted callback, we could update tracking
-  // triggers, pop stack to where a child implied that a node on the current
-  // stack is justified.
 }
 
-void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
+void JustificationStrategy::insertToAssertionList(const std::vector<TNode>& lems,
                                                   bool useSkolemList)
 {
+  std::vector<TNode> toProcess(lems.begin(), lems.end());
   AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
   IntStat& sizeStat =
       useSkolemList ? d_stats.d_maxSkolemDefsSize : d_stats.d_maxAssertionsSize;
