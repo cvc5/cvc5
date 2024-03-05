@@ -103,10 +103,10 @@ void TheorySetsRels::check(Theory::Effort level)
         }
         if (kind_terms.find(Kind::RELATION_TABLE_JOIN) != kind_terms.end())
         {
-          std::vector<Node>& join_terms = kind_terms[Kind::RELATION_TABLE_JOIN];
-          for (unsigned int j = 0; j < join_terms.size(); j++)
+          std::vector<Node>& joinTerms = kind_terms[Kind::RELATION_TABLE_JOIN];
+          for (unsigned int j = 0; j < joinTerms.size(); j++)
           {
-            applyTableJoinRule(join_terms[j], rel_rep, exp);
+            applyTableJoinRule(joinTerms[j], rel_rep, exp);
           }
         }
         if (kind_terms.find(Kind::RELATION_PRODUCT) != kind_terms.end())
@@ -993,8 +993,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Node A = n[0];
     Node B = n[1];
     Node e = exp[0];
-    std::vector<Node> r1_element;
-    std::vector<Node> r2_element;
+
     Node repA = getRepresentative(A);
     Node repB = getRepresentative(B);
 
@@ -1363,7 +1362,7 @@ void TheorySetsRels::check(Theory::Effort level)
           Node x = aElements[indices[k]];
           Node y = bElements[indices[k + 1]];
 
-          // Since we require notification r1_rmost and r2_lmost are equal,
+          // Since we require notification x and y are equal,
           // they must be shared terms of theory of sets. Hence, we make the
           // following calls to makeSharedTerm to ensure this is the case.
           makeSharedTerm(x);
