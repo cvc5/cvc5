@@ -72,12 +72,6 @@ class SygusGrammar
   void addAnyVariable(const Node& ntSym);
 
   /**
-   * Remove non-terminal \p ntSym from the grammar.
-   * @param ntSym The non-terminal to remove from the grammar.
-   */
-  void removeNonTerminal(const Node& ntSym);
-
-  /**
    * Remove \p rule from the set of rules corresponding to \p ntSym.
    * @param ntSym The non-terminal from which the rule is removed.
    * @param rule The rule to remove. This must be a rule that occurs
