@@ -29,6 +29,32 @@ namespace quantifiers {
 
 class InstStrategyMbqi;
 
+class MVarInfo
+{
+ public:
+  void initialize(const Node& v);
+  Node getEnumeratedTerm(size_t i);
+  bool isEnumerated() const;
+ private:
+   std::vector<Node> d_enum;
+   std::vector<Node> d_lambdaVars;
+  bool d_isEnum;
+};
+
+class MQuantInfo
+{
+public:
+  void initialize(const Node& q);
+  /** Get n^th instantiation from q for variable v */
+  Node getEnumeratedTerm(size_t index, size_t i);
+  /** Get indicies of variables to instantiate */
+  std::vector<size_t> getIndicies();
+private:
+  Node d_quant;
+  std::vector<MVarInfo> d_vinfo;
+  std::vector<size_t> d_indices;
+};
+
 /**
  * MbqiSygusEnum
  */
@@ -47,6 +73,8 @@ class MbqiSygusEnum : protected EnvObj
                               std::vector<Node>& mvs);
 
  private:
+  MQuantInfo& getOrMkQuantInfo(const Node& q);
+   std::map<Node, MQuantInfo> d_qinfo;
   InstStrategyMbqi& d_parent;
 };
 

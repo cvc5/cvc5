@@ -29,6 +29,44 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+void MVarInfo::initialize(const Node& v)
+{
+}
+
+Node MVarInfo::getEnumeratedTerm(size_t i)
+{
+  Assert (d_isEnum);
+  return Node::null();
+}
+
+bool MVarInfo::isEnumerated() const { return d_isEnum; }
+
+void MQuantInfo::initialize(const Node& q)
+{
+  for (const Node& v : q[0])
+  {
+    size_t index = d_vinfo.size();
+    d_vinfo.emplace_back();
+    d_vinfo.back().initialize(v);
+    // if enumerated, add to list
+    if (d_vinfo.back().isEnumerated())
+    {
+      d_indices.push_back(index);
+    }
+  }
+}
+
+Node MQuantInfo::getEnumeratedTerm(size_t index, size_t i)
+{
+  Assert (index<d_vinfo.size());
+  return d_vinfo[index].getEnumeratedTerm(i);
+}
+
+std::vector<size_t> MQuantInfo::getIndicies()
+{
+  return d_indices;
+}
+
 MbqiSygusEnum::MbqiSygusEnum(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)
 {
@@ -152,6 +190,18 @@ bool MbqiSygusEnum::constructInstantiation(const Node& q,
     } while (senum.increment());
   }
   return true;
+}
+
+MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
+{
+  std::map<Node, MQuantInfo>::iterator it = d_qinfo.find(q);
+  if (it==d_qinfo.end())
+  {
+    MQuantInfo& qi = d_qinfo[q];
+    qi.initialize(q);
+    return qi;
+  }
+  return it->second;
 }
 
 }  // namespace quantifiers
