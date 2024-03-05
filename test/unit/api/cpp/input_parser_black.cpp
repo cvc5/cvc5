@@ -303,5 +303,26 @@ TEST_F(TestInputParserBlack, incrementalSetString)
   ASSERT_EQ(out.str().empty(), true);
 }
 
+TEST_F(TestInputParserBlack, modelDeclares)
+{
+  InputParser p(&d_solver, d_symman.get());
+  Command cmd;
+  std::stringstream out;
+  p.appendIncrementalStringInput("(set-logic ALL)");
+  p.appendIncrementalStringInput("(declare-sort U 0)");
+  p.appendIncrementalStringInput("(declare-fun x () U)");
+  for (size_t i=0; i<3; i++)
+  {
+    cmd = p.nextCommand();
+    ASSERT_NE(cmd.isNull(), true);
+    ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  }
+  std::vector<Sort> sorts = d_symman->getModelDeclaredSorts();
+  std::vector<Term> terms = d_symman->getModelDeclaredTerms();
+  ASSERT_EQ(sorts.size(), 1);
+  ASSERT_EQ(terms.size(), 1);
+  ASSERT_EQ(terms[0].getSort(), sorts[0]);
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

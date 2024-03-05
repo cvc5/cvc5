@@ -64,5 +64,11 @@ TEST_F(TestSymbolManagerBlack, getLogic)
   ASSERT_EQ(d_symman->getLogic(), "QF_LIA");
 }
 
+TEST_F(TestSymbolManagerBlack, getModelDeclaredTermsAndSorts)
+{
+  ASSERT_EQ(d_symman->getModelDeclaredSorts(), {});
+  ASSERT_EQ(d_symman->getModelDeclaredTerms(), {});
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
