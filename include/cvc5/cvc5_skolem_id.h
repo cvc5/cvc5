@@ -42,7 +42,11 @@ namespace cvc5 {
 
 // clang-format off
 /**
- * The kind of a cvc5 skolem
+ * The kind of a cvc5 skolem. A skolem is an internal function or constant that
+ * is introduced by cvc5. These symbols are treated as uninterpreted
+ * functions internally. We track their definition for the purposes of
+ * formal bookkeeping for the user of features like proofs, lemma exporting,
+ * simplification and so on.
  *
  * \internal
  * 
@@ -239,27 +243,54 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(STRINGS_STOI_NON_DIGIT),
   /**
-   * For sequence a and regular expression b,
-   * in_re(a, re.++(_*, b, _*)) =>
-   *    exists k_pre, k_match, k_post.
-   *       a = k_pre ++ k_match ++ k_post ^
-   *       len(k_pre) = indexof_re(x, y, 0) ^
-   *       (forall l. 0 < l < len(k_match) =>
-   *         ~in_re(substr(k_match, 0, l), r)) ^
-   *       in_re(k_match, b)
+   * The next three skolems are used to decompose the match of a regular
+   * expression in string.
    *
-   * k_pre is the prefix before the first, shortest match of b in a. k_match
-   * is the substring of a matched by b. It is either empty or there is no
-   * shorter string that matches b.
+   * For string a and regular expression R, this skolem is the prefix of
+   * string a before the first, shortest match of R in a. Formally, if
+   * (str.in_re a (re.++ (re.* re.allchar) R (re.* re.allchar))), then
+   * there exists strings k_pre, k_match, k_post such that:
+   *       (= a (str.++ k_pre k_match k_post)) and
+   *       (= (len k_pre) (indexof_re a R 0)) and
+   *       (forall ((l Int)) (=> (< 0 l (len k_match))
+   *         (not (str.in_re (substr k_match 0 l) R)))) and
+   *       (str.in_re k_match R)
+   * This skolem is k_pre, and the proceeding two skolems are k_match and
+   * k_post.
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The string.
+   *   - ``2:`` The regular expression to match.
    */
   EVALUE(RE_FIRST_MATCH_PRE),
+  /**
+   * For string a and regular expression R, this skolem is the string that
+   * the first, shortest match of R was matched to in a.
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The string.
+   *   - ``2:`` The regular expression to match.
+   */
   EVALUE(RE_FIRST_MATCH),
+  /**
+   * For string a and regular expression R, this skolem is the remainder
+   * of a after the first, shortest match of R in a.
+   *
+   * - Number of skolem arguments: ``2``
+   *   - ``1:`` The string.
+   *   - ``2:`` The regular expression to match.
+   */
   EVALUE(RE_FIRST_MATCH_POST),
   /**
-   * Regular expression unfold component: if (str.in_re t R), where R is
-   * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string
-   * skolem ki such that t = (str.++ k0 ... kn) and (str.in_re k0 r0) for
+   * Regular expression unfold component: if (str.in_re a R), where R is
+   * (re.++ R0 ... Rn), then the RE_UNFOLD_POS_COMPONENT{a,R,i} is a string
+   * skolem ki such that (= a (str.++ k0 ... kn)) and (str.in_re k0 R0) for
    * i = 0, ..., n.
+   *
+   * - Number of skolem arguments: ``3``
+   *   - ``1:`` The string.
+   *   - ``2:`` The regular expression.
+   *   - ``3:`` The index of the skolem.
    */
   EVALUE(RE_UNFOLD_POS_COMPONENT),
   EVALUE(BAGS_CARD_CARDINALITY),
