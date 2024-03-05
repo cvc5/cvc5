@@ -29,11 +29,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-void MVarInfo::initialize(Env& env, const Node& q, const Node& v)
+void MVarInfo::initialize(Env& env, const Node& q, const Node& v, const std::vector<Node>& etrules)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_isEnum = true;
   TypeNode tn = v.getType();
+  Assert (MQuantInfo::shouldEnumerate(tn));
   TypeNode retType = tn;
   std::vector<Node> trules;
   if (tn.isFunction())
@@ -47,18 +47,14 @@ void MVarInfo::initialize(Env& env, const Node& q, const Node& v)
       vs.push_back(vc);
     }
     d_lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
-    trules = vs;
-  }
-  else if (tn.isUninterpretedSort())
-  {
-    // don't enumerate
-    d_isEnum = false;
-    return;
+    trules.insert(trules.end(), vs.begin(), vs.end());
   }
   // NOTE: get free symbols from body of quantified formula here??
   std::unordered_set<Node> syms;
   expr::getSymbols(q[1], syms);
   trules.insert(trules.end(), syms.begin(), syms.end());
+  // include the external terminal rules
+  trules.insert(trules.end(), etrules.begin(), etrules.end());
   Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;
   // TODO: could add more symbols to trules to improve the enumerated terms
   // TODO: could cache the enumerator here for efficiency
@@ -120,17 +116,17 @@ Node MVarInfo::getEnumeratedTerm(size_t i)
   return d_enum[i];
 }
 
-bool MVarInfo::isEnumerated() const { return d_isEnum; }
-
 void MQuantInfo::initialize(Env& env, const Node& q)
 {
+  // TODO: external terminal rules?
+  std::vector<Node> etrules;
   for (const Node& v : q[0])
   {
     size_t index = d_vinfo.size();
     d_vinfo.emplace_back();
-    d_vinfo.back().initialize(env, q, v);
+    TypeNode vtn = v.getType();
     // if enumerated, add to list
-    if (d_vinfo.back().isEnumerated())
+    if (shouldEnumerate(vtn))
     {
       d_indices.push_back(index);
     }
@@ -138,6 +134,11 @@ void MQuantInfo::initialize(Env& env, const Node& q)
     {
       d_nindices.push_back(index);
     }
+  }
+  // initialize the variables we are instantiating
+  for (size_t index : d_indices)
+  {
+    d_vinfo[index].initialize(env, q, q[0][index], etrules);
   }
 }
 
@@ -149,6 +150,15 @@ MVarInfo& MQuantInfo::getVarInfo(size_t index)
 
 std::vector<size_t> MQuantInfo::getInstIndicies() { return d_indices; }
 std::vector<size_t> MQuantInfo::getNoInstIndicies() { return d_nindices; }
+
+bool MQuantInfo::shouldEnumerate(const TypeNode& tn)
+{
+  if (tn.isUninterpretedSort())
+  {
+    return false;
+  }
+  return true;
+}
 
 MbqiSygusEnum::MbqiSygusEnum(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)

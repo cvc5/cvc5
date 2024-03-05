@@ -33,15 +33,13 @@ class InstStrategyMbqi;
 class MVarInfo
 {
  public:
-  void initialize(Env& env, const Node& q, const Node& v);
+  void initialize(Env& env, const Node& q, const Node& v, const std::vector<Node>& etrules);
   Node getEnumeratedTerm(size_t i);
-  bool isEnumerated() const;
 
  private:
   std::unique_ptr<SygusTermEnumerator> d_senum;
   std::vector<Node> d_enum;
   Node d_lamVars;
-  bool d_isEnum;
 };
 
 class MQuantInfo
@@ -54,7 +52,8 @@ class MQuantInfo
   std::vector<size_t> getNoInstIndicies();
   /** Get variable info */
   MVarInfo& getVarInfo(size_t index);
-
+  /** Should we enumerate terms for type tn? */
+  static bool shouldEnumerate(const TypeNode& tn);
  private:
   Node d_quant;
   std::vector<MVarInfo> d_vinfo;
