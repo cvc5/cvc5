@@ -124,7 +124,7 @@ versions; more recent versions should be compatible.
   + module `tomli <https://pypi.org/project/tomli/>`_
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
-- `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
+- `CaDiCaL >= 1.6.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
 For Python, to install these dependencies automatically, please use:
@@ -259,7 +259,6 @@ Dependencies for Language Bindings
 - Python
 
   - `Cython <https://cython.org/>`_ >= 3.0.0
-  - `scikit-build <https://pypi.org/project/scikit-build/>`_
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
   - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
 

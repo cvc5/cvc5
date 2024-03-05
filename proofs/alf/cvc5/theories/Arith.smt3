@@ -89,7 +89,10 @@
                      (! Type :var U :implicit)
                      T U (arith_typeunion T U)))
 
-; Currently unary negation cannot use overload.
-(declare-const u- (-> (! Type :var T :implicit)
-                      (! T :requires ((is_arith_type T) true))
-                      T))
+; Unary negation, which is overloaded with binary subtraction. We distinguish
+; these two operators in ALFC based on their arity when applied, and with
+; alf.as when they are used in higher-order contexts, e.g. as an argument to
+; the cong proof rule.
+(declare-const - (-> (! Type :var T :implicit)
+                     (! T :requires ((is_arith_type T) true))
+                     T))

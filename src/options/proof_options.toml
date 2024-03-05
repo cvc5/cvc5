@@ -42,6 +42,14 @@ name   = "Proof"
   help       = "Dagify terms in proofs using global definitions"
 
 [[option]]
+  name       = "proofElimSubtypes"
+  category   = "expert"
+  long       = "proof-elim-subtypes"
+  type       = "bool"
+  default    = "false"
+  help       = "Eliminate subtypes (mixed arithmetic) in proofs"
+
+[[option]]
   name       = "proofPedantic"
   category   = "expert"
   long       = "proof-pedantic=N"
@@ -103,10 +111,18 @@ name   = "Proof"
 [[option]]
   name       = "proofRewriteRconsRecLimit"
   category   = "regular"
-  long       = "proof-rewrite-rcons-limit=N"
-  type       = "int64_t"
-  default    = "5"
+  long       = "proof-rewrite-rcons-rec-limit=N"
+  type       = "uint64_t"
+  default    = "15"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
+
+[[option]]
+  name       = "proofRewriteRconsStepLimit"
+  category   = "regular"
+  long       = "proof-rewrite-rcons-step-limit=N"
+  type       = "uint64_t"
+  default    = "200"
+  help       = "the limit of steps considered for reconstructing proofs of theory rewrites"
 
 [[option]]
   name       = "proofAnnotate"
@@ -187,3 +203,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"
+
+[[option]]
+  name       = "dratBinaryFormat"
+  category   = "expert"
+  long       = "drat-binary-format"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the DRAT proof in binary format"

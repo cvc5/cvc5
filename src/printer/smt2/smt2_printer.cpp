@@ -609,6 +609,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   }
   else if (k == Kind::HO_APPLY && options::ioutils::getFlattenHOChains(out))
   {
+    out << "(";
     // collapse "@" chains, i.e.
     //
     // ((a b) c) --> (a b c)
@@ -923,7 +924,6 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     }
     break;
     // kinds that don't print their operator
-    case Kind::APPLY_INDEXED_SYMBOLIC:  // operator is printed as kind
     case Kind::SEXPR:
     case Kind::INSTANTIATED_SORT_TYPE:
     case Kind::PARAMETRIC_DATATYPE:
@@ -1211,13 +1211,10 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BAG_SUBBAG: return "bag.subbag";
     case Kind::BAG_COUNT: return "bag.count";
     case Kind::BAG_MEMBER: return "bag.member";
-    case Kind::BAG_DUPLICATE_REMOVAL: return "bag.duplicate_removal";
+    case Kind::BAG_SETOF: return "bag.setof";
     case Kind::BAG_MAKE: return "bag";
     case Kind::BAG_CARD: return "bag.card";
     case Kind::BAG_CHOOSE: return "bag.choose";
-    case Kind::BAG_IS_SINGLETON: return "bag.is_singleton";
-    case Kind::BAG_FROM_SET: return "bag.from_set";
-    case Kind::BAG_TO_SET: return "bag.to_set";
     case Kind::BAG_MAP: return "bag.map";
     case Kind::BAG_FILTER: return "bag.filter";
     case Kind::BAG_FOLD: return "bag.fold";

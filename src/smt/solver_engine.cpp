@@ -25,6 +25,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
+#include "expr/sygus_term_enumerator.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
@@ -1403,6 +1404,7 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::ALETHE:
       mode = options::ProofFormatMode::ALETHE;
       break;
+    case modes::ProofFormat::ALF: mode = options::ProofFormatMode::ALF; break;
     case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
@@ -1654,6 +1656,8 @@ void SolverEngine::getRelevantQuantTermVectors(
     bool getDebugInfo)
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
+  Assert(d_env->getOptions().smt.produceProofs
+         && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
   // generate with new proofs
   PropEngine* pe = d_smtSolver->getPropEngine();
   Assert(pe != nullptr);

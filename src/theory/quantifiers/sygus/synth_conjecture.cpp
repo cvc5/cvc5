@@ -30,6 +30,7 @@
 #include "theory/quantifiers/sygus/embedding_converter.h"
 #include "theory/quantifiers/sygus/enum_value_manager.h"
 #include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -66,7 +67,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_templInfer(new SygusTemplateInfer(env)),
       d_ceg_proc(new SynthConjectureProcess(env)),
       d_embConv(new EmbeddingConverter(env, d_tds, this)),
-      d_sygus_rconst(new SygusRepairConst(env, d_tds)),
+      d_sygus_rconst(new SygusRepairConst(env, qim, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
       d_ceg_cegis(new Cegis(env, qs, qim, d_tds, this)),
@@ -390,11 +391,19 @@ bool SynthConjecture::doCheck()
       }
       d_repair_index++;
       if (d_sygus_rconst->repairSolution(
-              d_candidates, fail_cvs, candidate_values, true))
+              d_candidates, fail_cvs, candidate_values))
       {
         constructed_cand = true;
       }
     }
+    else
+    {
+      Trace("sygus-engine-debug") << "...no candidates to repair" << std::endl;
+    }
+  }
+  else
+  {
+    Trace("sygus-engine-debug") << "...not repairing" << std::endl;
   }
 
   bool printDebug = isOutputOn(OutputTag::SYGUS);
@@ -818,12 +827,15 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values,
   {
     Node cprog = d_candidates[i];
     Assert(d_tds->isEnumerator(cprog));
-    if (d_tds->isPassiveEnumerator(cprog))
+    if (!d_tds->isPassiveEnumerator(cprog))
     {
-      Node cval = values[i];
-      // add to explanation of exclusion
-      d_tds->getExplain()->getExplanationForEquality(cprog, cval, exp);
+      // If any candidate is actively generated, then we should not add the
+      // lemma below. We never mix fast and smart enumerators.
+      return;
     }
+    Node cval = values[i];
+    // add to explanation of exclusion
+    d_tds->getExplain()->getExplanationForEquality(cprog, cval, exp);
   }
   if (!exp.empty())
   {
