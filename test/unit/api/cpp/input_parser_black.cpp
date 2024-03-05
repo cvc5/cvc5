@@ -311,7 +311,7 @@ TEST_F(TestInputParserBlack, modelDeclares)
   p.appendIncrementalStringInput("(set-logic ALL)");
   p.appendIncrementalStringInput("(declare-sort U 0)");
   p.appendIncrementalStringInput("(declare-fun x () U)");
-  for (size_t i=0; i<3; i++)
+  for (size_t i = 0; i < 3; i++)
   {
     cmd = p.nextCommand();
     ASSERT_NE(cmd.isNull(), true);
