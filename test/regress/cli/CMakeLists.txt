@@ -3225,6 +3225,7 @@ set(regress_1_tests
   regress1/sygus/crcy-si.sy
   regress1/sygus/cube-nia.sy
   regress1/sygus/d10160.sy
+  regress1/sygus/discussion-10435.sy
   regress1/sygus/discPresent.sy
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
@@ -3327,6 +3328,7 @@ set(regress_1_tests
   regress1/sygus/no-mention.sy
   regress1/sygus/once_2.sy
   regress1/sygus/only-const-grammar.sy
+  regress1/sygus/only-const-grammar2.sy
   regress1/sygus/pbe_multi.sy
   regress1/sygus/phone-1-long.sy
   regress1/sygus/planning-unif.sy
