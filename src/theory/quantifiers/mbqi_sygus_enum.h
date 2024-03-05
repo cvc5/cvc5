@@ -42,11 +42,12 @@ class MbqiSygusEnum : protected EnvObj
    * Updates mvs to the desired instantiation of q.
    */
   bool constructInstantiation(const Node& q,
-                                           const Node& query,
-                                           const std::vector<Node>& vars,
-                                           std::vector<Node>& mvs);
+                              const Node& query,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& mvs);
+
  private:
-   InstStrategyMbqi& d_parent;
+  InstStrategyMbqi& d_parent;
 };
 
 }  // namespace quantifiers

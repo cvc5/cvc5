@@ -21,13 +21,13 @@
 #include "printer/smt2/smt2_printer.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/mbqi_sygus_enum.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
-#include "theory/quantifiers/mbqi_sygus_enum.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -47,7 +47,7 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   d_nonClosedKinds.insert(Kind::STORE_ALL);
   d_nonClosedKinds.insert(Kind::CODATATYPE_BOUND_VARIABLE);
   d_nonClosedKinds.insert(Kind::UNINTERPRETED_SORT_VALUE);
-  
+
   if (options().quantifiers.mbqiModelExp)
   {
     d_msenum.reset(new MbqiSygusEnum(env, *this));
@@ -473,8 +473,8 @@ Node InstStrategyMbqi::modelValueToQuery(const Node& t)
   }
   if (TraceIsOn("mbqi-model-exp"))
   {
-    Trace("mbqi-model-exp") << "-> Choose model value of " << t << "?"
-                            << std::endl;
+    Trace("mbqi-model-exp")
+        << "-> Choose model value of " << t << "?" << std::endl;
     if (t.getType().isFunction())
     {
       const std::vector<Node>& uterms = fm->getTheoryModel()->getUfTerms(t);

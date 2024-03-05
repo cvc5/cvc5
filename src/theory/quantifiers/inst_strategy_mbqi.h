@@ -29,7 +29,7 @@ class SolverEngine;
 
 namespace theory {
 namespace quantifiers {
-  
+
 class MbqiSygusEnum;
 
 /**
@@ -46,6 +46,7 @@ class MbqiSygusEnum;
 class InstStrategyMbqi : public QuantifiersModule
 {
   friend class MbqiSygusEnum;
+
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,

@@ -15,26 +15,29 @@
 
 #include "theory/quantifiers/mbqi_sygus_enum.h"
 
+#include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
+#include "printer/smt2/smt2_printer.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/inst_strategy_mbqi.h"
-#include "util/random.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "printer/smt2/smt2_printer.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/node_algorithm.h"
-#include "theory/datatypes/sygus_datatype_utils.h"
-#include "expr/skolem_manager.h"
+#include "util/random.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-MbqiSygusEnum::MbqiSygusEnum(Env& env, InstStrategyMbqi& parent) : EnvObj(env), d_parent(parent) {}
+MbqiSygusEnum::MbqiSygusEnum(Env& env, InstStrategyMbqi& parent)
+    : EnvObj(env), d_parent(parent)
+{
+}
 
 bool MbqiSygusEnum::constructInstantiation(const Node& q,
-                                          const Node& query,
-                                          const std::vector<Node>& vars,
-                                          std::vector<Node>& mvs)
+                                           const Node& query,
+                                           const std::vector<Node>& vars,
+                                           std::vector<Node>& mvs)
 {
   Assert(vars.size() == mvs.size());
   if (TraceIsOn("mbqi-model-exp"))
@@ -154,4 +157,3 @@ bool MbqiSygusEnum::constructInstantiation(const Node& q,
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
-
