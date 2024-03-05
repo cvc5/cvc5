@@ -321,6 +321,7 @@ void InstStrategyMbqi::process(Node q)
   Instantiate* qinst = d_qim.getInstantiate();
   if (!qinst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_MBQI))
   {
+    AlwaysAssert(false) << "Failed to add instantiation";
     Trace("mbqi") << "...failed to add instantiation" << std::endl;
     return;
   }
