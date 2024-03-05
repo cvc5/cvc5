@@ -21,8 +21,8 @@
 #include <map>
 #include <unordered_map>
 
-#include "smt/env_obj.h"
 #include "expr/sygus_term_enumerator.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -52,6 +52,7 @@ class MQuantInfo
   std::vector<size_t> getInstIndicies();
   /** Get variable info */
   MVarInfo& getVarInfo(size_t index);
+
  private:
   Node d_quant;
   std::vector<MVarInfo> d_vinfo;
@@ -76,9 +77,10 @@ class MbqiSygusEnum : protected EnvObj
                               std::vector<Node>& mvs);
 
   bool constructInstantiationNew(const Node& q,
-                              const Node& query,
-                              const std::vector<Node>& vars,
-                              std::vector<Node>& mvs);
+                                 const Node& query,
+                                 const std::vector<Node>& vars,
+                                 std::vector<Node>& mvs);
+
  private:
   MQuantInfo& getOrMkQuantInfo(const Node& q);
   std::map<Node, MQuantInfo> d_qinfo;

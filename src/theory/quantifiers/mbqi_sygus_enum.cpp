@@ -31,7 +31,7 @@ namespace quantifiers {
 
 void MVarInfo::initialize(Env& env, const Node& q, const Node& v)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   d_isEnum = true;
   TypeNode tn = v.getType();
   TypeNode retType = tn;
@@ -83,8 +83,8 @@ void MVarInfo::initialize(Env& env, const Node& q, const Node& v)
 Node MVarInfo::getEnumeratedTerm(size_t i)
 {
   Assert(d_isEnum);
-  NodeManager * nm = NodeManager::currentNM();
-  while (i<d_enum.size())
+  NodeManager* nm = NodeManager::currentNM();
+  while (i < d_enum.size())
   {
     Node curr = d_senum->getCurrent();
     if (!d_lamVars.isNull())
@@ -97,7 +97,7 @@ Node MVarInfo::getEnumeratedTerm(size_t i)
       break;
     }
   }
-  if (i<d_enum.size())
+  if (i < d_enum.size())
   {
     return Node::null();
   }
@@ -267,17 +267,17 @@ MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
 }
 
 bool MbqiSygusEnum::constructInstantiationNew(const Node& q,
-                            const Node& query,
-                            const std::vector<Node>& vars,
-                            std::vector<Node>& mvs)
+                                              const Node& query,
+                                              const std::vector<Node>& vars,
+                                              std::vector<Node>& mvs)
 {
   MQuantInfo& qi = getOrMkQuantInfo(q);
   std::vector<size_t> indices = qi.getInstIndicies();
   Subs inst;
-  for (size_t i=0, nvars = vars.size(); i<nvars; i++)
+  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
   {
     // if we don't enumerate it, we are already considering this instantiation
-    if (std::find(indices.begin(), indices.end(), i)==indices.end())
+    if (std::find(indices.begin(), indices.end(), i) == indices.end())
     {
       inst.add(vars[i], mvs[i]);
     }
@@ -343,7 +343,7 @@ bool MbqiSygusEnum::constructInstantiationNew(const Node& q,
         // failed.
         return false;
       }
-    }while (!success);
+    } while (!success);
   }
   return true;
 }
