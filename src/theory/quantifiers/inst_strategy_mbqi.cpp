@@ -504,7 +504,11 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
     return;
   }
   getModelFromSubsolver(smt, vars, mvs);
-  d_msenum->constructInstantiation(q, query, vars, mvs);
+  std::vector<Node> smvs(mvs);
+  if (d_msenum->constructInstantiationNew(q, query, vars, smvs))
+  {
+    mvs = smvs;
+  }
 }
 
 Node InstStrategyMbqi::convertFromModel(

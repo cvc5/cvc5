@@ -84,20 +84,36 @@ Node MVarInfo::getEnumeratedTerm(size_t i)
 {
   Assert(d_isEnum);
   NodeManager* nm = NodeManager::currentNM();
-  while (i < d_enum.size())
+  size_t nullCount = 0;
+  while (i >= d_enum.size())
   {
     Node curr = d_senum->getCurrent();
-    if (!d_lamVars.isNull())
+    Trace("mbqi-sygus-enum") << "Enumerate: " << curr << std::endl;
+    if (!curr.isNull())
     {
-      curr = nm->mkNode(Kind::LAMBDA, curr);
+      if (!d_lamVars.isNull())
+      {
+        curr = nm->mkNode(Kind::LAMBDA, d_lamVars, curr);
+      }
+      d_enum.push_back(curr);
+      nullCount = 0;
     }
-    d_enum.push_back(curr);
+    else
+    {
+      nullCount++;
+      if (nullCount>100)
+      {
+        // break if we aren't making progress
+        break;
+      }
+    }
     if (!d_senum->incrementPartial())
     {
+      // enumeration is finished
       break;
     }
   }
-  if (i < d_enum.size())
+  if (i >= d_enum.size())
   {
     return Node::null();
   }
@@ -280,8 +296,9 @@ bool MbqiSygusEnum::constructInstantiationNew(const Node& q,
   std::vector<size_t> indices = qi.getInstIndicies();
   if (indices.empty())
   {
+    Trace("mbqi-model-enum") << "...no instantiation indicies, return" << std::endl;
     // nothing to do
-    return true;
+    return false;
   }
   std::vector<size_t> nindices = qi.getNoInstIndicies();
   Subs inst;
@@ -321,6 +338,7 @@ bool MbqiSygusEnum::constructInstantiationNew(const Node& q,
       }
       else
       {
+        Trace("mbqi-model-enum") << "- Failed to enumerate candidate" << std::endl;
         // if we failed to enumerate, just try the original
         ret = mvs[ii];
         retc = mvs[ii];
