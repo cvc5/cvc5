@@ -10,10 +10,11 @@
 # directory for licensing information.
 # #############################################################################
 #
-# [[ Add one-line brief description here ]]
+# A simple demonstration of the capabilities of cvc5
 #
-# [[ Add lengthier description here ]]
-# \todo document this file
+# A simple demonstration of how to use uninterpreted functions, combining this
+# with arithmetic, and extracting a model at the end of a satisfiable query.
+# The model is displayed using getValue().
 ##
 from cvc5.pythonic import *
 

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An example of solving finite field problems with cvc5's cpp API
+ * An example of solving finite field problems with cvc5's cpp API.
  */
 
 #include <cvc5/cvc5.h>

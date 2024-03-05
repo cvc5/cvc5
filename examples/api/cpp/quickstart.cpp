@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of the api capabilities of cvc5.
+ * A simple demonstration of the API capabilities of cvc5.
  *
  */
 

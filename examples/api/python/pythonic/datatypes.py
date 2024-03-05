@@ -10,10 +10,7 @@
 # directory for licensing information.
 # #############################################################################
 #
-# [[ Add one-line brief description here ]]
-#
-# [[ Add lengthier description here ]]
-# \todo document this file
+# An example of using inductive datatypes in cvc5.
 ##
 from cvc5.pythonic import *
 

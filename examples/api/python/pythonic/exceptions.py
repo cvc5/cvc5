@@ -10,10 +10,7 @@
 # directory for licensing information.
 # #############################################################################
 #
-# [[ Add one-line brief description here ]]
-#
-# [[ Add lengthier description here ]]
-# \todo document this file
+# A simple demonstration of how to handle exceptions.
 ##
 from cvc5.pythonic import *
 

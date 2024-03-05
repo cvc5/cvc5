@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An example of solving floating-point problems with cvc5's cpp API
+ * An example of solving floating-point problems with cvc5's cpp API.
  *
  * This example shows to create floating-point types, variables and expressions,
  * and how to create rounding mode constants by solving toy problems. The

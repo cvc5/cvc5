@@ -10,10 +10,12 @@
 # directory for licensing information.
 # #############################################################################
 #
-# [[ Add one-line brief description here ]]
+# An example of solving floating-point problems with cvc5's Python API.
 #
-# [[ Add lengthier description here ]]
-# \todo document this file
+# This example shows to create floating-point types, variables and expressions,
+# and how to create rounding mode constants by solving toy problems. The
+# example also shows making special values (such as NaN and +oo) and converting
+# an IEEE 754-2008 bit-vector to a floating-point number.
 ##
 from cvc5.pythonic import *
 

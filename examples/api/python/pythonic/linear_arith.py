@@ -10,10 +10,8 @@
 # directory for licensing information.
 # #############################################################################
 #
-# [[ Add one-line brief description here ]]
-#
-# [[ Add lengthier description here ]]
-# \todo document this file
+# A simple demonstration of the linear arithmetic solving capabilities and
+# the push pop of cvc5. This also gives an example option.
 ##
 from cvc5.pythonic import *
 

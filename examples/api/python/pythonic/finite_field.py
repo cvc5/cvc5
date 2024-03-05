@@ -10,10 +10,7 @@
 # directory for licensing information.
 # #############################################################################
 #
-# [[ Add one-line brief description here ]]
-#
-# [[ Add lengthier description here ]]
-# \todo document this file
+# An example of solving finite field problems with cvc5's Python API.
 ##
 from cvc5.pythonic import *
 

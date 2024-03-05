@@ -10,10 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Test for required GMP version.
  */
 #include <gmpxx.h>
 
