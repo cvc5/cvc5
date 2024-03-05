@@ -86,16 +86,11 @@ Java_io_github_cvc5_SymbolManager_getModelDeclaredSorts(JNIEnv* env,
                                                         jobject,
                                                         jlong pointer)
 {
+
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = reinterpret_cast<Sort*>(pointer);
-  std::vector<Sort> sorts = current->getModelDeclaredSorts();
-  std::vector<jlong> sortPointers(sorts.size());
-  for (size_t i = 0; i < sorts.size(); i++)
-  {
-    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
-  }
-  jlongArray ret = env->NewLongArray(sorts.size());
-  env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
+  SymbolManager* symbolManager = reinterpret_cast<SymbolManager*>(pointer);
+  std::vector<Sort> sorts = symbolManager->getModelDeclaredSorts();
+  jlongArray ret = getPointersFromObjects<Sort>(env, sorts);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
@@ -109,8 +104,8 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getModelDeclaredTerms(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<Term> terms = solver->getModelDeclaredTerms();
+  SymbolManager* symbolManager = reinterpret_cast<SymbolManager*>(pointer);
+  std::vector<Term> terms = symbolManager->getModelDeclaredTerms();
   jlongArray ret = getPointersFromObjects<Term>(env, terms);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
