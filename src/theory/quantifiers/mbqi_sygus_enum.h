@@ -73,13 +73,9 @@ class MbqiSygusEnum : protected EnvObj
 
   /**
    * Updates mvs to the desired instantiation of q.
+   * Returns true if successful.
    */
   bool constructInstantiation(const Node& q,
-                              const Node& query,
-                              const std::vector<Node>& vars,
-                              std::vector<Node>& mvs);
-
-  bool constructInstantiationNew(const Node& q,
                                  const Node& query,
                                  const std::vector<Node>& vars,
                                  std::vector<Node>& mvs);

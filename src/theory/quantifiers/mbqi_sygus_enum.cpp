@@ -155,126 +155,6 @@ MbqiSygusEnum::MbqiSygusEnum(Env& env, InstStrategyMbqi& parent)
 {
 }
 
-bool MbqiSygusEnum::constructInstantiation(const Node& q,
-                                           const Node& query,
-                                           const std::vector<Node>& vars,
-                                           std::vector<Node>& mvs)
-{
-  Assert(vars.size() == mvs.size());
-  if (TraceIsOn("mbqi-model-exp"))
-  {
-    Trace("mbqi-model-exp")
-        << "<- Get model values for instantiation of " << q << "?" << std::endl;
-    std::vector<Node> ovars(q[0].begin(), q[0].end());
-    Node querys =
-        query.substitute(vars.begin(), vars.end(), ovars.begin(), ovars.end());
-    Trace("mbqi-model-exp") << "  query was: " << querys << std::endl;
-    for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
-    {
-      Trace("mbqi-model-exp")
-          << "...M_subsolver(" << q[0][i] << ") == " << mvs[i] << std::endl;
-    }
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  Node queryCurr = query;
-  std::vector<size_t> indices;
-  for (size_t i = 0, msize = mvs.size(); i < msize; i++)
-  {
-    indices.push_back(i);
-  }
-  std::shuffle(indices.begin(), indices.end(), Random::getRandom());
-  for (size_t i = 0, msize = mvs.size(); i < msize; i++)
-  {
-    size_t ii = indices[i];
-    Node v = vars[ii];
-    Node m = mvs[ii];
-    TypeNode tn = m.getType();
-    Node lamVars;
-    TypeNode retType = tn;
-    std::vector<Node> trules;
-    if (tn.isFunction())
-    {
-      std::vector<TypeNode> argTypes = tn.getArgTypes();
-      retType = tn.getRangeType();
-      std::vector<Node> vs;
-      for (const TypeNode& tnc : argTypes)
-      {
-        Node vc = nm->mkBoundVar(tnc);
-        vs.push_back(vc);
-      }
-      lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
-      trules = vs;
-    }
-    else if (tn.isUninterpretedSort())
-    {
-      continue;
-    }
-    // NOTE: get free symbols from body of quantified formula here??
-    std::unordered_set<Node> syms;
-    expr::getSymbols(q[1], syms);
-    trules.insert(trules.end(), syms.begin(), syms.end());
-    Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;
-    // TODO: could add more symbols to trules to improve the enumerated terms
-    // TODO: could cache the enumerator here for efficiency
-    SygusGrammarCons sgc;
-    Node bvl;
-    TypeNode tng = sgc.mkDefaultSygusType(d_env, retType, bvl, trules);
-    Node e = nm->getSkolemManager()->mkDummySkolem("k", tng);
-    if (TraceIsOn("mbqi-model-enum"))
-    {
-      Trace("mbqi-model-enum") << "Enumerate terms for " << retType;
-      if (!lamVars.isNull())
-      {
-        Trace("mbqi-model-enum") << ", variable list " << lamVars;
-      }
-      Trace("mbqi-model-enum") << std::endl;
-      Trace("mbqi-model-enum") << "Based on grammar:" << std::endl;
-      Trace("mbqi-model-enum")
-          << printer::smt2::Smt2Printer::sygusGrammarString(tng) << std::endl;
-    }
-    SygusEnumerator senum(d_env);
-    senum.initialize(e);
-    do
-    {
-      Node ret = senum.getCurrent();
-      if (!ret.isNull())
-      {
-        ret = datatypes::utils::sygusToBuiltin(ret);
-        if (!lamVars.isNull())
-        {
-          ret = nm->mkNode(Kind::LAMBDA, lamVars, ret);
-        }
-        Trace("mbqi-model-enum") << "- Try candidate: " << ret << std::endl;
-        std::unordered_map<Node, Node> tmpConvertMap;
-        std::map<TypeNode, std::unordered_set<Node> > freshVarType;
-        Node retc = d_parent.convertToQuery(ret, tmpConvertMap, freshVarType);
-        Trace("mbqi-model-enum")
-            << "- Converted candidate: " << retc << std::endl;
-        // see if it is still satisfiable, if still SAT, we replace
-        Node queryCheck = queryCurr.substitute(TNode(v), TNode(retc));
-        queryCheck = rewrite(queryCheck);
-        Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
-        // since we may have free constants from the grammar, we must ensure
-        // their model value is considered.
-        Trace("mbqi-model-enum") << "...converted " << queryCheck << std::endl;
-        SubsolverSetupInfo ssi(d_env);
-        Result r = checkWithSubsolver(queryCheck, ssi);
-        if (r == Result::SAT)
-        {
-          // remember the updated query
-          queryCurr = queryCheck;
-          Trace("mbqi-model-enum") << "...success" << std::endl;
-          Trace("mbqi-model-enum") << "use " << ret << std::endl;
-          mvs[ii] = ret;
-          break;
-        }
-        Trace("mbqi-model-enum") << "...failed, try another" << std::endl;
-      }
-    } while (senum.increment());
-  }
-  return true;
-}
-
 MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
 {
   std::map<Node, MQuantInfo>::iterator it = d_qinfo.find(q);
@@ -287,7 +167,7 @@ MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
   return it->second;
 }
 
-bool MbqiSygusEnum::constructInstantiationNew(const Node& q,
+bool MbqiSygusEnum::constructInstantiation(const Node& q,
                                               const Node& query,
                                               const std::vector<Node>& vars,
                                               std::vector<Node>& mvs)
