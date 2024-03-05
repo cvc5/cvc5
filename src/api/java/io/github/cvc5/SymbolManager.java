@@ -81,4 +81,36 @@ public class SymbolManager extends AbstractPointer
   }
 
   private native String getLogic(long pointer);
+
+
+  /**
+   * Get the list of sorts that have been declared via `declare-sort` commands.
+   * These are the sorts that are printed as part of a response to a
+   * `get-model` command.
+   *
+   * @return The declared sorts.
+   */
+  public Sort[] getModelDeclaredSorts()
+  {
+    long[] pointers = getModelDeclaredSorts(pointer);
+    return Utils.getSorts(pointers);
+  }
+
+  private native long[] getModelDeclaredSorts(long pointer);
+
+
+  /**
+   * Get the list of terms that have been declared via `declare-fun` and
+   * `declare-const`. These are the terms that are printed in response to a
+   * `get-model` command.
+   *
+   * @return The declared terms.
+   */
+  public Term[] getModelDeclaredTerms()
+  {
+    long[] retPointers = getModelDeclaredTerms(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getModelDeclaredTerms(long pointer);
 }

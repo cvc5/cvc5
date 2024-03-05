@@ -86,6 +86,23 @@ const std::string& SymbolManager::getLogic() const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<Sort> SymbolManager::getModelDeclaredSorts() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  return d_sm->getModelDeclareSorts();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> SymbolManager::getModelDeclaredTerms() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_sm->getModelDeclareTerms();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 SymManager* SymbolManager::toSymManager() { return d_sm.get(); }
 
 /* -------------------------------------------------------------------------- */
