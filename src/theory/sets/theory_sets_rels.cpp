@@ -104,7 +104,7 @@ void TheorySetsRels::check(Theory::Effort level)
         if (kind_terms.find(Kind::RELATION_TABLE_JOIN) != kind_terms.end())
         {
           std::vector<Node>& joinTerms = kind_terms[Kind::RELATION_TABLE_JOIN];
-          for (unsigned int j = 0; j < joinTerms.size(); j++)
+          for (size_t j = 0; j < joinTerms.size(); j++)
           {
             applyTableJoinRule(joinTerms[j], rel_rep, exp);
           }
