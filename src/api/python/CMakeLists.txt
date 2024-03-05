@@ -15,9 +15,11 @@
 
 find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
 
-# Python modules for building and installing
-check_python_module("setuptools")
-check_python_module("Cython")
+if(NOT ONLY_PYTHON_EXT_SRC)
+  # Python modules for building and installing
+  check_python_module("setuptools")
+  check_python_module("Cython")
+endif()
 
 configure_file(genenums.py.in genenums.py)
 
@@ -108,29 +110,34 @@ configure_file(setup.py.in setup.py)
 configure_file(setup.cfg.in setup.cfg)
 configure_file(__init__.py.in cvc5/__init__.py)
 
-set(CVC5_PYTHON_BASE_LIB
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/cvc5_python_base.${PYTHON_EXT}")
-
-add_custom_command(
-  OUTPUT
-    ${CVC5_PYTHON_BASE_LIB}
-  COMMAND
-    # Force a new build if any dependency has changed
-    ${CMAKE_COMMAND} -E remove cvc5_python_base.cpp cvc5/cvc5_python_base.${PYTHON_EXT}
-  COMMAND
-    "${Python_EXECUTABLE}" setup.py build_ext --inplace
-  MAIN_DEPENDENCY
-    ${CMAKE_CURRENT_BINARY_DIR}/cvc5_python_base.pyx
-  DEPENDS
-    cvc5 cvc5parser
-    ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml
-    ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg
-    ${CMAKE_CURRENT_BINARY_DIR}/setup.py
-    cvc5kinds cvc5types cvc5proofrules
-    ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxi
-    ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxd
-  COMMENT "Generating cvc5_python_base.${PYTHON_EXT}"
+set(PYTHON_EXT_SRC_FILES
+  cvc5kinds cvc5types cvc5proofrules
+  ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxi
+  ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxd
+  ${CMAKE_CURRENT_BINARY_DIR}/cvc5_python_base.pyx
+  ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml
+  ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg
+  ${CMAKE_CURRENT_BINARY_DIR}/setup.py
 )
+
+if(NOT ONLY_PYTHON_EXT_SRC)
+  set(CVC5_PYTHON_BASE_LIB
+    "${CMAKE_CURRENT_BINARY_DIR}/cvc5/cvc5_python_base.${PYTHON_EXT}")
+
+  add_custom_command(
+    OUTPUT
+      ${CVC5_PYTHON_BASE_LIB}
+    COMMAND
+      # Force a new build if any dependency has changed
+      ${CMAKE_COMMAND} -E remove cvc5_python_base.cpp cvc5/cvc5_python_base.${PYTHON_EXT}
+    COMMAND
+      "${Python_EXECUTABLE}" setup.py build_ext --inplace
+    DEPENDS
+      cvc5 cvc5parser
+      ${PYTHON_EXT_SRC_FILES}
+    COMMENT "Generating cvc5_python_base.${PYTHON_EXT}"
+  )
+endif()
 
 # Copy the pythonic API to the right place. It does not come with its own
 # installation routine and consists only of a few files that need to go to
@@ -161,10 +168,6 @@ add_custom_command(
   DEPENDS CVC5PythonicAPI
 )
 
-# Copy license files to build directory where setup() can find them
-# Called by contrib/packaging_python/mk_clean_wheel.sh
-add_custom_target(cvc5_python_licenses DEPENDS ${LICENSE_FILES})
-
 set(COPIED_PYTHONIC_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/__init__.py"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/cvc5_pythonic.py"
@@ -186,30 +189,43 @@ add_custom_command(
   DEPENDS CVC5PythonicAPI
 )
 
-add_custom_target(
-  cvc5_python_api ALL DEPENDS
-    ${CVC5_PYTHON_BASE_LIB}
-    ${COPIED_PYTHONIC_FILES}
-    ${LICENSE_FILES}
-)
+if(ONLY_PYTHON_EXT_SRC)
 
-# figure out if we're in a virtualenv
-execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
-  COMMAND
-  "${Python_EXECUTABLE}"
-  -c
-  "from __future__ import print_function; import os;
-print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
+  add_custom_target(
+    cvc5_python_api ALL DEPENDS
+      ${PYTHON_EXT_SRC_FILES}
+      ${COPIED_PYTHONIC_FILES}
+      ${LICENSE_FILES}
+  )
 
-set(INSTALL_CMD
-    "${Python_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}")
-# if we're in a virtualenv, we install it in the virtualenv lib location
-# otherwise install in prefix
-if ("${IN_VIRTUALENV}" STREQUAL "NO")
-  set(INSTALL_CMD "${INSTALL_CMD} --prefix ${CMAKE_INSTALL_PREFIX}")
+else()
+
+  add_custom_target(
+    cvc5_python_api ALL DEPENDS
+      ${CVC5_PYTHON_BASE_LIB}
+      ${COPIED_PYTHONIC_FILES}
+      ${LICENSE_FILES}
+  )
+
+  # figure out if we're in a virtualenv
+  execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
+    COMMAND
+    "${Python_EXECUTABLE}"
+    -c
+    "from __future__ import print_function; import os; \
+     print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
+
+  set(INSTALL_CMD
+      "${Python_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}")
+  # if we're in a virtualenv, we install it in the virtualenv lib location
+  # otherwise install in prefix
+  if ("${IN_VIRTUALENV}" STREQUAL "NO")
+    set(INSTALL_CMD "${INSTALL_CMD} --prefix ${CMAKE_INSTALL_PREFIX}")
+  endif()
+
+  message("Python bindings install command: ${INSTALL_CMD}")
+
+  install(CODE "execute_process(COMMAND ${INSTALL_CMD})"
+          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+
 endif()
-
-message("Python bindings install command: ${INSTALL_CMD}")
-
-install(CODE "execute_process(COMMAND ${INSTALL_CMD})"
-        FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
