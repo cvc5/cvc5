@@ -203,3 +203,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"
+
+[[option]]
+  name       = "dratBinaryFormat"
+  category   = "expert"
+  long       = "drat-binary-format"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the DRAT proof in binary format"

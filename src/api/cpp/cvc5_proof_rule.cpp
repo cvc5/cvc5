@@ -41,6 +41,7 @@ const char* toString(ProofRule id)
     case ProofRule::TRUST: return "TRUST";
     case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
+    case ProofRule::DRAT_REFUTATION: return "DRAT_REFUTATION";
     //================================================= Boolean rules
     case ProofRule::RESOLUTION: return "RESOLUTION";
     case ProofRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";

@@ -170,7 +170,8 @@ void MinisatSatSolver::setupOptions() {
   d_minisat->restart_inc = options().prop.satRestartInc;
 }
 
-ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
+ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable)
+{
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
   ClauseId clause_id = ClauseIdError;
@@ -311,6 +312,12 @@ std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
 {
   Assert(d_env.isSatProofProducing());
   return d_minisat->getProof();
+}
+
+std::pair<ProofRule, std::vector<Node>> MinisatSatSolver::getProofSketch()
+{
+  Unimplemented() << "getProofSketch for Minisat not supported";
+  return std::pair<ProofRule, std::vector<Node>>();
 }
 
 /** Incremental interface */
