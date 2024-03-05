@@ -24,6 +24,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/smt_engine_subsolver.h"
@@ -34,8 +35,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusRepairConst::SygusRepairConst(Env& env, TermDbSygus* tds)
-    : EnvObj(env), d_tds(tds), d_allow_constant_grammar(false)
+SygusRepairConst::SygusRepairConst(Env& env,
+                                   QuantifiersInferenceManager& qim,
+                                   TermDbSygus* tds)
+    : EnvObj(env), d_qim(qim), d_tds(tds), d_allow_constant_grammar(false)
 {
 }
 
@@ -102,21 +105,15 @@ bool SygusRepairConst::isActive() const
 
 bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
-                                      std::vector<Node>& repair_cv,
-                                      bool useConstantsAsHoles)
+                                      std::vector<Node>& repair_cv)
 {
-  return repairSolution(d_base_inst,
-                        candidates,
-                        candidate_values,
-                        repair_cv,
-                        useConstantsAsHoles);
+  return repairSolution(d_base_inst, candidates, candidate_values, repair_cv);
 }
 
 bool SygusRepairConst::repairSolution(Node sygusBody,
                                       const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
-                                      std::vector<Node>& repair_cv,
-                                      bool useConstantsAsHoles)
+                                      std::vector<Node>& repair_cv)
 {
   Assert(candidates.size() == candidate_values.size());
 
@@ -134,6 +131,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
       TermDbSygus::toStreamSygus(ss, candidate_values[i]);
       Trace("sygus-repair-const")
           << "  " << candidates[i] << " -> " << ss.str() << std::endl;
+      Trace("sygus-repair-const")
+          << "From " << candidate_values[i] << std::endl;
     }
     Trace("sygus-repair-const")
         << "Getting candidate skeletons : " << std::endl;
@@ -141,12 +140,11 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   std::vector<Node> candidate_skeletons;
   std::map<TypeNode, size_t> free_var_count;
   std::vector<Node> sk_vars;
-  std::map<Node, Node> sk_vars_to_subs;
   for (unsigned i = 0, size = candidates.size(); i < size; i++)
   {
     Node cv = candidate_values[i];
-    Node skeleton = getSkeleton(
-        cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
+    Node skeleton = getSkeleton(cv, free_var_count, sk_vars);
+    Assert(skeleton.getType() == cv.getType());
     if (TraceIsOn("sygus-repair-const"))
     {
       std::stringstream ss;
@@ -180,12 +178,6 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
 
   Trace("sygus-repair-const-debug") << "...got : " << fo_body << std::endl;
 
-  if (d_queries.find(fo_body) != d_queries.end())
-  {
-    Trace("sygus-repair-const") << "...duplicate query." << std::endl;
-    return false;
-  }
-  d_queries.insert(fo_body);
   Assert(!expr::hasFreeVar(fo_body));
 
   if (fo_body.isNull() || sk_vars.empty())
@@ -194,6 +186,12 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
         << "...all skeleton variables lead to bad logic." << std::endl;
     return false;
   }
+  if (d_queries.find(fo_body) != d_queries.end())
+  {
+    Trace("sygus-repair-const") << "...duplicate query." << std::endl;
+    return false;
+  }
+  d_queries.insert(fo_body);
 
   Trace("sygus-repair-const") << "Make satisfiabily query..." << std::endl;
   if (fo_body.getKind() == Kind::FORALL)
@@ -229,7 +227,13 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   // check satisfiability
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
-  if (r.getStatus() == Result::UNSAT || r.isUnknown())
+  if (r.getStatus() == Result::UNSAT)
+  {
+    d_unsatQueries.insert(fo_body);
+    Trace("sygus-engine") << "...failed (unsat)" << std::endl;
+    return false;
+  }
+  else if (r.isUnknown())
   {
     Trace("sygus-engine") << "...failed" << std::endl;
     return false;
@@ -237,13 +241,10 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   std::vector<Node> sk_sygus_m;
   for (const Node& v : sk_vars)
   {
-    Assert(d_sk_to_fo.find(v) != d_sk_to_fo.end());
-    Node fov = d_sk_to_fo[v];
-    Node fov_m = repcChecker->getValue(fov);
-    Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
+    Node fov_m = repcChecker->getValue(v);
+    Trace("sygus-repair-const") << "  " << v << " = " << fov_m << std::endl;
     // convert to sygus
-    Node fov_m_to_sygus = d_tds->getProxyVariable(v.getType(), fov_m);
-    sk_sygus_m.push_back(fov_m_to_sygus);
+    sk_sygus_m.push_back(fov_m);
   }
   std::stringstream ss;
   // convert back to sygus
@@ -282,7 +283,7 @@ bool SygusRepairConst::mustRepair(Node n)
     {
       visited.insert(cur);
       Assert(cur.getKind() == Kind::APPLY_CONSTRUCTOR);
-      if (isRepairable(cur, false))
+      if (isRepairable(cur))
       {
         return true;
       }
@@ -296,7 +297,7 @@ bool SygusRepairConst::mustRepair(Node n)
   return false;
 }
 
-bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
+bool SygusRepairConst::isRepairable(Node n)
 {
   if (n.getKind() != Kind::APPLY_CONSTRUCTOR)
   {
@@ -311,42 +312,16 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   Node op = n.getOperator();
   unsigned cindex = datatypes::utils::indexOf(op);
-  if (dt[cindex].isSygusAnyConstant())
-  {
-    // if it represents "any constant" then it is repairable
-    return true;
-  }
-  if (dt[cindex].getNumArgs() > 0)
-  {
-    return false;
-  }
-  if (useConstantsAsHoles && dt.getSygusAllowConst())
-  {
-    if (dt[cindex].getSygusOp().isConst())
-    {
-      // if a constant, it is repairable
-      return true;
-    }
-  }
-  return false;
+  // if it represents "any constant" then it is repairable
+  return dt[cindex].isSygusAnyConstant();
 }
 
 Node SygusRepairConst::getSkeleton(Node n,
                                    std::map<TypeNode, size_t>& free_var_count,
-                                   std::vector<Node>& sk_vars,
-                                   std::map<Node, Node>& sk_vars_to_subs,
-                                   bool useConstantsAsHoles)
+                                   std::vector<Node>& sk_vars)
 {
-  if (isRepairable(n, useConstantsAsHoles))
-  {
-    Node sk_var = d_tds->getFreeVarInc(n.getType(), free_var_count);
-    sk_vars.push_back(sk_var);
-    sk_vars_to_subs[sk_var] = n;
-    Trace("sygus-repair-const-debug")
-        << "Var to subs : " << sk_var << " -> " << n << std::endl;
-    return sk_var;
-  }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* skm = nm->getSkolemManager();
   // get the most general candidate skeleton of n
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -358,9 +333,17 @@ Node SygusRepairConst::getSkeleton(Node n,
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-
     if (it == visited.end())
     {
+      if (isRepairable(cur))
+      {
+        // replace the argument of the any-constant constructor with a skolem
+        Node sk_var = d_tds->getFreeVarInc(cur[0].getType(), free_var_count);
+        sk_var = skm->mkPurifySkolem(sk_var);
+        sk_vars.push_back(sk_var);
+        visited[cur] = nm->mkNode(cur.getKind(), cur.getOperator(), sk_var);
+        continue;
+      }
       visited[cur] = Node::null();
       visit.push_back(cur);
       for (const Node& cn : cur)
@@ -379,24 +362,10 @@ Node SygusRepairConst::getSkeleton(Node n,
       }
       for (const Node& cn : cur)
       {
-        Node child;
-        // if it is repairable
-        if (isRepairable(cn, useConstantsAsHoles))
-        {
-          // replace it by the next free variable
-          child = d_tds->getFreeVarInc(cn.getType(), free_var_count);
-          sk_vars.push_back(child);
-          sk_vars_to_subs[child] = cn;
-          Trace("sygus-repair-const-debug")
-              << "Var to subs : " << child << " -> " << cn << std::endl;
-        }
-        else
-        {
-          it = visited.find(cn);
-          Assert(it != visited.end());
-          Assert(!it->second.isNull());
-          child = it->second;
-        }
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        Node child = it->second;
         childChanged = childChanged || cn != child;
         children.push_back(child);
       }
@@ -417,8 +386,6 @@ Node SygusRepairConst::getFoQuery(Node body,
                                   const std::vector<Node>& candidate_skeletons,
                                   const std::vector<Node>& sk_vars)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   Trace("sygus-repair-const") << "  Substitute skeletons..." << std::endl;
   body = body.substitute(candidates.begin(),
                          candidates.end(),
@@ -429,86 +396,7 @@ Node SygusRepairConst::getFoQuery(Node body,
   Trace("sygus-repair-const") << "  Unfold the specification..." << std::endl;
   body = d_tds->rewriteNode(body);
   Trace("sygus-repair-const-debug") << "  ...got : " << body << std::endl;
-
-  Trace("sygus-repair-const") << "  Introduce first-order vars..." << std::endl;
-  for (const Node& v : sk_vars)
-  {
-    std::map<Node, Node>::iterator itf = d_sk_to_fo.find(v);
-    if (itf == d_sk_to_fo.end())
-    {
-      TypeNode builtinType = d_tds->sygusToBuiltinType(v.getType());
-      Node sk_fov = sm->mkDummySkolem("k", builtinType);
-      d_sk_to_fo[v] = sk_fov;
-      d_fo_to_sk[sk_fov] = v;
-      Trace("sygus-repair-const-debug")
-          << "Map " << v << " -> " << sk_fov << std::endl;
-    }
-  }
-  // now, we must replace all terms of the form eval( z_i, t1...tn ) with
-  // a fresh first-order variable w_i, where z_i is a variable introduced in
-  // the skeleton inference step (z_i is a variable in sk_vars).
-  std::unordered_map<TNode, Node> visited;
-  std::unordered_map<TNode, Node>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(body);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      if (cur.getKind() == Kind::DT_SYGUS_EVAL)
-      {
-        Node v = cur[0];
-        if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())
-        {
-          std::map<Node, Node>::iterator itf = d_sk_to_fo.find(v);
-          Assert(itf != d_sk_to_fo.end());
-          visited[cur] = itf->second;
-        }
-      }
-      if (visited[cur].isNull())
-      {
-        visit.push_back(cur);
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(body) != visited.end());
-  Assert(!visited.find(body)->second.isNull());
-  Node fo_body = visited[body];
-  Trace("sygus-repair-const-debug") << "  ...got : " << fo_body << std::endl;
-  return fo_body;
+  return body;
 }
 
 }  // namespace quantifiers

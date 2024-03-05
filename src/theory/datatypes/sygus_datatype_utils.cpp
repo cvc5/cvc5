@@ -611,11 +611,10 @@ void computeExpandedDefinitionForms(Env& env, const TypeNode& tn)
   std::unordered_set<TypeNode> processed;
   std::vector<TypeNode> toProcess;
   toProcess.push_back(tn);
-  size_t index = 0;
-  while (index < toProcess.size())
+  while (!toProcess.empty())
   {
-    TypeNode tnp = toProcess[index];
-    index++;
+    TypeNode tnp = toProcess.back();
+    toProcess.pop_back();
     Assert(tnp.isSygusDatatype());
     const DType& dt = tnp.getDType();
     const std::vector<std::shared_ptr<DTypeConstructor>>& cons =

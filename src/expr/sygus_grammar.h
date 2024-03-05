@@ -72,12 +72,6 @@ class SygusGrammar
   void addAnyVariable(const Node& ntSym);
 
   /**
-   * Remove non-terminal \p ntSym from the grammar.
-   * @param ntSym The non-terminal from which the rule is removed.
-   */
-  void removeNonTerminal(const Node& ntSym);
-
-  /**
    * Remove \p rule from the set of rules corresponding to \p ntSym.
    * @param ntSym The non-terminal from which the rule is removed.
    * @param rule The rule to remove. This must be a rule that occurs
@@ -122,6 +116,7 @@ class SygusGrammar
    * from this grammar in r by a fresh variable. All variables introduced in
    * this way are included in x1...xn. An entry is added to ntSymMap for each
    * variable xi mapping it to the non-terminal that it replaced.
+   * Returns r itself if it has no non-terminals.
    */
   Node getLambdaForRule(const Node& r, std::map<Node, Node>& ntSymMap) const;
 
