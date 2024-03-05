@@ -355,7 +355,29 @@ enum ENUM(ProofRule) : uint32_t
    * SAT solver. \endverbatim
    */
   EVALUE(SAT_REFUTATION),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **DRAT Refutation**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid D, P}{\bot}
+   *
+   * where :math:`F_1 \dots F_n` correspond to the clauses in the
+   * DIMACS file given by filename `D` and `P` is a filename of a file storing
+   * a DRAT proof. \endverbatim
+   */
+  EVALUE(DRAT_REFUTATION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **SAT external prove Refutation**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid D}{\bot}
+   *
+   * where :math:`F_1 \dots F_n` correspond to the input clauses in the
+   * DIMACS file `D`. \endverbatim
+   */
+  EVALUE(SAT_EXTERNAL_PROVE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Resolution**
@@ -1804,7 +1826,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
    *
-   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`.
+   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
+   * method normalizes polynomials over arithmetic or bitvectors.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM),

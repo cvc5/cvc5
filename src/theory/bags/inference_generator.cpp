@@ -309,13 +309,13 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
+InferInfo InferenceGenerator::setof(Node n, Node e)
 {
-  Assert(n.getKind() == Kind::BAG_DUPLICATE_REMOVAL && n[0].getType().isBag());
+  Assert(n.getKind() == Kind::BAG_SETOF && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
-  InferInfo inferInfo(d_im, InferenceId::BAGS_DUPLICATE_REMOVAL);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_SETOF);
 
   Node countA = getMultiplicityTerm(e, A);
   Node skolem = registerAndAssertSkolemLemma(n);

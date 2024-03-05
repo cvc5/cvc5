@@ -154,6 +154,8 @@ Node SkolemManager::mkPurifySkolem(Node t,
     {
       d_gens[exists] = pg;
     }
+    UnpurifiedFormAttribute ufa;
+    k.setAttribute(ufa, t);
   }
   else
   {
@@ -161,14 +163,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }
-  // set unpurified form attribute for k
-  UnpurifiedFormAttribute ufa;
-  k.setAttribute(ufa, t);
-  // the original form of k can be computed by calling getOriginalForm, but
-  // it is not computed here
-
-  Trace("sk-manager-skolem")
-      << "skolem: " << k << " purify " << t << std::endl;
+  Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
 
@@ -236,6 +231,15 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
       std::stringstream ss;
       ss << "@" << id;
       k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
+    }
+    if (id == SkolemFunId::PURIFY)
+    {
+      Assert(cacheVal.getType() == tn);
+      // set unpurified form attribute for k
+      UnpurifiedFormAttribute ufa;
+      k.setAttribute(ufa, cacheVal);
+      // the original form of k can be computed by calling getOriginalForm, but
+      // it is not computed here
     }
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
