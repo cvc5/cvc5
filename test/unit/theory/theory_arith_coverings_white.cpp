@@ -351,10 +351,10 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_4)
   std::cout << "SAT: " << cac.getModel() << std::endl;
 }
 
-void test_delta(const std::vector<Node>& a)
+void test_delta(NodeManager* nm, const std::vector<Node>& a)
 {
   Options opts;
-  Env env(d_nodeManager, &opts);
+  Env env(nm, &opts);
   coverings::CDCAC cac(env, {});
   cac.reset();
   for (const Node& n : a)
@@ -443,7 +443,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_delta_one)
   a.emplace_back(q == (one + (fifth * g * s)));
   a.emplace_back(l == u + q * s + (fifth * g * s * s));
 
-  test_delta(a);
+  test_delta(d_nodeManager, a);
 }
 
 TEST_F(TestTheoryWhiteArithCoverings, test_delta_two)
@@ -466,7 +466,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_delta_two)
   a.emplace_back(q == (one + (fifth * g * s)));
   a.emplace_back(l == u + q * s + (fifth * g * s * s));
 
-  test_delta(a);
+  test_delta(d_nodeManager, a);
 }
 
 TEST_F(TestTheoryWhiteArithCoverings, test_ran_conversion)
