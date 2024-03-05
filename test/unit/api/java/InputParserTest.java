@@ -237,7 +237,7 @@ class InputParserTest extends ParserTest
     {
       cmd = p.nextCommand();
       assertNotEquals(cmd.isNull(), true);
-      assertDoesNotThrow(() -> cmd.invoke(d_solver, d_symman);
+      assertDoesNotThrow(() -> cmd.invoke(d_solver, d_symman));
     }
     Sort[] sorts = d_symman.getModelDeclaredSorts();
     Term[] terms = d_symman.getModelDeclaredTerms();
