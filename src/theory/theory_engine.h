@@ -50,6 +50,7 @@ namespace cvc5::internal {
 class Env;
 class ResourceManager;
 class TheoryEngineProofGenerator;
+class Plugin;
 class ProofChecker;
 
 /**
@@ -86,6 +87,7 @@ namespace theory {
 
 class CombinationEngine;
 class DecisionManager;
+class PluginModule;
 class RelevanceManager;
 class Rewriter;
 class SharedSolver;
@@ -673,6 +675,8 @@ class TheoryEngine : protected EnvObj
   std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
   /** The list of modules */
   std::vector<theory::TheoryEngineModule*> d_modules;
+  /** User plugin modules */
+  std::vector<std::unique_ptr<theory::PluginModule>> d_userPlugins;
 
 }; /* class TheoryEngine */
 
