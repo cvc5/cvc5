@@ -869,7 +869,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusInference"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-inference=MODE"
   type       = "SygusInferenceMode"
   default    = "OFF"
