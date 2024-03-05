@@ -29,6 +29,8 @@ class SolverEngine;
 
 namespace theory {
 namespace quantifiers {
+  
+class MbqiSygusEnum;
 
 /**
  * InstStrategyMbqi
@@ -43,6 +45,7 @@ namespace quantifiers {
  */
 class InstStrategyMbqi : public QuantifiersModule
 {
+  friend class MbqiSygusEnum;
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,
@@ -111,6 +114,8 @@ class InstStrategyMbqi : public QuantifiersModule
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
+  /** Submodule for sygus enum */
+  std::unique_ptr<MbqiSygusEnum> d_msenum;
 };
 
 }  // namespace quantifiers
