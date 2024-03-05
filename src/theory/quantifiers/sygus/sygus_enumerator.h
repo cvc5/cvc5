@@ -75,7 +75,7 @@ class SygusEnumerator : public EnumValGenerator
    */
   SygusEnumerator(Env& env,
                   TermDbSygus* tds = nullptr,
-                  SygusEnumeratorCallback* sec = nullptr,
+                  SygusTermEnumeratorCallback* sec = nullptr,
                   SygusStatistics* s = nullptr,
                   bool enumShapes = false,
                   bool enumAnyConstHoles = false,
@@ -96,9 +96,9 @@ class SygusEnumerator : public EnumValGenerator
   /** pointer to term database sygus */
   TermDbSygus* d_tds;
   /** pointer to the enumerator callback we are using (if any) */
-  SygusEnumeratorCallback* d_sec;
+  SygusTermEnumeratorCallback* d_sec;
   /** if we allocated a default sygus enumerator callback */
-  std::unique_ptr<SygusEnumeratorCallback> d_secd;
+  std::unique_ptr<SygusTermEnumeratorCallback> d_secd;
   /** pointer to the statistics */
   SygusStatistics* d_stats;
   /** Whether we are enumerating shapes */
@@ -148,7 +148,7 @@ class SygusEnumerator : public EnumValGenerator
     void initialize(SygusStatistics* s,
                     Node e,
                     TypeNode tn,
-                    SygusEnumeratorCallback* sec = nullptr);
+                    SygusTermEnumeratorCallback* sec = nullptr);
     /** get last constructor class index for weight
      *
      * This returns a minimal index n such that all constructor classes at
@@ -196,7 +196,7 @@ class SygusEnumerator : public EnumValGenerator
     /** the sygus type of terms in this cache */
     TypeNode d_tn;
     /** Pointer to the callback (used for symmetry breaking). */
-    SygusEnumeratorCallback* d_sec;
+    SygusTermEnumeratorCallback* d_sec;
     //-------------------------static information about type
     /** is d_tn a sygus type? */
     bool d_isSygusType;
