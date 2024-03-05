@@ -228,6 +228,7 @@ class InputParserTest extends ParserTest
   void modelDeclares()
   {
     InputParser p(&d_solver, d_symman.get());
+    p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
     Command cmd;
     p.appendIncrementalStringInput("(set-logic ALL)");
     p.appendIncrementalStringInput("(declare-sort U 0)");
@@ -238,10 +239,10 @@ class InputParserTest extends ParserTest
       assertNotEquals(cmd.isNull(), true);
       assertDoesNotThrow(() -> cmd.invoke(d_solver, d_symman);
     }
-    Sort[] = d_symman.getModelDeclaredSorts();
-    Term[] = d_symman.getModelDeclaredTerms();
-    assertEquals(sorts.size(), 1);
-    assertEquals(terms.size(), 1);
+    Sort[] sorts = d_symman.getModelDeclaredSorts();
+    Term[] terms = d_symman.getModelDeclaredTerms();
+    assertEquals(sorts.length, 1);
+    assertEquals(terms.length, 1);
     assertEquals(terms[0].getSort(), sorts[0]);
   }
 }

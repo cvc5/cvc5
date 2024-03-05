@@ -188,3 +188,21 @@ def test_multiple_parsers(solver):
     p5 = InputParser(s4, sm)
     with pytest.raises(RuntimeError):
         p5.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
+
+
+def test_model_declares(solver):
+    p = InputParser(solver, sm)
+    p.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
+    p.appendIncrementalStringInput("(set-logic ALL)")
+    p.appendIncrementalStringInput("(declare-sort U 0)")
+    p.appendIncrementalStringInput("(declare-fun x () U)")
+    for i in [0,1,2]:
+      cmd = p.nextCommand()
+      assert cmd.isNull() != True
+      cmd.invoke(solver, sm);
+    sorts = d_symman.getModelDeclaredSorts();
+    terms = d_symman.getModelDeclaredTerms();
+    assert len(sorts) == 1
+    assert len(terms) == 1
+    assert terms[0].getSort() == sorts[0]
+  }
