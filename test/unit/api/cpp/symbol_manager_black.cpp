@@ -66,8 +66,8 @@ TEST_F(TestSymbolManagerBlack, getLogic)
 
 TEST_F(TestSymbolManagerBlack, getModelDeclaredTermsAndSorts)
 {
-  ASSERT_EQ(d_symman->getModelDeclaredSorts(), {});
-  ASSERT_EQ(d_symman->getModelDeclaredTerms(), {});
+  ASSERT_EQ(d_symman->getModelDeclaredSorts().size(), 0);
+  ASSERT_EQ(d_symman->getModelDeclaredTerms().size(), 0);
 }
 
 }  // namespace test

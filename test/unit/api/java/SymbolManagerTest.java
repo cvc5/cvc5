@@ -53,7 +53,7 @@ class SymbolManagerTest extends ParserTest
   @Test
   void getModelDeclaredTermsAndSorts()
   {
-    assertEquals(d_symman.getModelDeclaredSorts(), new Sort[] {});
-    assertEquals(d_symman.getModelDeclaredTerms(), new Term[] {});
+    assertEquals(d_symman.getModelDeclaredSorts().length, 0);
+    assertEquals(d_symman.getModelDeclaredTerms().length, 0);
   }
 }

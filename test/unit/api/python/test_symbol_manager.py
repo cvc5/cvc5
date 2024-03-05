@@ -40,3 +40,8 @@ def test_get_logic(solver):
         sm.getLogic()
     parse_and_set_logic(solver, sm, "QF_LIA")
     assert sm.getLogic() == "QF_LIA"
+
+def getModelDeclaredTermsAndSorts(solver):
+    sm = SymbolManager(solver)
+    assert len(sm.getModelDeclaredSorts()) == 0
+    assert len(sm.getModelDeclaredTerms()) == 0
