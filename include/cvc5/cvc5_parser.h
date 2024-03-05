@@ -85,7 +85,7 @@ class CVC5_EXPORT SymbolManager
    * @return The declared sorts.
    */
   std::vector<Sort> getModelDeclaredSorts() const;
-  
+
   /**
    * Get the list of terms that have been declared via `declare-fun` and
    * `declare-const`. These are the terms that are printed in response to a
@@ -94,7 +94,7 @@ class CVC5_EXPORT SymbolManager
    * @return The declared terms.
    */
   std::vector<Term> getModelDeclaredTerms() const;
-  
+
  private:
   /** Get the underlying implementation */
   SymManager* toSymManager();

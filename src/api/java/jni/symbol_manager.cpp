@@ -81,8 +81,10 @@ Java_io_github_cvc5_SymbolManager_getLogic(JNIEnv* env, jobject, jlong pointer)
  * Method:    getModelDeclaredSorts
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_SymbolManager_getModelDeclaredSorts(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_SymbolManager_getModelDeclaredSorts(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);

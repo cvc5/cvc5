@@ -82,7 +82,6 @@ public class SymbolManager extends AbstractPointer
 
   private native String getLogic(long pointer);
 
-
   /**
    * Get the list of sorts that have been declared via `declare-sort` commands.
    * These are the sorts that are printed as part of a response to a
@@ -97,7 +96,6 @@ public class SymbolManager extends AbstractPointer
   }
 
   private native long[] getModelDeclaredSorts(long pointer);
-
 
   /**
    * Get the list of terms that have been declared via `declare-fun` and
