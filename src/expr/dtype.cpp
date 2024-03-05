@@ -286,8 +286,6 @@ void DType::addSygusConstructor(Node op,
                                 const std::vector<TypeNode>& cargs,
                                 int weight)
 {
-  // AlwaysAssert(d_scs.find(op) == d_scs.end());
-  // d_scs.insert(op);
   //  avoid name clashes
   std::stringstream ss;
   ss << getName() << "_" << getNumConstructors() << "_" << cname;
