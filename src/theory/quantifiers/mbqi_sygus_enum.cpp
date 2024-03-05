@@ -101,7 +101,7 @@ Node MVarInfo::getEnumeratedTerm(size_t i)
     else
     {
       nullCount++;
-      if (nullCount>100)
+      if (nullCount > 100)
       {
         // break if we aren't making progress
         break;
@@ -168,15 +168,16 @@ MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
 }
 
 bool MbqiSygusEnum::constructInstantiation(const Node& q,
-                                              const Node& query,
-                                              const std::vector<Node>& vars,
-                                              std::vector<Node>& mvs)
+                                           const Node& query,
+                                           const std::vector<Node>& vars,
+                                           std::vector<Node>& mvs)
 {
   MQuantInfo& qi = getOrMkQuantInfo(q);
   std::vector<size_t> indices = qi.getInstIndicies();
   if (indices.empty())
   {
-    Trace("mbqi-model-enum") << "...no instantiation indicies, return" << std::endl;
+    Trace("mbqi-model-enum")
+        << "...no instantiation indicies, return" << std::endl;
     // nothing to do
     return false;
   }
@@ -218,7 +219,8 @@ bool MbqiSygusEnum::constructInstantiation(const Node& q,
       }
       else
       {
-        Trace("mbqi-model-enum") << "- Failed to enumerate candidate" << std::endl;
+        Trace("mbqi-model-enum")
+            << "- Failed to enumerate candidate" << std::endl;
         // if we failed to enumerate, just try the original
         ret = mvs[ii];
         retc = mvs[ii];

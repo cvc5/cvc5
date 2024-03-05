@@ -76,9 +76,9 @@ class MbqiSygusEnum : protected EnvObj
    * Returns true if successful.
    */
   bool constructInstantiation(const Node& q,
-                                 const Node& query,
-                                 const std::vector<Node>& vars,
-                                 std::vector<Node>& mvs);
+                              const Node& query,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& mvs);
 
  private:
   MQuantInfo& getOrMkQuantInfo(const Node& q);
