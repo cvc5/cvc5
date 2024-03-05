@@ -230,6 +230,16 @@ Token Smt2Lexer::computeNextToken()
             parseError("Error expected decimal string following .");
           }
         }
+        else if (ch=='/')
+        {
+          pushToToken(ch);
+          res = Token::RATIONAL_LITERAL;
+          // parse [0-9]+
+          if (!parseNonEmptyCharList(CharacterClass::DECIMAL_DIGIT))
+          {
+            parseError("Error expected decimal string following .");
+          }
+        }
         else
         {
           // otherwise, undo
