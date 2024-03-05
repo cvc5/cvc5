@@ -60,7 +60,7 @@ class BagReduction
    * - (>= n 0))
    * where
    * n: Int is the cardinality of bag A
-   * uf:Int -> T1 is an uninterpreted function that represents elements of A
+   * uf: Int -> T1 is an uninterpreted function that represents elements of A
    * combine: Int -> T2 is an uninterpreted function
    * unionDisjoint: Int -> (Bag T1) is an uninterpreted function
    */

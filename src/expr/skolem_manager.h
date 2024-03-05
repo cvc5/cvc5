@@ -136,9 +136,43 @@ enum class SkolemFunId
   BAGS_CARD_ELEMENTS,
   BAGS_CARD_N,
   BAGS_CARD_UNION_DISJOINT,
+  /** An uninterpreted function for bag.fold operator:
+   * To compute (bag.fold f t A), we need to guess the cardinality n of
+   * bag A using a skolem function with BAGS_FOLD_CARD id.
+   */
   BAGS_FOLD_CARD,
+  /** An uninterpreted function for bag.fold operator:
+   * To compute (bag.fold f t A), we need a function that
+   * accumulates intermidiate values. We call this function
+   * combine of type Int -> T2 where:
+   * combine (0) = t
+   * combine (i) = f(elements(i), combine(i - 1)) for 1 <= i <= n
+   * elements: a skolem function for (bag.fold f t A)
+   *          see BAGS_FOLD_ELEMENTS
+   * n: is the cardinality of A
+   * T2: is the type of initial value t
+   */
   BAGS_FOLD_COMBINE,
+  /** An uninterpreted function for bag.fold operator:
+   * To compute (bag.fold f t A), we need a function for
+   * elements of A. We call this function
+   * elements of type Int -> T1 where T1 is the type of
+   * elements of A.
+   * If the cardinality of A is n, then
+   * A is the disjoint union of {elements(i)} for 1 <= i <= n.
+   * See BAGS_FOLD_UNION_DISJOINT.
+   */
   BAGS_FOLD_ELEMENTS,
+  /** An uninterpreted function for bag.fold operator:
+   * To compute (bag.fold f t A), we need a function for
+   * elements of A which is given by elements defined in
+   * BAGS_FOLD_ELEMENTS.
+   * We also need unionDisjoint: Int -> (Bag T1) to compute
+   * the disjoint union such that:
+   * unionDisjoint (0) = bag.empty
+   * unionDisjoint (i) = disjoint union of {elements(i)} and unionDisjoint (i-1)
+   * unionDisjoint (n) = A
+   */
   BAGS_FOLD_UNION_DISJOINT,
   /** An interpreted function for bag.choose operator:
    * (bag.choose A) is expanded as
@@ -221,9 +255,43 @@ enum class SkolemFunId
   SETS_CHOOSE,
   /** set diff to witness (not (= A B)) */
   SETS_DEQ_DIFF,
+  /** An uninterpreted function for set.fold operator:
+   * To compute (set.fold f t A), we need to guess the cardinality n of
+   * set A using a skolem function with SETS_FOLD_CARD id.
+   */
   SETS_FOLD_CARD,
+  /** An uninterpreted function for set.fold operator:
+   * To compute (set.fold f t A), we need a function that
+   * accumulates intermidiate values. We call this function
+   * combine of type Int -> T2 where:
+   * combine (0) = t
+   * combine (i) = f(elements(i), combine(i - 1)) for 1 <= i <= n
+   * elements: a skolem function for (set.fold f t A)
+   *          see SETS_FOLD_ELEMENTS
+   * n: is the cardinality of A
+   * T2: is the type of initial value t
+   */
   SETS_FOLD_COMBINE,
+  /** An uninterpreted function for set.fold operator:
+   * To compute (set.fold f t A), we need a function for
+   * elements of A. We call this function
+   * elements of type Int -> T1 where T1 is the type of
+   * elements of A.
+   * If the cardinality of A is n, then
+   * A is the union of {elements(i)} for 1 <= i <= n.
+   * See SETS_FOLD_UNION_DISJOINT.
+   */
   SETS_FOLD_ELEMENTS,
+  /** An uninterpreted function for set.fold operator:
+   * To compute (set.fold f t A), we need a function for
+   * elements of A which is given by elements defined in
+   * SETS_FOLD_ELEMENTS.
+   * We also need unionFn: Int -> (Set T1) to compute
+   * the union such that:
+   * unionFn (0) = set.empty
+   * unionFn (i) = union of {elements(i)} and unionFn (i-1)
+   * unionFn (n) = A
+   */
   SETS_FOLD_UNION,
   /**
    * A skolem variable that is unique per terms (set.map f A), y which is an
