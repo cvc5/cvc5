@@ -50,6 +50,8 @@ class MQuantInfo
   void initialize(Env& env, const Node& q);
   /** Get indicies of variables to instantiate */
   std::vector<size_t> getInstIndicies();
+  /** Get indicies of variables not to instantiate */
+  std::vector<size_t> getNoInstIndicies();
   /** Get variable info */
   MVarInfo& getVarInfo(size_t index);
 
@@ -57,6 +59,7 @@ class MQuantInfo
   Node d_quant;
   std::vector<MVarInfo> d_vinfo;
   std::vector<size_t> d_indices;
+  std::vector<size_t> d_nindices;
 };
 
 /**

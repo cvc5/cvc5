@@ -118,6 +118,10 @@ void MQuantInfo::initialize(Env& env, const Node& q)
     {
       d_indices.push_back(index);
     }
+    else
+    {
+      d_nindices.push_back(index);
+    }
   }
 }
 
@@ -128,6 +132,7 @@ MVarInfo& MQuantInfo::getVarInfo(size_t index)
 }
 
 std::vector<size_t> MQuantInfo::getInstIndicies() { return d_indices; }
+std::vector<size_t> MQuantInfo::getNoInstIndicies() { return d_nindices; }
 
 MbqiSygusEnum::MbqiSygusEnum(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)
@@ -273,14 +278,17 @@ bool MbqiSygusEnum::constructInstantiationNew(const Node& q,
 {
   MQuantInfo& qi = getOrMkQuantInfo(q);
   std::vector<size_t> indices = qi.getInstIndicies();
+  if (indices.empty())
+  {
+    // nothing to do
+    return true;
+  }
+  std::vector<size_t> nindices = qi.getNoInstIndicies();
   Subs inst;
-  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
+  for (size_t i : nindices)
   {
     // if we don't enumerate it, we are already considering this instantiation
-    if (std::find(indices.begin(), indices.end(), i) == indices.end())
-    {
-      inst.add(vars[i], mvs[i]);
-    }
+    inst.add(vars[i], mvs[i]);
   }
   Node queryCurr = query;
   queryCurr = rewrite(inst.apply(queryCurr));
