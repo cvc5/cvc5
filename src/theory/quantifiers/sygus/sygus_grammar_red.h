@@ -59,18 +59,34 @@ class SygusGrammarReduce : protected EnvObj
    * the type for arguments i and j of dt[c] are the same. We store this
    * list of terms in terms.
    *
-   * This function recurses on the arguments of g, index is the current argument
+   * This function recurses on the arguments of r, index is the current argument
    * we are processing, and pre stores the current arguments of
    *
    * For example, for a sygus grammar
-   *   A -> and( A, A, B )
+   *   A -> and( A, A, B ) | true
    *   B -> false
-   * passing arguments such that g=and( x1, x2, x3 ) to this function will add:
+   * passing arguments such that r=and( x1, x2, x3 ) to this function will add:
    *   and( x1, x2, x3 ) and and( x2, x1, x3 )
    * to terms.
    */
   std::unordered_set<Node> getGenericList(const SygusGrammar& g, const Node& r);
-
+  /**
+   * A recursive helper for the above method.
+   * @param lam The lambda corresponding to the non-terminal rule (see
+   * SygusGrammar::getLambdaForRule).
+   * @param tset The set of terms we have computed thus far
+   * @param vlist The list of non-terminal variables and a unique index. The
+   * variable we are considering for each p in this vector is
+   * ntvMap[p.first][p.second].
+   * @param ntlist The list of non-terminals (unique variables that occur
+   * as the first component of some p in vlist).
+   * @param ntvMap The partition of variables we are considering, grouped by
+   * their corresponding non-terminal. We consider permutations of the
+   * range of this map.
+   * @param ntindex The non-terminal we are considering partitions for
+   * @param vindex The sub-vector of variables for the current non-terminal
+   * we are considering.
+   */
   void getGenericListRec(const Node& lam,
                          std::unordered_set<Node>& tset,
                          const std::vector<std::pair<Node, size_t>>& vlist,
@@ -78,7 +94,7 @@ class SygusGrammarReduce : protected EnvObj
                          std::map<Node, std::vector<Node>>& ntvMap,
                          size_t ntindex,
                          size_t vindex);
-  /** */
+  /** A set of intermediate variables introduced for the above method. */
   std::vector<Node> d_cacheValues;
 };
 
