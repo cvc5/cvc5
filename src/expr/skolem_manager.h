@@ -132,9 +132,39 @@ enum class SkolemFunId
    * i = 0, ..., n.
    */
   RE_UNFOLD_POS_COMPONENT,
-  BAGS_CARD_CARDINALITY,
+  /** An uninterpreted function for bag.fold operator:
+   * To compute (bag.card A), we need a function that
+   * counts multiplicities of distinct elements. We call this function
+   * combine of type Int -> Int where:
+   * combine (0) = 0
+   * combine (i) = m(elements(i), A) + combine(i-1) for 1 <= i <= n
+   * elements: a skolem function for (bag.fold f t A)
+   *          see BAGS_CARD_ELEMENTS
+   * n: is the number of distinct elements in A
+   */
+  BAGS_CARD_COMBINE,
+  /** An uninterpreted function for bag.card operator:
+   * To compute (bag.card A), we need a function for
+   * distinct elements in A. We call this function
+   * elements of type Int -> T1 where T1 is the type of
+   * elements of A.
+   */
   BAGS_CARD_ELEMENTS,
+  /** An uninterpreted function for bag.card operator:
+   * To compute (bag.card A), we need to guess the n
+   * the number of distinct elements in A.
+   */
   BAGS_CARD_N,
+  /** An uninterpreted function for bag.card operator:
+   * To compute (bag.card A), we need a function for
+   * distinct elements in A which is given by elements defined in
+   * BAGS_CARD_ELEMENTS.
+   * We also need unionDisjoint: Int -> (Bag T1) to compute
+   * the disjoint union such that:
+   * unionDisjoint (0) = bag.empty
+   * unionDisjoint (i) = disjoint union of {<elements(i), m(elements(i), A)>}
+   * and unionDisjoint (i-1) unionDisjoint (n) = A
+   */
   BAGS_CARD_UNION_DISJOINT,
   /** An uninterpreted function for bag.fold operator:
    * To compute (bag.fold f t A), we need to guess the cardinality n of
@@ -159,7 +189,7 @@ enum class SkolemFunId
    * elements of type Int -> T1 where T1 is the type of
    * elements of A.
    * If the cardinality of A is n, then
-   * A is the disjoint union of {elements(i)} for 1 <= i <= n.
+   * A is the disjoint union of {<elements(i),1>} for 1 <= i <= n.
    * See BAGS_FOLD_UNION_DISJOINT.
    */
   BAGS_FOLD_ELEMENTS,
