@@ -30,6 +30,9 @@ namespace quantifiers {
 
 class InstStrategyMbqi;
 
+/**
+ * Maintains a sygus enumeration for a single quantified variable in our strategy.
+ */
 class MVarInfo
 {
  public:
@@ -42,6 +45,11 @@ class MVarInfo
   Node d_lamVars;
 };
 
+/**
+ * Maintains information about a quantified formula in our strategy, including 
+ * which variables are processed/unprocessed, and the sygus enumeration for
+ * each of them (in MVarInfo).
+ */
 class MQuantInfo
 {
  public:
@@ -62,7 +70,8 @@ class MQuantInfo
 };
 
 /**
- * MbqiSygusEnum
+ * MbqiSygusEnum, which postprocesses an instantiation from MBQI based on
+ * sygus enumeration.
  */
 class MbqiSygusEnum : protected EnvObj
 {
