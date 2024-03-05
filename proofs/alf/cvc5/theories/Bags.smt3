@@ -18,7 +18,7 @@
 (declare-const bag.member (-> (! Type :var T :implicit) T (Bag T) Bool))
 (declare-const bag.card (-> (! Type :var T :implicit) (Bag T) Int))
 (declare-const bag.choose (-> (! Type :var T :implicit) (Bag T) T))
-(declare-const bag.duplicate_removal (-> (! Type :var T :implicit) (Bag T) (Bag T)))
+(declare-const bag.setof (-> (! Type :var T :implicit) (Bag T) (Bag T)))
 (declare-const bag.is_singleton (-> (! Type :var T :implicit) (Bag T) Bool))
 
 (declare-const bag.filter (-> (! Type :var T :implicit) (-> T Bool) (Bag T) (Bag T)))

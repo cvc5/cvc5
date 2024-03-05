@@ -222,6 +222,11 @@ bool Valuation::needCheck() const{
 
 bool Valuation::isRelevant(Node lit) const { return d_engine->isRelevant(lit); }
 
+bool Valuation::isLegalElimination(TNode x, TNode val)
+{
+  return d_engine->isLegalElimination(x, val);
+}
+
 context::CDList<Assertion>::const_iterator Valuation::factsBegin(TheoryId tid)
 {
   Theory* theory = d_engine->theoryOf(tid);
