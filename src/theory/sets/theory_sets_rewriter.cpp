@@ -688,7 +688,6 @@ RewriteResponse TheorySetsRewriter::postRewriteTableJoin(TNode n)
 
     for (const auto& a : elementsA)
     {
-      Node aProjection = TupleUtils::getTupleProjection(aIndices, a);
       for (const auto& b : elementsB)
       {
         bool notMatched = false;
