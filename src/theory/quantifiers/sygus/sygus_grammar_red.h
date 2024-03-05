@@ -56,8 +56,8 @@ class SygusGrammarReduce : protected EnvObj
    *
    * It constructs a list of terms of the form g * sigma, where sigma
    * is an automorphism on { x1...xn } such that for all xi -> xj in sigma,
-   * the type for arguments i and j of dt[c] are the same. We store this
-   * list of terms in terms.
+   * the type for arguments i and j of dt[c] are the same. We store this in
+   * the returned set.
    *
    * This function recurses on the arguments of r, index is the current argument
    * we are processing, and pre stores the current arguments of
@@ -74,7 +74,7 @@ class SygusGrammarReduce : protected EnvObj
    * A recursive helper for the above method.
    * @param lam The lambda corresponding to the non-terminal rule (see
    * SygusGrammar::getLambdaForRule).
-   * @param tset The set of terms we have computed thus far
+   * @param tset The set of terms we have computed thus far.
    * @param vlist The list of non-terminal variables and a unique index. The
    * variable we are considering for each p in this vector is
    * ntvMap[p.first][p.second].
