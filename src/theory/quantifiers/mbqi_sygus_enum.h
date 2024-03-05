@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include "smt/env_obj.h"
+#include "expr/sygus_term_enumerator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -32,25 +33,25 @@ class InstStrategyMbqi;
 class MVarInfo
 {
  public:
-  void initialize(const Node& v);
+  void initialize(Env& env, const Node& q, const Node& v);
   Node getEnumeratedTerm(size_t i);
   bool isEnumerated() const;
 
  private:
+  std::unique_ptr<SygusTermEnumerator> d_senum;
   std::vector<Node> d_enum;
-  std::vector<Node> d_lambdaVars;
+  Node d_lamVars;
   bool d_isEnum;
 };
 
 class MQuantInfo
 {
  public:
-  void initialize(const Node& q);
-  /** Get n^th instantiation from q for variable v */
-  Node getEnumeratedTerm(size_t index, size_t i);
+  void initialize(Env& env, const Node& q);
   /** Get indicies of variables to instantiate */
-  std::vector<size_t> getIndicies();
-
+  std::vector<size_t> getInstIndicies();
+  /** Get variable info */
+  MVarInfo& getVarInfo(size_t index);
  private:
   Node d_quant;
   std::vector<MVarInfo> d_vinfo;
@@ -74,6 +75,10 @@ class MbqiSygusEnum : protected EnvObj
                               const std::vector<Node>& vars,
                               std::vector<Node>& mvs);
 
+  bool constructInstantiationNew(const Node& q,
+                              const Node& query,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& mvs);
  private:
   MQuantInfo& getOrMkQuantInfo(const Node& q);
   std::map<Node, MQuantInfo> d_qinfo;

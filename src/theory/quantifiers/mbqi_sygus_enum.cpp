@@ -29,23 +29,90 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-void MVarInfo::initialize(const Node& v) {}
+void MVarInfo::initialize(Env& env, const Node& q, const Node& v)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  d_isEnum = true;
+  TypeNode tn = v.getType();
+  TypeNode retType = tn;
+  std::vector<Node> trules;
+  if (tn.isFunction())
+  {
+    std::vector<TypeNode> argTypes = tn.getArgTypes();
+    retType = tn.getRangeType();
+    std::vector<Node> vs;
+    for (const TypeNode& tnc : argTypes)
+    {
+      Node vc = nm->mkBoundVar(tnc);
+      vs.push_back(vc);
+    }
+    d_lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
+    trules = vs;
+  }
+  else if (tn.isUninterpretedSort())
+  {
+    // don't enumerate
+    d_isEnum = false;
+    return;
+  }
+  // NOTE: get free symbols from body of quantified formula here??
+  std::unordered_set<Node> syms;
+  expr::getSymbols(q[1], syms);
+  trules.insert(trules.end(), syms.begin(), syms.end());
+  Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;
+  // TODO: could add more symbols to trules to improve the enumerated terms
+  // TODO: could cache the enumerator here for efficiency
+  SygusGrammarCons sgc;
+  Node bvl;
+  TypeNode tng = sgc.mkDefaultSygusType(env, retType, bvl, trules);
+  if (TraceIsOn("mbqi-model-enum"))
+  {
+    Trace("mbqi-model-enum") << "Enumerate terms for " << retType;
+    if (!d_lamVars.isNull())
+    {
+      Trace("mbqi-model-enum") << ", variable list " << d_lamVars;
+    }
+    Trace("mbqi-model-enum") << std::endl;
+    Trace("mbqi-model-enum") << "Based on grammar:" << std::endl;
+    Trace("mbqi-model-enum")
+        << printer::smt2::Smt2Printer::sygusGrammarString(tng) << std::endl;
+  }
+  d_senum.reset(new SygusTermEnumerator(env, tng));
+}
 
 Node MVarInfo::getEnumeratedTerm(size_t i)
 {
   Assert(d_isEnum);
-  return Node::null();
+  NodeManager * nm = NodeManager::currentNM();
+  while (i<d_enum.size())
+  {
+    Node curr = d_senum->getCurrent();
+    if (!d_lamVars.isNull())
+    {
+      curr = nm->mkNode(Kind::LAMBDA, curr);
+    }
+    d_enum.push_back(curr);
+    if (!d_senum->incrementPartial())
+    {
+      break;
+    }
+  }
+  if (i<d_enum.size())
+  {
+    return Node::null();
+  }
+  return d_enum[i];
 }
 
 bool MVarInfo::isEnumerated() const { return d_isEnum; }
 
-void MQuantInfo::initialize(const Node& q)
+void MQuantInfo::initialize(Env& env, const Node& q)
 {
   for (const Node& v : q[0])
   {
     size_t index = d_vinfo.size();
     d_vinfo.emplace_back();
-    d_vinfo.back().initialize(v);
+    d_vinfo.back().initialize(env, q, v);
     // if enumerated, add to list
     if (d_vinfo.back().isEnumerated())
     {
@@ -54,13 +121,13 @@ void MQuantInfo::initialize(const Node& q)
   }
 }
 
-Node MQuantInfo::getEnumeratedTerm(size_t index, size_t i)
+MVarInfo& MQuantInfo::getVarInfo(size_t index)
 {
   Assert(index < d_vinfo.size());
-  return d_vinfo[index].getEnumeratedTerm(i);
+  return d_vinfo[index];
 }
 
-std::vector<size_t> MQuantInfo::getIndicies() { return d_indices; }
+std::vector<size_t> MQuantInfo::getInstIndicies() { return d_indices; }
 
 MbqiSygusEnum::MbqiSygusEnum(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)
@@ -193,10 +260,92 @@ MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
   if (it == d_qinfo.end())
   {
     MQuantInfo& qi = d_qinfo[q];
-    qi.initialize(q);
+    qi.initialize(d_env, q);
     return qi;
   }
   return it->second;
+}
+
+bool MbqiSygusEnum::constructInstantiationNew(const Node& q,
+                            const Node& query,
+                            const std::vector<Node>& vars,
+                            std::vector<Node>& mvs)
+{
+  MQuantInfo& qi = getOrMkQuantInfo(q);
+  std::vector<size_t> indices = qi.getInstIndicies();
+  Subs inst;
+  for (size_t i=0, nvars = vars.size(); i<nvars; i++)
+  {
+    // if we don't enumerate it, we are already considering this instantiation
+    if (std::find(indices.begin(), indices.end(), i)==indices.end())
+    {
+      inst.add(vars[i], mvs[i]);
+    }
+  }
+  Node queryCurr = query;
+  queryCurr = rewrite(inst.apply(queryCurr));
+  std::shuffle(indices.begin(), indices.end(), Random::getRandom());
+  for (size_t i = 0, isize = indices.size(); i < isize; i++)
+  {
+    size_t ii = indices[i];
+    TNode v = vars[ii];
+    MVarInfo& vi = qi.getVarInfo(ii);
+    size_t cindex = 0;
+    bool success = false;
+    bool successEnum;
+    do
+    {
+      Node ret = vi.getEnumeratedTerm(cindex);
+      cindex++;
+      Node retc;
+      if (!ret.isNull())
+      {
+        Trace("mbqi-model-enum") << "- Try candidate: " << ret << std::endl;
+        // apply current substitution (to account for cases where ret has
+        // other variables in its grammar).
+        retc = inst.apply(ret);
+        std::unordered_map<Node, Node> tmpConvertMap;
+        std::map<TypeNode, std::unordered_set<Node> > freshVarType;
+        retc = d_parent.convertToQuery(retc, tmpConvertMap, freshVarType);
+        Trace("mbqi-model-enum")
+            << "- Converted candidate: " << retc << std::endl;
+        successEnum = true;
+      }
+      else
+      {
+        // if we failed to enumerate, just try the original
+        ret = mvs[ii];
+        retc = mvs[ii];
+        successEnum = false;
+      }
+      // see if it is still satisfiable, if still SAT, we replace
+      Node queryCheck = queryCurr.substitute(v, TNode(retc));
+      queryCheck = rewrite(queryCheck);
+      Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
+      // since we may have free constants from the grammar, we must ensure
+      // their model value is considered.
+      Trace("mbqi-model-enum") << "...converted " << queryCheck << std::endl;
+      SubsolverSetupInfo ssi(d_env);
+      Result r = checkWithSubsolver(queryCheck, ssi);
+      if (r == Result::SAT)
+      {
+        // remember the updated query
+        queryCurr = queryCheck;
+        Trace("mbqi-model-enum") << "...success" << std::endl;
+        Trace("mbqi-model-enum") << "use " << ret << std::endl;
+        mvs[ii] = ret;
+        inst.add(v, ret);
+        success = true;
+      }
+      else if (!successEnum)
+      {
+        // we did not enumerate a candidate, and tried the original, which
+        // failed.
+        return false;
+      }
+    }while (!success);
+  }
+  return true;
 }
 
 }  // namespace quantifiers
