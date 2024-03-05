@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Alex Ozdemir, sorawee
+#   Gereon Kremer, Alex Ozdemir, Sorawee Porncharoenwase
 #
 # This file is part of the cvc5 project.
 #

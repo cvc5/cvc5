@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Alex Ozdemir, Sarkoxed
+#   Alex Ozdemir, Alex Sokolov
 #
 # This file is part of the cvc5 project.
 #

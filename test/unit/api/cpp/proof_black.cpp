@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Jörg, Aina Niemetz, Mudathir Mohamed
+ *   Hans-Jörg Schurr, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
