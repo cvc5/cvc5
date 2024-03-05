@@ -73,7 +73,7 @@ class SygusGrammar
 
   /**
    * Remove non-terminal \p ntSym from the grammar.
-   * @param ntSym The non-terminal from which the rule is removed.
+   * @param ntSym The non-terminal to remove from the grammar.
    */
   void removeNonTerminal(const Node& ntSym);
 
