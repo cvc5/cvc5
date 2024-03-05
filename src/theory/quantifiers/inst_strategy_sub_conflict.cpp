@@ -63,6 +63,10 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
+  if (e != Theory::EFFORT_LAST_CALL)
+  {
+    return;
+  }
   double clSet = 0;
   if (TraceIsOn("qscf-engine"))
   {
