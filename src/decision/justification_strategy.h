@@ -160,8 +160,8 @@ class JustificationStrategy : public DecisionEngine
 
  private:
   /**
-   * Helper method to insert assertions in `toProcess` to `d_assertions` or
-   * `d_localAssertions` based on `local`.
+   * Helper method to insert assertions in `lems` to `d_assertions` or
+   * `d_localAssertions` when `local` is true.
    */
   void insertToAssertionList(const std::vector<TNode>& lems, bool local);
   /**
