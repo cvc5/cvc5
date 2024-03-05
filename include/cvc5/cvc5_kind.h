@@ -604,6 +604,10 @@ enum ENUM(Kind) : int32_t
    * - Create Op of this kind with:
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
    */
   EVALUE(DIVISION_TOTAL),
   /**
@@ -638,6 +642,10 @@ enum ENUM(Kind) : int32_t
    * - Create Op of this kind with:
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
    */
   EVALUE(INTS_DIVISION_TOTAL),
   /**
@@ -674,6 +682,10 @@ enum ENUM(Kind) : int32_t
    * - Create Op of this kind with:
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
    */
   EVALUE(INTS_MODULUS_TOTAL),
   /**
