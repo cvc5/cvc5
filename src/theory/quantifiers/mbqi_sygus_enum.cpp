@@ -29,13 +29,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-void MVarInfo::initialize(const Node& v)
-{
-}
+void MVarInfo::initialize(const Node& v) {}
 
 Node MVarInfo::getEnumeratedTerm(size_t i)
 {
-  Assert (d_isEnum);
+  Assert(d_isEnum);
   return Node::null();
 }
 
@@ -58,14 +56,11 @@ void MQuantInfo::initialize(const Node& q)
 
 Node MQuantInfo::getEnumeratedTerm(size_t index, size_t i)
 {
-  Assert (index<d_vinfo.size());
+  Assert(index < d_vinfo.size());
   return d_vinfo[index].getEnumeratedTerm(i);
 }
 
-std::vector<size_t> MQuantInfo::getIndicies()
-{
-  return d_indices;
-}
+std::vector<size_t> MQuantInfo::getIndicies() { return d_indices; }
 
 MbqiSygusEnum::MbqiSygusEnum(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)
@@ -195,7 +190,7 @@ bool MbqiSygusEnum::constructInstantiation(const Node& q,
 MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
 {
   std::map<Node, MQuantInfo>::iterator it = d_qinfo.find(q);
-  if (it==d_qinfo.end())
+  if (it == d_qinfo.end())
   {
     MQuantInfo& qi = d_qinfo[q];
     qi.initialize(q);
