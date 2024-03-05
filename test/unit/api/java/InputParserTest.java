@@ -227,7 +227,7 @@ class InputParserTest extends ParserTest
   @Test
   void modelDeclares()
   {
-    InputParser p(&d_solver, d_symman.get());
+    InputParser p = new InputParser(d_solver, d_symman);
     p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
     Command cmd;
     p.appendIncrementalStringInput("(set-logic ALL)");
