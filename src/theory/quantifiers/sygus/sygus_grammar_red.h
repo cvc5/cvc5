@@ -32,20 +32,22 @@ class TermDbSygus;
 
 /** SygusGrammarReduce
  *
- * This class computes the subset of indices of the constructors of a sygus type
- * that are redundant. To use this class, first call initialize( qe, tn ),
- * where tn is a sygus tn. Then, use getRedundant and/or isRedundant to get the
- * indicies of the constructors of tn that are redundant.
+ * This class minimizes the production rules of a sygus grammar based on
+ * dropping production rules whose terms are alpha-equivalent to others.
  */
 class SygusGrammarReduce : protected EnvObj
 {
  public:
   SygusGrammarReduce(Env& env) : EnvObj(env) {}
   ~SygusGrammarReduce() {}
-  /** Minimize grammar g */
-  void minimize(SygusGrammar& g);
-  /** Minimize non-terminal ntsym of grammar g */
+  /**
+   * Minimize and update non-terminal ntsym of grammar g, which drops a
+   * subset of the rules of ntsym in g that can be shown not to contribute
+   * any semantically unique terms to the enumeration.
+   */
   void minimize(SygusGrammar& g, const Node& ntsym);
+  /** Minimize and update all non-terminals of grammar g. */
+  void minimize(SygusGrammar& g);
 
  private:
   /** get generic list
