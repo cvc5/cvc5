@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * sygus_grammar_red
+ * Sygus grammar reduction.
  */
 
 #include "cvc5_private.h"

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of sygus_grammar_red.
+ * Implementation of sygus grammar reduction.
  */
 
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
