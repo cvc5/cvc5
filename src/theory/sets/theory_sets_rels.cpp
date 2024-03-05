@@ -1026,13 +1026,13 @@ void TheorySetsRels::check(Theory::Effort level)
 
     Node fact1 = nm->mkNode(Kind::SET_MEMBER, a, A);
     Node fact2 = nm->mkNode(Kind::SET_MEMBER, b, B);
-    Node reason = joinConstraints.andNode(exp);
+    Node premise = exp;
     if (n != exp[1])
     {
-      reason = reason.andNode(n.eqNode(exp[1]));
-    }    
-    sendInfer(fact1, InferenceId::SETS_RELS_TABLE_JOIN_DOWN, reason);
-    sendInfer(fact2, InferenceId::SETS_RELS_TABLE_JOIN_DOWN, reason);
+      premise = premise.andNode(n.eqNode(exp[1]));
+    }
+    Node conclusion = fact1.andNode(fact2).andNode(joinConstraints);
+    sendInfer(conclusion, InferenceId::SETS_RELS_TABLE_JOIN_DOWN, premise);
   }
 
   /*
