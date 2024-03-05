@@ -23,6 +23,13 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+          - name: ubuntu:production-arm64-cross
+            os: ubuntu-latest
+            config: production --auto-download --arm64
+            cache-key: production-arm64-cross
+            strip-bin: aarch64-linux-gnu-strip
+            package-name: cvc5-Linux-arm64
+
           - name: macos:production
             os: macos-11
             config: production --auto-download --all-bindings --editline

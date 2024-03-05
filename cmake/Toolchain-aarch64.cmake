@@ -15,9 +15,12 @@
 # Use: cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake
 ##
 
+# Set CMAKE_SYSTEM_NAME here. CMake only sets CMAKE_CROSSCOMPILING to
+# TRUE if CMAKE_SYSTEM_NAME is set _unconditionally_.
+set(CMAKE_SYSTEM_NAME ${CMAKE_HOST_SYSTEM_NAME})
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
-  set(CMAKE_SYSTEM_NAME Linux)
   set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
   set(TOOLCHAIN_PREFIX aarch64-linux-gnu)
@@ -37,7 +40,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-  set(CMAKE_SYSTEM_NAME Darwin)
   set(CMAKE_SYSTEM_PROCESSOR arm64)
 
   set(TOOLCHAIN_PREFIX arm64-apple-darwin)
