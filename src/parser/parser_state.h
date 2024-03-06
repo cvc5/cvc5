@@ -568,6 +568,8 @@ class CVC5_EXPORT ParserState
    * Owns the memory of the Commands in the queue.
    */
   std::list<Command*> d_commandQueue;
+  /** Variables */
+  std::map<std::string, Term> d_varCache;
 }; /* class Parser */
 
 /** Compute the unsigned integer for a token. */

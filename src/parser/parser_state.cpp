@@ -166,7 +166,17 @@ Term ParserState::bindBoundVar(const std::string& name, const Sort& type)
 {
   Trace("parser") << "bindBoundVar(" << name << ", " << type << ")"
                   << std::endl;
-  Term expr = d_solver->mkVar(type, name);
+  std::map<std::string, Term>::iterator itv = d_varCache.find(name);
+  Term expr;
+  if (itv!=d_varCache.end())
+  {
+    expr = itv->second;
+  }
+  else
+  {
+    expr = d_solver->mkVar(type, name);
+    d_varCache[name] = expr;
+  }
   defineVar(name, expr);
   return expr;
 }
