@@ -100,7 +100,7 @@ Java_io_github_cvc5_SymbolManager_getModelDeclaredSorts(JNIEnv* env,
  * Method:    getModelDeclaredTerms
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getModelDeclaredTerms(
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_SymbolManager_getModelDeclaredTerms(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;

@@ -205,4 +205,4 @@ def test_model_declares(solver):
     assert len(sorts) == 1
     assert len(terms) == 1
     assert terms[0].getSort() == sorts[0]
-  }
+  
