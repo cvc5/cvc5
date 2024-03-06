@@ -21,25 +21,6 @@
 (declare-sort @ho-elim-sort 1)
 (declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
 
-; side condition for normalizing inputs for the purposes of the reference command
-(program parse_normalize ((T Type) (U Type) (S Type) (x T) (y U) (f (-> T S)) (z S))
-  (S) S
-  (
-    ((parse_normalize (/ x y))  (let ((xn (parse_normalize x)) (yn (parse_normalize y)))
-                                (let ((xz (alf.to_z xn)) (yz (alf.to_z yn)))
-                                (alf.ite (alf.and (alf.is_eq xz xn) (alf.is_eq yz yn) (alf.not (alf.is_eq yz 0)))
-                                  (alf.qdiv xn yn)
-                                  (/ xn yn)))))
-    ((parse_normalize (- x))    (let ((xn (parse_normalize x)))
-                                (let ((xz (alf.to_z xn)) (xq (alf.to_q xn)))
-                                (alf.ite (alf.is_eq xn xz) (alf.neg xn)
-                                (alf.ite (alf.is_eq xn xq) (alf.neg xn)
-                                  (- xn))))))
-    ((parse_normalize (f x))    (_ (parse_normalize f) (parse_normalize x)))
-    ((parse_normalize z)        z)
-  )
-)
-
 ; Converts x to an equivalent form, for ProofRule::ENCODE_TRANSFORM.
 ; This side condition is used to convert between the native
 ; representation in cvc5 to the form expected by DSL rewrite rules.

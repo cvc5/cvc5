@@ -294,10 +294,9 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       }
       if (options().proof.alfPrintReference)
       {
-        // parse_normalize is used as the normalization function for the input
         // [1] print the reference
-        out << "(reference \"" << options().driver.filename
-            << "\" parse_normalize)" << std::endl;
+        // we currently do not need to provide a normalization routine.
+        out << "(reference \"" << options().driver.filename << "\")" << std::endl;
         // [2] print the universal variables
         out << outVars.str();
       }
