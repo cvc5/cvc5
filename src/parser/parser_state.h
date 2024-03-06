@@ -569,7 +569,7 @@ class CVC5_EXPORT ParserState
    */
   std::list<Command*> d_commandQueue;
   /** Variables */
-  std::map<std::string, Term> d_varCache;
+  std::map<std::pair<std::string, Sort>, Term> d_varCache;
 }; /* class Parser */
 
 /** Compute the unsigned integer for a token. */
