@@ -133,7 +133,7 @@ enum class SkolemFunId
    */
   RE_UNFOLD_POS_COMPONENT,
   /**
-   * An uninterpreted function for bag.fold operator:
+   * An uninterpreted function for bag.card operator:
    * To compute (bag.card A), we need a function that
    * counts multiplicities of distinct elements. We call this function
    * combine of type Int -> Int where:
