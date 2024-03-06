@@ -18,9 +18,11 @@
 #include <sstream>
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 
 namespace cvc5::internal {
 
@@ -34,11 +36,80 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
   }
 }
 
+SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
+                           const TypeNode& sdt)
+    : d_sygusVars(sygusVars)
+{
+  Assert(sdt.isSygusDatatype());
+  std::vector<TypeNode> tnlist;
+  // ensure that sdt is first
+  tnlist.push_back(sdt);
+  std::map<TypeNode, Node> ntsyms;
+  NodeManager* nm = NodeManager::currentNM();
+  for (size_t i = 0; i < tnlist.size(); i++)
+  {
+    TypeNode tn = tnlist[i];
+    Assert(tn.isSygusDatatype());
+    const DType& dt = tn.getDType();
+    std::stringstream ss;
+    ss << dt.getName();
+    Node v = nm->mkBoundVar(ss.str(), dt.getSygusType());
+    ntsyms[tn] = v;
+    d_ntSyms.push_back(v);
+    d_rules.emplace(v, std::vector<Node>{});
+    // process the subfield types
+    std::unordered_set<TypeNode> tns = dt.getSubfieldTypes();
+    for (const TypeNode& tnsc : tns)
+    {
+      if (tnsc.isSygusDatatype()
+          && std::find(tnlist.begin(), tnlist.end(), tnsc) == tnlist.end())
+      {
+        tnlist.push_back(tnsc);
+      }
+    }
+  }
+  std::map<TypeNode, Node>::iterator itn;
+  for (const TypeNode& tn : tnlist)
+  {
+    if (!tn.isSygusDatatype())
+    {
+      continue;
+    }
+    Node nts = ntsyms[tn];
+    const DType& dt = tn.getDType();
+    for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    {
+      const DTypeConstructor& cons = dt[i];
+      if (cons.isSygusAnyConstant())
+      {
+        addAnyConstant(nts, cons[0].getRangeType());
+        continue;
+      }
+      Node op = cons.getSygusOp();
+      std::vector<Node> args;
+      for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+      {
+        TypeNode argType = cons[j].getRangeType();
+        itn = ntsyms.find(argType);
+        Assert(itn != ntsyms.end()) << "Missing " << argType << " in " << op;
+        args.push_back(itn->second);
+      }
+      Node rule = theory::datatypes::utils::mkSygusTerm(op, args, true);
+      addRule(nts, rule);
+    }
+  }
+}
+
 void SygusGrammar::addRule(const Node& ntSym, const Node& rule)
 {
   Assert(d_rules.find(ntSym) != d_rules.cend());
   Assert(rule.getType().isInstanceOf(ntSym.getType()));
-  d_rules[ntSym].push_back(rule);
+  // avoid duplication
+  std::vector<Node>& rs = d_rules[ntSym];
+  if (std::find(rs.begin(), rs.end(), rule) == rs.end())
+  {
+    rs.push_back(rule);
+  }
 }
 
 void SygusGrammar::addRules(const Node& ntSym, const std::vector<Node>& rules)
@@ -97,29 +168,30 @@ void SygusGrammar::removeRule(const Node& ntSym, const Node& rule)
  *
  * @param n The node to purify.
  * @param args The free variables in the node returned by this method.
- * @param cargs The types of the arguments of the sygus constructor.
- * @param ntsToUnres Mapping from non-terminals to their unresolved types.
+ * @param ntSymMap Map from each variable in args to the non-terminal they were
+ * introduced for.
+ * @param nts The list of non-terminal symbols
  * @return The purfied node.
  */
 Node purifySygusGNode(const Node& n,
                       std::vector<Node>& args,
-                      std::vector<TypeNode>& cargs,
-                      const std::unordered_map<Node, TypeNode>& ntsToUnres)
+                      std::map<Node, Node>& ntSymMap,
+                      const std::vector<Node>& nts)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, TypeNode>::const_iterator itn = ntsToUnres.find(n);
-  if (itn != ntsToUnres.cend())
+  // if n is non-terminal
+  if (std::find(nts.begin(), nts.end(), n) != nts.end())
   {
     Node ret = nm->mkBoundVar(n.getType());
+    ntSymMap[ret] = n;
     args.push_back(ret);
-    cargs.push_back(itn->second);
     return ret;
   }
   std::vector<Node> pchildren;
   bool childChanged = false;
   for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
   {
-    Node ptermc = purifySygusGNode(n[i], args, cargs, ntsToUnres);
+    Node ptermc = purifySygusGNode(n[i], args, ntSymMap, nts);
     pchildren.push_back(ptermc);
     childChanged = childChanged || ptermc != n[i];
   }
@@ -158,6 +230,7 @@ bool isId(const Node& n)
  */
 void addSygusConstructor(DType& dt,
                          const Node& rule,
+                         const std::vector<Node>& nts,
                          const std::unordered_map<Node, TypeNode>& ntsToUnres)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -172,8 +245,18 @@ void addSygusConstructor(DType& dt,
   else
   {
     std::vector<Node> args;
+    std::map<Node, Node> ntSymMap;
+    Node op = purifySygusGNode(rule, args, ntSymMap, nts);
     std::vector<TypeNode> cargs;
-    Node op = purifySygusGNode(rule, args, cargs, ntsToUnres);
+    std::unordered_map<Node, TypeNode>::const_iterator it;
+    for (const Node& a : args)
+    {
+      Assert(ntSymMap.find(a) != ntSymMap.end());
+      Node na = ntSymMap[a];
+      it = ntsToUnres.find(na);
+      Assert(it != ntsToUnres.end());
+      cargs.push_back(it->second);
+    }
     ss << op.getKind();
     if (!args.empty())
     {
@@ -183,6 +266,19 @@ void addSygusConstructor(DType& dt,
     // assign identity rules a weight of 0.
     dt.addSygusConstructor(op, ss.str(), cargs, isId(op) ? 0 : -1);
   }
+}
+
+Node SygusGrammar::getLambdaForRule(const Node& r,
+                                    std::map<Node, Node>& ntSymMap) const
+{
+  std::vector<Node> args;
+  Node rp = purifySygusGNode(r, args, ntSymMap, d_ntSyms);
+  if (!args.empty())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    return nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, args), rp);
+  }
+  return r;
 }
 
 TypeNode SygusGrammar::resolve(bool allowAny)
@@ -220,7 +316,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
         {
           allowConsts.insert(ntSym);
         }
-        addSygusConstructor(dt, rule, ntsToUnres);
+        addSygusConstructor(dt, rule, d_ntSyms, ntsToUnres);
       }
       bool allowConst = allowConsts.find(ntSym) != allowConsts.end();
       dt.setSygus(ntSym.getType(), bvl, allowConst || allowAny, allowAny);

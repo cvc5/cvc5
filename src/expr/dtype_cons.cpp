@@ -142,7 +142,12 @@ bool DTypeConstructor::isSygusAnyConstant() const
 {
   Assert(isResolved());
   Assert(!d_sygusOp.isNull());
-  return d_sygusOp.getAttribute(SygusAnyConstAttribute());
+  return isSygusAnyConstantOp(d_sygusOp);
+}
+
+bool DTypeConstructor::isSygusAnyConstantOp(const Node& n)
+{
+  return n.getAttribute(SygusAnyConstAttribute());
 }
 
 unsigned DTypeConstructor::getWeight() const
