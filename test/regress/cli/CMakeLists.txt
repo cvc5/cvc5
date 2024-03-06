@@ -1250,7 +1250,7 @@ set(regress_0_tests
   regress0/proofs/bvrewrite-concat-merge.smt2
   regress0/proofs/bvrewrite-extract.smt2
   regress0/proofs/bvrewrite-ite.smt2
-  regress0/proofs/bvrewrite-shlbyconst.smt
+  regress0/proofs/bvrewrite-shlbyconst.smt2
   regress0/proofs/dsl-cong-eval-cr.smt2
   regress0/proofs/dsl-no-eval.smt2
   regress0/proofs/dsl-rule-comp-types.smt2
