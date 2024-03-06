@@ -105,8 +105,10 @@ cdef class SymbolManager:
         Wrapper class for the C++ class :cpp:class:`cvc5::parser::SymbolManager`.
     """
     cdef c_SymbolManager* csm
+    cdef Solver solver
     def __cinit__(self, Solver solver):
         self.csm = new c_SymbolManager(solver.csolver)
+        self.solver = solver
 
     def __dealloc__(self):
         del self.csm
@@ -136,8 +138,9 @@ cdef class SymbolManager:
             :return: The declared sorts.
         """
         sorts = []
-        for c in self.csolver.getModelDeclaredSorts():
-            sort = Sort(self)
+        csorts = self.csolver.getModelDeclaredSorts()
+        for c in csorts:
+            sort = Sort(self.solver)
             sort.csort = c
             sorts.append(sort)
         return sorts
@@ -151,8 +154,9 @@ cdef class SymbolManager:
             :return: The declared terms.
         """
         terms = []
-        for c in self.csolver.getModelDeclaredTerms():
-            term = Term(self)
+        cterms = self.csolver.getModelDeclaredTerms()
+        for c in cterms:
+            term = Term(self.solver)
             term.cterm = c
             terms.append(term)
         return terms
