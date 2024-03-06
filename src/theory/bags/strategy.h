@@ -44,9 +44,7 @@ enum InferStep
   // check basic operations without quantifiers
   CHECK_BASIC_OPERATIONS,
   // check operations with quantifiers
-  CHECK_QUANTIFIED_OPERATIONS,
-  // check cardinality constraints
-  CHECK_CARDINALITY_CONSTRAINTS
+  CHECK_QUANTIFIED_OPERATIONS
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
 

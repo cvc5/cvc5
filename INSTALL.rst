@@ -259,7 +259,6 @@ Dependencies for Language Bindings
 - Python
 
   - `Cython <https://cython.org/>`_ >= 3.0.0
-  - `scikit-build <https://pypi.org/project/scikit-build/>`_
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
   - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
 

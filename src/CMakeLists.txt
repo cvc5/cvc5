@@ -571,8 +571,6 @@ libcvc5_add_sources(
   theory/bags/bags_statistics.h
   theory/bags/bags_utils.cpp
   theory/bags/bags_utils.h
-  theory/bags/card_solver.cpp
-  theory/bags/card_solver.h
   theory/bags/infer_info.cpp
   theory/bags/infer_info.h
   theory/bags/inference_generator.cpp

@@ -35,7 +35,7 @@ namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(Env& env,
                                  TermDbSygus* tds,
-                                 SygusEnumeratorCallback* sec,
+                                 SygusTermEnumeratorCallback* sec,
                                  SygusStatistics* s,
                                  bool enumShapes,
                                  bool enumAnyConstHoles,
@@ -190,7 +190,7 @@ SygusEnumerator::TermCache::TermCache()
 void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
                                             Node e,
                                             TypeNode tn,
-                                            SygusEnumeratorCallback* sec)
+                                            SygusTermEnumeratorCallback* sec)
 {
   Trace("sygus-enum-debug") << "Init term cache " << tn << "..." << std::endl;
   d_stats = s;
