@@ -260,7 +260,7 @@ void InstStrategyMbqi::process(Node q)
 
   // get the model values for skolems
   std::vector<Node> terms;
-  modelValueFromQuery(q, query, *mbqiChecker.get(), skolems.d_subs, terms);
+  modelValueFromQuery(q, query, *mbqiChecker.get(), skolems.d_subs, terms, mvToFreshVar);
   Assert(skolems.size() == terms.size());
   if (TraceIsOn("mbqi"))
   {
@@ -497,7 +497,8 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
                                            const Node& query,
                                            SolverEngine& smt,
                                            const std::vector<Node>& vars,
-                                           std::vector<Node>& mvs)
+                                           std::vector<Node>& mvs,
+                        const std::map<Node, Node>& mvToFreshVar)
 {
   if (!options().quantifiers.mbqiModelExp)
   {
@@ -506,7 +507,7 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
   }
   getModelFromSubsolver(smt, vars, mvs);
   std::vector<Node> smvs(mvs);
-  if (d_msenum->constructInstantiation(q, query, vars, smvs))
+  if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))
   {
     mvs = smvs;
   }

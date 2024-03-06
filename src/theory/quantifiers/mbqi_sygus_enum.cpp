@@ -181,26 +181,26 @@ MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
 bool MbqiSygusEnum::constructInstantiation(const Node& q,
                                            const Node& query,
                                            const std::vector<Node>& vars,
-                                           std::vector<Node>& mvs)
+                                           std::vector<Node>& mvs,
+                                           const std::map<Node, Node>& mvFreshVar)
 {
   MQuantInfo& qi = getOrMkQuantInfo(q);
   std::vector<size_t> indices = qi.getInstIndicies();
-  if (indices.empty())
-  {
-    Trace("mbqi-model-enum")
-        << "...no instantiation indicies, return" << std::endl;
-    // nothing to do
-    return false;
-  }
   std::vector<size_t> nindices = qi.getNoInstIndicies();
   Subs inst;
+  std::unordered_map<Node, Node> tmpCMap;
   for (size_t i : nindices)
   {
+    Node v = mvs[i];
+    v = d_parent.convertFromModel(v, tmpCMap, mvFreshVar);
+    Trace("mbqi-model-enum") << "Assume inst: " << vars[i] << " -> " << v << std::endl;
     // if we don't enumerate it, we are already considering this instantiation
-    inst.add(vars[i], mvs[i]);
+    inst.add(vars[i], v);
   }
   Node queryCurr = query;
+  Trace("mbqi-model-enum") << "...query is " << queryCurr << std::endl;
   queryCurr = rewrite(inst.apply(queryCurr));
+  Trace("mbqi-model-enum") << "...processed is " << queryCurr << std::endl;
   std::shuffle(indices.begin(), indices.end(), Random::getRandom());
   for (size_t i = 0, isize = indices.size(); i < isize; i++)
   {

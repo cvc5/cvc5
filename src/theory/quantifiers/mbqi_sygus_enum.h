@@ -82,11 +82,14 @@ class MbqiSygusEnum : protected EnvObj
   /**
    * Updates mvs to the desired instantiation of q.
    * Returns true if successful.
+   * 
+   * @param mvFreshVar Maps model values to variables
    */
   bool constructInstantiation(const Node& q,
                               const Node& query,
                               const std::vector<Node>& vars,
-                              std::vector<Node>& mvs);
+                              std::vector<Node>& mvs,
+                              const std::map<Node, Node>& mvFreshVar);
 
  private:
   MQuantInfo& getOrMkQuantInfo(const Node& q);
