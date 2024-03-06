@@ -140,7 +140,7 @@ cdef class SymbolManager:
         sorts = []
         csorts = self.csolver.getModelDeclaredSorts()
         for c in csorts:
-            sort = Sort(self.solver)
+            cdef Sort sort = Sort(self.solver)
             sort.csort = c
             sorts.append(sort)
         return sorts
