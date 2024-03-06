@@ -22,8 +22,8 @@
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
-#include "expr/type_node.h"
 #include "expr/skolem_manager.h"
+#include "expr/type_node.h"
 
 namespace cvc5::internal {
 namespace proof {
