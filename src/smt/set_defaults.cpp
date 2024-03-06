@@ -181,13 +181,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
                        options::UnsatCoresMode::SAT_PROOF,
                        "enabling proofs, minisat");
       }
-      else
-      {
-        SET_AND_NOTIFY(Smt,
-                       unsatCoresMode,
-                       options::UnsatCoresMode::ASSUMPTIONS,
-                       "enabling proofs, non-minisat");
-      }
+      // otherwise, we just rely on which unsat core mode was already set
     }
     // note that this test assumes that granularity modes are ordered and
     // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
