@@ -61,7 +61,8 @@ enum ENUM(SkolemFunId) : uint32_t
    * 
    * - Number of skolem arguments: ``2``
    *   - ``1:`` A string constant corresponding to the name of the variable.
-   *   - ``2:`` A term that represents the sort of the variable.
+   *   - ``2:`` A term that represents the sort T of the variable.
+   * - Type: T
    */
   EVALUE(INPUT_VARIABLE),
   /** 
@@ -70,6 +71,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * 
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The term t that this skolem purifies.
+   * - Type: the type of t
    */
   EVALUE(PURIFY),
   /** 
@@ -79,6 +81,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first array.
    *   - ``2:`` The second array.
+   * - Type: the element type of the arrays
    */
   EVALUE(ARRAY_DEQ_DIFF),
   /** 
@@ -86,6 +89,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * SMT-LIB term (lambda ((x Real)) (/ x 0.0)).
    *
    * - Number of skolem arguments: ``0``
+   * - Type: (-> Real Real)
    */
   EVALUE(DIV_BY_ZERO),
   /** 
@@ -93,6 +97,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * to the SMT-LIB term (lambda ((x Int)) (div x 0)).
    *
    * - Number of skolem arguments: ``0``
+   * - Type: (-> Int Int)
    */
   EVALUE(INT_DIV_BY_ZERO),
   /** 
@@ -100,6 +105,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * to the SMT-LIB term (lambda ((x Int)) (mod x 0)).
    *
    * - Number of skolem arguments: ``0``
+   * - Type: (-> Int Int)
    */
   EVALUE(MOD_BY_ZERO),
   /** 
@@ -107,6 +113,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * functional. This is a function of sort (-> Real Real).
    *
    * - Number of skolem arguments: ``0``
+   * - Type: (-> Real Real)
    */
   EVALUE(SQRT),
   /**
@@ -116,6 +123,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The application of a trancendental function.
+   * - Type: Real
    */
   EVALUE(TRANSCENDENTAL_PURIFY_ARG),
   /** 
@@ -128,6 +136,8 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``2:`` A term that represents the sort of field we are extracting.
    *   - ``3:`` An integer n such that this shared selector returns the n^th
    *            subfield term of the given sort.
+   * - Type: a selector sort whose domain is given by first argument,
+   *         and whose codomain is the given by the second argument.
    */
   EVALUE(SHARED_SELECTOR),
   /**
@@ -137,6 +147,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``1:`` The quantified formula Q.
    *   - ``2:`` An integer n, where this skolem corresponds to the skolemization
    *            of the n^th variable in the variable list of Q.
+   * - Type: the type of the n^th variable of Q.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
   /** 
@@ -146,6 +157,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first string.
    *   - ``2:`` The second string.
+   * - Type: Int
    */
   EVALUE(STRINGS_NUM_OCCUR),
   /** 
@@ -157,6 +169,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first string.
    *   - ``2:`` The second string.
+   * - Type: (-> Int Int)
    */
   EVALUE(STRINGS_OCCUR_INDEX),
   /**
@@ -167,6 +180,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string to match.
    *   - ``2:`` The regular expression to find.
+   * - Type: Int
    */
   EVALUE(STRINGS_NUM_OCCUR_RE),
   /** 
@@ -179,6 +193,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string to match.
    *   - ``2:`` The regular expression to find.
+   * - Type: (-> Int Int)
    */
   EVALUE(STRINGS_OCCUR_INDEX_RE),
   /**
@@ -190,6 +205,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string to match.
    *   - ``2:`` The regular expression to find.
+   * - Type: (-> Int Int)
    */
   EVALUE(STRINGS_OCCUR_LEN_RE),
   /**
@@ -201,9 +217,9 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first string.
    *   - ``2:`` The second string.
+   * - Type: Int
    */
   EVALUE(STRINGS_DEQ_DIFF),
-  //-----
   /**
    * A function used to define intermediate results of str.replace_all and
    * str.replace_re_all applications. This denotes a function of type
@@ -213,6 +229,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * 
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The application of replace_all or replace_all_re.
+   * - Type: (-> Int S) where S is either String or (Seq T) for some T.
    */
   EVALUE(STRINGS_REPLACE_ALL_RESULT),
   /**
@@ -222,6 +239,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The argument to str.from_int.
+   * - Type: (-> Int Int)
    */
   EVALUE(STRINGS_ITOS_RESULT),
   /**
@@ -231,6 +249,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The argument to str.to_int.
+   * - Type: (-> Int String)
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
@@ -240,6 +259,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The argument to str.to_int.
+   * - Type: Int
    */
   EVALUE(STRINGS_STOI_NON_DIGIT),
   /**
@@ -261,6 +281,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string.
    *   - ``2:`` The regular expression to match.
+   * - Type: String
    */
   EVALUE(RE_FIRST_MATCH_PRE),
   /**
@@ -270,6 +291,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string.
    *   - ``2:`` The regular expression to match.
+   * - Type: String
    */
   EVALUE(RE_FIRST_MATCH),
   /**
@@ -279,6 +301,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string.
    *   - ``2:`` The regular expression to match.
+   * - Type: String
    */
   EVALUE(RE_FIRST_MATCH_POST),
   /**
@@ -291,6 +314,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``1:`` The string.
    *   - ``2:`` The regular expression.
    *   - ``3:`` The index of the skolem.
+   * - Type: String
    */
   EVALUE(RE_UNFOLD_POS_COMPONENT),
   /**
@@ -611,7 +635,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` a map term of the form (set.map f A)
-   *   - ``3:`` the element argument y.
+   *   - ``2:`` the element argument y.
    */
   EVALUE(SETS_MAP_DOWN_ELEMENT),
   //================================================= Unknown rule
