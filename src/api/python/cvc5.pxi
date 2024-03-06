@@ -138,11 +138,6 @@ cdef class SymbolManager:
             :return: The declared sorts.
         """
         sorts = []
-        csorts = self.csolver.getModelDeclaredSorts()
-        for c in csorts:
-            cdef Sort sort = Sort(self.solver)
-            sort.csort = c
-            sorts.append(sort)
         return sorts
 
     def getModelDeclaredTerms(self):
