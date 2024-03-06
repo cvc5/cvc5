@@ -229,13 +229,12 @@ class InputParserTest extends ParserTest
   {
     InputParser p = new InputParser(d_solver, d_symman);
     p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
-    Command cmd;
     p.appendIncrementalStringInput("(set-logic ALL)");
     p.appendIncrementalStringInput("(declare-sort U 0)");
     p.appendIncrementalStringInput("(declare-fun x () U)");
     for (int i = 0; i < 3; i++)
     {
-      cmd = p.nextCommand();
+      final Command cmd = p.nextCommand();
       assertNotEquals(cmd.isNull(), true);
       assertDoesNotThrow(() -> cmd.invoke(d_solver, d_symman));
     }
