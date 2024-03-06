@@ -160,11 +160,11 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     TheoryId tid = THEORY_BUILTIN;
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
     Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
-                              << " ---> " << eq[1] << std::endl;
+                           << " ---> " << eq[1] << std::endl;
     d_trustTheoryIdCount << tid;
   }
   else if (r == ProofRule::MACRO_REWRITE)
-  {    
+  {
     if (TraceIsOn("final-pf-hole"))
     {
       const std::vector<Node>& args = pn->getArguments();
@@ -172,7 +172,6 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       Trace("final-pf-hole") << "hole " << r << " : " << eq << std::endl;
     }
   }
-  
 
   if (options().proof.checkProofSteps
       || isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
