@@ -233,7 +233,7 @@ class InputParserTest extends ParserTest
     p.appendIncrementalStringInput("(set-logic ALL)");
     p.appendIncrementalStringInput("(declare-sort U 0)");
     p.appendIncrementalStringInput("(declare-fun x () U)");
-    for (size_t i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++)
     {
       cmd = p.nextCommand();
       assertNotEquals(cmd.isNull(), true);
