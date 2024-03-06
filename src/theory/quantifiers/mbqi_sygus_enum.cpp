@@ -29,11 +29,14 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-void MVarInfo::initialize(Env& env, const Node& q, const Node& v, const std::vector<Node>& etrules)
+void MVarInfo::initialize(Env& env,
+                          const Node& q,
+                          const Node& v,
+                          const std::vector<Node>& etrules)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = v.getType();
-  Assert (MQuantInfo::shouldEnumerate(tn));
+  Assert(MQuantInfo::shouldEnumerate(tn));
   TypeNode retType = tn;
   std::vector<Node> trules;
   if (tn.isFunction())
@@ -178,11 +181,12 @@ MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
   return it->second;
 }
 
-bool MbqiSygusEnum::constructInstantiation(const Node& q,
-                                           const Node& query,
-                                           const std::vector<Node>& vars,
-                                           std::vector<Node>& mvs,
-                                           const std::map<Node, Node>& mvFreshVar)
+bool MbqiSygusEnum::constructInstantiation(
+    const Node& q,
+    const Node& query,
+    const std::vector<Node>& vars,
+    std::vector<Node>& mvs,
+    const std::map<Node, Node>& mvFreshVar)
 {
   MQuantInfo& qi = getOrMkQuantInfo(q);
   std::vector<size_t> indices = qi.getInstIndicies();
@@ -193,7 +197,8 @@ bool MbqiSygusEnum::constructInstantiation(const Node& q,
   {
     Node v = mvs[i];
     v = d_parent.convertFromModel(v, tmpCMap, mvFreshVar);
-    Trace("mbqi-model-enum") << "Assume inst: " << vars[i] << " -> " << v << std::endl;
+    Trace("mbqi-model-enum")
+        << "Assume inst: " << vars[i] << " -> " << v << std::endl;
     // if we don't enumerate it, we are already considering this instantiation
     inst.add(vars[i], v);
   }

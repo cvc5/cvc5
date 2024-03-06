@@ -31,12 +31,16 @@ namespace quantifiers {
 class InstStrategyMbqi;
 
 /**
- * Maintains a sygus enumeration for a single quantified variable in our strategy.
+ * Maintains a sygus enumeration for a single quantified variable in our
+ * strategy.
  */
 class MVarInfo
 {
  public:
-  void initialize(Env& env, const Node& q, const Node& v, const std::vector<Node>& etrules);
+  void initialize(Env& env,
+                  const Node& q,
+                  const Node& v,
+                  const std::vector<Node>& etrules);
   Node getEnumeratedTerm(size_t i);
 
  private:
@@ -46,7 +50,7 @@ class MVarInfo
 };
 
 /**
- * Maintains information about a quantified formula in our strategy, including 
+ * Maintains information about a quantified formula in our strategy, including
  * which variables are processed/unprocessed, and the sygus enumeration for
  * each of them (in MVarInfo).
  */
@@ -62,6 +66,7 @@ class MQuantInfo
   MVarInfo& getVarInfo(size_t index);
   /** Should we enumerate terms for type tn? */
   static bool shouldEnumerate(const TypeNode& tn);
+
  private:
   Node d_quant;
   std::vector<MVarInfo> d_vinfo;
@@ -82,7 +87,7 @@ class MbqiSygusEnum : protected EnvObj
   /**
    * Updates mvs to the desired instantiation of q.
    * Returns true if successful.
-   * 
+   *
    * @param mvFreshVar Maps model values to variables
    */
   bool constructInstantiation(const Node& q,

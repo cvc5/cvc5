@@ -110,7 +110,7 @@ class InstStrategyMbqi : public QuantifiersModule
                            SolverEngine& smt,
                            const std::vector<Node>& vars,
                            std::vector<Node>& mvs,
-                        const std::map<Node, Node>& mvToFreshVar);
+                           const std::map<Node, Node>& mvToFreshVar);
   /** */
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
