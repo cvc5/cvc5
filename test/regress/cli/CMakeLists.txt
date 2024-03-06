@@ -910,6 +910,7 @@ set(regress_0_tests
   regress0/ho/lambda-test-deps-simple.smt2
   regress0/ho/lazy-lambda-model.smt2
   regress0/ho/m-enum-bug1.smt2 
+  regress0/ho/m-enum-bug2.smt2 
   regress0/ho/m-enum-bug3.smt2 
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
