@@ -120,6 +120,8 @@ class DTypeConstructor
   bool isSygusIdFunc() const;
   /** is this the "any constant" constructor? */
   bool isSygusAnyConstant() const;
+  /** is n is the "any constant" sygus operator? */
+  static bool isSygusAnyConstantOp(const Node& n);
   /** get weight
    *
    * Get the weight of this constructor. This value is used when computing the

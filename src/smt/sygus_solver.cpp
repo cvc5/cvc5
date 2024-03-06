@@ -36,6 +36,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
@@ -85,8 +86,8 @@ void SygusSolver::declareSynthFun(Node fn,
   {
     // use an attribute to mark its grammar
     quantifiers::SygusUtils::setSygusType(fn, sygusType);
-    // we must expand definitions for sygus operators in the block
-    expandDefinitionsSygusDt(fn, sygusType);
+    // we now check for free variables for sygus operators in the block
+    checkDefinitionsSygusDt(fn, sygusType);
   }
 
   // sygus conjecture is now stale
@@ -546,7 +547,7 @@ bool SygusSolver::usingSygusSubsolver() const
   return options().base.incrementalSolving;
 }
 
-void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
+void SygusSolver::checkDefinitionsSygusDt(const Node& fn, TypeNode tn) const
 {
   std::unordered_set<TypeNode> processed;
   std::vector<TypeNode> toProcess;
@@ -580,22 +581,11 @@ void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
            << " with free variables in grammar of " << fn;
         throw LogicException(ss.str());
       }
-      // Only expand definitions if the operator is not constant, since
-      // calling expandDefinitions on them should be a no-op. This check
-      // ensures we don't try to expand e.g. bitvector extract operators,
-      // whose type is undefined, and thus should not be passed to
-      // expandDefinitions.
-      Node eop = op.isConst()
-                     ? op
-                     : d_smtSolver.getPreprocessor()->applySubstitutions(op);
-      eop = rewrite(eop);
-      datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments
       for (unsigned j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
       {
         TypeNode tnc = c->getArgType(j);
-        if (tnc.isDatatype() && tnc.getDType().isSygus()
-            && processed.find(tnc) == processed.end())
+        if (tnc.isSygusDatatype() && processed.find(tnc) == processed.end())
         {
           toProcess.push_back(tnc);
           processed.insert(tnc);
