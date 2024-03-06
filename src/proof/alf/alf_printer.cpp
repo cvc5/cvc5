@@ -249,6 +249,9 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 
 void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
+  // ensures options are set once and for all
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyPrintArithLitToken(out, true);
   d_pfIdCounter = 0;
 
   // Get the definitions and assertions and print the declarations from them

@@ -115,7 +115,7 @@ static void toStreamRational(std::ostream& out,
       Rational abs_r = (-r);
       if (arithTokens)
       {
-        out << abs_r.getNumerator() << '/';
+        out << '-' << abs_r.getNumerator() << '/';
       }
       else
       {
