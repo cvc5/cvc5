@@ -47,7 +47,7 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
               "finalProof::dslRuleCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
-      d_trustTheoryIdCount(statisticsRegistry().registerHistogram<TheoryId>(
+      d_trustTheoryIdCount(statisticsRegistry().registerHistogram<theory::TheoryId>(
           "finalProof::trustTheoryIdCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
