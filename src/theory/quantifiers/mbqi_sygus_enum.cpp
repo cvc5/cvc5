@@ -81,7 +81,6 @@ void MVarInfo::initialize(Env& env,
 
 Node MVarInfo::getEnumeratedTerm(size_t i)
 {
-  Assert(d_isEnum);
   NodeManager* nm = NodeManager::currentNM();
   size_t nullCount = 0;
   while (i >= d_enum.size())
@@ -202,15 +201,21 @@ bool MbqiSygusEnum::constructInstantiation(
   std::vector<size_t> indices = qi.getInstIndicies();
   std::vector<size_t> nindices = qi.getNoInstIndicies();
   Subs inst;
+  Subs vinst;
   std::unordered_map<Node, Node> tmpCMap;
   for (size_t i : nindices)
   {
     Node v = mvs[i];
     v = d_parent.convertFromModel(v, tmpCMap, mvFreshVar);
+    if (v.isNull())
+    {
+      return false;
+    }
     Trace("mbqi-model-enum")
         << "* Assume: " << q[0][i] << " -> " << v << std::endl;
     // if we don't enumerate it, we are already considering this instantiation
-    inst.add(q[0][i], v);
+    inst.add(vars[i], v);
+    vinst.add(q[0][i], v);
   }
   Node queryCurr = query;
   Trace("mbqi-model-enum") << "...query is " << queryCurr << std::endl;
@@ -235,22 +240,28 @@ bool MbqiSygusEnum::constructInstantiation(
         Trace("mbqi-model-enum") << "- Try candidate: " << ret << std::endl;
         // apply current substitution (to account for cases where ret has
         // other variables in its grammar).
-        retc = inst.apply(ret);
+        retc = vinst.apply(ret);
         successEnum = true;
+        // now convert the value
+        std::unordered_map<Node, Node> tmpConvertMap;
+        std::map<TypeNode, std::unordered_set<Node> > freshVarType;
+        retc = d_parent.convertToQuery(retc, tmpConvertMap, freshVarType);
       }
       else
       {
         Trace("mbqi-model-enum")
             << "- Failed to enumerate candidate" << std::endl;
         // if we failed to enumerate, just try the original
-        ret = mvs[ii];
-        retc = mvs[ii];
+        Node mc = d_parent.convertFromModel(mvs[ii], tmpCMap, mvFreshVar);
+        if (mc.isNull())
+        {
+          // if failed to convert, we fail
+          return false;
+        }
+        ret = mc;
+        retc = mc;
         successEnum = false;
       }
-      // now convert the value
-      std::unordered_map<Node, Node> tmpConvertMap;
-      std::map<TypeNode, std::unordered_set<Node> > freshVarType;
-      retc = d_parent.convertToQuery(retc, tmpConvertMap, freshVarType);
       Trace("mbqi-model-enum")
           << "- Converted candidate: " << retc << std::endl;
       // see if it is still satisfiable, if still SAT, we replace
@@ -269,7 +280,7 @@ bool MbqiSygusEnum::constructInstantiation(
         Trace("mbqi-model-enum") << "...success" << std::endl;
         Trace("mbqi-model-enum") << "* Enumerated " << q[0][ii] << " -> " << ret << std::endl;
         mvs[ii] = ret;
-        inst.add(q[0][ii], ret);
+        vinst.add(q[0][ii], ret);
         success = true;
       }
       else if (!successEnum)

@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include "expr/sygus_term_enumerator.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
