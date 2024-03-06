@@ -347,19 +347,29 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       // that we have one chance to repair each skeleton. It is possible however
       // that we might want to repair the same skeleton multiple times.
       std::vector<Node> exp;
+      bool doExplain = true;
       for (unsigned i = 0, size = enums.size(); i < size; i++)
       {
+        if (!d_tds->isPassiveEnumerator(enums[i]))
+        {
+          // don't exclude active (fast) enumerators
+          doExplain = false;
+          break;
+        }
         d_tds->getExplain()->getExplanationForEquality(
             enums[i], enum_values[i], exp);
       }
-      Assert(!exp.empty());
-      NodeManager* nm = NodeManager::currentNM();
-      Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
-      // must guard it
-      expn = nm->mkNode(
-          Kind::OR, d_parent->getConjecture().negate(), expn.negate());
-      d_qim.addPendingLemma(
-          expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
+      if (doExplain)
+      {
+        Assert(!exp.empty());
+        NodeManager* nm = NodeManager::currentNM();
+        Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
+        // must guard it
+        expn = nm->mkNode(
+            Kind::OR, d_parent->getConjecture().negate(), expn.negate());
+        d_qim.addPendingLemma(
+            expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
+      }
       Trace("cegis") << "...solution was processed via repair, success = "
                      << ret << std::endl;
       return ret;

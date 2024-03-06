@@ -443,7 +443,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::STRINGS_STOI_RESULT:
     case SkolemFunId::STRINGS_ITOS_RESULT:
     case SkolemFunId::BAGS_MAP_SUM:
-    case SkolemFunId::BAGS_CARD_CARDINALITY:
+    case SkolemFunId::BAGS_CARD_COMBINE:
     {
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, itype);
