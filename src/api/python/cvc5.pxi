@@ -127,6 +127,35 @@ cdef class SymbolManager:
         """
         return self.csm.getLogic().decode()
 
+    def getModelDeclaredSorts(self):
+        """
+            Get the list of sorts that have been declared via declare-sort.
+            These are the sorts that are printed in response to a
+            get-model command.
+
+            :return: The declared sorts.
+        """
+        sorts = []
+        for c in self.csolver.getModelDeclaredSorts():
+            sort = Sort(self)
+            sort.csort = c
+            sorts.append(term)
+        return sorts
+
+    def getModelDeclaredTerms(self):
+        """
+            Get the list of terms that have been declared via declare-fun and
+            declare-const. These are the terms that are printed in response to a
+            get-model command.
+
+            :return: The declared terms.
+        """
+        terms = []
+        for c in self.csolver.getModelDeclaredTerms():
+            term = Term(self)
+            term.cterm = c
+            terms.append(term)
+        return terms
 
 cdef class Command:
     """
