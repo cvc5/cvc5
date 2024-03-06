@@ -137,32 +137,31 @@ enum class SkolemFunId
    * To compute (bag.card A), we need a function that
    * counts multiplicities of distinct elements. We call this function
    * combine of type Int -> Int where:
-   * combine (0) = 0
-   * combine (i) = m(elements(i), A) + combine(i-1) for 1 <= i <= n
+   * combine(0) = 0.
+   * combine(i) = m(elements(i), A) + combine(i-1) for 1 <= i <= n.
    * elements: a skolem function for (bag.fold f t A)
-   *          see BAGS_CARD_ELEMENTS
-   * n: is the number of distinct elements in A
+  *            see BAGS_CARD_ELEMENTS.
+   * n: is the number of distinct elements in A.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [0,n]
+   *   - ``1:`` an integer index in [0,n].
    */
   BAGS_CARD_COMBINE,
   /**
    * An uninterpreted function for bag.card operator:
    * To compute (bag.card A), we need a function for
    * distinct elements in A. We call this function
-   * elements of type Int -> T1 where T1 is the type of
+   * elements of type Int -> T where T is the type of
    * elements of A.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [1,n]
+   *   - ``1:`` an integer index in [1,n].
    */
   BAGS_CARD_ELEMENTS,
   /**
    * An uninterpreted function for bag.card operator:
-   * To compute (bag.card A), we need to guess the n
+   * To compute (bag.card A), we need to guess n
    * the number of distinct elements in A.
-   *
    */
   BAGS_CARD_N,
   /**
@@ -170,21 +169,21 @@ enum class SkolemFunId
    * To compute (bag.card A), we need a function for
    * distinct elements in A which is given by elements defined in
    * BAGS_CARD_ELEMENTS.
-   * We also need unionDisjoint: Int -> (Bag T1) to compute
+   * We also need unionDisjoint: Int -> (Bag T) to compute
    * the disjoint union such that:
-   * unionDisjoint (0) = bag.empty
-   * unionDisjoint (i) = disjoint union of {<elements(i), m(elements(i), A)>}
-   * and unionDisjoint (i-1) unionDisjoint (n) = A
+   * unionDisjoint(0) = bag.empty.
+   * unionDisjoint(i) = disjoint union of {<elements(i), m(elements(i), A)>}
+   * and unionDisjoint(i-1).
+   * unionDisjoint(n) = A.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [0,n]
+   *   - ``1:`` an integer index in [0,n].
    */
   BAGS_CARD_UNION_DISJOINT,
   /**
    * An uninterpreted function for bag.fold operator:
    * To compute (bag.fold f t A), we need to guess the cardinality n of
    * bag A using a skolem function with BAGS_FOLD_CARD id.
-   *
    */
   BAGS_FOLD_CARD,
   /**
@@ -192,15 +191,15 @@ enum class SkolemFunId
    * To compute (bag.fold f t A), we need a function that
    * accumulates intermidiate values. We call this function
    * combine of type Int -> T2 where:
-   * combine (0) = t
-   * combine (i) = f(elements(i), combine(i - 1)) for 1 <= i <= n
+   * combine(0) = t
+   * combine(i) = f(elements(i), combine(i - 1)) for 1 <= i <= n.
    * elements: a skolem function for (bag.fold f t A)
-   *          see BAGS_FOLD_ELEMENTS
-   * n: is the cardinality of A
-   * T2: is the type of initial value t
+   *           see BAGS_FOLD_ELEMENTS.
+   * n: is the cardinality of A.
+   * T2: is the type of initial value t.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [0,n]
+   *   - ``1:`` an integer index in [0,n].
    */
   BAGS_FOLD_COMBINE,
   /**
@@ -214,7 +213,7 @@ enum class SkolemFunId
    * See BAGS_FOLD_UNION_DISJOINT.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [1,n]
+   *   - ``1:`` an integer index in [1,n].
    */
   BAGS_FOLD_ELEMENTS,
   /**
@@ -224,15 +223,16 @@ enum class SkolemFunId
    * BAGS_FOLD_ELEMENTS.
    * We also need unionDisjoint: Int -> (Bag T1) to compute
    * the disjoint union such that:
-   * unionDisjoint (0) = bag.empty
-   * unionDisjoint (i) = disjoint union of {elements(i)} and unionDisjoint (i-1)
-   * unionDisjoint (n) = A
+   * unionDisjoint(0) = bag.empty.
+   * unionDisjoint(i) = disjoint union of {elements(i)} and unionDisjoint (i-1).
+   * unionDisjoint(n) = A.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [0,n]
+   *   - ``1:`` an integer index in [0,n].
    */
   BAGS_FOLD_UNION_DISJOINT,
-  /** An interpreted function for bag.choose operator:
+  /** 
+   * An interpreted function for bag.choose operator:
    * (bag.choose A) is expanded as
    * (witness ((x elementType))
    *    (ite
@@ -240,42 +240,39 @@ enum class SkolemFunId
    *      (= x (uf A))
    *      (and (>= (bag.count x A) 1) (= x (uf A)))
    * where uf: (Bag E) -> E is a skolem function, and E is the type of elements
-   * of A
+   * of A.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` a bag term
+   *   - ``1:`` a bag term.
    */
   BAGS_CHOOSE,
-  /** An uninterpreted function for bag.map operator:
+  /** 
+   * An uninterpreted function for bag.map operator:
    * To compute (bag.count y (bag.map f A)), we need to find the distinct
    * elements in A that are mapped to y by function f (i.e., preimage of {y}).
    * If n is the cardinality of this preimage, then
    * the preimage is the set {uf(1), ..., uf(n)}
-   * where uf: Int -> E is a skolem function, and E is the type of elements of A
+   * where uf: Int -> E is a skolem function, and E is the type of elements of A.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [1,n]
+   *   - ``1:`` an integer index in [1,n].
    */
   BAGS_MAP_PREIMAGE,
   /**
-   * Same as above, but used when f is injective. In this case this is not
-   * indexed, and the returned skolem has type E.
-   *
-   *
+   * Same as above, but used when f is injective. 
+   * The returned skolem is an element representing preimage of {y}.
    */
   BAGS_MAP_PREIMAGE_INJECTIVE,
   /**
    * A skolem variable for the size of the preimage of {y} that is unique per
    * terms (bag.map f A), y which might be an element in (bag.map f A). (see the
-   * documentation for BAGS_MAP_PREIMAGE)
-   *
+   * documentation for BAGS_MAP_PREIMAGE).
    */
   BAGS_MAP_PREIMAGE_SIZE,
   /**
    * A skolem variable for the index that is unique per terms
    * (bag.map f A), y, preImageSize, y, e which might be an element in A.
-   * (see the documentation for BAGS_MAP_PREIMAGE)
-   *
+   * (see the documentation for BAGS_MAP_PREIMAGE).
    */
   BAGS_MAP_PREIMAGE_INDEX,
   /**
@@ -287,11 +284,11 @@ enum class SkolemFunId
    * sum(i) = sum (i-1) + (bag.count (uf i) A)
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [0,n]
+   *   - ``1:`` an integer index in [0,n].
    */
   BAGS_MAP_SUM,
   /**
-   * bag diff to witness (not (= A B))
+   * bag diff to witness (not (= A B)).
    */
   BAGS_DEQ_DIFF,
   /**
@@ -300,31 +297,28 @@ enum class SkolemFunId
    * resulting partition. It has type (-> T (Table T))
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an element of type T
+   *   - ``1:`` an element of type T.
    */
   TABLES_GROUP_PART,
   /**
    * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
    * and a part B of type (Table T), this function returns a skolem element
-   * that is a member of B if B is not empty.
-   *
-   * - Number of skolem arguments: ``0``.
+   * that is a member of B if B is not empty.   
    */
   TABLES_GROUP_PART_ELEMENT,
-  /** Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
+  /** 
+   * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
    * this uninterpreted function maps elements of A to their parts in the
    * resulting partition. It has type (-> T (Relation T))
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an element of type T
+   *   - ``1:`` an element of type T.
    */
   RELATIONS_GROUP_PART,
   /**
    * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
    * and a part B of type (Relation T), this function returns a skolem element
    * that is a member of B if B is not empty.
-     *
-
    */
   RELATIONS_GROUP_PART_ELEMENT,
   /**
@@ -339,7 +333,7 @@ enum class SkolemFunId
    * of A
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` a set term
+   *   - ``1:`` a set term.
    */
   SETS_CHOOSE,
   /** set diff to witness (not (= A B)) */
@@ -355,15 +349,15 @@ enum class SkolemFunId
    * To compute (set.fold f t A), we need a function that
    * accumulates intermidiate values. We call this function
    * combine of type Int -> T2 where:
-   * combine (0) = t
-   * combine (i) = f(elements(i), combine(i - 1)) for 1 <= i <= n
+   * combine(0) = t
+   * combine(i) = f(elements(i), combine(i - 1)) for 1 <= i <= n
    * elements: a skolem function for (set.fold f t A)
-   *          see SETS_FOLD_ELEMENTS
+   *           see SETS_FOLD_ELEMENTS
    * n: is the cardinality of A
    * T2: is the type of initial value t
-   *    *
+   * 
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [0,n]
+   *   - ``1:`` an integer index in [0,n].
    */
   SETS_FOLD_COMBINE,
   /** 
@@ -377,7 +371,7 @@ enum class SkolemFunId
    * See SETS_FOLD_UNION_DISJOINT.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [1,n]
+   *   - ``1:`` an integer index in [1,n].
    */
   SETS_FOLD_ELEMENTS,
   /** 
@@ -387,12 +381,12 @@ enum class SkolemFunId
    * SETS_FOLD_ELEMENTS.
    * We also need unionFn: Int -> (Set T1) to compute
    * the union such that:
-   * unionFn (0) = set.empty
-   * unionFn (i) = union of {elements(i)} and unionFn (i-1)
-   * unionFn (n) = A
+   * unionFn(0) = set.empty
+   * unionFn(i) = union of {elements(i)} and unionFn (i-1)
+   * unionFn(n) = A
    *    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` an integer index in [0,n]
+   *   - ``1:`` an integer index in [0,n].
    */
   SETS_FOLD_UNION,
   /**
