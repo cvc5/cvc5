@@ -330,6 +330,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A.
+   * - Type: (-> Int Int)
    */
   EVALUE(BAGS_CARD_COMBINE),  
   /**
@@ -340,7 +341,8 @@ enum ENUM(SkolemFunId) : uint32_t
    * elements of A.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` the bag argument A.
+   *   - ``1:`` the bag argument A of type (Bag T).
+   * - Type: (-> Int T)
    */
   EVALUE(BAGS_CARD_ELEMENTS),
   /**
@@ -350,6 +352,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A.
+   * - Type: Int
    */
   EVALUE(BAGS_CARD_N),
   /**
@@ -365,7 +368,8 @@ enum ENUM(SkolemFunId) : uint32_t
    * unionDisjoint(n) = A.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` the bag argument A.
+   *   - ``1:`` the bag argument A of type (Bag T).
+   * - Type: (-> Int (Bag T))
    */
   EVALUE(BAGS_CARD_UNION_DISJOINT),
   /**
@@ -375,6 +379,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A.
+   * - Type: Int
    */
   EVALUE(BAGS_FOLD_CARD),
   /**
@@ -436,7 +441,8 @@ enum ENUM(SkolemFunId) : uint32_t
    * of A.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` a ground value for the type (Bag E).
+   *   - ``1:`` the bag to chose from, of type (Bag T).
+   * - Type: (-> (Bag T) T)
    */
   EVALUE(BAGS_CHOOSE),
   /**
