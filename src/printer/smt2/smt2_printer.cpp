@@ -73,6 +73,7 @@ static void toStreamRational(std::ostream& out,
                              Variant v)
 {
   bool neg = r.sgn() < 0;
+  bool arithTokens = options::ioutils::getPrintArithLitToken(out);
   // Print the rational, possibly as a real.
   // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
   // the former is compliant with real values in the smt lib standard.
@@ -80,7 +81,14 @@ static void toStreamRational(std::ostream& out,
   {
     if (neg)
     {
-      out << "(- " << -r;
+      if (arithTokens)
+      {
+        out << "-" << -r;
+      }
+      else
+      {
+        out << "(- " << -r;
+      }
     }
     else
     {
@@ -90,7 +98,7 @@ static void toStreamRational(std::ostream& out,
     {
       out << ".0";
     }
-    if (neg)
+    if (neg && !arithTokens)
     {
       out << ")";
     }
@@ -98,19 +106,32 @@ static void toStreamRational(std::ostream& out,
   else
   {
     Assert(isReal);
-    out << "(/ ";
+    if (!arithTokens)
+    {
+      out << "(/ ";
+    }
     if (neg)
     {
       Rational abs_r = (-r);
-      out << "(- " << abs_r.getNumerator();
-      out << ") " << abs_r.getDenominator();
+      if (arithTokens)
+      {
+        out << abs_r.getNumerator() << '/';
+      }
+      else
+      {
+        out << "(- " << abs_r.getNumerator() << ") ";
+      }
+      out << abs_r.getDenominator();
     }
     else
     {
       out << r.getNumerator();
-      out << ' ' << r.getDenominator();
+      out << (arithTokens ? '/' : ' ') << r.getDenominator();
     }
-    out << ')';
+    if (!arithTokens)
+    {
+      out << ')';
+    }
   }
 }
 
