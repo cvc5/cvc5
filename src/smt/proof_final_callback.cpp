@@ -47,6 +47,8 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
               "finalProof::dslRuleCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
+      d_trustTheoryIdCount(statisticsRegistry().registerHistogram<TheoryId>(
+          "finalProof::trustTheoryIdCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -150,26 +152,27 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     }
     Trace("final-pf-hole") << ": " << pn->getResult() << std::endl;
   }
-  // print for debugging
-  if (TraceIsOn("final-pf-hole"))
+  // currently only track theory rewrites
+  if (r == ProofRule::TRUST_THEORY_REWRITE)
   {
-    // currently only track theory rewrites
-    if (r == ProofRule::TRUST_THEORY_REWRITE)
-    {
-      const std::vector<Node>& args = pn->getArguments();
-      Node eq = args[0];
-      TheoryId tid = THEORY_BUILTIN;
-      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-      Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
-                             << " ---> " << eq[1] << std::endl;
-    }
-    else if (r == ProofRule::MACRO_REWRITE)
+    const std::vector<Node>& args = pn->getArguments();
+    Node eq = args[0];
+    TheoryId tid = THEORY_BUILTIN;
+    builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+    Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
+                              << " ---> " << eq[1] << std::endl;
+    d_trustTheoryIdCount << tid;
+  }
+  else if (r == ProofRule::MACRO_REWRITE)
+  {    
+    if (TraceIsOn("final-pf-hole"))
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];
       Trace("final-pf-hole") << "hole " << r << " : " << eq << std::endl;
     }
   }
+  
 
   if (options().proof.checkProofSteps
       || isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
