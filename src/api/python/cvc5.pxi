@@ -138,6 +138,11 @@ cdef class SymbolManager:
             :return: The declared sorts.
         """
         sorts = []
+        csorts = self.csm.getModelDeclaredSorts()
+        for c in csorts:
+            sort = Sort(self.solver)
+            sort.csort = c
+            sorts.append(sort)
         return sorts
 
     def getModelDeclaredTerms(self):
@@ -149,7 +154,7 @@ cdef class SymbolManager:
             :return: The declared terms.
         """
         terms = []
-        cterms = self.csolver.getModelDeclaredTerms()
+        cterms = self.csm.getModelDeclaredTerms()
         for c in cterms:
             term = Term(self.solver)
             term.cterm = c
