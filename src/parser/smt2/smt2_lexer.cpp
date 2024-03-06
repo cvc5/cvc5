@@ -354,7 +354,9 @@ Token Smt2Lexer::tokenizeCurrentSymbol() const
       break;
     case '-':
     {
-      if (d_token.size()>=2)
+      // note that `-4`, `-4.0`, `-4/5` are SMT-LIB symbols, hence we only
+      // convert these to literals if we are not strict parsing.
+      if (!d_isStrict && d_token.size()>=2)
       {
         // reparse as a negative numeral, rational or decimal
         Token ret = Token::INTEGER_LITERAL;
