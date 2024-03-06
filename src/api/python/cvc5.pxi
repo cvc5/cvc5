@@ -139,7 +139,7 @@ cdef class SymbolManager:
         for c in self.csolver.getModelDeclaredSorts():
             sort = Sort(self)
             sort.csort = c
-            sorts.append(term)
+            sorts.append(sort)
         return sorts
 
     def getModelDeclaredTerms(self):
