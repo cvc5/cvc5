@@ -45,9 +45,7 @@ r"""cdef extern from "<{header}>" namespace "{namespace}":
 """
 
 ENUMS_PXI_TOP = \
-r'''# distutils: language = c++
-# distutils: extra_compile_args = -std=c++11
-
+r'''
 from {basename} cimport {enum} as c_{enum}
 from enum import Enum
 

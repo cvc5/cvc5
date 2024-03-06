@@ -15,6 +15,7 @@
 
 #include "smt/find_synth_solver.h"
 
+#include "expr/sygus_term_enumerator.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"

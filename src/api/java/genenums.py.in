@@ -227,9 +227,9 @@ def format_comment(comment):
             insert = components[i+1].replace(">", "&gt;").replace("<", "&lt;")
             i = i + 2
             if component == ":math:":
-                comment += "\(" + insert + "\)"
+                comment += r"\(" + insert + r"\)"
             else:
-                comment += "\[" + insert + "\]"
+                comment += r"\[" + insert + r"\]"
         else:
             for pattern, replacement in CPP_JAVA_MAPPING.items():
                 component = re.sub(pattern, replacement, component)

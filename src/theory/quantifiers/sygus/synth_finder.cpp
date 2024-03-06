@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/sygus/synth_finder.h"
 
+#include "expr/sygus_term_enumerator.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -26,6 +27,7 @@
 #include "theory/quantifiers/rewrite_verifier.h"
 #include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5::internal {
@@ -49,17 +51,13 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const TypeNode& gtn)
   // clear the buffer
   d_bufferIndex = 0;
   d_buffer.clear();
-  NodeManager* nm = NodeManager::currentNM();
 
-  // make the enumerator variable
-  Node e = nm->mkBoundVar(gtn);
+  // initialize the enumerator with the given callback, which also will ensure
+  // that expanded definition forms are set on gtn.
+  d_enum.reset(new SygusTermEnumerator(d_env, gtn, d_ecb.get()));
 
   // initialize the expression miner
-  initializeInternal(d_fstu, e);
-
-  // initialize the enumerator with the given callback
-  d_enum.reset(new SygusEnumerator(d_env, nullptr, d_ecb.get()));
-  d_enum->initialize(e);
+  initializeInternal(d_fstu, gtn);
 }
 
 bool SynthFinder::increment()
@@ -96,12 +94,12 @@ class SygusEnumeratorCallbackNoSym : public SygusEnumeratorCallback
   Node getCacheValue(const Node& n, const Node& bn) override { return bn; }
 };
 
-void SynthFinder::initializeInternal(modes::FindSynthTarget fst, const Node& e)
+void SynthFinder::initializeInternal(modes::FindSynthTarget fst,
+                                     const TypeNode& gtn)
 {
   options::SygusQueryGenMode qmode = options().quantifiers.sygusQueryGen;
 
   // get the sygus variables from the type of the enumerator
-  const TypeNode& gtn = e.getType();
   Assert(gtn.isDatatype());
   const DType& dt = gtn.getDType();
   Assert(dt.isSygus());
