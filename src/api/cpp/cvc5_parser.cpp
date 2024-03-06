@@ -89,6 +89,7 @@ const std::string& SymbolManager::getLogic() const
 std::vector<Sort> SymbolManager::getModelDeclaredSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   return d_sm->getModelDeclareSorts();
   ////////
   CVC5_API_TRY_CATCH_END;
