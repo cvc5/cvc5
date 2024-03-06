@@ -120,8 +120,7 @@ Node MVarInfo::getEnumeratedTerm(size_t i)
 
 void MQuantInfo::initialize(Env& env, const Node& q)
 {
-  // TODO: external terminal rules?
-  // TODO: maybe include the non-instantiated variables in this???
+  // TODO: external terminal rules? maybe pass all symbols to this?
   std::vector<Node> etrules;
   for (const Node& v : q[0])
   {
@@ -136,6 +135,8 @@ void MQuantInfo::initialize(Env& env, const Node& q)
     else
     {
       d_nindices.push_back(index);
+      // variables defined in terms of others
+      etrules.push_back(v);
     }
   }
   // initialize the variables we are instantiating
