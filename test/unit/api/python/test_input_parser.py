@@ -191,6 +191,7 @@ def test_multiple_parsers(solver):
 
 
 def test_model_declares(solver):
+    sm = SymbolManager(solver)
     p = InputParser(solver, sm)
     p.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
     p.appendIncrementalStringInput("(set-logic ALL)")
