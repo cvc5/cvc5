@@ -401,12 +401,18 @@ bool isACNorm(Node a, Node b)
   Node an = getNormalForm(a);
   Node bn = getNormalForm(b);
   // note we compare three possibilities, to handle cases like
-  // (or (and b true) false) == (and b true),
+  //   (or (and b true) false) == (and b true),
   // where N((or (and b true) false)) = (and b true),
   //       N((and b true)) = b.
   // In other words, one of the terms may be an element of the
   // normalization of the other, which itself normalizes. Comparing
-  // all three ensures we are robust
+  // all three ensures we are robust to this.
+  // However, note that we are intentionally incomplete for cases like:
+  //   (or (and b a) false) == (and a b),
+  // where this can be shown recursively via 2 normalization steps:
+  //   (or (and b a) false) ---> (and b a) ---> (and a b).
+  // We do this for simplicity; proof rules should be given that do these
+  // two steps separately.
   return (an == bn) || (a == bn) || (an == b);
 }
 
