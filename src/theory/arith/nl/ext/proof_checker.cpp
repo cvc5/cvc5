@@ -117,7 +117,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
   else if (id == ProofRule::ARITH_MULT_TANGENT)
   {
     Assert(children.empty());
-    Assert(args.size() == 6);
+    Assert(args.size() == 5);
     Assert(args[0].getType().isRealOrInt());
     Assert(args[1].getType().isRealOrInt());
     Assert(args[2].getType().isRealOrInt());
