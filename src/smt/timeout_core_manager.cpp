@@ -15,13 +15,15 @@
 
 #include "smt/timeout_core_manager.h"
 
+#include <cvc5/cvc5_types.h>
+
 #include <fstream>
 
-#include <cvc5/cvc5_types.h>
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/proof_node_algorithm.h"
 #include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/print_benchmark.h"
@@ -37,7 +39,7 @@ namespace cvc5::internal {
 namespace smt {
 
 TimeoutCoreManager::TimeoutCoreManager(Env& env)
-    : EnvObj(env), d_numAssertsNsk(0), d_nextIndexToInclude(0)
+    : EnvObj(env), d_numAssertsNsk(0)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -45,9 +47,11 @@ TimeoutCoreManager::TimeoutCoreManager(Env& env)
 
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     const std::vector<Node>& ppAsserts,
-    const std::map<size_t, Node>& ppSkolemMap)
+    const std::map<size_t, Node>& ppSkolemMap,
+    const std::vector<Node>& assumptions)
 {
   d_ppAsserts.clear();
+  d_ppAssertsOrig.clear();
   d_skolemToAssert.clear();
   d_modelValues.clear();
   d_modelToAssert.clear();
@@ -55,24 +59,20 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   d_ainfo.clear();
   d_asymbols.clear();
   d_syms.clear();
-  initializePreprocessedAssertions(ppAsserts, ppSkolemMap);
+  d_globalInclude.clear();
+  initializeAssertions(ppAsserts, ppSkolemMap, assumptions);
 
-  // trivial case: empty assertions
-  if (d_ppAsserts.empty())
-  {
-    return std::pair<Result, std::vector<Node>>(Result(Result::SAT), {});
-  }
-
-  std::vector<Node> nextAssertions;
+  std::vector<size_t> nextInclude;
   Result result;
   bool checkAgain = true;
   do
   {
-    nextAssertions.clear();
+    std::vector<Node> assertions;
     // get the next assertions, store in d_ap
-    getNextAssertions(nextAssertions);
+    getNextAssertions(nextInclude, assertions);
+    nextInclude.clear();
     // check sat based on the driver strategy
-    result = checkSatNext(nextAssertions);
+    result = checkSatNext(assertions, nextInclude);
     // if we were asked to check again
     if (result.getStatus() != Result::UNKNOWN
         || result.getUnknownExplanation()
@@ -85,43 +85,46 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   std::vector<Node> toCore;
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
   {
-    Assert(a.first < d_ppAsserts.size());
-    Trace("smt-to-core-asserts") << "...return #" << a.first << std::endl;
-    toCore.push_back(d_ppAsserts[a.first]);
+    Assert(a.first < d_ppAssertsOrig.size());
+    toCore.push_back(d_ppAssertsOrig[a.first]);
   }
   // include the skolem definitions
-  getActiveSkolemDefinitions(toCore);
+  if (assumptions.empty())
+  {
+    getActiveDefinitions(toCore);
+  }
+  if (TraceIsOn("to-core-result"))
+  {
+    for (const Node& c : toCore)
+    {
+      Trace("to-core-result") << "core: " << c << std::endl;
+    }
+  }
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
+SolverEngine* TimeoutCoreManager::getSubSolver() { return d_subSolver.get(); }
 
-void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
+void TimeoutCoreManager::includeAssertion(size_t index, bool& removedAssertion)
 {
-  if (d_modelValues.empty())
-  {
-    // empty initially
-    return;
-  }
-  Trace("smt-to-core") << "Get next assertions..." << std::endl;
-  // should have set d_nextIndexToInclude which is not already included
-  Assert(d_nextIndexToInclude < d_ppAsserts.size());
-  Assert(d_ainfo.find(d_nextIndexToInclude) == d_ainfo.end());
+  // should have set index which is not already included
+  Assert(index < d_ppAsserts.size());
+  Assert(d_ainfo.find(index) == d_ainfo.end());
   // initialize the assertion info
-  AssertInfo& ainext = d_ainfo[d_nextIndexToInclude];
+  AssertInfo& ainext = d_ainfo[index];
   // we assume it takes the current model
   size_t currModelIndex = d_modelValues.size() - 1;
-  d_modelToAssert[currModelIndex] = d_nextIndexToInclude;
+  d_modelToAssert[currModelIndex] = index;
   ainext.d_coverModels++;
-  Trace("smt-to-core") << "Add assertion #" << d_nextIndexToInclude << ": "
-                       << d_ppAsserts[d_nextIndexToInclude] << std::endl;
+  Trace("smt-to-core") << "Add assertion #" << index << ": "
+                       << d_ppAsserts[index] << std::endl;
 
   // iterate over previous models
   std::unordered_map<size_t, size_t>::iterator itp;
   std::map<size_t, AssertInfo>::iterator ita;
-  bool recomputeSymbols = false;
   for (size_t i = 0; i < currModelIndex; i++)
   {
     Assert(d_modelValues[i].size() == d_ppAsserts.size());
-    Node vic = d_modelValues[i][d_nextIndexToInclude];
+    Node vic = d_modelValues[i][index];
     // determine if this assertion should take ownership of the i^th model
     bool coverModel = false;
     if (vic == d_false)
@@ -139,7 +142,7 @@ void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
       // decrement the count of the assertion that previously owned it
       itp = d_modelToAssert.find(i);
       Assert(itp != d_modelToAssert.end());
-      Assert(itp->second != d_nextIndexToInclude);
+      Assert(itp->second != index);
       ita = d_ainfo.find(itp->second);
       Assert(ita != d_ainfo.end());
       ita->second.d_coverModels--;
@@ -149,14 +152,32 @@ void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
             << "Remove assertion #" << itp->second << std::endl;
         // a previous assertion no longer is necessary
         d_ainfo.erase(ita);
-        recomputeSymbols = true;
+        removedAssertion = true;
       }
-      d_modelToAssert[i] = d_nextIndexToInclude;
+      d_modelToAssert[i] = index;
       ainext.d_coverModels++;
     }
   }
   Trace("smt-to-core") << "...covers " << ainext.d_coverModels << " models"
                        << std::endl;
+}
+
+void TimeoutCoreManager::getNextAssertions(
+    const std::vector<size_t>& nextInclude, std::vector<Node>& nextAsserts)
+{
+  if (d_modelValues.empty())
+  {
+    // empty initially
+    return;
+  }
+  Trace("smt-to-core") << "Get next assertions..." << std::endl;
+  bool removedAssertion = false;
+  // include each assertion, which may trigger other formulas to be removed
+  // from our active set (given by d_ainfo).
+  for (size_t i : nextInclude)
+  {
+    includeAssertion(i, removedAssertion);
+  }
 
   // now have a list of assertions to include
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
@@ -166,7 +187,7 @@ void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
     Node pa = d_ppAsserts[a.first];
     nextAsserts.push_back(pa);
   }
-  if (recomputeSymbols)
+  if (removedAssertion)
   {
     // we have to recompute symbols from scratch
     d_asymbols.clear();
@@ -179,21 +200,23 @@ void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
   else
   {
     // otherwise, add to current symbols
-    std::unordered_set<Node>& syms = d_syms[d_nextIndexToInclude];
-    d_asymbols.insert(syms.begin(), syms.end());
+    for (size_t i : nextInclude)
+    {
+      const std::unordered_set<Node>& syms = d_syms[i];
+      d_asymbols.insert(syms.begin(), syms.end());
+    }
   }
 
   // include the skolem definitions
-  getActiveSkolemDefinitions(nextAsserts);
+  getActiveDefinitions(nextAsserts);
 
   Trace("smt-to-core")
       << "...finished get next assertions, #current assertions = "
       << d_ainfo.size() << ", #free variables = " << d_asymbols.size()
-      << ", #asserts and skolem defs=" << nextAsserts.size() << std::endl;
+      << ", #asserts and defs=" << nextAsserts.size() << std::endl;
 }
 
-void TimeoutCoreManager::getActiveSkolemDefinitions(
-    std::vector<Node>& nextAsserts)
+void TimeoutCoreManager::getActiveDefinitions(std::vector<Node>& nextAsserts)
 {
   if (!d_skolemToAssert.empty())
   {
@@ -211,9 +234,12 @@ void TimeoutCoreManager::getActiveSkolemDefinitions(
       }
     }
   }
+  nextAsserts.insert(
+      nextAsserts.end(), d_globalInclude.begin(), d_globalInclude.end());
 }
 
-Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
+Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
+                                        std::vector<size_t>& nextInclude)
 {
   verbose(1) << "TimeoutCoreManager::checkSatNext, #assertions="
              << nextAssertions.size() << ", #models=" << d_modelValues.size()
@@ -221,18 +247,18 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   Trace("smt-to-core") << "--- checkSatNext #models=" << d_modelValues.size()
                        << std::endl;
   Trace("smt-to-core") << "checkSatNext: preprocess" << std::endl;
-  std::unique_ptr<SolverEngine> subSolver;
+  d_subSolver.reset(nullptr);
   Result result;
   theory::initializeSubsolver(
-      subSolver, d_env, true, options().smt.toCoreTimeout);
-  subSolver->setOption("produce-models", "true");
+      d_subSolver, d_env, true, options().smt.toCoreTimeout);
+  d_subSolver->setOption("produce-models", "true");
   Trace("smt-to-core") << "checkSatNext: assert to subsolver" << std::endl;
   for (const Node& a : nextAssertions)
   {
-    subSolver->assertFormula(a);
+    d_subSolver->assertFormula(a);
   }
   Trace("smt-to-core") << "checkSatNext: check with subsolver" << std::endl;
-  result = subSolver->checkSat();
+  result = d_subSolver->checkSat();
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
   if (result.getStatus() == Result::UNKNOWN
       && result.getUnknownExplanation() == UnknownExplanation::TIMEOUT)
@@ -261,7 +287,7 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   }
   Trace("smt-to-core") << "checkSatNext: recordCurrentModel" << std::endl;
   bool allAssertsSat;
-  if (recordCurrentModel(allAssertsSat, subSolver.get()))
+  if (recordCurrentModel(allAssertsSat, nextInclude))
   {
     Trace("smt-to-core") << "...return, check again" << std::endl;
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_CHECK_AGAIN);
@@ -287,17 +313,29 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   return result;
 }
 
-void TimeoutCoreManager::initializePreprocessedAssertions(
+void TimeoutCoreManager::initializeAssertions(
     const std::vector<Node>& ppAsserts,
-    const std::map<size_t, Node>& ppSkolemMap)
+    const std::map<size_t, Node>& ppSkolemMap,
+    const std::vector<Node>& assumptions)
 {
-  Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
-  Trace("smt-to-core") << "#asserts = " << ppAsserts.size() << std::endl;
-  std::map<size_t, Node>::const_iterator itc;
-  std::vector<Node> skDefs;
-  for (size_t i = 0, nasserts = ppAsserts.size(); i < nasserts; i++)
+  bool hasAssumptions = !assumptions.empty();
+  if (TraceIsOn("smt-to-core"))
   {
-    const Node& pa = ppAsserts[i];
+    Trace("smt-to-core") << "initializeAssertions" << std::endl;
+    if (hasAssumptions)
+    {
+      Trace("smt-to-core") << "#assumptions =" << assumptions << std::endl;
+    }
+    Trace("smt-to-core") << "#ppAsserts = " << ppAsserts.size() << std::endl;
+  }
+  std::vector<Node> skDefs;
+  const std::vector<Node>& input = hasAssumptions ? assumptions : ppAsserts;
+  std::map<size_t, Node>::const_iterator itc;
+  theory::TrustSubstitutionMap& tls = d_env.getTopLevelSubstitutions();
+  for (size_t i = 0, nasserts = input.size(); i < nasserts; i++)
+  {
+    Node pa = input[i];
+    Node par = rewrite(tls.get().apply(pa));
     if (pa.isConst())
     {
       if (pa.getConst<bool>())
@@ -309,25 +347,40 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
       {
         // false assertion, we are done
         d_ppAsserts.clear();
-        d_ppAsserts.push_back(pa);
-        return;
+        d_ppAsserts.push_back(par);
+        d_ppAssertsOrig.push_back(pa);
+        break;
       }
     }
-    itc = ppSkolemMap.find(i);
-    if (itc == ppSkolemMap.end())
+    if (hasAssumptions)
     {
-      d_ppAsserts.push_back(pa);
+      d_ppAsserts.push_back(par);
+      d_ppAssertsOrig.push_back(pa);
     }
     else
     {
-      d_skolemToAssert[itc->second] = pa;
-      skDefs.push_back(pa);
+      itc = ppSkolemMap.find(i);
+      if (itc == ppSkolemMap.end())
+      {
+        d_ppAsserts.push_back(par);
+        d_ppAssertsOrig.push_back(pa);
+      }
+      else
+      {
+        d_skolemToAssert[itc->second] = pa;
+        skDefs.push_back(pa);
+      }
     }
+  }
+  if (hasAssumptions)
+  {
+    d_globalInclude = ppAsserts;
   }
   // remember the size of the prefix of non-skolem definitions
   d_numAssertsNsk = d_ppAsserts.size();
   // now, append the skolem definitions to the end of the assertion list
   d_ppAsserts.insert(d_ppAsserts.end(), skDefs.begin(), skDefs.end());
+  d_ppAssertsOrig.insert(d_ppAssertsOrig.end(), skDefs.begin(), skDefs.end());
   Trace("smt-to-core") << "get symbols..." << std::endl;
   for (size_t i = 0, npasserts = d_ppAsserts.size(); i < npasserts; i++)
   {
@@ -339,25 +392,25 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
 }
 
 bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
-                                            SolverEngine* subSolver)
+                                            std::vector<size_t>& nextInclude)
 {
+  nextInclude.clear();
   // allocate the model value vector
   d_modelValues.emplace_back();
   std::vector<Node>& currModel = d_modelValues.back();
-  d_nextIndexToInclude = 0;
   allAssertsSat = true;
-  bool indexSet = false;
   size_t indexScore = 0;
   size_t nasserts = d_ppAsserts.size();
-  Assert(nasserts > 0);
-  size_t startIndex = Random::getRandom().pick(0, nasserts - 1);
+  size_t startIndex =
+      nasserts == 0 ? 0 : Random::getRandom().pick(0, nasserts - 1);
   currModel.resize(nasserts);
   bool hadFalseAssert = false;
   for (size_t i = 0; i < nasserts; i++)
   {
     size_t ii = (i + startIndex) % nasserts;
     Node a = d_ppAsserts[ii];
-    Node av = subSolver->getValue(a);
+    Node av = d_subSolver->getValue(a);
+    Trace("smt-to-core-mv") << "M(" << a << ") = " << av << std::endl;
     av = av.isConst() ? av : Node::null();
     currModel[ii] = av;
     if (av == d_true)
@@ -376,7 +429,7 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
       continue;
     }
     // 7 is the max value for indexScore as computed below
-    if (indexScore == 7 || (indexSet && i >= d_numAssertsNsk))
+    if (indexScore == 7 || (!nextInclude.empty() && i >= d_numAssertsNsk))
     {
       // already max score, or we found a normal assertion
       continue;
@@ -385,14 +438,14 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
     size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0)
                        + (i >= d_numAssertsNsk ? 0 : 4);
     Trace("smt-to-core-debug") << "score " << currScore << std::endl;
-    if (indexSet && indexScore >= currScore)
+    if (!nextInclude.empty() && indexScore >= currScore)
     {
       continue;
     }
     // include this one, remembering if it is false or not
     indexScore = currScore;
-    d_nextIndexToInclude = ii;
-    indexSet = true;
+    nextInclude.clear();
+    nextInclude.push_back(ii);
   }
   Trace("smt-to-core") << "selected new assertion, score=" << indexScore
                        << std::endl;
@@ -406,7 +459,7 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
   // in the relevant assertions of the subsolver here as a heuristic.
 
   // we are successful if we have a new assertion to include
-  return indexSet;
+  return !nextInclude.empty();
 }
 
 bool TimeoutCoreManager::hasCurrentSharedSymbol(size_t i) const

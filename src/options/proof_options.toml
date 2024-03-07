@@ -6,7 +6,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-format-mode=MODE"
   type       = "ProofFormatMode"
-  default    = "NONE"
+  default    = "ALF"
   help       = "select language of proof output"
   help_mode  = "Proof format modes."
 [[option.mode.NONE]]
@@ -21,6 +21,9 @@ name   = "Proof"
 [[option.mode.ALETHE]]
   name       = "alethe"
   help       = "Output Alethe proof"
+[[option.mode.ALF]]
+  name       = "alf"
+  help       = "Output AletheLF proof"
 
 [[option]]
   name       = "proofPrintConclusion"
@@ -29,6 +32,22 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print conclusion of proof steps when printing AST"
+
+[[option]]
+  name       = "proofDagGlobal"
+  category   = "expert"
+  long       = "proof-dag-global"
+  type       = "bool"
+  default    = "true"
+  help       = "Dagify terms in proofs using global definitions"
+
+[[option]]
+  name       = "proofElimSubtypes"
+  category   = "expert"
+  long       = "proof-elim-subtypes"
+  type       = "bool"
+  default    = "false"
+  help       = "Eliminate subtypes (mixed arithmetic) in proofs"
 
 [[option]]
   name       = "proofPedantic"
@@ -92,10 +111,18 @@ name   = "Proof"
 [[option]]
   name       = "proofRewriteRconsRecLimit"
   category   = "regular"
-  long       = "proof-rewrite-rcons-limit=N"
-  type       = "int64_t"
-  default    = "5"
+  long       = "proof-rewrite-rcons-rec-limit=N"
+  type       = "uint64_t"
+  default    = "15"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
+
+[[option]]
+  name       = "proofRewriteRconsStepLimit"
+  category   = "regular"
+  long       = "proof-rewrite-rcons-step-limit=N"
+  type       = "uint64_t"
+  default    = "200"
+  help       = "the limit of steps considered for reconstructing proofs of theory rewrites"
 
 [[option]]
   name       = "proofAnnotate"
@@ -168,3 +195,19 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Flatten steps in the LFSC proof"
+
+[[option]]
+  name       = "alfPrintReference"
+  category   = "expert"
+  long       = "alf-print-reference"
+  type       = "bool"
+  default    = "false"
+  help       = "Print reference to original file instead of redeclaring"
+
+[[option]]
+  name       = "dratBinaryFormat"
+  category   = "expert"
+  long       = "drat-binary-format"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the DRAT proof in binary format"

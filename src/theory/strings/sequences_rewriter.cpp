@@ -2831,6 +2831,11 @@ Node SequencesRewriter::rewriteIndexofRe(Node node)
         return returnRewrite(node, n, Rewrite::INDEXOF_RE_EMP_RE);
       }
     }
+    if (r.getKind()==Kind::REGEXP_NONE)
+    {
+      Node ret = nm->mkConstInt(Rational(-1));
+      return returnRewrite(node, ret, Rewrite::INDEXOF_RE_NONE);
+    }
   }
   return node;
 }
@@ -3430,6 +3435,10 @@ Node SequencesRewriter::rewriteReplaceRe(Node node)
       Node ret = nm->mkNode(Kind::STRING_CONCAT, z, x);
       return returnRewrite(node, ret, Rewrite::REPLACE_RE_EMP_RE);
     }
+    if (y.getKind()==Kind::REGEXP_NONE)
+    {
+      return returnRewrite(node, x, Rewrite::REPLACE_RE_NONE);
+    }
   }
   return node;
 }
@@ -3469,6 +3478,10 @@ Node SequencesRewriter::rewriteReplaceReAll(Node node)
       res.push_back(nm->mkConst(rem));
       Node ret = utils::mkConcat(res, t);
       return returnRewrite(node, ret, Rewrite::REPLACE_RE_ALL_EVAL);
+    }
+    if (y.getKind()==Kind::REGEXP_NONE)
+    {
+      return returnRewrite(node, x, Rewrite::REPLACE_RE_ALL_NONE);
     }
   }
 

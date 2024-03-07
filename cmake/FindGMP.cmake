@@ -57,7 +57,7 @@ if(GMP_INCLUDE_DIR AND GMPXX_INCLUDE_DIR AND GMP_LIBRARIES AND GMPXX_LIBRARIES)
     LINK_LIBRARIES ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
   )
   if(NOT GMP_USABLE)
-    message(VERBOSE "System version for GMP does not work in the selected configuration. Maybe we are cross-compiling?")
+    message(STATUS "System version for GMP does not work in the selected configuration. Maybe we are cross-compiling?")
     set(GMP_FOUND_SYSTEM FALSE)
   endif()
 endif()
@@ -70,7 +70,7 @@ if(NOT GMP_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(GMP_VERSION "6.2.1")
+  set(GMP_VERSION "6.3.0")
 
   set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
   if(BUILD_SHARED_LIBS)
@@ -123,7 +123,7 @@ if(NOT GMP_FOUND_SYSTEM)
     GMP-EP
     ${COMMON_EP_CONFIG}
     URL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.bz2
-    URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
+    URL_HASH SHA1=32d21c4fae046de45e8fce37bf4002236d283b71
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
           ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure

@@ -61,6 +61,19 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   return pn;
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkTrustedNode(
+    TrustId id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args,
+    const Node& conc)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(mkTrustId(id));
+  sargs.push_back(conc);
+  sargs.insert(sargs.end(), args.begin(), args.end());
+  return mkNode(ProofRule::TRUST, children, sargs);
+}
+
 std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
 {
   Assert(!fact.isNull());
@@ -99,7 +112,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     bool doMinimize,
     Node expected)
 {
-  if (!ensureClosed)
+  if (!ensureClosed && !doMinimize)
   {
     return mkNode(ProofRule::SCOPE, {pf}, assumps, expected);
   }
@@ -207,6 +220,10 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       }
       Trace("pnm-scope") << "...finished" << std::endl;
       acu.insert(aMatch);
+      continue;
+    }
+    if (!ensureClosed)
+    {
       continue;
     }
     // If we did not find a match, it is an error, since all free assumptions

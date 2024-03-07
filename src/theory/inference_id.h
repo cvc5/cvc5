@@ -46,6 +46,10 @@ enum class InferenceId
   EQ_CONSTANT_MERGE,
   // a split from theory combination
   COMBINATION_SPLIT,
+  // a conflict due to rewriting an asserted literal
+  CONFLICT_REWRITE_LIT,
+  // an explained theory propagation
+  EXPLAINED_PROPAGATION,
   // ---------------------------------- ext theory
   // a simplification from the extended theory utility
   EXTT_SIMPLIFY,
@@ -206,9 +210,11 @@ enum class InferenceId
   BAGS_INTERSECTION_MIN,
   BAGS_DIFFERENCE_SUBTRACT,
   BAGS_DIFFERENCE_REMOVE,
-  BAGS_DUPLICATE_REMOVAL,
+  BAGS_SETOF,
   BAGS_MAP_DOWN,
-  BAGS_MAP_UP,
+  BAGS_MAP_DOWN_INJECTIVE,
+  BAGS_MAP_UP1,
+  BAGS_MAP_UP2,
   BAGS_FILTER_DOWN,
   BAGS_FILTER_UP,
   BAGS_FOLD,
@@ -336,6 +342,10 @@ enum class InferenceId
   QUANTIFIERS_INST_CBQI_CONFLICT,
   // propagating instantiation from conflict-based instantiation
   QUANTIFIERS_INST_CBQI_PROP,
+  // conflicting instantiation from sub conflict-based instantiation
+  QUANTIFIERS_INST_SUB_CONFLICT,
+  // unsat core from sub conflict-based instantiation
+  QUANTIFIERS_SUB_UC,
   // instantiation from naive exhaustive instantiation in finite model finding
   QUANTIFIERS_INST_FMF_EXH,
   // instantiation from finite model finding based on its model-based algorithm
@@ -914,6 +924,8 @@ enum class InferenceId
   UF_CARD_SPLIT,
   //-------------------- end cardinality extension to UF
   //-------------------- HO extension to UF
+  // A care graph split due to HO
+  UF_HO_CG_SPLIT,
   // Encodes an n-ary application as a chain of binary HO_APPLY applications
   //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
   UF_HO_APP_ENCODE,
@@ -955,6 +967,9 @@ enum class InferenceId
   UF_ARITH_BV_CONV_REDUCTION,
   //-------------------------------------- end uf theory
 
+  //-------------------------------------- lemma from modules
+  // From the partition generator
+  PARTITION_GENERATOR_PARTITION,
   //-------------------------------------- unknown
   UNKNOWN
 };

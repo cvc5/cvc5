@@ -23,6 +23,7 @@
 #include "proof/proof.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_set.h"
+#include "proof/trust_id.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
@@ -63,16 +64,16 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    * @param env Reference to the environment
    * @param c The context this class depends on
    * @param name The name of this generator (for debugging)
-   * @param ra The proof rule to use when no generator is provided for new
+   * @param ra The id to use when no generator is provided for new
    * assertions
-   * @param rpp The proof rule to use when no generator is provided for
+   * @param rpp The id to use when no generator is provided for
    * preprocessing steps.
    */
   PreprocessProofGenerator(Env& env,
                            context::Context* c = nullptr,
                            std::string name = "PreprocessProofGenerator",
-                           ProofRule ra = ProofRule::PREPROCESS_LEMMA,
-                           ProofRule rpp = ProofRule::PREPROCESS);
+                           TrustId ra = TrustId::PREPROCESS_LEMMA,
+                           TrustId rpp = TrustId::PREPROCESS);
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is an input (its proof is ASSUME).
@@ -112,7 +113,7 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    * Possibly check pedantic failure for null proof generator provided
    * to this class.
    */
-  void checkEagerPedantic(ProofRule r);
+  void checkEagerPedantic(TrustId r);
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The context used here */
@@ -135,9 +136,9 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
   /** Name for debugging */
   std::string d_name;
   /** The trust rule for new assertions with no provided proof generator */
-  ProofRule d_ra;
+  TrustId d_ra;
   /** The trust rule for rewrites with no provided proof generator */
-  ProofRule d_rpp;
+  TrustId d_rpp;
 };
 
 }  // namespace smt

@@ -43,6 +43,8 @@ HoExtension::HoExtension(Env& env,
       d_uf_std_skolem(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
+  // don't send true lemma
+  d_cachedLemmas.insert(d_true);
 }
 
 TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
@@ -66,7 +68,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     {
       Node op = node[0];
       Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull())
+      if (!opl.isNull() && !d_ll.isLifted(opl))
       {
         NodeManager* nm = NodeManager::currentNM();
         Node app = nm->mkNode(Kind::HO_APPLY, opl, node[1]);
@@ -90,7 +92,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       // immediately
       Node op = node.getOperator();
       Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull())
+      if (!opl.isNull() && !d_ll.isLifted(opl))
       {
         Assert(opl.getKind() == Kind::LAMBDA);
         std::vector<Node> args(node.begin(), node.end());
@@ -276,7 +278,9 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
-      if (d_env.isFiniteType(tn) != isCollectModel)
+      // we consider the cardinality of tn's range type (as opposed to tn)
+      // since the model construction will enumerate values of this type.
+      if (d_env.isFiniteType(tn.getRangeType()) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -502,7 +506,7 @@ unsigned HoExtension::checkLazyLambda()
       Node n = *eqc_i;
       ++eqc_i;
       Node lam = d_ll.getLambdaFor(n);
-      if (lam.isNull())
+      if (lam.isNull() || d_ll.isLifted(lam))
       {
         if (!lamRep.isNull())
         {
@@ -698,6 +702,7 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
     Assert(!lam.isNull());
     m->assertEquality(p.second, lam, true);
     m->assertSkeleton(lam);
+    Trace("model-builder-debug") << "Assign via lambda: " << lam << std::endl;
     // assign it as the function definition for all variables in this class
     m->assignFunctionDefinition(p.second, lam);
   }

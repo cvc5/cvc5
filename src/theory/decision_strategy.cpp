@@ -74,6 +74,9 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
       else
       {
         Trace("dec-strategy-debug") << "...already assigned true." << std::endl;
+        // the current literal has been decided with the right polarity, we are
+        // done
+        d_has_curr_literal = true;
       }
     }
     else
@@ -81,8 +84,6 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
       Trace("dec-strategy-debug") << "...exhausted literals." << std::endl;
     }
   } while (!success);
-  // the current literal has been decided with the right polarity, we are done
-  d_has_curr_literal = true;
   return Node::null();
 }
 
@@ -112,19 +113,18 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
   while (n >= d_literals.size())
   {
     Node lit = mkLiteral(d_literals.size());
-    if (!lit.isNull())
+    if (lit.isNull())
     {
-      lit = rewrite(lit);
+      // literal is not ready yet, return null
+      // note we assume that mkLiteral is dynamic here.
+      return lit;
     }
+    lit = rewrite(lit);
     d_literals.push_back(lit);
   }
   Node ret = d_literals[n];
-  if (!ret.isNull())
-  {
-    // always ensure it is in the CNF stream
-    ret = d_valuation.ensureLiteral(ret);
-  }
-  return ret;
+  // always ensure it is in the CNF stream
+  return d_valuation.ensureLiteral(ret);
 }
 
 DecisionStrategySingleton::DecisionStrategySingleton(Env& env,
@@ -145,6 +145,27 @@ Node DecisionStrategySingleton::mkLiteral(unsigned n)
 }
 
 Node DecisionStrategySingleton::getSingleLiteral() { return d_literal; }
+
+DecisionStrategyVector::DecisionStrategyVector(Env& env,
+                                               const char* name,
+                                               Valuation valuation)
+    : DecisionStrategyFmf(env, valuation), d_name(name)
+{
+}
+
+Node DecisionStrategyVector::mkLiteral(unsigned n)
+{
+  if (n < d_literals.size())
+  {
+    return d_literals[n];
+  }
+  return Node::null();
+}
+
+void DecisionStrategyVector::addLiteral(const Node& n)
+{
+  d_literals.push_back(n);
+}
 
 }  // namespace theory
 }  // namespace cvc5::internal

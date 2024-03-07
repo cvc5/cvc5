@@ -60,9 +60,16 @@ class QuantifiersState : public TheoryState
   /** get the stats */
   QuantifiersStatistics& getStats();
 
+  /** Mark conflicting instance */
+  void notifyConflictingInst();
+  /** Is conflicting instance? */
+  bool isConflictingInst() const { return d_conflictInst.get(); }
+
  private:
   /** The number of instantiation rounds in this SAT context */
   context::CDO<uint64_t> d_ierCounterc;
+  /** Conflicting instantiation in this SAT context */
+  context::CDO<bool> d_conflictInst;
   /** The number of total instantiation rounds (full effort) */
   uint64_t d_ierCounter;
   /** The number of total instantiation rounds (last call effort) */

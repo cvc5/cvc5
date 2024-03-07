@@ -256,6 +256,12 @@ function(check_python_module module)
   endif()
 endfunction()
 
-macro(find_supported_python_version)
-  find_package(Python COMPONENTS Interpreter REQUIRED)
+macro(copy_file_from_src filename)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${filename}
+    COMMAND ${CMAKE_COMMAND} -E copy
+      ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+      ${CMAKE_CURRENT_BINARY_DIR}/${filename}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+  )
 endmacro()

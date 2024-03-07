@@ -37,6 +37,8 @@ libcvc5_add_sources(
   emptyset.h
   emptybag.cpp
   emptybag.h
+  free_var_cache.cpp
+  free_var_cache.h
   function_array_const.cpp
   function_array_const.h
   kind_map.h
@@ -72,6 +74,8 @@ libcvc5_add_sources(
   node_visitor.h
   skolem_manager.cpp
   skolem_manager.h
+  sort_type_size.cpp
+  sort_type_size.h
   subtype_elim_node_converter.cpp
   subtype_elim_node_converter.h
   term_canonize.cpp
@@ -95,12 +99,16 @@ libcvc5_add_sources(
   dtype_selector.cpp
   sequence.cpp
   sequence.h
+  sort_to_term.cpp
+  sort_to_term.h
   subs.cpp
   subs.h
   sygus_datatype.cpp
   sygus_datatype.h
   sygus_grammar.cpp
   sygus_grammar.h
+  sygus_term_enumerator.cpp
+  sygus_term_enumerator.h
   variadic_trie.cpp
   variadic_trie.h
 )

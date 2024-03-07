@@ -25,7 +25,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/nary_term_util.h"
 #include "expr/sequence.h"
-#include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -161,34 +160,18 @@ Node AlfNodeConverter::postConvert(Node n)
     ss << (r.sgn() == -1 ? "-" : "") << num << "/" << den;
     return mkInternalSymbol(ss.str(), tn);
   }
-  else if (k == Kind::LAMBDA || k == Kind::WITNESS)
-  {
-    // e.g. (lambda ((x1 T1) ... (xn Tk)) P) is
-    // (lambda x1 (lambda x2 ... (lambda xn P)))
-    Node ret = n[1];
-    TypeNode tnr = ret.getType();
-    std::stringstream opName;
-    opName << printer::smt2::Smt2Printer::smtKindString(k);
-    for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
-    {
-      size_t ii = (nchild - 1) - i;
-      Node v = convert(n[0][ii]);
-      // use the body return type for all terms except the last one.
-      tnr = ii == 0 ? n.getType() : nm->mkFunctionType({v.getType()}, tnr);
-      ret = mkInternalApp(opName.str(), {v, ret}, tnr);
-    }
-    return ret;
-  }
   else if (n.isClosure())
   {
     // e.g. (forall ((x1 T1) ... (xn Tk)) P) is
-    // (forall (@list x1 ... xn) P)
+    // (forall ((<name_1> T1) ... (<name_n> Tk)) P) for updated (disambiguated)
+    // variable names.
     std::vector<Node> vars;
     for (const Node& v : n[0])
     {
       vars.push_back(convert(v));
     }
-    Node vl = mkList(vars);
+    // use a bound variable list with the updated variables.
+    Node vl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
     // notice that intentionally we drop annotations here
     std::vector<Node> args;
     args.push_back(vl);
@@ -299,8 +282,16 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
-    return mkInternalApp(
-        printer::smt2::Smt2Printer::smtKindString(k), {tnn}, tn);
+    std::stringstream ss;
+    ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
+    return mkInternalApp(ss.str(), {tnn}, tn);
+  }
+  else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
+  {
+    // use generic list
+    std::vector<Node> args;
+    args.insert(args.end(), n.begin(), n.end());
+    return mkInternalApp("@list", args, tn);
   }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
@@ -326,8 +317,8 @@ Node AlfNodeConverter::postConvert(Node n)
 bool AlfNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
-  // don't convert bound variable or instantiation pattern list directly
-  if (k == Kind::BOUND_VAR_LIST || k == Kind::INST_PATTERN_LIST)
+  // don't convert instantiation pattern list directly
+  if (k == Kind::INST_PATTERN_LIST)
   {
     return false;
   }
@@ -358,7 +349,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
       // special case: just use self
       app = convert(cacheVal);
     }
-    else
+    else if (isHandledSkolemId(sfi))
     {
       // convert every skolem function to its name applied to arguments
       std::stringstream ss;
@@ -395,8 +386,11 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
       // must convert all arguments
       app = mkInternalApp(ss.str(), args, k.getType());
     }
-    // wrap in "skolem" operator
-    return mkInternalApp("skolem", {app}, k.getType());
+    if (!app.isNull())
+    {
+      // wrap in "skolem" operator
+      return mkInternalApp("skolem", {app}, k.getType());
+    }
   }
   return Node::null();
 }
@@ -432,6 +426,8 @@ Node AlfNodeConverter::mkNil(TypeNode tn)
 
 Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 {
+  // note this method should remain in sync with getCongRule in
+  // proof_node_algorithm.cpp.
   switch (k)
   {
     case Kind::APPLY_UF:
@@ -453,6 +449,7 @@ Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
       return Node::null();
       break;
     case Kind::OR: return NodeManager::currentNM()->mkConst(false);
+    case Kind::SEP_STAR:
     case Kind::AND: return NodeManager::currentNM()->mkConst(true);
     case Kind::ADD: return NodeManager::currentNM()->mkConstInt(Rational(0));
     case Kind::MULT:
@@ -512,7 +509,7 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
   return mkInternalSymbol(name, ret, useRawSym);
 }
 
-Node AlfNodeConverter::getOperatorOfTerm(Node n)
+Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
 {
   Assert(n.hasOperator());
   NodeManager* nm = NodeManager::currentNM();
@@ -546,6 +543,17 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         if (dt.isTuple())
         {
           opName << "is-tuple";
+        }
+        else if (dt.isNullable())
+        {
+          if (cindex == 0)
+          {
+            opName << "nullable.is_null";
+          }
+          else
+          {
+            opName << "nullable.is_some";
+          }
         }
         else
         {
@@ -627,13 +635,8 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
       opName << op;
     }
   }
-  // we only use binary operators
   else
   {
-    if (k == Kind::NEG)
-    {
-      opName << "u";
-    }
     opName << printer::smt2::Smt2Printer::smtKindString(k);
     if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
         || k == Kind::INTS_MODULUS_TOTAL)
@@ -648,9 +651,29 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   {
     ret = mkInternalApp(opName.str(), indices, app.getOperator().getType());
   }
+  else if (n.isClosure())
+  {
+    // The operator of a closure by convention includes its variable list.
+    // This is required for cong over binders.
+    Node vl = convert(n[0]);
+    // the type of this term is irrelevant, just use vl's type
+    ret = mkInternalApp(
+        printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
+  }
   else
   {
     ret = args.empty() ? app : app.getOperator();
+  }
+  if (reqCast)
+  {
+    // - prints as e.g. (alf.as - (-> Int Int)).
+    if (k == Kind::NEG || k == Kind::SUB)
+    {
+      std::vector<Node> asChildren;
+      asChildren.push_back(ret);
+      asChildren.push_back(typeAsNode(ret.getType()));
+      ret = mkInternalApp("alf.as", asChildren, n.getType());
+    }
   }
   Trace("alf-term-process-debug2") << "...return " << ret << std::endl;
   return ret;
@@ -667,6 +690,45 @@ size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
   size_t id = d_constIndex.size();
   d_constIndex[v] = id;
   return id;
+}
+
+bool AlfNodeConverter::isHandledSkolemId(SkolemFunId id)
+{
+  switch (id)
+  {
+    case SkolemFunId::PURIFY:
+    case SkolemFunId::ARRAY_DEQ_DIFF:
+    case SkolemFunId::DIV_BY_ZERO:
+    case SkolemFunId::INT_DIV_BY_ZERO:
+    case SkolemFunId::MOD_BY_ZERO:
+    case SkolemFunId::SQRT:
+    case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
+    case SkolemFunId::QUANTIFIERS_SKOLEMIZE:
+    case SkolemFunId::STRINGS_NUM_OCCUR:
+    case SkolemFunId::STRINGS_NUM_OCCUR_RE:
+    case SkolemFunId::STRINGS_OCCUR_INDEX:
+    case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
+    case SkolemFunId::STRINGS_OCCUR_LEN:
+    case SkolemFunId::STRINGS_OCCUR_LEN_RE:
+    case SkolemFunId::STRINGS_DEQ_DIFF:
+    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
+    case SkolemFunId::STRINGS_ITOS_RESULT:
+    case SkolemFunId::STRINGS_STOI_RESULT:
+    case SkolemFunId::STRINGS_STOI_NON_DIGIT:
+    case SkolemFunId::RE_FIRST_MATCH_PRE:
+    case SkolemFunId::RE_FIRST_MATCH:
+    case SkolemFunId::RE_FIRST_MATCH_POST:
+    case SkolemFunId::RE_UNFOLD_POS_COMPONENT:
+    case SkolemFunId::BAGS_DEQ_DIFF:
+    case SkolemFunId::BAGS_MAP_PREIMAGE:
+    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
+    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
+    case SkolemFunId::BAGS_MAP_SUM:
+    case SkolemFunId::TABLES_GROUP_PART:
+    case SkolemFunId::TABLES_GROUP_PART_ELEMENT: return true;
+    default: break;
+  }
+  return false;
 }
 
 }  // namespace proof

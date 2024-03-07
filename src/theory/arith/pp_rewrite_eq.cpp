@@ -46,11 +46,12 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   if (d_env.isTheoryProofProducing())
   {
     Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
+    Node eq = atom.eqNode(rewritten);
     return d_ppPfGen.mkTrustedRewrite(
         atom,
         rewritten,
-        d_env.getProofNodeManager()->mkNode(
-            ProofRule::THEORY_INFERENCE, {}, {atom.eqNode(rewritten), t}));
+        d_env.getProofNodeManager()->mkTrustedNode(
+            TrustId::THEORY_INFERENCE, {}, {}, eq));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }

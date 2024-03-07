@@ -99,7 +99,7 @@ macro(check_system_version name)
     # we ignore the EXACT option and version ranges here
     if (${name}_FIND_VERSION)
         if(${name}_VERSION VERSION_LESS ${name}_FIND_VERSION)
-            message(VERBOSE "System version for ${name} has incompatible \
+            message(STATUS "System version for ${name} has incompatible \
 version: required ${${name}_FIND_VERSION} but found ${${name}_VERSION}")
             set(${name}_FOUND_SYSTEM FALSE)
         endif()

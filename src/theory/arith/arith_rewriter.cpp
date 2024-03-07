@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "expr/algorithm/flatten.h"
+#include "expr/node_algorithm.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
@@ -228,6 +229,8 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case Kind::NONLINEAR_MULT: return preRewriteMult(t);
       case Kind::IAND: return RewriteResponse(REWRITE_DONE, t);
       case Kind::POW2: return RewriteResponse(REWRITE_DONE, t);
+      case Kind::INTS_ISPOW2: return RewriteResponse(REWRITE_DONE, t);
+      case Kind::INTS_LOG2: return RewriteResponse(REWRITE_DONE, t);
       case Kind::EXPONENTIAL:
       case Kind::SINE:
       case Kind::COSINE:
@@ -277,6 +280,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::NONLINEAR_MULT: return postRewriteMult(t);
       case Kind::IAND: return postRewriteIAnd(t);
       case Kind::POW2: return postRewritePow2(t);
+      case Kind::INTS_ISPOW2: return postRewriteIntsIsPow2(t);
+      case Kind::INTS_LOG2: return postRewriteIntsLog2(t);
       case Kind::EXPONENTIAL:
       case Kind::SINE:
       case Kind::COSINE:
@@ -329,7 +334,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
               {
                 ret = rewriter::ensureReal(ret);
               }
-              return RewriteResponse(REWRITE_AGAIN, ret);
+              return RewriteResponse(REWRITE_AGAIN_FULL, ret);
             }
           }
         }
@@ -346,15 +351,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           }
           return RewriteResponse(REWRITE_AGAIN, ret);
         }
-
-        // Todo improve the exception thrown
-        std::stringstream ss;
-        ss << "The exponent of the POW(^) operator can only be a positive "
-              "integral constant below "
-           << (expr::NodeValue::MAX_CHILDREN + 1) << ". ";
-        ss << "Exception occurred in:" << std::endl;
-        ss << "  " << t;
-        throw LogicException(ss.str());
+        return RewriteResponse(REWRITE_DONE, t);
       }
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);
       default: Unreachable();
@@ -894,6 +891,35 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
     Node two = rewriter::mkConst(Integer(2));
     Node ret = nm->mkNode(Kind::POW, two, t[0]);
     return RewriteResponse(REWRITE_AGAIN, ret);
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteIntsIsPow2(TNode t)
+{
+  Assert(t.getKind() == Kind::INTS_ISPOW2);
+  // if constant, we eliminate
+  if (t[0].isConst())
+  {
+    // pow2 is only supported for integers
+    Assert(t[0].getType().isInteger());
+    Integer i = t[0].getConst<Rational>().getNumerator();
+
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(i.isPow2()));
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+RewriteResponse ArithRewriter::postRewriteIntsLog2(TNode t)
+{
+  Assert(t.getKind() == Kind::INTS_LOG2);
+  // if constant, we eliminate
+  if (t[0].isConst())
+  {
+    // pow2 is only supported for integers
+    Assert(t[0].getType().isInteger());
+    Integer i = t[0].getConst<Rational>().getNumerator();
+    size_t const length = i.length();
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(length)));
   }
   return RewriteResponse(REWRITE_DONE, t);
 }

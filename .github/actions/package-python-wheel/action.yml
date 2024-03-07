@@ -9,6 +9,10 @@ inputs:
     default: ""
   test-pypi-token:
     default: ""
+  config:
+    default: ""
+  platform:
+    default: ""
 runs:
   using: composite
   steps:
@@ -23,8 +27,8 @@ runs:
         fi
         echo "::endgroup::"
 
-        OPTS="production --auto-download"
-        for version in cp37 cp38 cp39 cp310 cp311 pp37 pp38 pp39 pp310
+        OPTS="${{ inputs.config }}"
+        for version in cp37 cp38 cp39 cp310 cp311 cp312 pp37 pp38 pp39 pp310
         do
           echo "::group::Build extension for python $version"
           docker run --rm \
@@ -41,54 +45,80 @@ runs:
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: '3.7'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: '3.8'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: '3.9'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: '3.10'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: '3.11'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: '3.12'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: 'pypy-3.7'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
         
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: 'pypy-3.8'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: 'pypy-3.9'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: 'pypy-3.10'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
 
     - name: Upload wheels to pypi.org
       if: inputs.upload-to-pypi == 'true'

@@ -25,11 +25,8 @@
 
 PYTHONBIN=$1
 CONFIG="$2"
+PLATFORM="$3"
 PYVERSION=$($PYTHONBIN -c "import sys; print(sys.implementation.name + sys.version.split()[0])")
-
-# This is needed because of scikit, otherwise it will include files from another
-# python version installed in the system. 
-PYINCLUDE=$($PYTHONBIN -c "import sysconfig; print(sysconfig.get_paths()['include'])")
 
 # setup and activate venv
 echo "Making venv with $PYTHONBIN"
@@ -38,8 +35,10 @@ $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
 # install packages
-pip install -q --upgrade pip setuptools auditwheel
-pip install -q Cython pytest tomli scikit-build flex pyparsing 
+pip install -q --upgrade pip auditwheel
+pip install wheel
+pip install -r contrib/requirements_build.txt
+pip install -r contrib/requirements_python_dev.txt
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install -q delocate
@@ -49,16 +48,24 @@ fi
 echo "Configuring"
 rm -rf build_wheel/
 
-# This new command like is supposed to ensure that we use the python 
-# version from the virtual environment that is activated. 
-# Once we remove scikit, this will not be necessary.
-./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY -DPYTHON_LIBRARY=$VIRTUAL_ENV/lib -DPYTHON_INCLUDE_DIR=$PYINCLUDE
+./configure.sh $CONFIG --python-bindings --name=build_wheel
 
 # building wheel
 echo "Building pycvc5 wheel"
 
 pushd build_wheel
-python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
+# Copy the license files to be included in the wheel
+cmake --build . --target cvc5_python_licenses
+if [ -z "$PLATFORM" ] ; then
+  python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
+else
+  python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist --plat-name $PLATFORM
+fi
+
+# Required by macOS CI
+if [ "$(uname)" == "Darwin" ]; then
+  export DYLD_LIBRARY_PATH=$(pwd)/src:$(pwd)/src/parser:$DYLD_LIBRARY_PATH
+fi
 
 cd dist
 
