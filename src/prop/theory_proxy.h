@@ -101,7 +101,8 @@ class TheoryProxy : protected EnvObj, public Registrar
    */
   void notifyAssertion(Node lem,
                        TNode skolem = TNode::null(),
-                       bool isLemma = false);
+                       bool isLemma = false,
+                       bool local = false);
 
   void theoryCheck(theory::Theory::Effort effort);
 
@@ -213,10 +214,15 @@ class TheoryProxy : protected EnvObj, public Registrar
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /**
-   * Whether the decision engine needs notification of active skolem
-   * definitions, see DecisionEngine::needsActiveSkolemDefs.
+   * True if we need to track active skolem definitions for the preregistrar,
+   * false to track for the decision engine.
    */
   bool d_trackActiveSkDefs;
+  /**
+   * Whether the decision engine needs to track active skolem definitions as
+   * local assertions.
+   */
+  bool d_dmTrackActiveSkDefs;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;

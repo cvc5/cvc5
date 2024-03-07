@@ -42,20 +42,23 @@ LemmaProperty& operator&=(LemmaProperty& lhs, LemmaProperty rhs)
 }
 bool isLemmaPropertyRemovable(LemmaProperty p)
 {
-  return (p & LemmaProperty::REMOVABLE) != LemmaProperty::NONE;
+  return (p & LemmaProperty::REMOVABLE) == LemmaProperty::REMOVABLE;
 }
 bool isLemmaPropertySendAtoms(LemmaProperty p)
 {
-  return (p & LemmaProperty::SEND_ATOMS) != LemmaProperty::NONE;
+  return (p & LemmaProperty::SEND_ATOMS) == LemmaProperty::SEND_ATOMS;
 }
 bool isLemmaPropertyNeedsJustify(LemmaProperty p)
 {
-  return (p & LemmaProperty::NEEDS_JUSTIFY) != LemmaProperty::NONE;
+  return (p & LemmaProperty::NEEDS_JUSTIFY) == LemmaProperty::NEEDS_JUSTIFY;
 }
-
 bool isLemmaPropertyInprocess(LemmaProperty p)
 {
-  return (p & LemmaProperty::INPROCESS) != LemmaProperty::NONE;
+  return (p & LemmaProperty::INPROCESS) == LemmaProperty::INPROCESS;
+}
+bool isLemmaPropertyLocal(LemmaProperty p)
+{
+  return (p & LemmaProperty::LOCAL) == LemmaProperty::LOCAL;
 }
 
 std::ostream& operator<<(std::ostream& out, LemmaProperty p)
@@ -82,6 +85,10 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     if (isLemmaPropertyInprocess(p))
     {
       out << " INPROCESS";
+    }
+    if (isLemmaPropertyLocal(p))
+    {
+      out << " LOCAL";
     }
     out << " }";
   }
