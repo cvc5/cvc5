@@ -228,7 +228,7 @@ Node mkConcatForConstSequence(const Node& c)
   NodeManager* nm = NodeManager::currentNM();
   for (size_t i = 0, size = charVec.size(); i < size; i++)
   {
-    vec.push_back(nm->mkNode(Kind::SEQ_UNIT, charVec[size - (i + 1)]));
+    vec.push_back(nm->mkNode(Kind::SEQ_UNIT, charVec[i]));
   }
   return mkConcat(vec, c.getType());
 }
