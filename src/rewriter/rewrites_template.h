@@ -40,7 +40,7 @@ enum class DslProofRule : uint32_t
   TRUE_ELIM,
   TRUE_INTRO,
   ARITH_POLY_NORM,
-  AC_NORM,
+  ACI_NORM,
   // Generated rule ids
   // clang-format off
   ${rule_ids}$

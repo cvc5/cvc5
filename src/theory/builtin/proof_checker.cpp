@@ -46,7 +46,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SCOPE, this);
   pc->registerChecker(ProofRule::SUBS, this);
   pc->registerChecker(ProofRule::EVALUATE, this);
-  pc->registerChecker(ProofRule::AC_NORM, this);
+  pc->registerChecker(ProofRule::ACI_NORM, this);
   pc->registerChecker(ProofRule::ANNOTATION, this);
   pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
   pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
@@ -280,7 +280,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0].eqNode(res);
   }
-  else if (id == ProofRule::AC_NORM)
+  else if (id == ProofRule::ACI_NORM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -288,7 +288,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    if (!expr::isACNorm(args[0][0], args[0][1]))
+    if (!expr::isACINorm(args[0][0], args[0][1]))
     {
       return Node::null();
     }

@@ -396,7 +396,7 @@ Node getNormalForm(Node a)
   return an;
 }
 
-bool isACNorm(Node a, Node b)
+bool isACINorm(Node a, Node b)
 {
   Node an = getNormalForm(a);
   Node bn = getNormalForm(b);
