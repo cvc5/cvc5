@@ -224,11 +224,6 @@
         (BitVec m) (BitVec m) (BitVec 1))
 )
 
-(declare-const bitOf
-    (-> (! Int :var m :implicit)
-        Int (BitVec m) Bool))
-
-
 (declare-const bvuaddo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
@@ -285,13 +280,6 @@
         (BitVec m) (BitVec 1))
 )
 
-(declare-const bbT (->
-  (! Int :var n :implicit)
-  Bool
-  (BitVec n)
-  (BitVec (alf.add 1 n)))
-)
-
 (declare-const int2bv (->
   (! Int :var w)
   Int (BitVec w))
@@ -304,9 +292,21 @@
 
 (declare-const BITVECTOR_EAGER_ATOM (-> Bool Bool))
 
+; internal operators
+
+(declare-const @bitOf
+    (-> (! Int :var m :implicit)
+        Int (BitVec m) Bool))
+
+(declare-const @bbT (->
+  (! Int :var n :implicit)
+  Bool
+  (BitVec n)
+  (BitVec (alf.add 1 n)))
+)
+
 ; symbolic constant
-;(declare-const bv (-> Int (! Int :var w) (BitVec w)))
+(declare-const @bv (-> Int (! Int :var w) (BitVec w)))
 
 ; bvsize
-; should be a define
-(declare-const bvsize (-> (! Int :var m :implicit) (BitVec m) Int))
+(define @bvsize ((m Int :implicit) (x (BitVec m))) (get_bitwidth (alf.typeof x)))
