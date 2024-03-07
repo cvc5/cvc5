@@ -308,6 +308,8 @@ TEST_F(TestInputParserBlack, modelDeclares)
   InputParser p(&d_solver, d_symman.get());
   Command cmd;
   std::stringstream out;
+  p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                              "input_parser_black");
   p.appendIncrementalStringInput("(set-logic ALL)");
   p.appendIncrementalStringInput("(declare-sort U 0)");
   p.appendIncrementalStringInput("(declare-fun x () U)");
