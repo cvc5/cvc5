@@ -134,9 +134,10 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
             {
               Node b1 = nm->mkNode(d == 0 ? Kind::GEQ : Kind::LEQ, b, b_v);
               Node b2 = nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, b, b_v);
+              Node t2 = nm->mkNode(Kind::NONLINEAR_MULT, a, b);
               Node tlem = nm->mkNode(
                   Kind::EQUAL,
-                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t, tplane),
+                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t2, tplane),
                   nm->mkNode(
                       Kind::OR,
                       nm->mkNode(Kind::AND, nm->mkNode(Kind::LEQ, a, a_v), b1),
@@ -151,8 +152,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                 proof->addStep(tlem,
                                ProofRule::ARITH_MULT_TANGENT,
                                {},
-                               {t,
-                                a,
+                               {a,
                                 b,
                                 a_v,
                                 b_v,
