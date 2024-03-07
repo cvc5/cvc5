@@ -29,7 +29,7 @@ class TupleUtils
    *
    * @param tupleType the type of the tuple
    * @param indices a list of indices for projection
-   * @return false if one of the indices in node n is greater than the
+   * @return false if one of the indices is greater than the
    * expected tuple's length
    */
   static bool checkTypeIndices(const TypeNode& tupleType,
