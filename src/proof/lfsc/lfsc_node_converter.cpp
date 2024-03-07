@@ -1023,6 +1023,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         opName << "to_fp_real";
       }
+      else if (k== Kind::BITVECTOR_BITOF)
+      {
+        opName << "bitOf";
+      }
       else
       {
         opName << printer::smt2::Smt2Printer::smtKindString(k);
