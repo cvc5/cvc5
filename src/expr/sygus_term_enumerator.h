@@ -18,9 +18,37 @@
 #ifndef CVC5__EXPR__SYGUS_TERM_ENUMERATOR_H
 #define CVC5__EXPR__SYGUS_TERM_ENUMERATOR_H
 
-#include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include <unordered_set>
+
+#include "expr/node.h"
+#include "expr/type_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
+
+namespace theory::quantifiers {
+class SygusEnumerator;
+}
+/**
+ * A virtual callback for whether to consider terms in an enumeration.
+ */
+class SygusTermEnumeratorCallback
+{
+ public:
+  SygusTermEnumeratorCallback() {}
+  virtual ~SygusTermEnumeratorCallback() {}
+  /**
+   * Add term, return true if the term should be considered in the enumeration.
+   * Notice that returning false indicates that n should not be considered as a
+   * subterm of any other term in the enumeration.
+   *
+   * @param n The SyGuS term, which is a deep embedding of the next term to
+   * enumerate.
+   * @param bterms The (rewritten, builtin) terms we have already enumerated
+   * @return true if n should be considered in the enumeration.
+   */
+  virtual bool addTerm(const Node& n, std::unordered_set<Node>& bterms) = 0;
+};
 
 /**
  * SygusTermEnumerator
@@ -59,6 +87,8 @@ class SygusTermEnumerator
   /**
    * @param env Reference to the environment
    * @param tn The sygus datatype that encodes the grammar
+   * @param sec Pointer to an (optional) callback, required e.g. if we wish to
+   * do conjecture-specific symmetry breaking
    * @param enumShapes If true, this enumerator will generate terms having any
    * number of free variables
    * @param enumAnyConstHoles If true, this enumerator will generate terms where
@@ -68,6 +98,7 @@ class SygusTermEnumerator
    */
   SygusTermEnumerator(Env& env,
                       const TypeNode& tn,
+                      SygusTermEnumeratorCallback* sec = nullptr,
                       bool enumShapes = false,
                       bool enumAnyConstHoles = false,
                       size_t numConstants = 5);
@@ -94,7 +125,7 @@ class SygusTermEnumerator
 
  private:
   /** The internal implementation */
-  theory::quantifiers::SygusEnumerator d_internal;
+  std::unique_ptr<theory::quantifiers::SygusEnumerator> d_internal;
   /** The enumerator, a dummy skolem passed to the above class */
   Node d_enum;
 };

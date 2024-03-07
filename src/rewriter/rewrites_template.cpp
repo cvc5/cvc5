@@ -26,19 +26,15 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
+// clang-format off
+${decl_individual_rewrites}$
+// clang-format on
+
 void addRules(RewriteDb& db)
 {
-  NodeManager* nm = NodeManager::currentNM();
-
-  // Variables
+  // Calls to individual rewrites
   // clang-format off
-${decls}$
-
-  // Definitions
-${defns}$
-
-  // Rules
-${rules}$
+  ${call_individual_rewrites}$
   // clang-format on
 }
 

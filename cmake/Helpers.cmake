@@ -255,3 +255,13 @@ function(check_python_module module)
         "Note: You need to have pip installed for this Python version.")
   endif()
 endfunction()
+
+macro(copy_file_from_src filename)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${filename}
+    COMMAND ${CMAKE_COMMAND} -E copy
+      ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+      ${CMAKE_CURRENT_BINARY_DIR}/${filename}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+  )
+endmacro()

@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/node.h"
+#include "expr/sygus_term_enumerator.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
@@ -37,7 +38,8 @@ class TermDbSygus;
  * Class for callbacks in the fast enumerator. This class provides custom
  * criteria for whether or not enumerated values should be considered.
  */
-class SygusEnumeratorCallback : protected EnvObj
+class SygusEnumeratorCallback : public SygusTermEnumeratorCallback,
+                                protected EnvObj
 {
  public:
   SygusEnumeratorCallback(Env& env,
@@ -55,7 +57,7 @@ class SygusEnumeratorCallback : protected EnvObj
    * @param bterms The (rewritten, builtin) terms we have already enumerated
    * @return true if n should be considered in the enumeration.
    */
-  bool addTerm(const Node& n, std::unordered_set<Node>& bterms);
+  bool addTerm(const Node& n, std::unordered_set<Node>& bterms) override;
 
  protected:
   /** Get the cache value for the given candidate */

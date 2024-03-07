@@ -42,7 +42,6 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_solver(env, d_state, d_im, d_termReg),
-      d_cardSolver(env, d_state, d_im),
       d_cpacb(*this)
 {
   // use the official theory state and inference manager objects
@@ -91,14 +90,26 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("bags-ppr") << "TheoryBags::ppRewrite " << atom << std::endl;
 
+  NodeManager* nm = NodeManager::currentNM();
+
   switch (atom.getKind())
   {
     case Kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
+    case Kind::BAG_CARD:
+    {
+      std::vector<Node> asserts;
+      Node ret = BagReduction::reduceCardOperator(atom, asserts);
+      Node andNode = nm->mkNode(Kind::AND, asserts);
+      d_im.lemma(andNode, InferenceId::BAGS_CARD);
+      Trace("bags::ppr") << "reduce(" << atom << ") = " << ret
+                         << " such that:" << std::endl
+                         << andNode << std::endl;
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
     case Kind::BAG_FOLD:
     {
       std::vector<Node> asserts;
       Node ret = BagReduction::reduceFoldOperator(atom, asserts);
-      NodeManager* nm = NodeManager::currentNM();
       Node andNode = nm->mkNode(Kind::AND, asserts);
       d_im.lemma(andNode, InferenceId::BAGS_FOLD);
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret
@@ -234,7 +245,6 @@ void TheoryBags::postCheck(Effort effort)
       // TODO issue #78: add ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
       initialize();
-      d_cardSolver.reset();
       runStrategy(effort);
 
       // remember if we had pending facts or lemmas
@@ -323,9 +333,6 @@ bool TheoryBags::runInferStep(InferStep s, int effort)
     case CHECK_QUANTIFIED_OPERATIONS:
       d_solver.checkQuantifiedOperations();
       break;
-    case CHECK_CARDINALITY_CONSTRAINTS:
-      d_cardSolver.checkCardinalityGraph();
-      break;
     default: Unreachable(); break;
   }
   Trace("bags-process") << "Done " << s
@@ -404,69 +411,6 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     }
     Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);
     constructedBag = rewrite(constructedBag);
-    NodeManager* nm = NodeManager::currentNM();
-    if (d_state.hasCardinalityTerms())
-    {
-      if (d_cardSolver.isLeaf(n))
-      {
-        Node constructedBagCard =
-            rewrite(nm->mkNode(Kind::BAG_CARD, constructedBag));
-        Trace("bags-model")
-            << "constructed bag cardinality: " << constructedBagCard
-            << std::endl;
-        Node rCard = nm->mkNode(Kind::BAG_CARD, r);
-        Node rCardSkolem = d_state.getCardinalitySkolem(rCard);
-        Trace("bags-model") << "rCardSkolem : " << rCardSkolem << std::endl;
-        if (!rCardSkolem.isNull())
-        {
-          Node rCardModelValue = m->getRepresentative(rCardSkolem);
-          if (rCardModelValue.isConst())
-          {
-            const Rational& rCardRational =
-                rCardModelValue.getConst<Rational>();
-            const Rational& constructedRational =
-                constructedBagCard.getConst<Rational>();
-            Trace("bags-model")
-                << "constructedRational : " << constructedRational << std::endl;
-            Trace("bags-model")
-                << "rCardRational : " << rCardRational << std::endl;
-            Assert(constructedRational <= rCardRational);
-            TypeNode elementType = r.getType().getBagElementType();
-            if (constructedRational < rCardRational
-                && !d_env.isFiniteType(elementType))
-            {
-              Node newElement =
-                  nm->getSkolemManager()->mkDummySkolem("slack", elementType);
-              Trace("bags-model")
-                  << "newElement is " << newElement << std::endl;
-              Rational difference = rCardRational - constructedRational;
-              Node multiplicity = nm->mkConstInt(difference);
-              Node slackBag =
-                  nm->mkNode(Kind::BAG_MAKE, newElement, multiplicity);
-              constructedBag = nm->mkNode(
-                  Kind::BAG_UNION_DISJOINT, constructedBag, slackBag);
-              constructedBag = rewrite(constructedBag);
-            }
-          }
-        }
-      }
-      else
-      {
-        std::vector<Node> children = d_cardSolver.getChildren(n);
-        Assert(!children.empty());
-        constructedBag = nm->mkConst(EmptyBag(r.getType()));
-        for (Node child : children)
-        {
-          Trace("bags-model")
-              << "child bag for " << n << " is: " << child << std::endl;
-          constructedBag =
-              nm->mkNode(Kind::BAG_UNION_DISJOINT, child, constructedBag);
-        }
-        constructedBag = rewrite(constructedBag);
-        Trace("bags-model") << "constructed bag for " << n
-                            << " is: " << constructedBag << std::endl;
-      }
-    }
     m->assertEquality(constructedBag, n, true);
     m->assertSkeleton(constructedBag);
     processedBags[r] = constructedBag;
