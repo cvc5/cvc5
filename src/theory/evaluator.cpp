@@ -614,6 +614,19 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
+        case Kind::INTS_ISPOW2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(x.getNumerator().isPow2());
+          break;
+        }
+        case Kind::INTS_LOG2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] =
+              EvalResult(Rational(x.getNumerator().length() - 1));
+          break;
+        }
         case Kind::CONST_STRING:
           results[currNode] = EvalResult(currNodeVal.getConst<String>());
           break;
@@ -662,7 +675,7 @@ EvalResult Evaluator::evalInternal(
         case Kind::SEQ_NTH:
         {
           // only strings evaluate
-          Assert (currNode[0].getType().isString());
+          Assert(currNode[0].getType().isString());
           const String& s = results[currNode[0]].d_str;
           Integer s_len(s.size());
           Integer i = results[currNode[1]].d_rat.getNumerator();
@@ -672,7 +685,8 @@ EvalResult Evaluator::evalInternal(
           }
           else
           {
-            results[currNode] = EvalResult(Rational(s.getVec()[i.toUnsignedInt()]));
+            results[currNode] =
+                EvalResult(Rational(s.getVec()[i.toUnsignedInt()]));
           }
           break;
         }
@@ -1105,6 +1119,37 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(BitVector(size, i));
           break;
         }
+        case Kind::CONST_BITVECTOR_SYMBOLIC:
+        {
+          Integer i = results[currNode[0]].d_rat.getNumerator();
+          Integer w = results[currNode[1]].d_rat.getNumerator();
+          if (w.fitsUnsignedInt())
+          {
+            Trace("evaluator") << currNode << " evalutes to "
+                               << BitVector(w.toUnsignedInt(), i) << std::endl;
+            results[currNode] = EvalResult(BitVector(w.toUnsignedInt(), i));
+          }
+          else
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
+          break;
+        }
+        case Kind::BITVECTOR_SIZE:
+        {
+          const TypeNode& tn = currNode[0].getType();
+          if (tn.isBitVector())
+          {
+            results[currNode] = EvalResult(Rational(tn.getBitVectorSize()));
+          }
+          else
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
+          break;
+        }
         default:
         {
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
@@ -1190,7 +1235,8 @@ void Evaluator::processUnhandled(TNode n,
                                  bool needsReconstruct) const
 {
   results[n] = EvalResult();
-  evalAsNode[n] = needsReconstruct ? reconstruct(n, results, evalAsNode) : Node(nv);
+  evalAsNode[n] =
+      needsReconstruct ? reconstruct(n, results, evalAsNode) : Node(nv);
 }
 
 }  // namespace theory

@@ -124,6 +124,9 @@ class Op(Enum):
     GEQ = ('>=', 'GEQ')
     POW2 = ('int.pow2', 'POW2')
 
+    INT_ISPOW2 = ('int.ispow2', 'INTS_ISPOW2')  # Backdoor for some bv rewrites
+    INT_LENGTH = ('int.log2', 'INTS_LOG2')  # Backdoor for some bv rewrites
+
     ###########################################################################
     # Theory-independent
     ###########################################################################
