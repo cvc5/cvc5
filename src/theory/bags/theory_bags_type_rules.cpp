@@ -638,7 +638,7 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
       if (errOut)
       {
         (*errOut) << "Index in operator of " << n
-                  << " is out of range of for the type of its argument";
+                  << " is out of range for the type of its argument";
       }
       return TypeNode::null();
     }
@@ -805,7 +805,7 @@ TypeNode TableGroupTypeRule::computeType(NodeManager* nm,
       if (errOut)
       {
         (*errOut) << "Index in operator of " << n
-                  << " is out of range of for the type of its argument";
+                  << " is out of range for the type of its argument";
       }
       return TypeNode::null();
     }
