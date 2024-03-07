@@ -731,7 +731,7 @@ EvalResult Evaluator::evalInternal(
         case Kind::SEQ_NTH:
         {
           // only strings evaluate
-          Assert (currNode[0].getType().isString());
+          Assert(currNode[0].getType().isString());
           const String& s = results[currNode[0]].d_str;
           Integer s_len(s.size());
           Integer i = results[currNode[1]].d_rat.getNumerator();
@@ -741,7 +741,8 @@ EvalResult Evaluator::evalInternal(
           }
           else
           {
-            results[currNode] = EvalResult(Rational(s.getVec()[i.toUnsignedInt()]));
+            results[currNode] =
+                EvalResult(Rational(s.getVec()[i.toUnsignedInt()]));
           }
           break;
         }
@@ -1290,7 +1291,8 @@ void Evaluator::processUnhandled(TNode n,
                                  bool needsReconstruct) const
 {
   results[n] = EvalResult();
-  evalAsNode[n] = needsReconstruct ? reconstruct(n, results, evalAsNode) : Node(nv);
+  evalAsNode[n] =
+      needsReconstruct ? reconstruct(n, results, evalAsNode) : Node(nv);
 }
 
 }  // namespace theory
