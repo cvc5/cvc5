@@ -3,6 +3,13 @@
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
+(program get_bitwidth ((T Type) (n Int))
+  (Type) Int
+  (
+    ((get_bitwidth (BitVec n)) n)
+  )
+)
+
 ; used as the nil terminator for concat
 (declare-const bvempty (BitVec 0))
 
@@ -302,7 +309,7 @@
   (! Int :var n :implicit)
   Bool
   (BitVec n)
-  (BitVec (alf.add 1 n)))
+  (BitVec (alf.add 1 n))) :right-assoc-nil bvempty
 )
 
 ; symbolic constant

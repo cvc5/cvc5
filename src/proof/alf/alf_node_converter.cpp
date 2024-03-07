@@ -225,19 +225,6 @@ Node AlfNodeConverter::postConvert(Node n)
     Assert(!lam.isNull());
     return convert(lam);
   }
-  else if (k == Kind::BITVECTOR_BB_TERM)
-  {
-    Node curr = mkInternalSymbol("bvempty", nm->mkBitVectorType(0));
-    for (size_t i = 0, nchildren = n.getNumChildren(); i < nchildren; i++)
-    {
-      size_t ii = (nchildren - 1) - i;
-      std::vector<Node> args;
-      args.push_back(n[ii]);
-      args.push_back(curr);
-      curr = mkInternalApp("bbT", args, nm->mkBitVectorType(i + 1));
-    }
-    return curr;
-  }
   else if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER || k == Kind::NEG
            || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
            || k == Kind::INTS_MODULUS_TOTAL || k == Kind::APPLY_CONSTRUCTOR
