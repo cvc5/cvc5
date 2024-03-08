@@ -180,7 +180,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
                        unsatCoresMode,
                        options::UnsatCoresMode::SAT_PROOF,
                        "enabling proofs, minisat");
-      }      
+      }
       else if (options().prop.satSolver == options::SatSolverMode::CADICAL)
       {
         // unsat cores available by assumptions by default if proofs are enabled
