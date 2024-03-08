@@ -36,8 +36,7 @@ set(REWRITE_OUTPUT_FILES
   rewrites.h
 )
 foreach(rewrite_in IN LISTS REWRITES_FILES)
-  #cmake_path(GET rewrite_in PARENT_PATH rewrite_parent)
-  #cmake_path(GET rewrite_parent FILENAME rewrite_name)
+  # NOTE: In CMake 3.20+, the `cmake_path` command can be used instead
 
   get_filename_component(rewrite_parent ${rewrite_in} DIRECTORY)
   get_filename_component(rewrite_name ${rewrite_in} NAME)

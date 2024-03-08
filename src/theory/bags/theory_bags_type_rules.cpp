@@ -210,9 +210,7 @@ TypeNode SetofTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut)
-            << "Applying BAG_SETOF on a non-bag argument in term "
-            << n;
+        (*errOut) << "Applying BAG_SETOF on a non-bag argument in term " << n;
       }
       return TypeNode::null();
     }
@@ -728,7 +726,7 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
       if (errOut)
       {
         (*errOut) << "Index in operator of " << n
-                  << " is out of range of for the type of its argument";
+                  << " is out of range for the type of its argument";
       }
       return TypeNode::null();
     }
