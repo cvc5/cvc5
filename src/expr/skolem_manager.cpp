@@ -70,7 +70,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::RE_FIRST_MATCH: return "RE_FIRST_MATCH";
     case SkolemFunId::RE_FIRST_MATCH_POST: return "RE_FIRST_MATCH_POST";
     case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
-    case SkolemFunId::BAGS_CARD_CARDINALITY: return "BAGS_CARD_CARDINALITY";
+    case SkolemFunId::BAGS_CARD_COMBINE: return "BAGS_CARD_COMBINE";
     case SkolemFunId::BAGS_CARD_ELEMENTS: return "BAGS_CARD_ELEMENTS";
     case SkolemFunId::BAGS_CARD_N: return "BAGS_CARD_N";
     case SkolemFunId::BAGS_CARD_UNION_DISJOINT:
@@ -502,7 +502,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::STRINGS_STOI_RESULT:
     case SkolemFunId::STRINGS_ITOS_RESULT:
     case SkolemFunId::BAGS_MAP_SUM:
-    case SkolemFunId::BAGS_CARD_CARDINALITY:
+    case SkolemFunId::BAGS_CARD_COMBINE:
     {
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, itype);

@@ -41,16 +41,25 @@ namespace smt {
 
 PfManager::PfManager(Env& env)
     : EnvObj(env),
-      d_rewriteDb(new rewriter::RewriteDb),
-      d_pchecker(
-          new ProofChecker(statisticsRegistry(),
-                           options().proof.proofCheck,
-                           static_cast<uint32_t>(options().proof.proofPedantic),
-                           d_rewriteDb.get())),
-      d_pnm(new ProofNodeManager(
-          env.getOptions(), env.getRewriter(), d_pchecker.get())),
+      d_rewriteDb(nullptr),
+      d_pchecker(nullptr),
+      d_pnm(nullptr),
       d_pfpp(nullptr)
 {
+  // construct the rewrite db only if DSL rewrites are enabled
+  if (options().proof.proofGranularityMode
+      == options::ProofGranularityMode::DSL_REWRITE)
+  {
+    d_rewriteDb.reset(new rewriter::RewriteDb);
+  }
+  // enable the proof checker and the proof node manager
+  d_pchecker.reset(
+      new ProofChecker(statisticsRegistry(),
+                       options().proof.proofCheck,
+                       static_cast<uint32_t>(options().proof.proofPedantic),
+                       d_rewriteDb.get()));
+  d_pnm.reset(new ProofNodeManager(
+      env.getOptions(), env.getRewriter(), d_pchecker.get()));
   // Now, initialize the proof postprocessor with the environment.
   // By default the post-processor will update all assumptions, which
   // can lead to SCOPE subproofs of the form

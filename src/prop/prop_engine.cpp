@@ -175,6 +175,7 @@ void PropEngine::assertInputFormulas(
 void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
+  bool local = isLemmaPropertyLocal(p);
   bool inprocess = isLemmaPropertyInprocess(p);
 
   // call preprocessor
@@ -209,7 +210,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(tplemma, ppLemmas, removable, inprocess);
+  assertLemmasInternal(tplemma, ppLemmas, removable, inprocess, local);
 }
 
 void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
@@ -276,17 +277,15 @@ void PropEngine::assertLemmasInternal(
     TrustNode trn,
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable,
-    bool inprocess)
+    bool inprocess,
+    bool local)
 {
-  if (!removable)
+  // notify skolem definitions first to ensure that the computation of
+  // when a literal contains a skolem is accurate in the calls below.
+  Trace("prop") << "Notify skolem definitions..." << std::endl;
+  for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    // notify skolem definitions first to ensure that the computation of
-    // when a literal contains a skolem is accurate in the calls below.
-    Trace("prop") << "Notify skolem definitions..." << std::endl;
-    for (const theory::SkolemLemma& lem : ppLemmas)
-    {
-      d_theoryProxy->notifySkolemDefinition(lem.getProven(), lem.d_skolem);
-    }
+    d_theoryProxy->notifySkolemDefinition(lem.getProven(), lem.d_skolem);
   }
   // Assert to the SAT solver first
   Trace("prop") << "Push to SAT..." << std::endl;
@@ -312,19 +311,16 @@ void PropEngine::assertLemmasInternal(
   // e.g. for string reduction lemmas, where preregistration lemmas are
   // introduced for skolems that appear in reductions. Moving the above
   // block after the one below has mixed performance on SMT-LIB strings logics.
-  if (!removable)
+  Trace("prop") << "Notify assertions..." << std::endl;
+  // also add to the decision engine, where notice we don't need proofs
+  if (!trn.isNull())
   {
-    Trace("prop") << "Notify assertions..." << std::endl;
-    // also add to the decision engine, where notice we don't need proofs
-    if (!trn.isNull())
-    {
-      // notify the theory proxy of the lemma
-      d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true);
-    }
-    for (const theory::SkolemLemma& lem : ppLemmas)
-    {
-      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
-    }
+    // notify the theory proxy of the lemma
+    d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true, local);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true, local);
   }
   Trace("prop") << "Finish " << trn << std::endl;
 }
@@ -566,7 +562,7 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   TrustNode trnNull;
-  assertLemmasInternal(trnNull, newLemmas, false, false);
+  assertLemmasInternal(trnNull, newLemmas, false, false, false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 

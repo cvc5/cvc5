@@ -167,6 +167,9 @@ Node EmbeddingConverter::process(Node q,
       tn = SygusGrammarCons::mkDefaultSygusType(
           d_env, preGrammarType, sfvl, trules);
     }
+    // Ensure the expanded definition forms are set. This is done after
+    // normalization above.
+    datatypes::utils::computeExpandedDefinitionForms(d_env, tn);
     // print the grammar
     if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
     {
