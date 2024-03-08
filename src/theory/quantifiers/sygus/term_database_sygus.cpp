@@ -58,13 +58,13 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc)
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
     : EnvObj(env),
       d_qstate(qs),
       d_syexp(new SygusExplain(env, this)),
       d_funDefEval(new FunDefEvaluator(env)),
       d_eval_unfold(new SygusEvalUnfold(env, this)),
-      d_ochecker(oc)
+      d_ochecker(env.getOracleChecker())
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -497,7 +497,7 @@ void TermDbSygus::registerEnumerator(Node e,
   // values for arguments of any-constant constructors (in sygus_explain.cpp),
   // hence those blocking lemmas are refutation unsound. For simplicity, we
   // mark unsound once and for all at the beginning, meaning we do not
-  // answer "infeasible" when using smart enuemration + any-constant
+  // answer "infeasible" when using smart enumeration + any-constant
   // constructors. Using --sygus-repair-const on the other hand avoids this
   // incompleteness, which is checked here.
   if (!isActiveGen && usingAnyConst && !options().quantifiers.sygusRepairConst)

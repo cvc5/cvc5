@@ -481,7 +481,7 @@ public:
    */
   TypeNode getType(bool check = false) const;
   /**
-   * Same as getType, but does not throw a type execption if this term is
+   * Same as getType, but does not throw a type exception if this term is
    * not well-typed. Instead, this method will return the null type.
    */
   TypeNode getTypeOrNull(bool check = false) const;

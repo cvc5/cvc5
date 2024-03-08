@@ -102,8 +102,6 @@ class TheorySep : public Theory {
 
   TrustNode explain(TNode n) override;
 
-  void computeCareGraph() override;
-
   void postProcessModel(TheoryModel* m) override;
 
  private:

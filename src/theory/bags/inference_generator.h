@@ -180,7 +180,7 @@ class InferenceGenerator
    */
   InferInfo differenceRemove(Node n, Node e);
   /**
-   * @param n is (bag.duplicate_removal A) where A is a bag of type (Bag E)
+   * @param n is (bag.setof A) where A is a bag of type (Bag E)
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
@@ -188,9 +188,9 @@ class InferenceGenerator
    *   (=
    *    (bag.count e skolem)
    *    (ite (>= (bag.count e A) 1) 1 0))))
-   * where skolem is a fresh variable equals (bag.duplicate_removal A)
+   * where skolem is a fresh variable equals (bag.setof A)
    */
-  InferInfo duplicateRemoval(Node n, Node e);
+  InferInfo setof(Node n, Node e);
   /**
    * @param cardTerm a term of the form (bag.card A) where A has type (Bag E)
    * @param n is (as bag.empty (Bag E))
@@ -257,7 +257,6 @@ class InferenceGenerator
   std::tuple<InferInfo, Node, Node> mapDown(Node n, Node e);
 
   /**
-   * @pre option bagsInjectiveMaps is true
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param y is a node of Type T
@@ -458,7 +457,7 @@ class InferenceGenerator
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T) and B is not of the form (part x)
    * @param part a skolem function of type T -> (Table T) created uniquely for n
-   * by defineSkolemPartFunction function below
+   * by define SkolemPartFunction function below
    * @return an inference that represents:
    * (=>
    *   (and

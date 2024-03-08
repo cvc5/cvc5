@@ -137,37 +137,6 @@ TrustNode TheorySep::explain(TNode literal)
   return d_im.explainLit(literal);
 }
 
-
-/////////////////////////////////////////////////////////////////////////////
-// SHARING
-/////////////////////////////////////////////////////////////////////////////
-
-void TheorySep::computeCareGraph() {
-  Trace("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
-  for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
-    TNode a = d_sharedTerms[i];
-    TypeNode aType = a.getType();
-    for (unsigned j = i + 1; j < d_sharedTerms.size(); ++ j) {
-      TNode b = d_sharedTerms[j];
-      if (b.getType() != aType) {
-        // We don't care about the terms of different types
-        continue;
-      }
-      switch (d_valuation.getEqualityStatus(a, b)) {
-      case EQUALITY_TRUE_AND_PROPAGATED:
-      case EQUALITY_FALSE_AND_PROPAGATED:
-        // If we know about it, we should have propagated it, so we can skip
-        break;
-      default:
-        // Let's split on it
-        addCarePair(a, b);
-        break;
-      }
-    }
-  }
-}
-
-
 /////////////////////////////////////////////////////////////////////////////
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////

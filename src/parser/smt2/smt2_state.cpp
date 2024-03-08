@@ -897,13 +897,10 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::BAG_SUBBAG, "bag.subbag");
     addOperator(Kind::BAG_COUNT, "bag.count");
     addOperator(Kind::BAG_MEMBER, "bag.member");
-    addOperator(Kind::BAG_DUPLICATE_REMOVAL, "bag.duplicate_removal");
+    addOperator(Kind::BAG_SETOF, "bag.setof");
     addOperator(Kind::BAG_MAKE, "bag");
     addOperator(Kind::BAG_CARD, "bag.card");
     addOperator(Kind::BAG_CHOOSE, "bag.choose");
-    addOperator(Kind::BAG_IS_SINGLETON, "bag.is_singleton");
-    addOperator(Kind::BAG_FROM_SET, "bag.from_set");
-    addOperator(Kind::BAG_TO_SET, "bag.to_set");
     addOperator(Kind::BAG_MAP, "bag.map");
     addOperator(Kind::BAG_FILTER, "bag.filter");
     addOperator(Kind::BAG_FOLD, "bag.fold");

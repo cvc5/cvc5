@@ -58,7 +58,7 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 class TermDbSygus : protected EnvObj
 {
  public:
-  TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc = nullptr);
+  TermDbSygus(Env& env, QuantifiersState& qs);
   ~TermDbSygus() {}
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);
