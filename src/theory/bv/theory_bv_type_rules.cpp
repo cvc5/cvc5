@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Christopher L. Conway
+ *   Andrew Reynolds, Aina Niemetz, Leni Aniva
  *
  * This file is part of the cvc5 project.
  *

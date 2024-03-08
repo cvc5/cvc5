@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Gereon Kremer
+ *   Aina Niemetz, Mudathir Mohamed, Tianyi Liang
  *
  * This file is part of the cvc5 project.
  *

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ *   Aina Niemetz, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *

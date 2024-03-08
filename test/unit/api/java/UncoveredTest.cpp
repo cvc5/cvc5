@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mudathir Mohamed, Aina Niemetz
+ *   Gereon Kremer, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
