@@ -78,7 +78,7 @@ Node OperatorElim::eliminateOperators(Node node,
                                       TConvProofGenerator* tg,
                                       bool partialOnly)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
   switch (k)
@@ -433,7 +433,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
   std::map<SkolemFunId, Node>::iterator it = d_arithSkolem.find(id);
   if (it == d_arithSkolem.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node skolem;
     SkolemManager* sm = nm->getSkolemManager();
     // introduce the skolem function
@@ -448,7 +448,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
 Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 {
   Node skolem = getArithSkolem(id);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (usePartialFunction(id))
   {
     Assert(skolem.getType().isFunction()

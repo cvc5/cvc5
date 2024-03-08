@@ -1133,22 +1133,6 @@ class SolverTest
   }
 
   @Test
-  void defineSort()
-  {
-    Sort sortVar0 = d_solver.mkParamSort("T0");
-    Sort sortVar1 = d_solver.mkParamSort("T1");
-    Sort intSort = d_solver.getIntegerSort();
-    Sort realSort = d_solver.getRealSort();
-    Sort arraySort0 = d_solver.mkArraySort(sortVar0, sortVar0);
-    Sort arraySort1 = d_solver.mkArraySort(sortVar0, sortVar1);
-    // Now create instantiations of the defined sorts
-    assertDoesNotThrow(() -> arraySort0.substitute(sortVar0, intSort));
-    assertDoesNotThrow(()
-                           -> arraySort1.substitute(
-                               new Sort[] {sortVar0, sortVar1}, new Sort[] {intSort, realSort}));
-  }
-
-  @Test
   void defineFun() throws CVC5ApiException
   {
     Sort bvSort = d_solver.mkBitVectorSort(32);

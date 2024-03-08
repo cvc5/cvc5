@@ -45,7 +45,7 @@ LfscPrinter::LfscPrinter(Env& env,
       d_pletTrustChildPrefix("q"),
       d_rdb(rdb)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_boolType = nm->booleanType();
   // used for the `flag` type in LFSC
   d_tt = d_tproc.mkInternalSymbol("tt", d_boolType);
@@ -186,7 +186,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     }
     const DType& dt = stc.getDType();
     preamble << "; DATATYPE " << dt.getName() << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DTypeConstructor& cons = dt[i];
@@ -901,7 +901,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           if (as[i].getKind() == Kind::SEXPR)
           {
             Assert(args[i].getKind() == Kind::SEXPR);
-            NodeManager* nm = NodeManager::currentNM();
+            NodeManager* nm = nodeManager();
             Kind k = rpr.getListContext(v);
             // notice we use d_tproc.getNullTerminator and not
             // expr::getNullTerminator here, which has subtle differences

@@ -25,6 +25,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
+#include "expr/sygus_term_enumerator.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
@@ -100,7 +101,7 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 
 SolverEngine::SolverEngine(const Options* optr)
-    : d_env(new Env(optr)),
+    : d_env(new Env(NodeManager::currentNM(), optr)),
       d_state(new SolverEngineState(*d_env.get())),
       d_ctxManager(nullptr),
       d_routListener(new ResourceOutListener(*this)),

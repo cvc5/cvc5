@@ -18,7 +18,8 @@
 using namespace cvc5;
 int main(void)
 {
-  Solver solver;
+  TermManager tm;
+  Solver solver(tm);
   solver.setOption("incremental", "false");
   solver.setOption("solve-bv-as-int", "bitwise");
   // should throw an exception due to the usage of an illegal value

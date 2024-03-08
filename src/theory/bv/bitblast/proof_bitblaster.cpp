@@ -67,7 +67,7 @@ void BBProof::bbAtom(TNode node)
   {
     std::vector<TNode> visit;
     std::unordered_set<TNode> visited;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     // post-rewrite atom
     Node rwNode = rewrite(node);
@@ -168,7 +168,7 @@ void BBProof::bbAtom(TNode node)
 
 Node BBProof::reconstruct(TNode t)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   std::vector<Node> children;
   if (t.getMetaKind() == kind::metakind::PARAMETERIZED)

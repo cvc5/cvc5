@@ -82,7 +82,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
     return false;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   // collect free variables in all assertions
   std::vector<Node> qvars;

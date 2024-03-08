@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_node.h"
 
 namespace cvc5::internal {
@@ -134,6 +135,8 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   Node maybeMkSkolemFun(Node k);
   /** Is k a kind that is printed as an indexed operator in ALF? */
   static bool isIndexedOperatorKind(Kind k);
+  /** Do we handle the given skolem id? */
+  static bool isHandledSkolemId(SkolemFunId id);
   /** Get indices for printing the operator of n in the ALF format */
   static std::vector<Node> getOperatorIndices(Kind k, Node n);
   /** The set of all internally generated symbols */

@@ -226,9 +226,9 @@ Node mkConcatForConstSequence(const Node& c)
   const std::vector<Node>& charVec = c.getConst<Sequence>().getVec();
   std::vector<Node> vec;
   NodeManager* nm = NodeManager::currentNM();
-  for (size_t i = 0, size = charVec.size(); i < size; i++)
+  for (const Node& cc : charVec)
   {
-    vec.push_back(nm->mkNode(Kind::SEQ_UNIT, charVec[size - (i + 1)]));
+    vec.push_back(nm->mkNode(Kind::SEQ_UNIT, cc));
   }
   return mkConcat(vec, c.getType());
 }

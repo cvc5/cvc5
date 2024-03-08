@@ -30,6 +30,7 @@
 #include "theory/quantifiers/sygus/embedding_converter.h"
 #include "theory/quantifiers/sygus/enum_value_manager.h"
 #include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -120,7 +121,7 @@ void SynthConjecture::assign(Node q)
   Assert(q.getKind() == Kind::FORALL);
   Trace("cegqi") << "SynthConjecture : assign : " << q << std::endl;
   d_quant = q;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
 
   // pre-simplify the quantified formula based on the process utility
@@ -533,7 +534,7 @@ bool SynthConjecture::doCheck()
   {
     Trace("sygus-engine-debug")
         << "Free variable, from fwd-decls?" << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     std::vector<Node> qconj;
     qconj.push_back(query);
     Subs psubs;
@@ -838,9 +839,8 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values,
   }
   if (!exp.empty())
   {
-    Node exc_lem = exp.size() == 1
-                       ? exp[0]
-                       : NodeManager::currentNM()->mkNode(Kind::AND, exp);
+    Node exc_lem =
+        exp.size() == 1 ? exp[0] : nodeManager()->mkNode(Kind::AND, exp);
     exc_lem = exc_lem.negate();
     Trace("cegqi-lemma") << "Cegqi::Lemma : exclude current solution : "
                          << exc_lem << " by " << id << std::endl;
@@ -865,7 +865,7 @@ bool SynthConjecture::runExprMiner()
   }
   // always exclude if sygus stream is enabled
   bool doExclude = options().quantifiers.sygusStream;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::ostream& out = options().base.out;
   for (size_t i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
@@ -954,7 +954,7 @@ bool SynthConjecture::runExprMiner()
 bool SynthConjecture::getSynthSolutions(
     std::map<Node, std::map<Node, Node> >& sol_map)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<Node> sols;
   std::vector<int8_t> statuses;
   Trace("cegqi-debug") << "getSynthSolutions..." << std::endl;
@@ -1136,9 +1136,8 @@ Node SynthConjecture::getSymmetryBreakingPredicate(
 
   if (!sb_lemmas.empty())
   {
-    return sb_lemmas.size() == 1
-               ? sb_lemmas[0]
-               : NodeManager::currentNM()->mkNode(Kind::AND, sb_lemmas);
+    return sb_lemmas.size() == 1 ? sb_lemmas[0]
+                                 : nodeManager()->mkNode(Kind::AND, sb_lemmas);
   }
   else
   {
