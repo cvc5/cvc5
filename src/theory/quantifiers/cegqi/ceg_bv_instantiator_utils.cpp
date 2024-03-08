@@ -57,7 +57,7 @@ Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n) const
   }
   Assert(!coeff.isNull());
 
-  if (neg) return NodeManager::currentNM()->mkNode(Kind::BITVECTOR_NEG, coeff);
+  if (neg) return nodeManager()->mkNode(Kind::BITVECTOR_NEG, coeff);
   return coeff;
 }
 
@@ -72,7 +72,7 @@ Node BvInstantiatorUtil::normalizePvMult(
   NodeBuilder nb(Kind::BITVECTOR_MULT);
   BvLinearAttribute is_linear;
 
-  nm = NodeManager::currentNM();
+  nm = nodeManager();
   for (TNode nc : children)
   {
     if (!contains_pv[nc])
@@ -170,7 +170,7 @@ Node BvInstantiatorUtil::normalizePvPlus(
   BvLinearAttribute is_linear;
   bool neg;
 
-  nm = NodeManager::currentNM();
+  nm = nodeManager();
   for (TNode nc : children)
   {
     if (!contains_pv[nc])
@@ -254,7 +254,7 @@ Node BvInstantiatorUtil::normalizePvEqual(
 {
   Assert(children.size() == 2);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   BvLinearAttribute is_linear;
   Node coeffs[2], leafs[2];
   bool neg;

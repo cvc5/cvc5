@@ -171,7 +171,7 @@ CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(Env& env,
 
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
   eq::EqualityEngine* ee = d_qs.getEqualityEngine();
-  Node falset = NodeManager::currentNM()->mkConst(false);
+  Node falset = nodeManager()->mkConst(false);
   d_eqc_false = eq::EqClassIterator(falset, ee);
 }
 

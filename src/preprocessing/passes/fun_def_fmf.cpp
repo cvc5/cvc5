@@ -40,7 +40,7 @@ FunDefFmf::FunDefFmf(PreprocessingPassContext* preprocContext)
       d_fmfRecFunctionsDefined(nullptr)
 {
   d_fmfRecFunctionsDefined = new (true) NodeList(userContext());
-  d_fmfFunSc = NodeManager::currentNM()->mkSortConstructor("@fmf-fun-sort", 1);
+  d_fmfFunSc = nodeManager()->mkSortConstructor("@fmf-fun-sort", 1);
 }
 
 FunDefFmf::~FunDefFmf() { d_fmfRecFunctionsDefined->deleteSelf(); }
@@ -92,7 +92,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
   std::vector<int> fd_assertions;
   std::map<int, Node> subs_head;
   // first pass : find defined functions, transform quantifiers
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   for (size_t i = 0, asize = assertions.size(); i < asize; i++)
   {
@@ -229,7 +229,7 @@ Node FunDefFmf::simplifyFormula(
     }
     return itv->second;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node ret;
   Trace("fmf-fun-def-debug2") << "Simplify " << n << " " << pol << " " << hasPol
                               << " " << is_fun_def << std::endl;
@@ -412,7 +412,7 @@ void FunDefFmf::getConstraints(Node n,
   }
   visited[n] = Node::null();
   std::vector<Node> currConstraints;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (n.getKind() == Kind::ITE)
   {
     // collect constraints for the condition

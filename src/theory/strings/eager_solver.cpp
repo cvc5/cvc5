@@ -192,8 +192,8 @@ void EagerSolver::notifyFact(TNode atom,
           {
             if (blenEqc == nullptr)
             {
-              Node lenTerm = NodeManager::currentNM()->mkNode(
-                  Kind::STRING_LENGTH, atom[0]);
+              Node lenTerm =
+                  nodeManager()->mkNode(Kind::STRING_LENGTH, atom[0]);
               if (!ee->hasTerm(lenTerm))
               {
                 break;

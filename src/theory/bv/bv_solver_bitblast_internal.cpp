@@ -83,7 +83,7 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
   {
     d_bitblaster->bbAtom(fact);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Node atom_bb = d_bitblaster->getStoredBBAtom(fact);
   Node lemma = nm->mkNode(Kind::EQUAL, fact, atom_bb);
@@ -122,7 +122,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
   {
     TNode n = fact[0];
 
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node lemma = nm->mkNode(Kind::EQUAL, fact, n);
 
     if (!d_env.isTheoryProofProducing())

@@ -159,7 +159,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
 
 void CircuitPropagator::makeConflict(Node n)
 {
-  auto bfalse = NodeManager::currentNM()->mkConst(false);
+  auto bfalse = nodeManager()->mkConst(false);
   ProofGenerator* g = nullptr;
   if (isProofEnabled())
   {

@@ -58,7 +58,7 @@ IntBlaster::IntBlaster(Env& env,
       d_mode(mode),
       d_context(userContext())
 {
-  d_nm = NodeManager::currentNM();
+  d_nm = nodeManager();
   d_zero = d_nm->mkConstInt(0);
   d_one = d_nm->mkConstInt(1);
   Assert(granularity <= 8);
