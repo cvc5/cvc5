@@ -5630,8 +5630,8 @@ const char* cvc5_kind_to_string(Cvc5Kind kind);
  * @note This function is deprecated and replaced by
  *       `std::to_string(Kind kind)`. It will be removed in a future release.
  */
-[[deprecated("use std::to_string(Kind) instead.")]]
-CVC5_EXPORT std::string kindToString(Kind kind);
+[[deprecated("use std::to_string(Kind) instead.")]] CVC5_EXPORT std::string
+kindToString(Kind kind);
 /**
  * Serialize a kind to given stream.
  * @param out  The output stream.
@@ -5931,8 +5931,8 @@ const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
  *       `std::to_string(SortKind kind)`. It will be removed in a future
  *       release.
  */
-[[deprecated("use std::to_string(SortKind) instead.")]]
-CVC5_EXPORT std::string sortKindToString(SortKind k);
+[[deprecated("use std::to_string(SortKind) instead.")]] CVC5_EXPORT std::string
+sortKindToString(SortKind k);
 /**
  * Serialize a kind to given stream.
  * @param out the output stream
