@@ -46,7 +46,7 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
   Node body = lit[1];
   bool pol = body.getKind() != Kind::NOT;
   Node n = pol ? body : body[0];
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (n.getKind() == Kind::APPLY_UF)
   {
     // predicate case
@@ -257,7 +257,7 @@ Node QuantifiersMacros::solveInEquality(Node n, Node lit)
 Node QuantifiersMacros::solveEq(Node n, Node ndef)
 {
   Assert(n.getKind() == Kind::APPLY_UF);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("macros-debug") << "Add macro eq for " << n << std::endl;
   Trace("macros-debug") << "  def: " << ndef << std::endl;
   std::vector<Node> vars;

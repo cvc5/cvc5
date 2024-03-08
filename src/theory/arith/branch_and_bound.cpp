@@ -45,7 +45,7 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
                                                              Rational value)
 {
   std::vector<TrustNode> lems;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Integer floor = value.floor();
   if (options().arith.brabTest)
   {

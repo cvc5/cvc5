@@ -42,7 +42,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
   }
 
   // convert to nodes
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Node formula = nm->mkAnd(assertions);
   std::vector<Node> vars;

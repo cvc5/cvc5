@@ -172,7 +172,7 @@ void SygusUnifStrategy::registerStrategyPoint(Node et,
 
 void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   if (d_tinfo.find(tn) == d_tinfo.end())
   {

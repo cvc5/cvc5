@@ -41,7 +41,7 @@ Node TermRegistry::getEmptyBag(TypeNode tn)
   {
     return it->second;
   }
-  Node n = NodeManager::currentNM()->mkConst(EmptySet(tn));
+  Node n = nodeManager()->mkConst(EmptySet(tn));
   d_emptybag[tn] = n;
   return n;
 }

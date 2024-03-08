@@ -38,7 +38,7 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
       d_initialized(c, false),
       d_numActiveQuant(c, 0)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode btype = nm->booleanType();
   d_none = sm->mkInternalSkolemFunction(InternalSkolemFunId::IEVAL_NONE, btype);

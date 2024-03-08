@@ -72,8 +72,8 @@ bool SygusRandomEnumerator::increment()
 
 Node SygusRandomEnumerator::incrementH()
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  NodeManager* nm = nodeManager();
+  SkolemManager* sm = nodeManager()->getSkolemManager();
   Random& rnd = Random::getRandom();
   double p = options().quantifiers.sygusEnumRandomP;
 

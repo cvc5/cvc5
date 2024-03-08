@@ -92,7 +92,7 @@ Node FirstOrderModelFmc::getStar(TypeNode tn)
   {
     return it->second;
   }
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = nodeManager()->getSkolemManager();
   Node st =
       sm->mkDummySkolem("star", tn, "skolem created for full-model checking");
   d_type_star[tn] = st;
@@ -103,7 +103,7 @@ Node FirstOrderModelFmc::getStar(TypeNode tn)
 Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
 {
   Trace("fmc-model") << "Get function value for " << op << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TypeNode type = op.getType();
   std::vector<Node> vars;
   for (size_t i = 0, nargs = type.getNumChildren() - 1; i < nargs; i++)

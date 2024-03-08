@@ -37,7 +37,7 @@ FfDisjunctiveBit::FfDisjunctiveBit(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult FfDisjunctiveBit::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  auto nm = NodeManager::currentNM();
+  auto nm = nodeManager();
   for (uint64_t i = 0, n = assertionsToPreprocess->size(); i < n; ++i)
   {
     Node fact = (*assertionsToPreprocess)[i];

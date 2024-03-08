@@ -337,7 +337,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   bool ntrivTriggers = options().quantifiers.relationalTriggers;
   std::vector<Node> patTermsF;
   std::map<Node, inst::TriggerTermInfo> tinfo;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // well-defined function: can assume LHS is only pattern
   if (options().quantifiers.quantFunWellDefined)
   {
@@ -570,7 +570,7 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
   }
   if (d_num_trigger_vars[q] < q[0].getNumChildren())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     // partial trigger : generate implication to mark user pattern
     Node pat =
         d_qreg.substituteInstConstantsToBoundVariables(tr->getInstPattern(), q);
