@@ -791,6 +791,22 @@ name   = "Quantifiers"
   name = "use-learn"
   help = "Use instantiation evaluation, and generalize learning."
 
+[[option]]
+  name       = "quantSubCbqi"
+  category   = "regular"
+  long       = "sub-cbqi"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable conflict-based instantiation subsolver strategy"
+
+[[option]]
+  name       = "quantSubCbqiTimeout"
+  category   = "regular"
+  long       = "sub-cbqi-timeout=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "Timeout (in milliseconds) for subsolver calls for sub-cbqi"
+
 ### Induction options
 
 [[option]]
@@ -1026,7 +1042,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-repair-const"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]

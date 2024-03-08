@@ -43,6 +43,12 @@ well-founded BITVECTOR_TYPE \
 ## conversion to bit-vector from vector of Booleans kind
 operator BITVECTOR_BB_TERM 1: "create bit-vector from vector of Booleans"
 
+## size
+operator BITVECTOR_SIZE 1: "Size of bitvector"
+
+## size
+operator CONST_BITVECTOR_SYMBOLIC 2 "A symbolic bitvector constant. The first argument is its value (an integer), and the second value is its size (also an integer)."
+
 ## concatentation kind
 operator BITVECTOR_CONCAT 2: "concatenation of two or more bit-vectors"
 
@@ -167,6 +173,13 @@ parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-
 
 ### type rules for non-parameterized operator kinds ---------------------------
 
+## size
+typerule BITVECTOR_SIZE ::cvc5::internal::theory::bv::BitVectorSizeTypeRule
+
+## size
+typerule CONST_BITVECTOR_SYMBOLIC ::cvc5::internal::theory::bv::BitVectorConstantSymbolicTypeRule
+
+# const
 typerule CONST_BITVECTOR ::cvc5::internal::theory::bv::BitVectorConstantTypeRule
 
 ## conversion to bit-vector from vector of Booleans kind

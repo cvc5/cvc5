@@ -62,7 +62,8 @@ TheoryProxy::TheoryProxy(Env& env,
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
       || isOutputOn(OutputTag::LEARNED_LITS)
       || options().smt.produceLearnedLiterals
-      || options().parallel.computePartitions > 0;
+      || options().parallel.computePartitions > 0
+      || options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
@@ -99,6 +100,10 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
   if (d_prr->needsActiveSkolemDefs())
   {
     d_trackActiveSkDefs = true;
+  }
+  if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
+  {
+    d_lemip.reset(new LemmaInprocess(d_env, cs, *d_zll.get()));
   }
   d_cnfStream = cs;
 }
@@ -177,17 +182,16 @@ void TheoryProxy::notifyAssertion(Node a,
     return;
   }
   // notify the decision engine
-  std::vector<TNode> assertions{a};
   if (local)
   {
     // If it is marked local, add as local assertions.
-    d_decisionEngine->addLocalAssertions(assertions);
+    d_decisionEngine->addLocalAssertions({a});
   }
   else if (skolem.isNull() || !d_dmTrackActiveSkDefs)
   {
     // Otherwise, if it is not a skolem definition, or we are treating
     // skolem definitions as ordinary assertions, we add it now.
-    d_decisionEngine->addAssertions(assertions);
+    d_decisionEngine->addAssertions({a});
   }
   // Otherwise, it is a skolem definition that will be activated dynamically
   // in TheoryProxy::theoryCheck.
@@ -500,6 +504,12 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
     return d_zll->getLearnedZeroLevelLiteralsForRestart();
   }
   return {};
+}
+
+TrustNode TheoryProxy::inprocessLemma(TrustNode& trn)
+{
+  Assert(d_lemip != nullptr);
+  return d_lemip->inprocessLemma(trn);
 }
 
 }  // namespace prop

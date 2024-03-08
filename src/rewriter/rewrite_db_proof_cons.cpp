@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/proof_options.h"
+#include "proof/proof_node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
@@ -786,7 +787,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       }
       else if (pcur.d_id == DslProofRule::CONG)
       {
-        cdp->addStep(cur, ProofRule::CONG, ps, pfArgs[cur]);
+        // get the appropriate CONG rule
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(cur[0], cargs);
+        cdp->addStep(cur, cr, ps, cargs);
       }
       else if (pcur.d_id == DslProofRule::CONG_EVAL)
       {
@@ -814,7 +818,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         Node eq1 = lhs.eqNode(lhsTgt);
         Node eq2 = lhsTgt.eqNode(rhs);
         std::vector<Node> transChildren = {eq1, eq2};
-        cdp->addStep(eq1, ProofRule::CONG, ps, pfArgs[cur]);
+        // get the appropriate CONG rule
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(eq1[0], cargs);
+        cdp->addStep(eq1, cr, ps, cargs);
         cdp->addStep(eq2, ProofRule::EVALUATE, {}, {lhsTgt});
         if (rhs != cur[1])
         {
@@ -988,8 +995,8 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
 
     for (TNode n : curr)
     {
-      auto [it, inserted] = parent.emplace(n, curr);
-      if (inserted)
+      // if we successfully inserted
+      if (parent.emplace(n, curr).second)
       {
         toVisit.emplace_back(n);
       }

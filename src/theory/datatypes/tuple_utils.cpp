@@ -27,8 +27,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-void TupleUtils::checkTypeIndices(Node n,
-                                  TypeNode tupleType,
+bool TupleUtils::checkTypeIndices(const TypeNode& tupleType,
                                   const std::vector<uint32_t> indices)
 {
   // make sure all indices are less than the size of the tuple
@@ -40,11 +39,10 @@ void TupleUtils::checkTypeIndices(Node n,
     std::stringstream ss;
     if (index >= numArgs)
     {
-      ss << "Index " << index << " in term " << n << " is > " << (numArgs - 1)
-         << " the maximum value ";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      return false;
     }
   }
+  return true;
 }
 
 TypeNode TupleUtils::concatTupleTypes(TypeNode tupleType1, TypeNode tupleType2)

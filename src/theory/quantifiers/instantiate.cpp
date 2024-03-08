@@ -343,7 +343,7 @@ bool Instantiate::addInstantiationInternal(
 
   // added lemma, which checks for lemma duplication
   bool addedLem = false;
-  LemmaProperty p = LemmaProperty::NONE;
+  LemmaProperty p = LemmaProperty::INPROCESS;
   if (options().quantifiers.instLocal)
   {
     p = LemmaProperty::LOCAL;

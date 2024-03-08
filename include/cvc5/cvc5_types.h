@@ -92,7 +92,7 @@ const char* cvc5_unknown_explanation_to_string(Cvc5UnknownExplanation exp);
  * @param e The explanation to be serialized to the given output stream
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, UnknownExplanation e) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, UnknownExplanation e);
 }  // namespace cvc5
 
 namespace std {
@@ -190,7 +190,7 @@ const char* cvc5_rm_to_string(Cvc5RoundingMode rm);
  * @param rm The rounding mode to be serialized to the given output stream
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, RoundingMode rm) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, RoundingMode rm);
 }  // namespace cvc5
 namespace std {
 std::string to_string(cvc5::RoundingMode rm);
@@ -248,7 +248,7 @@ const char* cvc5_modes_block_models_mode_to_string(Cvc5BlockModelsMode mode);
  * @param mode The mode.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, BlockModelsMode mode) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, BlockModelsMode mode);
 }
 
 namespace std {
@@ -347,7 +347,7 @@ const char* cvc5_modes_learned_lit_type_to_string(Cvc5LearnedLitType type);
  * @param type The learned literal type.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, LearnedLitType type) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, LearnedLitType type);
 }
 
 namespace std {
@@ -447,7 +447,7 @@ const char* cvc5_modes_proof_component_to_string(Cvc5ProofComponent pc);
  * @param pc The proof component.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofComponent pc);
 }
 
 namespace std {
@@ -508,7 +508,7 @@ const char* cvc5_modes_proof_format_to_string(Cvc5ProofFormat format);
  * @param format The proof format.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, ProofFormat format) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofFormat format);
 }
 
 namespace std {
@@ -603,7 +603,7 @@ const char* cvc5_modes_find_synthesis_target_to_string(
  * @param target The synthesis find target.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, FindSynthTarget target) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, FindSynthTarget target);
 }
 
 namespace std {
@@ -659,7 +659,7 @@ const char* cvc5_modes_input_language_to_string(Cvc5InputLanguage lang);
  * @param lang The language to be serialized to the given output stream
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, InputLanguage lang) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, InputLanguage lang);
 }  // namespace cvc5::modes
 
 namespace std {

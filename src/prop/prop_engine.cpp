@@ -176,6 +176,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
   bool local = isLemmaPropertyLocal(p);
+  bool inprocess = isLemmaPropertyInprocess(p);
 
   // call preprocessor
   std::vector<theory::SkolemLemma> ppLemmas;
@@ -209,7 +210,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(tplemma, ppLemmas, removable, local);
+  assertLemmasInternal(tplemma, ppLemmas, removable, inprocess, local);
 }
 
 void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
@@ -276,6 +277,7 @@ void PropEngine::assertLemmasInternal(
     TrustNode trn,
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable,
+    bool inprocess,
     bool local)
 {
   // notify skolem definitions first to ensure that the computation of
@@ -289,6 +291,12 @@ void PropEngine::assertLemmasInternal(
   Trace("prop") << "Push to SAT..." << std::endl;
   if (!trn.isNull())
   {
+    // inprocess
+    if (inprocess
+        && options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
+    {
+      trn = d_theoryProxy->inprocessLemma(trn);
+    }
     assertTrustedLemmaInternal(trn, removable);
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
@@ -554,7 +562,7 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   TrustNode trnNull;
-  assertLemmasInternal(trnNull, newLemmas, false, false);
+  assertLemmasInternal(trnNull, newLemmas, false, false, false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 

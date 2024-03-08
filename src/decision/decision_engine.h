@@ -49,14 +49,16 @@ class DecisionEngine : protected EnvObj
   /**
    * Adds assertions lems to satisfy that persist in the user context.
    * All input assertions and relevant lemmas are added via this call.
+   * @param lems The lemmas to add.
    */
-  virtual void addAssertions(std::vector<TNode>& lems) = 0;
+  virtual void addAssertions(const std::vector<TNode>& lems) = 0;
   /**
    * Adds assertions lems to satisfy that persist in the SAT context.
    * By default, only skolem definitions from input and lemmas are added via
    * this call.
+   * @param lems The lemmas to add.
    */
-  virtual void addLocalAssertions(std::vector<TNode>& lems) {}
+  virtual void addLocalAssertions(const std::vector<TNode>& lems) {}
 
  protected:
   /** Get next internal, the engine-specific implementation of getNext */
@@ -76,7 +78,7 @@ class DecisionEngineEmpty : public DecisionEngine
  public:
   DecisionEngineEmpty(Env& env);
   bool isDone() override;
-  void addAssertions(std::vector<TNode>& lems) override;
+  void addAssertions(const std::vector<TNode>& lems) override;
 
  protected:
   prop::SatLiteral getNextInternal(bool& stopSearch) override;
