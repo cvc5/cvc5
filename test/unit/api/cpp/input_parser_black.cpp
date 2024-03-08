@@ -319,8 +319,8 @@ TEST_F(TestInputParserBlack, modelDeclares)
     ASSERT_NE(cmd.isNull(), true);
     ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   }
-  std::vector<Sort> sorts = d_symman->getModelDeclaredSorts();
-  std::vector<Term> terms = d_symman->getModelDeclaredTerms();
+  std::vector<Sort> sorts = d_symman->getDeclaredSorts();
+  std::vector<Term> terms = d_symman->getDeclaredTerms();
   ASSERT_EQ(sorts.size(), 1);
   ASSERT_EQ(terms.size(), 1);
   ASSERT_EQ(terms[0].getSort(), sorts[0]);

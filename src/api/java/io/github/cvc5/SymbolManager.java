@@ -89,13 +89,13 @@ public class SymbolManager extends AbstractPointer
    *
    * @return The declared sorts.
    */
-  public Sort[] getModelDeclaredSorts()
+  public Sort[] getDeclaredSorts()
   {
-    long[] pointers = getModelDeclaredSorts(pointer);
+    long[] pointers = getDeclaredSorts(pointer);
     return Utils.getSorts(pointers);
   }
 
-  private native long[] getModelDeclaredSorts(long pointer);
+  private native long[] getDeclaredSorts(long pointer);
 
   /**
    * Get the list of terms that have been declared via `declare-fun` and
@@ -104,11 +104,11 @@ public class SymbolManager extends AbstractPointer
    *
    * @return The declared terms.
    */
-  public Term[] getModelDeclaredTerms()
+  public Term[] getDeclaredTerms()
   {
-    long[] retPointers = getModelDeclaredTerms(pointer);
+    long[] retPointers = getDeclaredTerms(pointer);
     return Utils.getTerms(retPointers);
   }
 
-  private native long[] getModelDeclaredTerms(long pointer);
+  private native long[] getDeclaredTerms(long pointer);
 }

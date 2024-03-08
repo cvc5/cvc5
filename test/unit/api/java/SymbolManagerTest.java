@@ -51,9 +51,9 @@ class SymbolManagerTest extends ParserTest
     assertEquals(d_symman.getLogic(), "QF_LIA");
   }
   @Test
-  void getModelDeclaredTermsAndSorts()
+  void getDeclaredTermsAndSorts()
   {
-    assertEquals(d_symman.getModelDeclaredSorts().length, 0);
-    assertEquals(d_symman.getModelDeclaredTerms().length, 0);
+    assertEquals(d_symman.getDeclaredSorts().length, 0);
+    assertEquals(d_symman.getDeclaredTerms().length, 0);
   }
 }

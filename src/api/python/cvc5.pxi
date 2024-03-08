@@ -129,7 +129,7 @@ cdef class SymbolManager:
         """
         return self.csm.getLogic().decode()
 
-    def getModelDeclaredSorts(self):
+    def getDeclaredSorts(self):
         """
             Get the list of sorts that have been declared via declare-sort.
             These are the sorts that are printed in response to a
@@ -138,14 +138,14 @@ cdef class SymbolManager:
             :return: The declared sorts.
         """
         sorts = []
-        csorts = self.csm.getModelDeclaredSorts()
+        csorts = self.csm.getDeclaredSorts()
         for c in csorts:
             sort = Sort(self.solver)
             sort.csort = c
             sorts.append(sort)
         return sorts
 
-    def getModelDeclaredTerms(self):
+    def getDeclaredTerms(self):
         """
             Get the list of terms that have been declared via declare-fun and
             declare-const. These are the terms that are printed in response to a
@@ -154,7 +154,7 @@ cdef class SymbolManager:
             :return: The declared terms.
         """
         terms = []
-        cterms = self.csm.getModelDeclaredTerms()
+        cterms = self.csm.getDeclaredTerms()
         for c in cterms:
             term = Term(self.solver)
             term.cterm = c

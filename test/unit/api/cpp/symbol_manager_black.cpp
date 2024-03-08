@@ -64,10 +64,10 @@ TEST_F(TestSymbolManagerBlack, getLogic)
   ASSERT_EQ(d_symman->getLogic(), "QF_LIA");
 }
 
-TEST_F(TestSymbolManagerBlack, getModelDeclaredTermsAndSorts)
+TEST_F(TestSymbolManagerBlack, getDeclaredTermsAndSorts)
 {
-  ASSERT_EQ(d_symman->getModelDeclaredSorts().size(), 0);
-  ASSERT_EQ(d_symman->getModelDeclaredTerms().size(), 0);
+  ASSERT_EQ(d_symman->getDeclaredSorts().size(), 0);
+  ASSERT_EQ(d_symman->getDeclaredTerms().size(), 0);
 }
 
 }  // namespace test

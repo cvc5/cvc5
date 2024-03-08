@@ -43,5 +43,5 @@ def test_get_logic(solver):
 
 def test_get_model_declared_terms_and_sorts(solver):
     sm = SymbolManager(solver)
-    assert len(sm.getModelDeclaredSorts()) == 0
-    assert len(sm.getModelDeclaredTerms()) == 0
+    assert len(sm.getDeclaredSorts()) == 0
+    assert len(sm.getDeclaredTerms()) == 0
