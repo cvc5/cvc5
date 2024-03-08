@@ -57,7 +57,7 @@ class ScopeCounter
 ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
 }
 
 ProcessAssertions::~ProcessAssertions()

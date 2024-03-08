@@ -108,7 +108,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
     case ProofRule::ARITH_SUM_UB:
     {
       success = true;
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Assert(resc.getNumChildren() == 2);
       Assert(resc[0].getNumChildren() == children.size());
       Assert(resc[1].getNumChildren() == children.size());
@@ -151,7 +151,7 @@ Node SubtypeElimConverterCallback::convert(Node res,
       //
       // there t'~s' is a predicate over reals and t~s is a mixed integer
       // predicate.
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node sc = resc[0][0];
       Node relOld = resc[0][1];
       Node relNew = nm->mkNode(relOld.getKind(), resc[1][0][1], resc[1][1][1]);
@@ -231,7 +231,7 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
   // t=s becomes (to_real t)=(to_real s), or t=0 becomes (to_real t)=0.0
   Node conv[2];
   Node convEq[2];
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (size_t j = 0; j < 2; j++)
   {
     conv[j] = nm->mkNode(Kind::TO_REAL, src[j]);

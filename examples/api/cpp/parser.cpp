@@ -23,7 +23,8 @@ using namespace cvc5::parser;
 
 int main()
 {
-  Solver slv;
+  TermManager tm;
+  Solver slv(tm);
 
   // set that we should print success after each successful command
   slv.setOption("print-success", "true");

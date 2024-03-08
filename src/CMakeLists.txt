@@ -1275,6 +1275,11 @@ libcvc5_add_sources(
   theory/valuation.h
 )
 
+# suppress deprecated warnings to not error in CI
+set_source_files_properties(api/cpp/cvc5.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+
 #-----------------------------------------------------------------------------#
 # Add required include paths for this and all subdirectories.
 

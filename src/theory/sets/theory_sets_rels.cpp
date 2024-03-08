@@ -51,8 +51,8 @@ TheorySetsRels::TheorySetsRels(Env& env,
       d_treg(treg),
       d_shared_terms(userContext())
 {
-  d_trueNode = NodeManager::currentNM()->mkConst(true);
-  d_falseNode = NodeManager::currentNM()->mkConst(false);
+  d_trueNode = nodeManager()->mkConst(true);
+  d_falseNode = nodeManager()->mkConst(false);
 }
 
 TheorySetsRels::~TheorySetsRels() {}
@@ -310,7 +310,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if( rel_mem_it == d_rReps_memberReps_cache.end() ) {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     Node join_image_rel = join_image_term[0];
     std::unordered_set<Node> hasChecked;
@@ -370,22 +370,22 @@ void TheorySetsRels::check(Theory::Effort level)
             existing_members.push_back( snd_element_snd_mem );
             reasons.push_back( *mem_rep_exp_it_snd );
             if( fst_mem_rep != fst_element_snd_mem ) {
-              reasons.push_back(NodeManager::currentNM()->mkNode(
+              reasons.push_back(nodeManager()->mkNode(
                   Kind::EQUAL, fst_mem_rep, fst_element_snd_mem));
             }
             if( join_image_rel != (*mem_rep_exp_it_snd)[1] ) {
-              reasons.push_back(NodeManager::currentNM()->mkNode(
+              reasons.push_back(nodeManager()->mkNode(
                   Kind::EQUAL, (*mem_rep_exp_it_snd)[1], join_image_rel));
             }
             if( existing_members.size() == min_card ) {
               if( min_card >= 2) {
-                new_membership = NodeManager::currentNM()->mkNode(
+                new_membership = nodeManager()->mkNode(
                     Kind::OR,
                     new_membership,
-                    NodeManager::currentNM()->mkNode(
+                    nodeManager()->mkNode(
                         Kind::NOT,
-                        NodeManager::currentNM()->mkNode(Kind::DISTINCT,
-                                                         existing_members)));
+                        nodeManager()->mkNode(Kind::DISTINCT,
+                                              existing_members)));
               }
               Assert(reasons.size() >= 1);
               sendInfer(new_membership,
@@ -431,7 +431,7 @@ void TheorySetsRels::check(Theory::Effort level)
         }
       }
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     Node reason = exp;
     Node conclusion = d_trueNode;
@@ -471,7 +471,7 @@ void TheorySetsRels::check(Theory::Effort level)
   void TheorySetsRels::applyIdenRule( Node mem_rep, Node iden_term, Node exp) {
     Trace("rels-debug") << "\n[Theory::Rels] *********** applyIdenRule on " << iden_term
                         << " with mem_rep = " << mem_rep  << " and exp = " << exp << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     if( d_rel_nodes.find( iden_term ) == d_rel_nodes.end() ) {
       computeMembersForIdenTerm( iden_term );
       d_rel_nodes.insert( iden_term );
@@ -486,10 +486,10 @@ void TheorySetsRels::check(Theory::Effort level)
         iden_term[0]);
 
     if( exp[1] != iden_term ) {
-      reason = NodeManager::currentNM()->mkNode(
+      reason = nodeManager()->mkNode(
           Kind::AND,
           reason,
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, exp[1], iden_term));
+          nodeManager()->mkNode(Kind::EQUAL, exp[1], iden_term));
     }
     sendInfer(
         nm->mkNode(Kind::AND, fact, nm->mkNode(Kind::EQUAL, fst_mem, snd_mem)),
@@ -512,7 +512,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if( d_rReps_memberReps_cache.find( iden_term_rel_rep ) == d_rReps_memberReps_cache.end() ) {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     MEM_IT rel_mem_exp_it = d_rReps_memberReps_exp_cache.find( iden_term_rel_rep );
     std::vector< Node >::iterator mem_rep_exp_it = (*rel_mem_exp_it).second.begin();
@@ -523,10 +523,10 @@ void TheorySetsRels::check(Theory::Effort level)
       Node new_mem = RelsUtils::constructPair( iden_term, fst_exp_mem, fst_exp_mem );
 
       if( (*mem_rep_exp_it)[1] != iden_term_rel ) {
-        reason = NodeManager::currentNM()->mkNode(
+        reason = nodeManager()->mkNode(
             Kind::AND,
             reason,
-            NodeManager::currentNM()->mkNode(
+            nodeManager()->mkNode(
                 Kind::EQUAL, (*mem_rep_exp_it)[1], iden_term_rel));
       }
       sendInfer(nm->mkNode(Kind::SET_MEMBER, new_mem, iden_term),
@@ -578,7 +578,7 @@ void TheorySetsRels::check(Theory::Effort level)
                               << " or can be infered by TC_Graph of tc_rel[0]! " << std::endl;
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     // add mem_rep to d_tcrRep_tcGraph
     TC_IT tc_it = d_tcr_tcGraph.find( tc_rel );
@@ -777,7 +777,7 @@ void TheorySetsRels::check(Theory::Effort level)
       Node cur_node_rep,
       std::unordered_set<Node>& seen)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node tc_mem = RelsUtils::constructPair( tc_rel,
         TupleUtils::nthElementOfTuple((reasons.front())[0], 0),
         TupleUtils::nthElementOfTuple((reasons.back())[0], 1) );
@@ -788,17 +788,17 @@ void TheorySetsRels::check(Theory::Effort level)
       Node snd_element_begin =
           TupleUtils::nthElementOfTuple( reasons[i+1][0], 0 );
       if( fst_element_end != snd_element_begin ) {
-        all_reasons.push_back(NodeManager::currentNM()->mkNode(
+        all_reasons.push_back(nodeManager()->mkNode(
             Kind::EQUAL, fst_element_end, snd_element_begin));
       }
       if( tc_rel != reasons[i][1] && tc_rel[0] != reasons[i][1] ) {
-        all_reasons.push_back(NodeManager::currentNM()->mkNode(
-            Kind::EQUAL, tc_rel[0], reasons[i][1]));
+        all_reasons.push_back(
+            nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons[i][1]));
       }
     }
     if( tc_rel != reasons.back()[1] && tc_rel[0] != reasons.back()[1] ) {
-      all_reasons.push_back(NodeManager::currentNM()->mkNode(
-          Kind::EQUAL, tc_rel[0], reasons.back()[1]));
+      all_reasons.push_back(
+          nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons.back()[1]));
     }
     if( all_reasons.size() > 1) {
       sendInfer(nm->mkNode(Kind::SET_MEMBER, tc_mem, tc_rel),
@@ -872,20 +872,14 @@ void TheorySetsRels::check(Theory::Effort level)
       r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
     Node reason   = exp;
-    Node mem1 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
-    Node mem2 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
-    Node fact_1 =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem1, pt_rel[0]);
-    Node fact_2 =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem2, pt_rel[1]);
+    Node mem1 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
+    Node mem2 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
+    Node fact_1 = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, pt_rel[0]);
+    Node fact_2 = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, pt_rel[1]);
 
     if( pt_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(
-          Kind::AND,
-          exp,
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, pt_rel, exp[1]));
+      reason = nodeManager()->mkNode(
+          Kind::AND, exp, nodeManager()->mkNode(Kind::EQUAL, pt_rel, exp[1]));
     }
     sendInfer(fact_1, InferenceId::SETS_RELS_PRODUCT_SPLIT, reason);
     sendInfer(fact_2, InferenceId::SETS_RELS_PRODUCT_SPLIT, reason);
@@ -940,10 +934,8 @@ void TheorySetsRels::check(Theory::Effort level)
     for(; i < tup_len; ++i) {
       r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
-    Node mem1 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
-    Node mem2 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
+    Node mem1 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
+    Node mem2 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
 
     computeTupleReps(mem1);
     computeTupleReps(mem2);
@@ -960,16 +952,14 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Node reason = exp;
     if( join_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(
+      reason = nodeManager()->mkNode(
           Kind::AND,
           reason,
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, join_rel, exp[1]));
+          nodeManager()->mkNode(Kind::EQUAL, join_rel, exp[1]));
     }
-    Node fact =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
+    Node fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
-    fact =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
+    fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
     makeSharedTerm(shared_x);
   }
@@ -1048,7 +1038,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if( tp_terms.size() < 1) {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for( unsigned int i = 1; i < tp_terms.size(); i++ ) {
       Trace("rels-debug")
           << "\n[Theory::Rels] *********** Applying RELATION_TRANSPOSE-Equal "
@@ -1065,7 +1055,7 @@ void TheorySetsRels::check(Theory::Effort level)
                            "RELATION_TRANSPOSE rule on transposed term = "
                         << tp_rel << ", its representative = " << tp_rel_rep
                         << " with explanation = " << exp << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     if(d_rel_nodes.find( tp_rel ) == d_rel_nodes.end()) {
       Trace("rels-debug")
@@ -1080,10 +1070,10 @@ void TheorySetsRels::check(Theory::Effort level)
     Node reversed_mem = TupleUtils::reverseTuple( exp[0] );
 
     if( tp_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(
+      reason = nodeManager()->mkNode(
           Kind::AND,
           reason,
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, tp_rel, exp[1]));
+          nodeManager()->mkNode(Kind::EQUAL, tp_rel, exp[1]));
     }
     sendInfer(nm->mkNode(Kind::SET_MEMBER, reversed_mem, tp_rel[0]),
               InferenceId::SETS_RELS_TRANSPOSE_REV,
@@ -1180,7 +1170,7 @@ void TheorySetsRels::check(Theory::Effort level)
     {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     const std::vector<Node>& members = d_rReps_memberReps_cache[rel0_rep];
     const std::vector<Node>& exps = d_rReps_memberReps_exp_cache[rel0_rep];
@@ -1227,7 +1217,7 @@ void TheorySetsRels::check(Theory::Effort level)
        d_rReps_memberReps_cache.find( r2_rep ) == d_rReps_memberReps_cache.end() ) {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     std::vector<Node> r1_rep_exps = d_rReps_memberReps_exp_cache[r1_rep];
     std::vector<Node> r2_rep_exps = d_rReps_memberReps_exp_cache[r2_rep];
@@ -1411,7 +1401,7 @@ void TheorySetsRels::check(Theory::Effort level)
     {
       Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
       // we wrap the spurious explanation into a splitting lemma
-      Node lem = NodeManager::currentNM()->mkNode(Kind::OR, exp.negate(), conc);
+      Node lem = nodeManager()->mkNode(Kind::OR, exp.negate(), conc);
       d_im.assertInference(lem, id, d_trueNode, 1);
       return;
     }
@@ -1493,7 +1483,7 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
-    Node ss = NodeManager::currentNM()->mkNode(Kind::SET_SINGLETON, n);
+    Node ss = nodeManager()->mkNode(Kind::SET_SINGLETON, n);
     d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }
@@ -1527,12 +1517,12 @@ void TheorySetsRels::check(Theory::Effort level)
         makeSharedTerm(element);
         tuple_elements.push_back(element);
       }
-      Node tuple_reduct = NodeManager::currentNM()->mkNode(
-          Kind::APPLY_CONSTRUCTOR, tuple_elements);
-      tuple_reduct = NodeManager::currentNM()->mkNode(
-          Kind::SET_MEMBER, tuple_reduct, n[1]);
+      Node tuple_reduct =
+          nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, tuple_elements);
+      tuple_reduct =
+          nodeManager()->mkNode(Kind::SET_MEMBER, tuple_reduct, n[1]);
       Node tuple_reduction_lemma =
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, n, tuple_reduct);
+          nodeManager()->mkNode(Kind::EQUAL, n, tuple_reduct);
       sendInfer(tuple_reduction_lemma, InferenceId::SETS_RELS_TUPLE_REDUCTION, d_trueNode);
       d_symbolic_tuples.insert(n);
     }
@@ -1626,7 +1616,7 @@ void TheorySetsRels::check(Theory::Effort level)
   {
     Trace("rels-lemma") << "Rels::lemma " << fact << " from " << reason
                         << " by " << id << std::endl;
-    Node lemma = NodeManager::currentNM()->mkNode(Kind::IMPLIES, reason, fact);
+    Node lemma = nodeManager()->mkNode(Kind::IMPLIES, reason, fact);
     d_im.addPendingLemma(lemma, id);
   }
 }

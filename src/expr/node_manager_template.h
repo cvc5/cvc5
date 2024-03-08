@@ -35,6 +35,7 @@
 namespace cvc5 {
 
 class Solver;
+class TermManager;
 
 namespace internal {
 
@@ -68,6 +69,7 @@ class TypeChecker;
 class NodeManager
 {
   friend class cvc5::Solver;
+  friend class cvc5::TermManager;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
   friend class SkolemManager;

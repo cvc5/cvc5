@@ -25,8 +25,11 @@ namespace test {
 
 class TestApi : public ::testing::Test
 {
+  void SetUp() override { d_solver.reset(new cvc5::Solver(d_tm)); }
+
  protected:
-  cvc5::Solver d_solver;
+  cvc5::TermManager d_tm;
+  std::unique_ptr<cvc5::Solver> d_solver;
 };
 
 }  // namespace test

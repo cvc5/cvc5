@@ -88,7 +88,7 @@ int RelationalMatchGenerator::getNextMatch(InstMatch& m)
       // try the opposite polarity
       checkPol = !d_pol;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     // falsify ( d_var <d_rel> d_rhs ) = checkPol
     s = rhs;
     if (!checkPol)

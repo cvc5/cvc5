@@ -27,14 +27,15 @@ class TestApiBlackUncovered : public TestApi
 
 TEST_F(TestApiBlackUncovered, exception_getmessage)
 {
-  d_solver.setOption("produce-models", "true");
-  Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
-  d_solver.assertFormula(x.eqTerm(x).notTerm());
+  d_solver->setOption("produce-models", "true");
+  Term x = d_tm.mkConst(d_tm.getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x).notTerm());
 
-  ASSERT_THROW(d_solver.getValue(x), CVC5ApiRecoverableException);
+  ASSERT_THROW(d_solver->getValue(x), CVC5ApiRecoverableException);
 
-  try {
-    d_solver.getValue(x);
+  try
+  {
+    d_solver->getValue(x);
   }
   catch (const CVC5ApiRecoverableException& e)
   {
@@ -71,8 +72,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
   ss << cvc5::SynthResult();
   ss << cvc5::Grammar();
 
-  Sort intsort = d_solver.getIntegerSort();
-  Term x = d_solver.mkConst(intsort, "x");
+  Sort intsort = d_tm.getIntegerSort();
+  Term x = d_tm.mkConst(intsort, "x");
 
   ss << std::vector<Term>{x, x};
   ss << std::set<Term>{x, x};
@@ -81,13 +82,13 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
 
 TEST_F(TestApiBlackUncovered, datatypeApi)
 {
-  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
-  cons.addSelector("head", d_solver.getIntegerSort());
+  DatatypeDecl dtypeSpec = d_tm.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons = d_tm.mkDatatypeConstructorDecl("cons");
+  cons.addSelector("head", d_tm.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
+  DatatypeConstructorDecl nil = d_tm.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
-  Sort listSort = d_solver.mkDatatypeSort(dtypeSpec);
+  Sort listSort = d_tm.mkDatatypeSort(dtypeSpec);
   Datatype d = listSort.getDatatype();
 
   std::stringstream ss;
@@ -122,9 +123,9 @@ TEST_F(TestApiBlackUncovered, datatypeApi)
 
 TEST_F(TestApiBlackUncovered, termNativeTypes)
 {
-  Term t = d_solver.mkInteger(0);
-  d_solver.mkReal(0);
-  d_solver.mkReal(0, 1);
+  Term t = d_tm.mkInteger(0);
+  d_tm.mkReal(0);
+  d_tm.mkReal(0, 1);
   t.isInt32Value();
   t.getInt32Value();
   t.isInt64Value();
@@ -141,7 +142,7 @@ TEST_F(TestApiBlackUncovered, termNativeTypes)
 
 TEST_F(TestApiBlackUncovered, termIterators)
 {
-  Term t = d_solver.mkInteger(0);
+  Term t = d_tm.mkInteger(0);
   auto it = t.begin();
   auto it2(it);
   it++;
@@ -149,86 +150,86 @@ TEST_F(TestApiBlackUncovered, termIterators)
 
 TEST_F(TestApiBlackUncovered, checkSatAssumingSingle)
 {
-  Sort boolsort = d_solver.getBooleanSort();
-  Term b = d_solver.mkConst(boolsort, "b");
-  d_solver.checkSatAssuming(b);
+  Sort boolsort = d_tm.getBooleanSort();
+  Term b = d_tm.mkConst(boolsort, "b");
+  d_solver->checkSatAssuming(b);
 }
 
 TEST_F(TestApiBlackUncovered, mkOpInitializerList)
 {
-  d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {1, 1});
+  d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {1, 1});
 }
 
 TEST_F(TestApiBlackUncovered, mkTermKind)
 {
-  Term b = d_solver.mkConst(d_solver.getRealSort(), "b");
-  d_solver.mkTerm(Kind::GT, {b, b});
+  Term b = d_tm.mkConst(d_tm.getRealSort(), "b");
+  d_tm.mkTerm(Kind::GT, {b, b});
 }
 
 TEST_F(TestApiBlackUncovered, getValue)
 {
-  d_solver.setOption("produce-models", "true");
-  Sort boolsort = d_solver.getBooleanSort();
-  Term b = d_solver.mkConst(boolsort, "b");
-  d_solver.assertFormula(b);
-  d_solver.checkSat();
-  d_solver.getValue({b, b, b});
+  d_solver->setOption("produce-models", "true");
+  Sort boolsort = d_tm.getBooleanSort();
+  Term b = d_tm.mkConst(boolsort, "b");
+  d_solver->assertFormula(b);
+  d_solver->checkSat();
+  d_solver->getValue({b, b, b});
 }
 
 TEST_F(TestApiBlackUncovered, isOutputOn)
 {
-  d_solver.isOutputOn("inst");
-  d_solver.getOutput("inst");
+  d_solver->isOutputOn("inst");
+  d_solver->getOutput("inst");
 }
 
 TEST_F(TestApiBlackUncovered, Options)
 {
-    auto dopts = d_solver.getDriverOptions();
-    dopts.err();
-    dopts.in();
-    dopts.out();
+  auto dopts = d_solver->getDriverOptions();
+  dopts.err();
+  dopts.in();
+  dopts.out();
 
-    std::stringstream ss;
-    {
-        auto info = d_solver.getOptionInfo("verbose");
-        ss << info;
+  std::stringstream ss;
+  {
+    auto info = d_solver->getOptionInfo("verbose");
+    ss << info;
     }
     {
-        auto info = d_solver.getOptionInfo("print-success");
-        ss << info;
-        info.boolValue();
+    auto info = d_solver->getOptionInfo("print-success");
+    ss << info;
+    info.boolValue();
     }
     {
-        auto info = d_solver.getOptionInfo("verbosity");
-        ss << info;
-        info.intValue();
+    auto info = d_solver->getOptionInfo("verbosity");
+    ss << info;
+    info.intValue();
     }
     {
-        auto info = d_solver.getOptionInfo("rlimit");
-        ss << info;
-        info.uintValue();
+    auto info = d_solver->getOptionInfo("rlimit");
+    ss << info;
+    info.uintValue();
     }
     {
-        auto info = d_solver.getOptionInfo("random-freq");
-        ss << info;
-        info.doubleValue();
+    auto info = d_solver->getOptionInfo("random-freq");
+    ss << info;
+    info.doubleValue();
     }
     {
-        auto info = d_solver.getOptionInfo("force-logic");
-        ss << info;
-        info.stringValue();
+    auto info = d_solver->getOptionInfo("force-logic");
+    ss << info;
+    info.stringValue();
     }
     {
-        auto info = d_solver.getOptionInfo("simplification");
-        ss << info;
+    auto info = d_solver->getOptionInfo("simplification");
+    ss << info;
     }
 }
 
 TEST_F(TestApiBlackUncovered, Statistics)
 {
-    d_solver.assertFormula(d_solver.mkConst(d_solver.getBooleanSort(), "x"));
-    d_solver.checkSat();
-    Statistics stats = d_solver.getStatistics();
+    d_solver->assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "x"));
+    d_solver->checkSat();
+    Statistics stats = d_solver->getStatistics();
     std::stringstream ss;
     ss << stats;
     auto it = stats.begin();
@@ -241,30 +242,30 @@ TEST_F(TestApiBlackUncovered, Statistics)
     ss << it->first;
 
     testing::internal::CaptureStdout();
-    d_solver.printStatisticsSafe(STDOUT_FILENO);
+    d_solver->printStatisticsSafe(STDOUT_FILENO);
     testing::internal::GetCapturedStdout();
 }
 
 // Copied from api/cpp/solver_black.cpp
 TEST_F(TestApiBlackUncovered, declareOracleFunUnsat)
 {
-  d_solver.setOption("oracles", "true");
-  Sort iSort = d_solver.getIntegerSort();
-  // f is the function implementing (lambda ((x Int)) (+ x 1))
-  Term f = d_solver.declareOracleFun(
-      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
-        if (input[0].isUInt32Value())
-        {
-          return d_solver.mkInteger(input[0].getUInt32Value() + 1);
-        }
-        return d_solver.mkInteger(0);
-      });
-  Term three = d_solver.mkInteger(3);
-  Term five = d_solver.mkInteger(5);
-  Term eq = d_solver.mkTerm(
-      Kind::EQUAL, {d_solver.mkTerm(Kind::APPLY_UF, {f, three}), five});
-  d_solver.assertFormula(eq);
-  d_solver.checkSat();
+    d_solver->setOption("oracles", "true");
+    Sort iSort = d_tm.getIntegerSort();
+    // f is the function implementing (lambda ((x Int)) (+ x 1))
+    Term f = d_solver->declareOracleFun(
+        "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+          if (input[0].isUInt32Value())
+          {
+            return d_tm.mkInteger(input[0].getUInt32Value() + 1);
+          }
+          return d_tm.mkInteger(0);
+        });
+    Term three = d_tm.mkInteger(3);
+    Term five = d_tm.mkInteger(5);
+    Term eq = d_tm.mkTerm(Kind::EQUAL,
+                          {d_tm.mkTerm(Kind::APPLY_UF, {f, three}), five});
+    d_solver->assertFormula(eq);
+    d_solver->checkSat();
 }
 
 TEST_F(TestApiBlackUncovered, Proof)

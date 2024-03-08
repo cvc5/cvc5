@@ -98,7 +98,7 @@ void BVToInt::addFinalizeAssertions(
     AssertionPipeline* assertionsToPreprocess,
     const std::vector<Node>& additionalConstraints)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node lemmas = nm->mkAnd(additionalConstraints);
   assertionsToPreprocess->push_back(lemmas);
   Trace("bv-to-int-debug") << "range constraints: " << lemmas.toString()

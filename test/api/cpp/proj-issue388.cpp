@@ -29,35 +29,37 @@ int main(void)
     return 0;
   }
   { // Original
-    Solver slv;
+    TermManager tm;
+    Solver slv(tm);
     slv.setLogic("QF_NRA");
-    Sort s = slv.getRealSort();
-    Term t1 = slv.mkConst(s, "a");
-    Term t2 = slv.mkConst(s, "b");
-    Term t3 = slv.mkConst(s, "c");
-    Term t4 = slv.mkTerm(Kind::DIVISION, {t1, t2});
-    Term t5 = slv.mkTerm(Kind::GT, {t4, t3});
-    Term t6 = slv.mkTerm(Kind::DIVISION, {t1, t3});
-    Term t7 = slv.mkTerm(Kind::IS_INTEGER, {t6});
-    Term t8 = slv.mkTerm(Kind::AND, {t5, t7, t5});
-    Term t9 = slv.mkTerm(Kind::NOT, {t8});
+    Sort s = tm.getRealSort();
+    Term t1 = tm.mkConst(s, "a");
+    Term t2 = tm.mkConst(s, "b");
+    Term t3 = tm.mkConst(s, "c");
+    Term t4 = tm.mkTerm(Kind::DIVISION, {t1, t2});
+    Term t5 = tm.mkTerm(Kind::GT, {t4, t3});
+    Term t6 = tm.mkTerm(Kind::DIVISION, {t1, t3});
+    Term t7 = tm.mkTerm(Kind::IS_INTEGER, {t6});
+    Term t8 = tm.mkTerm(Kind::AND, {t5, t7, t5});
+    Term t9 = tm.mkTerm(Kind::NOT, {t8});
     slv.assertFormula(t9);
     slv.checkSat();
   }
   { // Minimized
-    Solver slv;
+    TermManager tm;
+    Solver slv(tm);
     slv.setOption("nl-cov", "true");
     slv.setOption("nl-cov-var-elim", "true");
     slv.setOption("nl-ext", "none");
     slv.setLogic("QF_NIRA");
-    Sort s = slv.getRealSort();
-    Term t1 = slv.mkConst(s, "a");
-    Term t2 = slv.mkConst(s, "b");
-    Term t3 = slv.mkReal(0);
-    Term t7 = slv.mkTerm(Kind::IS_INTEGER, {t1});
-    Term t4 = slv.mkTerm(Kind::DIVISION, {t2, t1});
-    Term t5 = slv.mkTerm(Kind::DISTINCT, {t3, t4});
-    Term t8 = slv.mkTerm(Kind::OR, {t7, t5});
+    Sort s = tm.getRealSort();
+    Term t1 = tm.mkConst(s, "a");
+    Term t2 = tm.mkConst(s, "b");
+    Term t3 = tm.mkReal(0);
+    Term t7 = tm.mkTerm(Kind::IS_INTEGER, {t1});
+    Term t4 = tm.mkTerm(Kind::DIVISION, {t2, t1});
+    Term t5 = tm.mkTerm(Kind::DISTINCT, {t3, t4});
+    Term t8 = tm.mkTerm(Kind::OR, {t7, t5});
     slv.assertFormula(t8);
     slv.checkSat();
   }

@@ -69,7 +69,7 @@ jobs:
             package-name: cvc5-Win64
 
           - name: ubuntu:production-clang
-            os: ubuntu-latest
+            os: ubuntu-20.04
             env: CC=clang CXX=clang++
             config: production --auto-download --no-poly
             cache-key: productionclang
@@ -78,7 +78,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:production-dbg
-            os: ubuntu-latest
+            os: ubuntu-20.04
             config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa
             cache-key: dbg
             exclude_regress: 3-4
@@ -86,7 +86,7 @@ jobs:
             python-bindings: true
 
           - name: ubuntu:production-dbg-clang
-            os: ubuntu-latest
+            os: ubuntu-20.04
             env: CC=clang CXX=clang++
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
