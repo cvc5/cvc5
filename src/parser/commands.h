@@ -33,6 +33,7 @@
 
 namespace cvc5 {
 
+class TermManager;
 class Solver;
 class Term;
 

@@ -213,6 +213,9 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint isUnknown() except +
         string toString() except +
 
+    cdef cppclass TermManager:
+        TermManager() except +
+
     cdef cppclass Solver:
         Solver() except +
         Sort getBooleanSort() except +

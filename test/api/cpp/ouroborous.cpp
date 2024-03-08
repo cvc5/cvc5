@@ -74,7 +74,8 @@ std::string parse(std::string instr,
   (declare-fun a () (Array U (Array U U)))\n\
   ";
 
-  cvc5::Solver solver;
+  cvc5::TermManager tm;
+  cvc5::Solver solver(tm);
   modes::InputLanguage ilang = modes::InputLanguage::SMT_LIB_2_6;
 
   solver.setOption("input-language", input_language);

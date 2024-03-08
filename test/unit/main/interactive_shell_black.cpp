@@ -42,7 +42,7 @@ class TestMainBlackInteractiveShell : public TestInternal
     d_sin = std::make_unique<std::stringstream>();
     d_sout = std::make_unique<std::stringstream>();
 
-    d_solver.reset(new cvc5::Solver());
+    d_solver.reset(new cvc5::Solver(d_tm));
     d_solver->setOption("input-language", "smt2");
     d_cexec.reset(new main::CommandExecutor(d_solver));
   }
@@ -84,6 +84,7 @@ class TestMainBlackInteractiveShell : public TestInternal
   std::unique_ptr<std::stringstream> d_sin;
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<main::CommandExecutor> d_cexec;
+  cvc5::TermManager d_tm;
   std::unique_ptr<cvc5::Solver> d_solver;
 };
 

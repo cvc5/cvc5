@@ -18,18 +18,19 @@
 using namespace cvc5;
 int main(void)
 {
-  Solver solver;
+  TermManager tm;
+  Solver solver(tm);
   solver.setOption("incremental", "false");
   solver.setOption("produce-interpolants", "true");
-  Sort s0 = solver.getStringSort();
-  Term t1 = solver.mkString("");
-  Op o2 = solver.mkOp(Kind::SET_SINGLETON);
-  Term t3 = solver.mkTerm(o2, {t1});
+  Sort s0 = tm.getStringSort();
+  Term t1 = tm.mkString("");
+  Op o2 = tm.mkOp(Kind::SET_SINGLETON);
+  Term t3 = tm.mkTerm(o2, {t1});
   Sort s4 = t3.getSort();
-  Op o5 = solver.mkOp(Kind::SET_MINUS);
-  Term t6 = solver.mkTerm(o5, {t3, t3});
-  Op o7 = solver.mkOp(Kind::SET_IS_SINGLETON);
-  Term t8 = solver.mkTerm(o7, {t6});
+  Op o5 = tm.mkOp(Kind::SET_MINUS);
+  Term t6 = tm.mkTerm(o5, {t3, t3});
+  Op o7 = tm.mkOp(Kind::SET_IS_SINGLETON);
+  Term t8 = tm.mkTerm(o7, {t6});
   Sort s9 = t8.getSort();
   Term t10 = solver.getInterpolant(t8);
 

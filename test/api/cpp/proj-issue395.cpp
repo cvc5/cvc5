@@ -22,9 +22,9 @@ using namespace cvc5;
 
 int main(void)
 {
-  Solver slv;
-  Sort s1 = slv.getBooleanSort();
-  Sort s2 = slv.getIntegerSort();
-  Sort s5 = slv.mkFunctionSort({s2}, s1);
+  TermManager tm;
+  Sort s1 = tm.getBooleanSort();
+  Sort s2 = tm.getIntegerSort();
+  Sort s5 = tm.mkFunctionSort({s2}, s1);
   (void) s5.substitute({s1}, {s1});
 }

@@ -25,9 +25,10 @@
 using namespace cvc5;
 using namespace std;
 
-int main() {
-  Solver slv;
-  Result r = slv.checkSatAssuming(slv.mkBoolean(false));
+int main()
+{
+  TermManager tm;
+  Solver slv(tm);
+  Result r = slv.checkSatAssuming(tm.mkBoolean(false));
   return r.isUnsat() ? 0 : 1;
 }
-
