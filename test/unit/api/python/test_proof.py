@@ -18,6 +18,7 @@
 import pytest
 import cvc5
 from cvc5 import Kind
+from cvc5 import ProofRule
 
 
 @pytest.fixture
@@ -26,7 +27,7 @@ def solver():
 
 
 def create_proof(solver):
-    solver.setOption("produce-proofs", "true");
+    solver.setOption("produce-proofs", "true")
 
     uSort = solver.mkUninterpretedSort("u")
     intSort = solver.getIntegerSort()
@@ -55,10 +56,19 @@ def create_proof(solver):
     return solver.getProof()[0]
 
 
-def test_get_result(solver):
+def test_null_proof(solver):
+  proof = cvc5.Proof(solver)
+  assert proof.getRule() == ProofRule.UNKNOWN
+  assert hash(ProofRule.UNKNOWN) == hash(ProofRule.UNKNOWN)
+  assert proof.getResult().isNull()
+  assert len(proof.getChildren()) == 0
+  assert len(proof.getArguments()) == 0
+
+
+def test_get_rule(solver):
     proof = create_proof(solver)
     rule = proof.getRule()
-    assert rule == "SCOPE"
+    assert rule == ProofRule.SCOPE
 
 
 def test_get_result(solver):
@@ -75,3 +85,18 @@ def test_get_children(solver):
 def test_get_arguments(solver):
     proof = create_proof(solver)
     proof.getArguments()
+
+
+def test_eq(solver):
+    x = create_proof(solver)
+    y = x.getChildren()[0]
+    z = cvc5.Proof(solver)
+
+    assert x == x
+    assert not x != x
+    assert not x == y
+    assert x != y
+    assert not (x == z)
+    assert x != z
+
+    assert hash(x) == hash(x)
