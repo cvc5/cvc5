@@ -590,6 +590,27 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(DIVISION),
   /**
+   * Real division, division by 0 defined to be 0, left associative.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of Sort Real
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   */
+  EVALUE(DIVISION_TOTAL),
+  /**
    * Integer division, division by 0 undefined, left associative.
    *
    * - Arity: ``n > 1``
@@ -606,6 +627,27 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_DIVISION),
+  /**
+   * Integer division, division by 0 defined to be 0, left associative.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   */
+  EVALUE(INTS_DIVISION_TOTAL),
   /**
    * Integer modulus, modulus by 0 undefined.
    *
@@ -624,6 +666,28 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_MODULUS),
+  /**
+   * Integer modulus, modulus by 0 defined to be 0.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of Sort Int
+   *   - ``2:`` Term of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   */
+  EVALUE(INTS_MODULUS_TOTAL),
   /**
    * Absolute value.
    *
