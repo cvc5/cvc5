@@ -22,17 +22,18 @@ using namespace cvc5;
 
 int main(void)
 {
-  Solver slv;
+  TermManager tm;
+  Solver slv(tm);
   slv.setLogic("QF_ALL");
-  Sort s1 = slv.mkBitVectorSort(4);
-  Sort s4 = slv.getRealSort();
-  Sort s5 = slv.mkSequenceSort(s1);
-  Term t8 = slv.mkConst(s5, "_x49");
-  Term t10 = slv.mkConst(s4, "_x51");
-  Term t65 = slv.mkTerm(Kind::SEQ_REV, {t8});
-  Term t69 = slv.mkTerm(Kind::TANGENT, {t10});
-  Term t77 = slv.mkTerm(Kind::LEQ, {t69, t10});
-  Term t128 = slv.mkTerm(Kind::SEQ_PREFIX, {t65, t8});
+  Sort s1 = tm.mkBitVectorSort(4);
+  Sort s4 = tm.getRealSort();
+  Sort s5 = tm.mkSequenceSort(s1);
+  Term t8 = tm.mkConst(s5, "_x49");
+  Term t10 = tm.mkConst(s4, "_x51");
+  Term t65 = tm.mkTerm(Kind::SEQ_REV, {t8});
+  Term t69 = tm.mkTerm(Kind::TANGENT, {t10});
+  Term t77 = tm.mkTerm(Kind::LEQ, {t69, t10});
+  Term t128 = tm.mkTerm(Kind::SEQ_PREFIX, {t65, t8});
   slv.assertFormula({t77});
   slv.checkSatAssuming(t128.notTerm());
 }

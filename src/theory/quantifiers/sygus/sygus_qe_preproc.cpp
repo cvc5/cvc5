@@ -35,7 +35,7 @@ Node SygusQePreproc::preprocess(Node q)
   {
     body = body[0][1];
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                      << std::endl;

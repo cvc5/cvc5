@@ -217,7 +217,7 @@ void SygusReconstruct::main(Node sol,
 
 void SygusReconstruct::fast(Node sol, TypeNode stn, int8_t& reconstructed)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Assert(stn.isDatatype());
   Assert(stn.getDType().isSygus());
@@ -559,7 +559,7 @@ Node SygusReconstruct::mkGround(Node n) const
   std::unordered_map<TNode, TNode> subs;
 
   // generate a ground value for each one of those variables
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const TNode& var : vars)
   {
     subs.emplace(var, nm->mkGroundValue(var.getType()));
@@ -586,7 +586,7 @@ Node SygusReconstruct::postConvert(Node n)
   {
     if (n.getNumChildren() > 2)
     {
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node np = n[0];
       for (size_t i = 1, num = n.getNumChildren(); i < num; ++i)
       {

@@ -270,7 +270,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   Instantiate* inst = d_qim.getInstantiate();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
   SygusExplain syexplain(d_env, db);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   options::SygusInstMode mode = options().quantifiers.sygusInstMode;
 
   for (const Node& q : d_active_quant)
@@ -498,7 +498,7 @@ Node SygusInst::getCeLiteral(Node q)
     return it->second;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node sk = sm->mkDummySkolem("CeLiteral", nm->booleanType());
   Node lit = d_qstate.getValuation().ensureLiteral(sk);
@@ -516,7 +516,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   Trace("sygus-inst") << "Register CE Lemma for " << q << std::endl;
 
   /* Generate counterexample lemma for 'q'. */
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
 

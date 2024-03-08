@@ -47,7 +47,7 @@ ArraySolver::ArraySolver(Env& env,
       d_coreSolver(env, s, im, tr, cs, es, extt),
       d_eqProc(context())
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_zero = nm->mkConstInt(Rational(0));
 }
 
@@ -152,7 +152,7 @@ void ArraySolver::checkTerms(const std::vector<Node>& terms)
 
 void ArraySolver::checkTerm(Node t, bool checkInv)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind k = t.getKind();
   Node r = d_state.getRepresentative(t[0]);
   Node rself;

@@ -18,13 +18,14 @@
 using namespace cvc5;
 int main(void)
 {
-  Solver solver;
+  TermManager tm;
+  Solver solver(tm);
   solver.setOption("incremental", "false");
   solver.setOption("produce-interpolants", "true");
   solver.setOption("interpolants-mode", "assumptions");
-  Sort s0 = solver.getBooleanSort();
-  Term t1 = solver.mkConst(s0, "_x1");
-  Term t2 = solver.mkBoolean(false);
+  Sort s0 = tm.getBooleanSort();
+  Term t1 = tm.mkConst(s0, "_x1");
+  Term t2 = tm.mkBoolean(false);
   solver.assertFormula(t1);
   solver.assertFormula(t1);
   Term t3 = solver.getInterpolant(t2);

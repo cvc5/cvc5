@@ -530,6 +530,8 @@ class CVC5_EXPORT ParserState
  protected:
   /** The API Solver object. */
   Solver* d_solver;
+  /** The term manager associated to the associated solver instance. */
+  TermManager& d_tm;
 
  private:
   /** The callback */

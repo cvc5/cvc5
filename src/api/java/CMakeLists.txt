@@ -173,12 +173,12 @@ message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")
 message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
-add_library(cvc5jni
+set(jni_files
   jni/api_utilities.cpp
   jni/datatype.cpp
   jni/command.cpp
   jni/datatype_constructor_decl.cpp
-  jni/datatype_constructor.cpp  
+  jni/datatype_constructor.cpp
   jni/datatype_decl.cpp
   jni/datatype_selector.cpp
   jni/grammar.cpp
@@ -195,6 +195,14 @@ add_library(cvc5jni
   jni/synth_result.cpp
   jni/term.cpp)
 
+# suppress deprecated warnings to not error in CI
+foreach(f ${jni_files})
+set_source_files_properties(${f}
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+endforeach()
+
+add_library(cvc5jni ${jni_files})
 add_dependencies(cvc5jni generate-jni-headers)
 
 target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})

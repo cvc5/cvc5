@@ -33,7 +33,7 @@ BvEagerAtoms::BvEagerAtoms(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BvEagerAtoms::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     TNode atom = (*assertionsToPreprocess)[i];
