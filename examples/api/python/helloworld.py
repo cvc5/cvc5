@@ -18,6 +18,7 @@ import cvc5
 from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
-    helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!")
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
+    helloworld = tm.mkConst(tm.getBooleanSort(), "Hello World!")
     print(helloworld, "is", slv.checkSatAssuming(helloworld))

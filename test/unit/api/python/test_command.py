@@ -17,8 +17,11 @@ import cvc5
 from cvc5 import InputParser, SymbolManager
 
 @pytest.fixture
-def solver():
-    return cvc5.Solver()
+def tm():
+    return cvc5.TermManager()
+@pytest.fixture
+def solver(tm):
+    return cvc5.Solver(tm)
 
 def parse_command(solver, sm, cmd_str):
     parser = InputParser(solver, sm)

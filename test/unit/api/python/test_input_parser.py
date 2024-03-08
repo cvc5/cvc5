@@ -22,8 +22,11 @@ def does_not_raise():
     yield
 
 @pytest.fixture
-def solver():
-    return cvc5.Solver()
+def tm():
+    return cvc5.TermManager()
+@pytest.fixture
+def solver(tm):
+    return cvc5.Solver(tm)
 
 def test_get_solver(solver):
     p = InputParser(solver)

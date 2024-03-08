@@ -17,6 +17,7 @@
 import cvc5
 
 if __name__ == "__main__":
+    tm = cvc5.TermManager()
     slv = cvc5.Solver()
 
     # set that we should print success after each successful command
@@ -34,7 +35,7 @@ if __name__ == "__main__":
         (assert (< a b))
         (assert (> c 0))
     """
-    
+
     parser.setStringInput(cvc5.InputLanguage.SMT_LIB_2_6, input, "MyInput")
 
     # get the symbol manager of the parser, used when invoking commands below

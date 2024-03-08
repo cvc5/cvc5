@@ -18,20 +18,21 @@
 import cvc5
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
 
     sm = cvc5.SymbolManager(slv)
 
     # construct an input parser associated the solver above
     parser = cvc5.InputParser(slv, sm)
-    
+
     input = """
         (set-logic QF_LIA)
         (declare-fun a () Int)
         (declare-fun b () Int)
         (declare-fun c () Bool)
     """
-    
+
     parser.setStringInput(cvc5.InputLanguage.SMT_LIB_2_6, input, "MyInput")
 
     # parse commands until finished
@@ -66,5 +67,5 @@ if __name__ == "__main__":
     while not t.isNull():
         print(f"Parsed term: {t}")
         t = parser2.nextTerm()
-    
+
     print("Finished parsing terms")

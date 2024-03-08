@@ -18,26 +18,27 @@ import cvc5
 from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
     slv.setLogic("QF_NRAT")
 
-    real = slv.getRealSort()
+    real = tm.getRealSort()
 
     # Variables
-    x = slv.mkConst(real, "x")
-    y = slv.mkConst(real, "y")
+    x = tm.mkConst(real, "x")
+    y = tm.mkConst(real, "y")
 
     # Helper terms
-    two = slv.mkReal(2)
-    pi = slv.mkPi()
-    twopi = slv.mkTerm(Kind.MULT, two, pi)
-    ysq = slv.mkTerm(Kind.MULT, y, y)
-    sinx = slv.mkTerm(Kind.SINE, x)
+    two = tm.mkReal(2)
+    pi = tm.mkPi()
+    twopi = tm.mkTerm(Kind.MULT, two, pi)
+    ysq = tm.mkTerm(Kind.MULT, y, y)
+    sinx = tm.mkTerm(Kind.SINE, x)
 
     # Formulas
-    x_gt_pi = slv.mkTerm(Kind.GT, x, pi)
-    x_lt_tpi = slv.mkTerm(Kind.LT, x, twopi)
-    ysq_lt_sinx = slv.mkTerm(Kind.LT, ysq, sinx)
+    x_gt_pi = tm.mkTerm(Kind.GT, x, pi)
+    x_lt_tpi = tm.mkTerm(Kind.LT, x, twopi)
+    ysq_lt_sinx = tm.mkTerm(Kind.LT, ysq, sinx)
     
     slv.assertFormula(x_gt_pi)
     slv.assertFormula(x_lt_tpi)

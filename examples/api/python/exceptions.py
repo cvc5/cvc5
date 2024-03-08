@@ -22,7 +22,8 @@ import sys
 
 
 def main():
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
 
     slv.setOption("produce-models", "true")
 
@@ -35,8 +36,8 @@ def main():
 
     # Creating a term with an invalid type
     try:
-        integer = slv.getIntegerSort()
-        x = slv.mkConst("x", integer)
+        integer = tm.getIntegerSort()
+        x = tm.mkConst("x", integer)
         invalidTerm = em.mkTerm(AND, x, x)
         slv.checkSat(invalidTerm)
         return 1
@@ -45,7 +46,7 @@ def main():
 
     # Asking for a model after unsat result
     try:
-        slv.checkSat(slv.mkBoolean(False))
+        slv.checkSat(tm.mkBoolean(False))
         slv.getModel()
         return 1
     except:

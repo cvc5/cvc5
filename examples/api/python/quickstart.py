@@ -18,9 +18,13 @@ import cvc5
 from cvc5 import Kind
 
 if __name__ == "__main__":
+  # Create a term manager
+  #! [docs-python-quickstart-0 start]
+  tm = cvc5.TermManager()
+  #! [docs-python-quickstart-0 end]
   # Create a solver
   #! [docs-python-quickstart-1 start]
-  solver = cvc5.Solver()
+  solver = cvc5.Solver(tm)
   #! [docs-python-quickstart-1 end]
 
   # We will ask the solver to produce models and unsat cores,
