@@ -283,7 +283,7 @@ class CVC5_EXPORT Result
  * @param r The result to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, const Result& r) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Result& r);
 
 /* -------------------------------------------------------------------------- */
 /* SynthResult                                                                */
@@ -359,7 +359,7 @@ class CVC5_EXPORT SynthResult
  * @param r The result to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, const SynthResult& r) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const SynthResult& r);
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -943,7 +943,7 @@ class CVC5_EXPORT Sort
  * @param s The sort to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, const Sort& s) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Sort& s);
 
 }  // namespace cvc5
 
@@ -1113,7 +1113,7 @@ class CVC5_EXPORT Op
  * @param op  The operator to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, const Op& op) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Op& op);
 
 }  // namespace cvc5
 
@@ -1918,7 +1918,7 @@ class CVC5_EXPORT Term
  * @param t The term to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, const Term& t) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Term& t);
 
 /**
  * Serialize a vector of terms to given stream.
@@ -1926,8 +1926,9 @@ std::ostream& operator<<(std::ostream& out, const Term& t) CVC5_EXPORT;
  * @param vector The vector of terms to be serialized to the given stream.
  * @return The output stream.
  */
+CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const std::vector<Term>& vector) CVC5_EXPORT;
+                         const std::vector<Term>& vector);
 
 /**
  * Serialize a set of terms to the given stream.
@@ -1935,8 +1936,9 @@ std::ostream& operator<<(std::ostream& out,
  * @param set The set of terms to be serialized to the given stream.
  * @return The output stream.
  */
+CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const std::set<Term>& set) CVC5_EXPORT;
+                         const std::set<Term>& set);
 
 /**
  * Serialize an unordered_set of terms to the given stream.
@@ -1945,9 +1947,9 @@ std::ostream& operator<<(std::ostream& out,
  * @param unordered_set The set of terms to be serialized to the given stream.
  * @return The output stream.
  */
+CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const std::unordered_set<Term>& unordered_set)
-    CVC5_EXPORT;
+                         const std::unordered_set<Term>& unordered_set);
 
 /**
  * Serialize a map of terms to the given stream.
@@ -1957,8 +1959,9 @@ std::ostream& operator<<(std::ostream& out,
  * @return The output stream.
  */
 template <typename V>
+CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const std::map<Term, V>& map) CVC5_EXPORT;
+                         const std::map<Term, V>& map);
 
 /**
  * Serialize an unordered_map of terms to the given stream.
@@ -1967,10 +1970,9 @@ std::ostream& operator<<(std::ostream& out,
  * @param unordered_map The map of terms to be serialized to the given stream.
  * @return The output stream.
  */
-template <typename V>
+template <typename V> CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const std::unordered_map<Term, V>& unordered_map)
-    CVC5_EXPORT;
+                         const std::unordered_map<Term, V>& unordered_map);
 
 }  // namespace cvc5
 
@@ -2859,8 +2861,9 @@ class CVC5_EXPORT Datatype
  * @param dtdecl The datatype declaration to be serialized to the given stream.
  * @return The output stream.
  */
+CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeDecl& dtdecl) CVC5_EXPORT;
+                         const DatatypeDecl& dtdecl);
 
 /**
  * Serialize a datatype constructor declaration to given stream.
@@ -2868,8 +2871,9 @@ std::ostream& operator<<(std::ostream& out,
  * @param ctordecl The datatype constructor declaration to be serialized.
  * @return The output stream.
  */
+CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeConstructorDecl& ctordecl) CVC5_EXPORT;
+                         const DatatypeConstructorDecl& ctordecl);
 
 /**
  * Serialize a vector of datatype constructor declarations to given stream.
@@ -2878,9 +2882,9 @@ std::ostream& operator<<(std::ostream& out,
  * serialized to the given stream
  * @return The output stream.
  */
+CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const std::vector<DatatypeConstructorDecl>& vector)
-    CVC5_EXPORT;
+                         const std::vector<DatatypeConstructorDecl>& vector);
 
 /**
  * Serialize a datatype to given stream.
@@ -2888,7 +2892,7 @@ std::ostream& operator<<(std::ostream& out,
  * @param dtype The datatype to be serialized to given stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Datatype& dtype);
 
 /**
  * Serialize a datatype constructor to given stream.
@@ -2896,8 +2900,9 @@ std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC5_EXPORT;
  * @param ctor The datatype constructor to be serialized to given stream.
  * @return The output stream.
  */
+CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeConstructor& ctor) CVC5_EXPORT;
+                         const DatatypeConstructor& ctor);
 
 /**
  * Serialize a datatype selector to given stream.
@@ -2905,8 +2910,9 @@ std::ostream& operator<<(std::ostream& out,
  * @param stor The datatype selector to be serialized to given stream.
  * @return The output stream.
  */
+CVC5_EXPORT
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeSelector& stor) CVC5_EXPORT;
+                         const DatatypeSelector& stor);
 
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
@@ -2993,7 +2999,7 @@ class CVC5_EXPORT Grammar
  * @param g The grammar to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Grammar& g);
 
 /* -------------------------------------------------------------------------- */
 /* Options                                                                    */
@@ -3163,7 +3169,7 @@ struct CVC5_EXPORT OptionInfo
 /**
  * Print an `OptionInfo` object to an ``std::ostream``.
  */
-std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const OptionInfo& oi);
 
 /* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
@@ -3189,7 +3195,7 @@ class CVC5_EXPORT Stat
 
  public:
   friend class Statistics;
-  friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
+  CVC5_EXPORT friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
   /** Representation of a histogram: maps names to frequencies. */
   using HistogramData = std::map<std::string, uint64_t>;
   /**
@@ -3269,7 +3275,7 @@ class CVC5_EXPORT Stat
 /**
  * Print a `Stat` object to an ``std::ostream``.
  */
-std::ostream& operator<<(std::ostream& os, const Stat& sv) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& sv);
 
 /**
  * \verbatim embed:rst:leading-asterisk
@@ -3347,8 +3353,8 @@ class CVC5_EXPORT Statistics
   /** Internal data */
   BaseType d_stats;
 };
-std::ostream& operator<<(std::ostream& out,
-                         const Statistics& stats) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out,
+                         const Statistics& stats);
 
 /* -------------------------------------------------------------------------- */
 /* Proof                                                                      */
