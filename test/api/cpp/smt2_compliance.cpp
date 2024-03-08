@@ -29,7 +29,8 @@ void testGetInfo(cvc5::Solver* solver, const char* s);
 
 int main()
 {
-  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>();
+  cvc5::TermManager tm;
+  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>(tm);
   solver->setOption("input-language", "smtlib2");
   solver->setOption("output-language", "smtlib2");
   testGetInfo(solver.get(), ":error-behavior");

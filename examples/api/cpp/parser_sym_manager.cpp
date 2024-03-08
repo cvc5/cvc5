@@ -24,7 +24,8 @@ using namespace cvc5::parser;
 
 int main()
 {
-  Solver slv;
+  TermManager tm;
+  Solver slv(tm);
 
   SymbolManager sm(&slv);
 
