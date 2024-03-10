@@ -170,10 +170,6 @@
 
 ; -- Simplify Bitblasting --
 
-; Unused
-; -a1 - a2 - ... - an + ak + ..  ==> - (a1 + a2 + ... + an) + ak
-;(define-rule bv-bb-add-neg )
-
 ; x < y + 1 <=> (not y < x) and y != 1...1
 (define-cond-rule bv-ult-add-one
   ((x ?BitVec) (y ?BitVec) (c1 ?BitVec))
