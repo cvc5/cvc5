@@ -184,7 +184,6 @@
   (concat (extract i n0 x) (@bv n0 m))
   (bvmul x (bvshl (@bv 1 (@bvsize x)) (@bv m (@bvsize x)))))
 
-; Currently bugged due to not being able to match n.
 (define-rule bv-mult-slt-mult-1
   ((x ?BitVec) (t ?BitVec) (a ?BitVec) (n Int) (m Int))
   (def
