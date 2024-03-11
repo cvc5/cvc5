@@ -57,7 +57,7 @@ namespace sets {
  * This variant of the procedure takes inspiration from the procedure
  * for word equations in Liang et al, CAV 2014. In that procedure, "normal
  * forms" are generated for String terms by recursively expanding
- * concatentations modulo equality. This procedure similarly maintains
+ * concatenations modulo equality. This procedure similarly maintains
  * normal forms, where the normal form for Set terms is a set of (equivalence
  * class representatives of) Venn regions that do not contain the empty set.
  */

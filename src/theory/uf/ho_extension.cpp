@@ -83,7 +83,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   {
     // Say (lambda ((x Int)) t[x]) occurs in the input. We replace this
     // by k during ppRewrite. In the following, if we see (k s), we replace
-    // it by t[s]. This maintains the invariant that the *only* occurences
+    // it by t[s]. This maintains the invariant that the *only* occurrences
     // of k are as arguments to other functions; k is not applied
     // in any preprocessed constraints.
     if (options().uf.ufHoLazyLambdaLift)

@@ -227,7 +227,7 @@ class TermRegistry : protected EnvObj
   Node mkNConcat(Node n1, Node n2, Node n3) const;
 
   /**
-   * Returns the rewritten form of the concatentation from vector c of
+   * Returns the rewritten form of the concatenation from vector c of
    * (string-like) type tn.
    */
   Node mkNConcat(const std::vector<Node>& c, TypeNode tn) const;

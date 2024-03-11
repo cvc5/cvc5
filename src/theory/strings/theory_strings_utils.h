@@ -55,7 +55,7 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj);
 void getConcat(Node n, std::vector<Node>& c);
 
 /**
- * Make the concatentation from vector c of (string-like or regular
+ * Make the concatenation from vector c of (string-like or regular
  * expression) type tn.
  */
 Node mkConcat(const std::vector<Node>& c, TypeNode tn);
@@ -183,9 +183,9 @@ bool isSimpleRegExp(Node r);
  */
 void getRegexpComponents(Node r, std::vector<Node>& result);
 
-/** Print the vector n as a concatentation term on output stream out */
+/** Print the vector n as a concatenation term on output stream out */
 void printConcat(std::ostream& out, std::vector<Node>& n);
-/** Print the vector n as a concatentation term on trace given by c */
+/** Print the vector n as a concatenation term on trace given by c */
 void printConcatTrace(std::vector<Node>& n, const char* c);
 
 /** Is k a string-specific kind? */

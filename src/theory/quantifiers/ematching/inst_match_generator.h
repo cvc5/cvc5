@@ -307,7 +307,7 @@ class InstMatchGenerator : public IMGenerator {
   /** Continue next match
    *
   * This is called during getNextMatch when the current generator in the linked
-  * list succesfully satisfies its matching constraint. This function either
+  * list successfully satisfies its matching constraint. This function either
   * calls getNextMatch of the next element in the linked list, or finalizes the
   * match (calling sendInstantiation(...) if active add is true, or returning a
   * value >0 if active add is false).  Its return value has the same semantics

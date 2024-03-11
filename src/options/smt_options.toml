@@ -31,7 +31,7 @@ name   = "SMT Layer"
   long       = "simplification-bcp"
   type       = "bool"
   default    = "false"
-  help       = "apply Boolean constant propagation as a substituion during simplification"
+  help       = "apply Boolean constant propagation as a substitution during simplification"
 
 [[option]]
   name       = "staticLearning"

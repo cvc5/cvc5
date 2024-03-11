@@ -144,7 +144,7 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
    * assignment. For further detail on this terminology, see Liang et al
    * CAV 2014.
    *
-   * Notice that all constant words are implicitly considered concatentation
+   * Notice that all constant words are implicitly considered concatenation
    * of their characters, e.g. "abc" is treated as "a" ++ "b" ++ "c".
    *
    * At a high level, we build normal forms for equivalence classes bottom-up,
@@ -321,7 +321,7 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
   /**
    * This returns the index of the inference in pinfer that should be processed
    * based on our heuristics. In particular, we favor certain identifiers
-   * before others, as well as considering the position in a concatentation
+   * before others, as well as considering the position in a concatenation
    * term they reference.
    */
   size_t pickInferInfo(const std::vector<CoreInferInfo>& pinfer);

@@ -1411,7 +1411,7 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
 
 bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode >& subs, TNode rhs ) {
   if( TraceIsOn("sg-cconj-debug") ){
-    Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substituion: " << std::endl;
+    Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substitution: " << std::endl;
     for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
       Assert(getRepresentative(it->second) == it->second);
       Trace("sg-cconj-debug") << "  " << it->first << " -> " << it->second << std::endl;
