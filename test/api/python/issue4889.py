@@ -26,6 +26,7 @@ const0 = slv.mkConst(sort_fp32, "_c0")
 const1 = slv.mkConst(sort_fp32, "_c2")
 const2 = slv.mkConst(sort_bool, "_c4")
 ite = slv.mkTerm(Kind.ITE, const2, const1, const0)
+
 rem = slv.mkTerm(Kind.FLOATINGPOINT_REM, ite, const1)
 isnan = slv.mkTerm(Kind.FLOATINGPOINT_IS_NAN, rem)
 slv.checkSatAssuming(isnan)

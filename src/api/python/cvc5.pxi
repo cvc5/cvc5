@@ -2488,7 +2488,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkNullableLift(k, *args)
+        return self.getTermManager().mkOp(k, *args)
 
     def mkTrue(self):
         """
