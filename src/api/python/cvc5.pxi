@@ -2045,7 +2045,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().getBooleanSort()
+        return self.tm.getBooleanSort()
 
     def getIntegerSort(self):
         """
@@ -2054,7 +2054,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().getIntegerSort()
+        return self.tm.getIntegerSort()
 
     def getRealSort(self):
         """
@@ -2063,7 +2063,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().getRealSort()
+        return self.tm.getRealSort()
 
     def getRegExpSort(self):
         """
@@ -2072,7 +2072,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().getRegExpSort()
+        return self.tm.getRegExpSort()
 
     def getRoundingModeSort(self):
         """
@@ -2081,7 +2081,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().getRoundingModeSort()
+        return self.tm.getRoundingModeSort()
 
     def getStringSort(self):
         """
@@ -2089,7 +2089,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().getStringSort()
+        return self.tm.getStringSort()
 
     def mkArraySort(self, Sort indexSort, Sort elemSort):
         """
@@ -2101,7 +2101,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkArraySort(indexSort, elemSort)
+        return self.tm.mkArraySort(indexSort, elemSort)
 
     def mkBitVectorSort(self, uint32_t size):
         """
@@ -2112,7 +2112,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkBitVectorSort(size)
+        return self.tm.mkBitVectorSort(size)
 
     def mkFloatingPointSort(self, uint32_t exp, uint32_t sig):
         """
@@ -2125,7 +2125,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFloatingPointSort(exp, sig)
+        return self.tm.mkFloatingPointSort(exp, sig)
 
     def mkFiniteFieldSort(self, size, int base=10):
         """
@@ -2144,7 +2144,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFiniteFieldSort(size, base)
+        return self.tm.mkFiniteFieldSort(size, base)
 
     def mkDatatypeSort(self, DatatypeDecl dtypedecl):
         """
@@ -2156,7 +2156,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkDatatypeSort(dtypedecl)
+        return self.tm.mkDatatypeSort(dtypedecl)
 
     def mkDatatypeSorts(self, list dtypedecls):
         """
@@ -2173,7 +2173,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkDatatypeSorts(dtypedecls)
+        return self.tm.mkDatatypeSorts(dtypedecls)
 
     def mkFunctionSort(self, sorts, Sort codomain):
         """
@@ -2185,7 +2185,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFunctionSort(sorts, codomain)
+        return self.tm.mkFunctionSort(sorts, codomain)
 
     def mkParamSort(self, str symbolname = None):
         """
@@ -2198,7 +2198,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkParamSort(symbolname)
+        return self.tm.mkParamSort(symbolname)
 
     def mkPredicateSort(self, *sorts):
         """
@@ -2209,7 +2209,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkPredicateSort(sorts)
+        return self.tm.mkPredicateSort(sorts)
 
     def mkRecordSort(self, *fields):
         """
@@ -2226,7 +2226,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkRecordSort(fields)
+        return self.tm.mkRecordSort(fields)
 
     def mkSetSort(self, Sort elemSort):
         """
@@ -2237,7 +2237,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkSetSort(elemSort)
+        return self.tm.mkSetSort(elemSort)
 
     def mkBagSort(self, Sort elemSort):
         """
@@ -2248,7 +2248,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkBagSort(elemSort)
+        return self.tm.mkBagSort(elemSort)
 
     def mkSequenceSort(self, Sort elemSort):
         """
@@ -2259,7 +2259,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkSequenceSort(elemSort)
+        return self.tm.mkSequenceSort(elemSort)
 
     def mkAbstractSort(self, kind):
         """
@@ -2294,7 +2294,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkAbstractSort(kind)
+        return self.tm.mkAbstractSort(kind)
 
     def mkUninterpretedSort(self, str name = None):
         """
@@ -2305,7 +2305,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkUninterpretedSort(name)
+        return self.tm.mkUninterpretedSort(name)
 
     def mkUnresolvedDatatypeSort(self, str name, size_t arity = 0):
         """
@@ -2320,7 +2320,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkUnresolvedDatatypeSort(name, arity)
+        return self.tm.mkUnresolvedDatatypeSort(name, arity)
 
     def mkUninterpretedSortConstructorSort(self, size_t arity, str symbol = None):
         """
@@ -2335,8 +2335,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().\
-          mkUninterpretedSortConstructorSort(arity, symbol)
+        return self.tm.mkUninterpretedSortConstructorSort(arity, symbol)
 
     def mkTupleSort(self, *sorts):
         """
@@ -2347,7 +2346,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkTupleSort(sorts)
+        return self.tm.mkTupleSort(sorts)
 
     def mkNullableSort(self, Sort elemSort):
         """
@@ -2358,7 +2357,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkNullableSort(elemSort)
+        return self.tm.mkNullableSort(elemSort)
 
     def mkTerm(self, kind_or_op, *args):
         """
@@ -2398,7 +2397,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkTuple(terms)
+        return self.tm.mkTuple(terms)
 
     def mkNullableSome(self, Term term):
         """
@@ -2409,7 +2408,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkNullableSome(term)
+        return self.tm.mkNullableSome(term)
 
     def mkNullableVal(self, Term term):
         """
@@ -2420,7 +2419,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkNullableVal(term)
+        return self.tm.mkNullableVal(term)
 
     def mkNullableIsNull(self, Term term):
         """
@@ -2431,7 +2430,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkNullableIsNull(term)
+        return self.tm.mkNullableIsNull(term)
 
     def mkNullableIsSome(self, Term term):
         """
@@ -2442,7 +2441,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkNullableIsSome(term)
+        return self.tm.mkNullableIsSome(term)
 
     def mkNullableNull(self, Sort sort):
         """
@@ -2453,7 +2452,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkNullableNull(sort)
+        return self.tm.mkNullableNull(sort)
 
     def mkNullableLift(self, kind, *args):
         """
@@ -2473,7 +2472,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkNullableLift(kind, *args)
+        return self.tm.mkNullableLift(kind, *args)
 
     def mkOp(self, k, *args):
         """
@@ -2488,7 +2487,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkOp(k, *args)
+        return self.tm.mkOp(k, *args)
 
     def mkTrue(self):
         """
@@ -2498,7 +2497,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkTrue()
+        return self.tm.mkTrue()
 
     def mkFalse(self):
         """
@@ -2508,7 +2507,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFalse()
+        return self.tm.mkFalse()
 
     def mkBoolean(self, bint val):
         """
@@ -2519,7 +2518,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkBoolean(val)
+        return self.tm.mkBoolean(val)
 
     def mkPi(self):
         """
@@ -2529,7 +2528,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkPi()
+        return self.tm.mkPi()
 
     def mkInteger(self, val):
         """
@@ -2541,7 +2540,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkInteger(val)
+        return self.tm.mkInteger(val)
 
     def mkReal(self, numerator, denominator=None):
         """
@@ -2558,7 +2557,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkReal(numerator, denominator)
+        return self.tm.mkReal(numerator, denominator)
 
     def mkRegexpAll(self):
         """
@@ -2568,7 +2567,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkRegexpAll()
+        return self.tm.mkRegexpAll()
 
     def mkRegexpAllchar(self):
         """
@@ -2578,7 +2577,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkRegexpAllchar()
+        return self.tm.mkRegexpAllchar()
 
     def mkRegexpNone(self):
         """
@@ -2588,7 +2587,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkRegexpNone()
+        return self.tm.mkRegexpNone()
 
     def mkEmptySet(self, Sort s):
         """
@@ -2599,7 +2598,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkEmptySet(s)
+        return self.tm.mkEmptySet(s)
 
     def mkEmptyBag(self, Sort s):
         """
@@ -2610,7 +2609,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkEmptyBag(s)
+        return self.tm.mkEmptyBag(s)
 
     def mkSepEmp(self):
         """
@@ -2622,7 +2621,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkSepEmp()
+        return self.tm.mkSepEmp()
 
     def mkSepNil(self, Sort sort):
         """
@@ -2635,7 +2634,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkSepNil(sort)
+        return self.tm.mkSepNil(sort)
 
     def mkString(self, str s, useEscSequences = None):
         """
@@ -2651,7 +2650,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkString(s, useEscSequences)
+        return self.tm.mkString(s, useEscSequences)
 
     def mkEmptySequence(self, Sort sort):
         """
@@ -2662,7 +2661,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkEmptySequence(sort)
+        return self.tm.mkEmptySequence(sort)
 
     def mkUniverseSet(self, Sort sort):
         """
@@ -2673,7 +2672,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkUniverseSet(sort)
+        return self.tm.mkUniverseSet(sort)
 
     def mkBitVector(self, int size, *args):
         """
@@ -2693,7 +2692,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkUniverseSet(size, *args)
+        return self.tm.mkBitVector(size, *args)
 
     def mkFiniteFieldElem(self, value, Sort sort, int base=10):
         """
@@ -2714,7 +2713,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFiniteFieldElem(value, sort, base)
+        return self.tm.mkFiniteFieldElem(value, sort, base)
 
     def mkConstArray(self, Sort sort, Term val):
         """
@@ -2728,7 +2727,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkConstArray(sort, val)
+        return self.tm.mkConstArray(sort, val)
 
     def mkFloatingPointPosInf(self, int exp, int sig):
         """
@@ -2740,7 +2739,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFloatingPointPosInf(exp, sig)
+        return self.tm.mkFloatingPointPosInf(exp, sig)
 
     def mkFloatingPointNegInf(self, int exp, int sig):
         """
@@ -2752,7 +2751,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFloatingPointNegInf(exp, sig)
+        return self.tm.mkFloatingPointNegInf(exp, sig)
 
     def mkFloatingPointNaN(self, int exp, int sig):
         """
@@ -2764,7 +2763,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFloatingPointNaN(exp, sig)
+        return self.tm.mkFloatingPointNaN(exp, sig)
 
     def mkFloatingPointPosZero(self, int exp, int sig):
         """
@@ -2776,7 +2775,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFloatingPointPosZero(exp, sig)
+        return self.tm.mkFloatingPointPosZero(exp, sig)
 
     def mkFloatingPointNegZero(self, int exp, int sig):
         """
@@ -2788,7 +2787,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFloatingPointNegZero(exp, sig)
+        return self.tm.mkFloatingPointNegZero(exp, sig)
 
     def mkRoundingMode(self, rm):
         """
@@ -2799,7 +2798,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkRoundingMode(rm)
+        return self.tm.mkRoundingMode(rm)
 
     def mkFloatingPoint(self, arg0, arg1, Term arg2):
         """
@@ -2818,7 +2817,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkFloatingPoint(arg0, arg1, arg2)
+        return self.tm.mkFloatingPoint(arg0, arg1, arg2)
 
     def mkCardinalityConstraint(self, Sort sort, int index):
         """
@@ -2832,7 +2831,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkCardinalityConstraint(sort, index)
+        return self.tm.mkCardinalityConstraint(sort, index)
 
     def mkConst(self, Sort sort, symbol=None):
         """
@@ -2888,7 +2887,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkDatatypeConstructorDecl(name)
+        return self.tm.mkDatatypeConstructorDecl(name)
 
     def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
         """
@@ -2900,7 +2899,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        return self.getTermManager().mkDatatypeDecl(name, sorts_or_bool, isCoDatatype)
+        return self.tm.mkDatatypeDecl(name, sorts_or_bool, isCoDatatype)
 
     def simplify(self, Term t):
         """
