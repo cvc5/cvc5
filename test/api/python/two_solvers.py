@@ -15,8 +15,9 @@
 
 import cvc5
 
-s1 = cvc5.Solver()
-s2 = cvc5.Solver()
-r1 = s1.checkSatAssuming(s1.mkBoolean(False))
-r2 = s2.checkSatAssuming(s2.mkBoolean(False))
+tm = cvc5.TermManager()
+s1 = cvc5.Solver(tm)
+s2 = cvc5.Solver(tm)
+r1 = s1.checkSatAssuming(tm.mkBoolean(False))
+r2 = s2.checkSatAssuming(tm.mkBoolean(False))
 assert r1.isUnsat() and r2.isUnsat()
