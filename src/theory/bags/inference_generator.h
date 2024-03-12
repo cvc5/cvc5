@@ -230,22 +230,32 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (and
    *   (= (sum 0) 0)
-   *   (= (sum preImageSize) (bag.count e skolem))
-   *   (>= preImageSize 0)
-   *   (forall ((i Int))
-   *          (let ((uf_i (uf i)))
-   *            (let ((bag.count_uf_i (bag.count uf_i A)))
-   *              (=>
-   *               (and (>= i 1) (<= i preImageSize))
-   *               (and
-   *                 (= (f uf_i) e)
-   *                 (>= count_uf_i 1)
-   *                 (= (sum i) (+ (sum (- i 1)) count_uf_i))
-   *                 (forall ((j Int))
-   *                   (or
-   *                     (not (and (< i j) (<= j preImageSize)))
-   *                     (not (= (uf i) (uf j)))) )
-   *                 ))))))
+   *   (= (sum size) (bag.count e skolem))
+   *   (>= size 0)
+   *   (forall
+   *    ((i Int))
+   *    (let ((u_i (u i)))
+   *      (let ((bag.count_u_i (bag.count u_i A)))
+   *        (=>
+   *         (and (>= i 1) (<= i size))
+   *         (and
+   *          (forall ((j Int))
+   *                  (or
+   *                   (not (and (< i j) (<= j size)))
+   *                   (not (= (u i) (u j)))))
+   *          (or
+   *           (and
+   *            (= (f u_i) e)
+   *            (>= count_u_i 1)
+   *            (= (sum i) (+ (sum (- i 1)) count_u_i))
+   *            (forall ((j Int))
+   *                    (or
+   *                     (not (and (< i j) (<= j size)))
+   *                     (not (= (u i) (u j))))))
+   *           (and
+   *            (distinct (f u_i) e)
+   *            (= count_u_i 0)
+   *            (= (sum i) (sum (- i 1)))))))))))
    * where uf: Int -> E is an uninterpreted function from integers to the
    * type of the elements of A
    * preImageSize is the cardinality of the distinct elements in A that are
