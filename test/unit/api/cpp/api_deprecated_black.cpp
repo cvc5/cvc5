@@ -108,6 +108,7 @@ TEST_F(TestApiDeprecated, solver)
   (void)slv.mkTuple({slv.mkBitVector(3, "101", 2)});
   (void)slv.mkNullableSome(slv.mkBitVector(3, "101", 2));
   (void)slv.mkNullableVal(slv.mkNullableSome(slv.mkInteger(5)));
+  (void)slv.mkNullableNull(slv.mkNullableSort(slv.getBooleanSort()));
   (void)slv.mkNullableIsNull(slv.mkNullableSome(slv.mkInteger(5)));
   (void)slv.mkNullableIsSome(slv.mkNullableSome(slv.mkInteger(5)));
   (void)slv.mkNullableSort(slv.getBooleanSort());
