@@ -4,7 +4,8 @@
 ;; The second command line option, other than the default, is to test
 ;; unsat core checking with proofs, which at one point had issues for
 ;; this benchmark due to cycle detection in LazyCDProofChain
-;; defie-fun-rec not yet properly supported in Carcara
+
+;; introduces fresh Skolem in a trusted step
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental false)

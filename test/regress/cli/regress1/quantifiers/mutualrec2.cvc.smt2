@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-;; defie-fun-rec not yet properly supported in Carcara
+;; introduces fresh Skolem in a trusted step
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental false)

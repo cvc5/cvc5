@@ -24,7 +24,7 @@ CARCARA_DIR="$BASE_DIR/carcara"
 mkdir -p $CARCARA_DIR
 
 # download and unpack Carcara
-CARCARA_VERSION="e62ba2244218277c1d05064b184531a8ab49a8e4"
+CARCARA_VERSION="313b3fe112aa84685fee73d884bb67ecfae23f5a"
 download "https://github.com/hanielb/carcara/archive/$CARCARA_VERSION.tar.gz" $BASE_DIR/tmp/carcara.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/carcara.tgz -C $CARCARA_DIR
 
