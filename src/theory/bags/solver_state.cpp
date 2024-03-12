@@ -31,9 +31,9 @@ namespace bags {
 SolverState::SolverState(Env& env, Valuation val)
     : TheoryState(env, val), d_partElementSkolems(env.getUserContext())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
-  d_nm = NodeManager::currentNM();
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
+  d_nm = nodeManager();
 }
 
 void SolverState::registerBag(TNode n)

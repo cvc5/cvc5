@@ -91,7 +91,7 @@ void TheoryFiniteFields::postCheck(Effort level)
 #ifdef CVC5_USE_COCOA
   Trace("ff::check") << "ff::check : " << level << " @ level "
                      << context()->getLevel() << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (auto& subTheory : d_subTheories)
   {
     Result r = subTheory.second.postCheck(level);

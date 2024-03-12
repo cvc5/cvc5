@@ -478,7 +478,7 @@ int SygusSampler::getDiffSamplePointIndex(Node a, Node b)
 
 Node SygusSampler::getRandomValue(TypeNode tn)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (tn.isBoolean())
   {
     return nm->mkConst(Random::getRandom().pickWithProb(0.5));

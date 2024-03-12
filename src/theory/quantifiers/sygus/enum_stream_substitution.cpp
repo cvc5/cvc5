@@ -50,7 +50,7 @@ void EnumStreamPermutation::reset(Node value)
   // get variables in value's type
   TypeNode tn = value.getType();
   Node var_list = tn.getDType().getSygusVarList();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // get subfield types in value's type
   SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   std::vector<TypeNode> sf_types;
@@ -339,7 +339,7 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
   // get variables in value's type
   Node var_list = tn.getDType().getSygusVarList();
   // get subfield types in value's type
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   std::vector<TypeNode> sf_types;
   ti.getSubfieldTypes(sf_types);

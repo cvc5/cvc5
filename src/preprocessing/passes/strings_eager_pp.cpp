@@ -31,7 +31,7 @@ StringsEagerPp::StringsEagerPp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult StringsEagerPp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   theory::strings::SkolemCache skc(nullptr);
   theory::strings::StringsPreprocess pp(d_env, &skc);
   for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;

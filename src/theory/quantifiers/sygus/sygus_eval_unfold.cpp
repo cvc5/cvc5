@@ -85,7 +85,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
   {
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SygusExplain* sy_exp = d_tds->getExplain();
   Trace("sygus-eval-unfold")
       << "SygusEvalUnfold: " << a << ", has " << its->second.size()
@@ -258,7 +258,7 @@ Node SygusEvalUnfold::unfold(Node en,
   }
 
   TypeNode headType = en[0].getType();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const DType& dt = headType.getDType();
   unsigned i = datatypes::utils::indexOf(ev.getOperator());
   if (track_exp)

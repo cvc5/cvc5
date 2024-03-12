@@ -47,8 +47,8 @@ SatProofManager::SatProofManager(Env& env,
       d_optResManager(userContext(), &d_resChains, d_optResProofs),
       d_optClausesManager(userContext(), ppm->getCnfProof(), d_optClausesPfs)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
   d_optResManager.trackNodeHashSet(&d_assumptions, &d_assumptionLevels);
   // temporary, to allow this class to be notified when new clauses are added
   // see https://github.com/cvc5/cvc5-wishues/issues/149
@@ -74,7 +74,7 @@ Node SatProofManager::getClauseNode(const Minisat::Clause& clause)
   }
   // order children by node id
   std::sort(clauseNodes.begin(), clauseNodes.end());
-  return NodeManager::currentNM()->mkNode(Kind::OR, clauseNodes);
+  return nodeManager()->mkNode(Kind::OR, clauseNodes);
 }
 
 void SatProofManager::startResChain(const Minisat::Clause& start)
@@ -893,7 +893,7 @@ Node SatProofManager::getClauseNode(const SatClause& clause)
   }
   // order children by node id
   std::sort(clauseNodes.begin(), clauseNodes.end());
-  return NodeManager::currentNM()->mkNode(Kind::OR, clauseNodes);
+  return nodeManager()->mkNode(Kind::OR, clauseNodes);
 }
 
 }  // namespace prop

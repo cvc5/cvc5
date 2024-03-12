@@ -43,10 +43,10 @@ BagSolver::BagSolver(Env& env,
       d_termReg(tr),
       d_mapCache(userContext())
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
+  d_one = nodeManager()->mkConstInt(Rational(1));
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 BagSolver::~BagSolver() {}
@@ -202,7 +202,7 @@ bool BagSolver::checkBagMake()
   for (const Node& bag : d_state.getBags())
   {
     TypeNode bagType = bag.getType();
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node empty = nm->mkConst(EmptyBag(bagType));
     if (d_state.areEqual(empty, bag) || d_state.areDisequal(empty, bag))
     {

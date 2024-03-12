@@ -86,7 +86,7 @@ void SygusTemplateInfer::initialize(Node q)
     return;
   }
   Assert(prog == q[0][0]);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   // map the program back via non-single invocation map
   std::vector<Node> prog_templ_vars;

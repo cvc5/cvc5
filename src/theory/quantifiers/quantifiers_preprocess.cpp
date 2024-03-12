@@ -42,7 +42,7 @@ Node QuantifiersPreprocess::computePrenexAgg(
     // trivial
     return n;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node ret = n;
   if (n.getKind() == Kind::NOT)
   {
@@ -140,7 +140,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
   {
     return it->second;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("pre-sk") << "Pre-skolem " << n << " " << polarity << " " << fvs.size()
                   << std::endl;
   if (n.getKind() == Kind::FORALL)

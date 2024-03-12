@@ -129,7 +129,7 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::vector<Node>& foundQueries)
     }
   }
   // for each new index, we may have a new conjunctive query
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const unsigned& i : indices)
   {
     std::vector<Node>& qsi = d_ptToQueries[i];

@@ -70,7 +70,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       expv.push_back(exp);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   bool success = false;
   switch (infer)
   {

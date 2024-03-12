@@ -41,8 +41,8 @@ namespace smt {
 TimeoutCoreManager::TimeoutCoreManager(Env& env)
     : EnvObj(env), d_numAssertsNsk(0)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(

@@ -59,7 +59,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::vector<Node>& filtered)
     return true;
   }
   Node basen = d_isStrong ? n : n.negate();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // Do i subsume the disjunction of all previous solutions? If so, we discard
   // this immediately
   Node curr;

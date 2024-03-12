@@ -209,7 +209,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
   {
     std::vector<Node> pfArgs;
     pfArgs.push_back(ret);
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     pfArgs.push_back(nm->mkNode(Kind::SEXPR, vars));
     pfArgs.push_back(nm->mkNode(Kind::SEXPR, subs));
     CDProof cdp(d_env);

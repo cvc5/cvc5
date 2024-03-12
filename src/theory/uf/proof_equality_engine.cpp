@@ -41,7 +41,7 @@ ProofEqEngine::ProofEqEngine(Env& env, EqualityEngine& ee)
               "pfee::LazyCDProof::" + ee.identify()),
       d_keep(env.getContext())
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   AlwaysAssert(env.getProofNodeManager() != nullptr)
@@ -77,7 +77,7 @@ bool ProofEqEngine::assertFact(Node lit,
   // add lazy step to proof
   d_proof.addLazyStep(lit, &d_factPg);
   // second, assert it to the equality engine
-  Node reason = NodeManager::currentNM()->mkAnd(exp);
+  Node reason = nodeManager()->mkAnd(exp);
   return assertFactInternal(atom, polarity, reason);
 }
 
@@ -329,7 +329,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   Trace("pfee-proof") << std::endl;
   Trace("pfee-proof") << "pfee::ensureProofForFact: input " << conc << " via "
                       << assumps << ", TrustNodeKind=" << tnk << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // The proof
   std::shared_ptr<ProofNode> pf;
   ProofGenerator* pfg = nullptr;

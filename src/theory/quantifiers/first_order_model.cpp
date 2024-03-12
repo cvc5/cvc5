@@ -335,7 +335,7 @@ Node FirstOrderModel::getModelBasisOpTerm(Node op)
     else
     {
       d_model_basis_op_term[op] =
-          NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
+          nodeManager()->mkNode(Kind::APPLY_UF, children);
     }
   }
   return d_model_basis_op_term[op];

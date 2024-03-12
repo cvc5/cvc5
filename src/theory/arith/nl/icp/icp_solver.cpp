@@ -258,7 +258,7 @@ PropagationResult ICPSolver::doPropagationRound()
 
 std::vector<Node> ICPSolver::generateLemmas() const
 {
-  auto nm = NodeManager::currentNM();
+  auto nm = nodeManager();
   std::vector<Node> lemmas;
 
   for (const auto& vars : d_mapper.mVarCVCpoly)
@@ -353,7 +353,7 @@ void ICPSolver::check()
         {
           mis.emplace_back(n.negate());
         }
-        d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
+        d_im.addPendingLemma(nodeManager()->mkOr(mis),
                              InferenceId::ARITH_NL_ICP_CONFLICT);
         return;
     }

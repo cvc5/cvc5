@@ -67,7 +67,7 @@ Result SubTheory::postCheck(Theory::Effort e)
       auto result = split(facts, size());
       if (result.has_value())
       {
-        const auto nm = NodeManager::currentNM();
+        const auto nm = nodeManager();
         for (const auto& [var, val] : result.value())
         {
           d_model.insert({var, nm->mkConst<FiniteFieldValue>(val)});
@@ -155,7 +155,7 @@ Result SubTheory::postCheck(Theory::Effort e)
         {
           // SAT: populate d_model from the root
           Assert(d_model.empty());
-          const auto nm = NodeManager::currentNM();
+          const auto nm = nodeManager();
           for (const auto& [idx, node] : enc.nodeIndets())
           {
             if (isFfLeaf(node))

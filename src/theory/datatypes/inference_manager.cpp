@@ -36,7 +36,7 @@ InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
                   env, userContext(), "datatypes::lemPg")
                                : nullptr)
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
 }
 
 InferenceManager::~InferenceManager()
@@ -93,7 +93,7 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId
 {
   if (isProofEnabled())
   {
-    Node exp = NodeManager::currentNM()->mkAnd(conf);
+    Node exp = nodeManager()->mkAnd(conf);
     prepareDtInference(d_false, exp, id, d_ipc.get());
   }
   conflictExp(id, conf, d_ipc.get());
@@ -112,7 +112,7 @@ TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
   Node lem;
   if (!exp.isNull() && !exp.isConst())
   {
-    lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, conc);
+    lem = nodeManager()->mkNode(Kind::IMPLIES, exp, conc);
   }
   else
   {

@@ -40,7 +40,7 @@ TangentPlaneCheck::TangentPlaneCheck(Env& env, ExtState* data)
 void TangentPlaneCheck::check(bool asWaitingLemmas)
 {
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const std::map<Node, std::vector<Node> >& ccMap =
       d_data->d_mdb.getContainsChildrenMap();
   unsigned kstart = d_data->d_ms_vars.size();

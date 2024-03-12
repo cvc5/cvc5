@@ -36,7 +36,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    modes::BlockModelsMode mode,
                                    const std::vector<Node>& exprToBlock)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // convert to nodes
   std::vector<Node> tlAsserts = assertions;
   std::vector<Node> nodesToBlock = exprToBlock;

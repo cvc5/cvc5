@@ -258,7 +258,7 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
 
 bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind k = tf.getKind();
   // this should only be run on purified applications
   Assert(d_tstate.isPurified(tf));

@@ -51,7 +51,7 @@ void DifficultyManager::notifyInputAssertions(
 void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap,
                                          bool includeLemmas)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const std::pair<const Node, uint64_t> p : d_dfmap)
   {
     if (!includeLemmas)

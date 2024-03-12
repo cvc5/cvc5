@@ -55,7 +55,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     if (in[0].isVar())
     {
       outSubstitutions.addSubstitutionSolved(
-          in[0], NodeManager::currentNM()->mkConst<bool>(false), tin);
+          in[0], nodeManager()->mkConst<bool>(false), tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
     else if (in[0].getKind() == Kind::EQUAL && in[0][0].getType().isBoolean())
@@ -76,7 +76,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
   else if (in.isVar())
   {
     outSubstitutions.addSubstitutionSolved(
-        in, NodeManager::currentNM()->mkConst<bool>(true), tin);
+        in, nodeManager()->mkConst<bool>(true), tin);
     return PP_ASSERT_STATUS_SOLVED;
   }
 

@@ -276,7 +276,7 @@ Node TrustSubstitutionMap::getSubstitution(size_t index)
     csubsChildren.push_back(d_tsubs[i].getProven());
   }
   std::reverse(csubsChildren.begin(), csubsChildren.end());
-  Node cs = NodeManager::currentNM()->mkAnd(csubsChildren);
+  Node cs = nodeManager()->mkAnd(csubsChildren);
   if (cs.getKind() == Kind::AND)
   {
     d_subsPg->addStep(cs, ProofRule::AND_INTRO, csubsChildren, {});

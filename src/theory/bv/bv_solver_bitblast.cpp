@@ -162,7 +162,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     d_resetNotify->reset();
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   /* Process input assertions bit-blast queue. */
   while (!d_bbInputFacts.empty())
@@ -313,7 +313,7 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
   // Boolean variables in the CNF stream.
   if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     std::vector<TNode> vars;
     d_cnfStream->getBooleanVariables(vars);
     for (TNode var : vars)

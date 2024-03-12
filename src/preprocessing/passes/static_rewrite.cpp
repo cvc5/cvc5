@@ -52,7 +52,7 @@ PreprocessingPassResult StaticRewrite::applyInternal(
 
 TrustNode StaticRewrite::rewriteAssertion(TNode n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node> rewrittenTo;

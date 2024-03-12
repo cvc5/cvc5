@@ -234,7 +234,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       std::pair<Node, uint32_t>,
       Node,
       PairHashFunction<Node, uint32_t, std::hash<Node>>>::iterator itw;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TCtxStack ctx(&d_rtfc);
   std::vector<bool> processedChildren;
   ctx.pushInitial(assertion);

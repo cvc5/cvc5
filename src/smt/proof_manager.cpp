@@ -109,7 +109,7 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
     d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
 }
 
 PfManager::~PfManager() {}
@@ -318,7 +318,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
   CDProof cdp(d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
+  Node fnode = nodeManager()->mkConst(false);
   cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   Trace("difficulty-proc") << "Get final proof" << std::endl;

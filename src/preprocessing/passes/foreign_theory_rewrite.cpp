@@ -110,7 +110,7 @@ Node ForeignTheoryRewriter::rewriteStringsGeq(Node n)
   // check if the node can be simplified to true
   if (ae.check(n[0], n[1], false))
   {
-    return NodeManager::currentNM()->mkConst(true);
+    return nodeManager()->mkConst(true);
   }
   return n;
 }

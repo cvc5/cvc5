@@ -27,8 +27,8 @@ namespace quantifiers {
 
 QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
   d_subOptions.copyValues(d_env.getOptions());
@@ -57,7 +57,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::vector<Node>& queries)
   activeTerms.push_back(n);
   bool addSuccess = true;
   size_t checkCount = 0;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   while (checkCount < 10)
   {
     // if we just successfully added a term, do a satisfiability check

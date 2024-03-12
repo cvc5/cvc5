@@ -127,7 +127,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = nodeManager()->getSkolemManager();
   Node n = sm->mkDummySkolem(
       "unconstrained",
       t,
@@ -138,7 +138,7 @@ Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 
 void UnconstrainedSimplifier::processUnconstrained()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   vector<TNode> workList(d_unconstrained.begin(), d_unconstrained.end());
   Node currentSub;

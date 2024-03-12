@@ -54,7 +54,7 @@ Node TermRegistry::getProxy(Node n)
   {
     return (*it).second;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node k = d_skCache.mkTypedSkolemCached(
       n.getType(), n, SkolemCache::SK_PURIFY, "sp");
 
@@ -77,7 +77,7 @@ Node TermRegistry::getEmptySet(TypeNode tn)
   {
     return it->second;
   }
-  Node n = NodeManager::currentNM()->mkConst(EmptySet(tn));
+  Node n = nodeManager()->mkConst(EmptySet(tn));
   d_emptyset[tn] = n;
   return n;
 }
@@ -89,7 +89,7 @@ Node TermRegistry::getUnivSet(TypeNode tn)
   {
     return it->second;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node n = nm->mkNullaryOperator(tn, Kind::SET_UNIVERSE);
   d_univset[tn] = n;
   return n;

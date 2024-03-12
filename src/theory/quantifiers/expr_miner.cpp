@@ -39,7 +39,7 @@ Node ExprMiner::convertToSkolem(Node n)
 {
   if (d_skolems.empty())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     for (const Node& v : d_vars)
     {

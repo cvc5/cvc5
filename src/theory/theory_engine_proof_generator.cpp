@@ -28,7 +28,7 @@ TheoryEngineProofGenerator::TheoryEngineProofGenerator(Env& env,
                                                        context::Context* c)
     : EnvObj(env), d_proofs(c)
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
 }
 
 TrustNode TheoryEngineProofGenerator::mkTrustExplain(

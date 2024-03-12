@@ -188,7 +188,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       {
         premises.push_back(pncc->getResult());
       }
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), conc);
       if (isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
       {

@@ -59,7 +59,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
                                            std::vector<Node>& reqVars,
                                            std::vector<Node>& impliedVars)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node truen = nm->mkConst(true);
   if (!findInternal(t, truen, vars, subs, reqVars))
   {

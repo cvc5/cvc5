@@ -358,8 +358,7 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
           Node c_eq_0 = c.eqNode(zero);
           Node b_eq_c = b.eqNode(c);
 
-          Node dis = NodeManager::currentNM()->mkNode(
-              Kind::OR, b_eq_0, c_eq_0, b_eq_c);
+          Node dis = nodeManager()->mkNode(Kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
           learned << imp;
         }

@@ -62,7 +62,7 @@ bool InferenceManager::arrayLemma(
 {
   Trace("arrays-infer") << "TheoryArrays::arrayLemma: " << conc << " by " << exp
                         << "; " << id << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (isProofEnabled())
   {
     std::vector<Node> children;
