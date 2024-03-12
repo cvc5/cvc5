@@ -133,6 +133,7 @@ TEST_F(TestApiBlackUncovered, mkString)
 {
   std::wstring s;
   ASSERT_EQ(d_tm.mkString(s).getStringValue(), s);
+  ASSERT_EQ(d_solver->mkString(s).getStringValue(), s);
 }
 
 TEST_F(TestApiBlackUncovered, hash)

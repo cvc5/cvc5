@@ -126,6 +126,8 @@ TEST_F(TestApiBlackUncovered, termNativeTypes)
   Term t = d_tm.mkInteger(0);
   d_tm.mkReal(0);
   d_tm.mkReal(0, 1);
+  d_solver->mkReal(0);
+  d_solver->mkReal(0, 1);
   t.isInt32Value();
   t.getInt32Value();
   t.isInt64Value();
@@ -158,12 +160,14 @@ TEST_F(TestApiBlackUncovered, checkSatAssumingSingle)
 TEST_F(TestApiBlackUncovered, mkOpInitializerList)
 {
   d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {1, 1});
+  d_solver->mkOp(Kind::BITVECTOR_EXTRACT, {1, 1});
 }
 
 TEST_F(TestApiBlackUncovered, mkTermKind)
 {
   Term b = d_tm.mkConst(d_tm.getRealSort(), "b");
   d_tm.mkTerm(Kind::GT, {b, b});
+  d_solver->mkTerm(Kind::GT, {b, b});
 }
 
 TEST_F(TestApiBlackUncovered, getValue)
