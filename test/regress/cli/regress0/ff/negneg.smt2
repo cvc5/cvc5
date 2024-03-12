@@ -1,5 +1,7 @@
 ; REQUIRES: cocoa
 ; EXPECT: unsat
+;; FF not supported in Alethe
+; DISABLE-TESTER: alethe
 ; x, m, is_zero: field
 ; The constraints mx - 1 + is_zero = 0
 ;                 is_zero*x = 0

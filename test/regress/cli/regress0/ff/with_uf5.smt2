@@ -2,6 +2,8 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --ff-solver split
 ; COMMAND-LINE: --ff-solver gb
+;; FF not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-logic QF_UFFF)
@@ -22,4 +24,3 @@
 (assert (= a (ff.add b (as ff1 FF))))
 
 (check-sat)
-

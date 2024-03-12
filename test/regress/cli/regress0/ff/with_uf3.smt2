@@ -1,5 +1,7 @@
 ; REQUIRES: cocoa
 ; EXPECT: unsat
+;; FF not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-logic QF_UFFF)
@@ -20,4 +22,3 @@
 (assert (= (ff.mul b b) b))
 (assert (= (ff.add (as ff1 FF) (ff.neg a) (ff.neg b) (ff.mul (as ff2 FF) a b)) (as ff1 FF)))
 (check-sat)
-

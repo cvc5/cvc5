@@ -1,5 +1,7 @@
 ; REQUIRES: cocoa
 ; EXPECT: unsat
+;; FF not supported in Alethe
+; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --ff-solver split
 ; COMMAND-LINE: --ff-solver gb
 ; x, m, is_zero: field

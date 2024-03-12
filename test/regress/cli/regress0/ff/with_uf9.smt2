@@ -1,6 +1,8 @@
 ; REQUIRES: cocoa
 ; EXPECT: unsat
 ; COMMAND-LINE: --simplification=none
+;; FF not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_FF)
 (define-sort FF () (_ FiniteField 17))
 (declare-fun a () FF)
