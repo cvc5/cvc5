@@ -142,26 +142,6 @@ TEST_F(TestApiBlackSolver, declareFunFresh)
   ASSERT_FALSE(t2 == t5);
 }
 
-TEST_F(TestApiBlackSolver, mkConstArray)
-{
-  Sort intSort = d_tm.getIntegerSort();
-  Sort arrSort = d_tm.mkArraySort(intSort, intSort);
-  Term zero = d_tm.mkInteger(0);
-  Term constArr = d_tm.mkConstArray(arrSort, zero);
-
-  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort, zero));
-  ASSERT_THROW(d_tm.mkConstArray(Sort(), zero), CVC5ApiException);
-  ASSERT_THROW(d_tm.mkConstArray(arrSort, Term()), CVC5ApiException);
-  ASSERT_THROW(d_tm.mkConstArray(arrSort, d_tm.mkBitVector(1, 1)),
-               CVC5ApiException);
-  ASSERT_THROW(d_tm.mkConstArray(intSort, zero), CVC5ApiException);
-  Term zero2 = d_tm.mkInteger(0);
-  Sort arrSort2 =
-      d_tm.mkArraySort(d_tm.getIntegerSort(), d_tm.getIntegerSort());
-  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort2, zero));
-  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort, zero2));
-}
-
 TEST_F(TestApiBlackSolver, declareDatatype)
 {
   DatatypeConstructorDecl lin = d_tm.mkDatatypeConstructorDecl("lin");
