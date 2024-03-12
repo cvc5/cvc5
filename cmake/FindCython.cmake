@@ -33,7 +33,7 @@ if (Cython_VERSION_CHECK_RESULT EQUAL 0)
     message(STATUS "Found Cython version: ${Cython_VERSION}")
     if (DEFINED Cython_FIND_VERSION)
         if(Cython_FIND_VERSION_EXACT)
-            if (Cython_VERSION VERSION_EQUAL ${Cython_FIND_VERSION})
+            if (NOT (Cython_VERSION VERSION_EQUAL ${Cython_FIND_VERSION}))
             message(${Cython_FIND_MODE}
                 "Cython version == ${Cython_FIND_VERSION} is required, "
                 "but found version ${Cython_VERSION}")
