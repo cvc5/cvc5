@@ -53,8 +53,8 @@ jobs:
             package-name: cvc5-macOS-arm64
 
           - name: win64:production
-            os: windows-2019
-            config: production --auto-download --win64-native
+            os: windows-latest
+            config: production --auto-download --win64-native --ccache
             cache-key: production-win64-native
             strip-bin: strip
             windows-build: true
@@ -129,10 +129,6 @@ jobs:
         build-static: ${{ matrix.build-static }}
         strip-bin: ${{ matrix.strip-bin }}
         shell: ${{ matrix.shell }}
-
-    - name: ccache Statistics
-      if: runner.os != 'Windows'
-      run: ccache -s
 
     - name: Run tests
       if: matrix.run_regression_args

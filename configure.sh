@@ -26,6 +26,7 @@ General options;
   --win64                  cross-compile for Windows 64 bit
   --win64-native           natively compile for Windows 64 bit
   --ninja                  use Ninja build system
+  --ccache                 use ccache
   --docs                   build Api documentation
 
 
@@ -121,6 +122,7 @@ poly=ON
 cocoa=default
 muzzle=default
 ninja=default
+ccache=default
 profiling=default
 python_bindings=default
 java_bindings=default
@@ -231,6 +233,8 @@ do
     --arm64) arm64=ON;;
 
     --ninja) ninja=ON;;
+
+    --ccache) ccache=ON;;
 
     --docs) docs=ON;;
     --no-docs) docs=OFF;;
@@ -361,6 +365,8 @@ fi
 # Because 'MSYS Makefiles' has a space in it, we set the variable vs. adding to 'cmake_opts'
 [ $win64_native != default ] \
   && [ $ninja == default ] && export CMAKE_GENERATOR="MSYS Makefiles"
+[ $ccache != default ] \
+  && cmake_opts="$cmake_opts -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache"
 [ $arm64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
