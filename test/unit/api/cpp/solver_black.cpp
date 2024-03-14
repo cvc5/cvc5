@@ -545,6 +545,24 @@ TEST_F(TestApiBlackSolver, getAbduct)
   output2 = d_solver->getAbduct(conj2, g);
   // abduct must be true
   ASSERT_EQ(output2, truen);
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-abducts", "true");
+  Term xx = tm.mkConst(intSort, "x");
+  Term yy = tm.mkConst(intSort, "y");
+  Term zzero = tm.mkInteger(0);
+  Term sstart = tm.mkVar(tm.getBooleanSort());
+  slv.assertFormula(
+      tm.mkTerm(Kind::GT, {tm.mkTerm(Kind::ADD, {xx, yy}), zzero}));
+  Grammar gg = slv.mkGrammar({}, {sstart});
+  gg.addRule(sstart, tm.mkTrue());
+  Term cconj2 = tm.mkTerm(Kind::EQUAL, {zzero, zzero});
+  ASSERT_NO_THROW(slv.getAbduct(cconj2, gg));
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.getAbduct(conj2));
+  ASSERT_NO_THROW(slv.getAbduct(conj2, gg));
+  ASSERT_NO_THROW(slv.getAbduct(cconj2, g));
 }
 
 TEST_F(TestApiBlackSolver, getAbduct2)
@@ -1323,7 +1341,7 @@ TEST_F(TestApiBlackSolver, getModelDomainElements)
   slv.setOption("produce-models", "true");
   slv.checkSat();
   // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(slv.getModelDomainElements(tm.mkUninterpretedSort("u")));
+  ASSERT_NO_THROW(slv.getModelDomainElements(d_tm.mkUninterpretedSort("u")));
 }
 
 TEST_F(TestApiBlackSolver, getModelDomainElements2)
