@@ -5458,11 +5458,7 @@ Sort TermManager::mkRecordSort(
   for (size_t i = 0, size = fields.size(); i < size; ++i)
   {
     const auto& p = fields[i];
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(!p.second.isNull(), "sort", fields, i)
-        << "non-null sort";
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == p.second.d_tm, "sort", fields, i)
-        << "sort associated with the node manager of this solver object";
+    CVC5_API_TM_CHECK_SORT_AT_INDEX(p.second, fields, i);
     f.emplace_back(p.first, *p.second.d_type);
   }
   //////// all checks before this line
@@ -7806,6 +7802,8 @@ void Solver::declareSepHeap(const Sort& locSort, const Sort& dataSort) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(locSort);
   CVC5_API_SOLVER_CHECK_SORT(dataSort);
+  CVC5_API_CHECK(d_slv->isLogicSet())
+      << "Cannot call 'declareSepHeap()' if logic is not set";
   CVC5_API_CHECK(
       d_slv->getLogicInfo().isTheoryEnabled(internal::theory::THEORY_SEP))
       << "Cannot obtain separation logic expressions if not using the "
