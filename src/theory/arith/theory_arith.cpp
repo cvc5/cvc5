@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -405,7 +405,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     if (d_nonlinearExtension != nullptr)
     {
       Node eq = p.first.eqNode(p.second);
-      Node lem = NodeManager::currentNM()->mkNode(Kind::OR, eq, eq.negate());
+      Node lem = nodeManager()->mkNode(Kind::OR, eq, eq.negate());
       bool added = d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
       AlwaysAssert(added) << "The lemma was already in cache. Probably there is something wrong with theory combination...";
     }
@@ -433,7 +433,7 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   }
   Trace("arith-eq-status") << "Evaluate under " << d_arithModelCacheSubs.d_vars << " / "
                  << d_arithModelCacheSubs.d_subs << std::endl;
-  Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
+  Node diff = nodeManager()->mkNode(Kind::SUB, a, b);
   // do not traverse non-linear multiplication here, since the value of
   // multiplication in this method should consider the value of the
   // non-linear multiplication term, and not its evaluation.

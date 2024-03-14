@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Andrew Reynolds, Andres Noetzli
+ *   Yoni Zohar, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@ Pow2Solver::Pow2Solver(Env& env,
                        NlModel& model)
     : EnvObj(env), d_im(im), d_model(model), d_initRefine(userContext())
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_false = nm->mkConst(false);
   d_true = nm->mkConst(true);
   d_zero = nm->mkConstInt(Rational(0));
@@ -69,7 +69,7 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
 void Pow2Solver::checkInitialRefine()
 {
   Trace("pow2-check") << "Pow2Solver::checkInitialRefine" << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const Node& i : d_pow2s)
   {
     if (d_initRefine.find(i) != d_initRefine.end())
@@ -109,7 +109,7 @@ void Pow2Solver::sortPow2sBasedOnModel()
 void Pow2Solver::checkFullRefine()
 {
   Trace("pow2-check") << "Pow2Solver::checkFullRefine" << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   sortPow2sBasedOnModel();
   // add lemmas for each pow2 term
   for (uint64_t i = 0, size = d_pow2s.size(); i < size; i++)
@@ -184,7 +184,7 @@ Node Pow2Solver::valueBasedLemma(Node i)
 
   Node valX = d_model.computeConcreteModelValue(x);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node valC = nm->mkNode(Kind::POW2, valX);
   valC = rewrite(valC);
 

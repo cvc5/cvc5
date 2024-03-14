@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -258,7 +258,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
                                                LazyCDProof& pf,
                                                TermContext* tctx)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // Invariant: if visited[hash(t)] = s or rewritten[hash(t)] = s and t,s are
   // distinct, then pf is able to generate a proof of t=s. We must
   // Node in the domains of the maps below due to hashing creating new (SEXPR)

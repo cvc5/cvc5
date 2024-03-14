@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Makai Mann, Andrew Reynolds
+ *   Yoni Zohar, Aina Niemetz, Makai Mann
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,7 +58,7 @@ IntBlaster::IntBlaster(Env& env,
       d_mode(mode),
       d_context(userContext())
 {
-  d_nm = NodeManager::currentNM();
+  d_nm = nodeManager();
   d_zero = d_nm->mkConstInt(0);
   d_one = d_nm->mkConstInt(1);
   Assert(granularity <= 8);
