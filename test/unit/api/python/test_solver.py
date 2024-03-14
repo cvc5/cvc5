@@ -15,7 +15,10 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, SortKind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent, ProofFormat, FindSynthTarget
+from cvc5 import Kind, SortKind
+from cvc5 import RoundingMode
+from cvc5 import BlockModelsMode, LearnedLitType, FindSynthTarget
+from cvc5 import ProofComponent, ProofFormat
 
 
 @pytest.fixture
@@ -160,19 +163,19 @@ def test_define_fun_rec(tm, solver):
     with pytest.raises(RuntimeError):
         solver.defineFunRec(f3, [b1], v1)
 
-    tm = cvc5.Solver(tm)
+    slv = cvc5.Solver(tm)
     bvSort2 = tm.mkBitVectorSort(32)
     v12 = tm.mkConst(bvSort2, "v1")
     b12 = tm.mkVar(bvSort2, "b1")
     b22 = tm.mkVar(tm.getIntegerSort(), "b2")
-    tm.defineFunRec("f", [], bvSort2, v12)
-    tm.defineFunRec("ff", [b12, b22], bvSort2, v12)
-    tm.defineFunRec("f", [], bvSort, v12)
-    tm.defineFunRec("f", [], bvSort2, v1)
-    tm.defineFunRec("ff", [b1, b22], bvSort2, v12)
-    tm.defineFunRec("ff", [b12, b2], bvSort2, v12)
-    tm.defineFunRec("ff", [b12, b22], bvSort, v12)
-    tm.defineFunRec("ff", [b12, b22], bvSort2, v1)
+    slv.defineFunRec("f", [], bvSort2, v12)
+    slv.defineFunRec("ff", [b12, b22], bvSort2, v12)
+    slv.defineFunRec("f", [], bvSort, v12)
+    slv.defineFunRec("f", [], bvSort2, v1)
+    slv.defineFunRec("ff", [b1, b22], bvSort2, v12)
+    slv.defineFunRec("ff", [b12, b2], bvSort2, v12)
+    slv.defineFunRec("ff", [b12, b22], bvSort, v12)
+    slv.defineFunRec("ff", [b12, b22], bvSort2, v1)
 
 
 def test_define_fun_rec_wrong_logic(tm, solver):
