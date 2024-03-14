@@ -1383,7 +1383,7 @@ TEST_F(TestApiBlackSolver, isModelCoreSymbol)
   slv.setOption("produce-models", "true");
   slv.checkSat();
   // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(slv.isModelCoreSymbol(tm.mkConst(uSort, "x")));
+  ASSERT_NO_THROW(slv.isModelCoreSymbol(d_tm.mkConst(uSort, "x")));
 }
 
 TEST_F(TestApiBlackSolver, getModel)
@@ -2083,7 +2083,7 @@ TEST_F(TestApiBlackSolver, synthFun)
   Solver slv(tm);
   // this will throw when NodeManager is not a singleton anymore
   slv.setOption("sygus", "true");
-  Term x2 = tm.mkVar(d_tm.getBooleanSort());
+  Term x2 = tm.mkVar(tm.getBooleanSort());
   ASSERT_NO_THROW(slv.synthFun("f1", {x2}, d_tm.getBooleanSort()));
   ASSERT_NO_THROW(slv.synthFun("", {}, d_tm.getBooleanSort()));
   ASSERT_NO_THROW(slv.synthFun("f1", {x}, tm.getBooleanSort()));
