@@ -1300,7 +1300,7 @@ TEST_F(TestApiBlackSolver, getValue3)
   slv.setOption("produce-models", "true");
   slv.checkSat();
   // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(slv.getValue(tm.mkConst(tm.getBooleanSort(), "x")));
+  ASSERT_NO_THROW(slv.getValue(d_tm.mkConst(d_tm.getBooleanSort(), "x")));
 }
 
 TEST_F(TestApiBlackSolver, getModelDomainElements)
