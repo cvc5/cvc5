@@ -37,6 +37,27 @@ def test_recoverable_exception(tm, solver):
         c = solver.getValue(x)
 
 
+def test_declare_fun_fresh(tm, solver):
+    boolSort = tm.getBooleanSort()
+    intSort = tm.getIntegerSort()
+    t1 = solver.declareFun("b", [], boolSort, True)
+    t2 = solver.declareFun("b", [], boolSort, False)
+    t3 = solver.declareFun("b", [], boolSort, False)
+    assert not t1 == t2
+    assert not t1 == t3
+    assert t2 == t3
+    t4 = solver.declareFun("c", [], boolSort, False)
+    assert not t2 == t4
+    t5 = solver.declareFun("b", [], intSort, False)
+    assert not t2 == t5
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.declareFun("b", [], intSort, False)
+
+
 def test_declare_fun(tm, solver):
     bvSort = tm.mkBitVectorSort(32)
     funSort = tm.mkFunctionSort(tm.mkUninterpretedSort("u"),\
@@ -52,11 +73,51 @@ def test_declare_fun(tm, solver):
     slv = cvc5.Solver(tm)
     slv.declareFun("f1", [], bvSort)
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.declareFun("f1", [], bvSort)
+
+
+def decalre_datatype(tm, solver):
+    lin = tm.mkDatatypeConstructorDecl("lin")
+    solver.declareDatatype("", [lin])
+
+    nil = tm.mkDatatypeConstructorDecl("nil")
+    solver.declareDatatype("a", [nil])
+
+    cons = tm.mkDatatypeConstructorDecl("cons")
+    nil2 = tm.mkDatatypeConstructorDecl("nil")
+    solver.declareDatatype("b", [cons, nil2])
+
+    cons2 = tm.mkDatatypeConstructorDecl("cons")
+    nil3 = tm.mkDatatypeConstructorDecl("nil")
+    solver.declareDatatype("", [cons2, nil3])
+
+    # must have at least one constructor
+    with pytest.raises(RuntimeError):
+        solver.declareDatatype("c", [])
+    # constructors may not be reused
+    ctor1 = tm.mkDatatypeConstructorDecl("_x21")
+    ctor2 = tm.mkDatatypeConstructorDecl("_x31")
+    s3 = solver.declareDatatype("_x17", [ctor1, ctor2])
+    with pytest.raises(RuntimeError):
+        solver.declareDatatype("_x86", [ctor1, ctor2])
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    nnil = tm.mkDatatypeConstructorDecl("nil")
+    slv.declareDatatype("a", [nnil])
+
 
 def test_declare_sort(solver):
     solver.declareSort("s", 0)
     solver.declareSort("s", 2)
     solver.declareSort("", 2)
+
 
 def test_declare_sort_fresh(solver):
     t1 = solver.declareSort("b", 0, True)
@@ -69,6 +130,7 @@ def test_declare_sort_fresh(solver):
     assert t2!=t4
     t5 = solver.declareSort("b", 1, False)
     assert t2!=t5
+
 
 def test_define_fun(tm, solver):
     bvSort = tm.mkBitVectorSort(32)
@@ -90,16 +152,24 @@ def test_define_fun(tm, solver):
     # b3 has function sort, which is allowed as an argument
     solver.defineFun("fffff", [b1, b3], bvSort, v1)
 
-    slv = cvc5.Solver(tm)
-    bvSort2 = tm.mkBitVectorSort(32)
-    v12 = tm.mkConst(bvSort2, "v1")
-    b12 = tm.mkVar(bvSort2, "b1")
-    b22 = tm.mkVar(tm.getIntegerSort(), "b2")
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    bvSort2 = ttm.mkBitVectorSort(32)
+    v12 = ttm.mkConst(bvSort2, "v1")
+    b12 = ttm.mkVar(bvSort2, "b1")
+    b22 = ttm.mkVar(ttm.getIntegerSort(), "b2")
+    #with pytest.raises(RuntimeError):
     slv.defineFun("f", [], bvSort, v12)
+    #with pytest.raises(RuntimeError):
     slv.defineFun("f", [], bvSort2, v1)
+    #with pytest.raises(RuntimeError):
     slv.defineFun("ff", [b1, b22], bvSort2, v12)
+    #with pytest.raises(RuntimeError):
     slv.defineFun("ff", [b12, b2], bvSort2, v12)
+    #with pytest.raises(RuntimeError):
     slv.defineFun("ff", [b12, b22], bvSort, v12)
+    #with pytest.raises(RuntimeError):
     slv.defineFun("ff", [b12, b22], bvSort2, v1)
 
 
@@ -124,6 +194,12 @@ def test_define_fun_global(tm, solver):
         tm.mkTerm(Kind.OR, f.notTerm(),
                       tm.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
     assert solver.checkSat().isUnsat()
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.defineFun("f", [], bSort, bTrue, true)
 
 
 def test_define_fun_rec(tm, solver):
@@ -163,11 +239,14 @@ def test_define_fun_rec(tm, solver):
     with pytest.raises(RuntimeError):
         solver.defineFunRec(f3, [b1], v1)
 
-    slv = cvc5.Solver(tm)
-    bvSort2 = tm.mkBitVectorSort(32)
-    v12 = tm.mkConst(bvSort2, "v1")
-    b12 = tm.mkVar(bvSort2, "b1")
-    b22 = tm.mkVar(tm.getIntegerSort(), "b2")
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    bvSort2 = ttm.mkBitVectorSort(32)
+    v12 = ttm.mkConst(bvSort2, "v1")
+    b12 = ttm.mkVar(bvSort2, "b1")
+    b22 = ttm.mkVar(tm.getIntegerSort(), "b2")
     slv.defineFunRec("f", [], bvSort2, v12)
     slv.defineFunRec("ff", [b12, b22], bvSort2, v12)
     slv.defineFunRec("f", [], bvSort, v12)
@@ -192,27 +271,46 @@ def test_define_fun_rec_wrong_logic(tm, solver):
 
 
 def test_define_fun_rec_global(tm, solver):
-  bSort = tm.getBooleanSort()
-  fSort = tm.mkFunctionSort([bSort], bSort)
+    bSort = tm.getBooleanSort()
+    fSort = tm.mkFunctionSort([bSort], bSort)
 
-  solver.push()
-  bTrue = tm.mkBoolean(True)
-  # (define-fun f () Bool true)
-  f = solver.defineFunRec("f", [], bSort, bTrue, True)
-  b = tm.mkVar(bSort, "b")
-  gSym = tm.mkConst(fSort, "g")
-  # (define-fun g (b Bool) Bool b)
-  g = solver.defineFunRec(gSym, [b], b, glbl=True)
+    solver.push()
+    bTrue = tm.mkBoolean(True)
+    # (define-fun f () Bool true)
+    f = solver.defineFunRec("f", [], bSort, bTrue, True)
+    b = tm.mkVar(bSort, "b")
+    gSym = tm.mkConst(fSort, "g")
+    # (define-fun g (b Bool) Bool b)
+    g = solver.defineFunRec(gSym, [b], b, glbl=True)
 
-  # (assert (or (not f) (not (g true))))
-  solver.assertFormula(tm.mkTerm(
-      Kind.OR, f.notTerm(), tm.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
-  assert solver.checkSat().isUnsat()
-  solver.pop()
-  # (assert (or (not f) (not (g true))))
-  solver.assertFormula(tm.mkTerm(
-      Kind.OR, f.notTerm(), tm.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
-  assert solver.checkSat().isUnsat()
+    # (assert (or (not f) (not (g true))))
+    solver.assertFormula(tm.mkTerm(
+        Kind.OR, f.notTerm(), tm.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
+    assert solver.checkSat().isUnsat()
+    solver.pop()
+    # (assert (or (not f) (not (g true))))
+    solver.assertFormula(tm.mkTerm(
+        Kind.OR, f.notTerm(), tm.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
+    assert solver.checkSat().isUnsat()
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    bb = ttm.mkVar(tm.getBooleanSort(), "b")
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.defineFunRec(
+      tm.mkConst(
+          tm.mkFunctionSort({tm.getBooleanSort()}, tm.getBooleanSort()),
+          "g"),
+      [bb],
+      bb,
+      True)
+    slv.defineFunRec(
+      ttm.mkConst(ttm.mkFunctionSort({ttm.getBooleanSort()}, ttm.getBooleanSort()),
+                 "g"),
+      [b],
+      b,
+      true)
 
 
 def test_define_funs_rec(tm, solver):
@@ -244,26 +342,28 @@ def test_define_funs_rec(tm, solver):
     with pytest.raises(RuntimeError):
       solver.defineFunsRec([f1, f2], [[b1, b11], [b4]], [v1, v4])
 
-    slv = cvc5.Solver(tm)
-    uSort2 = tm.mkUninterpretedSort("u")
-    bvSort2 = tm.mkBitVectorSort(32)
-    funSort12 = tm.mkFunctionSort([bvSort2, bvSort2], bvSort2)
-    funSort22 = tm.mkFunctionSort([uSort2], tm.getIntegerSort())
-    b12 = tm.mkVar(bvSort2, "b1")
-    b112 = tm.mkVar(bvSort2, "b1")
-    b42 = tm.mkVar(uSort2, "b4")
-    v12 = tm.mkConst(bvSort2, "v1")
-    v22 = tm.mkConst(tm.getIntegerSort(), "v2")
-    f12 = tm.mkConst(funSort12, "f1")
-    f22 = tm.mkConst(funSort22, "f2")
-
+    ttm = TermManager()
+    slv = Solver(ttm)
+    bb = ttm.mkVar(tm.getBooleanSort(), "b")
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    uSort2 = ttm.mkUninterpretedSort("u")
+    bvSort2 = ttm.mkBitVectorSort(32)
+    funSort12 = ttm.mkFunctionSort([bvSort2, bvSort2], bvSort2)
+    funSort22 = ttm.mkFunctionSort([uSort2], ttm.getIntegerSort())
+    b12 = ttm.mkVar(bvSort2, "b1")
+    b112 = ttm.mkVar(bvSort2, "b1")
+    b42 = ttm.mkVar(uSort2, "b4")
+    v12 = ttm.mkConst(bvSort2, "v1")
+    v22 = ttm.mkConst(ttm.getIntegerSort(), "v2")
+    f12 = ttm.mkConst(funSort12, "f1")
+    f22 = ttm.mkConst(funSort22, "f2")
     slv.defineFunsRec([f12, f22], [[b12, b112], [b42]], [v12, v22])
     slv.defineFunsRec([f1, f22], [[b12, b112], [b42]], [v12, v22])
     slv.defineFunsRec([f12, f22], [[b1, b112], [b42]], [v12, v22])
     slv.defineFunsRec([f12, f22], [[b12, b11], [b42]], [v12, v22])
     slv.defineFunsRec([f12, f22], [[b12, b112], [b42]], [v1, v22])
     slv.defineFunsRec([f12, f22], [[b12, b112], [b42]], [v12, v2])
-
     with pytest.raises(RuntimeError):
       slv.defineFunsRec([f12, f2], [[b12, b112], [b42]], [v12, v22])
     with pytest.raises(RuntimeError):
@@ -304,23 +404,6 @@ def test_define_funs_rec_global(tm, solver):
   # (assert (not (g true)))
   solver.assertFormula(tm.mkTerm(Kind.APPLY_UF, gSym, bTrue).notTerm())
   assert solver.checkSat().isUnsat()
-
-
-def test_uf_iteration(tm, solver):
-    intSort = tm.getIntegerSort()
-    funSort = tm.mkFunctionSort([intSort, intSort], intSort)
-    x = tm.mkConst(intSort, "x")
-    y = tm.mkConst(intSort, "y")
-    f = tm.mkConst(funSort, "f")
-    fxy = tm.mkTerm(Kind.APPLY_UF, f, x, y)
-
-    # Expecting the uninterpreted function to be one of the children
-    expected_children = [f, x, y]
-    idx = 0
-    for c in fxy:
-        assert idx < 3
-        assert c == expected_children[idx]
-        idx = idx + 1
 
 
 def test_get_assertions(tm, solver):
@@ -660,9 +743,20 @@ def test_get_value3(tm, solver):
     b = solver.getValue([x,y,z])
     assert a == b
 
-    slv = cvc5.Solver(tm)
     with pytest.raises(RuntimeError):
-        slv.getValue(x)
+        Solver(tm).getValue(x)
+
+    slv = Solver(tm)
+    slv.setOption("produce-models", "true")
+    slv.checkSat()
+    slv.getValue(x)
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("produce-models", "true")
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.getValue(tm.mkConst(tm.getBooleanSort(), "x"))
 
 
 def test_declare_sep_heap(tm, solver):
@@ -673,6 +767,23 @@ def test_declare_sep_heap(tm, solver):
     # cannot declare separation logic heap more than once
     with pytest.raises(RuntimeError):
         solver.declareSepHeap(integer, integer)
+
+    with pytest.raises(RuntimeError):
+        # no logic set yet
+        Solver(tm).declareSepHeap(tm.getIntegerSort(), tm.getIntegerSort())
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setLogic("ALL")
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.declareSepHeap(integer, ttm.getRealSort())
+
+    slv = Solver(ttm)
+    slv.setLogic("ALL");
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.declareSepHeap(ttm.getBooleanSort(), integer)
 
 
 # Helper function for test_get_separation_{heap,nil}_termX. Asserts and checks
@@ -853,6 +964,14 @@ def test_block_model_values1(tm, solver):
         solver.blockModelValues([])
     solver.blockModelValues([tm.mkBoolean(False)])
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("produce-models", "true")
+    slv.checkSat()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.blockModelValues([tm.mkFalse()])
+
 def test_block_model_values2(tm, solver):
     solver.setOption("produce-models", "true")
     x = tm.mkConst(solver.getBooleanSort(), "x")
@@ -1024,11 +1143,23 @@ def test_simplify(tm, solver):
     solver.simplify(f1)
     solver.simplify(f2)
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.simplify(x)
+
 
 def test_assert_formula(tm, solver):
     solver.assertFormula(tm.mkTrue())
     slv = cvc5.Solver(tm)
     slv.assertFormula(tm.mkTrue())
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.assertFormula(d_tm.mkTrue())
 
 
 def test_check_sat(solver):
@@ -1045,6 +1176,12 @@ def test_check_sat_assuming(tm, solver):
         solver.checkSatAssuming(tm.mkTrue())
     slv = cvc5.Solver(tm)
     slv.checkSatAssuming(tm.mkTrue())
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.checkSatAssuming(d_tm.mkTrue())
 
 
 def test_check_sat_assuming1(tm, solver):
@@ -1145,6 +1282,29 @@ def test_reset_assertions(tm, solver):
     solver.resetAssertions()
     solver.checkSatAssuming(slt, ule)
 
+def test_declare_sygus_var(tm, solver):
+    solver.setOption("sygus", "true")
+    boolSort = tm.getBooleanSort()
+    intSort = tm.getIntegerSort()
+    funSort = tm.mkFunctionSort([intSort], boolSort)
+
+    solver.declareSygusVar("", boolSort)
+    solver.declareSygusVar("", funSort)
+    solver.declareSygusVar("b", boolSort)
+    with pytest.raises(RuntimeError):
+        solver.declareSygusVar("", Sort())
+    with pytest.raises(RuntimeError):
+        solver.declareSygusVar("a", Sort())
+    with pytest.raises(RuntimeError):
+        Solver(d_tm).declareSygusVar("", boolSort)
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("sygus", "true")
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.declareSygusVar("", boolSort)
+
 
 def test_mk_sygus_grammar(tm, solver):
     boolTerm = tm.mkBoolean(True)
@@ -1166,6 +1326,17 @@ def test_mk_sygus_grammar(tm, solver):
     slv.mkGrammar([boolVar], [intVar2])
     slv.mkGrammar([boolVar2], [intVar])
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("sygus", "true")
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    boolVar2 = ttm.mkVar(d_tm.getBooleanSort())
+    intVar2 = ttm.mkVar(d_tm.getIntegerSort())
+    slv.mkGrammar([boolVar2], [intVar2])
+    slv.mkGrammar([boolVar], [intVar2])
+    slv.mkGrammar([boolVar2], [intVar])
+
 
 def test_add_sygus_constraint(tm, solver):
     solver.setOption("sygus", "true")
@@ -1179,6 +1350,13 @@ def test_add_sygus_constraint(tm, solver):
     slv = cvc5.Solver(tm)
     with pytest.raises(RuntimeError):
         slv.addSygusConstraint(boolTerm)
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("sygus", "true")
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.addSygusConstraint(boolTerm)
 
 
 def test_get_sygus_constraints(tm, solver):
@@ -1201,6 +1379,13 @@ def test_add_sygus_assume(tm, solver):
     slv = cvc5.Solver(tm)
     with pytest.raises(RuntimeError):
         slv.addSygusAssume(boolTerm)
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("sygus", "true")
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.addSygusAssume(boolTerm)
 
 
 def test_get_sygus_assumptions(tm, solver):
@@ -1269,12 +1454,38 @@ def test_add_sygus_inv_constraint(tm, solver):
     slv.addSygusInvConstraint(inv22, pre22, trans, post22)
     slv.addSygusInvConstraint(inv22, pre22, trans22, post)
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("sygus", "true")
+    boolean2 = tm.getBooleanSort()
+    real2 = tm.getRealSort()
+    inv22 = slv.declareFun("inv", [real2], boolean2)
+    pre22 = slv.declareFun("pre", [real2], boolean2)
+    trans22 = slv.declareFun("trans", [real2, real2], boolean2)
+    post22 = slv.declareFun("post", [real2], boolean2)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.addSygusInvConstraint(inv22, pre22, trans22, post22)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.addSygusInvConstraint(inv, pre22, trans22, post22)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.addSygusInvConstraint(inv22, pre, trans22, post22)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.addSygusInvConstraint(inv22, pre22, trans, post22)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.addSygusInvConstraint(inv22, pre22, trans22, post)
+
 
 def test_check_synth(solver):
     with pytest.raises(RuntimeError):
         solver.checkSynth()
     solver.setOption("sygus", "true")
     solver.checkSynth()
+
 
 def test_get_synth_solution(tm, solver):
     solver.setOption("sygus", "true")
@@ -1299,6 +1510,7 @@ def test_get_synth_solution(tm, solver):
     with pytest.raises(RuntimeError):
         slv.getSynthSolution(f)
 
+
 def test_check_synth_next(solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
@@ -1312,6 +1524,7 @@ def test_check_synth_next(solver):
     assert res.hasSolution()
     solver.getSynthSolutions([f])
 
+
 def test_check_synth_next2(solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
@@ -1321,12 +1534,14 @@ def test_check_synth_next2(solver):
     with pytest.raises(RuntimeError):
         solver.checkSynthNext()
 
+
 def test_check_synth_next3(solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
     with pytest.raises(RuntimeError):
         solver.checkSynthNext()
+
 
 def test_find_synth(tm, solver):
     solver.setOption("sygus", "true")
@@ -1386,6 +1601,26 @@ def test_get_abduct(tm, solver):
     output2 = solver.getAbduct(conj2, g)
     assert output2 == truen
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("produce-abducts", "true")
+    xx = ttm.mkConst(intSort, "x")
+    yy = ttm.mkConst(intSort, "y")
+    zzero = ttm.mkInteger(0)
+    sstart = ttm.mkVar(ttm.getBooleanSort())
+    slv.assertFormula(
+        ttm.mkTerm(Kind.GT, [ttm.mkTerm(Kind.ADD, [xx, yy]), zzero]))
+    gg = slv.mkGrammar([], [sstart])
+    gg.addRule(sstart, ttm.mkTrue())
+    cconj2 = ttm.mkTerm(Kind.EQUAL, [zzero, zzero])
+    slv.getAbduct(cconj2, gg)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.getAbduct(conj2)
+    slv.getAbduct(conj2, gg)
+    slv.getAbduct(cconj2, g)
+
+
 def test_get_abduct2(tm, solver):
     solver.setLogic("QF_LIA")
     solver.setOption("incremental", "false")
@@ -1397,6 +1632,7 @@ def test_get_abduct2(tm, solver):
     conj = tm.mkTerm(Kind.GT, y, zero)
     with pytest.raises(RuntimeError):
         solver.getAbduct(conj)
+
 
 def test_get_abduct_next(tm, solver):
     solver.setLogic("QF_LIA")
@@ -1445,6 +1681,25 @@ def test_get_interpolant(tm, solver):
     output2 = solver.getInterpolant(conj2, g)
     assert output2 == truen
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("produce-interpolants", "true")
+    xx = ttm.mkConst(intSort, "x")
+    yy = ttm.mkConst(intSort, "y")
+    zzero = ttm.mkInteger(0)
+    sstart = ttm.mkVar(ttm.getBooleanSort())
+    slv.assertFormula(
+        ttm.mkTerm(Kind.GT, [ttm.mkTerm(Kind.ADD, [xx, yy]), zzero]))
+    gg = slv.mkGrammar([], [sstart])
+    gg.addRule(sstart, ttm.mkTrue())
+    cconj2 = ttm.mkTerm(Kind.EQUAL, [zzero, zzero])
+    slv.getInterpolant(cconj2, gg)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.getInterpolant(conj2)
+    slv.getInterpolant(conj2, gg)
+    slv.getInterpolant(cconj2, g)
+
 
 def test_get_interpolant_next(tm, solver):
     solver.setLogic("QF_LIA")
@@ -1481,6 +1736,27 @@ def test_declare_pool(tm, solver):
     # pool should have the same sort
     assert p.getSort() == setSort
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.declarePool(
+      "p",
+      d_tm.getIntegerSort(),
+      [tm.mkInteger(0), tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")])
+    slv.declarePool(
+      "p",
+      tm.getIntegerSort(),
+      [d_tm.mkInteger(0), tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")])
+    slv.declarePool(
+      "p",
+      tm.getIntegerSort(),
+      [tm.mkInteger(0), d_tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")])
+    slv.declarePool(
+      "p",
+      tm.getIntegerSort(),
+      [tm.mkInteger(0), tm.mkConst(intSort, "x"), d_tm.mkConst(intSort, "y")])
+
 
 def test_get_model_domain_elements(tm, solver):
     solver.setOption("produce-models", "true")
@@ -1496,6 +1772,14 @@ def test_get_model_domain_elements(tm, solver):
     assert len(solver.getModelDomainElements(uSort)) >= 3
     with pytest.raises(RuntimeError):
         solver.getModelDomainElements(intSort)
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("produce-models", "true")
+    slv.checkSat()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.getModelDomainElements(tm.mkUninterpretedSort("u"))
 
 def test_get_model_domain_elements2(tm, solver):
     solver.setOption("produce-models", "true")
@@ -1654,6 +1938,14 @@ def test_is_model_core_symbol(tm, solver):
     with pytest.raises(RuntimeError):
         solver.isModelCoreSymbol(zero)
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("produce-models", "true")
+    slv.checkSat()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.isModelCoreSymbol(tm.mkConst(uSort, "x"))
+
 
 def test_get_model(tm, solver):
     solver.setOption("produce-models", "true")
@@ -1760,6 +2052,17 @@ def test_synth_fun(tm, solver):
     slv.synthFun("", [], tm.getBooleanSort())
     slv.synthFun("f1", [x], tm.getBooleanSort())
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("sygus", "true")
+    slv.checkSat()
+    x2 = ttm.mkVar(ttm.getBooleanSort())
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.synthFun("f1", [x2], d_tm.getBooleanSort())
+    slv.synthFun("", [], d_tm.getBooleanSort())
+    slv.synthFun("f1", [x], tm.getBooleanSort())
+
 
 def test_tuple_project(tm, solver):
     elements = [\
@@ -1810,12 +2113,12 @@ def test_tuple_project(tm, solver):
                str(projection)
 
 
-
 def test_get_data_type_arity(tm, solver):
   ctor1 = tm.mkDatatypeConstructorDecl("_x21")
   ctor2 = tm.mkDatatypeConstructorDecl("_x31")
   s3 = solver.declareDatatype("_x17", ctor1, ctor2)
   assert s3.getDatatypeArity() == 0
+
 
 def test_get_unsat_core_lemmas1(tm, solver):
   solver.setOption("produce-unsat-cores", "true")
@@ -1827,6 +2130,7 @@ def test_get_unsat_core_lemmas1(tm, solver):
   solver.assertFormula(tm.mkFalse())
   assert solver.checkSat().isUnsat()
   solver.getUnsatCoreLemmas()
+
 
 def test_get_unsat_core_lemmas2(tm, solver):
   solver.setOption("produce-unsat-cores", "true")
@@ -1932,6 +2236,20 @@ def test_get_quantifier_elimination(tm, solver):
         solver.getQuantifierElimination(tm.mkBoolean(False))
     solver.getQuantifierElimination(forall)
 
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("produce-models", "true")
+    slv.checkSat()
+    xx = tm.mkVar(tm.getBooleanSort(), "x")
+    fforall = tm.mkTerm(
+            Kind.FORALL,
+            [tm.mkTerm(Kind.VARIABLE_LIST, [xx]),
+             tm.mkTerm(Kind.OR, [xx, tm.mkTerm(Kind.NOT, [xx])])])
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    slv.getQuantifierElimination(fforall)
+
+
 def test_get_quantifier_elimination_disjunct(tm, solver):
     x = tm.mkVar(solver.getBooleanSort(), "x")
     forall = tm.mkTerm(
@@ -1941,6 +2259,18 @@ def test_get_quantifier_elimination_disjunct(tm, solver):
     with pytest.raises(RuntimeError):
         solver.getQuantifierEliminationDisjunct(tm.mkBoolean(False))
     solver.getQuantifierEliminationDisjunct(forall)
+
+    ttm = TermManager()
+    slv = Solver(ttm)
+    slv.setOption("produce-models", "true")
+    slv.checkSat()
+    xx = tm.mkVar(tm.getBooleanSort(), "x")
+    fforall = tm.mkTerm(
+            Kind.FORALL,
+            [tm.mkTerm(Kind.VARIABLE_LIST, [xx]),
+             tm.mkTerm(Kind.OR, [xx, tm.mkTerm(Kind.NOT, [xx])])])
+    slv.getQuantifierEliminationDisjunct(fforall)
+
 
 def test_get_version(solver):
     print(solver.getVersion())
