@@ -117,7 +117,7 @@ versions; more recent versions should be compatible.
 
 - `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
   or `Clang (>= 5) <https://clang.llvm.org>`_
-- `CMake >= 3.12 <https://cmake.org>`_
+- `CMake >= 3.16 <https://cmake.org>`_
 - `GNU Make <https://www.gnu.org/software/make/>`_
   or `Ninja <https://ninja-build.org/>`_
 - `Python >= 3.6 <https://www.python.org>`_

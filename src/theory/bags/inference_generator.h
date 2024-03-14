@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -257,7 +257,6 @@ class InferenceGenerator
   std::tuple<InferInfo, Node, Node> mapDown(Node n, Node e);
 
   /**
-   * @pre option bagsInjectiveMaps is true
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param y is a node of Type T
@@ -458,7 +457,7 @@ class InferenceGenerator
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param B an element of type (Table T) and B is not of the form (part x)
    * @param part a skolem function of type T -> (Table T) created uniquely for n
-   * by defineSkolemPartFunction function below
+   * by define SkolemPartFunction function below
    * @return an inference that represents:
    * (=>
    *   (and

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +60,7 @@ LearnedRewrite::LearnedRewrite(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult LearnedRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   arith::BoundInference binfer(d_env);
   std::vector<Node> learnedLits = d_preprocContext->getLearnedLiterals();
   std::unordered_set<Node> llrw;
@@ -183,7 +183,7 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
                                        std::unordered_set<Node>& lems,
                                        std::unordered_map<TNode, Node>& visited)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
@@ -245,7 +245,7 @@ Node LearnedRewrite::rewriteLearned(Node nr,
                                     const std::vector<Node>& learnedLits,
                                     std::unordered_set<Node>& lems)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("learned-rewrite-rr-debug") << "Rewrite " << nr << std::endl;
   Kind k = nr.getKind();
   if (k == Kind::INTS_DIVISION || k == Kind::INTS_MODULUS
