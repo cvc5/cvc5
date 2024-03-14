@@ -212,8 +212,7 @@ else()
     COMMAND
     "${Python_EXECUTABLE}"
     -c
-    "from __future__ import print_function; import os; \
-     print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
+    "import os; print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
 
   set(INSTALL_CMD
       "${Python_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}")
