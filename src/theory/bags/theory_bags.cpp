@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Gereon Kremer
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -90,7 +90,7 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("bags-ppr") << "TheoryBags::ppRewrite " << atom << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   switch (atom.getKind())
   {
@@ -143,7 +143,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   // where uf: (Bag E) -> E is a skolem function, and E is the type of elements
   // of A
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node x = sm->mkPurifySkolem(node);
   Node A = node[0];
@@ -152,7 +152,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node mkElem = nm->mkGroundValue(bagType);
   // a Null node is used here to get a unique skolem function per bag type
   Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, mkElem);
-  Node ufA = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, uf, A);
+  Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);
 
   Node equal = x.eqNode(ufA);
   Node emptyBag = nm->mkConst(EmptyBag(bagType));
@@ -202,7 +202,7 @@ void TheoryBags::collectBagsAndCountTerms()
       {
         // for terms (bag x c) we need to store x by registering the count term
         // (bag.count x (bag x c))
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Node count = nm->mkNode(Kind::BAG_COUNT, n[0], n);
         d_ig.registerCountTerm(count);
       }

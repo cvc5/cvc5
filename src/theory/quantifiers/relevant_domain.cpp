@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -151,7 +151,7 @@ void RelevantDomain::compute(){
       }
     }
     // print debug and verify types are correct
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for (std::pair<const Node, std::map<size_t, RDomain*> >& d : d_rel_doms)
     {
       Trace("rel-dom") << "Relevant domain for " << d.first << " : "
@@ -323,7 +323,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   {
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
   rdl.d_merge = false;
   size_t varCount = 0;

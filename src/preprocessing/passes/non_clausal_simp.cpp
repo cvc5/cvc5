@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,7 +110,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   context::Context* u = userContext();
   Rewriter* rw = d_env.getRewriter();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();

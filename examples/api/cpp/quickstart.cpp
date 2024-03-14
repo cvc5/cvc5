@@ -1,16 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Gereon Kremer, Mathias Preiner
+ *   Yoni Zohar, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of the api capabilities of cvc5.
+ * A simple demonstration of the API capabilities of cvc5.
  *
  */
 

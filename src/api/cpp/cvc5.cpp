@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -150,8 +150,12 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::SUB, internal::Kind::SUB),
         KIND_ENUM(Kind::NEG, internal::Kind::NEG),
         KIND_ENUM(Kind::DIVISION, internal::Kind::DIVISION),
+        KIND_ENUM(Kind::DIVISION_TOTAL, internal::Kind::DIVISION_TOTAL),
         KIND_ENUM(Kind::INTS_DIVISION, internal::Kind::INTS_DIVISION),
+        KIND_ENUM(Kind::INTS_DIVISION_TOTAL,
+                  internal::Kind::INTS_DIVISION_TOTAL),
         KIND_ENUM(Kind::INTS_MODULUS, internal::Kind::INTS_MODULUS),
+        KIND_ENUM(Kind::INTS_MODULUS_TOTAL, internal::Kind::INTS_MODULUS_TOTAL),
         KIND_ENUM(Kind::ABS, internal::Kind::ABS),
         KIND_ENUM(Kind::DIVISIBLE, internal::Kind::DIVISIBLE),
         KIND_ENUM(Kind::POW, internal::Kind::POW),
@@ -528,11 +532,11 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SUB, Kind::SUB},
         {internal::Kind::NEG, Kind::NEG},
         {internal::Kind::DIVISION, Kind::DIVISION},
-        {internal::Kind::DIVISION_TOTAL, Kind::INTERNAL_KIND},
+        {internal::Kind::DIVISION_TOTAL, Kind::DIVISION_TOTAL},
         {internal::Kind::INTS_DIVISION, Kind::INTS_DIVISION},
-        {internal::Kind::INTS_DIVISION_TOTAL, Kind::INTERNAL_KIND},
+        {internal::Kind::INTS_DIVISION_TOTAL, Kind::INTS_DIVISION_TOTAL},
         {internal::Kind::INTS_MODULUS, Kind::INTS_MODULUS},
-        {internal::Kind::INTS_MODULUS_TOTAL, Kind::INTERNAL_KIND},
+        {internal::Kind::INTS_MODULUS_TOTAL, Kind::INTS_MODULUS_TOTAL},
         {internal::Kind::ABS, Kind::ABS},
         {internal::Kind::DIVISIBLE, Kind::DIVISIBLE},
         {internal::Kind::POW, Kind::POW},
