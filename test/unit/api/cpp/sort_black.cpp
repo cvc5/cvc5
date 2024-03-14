@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Alex Ozdemir
+ *   Aina Niemetz, Andrew Reynolds, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -664,5 +664,18 @@ TEST_F(TestApiBlackSort, toString)
   ASSERT_NO_THROW(Sort().toString());
 }
 
+TEST_F(TestApiBlackSort, substitute)
+{
+  Sort sortVar0 = d_tm.mkParamSort("T0");
+  Sort sortVar1 = d_tm.mkParamSort("T1");
+  Sort intSort = d_tm.getIntegerSort();
+  Sort realSort = d_tm.getRealSort();
+  Sort arraySort0 = d_tm.mkArraySort(sortVar0, sortVar0);
+  Sort arraySort1 = d_tm.mkArraySort(sortVar0, sortVar1);
+  // Now create instantiations of the defined sorts
+  ASSERT_NO_THROW(arraySort0.substitute(sortVar0, intSort));
+  ASSERT_NO_THROW(
+      arraySort1.substitute({sortVar0, sortVar1}, {intSort, realSort}));
+}
 }  // namespace test
 }  // namespace cvc5::internal

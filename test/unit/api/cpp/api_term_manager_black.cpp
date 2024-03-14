@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -406,6 +406,26 @@ TEST_F(TestApiBlackTermManager, mkFiniteFieldElem)
 
   ASSERT_EQ(d_tm.mkFiniteFieldElem("-22", f, 3),
             d_tm.mkFiniteFieldElem("10", f, 6));
+}
+
+TEST_F(TestApiBlackTermManager, mkConstArray)
+{
+  Sort intSort = d_tm.getIntegerSort();
+  Sort arrSort = d_tm.mkArraySort(intSort, intSort);
+  Term zero = d_tm.mkInteger(0);
+  Term constArr = d_tm.mkConstArray(arrSort, zero);
+
+  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort, zero));
+  ASSERT_THROW(d_tm.mkConstArray(Sort(), zero), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkConstArray(arrSort, Term()), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkConstArray(arrSort, d_tm.mkBitVector(1, 1)),
+               CVC5ApiException);
+  ASSERT_THROW(d_tm.mkConstArray(intSort, zero), CVC5ApiException);
+  Term zero2 = d_tm.mkInteger(0);
+  Sort arrSort2 =
+      d_tm.mkArraySort(d_tm.getIntegerSort(), d_tm.getIntegerSort());
+  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort2, zero));
+  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort, zero2));
 }
 
 TEST_F(TestApiBlackTermManager, mkVar)
