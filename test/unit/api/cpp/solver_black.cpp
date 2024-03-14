@@ -181,7 +181,8 @@ TEST_F(TestApiBlackSolver, declareDatatype)
   TermManager tm;
   Solver slv(tm);
   // this will throw when NodeManager is not a singleton anymore
-  ASSERT_THROW(slv.declareDatatype(std::string("a"), ctors1), CVC5ApiException);
+  DatatypeConstructorDecl nnil = d_tm.mkDatatypeConstructorDecl("nil");
+  ASSERT_NO_THROW(slv.declareDatatype(std::string("a"), {nnil}));
 }
 
 TEST_F(TestApiBlackSolver, declareFun)
