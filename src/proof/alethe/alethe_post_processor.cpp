@@ -1471,29 +1471,20 @@ bool AletheProofPostprocessCallback::update(Node res,
       success &= addAletheStep(AletheRule::REFL, premise, premise, {}, {}, *cdp);
       std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
       std::vector<Node> skoSubstitutions;
+      SkolemManager* sm = nm->getSkolemManager();
       for (size_t i = 0, size = quant[0].getNumChildren(); i < size; ++i)
       {
-        // build i-th argument of the anchor step, which will be the i-th
-        // variable mapped to a choice term for that variable over the
-        // quantifier over i+1-th to n-th variable over the quant body. If i ==
-        // size - 1, then the mapping is just to the body
-        Node choiceBody =
-            i == size - 1
-                ? quant[1]
-                : nm->mkNode(quantKind,
-                             nm->mkNode(Kind::BOUND_VAR_LIST,
-                                        std::vector<Node>{bVars.begin() + i + 1,
-                                                          bVars.end()}),
-                             quant[1]);
-        // The choice term is for the i-th variable, with the body as defined
-        // above. Remember that when doing SKO_FORALL the body of the choice is
-        // negated.
-        Node ithChoice =
-            nm->mkNode(Kind::WITNESS,
-                       nm->mkNode(Kind::BOUND_VAR_LIST, quant[0][i]),
-                       isExists ? choiceBody : choiceBody.notNode());
-        // add to the substitution
-        skoSubstitutions.push_back(quant[0][i].eqNode(ithChoice));
+        // mk the skolem corresponding for this variable and retrieve its
+        // conversion from the node converter
+        Node r = nm->mkConstInt(Rational(i));
+        Node q = nm->mkNode(
+            Kind::EXISTS, quant[0], isExists ? quant[1] : quant[1].notNode());
+        std::vector<Node> cacheVals{q, r};
+        Node sk = sm->mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE, cacheVals);
+        Assert(!sk.isNull());
+        Assert(d_anc.d_skolems.find(sk) != d_anc.d_skolems.end())
+            << sk << " " << d_anc.d_skolems;
+        skoSubstitutions.push_back(quant[0][i].eqNode(d_anc.d_skolems[sk]));
       }
       Assert(!d_anc.convert(quant.eqNode(skolemized)).isNull());
       Node conclusion = nm->mkNode(

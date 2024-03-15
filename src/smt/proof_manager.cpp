@@ -296,10 +296,10 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
-    options::ProofCheckMode oldMode =options().proof.proofCheck;
+    options::ProofCheckMode oldMode = options().proof.proofCheck;
     d_pnm->getChecker()->setProofCheckMode(options::ProofCheckMode::NONE);
     std::string reasonForConversionFailure;
-    proof::AletheNodeConverter anc;
+    proof::AletheNodeConverter anc(options().proof.proofDefineSkolems);
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
     if (vpfpp.process(fp, reasonForConversionFailure))

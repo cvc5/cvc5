@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
+#include "options/proof_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/proof.h"
@@ -64,7 +65,16 @@ TrustNode Skolemize::process(Node q)
     // if using proofs and not using induction, we use the justified
     // skolemization
     NodeManager* nm = NodeManager::currentNM();
-    std::vector<Node> echildren(q.begin(), q.end());
+    std::vector<Node> echildren(
+        q.begin(),
+        // given how skolems are built in Alethe, we need to be able to retrieve
+        // the Skolem from a quantifier and in the post-processing the
+        // quantifier being skolemized may not have attributes that would be
+        // present here still. So to define the Skolem, we do it in terms only
+        // of the logical formula, excluding extra-logical information.
+        options().proof.proofFormatMode == options::ProofFormatMode::ALETHE
+            ? q.begin() + 2
+            : q.end());
     echildren[1] = echildren[1].notNode();
     Node existsq = nm->mkNode(Kind::EXISTS, echildren);
     std::vector<Node> vars(existsq[0].begin(), existsq[0].end());

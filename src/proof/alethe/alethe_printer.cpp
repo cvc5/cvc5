@@ -19,6 +19,7 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "options/proof_options.h"
 #include "options/printer_options.h"
 #include "proof/alethe/alethe_proof_rule.h"
 #include "util/smt2_quote_string.h"
@@ -129,6 +130,15 @@ void AletheProofPrinter::print(
   pfn = pfn->getChildren()[0];
   std::shared_ptr<ProofNode> innerPf = pfn->getChildren()[0];
   AlwaysAssert(innerPf);
+
+  // print quantifier Skolems, if they are being defined
+  if (options().proof.proofDefineSkolems)
+  {
+    for (const auto& [skolem, choice] : d_anc.d_skolems)
+    {
+      out << "(define-fun " << skolem << " () " << skolem.getType() << " " << choice << ")\n";
+    }
+  }
 
   if (options().printer.dagThresh)
   {

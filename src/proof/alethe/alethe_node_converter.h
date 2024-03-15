@@ -32,7 +32,10 @@ namespace proof {
 class AletheNodeConverter : public BaseAlfNodeConverter
 {
  public:
-  AletheNodeConverter() {}
+  AletheNodeConverter(bool defineSkolems = false)
+      : d_defineSkolems(defineSkolems)
+  {
+  }
   ~AletheNodeConverter() {}
   /** convert at post-order traversal */
   Node postConvert(Node n) override;
@@ -43,7 +46,12 @@ class AletheNodeConverter : public BaseAlfNodeConverter
 
   std::map<Node, Node> d_convToOriginalAssumption;
 
+  std::map<Node, Node> d_skolems;
+
  private:
+  bool d_defineSkolems;
+  std::map<Node, Node> d_skolemsAux;
+
   /**
    * Make or get an internal symbol with custom name and type.
    */

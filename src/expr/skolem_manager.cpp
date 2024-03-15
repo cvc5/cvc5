@@ -246,22 +246,9 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
     d_skolemFunMap[k] = key;
     Trace("sk-manager-skolem") << "mkSkolemFunction(" << id << ", " << cacheVal
                                << ") returns " << k << std::endl;
-    if (id == SkolemFunId::QUANTIFIERS_SKOLEMIZE)
-    {
-      Assert(cacheVal.getNumChildren() == 2
-             && cacheVal[0].getKind() == Kind::EXISTS);
-      uint32_t index;
-      if (ProofRuleChecker::getUInt32(cacheVal[1], index))
-      {
-        Assert(index < cacheVal[0][0].getNumChildren());
-        d_bvarSkolemMap[cacheVal[0][0][index]] = k;
-      }
-      else
-      {
-        Unreachable() << "Wrong position for quantifiers skolemization skolem: "
-                      << cacheVal[1] << ", quant " << cacheVal[0];
-      }
-    }
+    Assert(id != SkolemFunId::QUANTIFIERS_SKOLEMIZE
+           || (cacheVal.getNumChildren() == 2
+               && cacheVal[0].getKind() == Kind::EXISTS));
     return k;
   }
   return it->second;
@@ -458,16 +445,6 @@ Node SkolemManager::getUnpurifiedForm(Node k)
     return k.getAttribute(ufa);
   }
   return k;
-}
-
-Node SkolemManager::getSkolemForBVar(Node v)
-{
-  auto it = d_bvarSkolemMap.find(v);
-  if (it == d_bvarSkolemMap.end())
-  {
-    return Node::null();
-  }
-  return it->second;
 }
 
 Node SkolemManager::mkSkolemNode(Kind k,
