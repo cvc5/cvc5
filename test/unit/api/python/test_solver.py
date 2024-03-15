@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, SortKind
+from cvc5 import Kind, SortKind, TermManager, Solver
 from cvc5 import RoundingMode
 from cvc5 import BlockModelsMode, LearnedLitType, FindSynthTarget
 from cvc5 import ProofComponent, ProofFormat
@@ -23,10 +23,10 @@ from cvc5 import ProofComponent, ProofFormat
 
 @pytest.fixture
 def tm():
-    return cvc5.TermManager()
+    return TermManager()
 @pytest.fixture
 def solver(tm):
-    return cvc5.Solver(tm)
+    return Solver(tm)
 
 
 def test_recoverable_exception(tm, solver):
@@ -70,7 +70,7 @@ def test_declare_fun(tm, solver):
     solver.declareFun("f4", [bvSort, funSort], bvSort)
     with pytest.raises(RuntimeError):
         solver.declareFun("f5", [bvSort, bvSort], funSort)
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     slv.declareFun("f1", [], bvSort)
 
     ttm = TermManager()
@@ -1096,7 +1096,7 @@ def test_simplify(tm, solver):
     solver.simplify(x_eq_b)
     assert tm.mkTrue() != x_eq_b
     assert tm.mkTrue() != solver.simplify(x_eq_b)
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     slv.simplify(x)
 
     i1 = tm.mkConst(tm.getIntegerSort(), "i1")
@@ -1152,7 +1152,7 @@ def test_simplify(tm, solver):
 
 def test_assert_formula(tm, solver):
     solver.assertFormula(tm.mkTrue())
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     slv.assertFormula(tm.mkTrue())
 
     ttm = TermManager()
@@ -1174,7 +1174,7 @@ def test_check_sat_assuming(tm, solver):
     solver.checkSatAssuming(tm.mkTrue())
     with pytest.raises(RuntimeError):
         solver.checkSatAssuming(tm.mkTrue())
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     slv.checkSatAssuming(tm.mkTrue())
 
     ttm = TermManager()
@@ -1193,7 +1193,7 @@ def test_check_sat_assuming1(tm, solver):
     solver.checkSatAssuming(tm.mkTrue())
     solver.checkSatAssuming(tm.mkTrue())
     solver.checkSatAssuming(z)
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     slv.checkSatAssuming(tm.mkTrue())
 
 
@@ -1237,7 +1237,7 @@ def test_check_sat_assuming2(tm, solver):
     solver.checkSatAssuming(
         tm.mkFalse(),
          tm.mkTerm(Kind.DISTINCT, x, y))
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     slv.checkSatAssuming(tm.mkTrue())
 
 
@@ -1319,7 +1319,7 @@ def test_mk_sygus_grammar(tm, solver):
         solver.mkGrammar([], [boolTerm])
     with pytest.raises(RuntimeError):
         solver.mkGrammar([boolTerm], [intVar])
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     boolVar2 = tm.mkVar(tm.getBooleanSort())
     intVar2 = tm.mkVar(tm.getIntegerSort())
     slv.mkGrammar([boolVar2], [intVar2])
@@ -1347,7 +1347,7 @@ def test_add_sygus_constraint(tm, solver):
     with pytest.raises(RuntimeError):
         solver.addSygusConstraint(intTerm)
 
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     with pytest.raises(RuntimeError):
         slv.addSygusConstraint(boolTerm)
 
@@ -1376,7 +1376,7 @@ def test_add_sygus_assume(tm, solver):
     solver.addSygusAssume(boolTerm)
     with pytest.raises(RuntimeError):
         solver.addSygusAssume(intTerm)
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     with pytest.raises(RuntimeError):
         slv.addSygusAssume(boolTerm)
 
@@ -1440,7 +1440,7 @@ def test_add_sygus_inv_constraint(tm, solver):
 
     with pytest.raises(RuntimeError):
         solver.addSygusInvConstraint(inv, pre, trans, trans)
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     slv.setOption("sygus", "true")
     boolean2 = tm.getBooleanSort()
     real2 = tm.getRealSort()
@@ -1506,7 +1506,7 @@ def test_get_synth_solution(tm, solver):
     with pytest.raises(RuntimeError):
         solver.getSynthSolution(x)
 
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     with pytest.raises(RuntimeError):
         slv.getSynthSolution(f)
 
@@ -1818,7 +1818,7 @@ def test_get_synth_solutions(tm, solver):
     with pytest.raises(RuntimeError):
         solver.getSynthSolutions([x])
 
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     with pytest.raises(RuntimeError):
         slv.getSynthSolutions([x])
 
@@ -2018,7 +2018,7 @@ def test_mk_sygus_var(tm, solver):
     solver.declareSygusVar("", boolSort)
     solver.declareSygusVar("", funSort)
     solver.declareSygusVar("b", boolSort)
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     with pytest.raises(RuntimeError):
         slv.declareSygusVar("", boolSort)
 
@@ -2045,7 +2045,7 @@ def test_synth_fun(tm, solver):
 
     with pytest.raises(RuntimeError):
         solver.synthFun("f6", [x], boolean, g2)
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     slv.setOption("sygus", "true")
     x2 = tm.mkVar(tm.getBooleanSort())
     slv.synthFun("f1", [x2], tm.getBooleanSort())

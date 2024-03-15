@@ -15,14 +15,14 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, SortKind, RoundingMode
+from cvc5 import Kind, SortKind, RoundingMode, TermManager, Solver
 
 @pytest.fixture
 def tm():
-    return cvc5.TermManager()
+    return TermManager()
 @pytest.fixture
 def solver(tm):
-    return cvc5.Solver(tm)
+    return Solver(tm)
 
 def test_get_boolean_sort(tm):
     tm.getBooleanSort()
@@ -136,7 +136,7 @@ def test_mk_datatype_sort(tm):
 
     with pytest.raises(RuntimeError):
         tm.mkDatatypeSort(dtypeSpec)
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     with pytest.raises(RuntimeError):
         slv.mkDatatypeSort(dtypeSpec)
 
