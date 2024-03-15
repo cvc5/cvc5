@@ -18,14 +18,15 @@
 import cvc5
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
 
-    integer = slv.getIntegerSort()
-    set_ = slv.mkSetSort(integer)
+    integer = tm.getIntegerSort()
+    set_ = tm.mkSetSort(integer)
 
-    A = slv.mkConst(set_, "A")
-    B = slv.mkConst(set_, "B")
-    C = slv.mkConst(set_, "C")
+    A = tm.mkConst(set_, "A")
+    B = tm.mkConst(set_, "B")
+    C = tm.mkConst(set_, "C")
 
     assert A.getId() != B.getId()
     assert C.getId() != B.getId()
