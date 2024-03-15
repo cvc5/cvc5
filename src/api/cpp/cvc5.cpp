@@ -5458,11 +5458,7 @@ Sort TermManager::mkRecordSort(
   for (size_t i = 0, size = fields.size(); i < size; ++i)
   {
     const auto& p = fields[i];
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(!p.second.isNull(), "sort", fields, i)
-        << "non-null sort";
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == p.second.d_tm, "sort", fields, i)
-        << "sort associated with the node manager of this solver object";
+    CVC5_API_TM_CHECK_SORT_AT_INDEX(p.second, fields, i);
     f.emplace_back(p.first, *p.second.d_type);
   }
   //////// all checks before this line

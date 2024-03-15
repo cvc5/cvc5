@@ -199,7 +199,7 @@ def test_define_fun_global(tm, solver):
     slv = Solver(ttm)
     # this will throw when NodeManager is not a singleton anymore
     #with pytest.raises(RuntimeError):
-    slv.defineFun("f", [], bSort, bTrue, true)
+    slv.defineFun("f", [], bSort, bTrue, True)
 
 
 def test_define_fun_rec(tm, solver):
@@ -310,7 +310,7 @@ def test_define_fun_rec_global(tm, solver):
                  "g"),
       [b],
       b,
-      true)
+      True)
 
 
 def test_define_funs_rec(tm, solver):
@@ -754,6 +754,7 @@ def test_get_value3(tm, solver):
     ttm = TermManager()
     slv = Solver(ttm)
     slv.setOption("produce-models", "true")
+    slv.checkSat()
     # this will throw when NodeManager is not a singleton anymore
     #with pytest.raises(RuntimeError):
     slv.getValue(tm.mkConst(tm.getBooleanSort(), "x"))
@@ -1159,7 +1160,7 @@ def test_assert_formula(tm, solver):
     slv = Solver(ttm)
     # this will throw when NodeManager is not a singleton anymore
     #with pytest.raises(RuntimeError):
-    slv.assertFormula(d_tm.mkTrue())
+    slv.assertFormula(tm.mkTrue())
 
 
 def test_check_sat(solver):
@@ -1181,7 +1182,7 @@ def test_check_sat_assuming(tm, solver):
     slv = Solver(ttm)
     # this will throw when NodeManager is not a singleton anymore
     #with pytest.raises(RuntimeError):
-    slv.checkSatAssuming(d_tm.mkTrue())
+    slv.checkSatAssuming(tm.mkTrue())
 
 
 def test_check_sat_assuming1(tm, solver):
@@ -1292,11 +1293,11 @@ def test_declare_sygus_var(tm, solver):
     solver.declareSygusVar("", funSort)
     solver.declareSygusVar("b", boolSort)
     with pytest.raises(RuntimeError):
-        solver.declareSygusVar("", Sort())
+        solver.declareSygusVar("", cvc5.Sort())
     with pytest.raises(RuntimeError):
-        solver.declareSygusVar("a", Sort())
+        solver.declareSygusVar("a", cvc5.Sort())
     with pytest.raises(RuntimeError):
-        Solver(d_tm).declareSygusVar("", boolSort)
+        Solver(tm).declareSygusVar("", boolSort)
 
     ttm = TermManager()
     slv = Solver(ttm)
@@ -1331,8 +1332,8 @@ def test_mk_sygus_grammar(tm, solver):
     slv.setOption("sygus", "true")
     # this will throw when NodeManager is not a singleton anymore
     #with pytest.raises(RuntimeError):
-    boolVar2 = ttm.mkVar(d_tm.getBooleanSort())
-    intVar2 = ttm.mkVar(d_tm.getIntegerSort())
+    boolVar2 = ttm.mkVar(tm.getBooleanSort())
+    intVar2 = ttm.mkVar(tm.getIntegerSort())
     slv.mkGrammar([boolVar2], [intVar2])
     slv.mkGrammar([boolVar], [intVar2])
     slv.mkGrammar([boolVar2], [intVar])
@@ -1609,10 +1610,10 @@ def test_get_abduct(tm, solver):
     zzero = ttm.mkInteger(0)
     sstart = ttm.mkVar(ttm.getBooleanSort())
     slv.assertFormula(
-        ttm.mkTerm(Kind.GT, [ttm.mkTerm(Kind.ADD, [xx, yy]), zzero]))
+        ttm.mkTerm(Kind.GT, ttm.mkTerm(Kind.ADD, xx, yy), zzero))
     gg = slv.mkGrammar([], [sstart])
     gg.addRule(sstart, ttm.mkTrue())
-    cconj2 = ttm.mkTerm(Kind.EQUAL, [zzero, zzero])
+    cconj2 = ttm.mkTerm(Kind.EQUAL, zzero, zzero)
     slv.getAbduct(cconj2, gg)
     # this will throw when NodeManager is not a singleton anymore
     #with pytest.raises(RuntimeError):
@@ -1689,10 +1690,10 @@ def test_get_interpolant(tm, solver):
     zzero = ttm.mkInteger(0)
     sstart = ttm.mkVar(ttm.getBooleanSort())
     slv.assertFormula(
-        ttm.mkTerm(Kind.GT, [ttm.mkTerm(Kind.ADD, [xx, yy]), zzero]))
+        ttm.mkTerm(Kind.GT, ttm.mkTerm(Kind.ADD, xx, yy), zzero))
     gg = slv.mkGrammar([], [sstart])
     gg.addRule(sstart, ttm.mkTrue())
-    cconj2 = ttm.mkTerm(Kind.EQUAL, [zzero, zzero])
+    cconj2 = ttm.mkTerm(Kind.EQUAL, zzero, zzero)
     slv.getInterpolant(cconj2, gg)
     # this will throw when NodeManager is not a singleton anymore
     #with pytest.raises(RuntimeError):
@@ -1742,20 +1743,20 @@ def test_declare_pool(tm, solver):
     #with pytest.raises(RuntimeError):
     slv.declarePool(
       "p",
-      d_tm.getIntegerSort(),
+      tm.getIntegerSort(),
       [tm.mkInteger(0), tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")])
     slv.declarePool(
       "p",
       tm.getIntegerSort(),
-      [d_tm.mkInteger(0), tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")])
+      [tm.mkInteger(0), tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")])
     slv.declarePool(
       "p",
       tm.getIntegerSort(),
-      [tm.mkInteger(0), d_tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")])
+      [tm.mkInteger(0), tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")])
     slv.declarePool(
       "p",
       tm.getIntegerSort(),
-      [tm.mkInteger(0), tm.mkConst(intSort, "x"), d_tm.mkConst(intSort, "y")])
+      [tm.mkInteger(0), tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")])
 
 
 def test_get_model_domain_elements(tm, solver):
@@ -2059,9 +2060,9 @@ def test_synth_fun(tm, solver):
     x2 = ttm.mkVar(ttm.getBooleanSort())
     # this will throw when NodeManager is not a singleton anymore
     #with pytest.raises(RuntimeError):
-    slv.synthFun("f1", [x2], d_tm.getBooleanSort())
-    slv.synthFun("", [], d_tm.getBooleanSort())
-    slv.synthFun("f1", [x], tm.getBooleanSort())
+    slv.synthFun("f1", [x2], tm.getBooleanSort())
+    slv.synthFun("", [], tm.getBooleanSort())
+    slv.synthFun("f1", [x], ttm.getBooleanSort())
 
 
 def test_tuple_project(tm, solver):
@@ -2243,8 +2244,8 @@ def test_get_quantifier_elimination(tm, solver):
     xx = tm.mkVar(tm.getBooleanSort(), "x")
     fforall = tm.mkTerm(
             Kind.FORALL,
-            [tm.mkTerm(Kind.VARIABLE_LIST, [xx]),
-             tm.mkTerm(Kind.OR, [xx, tm.mkTerm(Kind.NOT, [xx])])])
+            tm.mkTerm(Kind.VARIABLE_LIST, xx),
+            tm.mkTerm(Kind.OR, xx, tm.mkTerm(Kind.NOT, xx)))
     # this will throw when NodeManager is not a singleton anymore
     #with pytest.raises(RuntimeError):
     slv.getQuantifierElimination(fforall)
@@ -2267,8 +2268,8 @@ def test_get_quantifier_elimination_disjunct(tm, solver):
     xx = tm.mkVar(tm.getBooleanSort(), "x")
     fforall = tm.mkTerm(
             Kind.FORALL,
-            [tm.mkTerm(Kind.VARIABLE_LIST, [xx]),
-             tm.mkTerm(Kind.OR, [xx, tm.mkTerm(Kind.NOT, [xx])])])
+            tm.mkTerm(Kind.VARIABLE_LIST, xx),
+            tm.mkTerm(Kind.OR, xx, tm.mkTerm(Kind.NOT, xx)))
     slv.getQuantifierEliminationDisjunct(fforall)
 
 
