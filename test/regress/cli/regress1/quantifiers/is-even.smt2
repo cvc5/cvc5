@@ -1,4 +1,4 @@
-;; defie-fun-rec not yet properly supported in Carcara
+;; define-fun-rec not yet properly supported in Carcara
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
