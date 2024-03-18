@@ -305,7 +305,7 @@ TEST_F(TestInputParserBlack, incrementalSetString)
 
 TEST_F(TestInputParserBlack, modelDeclares)
 {
-  InputParser p(&d_solver, d_symman.get());
+  InputParser p(d_solver.get(), d_symman.get());
   Command cmd;
   std::stringstream out;
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
@@ -317,7 +317,7 @@ TEST_F(TestInputParserBlack, modelDeclares)
   {
     cmd = p.nextCommand();
     ASSERT_NE(cmd.isNull(), true);
-    ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+    ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
   }
   std::vector<Sort> sorts = d_symman->getDeclaredSorts();
   std::vector<Term> terms = d_symman->getDeclaredTerms();
