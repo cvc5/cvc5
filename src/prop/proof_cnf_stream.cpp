@@ -961,7 +961,7 @@ void ProofCnfStream::dumpDimacs(std::ostream& out,
 
 void ProofCnfStream::dumpDimacs(std::ostream& out,
                                 const std::vector<Node>& clauses,
-                                std::vector<Node>& auxUnits)
+                                const std::vector<Node>& auxUnits)
 {
   d_cnfStream.dumpDimacs(out, clauses, auxUnits);
 }

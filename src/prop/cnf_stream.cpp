@@ -781,63 +781,47 @@ CnfStream::Statistics::Statistics(StatisticsRegistry& sr,
 void CnfStream::dumpDimacs(std::ostream& out, const std::vector<Node>& clauses)
 {
   std::vector<Node> auxUnits;
-  dumpDimacsInternal(out, clauses, auxUnits, false);
+  dumpDimacs(out, clauses, auxUnits);
 }
 
 void CnfStream::dumpDimacs(std::ostream& out,
                            const std::vector<Node>& clauses,
-                           std::vector<Node>& auxUnits)
-{
-  dumpDimacsInternal(out, clauses, auxUnits, true);
-}
-
-void CnfStream::dumpDimacsInternal(std::ostream& out,
-                                   const std::vector<Node>& clauses,
-                                   std::vector<Node>& auxUnits,
-                                   bool printAuxUnits)
+                           const std::vector<Node>& auxUnits)
 {
   std::stringstream dclauses;
   SatVariable maxVar = 0;
-  // get the unsat core from cadical
-  std::stringstream auclauses;
-  for (const Node& i : clauses)
+  for (size_t j=0; j<2; j++)
   {
-    std::vector<Node> lits;
-    if (i.getKind() == Kind::OR)
+    const std::vector<Node>& cls = j==0 ? clauses : auxUnits;
+    for (const Node& i : cls)
     {
-      lits.insert(lits.end(), i.begin(), i.end());
-    }
-    else
-    {
-      lits.push_back(i);
-    }
-    Trace("dimacs-debug") << "Print " << i << std::endl;
-    for (const Node& l : lits)
-    {
-      bool negated = l.getKind() == Kind::NOT;
-      const Node& atom = negated ? l[0] : l;
-      SatLiteral lit = getLiteral(atom);
-      SatVariable v = lit.getSatVariable();
-      maxVar = v > maxVar ? v : maxVar;
-      dclauses << (negated ? "-" : "") << v << " ";
-      Trace("dimacs-debug") << "DIMACS " << v << " " << atom << std::endl;
-      // print the literal as an auxilary unit if applicable
-      if (printAuxUnits && atom.getKind() == Kind::OR
-          && std::find(clauses.begin(), clauses.end(), atom) != clauses.end()
-          && std::find(auxUnits.begin(), auxUnits.end(), atom)
-                 == auxUnits.end())
+      std::vector<Node> lits;
+      if (j==0 && i.getKind() == Kind::OR)
       {
-        auxUnits.push_back(atom);
-        auclauses << v << " 0" << std::endl;
+        // print as clause if not an auxiliary unit
+        lits.insert(lits.end(), i.begin(), i.end());
       }
+      else
+      {
+        lits.push_back(i);
+      }
+      Trace("dimacs-debug") << "Print " << i << std::endl;
+      for (const Node& l : lits)
+      {
+        bool negated = l.getKind() == Kind::NOT;
+        const Node& atom = negated ? l[0] : l;
+        SatLiteral lit = getLiteral(atom);
+        SatVariable v = lit.getSatVariable();
+        maxVar = v > maxVar ? v : maxVar;
+        dclauses << (negated ? "-" : "") << v << " ";
+      }
+      dclauses << "0" << std::endl;
     }
-    dclauses << "0" << std::endl;
   }
 
   out << "p cnf " << maxVar << " " << (clauses.size() + auxUnits.size())
       << std::endl;
   out << dclauses.str();
-  out << auclauses.str();
 }
 
 }  // namespace prop
