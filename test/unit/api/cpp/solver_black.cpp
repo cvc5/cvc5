@@ -520,6 +520,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term output2;
   Grammar g = d_solver->mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::GT, {x, zero});
+  ASSERT_THROW(d_solver->getAbduct(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the abduction api, while the resulting abduct is the output
   output2 = d_solver->getAbduct(conj2, g);
@@ -597,6 +598,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Term start = d_tm.mkVar(boolean);
   Grammar g = d_solver->mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::EQUAL, {zero, zero});
+  ASSERT_THROW(d_solver->getInterpolant(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the interpolation api, while the resulting interpolant is the output
   Term output2 = d_solver->getInterpolant(conj2, g);
@@ -1892,6 +1894,9 @@ TEST_F(TestApiBlackSolver, synthFun)
   Term start2 = d_tm.mkVar(integer);
 
   Grammar g1 = d_solver->mkGrammar({x}, {start1});
+  ASSERT_NO_THROW(d_solver->synthFun("", {}, boolean));
+  ASSERT_NO_THROW(d_solver->synthFun("f1", {x}, boolean));
+  ASSERT_THROW(d_solver->synthFun("f2", {x}, boolean, g1), CVC5ApiException);
   g1.addRule(start1, d_tm.mkBoolean(false));
 
   Grammar g2 = d_solver->mkGrammar({x}, {start2});
@@ -2130,6 +2135,9 @@ TEST_F(TestApiBlackSolver, findSynth)
   Sort boolean = d_tm.getBooleanSort();
   Term start = d_tm.mkVar(boolean);
   Grammar g = d_solver->mkGrammar({}, {start});
+  ASSERT_THROW(d_solver->synthFun("f", {}, d_tm.getBooleanSort(), g),
+               CVC5ApiException);
+
   Term truen = d_tm.mkBoolean(true);
   Term falsen = d_tm.mkBoolean(false);
   g.addRule(start, truen);
