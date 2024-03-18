@@ -527,6 +527,7 @@ const static std::unordered_map<internal::Kind,
         /* Arithmetic ------------------------------------------------------ */
         {internal::Kind::ADD, Kind::ADD},
         {internal::Kind::MULT, Kind::MULT},
+        {internal::Kind::NONLINEAR_MULT, Kind::MULT},
         {internal::Kind::IAND, Kind::IAND},
         {internal::Kind::POW2, Kind::POW2},
         {internal::Kind::SUB, Kind::SUB},
