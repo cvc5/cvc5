@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -530,6 +530,8 @@ class CVC5_EXPORT ParserState
  protected:
   /** The API Solver object. */
   Solver* d_solver;
+  /** The term manager associated to the associated solver instance. */
+  TermManager& d_tm;
 
  private:
   /** The callback */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -184,7 +184,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   Assert(d_arg_types.empty());
   Assert(d_input_funcs.empty());
   Assert(d_si_vars.empty());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   d_has_input_funcs = has_funcs;
   d_arg_types.insert(d_arg_types.end(), typs.begin(), typs.end());
@@ -543,7 +543,7 @@ bool SingleInvocationPartition::isAntiSkolemizableType(Node f)
         Node t;
         if (children.size() > 1)
         {
-          t = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
+          t = nodeManager()->mkNode(Kind::APPLY_UF, children);
         }
         else
         {
@@ -561,7 +561,7 @@ bool SingleInvocationPartition::isAntiSkolemizableType(Node f)
         {
           rt = tn.getRangeType();
         }
-        Node v = NodeManager::currentNM()->mkBoundVar(ss.str(), rt);
+        Node v = nodeManager()->mkBoundVar(ss.str(), rt);
         d_func_fo_var[f] = v;
         d_fo_var_to_func[v] = f;
         d_func_vars.push_back(v);
@@ -575,11 +575,11 @@ bool SingleInvocationPartition::isAntiSkolemizableType(Node f)
 
 Node SingleInvocationPartition::getConjunct(int index)
 {
-  return d_conjuncts[index].empty() ? NodeManager::currentNM()->mkConst(true)
-                                    : (d_conjuncts[index].size() == 1
-                                           ? d_conjuncts[index][0]
-                                           : NodeManager::currentNM()->mkNode(
-                                               Kind::AND, d_conjuncts[index]));
+  return d_conjuncts[index].empty()
+             ? nodeManager()->mkConst(true)
+             : (d_conjuncts[index].size() == 1
+                    ? d_conjuncts[index][0]
+                    : nodeManager()->mkNode(Kind::AND, d_conjuncts[index]));
 }
 
 void SingleInvocationPartition::debugPrint(const char* c)
@@ -629,7 +629,7 @@ Node SingleInvocationPartition::getQuantSimplify(TNode n) const
     return rewrite(n);
   }
   std::vector<Node> bvs(fvs.begin(), fvs.end());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node q = nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, bvs), n);
   q = rewrite(q);
   return TermUtil::getRemoveQuantifiers(q);
