@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,18 +18,19 @@
 using namespace cvc5;
 int main(void)
 {
-  Solver solver;
+  TermManager tm;
+  Solver solver(tm);
   solver.setOption("incremental", "false");
   solver.setOption("produce-interpolants", "true");
-  Sort s0 = solver.getStringSort();
-  Term t1 = solver.mkString("");
-  Op o2 = solver.mkOp(Kind::SET_SINGLETON);
-  Term t3 = solver.mkTerm(o2, {t1});
+  Sort s0 = tm.getStringSort();
+  Term t1 = tm.mkString("");
+  Op o2 = tm.mkOp(Kind::SET_SINGLETON);
+  Term t3 = tm.mkTerm(o2, {t1});
   Sort s4 = t3.getSort();
-  Op o5 = solver.mkOp(Kind::SET_MINUS);
-  Term t6 = solver.mkTerm(o5, {t3, t3});
-  Op o7 = solver.mkOp(Kind::SET_IS_SINGLETON);
-  Term t8 = solver.mkTerm(o7, {t6});
+  Op o5 = tm.mkOp(Kind::SET_MINUS);
+  Term t6 = tm.mkTerm(o5, {t3, t3});
+  Op o7 = tm.mkOp(Kind::SET_IS_SINGLETON);
+  Term t8 = tm.mkTerm(o7, {t6});
   Sort s9 = t8.getSort();
   Term t10 = solver.getInterpolant(t8);
 

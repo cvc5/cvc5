@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -689,5 +689,21 @@ class SortTest
     Solver solver2;
     assertEquals(bvsort8.toString(), "(_ BitVec 8)");
     assertEquals(uninterp_sort.toString(), name);
+  }
+
+  @Test
+  void sortSubstitute() throws CVC5ApiException
+  {
+    Sort sortVar0 = d_solver.mkParamSort("T0");
+    Sort sortVar1 = d_solver.mkParamSort("T1");
+    Sort intSort = d_solver.getIntegerSort();
+    Sort realSort = d_solver.getRealSort();
+    Sort arraySort0 = d_solver.mkArraySort(sortVar0, sortVar0);
+    Sort arraySort1 = d_solver.mkArraySort(sortVar0, sortVar1);
+    // Now create instantiations of the defined sorts
+    assertDoesNotThrow(() -> arraySort0.substitute(sortVar0, intSort));
+    assertDoesNotThrow(()
+                           -> arraySort1.substitute(
+                               new Sort[] {sortVar0, sortVar1}, new Sort[] {intSort, realSort}));
   }
 }

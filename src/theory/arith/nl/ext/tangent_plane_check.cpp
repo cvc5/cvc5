@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +40,7 @@ TangentPlaneCheck::TangentPlaneCheck(Env& env, ExtState* data)
 void TangentPlaneCheck::check(bool asWaitingLemmas)
 {
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const std::map<Node, std::vector<Node> >& ccMap =
       d_data->d_mdb.getContainsChildrenMap();
   unsigned kstart = d_data->d_ms_vars.size();
