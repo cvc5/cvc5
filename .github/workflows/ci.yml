@@ -54,7 +54,7 @@ jobs:
 
           - name: win64:production
             os: windows-latest
-            config: production --auto-download --win64-native -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+            config: production --auto-download --win64-native
             cache-key: production-win64-native
             strip-bin: strip
             windows-build: true

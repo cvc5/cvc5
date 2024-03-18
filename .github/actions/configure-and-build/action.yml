@@ -34,7 +34,8 @@ runs:
       run: |
         echo "::group::Shared build"
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
-          --prefix=$(pwd)/build-shared/install --werror --name=build-shared
+          --prefix=$(pwd)/build-shared/install --werror --name=build-shared \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
         
         cd build-shared/ && pwd=$(pwd)
         if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -58,7 +59,8 @@ runs:
       run: |
         echo "::group::Static build"
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
-          --prefix=$(pwd)/build-static/install --werror --static --name=build-static --no-java-bindings
+          --prefix=$(pwd)/build-static/install --werror --static --name=build-static --no-java-bindings \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
 
         cd build-static/ && pwd=$(pwd)
         if [[ "$RUNNER_OS" == "Windows" ]]; then
