@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,7 +109,7 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
     d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
 }
 
 PfManager::~PfManager() {}
@@ -318,7 +318,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
   CDProof cdp(d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
+  Node fnode = nodeManager()->mkConst(false);
   cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   Trace("difficulty-proc") << "Get final proof" << std::endl;

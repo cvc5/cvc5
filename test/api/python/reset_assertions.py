@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,25 +21,26 @@
 import cvc5
 from cvc5 import Kind
 
-slv = cvc5.Solver()
+tm = cvc5.TermManager()
+slv = cvc5.Solver(tm)
 slv.setOption("incremental", "true")
 
-real = slv.getRealSort()
-x = slv.mkConst(real, "x")
-four = slv.mkReal(4)
-xEqFour = slv.mkTerm(Kind.EQUAL, x, four)
+real = tm.getRealSort()
+x = tm.mkConst(real, "x")
+four = tm.mkReal(4)
+xEqFour = tm.mkTerm(Kind.EQUAL, x, four)
 slv.assertFormula(xEqFour)
 print(slv.checkSat())
 
 slv.resetAssertions()
 
-elementType = slv.getIntegerSort()
-indexType = slv.getIntegerSort()
-arrayType = slv.mkArraySort(indexType, elementType)
-array = slv.mkConst(arrayType, "array")
-fourInt = slv.mkInteger(4)
-arrayAtFour = slv.mkTerm(Kind.SELECT, array, fourInt)
-ten = slv.mkInteger(10)
-arrayAtFour_eq_ten = slv.mkTerm(Kind.EQUAL, arrayAtFour, ten)
+elementType = tm.getIntegerSort()
+indexType = tm.getIntegerSort()
+arrayType = tm.mkArraySort(indexType, elementType)
+array = tm.mkConst(arrayType, "array")
+fourInt = tm.mkInteger(4)
+arrayAtFour = tm.mkTerm(Kind.SELECT, array, fourInt)
+ten = tm.mkInteger(10)
+arrayAtFour_eq_ten = tm.mkTerm(Kind.EQUAL, arrayAtFour, ten)
 slv.assertFormula(arrayAtFour_eq_ten)
 print(slv.checkSat())

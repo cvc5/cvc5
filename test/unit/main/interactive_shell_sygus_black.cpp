@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,7 @@ class TestMainBlackInteractiveShellSygus : public TestInternal
     d_sin = std::make_unique<std::stringstream>();
     d_sout = std::make_unique<std::stringstream>();
 
-    d_solver.reset(new cvc5::Solver());
+    d_solver.reset(new cvc5::Solver(d_tm));
     d_solver->setOption("input-language", "sygus2");
     d_cexec.reset(new main::CommandExecutor(d_solver));
   }
@@ -84,6 +84,7 @@ class TestMainBlackInteractiveShellSygus : public TestInternal
   std::unique_ptr<std::stringstream> d_sin;
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<main::CommandExecutor> d_cexec;
+  cvc5::TermManager d_tm;
   std::unique_ptr<cvc5::Solver> d_solver;
 };
 

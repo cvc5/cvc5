@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
+ *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1180,8 +1180,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_ULTBV: return "bvultbv";
     case Kind::BITVECTOR_SLTBV: return "bvsltbv";
 
-    case Kind::BITVECTOR_SIZE: return "bvsize";
-    case Kind::CONST_BITVECTOR_SYMBOLIC: return "bv";
+    case Kind::BITVECTOR_SIZE: return "@bvsize";
+    case Kind::CONST_BITVECTOR_SYMBOLIC: return "@bv";
 
     // datatypes theory
     case Kind::APPLY_TESTER: return "is";

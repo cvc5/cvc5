@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Clark Barrett, Andres Noetzli, Andrew Reynolds
+ *   Clark Barrett, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -127,7 +127,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = nodeManager()->getSkolemManager();
   Node n = sm->mkDummySkolem(
       "unconstrained",
       t,
@@ -138,7 +138,7 @@ Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 
 void UnconstrainedSimplifier::processUnconstrained()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   vector<TNode> workList(d_unconstrained.begin(), d_unconstrained.end());
   Node currentSub;
