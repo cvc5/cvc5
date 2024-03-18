@@ -176,9 +176,9 @@ class CnfStream : protected EnvObj
    * (or ~(or A B) ~C)
    * (or A B)
    * C
-   * 
+   *
    * And the auxilary units:
-   * 
+   *
    * (or A B)
    *
    * Here, we would print the DIMACS:
@@ -188,7 +188,7 @@ class CnfStream : protected EnvObj
    * 3 4 0
    * 2 0
    * 1 0
-   * 
+   *
    * Note that the copy of (or A B) in clauses is printed as "3 4 0" whereas
    * the copy of (or A B) in auxUnits is printed as "1 0".
    *
