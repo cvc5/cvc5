@@ -212,14 +212,14 @@ class CVC5_EXPORT ParserState
    * Create a new cvc5 bound variable expression of the given type. This binds
    * the symbol name to that variable in the current scope.
    */
-  Term bindBoundVar(const std::string& name, const Sort& type);
+  Term bindBoundVar(const std::string& name, const Sort& type, bool useCache = true);
   /**
    * Create a new cvc5 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
    */
   std::vector<Term> bindBoundVars(
-      std::vector<std::pair<std::string, Sort> >& sortedVarNames);
+      std::vector<std::pair<std::string, Sort> >& sortedVarNames, bool useCache = true);
 
   /**
    * Create a set of new cvc5 bound variable expressions of the given type.

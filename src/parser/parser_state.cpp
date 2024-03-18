@@ -163,33 +163,40 @@ Term ParserState::bindVar(const std::string& name,
   return expr;
 }
 
-Term ParserState::bindBoundVar(const std::string& name, const Sort& type)
+Term ParserState::bindBoundVar(const std::string& name, const Sort& type, bool useCache)
 {
   Trace("parser") << "bindBoundVar(" << name << ", " << type << ")"
                   << std::endl;
   std::pair<std::string, Sort> key(name, type);
-  std::map<std::pair<std::string, Sort>, Term>::iterator itv = d_varCache.find(key);
   Term expr;
-  if (itv!=d_varCache.end())
+  if (useCache)
   {
-    expr = itv->second;
+    std::map<std::pair<std::string, Sort>, Term>::iterator itv = d_varCache.find(key);
+    if (itv!=d_varCache.end())
+    {
+      expr = itv->second;
+    }
+    else
+    {
+      expr = d_tm.mkVar(type, name);
+      d_varCache[key] = expr;
+    }
   }
   else
   {
     expr = d_tm.mkVar(type, name);
-    d_varCache[key] = expr;
   }
   defineVar(name, expr);
   return expr;
 }
 
 std::vector<Term> ParserState::bindBoundVars(
-    std::vector<std::pair<std::string, Sort> >& sortedVarNames)
+    std::vector<std::pair<std::string, Sort> >& sortedVarNames, bool useCache)
 {
   std::vector<Term> vars;
   for (std::pair<std::string, Sort>& i : sortedVarNames)
   {
-    vars.push_back(bindBoundVar(i.first, i.second));
+    vars.push_back(bindBoundVar(i.first, i.second, useCache));
   }
   return vars;
 }

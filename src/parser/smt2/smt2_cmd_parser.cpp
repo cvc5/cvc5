@@ -911,7 +911,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         range = d_tparser.parseSort();
       }
       d_state.pushScope();
-      std::vector<cvc5::Term> sygusVars = d_state.bindBoundVars(sortedVarNames);
+      std::vector<cvc5::Term> sygusVars = d_state.bindBoundVars(sortedVarNames, false);
       Grammar* g = d_tparser.parseGrammarOrNull(sygusVars, name);
 
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
