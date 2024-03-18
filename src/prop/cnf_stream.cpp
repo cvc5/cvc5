@@ -790,13 +790,13 @@ void CnfStream::dumpDimacs(std::ostream& out,
 {
   std::stringstream dclauses;
   SatVariable maxVar = 0;
-  for (size_t j=0; j<2; j++)
+  for (size_t j = 0; j < 2; j++)
   {
-    const std::vector<Node>& cls = j==0 ? clauses : auxUnits;
+    const std::vector<Node>& cls = j == 0 ? clauses : auxUnits;
     for (const Node& i : cls)
     {
       std::vector<Node> lits;
-      if (j==0 && i.getKind() == Kind::OR)
+      if (j == 0 && i.getKind() == Kind::OR)
       {
         // print as clause if not an auxiliary unit
         lits.insert(lits.end(), i.begin(), i.end());

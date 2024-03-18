@@ -270,8 +270,8 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 
-
-std::vector<Node> PropPfManager::computeAuxiliaryUnits(const std::vector<Node>& clauses)
+std::vector<Node> PropPfManager::computeAuxiliaryUnits(
+    const std::vector<Node>& clauses)
 {
   std::vector<Node> auxUnits;
   for (const Node& c : clauses)
