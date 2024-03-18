@@ -37,9 +37,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-SequencesRewriter::SequencesRewriter(Rewriter* r,
+SequencesRewriter::SequencesRewriter(NodeManager* nm,
+                                     Rewriter* r,
                                      HistogramStat<Rewrite>* statistics)
-    : d_statistics(statistics),
+    : TheoryRewriter(nm),
+      d_statistics(statistics),
       d_rr(r),
       d_arithEntail(r),
       d_stringsEntail(r, d_arithEntail, *this)

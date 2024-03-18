@@ -26,6 +26,8 @@ namespace arith {
 namespace nl {
 namespace coverings {
 
+CoveringsProofRuleChecker::CoveringsProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm) {}
+  
 void CoveringsProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // trusted rules

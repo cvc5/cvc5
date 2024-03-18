@@ -30,9 +30,8 @@ namespace datatypes {
 class DatatypesProofRuleChecker : public ProofRuleChecker
 {
  public:
-  DatatypesProofRuleChecker(bool sharedSel) : d_sharedSel(sharedSel) {}
-  ~DatatypesProofRuleChecker() {}
-
+  DatatypesProofRuleChecker(NodeManager* nm, bool sharedSel);
+  
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
 

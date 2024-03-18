@@ -244,7 +244,6 @@ class BagsRewriter : public TheoryRewriter
 
  private:
   /** Reference to the rewriter statistics. */
-  NodeManager* d_nm;
   Node d_zero;
   Node d_one;
   /**

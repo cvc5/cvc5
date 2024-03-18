@@ -43,7 +43,7 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_proofNodeManager(nullptr),
-      d_rewriter(new theory::Rewriter()),
+      d_rewriter(new theory::Rewriter(nm)),
       d_evalRew(nullptr),
       d_eval(nullptr),
       d_topLevelSubs(nullptr),

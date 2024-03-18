@@ -64,8 +64,12 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
   return nm->mkNode(Kind::AND, diseqs);
 }
 
-RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
-  // otherwise, do the default call
+TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager * nm) : TheoryRewriter(nm){}
+
+RewriteResponse TheoryBuiltinRewriter::preRewrite(TNode node) { return doRewrite(node); }
+
+RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) 
+{
   return doRewrite(node);
 }
 
@@ -97,7 +101,7 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
-
+  
 Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
 {
   Assert(node.getKind() == Kind::WITNESS);

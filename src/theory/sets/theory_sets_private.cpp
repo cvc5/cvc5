@@ -59,6 +59,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_rels_enabled(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
+      d_rewriter(nodeManager()),
       d_cpacb(cpacb)
 {
   d_true = nodeManager()->mkConst(true);

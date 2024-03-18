@@ -700,7 +700,7 @@ TrustNode TheoryArraysRewriter::expandDefinition(Node node)
                                         ProofRule::ARRAYS_EQ_RANGE_EXPAND,
                                         {},
                                         {node});
-      return TrustNode::mkTrustRewrite(node, expandedEqRange, d_epg.get());
+      return TrustNode::mkTrustRewrite(node, expandedEqRange, d_epg);
     }
     return TrustNode::mkTrustRewrite(node, expandedEqRange, nullptr);
   }

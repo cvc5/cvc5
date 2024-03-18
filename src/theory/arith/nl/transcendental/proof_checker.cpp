@@ -29,6 +29,8 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
+TranscendentalProofRuleChecker::TranscendentalProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm) {}
+
 namespace {
 
 /**
