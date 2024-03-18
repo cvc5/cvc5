@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -78,7 +78,7 @@ Node OperatorElim::eliminateOperators(Node node,
                                       TConvProofGenerator* tg,
                                       bool partialOnly)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
   switch (k)
@@ -433,7 +433,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
   std::map<SkolemFunId, Node>::iterator it = d_arithSkolem.find(id);
   if (it == d_arithSkolem.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node skolem;
     SkolemManager* sm = nm->getSkolemManager();
     // introduce the skolem function
@@ -448,7 +448,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
 Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 {
   Node skolem = getArithSkolem(id);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (usePartialFunction(id))
   {
     Assert(skolem.getType().isFunction()

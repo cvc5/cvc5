@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -633,7 +633,15 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
-    TupleUtils::checkTypeIndices(n, tupleType, indices);
+    if (!TupleUtils::checkTypeIndices(tupleType, indices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its argument";
+      }
+      return TypeNode::null();
+    }
 
     TypeNode elementType = bagType.getBagElementType();
 
@@ -715,8 +723,24 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     auto [aIndices, bIndices] = BagsUtils::splitTableJoinIndices(n);
-    TupleUtils::checkTypeIndices(n, aTupleType, aIndices);
-    TupleUtils::checkTypeIndices(n, bTupleType, bIndices);
+    if (!TupleUtils::checkTypeIndices(aTupleType, aIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its first argument";
+      }
+      return TypeNode::null();
+    }
+    if (!TupleUtils::checkTypeIndices(bTupleType, bIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its second argument";
+      }
+      return TypeNode::null();
+    }
 
     // check the types of columns
     std::vector<TypeNode> aTypes = aTupleType.getTupleTypes();
@@ -776,7 +800,15 @@ TypeNode TableGroupTypeRule::computeType(NodeManager* nm,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
-    TupleUtils::checkTypeIndices(n, tupleType, indices);
+    if (!TupleUtils::checkTypeIndices(tupleType, indices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its argument";
+      }
+      return TypeNode::null();
+    }
   }
   return nm->mkBagType(bagType);
 }

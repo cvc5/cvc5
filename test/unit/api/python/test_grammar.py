@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -20,98 +20,88 @@ from cvc5 import Term
 
 
 @pytest.fixture
-def solver():
-    return cvc5.Solver()
+def tm():
+    return cvc5.TermManager()
+@pytest.fixture
+def solver(tm):
+    return cvc5.Solver(tm)
 
 
-def test_to_string(solver):
+def test_to_string(tm, solver):
     solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
-    start = solver.mkVar(boolean)
-    nts = solver.mkVar(boolean)
+    boolean = tm.getBooleanSort()
+    start = tm.mkVar(boolean)
+    nts = tm.mkVar(boolean)
     g = solver.mkGrammar([nts], [start])
-    g.addRule(start, solver.mkBoolean(False))
+    g.addRule(start, tm.mkBoolean(False))
     str(g)
 
 
-def test_add_rule(solver):
+def test_add_rule(tm, solver):
     solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
-    integer = solver.getIntegerSort()
+    boolean = tm.getBooleanSort()
+    integer = tm.getIntegerSort()
 
-    null_term = Term(solver)
-    start = solver.mkVar(boolean)
-    nts = solver.mkVar(boolean)
+    start = tm.mkVar(boolean)
+    nts = tm.mkVar(boolean)
 
     # expecting no error
     g = solver.mkGrammar([], [start])
 
-    g.addRule(start, solver.mkBoolean(False))
+    g.addRule(start, tm.mkBoolean(False))
 
     # expecting errors
     with pytest.raises(RuntimeError):
-        g.addRule(null_term, solver.mkBoolean(False))
+        g.addRule(nts, tm.mkBoolean(False))
     with pytest.raises(RuntimeError):
-        g.addRule(start, null_term)
-    with pytest.raises(RuntimeError):
-        g.addRule(nts, solver.mkBoolean(False))
-    with pytest.raises(RuntimeError):
-        g.addRule(start, solver.mkInteger(0))
+        g.addRule(start, tm.mkInteger(0))
 
     # expecting no errors
     solver.synthFun("f", {}, boolean, g)
 
     # expecting an error
     with pytest.raises(RuntimeError):
-        g.addRule(start, solver.mkBoolean(False))
+        g.addRule(start, tm.mkBoolean(False))
 
 
-def test_add_rules(solver):
+def test_add_rules(tm, solver):
     solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
-    integer = solver.getIntegerSort()
+    boolean = tm.getBooleanSort()
+    integer = tm.getIntegerSort()
 
-    null_term = Term(solver)
-    start = solver.mkVar(boolean)
-    nts = solver.mkVar(boolean)
+    start = tm.mkVar(boolean)
+    nts = tm.mkVar(boolean)
 
     g = solver.mkGrammar([], [start])
 
-    g.addRules(start, {solver.mkBoolean(False)})
+    g.addRules(start, {tm.mkBoolean(False)})
 
     #Expecting errors
     with pytest.raises(RuntimeError):
-        g.addRules(null_term, [solver.mkBoolean(False)])
+        g.addRules(nts, [tm.mkBoolean(False)])
     with pytest.raises(RuntimeError):
-        g.addRules(start, [null_term])
-    with pytest.raises(RuntimeError):
-        g.addRules(nts, [solver.mkBoolean(False)])
-    with pytest.raises(RuntimeError):
-        g.addRules(start, [solver.mkInteger(0)])
+        g.addRules(start, [tm.mkInteger(0)])
 
     #Expecting no errors
     solver.synthFun("f", {}, boolean, g)
 
     #Expecting an error
     with pytest.raises(RuntimeError):
-        g.addRules(start, solver.mkBoolean(False))
+        g.addRules(start, tm.mkBoolean(False))
 
 
-def test_add_any_constant(solver):
+def test_add_any_constant(tm, solver):
     solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
+    boolean = tm.getBooleanSort()
 
-    null_term = Term(solver)
-    start = solver.mkVar(boolean)
-    nts = solver.mkVar(boolean)
+    start = tm.mkVar(boolean)
+    nts = tm.mkVar(boolean)
 
     g = solver.mkGrammar({}, {start})
 
     g.addAnyConstant(start)
     g.addAnyConstant(start)
 
-    with pytest.raises(RuntimeError):
-        g.addAnyConstant(null_term)
     with pytest.raises(RuntimeError):
         g.addAnyConstant(nts)
 
@@ -121,14 +111,13 @@ def test_add_any_constant(solver):
         g.addAnyConstant(start)
 
 
-def test_add_any_variable(solver):
+def test_add_any_variable(tm, solver):
     solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
+    boolean = tm.getBooleanSort()
 
-    null_term = Term(solver)
-    x = solver.mkVar(boolean)
-    start = solver.mkVar(boolean)
-    nts = solver.mkVar(boolean)
+    x = tm.mkVar(boolean)
+    start = tm.mkVar(boolean)
+    nts = tm.mkVar(boolean)
 
     g1 = solver.mkGrammar({x}, {start})
     g2 = solver.mkGrammar({}, {start})
@@ -137,8 +126,6 @@ def test_add_any_variable(solver):
     g1.addAnyVariable(start)
     g2.addAnyVariable(start)
 
-    with pytest.raises(RuntimeError):
-        g1.addAnyVariable(null_term)
     with pytest.raises(RuntimeError):
         g1.addAnyVariable(nts)
 

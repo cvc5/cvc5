@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +48,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_statTotalInputSuccess(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputSuccess"))
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -364,7 +364,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     {
       rchildren.insert(rchildren.begin(), target[0].getOperator());
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node tappc = nm->mkNode(target[0].getKind(), rchildren);
     if (doEvaluate(tappc) != r2)
     {
@@ -676,7 +676,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
 bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 {
   // note we could use single internal cdp to improve subproof sharing
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, std::vector<Node>> premises;
   std::unordered_map<TNode, std::vector<Node>> pfArgs;
@@ -839,7 +839,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         Node eq1 = lhs.eqNode(lhsTgt);
         Node eq2 = lhsTgt.eqNode(rhs);
         std::vector<Node> transChildren = {eq1, eq2};
-        cdp->addStep(eq1, ProofRule::CONG, ps, pfArgs[cur]);
+        // get the appropriate CONG rule
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(eq1[0], cargs);
+        cdp->addStep(eq1, cr, ps, cargs);
         cdp->addStep(eq2, ProofRule::EVALUATE, {}, {lhsTgt});
         if (rhs != cur[1])
         {
