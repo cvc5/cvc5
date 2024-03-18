@@ -602,6 +602,22 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Term output2 = d_solver->getInterpolant(conj2, g);
   // interpolant must be true
   ASSERT_EQ(output2, truen);
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-interpolants", "true");
+  Term xx = tm.mkConst(intSort, "x");
+  Term yy = tm.mkConst(intSort, "y");
+  Term zzero = tm.mkInteger(0);
+  Term sstart = tm.mkVar(tm.getBooleanSort());
+  Grammar gg = slv.mkGrammar({}, {sstart});
+  gg.addRule(sstart, tm.mkTrue());
+  Term cconj2 = tm.mkTerm(Kind::EQUAL, {zzero, zzero});
+  ASSERT_NO_THROW(slv.getInterpolant(cconj2, gg));
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.getInterpolant(conj2));
+  ASSERT_NO_THROW(slv.getInterpolant(conj2, gg));
+  ASSERT_NO_THROW(slv.getInterpolant(cconj2, g));
 }
 
 TEST_F(TestApiBlackSolver, getInterpolantNext)
