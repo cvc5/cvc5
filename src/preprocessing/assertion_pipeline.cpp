@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ AssertionPipeline::AssertionPipeline(Env& env)
       d_isModelUnsound(false),
       d_isNegated(false)
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
 }
 
 void AssertionPipeline::clear()
@@ -87,7 +87,7 @@ void AssertionPipeline::push_back(Node n,
       {
         if (isProofEnabled())
         {
-          NodeManager* nm = NodeManager::currentNM();
+          NodeManager* nm = nodeManager();
           for (size_t j = 0, nchild = nc.getNumChildren(); j < nchild; j++)
           {
             size_t jj = (nchild-1)-j;
@@ -194,7 +194,7 @@ bool AssertionPipeline::isProofEnabled() const { return d_pppg != nullptr; }
 void AssertionPipeline::enableStoreSubstsInAsserts()
 {
   d_storeSubstsInAsserts = true;
-  d_nodes.push_back(NodeManager::currentNM()->mkConst<bool>(true));
+  d_nodes.push_back(nodeManager()->mkConst<bool>(true));
 }
 
 void AssertionPipeline::disableStoreSubstsInAsserts()

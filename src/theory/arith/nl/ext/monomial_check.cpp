@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -296,7 +296,7 @@ int MonomialCheck::compareSign(
 {
   Trace("nl-ext-debug") << "Process " << a << " at index " << a_index
                         << ", status is " << status << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node mvaoa = d_data->d_model.computeAbstractModelValue(oa);
   const std::vector<Node>& vla = d_data->d_mdb.getVariableList(a);
   if (a_index == vla.size())
@@ -403,7 +403,7 @@ bool MonomialCheck::compareMonomial(
       << "compareMonomial " << oa << " and " << ob << ", indices = " << a_index
       << " " << b_index << std::endl;
   Assert(status == 0 || status == 2);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const std::vector<Node>& vla = d_data->d_mdb.getVariableList(a);
   const std::vector<Node>& vlb = d_data->d_mdb.getVariableList(b);
   if (a_index == vla.size() && b_index == vlb.size())
@@ -719,7 +719,7 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
 }
 Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Assert(a.getType().isRealOrInt() && b.getType().isRealOrInt());
   if (status == 0)
   {

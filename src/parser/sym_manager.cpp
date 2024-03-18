@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -340,6 +340,7 @@ void SymManager::bindType(const std::string& name, cvc5::Sort t)
 bool SymManager::bindMutualDatatypeTypes(
     const std::vector<cvc5::Sort>& datatypes, bool bindTesters)
 {
+  TermManager& tm = d_solver->getTermManager();
   for (size_t i = 0, ntypes = datatypes.size(); i < ntypes; ++i)
   {
     Sort t = datatypes[i];
@@ -365,7 +366,7 @@ bool SymManager::bindMutualDatatypeTypes(
       // constructor.
       if (ctor.getNumSelectors() == 0)
       {
-        constructor = d_solver->mkTerm(Kind::APPLY_CONSTRUCTOR, {constructor});
+        constructor = tm.mkTerm(Kind::APPLY_CONSTRUCTOR, {constructor});
       }
       // always do overloading
       if (!bind(constructorName, constructor, true))
