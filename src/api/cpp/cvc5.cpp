@@ -7953,7 +7953,7 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
   for (const auto& sym : grammar.d_sg->getNtSyms())
   {
     CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
-        << "Invalid grammar, must have at least one rule configured for each "
+        << "Invalid grammar, must have at least one rule for each "
            "non-terminal symbol";
   }
   //////// all checks before this line
