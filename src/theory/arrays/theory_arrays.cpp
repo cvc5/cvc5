@@ -79,7 +79,7 @@ TheoryArrays::TheoryArrays(Env& env,
       d_ppEqualityEngine(d_env, userContext(), name + "pp", true),
       d_ppFacts(userContext()),
       d_rrEpg(env.isTheoryProofProducing() ? new EagerProofGenerator(env)
-                                         : nullptr),
+                                           : nullptr),
       d_rewriter(env.getNodeManager(), env.getRewriter(), d_rrEpg.get()),
       d_state(env, valuation),
       d_im(env, *this, d_state),

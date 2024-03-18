@@ -32,7 +32,7 @@ class ProofNode;
 class ProofRuleChecker
 {
  public:
-  ProofRuleChecker(NodeManager * nm) : d_nm(nm) {}
+  ProofRuleChecker(NodeManager* nm) : d_nm(nm) {}
   virtual ~ProofRuleChecker() {}
   /**
    * This checks a single step in a proof.

@@ -48,7 +48,7 @@ static inline Node mkEqNode(Node a, Node b) {
 class TheoryArraysRewriter : public TheoryRewriter
 {
  public:
-  TheoryArraysRewriter(NodeManager * nm, Rewriter* r, EagerProofGenerator* epg);
+  TheoryArraysRewriter(NodeManager* nm, Rewriter* r, EagerProofGenerator* epg);
 
   /** Normalize a constant whose index type has cardinality indexCard */
   static Node normalizeConstant(TNode node, Cardinality indexCard);

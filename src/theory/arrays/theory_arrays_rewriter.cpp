@@ -59,10 +59,10 @@ void setMostFrequentValueCount(TNode store, uint64_t count) {
   return store.setAttribute(ArrayConstantMostFrequentValueCountAttr(), count);
 }
 
-TheoryArraysRewriter::TheoryArraysRewriter(NodeManager * nm, Rewriter* r, EagerProofGenerator* epg)
-    : TheoryRewriter(nm),
-      d_rewriter(r),
-      d_epg(epg)
+TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm,
+                                           Rewriter* r,
+                                           EagerProofGenerator* epg)
+    : TheoryRewriter(nm), d_rewriter(r), d_epg(epg)
 {
 }
 
