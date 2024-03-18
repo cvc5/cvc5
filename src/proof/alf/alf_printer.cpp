@@ -284,12 +284,18 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
     {
       std::stringstream outVars;
       const std::unordered_set<TNode>& vars = aletify.getVariables();
+      std::set<std::pair<std::string, TypeNode>> processed;
       for (TNode v : vars)
       {
         if (v.getKind() == Kind::BOUND_VARIABLE)
         {
-          outVars << "(declare-var " << v << " " << v.getType() << ")"
-                  << std::endl;
+          std::pair<std::string, TypeNode> key(v.getName(), v.getType());
+          if (processed.find(key)==processed.end())
+          {
+            processed.insert(key);
+            outVars << "(declare-var " << v << " " << v.getType() << ")"
+                    << std::endl;
+          }
         }
       }
       if (options().proof.alfPrintReference)

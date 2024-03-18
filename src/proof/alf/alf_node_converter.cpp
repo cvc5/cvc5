@@ -104,19 +104,6 @@ Node AlfNodeConverter::postConvert(Node n)
     Node tc = typeAsNode(tn);
     return mkInternalApp("const", {index, tc}, tn);
   }
-  else if (k == Kind::BOUND_VARIABLE)
-  {
-    // note: we always distinguish variables, to ensure they do not have
-    // names that are overloaded with user names
-    std::stringstream ss;
-    ss << n;
-    std::string sname = ss.str();
-    size_t index = d_varIndex[sname];
-    d_varIndex[sname]++;
-    std::stringstream ssn;
-    ssn << "alf." << index << "." << sname;
-    return NodeManager::currentNM()->mkBoundVar(ssn.str(), tn);
-  }
   else if (k == Kind::VARIABLE)
   {
     // note that we do not handle overloading here
