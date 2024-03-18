@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Haniel Barbosa
+#   Leni Aniva, Haniel Barbosa
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -123,6 +123,9 @@ class Op(Enum):
     LEQ = ('<=', 'LEQ')
     GEQ = ('>=', 'GEQ')
     POW2 = ('int.pow2', 'POW2')
+
+    INT_ISPOW2 = ('int.ispow2', 'INTS_ISPOW2')  # Backdoor for some bv rewrites
+    INT_LENGTH = ('int.log2', 'INTS_LOG2')  # Backdoor for some bv rewrites
 
     ###########################################################################
     # Theory-independent

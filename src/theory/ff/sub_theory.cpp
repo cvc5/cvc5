@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,7 +67,7 @@ Result SubTheory::postCheck(Theory::Effort e)
       auto result = split(facts, size());
       if (result.has_value())
       {
-        const auto nm = NodeManager::currentNM();
+        const auto nm = nodeManager();
         for (const auto& [var, val] : result.value())
         {
           d_model.insert({var, nm->mkConst<FiniteFieldValue>(val)});
@@ -155,7 +155,7 @@ Result SubTheory::postCheck(Theory::Effort e)
         {
           // SAT: populate d_model from the root
           Assert(d_model.empty());
-          const auto nm = NodeManager::currentNM();
+          const auto nm = nodeManager();
           for (const auto& [idx, node] : enc.nodeIndets())
           {
             if (isFfLeaf(node))

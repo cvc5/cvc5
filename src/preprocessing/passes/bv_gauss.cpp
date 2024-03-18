@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -496,8 +496,8 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         /* Flatten mult expression. */
         n = RewriteRule<FlattenAssocCommut>::run<true>(n);
         /* Split operands into consts and non-consts */
-        NodeBuilder nb_consts(NodeManager::currentNM(), k);
-        NodeBuilder nb_nonconsts(NodeManager::currentNM(), k);
+        NodeBuilder nb_consts(nodeManager(), k);
+        NodeBuilder nb_nonconsts(nodeManager(), k);
         for (const Node& nn : n)
         {
           Node nnrw = rewrite(nn);
@@ -616,7 +616,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     Assert(nvars == vvars.size());
     Assert(nrows == lhs.size());
     Assert(nrows == rhs.size());
-    NodeManager *nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     if (ret == BVGauss::Result::UNIQUE)
     {
       for (size_t i = 0; i < nvars; ++i)
@@ -734,7 +734,7 @@ PreprocessingPassResult BVGauss::applyInternal(
 
   std::unordered_map<Node, Node> subst;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const auto& eq : equations)
   {
     if (eq.second.size() <= 1) { continue; }

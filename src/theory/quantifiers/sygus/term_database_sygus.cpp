@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,8 +66,8 @@ TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
       d_eval_unfold(new SygusEvalUnfold(env, this)),
       d_ochecker(env.getOracleChecker())
 {
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 void TermDbSygus::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
@@ -98,7 +98,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
   {
     SygusTypeInfo& ti = getTypeInfo(tn);
     int anyC = ti.getAnyConstantConsNum();
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node k;
     if (anyC == -1)
     {
@@ -221,7 +221,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, size_t>& var_count)
     }
     if (childChanged)
     {
-      ret = NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+      ret = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
     }
   }
   // cache if we had a fresh variable count
@@ -302,7 +302,7 @@ Node TermDbSygus::getBuiltinFreeVarFor(const Node& v)
   const TypeNode& tn = v.getType();
   Assert(tn.isSygusDatatype());
   const TypeNode& vtn = tn.getDType().getSygusType();
-  BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
+  BoundVarManager* bvm = nodeManager()->getBoundVarManager();
   return bvm->mkBoundVar<SygusBuiltinFreeVarAttribute>(v, vtn);
 }
 
@@ -347,7 +347,7 @@ void TermDbSygus::registerEnumerator(Node e,
   registerSygusType(et);
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
