@@ -163,7 +163,9 @@ Term ParserState::bindVar(const std::string& name,
   return expr;
 }
 
-Term ParserState::bindBoundVar(const std::string& name, const Sort& type, bool useCache)
+Term ParserState::bindBoundVar(const std::string& name,
+                               const Sort& type,
+                               bool useCache)
 {
   Trace("parser") << "bindBoundVar(" << name << ", " << type << ")"
                   << std::endl;
@@ -171,8 +173,9 @@ Term ParserState::bindBoundVar(const std::string& name, const Sort& type, bool u
   Term expr;
   if (useCache)
   {
-    std::map<std::pair<std::string, Sort>, Term>::iterator itv = d_varCache.find(key);
-    if (itv!=d_varCache.end())
+    std::map<std::pair<std::string, Sort>, Term>::iterator itv =
+        d_varCache.find(key);
+    if (itv != d_varCache.end())
     {
       expr = itv->second;
     }

@@ -213,7 +213,8 @@ Term Smt2TermParser::parseTerm()
               {
                 d_lex.parseError("Expected non-empty sorted variable list");
               }
-              std::vector<Term> vs = d_state.bindBoundVars(sortedVarNames, true);
+              std::vector<Term> vs =
+                  d_state.bindBoundVars(sortedVarNames, true);
               Term vl = tm.mkTerm(Kind::VARIABLE_LIST, vs);
               args.push_back(vl);
               xstack.emplace_back(ParseCtx::CLOSURE_NEXT_ARG);
