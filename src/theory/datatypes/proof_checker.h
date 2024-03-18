@@ -31,7 +31,7 @@ class DatatypesProofRuleChecker : public ProofRuleChecker
 {
  public:
   DatatypesProofRuleChecker(NodeManager* nm, bool sharedSel);
-  
+
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
 

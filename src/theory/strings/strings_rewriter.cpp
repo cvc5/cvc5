@@ -27,7 +27,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsRewriter::StringsRewriter(NodeManager* nm, 
+StringsRewriter::StringsRewriter(NodeManager* nm,
                                  Rewriter* r,
                                  HistogramStat<Rewrite>* statistics,
                                  uint32_t alphaCard)

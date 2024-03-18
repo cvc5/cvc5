@@ -30,7 +30,7 @@ class BoolProofRuleChecker : public ProofRuleChecker
 {
  public:
   BoolProofRuleChecker(NodeManager* nm);
-  
+
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
 

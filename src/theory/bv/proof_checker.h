@@ -30,7 +30,7 @@ namespace bv {
 class BVProofRuleChecker : public ProofRuleChecker
 {
  public:
-  BVProofRuleChecker(NodeManager * nm);
+  BVProofRuleChecker(NodeManager* nm);
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;

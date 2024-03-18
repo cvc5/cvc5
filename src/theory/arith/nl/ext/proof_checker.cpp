@@ -26,7 +26,9 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-ExtProofRuleChecker::ExtProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm) {}
+ExtProofRuleChecker::ExtProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm)
+{
+}
 
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {

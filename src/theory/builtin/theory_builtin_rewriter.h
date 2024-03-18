@@ -29,8 +29,8 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   static Node blastDistinct(TNode node);
 
  public:
-  TheoryBuiltinRewriter(NodeManager * nm);
-  
+  TheoryBuiltinRewriter(NodeManager* nm);
+
   RewriteResponse postRewrite(TNode node) override;
 
   RewriteResponse preRewrite(TNode node) override;

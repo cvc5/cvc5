@@ -35,8 +35,8 @@ namespace booleans {
 
 TheoryBool::TheoryBool(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BOOL, env, out, valuation),
-    d_rewriter(env.getNodeManager()),
-    d_checker(env.getNodeManager())
+      d_rewriter(env.getNodeManager()),
+      d_checker(env.getNodeManager())
 {
 }
 

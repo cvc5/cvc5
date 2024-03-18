@@ -92,7 +92,9 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
   return out;
 }
 
-QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm, Rewriter* r, const Options& opts)
+QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
+                                         Rewriter* r,
+                                         const Options& opts)
     : TheoryRewriter(nm), d_rewriter(r), d_opts(opts)
 {
 }

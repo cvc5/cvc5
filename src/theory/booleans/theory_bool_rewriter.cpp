@@ -28,7 +28,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
-TheoryBoolRewriter::TheoryBoolRewriter(NodeManager * nm) : TheoryRewriter(nm){}
+TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
 
 RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
   return preRewrite(node);

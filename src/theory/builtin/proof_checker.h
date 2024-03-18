@@ -28,7 +28,7 @@ namespace cvc5::internal {
 class Env;
 
 namespace theory {
-  
+
 class Rewriter;
 
 namespace builtin {
@@ -38,8 +38,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 {
  public:
   /** Constructor. */
-  BuiltinProofRuleChecker(NodeManager * nm,
-               Rewriter* r, Env& env);
+  BuiltinProofRuleChecker(NodeManager* nm, Rewriter* r, Env& env);
   /** Destructor. */
   ~BuiltinProofRuleChecker() {}
   /**

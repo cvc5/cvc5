@@ -44,7 +44,7 @@ struct ExtRewriteAggAttributeId
 };
 typedef expr::Attribute<ExtRewriteAggAttributeId, Node> ExtRewriteAggAttribute;
 
-ExtendedRewriter::ExtendedRewriter(NodeManager * nm, Rewriter& rew, bool aggr)
+ExtendedRewriter::ExtendedRewriter(NodeManager* nm, Rewriter& rew, bool aggr)
     : d_nm(nm), d_rew(rew), d_aggr(aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
