@@ -46,7 +46,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
+ArithRewriter::ArithRewriter(NodeManager * nm, OperatorElim& oe) : TheoryRewriter(nm), d_opElim(oe) {}
 
 RewriteResponse ArithRewriter::preRewrite(TNode t)
 {

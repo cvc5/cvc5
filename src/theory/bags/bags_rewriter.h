@@ -42,7 +42,7 @@ struct BagsRewriteResponse
 class BagsRewriter : public TheoryRewriter
 {
  public:
-  BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics = nullptr);
+  BagsRewriter(NodeManager * nm, Rewriter* r, HistogramStat<Rewrite>* statistics = nullptr);
 
   /**
    * postRewrite nodes with kinds: BAG_MAKE, BAG_COUNT, BAG_UNION_MAX,
