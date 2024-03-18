@@ -6440,6 +6440,15 @@ Term Solver::synthFunHelper(const std::string& symbol,
     }
     varTypes.push_back(bv.d_node->getType());
   }
+  if (grammar)
+  {
+    for (const auto& sym : grammar->d_sg->getNtSyms())
+    {
+      CVC5_API_CHECK(!grammar->d_sg->getRulesFor(sym).empty())
+          << "Invalid grammar, must have at least one rule for each "
+             "non-terminal symbol";
+    }
+  }
   //////// all checks before this line
 
   internal::TypeNode funType =
@@ -7940,6 +7949,12 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
+  for (const auto& sym : grammar.d_sg->getNtSyms())
+  {
+    CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
+        << "Invalid grammar, must have at least one rule for each "
+           "non-terminal symbol";
+  }
   //////// all checks before this line
   internal::Node result =
       d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
@@ -7984,6 +7999,12 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
+  for (const auto& sym : grammar.d_sg->getNtSyms())
+  {
+    CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
+        << "Invalid grammar, must have at least one rule for each "
+           "non-terminal symbol";
+  }
   //////// all checks before this line
   internal::Node result =
       d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type);
@@ -8435,6 +8456,12 @@ Term Solver::findSynth(modes::FindSynthTarget fst) const
 Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  for (const auto& sym : grammar.d_sg->getNtSyms())
+  {
+    CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
+        << "Invalid grammar, must have at least one rule for each "
+           "non-terminal symbol";
+  }
   //////// all checks before this line
   return Term(&d_tm, d_slv->findSynth(fst, *grammar.resolve().d_type));
   ////////
