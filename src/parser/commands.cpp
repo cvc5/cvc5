@@ -1483,8 +1483,8 @@ void GetModelCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
-    std::vector<cvc5::Sort> declareSorts = sm->getModelDeclareSorts();
-    std::vector<cvc5::Term> declareTerms = sm->getModelDeclareTerms();
+    std::vector<cvc5::Sort> declareSorts = sm->getDeclaredSorts();
+    std::vector<cvc5::Term> declareTerms = sm->getDeclaredTerms();
     d_result = solver->getModel(declareSorts, declareTerms);
     d_commandStatus = CommandSuccess::instance();
   }

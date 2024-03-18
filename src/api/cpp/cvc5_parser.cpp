@@ -90,7 +90,7 @@ std::vector<Sort> SymbolManager::getDeclaredSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_sm->getModelDeclareSorts();
+  return d_sm->getDeclaredSorts();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -99,7 +99,7 @@ std::vector<Term> SymbolManager::getDeclaredTerms() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_sm->getModelDeclareTerms();
+  return d_sm->getDeclaredTerms();
   ////////
   CVC5_API_TRY_CATCH_END;
 }

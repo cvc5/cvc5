@@ -627,7 +627,7 @@ void ParserState::pushGetValueScope()
   // we must bind all relevant uninterpreted constants, which coincide with
   // the set of uninterpreted constants that are printed in the definition
   // of a model.
-  std::vector<Sort> declareSorts = d_symman->getModelDeclareSorts();
+  std::vector<Sort> declareSorts = d_symman->getDeclaredSorts();
   Trace("parser") << "Push get value scope, with " << declareSorts.size()
                   << " declared sorts" << std::endl;
   for (const Sort& s : declareSorts)
