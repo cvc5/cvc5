@@ -19,6 +19,7 @@
 
 import cvc5
 
-slv = cvc5.Solver()
-r = slv.checkSatAssuming(slv.mkBoolean(False))
+tm = cvc5.TermManager()
+slv = cvc5.Solver(tm)
+r = slv.checkSatAssuming(tm.mkBoolean(False))
 r.isUnsat()

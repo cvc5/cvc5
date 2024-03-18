@@ -425,7 +425,11 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
     }
   }
   // make the sygus variable list for the formal argument list
-  Node abvl = nm->mkNode(Kind::BOUND_VAR_LIST, formalVars);
+  Node abvl;
+  if (!formalVars.empty())
+  {
+    abvl = nm->mkNode(Kind::BOUND_VAR_LIST, formalVars);
+  }
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   // must convert all constructors to version with variables in "vars"

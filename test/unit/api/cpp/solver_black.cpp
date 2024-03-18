@@ -648,8 +648,6 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Term yy = tm.mkConst(intSort, "y");
   Term zzero = tm.mkInteger(0);
   Term sstart = tm.mkVar(tm.getBooleanSort());
-  slv.assertFormula(
-      tm.mkTerm(Kind::GT, {tm.mkTerm(Kind::ADD, {xx, yy}), zzero}));
   Grammar gg = slv.mkGrammar({}, {sstart});
   gg.addRule(sstart, tm.mkTrue());
   Term cconj2 = tm.mkTerm(Kind::EQUAL, {zzero, zzero});

@@ -1140,7 +1140,7 @@ public class Solver extends AbstractPointer
    */
   public Term mkString(String s, boolean useEscSequences)
   {
-    // TODO: review unicode
+    // TODO: review unicode https://github.com/cvc5/cvc5-wishues/issues/150
     long termPointer = mkString(pointer, s, useEscSequences);
     return new Term(termPointer);
   }
