@@ -170,7 +170,27 @@ class CnfStream : protected EnvObj
   void dumpDimacs(std::ostream& out, const std::vector<Node>& clauses);
   /**
    * Same as above, but additionally prints the clauses in auxUnits as unit
-   * clauses, after clause.
+   * clauses, after clause. In particular, say
+   * we pass the following clauses to this method:
+   *
+   * (or ~(or A B) ~C)
+   * (or A B)
+   * C
+   * 
+   * And the auxilary units:
+   * 
+   * (or A B)
+   *
+   * Here, we would print the DIMACS:
+   *
+   * p cnf 4 4
+   * -1 -2 0
+   * 3 4 0
+   * 2 0
+   * 1 0
+   * 
+   * Note that the copy of (or A B) in clauses is printed as "3 4 0" whereas
+   * the copy of (or A B) in auxUnits is printed as "1 0".
    *
    * @param out The output stream.
    * @param clauses The clauses to print.
