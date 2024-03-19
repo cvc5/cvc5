@@ -700,7 +700,7 @@ struct CVC5_EXPORT hash<cvc5::SkolemFunId>
 };
 /**
  * Get the string representation of a given skolem identifier.
- * @param id The skolem identifier 
+ * @param id The skolem identifier
  * @return The string representation.
  */
 std::string to_string(cvc5::SkolemFunId id);

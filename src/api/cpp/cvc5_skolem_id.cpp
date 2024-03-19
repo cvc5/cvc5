@@ -18,7 +18,7 @@
 #include <iostream>
 
 namespace std {
-  
+
 std::string to_string(cvc5::SkolemFunId id)
 {
   switch (id)
@@ -34,22 +34,26 @@ std::string to_string(cvc5::SkolemFunId id)
     case cvc5::SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
       return "TRANSCENDENTAL_PURIFY_ARG";
     case cvc5::SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
-    case cvc5::SkolemFunId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
+    case cvc5::SkolemFunId::QUANTIFIERS_SKOLEMIZE:
+      return "QUANTIFIERS_SKOLEMIZE";
     case cvc5::SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
     case cvc5::SkolemFunId::STRINGS_NUM_OCCUR_RE: return "STRINGS_NUM_OCCUR_RE";
     case cvc5::SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
-    case cvc5::SkolemFunId::STRINGS_OCCUR_INDEX_RE: return "STRINGS_OCCUR_INDEX_RE";
+    case cvc5::SkolemFunId::STRINGS_OCCUR_INDEX_RE:
+      return "STRINGS_OCCUR_INDEX_RE";
     case cvc5::SkolemFunId::STRINGS_OCCUR_LEN_RE: return "STRINGS_OCCUR_LEN_RE";
     case cvc5::SkolemFunId::STRINGS_DEQ_DIFF: return "STRINGS_DEQ_DIFF";
     case cvc5::SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
       return "STRINGS_REPLACE_ALL_RESULT";
     case cvc5::SkolemFunId::STRINGS_ITOS_RESULT: return "STRINGS_ITOS_RESULT";
     case cvc5::SkolemFunId::STRINGS_STOI_RESULT: return "STRINGS_STOI_RESULT";
-    case cvc5::SkolemFunId::STRINGS_STOI_NON_DIGIT: return "STRINGS_STOI_NON_DIGIT";
+    case cvc5::SkolemFunId::STRINGS_STOI_NON_DIGIT:
+      return "STRINGS_STOI_NON_DIGIT";
     case cvc5::SkolemFunId::RE_FIRST_MATCH_PRE: return "RE_FIRST_MATCH_PRE";
     case cvc5::SkolemFunId::RE_FIRST_MATCH: return "RE_FIRST_MATCH";
     case cvc5::SkolemFunId::RE_FIRST_MATCH_POST: return "RE_FIRST_MATCH_POST";
-    case cvc5::SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
+    case cvc5::SkolemFunId::RE_UNFOLD_POS_COMPONENT:
+      return "RE_UNFOLD_POS_COMPONENT";
     case cvc5::SkolemFunId::BAGS_CARD_COMBINE: return "BAGS_CARD_COMBINE";
     case cvc5::SkolemFunId::BAGS_CARD_ELEMENTS: return "BAGS_CARD_ELEMENTS";
     case cvc5::SkolemFunId::BAGS_CARD_N: return "BAGS_CARD_N";
@@ -61,7 +65,8 @@ std::string to_string(cvc5::SkolemFunId id)
     case cvc5::SkolemFunId::BAGS_FOLD_ELEMENTS: return "BAGS_FOLD_ELEMENTS";
     case cvc5::SkolemFunId::BAGS_FOLD_UNION_DISJOINT:
       return "BAGS_FOLD_UNION_DISJOINT";
-    case cvc5::SkolemFunId::BAGS_DISTINCT_ELEMENTS: return "BAGS_DISTINCT_ELEMENTS";
+    case cvc5::SkolemFunId::BAGS_DISTINCT_ELEMENTS:
+      return "BAGS_DISTINCT_ELEMENTS";
     case cvc5::SkolemFunId::BAGS_DISTINCT_ELEMENTS_INJECTIVE:
       return "BAGS_DISTINCT_ELEMENTS_INJECTIVE";
     case cvc5::SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
@@ -81,18 +86,16 @@ std::string to_string(cvc5::SkolemFunId id)
     case cvc5::SkolemFunId::SETS_FOLD_COMBINE: return "SETS_FOLD_COMBINE";
     case cvc5::SkolemFunId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
     case cvc5::SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
-    case cvc5::SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
+    case cvc5::SkolemFunId::SETS_MAP_DOWN_ELEMENT:
+      return "SETS_MAP_DOWN_ELEMENT";
     default: return "?";
   }
 }
-}
+}  // namespace std
 
 namespace cvc5 {
 
-const char* toString(SkolemFunId id)
-{
-  return std::to_string(id).c_str();
-}
+const char* toString(SkolemFunId id) { return std::to_string(id).c_str(); }
 
 std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 {
