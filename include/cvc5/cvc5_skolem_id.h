@@ -18,10 +18,9 @@
     || (defined(CVC5_API_USE_C_ENUMS)              \
         && !defined(CVC5__API__CVC5_C_SKOLEM_ID_H))
 
-#include <cstdint>
-#include <iosfwd>
-
 #ifdef CVC5_API_USE_C_ENUMS
+#include <stddef.h>
+#include <stdint.h>
 #undef ENUM
 #define ENUM(name) Cvc5##name
 #else
@@ -32,6 +31,7 @@
 namespace cvc5 {
 #undef ENUM
 #define ENUM(name) class name
+#undef EVALUE
 #define EVALUE(name) name
 #endif
 
@@ -664,7 +664,7 @@ size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
 
 #else
 /**
- * Converts a proof rule to a string. Note: This function is also used in
+ * Converts a skolem identifier to a string. Note: This function is also used in
  * `safe_print()`. Changing this function name or signature will result in
  * `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
@@ -698,6 +698,13 @@ struct CVC5_EXPORT hash<cvc5::SkolemFunId>
    */
   size_t operator()(cvc5::SkolemFunId rule) const;
 };
+/**
+ * Get the string representation of a given skolem identifier.
+ * @param id The skolem identifier 
+ * @return The string representation.
+ */
+std::string to_string(cvc5::SkolemFunId id);
+
 }  // namespace std
 
 #endif
