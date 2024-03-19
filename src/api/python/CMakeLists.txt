@@ -17,7 +17,7 @@ find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Developmen
 
 # Python modules for building and installing
 check_python_module("setuptools")
-check_python_module("Cython")
+find_package(Cython 3.0.0 REQUIRED)
 
 configure_file(genenums.py.in genenums.py)
 
