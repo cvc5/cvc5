@@ -11,13 +11,13 @@
  * ****************************************************************************
  *
  * Utilities for printing API enum values.
- * 
+ *
  * In particular, we require `toString(...)` to be defined for any identifier
  * that may appear in statistics, for safe printing (src/util/safe_print.h).
- * 
+ *
  * These print methods should also be used for printing enums at the API
  * level, where `std::string to_string(...)` should be declared for that enum
- * and call `toString(...)` as defined in this file. 
+ * and call `toString(...)` as defined in this file.
  */
 
 #include "cvc5_private.h"
@@ -39,7 +39,6 @@ namespace cvc5::internal {
  * @return The name of the proof rule
  */
 const char* toString(cvc5::SkolemFunId id);
-
 
 }  // namespace cvc5::internal
 

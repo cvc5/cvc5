@@ -16,6 +16,7 @@
 #include <cvc5/cvc5_skolem_id.h>
 
 #include <iostream>
+
 #include "printer/enum_to_string.h"
 
 namespace std {
