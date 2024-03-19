@@ -75,3 +75,38 @@ Java_io_github_cvc5_SymbolManager_getLogic(JNIEnv* env, jobject, jlong pointer)
   return env->NewStringUTF(symbolManager->getLogic().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
+
+/*
+ * Class:     io_github_cvc5_SymbolManager
+ * Method:    getDeclaredSorts
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_SymbolManager_getDeclaredSorts(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  SymbolManager* symbolManager = reinterpret_cast<SymbolManager*>(pointer);
+  std::vector<Sort> sorts = symbolManager->getDeclaredSorts();
+  jlongArray ret = getPointersFromObjects<Sort>(env, sorts);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_SymbolManager
+ * Method:    getDeclaredTerms
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_SymbolManager_getDeclaredTerms(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  SymbolManager* symbolManager = reinterpret_cast<SymbolManager*>(pointer);
+  std::vector<Term> terms = symbolManager->getDeclaredTerms();
+  jlongArray ret = getPointersFromObjects<Term>(env, terms);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
