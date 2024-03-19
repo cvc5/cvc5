@@ -446,18 +446,10 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(BAGS_CHOOSE),
   /**
-   * An uninterpreted function for bag.map operator:
-   * To compute (bag.count y (bag.map f A)), we need to find the distinct
-   * elements in A that are mapped to y by function f (i.e., preimage of {y}).
-   * If n is the cardinality of this preimage, then
-   * the preimage is the set {uf(1), ..., uf(n)}
-   * where uf: Int -> E is a skolem function, and E is the type of elements of
-   * A.
+   * An uninterpreted function for distinct elements of a bag A.
    *
-   * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type E -> T.
-   *   - ``2:`` the bag argument A of (Bag E).
-   *   - ``3:`` the element argument e type T.
+   * - Number of skolem arguments: ``1``
+   * - ``1:`` the bag argument A.
    */
   EVALUE(BAGS_DISTINCT_ELEMENTS),
   /**
@@ -471,20 +463,19 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(BAGS_DISTINCT_ELEMENTS_INJECTIVE),
   /**
-   * A skolem variable for the size of the preimage of {y} that is unique per
-   * terms (bag.map f A), y which might be an element in (bag.map f A). (see the
-   * documentation for BAGS_DISTINCT_ELEMENTS).
+   * A skolem variable for the size of the distinct elements of a bag A.
    *
-   * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type E -> T.
-   *   - ``2:`` the bag argument A of (Bag E).
-   *   - ``3:`` the element argument e type E.
+   * - Number of skolem arguments: ``1``
+   *   - ``1:`` the bag argument A.
    */
   EVALUE(BAGS_DISTINCT_ELEMENTS_SIZE),
   /**
    * A skolem variable for the index that is unique per terms
-   * (bag.map f A), y, preImageSize, y, e which might be an element in A.
-   * (see the documentation for BAGS_DISTINCT_ELEMENTS).
+   * (bag.map f A), y, size, y, e where:
+   * f: E -> T,
+   * A: (Bag E),
+   * y: T,
+   * e: E
    *
    * - Number of skolem arguments: ``5``
    *   - ``1:`` a map term of the form (bag.map f A)
@@ -493,7 +484,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``4:`` an element y of type T representing the mapped value.
    *   - ``5:`` an element x of type E.
    */
-  EVALUE(BAGS_DISTINCT_ELEMENTS_INDEX),
+  EVALUE(BAGS_MAP_INDEX),
   /**
    * An uninterpreted function for bag.map operator:
    * If the preimage of {y} in A is {uf(1), ..., uf(n)} (see BAGS_DISTINCT_ELEMENTS},
