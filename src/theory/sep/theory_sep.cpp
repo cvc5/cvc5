@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -136,37 +136,6 @@ TrustNode TheorySep::explain(TNode literal)
   Trace("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
   return d_im.explainLit(literal);
 }
-
-
-/////////////////////////////////////////////////////////////////////////////
-// SHARING
-/////////////////////////////////////////////////////////////////////////////
-
-void TheorySep::computeCareGraph() {
-  Trace("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
-  for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
-    TNode a = d_sharedTerms[i];
-    TypeNode aType = a.getType();
-    for (unsigned j = i + 1; j < d_sharedTerms.size(); ++ j) {
-      TNode b = d_sharedTerms[j];
-      if (b.getType() != aType) {
-        // We don't care about the terms of different types
-        continue;
-      }
-      switch (d_valuation.getEqualityStatus(a, b)) {
-      case EQUALITY_TRUE_AND_PROPAGATED:
-      case EQUALITY_FALSE_AND_PROPAGATED:
-        // If we know about it, we should have propagated it, so we can skip
-        break;
-      default:
-        // Let's split on it
-        addCarePair(a, b);
-        break;
-      }
-    }
-  }
-}
-
 
 /////////////////////////////////////////////////////////////////////////////
 // MODEL GENERATION

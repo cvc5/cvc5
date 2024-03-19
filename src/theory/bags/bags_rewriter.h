@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Mudathir Mohamed, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -95,10 +95,10 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.duplicate_removal (bag x n)) = (bag x 1)
+   *  - (bag.setof (bag x n)) = (bag x 1)
    *     where n is a positive constant
    */
-  BagsRewriteResponse rewriteDuplicateRemoval(const TNode& n) const;
+  BagsRewriteResponse rewriteSetof(const TNode& n) const;
 
   /**
    * rewrites for n include:
@@ -189,25 +189,6 @@ class BagsRewriter : public TheoryRewriter
    * - otherwise = n
    */
   BagsRewriteResponse rewriteCard(const TNode& n) const;
-
-  /**
-   * rewrites for n include:
-   * - (bag.is_singleton (bag x c)) = (c == 1)
-   */
-  BagsRewriteResponse rewriteIsSingleton(const TNode& n) const;
-
-  /**
-   *  rewrites for n include:
-   *  - (bag.from_set (set.singleton x)) = (bag x 1)
-   */
-  BagsRewriteResponse rewriteFromSet(const TNode& n) const;
-
-  /**
-   *  rewrites for n include:
-   *  - (bag.to_set (bag x n)) = (set.singleton x)
-   *     where n is a positive constant and T is the type of the bag's elements
-   */
-  BagsRewriteResponse rewriteToSet(const TNode& n) const;
 
   /**
    *  rewrites for n include:

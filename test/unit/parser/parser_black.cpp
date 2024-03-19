@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Christopher L. Conway, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds, Christopher L. Conway
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +41,7 @@ class TestParserBlack : public TestInternal
   {
     TestInternal::SetUp();
     d_symman.reset(nullptr);
-    d_solver.reset(new cvc5::Solver());
+    d_solver.reset(new cvc5::Solver(d_tm));
     d_solver->setOption("parse-only", "true");
   }
 
@@ -85,7 +85,7 @@ class TestParserBlack : public TestInternal
 
   void tryGoodInput(const std::string goodInput)
   {
-    d_solver.reset(new cvc5::Solver());
+    d_solver.reset(new cvc5::Solver(d_tm));
     d_symman.reset(new SymbolManager(d_solver.get()));
     InputParser parser(d_solver.get(), d_symman.get());
     std::stringstream ss;
@@ -111,7 +111,7 @@ class TestParserBlack : public TestInternal
 
   void tryBadInput(const std::string badInput, bool strictMode = false)
   {
-    d_solver.reset(new cvc5::Solver());
+    d_solver.reset(new cvc5::Solver(d_tm));
     d_solver->setOption("strict-parsing", strictMode ? "true" : "false");
     d_symman.reset(new SymbolManager(d_solver.get()));
     InputParser parser(d_solver.get(), d_symman.get());
@@ -139,7 +139,7 @@ class TestParserBlack : public TestInternal
 
   void tryGoodExpr(const std::string goodExpr)
   {
-    d_solver.reset(new cvc5::Solver());
+    d_solver.reset(new cvc5::Solver(d_tm));
     d_symman.reset(new SymbolManager(d_solver.get()));
     InputParser parser(d_solver.get(), d_symman.get());
     setupContext(parser);
@@ -167,7 +167,7 @@ class TestParserBlack : public TestInternal
    */
   void tryBadExpr(const std::string badExpr, bool strictMode = false)
   {
-    d_solver.reset(new cvc5::Solver());
+    d_solver.reset(new cvc5::Solver(d_tm));
     d_solver->setOption("strict-parsing", strictMode ? "true" : "false");
     d_symman.reset(new SymbolManager(d_solver.get()));
     InputParser parser(d_solver.get(), d_symman.get());
@@ -185,6 +185,7 @@ class TestParserBlack : public TestInternal
   }
 
   modes::InputLanguage d_lang;
+  cvc5::TermManager d_tm;
   std::unique_ptr<cvc5::Solver> d_solver;
   std::unique_ptr<SymbolManager> d_symman;
 };

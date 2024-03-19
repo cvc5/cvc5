@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,8 +37,8 @@ namespace proof {
 AlfPrinter::AlfPrinter(Env& env, BaseAlfNodeConverter& atp)
     : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
 {
-  d_pfType = NodeManager::currentNM()->mkSort("proofType");
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_pfType = nodeManager()->mkSort("proofType");
+  d_false = nodeManager()->mkConst(false);
 }
 
 bool AlfPrinter::isHandled(const ProofNode* pfn) const

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,6 +60,35 @@ Node getNullTerminator(Kind k, TypeNode tn);
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs);
+
+/**
+ * @param k A kind
+ * @return true if k is associative, commutative and idempotent.
+ */
+bool isAssocCommIdem(Kind k);
+/**
+ * @param k A kind
+ * @return true if k is associative.
+ */
+bool isAssoc(Kind k);
+/**
+ * Get the normal form of a that takes into account associativity,
+ * commutativity, and idempotency if applicable.
+ * This is used by ProofRule::NORM.
+ *
+ * @param a The term.
+ * @return its normal form.
+ */
+Node getACINormalForm(Node a);
+/**
+ * Return true if a and b can be shown equivalent by computing normal forms as
+ * above.
+ *
+ * @param a The first term
+ * @param b The second term
+ * @return true if a and b were successfully shown to be equal.
+ */
+bool isACINorm(Node a, Node b);
 
 }  // namespace expr
 }  // namespace cvc5::internal

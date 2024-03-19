@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Gereon Kremer
+ *   Andrew Reynolds, Clark Barrett, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,8 +42,8 @@ TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
 {
   // must use function models when ufHo is enabled
   Assert(d_enableFuncModels || !logicInfo().isHigherOrder());
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 TheoryModel::~TheoryModel() {}
@@ -119,7 +119,7 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
     // Sorts are always interpreted as non-empty, thus we add a single element.
     // We use mkGroundValue here, since domain elements must all be
     // of UNINTERPRETED_SORT_VALUE kind.
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     elements.push_back(nm->mkGroundValue(tn));
     return elements;
   }
@@ -149,7 +149,7 @@ Node TheoryModel::getValue(TNode n) const
     {
       // normalize the body. Do not normalize the entire node, which
       // involves array normalization.
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       nn = nm->mkNode(Kind::LAMBDA, nn[0], rewrite(nn[1]));
     }
   }
@@ -211,7 +211,7 @@ Node TheoryModel::getModelValue(TNode n) const
   }
 
   Node ret = n;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   // If it has children, evaluate them. We do this even if n is an unevaluatable
   // or semi-unevaluatable operator. Notice this includes quantified
