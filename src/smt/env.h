@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,11 +73,14 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(const Options* opts);
+  Env(NodeManager* nm, const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
   /* Access to members------------------------------------------------------- */
+  /** Get a pointer to the node manager */
+  NodeManager* getNodeManager();
+
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();
 
@@ -280,6 +283,8 @@ class Env
   void shutdown();
   /* Members ---------------------------------------------------------------- */
 
+  /** Pointer to the node manager */
+  NodeManager* d_nm;
   /** The SAT context owned by this Env */
   std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */

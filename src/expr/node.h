@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -481,7 +481,7 @@ public:
    */
   TypeNode getType(bool check = false) const;
   /**
-   * Same as getType, but does not throw a type execption if this term is
+   * Same as getType, but does not throw a type exception if this term is
    * not well-typed. Instead, this method will return the null type.
    */
   TypeNode getTypeOrNull(bool check = false) const;

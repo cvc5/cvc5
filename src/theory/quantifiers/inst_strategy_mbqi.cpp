@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -97,7 +97,7 @@ void InstStrategyMbqi::process(Node q)
   // model values to the fresh variables
   std::map<Node, Node> mvToFreshVar;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   const RepSet* rs = d_treg.getModel()->getRepSet();
   FirstOrderModel* fm = d_treg.getModel();
@@ -309,7 +309,7 @@ Node InstStrategyMbqi::convertToQuery(
     std::unordered_map<Node, Node>& cmap,
     std::map<TypeNode, std::unordered_set<Node> >& freshVarType)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   FirstOrderModel* fm = d_treg.getModel();
   std::unordered_map<Node, Node>::iterator it;
@@ -447,7 +447,7 @@ Node InstStrategyMbqi::convertFromModel(
     std::unordered_map<Node, Node>& cmap,
     const std::map<Node, Node>& mvToFreshVar)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> modelValue;
   std::unordered_set<Node> processingChildren;

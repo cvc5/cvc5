@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,7 @@ HoExtension::HoExtension(Env& env,
       d_cachedLemmas(userContext()),
       d_uf_std_skolem(userContext())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
   // don't send true lemma
   d_cachedLemmas.insert(d_true);
 }
@@ -70,7 +70,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       Node opl = d_ll.getLambdaFor(op);
       if (!opl.isNull() && !d_ll.isLifted(opl))
       {
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Node app = nm->mkNode(Kind::HO_APPLY, opl, node[1]);
         app = rewrite(app);
         Trace("uf-lazy-ll")
@@ -128,7 +128,7 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
   TypeNode tn = deq[0][0].getType();
   std::vector<TypeNode> argTypes = tn.getArgTypes();
   std::vector<Node> skolems;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
   {
@@ -168,7 +168,7 @@ unsigned HoExtension::applyExtensionality(TNode deq)
   {
     d_extensionality.insert(deq);
     Node conc = getExtensionalityDeq(deq);
-    Node lem = NodeManager::currentNM()->mkNode(Kind::OR, deq[0], conc);
+    Node lem = nodeManager()->mkNode(Kind::OR, deq[0], conc);
     Trace("uf-ho-lemma") << "uf-ho-lemma : extensionality : " << lem
                          << std::endl;
     d_im.lemma(lem, InferenceId::UF_HO_EXTENSIONALITY);
@@ -183,7 +183,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   std::vector<TNode> args;
   Node f = TheoryUfRewriter::decomposeHoApply(node, args, true);
   Node new_f = f;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   if (!TheoryUfRewriter::canUseAsApplyUfOperator(f))
   {
@@ -261,7 +261,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
   // Theory::computeRelevantTerms) function terms.
   eq::EqualityEngine* ee =
       m != nullptr ? m->getEqualityEngine() : d_state.getEqualityEngine();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   unsigned num_lemmas = 0;
   bool isCollectModel = (m != nullptr);
   Trace("uf-ho") << "HoExtension::checkExtensionality, collectModel="
@@ -480,7 +480,7 @@ unsigned HoExtension::checkLazyLambda()
     return 0;
   }
   Trace("uf-ho") << "HoExtension::checkLazyLambda..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   unsigned numLemmas = 0;
   d_lambdaEqc.clear();
   eq::EqualityEngine* ee = d_state.getEqualityEngine();

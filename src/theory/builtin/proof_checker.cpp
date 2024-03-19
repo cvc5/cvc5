@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hanna Lachnitt, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Jörg Schurr, Hanna Lachnitt
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "theory/builtin/proof_checker.h"
 
+#include "expr/nary_term_util.h"
 #include "expr/skolem_manager.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
@@ -45,6 +46,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SCOPE, this);
   pc->registerChecker(ProofRule::SUBS, this);
   pc->registerChecker(ProofRule::EVALUATE, this);
+  pc->registerChecker(ProofRule::ACI_NORM, this);
   pc->registerChecker(ProofRule::ANNOTATION, this);
   pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
   pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
@@ -277,6 +279,20 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return args[0].eqNode(res);
+  }
+  else if (id == ProofRule::ACI_NORM)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    if (args[0].getKind() != Kind::EQUAL)
+    {
+      return Node::null();
+    }
+    if (!expr::isACINorm(args[0][0], args[0][1]))
+    {
+      return Node::null();
+    }
+    return args[0];
   }
   else if (id == ProofRule::MACRO_SR_EQ_INTRO)
   {

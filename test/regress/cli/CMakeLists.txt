@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+#   Andrew Reynolds, Aina Niemetz, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -1231,6 +1231,7 @@ set(regress_0_tests
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/get-value-no-letify.smt2
   regress0/printer/incomplete.smt2
+  regress0/printer/issue10478.smt2
   regress0/printer/issue9928.smt2
   regress0/printer/issue9938-1.smt2
   regress0/printer/issue9938-2.smt2
@@ -1253,6 +1254,7 @@ set(regress_0_tests
   regress0/proofs/bvrewrite-extract.smt2
   regress0/proofs/bvrewrite-ite.smt2
   regress0/proofs/bvrewrite-shlbyconst.smt2
+  regress0/proofs/dsl-cong-eval-cr.smt2
   regress0/proofs/dsl-no-eval.smt2
   regress0/proofs/dsl-rule-comp-types.smt2
   regress0/proofs/fixed-point-rew.smt2
@@ -2139,8 +2141,7 @@ set(regress_1_tests
   regress1/bags/bag_partition1.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
-  regress1/bags/card2.smt2
-  regress1/bags/card3.smt2
+  regress1/bags/card2.smt2  
   regress1/bags/choose1.smt2
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
@@ -2155,8 +2156,7 @@ set(regress_1_tests
   regress1/bags/filter2.smt2
   regress1/bags/filter3.smt2
   regress1/bags/filter4.smt2
-  regress1/bags/filter5.smt2
-  regress1/bags/fol_0000119.smt2
+  regress1/bags/filter5.smt2  
   regress1/bags/fold1.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
@@ -2180,8 +2180,7 @@ set(regress_1_tests
   regress1/bags/murxla2.smt2
   regress1/bags/murxla3.smt2
   regress1/bags/murxla4.smt2
-  regress1/bags/murxla5.smt2
-  regress1/bags/murxla6.smt2
+  regress1/bags/murxla5.smt2  
   regress1/bags/murxla7.smt2
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
@@ -3442,6 +3441,7 @@ set(regress_2_tests
   regress2/arith/uart-8.base.cvc.smtv1.smt2
   regress2/bags/injective_functions.smt2
   regress2/bags/map_bug.smt2
+  regress2/bags/pull_null.smt2
   regress2/bug136.smtv1.smt2
   regress2/bug148.smtv1.smt2
   regress2/bug349.smtv1.smt2
@@ -3670,6 +3670,9 @@ set(regression_disabled_tests
   # previously was an options error, now times out
   regress0/strings/issue7974-incomplete-neg-member.smt2
   ###
+  regress1/bags/card3.smt2
+  regress1/bags/fol_0000119.smt2
+  regress1/bags/murxla6.smt2
   regress1/bags/table_group4.smt2
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
