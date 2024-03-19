@@ -83,7 +83,6 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
     for (; child_it != child_it_end; ++child_it, ++tchild_it)
     {
       TypeNode childType = (*child_it).getTypeOrNull();
-      // FIXME
       if (!m.doMatching(*tchild_it, childType))
       {
         if (errOut)
@@ -179,7 +178,8 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    // FIXME
+    // note that parametric datatype matching does not account for gradual
+    // types.
     if (!m.doMatching(selType[0], childType))
     {
       if (errOut)
