@@ -297,7 +297,7 @@ Node narySubstitute(Node src,
   return visited[src];
 }
 
-bool isAssocComm(Kind k)
+bool isAssocCommIdem(Kind k)
 {
   switch (k)
   {
@@ -324,7 +324,8 @@ bool isAssoc(Kind k)
     case Kind::REGEXP_CONCAT: return true;
     default: break;
   }
-  return false;
+  // also return true for the operators listed above
+  return isAssocCommIdem(k);
 }
 
 struct NormalFormTag
@@ -332,7 +333,7 @@ struct NormalFormTag
 };
 using NormalFormAttr = expr::Attribute<NormalFormTag, Node>;
 
-Node getNormalForm(Node a)
+Node getACINormalForm(Node a)
 {
   NormalFormAttr nfa;
   Node an = a.getAttribute(nfa);
@@ -342,8 +343,8 @@ Node getNormalForm(Node a)
     return an;
   }
   Kind k = a.getKind();
-  bool ac = isAssocComm(k);
-  if (!ac && !isAssoc(k))
+  bool aci = isAssocCommIdem(k);
+  if (!aci && !isAssoc(k))
   {
     // not associative, return self
     a.setAttribute(nfa, a);
@@ -375,15 +376,15 @@ Node getNormalForm(Node a)
       // flatten
       toProcess.insert(toProcess.end(), cur.rbegin(), cur.rend());
     }
-    else if (!ac
+    else if (!aci
              || std::find(children.begin(), children.end(), cur)
                     == children.end())
     {
-      // add to final children if not commutative or if not a duplicate
+      // add to final children if not idempotent or if not a duplicate
       children.push_back(cur);
     }
   } while (!toProcess.empty());
-  if (ac)
+  if (aci)
   {
     // sort if commutative
     std::sort(children.begin(), children.end());
@@ -398,8 +399,8 @@ Node getNormalForm(Node a)
 
 bool isACINorm(Node a, Node b)
 {
-  Node an = getNormalForm(a);
-  Node bn = getNormalForm(b);
+  Node an = getACINormalForm(a);
+  Node bn = getACINormalForm(b);
   // note we compare three possibilities, to handle cases like
   //   (or (and b true) false) == (and b true),
   // where N((or (and b true) false)) = (and b true),

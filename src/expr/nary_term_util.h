@@ -63,22 +63,23 @@ Node narySubstitute(Node src,
 
 /**
  * @param k A kind
- * @return true if k is associative and commutative.
+ * @return true if k is associative, commutative and idempotent.
  */
-bool isAssocComm(Kind k);
+bool isAssocCommIdem(Kind k);
 /**
  * @param k A kind
  * @return true if k is associative.
 */
 bool isAssoc(Kind k);
 /**
- * Get the normal form of a that takes into account associativity and commutativity, if applicable.
+ * Get the normal form of a that takes into account associativity,
+ * commutativity, and idempotency if applicable.
  * This is used by ProofRule::NORM.
  *
  * @param a The term.
  * @return its normal form.
  */
-Node getNormalForm(Node a);
+Node getACINormalForm(Node a);
 /**
  * Return true if a and b can be shown equivalent by computing normal forms as above.
  *
