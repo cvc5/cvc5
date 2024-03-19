@@ -481,12 +481,19 @@ Node InstStrategyMbqi::modelValueToQuery(const Node& t)
         << "-> Choose model value of " << t << "?" << std::endl;
     if (t.getType().isFunction())
     {
-      const std::vector<Node>& uterms = fm->getTheoryModel()->getUfTerms(t);
-      Trace("mbqi-model-exp") << "  #terms=" << uterms.size() << std::endl;
-      for (const Node& u : uterms)
+      if (fm->getTheoryModel()->hasUfTerms(t))
       {
-        Trace("mbqi-model-exp")
-            << "    " << u << " == " << fm->getValue(u) << std::endl;
+        const std::vector<Node>& uterms = fm->getTheoryModel()->getUfTerms(t);
+        Trace("mbqi-model-exp") << "  #terms=" << uterms.size() << std::endl;
+        for (const Node& u : uterms)
+        {
+          Trace("mbqi-model-exp")
+              << "    " << u << " == " << fm->getValue(u) << std::endl;
+        }
+      }
+      else
+      {
+        Trace("mbqi-model-exp") << "  #terms=0" << std::endl;
       }
     }
   }

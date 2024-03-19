@@ -264,7 +264,7 @@ bool MbqiSygusEnum::constructInstantiation(
         successEnum = false;
       }
       Trace("mbqi-model-enum")
-          << "- Converted candidate: " << retc << std::endl;
+          << "- Converted candidate: " << v << " -> " << retc << std::endl;
       // see if it is still satisfiable, if still SAT, we replace
       Node queryCheck = queryCurr.substitute(v, TNode(retc));
       queryCheck = rewrite(queryCheck);
