@@ -218,8 +218,7 @@ class RewriteDbProofCons : protected EnvObj
                                 TNode placeholder,
                                 TNode source,
                                 TNode target);
-  /** Rewrite concrete */
-  Node rewriteConcrete(const Node& n);
+
   /** Notify class for matches */
   RdpcMatchTrieNotify d_notify;
   /**
