@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
+ *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -823,7 +823,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       break;
     }
     case Kind::BITVECTOR_BITOF:
-      out << "(_ bitOf "
+      out << "(_ @bitOf "
           << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex << ")";
       stillNeedToPrintParams = false;
       break;
@@ -930,6 +930,21 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     case Kind::INST_PATTERN:
     case Kind::INST_NO_PATTERN:
     case Kind::INST_PATTERN_LIST: printed = false; break;
+    case Kind::STRING_CONCAT:
+    case Kind::STRING_LENGTH:
+    case Kind::STRING_SUBSTR:
+    case Kind::STRING_UPDATE:
+    case Kind::STRING_CHARAT:
+    case Kind::STRING_CONTAINS:
+    case Kind::STRING_INDEXOF:
+    case Kind::STRING_REPLACE:
+    case Kind::STRING_REPLACE_ALL:
+    case Kind::STRING_REV:
+    case Kind::STRING_PREFIX:
+    case Kind::STRING_SUFFIX:
+      // maybe print seq. instead of str.
+      out << smtKindStringOf(n);
+      break;
     default:
       // by default, print the kind using the smtKindString utility
       if (n.getMetaKind() != kind::metakind::PARAMETERIZED)
@@ -1360,7 +1375,7 @@ std::string Smt2Printer::smtKindStringOf(const Node& n)
     // this method parallels cvc5::Term::getKind
     switch (k)
     {
-      case Kind::STRING_CONCAT: return "seq.concat";
+      case Kind::STRING_CONCAT: return "seq.++";
       case Kind::STRING_LENGTH: return "seq.len";
       case Kind::STRING_SUBSTR: return "seq.extract";
       case Kind::STRING_UPDATE: return "seq.update";

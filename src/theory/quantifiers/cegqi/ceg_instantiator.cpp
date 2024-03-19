@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1034,7 +1034,7 @@ bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& no
 
 Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
                                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff ) {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   n = rewrite(n);
   computeProgVars( n );
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
@@ -1057,12 +1057,12 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
         if( !prop[i].d_coeff.isNull() ){
           Assert(vars[i].getType().isInteger());
           Assert(prop[i].d_coeff.isConst());
-          Node nn = NodeManager::currentNM()->mkNode(
+          Node nn = nodeManager()->mkNode(
               Kind::MULT,
               subs[i],
-              NodeManager::currentNM()->mkConstReal(
+              nodeManager()->mkConstReal(
                   Rational(1) / prop[i].d_coeff.getConst<Rational>()));
-          nn = NodeManager::currentNM()->mkNode(Kind::TO_INTEGER, nn);
+          nn = nodeManager()->mkNode(Kind::TO_INTEGER, nn);
           nn = rewrite(nn);
           nsubs.push_back( nn );
         }else{
@@ -1093,7 +1093,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
               if( pv_prop.d_coeff.isNull() ){
                 pv_prop.d_coeff = prop[index].d_coeff;
               }else{
-                pv_prop.d_coeff = NodeManager::currentNM()->mkNode(
+                pv_prop.d_coeff = nodeManager()->mkNode(
                     Kind::MULT, pv_prop.d_coeff, prop[index].d_coeff);
               }
             }
@@ -1170,7 +1170,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         || (atom.getKind() == Kind::EQUAL && !pol
             && atom[0].getType().isRealOrInt()))
     {
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Assert(atom.getKind() != Kind::GEQ || atom[1].isConst());
       Node atom_lhs;
       Node atom_rhs;
@@ -1384,7 +1384,7 @@ Node CegInstantiator::getBoundVariable(TypeNode tn)
   {
     std::stringstream ss;
     ss << "x" << index;
-    Node x = NodeManager::currentNM()->mkBoundVar(ss.str(), tn);
+    Node x = nodeManager()->mkBoundVar(ss.str(), tn);
     d_bound_var[tn].push_back(x);
   }
   return d_bound_var[tn][index];
