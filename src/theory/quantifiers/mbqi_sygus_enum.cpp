@@ -241,7 +241,8 @@ bool MbqiSygusEnum::constructInstantiation(
         Trace("mbqi-model-enum") << "- Try candidate: " << ret << std::endl;
         // apply current substitution (to account for cases where ret has
         // other variables in its grammar).
-        retc = vinst.apply(ret);
+        ret = vinst.apply(ret);
+        retc = ret;
         successEnum = true;
         // now convert the value
         std::unordered_map<Node, Node> tmpConvertMap;
