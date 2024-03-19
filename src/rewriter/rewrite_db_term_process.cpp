@@ -46,6 +46,14 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     }
     return nm->mkNode(Kind::STRING_CONCAT, children);
   }
+  else if (k = Kind::FORALL)
+  {
+    // ignore annotation 
+    if (n.getNumChildren()==3)
+    {
+      return nm->mkNode(Kind::FORALL, n[0], n[1]);
+    }
+  }
 
   return n;
 }
