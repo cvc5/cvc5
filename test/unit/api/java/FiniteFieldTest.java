@@ -33,12 +33,14 @@ import org.junit.jupiter.api.function.Executable;
 
 class FiniteFieldTest
 {
+  private TermManager d_tm;
   private Solver d_solver;
 
   @BeforeEach
   void setUp()
   {
-    d_solver = new Solver();
+    d_tm = new TermManager();
+    d_solver = new Solver(d_tm);
   }
 
   @AfterEach
@@ -52,25 +54,24 @@ class FiniteFieldTest
   {
     d_solver.setLogic("QF_FF"); // Set the logic
 
-    Sort f5 = d_solver.mkFiniteFieldSort("5", 10);
-    Term a = d_solver.mkConst(f5, "a");
-    Term b = d_solver.mkConst(f5, "b");
-    Term z = d_solver.mkFiniteFieldElem("0", f5, 10);
+    Sort f5 = d_tm.mkFiniteFieldSort("5", 10);
+    Term a = d_tm.mkConst(f5, "a");
+    Term b = d_tm.mkConst(f5, "b");
+    Term z = d_tm.mkFiniteFieldElem("0", f5, 10);
 
     assertEquals(f5.isFiniteField(), true);
     assertEquals(f5.getFiniteFieldSize(), "5");
     assertEquals(z.isFiniteFieldValue(), true);
     assertEquals(z.getFiniteFieldValue(), "0");
 
-    Term inv = d_solver.mkTerm(Kind.EQUAL,
-        d_solver.mkTerm(Kind.FINITE_FIELD_ADD,
-            d_solver.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
-            d_solver.mkFiniteFieldElem("-1", f5, 10)),
+    Term inv = d_tm.mkTerm(Kind.EQUAL,
+        d_tm.mkTerm(Kind.FINITE_FIELD_ADD,
+            d_tm.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
+            d_tm.mkFiniteFieldElem("-1", f5, 10)),
         z);
 
-    Term aIsTwo = d_solver.mkTerm(Kind.EQUAL,
-        d_solver.mkTerm(Kind.FINITE_FIELD_ADD, a, d_solver.mkFiniteFieldElem("-2", f5, 10)),
-        z);
+    Term aIsTwo = d_tm.mkTerm(
+        Kind.EQUAL, d_tm.mkTerm(Kind.FINITE_FIELD_ADD, a, d_tm.mkFiniteFieldElem("-2", f5, 10)), z);
 
     d_solver.assertFormula(inv);
     d_solver.assertFormula(aIsTwo);
@@ -78,9 +79,8 @@ class FiniteFieldTest
     Result r = d_solver.checkSat();
     assertEquals(r.isSat(), true);
 
-    Term bIsTwo = d_solver.mkTerm(Kind.EQUAL,
-        d_solver.mkTerm(Kind.FINITE_FIELD_ADD, b, d_solver.mkFiniteFieldElem("-2", f5, 10)),
-        z);
+    Term bIsTwo = d_tm.mkTerm(
+        Kind.EQUAL, d_tm.mkTerm(Kind.FINITE_FIELD_ADD, b, d_tm.mkFiniteFieldElem("-2", f5, 10)), z);
 
     d_solver.assertFormula(bIsTwo);
     r = d_solver.checkSat();
