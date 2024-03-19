@@ -309,8 +309,7 @@ bool isAssocCommIdem(Kind k)
     case Kind::BITVECTOR_AND:
     case Kind::BITVECTOR_OR:
     case Kind::FINITE_FIELD_ADD:
-    case Kind::FINITE_FIELD_MULT:
-      return true;
+    case Kind::FINITE_FIELD_MULT: return true;
     default: break;
   }
   return false;
