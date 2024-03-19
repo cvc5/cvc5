@@ -48,8 +48,8 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::FORALL)
   {
-    // ignore annotation 
-    if (n.getNumChildren()==3)
+    // ignore annotation
+    if (n.getNumChildren() == 3)
     {
       NodeManager* nm = NodeManager::currentNM();
       return nm->mkNode(Kind::FORALL, n[0], n[1]);
@@ -61,7 +61,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
 
 bool RewriteDbNodeConverter::shouldTraverse(Node n)
 {
-  return n.getKind()!=Kind::INST_PATTERN_LIST;
+  return n.getKind() != Kind::INST_PATTERN_LIST;
 }
 
 }  // namespace rewriter

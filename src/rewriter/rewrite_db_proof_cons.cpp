@@ -449,7 +449,8 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
       // The conclusion term may actually change type. Note that we must rewrite
       // the terms, since they may involve operators with abstract type that
       // evaluate to terms with concrete types.
-      if (!rewriteConcrete(stgt).getType().isComparableTo(rewriteConcrete(target[1]).getType()))
+      if (!rewriteConcrete(stgt).getType().isComparableTo(
+              rewriteConcrete(target[1]).getType()))
       {
         Trace("rpc-debug2") << "...fail (types)" << std::endl;
         return false;
