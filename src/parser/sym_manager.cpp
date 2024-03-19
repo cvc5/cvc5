@@ -70,9 +70,9 @@ class SymManager::Implementation
   std::map<cvc5::Term, std::string> getExpressionNames(
       bool areAssertions) const;
   /** get model declare sorts */
-  std::vector<cvc5::Sort> getModelDeclareSorts() const;
+  std::vector<cvc5::Sort> getDeclaredSorts() const;
   /** get model declare terms */
-  std::vector<cvc5::Term> getModelDeclareTerms() const;
+  std::vector<cvc5::Term> getDeclaredTerms() const;
   /** get functions to synthesize */
   std::vector<cvc5::Term> getFunctionsToSynthesize() const;
   /** Add declared sort to the list of model declarations. */
@@ -200,14 +200,14 @@ SymManager::Implementation::getExpressionNames(bool areAssertions) const
   return emap;
 }
 
-std::vector<cvc5::Sort> SymManager::Implementation::getModelDeclareSorts() const
+std::vector<cvc5::Sort> SymManager::Implementation::getDeclaredSorts() const
 {
   std::vector<cvc5::Sort> declareSorts(d_declareSorts.begin(),
                                        d_declareSorts.end());
   return declareSorts;
 }
 
-std::vector<cvc5::Term> SymManager::Implementation::getModelDeclareTerms() const
+std::vector<cvc5::Term> SymManager::Implementation::getDeclaredTerms() const
 {
   std::vector<cvc5::Term> declareTerms(d_declareTerms.begin(),
                                        d_declareTerms.end());
@@ -435,13 +435,13 @@ std::map<cvc5::Term, std::string> SymManager::getExpressionNames(
 {
   return d_implementation->getExpressionNames(areAssertions);
 }
-std::vector<cvc5::Sort> SymManager::getModelDeclareSorts() const
+std::vector<cvc5::Sort> SymManager::getDeclaredSorts() const
 {
-  return d_implementation->getModelDeclareSorts();
+  return d_implementation->getDeclaredSorts();
 }
-std::vector<cvc5::Term> SymManager::getModelDeclareTerms() const
+std::vector<cvc5::Term> SymManager::getDeclaredTerms() const
 {
-  return d_implementation->getModelDeclareTerms();
+  return d_implementation->getDeclaredTerms();
 }
 
 std::vector<cvc5::Term> SymManager::getFunctionsToSynthesize() const
