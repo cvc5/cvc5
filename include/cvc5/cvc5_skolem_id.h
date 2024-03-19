@@ -674,7 +674,8 @@ size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
  * @warning This function is deprecated and replaced by
  *          `std::to_string(Kind kind)`. It will be removed in a future release.
  */
-[[deprecated("use std::to_string(Kind) instead.")]] CVC5_EXPORT const char* toString(SkolemFunId id);
+[[deprecated("use std::to_string(Kind) instead.")]] CVC5_EXPORT const char*
+toString(SkolemFunId id);
 
 /**
  * Writes a proof rule name to a stream.
