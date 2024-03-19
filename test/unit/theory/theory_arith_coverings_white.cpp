@@ -393,7 +393,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   // register checkers that we need
   builtin::BuiltinProofRuleChecker btchecker(env);
   btchecker.registerTo(env.getProofNodeManager()->getChecker());
-  coverings::CoveringsProofRuleChecker checker;
+  coverings::CoveringsProofRuleChecker checker(env.getNodeManager());
   checker.registerTo(env.getProofNodeManager()->getChecker());
   // do the coverings problem
   coverings::CDCAC cac(env, {});
