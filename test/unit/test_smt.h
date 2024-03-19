@@ -179,7 +179,7 @@ class DummyOutputChannel : public theory::OutputChannel
 class DummyTheoryRewriter : public theory::TheoryRewriter
 {
  public:
-  DummyTheoryRewriter(NodeManager * nm) : theory::TheoryRewriter(nm){}
+  DummyTheoryRewriter(NodeManager* nm) : theory::TheoryRewriter(nm) {}
   theory::RewriteResponse preRewrite(TNode n) override
   {
     return theory::RewriteResponse(theory::REWRITE_DONE, n);
@@ -194,7 +194,7 @@ class DummyTheoryRewriter : public theory::TheoryRewriter
 class DummyProofRuleChecker : public ProofRuleChecker
 {
  public:
-  DummyProofRuleChecker(NodeManager * nm) : ProofRuleChecker(nm) {}
+  DummyProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm) {}
   void registerTo(ProofChecker* pc) override {}
 
  protected:
