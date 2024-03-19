@@ -663,16 +663,6 @@ const char* cvc5_skolem_id_to_string(Cvc5SkolemFunId kind);
 size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
 
 #else
-/**
- * Converts a skolem identifier to a string. Note: This function is also used in
- * `safe_print()`. Changing this function name or signature will result in
- * `safe_print()` printing "<unsupported>" instead of the proper strings for
- * the enum values.
- *
- * @param id The proof rule
- * @return The name of the proof rule
- */
-CVC5_EXPORT const char* toString(SkolemFunId id);
 
 /**
  * Writes a proof rule name to a stream.
