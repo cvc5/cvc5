@@ -36,7 +36,7 @@ class TestTheoryWhiteBagsRewriter : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_rewriter.reset(new BagsRewriter(nullptr));
+    d_rewriter.reset(new BagsRewriter(d_nodeManager, nullptr));
   }
 
   std::vector<Node> getNStrings(size_t n)
