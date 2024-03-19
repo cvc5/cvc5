@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +48,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_statTotalInputSuccess(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputSuccess"))
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -84,14 +84,31 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   // prove the equality
   Node eq = a.eqNode(b);
-  bool success = proveEq(cdp, eq, eq, recLimit, stepLimit);
+  bool success = false;
+  for (int64_t i = 0; i <= recLimit; i++)
+  {
+    Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+    if (proveEq(cdp, eq, eq, i, stepLimit))
+    {
+      success = true;
+      break;
+    }
+  }
   if (!success)
   {
     Node eqi = d_rdnc.convert(eq);
     // if converter didn't make a difference, don't try to prove again
     if (eqi != eq)
     {
-      success = proveEq(cdp, eq, eqi, recLimit, stepLimit);
+      for (int64_t i = 0; i <= recLimit; i++)
+      {
+        Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+        if (proveEq(cdp, eq, eqi, i, stepLimit))
+        {
+          success = true;
+          break;
+        }
+      }
     }
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
@@ -104,14 +121,14 @@ bool RewriteDbProofCons::proveEq(CDProof* cdp,
                                  int64_t recLimit,
                                  int64_t stepLimit)
 {
+  // add one to recursion limit, since it is decremented whenever we
+  // initiate the getMatches routine.
+  d_currRecLimit = recLimit + 1;
+  d_currStepLimit = stepLimit;
   DslProofRule id;
   if (!proveInternalBase(eqi, id))
   {
     Trace("rpc-debug") << "- prove internal" << std::endl;
-    // add one to recursion limit, since it is decremented whenever we
-    // initiate the getMatches routine.
-    d_currRecLimit = recLimit + 1;
-    d_currStepLimit = stepLimit;
     // Otherwise, we call the main prove internal method, which recurisvely
     // tries to find a matched conclusion whose conditions can be proven
     id = proveInternal(eqi);
@@ -179,13 +196,16 @@ DslProofRule RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   d_db->getMatches(eqi[0], &d_notify);
   d_target = prevTarget;
   d_currRecLimit++;
-  // if we cached it during the above call, we succeeded
+  // check if we determined the proof in the above call, which is the case
+  // if we succeeded, or we are already marked as a failure at a lower depth.
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
-    // Assert(it->second.d_id != DslProofRule::FAIL)
-    //    << "unexpected failure for " << eqi;
-    return it->second.d_id;
+    if (it->second.d_id != DslProofRule::FAIL
+        || d_currRecLimit <= it->second.d_failMaxDepth)
+    {
+      return it->second.d_id;
+    }
   }
   // if target is (= (= t1 t2) true), maybe try showing (= t1 t2); otherwise
   // try showing (= target true)
@@ -344,7 +364,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     {
       rchildren.insert(rchildren.begin(), target[0].getOperator());
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node tappc = nm->mkNode(target[0].getKind(), rchildren);
     if (doEvaluate(tappc) != r2)
     {
@@ -546,7 +566,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
       Trace("rpc-debug2") << "...fail (at higher depth)" << std::endl;
       return true;
     }
-    Trace("rpc-debug2") << "...fail (already fail)" << std::endl;
+    Trace("rpc-debug2") << "...unknown (already fail)" << std::endl;
     // Will not succeed below, since we know we've already tried. Hence, we
     // are in a situation where we have yet to succeed to prove eqi for some
     // depth, but we are currently trying at a higher maximum depth.
@@ -648,6 +668,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
     pi.d_id = idb;
     return true;
   }
+  Trace("rpc-debug2") << "...unknown (default)" << std::endl;
   // otherwise, we fail to either prove or disprove the equality
   return false;
 }
@@ -655,7 +676,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
 bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 {
   // note we could use single internal cdp to improve subproof sharing
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, std::vector<Node>> premises;
   std::unordered_map<TNode, std::vector<Node>> pfArgs;
@@ -818,7 +839,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         Node eq1 = lhs.eqNode(lhsTgt);
         Node eq2 = lhsTgt.eqNode(rhs);
         std::vector<Node> transChildren = {eq1, eq2};
-        cdp->addStep(eq1, ProofRule::CONG, ps, pfArgs[cur]);
+        // get the appropriate CONG rule
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(eq1[0], cargs);
+        cdp->addStep(eq1, cr, ps, cargs);
         cdp->addStep(eq2, ProofRule::EVALUATE, {}, {lhsTgt});
         if (rhs != cur[1])
         {

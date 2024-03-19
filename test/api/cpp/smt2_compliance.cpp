@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Gereon Kremer
+ *   Aina Niemetz, Andrew Reynolds, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,8 @@ void testGetInfo(cvc5::Solver* solver, const char* s);
 
 int main()
 {
-  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>();
+  cvc5::TermManager tm;
+  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>(tm);
   solver->setOption("input-language", "smtlib2");
   solver->setOption("output-language", "smtlib2");
   testGetInfo(solver.get(), ":error-behavior");

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Gereon Kremer
+ *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,7 +83,7 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
   {
     d_bitblaster->bbAtom(fact);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Node atom_bb = d_bitblaster->getStoredBBAtom(fact);
   Node lemma = nm->mkNode(Kind::EQUAL, fact, atom_bb);
@@ -122,7 +122,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
   {
     TNode n = fact[0];
 
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node lemma = nm->mkNode(Kind::EQUAL, fact, n);
 
     if (!d_env.isTheoryProofProducing())

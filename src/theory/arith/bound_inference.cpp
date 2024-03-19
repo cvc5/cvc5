@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,7 +79,7 @@ bool BoundInference::add(const Node& n, bool onlyVariables)
   if (lhs.getType().isInteger())
   {
     Rational br = bound.getConst<Rational>();
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     switch (relation)
     {
       case Kind::LEQ: bound = nm->mkConstInt(br.floor()); break;
@@ -170,7 +170,7 @@ void BoundInference::update_lower_bound(const Node& origin,
   if (b.lower_value.isNull()
       || b.lower_value.getConst<Rational>() < value.getConst<Rational>())
   {
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     b.lower_value = value;
     b.lower_strict = strict;
 
@@ -189,7 +189,7 @@ void BoundInference::update_lower_bound(const Node& origin,
   }
   else if (strict && b.lower_value == value)
   {
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     b.lower_strict = strict;
     b.lower_bound = rewrite(nm->mkNode(Kind::GT, lhs, value));
     b.lower_origin = origin;
@@ -207,7 +207,7 @@ void BoundInference::update_upper_bound(const Node& origin,
   if (b.upper_value.isNull()
       || b.upper_value.getConst<Rational>() > value.getConst<Rational>())
   {
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     b.upper_value = value;
     b.upper_strict = strict;
     b.upper_origin = origin;
@@ -224,7 +224,7 @@ void BoundInference::update_upper_bound(const Node& origin,
   }
   else if (strict && b.upper_value == value)
   {
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     b.upper_strict = strict;
     b.upper_bound = rewrite(nm->mkNode(Kind::LT, lhs, value));
     b.upper_origin = origin;

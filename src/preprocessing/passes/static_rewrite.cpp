@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,7 @@ PreprocessingPassResult StaticRewrite::applyInternal(
 
 TrustNode StaticRewrite::rewriteAssertion(TNode n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node> rewrittenTo;

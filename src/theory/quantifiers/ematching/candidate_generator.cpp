@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -171,7 +171,7 @@ CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(Env& env,
 
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
   eq::EqualityEngine* ee = d_qs.getEqualityEngine();
-  Node falset = NodeManager::currentNM()->mkConst(false);
+  Node falset = nodeManager()->mkConst(false);
   d_eqc_false = eq::EqClassIterator(falset, ee);
 }
 

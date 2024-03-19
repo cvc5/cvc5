@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -103,11 +103,11 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
 {
   d_termReg.finishInit(&d_im);
 
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_zero = nodeManager()->mkConstInt(Rational(0));
+  d_one = nodeManager()->mkConstInt(Rational(1));
+  d_neg_one = nodeManager()->mkConstInt(Rational(-1));
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 
   // set up the extended function callback
   d_extTheoryCb.d_esolver = &d_esolver;
@@ -323,7 +323,7 @@ bool TheoryStrings::collectModelInfoType(
   // indices in col that have lengths that are too big to represent
   std::unordered_set<size_t> oobIndices;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::map< Node, Node > processed;
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
@@ -787,7 +787,7 @@ bool TheoryStrings::collectModelInfoType(
 
 Node TheoryStrings::mkSkeletonFor(Node c)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   TypeNode tn = c.getType();
@@ -814,7 +814,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
 {
   Assert(nextIndex > currIndex);
   Assert(!r.isNull());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode tn = r.getType();
   std::vector<Node> skChildren;
@@ -1123,7 +1123,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   if (ak == Kind::STRING_FROM_CODE)
   {
     // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemCache* sc = d_termReg.getSkolemCache();
     Node k = sc->mkSkolemCached(atom, SkolemCache::SK_PURIFY, "kFromCode");
     Node t = atom[0];
@@ -1146,7 +1146,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     {
       // If we are eliminating code, convert it to nth.
       // str.to_code(t) ---> ite(str.len(t) = 1, str.nth(t,0), -1)
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node t = atom[0];
       Node cond =
           nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::STRING_LENGTH, t), d_one);
@@ -1160,7 +1160,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     // If we are not eliminating code, we are eliminating nth (over strings);
     // convert it to code.
     // (seq.nth x n) ---> (str.to_code (str.substr x n 1))
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node ret = nm->mkNode(Kind::STRING_TO_CODE,
                           nm->mkNode(Kind::STRING_SUBSTR,
                                      atom[0],
