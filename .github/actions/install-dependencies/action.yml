@@ -35,6 +35,16 @@ runs:
         echo "/usr/lib/ccache" >> $GITHUB_PATH
         echo "::endgroup::"
 
+    - name: Install software for cross-compiling for arm64 Linux
+      if: runner.os == 'Linux'
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Install software for cross-compiling for arm64 Linux"
+        sudo apt-get install -y \
+          gcc-aarch64-linux-gnu \
+          g++-aarch64-linux-gnu
+        echo "::endgroup::"
+
     - name: Install software for cross-compiling for Windows
       # Boolean inputs are actually strings:
       # https://github.com/actions/runner/issues/1483
