@@ -64,7 +64,8 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::BAGS_DISTINCT_ELEMENTS: return "BAGS_DISTINCT_ELEMENTS";
     case SkolemFunId::BAGS_DISTINCT_ELEMENTS_INJECTIVE:
       return "BAGS_DISTINCT_ELEMENTS_INJECTIVE";
-    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE: return "BAGS_DISTINCT_ELEMENTS_SIZE";
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
+      return "BAGS_DISTINCT_ELEMENTS_SIZE";
     case SkolemFunId::BAGS_MAP_INDEX: return "BAGS_MAP_INDEX";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
     case SkolemFunId::BAGS_DEQ_DIFF: return "BAGS_DEQ_DIFF";
