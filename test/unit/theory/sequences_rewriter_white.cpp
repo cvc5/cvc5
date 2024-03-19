@@ -44,7 +44,8 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
     TestSmt::SetUp();
     Options opts;
     d_rewriter = d_slvEngine->getEnv().getRewriter();
-    d_seqRewriter.reset(new SequencesRewriter(d_nodeManager, d_rewriter, nullptr));
+    d_seqRewriter.reset(
+        new SequencesRewriter(d_nodeManager, d_rewriter, nullptr));
   }
 
   Rewriter* d_rewriter;
