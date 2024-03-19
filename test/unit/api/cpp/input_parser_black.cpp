@@ -303,7 +303,7 @@ TEST_F(TestInputParserBlack, incrementalSetString)
   ASSERT_EQ(out.str().empty(), true);
 }
 
-TEST_F(TestInputParserBlack, modelDeclares)
+TEST_F(TestInputParserBlack, getDeclaredTermsAndSorts)
 {
   InputParser p(d_solver.get(), d_symman.get());
   Command cmd;

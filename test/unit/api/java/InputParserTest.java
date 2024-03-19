@@ -225,7 +225,7 @@ class InputParserTest extends ParserTest
         () -> p5.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black"));
   }
   @Test
-  void modelDeclares()
+  void getDeclaredTermsAndSorts()
   {
     InputParser p = new InputParser(d_solver, d_symman);
     p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");

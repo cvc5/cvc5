@@ -193,7 +193,7 @@ def test_multiple_parsers(solver):
         p5.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
 
 
-def test_model_declares(solver):
+def test_get_declared_terms_and_sorts(solver):
     sm = SymbolManager(solver)
     p = InputParser(solver, sm)
     p.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
