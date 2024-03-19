@@ -131,6 +131,7 @@
   )
 )
 
+; Helper for the method below.
 (program poly_is_equal_mod_c_rec ((c Real) (T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list))
   (Real @Polynomial @Polynomial) Bool
   (
@@ -139,6 +140,7 @@
   )
 )
 
+; Returns true if the two given polynomials are equivalent up to modulus by a (non-zero) coefficient.
 (program poly_is_equal_mod_c ((T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list))
   (@Polynomial @Polynomial) Bool
   (
