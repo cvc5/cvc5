@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -462,8 +462,8 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::STRINGS_STOI_NON_DIGIT:
     case SkolemFunId::BAGS_FOLD_CARD:
     case SkolemFunId::SETS_FOLD_CARD:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
+    case SkolemFunId::BAGS_MAP_INDEX:
     case SkolemFunId::BAGS_CARD_N: return nm->integerType();
     // string skolems
     case SkolemFunId::RE_FIRST_MATCH_PRE:
@@ -563,14 +563,14 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, cacheVals[1].getType());
     }
-    case SkolemFunId::BAGS_MAP_PREIMAGE:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS:
     {
       TypeNode itype = nm->integerType();
-      Assert (cacheVals[0].getType().isFunction());
-      TypeNode retType = cacheVals[0].getType().getArgTypes()[0];
+      Assert(cacheVals[0].getType().isBag());
+      TypeNode retType = cacheVals[0].getType().getBagElementType();
       return nm->mkFunctionType(itype, retType);
     }
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_INJECTIVE:
     {
       Assert (cacheVals[0].getType().isFunction());
       return cacheVals[0].getType().getArgTypes()[0];

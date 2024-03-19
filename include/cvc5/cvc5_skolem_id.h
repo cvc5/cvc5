@@ -459,7 +459,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``2:`` the bag argument A of (Bag E).
    *   - ``3:`` the element argument e type T.
    */
-  EVALUE(BAGS_MAP_PREIMAGE),
+  EVALUE(BAGS_DISTINCT_ELEMENTS),
   /**
    * Same as above, but used when f is injective.
    * The returned skolem is an element representing preimage of {y}.
@@ -469,34 +469,34 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``2:`` the bag argument A of (Bag E).
    *   - ``3:`` the element argument e type E.
    */
-  EVALUE(BAGS_MAP_PREIMAGE_INJECTIVE),
+  EVALUE(BAGS_DISTINCT_ELEMENTS_INJECTIVE),
   /**
    * A skolem variable for the size of the preimage of {y} that is unique per
    * terms (bag.map f A), y which might be an element in (bag.map f A). (see the
-   * documentation for BAGS_MAP_PREIMAGE).
+   * documentation for BAGS_DISTINCT_ELEMENTS).
    *
    * - Number of skolem arguments: ``3``
    *   - ``1:`` the function f of type E -> T.
    *   - ``2:`` the bag argument A of (Bag E).
    *   - ``3:`` the element argument e type E.
    */
-  EVALUE(BAGS_MAP_PREIMAGE_SIZE),
+  EVALUE(BAGS_DISTINCT_ELEMENTS_SIZE),
   /**
    * A skolem variable for the index that is unique per terms
    * (bag.map f A), y, preImageSize, y, e which might be an element in A.
-   * (see the documentation for BAGS_MAP_PREIMAGE).
+   * (see the documentation for BAGS_DISTINCT_ELEMENTS).
    *
    * - Number of skolem arguments: ``5``
    *   - ``1:`` a map term of the form (bag.map f A)
-   *   - ``2:`` a skolem function with id BAGS_MAP_PREIMAGE
-   *   - ``3:`` a skolem function with id BAGS_MAP_PREIMAGE_SIZE.
+   *   - ``2:`` a skolem function with id BAGS_DISTINCT_ELEMENTS
+   *   - ``3:`` a skolem function with id BAGS_DISTINCT_ELEMENTS_SIZE.
    *   - ``4:`` an element y of type T representing the mapped value.
    *   - ``5:`` an element x of type E.
    */
-  EVALUE(BAGS_MAP_PREIMAGE_INDEX),
+  EVALUE(BAGS_DISTINCT_ELEMENTS_INDEX),
   /**
    * An uninterpreted function for bag.map operator:
-   * If the preimage of {y} in A is {uf(1), ..., uf(n)} (see BAGS_MAP_PREIMAGE},
+   * If the preimage of {y} in A is {uf(1), ..., uf(n)} (see BAGS_DISTINCT_ELEMENTS},
    * then the multiplicity of an element y in a bag (map f A) is sum(n),
    * where sum: Int -> Int is a skolem function such that:
    * sum(0) = 0

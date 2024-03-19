@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -26,7 +26,8 @@ from cvc5 import Kind
 # Test function to validate that we *cannot* obtain the heap/nil expressions
 # when *not* using the separation logic theory
 def validate_exception():
-    slv = cvc5.Solver()
+    tm  = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
     # Setup some options for cvc5 -- we explictly want to use a simplistic
     # theory (e.g., QF_IDL)
     slv.setLogic("QF_IDL")
@@ -34,16 +35,16 @@ def validate_exception():
     slv.setOption("incremental", "false")
 
     # Our integer type
-    integer = slv.getIntegerSort()
+    integer = tm.getIntegerSort()
 
     # we intentionally do not set the separation logic heap
 
     # Our SMT constants
-    x = slv.mkConst(integer, "x")
-    y = slv.mkConst(integer, "y")
+    x = tm.mkConst(integer, "x")
+    y = tm.mkConst(integer, "y")
 
     # y > x
-    y_gt_x = slv.mkTerm(Kind.GT, y, x)
+    y_gt_x = tm.mkTerm(Kind.GT, y, x)
 
     # assert it
     slv.assertFormula(y_gt_x)
@@ -95,6 +96,7 @@ def validate_exception():
 # Test function to demonstrate the use of, and validate the capability, of
 # obtaining the heap/nil expressions when using separation logic.
 def validate_getters():
+    tm  = cvc5.TermManager()
     slv = cvc5.Solver()
 
     # Setup some options for cvc5
@@ -103,39 +105,39 @@ def validate_getters():
     slv.setOption("incremental", "false")
 
     # Our integer type
-    integer = slv.getIntegerSort()
+    integer = tm.getIntegerSort()
 
     #* Declare the separation logic heap types
     slv.declareSepHeap(integer, integer)
 
     # A "random" constant
-    random_constant = slv.mkInteger(0xDEAD)
+    random_constant = tm.mkInteger(0xDEAD)
 
     # Another random constant
-    expr_nil_val = slv.mkInteger(0xFBAD)
+    expr_nil_val = tm.mkInteger(0xFBAD)
 
     # Our nil term
-    nil = slv.mkSepNil(integer)
+    nil = tm.mkSepNil(integer)
 
     # Our SMT constants
-    x = slv.mkConst(integer, "x")
-    y = slv.mkConst(integer, "y")
-    p1 = slv.mkConst(integer, "p1")
-    p2 = slv.mkConst(integer, "p2")
+    x = tm.mkConst(integer, "x")
+    y = tm.mkConst(integer, "y")
+    p1 = tm.mkConst(integer, "p1")
+    p2 = tm.mkConst(integer, "p2")
 
     # Constraints on x and y
-    x_equal_const = slv.mkTerm(Kind.EQUAL, x, random_constant)
-    y_gt_x = slv.mkTerm(Kind.GT, y, x)
+    x_equal_const = tm.mkTerm(Kind.EQUAL, x, random_constant)
+    y_gt_x = tm.mkTerm(Kind.GT, y, x)
 
     # Points-to expressions
-    p1_to_x = slv.mkTerm(Kind.SEP_PTO, p1, x)
-    p2_to_y = slv.mkTerm(Kind.SEP_PTO, p2, y)
+    p1_to_x = tm.mkTerm(Kind.SEP_PTO, p1, x)
+    p2_to_y = tm.mkTerm(Kind.SEP_PTO, p2, y)
 
     # Heap -- the points-to have to be "starred"!
-    heap = slv.mkTerm(Kind.SEP_STAR, p1_to_x, p2_to_y)
+    heap = tm.mkTerm(Kind.SEP_STAR, p1_to_x, p2_to_y)
 
     # Constain "nil" to be something random
-    fix_nil = slv.mkTerm(Kind.EQUAL, nil, expr_nil_val)
+    fix_nil = tm.mkTerm(Kind.EQUAL, nil, expr_nil_val)
 
     # Add it all to the solver!
     slv.assertFormula(x_equal_const)

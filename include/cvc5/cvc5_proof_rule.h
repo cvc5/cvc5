@@ -169,6 +169,22 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(EVALUATE),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- associative/commutative/idempotency/identity normalization**
+   *
+   * .. math::
+   *   \inferrule{- \mid t = s}{t = s}
+   *
+   * where :math:`\texttt{expr::isACNorm(t, s)} = \top`. This
+   * method normalizes currently based on two kinds of operators:
+   * (1) those that are associative, commutative, idempotent, and have an
+   * identity element (examples are or, and, bvand),
+   * (2) those that are associative and have an identity element (examples
+   * are str.++, re.++).
+   * \endverbatim
+   */
+  EVALUE(ACI_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting equality introduction**
    *
    * In this rule, we provide a term :math:`t` and conclude that it is equal to
@@ -1876,12 +1892,12 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Multiplication tangent plane**
    *
    * .. math::
-   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
+   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
    *
-   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
+   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
    *
    * where :math:`x,y` are real terms (variables or extended terms),
-   * :math:`t = x \cdot y` (possibly under rewriting), :math:`a,b` are real
+   * :math:`t = x \cdot y`, :math:`a,b` are real
    * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
    * \endverbatim
    */

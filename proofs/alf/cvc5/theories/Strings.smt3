@@ -81,9 +81,9 @@
 (declare-const seq.empty (-> (! Type :var T) T))
 (declare-const seq.unit (-> (! Type :var T :implicit) T (Seq T)))
 (declare-const seq.nth (-> (! Type :var T :implicit) (Seq T) Int (alf.ite (alf.is_eq T Char) Int T)))
-(declare-const seq.len (-> (! Type :var T :implicit) (Seq T) Int))
 
 ; Sequence operators are automatically translated to the string operators.
+(define seq.len () str.len)
 (define seq.++ () str.++)
 (define seq.extract () str.substr)
 (define seq.contains () str.contains)
@@ -93,6 +93,7 @@
 (define seq.suffixof () str.suffixof)
 (define seq.rev () str.rev)
 (define seq.update () str.update)
+(define seq.at () str.at)
 
 ; Skolem functions for strings and sequences.
 

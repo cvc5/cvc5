@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +40,7 @@ TangentPlaneCheck::TangentPlaneCheck(Env& env, ExtState* data)
 void TangentPlaneCheck::check(bool asWaitingLemmas)
 {
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const std::map<Node, std::vector<Node> >& ccMap =
       d_data->d_mdb.getContainsChildrenMap();
   unsigned kstart = d_data->d_ms_vars.size();
@@ -134,9 +134,10 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
             {
               Node b1 = nm->mkNode(d == 0 ? Kind::GEQ : Kind::LEQ, b, b_v);
               Node b2 = nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, b, b_v);
+              Node t2 = nm->mkNode(Kind::NONLINEAR_MULT, a, b);
               Node tlem = nm->mkNode(
                   Kind::EQUAL,
-                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t, tplane),
+                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t2, tplane),
                   nm->mkNode(
                       Kind::OR,
                       nm->mkNode(Kind::AND, nm->mkNode(Kind::LEQ, a, a_v), b1),
@@ -151,8 +152,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                 proof->addStep(tlem,
                                ProofRule::ARITH_MULT_TANGENT,
                                {},
-                               {t,
-                                a,
+                               {a,
                                 b,
                                 a_v,
                                 b_v,
