@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Tim King
+ *   Aina Niemetz, Tim King, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,55 +36,56 @@ void prefixPrintGetValue(Solver& slv, Term t, int level = 0)
 
 int main()
 {
-  Solver slv;
+  TermManager tm;
+  Solver slv(tm);
   slv.setOption("produce-models", "true");  // Produce Models
   slv.setOption("dag-thresh", "0"); // Disable dagifying the output
   slv.setOption("output-language", "smt2"); // use smt-lib v2 as output language
   slv.setLogic(string("QF_UFLIRA"));
 
   // Sorts
-  Sort u = slv.mkUninterpretedSort("u");
-  Sort integer = slv.getIntegerSort();
-  Sort boolean = slv.getBooleanSort();
-  Sort uToInt = slv.mkFunctionSort({u}, integer);
-  Sort intPred = slv.mkFunctionSort({integer}, boolean);
+  Sort u = tm.mkUninterpretedSort("u");
+  Sort integer = tm.getIntegerSort();
+  Sort boolean = tm.getBooleanSort();
+  Sort uToInt = tm.mkFunctionSort({u}, integer);
+  Sort intPred = tm.mkFunctionSort({integer}, boolean);
 
   // Variables
-  Term x = slv.mkConst(u, "x");
-  Term y = slv.mkConst(u, "y");
+  Term x = tm.mkConst(u, "x");
+  Term y = tm.mkConst(u, "y");
 
   // Functions
-  Term f = slv.mkConst(uToInt, "f");
-  Term p = slv.mkConst(intPred, "p");
+  Term f = tm.mkConst(uToInt, "f");
+  Term p = tm.mkConst(intPred, "p");
 
   // Constants
-  Term zero = slv.mkInteger(0);
-  Term one = slv.mkInteger(1);
+  Term zero = tm.mkInteger(0);
+  Term one = tm.mkInteger(1);
 
   // Terms
-  Term f_x = slv.mkTerm(Kind::APPLY_UF, {f, x});
-  Term f_y = slv.mkTerm(Kind::APPLY_UF, {f, y});
-  Term sum = slv.mkTerm(Kind::ADD, {f_x, f_y});
-  Term p_0 = slv.mkTerm(Kind::APPLY_UF, {p, zero});
-  Term p_f_y = slv.mkTerm(Kind::APPLY_UF, {p, f_y});
+  Term f_x = tm.mkTerm(Kind::APPLY_UF, {f, x});
+  Term f_y = tm.mkTerm(Kind::APPLY_UF, {f, y});
+  Term sum = tm.mkTerm(Kind::ADD, {f_x, f_y});
+  Term p_0 = tm.mkTerm(Kind::APPLY_UF, {p, zero});
+  Term p_f_y = tm.mkTerm(Kind::APPLY_UF, {p, f_y});
 
   // Construct the assertions
   Term assertions =
-      slv.mkTerm(Kind::AND,
-                 {
-                     slv.mkTerm(Kind::LEQ, {zero, f_x}),  // 0 <= f(x)
-                     slv.mkTerm(Kind::LEQ, {zero, f_y}),  // 0 <= f(y)
-                     slv.mkTerm(Kind::LEQ, {sum, one}),   // f(x) + f(y) <= 1
-                     p_0.notTerm(),                       // not p(0)
-                     p_f_y                                // p(f(y))
-                 });
+      tm.mkTerm(Kind::AND,
+                {
+                    tm.mkTerm(Kind::LEQ, {zero, f_x}),  // 0 <= f(x)
+                    tm.mkTerm(Kind::LEQ, {zero, f_y}),  // 0 <= f(y)
+                    tm.mkTerm(Kind::LEQ, {sum, one}),   // f(x) + f(y) <= 1
+                    p_0.notTerm(),                      // not p(0)
+                    p_f_y                               // p(f(y))
+                });
   slv.assertFormula(assertions);
 
   cout << "Given the following assertions:" << endl
        << assertions << endl << endl;
 
   cout << "Prove x /= y is entailed. " << endl
-       << "cvc5: " << slv.checkSatAssuming(slv.mkTerm(Kind::EQUAL, {x, y}))
+       << "cvc5: " << slv.checkSatAssuming(tm.mkTerm(Kind::EQUAL, {x, y}))
        << "." << endl
        << endl;
 

@@ -113,7 +113,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-rewrite-rcons-rec-limit=N"
   type       = "uint64_t"
-  default    = "15"
+  default    = "5"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
 
 [[option]]

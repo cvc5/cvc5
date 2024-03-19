@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,9 @@
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
+
+class SygusTermEnumerator;
+
 namespace theory {
 namespace quantifiers {
 
@@ -33,7 +36,6 @@ class CandidateRewriteDatabase;
 class QueryGenerator;
 class RewriteVerifier;
 class SygusSampler;
-class SygusEnumerator;
 
 /**
  * Algorithms for finding terms from sygus enumeration. This can be
@@ -61,7 +63,7 @@ class SynthFinder : protected EnvObj
 
  private:
   /** Initialize find synthesis target */
-  void initializeInternal(modes::FindSynthTarget fst, const Node& e);
+  void initializeInternal(modes::FindSynthTarget fst, const TypeNode& gtn);
   /** Run find synthesis target */
   Node runNext(const Node& n, modes::FindSynthTarget fst);
   /** An identity expression miner */
@@ -77,7 +79,7 @@ class SynthFinder : protected EnvObj
   /** sygus sampler object */
   std::unique_ptr<SygusSampler> d_sampler;
   /** The enumerator */
-  std::unique_ptr<SygusEnumerator> d_enum;
+  std::unique_ptr<SygusTermEnumerator> d_enum;
   /** The active expression miner */
   ExprMiner* d_current;
   /** The current target we are given as input */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Andrew Reynolds
+ *   Gereon Kremer, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,32 +28,32 @@ class TestApiBlackUncovered : public TestApi
 TEST_F(TestApiBlackUncovered, comparison_operators)
 {
   cvc5::Result res;
-  res != res;
+  ASSERT_FALSE(res != res);
   cvc5::Sort sort;
-  sort != sort;
-  sort <= sort;
-  sort >= sort;
-  sort > sort;
+  ASSERT_FALSE(sort != sort);
+  ASSERT_TRUE(sort <= sort);
+  ASSERT_TRUE(sort >= sort);
+  ASSERT_FALSE(sort > sort);
   cvc5::Op op;
-  op != op;
+  ASSERT_FALSE(op != op);
   cvc5::Term term;
-  term != term;
-  term <= term;
-  term >= term;
-  term > term;
+  ASSERT_FALSE(term != term);
+  ASSERT_TRUE(term <= term);
+  ASSERT_TRUE(term >= term);
+  ASSERT_FALSE(term > term);
 }
 
 TEST_F(TestApiBlackUncovered, exception_getmessage)
 {
-  d_solver.setOption("produce-models", "true");
-  Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
-  d_solver.assertFormula(x.eqTerm(x).notTerm());
+  d_solver->setOption("produce-models", "true");
+  Term x = d_tm.mkConst(d_tm.getBooleanSort(), "x");
+  d_solver->assertFormula(x.eqTerm(x).notTerm());
 
-  ASSERT_THROW(d_solver.getValue(x), CVC5ApiRecoverableException);
+  ASSERT_THROW(d_solver->getValue(x), CVC5ApiRecoverableException);
 
   try
   {
-    d_solver.getValue(x);
+    d_solver->getValue(x);
   }
   catch (const CVC5ApiRecoverableException& e)
   {
@@ -63,7 +63,7 @@ TEST_F(TestApiBlackUncovered, exception_getmessage)
 
 TEST_F(TestApiBlackUncovered, term_native_types)
 {
-  Term t = d_solver.mkInteger(0);
+  Term t = d_tm.mkInteger(0);
   t.isInt32Value();
   t.getInt32Value();
   t.isInt64Value();
@@ -80,13 +80,13 @@ TEST_F(TestApiBlackUncovered, term_native_types)
 
 TEST_F(TestApiBlackUncovered, term_iterators)
 {
-  Term t = d_solver.mkInteger(0);
-  t = d_solver.mkTerm(Kind::GT, {t, t});
+  Term t = d_tm.mkInteger(0);
+  t = d_tm.mkTerm(Kind::GT, {t, t});
   Term::const_iterator it;
   it = t.begin();
   auto it2(it);
-  it == t.end();
-  it != it2;
+  ASSERT_FALSE(it == t.end());
+  ASSERT_FALSE(it != it2);
   *it2;
   ++it;
   it++;
@@ -121,8 +121,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
   ss << cvc5::SynthResult();
   ss << cvc5::Grammar();
 
-  Sort intsort = d_solver.getIntegerSort();
-  Term x = d_solver.mkConst(intsort, "x");
+  Sort intsort = d_tm.getIntegerSort();
+  Term x = d_tm.mkConst(intsort, "x");
 
   ss << std::vector<Term>{x, x};
   ss << std::set<Term>{x, x};
@@ -132,7 +132,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
 TEST_F(TestApiBlackUncovered, mkString)
 {
   std::wstring s;
-  ASSERT_EQ(d_solver.mkString(s).getStringValue(), s);
+  ASSERT_EQ(d_tm.mkString(s).getStringValue(), s);
+  ASSERT_EQ(d_solver->mkString(s).getStringValue(), s);
 }
 
 TEST_F(TestApiBlackUncovered, hash)
@@ -143,13 +144,13 @@ TEST_F(TestApiBlackUncovered, hash)
 
 TEST_F(TestApiBlackUncovered, isOutputOn)
 {
-  d_solver.isOutputOn("inst");
-  d_solver.getOutput("inst");
+  d_solver->isOutputOn("inst");
+  d_solver->getOutput("inst");
 }
 
 TEST_F(TestApiBlackUncovered, Options)
 {
-  auto dopts = d_solver.getDriverOptions();
+  auto dopts = d_solver->getDriverOptions();
   dopts.err();
   dopts.in();
   dopts.out();
@@ -159,14 +160,14 @@ TEST_F(TestApiBlackUncovered, Statistics)
 {
   Stat stat;
   stat = Stat();
-  Statistics stats = d_solver.getStatistics();
+  Statistics stats = d_solver->getStatistics();
   auto it = stats.begin();
   it++;
   it--;
   ++it;
   --it;
   testing::internal::CaptureStdout();
-  d_solver.printStatisticsSafe(STDOUT_FILENO);
+  d_solver->printStatisticsSafe(STDOUT_FILENO);
   testing::internal::GetCapturedStdout();
 }
 
@@ -179,11 +180,11 @@ TEST_F(TestApiBlackUncovered, Datatypes)
   DatatypeDecl dtd;
   Datatype d;
 
-  dtd = d_solver.mkDatatypeDecl("list");
-  dtcd = d_solver.mkDatatypeConstructorDecl("cons");
-  dtcd.addSelector("head", d_solver.getIntegerSort());
+  dtd = d_tm.mkDatatypeDecl("list");
+  dtcd = d_tm.mkDatatypeConstructorDecl("cons");
+  dtcd.addSelector("head", d_tm.getIntegerSort());
   dtd.addConstructor(dtcd);
-  Sort s = d_solver.mkDatatypeSort(dtd);
+  Sort s = d_tm.mkDatatypeSort(dtd);
   d = s.getDatatype();
   dc = d.getConstructor("cons");
   dc.getSelector("head");
@@ -191,23 +192,23 @@ TEST_F(TestApiBlackUncovered, Datatypes)
   {
     Datatype::const_iterator it;
     it = d.begin();
-    it != d.end();
+    ASSERT_TRUE(it != d.end());
     *it;
     it->getName();
     ++it;
-    it == d.end();
+    ASSERT_TRUE(it == d.end());
     it++;
   }
   {
     DatatypeConstructor::const_iterator it;
     it = dc.begin();
-    it != dc.end();
+    ASSERT_TRUE(it != dc.end());
     *it;
     it->getName();
     ++it;
     it = dc.begin();
     it++;
-    it == dc.end();
+    ASSERT_TRUE(it == dc.end());
   }
 
   {

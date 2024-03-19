@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -295,6 +295,125 @@ Node narySubstitute(Node src,
   Assert(visited.find(src) != visited.end());
   Assert(!visited.find(src)->second.isNull());
   return visited[src];
+}
+
+bool isAssocCommIdem(Kind k)
+{
+  switch (k)
+  {
+    case Kind::OR:
+    case Kind::AND:
+    case Kind::SEP_STAR:
+    case Kind::REGEXP_UNION:
+    case Kind::REGEXP_INTER:
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_OR:
+    case Kind::FINITE_FIELD_ADD:
+    case Kind::FINITE_FIELD_MULT: return true;
+    default: break;
+  }
+  return false;
+}
+
+bool isAssoc(Kind k)
+{
+  switch (k)
+  {
+    case Kind::STRING_CONCAT:
+    case Kind::REGEXP_CONCAT: return true;
+    default: break;
+  }
+  // also return true for the operators listed above
+  return isAssocCommIdem(k);
+}
+
+struct NormalFormTag
+{
+};
+using NormalFormAttr = expr::Attribute<NormalFormTag, Node>;
+
+Node getACINormalForm(Node a)
+{
+  NormalFormAttr nfa;
+  Node an = a.getAttribute(nfa);
+  if (!an.isNull())
+  {
+    // already computed
+    return an;
+  }
+  Kind k = a.getKind();
+  bool aci = isAssocCommIdem(k);
+  if (!aci && !isAssoc(k))
+  {
+    // not associative, return self
+    a.setAttribute(nfa, a);
+    return a;
+  }
+  TypeNode atn = a.getType();
+  Node nt = getNullTerminator(k, atn);
+  if (nt.isNull())
+  {
+    // no null terminator, likely abstract type, return self
+    a.setAttribute(nfa, a);
+    return a;
+  }
+  std::vector<Node> toProcess;
+  toProcess.insert(toProcess.end(), a.rbegin(), a.rend());
+  std::vector<Node> children;
+  Node cur;
+  do
+  {
+    cur = toProcess.back();
+    toProcess.pop_back();
+    if (cur == nt)
+    {
+      // ignore null terminator (which is the neutral element)
+      continue;
+    }
+    else if (cur.getKind() == k)
+    {
+      // flatten
+      toProcess.insert(toProcess.end(), cur.rbegin(), cur.rend());
+    }
+    else if (!aci
+             || std::find(children.begin(), children.end(), cur)
+                    == children.end())
+    {
+      // add to final children if not idempotent or if not a duplicate
+      children.push_back(cur);
+    }
+  } while (!toProcess.empty());
+  if (aci)
+  {
+    // sort if commutative
+    std::sort(children.begin(), children.end());
+  }
+  an = children.empty() ? nt
+                        : (children.size() == 1
+                               ? children[0]
+                               : NodeManager::currentNM()->mkNode(k, children));
+  a.setAttribute(nfa, an);
+  return an;
+}
+
+bool isACINorm(Node a, Node b)
+{
+  Node an = getACINormalForm(a);
+  Node bn = getACINormalForm(b);
+  // note we compare three possibilities, to handle cases like
+  //   (or (and b true) false) == (and b true),
+  // where N((or (and b true) false)) = (and b true),
+  //       N((and b true)) = b.
+  // In other words, one of the terms may be an element of the
+  // normalization of the other, which itself normalizes. Comparing
+  // all three ensures we are robust to this.
+  // However, note that we are intentionally incomplete for cases like:
+  //   (or (and b a) false) == (and a b),
+  // where this can be shown recursively via 2 normalization steps:
+  //   (or (and b a) false) ---> (and b a) ---> (and a b).
+  // We do this for simplicity; proof rules should be given that do these
+  // two steps separately.
+  return (an == bn) || (a == bn) || (an == b);
 }
 
 }  // namespace expr
