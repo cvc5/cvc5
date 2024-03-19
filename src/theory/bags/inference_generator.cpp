@@ -415,7 +415,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node f = n[0];
   Node A = n[1];
   // declare an uninterpreted function uf: Int -> T
-  Node uf = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE, {f, A});
+  Node uf = d_sm->mkSkolemFunction(SkolemFunId::BAGS_DISTINCT_ELEMENTS, {A});
 
   // declare uninterpreted function sum: Int -> Int
   Node sum = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_SUM, {f, A, e});
@@ -426,7 +426,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
 
   // guess the size of distinct elements in A
   Node size =
-      d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_SIZE, {f, A});
+      d_sm->mkSkolemFunction(SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE, {A});
 
   // (= (sum size) (bag.count e skolem))
   Node mapSkolem = registerAndAssertSkolemLemma(n);
@@ -542,8 +542,7 @@ InferInfo InferenceGenerator::mapUp1(Node n, Node x)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::mapUp2(
-    Node n, Node uf, Node preImageSize, Node y, Node x)
+InferInfo InferenceGenerator::mapUp2(Node n, Node uf, Node size, Node y, Node x)
 {
   Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
@@ -558,11 +557,11 @@ InferInfo InferenceGenerator::mapUp2(
   Node notEqual =
       d_nm->mkNode(Kind::EQUAL, d_nm->mkNode(Kind::APPLY_UF, f, x), y).negate();
 
-  Node k = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_INDEX,
-                                  {n, uf, preImageSize, y, x});
+  Node k =
+      d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_INDEX, {n, uf, size, y, x});
   Node inRange = d_nm->mkNode(Kind::AND,
                               d_nm->mkNode(Kind::GEQ, k, d_one),
-                              d_nm->mkNode(Kind::LEQ, k, preImageSize));
+                              d_nm->mkNode(Kind::LEQ, k, size));
   Node equal =
       d_nm->mkNode(Kind::EQUAL, d_nm->mkNode(Kind::APPLY_UF, uf, k), x);
   Node andNode = d_nm->mkNode(Kind::AND, inRange, equal);

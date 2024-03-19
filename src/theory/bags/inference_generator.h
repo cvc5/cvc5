@@ -257,9 +257,8 @@ class InferenceGenerator
    *            (= count_u_i 0)
    *            (= (sum i) (sum (- i 1)))))))))))
    * where uf: Int -> E is an uninterpreted function from integers to the
-   * type of the elements of A
-   * preImageSize is the cardinality of the distinct elements in A that are
-   * mapped to e by function f (i.e., preimage of {e})
+   * type of the elements of A,
+   * size is the cardinality of the distinct elements in A,
    * sum: Int -> Int is a function that aggregates the multiplicities of the
    * preimage of e,
    * and skolem is a fresh variable equals (bag.map f A))
@@ -295,8 +294,7 @@ class InferenceGenerator
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param uf is an uninterpreted function Int -> E
-   * @param preImageSize is the cardinality of the distinct elements in A that
-   * are mapped to y by function f (i.e., preimage of {y})
+   * @param size is the cardinality of the distinct elements in A.
    * @param y is an element of type T
    * @param e is an element of type E
    * @return an inference that represents the following implication
@@ -305,12 +303,12 @@ class InferenceGenerator
    *   (or
    *     (not (= (f x) y)
    *     (and
-   *       (>= skolem 1)
-   *       (<= skolem preImageSize)
-   *       (= (uf skolem) x)))))
-   * where skolem is a fresh variable
+   *       (>= k 1)
+   *       (<= k size)
+   *       (= (uf k) x)))))
+   * where k is a fresh variable
    */
-  InferInfo mapUp2(Node n, Node uf, Node preImageSize, Node y, Node x);
+  InferInfo mapUp2(Node n, Node uf, Node size, Node y, Node x);
 
   /**
    * @param n is (bag.filter p A) where p is a function (-> E Bool),
