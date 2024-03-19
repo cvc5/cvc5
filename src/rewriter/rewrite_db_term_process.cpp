@@ -46,16 +46,22 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     }
     return nm->mkNode(Kind::STRING_CONCAT, children);
   }
-  else if (k = Kind::FORALL)
+  else if (k == Kind::FORALL)
   {
     // ignore annotation 
     if (n.getNumChildren()==3)
     {
+      NodeManager* nm = NodeManager::currentNM();
       return nm->mkNode(Kind::FORALL, n[0], n[1]);
     }
   }
 
   return n;
+}
+
+bool RewriteDbNodeConverter::shouldTraverse(Node n)
+{
+  return n.getKind()!=Kind::INST_PATTERN_LIST;
 }
 
 }  // namespace rewriter
