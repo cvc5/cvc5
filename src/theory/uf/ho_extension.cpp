@@ -699,9 +699,9 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
   for (const std::pair<const Node, Node>& p : d_lambdaEqc)
   {
     Node lam = d_ll.getLambdaFor(p.second);
+    lam = rewrite(lam);
     Assert(!lam.isNull());
-    // don't call assertEquality between p.second and lam here?
-    //m->assertEquality(p.second, lam, true);
+    m->assertEquality(p.second, lam, true);
     m->assertSkeleton(lam);
     Trace("model-builder-debug") << "Assign via lambda: " << lam << std::endl;
     // assign it as the function definition for all variables in this class
