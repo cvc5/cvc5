@@ -803,6 +803,45 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native long getRealAlgebraicNumberUpperBound(long pointer);
 
+  /**
+   * @api.note This method is experimental and may change in future versions.
+   * @return True if this term is a skolem function.
+   */
+  public boolean isSkolem()
+  {
+    return isSkolem(pointer);
+  }
+  private native boolean isSkolem(long pointer);
+
+  /**
+   * @api.note Asserts isSkolem().
+   * @api.note This method is experimental and may change in future versions.
+   * @return The proof rule used by the root step of the proof.
+   */
+  public SkolemFunId getSkolemId()
+  {
+    int value = getSkolemId(pointer);
+    return SkolemFunId.fromInt(value);
+  }
+
+  private native int getSkolemId(long pointer);
+
+  /**
+   * Get the skolem arguments of this term.
+   * @api.note Asserts isSkolem().
+   * @api.note This method is experimental and may change in future versions.
+   * @return The skolem arguments of this term. These are what the skolem
+   * function is indexed by. For example, the array diff skolem
+   * {@link SkolemFunId#ARRAY_DEQ_DIFF} is indexed by two arrays.
+   */
+  public Term[] getSkolemArguments()
+  {
+    long[] termPointers = getSkolemArguments(pointer);
+    return Utils.getTerms(termPointers);
+  }
+
+  private native long[] getSkolemArguments(long pointer);
+
   public class ConstIterator implements Iterator<Term>
   {
     private int currentIndex;

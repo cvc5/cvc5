@@ -43,6 +43,10 @@ add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 set(JAVA_PROOF_RULE_FILE
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/ProofRule.java"
 )
+# Generate SkolemFunId.java
+set(JAVA_PROOF_RULE_FILE
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SkolemFunId.java"
+)
 add_custom_command(
   OUTPUT
     ${JAVA_PROOF_RULE_FILE}
