@@ -1437,7 +1437,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
       if (fr.isConst())
       {
         Trace("model-builder") << "  Assign function value for " << f
-                              << " based on constant rep" << std::endl;
+                               << " based on constant rep" << std::endl;
         m->assignFunctionDefinition(f, fr);
         continue;
       }

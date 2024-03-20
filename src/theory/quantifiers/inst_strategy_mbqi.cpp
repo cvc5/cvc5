@@ -491,8 +491,8 @@ Node InstStrategyMbqi::modelValueToQuery(const Node& t)
               << "    " << u << " == " << fm->getValue(u) << std::endl;
           for (const Node& ua : u)
           {
-          Trace("mbqi-model-exp")
-              << "      " << ua << " == " << fm->getValue(ua) << std::endl;
+            Trace("mbqi-model-exp")
+                << "      " << ua << " == " << fm->getValue(ua) << std::endl;
           }
         }
       }
@@ -637,8 +637,9 @@ Node InstStrategyMbqi::convertFromModel(
 
 Node InstStrategyMbqi::mkMbqiSkolem(const Node& t)
 {
-  SkolemManager * skm = nodeManager()->getSkolemManager();
-  return skm->mkInternalSkolemFunction(InternalSkolemFunId::MBQI_INPUT, t.getType(), {t});
+  SkolemManager* skm = nodeManager()->getSkolemManager();
+  return skm->mkInternalSkolemFunction(
+      InternalSkolemFunId::MBQI_INPUT, t.getType(), {t});
 }
 
 }  // namespace quantifiers

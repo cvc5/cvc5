@@ -123,7 +123,7 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   else
   {
     // this would make things simpler and fixes no-progress issues in MBQI
-    //return TrustNode::null();
+    // return TrustNode::null();
   }
   // if no proofs, return lemma with no generator
   if (d_epg == nullptr)

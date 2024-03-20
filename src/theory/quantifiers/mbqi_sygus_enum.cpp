@@ -188,14 +188,15 @@ bool MbqiSygusEnum::constructInstantiation(
     std::vector<Node>& mvs,
     const std::map<Node, Node>& mvFreshVar)
 {
-  Assert (q[0].getNumChildren()==vars.size());
-  Assert (vars.size()==mvs.size());
+  Assert(q[0].getNumChildren() == vars.size());
+  Assert(vars.size() == mvs.size());
   if (TraceIsOn("mbqi-model-enum"))
   {
     Trace("mbqi-model-enum") << "Instantiate " << q << std::endl;
-    for (size_t i=0, nvars=vars.size(); i<nvars; i++)
+    for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
     {
-       Trace("mbqi-model-enum") << "  " << q[0][i] << " -> " << mvs[i] << std::endl;
+      Trace("mbqi-model-enum")
+          << "  " << q[0][i] << " -> " << mvs[i] << std::endl;
     }
   }
   MQuantInfo& qi = getOrMkQuantInfo(q);
@@ -280,7 +281,8 @@ bool MbqiSygusEnum::constructInstantiation(
         // remember the updated query
         queryCurr = queryCheck;
         Trace("mbqi-model-enum") << "...success" << std::endl;
-        Trace("mbqi-model-enum") << "* Enumerated " << q[0][ii] << " -> " << ret << std::endl;
+        Trace("mbqi-model-enum")
+            << "* Enumerated " << q[0][ii] << " -> " << ret << std::endl;
         mvs[ii] = ret;
         vinst.add(q[0][ii], ret);
         success = true;
