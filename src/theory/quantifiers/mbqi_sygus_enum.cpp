@@ -187,6 +187,11 @@ bool MbqiSygusEnum::constructInstantiation(
     std::vector<Node>& mvs,
     const std::map<Node, Node>& mvFreshVar)
 {
+  // TODO: it would better for the last child to simply invoke addInstantiation
+  // as an oracle to determine if the instantiation is feasiable. This would
+  // avoid one subsolver call per instantiation we construct.
+  // Doing this ignores the constructed model in favor of using "entailment"
+  // from the main solver. This is likely a better notion of filtering.
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());
   if (TraceIsOn("mbqi-model-enum"))
