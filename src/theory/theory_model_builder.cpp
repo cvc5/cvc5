@@ -1096,8 +1096,13 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   std::map<Node, Node>::iterator itMap;
   for (itMap = d_constantReps.begin(); itMap != d_constantReps.end(); ++itMap)
   {
+    // The "constant" representative is a model value, which may be a lambda
+    // if higher-order. We now can go back and normalize its subterms.
+    // This is necessary if we assigned a lambda value whose body contains
+    // a free constant symbol that was assigned in this method.
+    Node normc = normalize(tm, itMap->second, true);
     // mark this as the final representative
-    tm->assignRepresentative(itMap->first, itMap->second, true);
+    tm->assignRepresentative(itMap->first, normc, true);
   }
 
   Trace("model-builder") << "Make sure ECs have reps..." << std::endl;
@@ -1418,7 +1423,6 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   }
 
   // construct function values
-  std::map<Node, Node>::iterator itc;
   for (unsigned k = 0; k < funcs_to_assign.size(); k++)
   {
     Node f = funcs_to_assign[k];
