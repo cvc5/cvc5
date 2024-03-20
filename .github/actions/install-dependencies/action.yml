@@ -95,7 +95,6 @@ runs:
 
         brew install \
           ccache \
-          gmp \
           pkgconfig \
           gnu-sed
         echo "SED=gsed" >> $GITHUB_ENV
