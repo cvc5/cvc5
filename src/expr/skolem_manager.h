@@ -475,7 +475,9 @@ enum class InternalSkolemFunId
    */
   QUANTIFIERS_SYNTH_FUN_EMBED,
   /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED
+  HO_TYPE_MATCH_PRED,
+  /** Input variables for MBQI */
+  MBQI_INPUT
 };
 /** Converts an internal skolem function name to a string. */
 const char* toString(InternalSkolemFunId id);

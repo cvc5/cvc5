@@ -102,6 +102,14 @@ class InstStrategyMbqi : public QuantifiersModule
   Node convertFromModel(Node t,
                         std::unordered_map<Node, Node>& cmap,
                         const std::map<Node, Node>& mvToFreshVar);
+  /** 
+   * Make skolem for term. We use a separate skolem identifier MBQI_INPUT
+   * to refer to the variables of a quantified formula. While purification
+   * skolems could also suffice, this avoids further complications due to
+   * purification skolems for Boolean variables being treated as UF atoms,
+   * which can lead to logic exceptions in subsolvers.
+   */
+  Node mkMbqiSkolem(const Node& t);
   /** Return the model value for term t */
   Node modelValueToQuery(const Node& t);
   /** Return the model value for term t from the solver */

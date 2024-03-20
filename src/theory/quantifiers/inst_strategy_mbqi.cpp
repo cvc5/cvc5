@@ -124,7 +124,7 @@ void InstStrategyMbqi::process(Node q)
   Subs skolems;
   for (const Node& v : q[0])
   {
-    Node k = sm->mkPurifySkolem(v);
+    Node k = mkMbqiSkolem(v);
     skolems.add(v, k);
     // do not take its model value (which does not exist) in conversion below
     tmpConvertMap[k] = k;
@@ -366,7 +366,7 @@ Node InstStrategyMbqi::convertToQuery(
       else if (ck == Kind::UNINTERPRETED_SORT_VALUE)
       {
         // return the fresh variable for this term
-        Node k = sm->mkPurifySkolem(cur);
+        Node k = sm->mkInternalPurifySkolem(cur);
         freshVarType[cur.getType()].insert(k);
         cmap[cur] = k;
         continue;
@@ -633,6 +633,12 @@ Node InstStrategyMbqi::convertFromModel(
 
   Assert(cmap.find(cur) != cmap.end());
   return cmap[cur];
+}
+
+Node InstStrategyMbqi::mkMbqiSkolem(const Node& t)
+{
+  SkolemManager * skm = nodeManager()->getSkolemManager();
+  return skm->mkInternalSkolemFunction(InternalSkolemFunId::MBQI_INPUT, t.getType(), {t});
 }
 
 }  // namespace quantifiers
