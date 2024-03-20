@@ -506,7 +506,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_MAP_SUM),
   /** 
    * The bag diff skolem, which is the witness k for the inference
-   * (=> (not (= A B)) (not (= (bag.count k A) (bag.count k B)))).
+   * ``(=> (not (= A B)) (not (= (bag.count k A) (bag.count k B))))``.
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first bag.
@@ -514,31 +514,33 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(BAGS_DEQ_DIFF),
   /**
-   * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
-   * this uninterpreted function maps elements of A to their parts in the
-   * resulting partition. It has type (-> T (Table T))
+   * Given a group term ``((_ table.group n1 ... nk) A)`` of type
+   * ``(Bag (Table T))``, this skolem maps elements of A to their parts in the
+   * resulting partition.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` a group term of the form ((_ table.group n1 ... nk) A).
+   *   - ``1:`` a group term of the form ``((_ table.group n1 ... nk) A)``.
+   * - Type: ``(-> T (Table T))``
    */
   EVALUE(TABLES_GROUP_PART),
   /**
-   * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
-   * and a part B of type (Table T), this function returns a skolem element
-   * that is a member of B if B is not empty.
+   * Given a group term ``((_ table.group n1 ... nk) A)`` of type
+   * ``(Bag (Table T))`` and a part B of type ``(Table T)``, this function
+   * returns a skolem element that is a member of B if B is not empty.
    *
    * - Number of skolem arguments: ``2``
-   *   - ``1:`` a group term of the form ((_ table.group n1 ... nk) A).
-   *   - ``2:`` a table B of type (Table T).
+   *   - ``1:`` a group term of the form ``((_ table.group n1 ... nk) A)``.
+   *   - ``2:`` a table B of type ``(Table T)``.
    */
   EVALUE(TABLES_GROUP_PART_ELEMENT),
   /**
-   * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
-   * this uninterpreted function maps elements of A to their parts in the
-   * resulting partition. It has type (-> T (Relation T))
+   * Given a group term ``((_ rel.group n1 ... nk) A)`` of type
+   * ``(Set (Relation T))`` this skolem maps elements of A to their parts in the
+   * resulting partition. 
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` a relation of the form ((_ rel.group n1 ... nk) A).
+   * - Type: ``(-> T (Relation T))``
    */
   EVALUE(RELATIONS_GROUP_PART),
   /**
@@ -546,8 +548,8 @@ enum ENUM(SkolemFunId) : uint32_t
    * and a part B of type (Relation T), this function returns a skolem element
    * that is a member of B if B is not empty.
    * - Number of skolem arguments: ``2``
-   *   - ``1:`` a group term of the form ((_ rel.group n1 ... nk) A).
-   *   - ``2:`` a relation B of type (Relation T).
+   *   - ``1:`` a group term of the form ``((_ rel.group n1 ... nk) A)``.
+   *   - ``2:`` a relation B of type ``(Relation T)``.
    */
   EVALUE(RELATIONS_GROUP_PART_ELEMENT),
   /**
@@ -562,7 +564,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * of A
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` a ground value for the type (Set E).
+   *   - ``1:`` a ground value for the type ``(Set E)``.
    */
   EVALUE(SETS_CHOOSE),
   /** 
@@ -596,9 +598,9 @@ enum ENUM(SkolemFunId) : uint32_t
    * T2: is the type of initial value t
    *
    * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type T1 -> T2.
-   *   - ``2:`` the initial value t of type T2.
-   *   - ``3:`` the set argument A of type (Set T1).
+   *   - ``1:`` the function f of type ``(-> T1 T2)``.
+   *   - ``2:`` the initial value t of type ``T2``.
+   *   - ``3:`` the set argument A of type ``(Set T1)``.
    */
   EVALUE(SETS_FOLD_COMBINE),
   /**
@@ -620,7 +622,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * To compute (set.fold f t A), we need a function for
    * elements of A which is given by elements defined in
    * SETS_FOLD_ELEMENTS.
-   * We also need unionFn: Int -> (Set T1) to compute
+   * We also need unionFn: ``(-> Int (Set T1))`` to compute
    * the union such that:
    * unionFn(0) = set.empty
    * unionFn(i) = union of {elements(i)} and unionFn (i-1)
@@ -631,12 +633,12 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(SETS_FOLD_UNION),
   /**
-   * A skolem variable that is unique per terms (set.map f A), y which is an
-   * element in (set.map f A). The skolem is constrained to be an element in A,
-   * and it is mapped to y by f.
+   * A skolem variable that is unique per terms ``(set.map f A)``, y which is an
+   * element in ``(set.map f A)``. The skolem is constrained to be an element in
+   * A, and it is mapped to y by f.
    *
    * - Number of skolem arguments: ``2``
-   *   - ``1:`` a map term of the form (set.map f A)
+   *   - ``1:`` a map term of the form ``(set.map f A)``
    *   - ``2:`` the element argument y.
    */
   EVALUE(SETS_MAP_DOWN_ELEMENT),
