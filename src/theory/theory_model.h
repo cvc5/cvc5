@@ -421,7 +421,7 @@ class TheoryModel : protected EnvObj
   std::map<Node, std::vector<Node> > d_ho_uf_terms;
   /** whether function models are enabled */
   bool d_enableFuncModels;
-  /** 
+  /**
    * Map from function terms to the (lambda) definitions
    * After the model is built, the domain of this map is all terms of function
    * type that appear as terms in d_equalityEngine.
