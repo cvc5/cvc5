@@ -76,7 +76,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(PURIFY),
   /** 
    * The array diff skolem, which is the witness k for the inference
-   * (=> (not (= A B)) (not (= (select A k) (select B k)))).
+   * ``(=> (not (= A B)) (not (= (select A k) (select B k))))``.
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first array.
@@ -89,7 +89,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * SMT-LIB term (lambda ((x Real)) (/ x 0.0)).
    *
    * - Number of skolem arguments: ``0``
-   * - Type: (-> Real Real)
+   * - Type: ``(-> Real Real)``
    */
   EVALUE(DIV_BY_ZERO),
   /** 
@@ -97,7 +97,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * to the SMT-LIB term (lambda ((x Int)) (div x 0)).
    *
    * - Number of skolem arguments: ``0``
-   * - Type: (-> Int Int)
+   * - Type: ``(-> Int Int)``
    */
   EVALUE(INT_DIV_BY_ZERO),
   /** 
@@ -105,15 +105,15 @@ enum ENUM(SkolemFunId) : uint32_t
    * to the SMT-LIB term (lambda ((x Int)) (mod x 0)).
    *
    * - Number of skolem arguments: ``0``
-   * - Type: (-> Int Int)
+   * - Type: ``(-> Int Int)``
    */
   EVALUE(MOD_BY_ZERO),
   /** 
    * The function for square root, which is used for ensuring that sqrt is
-   * functional. This is a function of sort (-> Real Real).
+   * functional.
    *
    * - Number of skolem arguments: ``0``
-   * - Type: (-> Real Real)
+   * - Type: ``(-> Real Real)``
    */
   EVALUE(SQRT),
   /**
@@ -123,7 +123,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The application of a trancendental function.
-   * - Type: Real
+   * - Type: ``Real``
    */
   EVALUE(TRANSCENDENTAL_PURIFY_ARG),
   /** 
@@ -157,19 +157,19 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first string.
    *   - ``2:`` The second string.
-   * - Type: Int
+   * - Type: ``Int``
    */
   EVALUE(STRINGS_NUM_OCCUR),
   /** 
-   * A function k: Int -> Int such that forall x -> 0...n, k(x) is the end
+   * A function k such that forall x = 0...n, (k x) is the end
    * index of the x^th occurrence of a string b in string a, where n is the
-   * number of occurrences of b in a, and k(0)=0. This is used to reason about
-   * str.replace_all.
+   * number of occurrences of b in a, and (= (k 0) 0). This is used to reason
+   * about str.replace_all.
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first string.
    *   - ``2:`` The second string.
-   * - Type: (-> Int Int)
+   * - Type: ``(-> Int Int)``
    */
   EVALUE(STRINGS_OCCUR_INDEX),
   /**
@@ -180,32 +180,32 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string to match.
    *   - ``2:`` The regular expression to find.
-   * - Type: Int
+   * - Type: ``Int``
    */
   EVALUE(STRINGS_NUM_OCCUR_RE),
   /** 
    * Analogous to STRINGS_OCCUR_INDEX, but for regular expressions.
-   * A function k: Int -> Int such that forall x -> 0...n, k(x) is the end
+   * A function k such that forall x = 0...n, (k x) is the end
    * index of the x^th occurrence of a regular expression R in string a, where
-   * n is the number of occurrences of R in a, and k(0)=0. This is used
+   * n is the number of occurrences of R in a, and (= (k 0) 0). This is used
    * to reason about str.replace_all_re.
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string to match.
    *   - ``2:`` The regular expression to find.
-   * - Type: (-> Int Int)
+   * - Type: ``(-> Int Int)``
    */
   EVALUE(STRINGS_OCCUR_INDEX_RE),
   /**
-   * A function k: Int -> Int, where forall x -> 0...n, k(x) is the length of
+   * A function k: Int -> Int, where forall x = 0...n, (k x) is the length of
    * the x^th occurrence of R in a (excluding matches of empty strings) where R
    * is a regular expression, n is the number of occurrences of R in a, and
-   * k(0)=0.
+   * (= (k 0) 0).
    *
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string to match.
    *   - ``2:`` The regular expression to find.
-   * - Type: (-> Int Int)
+   * - Type: ``(-> Int Int)``
    */
   EVALUE(STRINGS_OCCUR_LEN_RE),
   /**
@@ -222,10 +222,10 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(STRINGS_DEQ_DIFF),
   /**
    * A function used to define intermediate results of str.replace_all and
-   * str.replace_re_all applications. This denotes a function of type
-   * (-> Int String) or (-> Int (Seq T)) that denotes the result of processing
-   * the string or sequence after processing the n^th occurrence of string
-   * or match of the regular expression in the given replace_all term.
+   * str.replace_re_all applications. This denotes a function that denotes the
+   * result of processing the string or sequence after processing the n^th
+   * occurrence of string or match of the regular expression in the given
+   * replace_all term.
    * 
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The application of replace_all or replace_all_re.
@@ -234,7 +234,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(STRINGS_REPLACE_ALL_RESULT),
   /**
    * A function used to define intermediate results of str.from_int
-   * applications. This is a function k of type (-> Int Int) denoting the result
+   * applications. This is a function k denoting the result
    * of processing the first n digits of the argument.
    *
    * - Number of skolem arguments: ``1``
@@ -249,7 +249,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The argument to str.to_int.
-   * - Type: (-> Int String)
+   * - Type: ``(-> Int String)``
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
@@ -259,7 +259,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The argument to str.to_int.
-   * - Type: Int
+   * - Type: ``Int``
    */
   EVALUE(STRINGS_STOI_NON_DIGIT),
   /**
@@ -291,7 +291,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string.
    *   - ``2:`` The regular expression to match.
-   * - Type: String
+   * - Type: ``String``
    */
   EVALUE(RE_FIRST_MATCH),
   /**
@@ -301,7 +301,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string.
    *   - ``2:`` The regular expression to match.
-   * - Type: String
+   * - Type: ``String``
    */
   EVALUE(RE_FIRST_MATCH_POST),
   /**
@@ -314,7 +314,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``1:`` The string.
    *   - ``2:`` The regular expression.
    *   - ``3:`` The index of the skolem.
-   * - Type: String
+   * - Type: ``String``
    */
   EVALUE(RE_UNFOLD_POS_COMPONENT),
   /**
@@ -330,7 +330,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A.
-   * - Type: (-> Int Int)
+   * - Type: ``(-> Int Int)``
    */
   EVALUE(BAGS_CARD_COMBINE),  
   /**
@@ -342,7 +342,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A of type (Bag T).
-   * - Type: (-> Int T)
+   * - Type: ``(-> Int T)``
    */
   EVALUE(BAGS_CARD_ELEMENTS),
   /**
@@ -352,7 +352,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A.
-   * - Type: Int
+   * - Type: ``Int``
    */
   EVALUE(BAGS_CARD_N),
   /**
@@ -369,7 +369,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A of type (Bag T).
-   * - Type: (-> Int (Bag T))
+   * - Type: ``(-> Int (Bag T))``
    */
   EVALUE(BAGS_CARD_UNION_DISJOINT),
   /**
@@ -379,7 +379,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A.
-   * - Type: Int
+   * - Type: ``Int``
    */
   EVALUE(BAGS_FOLD_CARD),
   /**
@@ -395,19 +395,19 @@ enum ENUM(SkolemFunId) : uint32_t
    * T2: is the type of initial value t.
    *
    * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type T1 -> T2.
-   *   - ``2:`` the initial value t of type T2.
-   *   - ``3:`` the bag argument A of type (Bag T1).
+   *   - ``1:`` the function f of type ``(-> T1 T2)``.
+   *   - ``2:`` the initial value t of type ``T2``.
+   *   - ``3:`` the bag argument A of type ``(Bag T1)``.
    */
   EVALUE(BAGS_FOLD_COMBINE),
   /**
    * An uninterpreted function for bag.fold operator:
    * To compute (bag.fold f t A), we need a function for
    * elements of A. We call this function
-   * elements of type Int -> T1 where T1 is the type of
+   * elements of type ``(-> Int T1)`` where T1 is the type of
    * elements of A.
    * If the cardinality of A is n, then
-   * A is the disjoint union of {<elements(i),1>} for 1 <= i <= n.
+   * A is the disjoint union of {elements(i),1} for 1 <= i <= n.
    * See BAGS_FOLD_UNION_DISJOINT.
    *
    * - Number of skolem arguments: ``1``
@@ -416,10 +416,10 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_FOLD_ELEMENTS),
   /**
    * An uninterpreted function for bag.fold operator:
-   * To compute (bag.fold f t A), we need a function for
+   * To compute ``(bag.fold f t A)``, we need a function for
    * elements of A which is given by elements defined in
    * BAGS_FOLD_ELEMENTS.
-   * We also need unionDisjoint: Int -> (Bag T1) to compute
+   * We also need unionDisjoint: ``(-> Int (Bag T1))`` to compute
    * the disjoint union such that:
    * unionDisjoint(0) = bag.empty.
    * unionDisjoint(i) = disjoint union of {elements(i)} and unionDisjoint (i-1).
@@ -437,12 +437,12 @@ enum ENUM(SkolemFunId) : uint32_t
    *      (= A (as emptybag (Bag E)))
    *      (= x (uf A))
    *      (and (>= (bag.count x A) 1) (= x (uf A)))
-   * where uf: (Bag E) -> E is a skolem function, and E is the type of elements
+   * where uf is this skolem function, and E is the type of elements
    * of A.
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag to chose from, of type (Bag T).
-   * - Type: (-> (Bag T) T)
+   * - Type: ``(-> (Bag T) T)``
    */
   EVALUE(BAGS_CHOOSE),
   /**
@@ -469,25 +469,25 @@ enum ENUM(SkolemFunId) : uint32_t
    * A. This is used only when f is injective.
    *
    * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type E -> T.
-   *   - ``2:`` the bag argument A of (Bag E).
-   *   - ``3:`` the element argument e type E.
+   *   - ``1:`` the function f of type `(-> E T)``.
+   *   - ``2:`` the bag argument A of ``(Bag E)``.
+   *   - ``3:`` the element argument e type ``E``.
    */
   EVALUE(BAGS_MAP_PREIMAGE_INJECTIVE),
   /**
    * A skolem variable for the index that is unique per terms
    * (bag.map f A), y, size, y, e where:
-   * f: E -> T,
-   * A: (Bag E),
-   * y: T,
-   * e: E
+   * f: ``(-> E T)``,
+   * A: ``(Bag E)``,
+   * y: ``T``,
+   * e: ``E``
    *
    * - Number of skolem arguments: ``5``
-   *   - ``1:`` a map term of the form (bag.map f A)
-   *   - ``2:`` a skolem function with id BAGS_DISTINCT_ELEMENTS
+   *   - ``1:`` a map term of the form ``(bag.map f A)``.
+   *   - ``2:`` a skolem function with id BAGS_DISTINCT_ELEMENTS.
    *   - ``3:`` a skolem function with id BAGS_DISTINCT_ELEMENTS_SIZE.
-   *   - ``4:`` an element y of type T representing the mapped value.
-   *   - ``5:`` an element x of type E.
+   *   - ``4:`` an element y of type ``T`` representing the mapped value.
+   *   - ``5:`` an element x of type ``E``.
    */
   EVALUE(BAGS_MAP_INDEX),
   /**
@@ -499,9 +499,9 @@ enum ENUM(SkolemFunId) : uint32_t
    * sum(i) = sum (i-1) + (bag.count (uf i) A)
    *
    * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type E -> T.
-   *   - ``2:`` the bag argument A of (Bag E).
-   *   - ``3:`` the element argument e type E.
+   *   - ``1:`` the function f of type ``(-> E T)``.
+   *   - ``2:`` the bag argument A of ``(Bag E)``.
+   *   - ``3:`` the element argument e type ``E``.
    */
   EVALUE(BAGS_MAP_SUM),
   /** 
