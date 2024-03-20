@@ -1096,6 +1096,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   std::map<Node, Node>::iterator itMap;
   for (itMap = d_constantReps.begin(); itMap != d_constantReps.end(); ++itMap)
   {
+    // mark this as the final representative
     tm->assignRepresentative(itMap->first, itMap->second, true);
   }
 
