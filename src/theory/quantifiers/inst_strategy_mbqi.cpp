@@ -489,6 +489,11 @@ Node InstStrategyMbqi::modelValueToQuery(const Node& t)
         {
           Trace("mbqi-model-exp")
               << "    " << u << " == " << fm->getValue(u) << std::endl;
+          for (const Node& ua : u)
+          {
+          Trace("mbqi-model-exp")
+              << "      " << ua << " == " << fm->getValue(ua) << std::endl;
+          }
         }
       }
       else
