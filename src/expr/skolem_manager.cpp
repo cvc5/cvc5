@@ -43,7 +43,7 @@ const char* toString(SkolemFunId id)
 {
   switch (id)
   {
-    case SkolemFunId::INTERNAL: return "INPUT_VARIABLE";
+    case SkolemFunId::INTERNAL: return "INTERNAL";
     case SkolemFunId::INPUT_VARIABLE: return "INPUT_VARIABLE";
     case SkolemFunId::PURIFY: return "PURIFY";
     case SkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
