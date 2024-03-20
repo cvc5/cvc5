@@ -41,7 +41,9 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr)
+    : QuantifiersModule(env, qs, qim, qr, tr),
+    d_notified_assertions(userContext()),
+    d_global_symbols()
 {
   // some kinds may appear in model values that cannot be asserted
   d_nonClosedKinds.insert(Kind::STORE_ALL);
@@ -51,6 +53,14 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   if (options().quantifiers.mbqiModelExp)
   {
     d_msenum.reset(new MbqiSygusEnum(env, *this));
+  }
+}
+
+void InstStrategyMbqi::ppNotifyAssertions(const std::vector<Node>& assertions)
+{
+  for (const Node& a : assertions)
+  {
+    d_notified_assertions.insert(a);
   }
 }
 
