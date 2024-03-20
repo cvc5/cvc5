@@ -43,10 +43,6 @@ add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 set(JAVA_PROOF_RULE_FILE
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/ProofRule.java"
 )
-# Generate SkolemFunId.java
-set(JAVA_PROOF_RULE_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SkolemFunId.java"
-)
 add_custom_command(
   OUTPUT
     ${JAVA_PROOF_RULE_FILE}
@@ -62,6 +58,24 @@ add_custom_command(
 )
 add_custom_target(generate-java-proofrules DEPENDS ${JAVA_PROOF_RULE_FILE})
 
+# Generate SkolemFunId.java
+set(JAVA_SKOLEM_FUN_ID_FILE
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SkolemFunId.java"
+)
+add_custom_command(
+  OUTPUT
+    ${JAVA_SKOLEM_FUN_ID_FILE}
+  COMMAND
+    "${Python_EXECUTABLE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_skolem_fun_id.h"
+    --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_skolem_fun_id.h"
+)
+add_custom_target(generate-java-skolemfunids DEPENDS ${JAVA_SKOLEM_FUN_ID_FILE})
 
 set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/BlockModelsMode.java"
@@ -163,7 +177,7 @@ add_custom_command(
 )
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
-add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules)
+add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules generate-java-skolemfunids)
 
 # find jni package
 find_package(JNI REQUIRED)
