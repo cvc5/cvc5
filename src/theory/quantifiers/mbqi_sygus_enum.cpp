@@ -30,6 +30,7 @@ namespace theory {
 namespace quantifiers {
 
 void MVarInfo::initialize(Env& env,
+                          InstStrategyMbqi& d_parent,
                           const Node& q,
                           const Node& v,
                           const std::vector<Node>& etrules)
@@ -58,6 +59,12 @@ void MVarInfo::initialize(Env& env,
   trules.insert(trules.end(), syms.begin(), syms.end());
   // include the external terminal rules
   trules.insert(trules.end(), etrules.begin(), etrules.end());
+  // add extra symbols to grammar
+  for (const auto& symbol : d_parent.getGlobalSyms()) {
+    if (std::find(trules.begin(), trules.end(), symbol) == trules.end()) {
+        trules.push_back(symbol);
+    }
+  }
   Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;
   // TODO: could add more symbols to trules to improve the enumerated terms
   // TODO: could cache the enumerator here for efficiency
@@ -118,7 +125,7 @@ Node MVarInfo::getEnumeratedTerm(size_t i)
   return d_enum[i];
 }
 
-void MQuantInfo::initialize(Env& env, const Node& q)
+void MQuantInfo::initialize(Env& env, InstStrategyMbqi& d_parent, const Node& q)
 {
   // TODO: external terminal rules? maybe pass all symbols to this?
   std::vector<Node> etrules;
@@ -142,7 +149,7 @@ void MQuantInfo::initialize(Env& env, const Node& q)
   // initialize the variables we are instantiating
   for (size_t index : d_indices)
   {
-    d_vinfo[index].initialize(env, q, q[0][index], etrules);
+    d_vinfo[index].initialize(env, d_parent, q, q[0][index], etrules);
   }
 }
 
@@ -175,7 +182,8 @@ MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
   if (it == d_qinfo.end())
   {
     MQuantInfo& qi = d_qinfo[q];
-    qi.initialize(d_env, q);
+    collectGlobalSymbols();
+    qi.initialize(d_env, d_parent, q);
     return qi;
   }
   return it->second;
@@ -295,6 +303,21 @@ bool MbqiSygusEnum::constructInstantiation(
   return true;
 }
 
+void MbqiSygusEnum::collectGlobalSymbols() {
+  for (const Node& a : d_parent.d_notified_assertions)
+  {
+    std::unordered_set<Node> cur_syms;
+    expr::getSymbols(a, cur_syms);
+    // Iterate over the symbols in the current assertion
+    for (const auto& s : cur_syms) {
+      // Add the symbol to syms if it's not already present
+      if (d_parent.d_global_symbols.find(s) == d_parent.d_global_symbols.end()) {
+        d_parent.d_global_symbols.insert(s);
+        Trace("mbqi-model-enum") << "  Adding (global) symbol: " << s << std::endl;
+      }
+    }
+  }
+}
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

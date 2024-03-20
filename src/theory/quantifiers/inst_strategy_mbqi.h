@@ -20,6 +20,8 @@
 
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
+#include "context/cdhashset.h"
 
 #include "theory/quantifiers/quant_module.h"
 
@@ -66,6 +68,12 @@ class InstStrategyMbqi : public QuantifiersModule
   bool checkCompleteFor(Node q) override;
   /** identify */
   std::string identify() const override { return "InstStrategyMbqi"; }
+  /* For collecting global terms from all available assertions. */
+  void ppNotifyAssertions(const std::vector<Node>& assertions);
+  // Define a method to access d_global_terms
+  const std::unordered_set<Node>& getGlobalSyms() const {
+    return d_global_symbols;
+  }
 
  private:
   /**
@@ -118,6 +126,10 @@ class InstStrategyMbqi : public QuantifiersModule
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
   /** Submodule for sygus enum */
   std::unique_ptr<MbqiSygusEnum> d_msenum;
+  /* Assertions sent by ppNotifyAssertions. */
+  context::CDHashSet<Node> d_notified_assertions;
+  /* Set of global ground terms in assertions (outside of quantifiers). */
+  std::unordered_set<Node> d_global_symbols;
 };
 
 }  // namespace quantifiers
