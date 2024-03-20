@@ -55,8 +55,8 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,
   {
     if (d_match_pattern[i].getKind() == Kind::INST_CONSTANT)
     {
-      if (!options().quantifiers.cegqi
-          || TermUtil::getInstConstAttr(d_match_pattern[i]) == q)
+      // check independent of options
+      if (TermUtil::getInstConstAttr(d_match_pattern[i]) == q)
       {
         d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
       }

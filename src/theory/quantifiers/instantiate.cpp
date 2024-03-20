@@ -169,8 +169,12 @@ bool Instantiate::addInstantiationInternal(
                     << std::endl;
       bad_inst = true;
     }
-    else if (options().quantifiers.cegqi)
+    else
     {
+      // This checks whether the term represents a "counterexample". It is
+      // model-unsound to instantiate with such terms.
+      // Note we check this even if cegqi is false, since sygusInst also
+      // introduces terms with this attribute.
       Node icf = TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
       {
