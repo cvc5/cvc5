@@ -522,7 +522,9 @@ void TheoryModel::assertSkeleton(TNode n)
   d_reps[n] = n;
 }
 
-void TheoryModel::assignRepresentative(const Node& r, const Node& n, bool isFinal)
+void TheoryModel::assignRepresentative(const Node& r,
+                                       const Node& n,
+                                       bool isFinal)
 {
   Assert(r.getType() == n.getType());
   TypeNode tn = r.getType();
@@ -698,7 +700,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
   }
- 
+
   d_uf_models[f] = f_def;
 
   if (logicInfo().isHigherOrder() && d_equalityEngine->hasTerm(f))
@@ -709,14 +711,15 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     //always replace the representative, since it is initially assigned to itself
     Trace("model-builder") << "    Assign: Setting function rep " << r << " to " << f_def << endl;
     // should not have assigned it yet, unless it was set to itself
-    Assert(d_reps.find(r)==d_reps.end() || d_reps[r]==r) << "Function already assigned " << d_reps[r];
+    Assert(d_reps.find(r) == d_reps.end() || d_reps[r] == r)
+        << "Function already assigned " << d_reps[r];
     d_reps[r] = f_def;  
     // also assign to other assignable functions in the same equivalence class
     eq::EqClassIterator eqc_i = eq::EqClassIterator(r,d_equalityEngine);
     while( !eqc_i.isFinished() ) {
       Node n = *eqc_i;
       // if an unassigned variable function
-      if (n.getKind()!=Kind::LAMBDA && !hasAssignedFunctionDefinition(n))
+      if (n.getKind() != Kind::LAMBDA && !hasAssignedFunctionDefinition(n))
       {
         d_uf_models[n] = f_def;
         Trace("model-builder") << "  Assigning function (" << n << ") to function definition of " << f << std::endl;

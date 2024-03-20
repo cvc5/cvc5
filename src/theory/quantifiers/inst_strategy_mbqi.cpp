@@ -295,7 +295,7 @@ void InstStrategyMbqi::process(Node q)
   // get a term that has the same model value as the value each fresh variable
   // represents
   Subs fvToInst;
-  //bool modifiedInst = false;
+  // bool modifiedInst = false;
   for (const Node& v : allVars)
   {
     // get a term that witnesses this variable
@@ -305,7 +305,7 @@ void InstStrategyMbqi::process(Node q)
     // is combined with MBQI
     if (mvt.isNull() || !TermUtil::getInstConstAttr(mvt).isNull())
     {
-      //modifiedInst = true;
+      // modifiedInst = true;
       Trace("mbqi") << "warning: failed to get term from value " << ov
                     << ", use arbitrary term in query" << std::endl;
       mvt = nm->mkGroundTerm(ov.getType());
@@ -324,7 +324,7 @@ void InstStrategyMbqi::process(Node q)
   Instantiate* qinst = d_qim.getInstantiate();
   if (!qinst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_MBQI))
   {
-    //AlwaysAssert(modifiedInst) << "Failed to add instantiation";
+    // AlwaysAssert(modifiedInst) << "Failed to add instantiation";
     Trace("mbqi") << "...failed to add instantiation" << std::endl;
     return;
   }
