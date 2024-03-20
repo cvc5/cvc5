@@ -507,22 +507,33 @@ class CVC5ApiUnsupportedExceptionStream
   } while (0)
 
 /**
+ * Sort check for member functions of class TermManager.
+ * Check if given sort at given index of given sorts is not null and associated
+ * with this term manager.
+ */
+#define CVC5_API_TM_CHECK_SORT_AT_INDEX(sort, sorts, index)       \
+  do                                                              \
+  {                                                               \
+    CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", sort, sorts, i); \
+    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                         \
+        d_nm == sort.d_tm->d_nm, "sort", sorts, i)                \
+        << "a sort associated with this term manager";            \
+  } while (0)
+
+/**
  * Sort checks for member functions of class TermManager.
  * Check if each sort in the given container of sorts is not null and
  * associated with the term manager of this solver.
  */
-#define CVC5_API_TM_CHECK_SORTS(sorts)                                 \
-  do                                                                   \
-  {                                                                    \
-    size_t i = 0;                                                      \
-    for (const auto& s : sorts)                                        \
-    {                                                                  \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sorts", s, sorts, i);      \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
-          d_nm == s.d_tm->d_nm, "sort", sorts, i)                      \
-          << "a sort associated with the term manager of this solver"; \
-      i += 1;                                                          \
-    }                                                                  \
+#define CVC5_API_TM_CHECK_SORTS(sorts)              \
+  do                                                \
+  {                                                 \
+    size_t i = 0;                                   \
+    for (const auto& s : sorts)                     \
+    {                                               \
+      CVC5_API_TM_CHECK_SORT_AT_INDEX(s, sorts, i); \
+      i += 1;                                       \
+    }                                               \
   } while (0)
 
 /**
@@ -614,7 +625,7 @@ class CVC5ApiUnsupportedExceptionStream
     size_t i = 0;                                                      \
     for (const auto& t : terms)                                        \
     {                                                                  \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("terms", t, terms, i);      \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i);       \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
           d_nm == t.d_tm->d_nm, "term", terms, i)                      \
           << "a term associated with the term manager of this solver"; \
@@ -773,7 +784,7 @@ class CVC5ApiUnsupportedExceptionStream
     size_t i = 0;                                                      \
     for (const auto& t : terms)                                        \
     {                                                                  \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("terms", t, terms, i);      \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i);       \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
           d_tm.d_nm == t.d_tm->d_nm, "term", terms, i)                 \
           << "a term associated with the term manager of this solver"; \
