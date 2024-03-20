@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Hans-Jörg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -276,7 +276,7 @@ Node TrustSubstitutionMap::getSubstitution(size_t index)
     csubsChildren.push_back(d_tsubs[i].getProven());
   }
   std::reverse(csubsChildren.begin(), csubsChildren.end());
-  Node cs = NodeManager::currentNM()->mkAnd(csubsChildren);
+  Node cs = nodeManager()->mkAnd(csubsChildren);
   if (cs.getKind() == Kind::AND)
   {
     d_subsPg->addStep(cs, ProofRule::AND_INTRO, csubsChildren, {});

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,7 @@ class ScopeCounter
 ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
 }
 
 ProcessAssertions::~ProcessAssertions()

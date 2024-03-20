@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -907,7 +907,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
             }else if( children.size()==1 ){
               lhs = children[0];
             }else{
-              lhs = NodeManager::currentNM()->mkNode( k, children );
+              lhs = nodeManager()->mkNode(k, children);
             }
             Node sum;
             if( v==d_vars[index] ){
@@ -921,7 +921,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
                   kn = Kind::SUB;
                 }
                 if( kn!=k ){
-                  sum = NodeManager::currentNM()->mkNode( kn, v, lhs );
+                  sum = nodeManager()->mkNode(kn, v, lhs);
                 }
               }
             }
@@ -937,7 +937,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
             }
           }else{
             //must show that constraint is met
-            Node sum = NodeManager::currentNM()->mkNode( k, children );
+            Node sum = nodeManager()->mkNode(k, children);
             Node eq = sum.eqNode( v );
             if (!entailmentTest(eq))
             {
@@ -1461,7 +1461,7 @@ bool MatchGen::reset_round()
     {
       if (echeck->isEntailed(d_n, i == 0))
       {
-        d_ground_eval[0] = NodeManager::currentNM()->mkConst(i == 0);
+        d_ground_eval[0] = nodeManager()->mkConst(i == 0);
       }
       if (qs.isInConflict())
       {
@@ -1546,7 +1546,7 @@ void MatchGen::reset(bool tgt)
       size_t vn = d_qi->getCurrentRepVar(static_cast<size_t>(vnn));
       //unassigned, set match to true/false
       d_qni_bound[0] = vn;
-      d_qi->setMatch(vn, NodeManager::currentNM()->mkConst(d_tgt), false, true);
+      d_qi->setMatch(vn, nodeManager()->mkConst(d_tgt), false, true);
       d_child_counter = 0;
     }
     if( d_child_counter==0 ){
@@ -1595,7 +1595,7 @@ void MatchGen::reset(bool tgt)
       int vnn = d_qi->getVarNum(nn[0]);
       vn[0] =
           vnn == -1 ? vnn : d_qi->getCurrentRepVar(static_cast<size_t>(vnn));
-      nn[1] = NodeManager::currentNM()->mkConst(d_tgt);
+      nn[1] = nodeManager()->mkConst(d_tgt);
       vn[1] = -1;
       d_tgt = true;
     }else{
@@ -2655,7 +2655,7 @@ TNode QuantConflictFind::getZero(TypeNode tn, Kind k)
     Node nn;
     if (k == Kind::ADD)
     {
-      nn = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(0));
+      nn = nodeManager()->mkConstRealOrInt(tn, Rational(0));
     }
     d_zero[key] = nn;
     return nn;

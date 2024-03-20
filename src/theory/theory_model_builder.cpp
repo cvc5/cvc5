@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Gereon Kremer
+ *   Andrew Reynolds, Clark Barrett, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1256,7 +1256,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
       }
       children.push_back(ri);
     }
-    retNode = NodeManager::currentNM()->mkNode(r.getKind(), children);
+    retNode = nodeManager()->mkNode(r.getKind(), children);
     retNode = rewrite(retNode);
   }
   d_normalizedCache[r] = retNode;
@@ -1296,7 +1296,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
       Assert(rewrite(rc) == rc);
       children.push_back(rc);
     }
-    Node simp = NodeManager::currentNM()->mkNode(un.getKind(), children);
+    Node simp = nodeManager()->mkNode(un.getKind(), children);
     Node v = m->getRepresentative(un);
     Trace("model-builder") << "  Setting (" << simp << ") to (" << v << ")"
                            << endl;
@@ -1333,7 +1333,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
   std::vector<TNode> apply_args;
   for (unsigned i = 0; i < argTypes.size(); i++)
   {
-    Node v = NodeManager::currentNM()->mkBoundVar(argTypes[i]);
+    Node v = nodeManager()->mkBoundVar(argTypes[i]);
     args.push_back(v);
     if (i > 0)
     {
@@ -1381,13 +1381,11 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
         hnv = rewrite(hnv);
       }
       Assert(hnv.getType() == curr.getType());
-      curr = NodeManager::currentNM()->mkNode(Kind::ITE, hni, hnv, curr);
+      curr = nodeManager()->mkNode(Kind::ITE, hni, hnv, curr);
     }
   }
-  Node val = NodeManager::currentNM()->mkNode(
-      Kind::LAMBDA,
-      NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, args),
-      curr);
+  Node val = nodeManager()->mkNode(
+      Kind::LAMBDA, nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args), curr);
   Trace("model-builder-debug") << "...assign via ho function" << std::endl;
   m->assignFunctionDefinition(f, val);
 }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,18 +20,19 @@ using namespace cvc5;
 
 int main(void)
 {
-  Solver slv;
+  TermManager tm;
+  Solver slv(tm);
   slv.setOption("check-proofs", "true");
   slv.setOption("proof-check", "eager");
-  Sort s1 = slv.getBooleanSort();
-  Sort s3 = slv.getStringSort();
-  Term t1 = slv.mkConst(s3, "_x0");
-  Term t3 = slv.mkConst(s1, "_x2");
-  Term t11 = slv.mkString("");
-  Term t14 = slv.mkConst(s3, "_x11");
-  Term t42 = slv.mkTerm(Kind::ITE, {t3, t14, t1});
-  Term t58 = slv.mkTerm(Kind::STRING_LEQ, {t14, t11});
-  Term t95 = slv.mkTerm(Kind::EQUAL, {t14, t42});
+  Sort s1 = tm.getBooleanSort();
+  Sort s3 = tm.getStringSort();
+  Term t1 = tm.mkConst(s3, "_x0");
+  Term t3 = tm.mkConst(s1, "_x2");
+  Term t11 = tm.mkString("");
+  Term t14 = tm.mkConst(s3, "_x11");
+  Term t42 = tm.mkTerm(Kind::ITE, {t3, t14, t1});
+  Term t58 = tm.mkTerm(Kind::STRING_LEQ, {t14, t11});
+  Term t95 = tm.mkTerm(Kind::EQUAL, {t14, t42});
   slv.assertFormula(t95);
   slv.checkSatAssuming({t58});
 }

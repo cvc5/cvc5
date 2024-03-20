@@ -8,62 +8,111 @@ on:
 name: PyPi packaging
 
 jobs:
-  build:
+  build_wheels:
+    name: Build wheels for ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
     strategy:
       matrix:
         include:
           - name: manylinux-x86_64
             os: ubuntu-latest
-            config: production --auto-download
-            cache-key: cvc5-pypi
+            shell: bash
           - name: macos-x86_64
-            os: macos-11
-            config: production --auto-download
-            cache-key: cvc5-pypi
-            platform: macosx_11_0_x86_64
+            os: macos-13
+            macos-target: 10.13
+            shell: bash
           - name: macos-arm64
-            os: macos-11
-            config: production --auto-download --arm64
-            cache-key: cvc5-pypi-arm64
-            platform: macosx_11_0_arm64
-
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
-    if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
+            os: macos-14
+            macos-target: 11
+            shell: bash
+          - name: windows-x86_64
+            os: windows-latest
+            shell: 'msys2 {0}'
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
 
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Install dependencies
-      uses: ./.github/actions/install-dependencies
-      if: runner.os == 'Linux'
+    - uses: msys2/setup-msys2@v2
+      if: runner.os == 'Windows'
       with:
-        with-documentation: false
-        with-python-bindings: false
-        with-python-packaging: true
+        msystem: mingw64
+        path-type: inherit
+        install: |
+          make
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-gmp
 
-    - name: Install dependencies
-      uses: ./.github/actions/install-dependencies
-      if: runner.os == 'macOS'
+    # cibuildwheel requires pyproject.toml to be present from the beginning
+    - name: Create pyproject.toml
+      run: |
+        echo "::group::Create pyproject.toml"
+        mkdir -p build/src/api/python
+        cp src/api/python/pyproject.toml build/src/api/python/
+        echo "::endgroup::"
+
+    - name: Store MinGW64 path
+      if: runner.os == 'Windows'
+      id: mingw64-path
+      shell: msys2 {0}
+      run: echo "bin=$(cygpath -m $(dirname $(which gcc)))" >> $GITHUB_OUTPUT
+
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v2.16.5
       with:
-        with-documentation: false
-        with-python-bindings: true
-        with-python-packaging: true
+        package-dir: ./build/src/api/python/
+      env:
+        CIBW_SKIP: "cp36-* pp*-win* *-win32 *-manylinux_i686 *-musllinux_*"
+        CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh
+        CIBW_BEFORE_ALL_MACOS: bash ./contrib/cibw/before_all_macos.sh
+        CIBW_BEFORE_ALL_WINDOWS: msys2 -c ./contrib/cibw/before_all_windows.sh
+        # Use delvewheel on windows
+        CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
+        CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+          delvewheel repair -w {dest_dir} {wheel} --add-path "${{ github.workspace }}\install\lib;${{ steps.mingw64-path.outputs.bin }}"
+        CIBW_ENVIRONMENT_LINUX: >
+          LD_LIBRARY_PATH="$(pwd)/install/lib64:$LD_LIBRARY_PATH"
+        CIBW_ENVIRONMENT_MACOS: >
+          DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
+          MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
 
-    - name: Setup caches
-      uses: ./.github/actions/setup-cache
-      with:
-        cache-key: ${{ matrix.cache-key }}
+    # - uses: actions/upload-artifact@v4
+    #   with:
+    #     name: wheels-${{ matrix.os }}
+    #     path: ./wheelhouse/*.whl
 
-    - name: Package PyPi wheel packages
-      uses: ./.github/actions/package-python-wheel
-      with:
-        upload-to-pypi: ${{ github.event_name == 'release' }}
-        upload-to-test-pypi: false
-        test-pypi-token: ${{ secrets.PYPI_TOKEN }}
-        pypi-token: ${{ secrets.PYPI_TOKEN }}
-        config: ${{ matrix.config }}
-        platform: ${{ matrix.platform }}
+    - name: Install software for publishing the wheels
+      run: |
+        python3 -m pip install twine
 
+    - name: Upload wheels to pypi.org
+      if: ${{ github.event_name == 'release' }}
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        echo "::group::Upload to pypi.org"
+        for wheel in `ls ./wheelhouse/*.whl`
+        do
+          twine upload $wheel
+        done
+        echo "::endgroup::"
+
+    - name: Upload wheels to test.pypi.org
+      if: false
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        echo "::group::Upload to test.pypi.org"
+        for wheel in `ls ./wheelhouse/*.whl`
+        do
+          twine upload --repository testpypi $wheel
+        done
+        echo "::endgroup::"

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Amalee Wilson, Andrew Reynolds
+ *   Amalee Wilson, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -228,7 +228,7 @@ Node PartitionGenerator::blockPath(TNode toBlock)
 Node PartitionGenerator::stopPartitioning()
 {
   d_emittedAllPartitions = true;
-  return NodeManager::currentNM()->mkConst(false);
+  return nodeManager()->mkConst(false);
 }
 
 // For the scatter strategy, we make the following kinds of partitions:
@@ -276,7 +276,7 @@ Node PartitionGenerator::makeScatterPartitions(LiteralListType litType,
     }
 
     // Make a cube from the literals
-    Node conj = NodeManager::currentNM()->mkAnd(literals);
+    Node conj = nodeManager()->mkAnd(literals);
 
     // For the scatter strategy, partitions look like the following:
     // P1 =              C1 = l1_{1} & .... & l1_{d_conflictSize}
@@ -299,7 +299,7 @@ Node PartitionGenerator::makeScatterPartitions(LiteralListType litType,
     toEmit.push_back(conj);
 
     // Now make the scatter partition and add it to the list of partitions.
-    Node scatterPartition = NodeManager::currentNM()->mkAnd(toEmit);
+    Node scatterPartition = nodeManager()->mkAnd(toEmit);
     d_scatterPartitions.push_back(scatterPartition);
 
     // Just increment and don't actually output the partition yet
@@ -394,12 +394,12 @@ Node PartitionGenerator::makeCubePartitions(LiteralListType litType,
     }
     for (const std::vector<Node>& row : resultNodeLists)
     {
-      Node conj = NodeManager::currentNM()->mkAnd(row);
+      Node conj = nodeManager()->mkAnd(row);
       if (emitZLL)
       {
         std::vector<Node> zllLiterals = collectLiterals(ZLL);
         zllLiterals.push_back(conj);
-        Node zllConj = NodeManager::currentNM()->mkAnd(zllLiterals);
+        Node zllConj = nodeManager()->mkAnd(zllLiterals);
         emitPartition(zllConj);
       }
       else
@@ -435,7 +435,7 @@ void PartitionGenerator::emitRemainingPartitions(bool solved)
     if (emitZLL)
     {
       zllLiterals.push_back(partition);
-      lemma = NodeManager::currentNM()->mkAnd(zllLiterals);
+      lemma = nodeManager()->mkAnd(zllLiterals);
       zllLiterals.pop_back();
     }
 
@@ -454,12 +454,12 @@ void PartitionGenerator::emitRemainingPartitions(bool solved)
       nots.push_back(cube.notNode());
     }
 
-    Node finalPartition = NodeManager::currentNM()->mkAnd(nots);
+    Node finalPartition = nodeManager()->mkAnd(nots);
 
     if (emitZLL)
     {
       zllLiterals.push_back(finalPartition);
-      finalPartition = NodeManager::currentNM()->mkAnd(zllLiterals);
+      finalPartition = nodeManager()->mkAnd(zllLiterals);
     }
 
     emitPartition(finalPartition);

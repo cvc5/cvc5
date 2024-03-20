@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -571,8 +571,6 @@ libcvc5_add_sources(
   theory/bags/bags_statistics.h
   theory/bags/bags_utils.cpp
   theory/bags/bags_utils.h
-  theory/bags/card_solver.cpp
-  theory/bags/card_solver.h
   theory/bags/infer_info.cpp
   theory/bags/infer_info.h
   theory/bags/inference_generator.cpp
@@ -1277,6 +1275,11 @@ libcvc5_add_sources(
   theory/valuation.h
 )
 
+# suppress deprecated warnings to not error in CI
+set_source_files_properties(api/cpp/cvc5.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+
 #-----------------------------------------------------------------------------#
 # Add required include paths for this and all subdirectories.
 
@@ -1395,7 +1398,11 @@ set(KINDS_FILES
 #-----------------------------------------------------------------------------#
 
 set(REWRITES_FILES
-  ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites)
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites-elimination
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites-simplification
+)
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories
