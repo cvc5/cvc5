@@ -817,8 +817,9 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @api.note Asserts isSkolem().
    * @api.note This method is experimental and may change in future versions.
    * @return The proof rule used by the root step of the proof.
+   * @throws CVC5ApiException
    */
-  public SkolemFunId getSkolemId()
+  public SkolemFunId getSkolemId() throws CVC5ApiException
   {
     int value = getSkolemId(pointer);
     return SkolemFunId.fromInt(value);
@@ -833,8 +834,9 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @return The skolem arguments of this term. These are what the skolem
    * function is indexed by. For example, the array diff skolem
    * {@link SkolemFunId#ARRAY_DEQ_DIFF} is indexed by two arrays.
+   * @throws CVC5ApiException
    */
-  public Term[] getSkolemArguments()
+  public Term[] getSkolemArguments() throws CVC5ApiException
   {
     long[] termPointers = getSkolemArguments(pointer);
     return Utils.getTerms(termPointers);
