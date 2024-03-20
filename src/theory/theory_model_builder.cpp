@@ -1100,7 +1100,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     // if higher-order. We now can go back and normalize its subterms.
     // This is necessary if we assigned a lambda value whose body contains
     // a free constant symbol that was assigned in this method.
-    Node normc = normalize(tm, itMap->second, true);
+    Node normc = itMap->second;
+    if (!normc.isConst())
+    {
+      normc = normalize(tm, normc, true);
+    }
     // mark this as the final representative
     tm->assignRepresentative(itMap->first, normc, true);
   }
