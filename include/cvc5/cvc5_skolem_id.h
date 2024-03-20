@@ -62,7 +62,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` A string constant corresponding to the name of the variable.
    *   - ``2:`` A term that represents the sort T of the variable.
-   * - Type: T
+   * - Type: ``T``
    */
   EVALUE(INPUT_VARIABLE),
   /** 
@@ -79,9 +79,9 @@ enum ENUM(SkolemFunId) : uint32_t
    * ``(=> (not (= A B)) (not (= (select A k) (select B k))))``.
    *
    * - Number of skolem arguments: ``2``
-   *   - ``1:`` The first array.
-   *   - ``2:`` The second array.
-   * - Type: the element type of the arrays
+   *   - ``1:`` The first array of type ``(Array T1 T2)``.
+   *   - ``2:`` The second array of type ``(Array T1 T2)``.
+   * - Type: ``T2``
    */
   EVALUE(ARRAY_DEQ_DIFF),
   /** 
