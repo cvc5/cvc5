@@ -1430,15 +1430,6 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
     }
     else
     {
-      Node fr = m->getRepresentative(f);
-      if (fr.isConst())
-      {
-        Trace("model-builder") << "  Assign function value for " << f
-                               << " based on constant rep" << std::endl;
-        m->assignFunctionDefinition(f, fr);
-        continue;
-      }
-      Trace("model-builder") << "...no constant rep for " << fr << std::endl;
       Trace("model-builder") << "  Assign function value for " << f
                              << " based on curried HO_APPLY" << std::endl;
       assignHoFunction(m, f);
