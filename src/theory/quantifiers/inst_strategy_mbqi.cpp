@@ -366,7 +366,7 @@ Node InstStrategyMbqi::convertToQuery(
       else if (ck == Kind::UNINTERPRETED_SORT_VALUE)
       {
         // return the fresh variable for this term
-        Node k = sm->mkInternalPurifySkolem(cur);
+        Node k = sm->mkPurifySkolem(cur);
         freshVarType[cur.getType()].insert(k);
         cmap[cur] = k;
         continue;
