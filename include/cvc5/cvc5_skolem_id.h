@@ -453,22 +453,27 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(BAGS_DISTINCT_ELEMENTS),
   /**
-   * Same as above, but used when f is injective.
-   * The returned skolem is an element representing preimage of {y}.
-   *
-   * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type E -> T.
-   *   - ``2:`` the bag argument A of (Bag E).
-   *   - ``3:`` the element argument e type E.
-   */
-  EVALUE(BAGS_DISTINCT_ELEMENTS_INJECTIVE),
-  /**
    * A skolem variable for the size of the distinct elements of a bag A.
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A.
    */
   EVALUE(BAGS_DISTINCT_ELEMENTS_SIZE),
+  /**
+   * An uninterpreted function for bag.map operator:
+   * To compute (bag.count y (bag.map f A)), we need to find the distinct
+   * elements in A that are mapped to y by function f (i.e., preimage of {y}).
+   * If n is the cardinality of this preimage, then
+   * the preimage is the set {uf(1), ..., uf(n)}
+   * where uf: Int -> E is a skolem function, and E is the type of elements of
+   * A. This is used only when f is injective.
+   *
+   * - Number of skolem arguments: ``3``
+   *   - ``1:`` the function f of type E -> T.
+   *   - ``2:`` the bag argument A of (Bag E).
+   *   - ``3:`` the element argument e type E.
+   */
+  EVALUE(BAGS_MAP_PREIMAGE_INJECTIVE),
   /**
    * A skolem variable for the index that is unique per terms
    * (bag.map f A), y, size, y, e where:

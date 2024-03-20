@@ -65,8 +65,8 @@ const char* toString(cvc5::SkolemFunId id)
       return "BAGS_FOLD_UNION_DISJOINT";
     case cvc5::SkolemFunId::BAGS_DISTINCT_ELEMENTS:
       return "BAGS_DISTINCT_ELEMENTS";
-    case cvc5::SkolemFunId::BAGS_DISTINCT_ELEMENTS_INJECTIVE:
-      return "BAGS_DISTINCT_ELEMENTS_INJECTIVE";
+    case cvc5::SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
+      return "BAGS_MAP_PREIMAGE_INJECTIVE";
     case cvc5::SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
       return "BAGS_DISTINCT_ELEMENTS_SIZE";
     case cvc5::SkolemFunId::BAGS_MAP_INDEX: return "BAGS_MAP_INDEX";

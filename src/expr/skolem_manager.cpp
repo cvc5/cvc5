@@ -570,7 +570,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       TypeNode retType = cacheVals[0].getType().getBagElementType();
       return nm->mkFunctionType(itype, retType);
     }
-    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_INJECTIVE:
+    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
     {
       Assert (cacheVals[0].getType().isFunction());
       return cacheVals[0].getType().getArgTypes()[0];
