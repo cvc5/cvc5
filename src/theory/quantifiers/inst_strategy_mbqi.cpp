@@ -98,6 +98,7 @@ void InstStrategyMbqi::process(Node q)
   std::map<Node, Node> mvToFreshVar;
 
   NodeManager* nm = nodeManager();
+  SkolemManager* sm = nm->getSkolemManager();
   const RepSet* rs = d_treg.getModel()->getRepSet();
   FirstOrderModel* fm = d_treg.getModel();
 
