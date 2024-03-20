@@ -469,7 +469,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * A. This is used only when f is injective.
    *
    * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type `(-> E T)``.
+   *   - ``1:`` the function f of type ``(-> E T)``.
    *   - ``2:`` the bag argument A of ``(Bag E)``.
    *   - ``3:`` the element argument e type ``E``.
    */
