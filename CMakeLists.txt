@@ -137,6 +137,8 @@ option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 # Api documentation
 option(BUILD_DOCS "Build Api documentation")
 
+option(BUILD_GMP "Build GMP from sources")
+
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
