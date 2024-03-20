@@ -1096,24 +1096,21 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   std::map<Node, Node>::iterator itMap;
   for (itMap = d_constantReps.begin(); itMap != d_constantReps.end(); ++itMap)
   {
-    tm->d_reps[itMap->first] = itMap->second;
-    tm->d_rep_set.add(itMap->second.getType(), itMap->second);
+    tm->assignRepresentative(itMap->first, itMap->second);
   }
 
   Trace("model-builder") << "Make sure ECs have reps..." << std::endl;
   // Make sure every EC has a rep
   for (itMap = assertedReps.begin(); itMap != assertedReps.end(); ++itMap)
   {
-    tm->d_reps[itMap->first] = itMap->second;
-    tm->d_rep_set.add(itMap->second.getType(), itMap->second);
+    tm->assignRepresentative(itMap->first, itMap->second);
   }
   for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it)
   {
     set<Node>& noRepSet = TypeSet::getSet(it);
     for (const Node& node : noRepSet)
     {
-      tm->d_reps[node] = node;
-      tm->d_rep_set.add(node.getType(), node);
+      tm->assignRepresentative(node, node);
     }
   }
 

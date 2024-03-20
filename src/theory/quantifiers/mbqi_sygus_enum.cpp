@@ -60,7 +60,6 @@ void MVarInfo::initialize(Env& env,
   trules.insert(trules.end(), etrules.begin(), etrules.end());
   Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;
   // TODO: could add more symbols to trules to improve the enumerated terms
-  // TODO: could cache the enumerator here for efficiency
   SygusGrammarCons sgc;
   Node bvl;
   TypeNode tng = sgc.mkDefaultSygusType(env, retType, bvl, trules);

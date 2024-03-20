@@ -337,6 +337,8 @@ class TheoryModel : protected EnvObj
   bool isValue(TNode node) const;
 
  protected:
+  /** Assign representative */
+  void assignRepresentative(const Node& r, const Node& n);
   /** Unique name of this model */
   std::string d_name;
   /** equality engine containing all known equalities/disequalities */

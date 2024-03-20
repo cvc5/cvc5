@@ -25,6 +25,7 @@
 #include "theory/trust_substitutions.h"
 #include "theory/uf/function_const.h"
 #include "util/rational.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -303,6 +304,7 @@ Node TheoryModel::getModelValue(TNode n) const
     {
       ret = it2->second;
       d_modelCache[n] = ret;
+      Trace("model-getvalue-debug") << "...set rep is " << ret << std::endl;
       return ret;
     }
   }
@@ -517,7 +519,25 @@ void TheoryModel::assertSkeleton(TNode n)
   Trace("model-builder-reps") << "Assert skeleton : " << n << std::endl;
   Trace("model-builder-reps") << "...rep eqc is : " << getRepresentative(n)
                               << std::endl;
-  d_reps[ n ] = n;
+  d_reps[n] = n;
+}
+
+void TheoryModel::assignRepresentative(const Node& r, const Node& n)
+{
+  Assert (r.getType()==n.getType());
+  TypeNode tn = r.getType();
+#if 0
+  if (logicInfo().isHigherOrder() && tn.isFunction())
+  {
+    assignFunctionDefinition(r, n);
+  }
+  else
+  {
+    d_reps[r] = n;
+  }
+#endif
+  d_reps[r] = n;
+  d_rep_set.add(tn, n);
 }
 
 void TheoryModel::setAssignmentExclusionSet(TNode n,
@@ -694,6 +714,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     Node r = d_equalityEngine->getRepresentative( f );
     //always replace the representative, since it is initially assigned to itself
     Trace("model-builder") << "    Assign: Setting function rep " << r << " to " << f_def << endl;
+    // should not have assigned it yet, unless it was set to itself
+    //AlwaysAssert(d_reps.find(r)==d_reps.end() || d_reps[r]==r) << "Function already assigned " << d_reps[r];
     d_reps[r] = f_def;  
     // also assign to other assignable functions in the same equivalence class
     eq::EqClassIterator eqc_i = eq::EqClassIterator(r,d_equalityEngine);
@@ -731,35 +753,40 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     }
     // should not have been solved for in a substitution
     Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
-    if( !hasAssignedFunctionDefinition( n ) ){
-      Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
-      if (logicInfo().isHigherOrder())
-      {
-        // if in higher-order mode, assign function definitions modulo equality
-        Node r = getRepresentative( n );
-        std::map< Node, Node >::iterator itf = func_to_rep.find( r );
-        if( itf==func_to_rep.end() ){
-          func_to_rep[r] = n;
-          funcs_to_assign.push_back( n );
-          Trace("model-builder-fun") << "Make function " << n;
-          Trace("model-builder-fun") << " the assignable function in its equivalence class." << std::endl;
-        }else{
-          // must combine uf terms          
-          Trace("model-builder-fun") << "Copy " << it->second.size() << " uf terms";
-          d_uf_terms[itf->second].insert( d_uf_terms[itf->second].end(), it->second.begin(), it->second.end() );
-          std::map< Node, std::vector< Node > >::iterator ith = d_ho_uf_terms.find( n );
-          if( ith!=d_ho_uf_terms.end() ){
-            d_ho_uf_terms[itf->second].insert( d_ho_uf_terms[itf->second].end(), ith->second.begin(), ith->second.end() );
-            Trace("model-builder-fun") << " and " << ith->second.size() << " ho uf terms";
-          }
-          Trace("model-builder-fun") << " from " << n << " to its assignable representative function " << itf->second << std::endl;
-          it->second.clear();
-        }
-      }else{
-        Trace("model-builder-fun") << "Function to assign : " << n << std::endl;
-        funcs_to_assign.push_back( n );
-      }
+    if( hasAssignedFunctionDefinition( n ) ){
+      continue;
     }
+    Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
+    if (logicInfo().isHigherOrder())
+    {
+      // if in higher-order mode, assign function definitions modulo equality
+      Node r = getRepresentative( n );
+      if( hasAssignedFunctionDefinition( r ) ){
+        continue;
+      }
+      std::map< Node, Node >::iterator itf = func_to_rep.find( r );
+      if( itf==func_to_rep.end() ){
+        func_to_rep[r] = n;
+        funcs_to_assign.push_back( n );
+        Trace("model-builder-fun") << "Make function " << n;
+        Trace("model-builder-fun") << " the assignable function in its equivalence class." << std::endl;
+      }else{
+        // must combine uf terms          
+        Trace("model-builder-fun") << "Copy " << it->second.size() << " uf terms";
+        d_uf_terms[itf->second].insert( d_uf_terms[itf->second].end(), it->second.begin(), it->second.end() );
+        std::map< Node, std::vector< Node > >::iterator ith = d_ho_uf_terms.find( n );
+        if( ith!=d_ho_uf_terms.end() ){
+          d_ho_uf_terms[itf->second].insert( d_ho_uf_terms[itf->second].end(), ith->second.begin(), ith->second.end() );
+          Trace("model-builder-fun") << " and " << ith->second.size() << " ho uf terms";
+        }
+        Trace("model-builder-fun") << " from " << n << " to its assignable representative function " << itf->second << std::endl;
+        it->second.clear();
+      }
+    }else{
+      Trace("model-builder-fun") << "Function to assign : " << n << std::endl;
+      funcs_to_assign.push_back( n );
+    }
+  
   }
 
   Trace("model-builder-fun") << "return " << funcs_to_assign.size() << " functions to assign..." << std::endl;
