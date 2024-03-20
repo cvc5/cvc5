@@ -2277,7 +2277,7 @@ void QuantConflictFind::reset_round( Theory::Effort level ) {
     if (tdb->hasTermCurrent(r))
     {
       TypeNode rtn = r.getType();
-      if (!options().quantifiers.cegqi || !TermUtil::hasInstConstAttr(r))
+      if (!TermUtil::hasInstConstAttr(r))
       {
         d_eqcs[rtn].push_back(r);
       }
