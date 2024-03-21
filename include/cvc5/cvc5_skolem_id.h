@@ -52,20 +52,18 @@ namespace cvc5 {
  * indices are *not* children of the skolem function, but rather should
  * be seen as the way of distinguishing skolems from the same family.
  *
- * For example, the family of "array diff" skolems ARRAY_DEQ_DIFF has two skolem
- * indices. This skolem witnesses the disequality between two arrays, which are
- * its skolem indices.
+ * For example, the family of "array diff" skolems ARRAY_DEQ_DIFF witness the
+ * disequality between two arrays, which are its skolem indices.
  * 
- * Say array diff skolem k witnesses the disequality between two arrays A and B
- * of type ``(Array Int Int)``. Then, k is a term whose skolem
- * identifier is ARRAY_DEQ_DIFF, skolem indicies are A and B, and whose type is
- * ``Int``. 
+ * Say that skolem k witnesses the disequality between two arrays A and B
+ * of type ``(Array Int Int)``. Then, k is a term whose skolem identifier is
+ * ARRAY_DEQ_DIFF, skolem indicies are A and B, and whose type is ``Int``.
  * 
  * Note the type of k is not ``(-> (Array Int Int) (Array Int Int) Int)``.
  * Intuitively, this is due to the fact that cvc5 does not reason about array
- * diff skolems as a functional symbol. An array diff skolem that witnesses the
+ * diff skolems as a function symbol. An array diff skolem that witnesses the
  * disequality of arrays C and D is a separate skolem function k2 from this
- * family, which internally has no relation to k apart from their formal
+ * family, where internally k2 has no relation to k apart from their formal
  * definition.
  * 
  * In contrast, cvc5 reasons about division-by-zero using a single skolem
@@ -515,6 +513,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``3:`` a skolem function with id BAGS_DISTINCT_ELEMENTS_SIZE.
    *   - ``4:`` an element y of type ``T`` representing the mapped value.
    *   - ``5:`` an element x of type ``E``.
+   * - Type: ``Int``
    */
   EVALUE(BAGS_MAP_INDEX),
   /**
