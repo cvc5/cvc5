@@ -52,12 +52,12 @@ namespace cvc5 {
  * indices are *not* children of the skolem function, but rather should
  * be seen as the way of distinguishing skolems from the same family.
  *
- * For example, the family of "array diff" skolems ARRAY_DEQ_DIFF witness the
- * disequality between two arrays, which are its skolem indices.
+ * For example, the family of "array diff" skolems ``ARRAY_DEQ_DIFF`` witness
+ * the disequality between two arrays, which are its skolem indices.
  * 
  * Say that skolem k witnesses the disequality between two arrays A and B
  * of type ``(Array Int Int)``. Then, k is a term whose skolem identifier is
- * ARRAY_DEQ_DIFF, skolem indicies are A and B, and whose type is ``Int``.
+ * ``ARRAY_DEQ_DIFF``, skolem indicies are A and B, and whose type is ``Int``.
  * 
  * Note the type of k is not ``(-> (Array Int Int) (Array Int Int) Int)``.
  * Intuitively, this is due to the fact that cvc5 does not reason about array
@@ -67,7 +67,7 @@ namespace cvc5 {
  * to k apart from having the same skolem identifier.
  * 
  * In contrast, cvc5 reasons about division-by-zero using a single skolem
- * function whose identifier is DIV_BY_ZERO. This means its skolem indicies
+ * function whose identifier is ``DIV_BY_ZERO``. This means its skolem indicies
  * are empty and the skolem has a functional type ``(-> Real Real)``.
  *
  * \internal
