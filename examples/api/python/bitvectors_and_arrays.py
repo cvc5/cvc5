@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -22,7 +22,8 @@ from cvc5 import Kind
 import math
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
     slv.setOption("produce-models", "true")
     slv.setOption("output-language", "smtlib")
     slv.setLogic("QF_AUFBV")
@@ -44,50 +45,50 @@ if __name__ == "__main__":
     index_size = int(math.ceil(math.log(k, 2)))
 
     # Sorts
-    elementSort = slv.mkBitVectorSort(32)
-    indexSort = slv.mkBitVectorSort(index_size)
-    arraySort = slv.mkArraySort(indexSort, elementSort)
+    elementSort = tm.mkBitVectorSort(32)
+    indexSort = tm.mkBitVectorSort(index_size)
+    arraySort = tm.mkArraySort(indexSort, elementSort)
 
     # Variables
-    current_array = slv.mkConst(arraySort, "current_array")
+    current_array = tm.mkConst(arraySort, "current_array")
 
     # Making a bit-vector constant
-    zero = slv.mkBitVector(index_size, 0)
+    zero = tm.mkBitVector(index_size, 0)
 
     # Test making a constant array
-    constarr0 = slv.mkConstArray(arraySort, slv.mkBitVector(32, 0))
+    constarr0 = tm.mkConstArray(arraySort, tm.mkBitVector(32, 0))
 
     # Asserting that current_array[0] > 0
-    current_array0 = slv.mkTerm(Kind.SELECT, current_array, zero)
-    current_array0_gt_0 = slv.mkTerm(Kind.BITVECTOR_SGT,
+    current_array0 = tm.mkTerm(Kind.SELECT, current_array, zero)
+    current_array0_gt_0 = tm.mkTerm(Kind.BITVECTOR_SGT,
                                      current_array0,
-                                     slv.mkBitVector(32, 0))
+                                     tm.mkBitVector(32, 0))
     slv.assertFormula(current_array0_gt_0)
 
     # Building the assertions in the loop unrolling
-    index = slv.mkBitVector(index_size, 0)
-    old_current = slv.mkTerm(Kind.SELECT, current_array, index)
-    two = slv.mkBitVector(32, 2)
+    index = tm.mkBitVector(index_size, 0)
+    old_current = tm.mkTerm(Kind.SELECT, current_array, index)
+    two = tm.mkBitVector(32, 2)
 
     assertions = []
     for i in range(1, k):
-        index = slv.mkBitVector(index_size, i)
-        new_current = slv.mkTerm(Kind.BITVECTOR_MULT, two, old_current)
+        index = tm.mkBitVector(index_size, i)
+        new_current = tm.mkTerm(Kind.BITVECTOR_MULT, two, old_current)
         # current[i] = 2*current[i-1]
         current_array = \
-                slv.mkTerm(Kind.STORE, current_array, index, new_current)
+                tm.mkTerm(Kind.STORE, current_array, index, new_current)
         # current[i-1] < current[i]
         current_slt_new_current = \
-                slv.mkTerm(Kind.BITVECTOR_SLT, old_current, new_current)
+                tm.mkTerm(Kind.BITVECTOR_SLT, old_current, new_current)
         assertions.append(current_slt_new_current)
-        old_current = slv.mkTerm(Kind.SELECT, current_array, index)
+        old_current = tm.mkTerm(Kind.SELECT, current_array, index)
 
-    query = slv.mkTerm(Kind.NOT, slv.mkTerm(Kind.AND, *assertions))
+    query = tm.mkTerm(Kind.NOT, tm.mkTerm(Kind.AND, *assertions))
 
     print("Asserting {} to cvc5".format(query))
     slv.assertFormula(query)
     print("Expect sat.")
-    print("cvc5:", slv.checkSatAssuming(slv.mkTrue()))
+    print("cvc5:", slv.checkSatAssuming(tm.mkTrue()))
 
     # Getting the model
     print("The satisfying model is: ")

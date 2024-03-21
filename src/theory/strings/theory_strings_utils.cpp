@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -226,9 +226,9 @@ Node mkConcatForConstSequence(const Node& c)
   const std::vector<Node>& charVec = c.getConst<Sequence>().getVec();
   std::vector<Node> vec;
   NodeManager* nm = NodeManager::currentNM();
-  for (size_t i = 0, size = charVec.size(); i < size; i++)
+  for (const Node& cc : charVec)
   {
-    vec.push_back(nm->mkNode(Kind::SEQ_UNIT, charVec[size - (i + 1)]));
+    vec.push_back(nm->mkNode(Kind::SEQ_UNIT, cc));
   }
   return mkConcat(vec, c.getType());
 }

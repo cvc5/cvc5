@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,7 +58,7 @@ TheoryUF::TheoryUF(Env& env,
       d_notify(d_im, *this),
       d_cpacb(*this)
 {
-  d_true = NodeManager::currentNM()->mkConst( true );
+  d_true = nodeManager()->mkConst(true);
   // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -368,7 +368,7 @@ void TheoryUF::explain(TNode literal, Node& exp)
   {
     d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
   }
-  exp = NodeManager::currentNM()->mkAnd(assumptions);
+  exp = nodeManager()->mkAnd(assumptions);
 }
 
 TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
@@ -605,7 +605,7 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
   // also split on functions
   if (logicInfo().isHigherOrder())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for (size_t k = 0, nchild = a.getNumChildren(); k < nchild; ++k)
     {
       TNode x = a[k];
@@ -636,7 +636,7 @@ void TheoryUF::computeCareGraph() {
   {
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // Use term indexing. We build separate indices for APPLY_UF and HO_APPLY.
   // We maintain indices per operator for the former, and indices per
   // function type for the latter.

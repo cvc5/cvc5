@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tianyi Liang, Aina Niemetz, Mathias Preiner
+ *   Aina Niemetz, Tianyi Liang, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,8 @@ using namespace cvc5;
 
 int main()
 {
-  Solver slv;
+  TermManager tm;
+  Solver slv(tm);
 
   // Set the logic
   slv.setLogic("QF_SLIA");
@@ -33,55 +34,54 @@ int main()
   slv.setOption("output-language", "smt2");
 
   // String type
-  Sort string = slv.getStringSort();
+  Sort string = tm.getStringSort();
 
   // std::string
   std::string str_ab("ab");
   // String constants
-  Term ab  = slv.mkString(str_ab);
-  Term abc = slv.mkString("abc");
+  Term ab = tm.mkString(str_ab);
+  Term abc = tm.mkString("abc");
   // String variables
-  Term x = slv.mkConst(string, "x");
-  Term y = slv.mkConst(string, "y");
-  Term z = slv.mkConst(string, "z");
+  Term x = tm.mkConst(string, "x");
+  Term y = tm.mkConst(string, "y");
+  Term z = tm.mkConst(string, "z");
 
   // String concatenation: x.ab.y
-  Term lhs = slv.mkTerm(Kind::STRING_CONCAT, {x, ab, y});
+  Term lhs = tm.mkTerm(Kind::STRING_CONCAT, {x, ab, y});
   // String concatenation: abc.z
-  Term rhs = slv.mkTerm(Kind::STRING_CONCAT, {abc, z});
+  Term rhs = tm.mkTerm(Kind::STRING_CONCAT, {abc, z});
   // x.ab.y = abc.z
-  Term formula1 = slv.mkTerm(Kind::EQUAL, {lhs, rhs});
+  Term formula1 = tm.mkTerm(Kind::EQUAL, {lhs, rhs});
 
   // Length of y: |y|
-  Term leny = slv.mkTerm(Kind::STRING_LENGTH, {y});
+  Term leny = tm.mkTerm(Kind::STRING_LENGTH, {y});
   // |y| >= 0
-  Term formula2 = slv.mkTerm(Kind::GEQ, {leny, slv.mkInteger(0)});
+  Term formula2 = tm.mkTerm(Kind::GEQ, {leny, tm.mkInteger(0)});
 
   // Regular expression: (ab[c-e]*f)|g|h
-  Term r = slv.mkTerm(
+  Term r = tm.mkTerm(
       Kind::REGEXP_UNION,
 
-      {slv.mkTerm(
-           Kind::REGEXP_CONCAT,
-           {slv.mkTerm(Kind::STRING_TO_REGEXP, {slv.mkString("ab")}),
-            slv.mkTerm(Kind::REGEXP_STAR,
-                       {slv.mkTerm(Kind::REGEXP_RANGE,
-                                   {slv.mkString("c"), slv.mkString("e")})}),
-            slv.mkTerm(Kind::STRING_TO_REGEXP, {slv.mkString("f")})}),
-       slv.mkTerm(Kind::STRING_TO_REGEXP, {slv.mkString("g")}),
-       slv.mkTerm(Kind::STRING_TO_REGEXP, {slv.mkString("h")})});
+      {tm.mkTerm(Kind::REGEXP_CONCAT,
+                 {tm.mkTerm(Kind::STRING_TO_REGEXP, {tm.mkString("ab")}),
+                  tm.mkTerm(Kind::REGEXP_STAR,
+                            {tm.mkTerm(Kind::REGEXP_RANGE,
+                                       {tm.mkString("c"), tm.mkString("e")})}),
+                  tm.mkTerm(Kind::STRING_TO_REGEXP, {tm.mkString("f")})}),
+       tm.mkTerm(Kind::STRING_TO_REGEXP, {tm.mkString("g")}),
+       tm.mkTerm(Kind::STRING_TO_REGEXP, {tm.mkString("h")})});
 
   // String variables
-  Term s1 = slv.mkConst(string, "s1");
-  Term s2 = slv.mkConst(string, "s2");
+  Term s1 = tm.mkConst(string, "s1");
+  Term s2 = tm.mkConst(string, "s2");
   // String concatenation: s1.s2
-  Term s = slv.mkTerm(Kind::STRING_CONCAT, {s1, s2});
+  Term s = tm.mkTerm(Kind::STRING_CONCAT, {s1, s2});
 
   // s1.s2 in (ab[c-e]*f)|g|h
-  Term formula3 = slv.mkTerm(Kind::STRING_IN_REGEXP, {s, r});
+  Term formula3 = tm.mkTerm(Kind::STRING_IN_REGEXP, {s, r});
 
   // Make a query
-  Term q = slv.mkTerm(Kind::AND, {formula1, formula2, formula3});
+  Term q = tm.mkTerm(Kind::AND, {formula1, formula2, formula3});
 
   // check sat
   Result result = slv.checkSatAssuming(q);

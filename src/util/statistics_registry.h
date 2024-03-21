@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -72,7 +72,6 @@
 #include <typeinfo>
 
 #include "base/check.h"
-#include "smt/env_obj.h"
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
 
@@ -110,7 +109,7 @@ struct StatisticBaseValue;
  * However, no data is stored in the registry and the modification functions
  * of the proxy objects do nothing.
  */
-class StatisticsRegistry : protected EnvObj
+class StatisticsRegistry
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
@@ -119,14 +118,20 @@ class StatisticsRegistry : protected EnvObj
   using Snapshot = std::map<std::string, StatExportData>;
 
   /**
+   * Constructor.
    * If `registerPublic` is true, all statistics that are public are
    * pre-registered as such. This argument mostly exists so that unit tests
    * can disable this pre-registration.
+   * @param internal       True to also print internal statistics.
+   * @param all            True to also print statistics that are unchanged
+   *                       (hold the default value).
+   * @param registerPublic True to also register public statistics.
    */
-  StatisticsRegistry(Env& env, bool registerPublic = true);
+  StatisticsRegistry(bool internal = false,
+                     bool all = false,
+                     bool registerPublic = true);
 
   /** Register a new running average statistic for `name` */
-
   AverageStat registerAverage(const std::string& name, bool internal = true);
   /** Register a new histogram statistic for `name` */
   template <typename T>
@@ -260,6 +265,11 @@ class StatisticsRegistry : protected EnvObj
   std::map<std::string, std::unique_ptr<StatisticBaseValue>> d_stats;
 
   std::unique_ptr<Snapshot> d_lastSnapshot;
+
+  /** True to also enable internal statistics. */
+  bool d_internal = false;
+  /** True to enable all statistics, even those that have default values. */
+  bool d_all = false;
 };
 
 /** Calls `sr.print(os)`. */

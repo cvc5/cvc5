@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner
+ *   Gereon Kremer, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,26 +22,27 @@ using namespace cvc5;
 
 int main()
 {
-  Solver slv;
+  TermManager tm;
+  Solver slv(tm);
   slv.setLogic("QF_NRAT");
 
-  Sort real = slv.getRealSort();
+  Sort real = tm.getRealSort();
 
   // Variables
-  Term x = slv.mkConst(real, "x");
-  Term y = slv.mkConst(real, "y");
+  Term x = tm.mkConst(real, "x");
+  Term y = tm.mkConst(real, "y");
 
   // Helper terms
-  Term two = slv.mkReal(2);
-  Term pi = slv.mkPi();
-  Term twopi = slv.mkTerm(Kind::MULT, {two, pi});
-  Term ysq = slv.mkTerm(Kind::MULT, {y, y});
-  Term sinx = slv.mkTerm(Kind::SINE, {x});
+  Term two = tm.mkReal(2);
+  Term pi = tm.mkPi();
+  Term twopi = tm.mkTerm(Kind::MULT, {two, pi});
+  Term ysq = tm.mkTerm(Kind::MULT, {y, y});
+  Term sinx = tm.mkTerm(Kind::SINE, {x});
 
   // Formulas
-  Term x_gt_pi = slv.mkTerm(Kind::GT, {x, pi});
-  Term x_lt_tpi = slv.mkTerm(Kind::LT, {x, twopi});
-  Term ysq_lt_sinx = slv.mkTerm(Kind::LT, {ysq, sinx});
+  Term x_gt_pi = tm.mkTerm(Kind::GT, {x, pi});
+  Term x_lt_tpi = tm.mkTerm(Kind::LT, {x, twopi});
+  Term ysq_lt_sinx = tm.mkTerm(Kind::LT, {ysq, sinx});
 
   slv.assertFormula(x_gt_pi);
   slv.assertFormula(x_lt_tpi);

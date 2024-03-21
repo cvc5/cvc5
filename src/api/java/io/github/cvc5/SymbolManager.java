@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -81,4 +81,34 @@ public class SymbolManager extends AbstractPointer
   }
 
   private native String getLogic(long pointer);
+
+  /**
+   * Get the list of sorts that have been declared via `declare-sort` commands.
+   * These are the sorts that are printed as part of a response to a
+   * `get-model` command.
+   *
+   * @return The declared sorts.
+   */
+  public Sort[] getDeclaredSorts()
+  {
+    long[] pointers = getDeclaredSorts(pointer);
+    return Utils.getSorts(pointers);
+  }
+
+  private native long[] getDeclaredSorts(long pointer);
+
+  /**
+   * Get the list of terms that have been declared via `declare-fun` and
+   * `declare-const`. These are the terms that are printed in response to a
+   * `get-model` command.
+   *
+   * @return The declared terms.
+   */
+  public Term[] getDeclaredTerms()
+  {
+    long[] retPointers = getDeclaredTerms(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getDeclaredTerms(long pointer);
 }

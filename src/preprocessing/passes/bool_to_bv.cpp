@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -133,8 +133,8 @@ Node BoolToBV::lowerAssertion(const TNode& assertion, bool allowIteIntroduction)
   if (newAssertionType.isBitVector())
   {
     Assert(newAssertionType.getBitVectorSize() == 1);
-    newAssertion = NodeManager::currentNM()->mkNode(
-        Kind::EQUAL, newAssertion, bv::utils::mkOne(1));
+    newAssertion =
+        nodeManager()->mkNode(Kind::EQUAL, newAssertion, bv::utils::mkOne(1));
     newAssertionType = newAssertion.getType();
   }
   Assert(newAssertionType.isBoolean());
@@ -193,7 +193,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     return;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind new_kind = k;
   switch (k)
   {
@@ -363,7 +363,7 @@ Node BoolToBV::lowerIte(const TNode& node)
 void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 {
   Kind k = n.getKind();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   NodeBuilder builder(new_kind);
 
   Trace("bool-to-bv") << "BoolToBV::rebuildNode with " << n

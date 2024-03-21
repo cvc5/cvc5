@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,8 +46,22 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     }
     return nm->mkNode(Kind::STRING_CONCAT, children);
   }
+  else if (k == Kind::FORALL)
+  {
+    // ignore annotation
+    if (n.getNumChildren() == 3)
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      return nm->mkNode(Kind::FORALL, n[0], n[1]);
+    }
+  }
 
   return n;
+}
+
+bool RewriteDbNodeConverter::shouldTraverse(Node n)
+{
+  return n.getKind() != Kind::INST_PATTERN_LIST;
 }
 
 }  // namespace rewriter
