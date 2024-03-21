@@ -3620,13 +3620,13 @@ SkolemFunId Term::getSkolemId() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::vector<Term> Term::getSkolemArguments() const
+std::vector<Term> Term::getSkolemIndices() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
   CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
-      << "Term to be a skolem when calling getSkolemArguments";
+      << "Term to be a skolem when calling getSkolemIndices";
   //////// all checks before this line
   internal::Node cacheVal;
   SkolemFunId id;

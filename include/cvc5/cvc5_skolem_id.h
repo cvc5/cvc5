@@ -44,9 +44,9 @@ namespace cvc5 {
 /**
  * The kind of a cvc5 skolem. A skolem is a (family of) internal functions or
  * constants that are introduced by cvc5. These symbols are treated as
- * uninterpreted functions or constants internally. We track their definition
- * for the purposes of formal bookkeeping for the user of features like proofs,
- * lemma exporting, simplification and so on.
+ * uninterpreted internally. We track their definition for the purposes of
+ * formal bookkeeping for the user of features like proofs, lemma exporting,
+ * simplification and so on.
  * 
  * A skolem has an identifier and a set of "skolem indices". The skolem
  * indices are *not* children of the skolem function, but rather should

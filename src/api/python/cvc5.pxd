@@ -627,7 +627,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term getRealAlgebraicNumberUpperBound() except +
         bint isSkolem() except +
         SkolemFunId getSkolemId() except +
-        vector[Term] getSkolemArguments() except +
+        vector[Term] getSkolemIndices() except +
 
         bint isConstArray() except +
         bint isBooleanValue() except +

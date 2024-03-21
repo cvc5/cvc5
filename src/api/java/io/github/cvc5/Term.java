@@ -836,13 +836,13 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * {@link SkolemFunId#ARRAY_DEQ_DIFF} is indexed by two arrays.
    * @throws CVC5ApiException
    */
-  public Term[] getSkolemArguments() throws CVC5ApiException
+  public Term[] getSkolemIndices() throws CVC5ApiException
   {
-    long[] termPointers = getSkolemArguments(pointer);
+    long[] termPointers = getSkolemIndices(pointer);
     return Utils.getTerms(termPointers);
   }
 
-  private native long[] getSkolemArguments(long pointer);
+  private native long[] getSkolemIndices(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {

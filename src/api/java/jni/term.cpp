@@ -1096,15 +1096,15 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_Term_getSkolemId(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Term
- * Method:    getSkolemArguments
+ * Method:    getSkolemIndices
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_Term_getSkolemArguments(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_Term_getSkolemIndices(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
-  std::vector<Term> args = current->getSkolemArguments();
+  std::vector<Term> args = current->getSkolemIndices();
   jlongArray ret = getPointersFromObjects<Term>(env, args);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
