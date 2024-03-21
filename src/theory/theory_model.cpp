@@ -850,7 +850,7 @@ bool TheoryModel::isBaseModelValue(TNode n) const
 
 bool TheoryModel::isAssignableUf(const Node& n) const
 {
-  return n.getKind()!=Kind::LAMBDA;
+  return n.getKind() != Kind::LAMBDA;
 }
 
 bool TheoryModel::isValue(TNode n) const
