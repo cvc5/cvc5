@@ -75,7 +75,10 @@ namespace cvc5 {
  */
 enum ENUM(SkolemFunId) : uint32_t
 {
-  /** The skolem is not exported */
+  /**
+   * The identifier of the skolem is not exported. These skolems should not
+   * appear in any user-level API calls.
+   */
   EVALUE(INTERNAL),
   /** 
    * The input variable with a given name. This is used when the option
@@ -680,6 +683,7 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(SETS_MAP_DOWN_ELEMENT),
   //================================================= Unknown rule
+  /** Indicates this is not a skolem. */
   EVALUE(NONE),
 };
 // clang-format on
