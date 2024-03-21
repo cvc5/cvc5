@@ -831,8 +831,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * Get the skolem arguments of this term.
    * @api.note Asserts isSkolem().
    * @api.note This method is experimental and may change in future versions.
-   * @return The skolem arguments of this term. These are what the skolem
-   * function is indexed by. For example, the array diff skolem
+   * @return The skolem arguments of this term. This a list of terms that the
+   * skolem function is identified by. For example, the array diff skolem
    * {@link SkolemFunId#ARRAY_DEQ_DIFF} is indexed by two arrays.
    * @throws CVC5ApiException
    */

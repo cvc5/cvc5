@@ -5408,6 +5408,31 @@ cdef class Term:
         """
         return self.cterm.isSkolem()
 
+    def getSkolemId(self):
+        """
+            Get skolem identifier of this term.
+            .. note:: Asserts :py:meth:`isSkolem()`.
+            .. warning:: This function is experimental and may change in future
+                         versions.
+            :return: The skolem identifier of this term.
+        """
+        return SkolemFunId(<int> self.cterm.getSkolemId())
+
+    def getSkolemIndices(self):
+        """
+            .. note:: Asserts :py:meth:`isSkolem()`.
+            .. warning:: This function is experimental and may change in future
+                         versions.
+
+           :return: The skolem indices of this term. This is list of terms that
+            the skolem function is identifier by. For example, the array diff
+            skolem `SkolemFunId::ARRAY_DEQ_DIFF` is indexed by two arrays.
+        """
+        indices = []
+        for i in self.cterm.getSkolemIndices():
+            indices.append(_term(self.tm, i))
+        return indices
+
     def isUninterpretedSortValue(self):
         """
             :return: True iff this term is a value from an uninterpreted sort.
