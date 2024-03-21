@@ -236,7 +236,7 @@ enum ENUM(SkolemFunId) : uint32_t
   /**
    * Difference index for string disequalities, such that k is the witness for
    * the inference
-   *  (=> (not (= a b)) (not (= (substr a k 1) (substr b k 1))))
+   *  ``(=> (not (= a b)) (not (= (substr a k 1) (substr b k 1))))``
    * where note that `k` may be out of bounds for at most of a,b.
    *
    * - Number of skolem indices: ``2``
@@ -321,8 +321,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(RE_FIRST_MATCH),
   /**
-   * For string a and regular expression R, this skolem is the remainder
-   * of a after the first, shortest match of R in a.
+   * For string a and regular expression ``R``, this skolem is the remainder
+   * of a after the first, shortest match of ``R`` in a.
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The string.
@@ -332,9 +332,9 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(RE_FIRST_MATCH_POST),
   /**
    * Regular expression unfold component: if ``(str.in_re a R)``, where R is
-   * ``(re.++ R0 ... Rn)``, then the RE_UNFOLD_POS_COMPONENT{a,R,i} is a string
-   * skolem ki such that ``(= a (str.++ k0 ... kn))`` and ``(str.in_re k0 R0)``
-   * for i = 0, ..., n.
+   * ``(re.++ R0 ... Rn)``, then the ``RE_UNFOLD_POS_COMPONENT`` for indices
+   * (a,R,i) is a string ki such that ``(= a (str.++ k0 ... kn))`` and
+   * ``(str.in_re k0 R0)`` for i = 0, ..., n.
    *
    * - Number of skolem indices: ``3``
    *   - ``1:`` The string.
@@ -416,7 +416,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * combine(0) = t
    * combine(i) = f(elements(i), combine(i - 1)) for 1 <= i <= n.
    * elements: a skolem function for (bag.fold f t A)
-   *           see BAGS_FOLD_ELEMENTS.
+   *           see ``BAGS_FOLD_ELEMENTS``.
    * n: is the cardinality of A.
    * T2: is the type of initial value t.
    *
@@ -435,7 +435,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * elements of A.
    * If the cardinality of A is n, then
    * A is the disjoint union of {elements(i)} for 1 <= i <= n.
-   * See BAGS_FOLD_UNION_DISJOINT.
+   * See ``BAGS_FOLD_UNION_DISJOINT``.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` a bag argument A of type ``(Bag T1)``
@@ -446,7 +446,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * An uninterpreted function for bag.fold operator:
    * To compute ``(bag.fold f t A)``, we need a function for
    * elements of A which is given by elements defined in
-   * BAGS_FOLD_ELEMENTS.
+   * ``BAGS_FOLD_ELEMENTS``.
    * We also need unionDisjoint: ``(-> Int (Bag T1))`` to compute
    * the disjoint union such that:
    * unionDisjoint(0) = bag.empty.
@@ -511,8 +511,8 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem indices: ``5``
    *   - ``1:`` a map term of the form ``(bag.map f A)``.
-   *   - ``2:`` a skolem function with id BAGS_DISTINCT_ELEMENTS.
-   *   - ``3:`` a skolem function with id BAGS_DISTINCT_ELEMENTS_SIZE.
+   *   - ``2:`` a skolem function with id ``BAGS_DISTINCT_ELEMENTS``.
+   *   - ``3:`` a skolem function with id ``BAGS_DISTINCT_ELEMENTS_SIZE``.
    *   - ``4:`` an element y of type ``T`` representing the mapped value.
    *   - ``5:`` an element x of type ``E``.
    * - Type: ``Int``
@@ -520,7 +520,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_MAP_INDEX),
   /**
    * An uninterpreted function for bag.map operator:
-   * If bag A is {uf(1), ..., uf(n)} (see BAGS_DISTINCT_ELEMENTS},
+   * If bag A is {uf(1), ..., uf(n)} (see ``BAGS_DISTINCT_ELEMENTS``},
    * then the multiplicity of an element y in a bag ``(bag.map f A)`` is sum(n),
    * where sum: ``(-> Int Int)`` is a skolem function such that:
    * sum(0) = 0
@@ -592,7 +592,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *    (ite
    *      (= A (as set.empty (Set E)))
    *      (= x (uf A))
-   *      (and (set.member x A) (= x uf(A)))``
+   *      (and (set.member x A) (= x uf(A)))))``
    * where uf: (Set E) -> E is a skolem function, and E is the type of elements
    * of A
    *
