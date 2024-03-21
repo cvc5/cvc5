@@ -151,7 +151,7 @@
   (
     ((poly_is_equal_mod_c @poly.zero @poly.zero reqPos)                         true)
     ((poly_is_equal_mod_c (@poly (@mon a c1) p1) (@poly (@mon a c2) p2) reqPos) (let ((c (alf.qdiv c2 c1))) 
-                                                                                (alf.requires (alf.or reqPos (alf.not (alf.is_neg c))) true
+                                                                                (alf.requires (alf.and reqPos (alf.is_neg c)) false
                                                                                 (poly_is_equal_mod_c_rec c p1 p2))))
   )
 )
