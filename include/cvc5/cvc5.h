@@ -4191,7 +4191,7 @@ class CVC5_EXPORT TermManager
   internal::NodeManager* d_nm;
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
-  /** The statistics registry (indepent from any Solver's registry. */
+  /** The statistics registry (independent from any Solver's registry). */
   std::unique_ptr<internal::StatisticsRegistry> d_statsReg;
 };
 
