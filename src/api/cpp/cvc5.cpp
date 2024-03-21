@@ -6491,6 +6491,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
 
   internal::Node fun = d_tm.d_nm->mkBoundVar(symbol, funType);
   (void)fun.getType(true); /* kick off type checking */
+  d_tm.increment_vars_consts_stats(sort, true);
 
   std::vector<internal::Node> bvns = Term::termVectorToNodes(boundVars);
 
@@ -7000,6 +7001,7 @@ Term Solver::declareFun(const std::string& symbol,
     type = d_tm.d_nm->mkFunctionType(types, type);
   }
   internal::Node res = d_tm.d_nm->mkVar(symbol, type, fresh);
+  d_tm.increment_vars_consts_stats(sort, false);
   // notify the solver engine of the declaration
   d_slv->declareConst(res);
   return Term(&d_tm, res);
@@ -7888,6 +7890,7 @@ Term Solver::declarePool(const std::string& symbol,
   internal::Node pool = d_tm.d_nm->mkBoundVar(symbol, setType);
   std::vector<internal::Node> initv = Term::termVectorToNodes(initValue);
   d_slv->declarePool(pool, initv);
+  d_tm.increment_vars_consts_stats(sort, true);
   return Term(&d_tm, pool);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7913,6 +7916,7 @@ Term Solver::declareOracleFun(
     type = d_tm.d_nm->mkFunctionType(types, type);
   }
   internal::Node fun = d_tm.d_nm->mkVar(symbol, type);
+  d_tm.increment_vars_consts_stats(sort, false);
   // Wrap the terms-to-term function so that it is nodes-to-nodes. Note we
   // make the method return a vector of size one to conform to the interface
   // at the SolverEngine level.
@@ -8223,6 +8227,7 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
       << "Cannot call declareSygusVar unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   internal::Node res = d_tm.d_nm->mkBoundVar(symbol, *sort.d_type);
+  d_tm.increment_vars_consts_stats(sort, true);
   (void)res.getType(true); /* kick off type checking */
 
   d_slv->declareSygusVar(res);
