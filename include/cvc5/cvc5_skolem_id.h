@@ -509,8 +509,9 @@ enum ENUM(SkolemFunId) : uint32_t
    * ``(=> (not (= A B)) (not (= (bag.count k A) (bag.count k B))))``.
    *
    * - Number of skolem arguments: ``2``
-   *   - ``1:`` The first bag.
-   *   - ``2:`` The second bag.
+   *   - ``1:`` The first bag of type ``(Bag T)``.
+   *   - ``2:`` The second bag of type ``(Bag T)``.
+   * - Type: ``T``
    */
   EVALUE(BAGS_DEQ_DIFF),
   /**
@@ -565,6 +566,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` a ground value for the type ``(Set E)``.
+   * - Type: ``E``
    */
   EVALUE(SETS_CHOOSE),
   /** 
@@ -572,8 +574,9 @@ enum ENUM(SkolemFunId) : uint32_t
    * (=> (not (= A B)) (not (= (set.member k A) (set.member k B)))).
    *
    * - Number of skolem arguments: ``2``
-   *   - ``1:`` The first set.
-   *   - ``2:`` The second set.
+   *   - ``1:`` The first set of type ``(Set E)``.
+   *   - ``2:`` The second set of type ``(Set E)``.
+   * - Type: ``E``
    */
   EVALUE(SETS_DEQ_DIFF),
   /**
