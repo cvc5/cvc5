@@ -5026,14 +5026,13 @@ void TermManager::increment_term_stats(Kind kind) const
   }
 }
 
-void TermManager::increment_vars_consts_stats(const Sort& sort,
+void TermManager::increment_vars_consts_stats(const internal::TypeNode& type,
                                               bool is_var) const
 {
   if constexpr (internal::configuration::isStatisticsBuild())
   {
-    const internal::TypeNode tn = sort.getTypeNode();
-    internal::TypeConstant tc = tn.getKind() == internal::Kind::TYPE_CONSTANT
-                                    ? tn.getConst<internal::TypeConstant>()
+    internal::TypeConstant tc = type.getKind() == internal::Kind::TYPE_CONSTANT
+                                    ? type.getConst<internal::TypeConstant>()
                                     : internal::LAST_TYPE;
     if (is_var)
     {
@@ -5122,6 +5121,29 @@ bool TermManager::isValidInteger(const std::string& s) const
 
 // This helpers are split out to avoid nested API calls (problematic with API
 // tracing).
+
+internal::Node TermManager::mkVarHelper(
+    const internal::TypeNode& type, const std::optional<std::string>& symbol)
+{
+  internal::Node res =
+      symbol ? d_nm->mkBoundVar(*symbol, type) : d_nm->mkBoundVar(type);
+  (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(type, true);
+  return res;
+}
+
+internal::Node TermManager::mkConstHelper(
+    const internal::TypeNode& type,
+    const std::optional<std::string>& symbol,
+    bool fresh)
+{
+  Assert(fresh || symbol);
+  internal::Node res =
+      symbol ? d_nm->mkVar(*symbol, type, fresh) : d_nm->mkVar(type);
+  (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(type, false);
+  return res;
+}
 
 template <typename T>
 Op TermManager::mkOpHelper(Kind kind, const T& t)
@@ -6229,7 +6251,7 @@ Term TermManager::mkNullableLift(Kind kind, const std::vector<Term>& args)
   {
     internal::TypeNode type = t.d_node->getType();
     internal::TypeNode elementType = type[0];
-    internal::Node var = d_nm->mkBoundVar(elementType);
+    internal::Node var = mkVarHelper(elementType);
     vars.push_back(var);
   }
   internal::Node varList = d_nm->mkNode(internal::Kind::BOUND_VAR_LIST, vars);
@@ -6254,11 +6276,7 @@ Term TermManager::mkConst(const Sort& sort,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res =
-      symbol ? d_nm->mkVar(*symbol, *sort.d_type) : d_nm->mkVar(*sort.d_type);
-  (void)res.getType(true); /* kick off type checking */
-  increment_vars_consts_stats(sort, false);
-  return Term(this, res);
+  return Term(this, mkConstHelper(*sort.d_type, symbol));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6269,11 +6287,7 @@ Term TermManager::mkVar(const Sort& sort,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res = symbol ? d_nm->mkBoundVar(*symbol, *sort.d_type)
-                              : d_nm->mkBoundVar(*sort.d_type);
-  (void)res.getType(true); /* kick off type checking */
-  increment_vars_consts_stats(sort, true);
-  return Term(this, res);
+  return Term(this, mkVarHelper(*sort.d_type, symbol));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6489,9 +6503,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
       varTypes.empty() ? *sort.d_type
                        : d_tm.d_nm->mkFunctionType(varTypes, *sort.d_type);
 
-  internal::Node fun = d_tm.d_nm->mkBoundVar(symbol, funType);
-  (void)fun.getType(true); /* kick off type checking */
-  d_tm.increment_vars_consts_stats(sort, true);
+  internal::Node fun = d_tm.mkVarHelper(funType, symbol);
 
   std::vector<internal::Node> bvns = Term::termVectorToNodes(boundVars);
 
@@ -7000,8 +7012,7 @@ Term Solver::declareFun(const std::string& symbol,
     std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = d_tm.d_nm->mkFunctionType(types, type);
   }
-  internal::Node res = d_tm.d_nm->mkVar(symbol, type, fresh);
-  d_tm.increment_vars_consts_stats(sort, false);
+  internal::Node res = d_tm.mkConstHelper(type, symbol, fresh);
   // notify the solver engine of the declaration
   d_slv->declareConst(res);
   return Term(&d_tm, res);
@@ -7887,10 +7898,10 @@ Term Solver::declarePool(const std::string& symbol,
   CVC5_API_SOLVER_CHECK_TERMS(initValue);
   //////// all checks before this line
   internal::TypeNode setType = d_tm.d_nm->mkSetType(*sort.d_type);
-  internal::Node pool = d_tm.d_nm->mkBoundVar(symbol, setType);
+  internal::Node pool = d_tm.mkVarHelper(setType, symbol);
   std::vector<internal::Node> initv = Term::termVectorToNodes(initValue);
   d_slv->declarePool(pool, initv);
-  d_tm.increment_vars_consts_stats(sort, true);
+  d_tm.increment_vars_consts_stats(setType, true);
   return Term(&d_tm, pool);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7915,8 +7926,7 @@ Term Solver::declareOracleFun(
     std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = d_tm.d_nm->mkFunctionType(types, type);
   }
-  internal::Node fun = d_tm.d_nm->mkVar(symbol, type);
-  d_tm.increment_vars_consts_stats(sort, false);
+  internal::Node fun = d_tm.mkConstHelper(type, symbol);
   // Wrap the terms-to-term function so that it is nodes-to-nodes. Note we
   // make the method return a vector of size one to conform to the interface
   // at the SolverEngine level.
@@ -8226,12 +8236,8 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
       << "Cannot call declareSygusVar unless sygus is enabled (use --sygus)";
   //////// all checks before this line
-  internal::Node res = d_tm.d_nm->mkBoundVar(symbol, *sort.d_type);
-  d_tm.increment_vars_consts_stats(sort, true);
-  (void)res.getType(true); /* kick off type checking */
-
+  internal::Node res = d_tm.mkVarHelper(*sort.d_type, symbol);
   d_slv->declareSygusVar(res);
-
   return Term(&d_tm, res);
   ////////
   CVC5_API_TRY_CATCH_END;

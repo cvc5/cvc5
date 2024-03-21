@@ -1299,8 +1299,8 @@ class CVC5_EXPORT Term
    *
    * @note Requires that this term has a symbol (see hasSymbol()).
    *
-   * The symbol of the term is the string that was
-   * provided when constructing it via Solver::mkConst() or Solver::mkVar().
+   * The symbol of the term is the string that was provided when constructing
+   * it via TermManager::mkConst() or TermManager::mkVar().
    *
    * @return The raw symbol of the term.
    */
@@ -4019,7 +4019,7 @@ class CVC5_EXPORT TermManager
    * Create a free constant.
    *
    * Note that the returned term is always fresh, even if the same arguments
-   * were provided on a previous call to mkConst.
+   * were provided on a previous call to mkConst().
    *
    * SMT-LIB:
    *
@@ -4042,7 +4042,7 @@ class CVC5_EXPORT TermManager
    * lambda, or a witness binder).
    *
    * @note The returned term is always fresh, even if the same arguments
-   *       were provided on a previous call to mkConst.
+   *       were provided on a previous call to mkConst().
    *
    * @param sort   The sort of the variable.
    * @param symbol The name of the variable (optional).
@@ -4101,7 +4101,8 @@ class CVC5_EXPORT TermManager
   /** Increment the term stats counter. */
   void increment_term_stats(Kind kind) const;
   /** Increment the vars stats or consts stats counter. */
-  void increment_vars_consts_stats(const Sort& sort, bool is_var) const;
+  void increment_vars_consts_stats(const internal::TypeNode& type,
+                                   bool is_var) const;
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
@@ -4111,8 +4112,29 @@ class CVC5_EXPORT TermManager
    * @return True if `s` is a valid decimal integer.
    */
   bool isValidInteger(const std::string& s) const;
+
   /**
-   * Helper for mk-functions that call d_nm->mkConst().
+   * Helper for calls to mkVar from the TermManager and Solver. Ensures that
+   * API statistics are collected.
+   * @param sort   The internal type of the variable.
+   * @param symbol The symbol of the variable.
+   */
+  internal::Node mkVarHelper(
+      const internal::TypeNode& type,
+      const std::optional<std::string>& symbol = std::nullopt);
+  /**
+   * Helper for calls to mkConst from the TermManager and Solver. Ensures that
+   * API statistics are collected.
+   * @param sort   The internal type of the const.
+   * @param symbol The symbol of the const.
+   * @param fresh  True to return a fresh variable. If false, it returns the
+   *               same variable for the given type and name.
+   */
+  internal::Node mkConstHelper(const internal::TypeNode& type,
+                               const std::optional<std::string>& symbol,
+                               bool fresh = true);
+  /**
+   * Helper for mk-functions that call NodeManager::mkConst().
    * @param t  The value.
    * @return The value term.
    */
@@ -5145,7 +5167,7 @@ class CVC5_EXPORT Solver
    * Create a free constant.
    *
    * Note that the returned term is always fresh, even if the same arguments
-   * were provided on a previous call to mkConst.
+   * were provided on a previous call to mkConst().
    *
    * SMT-LIB:
    *
@@ -5446,7 +5468,7 @@ class CVC5_EXPORT Solver
    *     (define-fun-rec <function_def>)
    * \endverbatim
    *
-   * Create parameter `fun` with mkConst().
+   * Create parameter `fun` with TermManager::mkConst().
    *
    * @param fun The sorted function.
    * @param bound_vars The parameters to this function.
@@ -5474,7 +5496,7 @@ class CVC5_EXPORT Solver
    *     )
    * \endverbatim
    *
-   * Create elements of parameter `funs` with `Solver::mkConst()`.
+   * Create elements of parameter `funs` with `TermManager::mkConst()`.
    *
    * @param funs The sorted functions.
    * @param bound_vars The list of parameters to the functions.
@@ -6630,6 +6652,7 @@ class CVC5_EXPORT Solver
                       const Sort& sort,
                       bool isInv = false,
                       Grammar* grammar = nullptr) const;
+
   /** Helper for getting timeout cores */
   std::pair<Result, std::vector<Term>> getTimeoutCoreHelper(
       const std::vector<Term>& assumptions) const;
@@ -6657,11 +6680,7 @@ class CVC5_EXPORT Solver
   /** The random number generator of this solver. */
   std::unique_ptr<internal::Random> d_rng;
 
-  /**
-   * The associated term manager.
-   * @note This is only needed temporarily until deprecated term/sort handling
-   * functions are removed.
-   */
+  /** The associated term manager. */
   TermManager& d_tm;
 };
 
