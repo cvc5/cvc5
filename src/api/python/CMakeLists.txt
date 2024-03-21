@@ -64,7 +64,7 @@ add_custom_command(
 add_custom_target(cvc5proofrules DEPENDS ${GENERATED_PROOF_RULES_FILES})
 
 # Generate cvc5skolemids.{pxd,pxi}
-set(GENERATED_PROOF_RULES_FILES
+set(GENERATED_SKOLEM_ID_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5skolemids.pxd"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5skolemids.pxi"
 )
