@@ -5399,6 +5399,15 @@ cdef class Term:
             self.tm,
             self.cterm.getRealAlgebraicNumberUpperBound())
 
+    def isSkolem(self):
+        """
+            :return: True if the term is a skolem.
+
+            .. warning:: This function is experimental and may change in future
+                         versions.
+        """
+        return self.cterm.isSkolem()
+
     def isUninterpretedSortValue(self):
         """
             :return: True iff this term is a value from an uninterpreted sort.
