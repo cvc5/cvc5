@@ -171,7 +171,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``1:`` The quantified formula Q.
    *   - ``2:`` An integer n, where this skolem corresponds to the skolemization
    *            of the n^th variable in the variable list of Q.
-   * - Type: the type of the n^th variable of Q.
+   * - Type: The type of the n^th variable of Q.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
   /** 
@@ -253,7 +253,8 @@ enum ENUM(SkolemFunId) : uint32_t
    * 
    * - Number of skolem indices: ``1``
    *   - ``1:`` The application of replace_all or replace_all_re.
-   * - Type: (-> Int S) where S is either String or (Seq T) for some T.
+   * - Type: ``(-> Int S)`` where S is either ``String`` or ``(Seq T)`` for
+   * some ``T``.
    */
   EVALUE(STRINGS_REPLACE_ALL_RESULT),
   /**
@@ -422,6 +423,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``1:`` the function f of type ``(-> T1 T2)``.
    *   - ``2:`` the initial value t of type ``T2``.
    *   - ``3:`` the bag argument A of type ``(Bag T1)``.
+   * - Type: ``(-> Int T2)``
    */
   EVALUE(BAGS_FOLD_COMBINE),
   /**
@@ -451,7 +453,8 @@ enum ENUM(SkolemFunId) : uint32_t
    * unionDisjoint(n) = A.
    *
    * - Number of skolem indices: ``1``
-   *   - ``1:`` the bag argument A.
+   *   - ``1:`` the bag argument A of type ``(Bag T1)``.
+   * - Type: ``(-> Int (Bag T1))``
    */
   EVALUE(BAGS_FOLD_UNION_DISJOINT),
   /**
@@ -628,6 +631,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``1:`` the function f of type ``(-> T1 T2)``.
    *   - ``2:`` the initial value t of type ``T2``.
    *   - ``3:`` the set argument A of type ``(Set T1)``.
+   * - Type: ``(-> Int T2)``
    */
   EVALUE(SETS_FOLD_COMBINE),
   /**
@@ -649,14 +653,15 @@ enum ENUM(SkolemFunId) : uint32_t
    * To compute (set.fold f t A), we need a function for
    * elements of A which is given by elements defined in
    * SETS_FOLD_ELEMENTS.
-   * We also need unionFn: ``(-> Int (Set T1))`` to compute
+   * We also need unionFn: ``(-> Int (Set E))`` to compute
    * the union such that:
    * unionFn(0) = set.empty
    * unionFn(i) = union of {elements(i)} and unionFn (i-1)
    * unionFn(n) = A
    *
    * - Number of skolem indices: ``1``
-   *   - ``1:`` a set argument A.
+   *   - ``1:`` a set argument A of type ``(Set E)``.
+   * - Type: ``(-> Int (Set E))``
    */
   EVALUE(SETS_FOLD_UNION),
   /**

@@ -1874,14 +1874,14 @@ class CVC5_EXPORT Term
    */
   SkolemFunId getSkolemId() const;
   /**
-   * Get the skolem arguments of this term.
+   * Get the skolem indices of this term.
    * @note Asserts isSkolem().
    * @warning This function is experimental and may change in future versions.
-   * @return The skolem arguments of this term.  These are what the skolem
+   * @return The skolem indices of this term.  These are what the skolem
    * function is indexed by. For example, the array diff skolem
    * `SkolemFunId::ARRAY_DEQ_DIFF` is indexed by two arrays.
    */
-  std::vector<Term> getSkolemArguments() const;
+  std::vector<Term> getSkolemIndices() const;
 
  protected:
   /**
