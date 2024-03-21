@@ -122,10 +122,10 @@ class StatisticsRegistry
    * If `registerPublic` is true, all statistics that are public are
    * pre-registered as such. This argument mostly exists so that unit tests
    * can disable this pre-registration.
-   * @param registerPublic True to also register public statistics.
    * @param internal       True to also print internal statistics.
    * @param all            True to also print statistics that are unchanged
    *                       (hold the default value).
+   * @param registerPublic True to also register public statistics.
    */
   StatisticsRegistry(bool internal = false,
                      bool all = false,
