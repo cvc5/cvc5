@@ -191,7 +191,7 @@ void QuantifiersEngine::ppNotifyAssertions(
     quantifiers::SygusInst* si = d_qmodules->d_sygus_inst.get();
     si->ppNotifyAssertions(assertions);
   }
-  if (options().quantifiers.mbqiModelExp)
+  if (options().quantifiers.globalSyms)
   {
     quantifiers::InstStrategyMbqi* mi = d_qmodules->d_mbqi.get();
     mi->ppNotifyAssertions(assertions);

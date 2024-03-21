@@ -71,7 +71,7 @@ class InstStrategyMbqi : public QuantifiersModule
   /* For collecting global terms from all available assertions. */
   void ppNotifyAssertions(const std::vector<Node>& assertions);
   // Define a method to access d_global_terms
-  const std::unordered_set<Node>& getGlobalSyms() const {
+  const context::CDHashSet<Node>& getGlobalSyms() const {
     return d_global_symbols;
   }
 
@@ -126,10 +126,8 @@ class InstStrategyMbqi : public QuantifiersModule
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
   /** Submodule for sygus enum */
   std::unique_ptr<MbqiSygusEnum> d_msenum;
-  /* Assertions sent by ppNotifyAssertions. */
-  context::CDHashSet<Node> d_notified_assertions;
   /* Set of global ground terms in assertions (outside of quantifiers). */
-  std::unordered_set<Node> d_global_symbols;
+  context::CDHashSet<Node> d_global_symbols;
 };
 
 }  // namespace quantifiers

@@ -182,7 +182,6 @@ MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
   if (it == d_qinfo.end())
   {
     MQuantInfo& qi = d_qinfo[q];
-    collectGlobalSymbols();
     qi.initialize(d_env, d_parent, q);
     return qi;
   }
@@ -301,22 +300,6 @@ bool MbqiSygusEnum::constructInstantiation(
     } while (!success);
   }
   return true;
-}
-
-void MbqiSygusEnum::collectGlobalSymbols() {
-  for (const Node& a : d_parent.d_notified_assertions)
-  {
-    std::unordered_set<Node> cur_syms;
-    expr::getSymbols(a, cur_syms);
-    // Iterate over the symbols in the current assertion
-    for (const auto& s : cur_syms) {
-      // Add the symbol to syms if it's not already present
-      if (d_parent.d_global_symbols.find(s) == d_parent.d_global_symbols.end()) {
-        d_parent.d_global_symbols.insert(s);
-        Trace("mbqi-model-enum") << "  Adding (global) symbol: " << s << std::endl;
-      }
-    }
-  }
 }
 }  // namespace quantifiers
 }  // namespace theory

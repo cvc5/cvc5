@@ -42,8 +42,7 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
-    d_notified_assertions(userContext()),
-    d_global_symbols()
+    d_global_symbols(userContext())
 {
   // some kinds may appear in model values that cannot be asserted
   d_nonClosedKinds.insert(Kind::STORE_ALL);
@@ -58,9 +57,18 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
 
 void InstStrategyMbqi::ppNotifyAssertions(const std::vector<Node>& assertions)
 {
+  // collecting global symbols from all available assertions
   for (const Node& a : assertions)
   {
-    d_notified_assertions.insert(a);
+    std::unordered_set<Node> cur_syms;
+    expr::getSymbols(a, cur_syms);
+    // Iterate over the symbols in the current assertion
+    for (const auto& s : cur_syms) {
+      // Add the symbol to syms if it's not already present
+      if (d_global_symbols.find(s) == d_global_symbols.end()) {
+        d_global_symbols.insert(s);
+      }
+    }
   }
 }
 
