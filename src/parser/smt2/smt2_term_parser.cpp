@@ -286,7 +286,7 @@ Term Smt2TermParser::parseTerm()
       break;
       case Token::RATIONAL_LITERAL:
       {
-        ret = d_state.getSolver()->mkReal(d_lex.tokenStr());
+        ret = tm.mkReal(d_lex.tokenStr());
       }
       break;
       case Token::HEX_LITERAL:

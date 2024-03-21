@@ -1536,7 +1536,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     }
     else if (kind == Kind::SUB && args.size() == 1)
     {
-      Term ret = d_solver->mkTerm(Kind::NEG, {args[0]});
+      Term ret = d_tm.mkTerm(Kind::NEG, {args[0]});
       Trace("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
