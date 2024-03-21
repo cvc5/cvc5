@@ -252,7 +252,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     // these options must be disabled on internal subsolvers, as they are
     // used by the user to rephrase the input.
-    SET_AND_NOTIFY(Quantifiers, sygusInference, false, "internal subsolver");
+    SET_AND_NOTIFY(Quantifiers,
+                   sygusInference,
+                   options::SygusInferenceMode::OFF,
+                   "internal subsolver");
     // deep restart does not work with internal subsolvers?
     SET_AND_NOTIFY(Smt,
                    deepRestartMode,
@@ -876,7 +879,7 @@ bool SetDefaults::isSygus(const Options& opts) const
   if (!d_isInternalSubsolver)
   {
     if (opts.smt.produceAbducts || opts.smt.produceInterpolants
-        || opts.quantifiers.sygusInference)
+        || opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       return true;
@@ -1033,14 +1036,17 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     suggest << "Try --bitblast=lazy.";
     return true;
   }
-  if (opts.quantifiers.sygusInference)
+  if (opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     if (opts.quantifiers.sygusInferenceWasSetByUser)
     {
       reason << "sygus inference";
       return true;
     }
-    SET_AND_NOTIFY(Quantifiers, sygusInference, false, "incremental solving");
+    SET_AND_NOTIFY(Quantifiers,
+                   sygusInference,
+                   options::SygusInferenceMode::OFF,
+                   "incremental solving");
   }
   if (opts.quantifiers.sygusInst)
   {
@@ -1527,7 +1533,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     SET_AND_NOTIFY_IF_NOT_USER(Quantifiers, cegqi, true, "sygusRepairConst");
   }
-  if (opts.quantifiers.sygusInference)
+  if (opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     // optimization: apply preskolemization, makes it succeed more often
     SET_AND_NOTIFY_IF_NOT_USER(Quantifiers,
