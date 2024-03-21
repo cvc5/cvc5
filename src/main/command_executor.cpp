@@ -96,6 +96,7 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 {
   if (d_solver->getOptionInfo("stats").boolValue())
   {
+    d_solver->getTermManager().printStatisticsSafe(fd);
     d_solver->printStatisticsSafe(fd);
   }
 }

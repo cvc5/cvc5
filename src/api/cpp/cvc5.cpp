@@ -4992,12 +4992,68 @@ const std::shared_ptr<internal::ProofNode>& Proof::getProofNode(void) const
 /* TermManager                                                                */
 /* -------------------------------------------------------------------------- */
 
-TermManager::TermManager() { d_nm = internal::NodeManager::currentNM(); }
+TermManager::TermManager()
+{
+  d_nm = internal::NodeManager::currentNM();
+
+  if constexpr (internal::configuration::isStatisticsBuild())
+  {
+    d_statsReg.reset(new internal::StatisticsRegistry());
+    resetStatistics();
+  }
+}
 
 TermManager::~TermManager() {}
 
+Statistics TermManager::getStatistics() const
+{
+  return Statistics(*d_statsReg);
+}
+
+void TermManager::printStatisticsSafe(int fd) const
+{
+  d_statsReg->printSafe(fd);
+}
+
 /* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */
+
+void TermManager::increment_term_stats(Kind kind) const
+{
+  if constexpr (internal::configuration::isStatisticsBuild())
+  {
+    d_stats->d_terms << kind;
+  }
+}
+
+void TermManager::increment_vars_consts_stats(const Sort& sort,
+                                              bool is_var) const
+{
+  if constexpr (internal::configuration::isStatisticsBuild())
+  {
+    const internal::TypeNode tn = sort.getTypeNode();
+    internal::TypeConstant tc = tn.getKind() == internal::Kind::TYPE_CONSTANT
+                                    ? tn.getConst<internal::TypeConstant>()
+                                    : internal::LAST_TYPE;
+    if (is_var)
+    {
+      d_stats->d_vars << tc;
+    }
+    else
+    {
+      d_stats->d_consts << tc;
+    }
+  }
+}
+
+void TermManager::resetStatistics()
+{
+  d_stats.reset(new APIStatistics{
+      d_statsReg->registerHistogram<internal::TypeConstant>("cvc5::CONSTANT"),
+      d_statsReg->registerHistogram<internal::TypeConstant>("cvc5::VARIABLE"),
+      d_statsReg->registerHistogram<Kind>("cvc5::TERM"),
+  });
+}
 
 TermManager* TermManager::currentTM()
 {
@@ -5573,7 +5629,9 @@ Term TermManager::mkTerm(Kind kind, const std::vector<Term>& children)
   CVC5_API_KIND_CHECK(kind);
   CVC5_API_TM_CHECK_TERMS(children);
   //////// all checks before this line
-  return mkTermHelper(kind, children);
+  Term res = mkTermHelper(kind, children);
+  increment_term_stats(kind);
+  return res;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5584,7 +5642,9 @@ Term TermManager::mkTerm(const Op& op, const std::vector<Term>& children)
   CVC5_API_TM_CHECK_OP(op);
   CVC5_API_TM_CHECK_TERMS(children);
   //////// all checks before this line
-  return mkTermHelper(op, children);
+  Term res = mkTermHelper(op, children);
+  increment_term_stats(op.getKind());
+  return res;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6197,6 +6257,7 @@ Term TermManager::mkConst(const Sort& sort,
   internal::Node res =
       symbol ? d_nm->mkVar(*symbol, *sort.d_type) : d_nm->mkVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(sort, false);
   return Term(this, res);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -6211,6 +6272,7 @@ Term TermManager::mkVar(const Sort& sort,
   internal::Node res = symbol ? d_nm->mkBoundVar(*symbol, *sort.d_type)
                               : d_nm->mkBoundVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(sort, true);
   return Term(this, res);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -6375,7 +6437,6 @@ Solver::Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original)
   d_slv.reset(new internal::SolverEngine(d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
-  resetStatistics();
 }
 
 Solver::Solver(TermManager& tm)
@@ -6392,33 +6453,6 @@ Solver::~Solver() {}
 
 /* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */
-
-void Solver::increment_term_stats(Kind kind) const
-{
-  if constexpr (internal::configuration::isStatisticsBuild())
-  {
-    d_stats->d_terms << kind;
-  }
-}
-
-void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
-{
-  if constexpr (internal::configuration::isStatisticsBuild())
-  {
-    const internal::TypeNode tn = sort.getTypeNode();
-    internal::TypeConstant tc = tn.getKind() == internal::Kind::TYPE_CONSTANT
-                                    ? tn.getConst<internal::TypeConstant>()
-                                    : internal::LAST_TYPE;
-    if (is_var)
-    {
-      d_stats->d_vars << tc;
-    }
-    else
-    {
-      d_stats->d_consts << tc;
-    }
-  }
-}
 
 Term Solver::synthFunHelper(const std::string& symbol,
                             const std::vector<Term>& boundVars,
@@ -6503,20 +6537,6 @@ void Solver::ensureWellFormedTerms(const std::vector<Term>& ts) const
     {
       ensureWellFormedTerm(t);
     }
-  }
-}
-
-void Solver::resetStatistics()
-{
-  if constexpr (internal::configuration::isStatisticsBuild())
-  {
-    d_stats.reset(new APIStatistics{
-        d_slv->getStatisticsRegistry()
-            .registerHistogram<internal::TypeConstant>("cvc5::CONSTANT"),
-        d_slv->getStatisticsRegistry()
-            .registerHistogram<internal::TypeConstant>("cvc5::VARIABLE"),
-        d_slv->getStatisticsRegistry().registerHistogram<Kind>("cvc5::TERM"),
-    });
   }
 }
 
@@ -6778,14 +6798,12 @@ Term Solver::mkNullableLift(Kind kind, const std::vector<Term>& args) const
 Term Solver::mkConst(const Sort& sort,
                      const std::optional<std::string>& symbol) const
 {
-  increment_vars_consts_stats(sort, false);
   return d_tm.mkConst(sort, symbol);
 }
 
 Term Solver::mkVar(const Sort& sort,
                    const std::optional<std::string>& symbol) const
 {
-  increment_vars_consts_stats(sort, true);
   return d_tm.mkVar(sort, symbol);
 }
 
@@ -6809,13 +6827,11 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  increment_term_stats(kind);
   return d_tm.mkTerm(kind, children);
 }
 
 Term Solver::mkTerm(const Op& op, const std::vector<Term>& children) const
 {
-  increment_term_stats(op.getKind());
   return d_tm.mkTerm(op, children);
 }
 
