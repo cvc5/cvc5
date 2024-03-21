@@ -155,9 +155,12 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
     }
     else
     {
-      // we use @ as a prefix, which follows the SMT-LIB standard indicating
+      // We use @ as a prefix, which follows the SMT-LIB standard indicating
       // internal symbols starting with @ or . are reserved for internal use.
+      //
       std::stringstream ss;
+      // Print internal skolems by the internal identifier, otherwise all would
+      // be @INTERNAL_*.
       if (id == SkolemFunId::INTERNAL)
       {
         Node cval = cacheVal.getKind() == Kind::SEXPR ? cacheVal[0] : cacheVal;
