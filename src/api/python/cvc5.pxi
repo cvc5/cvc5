@@ -4901,14 +4901,22 @@ cdef class Statistics:
         The cvc5 Statistics.
 
         Wrapper class for :cpp:class:`cvc5::Statistics`.
-        Obtain a single statistic value using ``stats["name"]`` and a dictionary
-        with all (visible) statistics using
-        ``stats.get(internal=False, defaulted=False)``.
+
+        Obtain a single statistic value using ``stats["name"]`` and a
+        dictionary with, configurably all (including internal and unchanged)
+        statistics using :meth:`Statistics.get()`.
+
+        Iterate over all (including internal and unchanged) statistics via (the
+        standard iterable functions) :meth:`__iter__()` and :meth:`__next__()`.
     """
     cdef c_Statistics cstats
     cdef c_Statistics.iterator cit
 
     def __init__(self):
+        # Initialize iterator to begin() to avoid erroneous behavior due to
+        # calling __next__() immediately after creation of the statistics
+        # object. Note that this will not enable iteration (for this __iter__()
+        # has to be called first)
         self.cit = self.cstats.begin(<bint> True, <bint> True)
 
     cdef __stat_to_dict(self, const c_Stat& s):
@@ -4930,14 +4938,23 @@ cdef class Statistics:
     def __getitem__(self, str name):
         """
             Get the statistics information for the statistic called ``name``.
+
+            :param name: The name of the statistic to get.
         """
         return self.__stat_to_dict(self.cstats.get(name.encode()))
 
     def __iter__(self):
+        """
+            Iterate over all statistics (including internal and unchanged
+            statistics).
+        """
         self.cit = self.cstats.begin(<bint> True, <bint> True)
         return self
 
     def __next__(self):
+        """
+            Get next statistic as a pair ``[name, <dict: name -> value>]``.
+        """
         if self.cit != self.cstats.end():
             s = &dereference(self.cit)
             preincrement(self.cit)
