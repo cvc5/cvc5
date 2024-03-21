@@ -134,13 +134,13 @@
 (program is_poly_norm ((T Type) (U Type) (a T) (b T) (a1 U) (a2 U) (b1 U) (b2 U))
   (T T) Bool
   (
-    ((is_poly_norm (> a1 a2) (> b1 b2))   (is_poly_norm_arith (- a1 a2) (- b1 b2)))
-    ((is_poly_norm (>= a1 a2) (>= b1 b2)) (is_poly_norm_arith (- a1 a2) (- b1 b2)))
-    ((is_poly_norm (<= a1 a2) (<= b1 b2)) (is_poly_norm_arith (- a1 a2) (- b1 b2)))
-    ((is_poly_norm (< a1 a2) (< b1 b2))   (is_poly_norm_arith (- a1 a2) (- b1 b2)))
+    ((is_poly_norm (> a1 a2) (> b1 b2))   (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (>= a1 a2) (>= b1 b2)) (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (<= a1 a2) (<= b1 b2)) (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (< a1 a2) (< b1 b2))   (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
     ((is_poly_norm (= a1 a2) (= b1 b2))   (alf.ite (is_arith_type (alf.typeof a1)) 
                                           (alf.ite (is_arith_type (alf.typeof b1))
-                                            (is_poly_norm_arith (- a1 a2) (- b1 b2))
+                                            (is_poly_norm_arith_mod_pos (- a1 a2) (- b1 b2) false)
                                             false)
                                           false)) ; TODO: bv
     ((is_poly_norm a b)                   (alf.ite (is_arith_type (alf.typeof a)) 
