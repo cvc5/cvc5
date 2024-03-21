@@ -434,7 +434,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * elements of type ``(-> Int T1)`` where T1 is the type of
    * elements of A.
    * If the cardinality of A is n, then
-   * A is the disjoint union of {elements(i),1} for 1 <= i <= n.
+   * A is the disjoint union of {elements(i)} for 1 <= i <= n.
    * See BAGS_FOLD_UNION_DISJOINT.
    *
    * - Number of skolem indices: ``1``
@@ -520,7 +520,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_MAP_INDEX),
   /**
    * An uninterpreted function for bag.map operator:
-   * If the preimage of {y} in A is {uf(1), ..., uf(n)} (see BAGS_DISTINCT_ELEMENTS},
+   * If bag A is {uf(1), ..., uf(n)} (see BAGS_DISTINCT_ELEMENTS},
    * then the multiplicity of an element y in a bag ``(bag.map f A)`` is sum(n),
    * where sum: ``(-> Int Int)`` is a skolem function such that:
    * sum(0) = 0
