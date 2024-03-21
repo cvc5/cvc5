@@ -46,7 +46,7 @@
 
 ;;-------------------- Utilities
 
-; Head and tail for string concatenation. Fails if not a concatentation term.
+; Head and tail for string concatenation. Fails if not a concatenation term.
 (function sc_string_head ((t term)) term (nary_head f_str.++ t))
 (function sc_string_tail ((t term)) term (nary_tail f_str.++ t))
 
@@ -213,7 +213,7 @@
 
 ; A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
 ; For a regular expression (re.++ R1 ... Rn), this returns a pair of terms
-; where the first term is a concatentation (str.++ t1 ... tn) and the second
+; where the first term is a concatenation (str.++ t1 ... tn) and the second
 ; is a conjunction M of literals of the form (str.in_re ti Ri), such that
 ;   (str.in_re x (re.++ R1 ... Rn))
 ; is equivalent to

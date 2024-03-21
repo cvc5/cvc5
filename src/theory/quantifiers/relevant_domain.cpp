@@ -457,7 +457,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     {
       rdl.d_val.push_back(rAdd);
     }
-    // the positive occurence adds other terms
+    // the positive occurrence adds other terms
     if ((!hasPol || pol) && n[0].getType().isInteger())
     {
       if (n.getKind() == Kind::EQUAL)

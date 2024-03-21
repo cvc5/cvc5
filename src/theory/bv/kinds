@@ -49,7 +49,7 @@ operator BITVECTOR_SIZE 1: "Size of bitvector"
 ## size
 operator CONST_BITVECTOR_SYMBOLIC 2 "A symbolic bitvector constant. The first argument is its value (an integer), and the second value is its size (also an integer)."
 
-## concatentation kind
+## concatenation kind
 operator BITVECTOR_CONCAT 2: "concatenation of two or more bit-vectors"
 
 ## bit-wise kinds
@@ -185,7 +185,7 @@ typerule CONST_BITVECTOR ::cvc5::internal::theory::bv::BitVectorConstantTypeRule
 ## conversion to bit-vector from vector of Booleans kind
 typerule BITVECTOR_BB_TERM ::cvc5::internal::theory::bv::BitVectorToBVTypeRule
 
-## concatentation kind
+## concatenation kind
 typerule BITVECTOR_CONCAT ::cvc5::internal::theory::bv::BitVectorConcatTypeRule
 
 ## bit-wise kinds

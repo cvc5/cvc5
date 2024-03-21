@@ -302,7 +302,7 @@ class StringsEntail
   /**
    * Infers a conjunction of equalities that correspond to (str.contains x y)
    * if it can show that the length of y is greater or equal to the length of
-   * x. If y is a concatentation, we get x = y1 ++ ... ++ yn, the conjunction
+   * x. If y is a concatenation, we get x = y1 ++ ... ++ yn, the conjunction
    * is of the form:
    *
    * (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))

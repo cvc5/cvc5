@@ -59,7 +59,7 @@ class InstMatchGeneratorMulti : public IMGenerator
    *
    * Called during addInstantiations(...).
    * Indicates we produced a match m for child fromChildIndex
-   * addedLemmas is how many instantiations we succesfully send
+   * addedLemmas is how many instantiations we successfully send
    * via IMGenerator::sendInstantiation(...) calls.
    */
   void processNewMatch(InstMatch& m,
