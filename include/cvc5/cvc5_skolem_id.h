@@ -108,7 +108,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(ARRAY_DEQ_DIFF),
   /** 
    * The function for division by zero. This is semantically equivalent to the
-   * SMT-LIB term (lambda ((x Real)) (/ x 0.0)).
+   * SMT-LIB term ``(lambda ((x Real)) (/ x 0.0))``.
    *
    * - Number of skolem indices: ``0``
    * - Type: ``(-> Real Real)``
@@ -116,7 +116,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(DIV_BY_ZERO),
   /** 
    * The function for integer division by zero. This is semantically equivalent
-   * to the SMT-LIB term (lambda ((x Int)) (div x 0)).
+   * to the SMT-LIB term ``(lambda ((x Int)) (div x 0))``.
    *
    * - Number of skolem indices: ``0``
    * - Type: ``(-> Int Int)``
@@ -124,7 +124,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(INT_DIV_BY_ZERO),
   /** 
    * The function for integer modulus by zero. This is semantically equivalent
-   * to the SMT-LIB term (lambda ((x Int)) (mod x 0)).
+   * to the SMT-LIB term ``(lambda ((x Int)) (mod x 0))``.
    *
    * - Number of skolem indices: ``0``
    * - Type: ``(-> Int Int)``
@@ -139,9 +139,9 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(SQRT),
   /**
-   * Argument used to purify trancendental function app (f x).
-   * For (sin f), this is a variable that is assumed to be in phase with x that
-   * is between -pi and pi
+   * Argument used to purify trancendental function app ``(f x)``.
+   * For ``(sin x)``, this is a variable that is assumed to be in phase with
+   * ``x`` that is between ``-pi`` and ``pi``.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The application of a trancendental function.
@@ -183,7 +183,7 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(STRINGS_NUM_OCCUR),
   /** 
-   * A function k such that forall x = 0...n, (k x) is the end
+   * A function k such that for x = 0...n, (k x) is the end
    * index of the x^th occurrence of a string b in string a, where n is the
    * number of occurrences of b in a, and (= (k 0) 0). This is used to reason
    * about str.replace_all.
@@ -207,9 +207,9 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(STRINGS_NUM_OCCUR_RE),
   /** 
    * Analogous to STRINGS_OCCUR_INDEX, but for regular expressions.
-   * A function k such that forall x = 0...n, (k x) is the end
+   * A function k such that for x = 0...n, (k x) is the end
    * index of the x^th occurrence of a regular expression R in string a, where
-   * n is the number of occurrences of R in a, and (= (k 0) 0). This is used
+   * n is the number of occurrences of R in a, and ``(= (k 0) 0)``. This is used
    * to reason about str.replace_all_re.
    *
    * - Number of skolem indices: ``2``
@@ -219,10 +219,10 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(STRINGS_OCCUR_INDEX_RE),
   /**
-   * A function k: Int -> Int, where forall x = 0...n, (k x) is the length of
+   * A function k where for x = 0...n, ``(k x)`` is the length of
    * the x^th occurrence of R in a (excluding matches of empty strings) where R
    * is a regular expression, n is the number of occurrences of R in a, and
-   * (= (k 0) 0).
+   * ``(= (k 0) 0)``.
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The string to match.
@@ -267,7 +267,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(STRINGS_ITOS_RESULT),
   /**
    * A function used to define intermediate results of str.from_int
-   * applications. This is a function k of type (-> Int String) denoting the
+   * applications. This is a function k of type ``(-> Int String)`` denoting the
    * result of processing the first n characters of the argument.
    *
    * - Number of skolem indices: ``1``
@@ -276,8 +276,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
-   * An index containing a non-digit in a string, used when (str.to_int a) is
-   * equal to -1. This is an integer that returns an index for which the
+   * An index containing a non-digit in a string, used when ``(str.to_int a)``
+   * is equal to -1. This is an integer that returns an index for which the
    * argument string is not a digit if one exists, or is unconstrained otherwise.
    *
    * - Number of skolem indices: ``1``
@@ -291,13 +291,13 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * For string a and regular expression R, this skolem is the prefix of
    * string a before the first, shortest match of R in a. Formally, if
-   * (str.in_re a (re.++ (re.* re.allchar) R (re.* re.allchar))), then
+   * ``(str.in_re a (re.++ (re.* re.allchar) R (re.* re.allchar)))``, then
    * there exists strings k_pre, k_match, k_post such that:
-   *       (= a (str.++ k_pre k_match k_post)) and
-   *       (= (len k_pre) (indexof_re a R 0)) and
-   *       (forall ((l Int)) (=> (< 0 l (len k_match))
-   *         (not (str.in_re (substr k_match 0 l) R)))) and
-   *       (str.in_re k_match R)
+   *       ``(= a (str.++ k_pre k_match k_post))`` and
+   *       ``(= (len k_pre) (indexof_re a R 0))`` and
+   *       ``(forall ((l Int)) (=> (< 0 l (len k_match))
+   *         (not (str.in_re (substr k_match 0 l) R))))`` and
+   *       ``(str.in_re k_match R)``
    * This skolem is k_pre, and the proceeding two skolems are k_match and
    * k_post.
    *
@@ -328,10 +328,10 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(RE_FIRST_MATCH_POST),
   /**
-   * Regular expression unfold component: if (str.in_re a R), where R is
-   * (re.++ R0 ... Rn), then the RE_UNFOLD_POS_COMPONENT{a,R,i} is a string
-   * skolem ki such that (= a (str.++ k0 ... kn)) and (str.in_re k0 R0) for
-   * i = 0, ..., n.
+   * Regular expression unfold component: if ``(str.in_re a R)``, where R is
+   * ``(re.++ R0 ... Rn)``, then the RE_UNFOLD_POS_COMPONENT{a,R,i} is a string
+   * skolem ki such that ``(= a (str.++ k0 ... kn))`` and ``(str.in_re k0 R0)``
+   * for i = 0, ..., n.
    *
    * - Number of skolem indices: ``3``
    *   - ``1:`` The string.
@@ -342,7 +342,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(RE_UNFOLD_POS_COMPONENT),
   /**
    * An uninterpreted function for bag.card operator:
-   * To compute (bag.card A), we need a function that
+   * To compute ``(bag.card A)``, we need a function that
    * counts multiplicities of distinct elements. We call this function
    * combine of type Int -> Int where:
    * combine(0) = 0.
@@ -358,7 +358,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_CARD_COMBINE),  
   /**
    * An uninterpreted function for bag.card operator:
-   * To compute (bag.card A), we need a function for
+   * To compute ``(bag.card A)``, we need a function for
    * distinct elements in A. We call this function
    * elements of type Int -> T where T is the type of
    * elements of A.
@@ -370,7 +370,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_CARD_ELEMENTS),
   /**
    * An uninterpreted function for bag.card operator:
-   * To compute (bag.card A), we need to guess n
+   * To compute ``(bag.card A)``, we need to guess n
    * the number of distinct elements in A.
    *
    * - Number of skolem indices: ``1``
@@ -380,7 +380,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_CARD_N),
   /**
    * An uninterpreted function for bag.card operator:
-   * To compute (bag.card A), we need a function for
+   * To compute ``(bag.card A)``, we need a function for
    * distinct elements in A which is given by elements defined in
    * BAGS_CARD_ELEMENTS.
    * We also need unionDisjoint: Int -> (Bag T) to compute
@@ -397,7 +397,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_CARD_UNION_DISJOINT),
   /**
    * An uninterpreted function for bag.fold operator:
-   * To compute (bag.fold f t A), we need to guess the cardinality n of
+   * To compute ``(bag.fold f t A)``, we need to guess the cardinality n of
    * bag A using a skolem function with BAGS_FOLD_CARD id.
    *
    * - Number of skolem indices: ``1``
@@ -407,7 +407,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_FOLD_CARD),
   /**
    * An uninterpreted function for bag.fold operator:
-   * To compute (bag.fold f t A), we need a function that
+   * To compute ``(bag.fold f t A)``, we need a function that
    * accumulates intermidiate values. We call this function
    * combine of type Int -> T2 where:
    * combine(0) = t
@@ -426,7 +426,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_FOLD_COMBINE),
   /**
    * An uninterpreted function for bag.fold operator:
-   * To compute (bag.fold f t A), we need a function for
+   * To compute ``(bag.fold f t A)``, we need a function for
    * elements of A. We call this function
    * elements of type ``(-> Int T1)`` where T1 is the type of
    * elements of A.
@@ -456,15 +456,14 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(BAGS_FOLD_UNION_DISJOINT),
   /**
-   * An interpreted function for bag.choose operator:
-   * (bag.choose A) is expanded as
-   * (witness ((x elementType))
+   * An interpreted function ``uf`` for bag.choose operator:
+   * ``(bag.choose A)`` is expanded as
+   * ``(witness ((x elementType))
    *    (ite
-   *      (= A (as emptybag (Bag E)))
+   *      (= A (as emptybag (Bag T)))
    *      (= x (uf A))
-   *      (and (>= (bag.count x A) 1) (= x (uf A)))
-   * where uf is this skolem function, and E is the type of elements
-   * of A.
+   *      (and (>= (bag.count x A) 1) (= x (uf A)))``
+   * where ``T`` is the type of elements of A.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` the bag to chose from, of type (Bag T).
@@ -489,8 +488,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(BAGS_DISTINCT_ELEMENTS_SIZE),
  /**
-   * A skolem for the preimage of an element y in (bag.map f A) such that
-   * (= (f x) y) where f: ``(-> E T)`` is an injective function.
+   * A skolem for the preimage of an element y in ``(bag.map f A)`` such that
+   * ``(= (f x) y)`` where f: ``(-> E T)`` is an injective function.
    *
    * - Number of skolem indices: ``3``
    *   - ``1:`` the function f of type ``(-> E T)``.
@@ -501,7 +500,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(BAGS_MAP_PREIMAGE_INJECTIVE),
   /**
    * A skolem variable for the index that is unique per terms
-   * (bag.map f A), y, size, y, e where:
+   * ``(bag.map f A)``, y, e where:
    * f: ``(-> E T)``,
    * A: ``(Bag E)``,
    * y: ``T``,
@@ -519,8 +518,8 @@ enum ENUM(SkolemFunId) : uint32_t
   /**
    * An uninterpreted function for bag.map operator:
    * If the preimage of {y} in A is {uf(1), ..., uf(n)} (see BAGS_DISTINCT_ELEMENTS},
-   * then the multiplicity of an element y in a bag (map f A) is sum(n),
-   * where sum: Int -> Int is a skolem function such that:
+   * then the multiplicity of an element y in a bag ``(bag.map f A)`` is sum(n),
+   * where sum: ``(-> Int Int)`` is a skolem function such that:
    * sum(0) = 0
    * sum(i) = sum (i-1) + (bag.count (uf i) A)
    *
@@ -568,7 +567,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * resulting partition. 
    *
    * - Number of skolem indices: ``1``
-   *   - ``1:`` a relation of the form ((_ rel.group n1 ... nk) A).
+   *   - ``1:`` a relation of the form ``((_ rel.group n1 ... nk) A)``.
    * - Type: ``(-> T (Relation T))``
    */
   EVALUE(RELATIONS_GROUP_PART),
@@ -586,11 +585,11 @@ enum ENUM(SkolemFunId) : uint32_t
   /**
    * An interpreted function for set.choose operator:
    * (set.choose A) is expanded as
-   * (witness ((x elementType))
+   * ``(witness ((x elementType))
    *    (ite
    *      (= A (as set.empty (Set E)))
    *      (= x (uf A))
-   *      (and (set.member x A) (= x uf(A)))
+   *      (and (set.member x A) (= x uf(A)))``
    * where uf: (Set E) -> E is a skolem function, and E is the type of elements
    * of A
    *
@@ -640,7 +639,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(SETS_FOLD_COMBINE),
   /**
    * An uninterpreted function for set.fold operator:
-   * To compute (set.fold f t A), we need a function for
+   * To compute ``(set.fold f t A)``, we need a function for
    * elements of A. We call this function
    * elements of type ``(-> Int T)`` where T is the type of
    * elements of A.
@@ -655,7 +654,7 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(SETS_FOLD_ELEMENTS),
   /**
    * An uninterpreted function for set.fold operator:
-   * To compute (set.fold f t A), we need a function for
+   * To compute ``(set.fold f t A)``, we need a function for
    * elements of A which is given by elements defined in
    * SETS_FOLD_ELEMENTS.
    * We also need unionFn: ``(-> Int (Set E))`` to compute
