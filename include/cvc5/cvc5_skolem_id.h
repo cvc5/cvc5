@@ -528,6 +528,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``1:`` the function f of type ``(-> E T)``.
    *   - ``2:`` the bag argument A of ``(Bag E)``.
    *   - ``3:`` the element argument e type ``E``.
+   * - Type: ``(-> Int Int)``
    */
   EVALUE(BAGS_MAP_SUM),
   /** 
@@ -558,6 +559,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem indices: ``2``
    *   - ``1:`` a group term of the form ``((_ table.group n1 ... nk) A)``.
    *   - ``2:`` a table B of type ``(Table T)``.
+   * - Type: ``T``
    */
   EVALUE(TABLES_GROUP_PART_ELEMENT),
   /**
@@ -574,9 +576,11 @@ enum ENUM(SkolemFunId) : uint32_t
    * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
    * and a part B of type (Relation T), this function returns a skolem element
    * that is a member of B if B is not empty.
+   *
    * - Number of skolem indices: ``2``
    *   - ``1:`` a group term of the form ``((_ rel.group n1 ... nk) A)``.
    *   - ``2:`` a relation B of type ``(Relation T)``.
+   * - Type: ``T``
    */
   EVALUE(RELATIONS_GROUP_PART_ELEMENT),
   /**
@@ -612,6 +616,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` the set argument A.
+   * - Type: ``Int``
    */
   EVALUE(SETS_FOLD_CARD),
   /**
@@ -637,14 +642,15 @@ enum ENUM(SkolemFunId) : uint32_t
    * An uninterpreted function for set.fold operator:
    * To compute (set.fold f t A), we need a function for
    * elements of A. We call this function
-   * elements of type Int -> T1 where T1 is the type of
+   * elements of type ``(-> Int T)`` where T is the type of
    * elements of A.
    * If the cardinality of A is n, then
    * A is the union of {elements(i)} for 1 <= i <= n.
    * See SETS_FOLD_UNION_DISJOINT.
    *
    * - Number of skolem indices: ``1``
-   *   - ``1:`` a set argument A.
+   *   - ``1:`` a set argument A of type ``(Set T)``.
+   * - Type: ``(-> Int T)``
    */
   EVALUE(SETS_FOLD_ELEMENTS),
   /**
@@ -669,8 +675,9 @@ enum ENUM(SkolemFunId) : uint32_t
    * A, and it is mapped to y by f.
    *
    * - Number of skolem indices: ``2``
-   *   - ``1:`` a map term of the form ``(set.map f A)``
+   *   - ``1:`` a map term of the form ``(set.map f A)`` where A is ``(Set E)``
    *   - ``2:`` the element argument y.
+   * - Type: ``E``
    */
   EVALUE(SETS_MAP_DOWN_ELEMENT),
   //================================================= Unknown rule
