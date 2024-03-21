@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,7 @@ namespace cvc5 {
  * 
  * Say that skolem k witnesses the disequality between two arrays A and B
  * of type ``(Array Int Int)``. Then, k is a term whose skolem identifier is
- * ``ARRAY_DEQ_DIFF``, skolem indicies are A and B, and whose type is ``Int``.
+ * ``ARRAY_DEQ_DIFF``, skolem indices are A and B, and whose type is ``Int``.
  * 
  * Note the type of k is not ``(-> (Array Int Int) (Array Int Int) Int)``.
  * Intuitively, this is due to the fact that cvc5 does not reason about array
@@ -67,7 +67,7 @@ namespace cvc5 {
  * to k apart from having the same skolem identifier.
  * 
  * In contrast, cvc5 reasons about division-by-zero using a single skolem
- * function whose identifier is ``DIV_BY_ZERO``. This means its skolem indicies
+ * function whose identifier is ``DIV_BY_ZERO``. This means its skolem indices
  * are empty and the skolem has a functional type ``(-> Real Real)``.
  *
  * \internal
@@ -237,7 +237,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * Difference index for string disequalities, such that k is the witness for
    * the inference
    *  (=> (not (= a b)) (not (= (substr a k 1) (substr b k 1))))
-   * where note that `k` may be out of bounds for at most of of a,b.
+   * where note that `k` may be out of bounds for at most of a,b.
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The first string.
