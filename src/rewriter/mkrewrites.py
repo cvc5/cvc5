@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Haniel Barbosa, Andrew Reynolds, Vinícius Camillo
+#   Haniel Barbosa, Leni Aniva, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -19,6 +19,8 @@ import logging
 import os
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
+from pathlib import Path
 from rw_parser import Parser
 from node import *
 from util import *
@@ -222,35 +224,50 @@ def preprocess_rule(rule, decls):
                                        result[rule.rhs_context]])
     type_check(rule.rhs_context)
 
+@dataclass
+class RewriteDb:
+    name: str
+    filename: str
+    ids: list
+    printer_code: list
 
-def gen_rewrite_db(args):
+    @property
+    def function_name(self):
+        return f"addRewrites_{self.name}"
+
+
+def gen_individual_rewrite_db(rewrites_file: Path, template):
+    """
+    Create rewrite rules from one file only.
+    """
     block_tpl = '''
         {{
             // from {filename}
             {block_code}
         }}
     '''
+    # calculate the output file name
+    output_name = f"{rewrites_file.parent.name}-{rewrites_file.name}"
+    assert output_name.replace('-', '_').isidentifier(), f"{output_name} must be an identifier"
+    output_file = f"rewrites-{output_name}.cpp"
+
+    parser = Parser()
+    with open(rewrites_file, 'r') as f:
+        rules = parser.parse_rules(f.read())
+    symbols = parser.get_symbols()
 
     decls = []
-    rewrites = []
-    for rewrites_file in args.rewrites_files:
-        parser = Parser()
-        rules = parser.parse_rules(rewrites_file.read())
-        symbols = parser.get_symbols()
+    for rule in rules:
+        decls.extend(rule.bvars)
+        validate_rule(rule)
+        preprocess_rule(rule, decls)
 
-        file_decls = []
-        for rule in rules:
-            file_decls.extend(rule.bvars)
-            validate_rule(rule)
-            preprocess_rule(rule, file_decls)
-
-        rewrites.append(Rewrites(rewrites_file.name, file_decls, rules))
-        decls.extend(file_decls)
+    rewrites = Rewrites(rewrites_file, decls, rules)
 
     defns = {}
     expr_counts = defaultdict(lambda: 0)
     to_visit = [
-        expr for rewrite in rewrites for rule in rewrite.rules
+        expr for rule in rewrites.rules
         for expr in [rule.cond, rule.lhs, rule.rhs, rule.rhs_context]
     ]
     while to_visit:
@@ -277,19 +294,59 @@ def gen_rewrite_db(args):
     ids = []
     printer_code = []
     rules_code = []
-    for rewrite_file in rewrites:
-        block = []
-        for rule in rewrite_file.rules:
-            block.append(gen_rewrite_db_rule(defns, rule))
 
-            enum = rule.get_enum()
-            ids.append(enum)
-            printer_code.append(
-                f'case DslProofRule::{enum}: return "{rule.name}";')
+    block = []
+    for rule in rewrites.rules:
+        block.append(gen_rewrite_db_rule(defns, rule))
 
-        rules_code.append(
-            block_tpl.format(filename=rewrite_file.filename,
-                             block_code='\n'.join(block)))
+        enum = rule.get_enum()
+        ids.append(enum)
+        printer_code.append(
+            f'case DslProofRule::{enum}: return "{rule.name}";')
+
+    rules_code.append(
+        block_tpl.format(filename=output_file,
+                         block_code='\n'.join(block)))
+
+    db = RewriteDb(
+        name=output_name.replace('-', '_'),
+        filename=output_file,
+        ids=ids,
+        printer_code=printer_code,
+    )
+    with open(output_file, 'w') as f:
+        f.write(
+            format_cpp(
+                template.format(rewrite_name=db.function_name,
+                                decls='\n'.join(decls_code),
+                                defns='\n'.join(defns_code),
+                                rules='\n'.join(rules_code))))
+    return db
+
+def gen_rewrite_db(args):
+    block_tpl = '''
+        {{
+            // from {filename}
+            {block_code}
+        }}
+    '''
+
+    decls = []
+    rewrites = []
+    individual_rewrites_cpp = read_tpl(args.src_dir, 'theory_rewrites_template.cpp')
+
+    printer_code = []
+    ids = []
+    printer_code = []
+
+    decl_individual_rewrites = []
+    call_individual_rewrites = []
+    for rewrites_file in args.rewrites_files:
+        db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp)
+        ids += db.ids
+        printer_code += db.printer_code
+        decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
+        call_individual_rewrites.append(f"{db.function_name}(db);")
 
     rewrites_h = read_tpl(args.src_dir, 'rewrites_template.h')
     with open('rewrites.h', 'w') as f:
@@ -299,9 +356,8 @@ def gen_rewrite_db(args):
     with open('rewrites.cpp', 'w') as f:
         f.write(
             format_cpp(
-                rewrites_cpp.format(decls='\n'.join(decls_code),
-                                    defns='\n'.join(defns_code),
-                                    rules='\n'.join(rules_code),
+                rewrites_cpp.format(decl_individual_rewrites='\n'.join(decl_individual_rewrites),
+                                    call_individual_rewrites='\n'.join(call_individual_rewrites),
                                     printer='\n'.join(printer_code))))
 
 
@@ -313,7 +369,7 @@ def main():
     parser_compile.add_argument("src_dir", help="Source directory")
     parser_compile.add_argument("rewrites_files",
                                 nargs='+',
-                                type=argparse.FileType("r"),
+                                type=str,
                                 help="Rule files")
     parser_compile.set_defaults(func=gen_rewrite_db)
 

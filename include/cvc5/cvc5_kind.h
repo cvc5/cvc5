@@ -590,6 +590,27 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(DIVISION),
   /**
+   * Real division, division by 0 defined to be 0, left associative.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of Sort Real
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   */
+  EVALUE(DIVISION_TOTAL),
+  /**
    * Integer division, division by 0 undefined, left associative.
    *
    * - Arity: ``n > 1``
@@ -606,6 +627,27 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_DIVISION),
+  /**
+   * Integer division, division by 0 defined to be 0, left associative.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   */
+  EVALUE(INTS_DIVISION_TOTAL),
   /**
    * Integer modulus, modulus by 0 undefined.
    *
@@ -624,6 +666,28 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_MODULUS),
+  /**
+   * Integer modulus, modulus by 0 defined to be 0.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of Sort Int
+   *   - ``2:`` Term of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   */
+  EVALUE(INTS_MODULUS_TOTAL),
   /**
    * Absolute value.
    *
@@ -5627,18 +5691,18 @@ const char* cvc5_kind_to_string(Cvc5Kind kind);
  * Get the string representation of a given kind.
  * @param kind The kind
  * @return The string representation.
- * @note This function is deprecated and replaced by
- *       `std::to_string(Kind kind)`. It will be removed in a future release.
+ * @warning This function is deprecated and replaced by
+ *          `std::to_string(Kind kind)`. It will be removed in a future release.
  */
-[[deprecated("use std::to_string(Kind) instead.")]] std::string kindToString(
-    Kind kind) CVC5_EXPORT;
+[[deprecated("use std::to_string(Kind) instead.")]] CVC5_EXPORT std::string
+kindToString(Kind kind);
 /**
  * Serialize a kind to given stream.
  * @param out  The output stream.
  * @param kind The kind to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, Kind kind) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, Kind kind);
 
 }  // namespace cvc5
 
@@ -5927,19 +5991,19 @@ const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
  * Get the string representation of a given kind.
  * @param k the sort kind
  * @return the string representation of kind k
- * @note This function is deprecated and replaced by
- *       `std::to_string(SortKind kind)`. It will be removed in a future
- *       release.
+ * @warning This function is deprecated and replaced by
+ *          `std::to_string(SortKind kind)`. It will be removed in a future
+ *          release.
  */
-[[deprecated("use std::to_string(SortKind) instead.")]] std::string
-sortKindToString(SortKind k) CVC5_EXPORT;
+[[deprecated("use std::to_string(SortKind) instead.")]] CVC5_EXPORT std::string
+sortKindToString(SortKind k);
 /**
  * Serialize a kind to given stream.
  * @param out the output stream
  * @param k the sort kind to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, SortKind k) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SortKind k);
 
 }  // namespace cvc5
 
