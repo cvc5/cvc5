@@ -491,14 +491,14 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(BAGS_DISTINCT_ELEMENTS_SIZE),
  /**
-   * A skolem x for the preimage of an element y in (bag.map f A) such that
-   * (= (f x) y) where f: ``E -> T`` is an injective function.
-   * The returned skolem has type E such that. 
+   * A skolem for the preimage of an element y in (bag.map f A) such that
+   * (= (f x) y) where f: ``(-> E T)`` is an injective function.
    *
    * - Number of skolem indices: ``3``
-   *   - ``1:`` the function f of type ``E -> T``.
+   *   - ``1:`` the function f of type ``(-> E T)``.
    *   - ``2:`` the bag argument A of ``(Bag E)``.
    *   - ``3:`` the element argument y type ``T``.
+   * - Type: ``E``
    */
   EVALUE(BAGS_MAP_PREIMAGE_INJECTIVE),
   /**
