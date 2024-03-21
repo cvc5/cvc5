@@ -37,7 +37,6 @@ from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Proof as c_Proof
 from cvc5 cimport Sort as c_Sort
-from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
 from cvc5 cimport wstring as c_wstring
@@ -50,6 +49,7 @@ from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
 from cvc5proofrules cimport ProofRule as c_ProofRule
+from cvc5skolemids cimport SkolemFunId as c_SkolemFunId
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
