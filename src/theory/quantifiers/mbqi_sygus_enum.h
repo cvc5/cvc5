@@ -98,9 +98,6 @@ class MbqiSygusEnum : protected EnvObj
                               std::vector<Node>& mvs,
                               const std::map<Node, Node>& mvFreshVar);
   
-  /* For collecting global terms from all available assertions. */
-  void collectGlobalSymbols();
-
  private:
   MQuantInfo& getOrMkQuantInfo(const Node& q);
   std::map<Node, MQuantInfo> d_qinfo;
