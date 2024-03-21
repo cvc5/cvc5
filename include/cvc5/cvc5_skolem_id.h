@@ -61,10 +61,10 @@ namespace cvc5 {
  * 
  * Note the type of k is not ``(-> (Array Int Int) (Array Int Int) Int)``.
  * Intuitively, this is due to the fact that cvc5 does not reason about array
- * diff skolems as a function symbol. An array diff skolem that witnesses the
- * disequality of arrays C and D is a separate skolem function k2 from this
- * family, where internally k2 has no relation to k apart from their formal
- * definition.
+ * diff skolem as a function symbol. Furthermore, the array diff skolem that
+ * witnesses the disequality of arrays C and D is a separate skolem function k2
+ * from this family, also of type ``Int``, where internally k2 has no relation
+ * to k apart from having the same skolem identifier.
  * 
  * In contrast, cvc5 reasons about division-by-zero using a single skolem
  * function whose identifier is DIV_BY_ZERO. This means its skolem indicies
