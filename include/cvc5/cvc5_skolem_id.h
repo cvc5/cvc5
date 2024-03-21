@@ -71,7 +71,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * 
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The term t that this skolem purifies.
-   * - Type: the type of t
+   * - Type: The type of t.
    */
   EVALUE(PURIFY),
   /** 
@@ -136,7 +136,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``2:`` A term that represents the sort of field we are extracting.
    *   - ``3:`` An integer n such that this shared selector returns the n^th
    *            subfield term of the given sort.
-   * - Type: a selector sort whose domain is given by first argument,
+   * - Type: A selector sort whose domain is given by first argument,
    *         and whose codomain is the given by the second argument.
    */
   EVALUE(SHARED_SELECTOR),
@@ -217,7 +217,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The first string.
    *   - ``2:`` The second string.
-   * - Type: Int
+   * - Type: ``Int``
    */
   EVALUE(STRINGS_DEQ_DIFF),
   /**
@@ -239,7 +239,7 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` The argument to str.from_int.
-   * - Type: (-> Int Int)
+   * - Type: ``(-> Int Int)``
    */
   EVALUE(STRINGS_ITOS_RESULT),
   /**
@@ -281,7 +281,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * - Number of skolem arguments: ``2``
    *   - ``1:`` The string.
    *   - ``2:`` The regular expression to match.
-   * - Type: String
+   * - Type: ``String``
    */
   EVALUE(RE_FIRST_MATCH_PRE),
   /**
@@ -411,7 +411,8 @@ enum ENUM(SkolemFunId) : uint32_t
    * See BAGS_FOLD_UNION_DISJOINT.
    *
    * - Number of skolem arguments: ``1``
-   *   - ``1:`` a bag argument A.
+   *   - ``1:`` a bag argument A of type ``(Bag T1)``
+   * - Type: ``(-> Int T1)``
    */
   EVALUE(BAGS_FOLD_ELEMENTS),
   /**
@@ -446,10 +447,12 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(BAGS_CHOOSE),
   /**
-   * An uninterpreted function for distinct elements of a bag A.
+   * An uninterpreted function for distinct elements of a bag A, which returns
+   * the n^th distinct element of the bag.
    *
    * - Number of skolem arguments: ``1``
-   * - ``1:`` the bag argument A.
+   *   - ``1:`` the bag argument A of type ``(Bag T)``.
+   * - Type: ``(-> Int T)``
    */
   EVALUE(BAGS_DISTINCT_ELEMENTS),
   /**
@@ -457,21 +460,18 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem arguments: ``1``
    *   - ``1:`` the bag argument A.
+   * - Type: ``Int``
    */
   EVALUE(BAGS_DISTINCT_ELEMENTS_SIZE),
-  /**
-   * An uninterpreted function for bag.map operator:
-   * To compute (bag.count y (bag.map f A)), we need to find the distinct
-   * elements in A that are mapped to y by function f (i.e., preimage of {y}).
-   * If n is the cardinality of this preimage, then
-   * the preimage is the set {uf(1), ..., uf(n)}
-   * where uf: Int -> E is a skolem function, and E is the type of elements of
-   * A. This is used only when f is injective.
+ /**
+   * A skolem x for the preimage of an element y in (bag.map f A) such that
+   * (= (f x) y) where f: ``E -> T`` is an injective function.
+   * The returned skolem has type E such that. 
    *
    * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type ``(-> E T)``.
+   *   - ``1:`` the function f of type ``E -> T``.
    *   - ``2:`` the bag argument A of ``(Bag E)``.
-   *   - ``3:`` the element argument e type ``E``.
+   *   - ``3:`` the element argument y type ``T``.
    */
   EVALUE(BAGS_MAP_PREIMAGE_INJECTIVE),
   /**
