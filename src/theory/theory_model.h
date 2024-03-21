@@ -399,6 +399,8 @@ class TheoryModel : protected EnvObj
    * if n is a base model value.
    */
   bool isBaseModelValue(TNode n) const;
+  /** Is assignable function. This returns true if n is not a lambda. */
+  bool isAssignableUf(const Node& n) const;
 
  private:
   /** cache for getModelValue */

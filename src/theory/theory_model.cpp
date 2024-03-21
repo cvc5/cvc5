@@ -17,7 +17,6 @@
 #include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -719,7 +718,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     while( !eqc_i.isFinished() ) {
       Node n = *eqc_i;
       // if an unassigned variable function
-      if (n.getKind() != Kind::LAMBDA && !hasAssignedFunctionDefinition(n))
+      if (isAssignableUf(n) && !hasAssignedFunctionDefinition(n))
       {
         d_uf_models[n] = f_def;
         Trace("model-builder") << "  Assigning function (" << n << ") to function definition of " << f << std::endl;
@@ -744,7 +743,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     Node n = it->first;
     Assert(!n.isNull());
     // lambdas do not need assignments
-    if (n.getKind() == Kind::LAMBDA)
+    if (!isAssignableUf(n))
     {
       continue;
     }
@@ -847,6 +846,11 @@ bool TheoryModel::isBaseModelValue(TNode n) const
     return true;
   }
   return false;
+}
+
+bool TheoryModel::isAssignableUf(const Node& n) const
+{
+  return n.getKind()!=Kind::LAMBDA;
 }
 
 bool TheoryModel::isValue(TNode n) const

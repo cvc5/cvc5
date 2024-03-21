@@ -1418,7 +1418,6 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   }
 
   // construct function values
-  std::map<Node, Node>::iterator itc;
   for (unsigned k = 0; k < funcs_to_assign.size(); k++)
   {
     Node f = funcs_to_assign[k];
