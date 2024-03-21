@@ -677,7 +677,7 @@ enum ENUM(SkolemFunId) : uint32_t
    * A, and it is mapped to y by f.
    *
    * - Number of skolem indices: ``2``
-   *   - ``1:`` a map term of the form ``(set.map f A)`` where A is ``(Set E)``
+   *   - ``1:`` a map term of the form ``(set.map f A)`` where A of type ``(Set E)``
    *   - ``2:`` the element argument y.
    * - Type: ``E``
    */
@@ -713,10 +713,10 @@ size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
 #else
 
 /**
- * Writes a proof rule name to a stream.
+ * Writes a skolem id to a stream.
  *
  * @param out The stream to write to
- * @param id The proof rule to write to the stream
+ * @param id The skolem id to write to the stream
  * @return The stream
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SkolemFunId id);
@@ -731,10 +731,10 @@ struct CVC5_EXPORT hash<cvc5::SkolemFunId>
 {
   /**
    * Hashes a SkolemFunId to a size_t.
-   * @param rule The proof rule.
+   * @param id The skolem id.
    * @return The hash value.
    */
-  size_t operator()(cvc5::SkolemFunId rule) const;
+  size_t operator()(cvc5::SkolemFunId id) const;
 };
 /**
  * Get the string representation of a given skolem identifier.
