@@ -564,3 +564,14 @@ def test_sort_scoped_tostring(tm):
     assert str(uninterp_sort) == name
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name
+
+def test_sort_substitute(tm):
+    sortVar0 = tm.mkParamSort("T0")
+    sortVar1 = tm.mkParamSort("T1")
+    intSort = tm.getIntegerSort()
+    realSort = tm.getRealSort()
+    arraySort0 = tm.mkArraySort(sortVar0, sortVar0)
+    arraySort1 = tm.mkArraySort(sortVar0, sortVar1)
+    # Now create instantiations of the defined sorts
+    arraySort0.substitute(sortVar0, intSort)
+    arraySort1.substitute([sortVar0, sortVar1], [intSort, realSort])

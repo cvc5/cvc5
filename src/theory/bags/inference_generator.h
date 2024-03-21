@@ -230,26 +230,35 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (and
    *   (= (sum 0) 0)
-   *   (= (sum preImageSize) (bag.count e skolem))
-   *   (>= preImageSize 0)
-   *   (forall ((i Int))
-   *          (let ((uf_i (uf i)))
-   *            (let ((bag.count_uf_i (bag.count uf_i A)))
-   *              (=>
-   *               (and (>= i 1) (<= i preImageSize))
-   *               (and
-   *                 (= (f uf_i) e)
-   *                 (>= count_uf_i 1)
-   *                 (= (sum i) (+ (sum (- i 1)) count_uf_i))
-   *                 (forall ((j Int))
-   *                   (or
-   *                     (not (and (< i j) (<= j preImageSize)))
-   *                     (not (= (uf i) (uf j)))) )
-   *                 ))))))
+   *   (= (sum size) (bag.count e skolem))
+   *   (>= size 0)
+   *   (forall
+   *    ((i Int))
+   *    (let ((u_i (u i)))
+   *      (let ((bag.count_u_i (bag.count u_i A)))
+   *        (=>
+   *         (and (>= i 1) (<= i size))
+   *         (and
+   *          (forall ((j Int))
+   *                  (or
+   *                   (not (and (< i j) (<= j size)))
+   *                   (not (= (u i) (u j)))))
+   *          (or
+   *           (and
+   *            (= (f u_i) e)
+   *            (>= count_u_i 1)
+   *            (= (sum i) (+ (sum (- i 1)) count_u_i))
+   *            (forall ((j Int))
+   *                    (or
+   *                     (not (and (< i j) (<= j size)))
+   *                     (not (= (u i) (u j))))))
+   *           (and
+   *            (distinct (f u_i) e)
+   *            (= count_u_i 0)
+   *            (= (sum i) (sum (- i 1)))))))))))
    * where uf: Int -> E is an uninterpreted function from integers to the
-   * type of the elements of A
-   * preImageSize is the cardinality of the distinct elements in A that are
-   * mapped to e by function f (i.e., preimage of {e})
+   * type of the elements of A,
+   * size is the cardinality of the distinct elements in A,
    * sum: Int -> Int is a function that aggregates the multiplicities of the
    * preimage of e,
    * and skolem is a fresh variable equals (bag.map f A))
@@ -285,8 +294,7 @@ class InferenceGenerator
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param uf is an uninterpreted function Int -> E
-   * @param preImageSize is the cardinality of the distinct elements in A that
-   * are mapped to y by function f (i.e., preimage of {y})
+   * @param size is the cardinality of the distinct elements in A.
    * @param y is an element of type T
    * @param e is an element of type E
    * @return an inference that represents the following implication
@@ -295,12 +303,12 @@ class InferenceGenerator
    *   (or
    *     (not (= (f x) y)
    *     (and
-   *       (>= skolem 1)
-   *       (<= skolem preImageSize)
-   *       (= (uf skolem) x)))))
-   * where skolem is a fresh variable
+   *       (>= k 1)
+   *       (<= k size)
+   *       (= (uf k) x)))))
+   * where k is a fresh variable
    */
-  InferInfo mapUp2(Node n, Node uf, Node preImageSize, Node y, Node x);
+  InferInfo mapUp2(Node n, Node uf, Node size, Node y, Node x);
 
   /**
    * @param n is (bag.filter p A) where p is a function (-> E Bool),
