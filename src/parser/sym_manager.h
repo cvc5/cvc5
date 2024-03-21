@@ -172,11 +172,11 @@ class CVC5_EXPORT SymManager
   /**
    * @return The sorts we have declared that should be printed in the model.
    */
-  std::vector<cvc5::Sort> getModelDeclareSorts() const;
+  std::vector<cvc5::Sort> getDeclaredSorts() const;
   /**
    * @return The terms we have declared that should be printed in the model.
    */
-  std::vector<cvc5::Term> getModelDeclareTerms() const;
+  std::vector<cvc5::Term> getDeclaredTerms() const;
   /**
    * @return The functions we have declared that should be printed in a response
    * to check-synth.

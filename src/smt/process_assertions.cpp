@@ -242,7 +242,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   }
 
   // rephrasing normal inputs as sygus problems
-  if (options().quantifiers.sygusInference)
+  if (options().quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     applyPass("sygus-infer", ap);
   }

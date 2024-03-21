@@ -1,6 +1,6 @@
 (set-logic ALL)
 (set-info :status sat)
-(set-option :sygus-inference true)
+(set-option :sygus-inference try)
 (set-option :sets-infer-as-lemmas false)
 (declare-fun a () (Set Int))
 (declare-fun b () (Set Int))
