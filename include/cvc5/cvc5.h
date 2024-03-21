@@ -1878,7 +1878,7 @@ class CVC5_EXPORT Term
    * @note Asserts isSkolem().
    * @warning This function is experimental and may change in future versions.
    * @return The skolem indices of this term. This is list of terms that the
-   * skolem function is identifier by. For example, the array diff skolem
+   * skolem function is indexed by. For example, the array diff skolem
    * `SkolemFunId::ARRAY_DEQ_DIFF` is indexed by two arrays.
    */
   std::vector<Term> getSkolemIndices() const;

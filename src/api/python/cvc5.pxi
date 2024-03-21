@@ -5459,7 +5459,7 @@ cdef class Term:
                          versions.
 
            :return: The skolem indices of this term. This is list of terms that
-            the skolem function is identifier by. For example, the array diff
+            the skolem function is indexed by. For example, the array diff
             skolem `SkolemFunId::ARRAY_DEQ_DIFF` is indexed by two arrays.
         """
         indices = []
