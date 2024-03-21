@@ -1069,8 +1069,9 @@ Java_io_github_cvc5_Term_getRealAlgebraicNumberUpperBound(JNIEnv* env,
  * Method:    isSkolem
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isSkolem(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isSkolem(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -1084,15 +1085,14 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isSkolem(
  * Signature: (J)I;
  */
 JNIEXPORT jint JNICALL Java_io_github_cvc5_Term_getSkolemId(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+                                                            jobject,
+                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
   return static_cast<jint>(current->getSkolemId());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
-
 
 /*
  * Class:     io_github_cvc5_Term
