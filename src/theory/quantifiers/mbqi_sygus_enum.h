@@ -39,6 +39,7 @@ class MVarInfo
 {
  public:
   void initialize(Env& env,
+                  InstStrategyMbqi& d_parent,
                   const Node& q,
                   const Node& v,
                   const std::vector<Node>& etrules);
@@ -58,7 +59,7 @@ class MVarInfo
 class MQuantInfo
 {
  public:
-  void initialize(Env& env, const Node& q);
+  void initialize(Env& env, InstStrategyMbqi& d_parent, const Node& q);
   /** Get indicies of variables to instantiate */
   std::vector<size_t> getInstIndicies();
   /** Get indicies of variables not to instantiate */
@@ -96,7 +97,7 @@ class MbqiSygusEnum : protected EnvObj
                               const std::vector<Node>& vars,
                               std::vector<Node>& mvs,
                               const std::map<Node, Node>& mvFreshVar);
-
+  
  private:
   MQuantInfo& getOrMkQuantInfo(const Node& q);
   std::map<Node, MQuantInfo> d_qinfo;

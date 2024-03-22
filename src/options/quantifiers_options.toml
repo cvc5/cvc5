@@ -200,6 +200,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "experimental option for models in mbqi"
 
+[[option]]
+  name       = "globalSyms"
+  category   = "expert"
+  long       = "global-syms"
+  type       = "bool"
+  default    = "false"
+  help       = "collecting global symbols from all available assertions"
+
 #### E-matching options
 
 [[option]]
