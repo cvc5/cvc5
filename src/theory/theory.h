@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -139,11 +139,6 @@ class Theory : protected EnvObj
    * The default function returns all the pairs among the shared variables.
    */
   virtual void computeCareGraph();
-
-  /**
-   * A list of shared terms that the theory has.
-   */
-  context::CDList<TNode> d_sharedTerms;
 
   /**
    * Construct a Theory.
@@ -734,31 +729,6 @@ class Theory : protected EnvObj
   typedef context::CDList<TNode>::const_iterator shared_terms_iterator;
 
   /**
-   * Provides access to the shared terms, primarily intended for theory
-   * debugging purposes.
-   *
-   * @return the iterator to the beginning of the shared terms list
-   */
-  shared_terms_iterator shared_terms_begin() const
-  {
-    return d_sharedTerms.begin();
-  }
-
-  /**
-   * Provides access to the facts queue, primarily intended for theory
-   * debugging purposes.
-   *
-   * @return the iterator to the end of the shared terms list
-   */
-  shared_terms_iterator shared_terms_end() const { return d_sharedTerms.end(); }
-
-  /**
-   * This is a utility function for constructing a copy of the currently
-   * shared terms in a queriable form.  As this is
-   */
-  std::unordered_set<TNode> currentlySharedTerms() const;
-
-  /**
    * This allows the theory to be queried for whether a literal, lit, is
    * entailed by the theory.  This returns a pair of a Boolean and a node E.
    *
@@ -834,9 +804,6 @@ class Theory : protected EnvObj
 
   /** Index into the head of the facts list */
   context::CDO<unsigned> d_factsHead;
-
-  /** Indices for splitting on the shared terms. */
-  context::CDO<unsigned> d_sharedTermsIndex;
 
   /** The care graph the theory will use during combination. */
   CareGraph* d_careGraph;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Jörg Schurr, Leni Aniva
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,19 +26,15 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
+// clang-format off
+${decl_individual_rewrites}$
+// clang-format on
+
 void addRules(RewriteDb& db)
 {
-  NodeManager* nm = NodeManager::currentNM();
-
-  // Variables
+  // Calls to individual rewrites
   // clang-format off
-${decls}$
-
-  // Definitions
-${defns}$
-
-  // Rules
-${rules}$
+  ${call_individual_rewrites}$
   // clang-format on
 }
 
@@ -49,7 +45,8 @@ bool isInternalDslProofRule(DslProofRule drule)
          || drule == DslProofRule::CONG || drule == DslProofRule::CONG_EVAL
          || drule == DslProofRule::TRUE_ELIM
          || drule == DslProofRule::TRUE_INTRO
-         || drule == DslProofRule::ARITH_POLY_NORM;
+         || drule == DslProofRule::ARITH_POLY_NORM
+         || drule == DslProofRule::ACI_NORM;
 }
 
 const char* toString(DslProofRule drule)
@@ -64,8 +61,8 @@ const char* toString(DslProofRule drule)
     case DslProofRule::CONG_EVAL: return "CONG_EVAL";
     case DslProofRule::TRUE_ELIM: return "TRUE_ELIM";
     case DslProofRule::TRUE_INTRO: return "TRUE_INTRO";
-    case DslProofRule::ARITH_POLY_NORM:
-      return "ARITH_POLY_NORM";
+    case DslProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
+    case DslProofRule::ACI_NORM: return "ACI_NORM";
       // clang-format off
 ${printer}$
     default : Unreachable();

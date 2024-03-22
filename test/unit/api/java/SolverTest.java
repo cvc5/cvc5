@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -889,6 +889,24 @@ class SolverTest
                                d_solver.mkTerm(APPLY_CONSTRUCTOR, nilTerm)));
 
     // mkTerm(Op op, Term child1, Term child2, Term child3) const
+    Sort ssort = d_solver.getStringSort();
+    Sort isort = d_solver.getIntegerSort();
+    Sort xsort = d_solver.mkTupleSort(new Sort[] {ssort, ssort, isort});
+    Sort ysort = d_solver.mkTupleSort(new Sort[] {ssort, isort});
+    Term f = d_solver.defineFun("f",
+        new Term[] {d_solver.mkVar(xsort, "x"), d_solver.mkVar(ysort, "y")},
+        ysort,
+        d_solver.mkTuple(new Term[] {d_solver.mkString("a"),
+            d_solver.mkTerm(ADD, d_solver.mkInteger(1), d_solver.mkInteger(2))}));
+    Term tup = d_solver.mkTuple(
+        new Term[] {d_solver.mkString("foo"), d_solver.mkString("bar"), d_solver.mkInteger(1)});
+    assertDoesNotThrow(
+        ()
+            -> d_solver.mkTerm(d_solver.mkOp(RELATION_AGGREGATE, 0),
+                f,
+                d_solver.mkTuple(new Term[] {d_solver.mkString(""), d_solver.mkInteger(0)}),
+                d_solver.mkTerm(SET_SINGLETON, tup)));
+
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(opterm1, a, b, a));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.mkTerm(opterm2, d_solver.mkInteger(1), d_solver.mkInteger(1), new Term()));
@@ -1112,22 +1130,6 @@ class SolverTest
     assertNotEquals(t2, t4);
     Sort t5 = d_solver.declareSort("b", 1, false);
     assertNotEquals(t2, t5);
-  }
-
-  @Test
-  void defineSort()
-  {
-    Sort sortVar0 = d_solver.mkParamSort("T0");
-    Sort sortVar1 = d_solver.mkParamSort("T1");
-    Sort intSort = d_solver.getIntegerSort();
-    Sort realSort = d_solver.getRealSort();
-    Sort arraySort0 = d_solver.mkArraySort(sortVar0, sortVar0);
-    Sort arraySort1 = d_solver.mkArraySort(sortVar0, sortVar1);
-    // Now create instantiations of the defined sorts
-    assertDoesNotThrow(() -> arraySort0.substitute(sortVar0, intSort));
-    assertDoesNotThrow(()
-                           -> arraySort1.substitute(
-                               new Sort[] {sortVar0, sortVar1}, new Sort[] {intSort, realSort}));
   }
 
   @Test

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +44,7 @@ BaseSolver::BaseSolver(Env& env,
       d_congruent(context()),
       d_strUnitOobEq(userContext())
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
   d_cardSize = options().strings.stringsAlphaCard;
 }
 
@@ -368,15 +368,15 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         // x or y is not a valid code point
         Node scr = utils::mkCodeRange(s, d_cardSize);
         Node tcr = utils::mkCodeRange(t, d_cardSize);
-        Node conc = NodeManager::currentNM()->mkNode(
-            Kind::OR, scr.notNode(), tcr.notNode());
+        Node conc =
+            nodeManager()->mkNode(Kind::OR, scr.notNode(), tcr.notNode());
         // We do not explain exp for two reasons. First, we are
         // caching this inference based on the user context and thus
         // it should not depend on the current explanation. Second,
         // s or t may be concrete integers corresponding to code
         // points of string constants, and thus are not guaranteed to
         // be terms in the equality engine.
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         // We must send this lemma immediately, since otherwise if buffered,
         // this lemma may be dropped if there is a fact or conflict that
         // preempts it.
@@ -708,7 +708,7 @@ bool BaseSolver::isCardinalityOk(size_t typeCardSize,
       << "Need length " << lenNeed
       << " for this number of strings (where alphabet size is " << typeCardSize
       << ")." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // check if we need to split
   bool needsSplit = true;
   if (lr.isConst())
@@ -763,7 +763,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
   Trace("strings-card") << "Check cardinality (type " << tn << ")..."
                         << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   size_t typeCardSize;
   CardinalityResponse cr = getCardinalityReq(tn, typeCardSize);
   if (cr == CardinalityResponse::NO_REQ)

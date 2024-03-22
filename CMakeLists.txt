@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -131,10 +131,13 @@ set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
 # Supported language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
+option(ONLY_PYTHON_EXT_SRC "Create only Python bindings source files")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 # Api documentation
 option(BUILD_DOCS "Build Api documentation")
+
+option(BUILD_GMP "Build GMP from sources")
 
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \
@@ -354,14 +357,6 @@ if(DEFINED BUILD_BINDINGS_PYTHON_VERSION)
   find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
 else()
   find_package(Python COMPONENTS Interpreter REQUIRED)
-endif()
-
-# Some cmake packages are not compatible with the newest version
-# of FindPython, introduced in cmake 3.12.
-# We define the symbols below to be backward compatible.
-# FindPython Interpreter sets Python_EXECUTABLE
-if(NOT DEFINED PYTHON_EXECUTABLE) 
-  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
 endif()
 
 find_package(GMP 6.3 REQUIRED)

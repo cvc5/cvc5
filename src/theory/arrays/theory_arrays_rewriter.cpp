@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Mathias Preiner
+ *   Andrew Reynolds, Clark Barrett, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,10 +59,10 @@ void setMostFrequentValueCount(TNode store, uint64_t count) {
   return store.setAttribute(ArrayConstantMostFrequentValueCountAttr(), count);
 }
 
-TheoryArraysRewriter::TheoryArraysRewriter(Env& env)
-    : d_rewriter(env.getRewriter()),
-      d_epg(env.isTheoryProofProducing() ? new EagerProofGenerator(env)
-                                         : nullptr)
+TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm,
+                                           Rewriter* r,
+                                           EagerProofGenerator* epg)
+    : TheoryRewriter(nm), d_rewriter(r), d_epg(epg)
 {
 }
 
@@ -700,7 +700,7 @@ TrustNode TheoryArraysRewriter::expandDefinition(Node node)
                                         ProofRule::ARRAYS_EQ_RANGE_EXPAND,
                                         {},
                                         {node});
-      return TrustNode::mkTrustRewrite(node, expandedEqRange, d_epg.get());
+      return TrustNode::mkTrustRewrite(node, expandedEqRange, d_epg);
     }
     return TrustNode::mkTrustRewrite(node, expandedEqRange, nullptr);
   }

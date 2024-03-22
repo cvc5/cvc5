@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,8 +64,18 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
   return nm->mkNode(Kind::AND, diseqs);
 }
 
-RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
-  // otherwise, do the default call
+TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
+    : TheoryRewriter(nm)
+{
+}
+
+RewriteResponse TheoryBuiltinRewriter::preRewrite(TNode node)
+{
+  return doRewrite(node);
+}
+
+RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node)
+{
   return doRewrite(node);
 }
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +45,7 @@ void VtsTermCache::getVtsTerms(std::vector<Node>& t,
       t.push_back(delta);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (unsigned r = 0; r < 2; r++)
   {
     TypeNode tn = r == 0 ? nm->realType() : nm->integerType();
@@ -61,7 +61,7 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
 {
   if (create)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_delta_free.isNull())
     {
@@ -88,7 +88,7 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
 {
   if (create)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_inf_free[tn].isNull())
     {
@@ -126,7 +126,7 @@ Node VtsTermCache::substituteVtsFreeTerms(Node n)
 
 Node VtsTermCache::rewriteVtsSymbols(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (((n.getKind() == Kind::EQUAL && n[0].getType().isRealOrInt())
        || n.getKind() == Kind::GEQ))
   {

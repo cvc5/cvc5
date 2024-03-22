@@ -113,7 +113,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-rewrite-rcons-rec-limit=N"
   type       = "uint64_t"
-  default    = "15"
+  default    = "5"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
 
 [[option]]
@@ -203,3 +203,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"
+
+[[option]]
+  name       = "dratBinaryFormat"
+  category   = "expert"
+  long       = "drat-binary-format"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the DRAT proof in binary format"

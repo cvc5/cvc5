@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +15,10 @@
 
 #include "preprocessing/passes/sygus_inference.h"
 
+#include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/logic_exception.h"
 #include "smt/solver_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_preprocess.h"
@@ -69,6 +71,13 @@ PreprocessingPassResult SygusInference::applyInternal(
       }
     }
   }
+  else if (options().quantifiers.sygusInference
+           == options::SygusInferenceMode::ON)
+  {
+    std::stringstream ss;
+    ss << "Cannot translate input to sygus for --sygus-inference";
+    throw LogicException(ss.str());
+  }
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
@@ -82,7 +91,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
     return false;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   // collect free variables in all assertions
   std::vector<Node> qvars;

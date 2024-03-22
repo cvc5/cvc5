@@ -1,4 +1,5 @@
 ; DISABLE-TESTER: lfsc
+; DISABLE-TESTER: dsl-proof
 ; COMMAND-LINE: --fp-lazy-wb
 ; EXPECT: unsat
 (set-logic QF_BVFP)
