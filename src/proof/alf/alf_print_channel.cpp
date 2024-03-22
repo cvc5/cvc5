@@ -19,6 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "printer/printer.h"
+#include "rewriter/rewrite_db.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -118,6 +119,7 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
                                         TNode n,
                                         size_t i,
                                         const std::vector<size_t>& premises,
+                                        const std::vector<Node>& args,
                                         TNode nc)
 {
   Assert(!nc.isNull());
@@ -126,7 +128,16 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
     d_out << "; WARNING: add trust step for " << r << std::endl;
     d_warnedRules.insert(r);
   }
-  d_out << "; trust " << r << std::endl;
+  d_out << "; trust " << r;
+  if (r == ProofRule::DSL_REWRITE)
+  {
+    rewriter::DslProofRule di;
+    if (rewriter::getDslProofRule(args[0], di))
+    {
+      d_out << " " << di;
+    }
+  }
+  d_out << std::endl;
   // trust takes a premise-list which must be specified even if empty
   printStepInternal("trust", n, i, premises, {nc}, false, true);
 }
@@ -188,6 +199,7 @@ void AlfPrintChannelPre::printTrustStep(ProofRule r,
                                         TNode n,
                                         size_t i,
                                         const std::vector<size_t>& premises,
+                                        const std::vector<Node>& args,
                                         TNode nc)
 {
   Assert(!nc.isNull());
