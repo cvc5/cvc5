@@ -936,7 +936,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
 {
   Trace("arith-tf-rewrite")
       << "Rewrite transcendental function : " << t << std::endl;
-  Assert (t.getTypeOrNull(true).isReal());
+  Assert(t.getTypeOrNull(true).isReal());
   NodeManager* nm = NodeManager::currentNM();
   switch (t.getKind())
   {
