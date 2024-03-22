@@ -814,9 +814,10 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isSkolem(long pointer);
 
   /**
+   * Get skolem identifier of this term.
    * @api.note Asserts isSkolem().
    * @api.note This method is experimental and may change in future versions.
-   * @return The proof rule used by the root step of the proof.
+   * @return The skolem identifier of this term.
    * @throws CVC5ApiException
    */
   public SkolemFunId getSkolemId() throws CVC5ApiException
