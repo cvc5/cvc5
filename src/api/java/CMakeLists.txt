@@ -128,7 +128,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Pair.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Proof.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Result.java
-  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/SkolemFunId.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Solver.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Sort.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Stat.java
