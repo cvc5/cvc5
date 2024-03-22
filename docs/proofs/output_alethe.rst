@@ -8,8 +8,8 @@ cvc5 outputs proofs in the `Alethe proof format
 <https://verit.loria.fr/documentation/alethe-spec.pdf>`_. Additonally, the
 following additional flags are currently required: :ref:`simplification=none
 <lbl-option-simplification>`, :ref:`dag-thresh=0 <lbl-option-dag-thresh>`,
-:ref:`proof-granularity=theory-rewrite <lbl-option-proof-granularity>`. These requirements are due to not yet
-supporting printing proofs with term sharing and proofs with non-detailed steps.
+:ref:`proof-granularity=theory-rewrite <lbl-option-proof-granularity>`, and :ref:`proof-alethe-experimental`.
+These requirements are due to not yet supporting printing proofs with term sharing and proofs with non-detailed steps.
 
 The Alethe proof format is a flexible proof format for SMT solvers based on
 SMT-LIB.  It includes both coarse- and fine-grained steps and was first
@@ -25,4 +25,4 @@ cvc5's Alethe proofs.
 
 A simple example of cvc5 producing a proof in the Alethe proof format:
 
-.. run-command:: bin/cvc5 --dump-proofs --proof-format-mode=alethe --simplification=none --dag-thresh=0 --proof-granularity=theory-rewrite ../test/regress/cli/regress0/proofs/qgu-fuzz-1-bool-sat.smt2
+.. run-command:: bin/cvc5 --dump-proofs --proof-format-mode=alethe --simplification=none --dag-thresh=0 --proof-granularity=theory-rewrite --proof-alethe-experimental ../test/regress/cli/regress0/proofs/qgu-fuzz-1-bool-sat.smt2
