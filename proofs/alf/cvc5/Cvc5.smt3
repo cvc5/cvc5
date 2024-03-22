@@ -97,7 +97,7 @@
                                            (alf.ite (alf.is_eq d 0) 0 (alf.zdiv (run_evaluate x) d))))
 
       ; strings
-      ((run_evaluate (str.++ x))         (run_evaluate x))      ; don't evaluate alf.nil
+      ((run_evaluate (str.++ x))         (run_evaluate x))      ; don't evaluate alf.null
       ((run_evaluate (str.++ x ys))      (alf.concat (run_evaluate x) (run_evaluate ys)))
       ((run_evaluate (str.len x))        (alf.len (run_evaluate x)))
       ((run_evaluate (str.substr x n m)) (let ((r (run_evaluate n)))
