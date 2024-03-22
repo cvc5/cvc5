@@ -63,6 +63,25 @@ add_custom_command(
 )
 add_custom_target(cvc5proofrules DEPENDS ${GENERATED_PROOF_RULES_FILES})
 
+# Generate cvc5skolemids.{pxd,pxi}
+set(GENERATED_SKOLEM_ID_FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5skolemids.pxd"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5skolemids.pxi"
+)
+add_custom_command(
+  OUTPUT
+    ${GENERATED_SKOLEM_ID_FILES}
+  COMMAND
+    "${Python_EXECUTABLE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_skolem_id.h"
+    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5skolemids"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_skolem_id.h"
+)
+add_custom_target(cvc5skolemids DEPENDS ${GENERATED_SKOLEM_ID_FILES})
 
 set(GENERATED_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxd"
@@ -111,7 +130,7 @@ configure_file(setup.cfg.in setup.cfg)
 configure_file(__init__.py.in cvc5/__init__.py)
 
 set(PYTHON_EXT_SRC_FILES
-  cvc5kinds cvc5types cvc5proofrules
+  cvc5kinds cvc5types cvc5proofrules cvc5skolemids
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxi
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxd
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5_python_base.pyx
