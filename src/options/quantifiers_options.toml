@@ -203,7 +203,7 @@ name   = "Quantifiers"
 [[option]]
   name       = "mbqiModelExpGlobalSymGrammar"
   category   = "expert"
-  long       = "mbqi-model-exp-global-syms-grmmar"
+  long       = "mbqi-model-exp-global-syms-grammar"
   type       = "bool"
   default    = "false"
   help       = "include global symbols from all available assertions in grammars for enumerative mbqi"
