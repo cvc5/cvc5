@@ -33,6 +33,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
+TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+
 bool TheorySetsRewriter::checkConstantMembership(TNode elementTerm, TNode setTerm)
 {
   if (setTerm.getKind() == Kind::SET_EMPTY)

@@ -63,14 +63,14 @@
     ((-> U U) Bool) Bool
     (
         ((mk_nary_cong_lhs f (and (= s1 s2) tail)) (f s1 (mk_nary_cong_lhs f tail)))
-        ((mk_nary_cong_lhs f true)                 (alf.emptylist f))
+        ((mk_nary_cong_lhs f true)                 (alf.nil f))
     )
 )
 (program mk_nary_cong_rhs ((U Type) (f (-> U U)) (s1 U) (s2 U) (tail Bool :list))
     ((-> U U) Bool) Bool
     (
         ((mk_nary_cong_rhs f (and (= s1 s2) tail)) (f s2 (mk_nary_cong_rhs f tail)))
-        ((mk_nary_cong_rhs f true)                 (alf.emptylist f))
+        ((mk_nary_cong_rhs f true)                 (alf.nil f))
     )
 )
 

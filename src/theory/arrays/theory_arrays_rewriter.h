@@ -48,7 +48,7 @@ static inline Node mkEqNode(Node a, Node b) {
 class TheoryArraysRewriter : public TheoryRewriter
 {
  public:
-  TheoryArraysRewriter(Env& env);
+  TheoryArraysRewriter(NodeManager* nm, Rewriter* r, EagerProofGenerator* epg);
 
   /** Normalize a constant whose index type has cardinality indexCard */
   static Node normalizeConstant(TNode node, Cardinality indexCard);
@@ -77,10 +77,13 @@ class TheoryArraysRewriter : public TheoryRewriter
   static Node normalizeConstant(TNode node);
 
  private:
-  /** The associated rewriter. */
+  /**
+   * Pointer to the rewriter. NOTE this is a cyclic dependency, and should
+   * be removed.
+   */
   Rewriter* d_rewriter;
-
-  std::unique_ptr<EagerProofGenerator> d_epg;
+  /** Pointer to an eager proof generator, if proof are enabled */
+  EagerProofGenerator* d_epg;
 }; /* class TheoryArraysRewriter */
 
 }  // namespace arrays
