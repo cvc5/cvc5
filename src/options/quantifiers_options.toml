@@ -201,12 +201,12 @@ name   = "Quantifiers"
   help       = "experimental option for models in mbqi"
 
 [[option]]
-  name       = "globalSyms"
+  name       = "mbqiModelExpGlobalSymGrammar"
   category   = "expert"
-  long       = "global-syms"
+  long       = "mbqi-model-exp-global-syms-grmmar"
   type       = "bool"
   default    = "false"
-  help       = "collecting global symbols from all available assertions"
+  help       = "include global symbols from all available assertions in grammars for enumerative mbqi"
 
 #### E-matching options
 

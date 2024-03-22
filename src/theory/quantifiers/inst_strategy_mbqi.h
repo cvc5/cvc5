@@ -68,12 +68,10 @@ class InstStrategyMbqi : public QuantifiersModule
   bool checkCompleteFor(Node q) override;
   /** identify */
   std::string identify() const override { return "InstStrategyMbqi"; }
-  /* For collecting global terms from all available assertions. */
+  /** For collecting global terms from all available assertions. */
   void ppNotifyAssertions(const std::vector<Node>& assertions);
-  // Define a method to access d_global_terms
-  const context::CDHashSet<Node>& getGlobalSyms() const {
-    return d_global_symbols;
-  }
+  /** Get the symbols appearing in assertions */
+  const context::CDHashSet<Node>& getGlobalSyms() const;
 
  private:
   /**
@@ -135,7 +133,7 @@ class InstStrategyMbqi : public QuantifiersModule
   /** Submodule for sygus enum */
   std::unique_ptr<MbqiSygusEnum> d_msenum;
   /* Set of global ground terms in assertions (outside of quantifiers). */
-  context::CDHashSet<Node> d_global_symbols;
+  context::CDHashSet<Node> d_globalSyms;
 };
 
 }  // namespace quantifiers
