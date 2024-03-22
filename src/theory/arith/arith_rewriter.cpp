@@ -967,7 +967,8 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
         std::vector<Node> product;
         for (const Node tc : t[0])
         {
-          product.push_back(nm->mkNode(Kind::EXPONENTIAL, tc));
+          Node tcr = rewriter::ensureReal(tc);
+          product.push_back(nm->mkNode(Kind::EXPONENTIAL, tcr));
         }
         // We need to do a full rewrite here, since we can get exponentials of
         // constants, e.g. when we are rewriting exp(2 + x)
