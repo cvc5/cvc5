@@ -1096,24 +1096,31 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   std::map<Node, Node>::iterator itMap;
   for (itMap = d_constantReps.begin(); itMap != d_constantReps.end(); ++itMap)
   {
-    tm->d_reps[itMap->first] = itMap->second;
-    tm->d_rep_set.add(itMap->second.getType(), itMap->second);
+    // The "constant" representative is a model value, which may be a lambda
+    // if higher-order. We now can go back and normalize its subterms.
+    // This is necessary if we assigned a lambda value whose body contains
+    // a free constant symbol that was assigned in this method.
+    Node normc = itMap->second;
+    if (!normc.isConst())
+    {
+      normc = normalize(tm, normc, true);
+    }
+    // mark this as the final representative
+    tm->assignRepresentative(itMap->first, normc, true);
   }
 
   Trace("model-builder") << "Make sure ECs have reps..." << std::endl;
   // Make sure every EC has a rep
   for (itMap = assertedReps.begin(); itMap != assertedReps.end(); ++itMap)
   {
-    tm->d_reps[itMap->first] = itMap->second;
-    tm->d_rep_set.add(itMap->second.getType(), itMap->second);
+    tm->assignRepresentative(itMap->first, itMap->second, false);
   }
   for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it)
   {
     set<Node>& noRepSet = TypeSet::getSet(it);
     for (const Node& node : noRepSet)
     {
-      tm->d_reps[node] = node;
-      tm->d_rep_set.add(node.getType(), node);
+      tm->assignRepresentative(node, node, false);
     }
   }
 
