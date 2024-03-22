@@ -949,7 +949,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
     {
       if (t[0].isConst())
       {
-        Node one = rewriter::mkConst(Integer(1));
+        Node one = nm->mkConstReal(Rational(1));
         if (t[0].getConst<Rational>().sgn() >= 0 && t[0].getType().isInteger()
             && t[0] != one)
         {
