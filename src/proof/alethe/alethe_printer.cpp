@@ -136,7 +136,14 @@ void AletheProofPrinter::print(
   {
     for (const auto& [skolem, choice] : d_anc.d_skolems)
     {
-      out << "(define-fun " << skolem << " () " << skolem.getType() << " " << choice << ")\n";
+      out << "(define-fun " << skolem << " () " << skolem.getType() << " ";
+      std::stringstream ss;
+      options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+      // We print lambda applications in non-curried manner
+      options::ioutils::applyFlattenHOChains(ss, true);
+      options::ioutils::applyDagThresh(ss, 0);
+      ss << choice;
+      out << ss.str() << ")\n";
     }
   }
 

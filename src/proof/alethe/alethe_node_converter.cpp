@@ -108,7 +108,7 @@ Node AletheNodeConverter::postConvert(Node n)
           // to index) by their respective choice terms. To do this, we get
           // the skolems for each of these variables, retrieve their
           // conversions, and replace the variables by the conversions in body
-          if (!d_defineSkolems && index > 0)
+          if (index > 0)
           {
             std::vector<Node> subs;
             for (size_t i = 0; i < index; ++i)
@@ -117,7 +117,7 @@ Node AletheNodeConverter::postConvert(Node n)
               std::vector<Node> cacheVals{quant, r};
               Node sk = sm->mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE, cacheVals);
               Assert(!sk.isNull());
-              subs.push_back(convert(sk));
+              subs.push_back(d_defineSkolems? sk : convert(sk));
             }
             body = body.substitute(quant[0].begin(),
                                    quant[0].begin() + index,
