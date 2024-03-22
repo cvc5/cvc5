@@ -101,7 +101,8 @@ public class Solver extends AbstractPointer
   }
 
   /**
-   * @return The underlying symbol manager of this input parser.
+   * Get the associated term manager instance
+   * @return The term manager.
    */
   public TermManager getTermManager()
   {
