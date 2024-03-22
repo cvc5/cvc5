@@ -218,7 +218,18 @@ class RewriteDbProofCons : protected EnvObj
                                 TNode placeholder,
                                 TNode source,
                                 TNode target);
-
+  /**
+   * Rewrite concrete, which returns the result of rewriting n if it contains
+   * no abstract subterms, or n itself otherwise.
+   *
+   * This method is required since the algorithm in this class often invokes
+   * the rewriter as an oracle. We operate on terms with abstract subterms
+   * in this class, and these terms should not be passed to the rewriter,
+   * since the rewriter does not properly handle abstract subterms (for
+   * instance, the BV theory rewriter assumes that all children of BV operators
+   * have concrete bitwidths).
+   */
+  Node rewriteConcrete(const Node& n);
   /** Notify class for matches */
   RdpcMatchTrieNotify d_notify;
   /**

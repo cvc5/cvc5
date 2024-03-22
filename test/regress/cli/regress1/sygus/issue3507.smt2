@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; COMMAND-LINE: --sygus-inference --quiet
+; COMMAND-LINE: --sygus-inference=try --quiet
 (set-logic HO_ALL)
 (declare-fun f (Int) Bool)
 (declare-fun g (Int) Bool)

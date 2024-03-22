@@ -44,7 +44,8 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
     TestSmt::SetUp();
     Options opts;
     d_rewriter = d_slvEngine->getEnv().getRewriter();
-    d_seqRewriter.reset(new SequencesRewriter(d_rewriter, nullptr));
+    d_seqRewriter.reset(
+        new SequencesRewriter(d_nodeManager, d_rewriter, nullptr));
   }
 
   Rewriter* d_rewriter;
@@ -284,7 +285,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_nth)
 
 TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
 {
-  StringsRewriter sr(d_rewriter, nullptr);
+  StringsRewriter sr(d_nodeManager, d_rewriter, nullptr);
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -594,7 +595,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
 
 TEST_F(TestTheoryWhiteSequencesRewriter, length_preserve_rewrite)
 {
-  StringsRewriter sr(d_rewriter, nullptr);
+  StringsRewriter sr(d_nodeManager, d_rewriter, nullptr);
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 

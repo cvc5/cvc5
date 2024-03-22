@@ -15,8 +15,10 @@
 
 #include "preprocessing/passes/sygus_inference.h"
 
+#include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/logic_exception.h"
 #include "smt/solver_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_preprocess.h"
@@ -68,6 +70,13 @@ PreprocessingPassResult SygusInference::applyInternal(
         assertionsToPreprocess->replace(i, curr);
       }
     }
+  }
+  else if (options().quantifiers.sygusInference
+           == options::SygusInferenceMode::ON)
+  {
+    std::stringstream ss;
+    ss << "Cannot translate input to sygus for --sygus-inference";
+    throw LogicException(ss.str());
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

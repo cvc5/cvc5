@@ -21,6 +21,7 @@
 #include "expr/node.h"
 #include "proof/proof_set.h"
 #include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
