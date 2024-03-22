@@ -187,16 +187,17 @@ void SetDefaults::setDefaultsPre(Options& opts)
       {
         std::stringstream ss;
         ss << "proof-format=alethe is experimental in this version. If "
-            "you know what you are doing, you can try --proof-alethe-experimental";
+              "you know what you are doing, you can try "
+              "--proof-alethe-experimental";
         throw OptionException(ss.str());
       }
       if (opts.proof.proofGranularityMode
-               < options::ProofGranularityMode::THEORY_REWRITE)
+          < options::ProofGranularityMode::THEORY_REWRITE)
       {
         SET_AND_NOTIFY(Proof,
-                      proofGranularityMode,
-                      options::ProofGranularityMode::THEORY_REWRITE,
-                      "Alethe requires granularity at least theory-rewrite");
+                       proofGranularityMode,
+                       options::ProofGranularityMode::THEORY_REWRITE,
+                       "Alethe requires granularity at least theory-rewrite");
       }
     }
   }
