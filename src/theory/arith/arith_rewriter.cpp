@@ -936,13 +936,8 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
 {
   Trace("arith-tf-rewrite")
       << "Rewrite transcendental function : " << t << std::endl;
+  Assert (t.getTypeOrNull(true).isReal());
   NodeManager* nm = NodeManager::currentNM();
-  if (t[0].getKind() == Kind::TO_REAL)
-  {
-    // always strip TO_REAL from argument.
-    Node ret = nm->mkNode(t.getKind(), t[0][0]);
-    return RewriteResponse(REWRITE_AGAIN, ret);
-  }
   switch (t.getKind())
   {
     case Kind::EXPONENTIAL:
