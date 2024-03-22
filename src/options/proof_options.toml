@@ -3,7 +3,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofFormatMode"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-format-mode=MODE"
   type       = "ProofFormatMode"
   default    = "ALF"
