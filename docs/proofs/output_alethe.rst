@@ -1,7 +1,7 @@
 Proof format: Alethe
 ====================
 
-**WARNING: This format is experimental on the main branch of cvc5. To use this format, the option :ref:`proof-alethe-experimental` must be used, or otherwise an execption is thrown.**
+**WARNING: This format is experimental on the main branch of cvc5. To use this format, the option --proof-alethe-experimental must be used, or otherwise an execption is thrown.**
 
 Using the flag :ref:`proof-format-mode=alethe <lbl-option-proof-format-mode>`,
 cvc5 outputs proofs in the `Alethe proof format
