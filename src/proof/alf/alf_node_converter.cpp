@@ -708,7 +708,6 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemFunId id)
     case SkolemFunId::STRINGS_NUM_OCCUR_RE:
     case SkolemFunId::STRINGS_OCCUR_INDEX:
     case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemFunId::STRINGS_OCCUR_LEN:
     case SkolemFunId::STRINGS_OCCUR_LEN_RE:
     case SkolemFunId::STRINGS_DEQ_DIFF:
     case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:

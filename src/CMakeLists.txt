@@ -21,6 +21,7 @@ libcvc5_add_sources(
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
   api/cpp/cvc5_proof_rule.cpp
+  api/cpp/cvc5_skolem_id.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
   decision/decision_engine.cpp
@@ -138,6 +139,8 @@ libcvc5_add_sources(
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
   printer/ast/ast_printer.h
+  printer/enum_to_string.cpp
+  printer/enum_to_string.h
   printer/let_binding.cpp
   printer/let_binding.h
   printer/printer.cpp
