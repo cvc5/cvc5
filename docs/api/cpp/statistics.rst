@@ -16,11 +16,11 @@ are represented as ``std::map<std::string, uint64_t>`` where the key is the
 string representation of one enumeration value
 and the value is the frequency of this particular value.
 
-By default, iterating over a
-:cpp:class:`Statistics <cvc5::Statistics>` object only shows statistics
-that are both public and changed. The :cpp:func:`Statistics::begin()
-<cvc5::Statistics::begin()>` method has Boolean flags ``internal`` and
-``def`` to also show internal statistics and defaulted statistics, respectively.
+By default, iterating over a :cpp:class:`Statistics <cvc5::Statistics>`
+object shows all statistics, including internal and unchanged ones.
+The inclusion of internal and defaulted statistics can be configured via
+Boolean parameters ``internal`` and ``defaulted`` of function
+:cpp:func:`Statistics::begin() <cvc5::Statistics::begin()>`.
 
 ----
 

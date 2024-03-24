@@ -3304,11 +3304,17 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& sv);
  * \verbatim embed:rst:leading-asterisk
  * Represents a snapshot of the solver statistics. See :doc:`/statistics` for
  * how statistics can be used.
- * Once obtained via :cpp:func:`Solver::getStatistics()
- * <cvc5::Solver::getStatistics()>`, an instance of this class is independent of
- * the :cpp:class:`Solver <cvc5::Solver>` object: it will not change when the
- * solvers internal statistics do, and it will not be invalidated if the solver
- * is destroyed. Iterating over this class (via :cpp:func:`begin()
+ *
+ * Statistics can be queried from the Solver via
+ * :cpp:func:`Solver::getStatistics() <cvc5::Solver::getStatistics()>`, and
+ * from the TermManager via :cpp:func:`TermManager::getStatistics()
+ * <cvc5::TermManager::getStatistics()>`. An statistics instance obtained from
+ * either call is independent of the :cpp:class:`Solver <cvc5::Solver>` (and
+ * its associated :cpp:class:`TermManager <cvc5::TermManager>`object: it will
+ * not change when new terms are created or the solver's internal statistics
+ * do. It will also not be invalidated if the solver/term manageris destroyed.
+ *
+ * Iterating over this class (via :cpp:func:`begin()
  * <cvc5::Statistics::begin()>` and :cpp:func:`end() <cvc5::Statistics::end()>`)
  * shows only public statistics that have been changed. By passing appropriate
  * flags to :cpp:func:`begin() <cvc5::Statistics::begin()>`, statistics that are
@@ -3319,6 +3325,7 @@ class CVC5_EXPORT Statistics
 {
  public:
   friend class Solver;
+  friend class TermManager;
   /** How the statistics are stored internally. */
   using BaseType = std::map<std::string, Stat>;
 
@@ -3367,7 +3374,7 @@ class CVC5_EXPORT Statistics
    * @param internal If set to true, internal statistics are shown as well.
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool internal = false, bool defaulted = false) const;
+  iterator begin(bool internal = true, bool defaulted = true) const;
   /** End iteration */
   iterator end() const;
 
@@ -3453,6 +3460,25 @@ class CVC5_EXPORT TermManager
   TermManager();
   /** Destructor. */
   ~TermManager();
+
+  /**
+   * Get a snapshot of the current state of the statistic values of this
+   * term manager.
+   *
+   * Term manager statistics are independent from any solver instance. The
+   * returned object is completely decoupled from the term manager and will
+   * not change when the solver is used again.
+   *
+   * @return A snapshot of the current state of the statistic values.
+   */
+  Statistics getStatistics() const;
+
+  /**
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
+   * @param fd The file descriptor.
+   */
+  void printStatisticsSafe(int fd) const;
 
   /* Sorts -------------------------------------------------------------- */
 
@@ -4093,6 +4119,14 @@ class CVC5_EXPORT TermManager
    *          TermManager instance, and this workaround will be removed.
    */
   static TermManager* currentTM();
+
+  /** Reset the API statistics. */
+  void resetStatistics();
+  /** Increment the term stats counter. */
+  void increment_term_stats(Kind kind) const;
+  /** Increment the vars stats or consts stats counter. */
+  void increment_vars_consts_stats(const Sort& sort, bool is_var) const;
+
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /**
@@ -4185,6 +4219,10 @@ class CVC5_EXPORT TermManager
 
   /** The associated node manager. */
   internal::NodeManager* d_nm;
+  /** The statistics collected on the Api level. */
+  std::unique_ptr<APIStatistics> d_stats;
+  /** The statistics registry (independent from any Solver's registry). */
+  std::unique_ptr<internal::StatisticsRegistry> d_statsReg;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -6593,9 +6631,6 @@ class CVC5_EXPORT Solver
    */
   Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original);
 
-  /** Reset the API statistics */
-  void resetStatistics();
-
   /**
    * Synthesize n-ary function following specified syntactic constraints.
    *
@@ -6639,15 +6674,8 @@ class CVC5_EXPORT Solver
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Term>& ts) const;
 
-  /** Increment the term stats counter. */
-  void increment_term_stats(Kind kind) const;
-  /** Increment the vars stats (if 'is_var') or consts stats counter. */
-  void increment_vars_consts_stats(const Sort& sort, bool is_var) const;
-
   /** Keep a copy of the original option settings (for resets). */
   std::unique_ptr<internal::Options> d_originalOptions;
-  /** The statistics collected on the Api level. */
-  std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */
   std::unique_ptr<internal::SolverEngine> d_slv;
   /** The random number generator of this solver. */

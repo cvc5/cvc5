@@ -216,6 +216,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
 
     cdef cppclass TermManager:
         TermManager() except +
+        Statistics getStatistics() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
         Sort getRealSort() except +
