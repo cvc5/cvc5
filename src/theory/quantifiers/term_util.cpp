@@ -323,8 +323,8 @@ bool TermUtil::isAssoc(Kind k, bool reqNAry)
          || k == Kind::BITVECTOR_XOR || k == Kind::BITVECTOR_XNOR
          || k == Kind::BITVECTOR_CONCAT || k == Kind::STRING_CONCAT
          || k == Kind::SET_UNION || k == Kind::SET_INTER
-         || k == Kind::RELATION_JOIN || k == Kind::RELATION_PRODUCT
-         || k == Kind::SEP_STAR;
+         || k == Kind::RELATION_JOIN || k == Kind::RELATION_TABLE_JOIN
+         || k == Kind::RELATION_PRODUCT || k == Kind::SEP_STAR;
 }
 
 bool TermUtil::isComm(Kind k, bool reqNAry)

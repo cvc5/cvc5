@@ -339,6 +339,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::SET_FOLD, internal::Kind::SET_FOLD),
         /* Relations -------------------------------------------------------- */
         KIND_ENUM(Kind::RELATION_JOIN, internal::Kind::RELATION_JOIN),
+        KIND_ENUM(Kind::RELATION_TABLE_JOIN,
+                  internal::Kind::RELATION_TABLE_JOIN),
         KIND_ENUM(Kind::RELATION_PRODUCT, internal::Kind::RELATION_PRODUCT),
         KIND_ENUM(Kind::RELATION_TRANSPOSE, internal::Kind::RELATION_TRANSPOSE),
         KIND_ENUM(Kind::RELATION_TCLOSURE, internal::Kind::RELATION_TCLOSURE),
@@ -733,6 +735,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SET_FOLD, Kind::SET_FOLD},
         /* Relations ------------------------------------------------------- */
         {internal::Kind::RELATION_JOIN, Kind::RELATION_JOIN},
+        {internal::Kind::RELATION_TABLE_JOIN, Kind::RELATION_TABLE_JOIN},
+        {internal::Kind::RELATION_TABLE_JOIN_OP, Kind::RELATION_TABLE_JOIN},
         {internal::Kind::RELATION_PRODUCT, Kind::RELATION_PRODUCT},
         {internal::Kind::RELATION_TRANSPOSE, Kind::RELATION_TRANSPOSE},
         {internal::Kind::RELATION_TCLOSURE, Kind::RELATION_TCLOSURE},
@@ -903,6 +907,7 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
     {Kind::RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE_OP},
     {Kind::RELATION_GROUP, internal::Kind::RELATION_GROUP_OP},
     {Kind::RELATION_PROJECT, internal::Kind::RELATION_PROJECT_OP},
+    {Kind::RELATION_TABLE_JOIN, internal::Kind::RELATION_TABLE_JOIN_OP},
     {Kind::TABLE_PROJECT, internal::Kind::TABLE_PROJECT_OP},
     {Kind::TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE_OP},
     {Kind::TABLE_JOIN, internal::Kind::TABLE_JOIN_OP},
@@ -2129,6 +2134,7 @@ size_t Op::getNumIndicesHelper() const
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_TABLE_JOIN:
     case Kind::TABLE_AGGREGATE:
     case Kind::TABLE_GROUP:
     case Kind::TABLE_JOIN:
@@ -2300,6 +2306,7 @@ Term Op::getIndexHelper(size_t index)
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_TABLE_JOIN:
     case Kind::TABLE_AGGREGATE:
     case Kind::TABLE_GROUP:
     case Kind::TABLE_JOIN:
@@ -5746,6 +5753,7 @@ Op TermManager::mkOp(Kind kind, const std::vector<uint32_t>& args)
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_TABLE_JOIN:
     case Kind::TABLE_AGGREGATE:
     case Kind::TABLE_GROUP:
     case Kind::TABLE_JOIN:
