@@ -53,10 +53,8 @@ const char* toString(cvc5::SkolemFunId id)
     case cvc5::SkolemFunId::RE_UNFOLD_POS_COMPONENT:
       return "RE_UNFOLD_POS_COMPONENT";
     case cvc5::SkolemFunId::BAGS_CARD_COMBINE: return "BAGS_CARD_COMBINE";
-    case cvc5::SkolemFunId::BAGS_CARD_ELEMENTS: return "BAGS_CARD_ELEMENTS";
-    case cvc5::SkolemFunId::BAGS_CARD_N: return "BAGS_CARD_N";
-    case cvc5::SkolemFunId::BAGS_CARD_UNION_DISJOINT:
-      return "BAGS_CARD_UNION_DISJOINT";
+    case cvc5::SkolemFunId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT:
+      return "BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT";
     case cvc5::SkolemFunId::BAGS_CHOOSE: return "BAGS_CHOOSE";
     case cvc5::SkolemFunId::BAGS_FOLD_CARD: return "BAGS_FOLD_CARD";
     case cvc5::SkolemFunId::BAGS_FOLD_COMBINE: return "BAGS_FOLD_COMBINE";
