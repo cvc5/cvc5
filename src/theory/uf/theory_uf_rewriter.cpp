@@ -159,7 +159,7 @@ Node TheoryUfRewriter::getHoApplyForApplyUf(TNode n)
   Node curr = n.getOperator();
   for (unsigned i = 0; i < n.getNumChildren(); i++)
   {
-    curr = nodeManager()->mkNode(Kind::HO_APPLY, curr, n[i]);
+    curr = NodeManager::currentNM()->mkNode(Kind::HO_APPLY, curr, n[i]);
   }
   return curr;
 }
@@ -170,7 +170,7 @@ Node TheoryUfRewriter::getApplyUfForHoApply(TNode n)
   // if operator is standard
   if (canUseAsApplyUfOperator(curr))
   {
-    return nodeManager()->mkNode(Kind::APPLY_UF, children);
+    return NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
   }
   // cannot construct APPLY_UF if operator is partially applied or is not
   // standard

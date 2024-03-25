@@ -127,7 +127,7 @@ NodeManager::NodeManager()
   }
 }
 
-NodeManager* nodeManager()
+NodeManager* NodeManager::currentNM()
 {
   thread_local static NodeManager nm;
   return &nm;

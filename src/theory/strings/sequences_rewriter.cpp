@@ -3647,7 +3647,7 @@ Node SequencesRewriter::lengthPreserveRewrite(Node n)
   return res.isNull() ? n : res;
 }
 
-Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
+Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype) const
 {
   NodeManager* nm = nodeManager();
 
