@@ -57,7 +57,7 @@ bool TheorySetsRewriter::checkConstantMembership(TNode elementTerm, TNode setTer
 
 // static
 RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind kind = node.getKind();
   Trace("sets-postrewrite") << "Process: " << node << std::endl;
 
@@ -277,11 +277,11 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }  // Kind::SET_UNION
     case Kind::SET_COMPLEMENT:
     {
-      Node univ = NodeManager::currentNM()->mkNullaryOperator(
+      Node univ = nodeManager()->mkNullaryOperator(
           node[0].getType(), Kind::SET_UNIVERSE);
       return RewriteResponse(
           REWRITE_AGAIN,
-          NodeManager::currentNM()->mkNode(Kind::SET_MINUS, univ, node[0]));
+          nodeManager()->mkNode(Kind::SET_MINUS, univ, node[0]));
   }
   case Kind::SET_CARD:
   {
@@ -296,26 +296,26 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     else if (node[0].getKind() == Kind::SET_UNION)
     {
-      Node ret = NodeManager::currentNM()->mkNode(
+      Node ret = nodeManager()->mkNode(
           Kind::SUB,
-          NodeManager::currentNM()->mkNode(
+          nodeManager()->mkNode(
               Kind::ADD,
-              NodeManager::currentNM()->mkNode(Kind::SET_CARD, node[0][0]),
-              NodeManager::currentNM()->mkNode(Kind::SET_CARD, node[0][1])),
-          NodeManager::currentNM()->mkNode(
+              nodeManager()->mkNode(Kind::SET_CARD, node[0][0]),
+              nodeManager()->mkNode(Kind::SET_CARD, node[0][1])),
+          nodeManager()->mkNode(
               Kind::SET_CARD,
-              NodeManager::currentNM()->mkNode(
+              nodeManager()->mkNode(
                   Kind::SET_INTER, node[0][0], node[0][1])));
       return RewriteResponse(REWRITE_DONE, ret );
     }
     else if (node[0].getKind() == Kind::SET_MINUS)
     {
-      Node ret = NodeManager::currentNM()->mkNode(
+      Node ret = nodeManager()->mkNode(
           Kind::SUB,
-          NodeManager::currentNM()->mkNode(Kind::SET_CARD, node[0][0]),
-          NodeManager::currentNM()->mkNode(
+          nodeManager()->mkNode(Kind::SET_CARD, node[0][0]),
+          nodeManager()->mkNode(
               Kind::SET_CARD,
-              NodeManager::currentNM()->mkNode(
+              nodeManager()->mkNode(
                   Kind::SET_INTER, node[0][0], node[0][1])));
       return RewriteResponse(REWRITE_DONE, ret );
     }
@@ -338,14 +338,14 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     if (nk == Kind::SET_EMPTY)
     {
       return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(false));
+                             nodeManager()->mkConst(false));
     }
     if (nk == Kind::SET_SINGLETON)
     {
       //(= (is_singleton (singleton x)) is a tautology
       // we return true for (is_singleton (singleton x))
       return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
+                             nodeManager()->mkConst(true));
     }
     break;
   }  // Kind::SET_IS_SINGLETON
@@ -427,7 +427,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           std::vector<Node> new_tuple;
           new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
           new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
-          Node composed_tuple = NodeManager::currentNM()->mkNode(
+          Node composed_tuple = nodeManager()->mkNode(
               Kind::APPLY_CONSTRUCTOR, new_tuple);
           new_tuple_set.insert(composed_tuple);
           ++right_it;
@@ -477,7 +477,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
             std::vector<Node> new_tuple;
             new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
             new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
-            Node composed_tuple = NodeManager::currentNM()->mkNode(
+            Node composed_tuple = nodeManager()->mkNode(
                 Kind::APPLY_CONSTRUCTOR, new_tuple);
             new_tuple_set.insert(composed_tuple);
           }
@@ -623,7 +623,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
 // static
 RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind k = node.getKind();
   if (k == Kind::EQUAL)
   {
@@ -674,7 +674,7 @@ RewriteResponse TheorySetsRewriter::postRewriteComprehension(TNode n)
 RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
 {
   Assert(n.getKind() == Kind::SET_MAP);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind k = n[1].getKind();
   switch (k)
   {
@@ -708,7 +708,7 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
 RewriteResponse TheorySetsRewriter::postRewriteFilter(TNode n)
 {
   Assert(n.getKind() == Kind::SET_FILTER);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind k = n[1].getKind();
   switch (k)
   {
@@ -743,7 +743,7 @@ RewriteResponse TheorySetsRewriter::postRewriteFilter(TNode n)
 RewriteResponse TheorySetsRewriter::postRewriteFold(TNode n)
 {
   Assert(n.getKind() == Kind::SET_FOLD);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node f = n[0];
   Node t = n[1];
   Kind k = n[2].getKind();
@@ -782,7 +782,7 @@ RewriteResponse TheorySetsRewriter::postRewriteGroup(TNode n)
   Kind k = A.getKind();
   if (k == Kind::SET_EMPTY || k == Kind::SET_SINGLETON)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     // - ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
     //    (rel.singleton (as set.empty (Relation T) ))
     // - ((_ rel.group n1 ... nk) (set.singleton x)) =

@@ -64,7 +64,7 @@ class TypeChecker;
  * The node manager.
  *
  * This class should not be used simulatenously in multiple threads. It is a
- * singleton that is accessible via NodeManager::currentNM().
+ * singleton that is accessible via nodeManager().
  */
 class NodeManager
 {
@@ -845,7 +845,7 @@ class NodeManager
 
   /**
    * Instead of creating an instance using the constructor,
-   * `NodeManager::currentNM()` should be used to retrieve an instance of
+   * `nodeManager()` should be used to retrieve an instance of
    * `NodeManager`.
    */
   explicit NodeManager();

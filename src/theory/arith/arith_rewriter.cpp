@@ -146,7 +146,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     {
       return RewriteResponse(REWRITE_DONE, rewriter::mkConst(true));
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     return RewriteResponse(
         REWRITE_AGAIN,
         nm->mkNode(
@@ -314,7 +314,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           TNode base = t[0];
           if(exp.sgn() == 0){
             return RewriteResponse(REWRITE_DONE,
-                                   NodeManager::currentNM()->mkConstRealOrInt(
+                                   nodeManager()->mkConstRealOrInt(
                                        t.getType(), Rational(1)));
           }else if(exp.sgn() > 0 && exp.isIntegral()){
             cvc5::internal::Rational r(expr::NodeValue::MAX_CHILDREN);
@@ -346,7 +346,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
                         == 2
                  && t[1].getType().isInteger())
         {
-          Node ret = NodeManager::currentNM()->mkNode(Kind::POW2, t[1]);
+          Node ret = nodeManager()->mkNode(Kind::POW2, t[1]);
           // ensure type is preserved
           if (t.getType().isReal())
           {
@@ -385,7 +385,7 @@ RewriteResponse ArithRewriter::rewriteNeg(TNode t, bool pre)
 {
   Assert(t.getKind() == Kind::NEG);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (t[0].isConst())
   {
     Rational neg = -(t[0].getConst<Rational>());
@@ -414,7 +414,7 @@ RewriteResponse ArithRewriter::rewriteSub(TNode t)
   Assert(t.getKind() == Kind::SUB);
   Assert(t.getNumChildren() == 2);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (t[0] == t[1])
   {
     return RewriteResponse(REWRITE_DONE,
@@ -525,7 +525,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
 
   Node left = rewriter::removeToReal(t[0]);
   Node right = rewriter::removeToReal(t[1]);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (right.isConst())
   {
     const Rational& den = right.getConst<Rational>();
@@ -559,7 +559,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
 
     Node result = nm->mkConstReal(den.inverse());
     Node mult = rewriter::ensureReal(
-        NodeManager::currentNM()->mkNode(Kind::MULT, left, result));
+        nodeManager()->mkNode(Kind::MULT, left, result));
     if (pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);
@@ -587,7 +587,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
 
     Node result = rewriter::mkConst(den.inverse());
     Node mult = rewriter::ensureReal(
-        NodeManager::currentNM()->mkNode(Kind::MULT, left, result));
+        nodeManager()->mkNode(Kind::MULT, left, result));
     if (pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);
@@ -612,7 +612,7 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
     // if it is already real type, then just return the argument
     return RewriteResponse(REWRITE_DONE, t[0]);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (t[0].isConst())
   {
     // If the argument is constant, return a real constant.
@@ -641,7 +641,7 @@ RewriteResponse ArithRewriter::rewriteAbs(TNode t)
     }
     return RewriteResponse(
         REWRITE_DONE,
-        NodeManager::currentNM()->mkConstRealOrInt(t[0].getType(), -rat));
+        nodeManager()->mkConstRealOrInt(t[0].getType(), -rat));
   }
   if (rewriter::isRAN(t[0]))
   {
@@ -651,14 +651,14 @@ RewriteResponse ArithRewriter::rewriteAbs(TNode t)
       return RewriteResponse(REWRITE_DONE, t[0]);
     }
     return RewriteResponse(
-        REWRITE_DONE, NodeManager::currentNM()->mkRealAlgebraicNumber(-ran));
+        REWRITE_DONE, nodeManager()->mkRealAlgebraicNumber(-ran));
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
 
 RewriteResponse ArithRewriter::rewriteIntsDivMod(TNode t, bool pre)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind k = t.getKind();
   if (k == Kind::INTS_MODULUS)
   {
@@ -688,7 +688,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
     // do not rewrite at prewrite.
     return RewriteResponse(REWRITE_DONE, t);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind k = t.getKind();
   Assert(k == Kind::INTS_MODULUS_TOTAL || k == Kind::INTS_DIVISION_TOTAL);
   TNode n = t[0];
@@ -793,7 +793,7 @@ RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t)
 {
   Assert(t.getKind() == Kind::TO_INTEGER || t.getKind() == Kind::IS_INTEGER);
   bool isPred = t.getKind() == Kind::IS_INTEGER;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (t[0].isConst())
   {
     Node ret;
@@ -829,7 +829,7 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 {
   Assert(t.getKind() == Kind::IAND);
   uint32_t bsize = t.getOperator().getConst<IntAnd>().d_size;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // if constant, we eliminate
   if (t[0].isConst() && t[1].isConst())
   {
@@ -879,7 +879,7 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
 {
   Assert(t.getKind() == Kind::POW2);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // if constant, we eliminate
   if (t[0].isConst())
   {
@@ -937,7 +937,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
   Trace("arith-tf-rewrite")
       << "Rewrite transcendental function : " << t << std::endl;
   Assert(t.getTypeOrNull(true).isReal());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   switch (t.getKind())
   {
     case Kind::EXPONENTIAL:
@@ -1197,7 +1197,7 @@ Node ArithRewriter::rewriteIneqToBv(Kind kind,
   bool bv2natPol = false;
   // the remaining sum (constant)
   std::vector<Node> otherSum;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const std::pair<const Node, RealAlgebraicNumber>& m : sum)
   {
     if (m.second.isRational())

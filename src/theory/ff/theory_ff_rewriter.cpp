@@ -40,7 +40,7 @@ Node mkNary(Kind k, std::vector<Node>&& children)
   }
   else
   {
-    return NodeManager::currentNM()->mkNode(k, std::move(children));
+    return nodeManager()->mkNode(k, std::move(children));
   }
 }
 
@@ -67,7 +67,7 @@ std::pair<Node, FiniteFieldValue> parseScalar(TNode t)
 Node preRewriteFfNeg(TNode t)
 {
   Assert(t.getKind() == Kind::FINITE_FIELD_NEG);
-  NodeManager* const nm = NodeManager::currentNM();
+  NodeManager* const nm = nodeManager();
   const Node negOne = nm->mkConst(FiniteFieldValue(Integer(-1), t.getType().getFfSize()));
   return nm->mkNode(Kind::FINITE_FIELD_MULT, negOne, t[0]);
 }
@@ -113,7 +113,7 @@ Node postRewriteFfAdd(TNode t)
       }
     }
   }
-  NodeManager* const nm = NodeManager::currentNM();
+  NodeManager* const nm = nodeManager();
   std::vector<Node> summands;
   if (scalarTerms.empty() || !constantTerm.getValue().isZero())
   {
@@ -181,7 +181,7 @@ Node postRewriteFfMult(TNode t)
       factors.push_back(child);
     }
   }
-  NodeManager* const nm = NodeManager::currentNM();
+  NodeManager* const nm = nodeManager();
   if (constantTerm.getValue().isZero())
   {
     factors.clear();
@@ -201,15 +201,15 @@ Node postRewriteFfEq(TNode t)
   {
     FiniteFieldValue l = t[0].getConst<FiniteFieldValue>();
     FiniteFieldValue r = t[1].getConst<FiniteFieldValue>();
-    return NodeManager::currentNM()->mkConst<bool>(l == r);
+    return nodeManager()->mkConst<bool>(l == r);
   }
   else if (t[0] == t[1])
   {
-    return NodeManager::currentNM()->mkConst<bool>(true);
+    return nodeManager()->mkConst<bool>(true);
   }
   else if (t[0] > t[1])
   {
-    return NodeManager::currentNM()->mkNode(Kind::EQUAL, t[1], t[0]);
+    return nodeManager()->mkNode(Kind::EQUAL, t[1], t[0]);
   }
   else
   {

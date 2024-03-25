@@ -28,7 +28,7 @@ TheorySepRewriter::TheorySepRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
 
 void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ){
   Assert(n.getKind() == Kind::SEP_STAR);
-  Node tr = NodeManager::currentNM()->mkConst( true );
+  Node tr = nodeManager()->mkConst( true );
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if (n[i].getKind() == Kind::SEP_EMP)
     {
@@ -54,7 +54,7 @@ void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children
       }else if( temp_s_children.size()==1 ){
         to_add = temp_s_children[0];
       }else{
-        to_add = NodeManager::currentNM()->mkNode(Kind::AND, temp_s_children);
+        to_add = nodeManager()->mkNode(Kind::AND, temp_s_children);
       }
       if( !to_add.isNull() ){
         //flatten star
@@ -87,7 +87,7 @@ void TheorySepRewriter::getAndChildren( Node n, std::vector< Node >& s_children,
       }
     }else{
       if( std::find( ns_children.begin(), ns_children.end(), n )==ns_children.end() ){
-        if( n!=NodeManager::currentNM()->mkConst(true) ){
+        if( n!=nodeManager()->mkConst(true) ){
           ns_children.push_back( n );
         }
       }
@@ -130,7 +130,7 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
         if( s_children.size()==1 ) {
           schild = s_children[0];
         }else{
-          schild = NodeManager::currentNM()->mkNode(Kind::SEP_STAR, s_children);
+          schild = nodeManager()->mkNode(Kind::SEP_STAR, s_children);
         }
         ns_children.push_back( schild );
       }
@@ -138,20 +138,20 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
       if( ns_children.size()==1 ){
         retNode = ns_children[0];
       }else{
-        retNode = NodeManager::currentNM()->mkNode(Kind::AND, ns_children);
+        retNode = nodeManager()->mkNode(Kind::AND, ns_children);
       }
       break;
     }
     case Kind::EQUAL:
     {
       if(node[0] == node[1]) {
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
       }
       else if (node[0].isConst() && node[1].isConst()) {
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
       }
       if (node[0] > node[1]) {
-        Node newNode = NodeManager::currentNM()->mkNode(node.getKind(), node[1], node[0]);
+        Node newNode = nodeManager()->mkNode(node.getKind(), node[1], node[0]);
         return RewriteResponse(REWRITE_DONE, newNode);
       }
       break;

@@ -82,7 +82,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   if (childList.size() == 1) return RewriteResponse(REWRITE_AGAIN, childList[0]);
 
   /* Trickery to stay under number of children possible in a node */
-  NodeManager* nodeManager = NodeManager::currentNM();
+  NodeManager* nodeManager = nodeManager();
   if (childList.size() < expr::NodeValue::MAX_CHILDREN)
   {
     Node retNode = nodeManager->mkNode(k, childList);
@@ -139,7 +139,7 @@ inline Node makeNegation(TNode n){
     return n;
   } else {
     if(n.isConst()){
-      return NodeManager::currentNM()->mkConst(!n.getConst<bool>());
+      return nodeManager()->mkConst(!n.getConst<bool>());
     }else{
       return n.notNode();
     }
@@ -147,7 +147,7 @@ inline Node makeNegation(TNode n){
 }
 
 RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
-  NodeManager* nodeManager = NodeManager::currentNM();
+  NodeManager* nodeManager = nodeManager();
   Node tt = nodeManager->mkConst(true);
   Node ff = nodeManager->mkConst(false);
 

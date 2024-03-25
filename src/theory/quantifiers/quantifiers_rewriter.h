@@ -198,13 +198,13 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
 
   static bool isPrenexNormalForm(Node n);
-  static Node mkForAll(const std::vector<Node>& args,
+  Node mkForAll(const std::vector<Node>& args,
                        Node body,
                        QAttributes& qa);
-  static Node mkForall(const std::vector<Node>& args,
+  Node mkForall(const std::vector<Node>& args,
                        Node body,
                        bool marked = false);
-  static Node mkForall(const std::vector<Node>& args,
+  Node mkForall(const std::vector<Node>& args,
                        Node body,
                        std::vector<Node>& iplc,
                        bool marked = false);

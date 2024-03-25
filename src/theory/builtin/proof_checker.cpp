@@ -98,12 +98,12 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   {
     bool polarity = exp.getKind() != Kind::NOT;
     var = polarity ? exp : exp[0];
-    subs = NodeManager::currentNM()->mkConst(polarity);
+    subs = nodeManager()->mkConst(polarity);
   }
   else if (ids == MethodId::SB_FORMULA)
   {
     var = exp;
-    subs = NodeManager::currentNM()->mkConst(true);
+    subs = nodeManager()->mkConst(true);
   }
   else
   {
@@ -204,7 +204,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager * nm = nodeManager();
   // compute what was proven
   if (id == ProofRule::ASSUME)
   {
@@ -486,7 +486,7 @@ bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
 
 Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
 {
-  return NodeManager::currentNM()->mkConstInt(
+  return nodeManager()->mkConstInt(
       Rational(static_cast<uint32_t>(tid)));
 }
 
