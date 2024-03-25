@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
+
 #include "test_api.h"
 
 namespace cvc5::internal::test {
@@ -1170,4 +1172,61 @@ TEST_F(TestApiBlackTermManager, uFIteration)
   }
 }
 
+TEST_F(TestApiBlackTermManager, getStatistics)
+{
+  ASSERT_NO_THROW(cvc5::Stat());
+  // do some array reasoning to make sure we have a double statistics
+  {
+    Sort s1 = d_tm.getIntegerSort();
+    Sort s2 = d_tm.mkArraySort(s1, s1);
+    Term t1 = d_tm.mkConst(s1, "i");
+    Term t2 = d_tm.mkVar(s2, "a");
+    Term t3 = d_tm.mkTerm(Kind::SELECT, {t2, t1});
+    d_solver->checkSat();
+  }
+  cvc5::Statistics stats = d_tm.getStatistics();
+  {
+    std::stringstream ss;
+    ss << stats;
+  }
+  for (const auto& s : stats)
+  {
+    ASSERT_FALSE(s.first.empty());
+  }
+  for (auto it = stats.begin(true, true); it != stats.end(); ++it)
+  {
+    {
+      auto tmp1 = it, tmp2 = it;
+      ++tmp1;
+      tmp2++;
+      ASSERT_EQ(tmp1, tmp2);
+      --tmp1;
+      tmp2--;
+      ASSERT_EQ(tmp1, tmp2);
+      ASSERT_EQ(tmp1, it);
+      ASSERT_EQ(it, tmp2);
+    }
+    const auto& s = *it;
+    // check some basic utility methods
+    ASSERT_TRUE(!(it == stats.end()));
+    ASSERT_EQ(s.first, it->first);
+    if (s.first == "cvc5::CONSTANT")
+    {
+      ASSERT_FALSE(s.second.isInternal());
+      ASSERT_FALSE(s.second.isDefault());
+      ASSERT_TRUE(s.second.isHistogram());
+      auto hist = s.second.getHistogram();
+      ASSERT_FALSE(hist.empty());
+      std::stringstream ss;
+      ss << s.second;
+      ASSERT_EQ(ss.str(), "{ integer type: 1 }");
+    }
+    else if (s.first == "theory::arrays::avgIndexListLength")
+    {
+      ASSERT_TRUE(s.second.isInternal());
+      ASSERT_TRUE(s.second.isDouble());
+      ASSERT_TRUE(std::isnan(s.second.getDouble()));
+    }
+  }
+}
 }  // namespace cvc5::internal::test

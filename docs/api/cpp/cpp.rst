@@ -83,7 +83,7 @@ Class hierarchy
 ``}``
 
 ``namespace parser {``
-  
+
   * class :cpp:class:`Command <cvc5::parser::Command>`
   * class :ref:`api/cpp/inputparser:inputparser`
   * class :cpp:class:`ParserException <cvc5::parser::ParserException>`

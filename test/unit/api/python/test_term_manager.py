@@ -1195,3 +1195,29 @@ def test_uf_iteration(tm, solver):
         idx = idx + 1
 
 
+def test_get_statistics(tm, solver):
+    intSort = tm.getIntegerSort()
+    x = tm.mkConst(intSort, "x")
+    y = tm.mkConst(intSort, "y")
+    zero = tm.mkInteger(0)
+    ten = tm.mkInteger(10)
+    f0 = tm.mkTerm(Kind.GEQ, x, ten)
+    f1 = tm.mkTerm(
+            Kind.OR,
+            tm.mkTerm(Kind.GEQ, zero, x),
+            tm.mkTerm(Kind.GEQ, y, zero))
+    solver.assertFormula(f0)
+    solver.assertFormula(f1)
+    solver.checkSat()
+    stats = tm.getStatistics()
+    assert stats['cvc5::TERM'] == {
+            'default': False,
+            'internal': False,
+            'value': {'GEQ': 3, 'OR': 1}}
+    assert stats.get(True, False) != {}
+
+    for s in stats:
+        if s[0] == 'cvc5::CONTANT':
+            assert not s[1]['internal']
+            assert not s[1]['default']
+            assert s[1]['value'] == {'integer type': 1}
