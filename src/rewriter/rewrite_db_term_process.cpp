@@ -24,6 +24,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
+RewriteDbNodeConverter::RewriteDbNodeConverter(NodeManager * nm) : NodeConverter(nm){}
+
 Node RewriteDbNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();

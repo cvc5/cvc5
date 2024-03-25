@@ -34,14 +34,14 @@ struct QElimShadowAttributeId
 };
 using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
-ElimShadowNodeConverter::ElimShadowNodeConverter(const Node& q) : d_closure(q)
+ElimShadowNodeConverter::ElimShadowNodeConverter(NodeManager * nm, const Node& q) : NodeConverter(nm), d_closure(q)
 {
   Assert(q.isClosure());
   d_vars.insert(d_vars.end(), q[0].begin(), q[0].end());
 }
 
 ElimShadowNodeConverter::ElimShadowNodeConverter(
-    const Node& n, const std::unordered_set<Node>& vars)
+    NodeManager * nm, const Node& n, const std::unordered_set<Node>& vars) : NodeConverter(nm)
 {
   d_closure = n;
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
@@ -85,7 +85,8 @@ Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
 Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
 {
   Assert(q.isClosure());
-  ElimShadowNodeConverter esnc(q);
+  NodeManager* nm = NodeManager::currentNM();
+  ElimShadowNodeConverter esnc(nm, q);
   // eliminate shadowing in all children
   std::vector<Node> children;
   children.push_back(q[0]);

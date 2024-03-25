@@ -61,7 +61,8 @@ namespace proof {
 class LfscListScNodeConverter : public NodeConverter
 {
  public:
-  LfscListScNodeConverter(LfscNodeConverter& conv,
+  LfscListScNodeConverter(NodeManager * nm,
+                          LfscNodeConverter& conv,
                           const std::unordered_set<Node>& listVars,
                           bool isPre = false);
   /** convert to internal */

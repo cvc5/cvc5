@@ -47,9 +47,10 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-AlfNodeConverter::AlfNodeConverter()
+BaseAlfNodeConverter::BaseAlfNodeConverter(NodeManager * nm) : NodeConverter(nm){}
+
+AlfNodeConverter::AlfNodeConverter(NodeManager * nm) : BaseAlfNodeConverter(nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   d_sortType = nm->mkSort("sortType");
 }
 

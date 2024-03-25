@@ -30,7 +30,7 @@ namespace cvc5::internal {
 class AnnotationElimNodeConverter : public NodeConverter
 {
  public:
-  AnnotationElimNodeConverter();
+  AnnotationElimNodeConverter(NodeManager * nm);
   ~AnnotationElimNodeConverter() {}
   /** convert node n as described above during post-order traversal */
   Node postConvert(Node n) override;

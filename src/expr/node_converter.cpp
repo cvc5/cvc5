@@ -21,7 +21,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-NodeConverter::NodeConverter(bool forceIdem) : d_forceIdem(forceIdem) {}
+NodeConverter::NodeConverter(NodeManager * nm, bool forceIdem) : d_nm(nm), d_forceIdem(forceIdem) {}
 
 Node NodeConverter::convert(Node n, bool preserveTypes)
 {
@@ -116,7 +116,7 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
         {
           if (childChanged)
           {
-            ret = nm->mkNode(ret.getKind(), children);
+            ret = d_nm->mkNode(ret.getKind(), children);
             Trace("nconv-debug2") << "..from children changed " << cur
                                   << " into " << ret << std::endl;
           }

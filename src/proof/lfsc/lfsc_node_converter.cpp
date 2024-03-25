@@ -46,9 +46,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-LfscNodeConverter::LfscNodeConverter()
+LfscNodeConverter::LfscNodeConverter(NodeManager * nm) : NodeConverter(nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   d_arrow = nm->mkSortConstructor("arrow", 2);
 
   d_sortType = nm->mkSort("sortType");

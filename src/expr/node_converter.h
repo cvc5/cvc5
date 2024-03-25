@@ -41,7 +41,7 @@ class NodeConverter
    * @param forceIdem If true, this assumes that terms returned by postConvert
    * and postConvertType should not be converted again.
    */
-  NodeConverter(bool forceIdem = true);
+  NodeConverter(NodeManager * nm, bool forceIdem = true);
   virtual ~NodeConverter() {}
   /**
    * This converts node n based on the preConvert/postConvert methods that can
@@ -109,6 +109,9 @@ class NodeConverter
    */
   virtual TypeNode postConvertType(TypeNode n);
   //------------------------- end virtual interface
+ protected:
+  /** The underlying node manager */
+  NodeManager* d_nm;
  private:
   /** Add to cache */
   void addToCache(TNode cur, TNode ret);

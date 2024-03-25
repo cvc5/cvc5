@@ -1365,7 +1365,7 @@ Node CegInstantiator::getModelValue( Node n ) {
   Node mv = d_treg.getModel()->getValue(n);
   // Witness terms with identifiers may appear in the model. We require
   // dropping their annotations here.
-  AnnotationElimNodeConverter aenc;
+  AnnotationElimNodeConverter aenc(nodeManager());
   mv = aenc.convert(mv);
   return mv;
 }
