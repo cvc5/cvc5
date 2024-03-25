@@ -111,7 +111,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       expr::getFreeVariables(arg, fvs);
       if (!fvs.empty())
       {
-        ElimShadowNodeConverter esnc(node, fvs);
+        ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
         new_body = esnc.convert(new_body);
       }
       TNode var = lambda[0][0];
