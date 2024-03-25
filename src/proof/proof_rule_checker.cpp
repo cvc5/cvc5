@@ -70,8 +70,10 @@ Node ProofRuleChecker::mkKindNode(Kind k)
     // UNDEFINED_KIND is negative, hence return null to avoid cast
     return Node::null();
   }
-  return NodeManager::currentNM()->mkConstInt(
+  return nodeManager()->mkConstInt(
       Rational(static_cast<uint32_t>(k)));
 }
+
+NodeManager* ProofRuleChecker::nodeManager() const { return d_nm; }
 
 }  // namespace cvc5::internal
