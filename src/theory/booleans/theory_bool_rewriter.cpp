@@ -283,11 +283,11 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         // x : (= y z)
 
         // assume wlog k, z are constants and j is the same symbol as y
-        // (id_false (= j k) (= j z))
+        // (= (= j k) (= j z))
         // if k = z
-        //  then (id_false (= j k) (= j k)) => true
+        //  then (= (= j k) (= j k)) => true
         // else
-        //  (id_false (= j k) (= j z)) <=> b
+        //  (= (= j k) (= j z)) <=> b
         //  b : (and (not (= j k)) (not (= j z)))
         //  (= j k) (= j z) | a b
         //  f       f       | t t
