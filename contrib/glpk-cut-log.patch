@@ -1,11 +1,11 @@
-@@ This patch is taken from https://github.com/timothy-king/glpk-cut-log and
-@@ has the following license:
-@@
-@@ GLPK is free software: you can redistribute it and/or modify it under the
-@@ terms of the GNU General Public License as published by the Free Software
-@@ Foundation, either version 3 of the License, or (at your option) any later
-@@ version.
-@@
+%% This patch is taken from https://github.com/timothy-king/glpk-cut-log and
+%% has the following license:
+%%
+%% GLPK is free software: you can redistribute it and/or modify it under the
+%% terms of the GNU General Public License as published by the Free Software
+%% Foundation, either version 3 of the License, or (at your option) any later
+%% version.
+%%
 From cf84e3855d8c5676557daaca434b42b2fc17dc29 Mon Sep 17 00:00:00 2001
 From: Tim King <taking@cs.nyu.edu>
 Date: Sat, 14 Dec 2013 16:03:35 -0500
@@ -73,10 +73,10 @@ Updating the installation instructions.
 
 ---
 diff --git a/configure.ac b/configure.ac
-index bbc8929..0bc64d1 100644
+index cbdb724..ba642ba 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -5,7 +5,7 @@ AC_CONFIG_SRCDIR([src/glpk.h])
+@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR([src/glpk.h])
  
  AC_CONFIG_MACRO_DIR([m4])
  
@@ -86,39 +86,30 @@ index bbc8929..0bc64d1 100644
  AC_CONFIG_HEADERS([config.h])
  
 diff --git a/src/Makefile.am b/src/Makefile.am
-index b39efa6..2a025bc 100644
+index 48dff15..d04b547 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -20,7 +20,10 @@ libglpk_la_LDFLAGS = \
- -version-info 36:0:1 \
- -export-symbols-regex '^glp_*'
+@@ -27,6 +27,7 @@ libglpk_la_LDFLAGS = \
+ ${NOUNDEFINED}
  
-+
-+# all of the cut log sources are listed first
  libglpk_la_SOURCES = \
 +cutlog01.c \
- glpapi01.c \
- glpapi02.c \
- glpapi03.c \
+ amd/amd_1.c \
+ amd/amd_2.c \
+ amd/amd_aat.c \
 diff --git a/src/cutlog01.c b/src/cutlog01.c
 new file mode 100644
-index 0000000..9a85bb7
+index 0000000..c8818df
 --- /dev/null
 +++ b/src/cutlog01.c
-@@ -0,0 +1,452 @@
+@@ -0,0 +1,446 @@
 +/* cutlog01.c (api extension routines) */
 +
-+
-+#include "glpapi.h"
-+#include "glpios.h"
-+
-+int glp_get_it_cnt(glp_prob *P){
-+  if(P == NULL){
-+    return 0;
-+  }else{
-+    return P->it_cnt;
-+  }
-+}
++#include "env.h"
++#include "ios.h"
++#include "npp.h"
++#include "glpk.h"
++#include "ios.h"
 +
 +int glp_ios_get_cut(glp_tree *T, int i, int* ind, double* val, int* klass, int* type, double* rhs){
 +  xassert(T != NULL);
@@ -558,23 +549,23 @@ index 0000000..9a85bb7
 +  }
 +  return tree->num_deleting_rows;
 +}
-diff --git a/src/glpapi06.c b/src/glpapi06.c
-index 743d6be..05d0498 100644
---- a/src/glpapi06.c
-+++ b/src/glpapi06.c
-@@ -488,6 +488,7 @@ void glp_init_smcp(glp_smcp *parm)
-       parm->out_frq = 500;
-       parm->out_dly = 0;
-       parm->presolve = GLP_OFF;
+diff --git a/src/draft/glpapi06.c b/src/draft/glpapi06.c
+index 635662e..ad6d55a 100644
+--- a/src/draft/glpapi06.c
++++ b/src/draft/glpapi06.c
+@@ -524,6 +524,7 @@ void glp_init_smcp(glp_smcp *parm)
+       parm->shift = GLP_ON;
+       parm->aorn = GLP_USE_NT;
+ #endif
 +      parm->stability_lmt = 200;
        return;
  }
  
-diff --git a/src/glpapi13.c b/src/glpapi13.c
-index 926dda4..55adf44 100644
---- a/src/glpapi13.c
-+++ b/src/glpapi13.c
-@@ -453,8 +453,14 @@ void glp_ios_row_attr(glp_tree *tree, int i, glp_attr *attr)
+diff --git a/src/draft/glpapi13.c b/src/draft/glpapi13.c
+index 0ca2adf..c5d4af6 100644
+--- a/src/draft/glpapi13.c
++++ b/src/draft/glpapi13.c
+@@ -451,8 +451,14 @@ void glp_ios_row_attr(glp_tree *tree, int i, glp_attr *attr)
  
  int glp_ios_pool_size(glp_tree *tree)
  {     /* determine current size of the cut pool */
@@ -589,15 +580,24 @@ index 926dda4..55adf44 100644
 +           xerror("glp_ios_pool_size: operation not allowed\n");
 +      }
        xassert(tree->local != NULL);
-       return tree->local->size;
- }
-diff --git a/src/glpios.h b/src/glpios.h
-index 9e2d6b2..3b31901 100644
---- a/src/glpios.h
-+++ b/src/glpios.h
-@@ -36,6 +36,9 @@ typedef struct IOSAIJ IOSAIJ;
- typedef struct IOSPOOL IOSPOOL;
+ #ifdef NEW_LOCAL /* 02/II-2018 */
+       return tree->local->m;
+diff --git a/src/draft/ios.h b/src/draft/ios.h
+index e2b47c6..2e61fdc 100644
+--- a/src/draft/ios.h
++++ b/src/draft/ios.h
+@@ -24,7 +24,7 @@
+ 
+ #include "prob.h"
+ 
+-#if 1 /* 02/II-2018 */
++#if 0 /* 02/II-2018 */ /* cvc5; NEW_LOCAL is not compatible with cut logging */
+ #define NEW_LOCAL 1
+ #endif
+ 
+@@ -46,6 +46,9 @@ typedef struct IOSPOOL IOSPOOL;
  typedef struct IOSCUT IOSCUT;
+ #endif
  
 +
 +typedef struct IOSAUX IOSAUX;
@@ -605,7 +605,7 @@ index 9e2d6b2..3b31901 100644
  struct glp_tree
  {     /* branch-and-bound tree */
        int magic;
-@@ -217,6 +220,19 @@ struct glp_tree
+@@ -223,6 +226,19 @@ struct glp_tree
           GLP_NO_BRNCH - use general selection technique */
        int child;
        /* subproblem reference number corresponding to br_sel */
@@ -625,7 +625,7 @@ index 9e2d6b2..3b31901 100644
  };
  
  struct IOSLOT
-@@ -229,6 +245,8 @@ struct IOSLOT
+@@ -235,6 +251,8 @@ struct IOSLOT
  
  struct IOSNPD
  {     /* node subproblem descriptor */
@@ -634,19 +634,15 @@ index 9e2d6b2..3b31901 100644
        int p;
        /* subproblem reference number (it is the index to corresponding
           slot, i.e. slot[p] points to this descriptor) */
-@@ -393,12 +411,51 @@ struct IOSCUT
-          GLP_FX: sum a[j] * x[j]  = b */
-       double rhs;
-       /* cut right-hand side */
-+
-+      IOSAUX *aux;
-+      /* cut auxillary source information */
-+
-       IOSCUT *prev;
+@@ -406,9 +424,47 @@ struct IOSCUT
        /* pointer to previous cut */
        IOSCUT *next;
        /* pointer to next cut */
++
++      IOSAUX *aux;
++      /* cut auxillary source information */
  };
+ #endif
  
 +struct IOSAUX
 +{
@@ -686,7 +682,7 @@ index 9e2d6b2..3b31901 100644
  #define ios_create_tree _glp_ios_create_tree
  glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm);
  /* create branch-and-bound tree */
-@@ -615,6 +672,31 @@ int ios_choose_node(glp_tree *T);
+@@ -539,6 +595,31 @@ int ios_choose_node(glp_tree *T);
  int ios_choose_var(glp_tree *T, int *next);
  /* select variable to branch on */
  
@@ -718,11 +714,11 @@ index 9e2d6b2..3b31901 100644
  #endif
  
  /* eof */
-diff --git a/src/glpios01.c b/src/glpios01.c
-index 70798fd..d9e5703 100644
---- a/src/glpios01.c
-+++ b/src/glpios01.c
-@@ -159,6 +159,16 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
+diff --git a/src/draft/glpios01.c b/src/draft/glpios01.c
+index f1ee43a..f32867d 100644
+--- a/src/draft/glpios01.c
++++ b/src/draft/glpios01.c
+@@ -175,6 +175,16 @@ glp_tree *ios_create_tree(glp_prob *mip, const glp_iocp *parm)
        tree->stop = 0;
        /* create the root subproblem, which initially is identical to
           the original MIP */
@@ -739,7 +735,7 @@ index 70798fd..d9e5703 100644
        new_node(tree, NULL);
        return tree;
  }
-@@ -278,6 +288,7 @@ void ios_revive_node(glp_tree *tree, int p)
+@@ -294,6 +304,7 @@ void ios_revive_node(glp_tree *tree, int p)
              double *val;
              ind = xcalloc(1+n, sizeof(int));
              val = xcalloc(1+n, sizeof(double));
@@ -747,7 +743,7 @@ index 70798fd..d9e5703 100644
              for (r = node->r_ptr; r != NULL; r = r->next)
              {  i = glp_add_rows(mip, 1);
                 glp_set_row_name(mip, i, r->name);
-@@ -457,6 +468,13 @@ void ios_freeze_node(glp_tree *tree)
+@@ -473,6 +484,13 @@ void ios_freeze_node(glp_tree *tree)
              double *val;
              ind = xcalloc(1+n, sizeof(int));
              val = xcalloc(1+n, sizeof(double));
@@ -761,7 +757,7 @@ index 70798fd..d9e5703 100644
              for (i = m; i > pred_m; i--)
              {  GLPROW *row = mip->row[i];
                 IOSROW *r;
-@@ -501,6 +519,8 @@ void ios_freeze_node(glp_tree *tree)
+@@ -517,6 +535,8 @@ void ios_freeze_node(glp_tree *tree)
              xassert(nrs > 0);
              num = xcalloc(1+nrs, sizeof(int));
              for (i = 1; i <= nrs; i++) num[i] = root_m + i;
@@ -770,7 +766,7 @@ index 70798fd..d9e5703 100644
              glp_del_rows(mip, nrs, num);
              xfree(num);
           }
-@@ -636,6 +656,9 @@ static IOSNPD *new_node(glp_tree *tree, IOSNPD *parent)
+@@ -652,6 +672,9 @@ static IOSNPD *new_node(glp_tree *tree, IOSNPD *parent)
        tree->a_cnt++;
        tree->n_cnt++;
        tree->t_cnt++;
@@ -780,7 +776,7 @@ index 70798fd..d9e5703 100644
        /* increase the number of child subproblems */
        if (parent == NULL)
           xassert(p == 1);
-@@ -818,6 +841,8 @@ void ios_delete_tree(glp_tree *tree)
+@@ -834,6 +857,8 @@ void ios_delete_tree(glp_tree *tree)
           xassert(nrs > 0);
           num = xcalloc(1+nrs, sizeof(int));
           for (i = 1; i <= nrs; i++) num[i] = tree->orig_m + i;
@@ -789,7 +785,7 @@ index 70798fd..d9e5703 100644
           glp_del_rows(mip, nrs, num);
           xfree(num);
        }
-@@ -1417,6 +1442,7 @@ int ios_add_row(glp_tree *tree, IOSPOOL *pool,
+@@ -1477,6 +1502,7 @@ int ios_add_row(glp_tree *tree, IOSPOOL *pool,
        cut->rhs = rhs;
        cut->prev = pool->tail;
        cut->next = NULL;
@@ -797,7 +793,7 @@ index 70798fd..d9e5703 100644
        if (cut->prev == NULL)
           pool->head = cut;
        else
-@@ -1517,6 +1543,11 @@ void ios_del_row(glp_tree *tree, IOSPOOL *pool, int i)
+@@ -1591,6 +1617,11 @@ void ios_del_row(glp_tree *tree, IOSPOOL *pool, int i)
           cut->ptr = aij->next;
           dmp_free_atom(tree->pool, aij, sizeof(IOSAIJ));
        }
@@ -809,7 +805,7 @@ index 70798fd..d9e5703 100644
        dmp_free_atom(tree->pool, cut, sizeof(IOSCUT));
        pool->size--;
        return;
-@@ -1535,6 +1566,10 @@ void ios_clear_pool(glp_tree *tree, IOSPOOL *pool)
+@@ -1624,6 +1655,10 @@ void ios_clear_pool(glp_tree *tree, IOSPOOL *pool)
              cut->ptr = aij->next;
              dmp_free_atom(tree->pool, aij, sizeof(IOSAIJ));
           }
@@ -820,11 +816,16 @@ index 70798fd..d9e5703 100644
           dmp_free_atom(tree->pool, cut, sizeof(IOSCUT));
        }
        pool->size = 0;
-diff --git a/src/glpios03.c b/src/glpios03.c
-index 80d701b..03e9208 100644
---- a/src/glpios03.c
-+++ b/src/glpios03.c
-@@ -358,12 +358,12 @@ static void fix_by_red_cost(glp_tree *T)
+@@
+@@ glpios08 was split into src/cglib/{cfg2.c, clqcut.c} in GLPK 4.59
+@@
+@@ This code applies against glpios03 around GLPK 4.65.
+@@
+diff --git a/src/draft/glpios03.c b/src/draft/glpios03.c
+index 2c1180f..ec1da44 100644
+--- a/src/draft/glpios03.c
++++ b/src/draft/glpios03.c
+@@ -359,12 +394,12 @@ static void fix_by_red_cost(glp_tree *T)
  *  2 - both branches are hopeless and have been pruned; new subproblem
  *      selection is needed to continue the search. */
  
@@ -839,7 +840,7 @@ index 80d701b..03e9208 100644
        double lb, ub, beta, new_ub, new_lb, dn_lp, up_lp, dn_bnd, up_bnd;
        /* determine bounds and value of x[j] in optimal solution to LP
           relaxation of the current subproblem */
-@@ -431,6 +431,7 @@ static int branch_on(glp_tree *T, int j, int next)
+@@ -432,6 +467,7 @@ static int branch_on(glp_tree *T, int j, int next)
           else
              xassert(mip != mip);
           ret = 1;
@@ -847,7 +848,7 @@ index 80d701b..03e9208 100644
           goto done;
        }
        else if (dn_bad)
-@@ -449,6 +450,7 @@ static int branch_on(glp_tree *T, int j, int next)
+@@ -450,6 +486,7 @@ static int branch_on(glp_tree *T, int j, int next)
           else
              xassert(mip != mip);
           ret = 1;
@@ -855,7 +856,40 @@ index 80d701b..03e9208 100644
           goto done;
        }
        /* both down- and up-branches seem to be hopeful */
-@@ -702,7 +704,8 @@ static void remove_cuts(glp_tree *T)
+@@ -650,8 +687,16 @@ static void gmi_gen(glp_tree *T)
+          val = xcalloc(1+P->n, sizeof(double));
+          for (i = 1; i <= pool->m; i++)
+          {  len = glp_get_mat_row(pool, i, ind, val);
+             glp_ios_add_row(T, NULL, GLP_RF_GMI, 0, len, ind, val,
+                GLP_LO, pool->row[i]->lb);
++
++            /** callback for a cut being added to the cut pool */
++            if (T->parm->cb_func != NULL)
++            {  xassert(T->reason == GLP_ICUTGEN);
++                T->reason = GLP_ICUTADDED;
++                T->parm->cb_func(T, T->parm->cb_info);
++                T->reason = GLP_ICUTGEN;
++            }
+          }
+          xfree(ind);
+          xfree(val);
+@@ -728,6 +773,15 @@ static void clq_gen(glp_tree *T, glp_cfg *G)
+       if (len > 0)
+          glp_ios_add_row(T, NULL, GLP_RF_CLQ, 0, len, ind, val, GLP_UP,
+             val[0]);
++
++      /** callback for a cut being added to the cut pool */
++      if (T->parm->cb_func != NULL)
++      {  xassert(T->reason == GLP_ICUTGEN);
++         T->reason = GLP_ICUTADDED;
++         T->parm->cb_func(T, T->parm->cb_info);
++         T->reason = GLP_ICUTGEN;
++      }
++
+       tfree(ind);
+       tfree(val);
+       return;
+@@ -814,7 +868,8 @@ static void remove_cuts(glp_tree *T)
           }
        }
        if (cnt > 0)
@@ -865,7 +899,7 @@ index 80d701b..03e9208 100644
  #if 0
           xprintf("%d inactive cut(s) removed\n", cnt);
  #endif
-@@ -784,6 +787,7 @@ static void display_cut_info(glp_tree *T)
+@@ -896,6 +951,7 @@ static void display_cut_info(glp_tree *T)
  
  int ios_driver(glp_tree *T)
  {     int p, curr_p, p_stat, d_stat, ret;
@@ -873,7 +907,7 @@ index 80d701b..03e9208 100644
  #if 1 /* carry out to glp_tree */
        int pred_p = 0;
        /* if the current subproblem has been just created due to
-@@ -1010,6 +1014,12 @@ more: /* minor loop starts here */
+@@ -1164,6 +1220,12 @@ more: /* minor loop starts here */
           if (T->parm->msg_lev >= GLP_MSG_DBG)
              xprintf("LP relaxation has no feasible solution\n");
           /* prune the branch */
@@ -886,7 +920,7 @@ index 80d701b..03e9208 100644
           goto fath;
        }
        else
-@@ -1219,6 +1229,14 @@ more: /* minor loop starts here */
+@@ -1398,6 +1460,14 @@ more: /* minor loop starts here */
           ios_process_cuts(T);
           T->reason = 0;
        }
@@ -901,7 +935,7 @@ index 80d701b..03e9208 100644
        /* clear the local cut pool */
        ios_clear_pool(T, T->local);
        /* perform re-optimization, if necessary */
-@@ -1255,7 +1273,34 @@ more: /* minor loop starts here */
+@@ -1442,7 +1512,34 @@ more: /* minor loop starts here */
           T->br_var = ios_choose_var(T, &T->br_sel);
        /* perform actual branching */
        curr_p = T->curr->p;
@@ -937,37 +971,57 @@ index 80d701b..03e9208 100644
        T->br_var = T->br_sel = 0;
        if (ret == 0)
        {  /* both branches have been created */
-diff --git a/src/glpios05.c b/src/glpios05.c
-index b9322b9..caf69d7 100644
---- a/src/glpios05.c
-+++ b/src/glpios05.c
-@@ -65,6 +65,9 @@ static void gen_cut(glp_tree *tree, struct worka *worka, int j)
-       double *phi = worka->phi;
+diff --git a/src/intopt/covgen.c b/src/intopt/covgen.c
+index 986cf88..bfe708c 100644
+--- a/src/intopt/covgen.c
++++ b/src/intopt/covgen.c
+@@ -572,14 +572,14 @@ glp_cov *glp_cov_init(glp_prob *P)
+       /* the set of "0-1 knapsack" inequalities has been built */
+       if (csa.set->m == 0)
+       {  /* the set is empty */
+-         xprintf("No 0-1 knapsack inequalities detected\n");
++         /* xprintf("No 0-1 knapsack inequalities detected\n"); */
+          cov = NULL;
+          glp_delete_prob(csa.set);
+       }
+       else
+       {  /* create the cover cut generator working area */
+-         xprintf("Number of 0-1 knapsack inequalities = %d\n",
+-            csa.set->m);
++         /* xprintf("Number of 0-1 knapsack inequalities = %d\n",
++            csa.set->m); */
+          cov = talloc(1, glp_cov);
+          cov->n = P->n;
+          cov->set = csa.set;
+%%
+%% glpios05 was split into src/cglib/{gmicut.c, gmigen.c}
+%% in GLPK 4.59
+%%
+%% src/cglib was renamed into src/intopt in GLPK 4.65
+%%
+diff --git a/src/intopt/gmicut.c b/src/intopt/gmicut.c
+index ae75a8c..61b2fda 100644
+--- a/src/intopt/gmicut.c
++++ b/src/intopt/gmicut.c
+@@ -21,6 +21,7 @@
+ 
+ #include "env.h"
+ #include "prob.h"
++#include "ios.h"
+ 
+ /***********************************************************************
+ *  NAME
+@@ -104,6 +105,9 @@ int glp_gmi_cut(glp_prob *P, int j,
+       GLPAIJ *aij;
        int i, k, len, kind, stat;
        double lb, ub, alfa, beta, ksi, phi1, rhs;
 +      int input_j;
 +      input_j = j;
 +
-       /* compute row of the simplex tableau, which (row) corresponds
-          to specified basic variable xB[i] = x[m+j]; see (23) */
-       len = glp_eval_tab_row(mip, m+j, ind, val);
-@@ -73,6 +76,7 @@ static void gen_cut(glp_tree *tree, struct worka *worka, int j)
-          if it would be computed with formula (27); it is assumed that
-          beta[i] is fractional enough */
-       beta = mip->col[j]->prim;
-+
-       /* compute cut coefficients phi and right-hand side rho, which
-          correspond to formula (30); dense format is used, because rows
-          of the simplex tableau is usually dense */
-@@ -104,6 +108,7 @@ static void gen_cut(glp_tree *tree, struct worka *worka, int j)
-          xassert(stat != GLP_BS);
-          /* determine row coefficient ksi[i,j] at xN[j]; see (23) */
-          ksi = val[j];
-+         /* printf("%d %4.15f ", k, ksi); */
-          /* if ksi[i,j] is too large in the magnitude, do not generate
-             the cut */
-          if (fabs(ksi) > 1e+05) goto fini;
-@@ -135,6 +140,7 @@ static void gen_cut(glp_tree *tree, struct worka *worka, int j)
+       /* sanity checks */
+       if (!(P->m == 0 || P->valid))
+       {  /* current basis factorization is not valid */
+@@ -202,6 +206,7 @@ int glp_gmi_cut(glp_prob *P, int j,
                 /* y[j] is integer */
                 if (fabs(alfa - floor(alfa + 0.5)) < 1e-10)
                 {  /* alfa[i,j] is close to nearest integer; skip it */
@@ -975,7 +1029,7 @@ index b9322b9..caf69d7 100644
                    goto skip;
                 }
                 else if (f(alfa) <= f(beta))
-@@ -170,6 +176,13 @@ static void gen_cut(glp_tree *tree, struct worka *worka, int j)
+@@ -237,6 +242,13 @@ int glp_gmi_cut(glp_prob *P, int j,
           }
  skip:    ;
        }
@@ -987,19 +1041,14 @@ index b9322b9..caf69d7 100644
 +      /* printf("\n"); */
 +
        /* now the cut has the form sum_k phi[k] * x[k] >= rho, where cut
-          coefficients are stored in the array phi in dense format;
-          x[1,...,m] are auxiliary variables, x[m+1,...,m+n] are struc-
-@@ -218,8 +231,20 @@ skip:    ;
-       ios_add_cut_row(tree, pool, GLP_RF_GMI, len, ind, val, GLP_LO,
-          rhs);
- #else
--      glp_ios_add_row(tree, NULL, GLP_RF_GMI, 0, len, ind, val, GLP_LO,
--         rhs);
-+      int ord;
-+      ord = glp_ios_add_row(tree, NULL, GLP_RF_GMI, 0, len, ind, val,
-+                            GLP_LO, rhs);
-+      ios_cut_set_single_aux(tree, ord, input_j);
+        * coefficients are stored in the array phi in dense format;
+        * x[1,...,m] are auxiliary variables, x[m+1,...,m+n] are struc-
+@@ -276,6 +288,17 @@ skip:    ;
+          rhs = 0.0;
+       ind[0] = 0, val[0] = rhs;
+       /* the cut has been successfully generated */
 +
++      glp_tree *tree = P->tree;
 +      /* printf("ord: % d beta %f\n", ord, beta); */
 +
 +      /** callback for a cut being added to the cut pool */
@@ -1009,14 +1058,14 @@ index b9322b9..caf69d7 100644
 +         tree->parm->cb_func(tree, tree->parm->cb_info);
 +         tree->reason = GLP_ICUTGEN;
 +      }
- #endif
- fini: return;
+       return len;
  }
-diff --git a/src/glpios06.c b/src/glpios06.c
-index 2bd0453..4bd3cf5 100644
---- a/src/glpios06.c
-+++ b/src/glpios06.c
-@@ -100,6 +100,29 @@ struct MIR
+ 
+diff --git a/src/intopt/mirgen.c b/src/intopt/mirgen.c
+index 4467189..4b03dcb 100644
+--- a/src/intopt/mirgen.c
++++ b/src/intopt/mirgen.c
+@@ -123,6 +123,29 @@ struct glp_mir
        /* sparse vector of cutting plane coefficients, alpha[k] */
        double cut_rhs;
        /* right-hand size of the cutting plane, beta */
@@ -1046,7 +1095,7 @@ index 2bd0453..4bd3cf5 100644
  };
  
  /***********************************************************************
-@@ -146,6 +169,7 @@ static void set_row_attrib(glp_tree *tree, struct MIR *mir)
+@@ -166,6 +189,7 @@ static void set_row_attrib(glp_prob *mip, glp_mir *mir)
                 xassert(row != row);
           }
           mir->vlb[k] = mir->vub[k] = 0;
@@ -1054,7 +1103,7 @@ index 2bd0453..4bd3cf5 100644
        }
        return;
  }
-@@ -181,6 +205,7 @@ static void set_col_attrib(glp_tree *tree, struct MIR *mir)
+@@ -200,6 +224,7 @@ static void set_col_attrib(glp_prob *mip, glp_mir *mir)
                 xassert(col != col);
           }
           mir->vlb[k] = mir->vub[k] = 0;
@@ -1062,7 +1111,7 @@ index 2bd0453..4bd3cf5 100644
        }
        return;
  }
-@@ -230,6 +255,7 @@ static void set_var_bounds(glp_tree *tree, struct MIR *mir)
+@@ -248,6 +273,7 @@ static void set_var_bounds(glp_prob *mip, glp_mir *mir)
              {  /* set variable lower bound for x1 */
                 mir->lb[k1] = - a2 / a1;
                 mir->vlb[k1] = k2;
@@ -1070,7 +1119,7 @@ index 2bd0453..4bd3cf5 100644
                 /* the row should not be used */
                 mir->skip[i] = 1;
              }
-@@ -240,6 +266,7 @@ static void set_var_bounds(glp_tree *tree, struct MIR *mir)
+@@ -258,6 +284,7 @@ static void set_var_bounds(glp_prob *mip, glp_mir *mir)
              {  /* set variable upper bound for x1 */
                 mir->ub[k1] = - a2 / a1;
                 mir->vub[k1] = k2;
@@ -1078,10 +1127,10 @@ index 2bd0453..4bd3cf5 100644
                 /* the row should not be used */
                 mir->skip[i] = 1;
              }
-@@ -313,6 +340,13 @@ void *ios_mir_init(glp_tree *tree)
+@@ -329,6 +356,13 @@ glp_mir *glp_mir_init(glp_prob *mip)
        mir->subst = xcalloc(1+m+n, sizeof(char));
-       mir->mod_vec = ios_create_vec(m+n);
-       mir->cut_vec = ios_create_vec(m+n);
+       mir->mod_vec = spv_create_vec(m+n);
+       mir->cut_vec = spv_create_vec(m+n);
 +
 +      /* added */
 +      mir->cut_cset = xcalloc(1+m+n, sizeof(char));
@@ -1090,9 +1139,9 @@ index 2bd0453..4bd3cf5 100644
 +      mir->agg_coeffs = xcalloc(1+MAXAGGR, sizeof(double));
 +
        /* set global row attributes */
-       set_row_attrib(tree, mir);
+       set_row_attrib(mip, mir);
        /* set global column attributes */
-@@ -405,6 +439,9 @@ static void initial_agg_row(glp_tree *tree, struct MIR *mir, int i)
+@@ -426,6 +460,9 @@ static void initial_agg_row(glp_prob *mip, glp_mir *mir, int i)
        mir->skip[i] = 2;
        mir->agg_cnt = 1;
        mir->agg_row[1] = i;
@@ -1101,8 +1150,8 @@ index 2bd0453..4bd3cf5 100644
 +
        /* use x[i] - sum a[i,j] * x[m+j] = 0, where x[i] is auxiliary
           variable of row i, x[m+j] are structural variables */
-       ios_clear_vec(mir->agg_vec);
-@@ -784,19 +821,19 @@ static int cmir_cmp(const void *p1, const void *p2)
+       spv_clear_vec(mir->agg_vec);
+@@ -805,19 +842,19 @@ static int CDECL cmir_cmp(const void *p1, const void *p2)
  
  static double cmir_sep(const int n, const double a[], const double b,
        const double u[], const double x[], const double s,
@@ -1127,7 +1176,7 @@ index 2bd0453..4bd3cf5 100644
        for (j = 1; j <= n; j++)
        {  xassert(a[j] != 0.0);
           /* if x[j] is close to its bounds, skip it */
-@@ -809,16 +846,16 @@ static double cmir_sep(const int n, const double a[], const double b,
+@@ -830,16 +867,16 @@ static double cmir_sep(const int n, const double a[], const double b,
           /* compute violation */
           r = - (*beta) - (*gamma) * s;
           for (k = 1; k <= n; k++) r += alpha[k] * x[k];
@@ -1149,7 +1198,7 @@ index 2bd0453..4bd3cf5 100644
        for (j = 1; j <= 3; j++)
        {  /* construct c-MIR inequality */
           fail = cmir_ineq(n, a, b, u, cset, d_try[j], alpha, beta,
-@@ -827,7 +864,7 @@ static double cmir_sep(const int n, const double a[], const double b,
+@@ -848,7 +885,7 @@ static double cmir_sep(const int n, const double a[], const double b,
           /* compute violation */
           r = - (*beta) - (*gamma) * s;
           for (k = 1; k <= n; k++) r += alpha[k] * x[k];
@@ -1158,7 +1207,7 @@ index 2bd0453..4bd3cf5 100644
        }
        /* build subset of variables lying strictly between their bounds
           and order it by nondecreasing values of |x[j] - u[j]/2| */
-@@ -849,7 +886,7 @@ static double cmir_sep(const int n, const double a[], const double b,
+@@ -870,7 +907,7 @@ static double cmir_sep(const int n, const double a[], const double b,
           /* replace x[j] by its complement or vice versa */
           cset[j] = (char)!cset[j];
           /* construct c-MIR inequality */
@@ -1167,7 +1216,7 @@ index 2bd0453..4bd3cf5 100644
           /* restore the variable */
           cset[j] = (char)!cset[j];
           /* do not replace the variable in case of failure */
-@@ -860,10 +897,11 @@ static double cmir_sep(const int n, const double a[], const double b,
+@@ -881,10 +918,11 @@ static double cmir_sep(const int n, const double a[], const double b,
           if (r_best < r) r_best = r, cset[j] = (char)!cset[j];
        }
        /* construct the best c-MIR inequality chosen */
@@ -1181,17 +1230,17 @@ index 2bd0453..4bd3cf5 100644
        xfree(vset);
        /* return to the calling routine */
        return r_best;
-@@ -874,7 +912,8 @@ static double generate(struct MIR *mir)
+@@ -895,7 +933,8 @@ static double generate(glp_mir *mir)
        int m = mir->m;
        int n = mir->n;
        int j, k, kk, nint;
 -      double s, *u, *x, *alpha, r_best = 0.0, b, beta, gamma;
 +      double s, *u, *x, *alpha, r_best = 0.0, b, beta, gamma, delta;
 +      char *cset;
-       ios_copy_vec(mir->cut_vec, mir->mod_vec);
+       spv_copy_vec(mir->cut_vec, mir->mod_vec);
        mir->cut_rhs = mir->mod_rhs;
        /* remove small terms, which can appear due to substitution of
-@@ -923,6 +962,7 @@ static double generate(struct MIR *mir)
+@@ -944,6 +983,7 @@ static double generate(glp_mir *mir)
        u = xcalloc(1+nint, sizeof(double));
        x = xcalloc(1+nint, sizeof(double));
        alpha = xcalloc(1+nint, sizeof(double));
@@ -1199,23 +1248,7 @@ index 2bd0453..4bd3cf5 100644
        /* determine u and x */
        for (j = 1; j <= nint; j++)
        {  k = mir->cut_vec->ind[j];
-@@ -936,6 +976,7 @@ static double generate(struct MIR *mir)
-             x[j] = mir->ub[k] - mir->x[k];
-          else
-             xassert(k != k);
-+         if(!(x[j] >= -0.001)) { goto skip; }
-          xassert(x[j] >= -0.001);
-          if (x[j] < 0.0) x[j] = 0.0;
-       }
-@@ -965,6 +1006,7 @@ static double generate(struct MIR *mir)
-          }
-          else
-             xassert(k != k);
-+         if(!(x >= -0.001)) { goto skip; }
-          xassert(x >= -0.001);
-          if (x < 0.0) x = 0.0;
-          s -= mir->cut_vec->val[j] * x;
-@@ -973,7 +1015,7 @@ static double generate(struct MIR *mir)
+@@ -1010,7 +1050,7 @@ static double generate(glp_mir *mir)
        /* apply heuristic to obtain most violated c-MIR inequality */
        b = mir->cut_rhs;
        r_best = cmir_sep(nint, mir->cut_vec->val, b, u, x, s, alpha,
@@ -1224,9 +1257,9 @@ index 2bd0453..4bd3cf5 100644
        if (r_best == 0.0) goto skip;
        xassert(r_best > 0.0);
        /* convert to raw cut */
-@@ -988,10 +1030,22 @@ static double generate(struct MIR *mir)
- #if _MIR_DEBUG
-       ios_check_vec(mir->cut_vec);
+@@ -1025,10 +1065,22 @@ static double generate(glp_mir *mir)
+ #if MIR_DEBUG
+       spv_check_vec(mir->cut_vec);
  #endif
 +      /* added */
 +      mir->cut_delta = delta;
@@ -1247,7 +1280,7 @@ index 2bd0453..4bd3cf5 100644
  done: return r_best;
  }
  
-@@ -1199,8 +1253,25 @@ static void add_cut(glp_tree *tree, struct MIR *mir)
+@@ -1236,8 +1288,25 @@ static void add_cut(glp_mir *mir, glp_prob *pool)
        ios_add_cut_row(tree, pool, GLP_RF_MIR, len, ind, val, GLP_UP,
           mir->cut_rhs);
  #else
@@ -1272,32 +1305,32 @@ index 2bd0453..4bd3cf5 100644
 +         tree->reason = GLP_ICUTGEN;
 +      }
  #endif
-       xfree(ind);
-       xfree(val);
-@@ -1216,6 +1287,7 @@ static int aggregate_row(glp_tree *tree, struct MIR *mir)
-       IOSVEC *v;
+ #else
+       {  int i;
+@@ -1265,6 +1334,7 @@ static int aggregate_row(glp_prob *mip, glp_mir *mir, SPV *v)
+ #endif
        int ii, j, jj, k, kk, kappa = 0, ret = 0;
        double d1, d2, d, d_max = 0.0;
 +      double guass_coeff;
        /* choose appropriate structural variable in the aggregated row
           to be substituted */
        for (j = 1; j <= mir->agg_vec->nnz; j++)
-@@ -1300,8 +1372,9 @@ static int aggregate_row(glp_tree *tree, struct MIR *mir)
+@@ -1369,8 +1439,9 @@ static int aggregate_row(glp_prob *mip, glp_mir *mir, SPV *v)
        xassert(j != 0);
        jj = v->pos[kappa];
        xassert(jj != 0);
--      ios_linear_comb(mir->agg_vec,
+-      spv_linear_comb(mir->agg_vec,
 -         - mir->agg_vec->val[j] / v->val[jj], v);
 +      guass_coeff = - mir->agg_vec->val[j] / v->val[jj];
 +      mir->agg_coeffs[mir->agg_cnt] = guass_coeff;
-+      ios_linear_comb(mir->agg_vec, guass_coeff, v);
++      spv_linear_comb(mir->agg_vec, guass_coeff, v);
+ #if 0 /* 29/II-2016 by Chris */
        ios_delete_vec(v);
-       ios_set_vj(mir->agg_vec, kappa, 0.0);
- #if _MIR_DEBUG
-@@ -1440,6 +1513,13 @@ void ios_mir_term(void *gen)
+ #endif
+@@ -1520,6 +1591,13 @@ void glp_mir_free(glp_mir *mir)
        xfree(mir->subst);
-       ios_delete_vec(mir->mod_vec);
-       ios_delete_vec(mir->cut_vec);
+       spv_delete_vec(mir->mod_vec);
+       spv_delete_vec(mir->cut_vec);
 +
 +      /* added */
 +      xfree(mir->cut_cset);
@@ -1308,11 +1341,11 @@ index 2bd0453..4bd3cf5 100644
        xfree(mir);
        return;
  }
-diff --git a/src/glpios07.c b/src/glpios07.c
-index 0892550..9f742e6 100644
---- a/src/glpios07.c
-+++ b/src/glpios07.c
-@@ -543,6 +543,14 @@ void ios_cov_gen(glp_tree *tree)
+diff --git a/src/draft/glpios07.c b/src/draft/glpios07.c
+index b8e700e..a246634 100644
+--- a/src/draft/glpios07.c
++++ b/src/draft/glpios07.c
+@@ -537,6 +537,14 @@ void ios_cov_gen(glp_tree *tree)
           /* add the cut to the cut pool */
           glp_ios_add_row(tree, NULL, GLP_RF_COV, 0, len, ind, val,
              GLP_UP, val[0]);
@@ -1327,31 +1360,11 @@ index 0892550..9f742e6 100644
        }
        /* free working arrays */
        xfree(ind);
-diff --git a/src/glpios08.c b/src/glpios08.c
-index 2d2fcd5..3aad808 100644
---- a/src/glpios08.c
-+++ b/src/glpios08.c
-@@ -129,6 +129,15 @@ void ios_clq_gen(glp_tree *T, void *G_)
-       /* add cut inequality to local cut pool */
-       glp_ios_add_row(T, NULL, GLP_RF_CLQ, 0, len, ind, val, GLP_UP,
-          rhs);
-+
-+      /** callback for a cut being added to the cut pool */
-+      if (T->parm->cb_func != NULL)
-+      {  xassert(T->reason == GLP_ICUTGEN);
-+         T->reason = GLP_ICUTADDED;
-+         T->parm->cb_func(T, T->parm->cb_info);
-+         T->reason = GLP_ICUTGEN;
-+      }
-+
- skip: /* free working arrays */
-       tfree(ind);
-       tfree(val);
-diff --git a/src/glpios11.c b/src/glpios11.c
-index c40e9a5..82d5698 100644
---- a/src/glpios11.c
-+++ b/src/glpios11.c
-@@ -193,6 +193,9 @@ void ios_process_cuts(glp_tree *T)
+diff --git a/src/draft/glpios11.c b/src/draft/glpios11.c
+index e23b97f..13978d1 100644
+--- a/src/draft/glpios11.c
++++ b/src/draft/glpios11.c
+@@ -324,6 +324,9 @@ void ios_process_cuts(glp_tree *T)
           glp_set_mat_row(T->mip, i, len, ind, val);
           xassert(cut->type == GLP_LO || cut->type == GLP_UP);
           glp_set_row_bnds(T->mip, i, cut->type, cut->rhs, cut->rhs);
@@ -1362,18 +1375,18 @@ index c40e9a5..82d5698 100644
        /* free working arrays */
        xfree(info);
 diff --git a/src/glpk.h b/src/glpk.h
-index 75c292c..e117782 100644
+index ea79ec2..5034199 100644
 --- a/src/glpk.h
 +++ b/src/glpk.h
-@@ -130,6 +130,7 @@ typedef struct
-       int out_frq;            /* spx.out_frq */
-       int out_dly;            /* spx.out_dly (milliseconds) */
-       int presolve;           /* enable/disable using LP presolver */
+@@ -140,6 +140,7 @@ typedef struct
+       int aorn;               /* option to use A or N: */
+ #define GLP_USE_AT         1  /* use A matrix in row-wise format */
+ #define GLP_USE_NT         2  /* use N matrix in row-wise format */
 +      int stability_lmt;      /* maximum number of check stability failures before stopping */
-       double foo_bar[36];     /* (reserved) */
+       double foo_bar[33];     /* (reserved) */
+ #endif
  } glp_smcp;
- 
-@@ -229,6 +230,11 @@ typedef struct
+@@ -238,6 +239,11 @@ typedef struct
  #define GLP_IBRANCH     0x05  /* request for branching */
  #define GLP_ISELECT     0x06  /* request for subproblem selection */
  #define GLP_IPREPRO     0x07  /* request for preprocessing */
@@ -1385,7 +1398,7 @@ index 75c292c..e117782 100644
  
  /* branch selection indicator: */
  #define GLP_NO_BRNCH       0  /* select no branch */
-@@ -1057,6 +1063,54 @@ int glp_top_sort(glp_graph *G, int v_num);
+@@ -1164,6 +1170,54 @@ int glp_top_sort(glp_graph *G, int v_num);
  int glp_wclique_exact(glp_graph *G, int v_wgt, double *sol, int v_set);
  /* find maximum weight clique with exact algorithm */
  
@@ -1440,89 +1453,81 @@ index 75c292c..e117782 100644
  #ifdef __cplusplus
  }
  #endif
-diff --git a/src/glpspx01.c b/src/glpspx01.c
-index 5c17114..caaab27 100644
---- a/src/glpspx01.c
-+++ b/src/glpspx01.c
-@@ -238,6 +238,9 @@ struct csa
-       double *work2; /* double work2[1+m]; */
-       double *work3; /* double work3[1+m]; */
-       double *work4; /* double work4[1+m]; */
+%%
+%% Primal simplex method was reimplemented in 4.56
+%%
+diff --git a/src/simplex/spxprim.c b/src/simplex/spxprim.c
+index d004197..31a1c7b 100644
+--- a/src/simplex/spxprim.c
++++ b/src/simplex/spxprim.c
+@@ -182,6 +182,10 @@ struct csa
+       int ns_cnt, ls_cnt;
+       /* normal and long-step iteration counts */
+ #endif
 +
 +      /** Things Tim has added. */
 +      int stability_failures;
++      int stability_lmt;
  };
  
- static const double kappa = 0.10;
-@@ -400,6 +403,8 @@ static void init_csa(struct csa *csa, glp_prob *lp)
-       csa->refct = 0;
-       memset(&refsp[1], 0, (m+n) * sizeof(char));
-       for (j = 1; j <= n; j++) gamma[j] = 1.0;
-+
+ /***********************************************************************
+@@ -1213,6 +1217,11 @@ loop: /* main loop starts here */
+          if (perturb <= 0)
+          {  if (check_feas(csa, csa->phase, tol_bnd, tol_bnd1))
+             {  /* excessive bound violations due to round-off errors */
++               csa->stability_failures++;
++               if (csa->stability_failures >= csa->stability_lmt){
++                  ret = GLP_EINSTAB;
++                  goto fini;
++               }
+ #if 1 /* 01/VII-2017 */
+                if (perturb < 0)
+                {  if (msg_lev >= GLP_MSG_ALL)
+@@ -1760,6 +1769,8 @@ int spx_primal(glp_prob *P, const glp_smcp *parm)
+ #if 1 /* 23/VI-2017 */
+       csa->ns_cnt = csa->ls_cnt = 0;
+ #endif
 +      csa->stability_failures = 0;
-       return;
- }
- 
-@@ -2647,6 +2652,11 @@ loop: /* main loop starts here */
-          if (check_stab(csa, parm->tol_bnd))
-          {  /* there are excessive bound violations due to round-off
-                errors */
-+            csa->stability_failures++;
-+            if (csa->stability_failures >= parm->stability_lmt){
-+              ret = GLP_EINSTAB;
-+              goto done;
-+            }
-             if (parm->msg_lev >= GLP_MSG_ERR)
-                xprintf("Warning: numerical instability (primal simplex,"
-                   " phase %s)\n", csa->phase == 1 ? "I" : "II");
-diff --git a/src/glpspx02.c b/src/glpspx02.c
-index 19152a6..de3d677 100644
---- a/src/glpspx02.c
-+++ b/src/glpspx02.c
-@@ -288,6 +288,9 @@ struct csa
-       double *work2; /* double work2[1+m]; */
-       double *work3; /* double work3[1+m]; */
-       double *work4; /* double work4[1+m]; */
++      csa->stability_lmt = parm->stability_lmt;
+       /* try to solve working LP */
+       ret = primal_simplex(csa);
+       /* return basis factorization back to problem object */
+%%
+%% Dual simplex method was reimplemented in 4.57
+%%
+diff --git a/src/simplex/spydual.c b/src/simplex/spydual.c
+index 770b621..f04afa7 100644
+--- a/src/simplex/spydual.c
++++ b/src/simplex/spydual.c
+@@ -197,6 +197,10 @@ struct csa
+       int ns_cnt, ls_cnt;
+       /* normal and long-step iteration count */
+ #endif
 +
-+      /* count the number of stability failures */
++      /** Things Tim has added. */
 +      int stability_failures;
++      int stability_lmt;
  };
  
- static const double kappa = 0.10;
-@@ -501,6 +504,8 @@ static void init_csa(struct csa *csa, glp_prob *lp)
-       csa->refct = 0;
-       memset(&refsp[1], 0, (m+n) * sizeof(char));
-       for (i = 1; i <= m; i++) gamma[i] = 1.0;
-+
+ /***********************************************************************
+@@ -1329,6 +1333,11 @@ loop: /* main loop starts here */
+          {  if (check_feas(csa, tol_dj, tol_dj1, 0))
+             {  /* dual feasibility is broken due to excessive round-off
+                 * errors */
++               csa->stability_failures++;
++               if (csa->stability_failures >= csa->stability_lmt){
++                  ret = GLP_EINSTAB;
++                  goto fini;
++               }
+                if (perturb < 0)
+                {  if (msg_lev >= GLP_MSG_ALL)
+                      xprintf("Perturbing LP to avoid instability [%d].."
+@@ -2004,6 +2013,8 @@ int spy_dual(glp_prob *P, const glp_smcp *parm)
+ #if 1 /* 23/III-2016 */
+       csa->ns_cnt = csa->ls_cnt = 0;
+ #endif
 +      csa->stability_failures = 0;
-       return;
- }
- 
-@@ -2741,7 +2746,13 @@ loop: /* main loop starts here */
-          /* make sure that the current basic solution remains dual
-             feasible */
-          if (check_stab(csa, parm->tol_dj) != 0)
--         {  if (parm->msg_lev >= GLP_MSG_ERR)
-+         {
-+            csa->stability_failures++;
-+            if (csa->stability_failures >= parm->stability_lmt){
-+              ret = GLP_EINSTAB;
-+              goto done;
-+            }
-+            if (parm->msg_lev >= GLP_MSG_ERR)
-                xprintf("Warning: numerical instability (dual simplex, p"
-                   "hase %s)\n", csa->phase == 1 ? "I" : "II");
- #if 1
-@@ -3023,6 +3034,10 @@ loop: /* main loop starts here */
-       /* accuracy check based on the pivot element */
-       {  double piv1 = csa->tcol_vec[csa->p]; /* more accurate */
-          double piv2 = csa->trow_vec[csa->q]; /* less accurate */
-+         if(piv1 == 0.0){
-+           ret = GLP_EFAIL;
-+           goto done;
-+         }
-          xassert(piv1 != 0.0);
-          if (fabs(piv1 - piv2) > 1e-8 * (1.0 + fabs(piv1)) ||
-              !(piv1 > 0.0 && piv2 > 0.0 || piv1 < 0.0 && piv2 < 0.0))
--- 
-2.26.2
++      csa->stability_lmt = parm->stability_lmt;
+       /* try to solve working LP */
+       ret = dual_simplex(csa);
+       /* return basis factorization back to problem object */
