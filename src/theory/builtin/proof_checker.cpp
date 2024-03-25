@@ -98,12 +98,12 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   {
     bool polarity = exp.getKind() != Kind::NOT;
     var = polarity ? exp : exp[0];
-    subs = nodeManager()->mkConst(polarity);
+    subs = NodeManager::currentNM()->mkConst(polarity);
   }
   else if (ids == MethodId::SB_FORMULA)
   {
     var = exp;
-    subs = nodeManager()->mkConst(true);
+    subs = NodeManager::currentNM()->mkConst(true);
   }
   else
   {
@@ -486,7 +486,7 @@ bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
 
 Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
 {
-  return nodeManager()->mkConstInt(
+  return NodeManager::currentNM()->mkConstInt(
       Rational(static_cast<uint32_t>(tid)));
 }
 

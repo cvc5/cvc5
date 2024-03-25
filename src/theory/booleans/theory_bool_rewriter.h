@@ -33,8 +33,15 @@ class TheoryBoolRewriter : public TheoryRewriter
   TheoryBoolRewriter(NodeManager* nm);
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
-
-}; /* class TheoryBoolRewriter */
+ protected:
+  /** Common constants */
+  Node d_true;
+  Node d_false;
+  /** Helper method which performs flattening. */
+  RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode);
+  /** Helper method for making a negation */
+  Node makeNegation(TNode n);
+};
 
 }  // namespace booleans
 }  // namespace theory

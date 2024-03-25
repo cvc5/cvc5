@@ -98,7 +98,7 @@ namespace rewrite {
         || node[0].getKind() == Kind::FLOATINGPOINT_ABS)
     {
       Node ret =
-          nodeManager()->mkNode(Kind::FLOATINGPOINT_ABS, node[0][0]);
+          NodeManager::currentNM()->mkNode(Kind::FLOATINGPOINT_ABS, node[0][0]);
       return RewriteResponse(REWRITE_AGAIN, ret);
     }
 
@@ -109,8 +109,8 @@ namespace rewrite {
   {
     Assert(node.getKind() == Kind::FLOATINGPOINT_SUB);
     Node negation =
-        nodeManager()->mkNode(Kind::FLOATINGPOINT_NEG, node[2]);
-    Node addition = nodeManager()->mkNode(
+        NodeManager::currentNM()->mkNode(Kind::FLOATINGPOINT_NEG, node[2]);
+    Node addition = NodeManager::currentNM()->mkNode(
         Kind::FLOATINGPOINT_ADD, node[0], node[1], negation);
     return RewriteResponse(REWRITE_DONE, addition);
   }
@@ -129,7 +129,7 @@ namespace rewrite {
 
       for (size_t i = 0; i < children - 1; ++i) {
 	for (size_t j = i + 1; j < children; ++j) {
-	  conjunction << nodeManager()->mkNode(k, node[i], node[j]);
+	  conjunction << NodeManager::currentNM()->mkNode(k, node[i], node[j]);
 	}
       }
       return RewriteResponse(REWRITE_AGAIN_FULL, conjunction);
@@ -146,7 +146,7 @@ namespace rewrite {
   RewriteResponse ieeeEqToEq(TNode node, bool isPreRewrite)
   {
     Assert(node.getKind() == Kind::FLOATINGPOINT_EQ);
-    NodeManager *nm = nodeManager();
+    NodeManager *nm = NodeManager::currentNM();
 
     return RewriteResponse(
         REWRITE_DONE,
@@ -170,7 +170,7 @@ namespace rewrite {
   {
     Assert(node.getKind() == Kind::FLOATINGPOINT_GEQ);
     return RewriteResponse(REWRITE_DONE,
-                           nodeManager()->mkNode(
+                           NodeManager::currentNM()->mkNode(
                                Kind::FLOATINGPOINT_LEQ, node[1], node[0]));
   }
 
@@ -178,7 +178,7 @@ namespace rewrite {
   {
     Assert(node.getKind() == Kind::FLOATINGPOINT_GT);
     return RewriteResponse(REWRITE_DONE,
-                           nodeManager()->mkNode(
+                           NodeManager::currentNM()->mkNode(
                                Kind::FLOATINGPOINT_LT, node[1], node[0]));
   }
 
@@ -209,10 +209,10 @@ namespace rewrite {
            == node[1].getType(true));  // Should be ensured by the typing rules
 
     if (node[0] == node[1]) {
-      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
+      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
     } else if (!isPreRewrite && (node[0] > node[1])) {
       Node normal =
-          nodeManager()->mkNode(Kind::EQUAL, node[1], node[0]);
+          NodeManager::currentNM()->mkNode(Kind::EQUAL, node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
@@ -241,7 +241,7 @@ namespace rewrite {
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[0] > node[1]) {
-      Node normal = nodeManager()->mkNode(
+      Node normal = NodeManager::currentNM()->mkNode(
           Kind::FLOATINGPOINT_EQ, node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
@@ -255,7 +255,7 @@ namespace rewrite {
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
-      Node normal = nodeManager()->mkNode(k,node[0],node[2],node[1]);
+      Node normal = NodeManager::currentNM()->mkNode(k,node[0],node[2],node[1]);
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
@@ -267,7 +267,7 @@ namespace rewrite {
     Assert(!isPreRewrite);  // Likely redundant in pre-rewrite
 
     if (node[1] > node[2]) {
-      Node normal = nodeManager()->mkNode(
+      Node normal = NodeManager::currentNM()->mkNode(
           Kind::FLOATINGPOINT_FMA, {node[0], node[2], node[1], node[3]});
       return RewriteResponse(REWRITE_DONE, normal);
     } else {
@@ -288,7 +288,7 @@ namespace rewrite {
     if ((childKind == Kind::FLOATINGPOINT_NEG)
         || (childKind == Kind::FLOATINGPOINT_ABS))
     {
-      Node rewritten = nodeManager()->mkNode(node.getKind(),node[0][0]);
+      Node rewritten = NodeManager::currentNM()->mkNode(node.getKind(),node[0][0]);
       return RewriteResponse(REWRITE_AGAIN_FULL, rewritten);
     }
     else
@@ -321,7 +321,7 @@ namespace rewrite {
     // Lift negation out of the LHS so it can be cancelled out
     if (working[0].getKind() == Kind::FLOATINGPOINT_NEG)
     {
-      NodeManager * nm = nodeManager();
+      NodeManager * nm = NodeManager::currentNM();
       working = nm->mkNode(
           Kind::FLOATINGPOINT_NEG,
           nm->mkNode(Kind::FLOATINGPOINT_REM, working[0][0], working[1]));
@@ -338,7 +338,7 @@ namespace rewrite {
 
     if (node[0] == node[1])
     {
-      NodeManager *nm = nodeManager();
+      NodeManager *nm = NodeManager::currentNM();
       return RewriteResponse(
           isPreRewrite ? REWRITE_DONE : REWRITE_AGAIN_FULL,
           nm->mkNode(Kind::NOT,
@@ -354,7 +354,7 @@ namespace rewrite {
     if (node[0] == node[1])
     {
       return RewriteResponse(REWRITE_DONE,
-                             nodeManager()->mkConst(false));
+                             NodeManager::currentNM()->mkConst(false));
     }
     return RewriteResponse(REWRITE_DONE, node);
   }
@@ -367,7 +367,7 @@ namespace rewrite {
     /* symFPU does not allow conversions from signed bit-vector of size 1 */
     if (node[1].getType().getBitVectorSize() == 1)
     {
-      NodeManager* nm = nodeManager();
+      NodeManager* nm = NodeManager::currentNM();
       Node op = nm->mkConst(FloatingPointToFPUnsignedBitVector(
           node.getOperator().getConst<FloatingPointToFPSignedBitVector>()));
       Node fromubv = nm->mkNode(op, node[0], node[1]);
@@ -394,7 +394,7 @@ RewriteResponse fpLiteral(TNode node, bool isPreRewrite)
   bv = bv.concat(node[2].getConst<BitVector>());
 
   // +1 to support the hidden bit
-  Node lit = nodeManager()->mkConst(
+  Node lit = NodeManager::currentNM()->mkConst(
       FloatingPoint(node[1].getConst<BitVector>().getSize(),
                     node[2].getConst<BitVector>().getSize() + 1,
                     bv));
@@ -408,7 +408,7 @@ RewriteResponse abs(TNode node, bool isPreRewrite)
   Assert(node.getNumChildren() == 1);
 
   return RewriteResponse(REWRITE_DONE,
-                         nodeManager()->mkConst(
+                         NodeManager::currentNM()->mkConst(
                              node[0].getConst<FloatingPoint>().absolute()));
 }
 
@@ -418,7 +418,7 @@ RewriteResponse neg(TNode node, bool isPreRewrite)
   Assert(node.getNumChildren() == 1);
 
   return RewriteResponse(REWRITE_DONE,
-                         nodeManager()->mkConst(
+                         NodeManager::currentNM()->mkConst(
                              node[0].getConst<FloatingPoint>().negate()));
 }
 
@@ -434,7 +434,7 @@ RewriteResponse add(TNode node, bool isPreRewrite)
   Assert(arg1.getSize() == arg2.getSize());
 
   return RewriteResponse(REWRITE_DONE,
-                         nodeManager()->mkConst(arg1.add(rm, arg2)));
+                         NodeManager::currentNM()->mkConst(arg1.add(rm, arg2)));
 }
 
 RewriteResponse mult(TNode node, bool isPreRewrite)
@@ -449,7 +449,7 @@ RewriteResponse mult(TNode node, bool isPreRewrite)
   Assert(arg1.getSize() == arg2.getSize());
 
   return RewriteResponse(
-      REWRITE_DONE, nodeManager()->mkConst(arg1.mult(rm, arg2)));
+      REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1.mult(rm, arg2)));
 }
 
 RewriteResponse fma(TNode node, bool isPreRewrite)
@@ -467,7 +467,7 @@ RewriteResponse fma(TNode node, bool isPreRewrite)
 
   return RewriteResponse(
       REWRITE_DONE,
-      nodeManager()->mkConst(arg1.fma(rm, arg2, arg3)));
+      NodeManager::currentNM()->mkConst(arg1.fma(rm, arg2, arg3)));
 }
 
 RewriteResponse div(TNode node, bool isPreRewrite)
@@ -482,7 +482,7 @@ RewriteResponse div(TNode node, bool isPreRewrite)
   Assert(arg1.getSize() == arg2.getSize());
 
   return RewriteResponse(REWRITE_DONE,
-                         nodeManager()->mkConst(arg1.div(rm, arg2)));
+                         NodeManager::currentNM()->mkConst(arg1.div(rm, arg2)));
 }
 
 RewriteResponse sqrt(TNode node, bool isPreRewrite)
@@ -494,7 +494,7 @@ RewriteResponse sqrt(TNode node, bool isPreRewrite)
   FloatingPoint arg(node[1].getConst<FloatingPoint>());
 
   return RewriteResponse(REWRITE_DONE,
-                         nodeManager()->mkConst(arg.sqrt(rm)));
+                         NodeManager::currentNM()->mkConst(arg.sqrt(rm)));
 }
 
 RewriteResponse rti(TNode node, bool isPreRewrite)
@@ -506,7 +506,7 @@ RewriteResponse rti(TNode node, bool isPreRewrite)
   FloatingPoint arg(node[1].getConst<FloatingPoint>());
 
   return RewriteResponse(REWRITE_DONE,
-                         nodeManager()->mkConst(arg.rti(rm)));
+                         NodeManager::currentNM()->mkConst(arg.rti(rm)));
 }
 
 RewriteResponse rem(TNode node, bool isPreRewrite)
@@ -520,7 +520,7 @@ RewriteResponse rem(TNode node, bool isPreRewrite)
   Assert(arg1.getSize() == arg2.getSize());
 
   return RewriteResponse(REWRITE_DONE,
-                         nodeManager()->mkConst(arg1.rem(arg2)));
+                         NodeManager::currentNM()->mkConst(arg1.rem(arg2)));
 }
 
 RewriteResponse min(TNode node, bool isPreRewrite)
@@ -537,7 +537,7 @@ RewriteResponse min(TNode node, bool isPreRewrite)
 
   if (res.second)
   {
-    Node lit = nodeManager()->mkConst(res.first);
+    Node lit = NodeManager::currentNM()->mkConst(res.first);
     return RewriteResponse(REWRITE_DONE, lit);
   }
   else
@@ -561,7 +561,7 @@ RewriteResponse max(TNode node, bool isPreRewrite)
 
   if (res.second)
   {
-    Node lit = nodeManager()->mkConst(res.first);
+    Node lit = NodeManager::currentNM()->mkConst(res.first);
     return RewriteResponse(REWRITE_DONE, lit);
   }
   else
@@ -587,7 +587,7 @@ RewriteResponse minTotal(TNode node, bool isPreRewrite)
     BitVector arg3(node[2].getConst<BitVector>());
 
     FloatingPoint folded(arg1.minTotal(arg2, arg3.isBitSet(0)));
-    Node lit = nodeManager()->mkConst(folded);
+    Node lit = NodeManager::currentNM()->mkConst(folded);
     return RewriteResponse(REWRITE_DONE, lit);
   }
   else
@@ -596,7 +596,7 @@ RewriteResponse minTotal(TNode node, bool isPreRewrite)
 
     if (res.second)
     {
-      Node lit = nodeManager()->mkConst(res.first);
+      Node lit = NodeManager::currentNM()->mkConst(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
     }
     else
@@ -623,7 +623,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     BitVector arg3(node[2].getConst<BitVector>());
 
     FloatingPoint folded(arg1.maxTotal(arg2, arg3.isBitSet(0)));
-    Node lit = nodeManager()->mkConst(folded);
+    Node lit = NodeManager::currentNM()->mkConst(folded);
     return RewriteResponse(REWRITE_DONE, lit);
   }
   else
@@ -632,7 +632,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     if (res.second)
     {
-      Node lit = nodeManager()->mkConst(res.first);
+      Node lit = NodeManager::currentNM()->mkConst(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
     }
     else
@@ -655,13 +655,13 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
       Assert(arg1.getSize() == arg2.getSize());
 
-      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(arg1 == arg2));
+      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 == arg2));
 
     } else if (tn.isRoundingMode()) {
       RoundingMode arg1(node[0].getConst<RoundingMode>());
       RoundingMode arg2(node[1].getConst<RoundingMode>());
     
-      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(arg1 == arg2));
+      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 == arg2));
 
     }
     Unreachable() << "Equality of unknown type";
@@ -677,7 +677,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     Assert(arg1.getSize() == arg2.getSize());
 
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(arg1 <= arg2));
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 <= arg2));
   }
 
   RewriteResponse lt(TNode node, bool isPreRewrite)
@@ -690,7 +690,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     Assert(arg1.getSize() == arg2.getSize());
 
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(arg1 < arg2));
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(arg1 < arg2));
   }
 
   RewriteResponse isNormal(TNode node, bool isPreRewrite)
@@ -698,7 +698,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NORMAL);
     Assert(node.getNumChildren() == 1);
 
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(node[0].getConst<FloatingPoint>().isNormal()));
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNormal()));
   }
 
   RewriteResponse isSubnormal(TNode node, bool isPreRewrite)
@@ -706,7 +706,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == Kind::FLOATINGPOINT_IS_SUBNORMAL);
     Assert(node.getNumChildren() == 1);
 
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(node[0].getConst<FloatingPoint>().isSubnormal()));
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isSubnormal()));
   }
 
   RewriteResponse isZero(TNode node, bool isPreRewrite)
@@ -714,7 +714,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == Kind::FLOATINGPOINT_IS_ZERO);
     Assert(node.getNumChildren() == 1);
 
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(node[0].getConst<FloatingPoint>().isZero()));
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isZero()));
   }
 
   RewriteResponse isInfinite(TNode node, bool isPreRewrite)
@@ -722,7 +722,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == Kind::FLOATINGPOINT_IS_INF);
     Assert(node.getNumChildren() == 1);
 
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(node[0].getConst<FloatingPoint>().isInfinite()));
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isInfinite()));
   }
 
   RewriteResponse isNaN(TNode node, bool isPreRewrite)
@@ -730,7 +730,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NAN);
     Assert(node.getNumChildren() == 1);
 
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(node[0].getConst<FloatingPoint>().isNaN()));
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNaN()));
   }
 
   RewriteResponse isNegative(TNode node, bool isPreRewrite)
@@ -738,7 +738,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == Kind::FLOATINGPOINT_IS_NEG);
     Assert(node.getNumChildren() == 1);
 
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(node[0].getConst<FloatingPoint>().isNegative()));
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isNegative()));
   }
 
   RewriteResponse isPositive(TNode node, bool isPreRewrite)
@@ -746,7 +746,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     Assert(node.getKind() == Kind::FLOATINGPOINT_IS_POS);
     Assert(node.getNumChildren() == 1);
 
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(node[0].getConst<FloatingPoint>().isPositive()));
+    return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(node[0].getConst<FloatingPoint>().isPositive()));
   }
 
   RewriteResponse convertFromIEEEBitVectorLiteral(TNode node, bool isPreRewrite)
@@ -757,7 +757,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     const FloatingPointToFPIEEEBitVector &param = op.getConst<FloatingPointToFPIEEEBitVector>();
     const BitVector &bv = node[0].getConst<BitVector>();
 
-    Node lit = nodeManager()->mkConst(
+    Node lit = NodeManager::currentNM()->mkConst(
         FloatingPoint(param.getSize().exponentWidth(),
                       param.getSize().significandWidth(),
                       bv));
@@ -776,7 +776,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     return RewriteResponse(
         REWRITE_DONE,
-        nodeManager()->mkConst(arg1.convert(info.getSize(), rm)));
+        NodeManager::currentNM()->mkConst(arg1.convert(info.getSize(), rm)));
   }
 
   RewriteResponse convertFromRealLiteral(TNode node, bool isPreRewrite)
@@ -792,7 +792,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     FloatingPoint res(size, rm, arg);
 
-    Node lit = nodeManager()->mkConst(res);
+    Node lit = NodeManager::currentNM()->mkConst(res);
 
     return RewriteResponse(REWRITE_DONE, lit);
   }
@@ -808,7 +808,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     RoundingMode rm(node[0].getConst<RoundingMode>());
     BitVector sbv(node[1].getConst<BitVector>());
 
-    NodeManager* nm = nodeManager();
+    NodeManager* nm = NodeManager::currentNM();
 
     /* symFPU does not allow conversions from signed bit-vector of size 1 */
     if (sbv.getSize() == 1)
@@ -838,7 +838,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     FloatingPoint res(size, rm, arg, false);
 
-    Node lit = nodeManager()->mkConst(res);
+    Node lit = NodeManager::currentNM()->mkConst(res);
 
     return RewriteResponse(REWRITE_DONE, lit);
   }
@@ -856,7 +856,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, false));
 
     if (res.second) {
-      Node lit = nodeManager()->mkConst(res.first);
+      Node lit = NodeManager::currentNM()->mkConst(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
     } else {
       // Can't constant fold the underspecified case
@@ -877,7 +877,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, true));
 
     if (res.second) {
-      Node lit = nodeManager()->mkConst(res.first);
+      Node lit = NodeManager::currentNM()->mkConst(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
     } else {
       // Can't constant fold the underspecified case
@@ -894,7 +894,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     FloatingPoint::PartialRational res(arg.convertToRational());
 
     if (res.second) {
-      Node lit = nodeManager()->mkConstReal(res.first);
+      Node lit = NodeManager::currentNM()->mkConstReal(res.first);
       return RewriteResponse(REWRITE_DONE, lit);
     } else {
       // Can't constant fold the underspecified case
@@ -918,14 +918,14 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
       BitVector partialValue(node[2].getConst<BitVector>());
 
       BitVector folded(arg.convertToBVTotal(size, rm, false, partialValue));
-      Node lit = nodeManager()->mkConst(folded);
+      Node lit = NodeManager::currentNM()->mkConst(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
       FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, false));
 
       if (res.second) {
-	Node lit = nodeManager()->mkConst(res.first);
+	Node lit = NodeManager::currentNM()->mkConst(res.first);
 	return RewriteResponse(REWRITE_DONE, lit);
       } else {
 	// Can't constant fold the underspecified case
@@ -950,14 +950,14 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
       BitVector partialValue(node[2].getConst<BitVector>());
 
       BitVector folded(arg.convertToBVTotal(size, rm, true, partialValue));
-      Node lit = nodeManager()->mkConst(folded);
+      Node lit = NodeManager::currentNM()->mkConst(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
       FloatingPoint::PartialBitVector res(arg.convertToBV(size, rm, true));
 
       if (res.second) {
-	Node lit = nodeManager()->mkConst(res.first);
+	Node lit = NodeManager::currentNM()->mkConst(res.first);
 	return RewriteResponse(REWRITE_DONE, lit);
       } else {
 	// Can't constant fold the underspecified case
@@ -977,14 +977,14 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
       Rational partialValue(node[1].getConst<Rational>());
 
       Rational folded(arg.convertToRationalTotal(partialValue));
-      Node lit = nodeManager()->mkConstReal(folded);
+      Node lit = NodeManager::currentNM()->mkConstReal(folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
       FloatingPoint::PartialRational res(arg.convertToRational());
 
       if (res.second) {
-        Node lit = nodeManager()->mkConstReal(res.first);
+        Node lit = NodeManager::currentNM()->mkConstReal(res.first);
         return RewriteResponse(REWRITE_DONE, lit);
       } else {
 	// Can't constant fold the underspecified case
@@ -1017,7 +1017,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     BitVector res(1U, (result) ? 1U : 0U);
 
     return RewriteResponse(REWRITE_DONE,
-                           nodeManager()->mkConst(res));
+                           NodeManager::currentNM()->mkConst(res));
   }
 
   RewriteResponse componentExponent(TNode node, bool isPreRewrite)
@@ -1029,7 +1029,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
     return RewriteResponse(
         REWRITE_DONE,
-        nodeManager()->mkConst((BitVector)arg0.getExponent())
+        NodeManager::currentNM()->mkConst((BitVector)arg0.getExponent())
     );
   }
 
@@ -1041,7 +1041,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
 
     return RewriteResponse(
         REWRITE_DONE,
-        nodeManager()->mkConst((BitVector)arg0.getSignificand())
+        NodeManager::currentNM()->mkConst((BitVector)arg0.getSignificand())
     );
   }
 
@@ -1081,7 +1081,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
         break;
     }
     return RewriteResponse(REWRITE_DONE,
-                           nodeManager()->mkConst(value));
+                           NodeManager::currentNM()->mkConst(value));
   }
 
   };  // namespace constantFold
@@ -1586,7 +1586,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
             // and in many cases the rounding mode really doesn't matter.
             // So we can try brute forcing our way through them.
 
-            NodeManager* nm = nodeManager();
+            NodeManager* nm = NodeManager::currentNM();
 
             Node rne(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
             Node rna(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));

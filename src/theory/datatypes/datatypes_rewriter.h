@@ -74,7 +74,7 @@ class DatatypesRewriter : public TheoryRewriter
    * handle when the selector is misapplied. This is because it suffices to
    * reason about the original selector term e.g. via congruence.
    */
-  static Node expandApplySelector(Node n, bool sharedSel);
+  Node expandApplySelector(Node n, bool sharedSel);
   /**
    * Expand a match term into its definition.
    * For example
@@ -114,13 +114,13 @@ class DatatypesRewriter : public TheoryRewriter
 
  private:
   /** rewrite constructor term in */
-  static RewriteResponse rewriteConstructor(TNode in);
+  RewriteResponse rewriteConstructor(TNode in);
   /** rewrite selector term in */
-  static RewriteResponse rewriteSelector(TNode in);
+  RewriteResponse rewriteSelector(TNode in);
   /** rewrite tester term in */
-  static RewriteResponse rewriteTester(TNode in);
+  RewriteResponse rewriteTester(TNode in);
   /** rewrite updater term in */
-  static RewriteResponse rewriteUpdater(TNode in);
+  RewriteResponse rewriteUpdater(TNode in);
 
   /** collect references
    *
@@ -200,7 +200,7 @@ class DatatypesRewriter : public TheoryRewriter
    * Tree datatype, replaceDebruijn( node( 0, c[0], node( 1, c[0], c[1] ) ), t,
    * Tree, 0 ) returns node( 0, t, node( 1, c[0], t ) ).
    */
-  static Node replaceDebruijn(Node n,
+  Node replaceDebruijn(Node n,
                               Node orig,
                               TypeNode orig_tn,
                               unsigned depth);

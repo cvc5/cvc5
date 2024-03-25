@@ -5,7 +5,7 @@
  * This file is part of the cvc5 project.
  *
  * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
- * in the top-level source directory and their institutional affiliations.
+ * in the top-level source directory and their institutional ad_falseiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
@@ -28,7 +28,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
-TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm) {
+  d_true = nm->mkConst(true);
+  d_false = nm->mkConst(false);
+}
 
 RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
   return preRewrite(node);
@@ -47,7 +50,7 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  *
  * Use a null node if you want to ignore any of the optimizations.
  */
-RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
+RewriteResponse TheoryBoolRewriter::flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
   typedef std::unordered_set<TNode> node_set;
 
@@ -82,10 +85,10 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   if (childList.size() == 1) return RewriteResponse(REWRITE_AGAIN, childList[0]);
 
   /* Trickery to stay under number of children possible in a node */
-  NodeManager* nodeManager = nodeManager();
+  NodeManager* nm = nodeManager();
   if (childList.size() < expr::NodeValue::MAX_CHILDREN)
   {
-    Node retNode = nodeManager->mkNode(k, childList);
+    Node retNode = nm->mkNode(k, childList);
     return RewriteResponse(REWRITE_DONE, retNode);
   }
   else
@@ -98,7 +101,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
     while (cur != en)
     {
       next = min(cur + expr::NodeValue::MAX_CHILDREN, en);
-      nb << (nodeManager->mkNode(k, ChildList(cur, next)));
+      nb << (nm->mkNode(k, ChildList(cur, next)));
       cur = next;
     }
     return RewriteResponse(REWRITE_DONE, nb.constructNode());
@@ -128,7 +131,7 @@ inline int equalityParity(TNode a, TNode b){
   }
 }
 
-inline Node makeNegation(TNode n){
+Node TheoryBoolRewriter::makeNegation(TNode n){
   bool even = false;
   while (n.getKind() == Kind::NOT)
   {
@@ -147,15 +150,13 @@ inline Node makeNegation(TNode n){
 }
 
 RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
-  NodeManager* nodeManager = nodeManager();
-  Node tt = nodeManager->mkConst(true);
-  Node ff = nodeManager->mkConst(false);
+  NodeManager* nm = nodeManager();
 
   switch(n.getKind()) {
     case Kind::NOT:
     {
-      if (n[0] == tt) return RewriteResponse(REWRITE_DONE, ff);
-      if (n[0] == ff) return RewriteResponse(REWRITE_DONE, tt);
+      if (n[0] == d_true) return RewriteResponse(REWRITE_DONE, d_false);
+      if (n[0] == d_false) return RewriteResponse(REWRITE_DONE, d_true);
       if (n[0].getKind() == Kind::NOT)
         return RewriteResponse(REWRITE_AGAIN, n[0][0]);
       break;
@@ -166,13 +167,13 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       TNode::iterator i = n.begin(), iend = n.end();
       for (; i != iend; ++i)
       {
-        if (*i == tt) return RewriteResponse(REWRITE_DONE, tt);
-        if (*i == ff) done = false;
+        if (*i == d_true) return RewriteResponse(REWRITE_DONE, d_true);
+        if (*i == d_false) done = false;
         if ((*i).getKind() == Kind::OR) done = false;
       }
       if (!done)
       {
-        return flattenNode(n, /* trivialNode = */ tt, /* skipNode = */ ff);
+        return flattenNode(n, /* trivialNode = */ d_true, /* skipNode = */ d_false);
       }
       // x v ... v x --> x
       unsigned ind, size;
@@ -195,15 +196,15 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       TNode::iterator i = n.begin(), iend = n.end();
       for (; i != iend; ++i)
       {
-        if (*i == ff) return RewriteResponse(REWRITE_DONE, ff);
-        if (*i == tt) done = false;
+        if (*i == d_false) return RewriteResponse(REWRITE_DONE, d_false);
+        if (*i == d_true) done = false;
         if ((*i).getKind() == Kind::AND) done = false;
       }
       if (!done)
       {
         RewriteResponse ret =
-            flattenNode(n, /* trivialNode = */ ff, /* skipNode = */ tt);
-        Trace("bool-flatten") << n << ": " << ret.d_node << std::endl;
+            flattenNode(n, /* trivialNode = */ d_false, /* skipNode = */ d_true);
+        Trace("bool-flad_trueen") << n << ": " << ret.d_node << std::endl;
         return ret;
       }
       // x ^ ... ^ x --> x
@@ -223,31 +224,31 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     }
     case Kind::IMPLIES:
     {
-      if (n[0] == ff || n[1] == tt) return RewriteResponse(REWRITE_DONE, tt);
-      if (n[0] == tt && n[1] == ff) return RewriteResponse(REWRITE_DONE, ff);
-      if (n[0] == tt) return RewriteResponse(REWRITE_AGAIN, n[1]);
-      if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
+      if (n[0] == d_false || n[1] == d_true) return RewriteResponse(REWRITE_DONE, d_true);
+      if (n[0] == d_true && n[1] == d_false) return RewriteResponse(REWRITE_DONE, d_false);
+      if (n[0] == d_true) return RewriteResponse(REWRITE_AGAIN, n[1]);
+      if (n[1] == d_false) return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
       break;
     }
     case Kind::EQUAL:
     {
       // rewrite simple cases of IFF
-      if (n[0] == tt)
+      if (n[0] == d_true)
       {
         // IFF true x
         return RewriteResponse(REWRITE_AGAIN, n[1]);
       }
-      else if (n[1] == tt)
+      else if (n[1] == d_true)
       {
         // IFF x true
         return RewriteResponse(REWRITE_AGAIN, n[0]);
       }
-      else if (n[0] == ff)
+      else if (n[0] == d_false)
       {
         // IFF false x
         return RewriteResponse(REWRITE_AGAIN, makeNegation(n[1]));
       }
-      else if (n[1] == ff)
+      else if (n[1] == d_false)
       {
         // IFF x false
         return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
@@ -255,17 +256,17 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       else if (n[0] == n[1])
       {
         // IFF x x
-        return RewriteResponse(REWRITE_DONE, tt);
+        return RewriteResponse(REWRITE_DONE, d_true);
       }
       else if (n[0].getKind() == Kind::NOT && n[0][0] == n[1])
       {
         // IFF (NOT x) x
-        return RewriteResponse(REWRITE_DONE, ff);
+        return RewriteResponse(REWRITE_DONE, d_false);
       }
       else if (n[1].getKind() == Kind::NOT && n[1][0] == n[0])
       {
         // IFF x (NOT x)
-        return RewriteResponse(REWRITE_DONE, ff);
+        return RewriteResponse(REWRITE_DONE, d_false);
       }
       else if (n[0].getKind() == Kind::EQUAL && n[1].getKind() == Kind::EQUAL)
       {
@@ -274,11 +275,11 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         // x : (= y z)
 
         // assume wlog k, z are constants and j is the same symbol as y
-        // (iff (= j k) (= j z))
+        // (id_false (= j k) (= j z))
         // if k = z
-        //  then (iff (= j k) (= j k)) => true
+        //  then (id_false (= j k) (= j k)) => true
         // else
-        //  (iff (= j k) (= j z)) <=> b
+        //  (id_false (= j k) (= j z)) <=> b
         //  b : (and (not (= j k)) (not (= j z)))
         //  (= j k) (= j z) | a b
         //  f       f       | t t
@@ -316,13 +317,13 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         {
           if (constantsEqual)
           {
-            return RewriteResponse(REWRITE_DONE, tt);
+            return RewriteResponse(REWRITE_DONE, d_true);
           }
           else
           {
             if (t.getType().isCardinalityLessThan(2))
             {
-              return RewriteResponse(REWRITE_DONE, ff);
+              return RewriteResponse(REWRITE_DONE, d_false);
             }
             else
             {
@@ -337,29 +338,29 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       if (n[0].getId() > n[1].getId())
       {
         return RewriteResponse(REWRITE_AGAIN,
-                               nodeManager->mkNode(Kind::EQUAL, n[1], n[0]));
+                               nm->mkNode(Kind::EQUAL, n[1], n[0]));
       }
       return RewriteResponse(REWRITE_DONE, n);
     }
     case Kind::XOR:
     {
       // rewrite simple cases of XOR
-      if (n[0] == tt)
+      if (n[0] == d_true)
       {
         // XOR true x
         return RewriteResponse(REWRITE_AGAIN, makeNegation(n[1]));
       }
-      else if (n[1] == tt)
+      else if (n[1] == d_true)
       {
         // XOR x true
         return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
       }
-      else if (n[0] == ff)
+      else if (n[0] == d_false)
       {
         // XOR false x
         return RewriteResponse(REWRITE_AGAIN, n[1]);
       }
-      else if (n[1] == ff)
+      else if (n[1] == d_false)
       {
         // XOR x false
         return RewriteResponse(REWRITE_AGAIN, n[0]);
@@ -367,17 +368,17 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       else if (n[0] == n[1])
       {
         // XOR x x
-        return RewriteResponse(REWRITE_DONE, ff);
+        return RewriteResponse(REWRITE_DONE, d_false);
       }
       else if (n[0].getKind() == Kind::NOT && n[0][0] == n[1])
       {
         // XOR (NOT x) x
-        return RewriteResponse(REWRITE_DONE, tt);
+        return RewriteResponse(REWRITE_DONE, d_true);
       }
       else if (n[1].getKind() == Kind::NOT && n[1][0] == n[0])
       {
         // XOR x (NOT x)
-        return RewriteResponse(REWRITE_DONE, tt);
+        return RewriteResponse(REWRITE_DONE, d_true);
       }
       break;
     }
@@ -388,35 +389,35 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       // rewrite simple cases of ITE
       if (n[0].isConst())
       {
-        if (n[0] == tt)
+        if (n[0] == d_true)
         {
           // ITE true x y
-          Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==tt "
+          Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==d_true "
                             << n << ": " << n[1] << std::endl;
           return RewriteResponse(REWRITE_AGAIN, n[1]);
         }
         else
         {
-          Assert(n[0] == ff);
+          Assert(n[0] == d_false);
           // ITE false x y
-          Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==ff "
+          Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==d_false "
                             << n << ": " << n[1] << std::endl;
           return RewriteResponse(REWRITE_AGAIN, n[2]);
         }
       }
       else if (n[1].isConst())
       {
-        if (n[1] == tt && n[2] == ff)
+        if (n[1] == d_true && n[2] == d_false)
         {
           Trace("bool-ite")
-              << "TheoryBoolRewriter::preRewrite_ITE: n[1] ==tt && n[2] == ff "
+              << "TheoryBoolRewriter::preRewrite_ITE: n[1] ==d_true && n[2] == d_false "
               << n << ": " << n[0] << std::endl;
           return RewriteResponse(REWRITE_AGAIN, n[0]);
         }
-        else if (n[1] == ff && n[2] == tt)
+        else if (n[1] == d_false && n[2] == d_true)
         {
           Trace("bool-ite")
-              << "TheoryBoolRewriter::preRewrite_ITE: n[1] ==ff && n[2] == tt "
+              << "TheoryBoolRewriter::preRewrite_ITE: n[1] ==d_false && n[2] == d_true "
               << n << ": " << n[0].notNode() << std::endl;
           return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
         }
@@ -426,7 +427,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       {
         // ite(not(c), x, y) ---> ite(c, y, x)
         return RewriteResponse(
-            REWRITE_AGAIN, nodeManager->mkNode(Kind::ITE, n[0][0], n[2], n[1]));
+            REWRITE_AGAIN, nm->mkNode(Kind::ITE, n[0][0], n[2], n[1]));
       }
 
       int parityTmp;
@@ -437,7 +438,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
             << "TheoryBoolRewriter::preRewrite_ITE:  equalityParity n[1], n[2] "
             << parityTmp << " " << n << ": " << resp << std::endl;
         return RewriteResponse(REWRITE_AGAIN, resp);
-        // Curiously, this rewrite affects several benchmarks dramatically,
+        // Curiously, this rewrite ad_falseects several benchmarks dramatically,
         // including copy_array and some simple_startup - disable for now } else
         // if (n[0].getKind() == Kind::NOT) {
         //   return RewriteResponse(REWRITE_AGAIN, n[0][0].iteNode(n[2], n[1]));
@@ -448,7 +449,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         // otherwise, n[0] == not(n[1]) or not(n[0]) == n[1]
 
         // if n[1] is constant this can loop, this is possible in prewrite
-        Node resp = n[0].iteNode((parityTmp == 1) ? tt : ff, n[2]);
+        Node resp = n[0].iteNode((parityTmp == 1) ? d_true : d_false, n[2]);
         Trace("bool-ite")
             << "TheoryBoolRewriter::preRewrite_ITE: equalityParity n[0], n[1] "
             << parityTmp << " " << n << ": " << resp << std::endl;
@@ -458,7 +459,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       {
         // (parityTmp == 1) if n[0] == n[2]
         // otherwise, n[0] == not(n[2]) or not(n[0]) == n[2]
-        Node resp = n[0].iteNode(n[1], (parityTmp == 1) ? ff : tt);
+        Node resp = n[0].iteNode(n[1], (parityTmp == 1) ? d_false : d_true);
         Trace("bool-ite")
             << "TheoryBoolRewriter::preRewrite_ITE: equalityParity n[0], n[2] "
             << parityTmp << " " << n << ": " << resp << std::endl;
@@ -493,22 +494,22 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     // after the parity rewrites above because they may simplify ITEs such as
     // `(ite c c true)` to `(ite c true true)`. As a result, we avoid
     // introducing an unnecessary conjunction/disjunction here.
-    if (n[1].isConst() && (n[1] == tt || n[1] == ff))
+    if (n[1].isConst() && (n[1] == d_true || n[1] == d_false))
     {
       // ITE C true y --> C v y
       // ITE C false y --> ~C ^ y
       Node resp =
-          n[1] == tt ? n[0].orNode(n[2]) : (n[0].negate()).andNode(n[2]);
+          n[1] == d_true ? n[0].orNode(n[2]) : (n[0].negate()).andNode(n[2]);
       Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
                         << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
     }
-    else if (n[2].isConst() && (n[2] == tt || n[2] == ff))
+    else if (n[2].isConst() && (n[2] == d_true || n[2] == d_false))
     {
       // ITE C x true --> ~C v x
       // ITE C x false --> C ^ x
       Node resp =
-          n[2] == tt ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
+          n[2] == d_true ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
       Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
                         << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);

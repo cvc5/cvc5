@@ -141,7 +141,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   Assert(store.getKind() == Kind::STORE_ALL);
   ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
   Node defaultValue = storeAll.getValue();
-  NodeManager* nm = nodeManager();
+  NodeManager* nm = NodeManager::currentNM();
 
   // Check if we are writing to default value - if so the store
   // to index can be ignored
@@ -309,7 +309,7 @@ Node TheoryArraysRewriter::expandEqRange(TNode node)
 {
   Assert(node.getKind() == Kind::EQ_RANGE);
 
-  NodeManager* nm = nodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   TNode a = node[0];
   TNode b = node[1];
   TNode i = node[2];

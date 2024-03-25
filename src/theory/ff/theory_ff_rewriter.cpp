@@ -29,9 +29,8 @@ TheoryFiniteFieldsRewriter::TheoryFiniteFieldsRewriter(NodeManager* nm)
 {
 }
 
-namespace {
 
-Node mkNary(Kind k, std::vector<Node>&& children)
+Node TheoryFiniteFieldsRewriter::mkNary(Kind k, std::vector<Node>&& children)
 {
   Assert(children.size() > 0);
   if (children.size() == 1)
@@ -44,11 +43,7 @@ Node mkNary(Kind k, std::vector<Node>&& children)
   }
 }
 
-/** Parse as a product with a constant scalar
- *
- *  If there is no constant scalar, returns a 1.
- */
-std::pair<Node, FiniteFieldValue> parseScalar(TNode t)
+std::pair<Node, FiniteFieldValue> TheoryFiniteFieldsRewriter::parseScalar(TNode t)
 {
   const TypeNode field = t.getType();
   Assert(field.isFiniteField());
@@ -63,8 +58,7 @@ std::pair<Node, FiniteFieldValue> parseScalar(TNode t)
   return {node, scalar};
 }
 
-/** preRewrite negation */
-Node preRewriteFfNeg(TNode t)
+Node TheoryFiniteFieldsRewriter::preRewriteFfNeg(TNode t)
 {
   Assert(t.getKind() == Kind::FINITE_FIELD_NEG);
   NodeManager* const nm = nodeManager();
@@ -72,15 +66,13 @@ Node preRewriteFfNeg(TNode t)
   return nm->mkNode(Kind::FINITE_FIELD_MULT, negOne, t[0]);
 }
 
-/** preRewrite addition */
-Node preRewriteFfAdd(TNode t)
+Node TheoryFiniteFieldsRewriter::preRewriteFfAdd(TNode t)
 {
   Assert(t.getKind() == Kind::FINITE_FIELD_ADD);
   return expr::algorithm::flatten(t);
 }
 
-/** postRewrite addition */
-Node postRewriteFfAdd(TNode t)
+Node TheoryFiniteFieldsRewriter::postRewriteFfAdd(TNode t)
 {
   const TypeNode field = t.getType();
   Assert(field.isFiniteField());
@@ -149,15 +141,13 @@ Node postRewriteFfAdd(TNode t)
   return mkNary(Kind::FINITE_FIELD_ADD, std::move(summands));
 }
 
-/** preRewrite multiplication */
-Node preRewriteFfMult(TNode t)
+Node TheoryFiniteFieldsRewriter::preRewriteFfMult(TNode t)
 {
   Assert(t.getKind() == Kind::FINITE_FIELD_MULT);
   return expr::algorithm::flatten(t);
 }
 
-/** postRewrite multiplication */
-Node postRewriteFfMult(TNode t)
+Node TheoryFiniteFieldsRewriter::postRewriteFfMult(TNode t)
 {
   const TypeNode field = t.getType();
   Assert(field.isFiniteField());
@@ -193,8 +183,7 @@ Node postRewriteFfMult(TNode t)
   return mkNary(Kind::FINITE_FIELD_MULT, std::move(factors));
 }
 
-/** postRewrite equality */
-Node postRewriteFfEq(TNode t)
+Node TheoryFiniteFieldsRewriter::postRewriteFfEq(TNode t)
 {
   Assert(t.getKind() == Kind::EQUAL);
   if (t[0].isConst() && t[1].isConst())
@@ -216,8 +205,6 @@ Node postRewriteFfEq(TNode t)
     return t;
   }
 }
-
-}  // namespace
 
 RewriteResponse TheoryFiniteFieldsRewriter::postRewrite(TNode t)
 {
