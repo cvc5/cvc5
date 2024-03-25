@@ -30,7 +30,6 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
     return n;
   }
   Trace("nconv-debug") << "NodeConverter::convert: " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
