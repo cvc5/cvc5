@@ -74,7 +74,7 @@ class DatatypesRewriter : public TheoryRewriter
    * handle when the selector is misapplied. This is because it suffices to
    * reason about the original selector term e.g. via congruence.
    */
-  Node expandApplySelector(Node n, bool sharedSel);
+  static Node expandApplySelector(Node n, bool sharedSel);
   /**
    * Expand a match term into its definition.
    * For example

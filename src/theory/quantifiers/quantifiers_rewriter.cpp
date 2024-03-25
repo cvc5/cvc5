@@ -514,7 +514,7 @@ Node QuantifiersRewriter::computeElimSymbols(Node body) const
 }
 
 void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons,
-                                                   std::vector< Node >& conj ){
+                                                   std::vector< Node >& conj ) const{
   if (n.getKind() == Kind::ITE && n[0].getKind() == Kind::APPLY_TESTER
       && n[1].getType().isBoolean())
   {
@@ -1271,7 +1271,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
                                          std::vector<Node>& args,
                                          std::vector<Node>& bounds,
                                          std::vector<Node>& subs,
-                                         QAttributes& qa)
+                                         QAttributes& qa) const
 {
   Trace("var-elim-quant-debug") << "getVarElimIneq " << body << std::endl;
   // For each variable v, we compute a set of implied bounds in the body
@@ -1754,7 +1754,7 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
 
 Node QuantifiersRewriter::mkForAll(const std::vector<Node>& args,
                                    Node body,
-                                   QAttributes& qa)
+                                   QAttributes& qa) const
 {
   if (args.empty())
   {
@@ -1773,7 +1773,7 @@ Node QuantifiersRewriter::mkForAll(const std::vector<Node>& args,
 
 Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
                                    Node body,
-                                   bool marked)
+                                   bool marked) const
 {
   std::vector< Node > iplc;
   return mkForall( args, body, iplc, marked );
@@ -1782,7 +1782,7 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
 Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
                                    Node body,
                                    std::vector<Node>& iplc,
-                                   bool marked)
+                                   bool marked) const
 {
   if (args.empty())
   {
