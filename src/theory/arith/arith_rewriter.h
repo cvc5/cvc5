@@ -112,9 +112,7 @@ class ArithRewriter : public TheoryRewriter
    * the bitvector inequality that is the rewritten form of the arithmetic
    * inequality ineq that is equivalent to (<k> sum 0).
    */
-  Node rewriteIneqToBv(Kind k,
-                              const rewriter::Sum& sum,
-                              const Node& ineq);
+  Node rewriteIneqToBv(Kind k, const rewriter::Sum& sum, const Node& ineq);
   /** The operator elimination utility */
   OperatorElim& d_opElim;
 }; /* class ArithRewriter */

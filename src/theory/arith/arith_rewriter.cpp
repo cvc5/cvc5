@@ -313,9 +313,9 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           const Rational& exp = t[1].getConst<Rational>();
           TNode base = t[0];
           if(exp.sgn() == 0){
-            return RewriteResponse(REWRITE_DONE,
-                                   nodeManager()->mkConstRealOrInt(
-                                       t.getType(), Rational(1)));
+            return RewriteResponse(
+                REWRITE_DONE,
+                nodeManager()->mkConstRealOrInt(t.getType(), Rational(1)));
           }else if(exp.sgn() > 0 && exp.isIntegral()){
             cvc5::internal::Rational r(expr::NodeValue::MAX_CHILDREN);
             if (exp <= r)
@@ -558,8 +558,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     }
 
     Node result = nm->mkConstReal(den.inverse());
-    Node mult = rewriter::ensureReal(
-        nodeManager()->mkNode(Kind::MULT, left, result));
+    Node mult =
+        rewriter::ensureReal(nodeManager()->mkNode(Kind::MULT, left, result));
     if (pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);
@@ -586,8 +586,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     }
 
     Node result = rewriter::mkConst(den.inverse());
-    Node mult = rewriter::ensureReal(
-        nodeManager()->mkNode(Kind::MULT, left, result));
+    Node mult =
+        rewriter::ensureReal(nodeManager()->mkNode(Kind::MULT, left, result));
     if (pre)
     {
       return RewriteResponse(REWRITE_DONE, mult);
@@ -640,8 +640,7 @@ RewriteResponse ArithRewriter::rewriteAbs(TNode t)
       return RewriteResponse(REWRITE_DONE, t[0]);
     }
     return RewriteResponse(
-        REWRITE_DONE,
-        nodeManager()->mkConstRealOrInt(t[0].getType(), -rat));
+        REWRITE_DONE, nodeManager()->mkConstRealOrInt(t[0].getType(), -rat));
   }
   if (rewriter::isRAN(t[0]))
   {
@@ -650,8 +649,8 @@ RewriteResponse ArithRewriter::rewriteAbs(TNode t)
     {
       return RewriteResponse(REWRITE_DONE, t[0]);
     }
-    return RewriteResponse(
-        REWRITE_DONE, nodeManager()->mkRealAlgebraicNumber(-ran));
+    return RewriteResponse(REWRITE_DONE,
+                           nodeManager()->mkRealAlgebraicNumber(-ran));
   }
   return RewriteResponse(REWRITE_DONE, t);
 }

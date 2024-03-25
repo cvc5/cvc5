@@ -28,7 +28,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
-TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm) {
+TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm)
+{
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -50,7 +51,9 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  *
  * Use a null node if you want to ignore any of the optimizations.
  */
-RewriteResponse TheoryBoolRewriter::flattenNode(TNode n, TNode trivialNode, TNode skipNode)
+RewriteResponse TheoryBoolRewriter::flattenNode(TNode n,
+                                                TNode trivialNode,
+                                                TNode skipNode)
 {
   typedef std::unordered_set<TNode> node_set;
 
@@ -131,7 +134,8 @@ inline int equalityParity(TNode a, TNode b){
   }
 }
 
-Node TheoryBoolRewriter::makeNegation(TNode n){
+Node TheoryBoolRewriter::makeNegation(TNode n)
+{
   bool even = false;
   while (n.getKind() == Kind::NOT)
   {
@@ -173,7 +177,8 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       }
       if (!done)
       {
-        return flattenNode(n, /* trivialNode = */ d_true, /* skipNode = */ d_false);
+        return flattenNode(
+            n, /* trivialNode = */ d_true, /* skipNode = */ d_false);
       }
       // x v ... v x --> x
       unsigned ind, size;
@@ -202,8 +207,8 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       }
       if (!done)
       {
-        RewriteResponse ret =
-            flattenNode(n, /* trivialNode = */ d_false, /* skipNode = */ d_true);
+        RewriteResponse ret = flattenNode(
+            n, /* trivialNode = */ d_false, /* skipNode = */ d_true);
         Trace("bool-flad_trueen") << n << ": " << ret.d_node << std::endl;
         return ret;
       }
@@ -224,10 +229,13 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     }
     case Kind::IMPLIES:
     {
-      if (n[0] == d_false || n[1] == d_true) return RewriteResponse(REWRITE_DONE, d_true);
-      if (n[0] == d_true && n[1] == d_false) return RewriteResponse(REWRITE_DONE, d_false);
+      if (n[0] == d_false || n[1] == d_true)
+        return RewriteResponse(REWRITE_DONE, d_true);
+      if (n[0] == d_true && n[1] == d_false)
+        return RewriteResponse(REWRITE_DONE, d_false);
       if (n[0] == d_true) return RewriteResponse(REWRITE_AGAIN, n[1]);
-      if (n[1] == d_false) return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
+      if (n[1] == d_false)
+        return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
       break;
     }
     case Kind::EQUAL:
@@ -392,16 +400,18 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         if (n[0] == d_true)
         {
           // ITE true x y
-          Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==d_true "
-                            << n << ": " << n[1] << std::endl;
+          Trace("bool-ite")
+              << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==d_true " << n
+              << ": " << n[1] << std::endl;
           return RewriteResponse(REWRITE_AGAIN, n[1]);
         }
         else
         {
           Assert(n[0] == d_false);
           // ITE false x y
-          Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==d_false "
-                            << n << ": " << n[1] << std::endl;
+          Trace("bool-ite")
+              << "TheoryBoolRewriter::preRewrite_ITE: n[0] ==d_false " << n
+              << ": " << n[1] << std::endl;
           return RewriteResponse(REWRITE_AGAIN, n[2]);
         }
       }
@@ -409,16 +419,16 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       {
         if (n[1] == d_true && n[2] == d_false)
         {
-          Trace("bool-ite")
-              << "TheoryBoolRewriter::preRewrite_ITE: n[1] ==d_true && n[2] == d_false "
-              << n << ": " << n[0] << std::endl;
+          Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] "
+                               "==d_true && n[2] == d_false "
+                            << n << ": " << n[0] << std::endl;
           return RewriteResponse(REWRITE_AGAIN, n[0]);
         }
         else if (n[1] == d_false && n[2] == d_true)
         {
-          Trace("bool-ite")
-              << "TheoryBoolRewriter::preRewrite_ITE: n[1] ==d_false && n[2] == d_true "
-              << n << ": " << n[0].notNode() << std::endl;
+          Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] "
+                               "==d_false && n[2] == d_true "
+                            << n << ": " << n[0].notNode() << std::endl;
           return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
         }
       }
@@ -426,8 +436,8 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       if (n[0].getKind() == Kind::NOT)
       {
         // ite(not(c), x, y) ---> ite(c, y, x)
-        return RewriteResponse(
-            REWRITE_AGAIN, nm->mkNode(Kind::ITE, n[0][0], n[2], n[1]));
+        return RewriteResponse(REWRITE_AGAIN,
+                               nm->mkNode(Kind::ITE, n[0][0], n[2], n[1]));
       }
 
       int parityTmp;
@@ -494,25 +504,25 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     // after the parity rewrites above because they may simplify ITEs such as
     // `(ite c c true)` to `(ite c true true)`. As a result, we avoid
     // introducing an unnecessary conjunction/disjunction here.
-    if (n[1].isConst() && (n[1] == d_true || n[1] == d_false))
-    {
-      // ITE C true y --> C v y
-      // ITE C false y --> ~C ^ y
-      Node resp =
-          n[1] == d_true ? n[0].orNode(n[2]) : (n[0].negate()).andNode(n[2]);
-      Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
-                        << n << ": " << resp << std::endl;
-      return RewriteResponse(REWRITE_AGAIN, resp);
+      if (n[1].isConst() && (n[1] == d_true || n[1] == d_false))
+      {
+        // ITE C true y --> C v y
+        // ITE C false y --> ~C ^ y
+        Node resp =
+            n[1] == d_true ? n[0].orNode(n[2]) : (n[0].negate()).andNode(n[2]);
+        Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
+                          << n << ": " << resp << std::endl;
+        return RewriteResponse(REWRITE_AGAIN, resp);
     }
     else if (n[2].isConst() && (n[2] == d_true || n[2] == d_false))
     {
       // ITE C x true --> ~C v x
       // ITE C x false --> C ^ x
-      Node resp =
-          n[2] == d_true ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
-      Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
-                        << n << ": " << resp << std::endl;
-      return RewriteResponse(REWRITE_AGAIN, resp);
+        Node resp =
+            n[2] == d_true ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
+        Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "
+                          << n << ": " << resp << std::endl;
+        return RewriteResponse(REWRITE_AGAIN, resp);
     }
 
     break;

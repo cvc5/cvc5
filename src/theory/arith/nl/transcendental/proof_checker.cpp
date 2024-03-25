@@ -41,7 +41,8 @@ Node TranscendentalProofRuleChecker::mkBounds(TNode t, TNode lb, TNode ub)
                                      nm->mkNode(Kind::LEQ, t, ub)});
 }
 
-Node TranscendentalProofRuleChecker::mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
+Node TranscendentalProofRuleChecker::mkSecant(
+    TNode t, TNode l, TNode u, TNode evall, TNode evalu)
 {
   NodeManager* nm = nodeManager();
   return nm->mkNode(Kind::ADD,

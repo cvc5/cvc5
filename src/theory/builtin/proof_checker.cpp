@@ -204,7 +204,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
 {
-  NodeManager * nm = nodeManager();
+  NodeManager* nm = nodeManager();
   // compute what was proven
   if (id == ProofRule::ASSUME)
   {

@@ -48,13 +48,13 @@ class TranscendentalProofRuleChecker : public ProofRuleChecker
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
   /**
-  * Helper method to construct (t >= lb) AND (t <= up)
-  */
+   * Helper method to construct (t >= lb) AND (t <= up)
+   */
   Node mkBounds(TNode t, TNode lb, TNode ub);
   /**
-  * Helper method to construct a secant plane:
-  * evall + ((evall - evalu) / (l - u)) * (t - l)
-  */
+   * Helper method to construct a secant plane:
+   * evall + ((evall - evalu) / (l - u)) * (t - l)
+   */
   Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu);
 };
 

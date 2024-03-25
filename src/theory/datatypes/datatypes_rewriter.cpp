@@ -340,8 +340,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         std::vector<Node> children;
         children.push_back(op_new);
         children.insert(children.end(), in.begin(), in.end());
-        Node inr =
-            nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+        Node inr = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
         Trace("datatypes-rewrite-debug") << "Created " << inr << std::endl;
         return RewriteResponse(REWRITE_DONE, inr);
       }
@@ -434,8 +433,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
     Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                << "Rewrite trivial tester " << in << " "
                                << result << std::endl;
-    return RewriteResponse(REWRITE_DONE,
-                           nodeManager()->mkConst(result));
+    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(result));
   }
   const DType& dt = in[0].getType().getDType();
   if (dt.getNumConstructors() == 1 && !dt.isSygus())
@@ -445,8 +443,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
         << "DatatypesRewriter::postRewrite: "
         << "only one ctor for " << dt.getName() << " and that is "
         << dt[0].getName() << std::endl;
-    return RewriteResponse(REWRITE_DONE,
-                           nodeManager()->mkConst(true));
+    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
   }
   // could try dt.getNumConstructors()==2 && indexOf(in.getOperator())==1 ?
   return RewriteResponse(REWRITE_DONE, in);
@@ -462,7 +459,7 @@ RewriteResponse DatatypesRewriter::rewriteUpdater(TNode in)
     size_t cuindex = utils::cindexOf(op);
     if (cindex==cuindex)
     {
-      NodeManager * nm = nodeManager();
+      NodeManager* nm = nodeManager();
       size_t updateIndex = utils::indexOf(op);
       std::vector<Node> children(in[0].begin(), in[0].end());
       children[updateIndex] = in[1];

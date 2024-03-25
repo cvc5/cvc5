@@ -29,7 +29,6 @@ TheoryFiniteFieldsRewriter::TheoryFiniteFieldsRewriter(NodeManager* nm)
 {
 }
 
-
 Node TheoryFiniteFieldsRewriter::mkNary(Kind k, std::vector<Node>&& children)
 {
   Assert(children.size() > 0);
@@ -43,7 +42,8 @@ Node TheoryFiniteFieldsRewriter::mkNary(Kind k, std::vector<Node>&& children)
   }
 }
 
-std::pair<Node, FiniteFieldValue> TheoryFiniteFieldsRewriter::parseScalar(TNode t)
+std::pair<Node, FiniteFieldValue> TheoryFiniteFieldsRewriter::parseScalar(
+    TNode t)
 {
   const TypeNode field = t.getType();
   Assert(field.isFiniteField());

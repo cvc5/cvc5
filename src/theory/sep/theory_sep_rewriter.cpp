@@ -28,7 +28,7 @@ TheorySepRewriter::TheorySepRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
 
 void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ){
   Assert(n.getKind() == Kind::SEP_STAR);
-  Node tr = nodeManager()->mkConst( true );
+  Node tr = nodeManager()->mkConst(true);
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if (n[i].getKind() == Kind::SEP_EMP)
     {
@@ -87,7 +87,8 @@ void TheorySepRewriter::getAndChildren( Node n, std::vector< Node >& s_children,
       }
     }else{
       if( std::find( ns_children.begin(), ns_children.end(), n )==ns_children.end() ){
-        if( n!=nodeManager()->mkConst(true) ){
+        if (n != nodeManager()->mkConst(true))
+        {
           ns_children.push_back( n );
         }
       }

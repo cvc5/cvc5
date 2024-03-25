@@ -33,6 +33,7 @@ class TheoryBoolRewriter : public TheoryRewriter
   TheoryBoolRewriter(NodeManager* nm);
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
+
  protected:
   /** Common constants */
   Node d_true;

@@ -410,8 +410,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    return nodeManager()->mkNode(
-        Kind::OR, args[0], args[0].notNode());
+    return nodeManager()->mkNode(Kind::OR, args[0], args[0].notNode());
   }
   if (id == ProofRule::CONTRA)
   {
@@ -472,9 +471,8 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   if (id == ProofRule::AND_INTRO)
   {
     Assert(children.size() >= 1);
-    return children.size() == 1
-               ? children[0]
-               : nodeManager()->mkNode(Kind::AND, children);
+    return children.size() == 1 ? children[0]
+                                : nodeManager()->mkNode(Kind::AND, children);
   }
   if (id == ProofRule::NOT_OR_ELIM)
   {
@@ -579,8 +577,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return nodeManager()->mkNode(
-        Kind::OR, children[0][0], children[0][1]);
+    return nodeManager()->mkNode(Kind::OR, children[0][0], children[0][1]);
   }
   if (id == ProofRule::XOR_ELIM2)
   {
@@ -636,8 +633,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return nodeManager()->mkNode(
-        Kind::OR, children[0][0], children[0][2]);
+    return nodeManager()->mkNode(Kind::OR, children[0][0], children[0][2]);
   }
   if (id == ProofRule::NOT_ITE_ELIM1)
   {
@@ -695,8 +691,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return nodeManager()->mkNode(
-        Kind::OR, args[0].notNode(), args[0][i]);
+    return nodeManager()->mkNode(Kind::OR, args[0].notNode(), args[0][i]);
   }
   if (id == ProofRule::CNF_AND_NEG)
   {
@@ -741,8 +736,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return nodeManager()->mkNode(
-        Kind::OR, args[0], args[0][i].notNode());
+    return nodeManager()->mkNode(Kind::OR, args[0], args[0][i].notNode());
   }
   if (id == ProofRule::CNF_IMPLIES_POS)
   {

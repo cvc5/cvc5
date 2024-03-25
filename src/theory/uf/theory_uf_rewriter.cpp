@@ -38,14 +38,12 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   {
     if (node[0] == node[1])
     {
-      return RewriteResponse(REWRITE_DONE,
-                             nodeManager()->mkConst(true));
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
     }
     else if (node[0].isConst() && node[1].isConst())
     {
       // uninterpreted constants are all distinct
-      return RewriteResponse(REWRITE_DONE,
-                             nodeManager()->mkConst(false));
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
     }
     if (node[0] > node[1])
     {
@@ -98,8 +96,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       {
         std::vector<Node> new_vars(lambda[0].begin() + 1, lambda[0].end());
         std::vector<Node> largs;
-        largs.push_back(
-            nodeManager()->mkNode(Kind::BOUND_VAR_LIST, new_vars));
+        largs.push_back(nodeManager()->mkNode(Kind::BOUND_VAR_LIST, new_vars));
         largs.push_back(new_body);
         new_body = nodeManager()->mkNode(Kind::LAMBDA, largs);
         Trace("uf-ho-beta")
@@ -145,14 +142,12 @@ RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
   {
     if (node[0] == node[1])
     {
-      return RewriteResponse(REWRITE_DONE,
-                             nodeManager()->mkConst(true));
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
     }
     else if (node[0].isConst() && node[1].isConst())
     {
       // uninterpreted constants are all distinct
-      return RewriteResponse(REWRITE_DONE,
-                             nodeManager()->mkConst(false));
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
     }
   }
   return RewriteResponse(REWRITE_DONE, node);
@@ -221,8 +216,8 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   if (!anode.isNull() && anode.isConst())
   {
     Assert(anode.getType().isArray());
-    Node retNode = nodeManager()->mkConst(
-        FunctionArrayConst(node.getType(), anode));
+    Node retNode =
+        nodeManager()->mkConst(FunctionArrayConst(node.getType(), anode));
     Assert(anode.isConst() == retNode.isConst());
     Assert(retNode.getType() == node.getType());
     Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
@@ -306,8 +301,8 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
     {
       // ((_ int2bv w) (bv2nat x)) ---> (concat (_ bv0 v) x)
       Node zero = bv::utils::mkZero(osize - isize);
-      Node concat = nodeManager()->mkNode(
-          Kind::BITVECTOR_CONCAT, zero, node[0][0]);
+      Node concat =
+          nodeManager()->mkNode(Kind::BITVECTOR_CONCAT, zero, node[0][0]);
       return RewriteResponse(REWRITE_AGAIN_FULL, concat);
     }
     else

@@ -26,7 +26,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersPreprocess::QuantifiersPreprocess(Env& env) : EnvObj(env), d_qrew(nodeManager(), env.getRewriter(), options()) {}
+QuantifiersPreprocess::QuantifiersPreprocess(Env& env)
+    : EnvObj(env), d_qrew(nodeManager(), env.getRewriter(), options())
+{
+}
 
 Node QuantifiersPreprocess::computePrenexAgg(
     Node n, std::map<Node, Node>& visited) const
@@ -94,8 +97,7 @@ Node QuantifiersPreprocess::computePrenexAgg(
         // pos polarity variables are inner
         if (!argsSet.empty())
         {
-          nnn = d_qrew.mkForall(
-              {argsSet.begin(), argsSet.end()}, nnn, true);
+          nnn = d_qrew.mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
         }
         argsSet.clear();
       }
@@ -106,14 +108,14 @@ Node QuantifiersPreprocess::computePrenexAgg(
       }
       if (!nargsSet.empty())
       {
-        nnn = d_qrew.mkForall(
-                  {nargsSet.begin(), nargsSet.end()}, nnn.negate(), true)
+        nnn = d_qrew
+                  .mkForall(
+                      {nargsSet.begin(), nargsSet.end()}, nnn.negate(), true)
                   .negate();
       }
       if (!argsSet.empty())
       {
-        nnn = d_qrew.mkForall(
-            {argsSet.begin(), argsSet.end()}, nnn, true);
+        nnn = d_qrew.mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
       }
       ret = nnn;
     }

@@ -513,8 +513,12 @@ Node QuantifiersRewriter::computeElimSymbols(Node body) const
   return visited[body];
 }
 
-void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons,
-                                                   std::vector< Node >& conj ) const{
+void QuantifiersRewriter::computeDtTesterIteSplit(
+    Node n,
+    std::map<Node, Node>& pcons,
+    std::map<Node, std::map<int, Node>>& ncons,
+    std::vector<Node>& conj) const
+{
   if (n.getKind() == Kind::ITE && n[0].getKind() == Kind::APPLY_TESTER
       && n[1].getType().isBoolean())
   {
@@ -584,9 +588,8 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
       }
     }
     //make condition/output pair
-    Node c = children.size() == 1
-                 ? children[0]
-                 : nodeManager()->mkNode(Kind::OR, children);
+    Node c = children.size() == 1 ? children[0]
+                                  : nodeManager()->mkNode(Kind::OR, children);
     conj.push_back( c );
   }
 }
@@ -1193,7 +1196,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
     if( ita!=args.end() ){
       Trace("var-elim-bool") << "Variable eliminate : " << lit << std::endl;
       vars.push_back( lit );
-      subs.push_back( nodeManager()->mkConst( pol ) );
+      subs.push_back(nodeManager()->mkConst(pol));
       args.erase( ita );
       return true;
     }
@@ -1734,17 +1737,15 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
         Trace("clause-split-debug") << "      " << eqc_to_var[eqc][i] << std::endl;
       }
       Trace("clause-split-debug") << std::endl;
-      Node bvl = nodeManager()->mkNode(Kind::BOUND_VAR_LIST,
-                                                  eqc_to_var[eqc]);
+      Node bvl = nodeManager()->mkNode(Kind::BOUND_VAR_LIST, eqc_to_var[eqc]);
       Node bd = it->second.size() == 1 ? it->second[0]
                                        : nm->mkNode(Kind::OR, it->second);
       Node fa = nm->mkNode(Kind::FORALL, bvl, bd);
       lits.push_back(fa);
     }
     Assert(!lits.empty());
-    Node nf = lits.size() == 1
-                  ? lits[0]
-                  : nodeManager()->mkNode(Kind::OR, lits);
+    Node nf =
+        lits.size() == 1 ? lits[0] : nodeManager()->mkNode(Kind::OR, lits);
     Trace("clause-split-debug") << "Made node : " << nf << std::endl;
     return nf;
   }else{
@@ -1973,15 +1974,13 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping(std::vector<Node>& args,
       litVars.clear();
       Trace("ag-miniscope-debug") << "Split into literals : " << qlit1.size() << " / " << qlit2.size() << " / " << qlitsh.size();
       Trace("ag-miniscope-debug") << ", variables : " << qvl1.size() << " / " << qvl2.size() << " / " << qvsh.size() << std::endl;
-      Node n1 = qlit1.size() == 1
-                    ? qlit1[0]
-                    : nodeManager()->mkNode(Kind::OR, qlit1);
+      Node n1 =
+          qlit1.size() == 1 ? qlit1[0] : nodeManager()->mkNode(Kind::OR, qlit1);
       n1 = computeAggressiveMiniscoping( qvl1, n1 );
       qlitsh.push_back( n1 );
       if( !qlit2.empty() ){
-        Node n2 = qlit2.size() == 1
-                      ? qlit2[0]
-                      : nodeManager()->mkNode(Kind::OR, qlit2);
+        Node n2 = qlit2.size() == 1 ? qlit2[0]
+                                    : nodeManager()->mkNode(Kind::OR, qlit2);
         n2 = computeAggressiveMiniscoping( qvl2, n2 );
         qlitsh.push_back( n2 );
       }
@@ -2144,8 +2143,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
       return n;
     }else{
       std::vector< Node > children;
-      children.push_back(
-          nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args));
+      children.push_back(nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args));
       children.push_back( n );
       if( !qa.d_ipl.isNull() && args.size()==f[0].getNumChildren() ){
         children.push_back( qa.d_ipl );
