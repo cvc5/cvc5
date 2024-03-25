@@ -21,7 +21,10 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-NodeConverter::NodeConverter(NodeManager * nm, bool forceIdem) : d_nm(nm), d_forceIdem(forceIdem) {}
+NodeConverter::NodeConverter(NodeManager* nm, bool forceIdem)
+    : d_nm(nm), d_forceIdem(forceIdem)
+{
+}
 
 Node NodeConverter::convert(Node n, bool preserveTypes)
 {

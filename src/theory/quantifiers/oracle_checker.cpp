@@ -25,7 +25,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-OracleChecker::OracleChecker(Env& env) :  EnvObj(env), NodeConverter(env.getNodeManager()) {}
+OracleChecker::OracleChecker(Env& env)
+    : EnvObj(env), NodeConverter(env.getNodeManager())
+{
+}
 
 Node OracleChecker::checkConsistent(Node app, Node val)
 {

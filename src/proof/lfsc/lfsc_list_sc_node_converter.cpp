@@ -19,7 +19,7 @@ namespace cvc5::internal {
 namespace proof {
 
 LfscListScNodeConverter::LfscListScNodeConverter(
-  NodeManager * nm,
+    NodeManager* nm,
     LfscNodeConverter& conv,
     const std::unordered_set<Node>& listVars,
     bool isPre)

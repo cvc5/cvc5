@@ -21,8 +21,8 @@
 namespace cvc5::internal {
 namespace proof {
 
-AletheNodeConverter::AletheNodeConverter(NodeManager * nm) : NodeConverter(nm) {}
-  
+AletheNodeConverter::AletheNodeConverter(NodeManager* nm) : NodeConverter(nm) {}
+
 Node AletheNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
