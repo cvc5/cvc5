@@ -97,7 +97,7 @@ class ProofCnfStream : protected EnvObj
    */
   void dumpDimacs(std::ostream& out, const std::vector<Node>& clauses);
   /**
-   * Same as above, but also prints additional "auxliary unit" clauses.
+   * Same as above, but also prints additional "auxiliary unit" clauses.
    * For details, see cnf_stream.h.
    */
   void dumpDimacs(std::ostream& out,

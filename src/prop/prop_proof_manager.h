@@ -181,7 +181,7 @@ class PropPfManager : protected EnvObj
    * of another clause is included in the return vector.
    *
    * @param clauses The clauses
-   * @return the axuiliary units for the set of clauses.
+   * @return the auxiliary units for the set of clauses.
    */
   std::vector<Node> computeAuxiliaryUnits(const std::vector<Node>& clauses);
   /** The proofs of this proof manager, which are saved once requested (note the
