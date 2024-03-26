@@ -310,7 +310,8 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       {
         // [1] print the reference
         // we currently do not need to provide a normalization routine.
-        out << "(reference \"" << options().driver.filename << "\")" << std::endl;
+        out << "(reference \"" << options().driver.filename << "\")"
+            << std::endl;
         // [2] print the universal variables
         out << outVars.str();
       }
