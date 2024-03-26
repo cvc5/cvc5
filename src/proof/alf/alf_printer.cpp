@@ -309,7 +309,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
             {
               continue;
             }
-            origName = origName.substr(origName.find(".")+1);
+            origName = origName.substr(5);
             origName = origName.substr(origName.find(".")+1);
             outVars << "(define " << v << " () (alf.var \"" << origName << "\" " << v.getType() << "))"
                     << std::endl;
