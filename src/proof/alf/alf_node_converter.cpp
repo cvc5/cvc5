@@ -701,6 +701,7 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemFunId id)
     case SkolemFunId::DIV_BY_ZERO:
     case SkolemFunId::INT_DIV_BY_ZERO:
     case SkolemFunId::MOD_BY_ZERO:
+    case SkolemFunId::TRANSCENDENTAL_PURIFY:
     case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
     case SkolemFunId::QUANTIFIERS_SKOLEMIZE:
     case SkolemFunId::STRINGS_NUM_OCCUR:
