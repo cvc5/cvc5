@@ -162,14 +162,14 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (n.isClosure())
   {
-    // e.g. (forall ((x1 T1) ... (xn Tk)) P) is
-    // (forall ((<name_1> T1) ... (<name_n> Tk)) P) for updated (disambiguated)
-    // variable names.
-    // use a bound variable list with the updated variables.
     Node vl = n[0];
-    // notice that intentionally we drop annotations here
+    // notice that intentionally we drop annotations here.
     std::vector<Node> args;
-    args.push_back(vl);
+    // We take the *original* bound variable list, since variable names are
+    // preserved in the translation; using the updated variable `alf.N.x`
+    // would lead to using a variable named "alf.N.x" instead of "x", where
+    // `alf.N.x` is a macro for the variable "x".
+    args.push_back(n[0]);
     args.insert(args.end(),
                 n.begin() + 1,
                 n.begin() + getNumChildrenToProcessForClosure(k));
@@ -306,7 +306,6 @@ Node AlfNodeConverter::postConvert(Node n)
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
   }
-  Trace("ajr-temp") << "...self" << std::endl;
   return n;
 }
 
