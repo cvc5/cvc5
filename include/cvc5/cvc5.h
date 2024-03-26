@@ -100,7 +100,7 @@ class CVC5_EXPORT CVC5ApiException : public std::exception
   /**
    * Virtual default destructor.
    */
-  virtual ~CVC5ApiException() = default;
+  virtual ~CVC5ApiException() override = default;
 
   /**
    * Retrieve the message from this exception.
@@ -155,7 +155,7 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
   /**
    * Virtual default destructor.
    */
-  virtual ~CVC5ApiRecoverableException() = default;
+  virtual ~CVC5ApiRecoverableException() override = default;
 };
 
 /**
@@ -186,7 +186,7 @@ class CVC5_EXPORT CVC5ApiUnsupportedException
   /**
    * Virtual default destructor.
    */
-  virtual ~CVC5ApiUnsupportedException() = default;
+  virtual ~CVC5ApiUnsupportedException() override = default;
 };
 
 /**
@@ -216,7 +216,7 @@ class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
   /**
    * Virtual default destructor.
    */
-  virtual ~CVC5ApiOptionException() = default;
+  virtual ~CVC5ApiOptionException() override = default;
 };
 
 /* -------------------------------------------------------------------------- */
