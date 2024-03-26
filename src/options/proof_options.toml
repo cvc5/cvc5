@@ -3,7 +3,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofFormatMode"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-format-mode=MODE"
   type       = "ProofFormatMode"
   default    = "ALF"
@@ -24,6 +24,14 @@ name   = "Proof"
 [[option.mode.ALF]]
   name       = "alf"
   help       = "Output AletheLF proof"
+
+[[option]]
+  name       = "proofAletheExperimental"
+  category   = "expert"
+  long       = "proof-alethe-experimental"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable the use of Alethe proofs (experimental)"
 
 [[option]]
   name       = "proofPrintConclusion"

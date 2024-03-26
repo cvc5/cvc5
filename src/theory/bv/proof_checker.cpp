@@ -19,6 +19,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
+BVProofRuleChecker::BVProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm)
+{
+}
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerTrustedChecker(ProofRule::MACRO_BV_BITBLAST, this, 2);

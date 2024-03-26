@@ -24,6 +24,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
+ArraysProofRuleChecker::ArraysProofRuleChecker(NodeManager* nm)
+    : ProofRuleChecker(nm)
+{
+}
 void ArraysProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::ARRAYS_READ_OVER_WRITE, this);

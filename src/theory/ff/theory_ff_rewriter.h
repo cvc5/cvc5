@@ -32,6 +32,7 @@ namespace ff {
 class TheoryFiniteFieldsRewriter : public TheoryRewriter
 {
  public:
+  TheoryFiniteFieldsRewriter(NodeManager* nm);
   /**
    * Rewrite a node into the normal form for the theory of ff.
    * Called in post-order (really reverse-topological order) when
