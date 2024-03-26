@@ -96,6 +96,12 @@ class CVC5_EXPORT CVC5ApiException : public std::exception
    * @param stream The error message.
    */
   CVC5ApiException(const std::stringstream& stream) : d_msg(stream.str()) {}
+
+  /**
+   * Virtual default destructor.
+   */
+  virtual ~CVC5ApiException() = default;
+
   /**
    * Retrieve the message from this exception.
    * @return The error message.
@@ -145,6 +151,11 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
       : CVC5ApiException(stream.str())
   {
   }
+
+  /**
+   * Virtual default destructor.
+   */
+  virtual ~CVC5ApiRecoverableException() = default;
 };
 
 /**
@@ -171,6 +182,11 @@ class CVC5_EXPORT CVC5ApiUnsupportedException
       : CVC5ApiRecoverableException(stream.str())
   {
   }
+
+  /**
+   * Virtual default destructor.
+   */
+  virtual ~CVC5ApiUnsupportedException() = default;
 };
 
 /**
@@ -196,6 +212,11 @@ class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
       : CVC5ApiRecoverableException(stream.str())
   {
   }
+
+  /**
+   * Virtual default destructor.
+   */
+  virtual ~CVC5ApiOptionException() = default;
 };
 
 /* -------------------------------------------------------------------------- */
