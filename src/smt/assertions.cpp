@@ -133,6 +133,9 @@ void Assertions::addFormula(TNode n,
   // Ensure that it does not contain free variables
   if (maybeHasFv)
   {
+    // Note that API users and the smt2 parser may generate assertions with
+    // shadowed variables, which are resolved during rewriting. Hence we do not
+    // check for this here.
     if (expr::hasFreeVar(n))
     {
       std::stringstream se;

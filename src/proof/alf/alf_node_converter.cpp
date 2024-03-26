@@ -124,7 +124,7 @@ Node AlfNodeConverter::postConvert(Node n)
     size_t index = d_varIndex[sname];
     d_varIndex[sname]++;
     std::stringstream ssn;
-    ssn << "alf." << index << "." << sname;
+    ssn << "@v." << index << "." << sname;
     return NodeManager::currentNM()->mkBoundVar(ssn.str(), tn);
   }
   else if (k == Kind::VARIABLE)
@@ -176,9 +176,9 @@ Node AlfNodeConverter::postConvert(Node n)
     // notice that intentionally we drop annotations here.
     std::vector<Node> args;
     // We take the *original* bound variable list, since variable names are
-    // preserved in the translation; using the updated variable `alf.N.x`
-    // would lead to using a variable named "alf.N.x" instead of "x", where
-    // `alf.N.x` is a macro for the variable "x".
+    // preserved in the translation; using the updated variable `@v.N.x`
+    // would lead to using a variable named "@v.N.x" instead of "x", where
+    // `@v.N.x` is a macro for the variable "x".
     args.push_back(n[0]);
     args.insert(args.end(),
                 n.begin() + 1,
