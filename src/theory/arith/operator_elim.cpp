@@ -43,6 +43,13 @@ struct RealAlgebraicNumberVarAttributeId
 };
 typedef expr::Attribute<RealAlgebraicNumberVarAttributeId, Node>
     RealAlgebraicNumberVarAttribute;
+/**
+ * A bound variable used for transcendental function purification.
+ */
+struct TrPurifyAttributeId
+{
+};
+using TrPurifyAttribute = expr::Attribute<TrPurifyAttributeId, Node>;
 
 OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
 
@@ -316,15 +323,17 @@ Node OperatorElim::eliminateOperators(Node node,
         return node;
       }
       checkNonLinearLogic(node);
+      BoundVarManager* bvm = nm->getBoundVarManager();
+      Node x = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
+          node, "x", nm->realType());
+      Node lam = nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x));
+      Node fun = sm->mkSkolemFunction(SkolemFunId::TRANSCENDENTAL_PURIFY, lam);
       // eliminate inverse functions here
-      Node var = sm->mkPurifySkolem(node);
+      Node var = nm->mkNode(Kind::APPLY_UF, fun, node[0]);
       Node lem;
       if (k == Kind::SQRT)
       {
-        Node skolemApp = getArithSkolemApp(node[0], SkolemFunId::SQRT);
-        Node uf = skolemApp.eqNode(var);
-        Node nonNeg = nm->mkNode(
-            Kind::AND, nm->mkNode(Kind::MULT, var, var).eqNode(node[0]), uf);
+        Node nonNeg = nm->mkNode(Kind::MULT, var, var).eqNode(node[0]);
 
         // sqrt(x) reduces to:
         // witness y. ite(x >= 0.0, y * y = x ^ y = Uf(x), y = Uf(x))
@@ -335,10 +344,9 @@ Node OperatorElim::eliminateOperators(Node node,
         // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
         // model.
         lem = nm->mkNode(
-            Kind::ITE,
+            Kind::IMPLIES,
             nm->mkNode(Kind::GEQ, node[0], nm->mkConstReal(Rational(0))),
-            nonNeg,
-            uf);
+            nonNeg);
       }
       else
       {
@@ -476,7 +484,7 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 bool OperatorElim::usePartialFunction(SkolemFunId id) const
 {
   // always use partial function for sqrt
-  return !options().arith.arithNoPartialFun || id == SkolemFunId::SQRT;
+  return !options().arith.arithNoPartialFun || id == SkolemFunId::TRANSCENDENTAL_PURIFY;
 }
 
 SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)

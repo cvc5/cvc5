@@ -28,7 +28,7 @@ const char* toString(cvc5::SkolemFunId id)
     case cvc5::SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case cvc5::SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
     case cvc5::SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
-    case cvc5::SkolemFunId::SQRT: return "SQRT";
+    case cvc5::SkolemFunId::TRANSCENDENTAL_PURIFY: return "TRANSCENDENTAL_PURIFY";
     case cvc5::SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
       return "TRANSCENDENTAL_PURIFY_ARG";
     case cvc5::SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
