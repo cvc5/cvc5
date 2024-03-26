@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter() {}
+TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {

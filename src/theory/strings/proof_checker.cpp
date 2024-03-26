@@ -32,6 +32,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
+StringProofRuleChecker::StringProofRuleChecker(NodeManager* nm,
+                                               uint32_t alphaCard)
+    : ProofRuleChecker(nm), d_alphaCard(alphaCard)
+{
+}
+
 void StringProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::CONCAT_EQ, this);

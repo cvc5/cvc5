@@ -50,6 +50,10 @@ class RewriteDbNodeConverter : public NodeConverter
    * for the DSL proof reconstruction algorithm.
    */
   Node postConvert(Node n) override;
+
+ protected:
+  /** Should we traverse n? */
+  bool shouldTraverse(Node n) override;
 };
 
 }  // namespace rewriter

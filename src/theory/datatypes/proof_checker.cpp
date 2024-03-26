@@ -23,6 +23,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
+DatatypesProofRuleChecker::DatatypesProofRuleChecker(NodeManager* nm,
+                                                     bool sharedSel)
+    : ProofRuleChecker(nm), d_sharedSel(sharedSel)
+{
+}
+
 void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::DT_UNIF, this);

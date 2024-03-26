@@ -26,6 +26,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+QuantifiersProofRuleChecker::QuantifiersProofRuleChecker(NodeManager* nm)
+    : ProofRuleChecker(nm)
+{
+}
+
 void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers

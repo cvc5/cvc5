@@ -280,6 +280,11 @@ Term Smt2TermParser::parseTerm()
         ret = tm.mkReal(d_lex.tokenStr());
       }
       break;
+      case Token::RATIONAL_LITERAL:
+      {
+        ret = tm.mkReal(d_lex.tokenStr());
+      }
+      break;
       case Token::HEX_LITERAL:
       {
         std::string hexStr = d_lex.tokenStr();

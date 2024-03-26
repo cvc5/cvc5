@@ -22,7 +22,8 @@ ${DOXYGEN_INPUT_DIR}/cvc5.h \
 ${DOXYGEN_INPUT_DIR}/cvc5_kind.h \
 ${DOXYGEN_INPUT_DIR}/cvc5_parser.h \
 ${DOXYGEN_INPUT_DIR}/cvc5_types.h \
-${DOXYGEN_INPUT_DIR}/cvc5_proof_rule.h
+${DOXYGEN_INPUT_DIR}/cvc5_proof_rule.h \
+${DOXYGEN_INPUT_DIR}/cvc5_skolem_id.h
 ")
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 
@@ -44,6 +45,7 @@ add_custom_command(
     ${DOXYGEN_INPUT_DIR}/cvc5_kind.h
     ${DOXYGEN_INPUT_DIR}/cvc5_types.h
     ${DOXYGEN_INPUT_DIR}/cvc5_proof_rule.h
+    ${DOXYGEN_INPUT_DIR}/cvc5_skolem_id.h
   COMMENT "Generating doxygen API docs"
 )
 add_custom_target(docs-cpp DEPENDS ${DOXYGEN_INDEX_FILE})

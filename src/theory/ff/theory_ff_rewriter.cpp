@@ -24,6 +24,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
+TheoryFiniteFieldsRewriter::TheoryFiniteFieldsRewriter(NodeManager* nm)
+    : TheoryRewriter(nm)
+{
+}
+
 namespace {
 
 Node mkNary(Kind k, std::vector<Node>&& children)

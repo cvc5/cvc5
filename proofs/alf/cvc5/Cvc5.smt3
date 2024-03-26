@@ -97,7 +97,7 @@
                                            (alf.ite (alf.is_eq d 0) 0 (alf.zdiv (run_evaluate x) d))))
 
       ; strings
-      ((run_evaluate (str.++ x))         (run_evaluate x))      ; don't evaluate alf.nil
+      ((run_evaluate (str.++ x))         (run_evaluate x))      ; don't evaluate alf.null
       ((run_evaluate (str.++ x ys))      (alf.concat (run_evaluate x) (run_evaluate ys)))
       ((run_evaluate (str.len x))        (alf.len (run_evaluate x)))
       ((run_evaluate (str.substr x n m)) (let ((r (run_evaluate n)))
@@ -130,3 +130,31 @@
   :args (t)
   :conclusion (= t (run_evaluate t))
 )
+
+(program is_poly_norm ((T Type) (U Type) (a T) (b T) (a1 U) (a2 U) (b1 U) (b2 U))
+  (T T) Bool
+  (
+    ((is_poly_norm (> a1 a2) (> b1 b2))   (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (>= a1 a2) (>= b1 b2)) (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (<= a1 a2) (<= b1 b2)) (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (< a1 a2) (< b1 b2))   (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (= a1 a2) (= b1 b2))   (alf.ite (is_arith_type (alf.typeof a1)) 
+                                          (alf.ite (is_arith_type (alf.typeof b1))
+                                            (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) false)
+                                            false)
+                                          false)) ; TODO: bv
+    ((is_poly_norm a b)                   (alf.ite (is_arith_type (alf.typeof a)) 
+                                          (alf.ite (is_arith_type (alf.typeof b))
+                                            (is_poly_norm_arith a b)
+                                            false)
+                                          false)) ; TODO: bv
+  )
+)
+
+; ProofRule::ARITH_POLY_NORM
+(declare-rule arith_poly_norm ((U Type) (a U) (b U))
+  :args ((= a b))
+  :requires (((is_poly_norm a b) true))
+  :conclusion (= a b)
+)
+

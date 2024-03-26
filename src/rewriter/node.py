@@ -39,7 +39,6 @@ class Op(Enum):
     # Bit-vectors
     ###########################################################################
 
-    BVSIZE = ('bvsize', 'BITVECTOR_SIZE')
     # Bit-vector predicates
     BVUGT = ('bvugt', 'BITVECTOR_UGT')
     BVUGE = ('bvuge', 'BITVECTOR_UGE')
@@ -89,12 +88,14 @@ class Op(Enum):
     BVITE = ('bvite', 'BITVECTOR_ITE')
     BVCOMP = ('bvcomp', 'BITVECTOR_COMP')
 
-    BVCONST = ('bv', 'CONST_BITVECTOR_SYMBOLIC')
     ZERO_EXTEND = ('zero_extend', 'BITVECTOR_ZERO_EXTEND')
     SIGN_EXTEND = ('sign_extend', 'BITVECTOR_SIGN_EXTEND')
     CONCAT = ('concat', 'BITVECTOR_CONCAT')
     EXTRACT = ('extract', 'BITVECTOR_EXTRACT')
     REPEAT = ('repeat', 'BITVECTOR_REPEAT')
+
+    BVSIZE = ('@bvsize', 'BITVECTOR_SIZE')
+    BVCONST = ('@bv', 'CONST_BITVECTOR_SYMBOLIC')
 
     ###########################################################################
     # Boolean
