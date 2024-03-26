@@ -145,6 +145,8 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   TypeNode d_sortType;
   /** Used for getting unique index for uncategorized skolems */
   std::map<Node, size_t> d_constIndex;
+  /** Used for getting unique names for bound variables */
+  std::map<std::string, size_t> d_varIndex;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_typeAsNode;
 };

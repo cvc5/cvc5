@@ -304,7 +304,10 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
           if (processed.find(key)==processed.end())
           {
             processed.insert(key);
-            outVars << "(declare-var " << v << " " << v.getType() << ")"
+            std::string origName = v.getName();
+            origName = origName.substr(origName.find(".")+1);
+            origName = origName.substr(origName.find(".")+1);
+            outVars << "(define " << v << " () (alf.var \"" << origName << "\" " << v.getType() << "))"
                     << std::endl;
           }
         }

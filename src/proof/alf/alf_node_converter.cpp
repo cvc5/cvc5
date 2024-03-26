@@ -104,6 +104,19 @@ Node AlfNodeConverter::postConvert(Node n)
     Node tc = typeAsNode(tn);
     return mkInternalApp("const", {index, tc}, tn);
   }
+  else if (k == Kind::BOUND_VARIABLE)
+  {
+    // note: we always distinguish variables, to ensure they do not have
+    // names that are overloaded with user names
+    std::stringstream ss;
+    ss << n;
+    std::string sname = ss.str();
+    size_t index = d_varIndex[sname];
+    d_varIndex[sname]++;
+    std::stringstream ssn;
+    ssn << "alf." << index << "." << sname;
+    return NodeManager::currentNM()->mkBoundVar(ssn.str(), tn);
+  }
   else if (k == Kind::VARIABLE)
   {
     // note that we do not handle overloading here
@@ -152,13 +165,8 @@ Node AlfNodeConverter::postConvert(Node n)
     // e.g. (forall ((x1 T1) ... (xn Tk)) P) is
     // (forall ((<name_1> T1) ... (<name_n> Tk)) P) for updated (disambiguated)
     // variable names.
-    std::vector<Node> vars;
-    for (const Node& v : n[0])
-    {
-      vars.push_back(convert(v));
-    }
     // use a bound variable list with the updated variables.
-    Node vl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
+    Node vl = n[0];
     // notice that intentionally we drop annotations here
     std::vector<Node> args;
     args.push_back(vl);
@@ -298,6 +306,7 @@ Node AlfNodeConverter::postConvert(Node n)
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
   }
+  Trace("ajr-temp") << "...self" << std::endl;
   return n;
 }
 
@@ -642,7 +651,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   {
     // The operator of a closure by convention includes its variable list.
     // This is required for cong over binders.
-    Node vl = convert(n[0]);
+    Node vl = n[0];
     // the type of this term is irrelevant, just use vl's type
     ret = mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
