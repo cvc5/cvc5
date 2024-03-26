@@ -1361,7 +1361,7 @@ void CegInstantiator::processAssertions() {
   }
 }
 
-Node CegInstantiator::getModelValue( Node n ) 
+Node CegInstantiator::getModelValue(Node n)
 {
   Node mv = d_treg.getModel()->getValue(n);
   // if the model value is not constant, it may require some processing
