@@ -649,7 +649,8 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   else if (n.isClosure())
   {
     // The operator of a closure by convention includes its variable list.
-    // This is required for cong over binders.
+    // This is required for cong over binders. We do not convert the variable
+    // list here, for the same reason as why it is not converted in convert(..).
     Node vl = n[0];
     // the type of this term is irrelevant, just use vl's type
     ret = mkInternalApp(
