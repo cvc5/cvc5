@@ -79,57 +79,68 @@ static void toStreamRational(std::ostream& out,
   // the former is compliant with real values in the smt lib standard.
   if (r.isIntegral())
   {
-    if (neg)
+    if (arithTokens)
     {
-      if (arithTokens)
+      if (neg)
       {
         out << "-" << -r;
       }
       else
       {
-        out << "(- " << -r;
+        out << r;
+      }
+      if (isReal)
+      {
+        out << ".0";
       }
     }
     else
     {
-      out << r;
-    }
-    if (isReal)
-    {
-      out << ".0";
-    }
-    if (neg && !arithTokens)
-    {
-      out << ")";
+      if (neg)
+      {
+        out << "(- " << -r;
+      }
+      else
+      {
+        out << r;
+      }
+      if (isReal)
+      {
+        out << ".0";
+      }
+      if (neg)
+      {
+        out << ")";
+      }
     }
   }
   else
   {
     Assert(isReal);
-    if (!arithTokens)
+    if (arithTokens)
     {
-      out << "(/ ";
-    }
-    if (neg)
-    {
-      Rational abs_r = (-r);
-      if (arithTokens)
+      if (neg)
       {
-        out << '-' << abs_r.getNumerator() << '/';
+        Rational abs_r = (-r);
+        out << '-' << abs_r.getNumerator() << '/' << abs_r.getDenominator();
       }
       else
       {
-        out << "(- " << abs_r.getNumerator() << ") ";
+        out << r.getNumerator() << '/' << r.getDenominator();
       }
-      out << abs_r.getDenominator();
     }
     else
     {
-      out << r.getNumerator();
-      out << (arithTokens ? '/' : ' ') << r.getDenominator();
-    }
-    if (!arithTokens)
-    {
+      out << "(/ ";
+      if (neg)
+      {
+        Rational abs_r = (-r);
+        out << "(- " << abs_r.getNumerator() << ") " << abs_r.getDenominator();
+      }
+      else
+      {
+        out << r.getNumerator() << ' ' << r.getDenominator();
+      }
       out << ')';
     }
   }
