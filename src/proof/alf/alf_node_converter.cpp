@@ -108,9 +108,19 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     // note: we always distinguish variables, to ensure they do not have
     // names that are overloaded with user names
-    std::stringstream ss;
-    ss << n;
-    std::string sname = ss.str();
+    std::string sname;
+    if (n.hasName())
+    {
+      // get its name if it has one
+      sname = n.getName();
+    }
+    else
+    {
+      // otherwise invoke the printer to get its name
+      std::stringstream ss;
+      ss << n;
+      sname = ss.str();
+    }
     size_t index = d_varIndex[sname];
     d_varIndex[sname]++;
     std::stringstream ssn;
