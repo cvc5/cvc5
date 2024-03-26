@@ -527,6 +527,7 @@ const static std::unordered_map<internal::Kind,
         /* Arithmetic ------------------------------------------------------ */
         {internal::Kind::ADD, Kind::ADD},
         {internal::Kind::MULT, Kind::MULT},
+        {internal::Kind::NONLINEAR_MULT, Kind::MULT},
         {internal::Kind::IAND, Kind::IAND},
         {internal::Kind::POW2, Kind::POW2},
         {internal::Kind::SUB, Kind::SUB},
@@ -3595,6 +3596,61 @@ Term Term::getRealAlgebraicNumberUpperBound() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Term::isSkolem() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
+  return skm->isSkolemFunction(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+SkolemFunId Term::getSkolemId() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+      << "Term to be a skolem when calling getSkolemId";
+  //////// all checks before this line
+  return skm->getId(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> Term::getSkolemIndices() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+      << "Term to be a skolem when calling getSkolemIndices";
+  //////// all checks before this line
+  internal::Node cacheVal;
+  SkolemFunId id;
+  skm->isSkolemFunction(*d_node, id, cacheVal);
+  std::vector<Term> args;
+  if (!cacheVal.isNull())
+  {
+    if (cacheVal.getKind() == internal::Kind::SEXPR)
+    {
+      for (const internal::Node& nc : cacheVal)
+      {
+        args.push_back(Term(d_tm, nc));
+      }
+    }
+    else
+    {
+      args.push_back(Term(d_tm, cacheVal));
+    }
+  }
+  return args;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   // Note that this ignores the options::ioutils properties of `out`.
@@ -5458,11 +5514,7 @@ Sort TermManager::mkRecordSort(
   for (size_t i = 0, size = fields.size(); i < size; ++i)
   {
     const auto& p = fields[i];
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(!p.second.isNull(), "sort", fields, i)
-        << "non-null sort";
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == p.second.d_tm, "sort", fields, i)
-        << "sort associated with the node manager of this solver object";
+    CVC5_API_TM_CHECK_SORT_AT_INDEX(p.second, fields, i);
     f.emplace_back(p.first, *p.second.d_type);
   }
   //////// all checks before this line
@@ -6442,6 +6494,15 @@ Term Solver::synthFunHelper(const std::string& symbol,
           << grammar->d_sg->getNtSyms()[0].getType();
     }
     varTypes.push_back(bv.d_node->getType());
+  }
+  if (grammar)
+  {
+    for (const auto& sym : grammar->d_sg->getNtSyms())
+    {
+      CVC5_API_CHECK(!grammar->d_sg->getRulesFor(sym).empty())
+          << "Invalid grammar, must have at least one rule for each "
+             "non-terminal symbol";
+    }
   }
   //////// all checks before this line
 
@@ -7806,6 +7867,8 @@ void Solver::declareSepHeap(const Sort& locSort, const Sort& dataSort) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(locSort);
   CVC5_API_SOLVER_CHECK_SORT(dataSort);
+  CVC5_API_CHECK(d_slv->isLogicSet())
+      << "Cannot call 'declareSepHeap()' if logic is not set";
   CVC5_API_CHECK(
       d_slv->getLogicInfo().isTheoryEnabled(internal::theory::THEORY_SEP))
       << "Cannot obtain separation logic expressions if not using the "
@@ -7941,6 +8004,12 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
+  for (const auto& sym : grammar.d_sg->getNtSyms())
+  {
+    CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
+        << "Invalid grammar, must have at least one rule for each "
+           "non-terminal symbol";
+  }
   //////// all checks before this line
   internal::Node result =
       d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
@@ -7985,6 +8054,12 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
+  for (const auto& sym : grammar.d_sg->getNtSyms())
+  {
+    CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
+        << "Invalid grammar, must have at least one rule for each "
+           "non-terminal symbol";
+  }
   //////// all checks before this line
   internal::Node result =
       d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type);
@@ -8436,6 +8511,12 @@ Term Solver::findSynth(modes::FindSynthTarget fst) const
 Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  for (const auto& sym : grammar.d_sg->getNtSyms())
+  {
+    CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
+        << "Invalid grammar, must have at least one rule for each "
+           "non-terminal symbol";
+  }
   //////// all checks before this line
   return Term(&d_tm, d_slv->findSynth(fst, *grammar.resolve().d_type));
   ////////

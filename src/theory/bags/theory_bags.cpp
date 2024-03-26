@@ -39,7 +39,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_ig(&d_state, &d_im),
       d_notify(*this, d_im),
       d_statistics(statisticsRegistry()),
-      d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
+      d_rewriter(nodeManager(), env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_solver(env, d_state, d_im, d_termReg),
       d_cpacb(*this)

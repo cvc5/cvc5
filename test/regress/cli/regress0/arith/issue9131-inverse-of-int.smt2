@@ -5,6 +5,6 @@
 ; the secondary assertion failure of decisionLevel() == 0.
 (set-logic QF_NIRAT)
 (declare-const x Int)
-(assert (= (to_int (arcsin x)) x))
+(assert (= (to_int (arcsin (to_real x))) x))
 (set-info :status sat)
 (check-sat)

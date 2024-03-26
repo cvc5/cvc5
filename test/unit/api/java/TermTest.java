@@ -1079,6 +1079,16 @@ class TermTest
   }
 
   @Test
+  void getSkolem() throws CVC5ApiException
+  {
+    // ordinary variables are not skolems
+    Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
+    assertFalse(x.isSkolem());
+    assertThrows(CVC5ApiException.class, () ->x.getSkolemId());
+    assertThrows(CVC5ApiException.class, () ->x.getSkolemIndices());
+  }
+
+  @Test
   void substitute()
   {
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");

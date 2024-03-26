@@ -30,6 +30,7 @@ namespace booleans {
 class TheoryBoolRewriter : public TheoryRewriter
 {
  public:
+  TheoryBoolRewriter(NodeManager* nm);
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
 
