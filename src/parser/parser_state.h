@@ -211,7 +211,7 @@ class CVC5_EXPORT ParserState
   /**
    * Create a (possibly) new cvc5 bound variable expression of the given type.
    * This binds the symbol name to that variable in the current scope.
-   * 
+   *
    * @param name The name of the variable
    * @param type The type of the variable
    * @param fresh If true, the variable is always new. If false, we lookup the
