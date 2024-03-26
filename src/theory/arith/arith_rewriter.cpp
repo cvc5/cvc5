@@ -946,14 +946,13 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
       {
         Node one = nm->mkConstReal(Rational(1));
         Rational r = t[0].getConst<Rational>();
-        if (r.sgn() >= 0 && t[0].getType().isInteger()
-            && t[0] != one)
+        if (r.sgn() >= 0 && t[0].getType().isInteger() && t[0] != one)
         {
           return RewriteResponse(
               REWRITE_AGAIN,
               nm->mkNode(Kind::POW, nm->mkNode(Kind::EXPONENTIAL, one), t[0]));
         }
-        else if (r.sgn()==0)
+        else if (r.sgn() == 0)
         {
           // (= (exp 0.0) 1.0)
           return RewriteResponse(REWRITE_DONE, one);

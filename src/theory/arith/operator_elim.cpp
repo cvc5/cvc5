@@ -330,7 +330,8 @@ Node OperatorElim::eliminateOperators(Node node,
       BoundVarManager* bvm = nm->getBoundVarManager();
       Node x = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
           node.getOperator(), "x", nm->realType());
-      Node lam = nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x));
+      Node lam = nm->mkNode(
+          Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x));
       Node fun = sm->mkSkolemFunction(SkolemFunId::TRANSCENDENTAL_PURIFY, lam);
       // Make (@TRANSCENDENTAL_PURIFY t), where t is node[0]
       Node var = nm->mkNode(Kind::APPLY_UF, fun, node[0]);
@@ -489,7 +490,8 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 bool OperatorElim::usePartialFunction(SkolemFunId id) const
 {
   // always use partial function for sqrt
-  return !options().arith.arithNoPartialFun || id == SkolemFunId::TRANSCENDENTAL_PURIFY;
+  return !options().arith.arithNoPartialFun
+         || id == SkolemFunId::TRANSCENDENTAL_PURIFY;
 }
 
 SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)

@@ -278,7 +278,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     Trace("nl-model-final") << "MODEL INPUT:" << std::endl;
     for (std::pair<const Node, Node>& m : arithModel)
     {
-      Trace("nl-model-final") << "  " << m.first << " -> " << m.second << std::endl;
+      Trace("nl-model-final")
+          << "  " << m.first << " -> " << m.second << std::endl;
     }
     Trace("nl-model-final") << "END" << std::endl;
   }
@@ -302,7 +303,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     Trace("nl-model-final") << "MODEL OUTPUT:" << std::endl;
     for (std::pair<const Node, Node>& m : arithModel)
     {
-      Trace("nl-model-final") << "  " << m.first << " -> " << m.second << std::endl;
+      Trace("nl-model-final")
+          << "  " << m.first << " -> " << m.second << std::endl;
     }
     Trace("nl-model-final") << "END" << std::endl;
   }
