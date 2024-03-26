@@ -135,9 +135,13 @@ enum ENUM(SkolemFunId) : uint32_t
   EVALUE(MOD_BY_ZERO),
   /** 
    * A function introduced to eliminate extended trancendental functions.
+   * Transcendental functions like sqrt, arccos, arcsin, etc. are replaced
+   * during processing with uninterpreted functions that are unique to
+   * each function.
    *
    * - Number of skolem indices: ``1``
-   *   - ``1:`` A lambda for the.
+   *   - ``1:`` A lambda corresponding to the function, e.g. 
+   *   `(lambda ((x Real)) (sqrt x))`.
    * - Type: ``(-> Real Real)``
    */
   EVALUE(TRANSCENDENTAL_PURIFY),
