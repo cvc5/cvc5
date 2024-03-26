@@ -295,27 +295,21 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
     {
       std::stringstream outVars;
       const std::unordered_set<TNode>& vars = aletify.getVariables();
-      std::set<std::pair<std::string, TypeNode>> processed;
       for (TNode v : vars)
       {
         if (v.getKind() == Kind::BOUND_VARIABLE)
         {
-          std::pair<std::string, TypeNode> key(v.getName(), v.getType());
-          if (processed.find(key) == processed.end())
+          std::string origName = v.getName();
+          // Strip off "@v.N." from the variable. It may also be an original
+          // variable appearing in a quantifier, in which case we skip.
+          if (origName.substr(0, 3) != "@v.")
           {
-            processed.insert(key);
-            std::string origName = v.getName();
-            // Strip off "@v.N." from the variable. It may also be an original
-            // variable appearing in a quantifier, in which case we skip.
-            if (origName.substr(0, 3) != "@v.")
-            {
-              continue;
-            }
-            origName = origName.substr(4);
-            origName = origName.substr(origName.find(".") + 1);
-            outVars << "(define " << v << " () (alf.var \"" << origName << "\" "
-                    << v.getType() << "))" << std::endl;
+            continue;
           }
+          origName = origName.substr(4);
+          origName = origName.substr(origName.find(".") + 1);
+          outVars << "(define " << v << " () (alf.var \"" << origName << "\" "
+                  << v.getType() << "))" << std::endl;
         }
       }
       if (options().proof.alfPrintReference)
