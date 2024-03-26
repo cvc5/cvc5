@@ -52,12 +52,14 @@ namespace quantifiers {
 class ExtendedRewriter
 {
  public:
-  ExtendedRewriter(Rewriter& rew, bool aggr = true);
+  ExtendedRewriter(NodeManager* nm, Rewriter& rew, bool aggr = true);
   ~ExtendedRewriter() {}
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n) const;
 
  private:
+  /** Pointer to the underlying node manager */
+  NodeManager* d_nm;
   /** The underlying rewriter that we are extending  */
   Rewriter& d_rew;
   /** cache that the extended rewritten form of n is ret */

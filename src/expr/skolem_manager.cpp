@@ -39,78 +39,6 @@ struct UnpurifiedFormAttributeId
 };
 typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
 
-const char* toString(SkolemFunId id)
-{
-  switch (id)
-  {
-    case SkolemFunId::INPUT_VARIABLE: return "INPUT_VARIABLE";
-    case SkolemFunId::PURIFY: return "PURIFY";
-    case SkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
-    case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
-    case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
-    case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
-    case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
-    case SkolemFunId::SQRT: return "SQRT";
-    case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
-      return "TRANSCENDENTAL_PURIFY_ARG";
-    case SkolemFunId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
-    case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
-    case SkolemFunId::STRINGS_NUM_OCCUR_RE: return "STRINGS_NUM_OCCUR_RE";
-    case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
-    case SkolemFunId::STRINGS_OCCUR_INDEX_RE: return "STRINGS_OCCUR_INDEX_RE";
-    case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
-    case SkolemFunId::STRINGS_OCCUR_LEN_RE: return "STRINGS_OCCUR_LEN_RE";
-    case SkolemFunId::STRINGS_DEQ_DIFF: return "STRINGS_DEQ_DIFF";
-    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
-      return "STRINGS_REPLACE_ALL_RESULT";
-    case SkolemFunId::STRINGS_ITOS_RESULT: return "STRINGS_ITOS_RESULT";
-    case SkolemFunId::STRINGS_STOI_RESULT: return "STRINGS_STOI_RESULT";
-    case SkolemFunId::STRINGS_STOI_NON_DIGIT: return "STRINGS_STOI_NON_DIGIT";
-    case SkolemFunId::RE_FIRST_MATCH_PRE: return "RE_FIRST_MATCH_PRE";
-    case SkolemFunId::RE_FIRST_MATCH: return "RE_FIRST_MATCH";
-    case SkolemFunId::RE_FIRST_MATCH_POST: return "RE_FIRST_MATCH_POST";
-    case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
-    case SkolemFunId::BAGS_CARD_COMBINE: return "BAGS_CARD_COMBINE";
-    case SkolemFunId::BAGS_CARD_ELEMENTS: return "BAGS_CARD_ELEMENTS";
-    case SkolemFunId::BAGS_CARD_N: return "BAGS_CARD_N";
-    case SkolemFunId::BAGS_CARD_UNION_DISJOINT:
-      return "BAGS_CARD_UNION_DISJOINT";
-    case SkolemFunId::BAGS_CHOOSE: return "BAGS_CHOOSE";
-    case SkolemFunId::BAGS_FOLD_CARD: return "BAGS_FOLD_CARD";
-    case SkolemFunId::BAGS_FOLD_COMBINE: return "BAGS_FOLD_COMBINE";
-    case SkolemFunId::BAGS_FOLD_ELEMENTS: return "BAGS_FOLD_ELEMENTS";
-    case SkolemFunId::BAGS_FOLD_UNION_DISJOINT: return "BAGS_FOLD_UNION_DISJOINT";
-    case SkolemFunId::BAGS_MAP_PREIMAGE: return "BAGS_MAP_PREIMAGE";
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
-      return "BAGS_MAP_PREIMAGE_INJECTIVE";
-    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE: return "BAGS_MAP_PREIMAGE_SIZE";
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return "BAGS_MAP_PREIMAGE_INDEX";
-    case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
-    case SkolemFunId::BAGS_DEQ_DIFF: return "BAGS_DEQ_DIFF";
-    case SkolemFunId::TABLES_GROUP_PART: return "TABLES_GROUP_PART";
-    case SkolemFunId::TABLES_GROUP_PART_ELEMENT:
-      return "TABLES_GROUP_PART_ELEMENT";
-    case SkolemFunId::RELATIONS_GROUP_PART: return "RELATIONS_GROUP_PART";
-    case SkolemFunId::RELATIONS_GROUP_PART_ELEMENT:
-      return "RELATIONS_GROUP_PART_ELEMENT";
-    case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
-    case SkolemFunId::SETS_DEQ_DIFF: return "SETS_DEQ_DIFF";
-    case SkolemFunId::SETS_FOLD_CARD: return "SETS_FOLD_CARD";
-    case SkolemFunId::SETS_FOLD_COMBINE: return "SETS_FOLD_COMBINE";
-    case SkolemFunId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
-    case SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
-    case SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
-    case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
-    default: return "?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, SkolemFunId id)
-{
-  out << toString(id);
-  return out;
-}
-
 const char* toString(InternalSkolemFunId id)
 {
   switch (id)
@@ -123,6 +51,7 @@ const char* toString(InternalSkolemFunId id)
     case InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case InternalSkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
+    case InternalSkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     default: return "?";
   }
 }
@@ -226,10 +155,26 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
     }
     else
     {
-      // we use @ as a prefix, which follows the SMT-LIB standard indicating
+      // We use @ as a prefix, which follows the SMT-LIB standard indicating
       // internal symbols starting with @ or . are reserved for internal use.
+      //
       std::stringstream ss;
-      ss << "@" << id;
+      // Print internal skolems by the internal identifier, otherwise all would
+      // be @INTERNAL_*.
+      if (id == SkolemFunId::INTERNAL)
+      {
+        Node cval = cacheVal.getKind() == Kind::SEXPR ? cacheVal[0] : cacheVal;
+        Assert(cval.getKind() == Kind::CONST_INTEGER);
+        Rational r = cval.getConst<Rational>();
+        Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
+        ss << "@"
+           << static_cast<InternalSkolemFunId>(
+                  r.getNumerator().toUnsignedInt());
+      }
+      else
+      {
+        ss << "@" << id;
+      }
       k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
     }
     if (id == SkolemFunId::PURIFY)
@@ -263,6 +208,13 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
                    : NodeManager::currentNM()->mkNode(Kind::SEXPR, cacheVals);
   }
   return mkSkolemFunctionTyped(id, tn, cacheVal);
+}
+
+bool SkolemManager::isSkolemFunction(TNode k) const
+{
+  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it =
+      d_skolemFunMap.find(k);
+  return it != d_skolemFunMap.end();
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
@@ -328,13 +280,7 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
 
 bool SkolemManager::isAbstractValue(TNode n) const
 {
-  SkolemFunId id;
-  Node cacheVal;
-  if (isSkolemFunction(n, id, cacheVal))
-  {
-    return id == SkolemFunId::ABSTRACT_VALUE;
-  }
-  return false;
+  return (getInternalId(n) == InternalSkolemFunId::ABSTRACT_VALUE);
 }
 
 Node SkolemManager::getOriginalForm(Node n)
@@ -473,7 +419,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
   {
     // Type(cacheVals[0]), i.e skolems that return same type as first argument
     case SkolemFunId::PURIFY:
-    case SkolemFunId::ABSTRACT_VALUE:
       Assert(cacheVals.size() > 0);
       return cacheVals[0].getType();
       break;
@@ -497,7 +442,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::MOD_BY_ZERO:
     case SkolemFunId::STRINGS_OCCUR_INDEX:
     case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemFunId::STRINGS_OCCUR_LEN:
     case SkolemFunId::STRINGS_OCCUR_LEN_RE:
     case SkolemFunId::STRINGS_STOI_RESULT:
     case SkolemFunId::STRINGS_ITOS_RESULT:
@@ -521,8 +465,8 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::STRINGS_STOI_NON_DIGIT:
     case SkolemFunId::BAGS_FOLD_CARD:
     case SkolemFunId::SETS_FOLD_CARD:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
+    case SkolemFunId::BAGS_MAP_INDEX:
     case SkolemFunId::BAGS_CARD_N: return nm->integerType();
     // string skolems
     case SkolemFunId::RE_FIRST_MATCH_PRE:
@@ -622,11 +566,11 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, cacheVals[1].getType());
     }
-    case SkolemFunId::BAGS_MAP_PREIMAGE:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS:
     {
       TypeNode itype = nm->integerType();
-      Assert (cacheVals[0].getType().isFunction());
-      TypeNode retType = cacheVals[0].getType().getArgTypes()[0];
+      Assert(cacheVals[0].getType().isBag());
+      TypeNode retType = cacheVals[0].getType().getBagElementType();
       return nm->mkFunctionType(itype, retType);
     }
     case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:

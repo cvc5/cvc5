@@ -1155,11 +1155,13 @@ set(regress_0_tests
   regress0/parser/print-success.smt2
   regress0/parser/proj-issue370-push-pop-global.smt2
   regress0/parser/quoted-define-fun.smt2
+  regress0/parser/rational-tok.smt2
   regress0/parser/real-numerals.smt2
   regress0/parser/set-bag-left-associative.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/stdout-diag.smt2
+  regress0/parser/strict-numeral.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
   regress0/parser/to_fp.smt2
@@ -3439,6 +3441,7 @@ set(regress_2_tests
   regress2/arith/uart-8.base.cvc.smtv1.smt2
   regress2/bags/injective_functions.smt2
   regress2/bags/map_bug.smt2
+  regress2/bags/pull_null.smt2
   regress2/bug136.smtv1.smt2
   regress2/bug148.smtv1.smt2
   regress2/bug349.smtv1.smt2

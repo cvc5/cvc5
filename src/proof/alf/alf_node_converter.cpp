@@ -708,7 +708,6 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemFunId id)
     case SkolemFunId::STRINGS_NUM_OCCUR_RE:
     case SkolemFunId::STRINGS_OCCUR_INDEX:
     case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemFunId::STRINGS_OCCUR_LEN:
     case SkolemFunId::STRINGS_OCCUR_LEN_RE:
     case SkolemFunId::STRINGS_DEQ_DIFF:
     case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
@@ -720,9 +719,9 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemFunId id)
     case SkolemFunId::RE_FIRST_MATCH_POST:
     case SkolemFunId::RE_UNFOLD_POS_COMPONENT:
     case SkolemFunId::BAGS_DEQ_DIFF:
-    case SkolemFunId::BAGS_MAP_PREIMAGE:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS:
     case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
     case SkolemFunId::BAGS_MAP_SUM:
     case SkolemFunId::TABLES_GROUP_PART:
     case SkolemFunId::TABLES_GROUP_PART_ELEMENT: return true;

@@ -132,6 +132,17 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
     case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::ARITH_POLY_NORM:
+    {
+      // we don't support bitvectors yet
+      Assert(pargs[0].getKind() == Kind::EQUAL);
+      if (pargs[0][0].getType().isBoolean())
+      {
+        return pargs[0][0][0].getType().isRealOrInt();
+      }
+      return pargs[0][0].getType().isRealOrInt();
+    }
+    break;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
@@ -523,8 +534,12 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   // if we don't handle the rule, print trust
   if (!handled)
   {
-    out->printTrustStep(
-        pn->getRule(), conclusionPrint, id, premises, conclusion);
+    out->printTrustStep(pn->getRule(),
+                        conclusionPrint,
+                        id,
+                        premises,
+                        pn->getArguments(),
+                        conclusion);
     return;
   }
   std::string rname = getRuleName(pn);

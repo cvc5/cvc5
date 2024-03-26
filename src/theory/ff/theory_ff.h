@@ -87,7 +87,7 @@ class TheoryFiniteFields : public Theory
   TrustNode explain(TNode n) override;
 
  private:
-  TheoryFiniteFieldsRewriter d_rewriter{};
+  TheoryFiniteFieldsRewriter d_rewriter;
 
   /** The state of the ff solver at full effort */
   TheoryState d_state;
