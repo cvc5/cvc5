@@ -325,7 +325,7 @@ Node OperatorElim::eliminateOperators(Node node,
       checkNonLinearLogic(node);
       BoundVarManager* bvm = nm->getBoundVarManager();
       Node x = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
-          node, "x", nm->realType());
+          node.getOperator(), "x", nm->realType());
       Node lam = nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x));
       Node fun = sm->mkSkolemFunction(SkolemFunId::TRANSCENDENTAL_PURIFY, lam);
       // eliminate inverse functions here
