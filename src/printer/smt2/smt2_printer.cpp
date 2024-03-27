@@ -587,38 +587,61 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   }
   else if (n.isVar())
   {
-    if (k == Kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
+    bool printed = false;
+    if (k == Kind::SKOLEM)
     {
-      // abstract value
-      std::string s = n.getName();
-      out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType()
-          << ")";
-    }
-    // variable
-    else if (n.hasName())
-    {
-      std::string s = n.getName();
-      if (k == Kind::RAW_SYMBOL)
+      SkolemManager * sm = nm->getSkolemManager();
+      SkolemFunId id;
+      Node cacheVal;
+      if (sm->isSkolemFunction(n, id, cacheVal))
       {
-        // raw symbols are never quoted
-        out << s;
+        if (id==SkolemFunId::INTERNAL)
+        {
+          if (sm->isAbstractValue(n))
+          {
+            // abstract value
+            std::string s = n.getName();
+            out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType()
+                << ")";
+            printed = true;
+          }
+        }
+        else if (options::ioutils::getPrintSkolemDefinitions(out))
+        {
+          out << "(@" << 
+          out << ")";
+          printed = true;
+        }
+      }
+    }
+    if (!printed)
+    {
+      // variable
+      if (n.hasName())
+      {
+        std::string s = n.getName();
+        if (k == Kind::RAW_SYMBOL)
+        {
+          // raw symbols are never quoted
+          out << s;
+        }
+        else
+        {
+          out << cvc5::internal::quoteSymbol(s);
+        }
       }
       else
       {
-        out << cvc5::internal::quoteSymbol(s);
+        if (k == Kind::VARIABLE)
+        {
+          out << "var_";
+        }
+        else
+        {
+          out << k << '_';
+        }
+        out << n.getId();
       }
-    }
-    else
-    {
-      if (k == Kind::VARIABLE)
-      {
-        out << "var_";
-      }
-      else
-      {
-        out << k << '_';
-      }
-      out << n.getId();
     }
     return true;
   }
