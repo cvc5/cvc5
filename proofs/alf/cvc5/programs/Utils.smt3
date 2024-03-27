@@ -11,3 +11,74 @@
 ; It could potentially be improved by having a builtin operator, e.g. alf.compare.
 (define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (alf.is_neg (alf.add (alf.hash a) (alf.neg (alf.hash b)))))
+
+(program singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (null S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
+  ((-> T U S) S S S) S
+  (
+    ((singleton_elim f id null (f x1 x2))  (alf.ite (alf.is_eq x2 null) x1 (f x1 x2)))
+    ((singleton_elim f id null null)       id)
+    ((singleton_elim f id null x)          x)
+  )
+)
+
+;; =============== for ACI_NORM associative, commutative and idempotent
+
+; Append the children of two applications of an ACI operator.
+(program ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (null S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
+  ((-> T U S) S S S S) S
+  (
+    ((ac_append f id null (f x1 x2) (f y1 y2)) (alf.ite (alf.is_eq x1 y1)
+                                                  (ac_append f id null (f x1 x2) y2)
+                                               (alf.ite (compare_var x1 y1)
+                                                  (f x1 (ac_append f id null x2 (f y1 y2)))
+                                                  (f y1 (ac_append f id null (f x1 x2) y2)))))
+    ((ac_append f id null (f x1 x2) null)      (f x1 x2))
+    ((ac_append f id null null (f y1 y2))      (f y1 y2))
+    ((ac_append f id null null null)           null)
+  )
+)
+
+; Helper to normalize an application of an ACI operator.
+(program get_aci_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (null S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S S) S
+  (
+    ((get_aci_norm_rec f id null (f id x2))   (get_aci_norm_rec f id null x2))
+    ((get_aci_norm_rec f id null (f x1 x2))   (ac_append f id null (get_aci_norm_rec f id null x1) (get_aci_norm_rec f id null x2)))
+    ((get_aci_norm_rec f id null id)          null)
+    ((get_aci_norm_rec f id null null)        null)
+    ((get_aci_norm_rec f id null x)           (alf.cons f x null))
+  )
+)
+
+; Normalize an application of an ACI operator with a given identity element.
+(define get_aci_norm_id ((T Type :implicit) (S Type :implicit) (U Type :implicit) (f (-> T U S)) (id S) (x S))
+  (let ((null (alf.nil f)))
+    (singleton_elim f id null (get_aci_norm_rec f id null x))))
+
+; Normalize an application of an ACI operator, where the identity element is assumed to be its nil terminator.
+(define get_aci_norm ((T Type :implicit) (S Type :implicit) (U Type :implicit) (f (-> T U S)) (x S))
+  (get_aci_norm_id f (alf.nil f) x))
+
+;; =============== for ACI_NORM associative
+
+; Helper to normalize an application of an associative operator.
+(program get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (null S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S S) S
+  (
+    ((get_a_norm_rec f id null (f null x2))  (get_a_norm_rec f id null x2))
+    ((get_a_norm_rec f id null (f x1 x2))    (alf.concat f (get_a_norm_rec f id null x1) (get_a_norm_rec f id null x2)))
+    ((get_a_norm_rec f id null id)           null)
+    ((get_a_norm_rec f id null null)         null)
+    ((get_a_norm_rec f id null x)            (alf.cons f x null))
+  )
+)
+
+; Normalize an application of an associative operator with a given identity element.
+(define get_a_norm_id ((T Type :implicit) (S Type :implicit) (U Type :implicit) (f (-> T U S)) (id S) (x S))
+  (let ((null (alf.nil f)))
+    (singleton_elim f id null (get_a_norm_rec f id null x))))
+
+; Normalize an application of an associative operator, where the identity element is assumed to be its nil terminator.
+(define get_a_norm ((T Type :implicit) (S Type :implicit) (U Type :implicit) (f (-> T U S)) (x S))
+  (get_a_norm_id f (alf.nil f) x))
+

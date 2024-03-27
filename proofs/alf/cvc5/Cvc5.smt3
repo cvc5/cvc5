@@ -139,3 +139,32 @@
   :conclusion (= a b)
 )
 
+(define get_aci_normal_form ((S Type :implicit) (t S))
+  (alf.match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list))
+    t
+    (
+      ((or x1 x2)        (get_aci_norm or t))
+      ((and x1 x2)       (get_aci_norm and t))
+      ((sep x1 x2)       (get_aci_norm sep t))
+      ((re.union x1 x2)  (get_aci_norm re.union t))
+      ((re.inter x1 x2)  (get_aci_norm re.inter t))
+      ((bvor x1 x2)      (get_aci_norm_id bvor (alf.to_bin 0 (get_bitwidth (alf.typeof x1))) t))
+      ((bvand x1 x2)     (get_aci_norm_id bvand (alf.not (alf.to_bin 0 (get_bitwidth (alf.typeof x1)))) t))
+      ((ff.add x1 x2)    (get_aci_norm ff.add t))
+      ((ff.mul x1 x2)    (get_aci_norm ff.mul t))
+      ((str.++ x1 x2)    (get_a_norm_id str.++ (mk_emptystr (alf.typeof x1)) t))
+      ((re.++ x1 x2)     (get_a_norm re.++ t))
+      (x                 x)
+    )
+  )
+)
+
+; ProofRule::ACI_NORM
+(declare-rule aci_norm ((U Type) (a U) (b U))
+  :args ((= a b))
+  :requires (((let ((an (get_aci_normal_form a)) (bn (get_aci_normal_form b)))
+              (alf.ite (alf.is_eq an b) true
+              (alf.ite (alf.is_eq a bn) true
+                (alf.is_eq an bn)))) true))
+  :conclusion (= a b)
+)
