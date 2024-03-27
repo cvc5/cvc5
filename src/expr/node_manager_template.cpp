@@ -260,6 +260,7 @@ NodeManager::~NodeManager()
   d_dtypes.clear();
   d_oracles.clear();
   d_nfreshSorts.clear();
+  d_nfreshVars.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
