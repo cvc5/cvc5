@@ -668,6 +668,10 @@ enum ENUM(SkolemFunId) : uint32_t
   //================================================= Unknown rule
   /** Indicates this is not a skolem. */
   EVALUE(NONE),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 // clang-format on
 
