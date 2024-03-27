@@ -47,7 +47,16 @@ class PropPfManager : protected EnvObj
   friend class SatProofManager;
 
  public:
-  PropPfManager(Env& env, CDCLTSatSolver* satSolver, CnfStream& cnfProof);
+  /**
+   * @param env The environment
+   * @param satSolver Pointer to the SAT solver
+   * @param cnfProof Pointer to the CNF stream
+   * @param assumptions Reference to assumptions of parent prop engine
+   */
+  PropPfManager(Env& env,
+                CDCLTSatSolver* satSolver,
+                CnfStream& cnfProof,
+                const context::CDList<Node>& assumptions);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -163,6 +172,38 @@ class PropPfManager : protected EnvObj
   std::vector<Node> getInputClauses();
   /** Retrieve the clauses derived from lemmas */
   std::vector<Node> getLemmaClauses();
+  /** Return lemmas used in the SAT proof. */
+  std::vector<Node> getUnsatCoreClauses(std::ostream* outDimacs = nullptr);
+  /**
+   * Get minimized assumptions. Returns a vector of nodes which is a
+   * subset of the assumptions (d_assumptions) that appear in the unsat
+   * core. This should be called only an unsat core is available (after
+   * an unsatisfiable check-sat).
+   */
+  std::vector<Node> getMinimizedAssumptions();
+  /**
+   * Calculate a subset of cset that is propositionally unsatisfiable.
+   * If sucessful, return true and store this in uc.
+   *
+   * @param cset The set of formulas to compute an unsat core for
+   * @param uc The set of formulas returned as the unsat core
+   * @param outDimacs If provided, we write the DIMACS output of uc to this
+   * stream
+   */
+  bool reproveUnsatCore(const std::unordered_set<Node>& cset,
+                        std::vector<Node>& uc,
+                        std::ostream* outDimacs = nullptr);
+  /**
+   * Add a proof of false to cdp whose free assumptions are a subset of the
+   * clauses (after CNF conversion), which is a union of:
+   * (1) assumptions (d_assumptions),
+   * (2) input clauses (d_inputClauses),
+   * (3) lemma clauses (d_lemmaClauses).
+   * The choice of what to add to cdp is dependent on the prop-proof-mode.
+   * 
+   * @param cdp The proof object to add the refutation proof to.
+   */
+  void getProofInternal(CDProof* cdp);
   /**
    * Get auxilary units. Computes top-level formulas in clauses that
    * also occur as literals which we call "auxiliary units". In particular,
@@ -209,6 +250,8 @@ class PropPfManager : protected EnvObj
   context::CDList<Node> d_assertions;
   /** The cnf stream proof generator */
   CnfStream& d_cnfStream;
+  /** Reference to the assumptions of the parent prop engine */
+  const context::CDList<Node>& d_assumptions;
   /** Asserted clauses derived from the input */
   context::CDHashSet<Node> d_inputClauses;
   /** Asserted clauses derived from lemmas */
