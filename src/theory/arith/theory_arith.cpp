@@ -195,7 +195,7 @@ TrustNode TheoryArith::ppStaticRewrite(TNode atom)
   else if (k == Kind::GEQ)
   {
     // try to eliminate bv2nat from inequalities
-    Node atomr = ArithRewriter::rewriteIneqToBv(atom);
+    Node atomr = d_rewriter.rewriteIneqToBv(atom);
     if (atomr != atom)
     {
       return TrustNode::mkTrustRewrite(atom, atomr);

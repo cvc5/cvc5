@@ -68,7 +68,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // core rules for word equations
   if (id == ProofRule::CONCAT_EQ || id == ProofRule::CONCAT_UNIFY
       || id == ProofRule::CONCAT_CONFLICT || id == ProofRule::CONCAT_SPLIT

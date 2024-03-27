@@ -72,11 +72,11 @@ class TheoryUfRewriter : public TheoryRewriter
 
  private:
   /** Entry point for rewriting lambdas */
-  static Node rewriteLambda(Node node);
+  Node rewriteLambda(Node node);
   /** rewrite bv2nat */
-  static RewriteResponse rewriteBVToNat(TNode node);
+  RewriteResponse rewriteBVToNat(TNode node);
   /** rewrite int2bv */
-  static RewriteResponse rewriteIntToBV(TNode node);
+  RewriteResponse rewriteIntToBV(TNode node);
 }; /* class TheoryUfRewriter */
 
 }  // namespace uf

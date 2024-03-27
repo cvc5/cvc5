@@ -74,6 +74,27 @@ class TheoryFiniteFieldsRewriter : public TheoryRewriter
    * implementation here can do nothing.
    */
   RewriteResponse preRewrite(TNode node) override;
+
+ private:
+  /** Make n-ary node */
+  Node mkNary(Kind k, std::vector<Node>&& children);
+  /** Parse as a product with a constant scalar
+   *
+   *  If there is no constant scalar, returns a 1.
+   */
+  std::pair<Node, FiniteFieldValue> parseScalar(TNode t);
+  /** preRewrite negation */
+  Node preRewriteFfNeg(TNode t);
+  /** preRewrite addition */
+  Node preRewriteFfAdd(TNode t);
+  /** postRewrite addition */
+  Node postRewriteFfAdd(TNode t);
+  /** preRewrite multiplication */
+  Node preRewriteFfMult(TNode t);
+  /** postRewrite multiplication */
+  Node postRewriteFfMult(TNode t);
+  /** postRewrite equality */
+  Node postRewriteFfEq(TNode t);
 }; /* class TheoryFiniteFieldsRewriter */
 
 }  // namespace ff

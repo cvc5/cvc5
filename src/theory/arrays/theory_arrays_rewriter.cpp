@@ -400,7 +400,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
       }
       else if (store != node[0])
       {
-        n = NodeManager::currentNM()->mkNode(Kind::SELECT, store, index);
+        n = nodeManager()->mkNode(Kind::SELECT, store, index);
         Trace("arrays-postrewrite")
             << "Arrays::postRewrite returning " << n << std::endl;
         return RewriteResponse(REWRITE_DONE, n);
@@ -452,7 +452,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
           }
           val = eqRewritten.getConst<bool>();
         }
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         if (val)
         {
           // store(store(a,i,v),i,w) = store(a,i,w)
@@ -532,20 +532,17 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
       {
         Trace("arrays-postrewrite")
             << "Arrays::postRewrite returning true" << std::endl;
-        return RewriteResponse(REWRITE_DONE,
-                               NodeManager::currentNM()->mkConst(true));
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
       }
       else if (node[0].isConst() && node[1].isConst())
       {
         Trace("arrays-postrewrite")
             << "Arrays::postRewrite returning false" << std::endl;
-        return RewriteResponse(REWRITE_DONE,
-                               NodeManager::currentNM()->mkConst(false));
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
       }
       if (node[0] > node[1])
       {
-        Node newNode =
-            NodeManager::currentNM()->mkNode(node.getKind(), node[1], node[0]);
+        Node newNode = nodeManager()->mkNode(node.getKind(), node[1], node[0]);
         Trace("arrays-postrewrite")
             << "Arrays::postRewrite returning " << newNode << std::endl;
         return RewriteResponse(REWRITE_DONE, newNode);
@@ -612,7 +609,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
       }
       else if (store != node[0])
       {
-        n = NodeManager::currentNM()->mkNode(Kind::SELECT, store, index);
+        n = nodeManager()->mkNode(Kind::SELECT, store, index);
         Trace("arrays-prerewrite")
             << "Arrays::preRewrite returning " << n << std::endl;
         return RewriteResponse(REWRITE_DONE, n);
@@ -653,7 +650,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
           }
           val = eqRewritten.getConst<bool>();
         }
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         if (val)
         {
           // store(store(a,i,v),i,w) = store(a,i,w)
@@ -674,8 +671,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
       {
         Trace("arrays-prerewrite")
             << "Arrays::preRewrite returning true" << std::endl;
-        return RewriteResponse(REWRITE_DONE,
-                               NodeManager::currentNM()->mkConst(true));
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
       }
       break;
     }

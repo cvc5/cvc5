@@ -37,13 +37,13 @@ class TheorySepRewriter : public TheoryRewriter
   }
 
  private:
-  static void getStarChildren(Node n,
+  void getStarChildren(Node n,
                               std::vector<Node>& s_children,
-                              std::vector<Node>& ns_children);
-  static void getAndChildren(Node n,
+                              std::vector<Node>& ns_children) const;
+  void getAndChildren(Node n,
                              std::vector<Node>& s_children,
-                             std::vector<Node>& ns_children);
-  static bool isSpatial(Node n, std::map<Node, bool>& visited);
+                             std::vector<Node>& ns_children) const;
+  bool isSpatial(Node n, std::map<Node, bool>& visited) const;
 }; /* class TheorySepRewriter */
 
 }  // namespace sep

@@ -45,7 +45,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     const std::vector<Node>& children,
     const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (id == ProofRule::SKOLEM_INTRO)
   {
     Assert(children.empty());

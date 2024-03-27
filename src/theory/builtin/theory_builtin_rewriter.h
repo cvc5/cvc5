@@ -26,8 +26,6 @@ namespace builtin {
 
 class TheoryBuiltinRewriter : public TheoryRewriter
 {
-  static Node blastDistinct(TNode node);
-
  public:
   TheoryBuiltinRewriter(NodeManager* nm);
 
@@ -39,16 +37,20 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   /**
    * The default rewriter for rewrites that occur at both pre and post rewrite.
    */
-  static RewriteResponse doRewrite(TNode node);
+  RewriteResponse doRewrite(TNode node);
   /**
    * Main entry point for rewriting terms of the form (witness ((x T)) (P x)).
    * Returns the rewritten form of node.
    */
-  static Node rewriteWitness(TNode node);
+  Node rewriteWitness(TNode node);
   /**
    * Main entry point for rewriting APPLY_INDEXED_SYMBOLIC terms.
    */
-  static Node rewriteApplyIndexedSymbolic(TNode node);
+  Node rewriteApplyIndexedSymbolic(TNode node);
+  /**
+   * Blast distinct, which eliminates the distinct operator.
+   */
+  Node blastDistinct(TNode node);
 }; /* class TheoryBuiltinRewriter */
 
 }  // namespace builtin

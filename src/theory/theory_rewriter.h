@@ -174,6 +174,8 @@ class TheoryRewriter
  protected:
   /** The underlying node manager */
   NodeManager* d_nm;
+  /** Get a pointer to the node manager */
+  NodeManager* nodeManager() const;
 };
 
 }  // namespace theory

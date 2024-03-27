@@ -34,25 +34,17 @@ TranscendentalProofRuleChecker::TranscendentalProofRuleChecker(NodeManager* nm)
 {
 }
 
-namespace {
-
-/**
- * Helper method to construct (t >= lb) AND (t <= up)
- */
-Node mkBounds(TNode t, TNode lb, TNode ub)
+Node TranscendentalProofRuleChecker::mkBounds(TNode t, TNode lb, TNode ub)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   return nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GEQ, t, lb),
                                      nm->mkNode(Kind::LEQ, t, ub)});
 }
 
-/**
- * Helper method to construct a secant plane:
- * evall + ((evall - evalu) / (l - u)) * (t - l)
- */
-Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
+Node TranscendentalProofRuleChecker::mkSecant(
+    TNode t, TNode l, TNode u, TNode evall, TNode evalu)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   return nm->mkNode(Kind::ADD,
                     evall,
                     nm->mkNode(Kind::MULT,
@@ -62,7 +54,6 @@ Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
                                nm->mkNode(Kind::SUB, t, l)));
 }
 
-}  // namespace
 
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
@@ -90,7 +81,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     const std::vector<Node>& children,
     const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node zero = nm->mkConstInt(Rational(0));
   Node one = nm->mkConstInt(Rational(1));
   Node mone = nm->mkConstInt(Rational(-1));
