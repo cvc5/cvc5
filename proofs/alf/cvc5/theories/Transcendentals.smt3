@@ -19,5 +19,5 @@
 (declare-const sqrt (-> Real Real))
 
 ; skolems
-(declare-const @k.SQRT (-> Real Real))
+(declare-const @k.TRANSCENDENTAL_PURIFY (-> (-> Real Real) Real Real))
 (declare-const @k.TRANSCENDENTAL_PURIFY_ARG (-> Real Real))

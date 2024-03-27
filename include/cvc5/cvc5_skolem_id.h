@@ -134,13 +134,17 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(MOD_BY_ZERO),
   /** 
-   * The function for square root, which is used for ensuring that sqrt is
-   * functional.
+   * A function introduced to eliminate extended trancendental functions.
+   * Transcendental functions like sqrt, arccos, arcsin, etc. are replaced
+   * during processing with uninterpreted functions that are unique to
+   * each function.
    *
-   * - Number of skolem indices: ``0``
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` A lambda corresponding to the function, e.g. 
+   *   `(lambda ((x Real)) (sqrt x))`.
    * - Type: ``(-> Real Real)``
    */
-  EVALUE(SQRT),
+  EVALUE(TRANSCENDENTAL_PURIFY),
   /**
    * Argument used to purify trancendental function app ``(f x)``.
    * For ``(sin x)``, this is a variable that is assumed to be in phase with

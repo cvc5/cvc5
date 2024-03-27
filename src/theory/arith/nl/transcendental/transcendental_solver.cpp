@@ -487,7 +487,7 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
     if (d_tstate.d_trPurifyVars.find(am.first) != d_tstate.d_trPurifyVars.end())
     {
       Trace("nl-ext") << "...keep model value for purification variable "
-                      << am.first << std::endl;
+                      << am.first << " (" << am.second << ")" << std::endl;
       continue;
     }
     Node r = d_astate.getRepresentative(am.first);
