@@ -1218,19 +1218,22 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       if (res[0].isClosure())
       {
+        // collect rhs variables
+        new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
         for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
         {
           new_args.push_back(res[0][0][i].eqNode(res[1][0][i]));
         }
         Kind k = res[0].getKind();
-        return addAletheStep(
-            AletheRule::ANCHOR_BIND,
-            res,
-            nm->mkNode(Kind::SEXPR, d_cl, res),
-            // be sure to ignore premise for pattern
-            (k == Kind::FORALL || k == Kind::EXISTS) ? std::vector<Node>{children[0]} : children,
-            new_args,
-            *cdp);
+        return addAletheStep(AletheRule::ANCHOR_BIND,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             // be sure to ignore premise for pattern
+                             (k == Kind::FORALL || k == Kind::EXISTS)
+                                 ? std::vector<Node>{children[0]}
+                                 : children,
+                             new_args,
+                             *cdp);
       }
       return addAletheStep(AletheRule::CONG,
                            res,
@@ -1632,6 +1635,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp = nm->mkNode(
           Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[0][1], res[1][1]));
       addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
+      // collect variables first
+      new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
       new_args.insert(new_args.end(), varEqs.begin(), varEqs.end());
       return addAletheStep(AletheRule::ANCHOR_BIND,
                            res,

@@ -274,15 +274,15 @@ void AletheProofPrinter::printInternal(
       out << " :args (";
       for (size_t i = 3, size = args.size(); i < size; ++i)
       {
-        Assert(args[i].getKind() == Kind::EQUAL);
-        // if the rhs is a variable, it must be declared first
-        if (args[i][1].getKind() == Kind::BOUND_VARIABLE)
+        if (args[i].getKind() == Kind::EQUAL)
         {
-          out << "(" << args[i][1] << " " << args[i][1].getType() << ") ";
+          out << "(:= " << args[i][0] << " ";
+          printTerm(out, args[i][1]);
+          out << ")" << (i != args.size() - 1 ? " " : "");
+          continue;
         }
-        out << "(:= " << args[i][0] << " ";
-        printTerm(out, args[i][1]);
-        out  << ")" << (i != args.size() - 1 ? " " : "");
+        Assert(args[i].getKind() == Kind::BOUND_VARIABLE);
+        out << "(" << args[i] << " " << args[i].getType() << ") ";
       }
       out << "))\n";
     }
