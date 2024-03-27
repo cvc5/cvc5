@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Jörg Schurr
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of the ProofRule enum of the C++ API.
+ * Black box testing of the SkolemFunId enum of the C++ API.
  */
 
 #include <cvc5/cvc5_proof_rule.h>
@@ -24,18 +24,18 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiProofRule : public ::testing::Test
+class TestApiSkolemFunId : public ::testing::Test
 {
 };
 
-TEST_F(TestApiProofRule, proofRuleToString)
+TEST_F(TestApiSkolemFunId, proofRuleToString)
 {
-  for (int32_t r = static_cast<int32_t>(ProofRule::ASSUME);
-       r < static_cast<int32_t>(ProofRule::UNKNOWN);
+  for (int32_t r = static_cast<int32_t>(SkolemFunId::ASSUME);
+       r < static_cast<int32_t>(SkolemFunId::UNKNOWN);
        ++r)
   {
-    auto rulestr = toString(static_cast<ProofRule>(r));
-    if (r == static_cast<int32_t>(ProofRule::UNKNOWN))
+    auto rulestr = toString(static_cast<SkolemFunId>(r));
+    if (r == static_cast<int32_t>(SkolemFunId::UNKNOWN))
     {
       ASSERT_EQ(rulestr, "UNKNOWN");
     }
