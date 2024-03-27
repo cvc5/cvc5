@@ -301,6 +301,7 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
       }
       else
       {
+        // if duplicate variable due to shadowing, we must rewrite
         combineQuantifiers = true;
       }
     }
