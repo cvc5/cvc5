@@ -175,8 +175,7 @@ class SkolemManager
    * e.g. the wrongly applied case of selectors.
    * @return The skolem function.
    */
-  Node mkSkolemFunction(SkolemId id,
-                        Node cacheVal = Node::null());
+  Node mkSkolemFunction(SkolemId id, Node cacheVal = Node::null());
   /** Same as above, with multiple cache values */
   Node mkSkolemFunction(SkolemId id, const std::vector<Node>& cacheVals);
   /**

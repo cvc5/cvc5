@@ -72,8 +72,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node elements = sm->mkSkolemFunction(SkolemId::BAGS_FOLD_ELEMENTS, A);
   Node unionDisjoint =
       sm->mkSkolemFunction(SkolemId::BAGS_FOLD_UNION_DISJOINT, A);
-  Node combine =
-      sm->mkSkolemFunction(SkolemId::BAGS_FOLD_COMBINE, {f, t, A});
+  Node combine = sm->mkSkolemFunction(SkolemId::BAGS_FOLD_COMBINE, {f, t, A});
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =
@@ -130,8 +129,8 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   // skolem functions
   Node n = sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE, A);
   Node elements = sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS, A);
-  Node unionDisjoint = sm->mkSkolemFunction(
-      SkolemId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT, A);
+  Node unionDisjoint =
+      sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT, A);
   Node combine = sm->mkSkolemFunction(SkolemId::BAGS_CARD_COMBINE, A);
 
   BoundVarManager* bvm = nm->getBoundVarManager();

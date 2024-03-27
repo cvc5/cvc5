@@ -28,13 +28,11 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case cvc5::SkolemId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
     case cvc5::SkolemId::MOD_BY_ZERO: return "MOD_BY_ZERO";
-    case cvc5::SkolemId::TRANSCENDENTAL_PURIFY:
-      return "TRANSCENDENTAL_PURIFY";
+    case cvc5::SkolemId::TRANSCENDENTAL_PURIFY: return "TRANSCENDENTAL_PURIFY";
     case cvc5::SkolemId::TRANSCENDENTAL_PURIFY_ARG:
       return "TRANSCENDENTAL_PURIFY_ARG";
     case cvc5::SkolemId::SHARED_SELECTOR: return "SHARED_SELECTOR";
-    case cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE:
-      return "QUANTIFIERS_SKOLEMIZE";
+    case cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
     case cvc5::SkolemId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
     case cvc5::SkolemId::STRINGS_NUM_OCCUR_RE: return "STRINGS_NUM_OCCUR_RE";
     case cvc5::SkolemId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
@@ -83,8 +81,7 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::SETS_FOLD_COMBINE: return "SETS_FOLD_COMBINE";
     case cvc5::SkolemId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
     case cvc5::SkolemId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
-    case cvc5::SkolemId::SETS_MAP_DOWN_ELEMENT:
-      return "SETS_MAP_DOWN_ELEMENT";
+    case cvc5::SkolemId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
     default: return "?";
   }
 }

@@ -840,8 +840,7 @@ void TheorySetsPrivate::checkMapDown()
       //     (set.member x A)
       //     (= (f x) y))
       // )
-      Node x =
-          sm->mkSkolemFunction(SkolemId::SETS_MAP_DOWN_ELEMENT, {term, y});
+      Node x = sm->mkSkolemFunction(SkolemId::SETS_MAP_DOWN_ELEMENT, {term, y});
 
       d_state.registerMapSkolemElement(term, x);
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
@@ -1101,8 +1100,7 @@ void TheorySetsPrivate::groupPartMember(Node n, Node B, Node part)
   Node A_notEmpty = A.eqNode(empty).notNode();
   exp.push_back(A_notEmpty);
 
-  Node x = sm->mkSkolemFunction(SkolemId::RELATIONS_GROUP_PART_ELEMENT,
-                                {n, B});
+  Node x = sm->mkSkolemFunction(SkolemId::RELATIONS_GROUP_PART_ELEMENT, {n, B});
   d_state.registerPartElementSkolem(n, x);
   Node part_x = nm->mkNode(Kind::APPLY_UF, part, x);
   part_x = registerAndAssertSkolemLemma(part_x);

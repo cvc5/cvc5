@@ -168,8 +168,7 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
         Rational r = cval.getConst<Rational>();
         Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
         ss << "@"
-           << static_cast<InternalSkolemId>(
-                  r.getNumerator().toUnsignedInt());
+           << static_cast<InternalSkolemId>(r.getNumerator().toUnsignedInt());
       }
       else
       {

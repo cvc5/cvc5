@@ -168,9 +168,7 @@ class SkolemCache
    * Skolem we construct (in d_allSkolems), which is used for finite model
    * finding.
    */
-  Node mkSkolemFun(SkolemId id,
-                   Node a = Node::null(),
-                   Node b = Node::null());
+  Node mkSkolemFun(SkolemId id, Node a = Node::null(), Node b = Node::null());
 
  private:
   /**
