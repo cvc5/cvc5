@@ -57,7 +57,10 @@ SkolemCache::SkolemCache(Rewriter* rr) : d_rr(rr)
   d_zero = nm->mkConstInt(Rational(0));
 }
 
-Node SkolemCache::mkSkolemCached(Node a, Node b, StringSkolemId id, const char* c)
+Node SkolemCache::mkSkolemCached(Node a,
+                                 Node b,
+                                 StringSkolemId id,
+                                 const char* c)
 {
   return mkTypedSkolemCached(d_strType, a, b, id, c);
 }
