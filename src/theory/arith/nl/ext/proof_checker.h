@@ -36,8 +36,7 @@ namespace nl {
 class ExtProofRuleChecker : public ProofRuleChecker
 {
  public:
-  ExtProofRuleChecker() = default;
-  ~ExtProofRuleChecker() = default;
+  ExtProofRuleChecker(NodeManager* nm);
 
   /** Register all rules owned by this rule checker in pc. */
   void registerTo(ProofChecker* pc) override;

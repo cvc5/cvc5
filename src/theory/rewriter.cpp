@@ -95,7 +95,7 @@ Node Rewriter::rewrite(TNode node) {
 
 Node Rewriter::extendedRewrite(TNode node, bool aggr)
 {
-  quantifiers::ExtendedRewriter er(*this, aggr);
+  quantifiers::ExtendedRewriter er(d_nm, *this, aggr);
   return er.extendedRewrite(node);
 }
 

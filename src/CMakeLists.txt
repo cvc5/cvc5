@@ -21,6 +21,7 @@ libcvc5_add_sources(
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
   api/cpp/cvc5_proof_rule.cpp
+  api/cpp/cvc5_skolem_id.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
   decision/decision_engine.cpp
@@ -138,6 +139,8 @@ libcvc5_add_sources(
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
   printer/ast/ast_printer.h
+  printer/enum_to_string.cpp
+  printer/enum_to_string.h
   printer/let_binding.cpp
   printer/let_binding.h
   printer/printer.cpp
@@ -1398,10 +1401,16 @@ set(KINDS_FILES
 #-----------------------------------------------------------------------------#
 
 set(REWRITES_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/builtin/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites-elimination
   ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites-simplification
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/rewrites
 )
 
 #-----------------------------------------------------------------------------#

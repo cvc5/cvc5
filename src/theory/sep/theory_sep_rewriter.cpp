@@ -24,6 +24,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace sep {
 
+TheorySepRewriter::TheorySepRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+
 void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ){
   Assert(n.getKind() == Kind::SEP_STAR);
   Node tr = NodeManager::currentNM()->mkConst( true );

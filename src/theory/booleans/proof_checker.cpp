@@ -21,6 +21,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
+BoolProofRuleChecker::BoolProofRuleChecker(NodeManager* nm)
+    : ProofRuleChecker(nm)
+{
+}
+
 void BoolProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::SPLIT, this);

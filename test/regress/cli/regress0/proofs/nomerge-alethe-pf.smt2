@@ -1,4 +1,4 @@
-; COMMAND-LINE: --dump-proofs --proof-format-mode=alethe --dag-thresh=0 --simplification=none --proof-granularity=theory-rewrite
+; COMMAND-LINE: --dump-proofs --proof-format-mode=alethe --dag-thresh=0 --simplification=none --proof-granularity=theory-rewrite --proof-alethe-experimental
 ; EXIT: 0
 ; SCRUBBER: grep -v -E '.*'
 (set-logic AUFLIA)
