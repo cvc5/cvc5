@@ -199,7 +199,7 @@
 (program re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
   (String RegLan RegLan Int) (@Pair String Bool)
   (
-    ((re_unfold_pos_concat_rec t alf.null ro i)       (@pair alf.null true))
+    ((re_unfold_pos_concat_rec t (str.to_re "") ro i)       (@pair alf.null true))
     ((re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
       ; match recursive call
       (alf.match ((c String :list) (M Bool :list))
@@ -212,7 +212,7 @@
               ; a constant regular expression, append s
               ((str.to_re s) (@pair (str.++ s c) M))
               ; otherwise, make the skolem and append with constraint
-              (r             (let ((k (skolem (@k.RE_UNFOLD_POS_COMPONENT t ro i))))
+              (r            (let ((k (skolem (@k.RE_UNFOLD_POS_COMPONENT t ro i))))
                             (@pair (str.++ k c) (and (str.in_re k r) M))))
             )
           )
