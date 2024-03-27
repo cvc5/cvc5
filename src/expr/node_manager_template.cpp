@@ -1099,7 +1099,7 @@ Node NodeManager::mkVar(const std::string& name,
   std::pair<std::string, TypeNode> key(name, type);
   std::map<std::pair<std::string, TypeNode>, Node>::iterator it;
   it = d_nfreshVars.find(key);
-  if (it != d_nfreshSorts.end())
+  if (it != d_nfreshVars.end())
   {
     return it->second;
   }
@@ -1107,7 +1107,7 @@ Node NodeManager::mkVar(const std::string& name,
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
-  Node v = n.constructNode();
+  Node v = n;
   d_nfreshVars[key] = v;
   return v;
 }
