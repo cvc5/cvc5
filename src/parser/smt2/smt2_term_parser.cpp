@@ -213,7 +213,10 @@ Term Smt2TermParser::parseTerm()
               {
                 d_lex.parseError("Expected non-empty sorted variable list");
               }
-              std::vector<Term> vs = d_state.bindBoundVars(sortedVarNames);
+              // We set fresh to false here. This means that (x Int) appearing
+              // in a quantified formula always constructs the same variable.
+              std::vector<Term> vs =
+                  d_state.bindBoundVars(sortedVarNames, false);
               Term vl = tm.mkTerm(Kind::VARIABLE_LIST, vs);
               args.push_back(vl);
               xstack.emplace_back(ParseCtx::CLOSURE_NEXT_ARG);

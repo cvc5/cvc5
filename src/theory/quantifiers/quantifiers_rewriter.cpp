@@ -299,6 +299,11 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
       {
         boundVars.push_back(v);
       }
+      else
+      {
+        // if duplicate variable due to shadowing, we must rewrite
+        combineQuantifiers = true;
+      }
     }
     continueCombine = false;
     if (body.getNumChildren() == 2 && body[1].getKind() == k)

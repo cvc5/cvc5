@@ -38,7 +38,6 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   }
   for (const Node& a : terms)
   {
-    Assert(!expr::hasFreeVar(a));
     expr::getTypes(a, types, typeVisited);
   }
   // print the declared types first
