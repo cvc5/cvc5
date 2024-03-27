@@ -298,7 +298,7 @@ Node SkolemCache::mkLengthVar(Node t)
   return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
 }
 
-Node SkolemCache::mkSkolemFun(SkolemFunId id, Node a, Node b)
+Node SkolemCache::mkSkolemFun(SkolemId id, Node a, Node b)
 {
   std::vector<Node> cacheVals = getSkolemCacheVals(a, b);
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();

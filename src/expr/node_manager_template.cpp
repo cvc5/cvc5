@@ -1096,14 +1096,14 @@ Node NodeManager::mkVar(const std::string& name,
     return n;
   }
   // to construct a variable in a canonical way, we use the skolem
-  // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
+  // manager, where SkolemId::INPUT_VARIABLE identifies that the
   // variable is unique.
   std::vector<Node> cnodes;
   cnodes.push_back(mkConst(String(name, false)));
   // Since we index only on Node, we must construct a SortToTerm here.
   Node gt = mkConst(SortToTerm(type));
   cnodes.push_back(gt);
-  return d_skManager->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, cnodes);
+  return d_skManager->mkSkolemFunction(SkolemId::INPUT_VARIABLE, cnodes);
 }
 
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)

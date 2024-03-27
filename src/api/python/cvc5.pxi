@@ -49,7 +49,7 @@ from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
 from cvc5proofrules cimport ProofRule as c_ProofRule
-from cvc5skolemids cimport SkolemFunId as c_SkolemFunId
+from cvc5skolemids cimport SkolemId as c_SkolemId
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
@@ -5450,7 +5450,7 @@ cdef class Term:
                          versions.
             :return: The skolem identifier of this term.
         """
-        return SkolemFunId(<int> self.cterm.getSkolemId())
+        return SkolemId(<int> self.cterm.getSkolemId())
 
     def getSkolemIndices(self):
         """
@@ -5460,7 +5460,7 @@ cdef class Term:
 
            :return: The skolem indices of this term. This is list of terms that
             the skolem function is indexed by. For example, the array diff
-            skolem `SkolemFunId::ARRAY_DEQ_DIFF` is indexed by two arrays.
+            skolem `SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
         """
         indices = []
         for i in self.cterm.getSkolemIndices():
