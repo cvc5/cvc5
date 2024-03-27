@@ -72,12 +72,12 @@ Node SkolemManager::mkPurifySkolem(Node t,
   if (t.getKind() == Kind::WITNESS)
   {
     // The purification skolem for (witness ((x T)) P) is the same as
-    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) 0).
+    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) x).
     NodeManager* nm = NodeManager::currentNM();
     Node exists =
         nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
     k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
-                         {exists, nm->mkConstInt(Rational(0))});
+                         {exists, t[0][0]});
     // store the proof generator if it exists
     if (pg != nullptr)
     {

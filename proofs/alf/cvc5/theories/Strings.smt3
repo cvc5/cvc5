@@ -103,8 +103,8 @@
 (declare-const @strings_stoi_non_digit (-> String Int))
 (declare-const @strings_itos_result (-> Int Int Int))
 
-(declare-const @strings_NUM_occur (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
-(declare-const @strings_NUM_occur_re (-> String RegLan Int))
+(declare-const @strings_num_occur (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
+(declare-const @strings_num_occur_re (-> String RegLan Int))
 (declare-const @strings_occur_index (-> (! Type :var T :implicit) (Seq T) (Seq T) Int Int))
 (declare-const @strings_occur_index_re (-> String RegLan Int Int))
 (declare-const @strings_occur_len_re (-> String RegLan Int Int))

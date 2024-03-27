@@ -330,7 +330,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
     {
       // convert every skolem function to its name applied to arguments
       std::stringstream ss;
-      ss << "@k." << sfi;
+      ss << "@" << sfi;
       std::vector<Node> args;
       if (cacheVal.getKind() == Kind::SEXPR)
       {
