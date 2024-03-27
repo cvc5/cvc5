@@ -265,7 +265,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return mkSkolemNode(Kind::SKOLEM, prefix, type, flags);
+  return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const
