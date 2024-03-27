@@ -3,6 +3,14 @@
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
+; Returns the (integer value) bitwidth for a given bit-vector type.
+(program get_bitwidth ((T Type) (n Int))
+  (Type) Int
+  (
+    ((get_bitwidth (BitVec n)) n)
+  )
+)
+
 ; used as the nil terminator for concat
 (declare-const bvempty (BitVec 0))
 
