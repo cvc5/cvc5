@@ -31,7 +31,7 @@ class TestApiSkolemFunId : public ::testing::Test
 TEST_F(TestApiSkolemFunId, proofRuleToString)
 {
   for (int32_t r = static_cast<int32_t>(SkolemFunId::ASSUME);
-       r < static_cast<int32_t>(SkolemFunId::UNKNOWN);
+       r <= static_cast<int32_t>(SkolemFunId::UNKNOWN);
        ++r)
   {
     auto rulestr = toString(static_cast<SkolemFunId>(r));
