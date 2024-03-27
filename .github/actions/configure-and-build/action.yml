@@ -5,6 +5,8 @@ inputs:
     default: ""
   configure-config:
     default: ""
+  macos-target:
+    default: ""
   build-shared:
     default: true
     type: boolean
@@ -25,6 +27,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Set MACOSX_DEPLOYMENT_TARGET
+      if: runner.os == 'macOS' && inputs.macos-target
+      shell: ${{ inputs.shell }}
+      run: echo "MACOSX_DEPLOYMENT_TARGET=${{ inputs.macos-target }}" >> $GITHUB_ENV
+
     - name: Shared build
       id: shared-build
       # Boolean inputs are actually strings:
