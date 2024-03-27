@@ -31,7 +31,7 @@ class TestApiProofRule : public ::testing::Test
 TEST_F(TestApiProofRule, proofRuleToString)
 {
   for (int32_t r = static_cast<int32_t>(ProofRule::ASSUME);
-       r < static_cast<int32_t>(ProofRule::LAST);
+       r <= static_cast<int32_t>(ProofRule::UNKNOWN);
        ++r)
   {
     auto rulestr = toString(static_cast<ProofRule>(r));

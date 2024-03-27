@@ -30,22 +30,14 @@ class TestApiSkolemFunId : public ::testing::Test
 
 TEST_F(TestApiSkolemFunId, proofRuleToString)
 {
-  for (int32_t r = static_cast<int32_t>(SkolemFunId::ASSUME);
-       r < static_cast<int32_t>(SkolemFunId::LAST);
-       ++r)
+  for (int32_t i = static_cast<int32_t>(SkolemFunId::ASSUME);
+       i <= static_cast<int32_t>(SkolemFunId::NONE);
+       ++i)
   {
-    auto rulestr = toString(static_cast<SkolemFunId>(r));
-    if (r == static_cast<int32_t>(SkolemFunId::UNKNOWN))
-    {
-      ASSERT_EQ(rulestr, "UNKNOWN");
-    }
-    else
-    {
-      // If this assertion fails, the switch in cvc5_proof_rule.cpp is missing
-      // rule r.
-      ASSERT_NE(rulestr, "UNKNOWN");
-      ASSERT_NE(rulestr, "?");
-    }
+    auto rulestr = toString(static_cast<SkolemFunId>(i));
+    // If this assertion fails, the switch in enum_to_string.cpp is missing
+    // id i.
+    ASSERT_NE(rulestr, "?");
   }
 }
 
