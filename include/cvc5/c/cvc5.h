@@ -1506,7 +1506,7 @@ bool cvc5_term_is_skolem(Cvc5Term term);
  * @param term The skolem.
  * @return The skolem identifier of the term.
  */
-Cvc5SkolemFunId cvc5_term_get_skolem_id(Cvc5Term term);
+Cvc5SkolemId cvc5_term_get_skolem_id(Cvc5Term term);
 /**
  * Get the skolem indices of a term.
  * @note Asserts isSkolem().
@@ -1514,7 +1514,7 @@ Cvc5SkolemFunId cvc5_term_get_skolem_id(Cvc5Term term);
  * @param term The skolem.
  * @return The skolem indices of the term. This is list of terms that the
  * skolem function is indexed by. For example, the array diff skolem
- * `SkolemFunId::ARRAY_DEQ_DIFF` is indexed by two arrays.
+ * `SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
  */
 const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term);
 
