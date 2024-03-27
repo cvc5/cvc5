@@ -34,8 +34,7 @@ namespace proof {
 class LfscNodeConverter : public NodeConverter
 {
  public:
-  LfscNodeConverter();
-  ~LfscNodeConverter() {}
+  LfscNodeConverter(NodeManager* nm);
   /** convert at pre-order traversal */
   Node preConvert(Node n) override;
   /** convert at post-order traversal */

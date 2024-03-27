@@ -74,4 +74,6 @@ Node ProofRuleChecker::mkKindNode(Kind k)
       Rational(static_cast<uint32_t>(k)));
 }
 
+NodeManager* ProofRuleChecker::nodeManager() const { return d_nm; }
+
 }  // namespace cvc5::internal

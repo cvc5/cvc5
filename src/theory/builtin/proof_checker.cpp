@@ -420,7 +420,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
-    rewriter::RewriteDbNodeConverter rconv;
+    rewriter::RewriteDbNodeConverter rconv(nodeManager());
     Node f = children[0];
     Node g = args[0];
     // equivalent up to conversion via utility

@@ -31,8 +31,7 @@ namespace proof {
 class AletheNodeConverter : public NodeConverter
 {
  public:
-  AletheNodeConverter() {}
-  ~AletheNodeConverter() {}
+  AletheNodeConverter(NodeManager* nm);
   /** convert at post-order traversal */
   Node postConvert(Node n) override;
 

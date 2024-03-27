@@ -83,6 +83,8 @@ class ProofRuleChecker
   virtual Node checkInternal(ProofRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args) = 0;
+  /** Get a pointer to the node manager */
+  NodeManager* nodeManager() const;
   /** The underlying node manager */
   NodeManager* d_nm;
 };

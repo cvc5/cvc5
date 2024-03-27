@@ -31,7 +31,7 @@ namespace quantifiers {
 SygusReconstruct::SygusReconstruct(Env& env,
                                    TermDbSygus* tds,
                                    SygusStatistics& s)
-    : EnvObj(env), d_tds(tds), d_stats(s)
+    : NodeConverter(env.getNodeManager()), EnvObj(env), d_tds(tds), d_stats(s)
 {
 }
 
