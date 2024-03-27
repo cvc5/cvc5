@@ -1023,7 +1023,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         opName << "to_fp_real";
       }
-      else if (k== Kind::BITVECTOR_BITOF)
+      else if (k == Kind::BITVECTOR_BITOF)
       {
         opName << "bitOf";
       }
