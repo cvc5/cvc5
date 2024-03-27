@@ -128,10 +128,10 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   // types
   TypeNode bagType = A.getType();
   // skolem functions
-  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_N, A);
-  Node elements = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_ELEMENTS, A);
-  Node unionDisjoint =
-      sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_UNION_DISJOINT, A);
+  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE, A);
+  Node elements = sm->mkSkolemFunction(SkolemFunId::BAGS_DISTINCT_ELEMENTS, A);
+  Node unionDisjoint = sm->mkSkolemFunction(
+      SkolemFunId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT, A);
   Node combine = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_COMBINE, A);
 
   BoundVarManager* bvm = nm->getBoundVarManager();
