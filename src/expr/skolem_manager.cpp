@@ -212,21 +212,20 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
 
 bool SkolemManager::isSkolemFunction(TNode k) const
 {
-  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  return it != d_skolemFunMap.end();
+  return k.getKind()==Kind::SKOLEM;
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
                                      SkolemFunId& id,
                                      Node& cacheVal) const
 {
-  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  if (it == d_skolemFunMap.end())
+  if (k.getKind()!=Kind::SKOLEM)
   {
     return false;
   }
+  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it =
+      d_skolemFunMap.find(k);
+  Assert (it != d_skolemFunMap.end());
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;
