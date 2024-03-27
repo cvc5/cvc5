@@ -22,7 +22,6 @@ const char* toString(cvc5::SkolemFunId id)
   switch (id)
   {
     case cvc5::SkolemFunId::INTERNAL: return "INTERNAL";
-    case cvc5::SkolemFunId::INPUT_VARIABLE: return "INPUT_VARIABLE";
     case cvc5::SkolemFunId::PURIFY: return "PURIFY";
     case cvc5::SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case cvc5::SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";

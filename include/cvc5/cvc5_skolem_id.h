@@ -81,16 +81,6 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(INTERNAL),
   /** 
-   * The input variable with a given name. This is used when the option
-   * fresh-declarations is set to false.
-   * 
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` A string constant corresponding to the name of the variable.
-   *   - ``2:`` A term that represents the sort T of the variable.
-   * - Type: ``T``
-   */
-  EVALUE(INPUT_VARIABLE),
-  /** 
    * The purification skolem for a term. This is a variable that is semantically
    * equivalent to the argument term t.
    * 
