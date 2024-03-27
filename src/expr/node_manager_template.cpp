@@ -1096,6 +1096,8 @@ Node NodeManager::mkVar(const std::string& name,
     setAttribute(n, expr::VarNameAttr(), name);
     return n;
   }
+  // Note that the constructed variable must have kind VARIABLE, not SKOLEM,
+  // which is why this is not implemented as a case inside SkolemManager.
   std::pair<std::string, TypeNode> key(name, type);
   std::map<std::pair<std::string, TypeNode>, Node>::iterator it;
   it = d_nfreshVars.find(key);
