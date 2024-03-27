@@ -174,9 +174,8 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The quantified formula Q.
-   *   - ``2:`` An integer n, where this skolem corresponds to the skolemization
-   *            of the n^th variable in the variable list of Q.
-   * - Type: The type of the n^th variable of Q.
+   *   - ``2:`` The variable in the binder of Q to skolemize.
+   * - Type: The type of the second argument.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
   /** 

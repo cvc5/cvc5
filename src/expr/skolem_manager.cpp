@@ -482,16 +482,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::QUANTIFIERS_SKOLEMIZE:
     {
       Assert(cacheVals.size() == 2);
-      Node vi = cacheVals[1];
-      if (vi.getKind() == Kind::CONST_INTEGER
-          && vi.getConst<Rational>().sgn() >= 0
-          && vi.getConst<Rational>().getNumerator().fitsUnsignedInt())
-      {
-        uint32_t i = vi.getConst<Rational>().getNumerator().toUnsignedInt();
-        Assert(cacheVals[0].getKind() == Kind::EXISTS
-               && i < cacheVals[0][0].getNumChildren());
-        return cacheVals[0][0][i].getType();
-      }
+      return cacheVals[1].getType();
     }
     break;
     // skolems that return the set element type

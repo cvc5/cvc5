@@ -608,8 +608,23 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         }
         else if (options::ioutils::getPrintSkolemDefinitions(out))
         {
-          out << "(@" << 
-          out << ")";
+          if (!cacheVal.isNull())
+          {
+            out << "(";
+          }
+          out << "@" << id;
+          if (cacheVal.getKind() == Kind::SEXPR)
+          {
+            for (const Node& cv : cacheVal)
+            {
+              out << " " << cv;
+            }
+            out << ")";
+          }
+          else if (!cacheVal.isNull())
+          {
+            out << " " << cacheVal << ")";
+          }
           printed = true;
         }
       }
