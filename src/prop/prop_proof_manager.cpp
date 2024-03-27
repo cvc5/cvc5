@@ -206,14 +206,10 @@ std::vector<Node> PropPfManager::getUnsatCoreClauses(std::ostream* outDimacs)
 
 bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
                                      std::vector<Node>& uc,
-                                     std::ostream* outDimacs,
-                                     CDProof* cdp)
+                                     std::ostream* outDimacs)
 {
-  bool minProofGen = (cdp != nullptr);
-  Trace("cnf-input-min") << "Make cadical, proof gen = " << minProofGen << "..."
-                         << std::endl;
   CDCLTSatSolver* csm = SatSolverFactory::createCadical(
-      d_env, statisticsRegistry(), d_env.getResourceManager(), "", minProofGen);
+      d_env, statisticsRegistry(), d_env.getResourceManager(), "");
   NullRegistrar nreg;
   context::Context nctx;
   CnfStream csms(d_env, csm, &nreg, &nctx);
@@ -299,15 +295,6 @@ bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
       // dump using the CNF stream we created above
       csms.dumpDimacs(*outDimacs, aclauses);
     }
-    /*
-    if (cdp!=nullptr)
-    {
-      std::pair<ProofRule, std::vector<Node>> sk =
-          d_satSolver->getProofSketch();
-      // use the rule, clauses and arguments we computed above
-      cdp->addStep(falsen, sk.first, uc, args);
-    }
-    */
     return true;
   }
   // should never happen, if it does, we revert to the entire input
