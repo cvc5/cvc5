@@ -3602,8 +3602,7 @@ bool Term::isSkolem() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
-  return skm->isSkolemFunction(*d_node);
+  return d_node->getKind() == internal::Kind::SKOLEM;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
