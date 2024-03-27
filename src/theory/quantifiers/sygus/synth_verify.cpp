@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -164,7 +164,7 @@ Result SynthVerify::verify(Node query)
 
 Node SynthVerify::preprocessQueryInternal(Node query)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("cegqi-debug") << "pre-rewritten query : " << query << std::endl;
   // simplify the lemma based on the term database sygus utility
   query = d_tds->rewriteNode(query);

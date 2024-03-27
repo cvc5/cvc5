@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -169,38 +169,37 @@ class CnfStream : protected EnvObj
    */
   void dumpDimacs(std::ostream& out, const std::vector<Node>& clauses);
   /**
-   * Same as above, but additionally prints top-level formulas in clauses that
-   * also occur as literals which we call "auxiliary units". In particular, say
+   * Same as above, but additionally prints the clauses in auxUnits as unit
+   * clauses, after clause. In particular, say
    * we pass the following clauses to this method:
    *
    * (or ~(or A B) ~C)
    * (or A B)
    * C
    *
+   * And the auxilary units:
+   *
+   * (or A B)
+   *
    * Here, we would print the DIMACS:
    *
-   * p cnf 3 3
+   * p cnf 4 4
    * -1 -2 0
    * 3 4 0
    * 2 0
    * 1 0
    *
-   * and add (or A B) to auxUnits.
-   *
-   * Note that in the above example, it is ambiguous whether to interpret (or A
-   * B) as a unit clause or as a clause with literals A and B. To ensure that we
-   * print an unsatisfiable DIMACS, we include both in the output. In
-   * particular, Any OR-term that occurs as a literal of another clause is
-   * adding to auxUnits and is printed at the end of the DIMACS.
+   * Note that the copy of (or A B) in clauses is printed as "3 4 0" whereas
+   * the copy of (or A B) in auxUnits is printed as "1 0".
    *
    * @param out The output stream.
    * @param clauses The clauses to print.
-   * @param clauses The auxiliary units that were appended to the end of the
+   * @param auxUnits The auxiliary units that were appended to the end of the
    * DIMACS, after clauses were printed.
    */
   void dumpDimacs(std::ostream& out,
                   const std::vector<Node>& clauses,
-                  std::vector<Node>& auxUnits);
+                  const std::vector<Node>& auxUnits);
 
  protected:
   /** Helper function */

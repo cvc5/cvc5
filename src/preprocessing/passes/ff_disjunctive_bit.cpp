@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@ FfDisjunctiveBit::FfDisjunctiveBit(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult FfDisjunctiveBit::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  auto nm = NodeManager::currentNM();
+  auto nm = nodeManager();
   for (uint64_t i = 0, n = assertionsToPreprocess->size(); i < n; ++i)
   {
     Node fact = (*assertionsToPreprocess)[i];

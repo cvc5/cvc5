@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,8 +49,8 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_opMap(context()),
       d_inactive_map(context())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 TermDb::~TermDb(){
@@ -160,7 +160,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   std::unordered_map<TypeNode, Node>::iterator it = d_type_fv.find(tn);
   if (it == d_type_fv.end())
   {
-    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    SkolemManager* sm = nodeManager()->getSkolemManager();
     std::stringstream ss;
     options::ioutils::applyOutputLanguage(ss, options().printer.outputLanguage);
     ss << "e_" << tn;
@@ -330,7 +330,7 @@ void TermDb::computeUfTerms( TNode f ) {
   unsigned nonCongruentCount = 0;
   unsigned alreadyCongruentCount = 0;
   unsigned relevantCount = 0;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (TNode ff : ops)
   {
     NodeDbListMap::iterator it = d_opMap.find(ff);

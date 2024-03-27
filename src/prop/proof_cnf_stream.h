@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Dejan Jovanovic, Liana Hadarean
+ *   Haniel Barbosa, Dejan Jovanovic, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -97,12 +97,12 @@ class ProofCnfStream : protected EnvObj
    */
   void dumpDimacs(std::ostream& out, const std::vector<Node>& clauses);
   /**
-   * Same as above, but also prints additional "auxliary unit" clauses.
+   * Same as above, but also prints additional "auxiliary unit" clauses.
    * For details, see cnf_stream.h.
    */
   void dumpDimacs(std::ostream& out,
                   const std::vector<Node>& clauses,
-                  std::vector<Node>& auxUnits);
+                  const std::vector<Node>& auxUnits);
 
  private:
   /**

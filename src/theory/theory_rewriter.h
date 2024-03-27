@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,6 +87,7 @@ struct TrustRewriteResponse
 class TheoryRewriter
 {
  public:
+  TheoryRewriter(NodeManager* nm) : d_nm(nm) {}
   virtual ~TheoryRewriter() = default;
 
   /**
@@ -169,6 +170,10 @@ class TheoryRewriter
    * under-specified operations using partially defined functions.
    */
   virtual TrustNode expandDefinition(Node node);
+
+ protected:
+  /** The underlying node manager */
+  NodeManager* d_nm;
 };
 
 }  // namespace theory

@@ -23,6 +23,13 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+          - name: ubuntu:production-arm64-cross
+            os: ubuntu-latest
+            config: production --auto-download --arm64
+            cache-key: production-arm64-cross
+            strip-bin: aarch64-linux-gnu-strip
+            package-name: cvc5-Linux-arm64
+
           - name: macos:production
             os: macos-11
             config: production --auto-download --all-bindings --editline
@@ -53,7 +60,7 @@ jobs:
             package-name: cvc5-macOS-arm64
 
           - name: win64:production
-            os: windows-2019
+            os: windows-latest
             config: production --auto-download --win64-native
             cache-key: production-win64-native
             strip-bin: strip
@@ -91,7 +98,7 @@ jobs:
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
+            run_regression_args: --tester alf --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -129,10 +136,6 @@ jobs:
         build-static: ${{ matrix.build-static }}
         strip-bin: ${{ matrix.strip-bin }}
         shell: ${{ matrix.shell }}
-
-    - name: ccache Statistics
-      if: runner.os != 'Windows'
-      run: ccache -s
 
     - name: Run tests
       if: matrix.run_regression_args

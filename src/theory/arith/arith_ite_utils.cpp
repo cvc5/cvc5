@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Andrew Reynolds, Gereon Kremer
+ *   Tim King, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -71,7 +71,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         Node ve = d_varParts[e];
         Node vpite = (vt == ve) ? vt : Node::null();
 
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         if (vpite.isNull())
         {
           Node rite = rc.iteNode(rt, re);
@@ -127,7 +127,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         {
           newn = n;
         }
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         linear::Polynomial p = linear::Polynomial::parsePolynomial(newn);
         if (p.isConstant())
         {
@@ -232,8 +232,8 @@ const Integer& ArithIteUtils::gcdIte(Node n){
 Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
   if(n.isConst()){
     Assert(n.getType().isRealOrInt());
-    return NodeManager::currentNM()->mkConstRealOrInt(
-        n.getType(), n.getConst<Rational>() * q);
+    return nodeManager()->mkConstRealOrInt(n.getType(),
+                                           n.getConst<Rational>() * q);
   }else{
     Assert(n.getKind() == Kind::ITE);
     Assert(n.getType().isInteger());
@@ -248,7 +248,7 @@ Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
   Assert(n.getKind() == Kind::ITE);
   Assert(n.getType().isRealOrInt());
   const Integer& gcd = gcdIte(n);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if(gcd.isOne()){
     Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1],n[2]);
     d_reduceGcd[n] = newIte;
@@ -481,7 +481,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
       if(diff.isConstant()){
         // a: (sel = otherL) or (sel = otherR), otherL-otherR = c
 
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         SkolemManager* sm = nm->getSkolemManager();
 
         Node cnd = findIteCnd(binor[0], binor[1]);

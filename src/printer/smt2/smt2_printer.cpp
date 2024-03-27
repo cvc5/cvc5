@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
+ *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,44 +73,76 @@ static void toStreamRational(std::ostream& out,
                              Variant v)
 {
   bool neg = r.sgn() < 0;
+  bool arithTokens = options::ioutils::getPrintArithLitToken(out);
   // Print the rational, possibly as a real.
   // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
   // the former is compliant with real values in the smt lib standard.
   if (r.isIntegral())
   {
-    if (neg)
+    if (arithTokens)
     {
-      out << "(- " << -r;
+      if (neg)
+      {
+        out << "-" << -r;
+      }
+      else
+      {
+        out << r;
+      }
+      if (isReal)
+      {
+        out << ".0";
+      }
     }
     else
     {
-      out << r;
-    }
-    if (isReal)
-    {
-      out << ".0";
-    }
-    if (neg)
-    {
-      out << ")";
+      if (neg)
+      {
+        out << "(- " << -r;
+      }
+      else
+      {
+        out << r;
+      }
+      if (isReal)
+      {
+        out << ".0";
+      }
+      if (neg)
+      {
+        out << ")";
+      }
     }
   }
   else
   {
     Assert(isReal);
-    out << "(/ ";
-    if (neg)
+    if (arithTokens)
     {
-      Rational abs_r = (-r);
-      out << "(- " << abs_r.getNumerator();
-      out << ") " << abs_r.getDenominator();
+      if (neg)
+      {
+        Rational abs_r = (-r);
+        out << '-' << abs_r.getNumerator() << '/' << abs_r.getDenominator();
+      }
+      else
+      {
+        out << r.getNumerator() << '/' << r.getDenominator();
+      }
     }
     else
     {
-      out << r.getNumerator();
-      out << ' ' << r.getDenominator();
+      out << "(/ ";
+      if (neg)
+      {
+        Rational abs_r = (-r);
+        out << "(- " << abs_r.getNumerator() << ") " << abs_r.getDenominator();
+      }
+      else
+      {
+        out << r.getNumerator() << ' ' << r.getDenominator();
+      }
+      out << ')';
     }
-    out << ')';
   }
 }
 
@@ -1180,8 +1212,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_ULTBV: return "bvultbv";
     case Kind::BITVECTOR_SLTBV: return "bvsltbv";
 
-    case Kind::BITVECTOR_SIZE: return "bvsize";
-    case Kind::CONST_BITVECTOR_SYMBOLIC: return "bv";
+    case Kind::BITVECTOR_SIZE: return "@bvsize";
+    case Kind::CONST_BITVECTOR_SYMBOLIC: return "@bv";
 
     // datatypes theory
     case Kind::APPLY_TESTER: return "is";

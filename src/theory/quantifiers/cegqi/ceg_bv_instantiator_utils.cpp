@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+ *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,7 @@ Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n) const
   }
   Assert(!coeff.isNull());
 
-  if (neg) return NodeManager::currentNM()->mkNode(Kind::BITVECTOR_NEG, coeff);
+  if (neg) return nodeManager()->mkNode(Kind::BITVECTOR_NEG, coeff);
   return coeff;
 }
 
@@ -72,7 +72,7 @@ Node BvInstantiatorUtil::normalizePvMult(
   NodeBuilder nb(Kind::BITVECTOR_MULT);
   BvLinearAttribute is_linear;
 
-  nm = NodeManager::currentNM();
+  nm = nodeManager();
   for (TNode nc : children)
   {
     if (!contains_pv[nc])
@@ -170,7 +170,7 @@ Node BvInstantiatorUtil::normalizePvPlus(
   BvLinearAttribute is_linear;
   bool neg;
 
-  nm = NodeManager::currentNM();
+  nm = nodeManager();
   for (TNode nc : children)
   {
     if (!contains_pv[nc])
@@ -254,7 +254,7 @@ Node BvInstantiatorUtil::normalizePvEqual(
 {
   Assert(children.size() == 2);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   BvLinearAttribute is_linear;
   Node coeffs[2], leafs[2];
   bool neg;

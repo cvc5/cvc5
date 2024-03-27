@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -136,29 +136,6 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (k == Kind::HO_APPLY)
   {
     return mkInternalApp("_", {n[0], n[1]}, tn);
-  }
-  else if (k == Kind::CONST_INTEGER)
-  {
-    Rational r = n.getConst<Rational>();
-    if (r.sgn() == -1)
-    {
-      // negative integers are printed as "-n"
-      std::stringstream ss;
-      ss << "-" << r.abs();
-      return mkInternalSymbol(ss.str(), tn);
-    }
-    return n;
-  }
-  else if (k == Kind::CONST_RATIONAL)
-  {
-    Rational r = n.getConst<Rational>();
-    // ensure rationals are printed properly here using alf syntax,
-    // which is "n/d" or "-n/d".
-    Integer num = r.getNumerator().abs();
-    Integer den = r.getDenominator();
-    std::stringstream ss;
-    ss << (r.sgn() == -1 ? "-" : "") << num << "/" << den;
-    return mkInternalSymbol(ss.str(), tn);
   }
   else if (n.isClosure())
   {
@@ -708,7 +685,6 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemFunId id)
     case SkolemFunId::STRINGS_NUM_OCCUR_RE:
     case SkolemFunId::STRINGS_OCCUR_INDEX:
     case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemFunId::STRINGS_OCCUR_LEN:
     case SkolemFunId::STRINGS_OCCUR_LEN_RE:
     case SkolemFunId::STRINGS_DEQ_DIFF:
     case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
@@ -720,9 +696,9 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemFunId id)
     case SkolemFunId::RE_FIRST_MATCH_POST:
     case SkolemFunId::RE_UNFOLD_POS_COMPONENT:
     case SkolemFunId::BAGS_DEQ_DIFF:
-    case SkolemFunId::BAGS_MAP_PREIMAGE:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS:
     case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
     case SkolemFunId::BAGS_MAP_SUM:
     case SkolemFunId::TABLES_GROUP_PART:
     case SkolemFunId::TABLES_GROUP_PART_ELEMENT: return true;
