@@ -419,6 +419,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
   {
     // Type(cacheVals[0]), i.e skolems that return same type as first argument
     case SkolemFunId::PURIFY:
+    case SkolemFunId::TRANSCENDENTAL_PURIFY:
       Assert(cacheVals.size() > 0);
       return cacheVals[0].getType();
       break;
@@ -430,7 +431,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       break;
     // real -> real function
     case SkolemFunId::DIV_BY_ZERO:
-    case SkolemFunId::SQRT:
     {
       TypeNode rtype = nm->realType();
       return nm->mkFunctionType(rtype, rtype);
