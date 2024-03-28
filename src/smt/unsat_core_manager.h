@@ -54,12 +54,24 @@ class UnsatCoreManager : protected EnvObj
   std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
                                                bool isInternal);
   /**
-   * Calls the above method on the unsat core of the underyling prop engine.
+   * Get the unsat core in the current context. Should be called only when in
+   * UNSAT mode.
+   * Calls convertPreprocessedToInput on the unsat core of the underyling prop
+   * engine.
    * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
    * is false, we print debug information.
    * @return the unsat core
    */
   std::vector<Node> getUnsatCore(bool isInternal);
+  /**
+   * Get the lemmas that are included in the unsat core. Should be called only
+   * when in UNSAT mode. Gets the unsat core of lemmas as computed by the
+   * underlying prop engine.
+   * @param isInternal Used for debug printing, i.e. when isInternal is false,
+   * we print debug information.
+   * @return the unsat core of lemmas
+   */
+  std::vector<Node> getUnsatCoreLemmas(bool isInternal);
   /** Gets the relevant instaniations and skolemizations for the refutation.
    *
    * The relevant instantiations are all the conclusions of proof nodes of type
@@ -73,8 +85,7 @@ class UnsatCoreManager : protected EnvObj
    * Similiarly, for SKOLEMIZE, it populates the mapping sks will all
    * skolemization steps in the proof.
    */
-  void getRelevantQuantTermVectors(std::shared_ptr<ProofNode> pfn,
-                                   std::map<Node, InstantiationList>& insts,
+  void getRelevantQuantTermVectors(std::map<Node, InstantiationList>& insts,
                                    std::map<Node, std::vector<Node>>& sks,
                                    bool getDebugInfo = false);
 

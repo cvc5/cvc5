@@ -50,6 +50,13 @@ std::vector<Node> UnsatCoreManager::getUnsatCore(bool isInternal)
   return convertPreprocessedToInput(pcore, isInternal);
 }
 
+std::vector<Node> UnsatCoreManager::getUnsatCoreLemmas(bool isInternal)
+{
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  return pe->getUnsatCoreLemmas();
+}
+
 void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
                                             std::vector<Node>& core,
                                             bool isInternal)
@@ -105,11 +112,14 @@ void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
 }
 
 void UnsatCoreManager::getRelevantQuantTermVectors(
-    std::shared_ptr<ProofNode> pfn,
     std::map<Node, InstantiationList>& insts,
     std::map<Node, std::vector<Node>>& sks,
     bool getDebugInfo)
 {
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  std::shared_ptr<ProofNode> pfn = pe->getProof();
+  Assert (pfn!=nullptr);
   NodeManager* nm = nodeManager();
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
@@ -255,7 +265,7 @@ std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
   Assert(pepf != nullptr);
   std::shared_ptr<ProofNode> pfn =
       d_pfm.connectProofToAssertions(pepf, d_slv, ProofScopeMode::UNIFIED);
-  getUnsatCore(pfn, core, isInternal);
+  getUnsatCoreInternal(pfn, core, isInternal);
   return core;
 }
 
