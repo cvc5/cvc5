@@ -50,6 +50,13 @@ std::vector<Node> UnsatCoreManager::getUnsatCore(bool isInternal)
   return convertPreprocessedToInput(pcore, isInternal);
 }
 
+std::vector<Node> UnsatCoreManager::getUnsatCoreLemmas(bool isInternal)
+{
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  return pe->getUnsatCoreLemmas();
+}
+
 void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
                                             std::vector<Node>& core,
                                             bool isInternal)
@@ -255,7 +262,7 @@ std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
   Assert(pepf != nullptr);
   std::shared_ptr<ProofNode> pfn =
       d_pfm.connectProofToAssertions(pepf, d_slv, ProofScopeMode::UNIFIED);
-  getUnsatCore(pfn, core, isInternal);
+  getUnsatCoreInternal(pfn, core, isInternal);
   return core;
 }
 

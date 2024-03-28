@@ -60,6 +60,13 @@ class UnsatCoreManager : protected EnvObj
    * @return the unsat core
    */
   std::vector<Node> getUnsatCore(bool isInternal);
+  /**
+   * Get the lemmas that are included in the unsat core.
+   * @param isInternal Used for debug printing, i.e. when isInternal is false,
+   * we print debug information.
+   * @return the unsat core of lemmas
+   */
+  std::vector<Node> getUnsatCoreLemmas(bool isInternal);
   /** Gets the relevant instaniations and skolemizations for the refutation.
    *
    * The relevant instantiations are all the conclusions of proof nodes of type

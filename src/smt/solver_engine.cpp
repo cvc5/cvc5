@@ -1170,7 +1170,7 @@ Node SolverEngine::getValue(const Node& t) const
       // construct the skolem function
       SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
       Node a = skm->mkInternalSkolemFunction(
-          InternalSkolemFunId::ABSTRACT_VALUE, rtn, {resultNode});
+          InternalSkolemId::ABSTRACT_VALUE, rtn, {resultNode});
       // add to top-level substitutions if applicable
       theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
       if (!tsm.get().hasSubstitution(resultNode))
@@ -1622,9 +1622,7 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
         "Cannot get lemmas used to derive unsat unless immediately preceded by "
         "UNSAT response.");
   }
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  return pe->getUnsatCoreLemmas();
+  return d_ucManager->getUnsatCoreLemmas(false);
 }
 
 void SolverEngine::getRelevantQuantTermVectors(
