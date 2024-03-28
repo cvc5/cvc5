@@ -22,13 +22,13 @@ const char* toString(cvc5::SkolemId id)
   switch (id)
   {
     case cvc5::SkolemId::INTERNAL: return "INTERNAL";
-    case cvc5::SkolemId::INPUT_VARIABLE: return "INPUT_VARIABLE";
     case cvc5::SkolemId::PURIFY: return "PURIFY";
     case cvc5::SkolemId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case cvc5::SkolemId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case cvc5::SkolemId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
     case cvc5::SkolemId::MOD_BY_ZERO: return "MOD_BY_ZERO";
-    case cvc5::SkolemId::TRANSCENDENTAL_PURIFY: return "TRANSCENDENTAL_PURIFY";
+    case cvc5::SkolemId::TRANSCENDENTAL_PURIFY:
+      return "TRANSCENDENTAL_PURIFY";
     case cvc5::SkolemId::TRANSCENDENTAL_PURIFY_ARG:
       return "TRANSCENDENTAL_PURIFY_ARG";
     case cvc5::SkolemId::SHARED_SELECTOR: return "SHARED_SELECTOR";
