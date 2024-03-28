@@ -75,6 +75,14 @@ jobs:
             windows-build: true
             package-name: cvc5-Win64
 
+          - name: wasm:production
+            os: ubuntu-20.04
+            config: production --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE'
+            cache-key: productionwasm
+            wasm-build: true
+            build-shared: false
+            build-static: true
+
           - name: ubuntu:production-clang
             os: ubuntu-20.04
             env: CC=clang CXX=clang++
@@ -118,6 +126,7 @@ jobs:
         with-documentation: ${{ matrix.build-documentation }}
         with-python-bindings: ${{ matrix.python-bindings }}
         windows-build: ${{ matrix.windows-build }}
+        wasm-build: ${{ matrix.wasm-build }}
         shell: ${{ matrix.shell }}
 
     - name: Setup caches
