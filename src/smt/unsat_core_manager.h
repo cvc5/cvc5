@@ -54,14 +54,19 @@ class UnsatCoreManager : protected EnvObj
   std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
                                                bool isInternal);
   /**
-   * Calls the above method on the unsat core of the underyling prop engine.
+   * Get the unsat core in the current context. Should be called only when in
+   * UNSAT mode.
+   * Calls convertPreprocessedToInput on the unsat core of the underyling prop
+   * engine.
    * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
    * is false, we print debug information.
    * @return the unsat core
    */
   std::vector<Node> getUnsatCore(bool isInternal);
   /**
-   * Get the lemmas that are included in the unsat core.
+   * Get the lemmas that are included in the unsat core. Should be called only
+   * when in UNSAT mode. Gets the unsat core of lemmas as computed by the
+   * underlying prop engine.
    * @param isInternal Used for debug printing, i.e. when isInternal is false,
    * we print debug information.
    * @return the unsat core of lemmas
@@ -70,7 +75,7 @@ class UnsatCoreManager : protected EnvObj
   /** Gets the relevant instaniations and skolemizations for the refutation.
    *
    * The relevant instantiations are all the conclusions of proof nodes of type
-   * INSTANTIATE that occur in the SAT solver's underlying proof.
+   * INSTANTIATE that occur in the underlying SAT proof.
    *
    * This method populates the insts map from quantified formulas occurring as
    * premises of INSTANTIATE proof nodes to its instantiations, which are a
