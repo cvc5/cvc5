@@ -1037,7 +1037,7 @@ class NodeManager
   /** A mapping for sorts allocated by mkSortConstructor where fresh is false */
   std::map<std::pair<std::string, size_t>, TypeNode> d_nfreshSorts;
 
-  /** A mapping for variables constructed where fresh is false */
+  /** A mapping for variables constructed when fresh is false */
   std::map<std::pair<std::string, TypeNode>, Node> d_nfreshVars;
 
   TupleTypeCache d_tt_cache;
