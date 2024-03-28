@@ -73,7 +73,7 @@ namespace cvc5 {
  * \internal
  * 
  */
-enum ENUM(SkolemFunId) : uint32_t
+enum ENUM(SkolemId) : uint32_t
 {
   /**
    * The identifier of the skolem is not exported. These skolems should not
@@ -81,18 +81,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(INTERNAL),
   /** 
-   * The input variable with a given name. This is used when the option
-   * fresh-declarations is set to false.
-   * 
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` A string constant corresponding to the name of the variable.
-   *   - ``2:`` A term that represents the sort T of the variable.
-   * - Type: ``T``
-   */
-  EVALUE(INPUT_VARIABLE),
-  /** 
    * The purification skolem for a term. This is a variable that is semantically
-   * equivalent to the argument term t.
+   * equivalent to the indexed term t.
    * 
    * - Number of skolem indices: ``1``
    *   - ``1:`` The term t that this skolem purifies.
@@ -165,8 +155,8 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``2:`` A term that represents the sort of field we are extracting.
    *   - ``3:`` An integer n such that this shared selector returns the n^th
    *            subfield term of the given sort.
-   * - Type: A selector sort whose domain is given by first argument,
-   *         and whose codomain is the given by the second argument.
+   * - Type: A selector sort whose domain is given by first index,
+   *         and whose codomain is the given by the second index.
    */
   EVALUE(SHARED_SELECTOR),
   /**
@@ -174,9 +164,8 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The quantified formula Q.
-   *   - ``2:`` An integer n, where this skolem corresponds to the skolemization
-   *            of the n^th variable in the variable list of Q.
-   * - Type: The type of the n^th variable of Q.
+   *   - ``2:`` The variable in the binder of Q to skolemize.
+   * - Type: The type of the second index.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
   /** 
@@ -283,8 +272,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
-   * An index containing a non-digit in a string, used when ``(str.to_int a)``
-   * is equal to -1. This is an integer that returns an index for which the
+   * A position containing a non-digit in a string, used when ``(str.to_int a)``
+   * is equal to -1. This is an integer that returns a position for which the
    * argument string is not a digit if one exists, or is unconstrained otherwise.
    *
    * - Number of skolem indices: ``1``
@@ -668,30 +657,34 @@ enum ENUM(SkolemFunId) : uint32_t
   //================================================= Unknown rule
   /** Indicates this is not a skolem. */
   EVALUE(NONE),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 // clang-format on
 
 #ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
-typedef enum ENUM(SkolemFunId) ENUM(SkolemFunId);
+typedef enum ENUM(SkolemId) ENUM(SkolemId);
 #endif
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
 
 /**
- * Get a string representation of a Cvc5SkolemFunId.
+ * Get a string representation of a Cvc5SkolemId.
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_skolem_id_to_string(Cvc5SkolemFunId kind);
+const char* cvc5_skolem_id_to_string(Cvc5SkolemId kind);
 
 /**
- * Hash function for Cvc5SkolemFunId.
+ * Hash function for Cvc5SkolemId.
  * @param rule The proof rule.
  * @return The hash value.
  */
-size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
+size_t cvc5_skolem_id_hash(Cvc5SkolemId rule);
 
 #else
 
@@ -702,29 +695,29 @@ size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
  * @param id The skolem id to write to the stream
  * @return The stream
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SkolemFunId id);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SkolemId id);
 }  // namespace cvc5
 
 namespace std {
 /**
- * Hash function for SkolemFunIds.
+ * Hash function for SkolemIds.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::SkolemFunId>
+struct CVC5_EXPORT hash<cvc5::SkolemId>
 {
   /**
-   * Hashes a SkolemFunId to a size_t.
+   * Hashes a SkolemId to a size_t.
    * @param id The skolem id.
    * @return The hash value.
    */
-  size_t operator()(cvc5::SkolemFunId id) const;
+  size_t operator()(cvc5::SkolemId id) const;
 };
 /**
  * Get the string representation of a given skolem identifier.
  * @param id The skolem identifier
  * @return The string representation.
  */
-std::string to_string(cvc5::SkolemFunId id);
+std::string to_string(cvc5::SkolemId id);
 
 }  // namespace std
 

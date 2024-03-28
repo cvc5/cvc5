@@ -226,7 +226,7 @@ void SynthConjecture::assign(Node q)
     Node v = d_embed_quant[0][i];
     vars.push_back(v);
     Node e = sm->mkInternalSkolemFunction(
-        InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED,
+        InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED,
         v.getType(),
         {d_simp_quant[0][i]});
     d_candidates.push_back(e);

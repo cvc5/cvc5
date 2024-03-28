@@ -319,7 +319,7 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
       // variable, in particular, the purification variable for the substring
       // of the term we are updating.
       Node sstr = nm->mkNode(Kind::STRING_SUBSTR, t[0], currSum, clen);
-      cc = skc->mkSkolemCached(sstr, SkolemCache::SkolemId::SK_PURIFY, "z");
+      cc = skc->mkSkolemCached(sstr, SkolemCache::SK_PURIFY, "z");
     }
     // If it is a constant of length one, then the update/nth is determined
     // in this interval. Notice this is done here as
