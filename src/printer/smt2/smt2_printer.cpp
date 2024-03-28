@@ -591,11 +591,11 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     if (k == Kind::SKOLEM)
     {
       SkolemManager* sm = nm->getSkolemManager();
-      SkolemFunId id;
+      SkolemId id;
       Node cacheVal;
       if (sm->isSkolemFunction(n, id, cacheVal))
       {
-        if (id == SkolemFunId::INTERNAL)
+        if (id == SkolemId::INTERNAL)
         {
           if (sm->isAbstractValue(n))
           {
