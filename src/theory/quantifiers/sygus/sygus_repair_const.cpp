@@ -177,6 +177,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
       getFoQuery(sygusBody, candidates, candidate_skeletons, sk_vars);
 
   Trace("sygus-repair-const-debug") << "...got : " << fo_body << std::endl;
+
   Assert(!expr::hasFreeVar(fo_body));
 
   if (fo_body.isNull() || sk_vars.empty())
