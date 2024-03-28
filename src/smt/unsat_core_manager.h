@@ -22,6 +22,8 @@
 #include "expr/node.h"
 #include "proof/proof_node.h"
 #include "smt/env_obj.h"
+#include "smt/proof_manager.h"
+#include "smt/smt_solver.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 namespace cvc5::internal {
@@ -37,10 +39,59 @@ class Assertions;
 class UnsatCoreManager : protected EnvObj
 {
  public:
-  UnsatCoreManager(Env& env);
+  UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm);
   ~UnsatCoreManager(){};
+  /**
+   * Convert preprocessed assertions to the input formulas that imply them. In
+   * detail, this converts a set of preprocessed assertions to a set of input
+   * assertions based on the proof of preprocessing. It is used for unsat cores
+   * and timeout cores.
+   *
+   * @param ppa The preprocessed assertions to convert
+   * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
+   * is false, we print debug information.
+   */
+  std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
+                                               bool isInternal);
+  /**
+   * Get the unsat core in the current context. Should be called only when in
+   * UNSAT mode.
+   * Calls convertPreprocessedToInput on the unsat core of the underyling prop
+   * engine.
+   * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
+   * is false, we print debug information.
+   * @return the unsat core
+   */
+  std::vector<Node> getUnsatCore(bool isInternal);
+  /**
+   * Get the lemmas that are included in the unsat core. Should be called only
+   * when in UNSAT mode. Gets the unsat core of lemmas as computed by the
+   * underlying prop engine.
+   * @param isInternal Used for debug printing, i.e. when isInternal is false,
+   * we print debug information.
+   * @return the unsat core of lemmas
+   */
+  std::vector<Node> getUnsatCoreLemmas(bool isInternal);
+  /** Gets the relevant instaniations and skolemizations for the refutation.
+   *
+   * The relevant instantiations are all the conclusions of proof nodes of type
+   * INSTANTIATE that occur in the proof returned by the prop engine.
+   *
+   * This method populates the insts map from quantified formulas occurring as
+   * premises of INSTANTIATE proof nodes to its instantiations, which are a
+   * matrix with each row corresponding to the terms with which the respective
+   * quantified formula is instiated.
+   *
+   * Similiarly, for SKOLEMIZE, it populates the mapping sks will all
+   * skolemization steps in the proof.
+   */
+  void getRelevantQuantTermVectors(std::map<Node, InstantiationList>& insts,
+                                   std::map<Node, std::vector<Node>>& sks,
+                                   bool getDebugInfo = false);
 
-  /** Gets the unsat core.
+ private:
+  /**
+   * Gets the unsat core.
    *
    * The unsat core is the intersection of the assertions in as and the free
    * assumptions of the underlying refutation proof of pfn. Note that pfn must
@@ -52,36 +103,19 @@ class UnsatCoreManager : protected EnvObj
    * @param isInternal Whether this call was made internally (not by the user).
    * This impacts whether the unsat core is post-processed.
    */
-  void getUnsatCore(std::shared_ptr<ProofNode> pfn,
-                    const Assertions& as,
-                    std::vector<Node>& core,
-                    bool isInternal);
-
-  /** Gets the relevant instaniations and skolemizations for the refutation.
-   *
-   * The relevant instantiations are all the conclusions of proof nodes of type
-   * INSTANTIATE that occur in pfn.
-   *
-   * This method populates the insts map from quantified formulas occurring as
-   * premises of INSTANTIATE proof nodes to its instantiations, which are a
-   * matrix with each row corresponding to the terms with which the respective
-   * quantified formula is instiated.
-   *
-   * Similiarly, for SKOLEMIZE, it populates the mapping sks will all
-   * skolemization steps in the proof.
-   */
-  void getRelevantQuantTermVectors(std::shared_ptr<ProofNode> pfn,
-                                   std::map<Node, InstantiationList>& insts,
-                                   std::map<Node, std::vector<Node>>& sks,
-                                   bool getDebugInfo = false);
-
- private:
+  void getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
+                            std::vector<Node>& core,
+                            bool isInternal);
   /**
    * Reduce an unsatisfiable core to make it minimal.
    */
   std::vector<Node> reduceUnsatCore(const Assertions& as,
                                     const std::vector<Node>& core);
-}; /* class UnsatCoreManager */
+  /** Reference to the SMT solver */
+  SmtSolver& d_slv;
+  /** Reference to the proof manager */
+  PfManager& d_pfm;
+};
 
 }  // namespace smt
 }  // namespace cvc5::internal
