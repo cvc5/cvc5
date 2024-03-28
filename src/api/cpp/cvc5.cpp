@@ -3607,7 +3607,7 @@ bool Term::isSkolem() const
   CVC5_API_TRY_CATCH_END;
 }
 
-SkolemFunId Term::getSkolemId() const
+SkolemId Term::getSkolemId() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -3629,7 +3629,7 @@ std::vector<Term> Term::getSkolemIndices() const
       << "Term to be a skolem when calling getSkolemIndices";
   //////// all checks before this line
   internal::Node cacheVal;
-  SkolemFunId id;
+  SkolemId id;
   skm->isSkolemFunction(*d_node, id, cacheVal);
   std::vector<Term> args;
   if (!cacheVal.isNull())
