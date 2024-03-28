@@ -30,11 +30,11 @@ class TestApiSkolemFunId : public ::testing::Test
 
 TEST_F(TestApiSkolemFunId, proofRuleToString)
 {
-  for (int32_t i = static_cast<int32_t>(SkolemFunId::INTERNAL);
-       i <= static_cast<int32_t>(SkolemFunId::NONE);
+  for (int32_t i = static_cast<int32_t>(SkolemId::INTERNAL);
+       i <= static_cast<int32_t>(SkolemId::NONE);
        ++i)
   {
-    auto rulestr = std::to_string(static_cast<SkolemFunId>(i));
+    auto rulestr = std::to_string(static_cast<SkolemId>(i));
     // If this assertion fails, the switch in enum_to_string.cpp is missing
     // id i.
     ASSERT_NE(rulestr, "?");
