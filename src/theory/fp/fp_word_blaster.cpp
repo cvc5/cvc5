@@ -940,8 +940,7 @@ Node FpWordBlaster::wordBlast(TNode node)
         {
           /* ---- FloatingPoint operators --------------------------- */
           Assert(kind != Kind::CONST_FLOATINGPOINT);
-          Assert(kind != Kind::VARIABLE);
-          Assert(kind != Kind::BOUND_VARIABLE && kind != Kind::SKOLEM);
+          Assert(!cur.isVar());
 
           switch (kind)
           {

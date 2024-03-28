@@ -784,7 +784,7 @@ Node SortInference::simplifyNode(
       if( it!=var_bound.end() ){
         ret = it->second;
       }
-      else if (n.getKind() == Kind::VARIABLE || n.getKind() == Kind::SKOLEM)
+      else if (n.isVar() && n.getKind() != Kind::BOUND_VARIABLE)
       {
         if( d_symbol_map.find( n )==d_symbol_map.end() ){
           TypeNode tn = getOrCreateTypeForId( d_op_return_types[n], n.getType() );

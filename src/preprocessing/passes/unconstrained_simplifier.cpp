@@ -100,8 +100,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
     if (current.getNumChildren() == 0)
     {
-      if (current.getKind() == Kind::VARIABLE
-          || current.getKind() == Kind::SKOLEM)
+      if (current.isVar())
       {
         d_unconstrained.insert(current);
       }
