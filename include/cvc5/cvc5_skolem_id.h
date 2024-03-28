@@ -73,7 +73,7 @@ namespace cvc5 {
  * \internal
  * 
  */
-enum ENUM(SkolemFunId) : uint32_t
+enum ENUM(SkolemId) : uint32_t
 {
   /**
    * The identifier of the skolem is not exported. These skolems should not
@@ -657,30 +657,34 @@ enum ENUM(SkolemFunId) : uint32_t
   //================================================= Unknown rule
   /** Indicates this is not a skolem. */
   EVALUE(NONE),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 // clang-format on
 
 #ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
-typedef enum ENUM(SkolemFunId) ENUM(SkolemFunId);
+typedef enum ENUM(SkolemId) ENUM(SkolemId);
 #endif
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
 
 /**
- * Get a string representation of a Cvc5SkolemFunId.
+ * Get a string representation of a Cvc5SkolemId.
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_skolem_id_to_string(Cvc5SkolemFunId kind);
+const char* cvc5_skolem_id_to_string(Cvc5SkolemId kind);
 
 /**
- * Hash function for Cvc5SkolemFunId.
+ * Hash function for Cvc5SkolemId.
  * @param rule The proof rule.
  * @return The hash value.
  */
-size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
+size_t cvc5_skolem_id_hash(Cvc5SkolemId rule);
 
 #else
 
@@ -691,29 +695,29 @@ size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
  * @param id The skolem id to write to the stream
  * @return The stream
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SkolemFunId id);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SkolemId id);
 }  // namespace cvc5
 
 namespace std {
 /**
- * Hash function for SkolemFunIds.
+ * Hash function for SkolemIds.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::SkolemFunId>
+struct CVC5_EXPORT hash<cvc5::SkolemId>
 {
   /**
-   * Hashes a SkolemFunId to a size_t.
+   * Hashes a SkolemId to a size_t.
    * @param id The skolem id.
    * @return The hash value.
    */
-  size_t operator()(cvc5::SkolemFunId id) const;
+  size_t operator()(cvc5::SkolemId id) const;
 };
 /**
  * Get the string representation of a given skolem identifier.
  * @param id The skolem identifier
  * @return The string representation.
  */
-std::string to_string(cvc5::SkolemFunId id);
+std::string to_string(cvc5::SkolemId id);
 
 }  // namespace std
 

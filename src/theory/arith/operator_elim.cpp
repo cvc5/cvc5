@@ -255,7 +255,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         checkNonLinearLogic(node);
-        Node divByZeroNum = getArithSkolemApp(num, SkolemFunId::DIV_BY_ZERO);
+        Node divByZeroNum = getArithSkolemApp(num, SkolemId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(Kind::EQUAL, den, mkZero(den.getType()));
         ret = nm->mkNode(Kind::ITE, denEq0, divByZeroNum, ret);
       }
@@ -273,7 +273,7 @@ Node OperatorElim::eliminateOperators(Node node,
       {
         checkNonLinearLogic(node);
         Node intDivByZeroNum =
-            getArithSkolemApp(num, SkolemFunId::INT_DIV_BY_ZERO);
+            getArithSkolemApp(num, SkolemId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(Kind::EQUAL, den, nm->mkConstInt(Rational(0)));
         ret = nm->mkNode(Kind::ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -290,7 +290,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         checkNonLinearLogic(node);
-        Node modZeroNum = getArithSkolemApp(num, SkolemFunId::MOD_BY_ZERO);
+        Node modZeroNum = getArithSkolemApp(num, SkolemId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(Kind::EQUAL, den, nm->mkConstInt(Rational(0)));
         ret = nm->mkNode(Kind::ITE, denEq0, modZeroNum, ret);
       }
@@ -332,7 +332,7 @@ Node OperatorElim::eliminateOperators(Node node,
           node.getOperator(), "x", nm->realType());
       Node lam = nm->mkNode(
           Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x));
-      Node fun = sm->mkSkolemFunction(SkolemFunId::TRANSCENDENTAL_PURIFY, lam);
+      Node fun = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY, lam);
       // Make (@TRANSCENDENTAL_PURIFY t), where t is node[0]
       Node var = nm->mkNode(Kind::APPLY_UF, fun, node[0]);
       Node lem;
@@ -442,9 +442,9 @@ Node OperatorElim::eliminateOperators(Node node,
 
 Node OperatorElim::getAxiomFor(Node n) { return Node::null(); }
 
-Node OperatorElim::getArithSkolem(SkolemFunId id)
+Node OperatorElim::getArithSkolem(SkolemId id)
 {
-  std::map<SkolemFunId, Node>::iterator it = d_arithSkolem.find(id);
+  std::map<SkolemId, Node>::iterator it = d_arithSkolem.find(id);
   if (it == d_arithSkolem.end())
   {
     NodeManager* nm = nodeManager();
@@ -459,7 +459,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
   return it->second;
 }
 
-Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
+Node OperatorElim::getArithSkolemApp(Node n, SkolemId id)
 {
   Node skolem = getArithSkolem(id);
   NodeManager* nm = nodeManager();
@@ -487,11 +487,11 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
   return skolem;
 }
 
-bool OperatorElim::usePartialFunction(SkolemFunId id) const
+bool OperatorElim::usePartialFunction(SkolemId id) const
 {
   // always use partial function for sqrt
   return !options().arith.arithNoPartialFun
-         || id == SkolemFunId::TRANSCENDENTAL_PURIFY;
+         || id == SkolemId::TRANSCENDENTAL_PURIFY;
 }
 
 SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)

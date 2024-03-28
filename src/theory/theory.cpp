@@ -157,7 +157,7 @@ TheoryId Theory::theoryOf(TNode node,
           // Purify variables are considered theory literals and sent to the
           // UF theory to ensure theory combination is run properly on functions
           // having Boolean arguments.
-          if (sm->getId(node) == SkolemFunId::PURIFY)
+          if (sm->getId(node) == SkolemId::PURIFY)
           {
             tid = THEORY_UF;
           }
@@ -188,7 +188,7 @@ TheoryId Theory::theoryOf(TNode node,
         else
         {
           SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-          if (sm->getId(node) == SkolemFunId::PURIFY)
+          if (sm->getId(node) == SkolemId::PURIFY)
           {
             // purify vars also go to UF
             tid = THEORY_UF;

@@ -185,6 +185,7 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
   ss << cvc5::modes::ProofFormat::LFSC
      << std::to_string(cvc5::modes::ProofFormat::LFSC);
   ss << cvc5::ProofRule::ASSUME;
+  ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();

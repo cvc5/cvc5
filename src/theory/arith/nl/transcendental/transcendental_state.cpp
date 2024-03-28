@@ -481,7 +481,7 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   }
   else
   {
-    y = sm->mkSkolemFunction(SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, n);
+    y = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY_ARG, n);
   }
   Node new_n = nm->mkNode(k, y);
   d_trPurify[n] = new_n;
