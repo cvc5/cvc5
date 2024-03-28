@@ -82,7 +82,7 @@ enum ENUM(SkolemId) : uint32_t
   EVALUE(INTERNAL),
   /** 
    * The purification skolem for a term. This is a variable that is semantically
-   * equivalent to the argument term t.
+   * equivalent to the indexed term t.
    * 
    * - Number of skolem indices: ``1``
    *   - ``1:`` The term t that this skolem purifies.
@@ -155,8 +155,8 @@ enum ENUM(SkolemId) : uint32_t
    *   - ``2:`` A term that represents the sort of field we are extracting.
    *   - ``3:`` An integer n such that this shared selector returns the n^th
    *            subfield term of the given sort.
-   * - Type: A selector sort whose domain is given by first argument,
-   *         and whose codomain is the given by the second argument.
+   * - Type: A selector sort whose domain is given by first index,
+   *         and whose codomain is the given by the second index.
    */
   EVALUE(SHARED_SELECTOR),
   /**
@@ -164,9 +164,8 @@ enum ENUM(SkolemId) : uint32_t
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The quantified formula Q.
-   *   - ``2:`` An integer n, where this skolem corresponds to the skolemization
-   *            of the n^th variable in the variable list of Q.
-   * - Type: The type of the n^th variable of Q.
+   *   - ``2:`` The variable in the binder of Q to skolemize.
+   * - Type: The type of the second index.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
   /** 
@@ -273,8 +272,8 @@ enum ENUM(SkolemId) : uint32_t
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
-   * An index containing a non-digit in a string, used when ``(str.to_int a)``
-   * is equal to -1. This is an integer that returns an index for which the
+   * A position containing a non-digit in a string, used when ``(str.to_int a)``
+   * is equal to -1. This is an integer that returns a position for which the
    * argument string is not a digit if one exists, or is unconstrained otherwise.
    *
    * - Number of skolem indices: ``1``
