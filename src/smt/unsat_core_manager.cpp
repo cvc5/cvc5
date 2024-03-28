@@ -34,22 +34,25 @@
 namespace cvc5::internal {
 namespace smt {
 
-UnsatCoreManager::UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm) : EnvObj(env), d_slv(slv), d_pfm(pfm) {}
+UnsatCoreManager::UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm)
+    : EnvObj(env), d_slv(slv), d_pfm(pfm)
+{
+}
 
 std::vector<Node> UnsatCoreManager::getUnsatCore(bool isInternal)
 {
   prop::PropEngine* pe = d_slv.getPropEngine();
-  Assert (pe!=nullptr);
+  Assert(pe != nullptr);
   // first get the unsat core from the prop engine
   std::vector<Node> pcore;
   pe->getUnsatCore(pcore);
   // convert to input
   return convertPreprocessedToInput(pcore, isInternal);
 }
-  
+
 void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
-                                    std::vector<Node>& core,
-                                    bool isInternal)
+                                            std::vector<Node>& core,
+                                            bool isInternal)
 {
   const Assertions& as = d_slv.getAssertions();
   Trace("unsat-core") << "UCManager::getUnsatCore: final proof: " << *pfn.get()
@@ -241,7 +244,6 @@ std::vector<Node> UnsatCoreManager::reduceUnsatCore(
   return newUcAssertions;
 }
 
-
 std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
     const std::vector<Node>& ppa, bool isInternal)
 {
@@ -253,8 +255,7 @@ std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
   Assert(pepf != nullptr);
   std::shared_ptr<ProofNode> pfn =
       d_pfm.connectProofToAssertions(pepf, d_slv, ProofScopeMode::UNIFIED);
-  getUnsatCore(
-      pfn, core, isInternal);
+  getUnsatCore(pfn, core, isInternal);
   return core;
 }
 

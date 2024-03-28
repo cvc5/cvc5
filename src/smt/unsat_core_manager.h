@@ -79,7 +79,7 @@ class UnsatCoreManager : protected EnvObj
                                    bool getDebugInfo = false);
 
  private:
-  /** 
+  /**
    * Gets the unsat core.
    *
    * The unsat core is the intersection of the assertions in as and the free
@@ -93,8 +93,8 @@ class UnsatCoreManager : protected EnvObj
    * This impacts whether the unsat core is post-processed.
    */
   void getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
-                    std::vector<Node>& core,
-                    bool isInternal);
+                            std::vector<Node>& core,
+                            bool isInternal);
   /**
    * Reduce an unsatisfiable core to make it minimal.
    */
