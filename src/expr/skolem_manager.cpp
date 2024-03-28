@@ -156,14 +156,14 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
       Rational r = cval.getConst<Rational>();
       Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
       ss << "@"
-         << static_cast<InternalSkolemFunId>(r.getNumerator().toUnsignedInt());
+         << static_cast<InternalSkolemId>(r.getNumerator().toUnsignedInt());
     }
     else
     {
       ss << "@" << id;
     }
     Node k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
-    if (id == SkolemFunId::PURIFY)
+    if (id == SkolemId::PURIFY)
     {
       Assert(cacheVal.getType() == tn);
       // set unpurified form attribute for k
