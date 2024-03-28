@@ -47,11 +47,11 @@ std::vector<Node> UnsatCoreManager::getUnsatCore(bool isInternal)
   return convertPreprocessedToInput(pcore, isInternal);
 }
   
-void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
-                                    const Assertions& as,
+void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
                                     std::vector<Node>& core,
                                     bool isInternal)
 {
+  const Assertions& as = d_slv.getAssertions();
   Trace("unsat-core") << "UCManager::getUnsatCore: final proof: " << *pfn.get()
                       << "\n";
   Assert(pfn->getRule() == ProofRule::SCOPE);
@@ -254,7 +254,7 @@ std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
   std::shared_ptr<ProofNode> pfn =
       d_pfm.connectProofToAssertions(pepf, d_slv, ProofScopeMode::UNIFIED);
   getUnsatCore(
-      pfn, d_slv.getAssertions(), core, isInternal);
+      pfn, core, isInternal);
   return core;
 }
 

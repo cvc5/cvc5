@@ -41,7 +41,6 @@ class UnsatCoreManager : protected EnvObj
  public:
   UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm);
   ~UnsatCoreManager(){};
-  
   /**
    * Convert preprocessed assertions to the input formulas that imply them. In
    * detail, this converts a set of preprocessed assertions to a set of input
@@ -80,7 +79,8 @@ class UnsatCoreManager : protected EnvObj
                                    bool getDebugInfo = false);
 
  private:
-  /** Gets the unsat core.
+  /** 
+   * Gets the unsat core.
    *
    * The unsat core is the intersection of the assertions in as and the free
    * assumptions of the underlying refutation proof of pfn. Note that pfn must
@@ -92,8 +92,7 @@ class UnsatCoreManager : protected EnvObj
    * @param isInternal Whether this call was made internally (not by the user).
    * This impacts whether the unsat core is post-processed.
    */
-  void getUnsatCore(std::shared_ptr<ProofNode> pfn,
-                    const Assertions& as,
+  void getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
                     std::vector<Node>& core,
                     bool isInternal);
   /**
