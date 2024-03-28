@@ -17,9 +17,6 @@
 #ifndef CVC4__PROOF__EXPR__SUBTYPE_ELIM_NODE_CONVERTER_H
 #define CVC4__PROOF__EXPR__SUBTYPE_ELIM_NODE_CONVERTER_H
 
-#include <iostream>
-#include <map>
-
 #include "expr/node.h"
 #include "expr/node_converter.h"
 #include "expr/type_node.h"

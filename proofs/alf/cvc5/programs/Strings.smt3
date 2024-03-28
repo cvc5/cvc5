@@ -195,7 +195,7 @@
 ; is equivalent to
 ;   (and (= x (str.++ t1 ... tn)) M)
 ; We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
-; application of the unfolding skolem program @k.RE_UNFOLD_POS_COMPONENT.
+; application of the unfolding skolem program @re_unfold_pos_component.
 (program re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
   (String RegLan RegLan Int) (@Pair String Bool)
   (
@@ -212,7 +212,7 @@
               ; a constant regular expression, append s
               ((str.to_re s) (@pair (str.++ s c) M))
               ; otherwise, make the skolem and append with constraint
-              (r             (let ((k (skolem (@k.RE_UNFOLD_POS_COMPONENT t ro i))))
+              (r             (let ((k (skolem (@re_unfold_pos_component t ro i))))
                             (@pair (str.++ k c) (and (str.in_re k r) M))))
             )
           )
