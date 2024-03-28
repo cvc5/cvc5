@@ -1487,7 +1487,8 @@ bool AletheProofPostprocessCallback::update(Node res,
         Assert(!sk.isNull());
         Assert(d_anc.d_skolems.find(sk) != d_anc.d_skolems.end())
             << sk << " " << d_anc.d_skolems;
-        skoSubstitutions.push_back(quant[0][i].eqNode(d_anc.d_skolems[sk]));
+        skoSubstitutions.push_back(quant[0][i].eqNode(
+            options().proof.proofDefineSkolems ? sk : d_anc.d_skolems[sk]));
       }
       Assert(!d_anc.convert(quant.eqNode(skolemized)).isNull());
       Node conclusion = nm->mkNode(
