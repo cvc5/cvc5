@@ -76,8 +76,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
     NodeManager* nm = NodeManager::currentNM();
     Node exists =
         nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
-    k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
-                         {exists, t[0][0]});
+    k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE, {exists, t[0][0]});
     // store the proof generator if it exists
     if (pg != nullptr)
     {
