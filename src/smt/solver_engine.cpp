@@ -1634,8 +1634,6 @@ void SolverEngine::getRelevantQuantTermVectors(
   Assert(d_state->getMode() == SmtMode::UNSAT);
   Assert(d_env->getOptions().smt.produceProofs
          && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
-  // note that we don't have to connect the SAT proof to the input assertions,
-  // and preprocessing proofs don't impact what instantiations are used
   d_ucManager->getRelevantQuantTermVectors(insts, sks, getDebugInfo);
 }
 
