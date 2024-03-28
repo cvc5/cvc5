@@ -1526,7 +1526,8 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT response.");
   }
-  return d_ucManager->getUnsatCore(isInternal);
+  std::vector<Node> core = d_ucManager->getUnsatCore(isInternal);
+  return UnsatCore(core);
 }
 
 void SolverEngine::checkUnsatCore()
