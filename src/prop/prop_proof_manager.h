@@ -69,9 +69,12 @@ class PropPfManager : protected EnvObj
    * @param input whether the node is from the input
    * @param pg a proof generator for node
    */
-  void convertAndAssert(
-    theory::InferenceId id,
-      TNode node, bool negated, bool removable, bool input, ProofGenerator* pg);
+  void convertAndAssert(theory::InferenceId id,
+                        TNode node,
+                        bool negated,
+                        bool removable,
+                        bool input,
+                        ProofGenerator* pg);
   /** Saves assertion for later checking whether refutation proof is closed.
    *
    * The assertions registered via this interface are preprocessed assertions

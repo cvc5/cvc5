@@ -172,7 +172,9 @@ void PropEngine::assertInputFormulas(
   d_stats.d_numInputAtoms += (natomsPost - natomsPre);
 }
 
-void PropEngine::assertLemma(theory::InferenceId id, TrustNode tlemma, theory::LemmaProperty p)
+void PropEngine::assertLemma(theory::InferenceId id,
+                             TrustNode tlemma,
+                             theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
   bool local = isLemmaPropertyLocal(p);
@@ -213,7 +215,9 @@ void PropEngine::assertLemma(theory::InferenceId id, TrustNode tlemma, theory::L
   assertLemmasInternal(id, tplemma, ppLemmas, removable, inprocess, local);
 }
 
-void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id, TrustNode trn, bool removable)
+void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
+                                            TrustNode trn,
+                                            bool removable)
 {
   Node node = trn.getNode();
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
@@ -240,8 +244,12 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id, TrustNode tr
   assertInternal(id, node, negated, removable, false, trn.getGenerator());
 }
 
-void PropEngine::assertInternal(theory::InferenceId id, 
-    TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
+void PropEngine::assertInternal(theory::InferenceId id,
+                                TNode node,
+                                bool negated,
+                                bool removable,
+                                bool input,
+                                ProofGenerator* pg)
 {
   // Assert as (possibly) removable
   if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
@@ -302,7 +310,8 @@ void PropEngine::assertLemmasInternal(
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    assertTrustedLemmaInternal(theory::InferenceId::THEORY_PP_SKOLEM_LEM, lem.d_lemma, removable);
+    assertTrustedLemmaInternal(
+        theory::InferenceId::THEORY_PP_SKOLEM_LEM, lem.d_lemma, removable);
   }
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
@@ -563,7 +572,12 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   TrustNode trnNull;
-  assertLemmasInternal(theory::InferenceId::THEORY_PP_SKOLEM_LEM, trnNull, newLemmas, false, false, false);
+  assertLemmasInternal(theory::InferenceId::THEORY_PP_SKOLEM_LEM,
+                       trnNull,
+                       newLemmas,
+                       false,
+                       false,
+                       false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 

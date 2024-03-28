@@ -29,11 +29,11 @@
 #include "prop/learned_db.h"
 #include "prop/skolem_def_manager.h"
 #include "smt/env_obj.h"
+#include "theory/inference_id.h"
 #include "theory/output_channel.h"
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
 #include "util/statistics_stats.h"
-#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 
@@ -134,7 +134,9 @@ class PropEngine : protected EnvObj
    * @param trn the trust node storing the formula to assert
    * @param p the properties of the lemma
    */
-  void assertLemma(theory::InferenceId id, TrustNode tlemma, theory::LemmaProperty p);
+  void assertLemma(theory::InferenceId id,
+                   TrustNode tlemma,
+                   theory::LemmaProperty p);
 
   /**
    * This is called when a theory propagation was explained with texp.
@@ -377,8 +379,9 @@ class PropEngine : protected EnvObj
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic
    */
-  void assertTrustedLemmaInternal(theory::InferenceId id, 
-                      TrustNode trn, bool removable);
+  void assertTrustedLemmaInternal(theory::InferenceId id,
+                                  TrustNode trn,
+                                  bool removable);
   /**
    * Assert node as a formula to the CNF stream
    * @param id the inference identifier
@@ -389,7 +392,7 @@ class PropEngine : protected EnvObj
    * @param pg Pointer to a proof generator that can provide a proof of node
    * (or its negation if negated is true).
    */
-  void assertInternal(theory::InferenceId id, 
+  void assertInternal(theory::InferenceId id,
                       TNode node,
                       bool negated,
                       bool removable,
@@ -401,7 +404,7 @@ class PropEngine : protected EnvObj
    * obtained from preprocessing it, and removable is whether the lemma is
    * removable.
    */
-  void assertLemmasInternal(theory::InferenceId id, 
+  void assertLemmasInternal(theory::InferenceId id,
                             TrustNode trn,
                             const std::vector<theory::SkolemLemma>& ppLemmas,
                             bool removable,

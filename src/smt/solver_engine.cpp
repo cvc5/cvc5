@@ -1651,7 +1651,8 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
   std::vector<Node> lemmas = pe->getUnsatCoreLemmas();
   if (options().proof.proofAnnotate)
   {
-    std::vector<std::shared_ptr<ProofNode>> ps = pe->getProofLeaves(modes::ProofComponent::THEORY_LEMMAS);
+    std::vector<std::shared_ptr<ProofNode>> ps =
+        pe->getProofLeaves(modes::ProofComponent::THEORY_LEMMAS);
     std::map<Node, std::shared_ptr<ProofNode>> proven;
     for (std::shared_ptr<ProofNode>& p : ps)
     {
@@ -1661,7 +1662,7 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
     for (const Node& lem : lemmas)
     {
       itp = proven.find(lem);
-      if (itp!=proven.end())
+      if (itp != proven.end())
       {
         Trace("ajr-temp") << "; from " << itp->second->getRule() << std::endl;
       }
@@ -1669,7 +1670,7 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
       {
         Trace("ajr-temp") << "; no source" << std::endl;
       }
-      Trace("ajr-temp")  << "(assert " << lem << ")" << std::endl;
+      Trace("ajr-temp") << "(assert " << lem << ")" << std::endl;
     }
   }
   return lemmas;
