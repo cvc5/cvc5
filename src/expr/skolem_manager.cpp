@@ -446,8 +446,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::BAGS_FOLD_CARD:
     case SkolemFunId::SETS_FOLD_CARD:
     case SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
-    case SkolemFunId::BAGS_MAP_INDEX:
-    case SkolemFunId::BAGS_CARD_N: return nm->integerType();
+    case SkolemFunId::BAGS_MAP_INDEX: return nm->integerType();
     // string skolems
     case SkolemFunId::RE_FIRST_MATCH_PRE:
     case SkolemFunId::RE_FIRST_MATCH:
@@ -523,21 +522,22 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     }
     case SkolemFunId::BAGS_FOLD_UNION_DISJOINT:
     case SkolemFunId::SETS_FOLD_UNION:
-    case SkolemFunId::BAGS_CARD_UNION_DISJOINT:
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT:
     {
       Assert(cacheVals.size() > 0);
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, cacheVals[0].getType());
     }
+    case SkolemFunId::BAGS_DISTINCT_ELEMENTS:
     case SkolemFunId::BAGS_FOLD_ELEMENTS:
     case SkolemFunId::SETS_FOLD_ELEMENTS:
-    case SkolemFunId::BAGS_CARD_ELEMENTS:
     {
       Assert(cacheVals.size() > 0);
       TypeNode itype = nm->integerType();
-      TypeNode stype = cacheVals[0].getType();
-      Assert(stype.getNumChildren() == 1);
-      return nm->mkFunctionType(itype, stype[0]);
+      TypeNode collectionType = cacheVals[0].getType();
+      Assert(collectionType.getNumChildren() == 1);
+      TypeNode elementType = collectionType[0];
+      return nm->mkFunctionType(itype, elementType);
     }
     case SkolemFunId::BAGS_FOLD_COMBINE:
     case SkolemFunId::SETS_FOLD_COMBINE:
@@ -545,13 +545,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       Assert(cacheVals.size() == 3);
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, cacheVals[1].getType());
-    }
-    case SkolemFunId::BAGS_DISTINCT_ELEMENTS:
-    {
-      TypeNode itype = nm->integerType();
-      Assert(cacheVals[0].getType().isBag());
-      TypeNode retType = cacheVals[0].getType().getBagElementType();
-      return nm->mkFunctionType(itype, retType);
     }
     case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
     {
