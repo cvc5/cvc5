@@ -197,21 +197,20 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
 
 bool SkolemManager::isSkolemFunction(TNode k) const
 {
-  std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  return it != d_skolemFunMap.end();
+  return k.getKind() == Kind::SKOLEM;
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
                                      SkolemId& id,
                                      Node& cacheVal) const
 {
-  std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  if (it == d_skolemFunMap.end())
+  if (k.getKind() != Kind::SKOLEM)
   {
     return false;
   }
+  std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
+      d_skolemFunMap.find(k);
+  Assert(it != d_skolemFunMap.end());
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;
@@ -250,7 +249,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return mkSkolemNode(Kind::SKOLEM, prefix, type, flags);
+  return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const

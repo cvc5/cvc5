@@ -79,7 +79,7 @@ Node AlfNodeConverter::postConvert(Node n)
     return n;
   }
   TypeNode tn = n.getType();
-  if (k == Kind::SKOLEM)
+  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
