@@ -1633,14 +1633,9 @@ void SolverEngine::getRelevantQuantTermVectors(
   Assert(d_state->getMode() == SmtMode::UNSAT);
   Assert(d_env->getOptions().smt.produceProofs
          && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
-  // generate with new proofs
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pfn = pe->getProof();
   // note that we don't have to connect the SAT proof to the input assertions,
   // and preprocessing proofs don't impact what instantiations are used
-  d_ucManager->getRelevantQuantTermVectors(pfn, insts, sks, getDebugInfo);
+  d_ucManager->getRelevantQuantTermVectors(insts, sks, getDebugInfo);
 }
 
 std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(

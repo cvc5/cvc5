@@ -112,11 +112,14 @@ void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
 }
 
 void UnsatCoreManager::getRelevantQuantTermVectors(
-    std::shared_ptr<ProofNode> pfn,
     std::map<Node, InstantiationList>& insts,
     std::map<Node, std::vector<Node>>& sks,
     bool getDebugInfo)
 {
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  std::shared_ptr<ProofNode> pfn = pe->getProof();
+  Assert (pfn!=nullptr);
   NodeManager* nm = nodeManager();
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;

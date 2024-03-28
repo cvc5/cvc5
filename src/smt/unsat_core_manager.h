@@ -70,7 +70,7 @@ class UnsatCoreManager : protected EnvObj
   /** Gets the relevant instaniations and skolemizations for the refutation.
    *
    * The relevant instantiations are all the conclusions of proof nodes of type
-   * INSTANTIATE that occur in pfn.
+   * INSTANTIATE that occur in the SAT solver's underlying proof.
    *
    * This method populates the insts map from quantified formulas occurring as
    * premises of INSTANTIATE proof nodes to its instantiations, which are a
@@ -80,8 +80,7 @@ class UnsatCoreManager : protected EnvObj
    * Similiarly, for SKOLEMIZE, it populates the mapping sks will all
    * skolemization steps in the proof.
    */
-  void getRelevantQuantTermVectors(std::shared_ptr<ProofNode> pfn,
-                                   std::map<Node, InstantiationList>& insts,
+  void getRelevantQuantTermVectors(std::map<Node, InstantiationList>& insts,
                                    std::map<Node, std::vector<Node>>& sks,
                                    bool getDebugInfo = false);
 
