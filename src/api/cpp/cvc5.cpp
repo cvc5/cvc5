@@ -126,6 +126,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::DISTINCT, internal::Kind::DISTINCT),
         KIND_ENUM(Kind::CONSTANT, internal::Kind::VARIABLE),
         KIND_ENUM(Kind::VARIABLE, internal::Kind::BOUND_VARIABLE),
+        KIND_ENUM(Kind::SKOLEM, internal::Kind::SKOLEM),
         KIND_ENUM(Kind::SEXPR, internal::Kind::SEXPR),
         KIND_ENUM(Kind::LAMBDA, internal::Kind::LAMBDA),
         KIND_ENUM(Kind::WITNESS, internal::Kind::WITNESS),
