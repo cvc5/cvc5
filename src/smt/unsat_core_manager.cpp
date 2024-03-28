@@ -21,7 +21,9 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/proof.h"
 #include "proof/proof_node_algorithm.h"
+#include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/print_benchmark.h"
@@ -32,13 +34,27 @@
 namespace cvc5::internal {
 namespace smt {
 
-UnsatCoreManager::UnsatCoreManager(Env& env) : EnvObj(env) {}
-
-void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
-                                    const Assertions& as,
-                                    std::vector<Node>& core,
-                                    bool isInternal)
+UnsatCoreManager::UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm)
+    : EnvObj(env), d_slv(slv), d_pfm(pfm)
 {
+}
+
+std::vector<Node> UnsatCoreManager::getUnsatCore(bool isInternal)
+{
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  // first get the unsat core from the prop engine
+  std::vector<Node> pcore;
+  pe->getUnsatCore(pcore);
+  // convert to input
+  return convertPreprocessedToInput(pcore, isInternal);
+}
+
+void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
+                                            std::vector<Node>& core,
+                                            bool isInternal)
+{
+  const Assertions& as = d_slv.getAssertions();
   Trace("unsat-core") << "UCManager::getUnsatCore: final proof: " << *pfn.get()
                       << "\n";
   Assert(pfn->getRule() == ProofRule::SCOPE);
@@ -226,6 +242,21 @@ std::vector<Node> UnsatCoreManager::reduceUnsatCore(
     }
   }
   return newUcAssertions;
+}
+
+std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
+    const std::vector<Node>& ppa, bool isInternal)
+{
+  std::vector<Node> core;
+  CDProof cdp(d_env);
+  Node fnode = nodeManager()->mkConst(false);
+  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
+  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
+  Assert(pepf != nullptr);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfm.connectProofToAssertions(pepf, d_slv, ProofScopeMode::UNIFIED);
+  getUnsatCore(pfn, core, isInternal);
+  return core;
 }
 
 }  // namespace smt

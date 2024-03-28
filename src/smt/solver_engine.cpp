@@ -186,7 +186,8 @@ void SolverEngine::finishInit()
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     // start the unsat core manager
-    d_ucManager.reset(new UnsatCoreManager(*d_env.get()));
+    d_ucManager.reset(new UnsatCoreManager(
+        *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
   // enable proof support in the environment/rewriter
@@ -826,7 +827,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   {
     if (!ret.second.empty())
     {
-      core = convertPreprocessedToInput(ret.second, true);
+      core = d_ucManager->convertPreprocessedToInput(ret.second, true);
     }
   }
   else
@@ -1169,7 +1170,7 @@ Node SolverEngine::getValue(const Node& t) const
       // construct the skolem function
       SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
       Node a = skm->mkInternalSkolemFunction(
-          InternalSkolemId::ABSTRACT_VALUE, rtn, {resultNode});
+          InternalSkolemFunId::ABSTRACT_VALUE, rtn, {resultNode});
       // add to top-level substitutions if applicable
       theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
       if (!tsm.get().hasSubstitution(resultNode))
@@ -1372,22 +1373,6 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
   }
 }
 
-std::vector<Node> SolverEngine::convertPreprocessedToInput(
-    const std::vector<Node>& ppa, bool isInternal)
-{
-  std::vector<Node> core;
-  CDProof cdp(*d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
-  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
-  Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
-  d_ucManager->getUnsatCore(
-      pfn, d_smtSolver->getAssertions(), core, isInternal);
-  return core;
-}
-
 void SolverEngine::printProof(std::ostream& out,
                               std::shared_ptr<ProofNode> fp,
                               modes::ProofFormat proofFormat,
@@ -1541,16 +1526,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT response.");
   }
-  // generate with new proofs
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-
-  // make the proof corresponding to a dummy step (SAT_REFUTATION) of the
-  // unsat core computed by the prop engine
-  std::vector<Node> pcore;
-  pe->getUnsatCore(pcore);
-  std::vector<Node> core = convertPreprocessedToInput(pcore, isInternal);
-  return UnsatCore(core);
+  return d_ucManager->getUnsatCore(isInternal);
 }
 
 void SolverEngine::checkUnsatCore()
@@ -1648,7 +1624,32 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
   }
   PropEngine* pe = d_smtSolver->getPropEngine();
   Assert(pe != nullptr);
-  return pe->getUnsatCoreLemmas();
+  std::vector<Node> lemmas = pe->getUnsatCoreLemmas();
+  if (options().proof.proofAnnotate)
+  {
+    std::vector<std::shared_ptr<ProofNode>> ps =
+        pe->getProofLeaves(modes::ProofComponent::THEORY_LEMMAS);
+    std::map<Node, std::shared_ptr<ProofNode>> proven;
+    for (std::shared_ptr<ProofNode>& p : ps)
+    {
+      proven[p->getResult()] = p;
+    }
+    std::map<Node, std::shared_ptr<ProofNode>>::iterator itp;
+    for (const Node& lem : lemmas)
+    {
+      itp = proven.find(lem);
+      if (itp != proven.end())
+      {
+        Trace("ajr-temp") << "; from " << itp->second->getRule() << std::endl;
+      }
+      else
+      {
+        Trace("ajr-temp") << "; no source" << std::endl;
+      }
+      Trace("ajr-temp") << "(assert " << lem << ")" << std::endl;
+    }
+  }
+  return lemmas;
 }
 
 void SolverEngine::getRelevantQuantTermVectors(
