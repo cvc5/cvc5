@@ -22,6 +22,8 @@
 #include "expr/node.h"
 #include "proof/proof_node.h"
 #include "smt/env_obj.h"
+#include "smt/proof_manager.h"
+#include "smt/smt_solver.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 namespace cvc5::internal {
@@ -37,26 +39,28 @@ class Assertions;
 class UnsatCoreManager : protected EnvObj
 {
  public:
-  UnsatCoreManager(Env& env);
+  UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm);
   ~UnsatCoreManager(){};
-
-  /** Gets the unsat core.
+  
+  /**
+   * Convert preprocessed assertions to the input formulas that imply them. In
+   * detail, this converts a set of preprocessed assertions to a set of input
+   * assertions based on the proof of preprocessing. It is used for unsat cores
+   * and timeout cores.
    *
-   * The unsat core is the intersection of the assertions in as and the free
-   * assumptions of the underlying refutation proof of pfn. Note that pfn must
-   * be a "final proof", which means that it's a proof of false under a scope
-   * containing all assertions.
-   *
-   * The unsat core is stored in the core argument.
-   *
-   * @param isInternal Whether this call was made internally (not by the user).
-   * This impacts whether the unsat core is post-processed.
+   * @param ppa The preprocessed assertions to convert
+   * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
+   * is false, we print debug information.
    */
-  void getUnsatCore(std::shared_ptr<ProofNode> pfn,
-                    const Assertions& as,
-                    std::vector<Node>& core,
-                    bool isInternal);
-
+  std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
+                                               bool isInternal);
+  /**
+   * Calls the above method on the unsat core of the underyling prop engine.
+   * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
+   * is false, we print debug information.
+   * @return the unsat core
+   */
+  std::vector<Node> getUnsatCore(bool isInternal);
   /** Gets the relevant instaniations and skolemizations for the refutation.
    *
    * The relevant instantiations are all the conclusions of proof nodes of type
@@ -76,12 +80,32 @@ class UnsatCoreManager : protected EnvObj
                                    bool getDebugInfo = false);
 
  private:
+  /** Gets the unsat core.
+   *
+   * The unsat core is the intersection of the assertions in as and the free
+   * assumptions of the underlying refutation proof of pfn. Note that pfn must
+   * be a "final proof", which means that it's a proof of false under a scope
+   * containing all assertions.
+   *
+   * The unsat core is stored in the core argument.
+   *
+   * @param isInternal Whether this call was made internally (not by the user).
+   * This impacts whether the unsat core is post-processed.
+   */
+  void getUnsatCore(std::shared_ptr<ProofNode> pfn,
+                    const Assertions& as,
+                    std::vector<Node>& core,
+                    bool isInternal);
   /**
    * Reduce an unsatisfiable core to make it minimal.
    */
   std::vector<Node> reduceUnsatCore(const Assertions& as,
                                     const std::vector<Node>& core);
-}; /* class UnsatCoreManager */
+  /** Reference to the SMT solver */
+  SmtSolver& d_slv;
+  /** Reference to the proof manager */
+  PfManager& d_pfm;
+};
 
 }  // namespace smt
 }  // namespace cvc5::internal
