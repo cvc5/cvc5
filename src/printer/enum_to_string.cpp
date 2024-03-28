@@ -82,6 +82,7 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
     case cvc5::SkolemId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
     case cvc5::SkolemId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
+    case cvc5::SkolemId::NONE: return "NONE";
     default: return "?";
   }
 }
