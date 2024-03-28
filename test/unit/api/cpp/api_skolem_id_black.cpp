@@ -34,7 +34,7 @@ TEST_F(TestApiSkolemFunId, proofRuleToString)
        i <= static_cast<int32_t>(SkolemFunId::NONE);
        ++i)
   {
-    auto rulestr = toString(static_cast<SkolemFunId>(i));
+    auto rulestr = std::to_string(static_cast<SkolemFunId>(i));
     // If this assertion fails, the switch in enum_to_string.cpp is missing
     // id i.
     ASSERT_NE(rulestr, "?");
