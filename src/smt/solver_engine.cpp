@@ -1622,6 +1622,8 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
         "Cannot get lemmas used to derive unsat unless immediately preceded by "
         "UNSAT response.");
   }
+  return d_ucManager->getUnsatCoreLemmas(false);
+  /*
   PropEngine* pe = d_smtSolver->getPropEngine();
   Assert(pe != nullptr);
   std::vector<Node> lemmas = pe->getUnsatCoreLemmas();
@@ -1650,6 +1652,7 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
     }
   }
   return lemmas;
+  */
 }
 
 void SolverEngine::getRelevantQuantTermVectors(
