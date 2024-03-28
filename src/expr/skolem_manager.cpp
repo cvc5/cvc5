@@ -143,40 +143,26 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
-    Node k;
-    // For now, INPUT_VARIABLE is a special case that constructs a variable
-    // of the original name.
-    if (id == SkolemFunId::INPUT_VARIABLE)
+    // We use @ as a prefix, which follows the SMT-LIB standard indicating
+    // internal symbols starting with @ or . are reserved for internal use.
+    //
+    std::stringstream ss;
+    // Print internal skolems by the internal identifier, otherwise all would
+    // be @INTERNAL_*.
+    if (id == SkolemFunId::INTERNAL)
     {
-      k = mkSkolemNode(Kind::VARIABLE,
-                       cacheVal[0].getConst<String>().toString(),
-                       tn,
-                       SKOLEM_EXACT_NAME);
+      Node cval = cacheVal.getKind() == Kind::SEXPR ? cacheVal[0] : cacheVal;
+      Assert(cval.getKind() == Kind::CONST_INTEGER);
+      Rational r = cval.getConst<Rational>();
+      Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
+      ss << "@"
+         << static_cast<InternalSkolemFunId>(r.getNumerator().toUnsignedInt());
     }
     else
     {
-      // We use @ as a prefix, which follows the SMT-LIB standard indicating
-      // internal symbols starting with @ or . are reserved for internal use.
-      //
-      std::stringstream ss;
-      // Print internal skolems by the internal identifier, otherwise all would
-      // be @INTERNAL_*.
-      if (id == SkolemFunId::INTERNAL)
-      {
-        Node cval = cacheVal.getKind() == Kind::SEXPR ? cacheVal[0] : cacheVal;
-        Assert(cval.getKind() == Kind::CONST_INTEGER);
-        Rational r = cval.getConst<Rational>();
-        Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
-        ss << "@"
-           << static_cast<InternalSkolemFunId>(
-                  r.getNumerator().toUnsignedInt());
-      }
-      else
-      {
-        ss << "@" << id;
-      }
-      k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
+      ss << "@" << id;
     }
+    Node k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
     if (id == SkolemFunId::PURIFY)
     {
       Assert(cacheVal.getType() == tn);
@@ -422,12 +408,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::TRANSCENDENTAL_PURIFY:
       Assert(cacheVals.size() > 0);
       return cacheVals[0].getType();
-      break;
-    // Type(cacheVals[1])
-    case SkolemFunId::INPUT_VARIABLE:
-      Assert(cacheVals.size() == 2
-             && cacheVals[1].getKind() == Kind::SORT_TO_TERM);
-      return cacheVals[1].getConst<SortToTerm>().getType();
       break;
     // real -> real function
     case SkolemFunId::DIV_BY_ZERO:
