@@ -119,7 +119,7 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
   prop::PropEngine* pe = d_slv.getPropEngine();
   Assert(pe != nullptr);
   std::shared_ptr<ProofNode> pfn = pe->getProof();
-  Assert (pfn!=nullptr);
+  Assert(pfn != nullptr);
   NodeManager* nm = nodeManager();
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
