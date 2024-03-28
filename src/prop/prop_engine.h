@@ -33,6 +33,7 @@
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
 #include "util/statistics_stats.h"
+#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 
@@ -129,10 +130,11 @@ class PropEngine : protected EnvObj
    * The formula can be removed by the SAT solver after backtracking lower
    * than the (SAT and SMT) level at which it was asserted.
    *
+   * @param id the inference identifier
    * @param trn the trust node storing the formula to assert
    * @param p the properties of the lemma
    */
-  void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
+  void assertLemma(theory::InferenceId id, TrustNode tlemma, theory::LemmaProperty p);
 
   /**
    * This is called when a theory propagation was explained with texp.
@@ -370,13 +372,16 @@ class PropEngine : protected EnvObj
    * The formula can be removed by the SAT solver after backtracking lower
    * than the (SAT and SMT) level at which it was asserted.
    *
+   * @param id the inference identifier
    * @param trn the trust node storing the formula to assert
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic
    */
-  void assertTrustedLemmaInternal(TrustNode trn, bool removable);
+  void assertTrustedLemmaInternal(theory::InferenceId id, 
+                      TrustNode trn, bool removable);
   /**
    * Assert node as a formula to the CNF stream
+   * @param id the inference identifier
    * @param node The formula to assert
    * @param negated Whether to assert the negation of node
    * @param removable Whether the formula is removable
@@ -384,7 +389,8 @@ class PropEngine : protected EnvObj
    * @param pg Pointer to a proof generator that can provide a proof of node
    * (or its negation if negated is true).
    */
-  void assertInternal(TNode node,
+  void assertInternal(theory::InferenceId id, 
+                      TNode node,
                       bool negated,
                       bool removable,
                       bool input,
@@ -395,7 +401,8 @@ class PropEngine : protected EnvObj
    * obtained from preprocessing it, and removable is whether the lemma is
    * removable.
    */
-  void assertLemmasInternal(TrustNode trn,
+  void assertLemmasInternal(theory::InferenceId id, 
+                            TrustNode trn,
                             const std::vector<theory::SkolemLemma>& ppLemmas,
                             bool removable,
                             bool inprocess,

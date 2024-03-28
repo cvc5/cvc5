@@ -27,6 +27,7 @@
 #include "prop/proof_cnf_stream.h"
 #include "prop/proof_post_processor.h"
 #include "smt/env_obj.h"
+#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -69,6 +70,7 @@ class PropPfManager : protected EnvObj
    * @param pg a proof generator for node
    */
   void convertAndAssert(
+    theory::InferenceId id,
       TNode node, bool negated, bool removable, bool input, ProofGenerator* pg);
   /** Saves assertion for later checking whether refutation proof is closed.
    *

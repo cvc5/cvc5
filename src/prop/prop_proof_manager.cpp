@@ -70,6 +70,7 @@ PropPfManager::PropPfManager(Env& env,
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
 
 void PropPfManager::convertAndAssert(
+    theory::InferenceId id,
     TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
 {
   d_pfCnfStream.convertAndAssert(node, negated, removable, input, pg);
