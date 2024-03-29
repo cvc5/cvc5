@@ -597,11 +597,54 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   }
   else
   {
-    opName << printer::smt2::Smt2Printer::smtKindString(k);
-    if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-        || k == Kind::INTS_MODULUS_TOTAL)
+    bool isParameterized = false;
+    if (reqCast)
     {
-      opName << "_total";
+      // parameterized constants
+      if (k==Kind::BITVECTOR_ADD || k==Kind::BITVECTOR_MULT || k==Kind::BITVECTOR_OR || k==Kind::BITVECTOR_AND)
+      {
+        TypeNode tna = n[0].getType();
+        indices.push_back(nm->mkConstInt(tna.getBitVectorSize()));
+        isParameterized = true;
+      }
+      else if (k==Kind::FINITE_FIELD_ADD || k==Kind::FINITE_FIELD_BITSUM || k==Kind::FINITE_FIELD_MULT)
+      {
+        TypeNode tna = n[0].getType();
+        indices.push_back(nm->mkConstInt(tna.getFfSize()));
+        isParameterized = true;
+      }
+      else if (k==Kind::STRING_CONCAT)
+      {
+        TypeNode tna = n[0].getType();
+        Node cht;
+        if (tna.isString())
+        {
+          cht = mkInternalSymbol("Char", d_sortType);
+        }
+        else
+        {
+          cht = typeAsNode(tna.getSequenceElementType());
+        }
+        indices.push_back(cht);
+        isParameterized = true;
+      }
+    }
+    if (isParameterized)
+    {
+      opName << "__";
+      std::stringstream oppName;
+      oppName << printer::smt2::Smt2Printer::smtKindString(k);
+      Node opp = mkInternalSymbol(oppName.str(), n.getType());
+      indices.insert(indices.begin(), opp);
+    }
+    else
+    {
+      opName << printer::smt2::Smt2Printer::smtKindString(k);
+      if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
+          || k == Kind::INTS_MODULUS_TOTAL)
+      {
+        opName << "_total";
+      }
     }
   }
   std::vector<Node> args(n.begin(), n.end());
