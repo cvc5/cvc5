@@ -28,7 +28,7 @@ class TestApiSkolemFunId : public ::testing::Test
 {
 };
 
-TEST_F(TestApiSkolemFunId, proofRuleToString)
+TEST_F(TestApiSkolemFunId, skolemIdToString)
 {
   for (int32_t i = static_cast<int32_t>(SkolemId::INTERNAL);
        i <= static_cast<int32_t>(SkolemId::NONE);
@@ -40,6 +40,11 @@ TEST_F(TestApiSkolemFunId, proofRuleToString)
     ASSERT_NE(rulestr, "?");
   }
 }
+TEST_F(TestApiSkolemFunId, skolemIdHash)
+{
+  ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
+            static_cast<size_t>(SkolemId::PURIFY));
+}s
 
 }  // namespace test
 }  // namespace cvc5::internal
