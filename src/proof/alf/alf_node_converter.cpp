@@ -602,7 +602,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     {
       // parameterized constants
       if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
-          || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND)
+          || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_XOR)
       {
         TypeNode tna = n[0].getType();
         indices.push_back(nm->mkConstInt(tna.getBitVectorSize()));
