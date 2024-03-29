@@ -32,7 +32,7 @@
     ((encode_transform (f y)) (_ (encode_transform f) (encode_transform y)))
     ((encode_transform x)     (alf.ite (alf.is_eq (alf.to_str x) x)
                                 (alf.ite (check_length_gt_one x)
-                                  (string_flatten_word x)
+                                  ($str_flatten_word x)
                                   x)
                                 x))
   )

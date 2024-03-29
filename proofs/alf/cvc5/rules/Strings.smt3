@@ -60,8 +60,8 @@
               (alf.requires (string_check_length_one s1) true    ; checks if char
                 (= u
                   (alf.ite rev
-                    (str.++ (skolem (skolem_prefix u (- (str.len u) 1))) s1)
-                    (str.++ s1 (skolem (skolem_suffix_rem u 1)))))))))))))
+                    ($str_mk_concat_2 (skolem (skolem_prefix u (- (str.len u) 1))) s1)
+                    ($str_mk_concat_2 s1 (skolem (skolem_suffix_rem u 1)))))))))))))
 )
 
 ; ProofRule::CONCAT_CONFLICT, for strings only

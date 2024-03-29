@@ -4,7 +4,7 @@
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
 ; used as the nil terminator for concat
-(define bvempty (alf.to_bin 0 0))
+(define bvempty () (alf.to_bin 0 0))
 
 (declare-const concat (->
   (! Int :var n :implicit)
