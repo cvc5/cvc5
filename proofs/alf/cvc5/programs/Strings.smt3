@@ -8,24 +8,22 @@
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence.
 
-; Make empty string of the given string-like sort U.
-(program mk_emptystr ((U Type))
-  (Type) U
+; Return true if s is the empty string or sequence.
+(program $str_is_empty ((U Type) (x U))
+  (U) Bool
   (
-    ((mk_emptystr String)  "")
-    ((mk_emptystr (Seq U)) (seq.empty (Seq U)))
+    (($str_is_empty (seq.empty U)) true)
+    (($str_is_empty "") true)
+    (($str_is_empty x) false)
   )
 )
 
-; Return true if s is the empty string or sequence.
-(program string_is_empty ((U Type) (x U))
-  (U) Bool
-  (
-    ((string_is_empty (seq.empty U)) true)
-    ((string_is_empty "") true)
-    ((string_is_empty x) false)
-  )
-)
+(define $char_type_of ((T Type)) 
+  (alf.match ((U Type)) T (((Seq U) U))))
+(define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
+  (alf.concat (__ str.++ ($char_type_of (alf.typeof x))) x y))
+(define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
+  (alf.cons (__ str.++ ($char_type_of (alf.typeof x))) x y))
 
 ;;-------------------- Skolem terms
 
@@ -61,11 +59,43 @@
 ; Concatenation str.++ applications t1 and t2.
 (program string_concat ((T Type) (t1 T) (t2 T))
   (T T) T
-  (((string_concat t1 t2) (alf.concat str.++ t1 t2)))
+  (((string_concat t1 t2) ($str_concat t1 t2)))
+)
+
+(program $str_rev_rec
+    ((T Type) (t (Seq T)) (ss (Seq T) :list) (acc (Seq T)))
+    ((Seq T) (Seq T) Type) (Seq T)
+    (
+        (($str_rev_rec (str.++ t ss) acc T) ($str_rev_rec ss (alf.cons (__ str.++ T) t acc) T))
+        (($str_rev_rec t acc T)             (alf.requires t (mk_emptystr (Seq T)) acc))
+    )
 )
 
 ; Return reverse of t if rev = true, return t unchanged otherwise.
-(define string_rev ((U Type :implicit) (rev Bool) (t U)) (alf.ite rev (nary.reverse str.++ alf.null t) t))
+(define $str_rev ((U Type :implicit) (rev Bool) (t U)) 
+  (alf.ite rev 
+    (let ((U ($char_type_of (alf.typeof t)))) ($str_rev_rec t (mk_emptystr (Seq U)) U)) 
+    t))
+
+(program $str_nary_intro
+    ((T Type) (t (Seq T)) (ss (Seq T) :list))
+    ((Seq T)) (Seq T)
+    (
+        (($str_nary_intro (str.++ t ss)) (str.++ t ss))
+        (($str_nary_intro t)             (let ((nil (mk_emptystr (alf.typeof t))))
+                                            (alf.ite (alf.is_eq t nil) t ($str_cons t nil))))
+    )
+)
+
+(program $str_nary_elim
+    ((T Type) (t (Seq T)) (ss (Seq T) :list))
+    ((Seq T)) (Seq T)
+    (
+        (($str_nary_elim (str.++ t ss)) (let ((nil (mk_emptystr (alf.typeof t))))
+                                           (alf.ite (alf.is_eq ss nil) t (str.++ t ss))))
+        (($str_nary_elim t)             (alf.requires t (mk_emptystr (alf.typeof t)) t))
+    )
+)
 
 ;;-------------------- Reductions
 
@@ -280,29 +310,29 @@
 
 ; Helper for below, assumes t is a non-empty word constant.
 ; For example, given "AB", this returns (str.++ "A" (str.++ "B" alf.null)).
-(program string_flatten_word ((t String))
+(program $str_flatten_word ((t String))
   (String) String
   (
-    ((string_flatten_word t) 
+    (($str_flatten_word t) 
       (alf.ite (string_check_length_one t)
-        (alf.cons str.++ t alf.null)
-        (alf.cons str.++ (alf.extract t 0 0) (string_flatten_word (alf.extract t 1 (alf.len t))))))
+        ($str_cons t alf.null)
+        ($str_cons (alf.extract t 0 0) ($str_flatten_word (alf.extract t 1 (alf.len t))))))
   )
 )
-(program string_flatten ((U Type) (t U) (tail U :list) (tail2 U :list))
+(program $str_flatten ((U Type) (t U) (tail U :list) (tail2 U :list))
   (U) U
   (
-    ((string_flatten alf.null) alf.null)
+    (($str_flatten alf.null) alf.null)
     ; required for sequences
-    ((string_flatten (str.++ (str.++ t tail2) tail)) 
-        (alf.concat str.++ (str.++ t tail2) (string_flatten tail)))
-    ((string_flatten (str.++ t tail))
+    (($str_flatten (str.++ (str.++ t tail2) tail)) 
+        ($str_concat (str.++ t tail2) ($str_flatten tail)))
+    (($str_flatten (str.++ t tail))
         ; otherwise, check whether t is a word constant of length greater than one
         (alf.ite (check_length_gt_one t)
           ; if so, we flatten the word using the method above and concatenate it.
-          (alf.concat str.++ (string_flatten_word t) (string_flatten tail))
+          ($str_concat ($str_flatten_word t) ($str_flatten tail))
           ; if not, we just append it to the result of the recursive call
-          (alf.cons str.++ t (string_flatten tail))))
+          ($str_cons t ($str_flatten tail))))
   )
 )
 
@@ -350,10 +380,10 @@
         (
           ; did not strip a constant prefix, just append t to the result of processing s
           ((@pair alf.null s2)
-            (alf.cons str.++ t (string_collect s)))
+            ($str_cons t (string_collect s)))
           ; stripped a constant prefix, append it to second term in the pair
           ((@pair s1 s2)
-            (alf.cons str.++ s1 (string_collect s2)))
+            ($str_cons s1 (string_collect s2)))
         )
       )
     )
@@ -382,7 +412,7 @@
 ; (3) (optionally) reverse.
 (define string_to_flat_form ((U Type :implicit) (s U) (rev Bool))
   ; intro, flatten, reverse
-  (string_rev rev (string_flatten (nary.intro str.++ (mk_emptystr (alf.typeof s)) alf.null s)))
+  ($str_rev rev ($str_flatten ($str_nary_intro s)))
 )
 
 ; Converts a term in "flat form" to a term that is in a form that corresponds
@@ -393,5 +423,5 @@
 ; (3) eliminate n-ary form to its element if the term is a singleton list.
 (define string_from_flat_form ((U Type :implicit) (s U) (rev Bool))
   ; reverse, collect, elim
-  (nary.elim str.++ alf.null (mk_emptystr (alf.typeof s)) (string_collect (string_rev rev s)))
+  ($str_nary_elim (string_collect ($str_rev rev s)))
 )

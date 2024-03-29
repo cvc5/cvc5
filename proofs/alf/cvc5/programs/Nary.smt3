@@ -68,30 +68,6 @@
     )
 )
 
-; nary.elim cons x
-; Returns the sole element if `xs` is a singleton list.
-(program nary.elim
-    ((L Type) (cons (-> L L L)) (nil L) (elim-nil L) (c L) (x L) (xs L :list))
-    ((-> L L L) L L L) L
-    (
-        ((nary.elim cons nil elim-nil (cons x nil)) x)
-        ((nary.elim cons nil elim-nil (cons x xs))  (cons x xs))
-        ((nary.elim cons nil elim-nil nil)          elim-nil)
-    )
-)
-
-; nary.intro cons x
-; Returns a singleton list if `x` is not a list.
-(program nary.intro
-    ((L Type) (cons (-> L L L)) (nil L) (intro-nil L) (x L) (xs L :list))
-    ((-> L L L) L L L) L
-    (
-        ((nary.intro cons nil intro-nil (cons x xs)) (cons x xs))
-        ((nary.intro cons nil intro-nil nil)         intro-nil)
-        ((nary.intro cons nil intro-nil x)           (alf.cons cons x intro-nil))
-    )
-)
-
 ; returns the number of children of the input
 (program nary.nchild
     ((L Type) (I Type) (cons (-> L L L)) (nil L) (i I) (x L) (xs L :list))

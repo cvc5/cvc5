@@ -11,7 +11,7 @@
 
 (declare-rule string_length_non_empty ((U Type) (s Type) (t Type))
   :premises ((not (= s t)))
-  :requires (((string_is_empty t) true))
+  :requires ((($str_is_empty t) true))
   :conclusion (not (= (str.len s) 0))
 )
 
@@ -34,7 +34,7 @@
 (define string_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
   (let ((sf (string_to_flat_form s rev)))
   (let ((sf1 (string_to_flat_form s1 rev)))
-  (nary.is_prefix str.++ alf.null sf1 sf)))
+  (nary.is_prefix str.++ (mk_emptystr (alf.typeof s)) sf1 sf)))
 )
 
 ; ProofRule::CONCAT_UNIFY
@@ -79,10 +79,10 @@
           (let ((ct (string_head_or_empty ts)))
             ; ensure they are disequal, return false
             (alf.requires
-              (alf.ite (alf.is_eq cs alf.null)
+              (alf.ite ($str_is_empty cs)
                 (string_check_length_one ct)
                 (alf.ite (string_check_length_one cs)
-                  (alf.ite (alf.is_eq ct alf.null)
+                  (alf.ite ($str_is_empty ct)
                     true
                     (alf.ite (string_check_length_one ct)
                       (alf.not (alf.is_eq cs ct))

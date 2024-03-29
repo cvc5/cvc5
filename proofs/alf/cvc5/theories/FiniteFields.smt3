@@ -7,19 +7,19 @@
 (declare-const ff.value
     (-> (! Int :var p) Int (FiniteField p)))
 
-(declare-const ff.add
-    (-> (! Int :var p :implicit)
-        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+(declare-parameterized-const ff.add ((p Int))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p)) 
+    :right-assoc-nil (ff.value p 0)
 )
 (declare-const ff.neg
     (-> (! Int :var p :implicit)
         (FiniteField p) (FiniteField p))
 )
-(declare-const ff.mul
-    (-> (! Int :var p :implicit)
-        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+(declare-parameterized-const ff.mul ((p Int))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p)) 
+    :right-assoc-nil (ff.value p 1)
 )
-(declare-const ff.bitsum
-    (-> (! Int :var p :implicit)
-        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+(declare-parameterized-const ff.bitsum ((p Int))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p)) 
+    :right-assoc-nil (ff.value p 0)
 )
