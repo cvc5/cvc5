@@ -21,15 +21,15 @@
 (define $char_type_of ((T Type)) 
   (alf.match ((U Type)) T (((Seq U) U))))
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (alf.concat (__ str.++ ($char_type_of (alf.typeof x))) x y))
+  (alf.concat (alf._ str.++ ($char_type_of (alf.typeof x))) x y))
 (define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (alf.cons (__ str.++ ($char_type_of (alf.typeof x))) x y))
+  (alf.cons (alf._ str.++ ($char_type_of (alf.typeof x))) x y))
 (define $str_self_if_empty ((T Type :implicit) (t T))
   (alf.requires t (mk_emptystr (alf.typeof t)) t))
 (define $str_mk_concat_2 ((T Type :implicit) (t (Seq T)) (s (Seq T)))
-  (_ (__ str.++ ($char_type_of (alf.typeof t))) t s))
+  (_ (alf._ str.++ ($char_type_of (alf.typeof t))) t s))
 (define $str_mk_concat_3 ((T Type :implicit) (t (Seq T)) (s (Seq T)) (r (Seq T)))
-  (_ (__ str.++ ($char_type_of (alf.typeof t))) t s r))
+  (_ (alf._ str.++ ($char_type_of (alf.typeof t))) t s r))
 
 ;;-------------------- Skolem terms
 
@@ -66,7 +66,7 @@
     ((T Type) (t (Seq T)) (ss (Seq T) :list) (acc (Seq T)))
     ((Seq T) (Seq T) Type) (Seq T)
     (
-        (($str_rev_rec (str.++ t ss) acc T) ($str_rev_rec ss (alf.cons (__ str.++ T) t acc) T))
+        (($str_rev_rec (str.++ t ss) acc T) ($str_rev_rec ss ($str_cons t acc) T))
         (($str_rev_rec t acc T)             (alf.requires t (mk_emptystr (Seq T)) acc))
     )
 )

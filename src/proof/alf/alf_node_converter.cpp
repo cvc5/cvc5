@@ -634,7 +634,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     }
     if (isParameterized)
     {
-      opName << "__";
+      opName << "alf._";
       std::stringstream oppName;
       oppName << printer::smt2::Smt2Printer::smtKindString(k);
       Node opp = mkInternalSymbol(oppName.str(), n.getType());
