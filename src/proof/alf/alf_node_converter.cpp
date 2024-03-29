@@ -600,7 +600,10 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     bool isParameterized = false;
     if (reqCast)
     {
-      // parameterized constants
+      // If the operator is a parameterized constant and reqCast is true,
+      // then we must apply the parameters of the operator, e.g. such that
+      // bvor becomes (alf._ bvor 32) where 32 is the bitwidth of the first
+      // argument.
       if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
           || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND
           || k == Kind::BITVECTOR_XOR)
@@ -618,6 +621,10 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
       }
       else if (k == Kind::STRING_CONCAT)
       {
+        // String concatenation is parameterized by the character type, which
+        // is the "Char" type in the ALF signature for String (which note does
+        // not exist internally in cvc5). Otherwise it is the sequence element
+        // type.
         TypeNode tna = n[0].getType();
         Node cht;
         if (tna.isString())
