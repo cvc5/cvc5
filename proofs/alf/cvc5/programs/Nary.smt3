@@ -79,7 +79,6 @@
     )
 )
 
-
 ; nary.is_prefix cons t s
 ; Retuns `true` if t is a prefix of s
 (program nary.is_prefix
