@@ -601,19 +601,21 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     if (reqCast)
     {
       // parameterized constants
-      if (k==Kind::BITVECTOR_ADD || k==Kind::BITVECTOR_MULT || k==Kind::BITVECTOR_OR || k==Kind::BITVECTOR_AND)
+      if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
+          || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND)
       {
         TypeNode tna = n[0].getType();
         indices.push_back(nm->mkConstInt(tna.getBitVectorSize()));
         isParameterized = true;
       }
-      else if (k==Kind::FINITE_FIELD_ADD || k==Kind::FINITE_FIELD_BITSUM || k==Kind::FINITE_FIELD_MULT)
+      else if (k == Kind::FINITE_FIELD_ADD || k == Kind::FINITE_FIELD_BITSUM
+               || k == Kind::FINITE_FIELD_MULT)
       {
         TypeNode tna = n[0].getType();
         indices.push_back(nm->mkConstInt(tna.getFfSize()));
         isParameterized = true;
       }
-      else if (k==Kind::STRING_CONCAT)
+      else if (k == Kind::STRING_CONCAT)
       {
         TypeNode tna = n[0].getType();
         Node cht;
