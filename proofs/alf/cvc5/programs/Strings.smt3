@@ -18,16 +18,29 @@
   )
 )
 
+; Return the character type of the string-like type T
 (define $char_type_of ((T Type)) 
   (alf.match ((U Type)) T (((Seq U) U))))
+
+; Return the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
   (alf.concat (alf._ str.++ ($char_type_of (alf.typeof x))) x y))
+
+; Return the result of prepending of string x to string y where the latter is
+; treated as a list.
 (define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
   (alf.cons (alf._ str.++ ($char_type_of (alf.typeof x))) x y))
+
+; Return t if it corresponds to the empty string, otherwise evaluates
+; to an unevaluated alf.requires term.
 (define $str_self_if_empty ((T Type :implicit) (t T))
   (alf.requires t (mk_emptystr (alf.typeof t)) t))
+
+; Return the concatenation of exactly 2 string terms.
 (define $str_mk_concat_2 ((T Type :implicit) (t (Seq T)) (s (Seq T)))
   (_ (alf._ str.++ ($char_type_of (alf.typeof t))) t s))
+
+; Return the concatenation of exactly 3 string terms.
 (define $str_mk_concat_3 ((T Type :implicit) (t (Seq T)) (s (Seq T)) (r (Seq T)))
   (_ (alf._ str.++ ($char_type_of (alf.typeof t))) t s r))
 
@@ -62,6 +75,7 @@
 
 ;;-------------------- Utilities
 
+; Helper for reversing a concatenation term
 (program $str_rev_rec
     ((T Type) (t (Seq T)) (ss (Seq T) :list) (acc (Seq T)))
     ((Seq T) (Seq T) Type) (Seq T)
@@ -77,6 +91,9 @@
     (let ((U ($char_type_of (alf.typeof t)))) ($str_rev_rec t (mk_emptystr (Seq U)) U)) 
     t))
 
+; Nary-intro, which ensures that the input t is a str.++ application.
+; In particular, if it is not a str.++ and not the empty string, then we return
+; (str.++ t empty) where empty is the empty string for the type of t.
 (program $str_nary_intro
     ((T Type) (t (Seq T)) (ss (Seq T) :list))
     ((Seq T)) (Seq T)
@@ -87,6 +104,9 @@
     )
 )
 
+; Nary-elimination, which ensures that the input t is not a str.++ application.
+; In particular, if t is of the form (str.++ t empty) where empty is the empty
+; string for the type of t, we return t.
 (program $str_nary_elim
     ((T Type) (t (Seq T)) (ss (Seq T) :list))
     ((Seq T)) (Seq T)
