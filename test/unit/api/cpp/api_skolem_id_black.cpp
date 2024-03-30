@@ -40,6 +40,7 @@ TEST_F(TestApiSkolemFunId, skolemIdToString)
     ASSERT_NE(rulestr, "?");
   }
 }
+
 TEST_F(TestApiSkolemFunId, skolemIdHash)
 {
   ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
