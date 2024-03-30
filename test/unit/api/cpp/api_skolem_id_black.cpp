@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of the SkolemFunId enum of the C++ API.
+ * Black box testing of the SkolemId enum of the C++ API.
  */
 
 #include <cvc5/cvc5_skolem_id.h>
@@ -24,11 +24,11 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiSkolemFunId : public ::testing::Test
+class TestApiSkolemId : public ::testing::Test
 {
 };
 
-TEST_F(TestApiSkolemFunId, skolemIdToString)
+TEST_F(TestApiSkolemId, skolemIdToString)
 {
   for (int32_t i = static_cast<int32_t>(SkolemId::INTERNAL);
        i <= static_cast<int32_t>(SkolemId::NONE);
@@ -41,7 +41,7 @@ TEST_F(TestApiSkolemFunId, skolemIdToString)
   }
 }
 
-TEST_F(TestApiSkolemFunId, skolemIdHash)
+TEST_F(TestApiSkolemId, skolemIdHash)
 {
   ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
             static_cast<size_t>(SkolemId::PURIFY));
