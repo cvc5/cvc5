@@ -3883,6 +3883,7 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
+    --carcara-binary ${CMAKE_SOURCE_DIR}/deps/bin/carcara
     --alfc-binary ${CMAKE_SOURCE_DIR}/deps/bin/alfc
     --alf-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
     ${wrapper}
