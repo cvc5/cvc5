@@ -47,7 +47,7 @@ jobs:
             cache-key: production-arm64
             strip-bin: strip
             python-bindings: true
-            check-examples: true
+            check-examples: false # Temporary disabled because of removal of distutils in Python 3.12
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
