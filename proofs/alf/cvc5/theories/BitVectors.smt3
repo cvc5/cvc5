@@ -3,6 +3,10 @@
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
+; Returns the (integer value) bitwidth for a given bit-vector type.
+(define $bv_bitwidth ((T Type))
+  (alf.match ((n Int)) T (((BitVec n) n))))
+
 ; used as the nil terminator for concat
 (define bvempty () (alf.to_bin 0 0))
 
@@ -300,8 +304,10 @@
 (declare-const BITVECTOR_EAGER_ATOM (-> Bool Bool))
 
 ; symbolic constant
-;(declare-const bv (-> Int (! Int :var w) (BitVec w)))
+(declare-const @bv (-> Int (! Int :var w) (BitVec w)))
+;(define @bv ((n Int) (w Int)) (alf.to_bin n w))
 
 ; bvsize
 ; should be a define
-(declare-const bvsize (-> (! Int :var m :implicit) (BitVec m) Int))
+; (declare-const @bvsize (-> (! Int :var m :implicit) (BitVec m) Int))
+(define @bvsize ((m Int :implicit) (x (BitVec m))) ($bv_bitwidth (alf.typeof x)))

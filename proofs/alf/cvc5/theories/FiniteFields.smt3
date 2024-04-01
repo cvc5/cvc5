@@ -2,6 +2,10 @@
 
 (declare-const FiniteField (-> Int Type))
 
+; Returns the (integer value) bitwidth for a given bit-vector type.
+(define $ff_size ((T Type))
+  (alf.match ((n Int)) T (((FiniteField n) n))))
+
 ; A finite field constant is a term having 2 integer children.
 ; NOTE: we do not support the native syntax.
 (declare-const ff.value
