@@ -38,9 +38,6 @@ public class TermManager extends AbstractPointer
         "TermManager.toString() is not supported in the cpp api");
   }
 
-  // store IOracle objects
-  List<IOracle> oracles = new ArrayList<>();
-
   /**
    * Create a term manager instance.
    */
