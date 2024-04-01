@@ -1274,6 +1274,16 @@ def test_get_real_algebraic_number(tm, solver):
         with pytest.raises(RuntimeError):
             vx.getRealAlgebraicNumberDefiningPolynomial(yc)
 
+def test_get_skolem(tm, solver):
+    # ordinary variables are not skolems
+    x = tm.mkConst(tm.getIntegerSort(), "x")
+    assert not x.isSkolem()
+    with pytest.raises(RuntimeError):
+        x.getSkolemId()
+    with pytest.raises(RuntimeError):
+        x.getSkolemIndices()
+    
+
 def test_term_scoped_to_string(tm):
     intsort = tm.getIntegerSort()
     x = tm.mkConst(intsort, "x")

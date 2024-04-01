@@ -391,9 +391,10 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   env.finishInit(pfm.getProofNodeManager());
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need
-  builtin::BuiltinProofRuleChecker btchecker(env);
+  NodeManager * nm = env.getNodeManager();
+  builtin::BuiltinProofRuleChecker btchecker(nm, env.getRewriter(), env);
   btchecker.registerTo(env.getProofNodeManager()->getChecker());
-  coverings::CoveringsProofRuleChecker checker;
+  coverings::CoveringsProofRuleChecker checker(nm);
   checker.registerTo(env.getProofNodeManager()->getChecker());
   // do the coverings problem
   coverings::CDCAC cac(env, {});

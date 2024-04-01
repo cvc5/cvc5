@@ -28,22 +28,20 @@
 (declare-const table.group (-> (! Type :var T :implicit) @List (Bag T) (Bag (Bag T))))
 
 ; Skolems for the theory of bags.
-(declare-const @k.BAGS_DEQ_DIFF (-> (! Type :var T :implicit) (Bag T) (Bag T) T))
-(declare-const @k.TABLES_GROUP_PART (-> (! Type :var T :implicit) (Bag (Bag T)) T (Bag T)))
-(declare-const @k.TABLES_GROUP_PART_ELEMENT (-> (! Type :var T :implicit) (Bag (Bag T)) (Bag T) T))
-(declare-const @k.BAGS_DISTINCT_ELEMENTS (-> (! Type :var T :implicit) (Bag T) Int T))
-(declare-const @k.BAGS_MAP_SUM (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U Int Int))
-(declare-const @k.BAGS_DISTINCT_ELEMENTS_SIZE (-> (! Type :var T :implicit) (Bag T) Int))
-(declare-const @k.BAGS_MAP_PREIMAGE_INJECTIVE (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U T))
+(declare-const @bags_deq_diff (-> (! Type :var T :implicit) (Bag T) (Bag T) T))
+(declare-const @tables_group_part (-> (! Type :var T :implicit) (Bag (Bag T)) T (Bag T)))
+(declare-const @tables_group_part_element (-> (! Type :var T :implicit) (Bag (Bag T)) (Bag T) T))
+(declare-const @bags_map_sum (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U Int Int))
+(declare-const @bags_distinct_elements (-> (! Type :var T :implicit) (Bag T) Int T))
+(declare-const @bags_distinct_elements_size (-> (! Type :var T :implicit) (Bag T) Int))
+(declare-const @bags_map_preimage_injective (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U T))
 
 ;(declare-const bag.from_set (# x term (apply f_bag.from_set x)))
 ;(declare-const bag.to_set (# x term (apply f_bag.to_set x)))
 
 ; The following skolems are not handled currently:
 ;BAGS_CARD_CARDINALITY
-;BAGS_CARD_ELEMENTS
-;BAGS_CARD_N
-;BAGS_CARD_UNION_DISJOINT
+;BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT
 ;BAGS_CHOOSE
 ;BAGS_FOLD_CARD
 ;BAGS_FOLD_COMBINE

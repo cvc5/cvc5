@@ -57,7 +57,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
       d_termReg(env, *this, d_state, d_statistics),
-      d_rewriter(env.getRewriter(),
+      d_rewriter(env.getNodeManager(),
+                 env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
       d_eagerSolver(options().strings.stringEagerSolver
@@ -67,7 +68,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
       d_extTheory(env, d_extTheoryCb, d_im),
       // the checker depends on the cardinality of the alphabet
-      d_checker(d_termReg.getAlphabetCardinality()),
+      d_checker(nodeManager(), d_termReg.getAlphabetCardinality()),
       d_bsolver(env, d_state, d_im, d_termReg),
       d_csolver(env, d_state, d_im, d_termReg, d_bsolver),
       d_esolver(env,
@@ -827,7 +828,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
     {
       cacheVals[1] = nm->mkConstInt(Rational(i));
       Node kv = sm->mkInternalSkolemFunction(
-          InternalSkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
+          InternalSkolemId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
       skChildren.push_back(utils::mkUnit(tn, kv));
     }
   }

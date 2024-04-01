@@ -19,8 +19,9 @@
 #define CVC5__API__CVC5_H
 
 #include <cvc5/cvc5_kind.h>
-#include <cvc5/cvc5_types.h>
 #include <cvc5/cvc5_proof_rule.h>
+#include <cvc5/cvc5_skolem_id.h>
+#include <cvc5/cvc5_types.h>
 
 #include <functional>
 #include <map>
@@ -1858,6 +1859,29 @@ class CVC5_EXPORT Term
    * @return The upper bound.
    */
   Term getRealAlgebraicNumberUpperBound() const;
+
+  /**
+   * Is this term a skolem?
+   * @warning This function is experimental and may change in future versions.
+   * @return True if this term is a skolem function.
+   */
+  bool isSkolem() const;
+  /**
+   * Get skolem identifier of this term.
+   * @note Asserts isSkolem().
+   * @warning This function is experimental and may change in future versions.
+   * @return The skolem identifier of this term.
+   */
+  SkolemId getSkolemId() const;
+  /**
+   * Get the skolem indices of this term.
+   * @note Asserts isSkolem().
+   * @warning This function is experimental and may change in future versions.
+   * @return The skolem indices of this term. This is list of terms that the
+   * skolem function is indexed by. For example, the array diff skolem
+   * `SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
+   */
+  std::vector<Term> getSkolemIndices() const;
 
  protected:
   /**

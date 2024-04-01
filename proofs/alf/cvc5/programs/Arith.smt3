@@ -140,15 +140,23 @@
   )
 )
 
-; Returns true if the two given polynomials are equivalent up to modulus by a (non-zero) coefficient.
-(program poly_is_equal_mod_c ((T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list))
-  (@Polynomial @Polynomial) Bool
+; Returns true if a and b normalize to the same polynomial
+(define is_poly_norm_arith ((T Type :implicit) (a T) (b T))
+  (alf.is_eq (get_poly_norm a) (get_poly_norm b))
+)
+
+; Returns true if the two given polynomials are equivalent up to modulus by a (non-zero, positive if reqPos is true) coefficient.
+(program poly_is_equal_mod_c ((T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list) (reqPos Bool))
+  (@Polynomial @Polynomial Bool) Bool
   (
-    ((poly_is_equal_mod_c @poly.zero @poly.zero)                          true)
-    ((poly_is_equal_mod_c (@poly (@mon a c1) p1) (@poly (@mon a c2) p2))  (poly_is_equal_mod_c_rec (alf.qdiv c2 c1) p1 p2))
+    ((poly_is_equal_mod_c @poly.zero @poly.zero reqPos)                         true)
+    ((poly_is_equal_mod_c (@poly (@mon a c1) p1) (@poly (@mon a c2) p2) reqPos) (let ((c (alf.qdiv c2 c1))) 
+                                                                                (alf.requires (alf.and reqPos (alf.is_neg c)) false
+                                                                                (poly_is_equal_mod_c_rec c p1 p2))))
   )
 )
 
-(define is_poly_norm_arith ((T Type :implicit) (a T) (b T))
-  (poly_is_equal_mod_c (get_poly_norm a) (get_poly_norm b))
+; Returns true if a and b normalize to polynomials that are same up to modulus by a (non-zero, positive if reqPos is true) coefficient.
+(define is_poly_norm_arith_mod_c ((T Type :implicit) (a T) (b T) (reqPos Bool))
+  (poly_is_equal_mod_c (get_poly_norm a) (get_poly_norm b) reqPos)
 )

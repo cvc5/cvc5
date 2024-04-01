@@ -30,8 +30,7 @@ namespace quantifiers {
 class QuantifiersProofRuleChecker : public ProofRuleChecker
 {
  public:
-  QuantifiersProofRuleChecker() {}
-  ~QuantifiersProofRuleChecker() {}
+  QuantifiersProofRuleChecker(NodeManager* nm);
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;

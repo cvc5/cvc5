@@ -42,10 +42,11 @@ BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
 {
 }
 
-BagsRewriter::BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics)
-    : d_rewriter(r), d_statistics(statistics)
+BagsRewriter::BagsRewriter(NodeManager* nm,
+                           Rewriter* r,
+                           HistogramStat<Rewrite>* statistics)
+    : TheoryRewriter(nm), d_rewriter(r), d_statistics(statistics)
 {
-  d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(Rational(0));
   d_one = d_nm->mkConstInt(Rational(1));
 }

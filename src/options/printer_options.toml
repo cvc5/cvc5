@@ -63,3 +63,19 @@ name   = "Printing"
   type       = "bool"
   default    = "false"
   help       = "print bit-vector constants in decimal (e.g. (_ bv1 4)) instead of binary (e.g. #b0001), applies to SMT-LIB 2.x"
+
+[[option]]
+  name       = "printArithLitToken"
+  category   = "expert"
+  long       = "print-arith-lit-token"
+  type       = "bool"
+  default    = "false"
+  help       = "print rationals and negative arithmetic literals as lexed tokens, e.g. 1/4, -1.5"
+
+[[option]]
+  name       = "printSkolemDefinitions"
+  category   = "expert"
+  long       = "print-skolem-definitions"
+  type       = "bool"
+  default    = "false"
+  help       = "print skolems based on their definitions e.g. @ARRAY_DIFF_N prints instead as (@array.diff A B)"

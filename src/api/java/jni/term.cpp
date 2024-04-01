@@ -1066,6 +1066,52 @@ Java_io_github_cvc5_Term_getRealAlgebraicNumberUpperBound(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Term
+ * Method:    isSkolem
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isSkolem(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isSkolem());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    getSkolemId
+ * Signature: (J)I;
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Term_getSkolemId(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jint>(current->getSkolemId());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    getSkolemIndices
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_Term_getSkolemIndices(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  std::vector<Term> args = current->getSkolemIndices();
+  jlongArray ret = getPointersFromObjects<Term>(env, args);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Term
  * Method:    iterator
  * Signature: (J)J
  */
