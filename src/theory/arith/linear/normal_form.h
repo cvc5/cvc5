@@ -256,11 +256,11 @@ public:
      case Kind::ARCSECANT:
      case Kind::ARCCOTANGENT:
      case Kind::SQRT:
-     case Kind::PI: return areChildrenPolynomialMembers(n);
+     case Kind::PI:
      case Kind::ABS:
      case Kind::TO_INTEGER:
-       // Treat to_int as a variable; it is replaced in early preprocessing
-       // by a variable.
+       // All of the above are treated as variables. We assume their arguments
+       // are rewritten.
        return true;
      default: return isLeafMember(n);
    }

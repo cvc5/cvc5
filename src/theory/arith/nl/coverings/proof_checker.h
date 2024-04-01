@@ -37,8 +37,7 @@ namespace coverings {
 class CoveringsProofRuleChecker : public ProofRuleChecker
 {
  public:
-  CoveringsProofRuleChecker() {}
-  ~CoveringsProofRuleChecker() {}
+  CoveringsProofRuleChecker(NodeManager* nm);
 
   /** Register all rules owned by this rule checker in pc. */
   void registerTo(ProofChecker* pc) override;

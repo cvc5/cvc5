@@ -37,8 +37,7 @@ namespace transcendental {
 class TranscendentalProofRuleChecker : public ProofRuleChecker
 {
  public:
-  TranscendentalProofRuleChecker() = default;
-  ~TranscendentalProofRuleChecker() = default;
+  TranscendentalProofRuleChecker(NodeManager* nm);
 
   /** Register all rules owned by this rule checker in pc. */
   void registerTo(ProofChecker* pc) override;

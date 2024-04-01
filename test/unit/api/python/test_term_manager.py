@@ -15,14 +15,14 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, SortKind, RoundingMode
+from cvc5 import Kind, SortKind, RoundingMode, TermManager, Solver
 
 @pytest.fixture
 def tm():
-    return cvc5.TermManager()
+    return TermManager()
 @pytest.fixture
 def solver(tm):
-    return cvc5.Solver(tm)
+    return Solver(tm)
 
 def test_get_boolean_sort(tm):
     tm.getBooleanSort()
@@ -64,6 +64,10 @@ def test_mk_array_sort(tm):
     tm.mkArraySort(fpSort, fpSort)
     tm.mkArraySort(bvSort, fpSort)
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    tm.mkArraySort(ttm.getBooleanSort(), ttm.getIntegerSort())
 
 def test_mk_bit_vector_sort(tm):
     tm.mkBitVectorSort(32)
@@ -132,13 +136,24 @@ def test_mk_datatype_sort(tm):
 
     with pytest.raises(RuntimeError):
         tm.mkDatatypeSort(dtypeSpec)
-    slv = cvc5.Solver(tm)
+    slv = Solver(tm)
     with pytest.raises(RuntimeError):
         slv.mkDatatypeSort(dtypeSpec)
 
     throwsDtypeSpec = tm.mkDatatypeDecl("list")
     with pytest.raises(RuntimeError):
         tm.mkDatatypeSort(throwsDtypeSpec)
+
+    ttm = TermManager()
+    dtypeSpec = ttm.mkDatatypeDecl("list")
+    cons = ttm.mkDatatypeConstructorDecl("cons")
+    cons.addSelector("head", ttm.getIntegerSort())
+    dtypeSpec.addConstructor(cons)
+    nil = ttm.mkDatatypeConstructorDecl("nil")
+    dtypeSpec.addConstructor(nil)
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    tm.mkDatatypeSort(dtypeSpec)
 
 
 def test_mk_datatype_sorts(tm):
@@ -205,6 +220,22 @@ def test_mk_datatype_sorts(tm):
         t1)
     assert dt_sorts[0].instantiate([tm.getBooleanSort()]) == t0.getSort()
 
+    ttm = TermManager()
+    dtypeSpec1 = ttm.mkDatatypeDecl("list1")
+    cons1 = ttm.mkDatatypeConstructorDecl("cons1")
+    cons1.addSelector("head1", ttm.getIntegerSort())
+    dtypeSpec1.addConstructor(cons1)
+    dtypeSpec1.addConstructor(ttm.mkDatatypeConstructorDecl("nil1"))
+    dtypeSpec2 = ttm.mkDatatypeDecl("list2")
+    cons2 = ttm.mkDatatypeConstructorDecl("cons2")
+    cons2.addSelector("head2", ttm.getIntegerSort())
+    dtypeSpec2.addConstructor(cons2)
+    dtypeSpec2.addConstructor(ttm.mkDatatypeConstructorDecl("nil2"))
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    tm.mkDatatypeSorts([dtypeSpec1, dtypeSpec2])
+
+
 def test_mk_function_sort(tm):
     funSort = tm.mkFunctionSort(tm.mkUninterpretedSort("u"),\
             tm.getIntegerSort())
@@ -242,6 +273,15 @@ def test_mk_function_sort(tm):
     tm.mkFunctionSort(sorts1, tm.getIntegerSort())
     tm.mkFunctionSort(sorts2, tm.getIntegerSort())
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkFunctionSort(sorts2, ttm.getIntegerSort())
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkFunctionSort(
+            [ttm.getBooleanSort(), ttm.getIntegerSort()], tm.getIntegerSort())
+
 
 def test_mk_param_sort(tm):
     tm.mkParamSort("T")
@@ -258,6 +298,11 @@ def test_mk_predicate_sort(tm):
     # functions as arguments are allowed
     tm.mkPredicateSort(tm.getIntegerSort(), funSort)
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkPredicateSort(tm.getIntegerSort())
+
 
 def test_mk_record_sort(tm):
     fields = [("b", tm.getBooleanSort()),\
@@ -268,11 +313,25 @@ def test_mk_record_sort(tm):
     recSort = tm.mkRecordSort(*fields)
     recSort.getDatatype()
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkRecordSort(
+                ("b", ttm.getBooleanSort()), \
+                ("bv", tm.mkBitVectorSort(8)), \
+                ("i", ttm.getIntegerSort())
+            )
+
 
 def test_mk_set_sort(tm):
     tm.mkSetSort(tm.getBooleanSort())
     tm.mkSetSort(tm.getIntegerSort())
     tm.mkSetSort(tm.mkBitVectorSort(4))
+
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    tm.mkSetSort(ttm.getBooleanSort())
 
 
 def test_mk_bag_sort(tm):
@@ -280,11 +339,21 @@ def test_mk_bag_sort(tm):
     tm.mkBagSort(tm.getIntegerSort())
     tm.mkBagSort(tm.mkBitVectorSort(4))
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    tm.mkBagSort(ttm.getBooleanSort())
+
 
 def test_mk_sequence_sort(tm):
     tm.mkSequenceSort(tm.getBooleanSort())
     tm.mkSequenceSort(\
             tm.mkSequenceSort(tm.getIntegerSort()))
+
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    tm.mkSequenceSort(ttm.getBooleanSort())
 
 
 def test_mk_abstract_sort(tm):
@@ -321,6 +390,11 @@ def test_mk_tuple_sort(tm):
                                     tm.getIntegerSort())
     tm.mkTupleSort(tm.getIntegerSort(), funSort)
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    tm.mkTupleSort(ttm.getBooleanSort())
+
 
 def test_mk_nullable_sort(tm, solver):
     nullable_sort = tm.mkNullableSort(tm.getBooleanSort())
@@ -328,6 +402,12 @@ def test_mk_nullable_sort(tm, solver):
     value = tm.mkNullableIsNull(nullable_null)
     value = solver.simplify(value)
     assert value.getBooleanValue()
+
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    tm.mkNullableSort(ttm.getIntegerSort())
+
 
 def test_mk_bit_vector(tm):
     tm.mkBitVector(8, 2)
@@ -496,6 +576,20 @@ def test_mk_floating_point(tm):
     assert tm.mkFloatingPoint(
             sign, exp, sig) == tm.mkFloatingPoint(5, 11, bv)
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkFloatingPoint(3, 5, t1)
+    #with pytest.raises(RuntimeError):
+    ttm.mkFloatingPoint(
+            tm.mkBitVector(1), ttm.mkBitVector(5), ttm.mkBitVector(10))
+    #with pytest.raises(RuntimeError):
+    ttm.mkFloatingPoint(
+            ttm.mkBitVector(1), tm.mkBitVector(5), ttm.mkBitVector(10))
+    #with pytest.raises(RuntimeError):
+    ttm.mkFloatingPoint(
+            ttm.mkBitVector(1), ttm.mkBitVector(5), tm.mkBitVector(10))
+
 
 def test_mk_cardinality_constraint(tm):
     su = tm.mkUninterpretedSort("u")
@@ -506,12 +600,22 @@ def test_mk_cardinality_constraint(tm):
     with pytest.raises(RuntimeError):
         tm.mkEmptySet(tm.mkCardinalityConstraint(su, 0))
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkCardinalityConstraint(su, 3)
+
 
 def test_mk_empty_set(tm):
     s = tm.mkSetSort(tm.getBooleanSort())
     tm.mkEmptySet(s)
     with pytest.raises(RuntimeError):
         tm.mkEmptySet(tm.getBooleanSort())
+
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkEmptySet(s)
 
 
 def test_mk_empty_bag(tm):
@@ -520,11 +624,21 @@ def test_mk_empty_bag(tm):
     with pytest.raises(RuntimeError):
         tm.mkEmptyBag(tm.getBooleanSort())
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkEmptyBag(s)
+
 
 def test_mk_empty_sequence(tm):
     s = tm.mkSequenceSort(tm.getBooleanSort())
     tm.mkEmptySequence(s)
     tm.mkEmptySequence(tm.getBooleanSort())
+
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkEmptySequence(s)
 
 
 def test_mk_false(tm):
@@ -737,6 +851,11 @@ def test_mk_sep_nil(tm):
     tm.mkSepNil(tm.getBooleanSort())
     tm.mkSepNil(tm.getIntegerSort())
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkSepNil(tm.getBooleanSort())
+
 
 def test_mk_string(tm):
     tm.mkString("")
@@ -818,6 +937,13 @@ def test_mk_term(tm):
     tm.mkTerm(Kind.HO_APPLY, t_fun, t_bool, t_bool, t_bool)
     tm.mkTerm(tm.mkOp(Kind.HO_APPLY), t_fun, t_bool, t_bool, t_bool)
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    tm.mkTerm(Kind.ITE, tm.mkTrue(), ttm.mkTrue(), ttm.mkTrue())
+    tm.mkTerm(Kind.ITE, ttm.mkTrue(), tm.mkTrue(), ttm.mkTrue())
+    tm.mkTerm(Kind.ITE, ttm.mkTrue(), ttm.mkTrue(), tm.mkTrue())
+
 
 def test_mk_term_from_op(tm):
     bv32 = tm.mkBitVectorSort(32)
@@ -893,6 +1019,12 @@ def test_mk_term_from_op(tm):
     with pytest.raises(RuntimeError):
         tm.mkTerm(opterm2)
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkTerm(opterm2, ttm.mkInteger(1))
+    ttm.mkTerm(ttm.mkOp(Kind.DIVISIBLE, 1), tm.mkInteger(1))
+
 
 def test_mk_true(tm):
     tm.mkTrue()
@@ -904,11 +1036,21 @@ def test_mk_tuple(tm):
     tm.mkTuple([tm.mkInteger("5")])
     tm.mkTuple([tm.mkReal("5.3")])
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkTuple([tm.mkBitVector(3, "101", 2)])
+
 
 def test_mk_nullable_some(tm):
     tm.mkNullableSome(tm.mkBitVector(3, "101", 2))
     tm.mkNullableSome(tm.mkInteger("5"))
     tm.mkNullableSome(tm.mkReal("5.3"))
+
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkNullableSome(tm.mkBitVector(3, "101", 2))
 
 
 def test_mk_nullable_val(tm, solver):
@@ -917,6 +1059,11 @@ def test_mk_nullable_val(tm, solver):
     value = solver.simplify(value)
     assert int(value.getIntegerValue()) == 5
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkNullableVal(tm.mkNullableSome(tm.mkBitVector(3, "101", 2)))
+
 
 def test_mk_nullable_is_null(tm, solver):
     some = tm.mkNullableSome(tm.mkInteger("5"))
@@ -924,12 +1071,22 @@ def test_mk_nullable_is_null(tm, solver):
     value = solver.simplify(value)
     assert not value.getBooleanValue()
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkNullableIsNull(tm.mkNullableSome(tm.mkInteger(5)))
+
 
 def test_mk_nullable_is_some(tm, solver):
     some = tm.mkNullableSome(tm.mkInteger("5"))
     value = tm.mkNullableIsSome(some)
     value = solver.simplify(value)
     assert value.getBooleanValue()
+
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkNullableIsSome(tm.mkNullableSome(tm.mkInteger(5)))
 
 
 def test_mk_nullable_null(tm, solver):
@@ -939,6 +1096,13 @@ def test_mk_nullable_null(tm, solver):
     value = solver.simplify(value)
     assert value.getBooleanValue()
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkNullableIsNull(
+            tm.mkNullableNull(tm.mkNullableSort(tm.getBooleanSort())))
+
+
 def test_mk_nullable_lift(tm, solver):
     some1 = tm.mkNullableSome(tm.mkInteger(1))
     some2 = tm.mkNullableSome(tm.mkInteger(2))
@@ -946,8 +1110,21 @@ def test_mk_nullable_lift(tm, solver):
     three = solver.simplify(tm.mkNullableVal(some3))
     assert int(three.getIntegerValue()) == 3
 
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkNullableLift(
+            Kind.ADD,
+            tm.mkNullableSome(
+                tm.mkInteger(1)), tm.mkNullableSome(tm.mkInteger(2)))
+
+
 def test_mk_universe_set(tm):
     tm.mkUniverseSet(tm.getBooleanSort())
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkUniverseSet(tm.getBooleanSort())
 
 
 def test_mk_const(tm):
@@ -960,6 +1137,12 @@ def test_mk_const(tm):
     tm.mkConst(intSort, "i")
     tm.mkConst(funSort, "f")
     tm.mkConst(funSort, "")
+
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkConst(boolSort)
+
 
 def test_declare_fun_fresh(tm, solver):
     boolSort = tm.getBooleanSort()
@@ -986,5 +1169,29 @@ def test_mk_const_array(tm):
         tm.mkConstArray(arrSort, tm.mkBitVector(1, 1))
     with pytest.raises(RuntimeError):
         tm.mkConstArray(intSort, zero)
+
+    ttm = TermManager()
+    # this will throw when NodeManager is not a singleton anymore
+    #with pytest.raises(RuntimeError):
+    ttm.mkConstArray(arrSort, ttm.mkInteger(0))
+    #with pytest.raises(RuntimeError):
+    ttm.mkConstArray(ttm.mkArraySort(intSort, intSort), zero)
+
+
+def test_uf_iteration(tm, solver):
+    intSort = tm.getIntegerSort()
+    funSort = tm.mkFunctionSort([intSort, intSort], intSort)
+    x = tm.mkConst(intSort, "x")
+    y = tm.mkConst(intSort, "y")
+    f = tm.mkConst(funSort, "f")
+    fxy = tm.mkTerm(Kind.APPLY_UF, f, x, y)
+
+    # Expecting the uninterpreted function to be one of the children
+    expected_children = [f, x, y]
+    idx = 0
+    for c in fxy:
+        assert idx < 3
+        assert c == expected_children[idx]
+        idx = idx + 1
 
 

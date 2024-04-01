@@ -41,8 +41,8 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode btype = nm->booleanType();
-  d_none = sm->mkInternalSkolemFunction(InternalSkolemFunId::IEVAL_NONE, btype);
-  d_some = sm->mkInternalSkolemFunction(InternalSkolemFunId::IEVAL_SOME, btype);
+  d_none = sm->mkInternalSkolemFunction(InternalSkolemId::IEVAL_NONE, btype);
+  d_some = sm->mkInternalSkolemFunction(InternalSkolemId::IEVAL_SOME, btype);
 }
 
 bool State::hasInitialized() const { return d_initialized.get(); }

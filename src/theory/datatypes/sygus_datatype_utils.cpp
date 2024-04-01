@@ -154,7 +154,7 @@ Node mkSygusTerm(const Node& op,
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(nm->getSkolemManager()->getInternalId(op)
-         != InternalSkolemFunId::SYGUS_ANY_CONSTANT);
+         != InternalSkolemId::SYGUS_ANY_CONSTANT);
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {
@@ -425,7 +425,11 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
     }
   }
   // make the sygus variable list for the formal argument list
-  Node abvl = nm->mkNode(Kind::BOUND_VAR_LIST, formalVars);
+  Node abvl;
+  if (!formalVars.empty())
+  {
+    abvl = nm->mkNode(Kind::BOUND_VAR_LIST, formalVars);
+  }
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   // must convert all constructors to version with variables in "vars"

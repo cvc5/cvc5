@@ -37,7 +37,6 @@ from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
 from cvc5 cimport Proof as c_Proof
 from cvc5 cimport Sort as c_Sort
-from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
 from cvc5 cimport wstring as c_wstring
@@ -50,6 +49,7 @@ from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
 from cvc5proofrules cimport ProofRule as c_ProofRule
+from cvc5skolemids cimport SkolemId as c_SkolemId
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
@@ -178,9 +178,11 @@ cdef class SymbolManager:
         Wrapper class for the C++ class :cpp:class:`cvc5::parser::SymbolManager`.
     """
     cdef c_SymbolManager* csm
+    cdef Solver solver
 
     def __cinit__(self, Solver solver):
         self.csm = new c_SymbolManager(solver.csolver)
+        self.solver = solver
 
     def __dealloc__(self):
         del self.csm
@@ -200,6 +202,38 @@ cdef class SymbolManager:
             :return: The logic used by this symbol manager.
         """
         return self.csm.getLogic().decode()
+
+    def getDeclaredSorts(self):
+        """
+            Get the list of sorts that have been declared via declare-sort.
+            These are the sorts that are printed in response to a
+            get-model command.
+
+            :return: The declared sorts.
+        """
+        sorts = []
+        csorts = self.csm.getDeclaredSorts()
+        for c in csorts:
+            sort = Sort(self.solver)
+            sort.csort = c
+            sorts.append(sort)
+        return sorts
+
+    def getDeclaredTerms(self):
+        """
+            Get the list of terms that have been declared via declare-fun and
+            declare-const. These are the terms that are printed in response to a
+            get-model command.
+
+            :return: The declared terms.
+        """
+        terms = []
+        cterms = self.csm.getDeclaredTerms()
+        for c in cterms:
+            term = Term(self.solver)
+            term.cterm = c
+            terms.append(term)
+        return terms
 
 # ----------------------------------------------------------------------------
 # Command
@@ -5398,6 +5432,40 @@ cdef class Term:
         return _term(
             self.tm,
             self.cterm.getRealAlgebraicNumberUpperBound())
+
+    def isSkolem(self):
+        """
+            :return: True if the term is a skolem.
+
+            .. warning:: This function is experimental and may change in future
+                         versions.
+        """
+        return self.cterm.isSkolem()
+
+    def getSkolemId(self):
+        """
+            Get skolem identifier of this term.
+            .. note:: Asserts :py:meth:`isSkolem()`.
+            .. warning:: This function is experimental and may change in future
+                         versions.
+            :return: The skolem identifier of this term.
+        """
+        return SkolemId(<int> self.cterm.getSkolemId())
+
+    def getSkolemIndices(self):
+        """
+            .. note:: Asserts :py:meth:`isSkolem()`.
+            .. warning:: This function is experimental and may change in future
+                         versions.
+
+           :return: The skolem indices of this term. This is list of terms that
+            the skolem function is indexed by. For example, the array diff
+            skolem `SkolemId.ARRAY_DEQ_DIFF` is indexed by two arrays.
+        """
+        indices = []
+        for i in self.cterm.getSkolemIndices():
+            indices.append(_term(self.tm, i))
+        return indices
 
     def isUninterpretedSortValue(self):
         """

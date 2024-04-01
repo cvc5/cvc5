@@ -28,6 +28,7 @@ namespace sep {
 class TheorySepRewriter : public TheoryRewriter
 {
  public:
+  TheorySepRewriter(NodeManager* nm);
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override
   {

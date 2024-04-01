@@ -27,6 +27,7 @@ namespace sets {
 class TheorySetsRewriter : public TheoryRewriter
 {
  public:
+  TheorySetsRewriter(NodeManager* nm);
   /**
    * Rewrite a node into the normal form for the theory of sets.
    * Called in post-order (really reverse-topological order) when

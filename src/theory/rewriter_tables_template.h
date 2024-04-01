@@ -80,7 +80,10 @@ ${post_rewrite_set_cache}
   }
 }
 
-Rewriter::Rewriter() : d_resourceManager(nullptr), d_tpg(nullptr) {}
+Rewriter::Rewriter(NodeManager* nm)
+    : d_nm(nm), d_resourceManager(nullptr), d_tpg(nullptr)
+{
+}
 
 }  // namespace theory
 }  // namespace cvc5::internal
