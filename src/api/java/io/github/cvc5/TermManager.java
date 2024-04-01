@@ -777,7 +777,7 @@ public class TermManager extends AbstractPointer
   private native long mkNullableIsSome(long pointer, long termPointer);
 
   /**
-   * Create a constant representing an null of the given sort.
+   * Create a constant representing a null value of the given sort.
    * @param sort The sort of the Nullable element.
    * @return The null constant.
    */
