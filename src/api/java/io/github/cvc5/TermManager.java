@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * A cvc5 solver.
+ * A cvc5 term manager.
  */
 public class TermManager extends AbstractPointer
 {
