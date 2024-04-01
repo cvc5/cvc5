@@ -920,7 +920,7 @@ public class Solver extends AbstractPointer
   }
 
   /**
-   * Create a constant representing an null of the given sort.
+   * Create a constant representing a null value of the given sort.
    *
    * @deprecated
    * This function is deprecated and replaced by
