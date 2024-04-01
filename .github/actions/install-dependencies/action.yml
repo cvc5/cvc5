@@ -128,8 +128,6 @@ runs:
         echo "::group::Install software for Python bindings"
         python3 -m pip install -q --upgrade pip
         python3 -m pip install -r contrib/requirements_python_dev.txt
-        # Add binary path of user site-packages to PATH
-        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
         echo "::endgroup::"
 
     - name: Install software for Python packaging
