@@ -1168,7 +1168,8 @@ Node SolverEngine::getValue(const Node& t) const
     {
       // construct the skolem function
       SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
-      Node a = skm->mkSkolemFunction(SkolemFunId::ABSTRACT_VALUE, resultNode);
+      Node a = skm->mkInternalSkolemFunction(
+          InternalSkolemId::ABSTRACT_VALUE, rtn, {resultNode});
       // add to top-level substitutions if applicable
       theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
       if (!tsm.get().hasSubstitution(resultNode))

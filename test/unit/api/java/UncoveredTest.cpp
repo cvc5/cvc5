@@ -115,6 +115,7 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
   ss << cvc5::modes::ProofFormat::LFSC
      << std::to_string(cvc5::modes::ProofFormat::LFSC);
+  ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
   ss << cvc5::ProofRule::ASSUME;
   ss << cvc5::Result();
   ss << cvc5::Op();
@@ -229,6 +230,12 @@ TEST_F(TestApiBlackUncovered, Proof)
   ASSERT_TRUE(proof.getResult().isNull());
   ASSERT_TRUE(proof.getChildren().empty());
   ASSERT_TRUE(proof.getArguments().empty());
+}
+
+TEST_F(TestApiBlackUncovered, SkolemId)
+{
+  ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
+            static_cast<size_t>(SkolemId::PURIFY));
 }
 
 TEST_F(TestApiBlackUncovered, Parser)

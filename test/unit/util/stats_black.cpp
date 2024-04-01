@@ -48,7 +48,7 @@ class TestUtilBlackStats : public TestEnv
 TEST_F(TestUtilBlackStats, stats)
 {
 #ifdef CVC5_STATISTICS_ON
-  StatisticsRegistry reg(*d_env.get(), false);
+  StatisticsRegistry reg(false, false, false);
   std::string empty, bar = "bar", baz = "baz";
 
   AverageStat avg = reg.registerAverage("avg");

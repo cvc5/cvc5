@@ -46,7 +46,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-ArithRewriter::ArithRewriter(OperatorElim& oe) : d_opElim(oe) {}
+ArithRewriter::ArithRewriter(NodeManager* nm, OperatorElim& oe)
+    : TheoryRewriter(nm), d_opElim(oe)
+{
+}
 
 RewriteResponse ArithRewriter::preRewrite(TNode t)
 {
@@ -933,26 +936,20 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
 {
   Trace("arith-tf-rewrite")
       << "Rewrite transcendental function : " << t << std::endl;
+  Assert(t.getTypeOrNull(true).isReal());
   NodeManager* nm = NodeManager::currentNM();
-  if (t[0].getKind() == Kind::TO_REAL)
-  {
-    // always strip TO_REAL from argument.
-    Node ret = nm->mkNode(t.getKind(), t[0][0]);
-    return RewriteResponse(REWRITE_AGAIN, ret);
-  }
   switch (t.getKind())
   {
     case Kind::EXPONENTIAL:
     {
       if (t[0].isConst())
       {
-        Node one = rewriter::mkConst(Integer(1));
-        if (t[0].getConst<Rational>().sgn() >= 0 && t[0].getType().isInteger()
-            && t[0] != one)
+        Rational r = t[0].getConst<Rational>();
+        if (r.sgn() == 0)
         {
-          return RewriteResponse(
-              REWRITE_AGAIN,
-              nm->mkNode(Kind::POW, nm->mkNode(Kind::EXPONENTIAL, one), t[0]));
+          Node one = nm->mkConstReal(Rational(1));
+          // (= (exp 0.0) 1.0)
+          return RewriteResponse(REWRITE_DONE, one);
         }
         else
         {
@@ -964,7 +961,8 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
         std::vector<Node> product;
         for (const Node tc : t[0])
         {
-          product.push_back(nm->mkNode(Kind::EXPONENTIAL, tc));
+          Node tcr = rewriter::ensureReal(tc);
+          product.push_back(nm->mkNode(Kind::EXPONENTIAL, tcr));
         }
         // We need to do a full rewrite here, since we can get exponentials of
         // constants, e.g. when we are rewriting exp(2 + x)

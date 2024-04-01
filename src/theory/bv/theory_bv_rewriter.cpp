@@ -27,7 +27,10 @@ using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::theory::bv;
 
-TheoryBVRewriter::TheoryBVRewriter() { initializeRewrites(); }
+TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
+{
+  initializeRewrites();
+}
 
 RewriteResponse TheoryBVRewriter::preRewrite(TNode node)
 {

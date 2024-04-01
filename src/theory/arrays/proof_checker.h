@@ -29,8 +29,7 @@ namespace arrays {
 class ArraysProofRuleChecker : public ProofRuleChecker
 {
  public:
-  ArraysProofRuleChecker() {}
-  ~ArraysProofRuleChecker() {}
+  ArraysProofRuleChecker(NodeManager* nm);
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;

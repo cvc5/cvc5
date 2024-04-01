@@ -31,7 +31,7 @@ TheoryId& operator++(TheoryId& id)
   return id = static_cast<TheoryId>(static_cast<int>(id) + 1);
 }
 
-std::string toString(TheoryId theoryId)
+const char* toString(TheoryId theoryId)
 {
   switch (theoryId)
   {

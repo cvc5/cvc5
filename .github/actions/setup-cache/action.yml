@@ -35,7 +35,6 @@ runs:
   using: composite
   steps:
     - name: Setup ccache cache
-      if: runner.os != 'Windows'
       uses: actions/cache@v4
       with:
         path: ccache-dir
@@ -43,10 +42,9 @@ runs:
         restore-keys: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-
 
     - name: Configure ccache
-      if: runner.os != 'Windows'
       shell: ${{ inputs.shell }}
       run: |
-        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
+        ccache --set-config=cache_dir="${{ github.workspace }}/ccache-dir"
         ccache --set-config=compression=true
         ccache --set-config=compression_level=6
         ccache -M 500M
