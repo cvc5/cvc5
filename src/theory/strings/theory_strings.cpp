@@ -828,7 +828,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
     {
       cacheVals[1] = nm->mkConstInt(Rational(i));
       Node kv = sm->mkInternalSkolemFunction(
-          InternalSkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
+          InternalSkolemId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
       skChildren.push_back(utils::mkUnit(tn, kv));
     }
   }

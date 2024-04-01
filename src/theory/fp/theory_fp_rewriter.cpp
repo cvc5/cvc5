@@ -1196,14 +1196,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     d_preRewriteTable[static_cast<uint32_t>(
         Kind::FLOATINGPOINT_TO_REAL_TOTAL)] = rewrite::identity;
 
-    /******** Variables ********/
-    d_preRewriteTable[static_cast<uint32_t>(Kind::VARIABLE)] =
-        rewrite::variable;
-    d_preRewriteTable[static_cast<uint32_t>(Kind::BOUND_VARIABLE)] =
-        rewrite::variable;
-    d_preRewriteTable[static_cast<uint32_t>(Kind::SKOLEM)] = rewrite::variable;
-    d_preRewriteTable[static_cast<uint32_t>(Kind::INST_CONSTANT)] =
-        rewrite::variable;
+    /******** Equality ********/
 
     d_preRewriteTable[static_cast<uint32_t>(Kind::EQUAL)] = rewrite::equal;
 

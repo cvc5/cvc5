@@ -73,7 +73,7 @@ namespace cvc5 {
  * \internal
  * 
  */
-enum ENUM(SkolemFunId) : uint32_t
+enum ENUM(SkolemId) : uint32_t
 {
   /**
    * The identifier of the skolem is not exported. These skolems should not
@@ -81,18 +81,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(INTERNAL),
   /** 
-   * The input variable with a given name. This is used when the option
-   * fresh-declarations is set to false.
-   * 
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` A string constant corresponding to the name of the variable.
-   *   - ``2:`` A term that represents the sort T of the variable.
-   * - Type: ``T``
-   */
-  EVALUE(INPUT_VARIABLE),
-  /** 
    * The purification skolem for a term. This is a variable that is semantically
-   * equivalent to the argument term t.
+   * equivalent to the indexed term t.
    * 
    * - Number of skolem indices: ``1``
    *   - ``1:`` The term t that this skolem purifies.
@@ -134,13 +124,17 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(MOD_BY_ZERO),
   /** 
-   * The function for square root, which is used for ensuring that sqrt is
-   * functional.
+   * A function introduced to eliminate extended trancendental functions.
+   * Transcendental functions like sqrt, arccos, arcsin, etc. are replaced
+   * during processing with uninterpreted functions that are unique to
+   * each function.
    *
-   * - Number of skolem indices: ``0``
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` A lambda corresponding to the function, e.g. 
+   *   `(lambda ((x Real)) (sqrt x))`.
    * - Type: ``(-> Real Real)``
    */
-  EVALUE(SQRT),
+  EVALUE(TRANSCENDENTAL_PURIFY),
   /**
    * Argument used to purify trancendental function app ``(f x)``.
    * For ``(sin x)``, this is a variable that is assumed to be in phase with
@@ -161,8 +155,8 @@ enum ENUM(SkolemFunId) : uint32_t
    *   - ``2:`` A term that represents the sort of field we are extracting.
    *   - ``3:`` An integer n such that this shared selector returns the n^th
    *            subfield term of the given sort.
-   * - Type: A selector sort whose domain is given by first argument,
-   *         and whose codomain is the given by the second argument.
+   * - Type: A selector sort whose domain is given by first index,
+   *         and whose codomain is the given by the second index.
    */
   EVALUE(SHARED_SELECTOR),
   /**
@@ -170,9 +164,8 @@ enum ENUM(SkolemFunId) : uint32_t
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The quantified formula Q.
-   *   - ``2:`` An integer n, where this skolem corresponds to the skolemization
-   *            of the n^th variable in the variable list of Q.
-   * - Type: The type of the n^th variable of Q.
+   *   - ``2:`` The variable in the binder of Q to skolemize.
+   * - Type: The type of the second index.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
   /** 
@@ -279,8 +272,8 @@ enum ENUM(SkolemFunId) : uint32_t
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
-   * An index containing a non-digit in a string, used when ``(str.to_int a)``
-   * is equal to -1. This is an integer that returns an index for which the
+   * A position containing a non-digit in a string, used when ``(str.to_int a)``
+   * is equal to -1. This is an integer that returns a position for which the
    * argument string is not a digit if one exists, or is unconstrained otherwise.
    *
    * - Number of skolem indices: ``1``
@@ -350,54 +343,32 @@ enum ENUM(SkolemFunId) : uint32_t
    * combine of type Int -> Int where:
    * combine(0) = 0.
    * combine(i) = m(elements(i), A) + combine(i-1) for 1 <= i <= n.
-   * elements: a skolem function for (bag.fold f t A)
-   *            see BAGS_CARD_ELEMENTS.
+   * elements: a skolem function for (bag.fold f t A).
+   *           See BAGS_DISTINCT_ELEMENTS.
    * n: is the number of distinct elements in A.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` the bag argument A.
    * - Type: ``(-> Int Int)``
    */
-  EVALUE(BAGS_CARD_COMBINE),  
+  EVALUE(BAGS_CARD_COMBINE),
   /**
-   * An uninterpreted function for bag.card operator:
-   * To compute ``(bag.card A)``, we need a function for
-   * distinct elements in A. We call this function
-   * elements of type Int -> T where T is the type of
-   * elements of A.
-   *
-   * - Number of skolem indices: ``1``
-   *   - ``1:`` the bag argument A of type (Bag T).
-   * - Type: ``(-> Int T)``
-   */
-  EVALUE(BAGS_CARD_ELEMENTS),
-  /**
-   * An uninterpreted function for bag.card operator:
-   * To compute ``(bag.card A)``, we need to guess n
-   * the number of distinct elements in A.
-   *
-   * - Number of skolem indices: ``1``
-   *   - ``1:`` the bag argument A.
-   * - Type: ``Int``
-   */
-  EVALUE(BAGS_CARD_N),
-  /**
-   * An uninterpreted function for bag.card operator:
-   * To compute ``(bag.card A)``, we need a function for
-   * distinct elements in A which is given by elements defined in
-   * BAGS_CARD_ELEMENTS.
-   * We also need unionDisjoint: Int -> (Bag T) to compute
-   * the disjoint union such that:
+   * An uninterpreted function for the union of distinct elements 
+   * in a bag (Bag T). To compute operators like bag.card, 
+   * we need a function for distinct elements in A of type (-> Int T)
+   * (see BAGS_DISTINCT_ELEMENTS).
+   * We also need to restrict the range [1, n] to only elements in the bag 
+   * as follows:
    * unionDisjoint(0) = bag.empty.
    * unionDisjoint(i) = disjoint union of {<elements(i), m(elements(i), A)>}
-   * and unionDisjoint(i-1).
+   *                    and unionDisjoint(i-1).
    * unionDisjoint(n) = A.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` the bag argument A of type (Bag T).
    * - Type: ``(-> Int (Bag T))``
    */
-  EVALUE(BAGS_CARD_UNION_DISJOINT),
+  EVALUE(BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT),
   /**
    * An uninterpreted function for bag.fold operator:
    * To compute ``(bag.fold f t A)``, we need to guess the cardinality n of
@@ -476,6 +447,7 @@ enum ENUM(SkolemFunId) : uint32_t
   /**
    * An uninterpreted function for distinct elements of a bag A, which returns
    * the n^th distinct element of the bag.
+   * See BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` the bag argument A of type ``(Bag T)``.
@@ -685,30 +657,34 @@ enum ENUM(SkolemFunId) : uint32_t
   //================================================= Unknown rule
   /** Indicates this is not a skolem. */
   EVALUE(NONE),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 // clang-format on
 
 #ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
-typedef enum ENUM(SkolemFunId) ENUM(SkolemFunId);
+typedef enum ENUM(SkolemId) ENUM(SkolemId);
 #endif
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
 
 /**
- * Get a string representation of a Cvc5SkolemFunId.
+ * Get a string representation of a Cvc5SkolemId.
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_skolem_id_to_string(Cvc5SkolemFunId kind);
+const char* cvc5_skolem_id_to_string(Cvc5SkolemId kind);
 
 /**
- * Hash function for Cvc5SkolemFunId.
+ * Hash function for Cvc5SkolemId.
  * @param rule The proof rule.
  * @return The hash value.
  */
-size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
+size_t cvc5_skolem_id_hash(Cvc5SkolemId rule);
 
 #else
 
@@ -719,29 +695,29 @@ size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
  * @param id The skolem id to write to the stream
  * @return The stream
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SkolemFunId id);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SkolemId id);
 }  // namespace cvc5
 
 namespace std {
 /**
- * Hash function for SkolemFunIds.
+ * Hash function for SkolemIds.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::SkolemFunId>
+struct CVC5_EXPORT hash<cvc5::SkolemId>
 {
   /**
-   * Hashes a SkolemFunId to a size_t.
+   * Hashes a SkolemId to a size_t.
    * @param id The skolem id.
    * @return The hash value.
    */
-  size_t operator()(cvc5::SkolemFunId id) const;
+  size_t operator()(cvc5::SkolemId id) const;
 };
 /**
  * Get the string representation of a given skolem identifier.
  * @param id The skolem identifier
  * @return The string representation.
  */
-std::string to_string(cvc5::SkolemFunId id);
+std::string to_string(cvc5::SkolemId id);
 
 }  // namespace std
 
