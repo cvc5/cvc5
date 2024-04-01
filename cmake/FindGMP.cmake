@@ -88,14 +88,26 @@ if(NOT GMP_FOUND_SYSTEM)
   endif()
 
   set(CONFIGURE_OPTS "")  
-  set(CONFIGURE_ENV  "")
+  # GMP yields the following message at the end of the build process.
+  #     WARNING: `makeinfo' is missing on your system.
+
+  # This is a specific issue to Github CI on linux environments:
+  #     https://github.com/ps2dev/ps2toolchain/issues/64
+  #     https://github.com/spack/spack/issues/34906
+  #     https://github.com/periscop/candl/issues/16
+  #     https://github.com/microsoft/vcpkg/issues/22671
+  # Many solution attempts have been tried, but none worked.
+
+  # Since makeinfo just builds the documentation for GMP,
+  # it is possible to get around this issue by just disabling it:
+  set(CONFIGURE_ENV env "MAKEINFO=true")
 
   if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
     set(CONFIGURE_OPTS
       --host=${TOOLCHAIN_PREFIX}
       --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
 
-    set(CONFIGURE_ENV ${CMAKE_COMMAND} -E
+    set(CONFIGURE_ENV ${CONFIGURE_ENV} ${CMAKE_COMMAND} -E
       env "CC_FOR_BUILD=cc")
     if (CMAKE_CROSSCOMPILING_MACOS)
       set(CONFIGURE_ENV
