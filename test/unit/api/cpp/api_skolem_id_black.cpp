@@ -45,7 +45,7 @@ TEST_F(TestApiSkolemId, skolemIdHash)
 {
   ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
             static_cast<size_t>(SkolemId::PURIFY));
-}s
+}
 
 }  // namespace test
 }  // namespace cvc5::internal
