@@ -29,7 +29,7 @@ typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 class TheoryBVRewriter : public TheoryRewriter
 {
  public:
-  TheoryBVRewriter();
+  TheoryBVRewriter(NodeManager* nm);
 
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;

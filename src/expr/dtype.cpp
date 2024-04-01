@@ -930,7 +930,7 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   cacheVals.push_back(nm->mkConst(SortToTerm(dtt)));
   cacheVals.push_back(nm->mkConst(SortToTerm(t)));
   cacheVals.push_back(nm->mkConstInt(Rational(index)));
-  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, cacheVals);
+  s = sm->mkSkolemFunction(SkolemId::SHARED_SELECTOR, cacheVals);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;

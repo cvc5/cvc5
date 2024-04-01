@@ -2259,6 +2259,10 @@ enum ENUM(ProofRule) : uint32_t
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 // clang-format on
 

@@ -126,6 +126,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::DISTINCT, internal::Kind::DISTINCT),
         KIND_ENUM(Kind::CONSTANT, internal::Kind::VARIABLE),
         KIND_ENUM(Kind::VARIABLE, internal::Kind::BOUND_VARIABLE),
+        KIND_ENUM(Kind::SKOLEM, internal::Kind::SKOLEM),
         KIND_ENUM(Kind::SEXPR, internal::Kind::SEXPR),
         KIND_ENUM(Kind::LAMBDA, internal::Kind::LAMBDA),
         KIND_ENUM(Kind::WITNESS, internal::Kind::WITNESS),
@@ -508,6 +509,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::EQUAL, Kind::EQUAL},
         {internal::Kind::DISTINCT, Kind::DISTINCT},
         {internal::Kind::VARIABLE, Kind::CONSTANT},
+        {internal::Kind::SKOLEM, Kind::SKOLEM},
         {internal::Kind::BOUND_VARIABLE, Kind::VARIABLE},
         {internal::Kind::SEXPR, Kind::SEXPR},
         {internal::Kind::LAMBDA, Kind::LAMBDA},
@@ -3592,6 +3594,60 @@ Term Term::getRealAlgebraicNumberUpperBound() const
 #else
   return Term();
 #endif
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Term::isSkolem() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->getKind() == internal::Kind::SKOLEM;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+SkolemId Term::getSkolemId() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+      << "Term to be a skolem when calling getSkolemId";
+  //////// all checks before this line
+  return skm->getId(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> Term::getSkolemIndices() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+      << "Term to be a skolem when calling getSkolemIndices";
+  //////// all checks before this line
+  internal::Node cacheVal;
+  SkolemId id;
+  skm->isSkolemFunction(*d_node, id, cacheVal);
+  std::vector<Term> args;
+  if (!cacheVal.isNull())
+  {
+    if (cacheVal.getKind() == internal::Kind::SEXPR)
+    {
+      for (const internal::Node& nc : cacheVal)
+      {
+        args.push_back(Term(d_tm, nc));
+      }
+    }
+    else
+    {
+      args.push_back(Term(d_tm, cacheVal));
+    }
+  }
+  return args;
   ////////
   CVC5_API_TRY_CATCH_END;
 }

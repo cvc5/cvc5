@@ -30,8 +30,7 @@ namespace strings {
 class StringProofRuleChecker : public ProofRuleChecker
 {
  public:
-  StringProofRuleChecker(uint32_t alphaCard) : d_alphaCard(alphaCard) {}
-  ~StringProofRuleChecker() {}
+  StringProofRuleChecker(NodeManager* nm, uint32_t alphaCard);
 
   /** Register all rules owned by this rule checker in pc. */
   void registerTo(ProofChecker* pc) override;

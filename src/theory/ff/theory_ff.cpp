@@ -54,6 +54,7 @@ TheoryFiniteFields::TheoryFiniteFields(Env& env,
                                        OutputChannel& out,
                                        Valuation valuation)
     : Theory(THEORY_FF, env, out, valuation),
+      d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, getStatsPrefix(THEORY_FF)),
       d_eqNotify(d_im),

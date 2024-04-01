@@ -30,7 +30,7 @@ namespace uf {
 class UfProofRuleChecker : public ProofRuleChecker
 {
  public:
-  UfProofRuleChecker() {}
+  UfProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm) {}
   ~UfProofRuleChecker() {}
 
   /** Register all rules owned by this rule checker into pc. */

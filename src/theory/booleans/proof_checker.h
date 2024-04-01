@@ -29,8 +29,7 @@ namespace booleans {
 class BoolProofRuleChecker : public ProofRuleChecker
 {
  public:
-  BoolProofRuleChecker() {}
-  ~BoolProofRuleChecker() {}
+  BoolProofRuleChecker(NodeManager* nm);
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
