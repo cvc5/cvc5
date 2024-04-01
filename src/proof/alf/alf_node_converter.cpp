@@ -79,7 +79,7 @@ Node AlfNodeConverter::postConvert(Node n)
     return n;
   }
   TypeNode tn = n.getType();
-  if (k == Kind::SKOLEM)
+  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -136,29 +136,6 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (k == Kind::HO_APPLY)
   {
     return mkInternalApp("_", {n[0], n[1]}, tn);
-  }
-  else if (k == Kind::CONST_INTEGER)
-  {
-    Rational r = n.getConst<Rational>();
-    if (r.sgn() == -1)
-    {
-      // negative integers are printed as "-n"
-      std::stringstream ss;
-      ss << "-" << r.abs();
-      return mkInternalSymbol(ss.str(), tn);
-    }
-    return n;
-  }
-  else if (k == Kind::CONST_RATIONAL)
-  {
-    Rational r = n.getConst<Rational>();
-    // ensure rationals are printed properly here using alf syntax,
-    // which is "n/d" or "-n/d".
-    Integer num = r.getNumerator().abs();
-    Integer den = r.getDenominator();
-    std::stringstream ss;
-    ss << (r.sgn() == -1 ? "-" : "") << num << "/" << den;
-    return mkInternalSymbol(ss.str(), tn);
   }
   else if (n.isClosure())
   {
@@ -337,13 +314,13 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  SkolemFunId sfi = SkolemFunId::NONE;
+  SkolemId sfi = SkolemId::NONE;
   Node cacheVal;
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
     Node app;
-    if (sfi == SkolemFunId::PURIFY)
+    if (sfi == SkolemId::PURIFY)
     {
       Assert(cacheVal.getType() == k.getType());
       // special case: just use self
@@ -353,35 +330,18 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
     {
       // convert every skolem function to its name applied to arguments
       std::stringstream ss;
-      ss << "@k." << sfi;
+      ss << "@" << sfi;
       std::vector<Node> args;
-      if (sfi == SkolemFunId::QUANTIFIERS_SKOLEMIZE)
+      if (cacheVal.getKind() == Kind::SEXPR)
       {
-        // must provide the variable, not the index (for typing)
-        Assert(cacheVal.getNumChildren() == 2);
-        Assert(cacheVal[0].getKind() == Kind::EXISTS);
-        Node q = convert(cacheVal[0]);
-        Node index = cacheVal[1];
-        Assert(index.getKind() == Kind::CONST_INTEGER);
-        const Integer& i = index.getConst<Rational>().getNumerator();
-        Assert(i.fitsUnsignedInt());
-        size_t ii = i.getUnsignedInt();
-        args.push_back(q);
-        args.push_back(convert(q[0][ii]));
+        for (const Node& cv : cacheVal)
+        {
+          args.push_back(convert(cv));
+        }
       }
-      else
+      else if (!cacheVal.isNull())
       {
-        if (cacheVal.getKind() == Kind::SEXPR)
-        {
-          for (const Node& cv : cacheVal)
-          {
-            args.push_back(convert(cv));
-          }
-        }
-        else if (!cacheVal.isNull())
-        {
-          args.push_back(convert(cacheVal));
-        }
+        args.push_back(convert(cacheVal));
       }
       // must convert all arguments
       app = mkInternalApp(ss.str(), args, k.getType());
@@ -692,40 +652,39 @@ size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
   return id;
 }
 
-bool AlfNodeConverter::isHandledSkolemId(SkolemFunId id)
+bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
 {
   switch (id)
   {
-    case SkolemFunId::PURIFY:
-    case SkolemFunId::ARRAY_DEQ_DIFF:
-    case SkolemFunId::DIV_BY_ZERO:
-    case SkolemFunId::INT_DIV_BY_ZERO:
-    case SkolemFunId::MOD_BY_ZERO:
-    case SkolemFunId::SQRT:
-    case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
-    case SkolemFunId::QUANTIFIERS_SKOLEMIZE:
-    case SkolemFunId::STRINGS_NUM_OCCUR:
-    case SkolemFunId::STRINGS_NUM_OCCUR_RE:
-    case SkolemFunId::STRINGS_OCCUR_INDEX:
-    case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemFunId::STRINGS_OCCUR_LEN:
-    case SkolemFunId::STRINGS_OCCUR_LEN_RE:
-    case SkolemFunId::STRINGS_DEQ_DIFF:
-    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
-    case SkolemFunId::STRINGS_ITOS_RESULT:
-    case SkolemFunId::STRINGS_STOI_RESULT:
-    case SkolemFunId::STRINGS_STOI_NON_DIGIT:
-    case SkolemFunId::RE_FIRST_MATCH_PRE:
-    case SkolemFunId::RE_FIRST_MATCH:
-    case SkolemFunId::RE_FIRST_MATCH_POST:
-    case SkolemFunId::RE_UNFOLD_POS_COMPONENT:
-    case SkolemFunId::BAGS_DEQ_DIFF:
-    case SkolemFunId::BAGS_DISTINCT_ELEMENTS:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
-    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
-    case SkolemFunId::BAGS_MAP_SUM:
-    case SkolemFunId::TABLES_GROUP_PART:
-    case SkolemFunId::TABLES_GROUP_PART_ELEMENT: return true;
+    case SkolemId::PURIFY:
+    case SkolemId::ARRAY_DEQ_DIFF:
+    case SkolemId::DIV_BY_ZERO:
+    case SkolemId::INT_DIV_BY_ZERO:
+    case SkolemId::MOD_BY_ZERO:
+    case SkolemId::TRANSCENDENTAL_PURIFY:
+    case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
+    case SkolemId::QUANTIFIERS_SKOLEMIZE:
+    case SkolemId::STRINGS_NUM_OCCUR:
+    case SkolemId::STRINGS_NUM_OCCUR_RE:
+    case SkolemId::STRINGS_OCCUR_INDEX:
+    case SkolemId::STRINGS_OCCUR_INDEX_RE:
+    case SkolemId::STRINGS_OCCUR_LEN_RE:
+    case SkolemId::STRINGS_DEQ_DIFF:
+    case SkolemId::STRINGS_REPLACE_ALL_RESULT:
+    case SkolemId::STRINGS_ITOS_RESULT:
+    case SkolemId::STRINGS_STOI_RESULT:
+    case SkolemId::STRINGS_STOI_NON_DIGIT:
+    case SkolemId::RE_FIRST_MATCH_PRE:
+    case SkolemId::RE_FIRST_MATCH:
+    case SkolemId::RE_FIRST_MATCH_POST:
+    case SkolemId::RE_UNFOLD_POS_COMPONENT:
+    case SkolemId::BAGS_DEQ_DIFF:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS:
+    case SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
+    case SkolemId::BAGS_MAP_SUM:
+    case SkolemId::TABLES_GROUP_PART:
+    case SkolemId::TABLES_GROUP_PART_ELEMENT: return true;
     default: break;
   }
   return false;

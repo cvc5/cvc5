@@ -81,12 +81,9 @@ Java_io_github_cvc5_SymbolManager_getLogic(JNIEnv* env, jobject, jlong pointer)
  * Method:    getDeclaredSorts
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_SymbolManager_getDeclaredSorts(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer)
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_SymbolManager_getDeclaredSorts(
+    JNIEnv* env, jobject, jlong pointer)
 {
-
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   SymbolManager* symbolManager = reinterpret_cast<SymbolManager*>(pointer);
   std::vector<Sort> sorts = symbolManager->getDeclaredSorts();

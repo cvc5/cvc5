@@ -260,6 +260,9 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 
 void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
+  // ensures options are set once and for all
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyPrintArithLitToken(out, true);
   d_pfIdCounter = 0;
 
   // Get the definitions and assertions and print the declarations from them
@@ -305,10 +308,10 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       }
       if (options().proof.alfPrintReference)
       {
-        // parse_normalize is used as the normalization function for the input
         // [1] print the reference
-        out << "(reference \"" << options().driver.filename
-            << "\" parse_normalize)" << std::endl;
+        // we currently do not need to provide a normalization routine.
+        out << "(reference \"" << options().driver.filename << "\")"
+            << std::endl;
         // [2] print the universal variables
         out << outVars.str();
       }
@@ -534,8 +537,12 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   // if we don't handle the rule, print trust
   if (!handled)
   {
-    out->printTrustStep(
-        pn->getRule(), conclusionPrint, id, premises, conclusion);
+    out->printTrustStep(pn->getRule(),
+                        conclusionPrint,
+                        id,
+                        premises,
+                        pn->getArguments(),
+                        conclusion);
     return;
   }
   std::string rname = getRuleName(pn);

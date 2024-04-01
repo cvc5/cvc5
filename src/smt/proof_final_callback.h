@@ -28,6 +28,7 @@
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
+#include "theory/theory_id.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -70,6 +71,10 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    * Counts number of postprocessed proof nodes for each trusted step
    */
   HistogramStat<TrustId> d_trustIds;
+  /**
+   * Counts number of theory ids in TRUST_THEORY_REWRITE steps.
+   */
+  HistogramStat<theory::TheoryId> d_trustTheoryIdCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */

@@ -10,6 +10,7 @@ from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
 from cvc5proofrules cimport ProofRule
+from cvc5skolemids cimport SkolemId
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -624,6 +625,9 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) except +
         Term getRealAlgebraicNumberLowerBound() except +
         Term getRealAlgebraicNumberUpperBound() except +
+        bint isSkolem() except +
+        SkolemId getSkolemId() except +
+        vector[Term] getSkolemIndices() except +
 
         bint isConstArray() except +
         bint isBooleanValue() except +
