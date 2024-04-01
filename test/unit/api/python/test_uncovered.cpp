@@ -400,6 +400,12 @@ TEST_F(TestApiBlackUncovered, Proof)
   ASSERT_TRUE(proof.getArguments().empty());
 }
 
+TEST_F(TestApiBlackUncovered, SkolemId)
+{
+  ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
+            static_cast<size_t>(SkolemId::PURIFY));
+}
+
 TEST_F(TestApiBlackUncovered, Parser)
 {
   parser::Command command;
