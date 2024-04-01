@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1140,7 +1140,7 @@ public class Solver extends AbstractPointer
    */
   public Term mkString(String s, boolean useEscSequences)
   {
-    // TODO: review unicode
+    // TODO: review unicode https://github.com/cvc5/cvc5-wishues/issues/150
     long termPointer = mkString(pointer, s, useEscSequences);
     return new Term(termPointer);
   }

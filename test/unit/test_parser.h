@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ class TestParser : public TestApi
   void SetUp() override
   {
     TestApi::SetUp();
-    d_symman.reset(new SymbolManager(&d_solver));
+    d_symman.reset(new SymbolManager(d_solver.get()));
   }
 
   void TearDown() override { d_symman.reset(nullptr); }

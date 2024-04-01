@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,6 +25,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
+
+ExtProofRuleChecker::ExtProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm)
+{
+}
 
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
@@ -117,19 +121,18 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
   else if (id == ProofRule::ARITH_MULT_TANGENT)
   {
     Assert(children.empty());
-    Assert(args.size() == 6);
+    Assert(args.size() == 5);
     Assert(args[0].getType().isRealOrInt());
     Assert(args[1].getType().isRealOrInt());
     Assert(args[2].getType().isRealOrInt());
     Assert(args[3].getType().isRealOrInt());
-    Assert(args[4].getType().isRealOrInt());
-    Assert(args[5].isConst() && args[5].getConst<Rational>().isIntegral());
-    Node t = args[0];
-    Node x = args[1];
-    Node y = args[2];
-    Node a = args[3];
-    Node b = args[4];
-    int sgn = args[5].getConst<Rational>().getNumerator().sgn();
+    Assert(args[4].isConst() && args[4].getConst<Rational>().isIntegral());
+    Node x = args[0];
+    Node y = args[1];
+    Node t = nm->mkNode(Kind::NONLINEAR_MULT, x, y);
+    Node a = args[2];
+    Node b = args[3];
+    int sgn = args[4].getConst<Rational>().getNumerator().sgn();
     Assert(sgn == -1 || sgn == 1);
     Node tplane = nm->mkNode(Kind::SUB,
                              nm->mkNode(Kind::ADD,

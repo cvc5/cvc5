@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-option :sygus-inference true)
+(set-option :sygus-inference try)
 (set-info :status sat)
 (declare-fun a (Int) Int) 
 (assert (exists ((b Int)) (distinct (a b) (- b  29)))) 

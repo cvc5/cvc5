@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,7 +110,7 @@ Node ForeignTheoryRewriter::rewriteStringsGeq(Node n)
   // check if the node can be simplified to true
   if (ae.check(n[0], n[1], false))
   {
-    return NodeManager::currentNM()->mkConst(true);
+    return nodeManager()->mkConst(true);
   }
   return n;
 }

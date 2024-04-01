@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Mudathir Mohamed
+ *   Andrew Reynolds, Dejan Jovanovic, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -389,7 +389,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
     }
   }
   else if (nodeType.isBoolean() && inTerm
-           && sm->getId(node) != SkolemFunId::PURIFY)
+           && sm->getId(node) != SkolemId::PURIFY)
   {
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
@@ -399,7 +399,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
       // Make the skolem to represent the Boolean term
       // Skolems introduced for Boolean formulas appearing in terms are
-      // purified here (SkolemFunId::PURIFY), which ensures they are handled
+      // purified here (SkolemId::PURIFY), which ensures they are handled
       // properly in theory combination.
       skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);

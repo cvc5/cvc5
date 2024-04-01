@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Daniel Larraz
+#   Daniel Larraz, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -22,8 +22,11 @@ def does_not_raise():
     yield
 
 @pytest.fixture
-def solver():
-    return cvc5.Solver()
+def tm():
+    return cvc5.TermManager()
+@pytest.fixture
+def solver(tm):
+    return cvc5.Solver(tm)
 
 def test_get_solver(solver):
     p = InputParser(solver)
@@ -188,3 +191,22 @@ def test_multiple_parsers(solver):
     p5 = InputParser(s4, sm)
     with pytest.raises(RuntimeError):
         p5.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
+
+
+def test_get_declared_terms_and_sorts(solver):
+    sm = SymbolManager(solver)
+    p = InputParser(solver, sm)
+    p.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
+    p.appendIncrementalStringInput("(set-logic ALL)")
+    p.appendIncrementalStringInput("(declare-sort U 0)")
+    p.appendIncrementalStringInput("(declare-fun x () U)")
+    for i in [0,1,2]:
+      cmd = p.nextCommand()
+      assert cmd.isNull() != True
+      cmd.invoke(solver, sm);
+    sorts = sm.getDeclaredSorts();
+    terms = sm.getDeclaredTerms();
+    assert len(sorts) == 1
+    assert len(terms) == 1
+    assert terms[0].getSort() == sorts[0]
+  

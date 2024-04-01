@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,11 +67,10 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node zero = nm->mkConstInt(Rational(0));
   Node one = nm->mkConstInt(Rational(1));
   // skolem functions
-  Node n = sm->mkSkolemFunction(SkolemFunId::SETS_FOLD_CARD, A);
-  Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_FOLD_ELEMENTS, A);
-  Node unionNode = sm->mkSkolemFunction(SkolemFunId::SETS_FOLD_UNION, A);
-  Node combine =
-      sm->mkSkolemFunction(SkolemFunId::SETS_FOLD_COMBINE, {f, t, A});
+  Node n = sm->mkSkolemFunction(SkolemId::SETS_FOLD_CARD, A);
+  Node uf = sm->mkSkolemFunction(SkolemId::SETS_FOLD_ELEMENTS, A);
+  Node unionNode = sm->mkSkolemFunction(SkolemId::SETS_FOLD_UNION, A);
+  Node combine = sm->mkSkolemFunction(SkolemId::SETS_FOLD_COMBINE, {f, t, A});
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =

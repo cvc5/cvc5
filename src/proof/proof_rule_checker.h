@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Hans-Jörg Schurr, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +32,7 @@ class ProofNode;
 class ProofRuleChecker
 {
  public:
-  ProofRuleChecker() {}
+  ProofRuleChecker(NodeManager* nm) : d_nm(nm) {}
   virtual ~ProofRuleChecker() {}
   /**
    * This checks a single step in a proof.
@@ -83,6 +83,8 @@ class ProofRuleChecker
   virtual Node checkInternal(ProofRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args) = 0;
+  /** The underlying node manager */
+  NodeManager* d_nm;
 };
 
 }  // namespace cvc5::internal

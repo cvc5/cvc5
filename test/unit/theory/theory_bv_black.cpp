@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,88 +33,85 @@ class TestTheoryBlackBv : public TestApi
  protected:
   void test_unsigned_overflow(cvc5::Kind kind, cvc5::Kind kindo)
   {
-    d_solver.setOption("incremental", "true");
+    d_solver->setOption("incremental", "true");
     for (uint32_t w = 1; w < 8; ++w)
     {
-      d_solver.push();
-      Term x = d_solver.mkConst(d_solver.mkBitVectorSort(w), "x");
-      Term y = d_solver.mkConst(d_solver.mkBitVectorSort(w), "y");
+      d_solver->push();
+      Term x = d_tm.mkConst(d_tm.mkBitVectorSort(w), "x");
+      Term y = d_tm.mkConst(d_tm.mkBitVectorSort(w), "y");
 
-      Op zext = d_solver.mkOp(cvc5::Kind::BITVECTOR_ZERO_EXTEND, {w});
-      Term zx = d_solver.mkTerm(zext, {x});
-      Term zy = d_solver.mkTerm(zext, {y});
-      Term op = d_solver.mkTerm(kind, {zx, zy});
-      Op ext = d_solver.mkOp(cvc5::Kind::BITVECTOR_EXTRACT, {2 * w - 1, w});
-      Term lhs = d_solver.mkTerm(
-          cvc5::Kind::DISTINCT,
-          {d_solver.mkTerm(ext, {op}), d_solver.mkBitVector(w)});
-      Term rhs = d_solver.mkTerm(kindo, {x, y});
-      Term eq = d_solver.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
-      d_solver.assertFormula(eq);
-      ASSERT_TRUE(d_solver.checkSat().isUnsat());
-      d_solver.pop();
+      Op zext = d_tm.mkOp(cvc5::Kind::BITVECTOR_ZERO_EXTEND, {w});
+      Term zx = d_tm.mkTerm(zext, {x});
+      Term zy = d_tm.mkTerm(zext, {y});
+      Term op = d_tm.mkTerm(kind, {zx, zy});
+      Op ext = d_tm.mkOp(cvc5::Kind::BITVECTOR_EXTRACT, {2 * w - 1, w});
+      Term lhs = d_tm.mkTerm(cvc5::Kind::DISTINCT,
+                             {d_tm.mkTerm(ext, {op}), d_tm.mkBitVector(w)});
+      Term rhs = d_tm.mkTerm(kindo, {x, y});
+      Term eq = d_tm.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
+      d_solver->assertFormula(eq);
+      ASSERT_TRUE(d_solver->checkSat().isUnsat());
+      d_solver->pop();
     }
   }
 
   void test_signed_overflow(cvc5::Kind kind, cvc5::Kind kindo)
   {
-    d_solver.setOption("incremental", "true");
-    d_solver.setOption("produce-models", "true");
+    d_solver->setOption("incremental", "true");
+    d_solver->setOption("produce-models", "true");
     for (uint32_t w = 1; w < 8; ++w)
     {
-      d_solver.push();
-      Term x = d_solver.mkConst(d_solver.mkBitVectorSort(w), "x");
-      Term y = d_solver.mkConst(d_solver.mkBitVectorSort(w), "y");
+      d_solver->push();
+      Term x = d_tm.mkConst(d_tm.mkBitVectorSort(w), "x");
+      Term y = d_tm.mkConst(d_tm.mkBitVectorSort(w), "y");
 
-      Op sext = d_solver.mkOp(cvc5::Kind::BITVECTOR_SIGN_EXTEND, {w});
-      Term zx = d_solver.mkTerm(sext, {x});
-      Term zy = d_solver.mkTerm(sext, {y});
-      Term op = d_solver.mkTerm(kind, {zx, zy});
+      Op sext = d_tm.mkOp(cvc5::Kind::BITVECTOR_SIGN_EXTEND, {w});
+      Term zx = d_tm.mkTerm(sext, {x});
+      Term zy = d_tm.mkTerm(sext, {y});
+      Term op = d_tm.mkTerm(kind, {zx, zy});
 
-      Term max = d_solver.mkBitVector(
-          2 * w, static_cast<uint32_t>(std::pow(2, w - 1)));
-      Term min = d_solver.mkTerm(cvc5::Kind::BITVECTOR_NEG, {max});
+      Term max =
+          d_tm.mkBitVector(2 * w, static_cast<uint32_t>(std::pow(2, w - 1)));
+      Term min = d_tm.mkTerm(cvc5::Kind::BITVECTOR_NEG, {max});
 
-      Term lhs = d_solver.mkTerm(
-          cvc5::Kind::OR,
-          {d_solver.mkTerm(cvc5::Kind::BITVECTOR_SLT, {op, min}),
-           d_solver.mkTerm(cvc5::Kind::BITVECTOR_SGE, {op, max})});
+      Term lhs =
+          d_tm.mkTerm(cvc5::Kind::OR,
+                      {d_tm.mkTerm(cvc5::Kind::BITVECTOR_SLT, {op, min}),
+                       d_tm.mkTerm(cvc5::Kind::BITVECTOR_SGE, {op, max})});
       if (kind == cvc5::Kind::BITVECTOR_SDIV)
       {
-        lhs = d_solver.mkTerm(cvc5::Kind::AND,
-                              {d_solver.mkTerm(cvc5::Kind::DISTINCT,
-                                               {y, d_solver.mkBitVector(w)}),
-                               lhs});
+        lhs = d_tm.mkTerm(
+            cvc5::Kind::AND,
+            {d_tm.mkTerm(cvc5::Kind::DISTINCT, {y, d_tm.mkBitVector(w)}), lhs});
       }
-      Term rhs = d_solver.mkTerm(kindo, {x, y});
-      Term eq = d_solver.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
-      d_solver.assertFormula(eq);
-      ASSERT_TRUE(d_solver.checkSat().isUnsat());
-      d_solver.pop();
+      Term rhs = d_tm.mkTerm(kindo, {x, y});
+      Term eq = d_tm.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
+      d_solver->assertFormula(eq);
+      ASSERT_TRUE(d_solver->checkSat().isUnsat());
+      d_solver->pop();
     }
   }
 };
 
 TEST_F(TestTheoryBlackBv, nego)
 {
-  d_solver.setOption("incremental", "true");
-  d_solver.setOption("produce-models", "true");
+  d_solver->setOption("incremental", "true");
+  d_solver->setOption("produce-models", "true");
   for (uint32_t w = 1; w < 8; ++w)
   {
-    d_solver.push();
-    Term one = d_solver.mkBitVector(2 * w, 1);
-    Term x = d_solver.mkConst(d_solver.mkBitVectorSort(w), "x");
-    Term lhs = d_solver.mkTerm(
+    d_solver->push();
+    Term one = d_tm.mkBitVector(2 * w, 1);
+    Term x = d_tm.mkConst(d_tm.mkBitVectorSort(w), "x");
+    Term lhs = d_tm.mkTerm(
         cvc5::Kind::EQUAL,
         {x,
-         d_solver.mkTerm(
-             cvc5::Kind::BITVECTOR_SHL,
-             {d_solver.mkBitVector(w, 1), d_solver.mkBitVector(w, w - 1)})});
-    Term rhs = d_solver.mkTerm(cvc5::Kind::BITVECTOR_NEGO, {x});
-    Term eq = d_solver.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
-    d_solver.assertFormula(eq);
-    ASSERT_TRUE(d_solver.checkSat().isUnsat());
-    d_solver.pop();
+         d_tm.mkTerm(cvc5::Kind::BITVECTOR_SHL,
+                     {d_tm.mkBitVector(w, 1), d_tm.mkBitVector(w, w - 1)})});
+    Term rhs = d_tm.mkTerm(cvc5::Kind::BITVECTOR_NEGO, {x});
+    Term eq = d_tm.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
+    d_solver->assertFormula(eq);
+    ASSERT_TRUE(d_solver->checkSat().isUnsat());
+    d_solver->pop();
   }
 }
 
@@ -158,22 +155,22 @@ TEST_F(TestTheoryBlackBv, sdivo)
 
 TEST_F(TestTheoryBlackBv, reg8361)
 {
-  Solver slv;
+  Solver slv(d_tm);
   slv.setLogic("QF_BV");
 
-  Sort bvSort = slv.mkBitVectorSort(6);
+  Sort bvSort = d_tm.mkBitVectorSort(6);
   std::vector<Term> bvs;
   for (int i = 0; i < 64; i++)
   {
-    bvs.push_back(slv.mkConst(bvSort));
+    bvs.push_back(d_tm.mkConst(bvSort));
   }
 
-  slv.assertFormula(slv.mkTerm(cvc5::Kind::DISTINCT, bvs));
+  slv.assertFormula(d_tm.mkTerm(cvc5::Kind::DISTINCT, bvs));
   ASSERT_TRUE(slv.checkSat().isSat());
   slv.resetAssertions();
 
-  bvs.push_back(slv.mkConst(bvSort));
-  slv.assertFormula(slv.mkTerm(cvc5::Kind::DISTINCT, bvs));
+  bvs.push_back(d_tm.mkConst(bvSort));
+  slv.assertFormula(d_tm.mkTerm(cvc5::Kind::DISTINCT, bvs));
   ASSERT_TRUE(slv.checkSat().isUnsat());
 }
 }  // namespace test

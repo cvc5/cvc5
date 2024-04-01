@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Christopher L. Conway
+ *   Morgan Deters, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,6 +35,7 @@
 namespace cvc5 {
 
 class Solver;
+class TermManager;
 
 namespace internal {
 
@@ -68,6 +69,7 @@ class TypeChecker;
 class NodeManager
 {
   friend class cvc5::Solver;
+  friend class cvc5::TermManager;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
   friend class SkolemManager;
@@ -1034,6 +1036,9 @@ class NodeManager
 
   /** A mapping for sorts allocated by mkSortConstructor where fresh is false */
   std::map<std::pair<std::string, size_t>, TypeNode> d_nfreshSorts;
+
+  /** A mapping for variables constructed when fresh is false */
+  std::map<std::pair<std::string, TypeNode>, Node> d_nfreshVars;
 
   TupleTypeCache d_tt_cache;
   /** a mapping from the element types to nullable datatypes */

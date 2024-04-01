@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,14 +37,15 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-SequencesRewriter::SequencesRewriter(Rewriter* r,
+SequencesRewriter::SequencesRewriter(NodeManager* nm,
+                                     Rewriter* r,
                                      HistogramStat<Rewrite>* statistics)
-    : d_statistics(statistics),
+    : TheoryRewriter(nm),
+      d_statistics(statistics),
       d_rr(r),
       d_arithEntail(r),
       d_stringsEntail(r, d_arithEntail, *this)
 {
-  NodeManager* nm = NodeManager::currentNM();
   d_sigmaStar = nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);

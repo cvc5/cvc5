@@ -17,6 +17,6 @@
                            (Array U T) (Array U T) I I Bool))
 
 ; The array diff skolem.
-; (skolem (@k.ARRAY_DEQ_DIFF A B)) denotes an index where A and B differ if A and B are not equal.
-(declare-const @k.ARRAY_DEQ_DIFF
+; (skolem (@array_deq_diff A B)) denotes an index where A and B differ if A and B are not equal.
+(declare-const @array_deq_diff
    (-> (! Type :var T :implicit) (! Type :var U :implicit) (Array T U) (Array T U) T))
