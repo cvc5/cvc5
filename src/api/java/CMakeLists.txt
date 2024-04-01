@@ -58,9 +58,9 @@ add_custom_command(
 )
 add_custom_target(generate-java-proofrules DEPENDS ${JAVA_PROOF_RULE_FILE})
 
-# Generate SkolemFunId.java
+# Generate SkolemId.java
 set(JAVA_SKOLEM_FUN_ID_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SkolemFunId.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SkolemId.java"
 )
 add_custom_command(
   OUTPUT
