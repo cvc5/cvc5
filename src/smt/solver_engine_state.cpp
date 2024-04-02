@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,13 +61,14 @@ void SolverEngineState::notifyCheckSat()
         "(try --incremental)");
   }
 
-  // Note that a query has been made and we are in assert mode
-  d_queryMade = true;
+  // Note we are in assert mode
   d_smtMode = SmtMode::ASSERT;
 }
 
 void SolverEngineState::notifyCheckSatResult(const Result& r)
 {
+  // Note that a query has been made
+  d_queryMade = true;
   // Remember the status
   d_status = r;
   // Check against expected status, if it is set
@@ -94,6 +95,7 @@ void SolverEngineState::notifyCheckSatResult(const Result& r)
 
 void SolverEngineState::notifyCheckSynthResult(const SynthResult& r)
 {
+  d_queryMade = true;
   if (r.getStatus() == SynthResult::SOLUTION)
   {
     // successfully generated a synthesis solution, update to synth state

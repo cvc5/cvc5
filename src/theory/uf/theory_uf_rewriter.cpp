@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Liana Hadarean, Haniel Barbosa
+ *   Andrew Reynolds, Aina Niemetz, Liana Hadarean
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter() {}
+TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {
@@ -70,7 +70,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       Node new_body = lambda[1];
       if (!fvs.empty())
       {
-        ElimShadowNodeConverter esnc(node, fvs);
+        ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
         new_body = esnc.convert(new_body);
       }
       Node ret = new_body.substitute(
@@ -111,7 +111,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       expr::getFreeVariables(arg, fvs);
       if (!fvs.empty())
       {
-        ElimShadowNodeConverter esnc(node, fvs);
+        ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
         new_body = esnc.convert(new_body);
       }
       TNode var = lambda[0][0];

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,6 +67,7 @@ class AlfPrintChannel
                               TNode n,
                               size_t i,
                               const std::vector<size_t>& premises,
+                              const std::vector<Node>& args,
                               TNode conc)
   {
   }
@@ -92,6 +93,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
                       TNode n,
                       size_t i,
                       const std::vector<size_t>& premises,
+                      const std::vector<Node>& args,
                       TNode conc) override;
 
   /**
@@ -149,6 +151,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
                       TNode n,
                       size_t i,
                       const std::vector<size_t>& premises,
+                      const std::vector<Node>& args,
                       TNode conc) override;
 
   /** Get variables we encountered in printing */

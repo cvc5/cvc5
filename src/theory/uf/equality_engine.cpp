@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,8 +80,8 @@ void EqualityEngine::init() {
   // to ensure that true/false could never be removed. However, this assertion
   // restricts our ability to construct equality engines in nested contexts.
 
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 
   d_triggerDatabaseAllocatedSize = 100000;
   d_triggerDatabase = (char*) malloc(d_triggerDatabaseAllocatedSize);
@@ -1037,7 +1037,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   Trace("equality") << "buildEqConclusion: {" << id2 << "} " << d_nodes[id2]
                     << "\n";
   Node eq[2];
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (unsigned i = 0; i < 2; ++i)
   {
     EqualityNodeId equalityNodeId = i == 0 ? id1 : id2;
@@ -1325,7 +1325,7 @@ Node EqualityEngine::mkExplainLit(TNode lit) const
   Node ret;
   if (assumptions.empty())
   {
-    ret = NodeManager::currentNM()->mkConst(true);
+    ret = nodeManager()->mkConst(true);
   }
   else if (assumptions.size() == 1)
   {
@@ -1333,7 +1333,7 @@ Node EqualityEngine::mkExplainLit(TNode lit) const
   }
   else
   {
-    ret = NodeManager::currentNM()->mkNode(Kind::AND, assumptions);
+    ret = nodeManager()->mkNode(Kind::AND, assumptions);
   }
   return ret;
 }
@@ -1651,11 +1651,16 @@ void EqualityEngine::getExplanation(
                 } else {
                   // The LFSC translator prefers (not (= a b)) over (= (= a b) false)
 
-                  if (a == NodeManager::currentNM()->mkConst(false)) {
+                  if (a == nodeManager()->mkConst(false))
+                  {
                     eqpc->d_node = b.notNode();
-                  } else if (b == NodeManager::currentNM()->mkConst(false)) {
+                  }
+                  else if (b == nodeManager()->mkConst(false))
+                  {
                     eqpc->d_node = a.notNode();
-                  } else {
+                  }
+                  else
+                  {
                     eqpc->d_node = b.eqNode(a);
                   }
                 }

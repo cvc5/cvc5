@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -230,6 +230,16 @@ Token Smt2Lexer::computeNextToken()
             parseError("Error expected decimal string following .");
           }
         }
+        else if (ch == '/')
+        {
+          pushToToken(ch);
+          res = Token::RATIONAL_LITERAL;
+          // parse [0-9]+
+          if (!parseNonEmptyCharList(CharacterClass::DECIMAL_DIGIT))
+          {
+            parseError("Error expected decimal string following .");
+          }
+        }
         else
         {
           // otherwise, undo
@@ -342,6 +352,39 @@ Token Smt2Lexer::tokenizeCurrentSymbol() const
         return Token::INDEX_TOK;
       }
       break;
+    case '-':
+    {
+      // note that `-4`, `-4.0`, `-4/5` are SMT-LIB symbols, hence we only
+      // convert these to literals if we are not strict parsing.
+      if (!d_isStrict && d_token.size() >= 2)
+      {
+        // reparse as a negative numeral, rational or decimal
+        Token ret = Token::INTEGER_LITERAL;
+        for (size_t i = 1, tsize = d_token.size(); i < tsize; i++)
+        {
+          if (isCharacterClass(d_token[i], CharacterClass::DECIMAL_DIGIT))
+          {
+            continue;
+          }
+          else if (i + 1 < tsize && ret == Token::INTEGER_LITERAL)
+          {
+            if (d_token[i] == '.')
+            {
+              ret = Token::DECIMAL_LITERAL;
+              continue;
+            }
+            else if (d_token[i] == '/')
+            {
+              ret = Token::RATIONAL_LITERAL;
+              continue;
+            }
+          }
+          return Token::SYMBOL;
+        }
+        return ret;
+      }
+    }
+    break;
     default: break;
   }
   // otherwise not a special symbol

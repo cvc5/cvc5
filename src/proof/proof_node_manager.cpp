@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *   Andrew Reynolds, Hans-Jörg Schurr, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -112,7 +112,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     bool doMinimize,
     Node expected)
 {
-  if (!ensureClosed)
+  if (!ensureClosed && !doMinimize)
   {
     return mkNode(ProofRule::SCOPE, {pf}, assumps, expected);
   }
@@ -220,6 +220,10 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       }
       Trace("pnm-scope") << "...finished" << std::endl;
       acu.insert(aMatch);
+      continue;
+    }
+    if (!ensureClosed)
+    {
       continue;
     }
     // If we did not find a match, it is an error, since all free assumptions

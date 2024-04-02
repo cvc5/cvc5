@@ -1,11 +1,11 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz, Andres Noetzli
+ *   Aina Niemetz, Martin Brain, Andrew Reynolds
  * Copyright (c) 2013  University of Oxford
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1089,7 +1089,8 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
   /**
    * Initialize the rewriter.
    */
-  TheoryFpRewriter::TheoryFpRewriter(context::UserContext* u) : d_fpExpDef(u)
+  TheoryFpRewriter::TheoryFpRewriter(NodeManager* nm, context::UserContext* u)
+      : TheoryRewriter(nm), d_fpExpDef(u)
   {
     /* Set up the pre-rewrite dispatch table */
     for (uint32_t i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); ++i)
@@ -1195,14 +1196,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     d_preRewriteTable[static_cast<uint32_t>(
         Kind::FLOATINGPOINT_TO_REAL_TOTAL)] = rewrite::identity;
 
-    /******** Variables ********/
-    d_preRewriteTable[static_cast<uint32_t>(Kind::VARIABLE)] =
-        rewrite::variable;
-    d_preRewriteTable[static_cast<uint32_t>(Kind::BOUND_VARIABLE)] =
-        rewrite::variable;
-    d_preRewriteTable[static_cast<uint32_t>(Kind::SKOLEM)] = rewrite::variable;
-    d_preRewriteTable[static_cast<uint32_t>(Kind::INST_CONSTANT)] =
-        rewrite::variable;
+    /******** Equality ********/
 
     d_preRewriteTable[static_cast<uint32_t>(Kind::EQUAL)] = rewrite::equal;
 

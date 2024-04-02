@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *   Andrew Reynolds, Dejan Jovanovic, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -350,12 +350,17 @@ void TheoryEngine::printAssertions(const char* tag) {
 
         if (logicInfo().isSharingEnabled())
         {
-          Trace(tag) << "Shared terms of " << theory->getId() << ": " << endl;
-          context::CDList<TNode>::const_iterator
-              it = theory->shared_terms_begin(),
-              it_end = theory->shared_terms_end();
-          for (unsigned i = 0; it != it_end; ++ it, ++i) {
+          TheoryState* state = theory->getTheoryState();
+          if (state != nullptr)
+          {
+            Trace(tag) << "Shared terms of " << theory->getId() << ": " << endl;
+            context::CDList<TNode>::const_iterator
+                it = state->shared_terms_begin(),
+                it_end = state->shared_terms_end();
+            for (unsigned i = 0; it != it_end; ++it, ++i)
+            {
               Trace(tag) << "[" << i << "]: " << (*it) << endl;
+            }
           }
         }
       }
@@ -816,6 +821,39 @@ bool TheoryEngine::isRelevant(Node lit) const
   }
   // otherwise must assume its relevant
   return true;
+}
+
+bool TheoryEngine::isLegalElimination(TNode x, TNode val)
+{
+  Assert(x.isVar());
+  if (expr::hasSubterm(val, x))
+  {
+    return false;
+  }
+  if (val.getType() != x.getType())
+  {
+    return false;
+  }
+  if (!options().smt.produceModels || options().smt.modelVarElimUneval)
+  {
+    // Don't care about the model, or we allow variables to be eliminated by
+    // unevaluatable terms, we can eliminate. Notice that when
+    // options().smt.modelVarElimUneval is true, val may contain unevaluatable
+    // kinds. This means that e.g. a Boolean variable may be eliminated based on
+    // an equality (= b (forall ((x)) (P x))), where its model value is (forall
+    // ((x)) (P x)).
+    return true;
+  }
+  // If models are enabled, then it depends on whether the term contains any
+  // unevaluable operators like FORALL, SINE, etc. Having such operators makes
+  // model construction contain non-constant values for variables, which is
+  // not ideal from a user perspective.
+  // We also insist on this check since the term to eliminate should never
+  // contain quantifiers, or else variable shadowing issues may arise.
+  // there should be a model object
+  TheoryModel* tm = getModel();
+  Assert(tm != nullptr);
+  return tm->isLegalElimination(x, val);
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(
@@ -1309,7 +1347,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
   {
     tem->notifyLemma(texplanation.getProven(),
                      InferenceId::EXPLAINED_PROPAGATION,
-                     LemmaProperty::REMOVABLE,
+                     LemmaProperty::NONE,
                      {},
                      {});
   }
@@ -1611,14 +1649,14 @@ void TheoryEngine::conflict(TrustNode tconflict,
       tconf.debugCheckClosed(
           options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
-    lemma(tconf, id, LemmaProperty::REMOVABLE);
+    lemma(tconf, id, LemmaProperty::NONE);
   }
   else
   {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     // pass the trust node that was sent from the theory
-    lemma(tconflict, id, LemmaProperty::REMOVABLE, theoryId);
+    lemma(tconflict, id, LemmaProperty::NONE, theoryId);
   }
 }
 
