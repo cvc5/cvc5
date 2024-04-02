@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -481,7 +481,7 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   }
   else
   {
-    y = sm->mkSkolemFunction(SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, n);
+    y = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY_ARG, n);
   }
   Node new_n = nm->mkNode(k, y);
   d_trPurify[n] = new_n;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Alex Ozdemir
+ *   Andrew Reynolds, Aina Niemetz, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -275,6 +275,11 @@ Term Smt2TermParser::parseTerm()
       }
       break;
       case Token::DECIMAL_LITERAL:
+      {
+        ret = tm.mkReal(d_lex.tokenStr());
+      }
+      break;
+      case Token::RATIONAL_LITERAL:
       {
         ret = tm.mkReal(d_lex.tokenStr());
       }

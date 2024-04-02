@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Mathias Preiner
+ *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1206,6 +1206,15 @@ TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
     Term yc = d_tm.mkConst(realsort, "y");
     ASSERT_THROW(vx.getRealAlgebraicNumberDefiningPolynomial(yc), CVC5ApiException);
   }
+}
+
+TEST_F(TestApiBlackTerm, getSkolem)
+{
+  // ordinary variables are not skolems
+  Term x = d_tm.mkConst(d_tm.getIntegerSort(), "x");
+  ASSERT_FALSE(x.isSkolem());
+  ASSERT_THROW(x.getSkolemId(), CVC5ApiException);
+  ASSERT_THROW(x.getSkolemIndices(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTerm, termScopedToString)

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Andrew Reynolds, Hans-Jörg Schurr, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
+#include "theory/theory_id.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -70,6 +71,10 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    * Counts number of postprocessed proof nodes for each trusted step
    */
   HistogramStat<TrustId> d_trustIds;
+  /**
+   * Counts number of theory ids in TRUST_THEORY_REWRITE steps.
+   */
+  HistogramStat<theory::TheoryId> d_trustTheoryIdCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */

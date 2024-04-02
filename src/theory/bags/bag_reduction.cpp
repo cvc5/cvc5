@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,12 +68,11 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node zero = nm->mkConstInt(Rational(0));
   Node one = nm->mkConstInt(Rational(1));
   // skolem functions
-  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_CARD, A);
-  Node elements = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_ELEMENTS, A);
+  Node n = sm->mkSkolemFunction(SkolemId::BAGS_FOLD_CARD, A);
+  Node elements = sm->mkSkolemFunction(SkolemId::BAGS_FOLD_ELEMENTS, A);
   Node unionDisjoint =
-      sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_UNION_DISJOINT, A);
-  Node combine =
-      sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_COMBINE, {f, t, A});
+      sm->mkSkolemFunction(SkolemId::BAGS_FOLD_UNION_DISJOINT, A);
+  Node combine = sm->mkSkolemFunction(SkolemId::BAGS_FOLD_COMBINE, {f, t, A});
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =
@@ -128,11 +127,11 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   // types
   TypeNode bagType = A.getType();
   // skolem functions
-  Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_N, A);
-  Node elements = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_ELEMENTS, A);
+  Node n = sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE, A);
+  Node elements = sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS, A);
   Node unionDisjoint =
-      sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_UNION_DISJOINT, A);
-  Node combine = sm->mkSkolemFunction(SkolemFunId::BAGS_CARD_COMBINE, A);
+      sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT, A);
+  Node combine = sm->mkSkolemFunction(SkolemId::BAGS_CARD_COMBINE, A);
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =

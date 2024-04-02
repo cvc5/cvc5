@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir, Andrew Reynolds
+ *   Alex Ozdemir, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,6 +54,7 @@ TheoryFiniteFields::TheoryFiniteFields(Env& env,
                                        OutputChannel& out,
                                        Valuation valuation)
     : Theory(THEORY_FF, env, out, valuation),
+      d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, getStatsPrefix(THEORY_FF)),
       d_eqNotify(d_im),

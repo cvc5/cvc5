@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,40 +28,6 @@ namespace test {
 class TestApiBlackSolver : public TestApi
 {
 };
-
-TEST_F(TestApiBlackSolver, proj_issue416)
-{
-  d_solver->setOption("solve-bv-as-int", "sum");
-  d_solver->setOption("strings-exp", "true");
-  Sort s1 = d_tm.getStringSort();
-  Term t27 = d_tm.mkConst(s1, "_x50");
-  Term t333 = d_tm.mkRegexpAll();
-  Term t1243 = d_tm.mkTerm(Kind::STRING_REPLACE_RE_ALL, {t27, t333, t27});
-  Term t1291 = d_tm.mkTerm(Kind::EQUAL, {t1243, t27});
-  d_solver->assertFormula(t1291);
-  d_solver->checkSat();
-}
-
-TEST_F(TestApiBlackSolver, proj_issue435)
-{
-  d_solver->setOption("strings-exp", "true");
-  Sort s1 = d_tm.mkUninterpretedSort("_u0");
-  Sort s3 = d_tm.getBooleanSort();
-  Sort _p7 = d_tm.mkParamSort("_p7");
-  DatatypeDecl _dt5 = d_tm.mkDatatypeDecl("_dt5", {_p7});
-  DatatypeConstructorDecl _cons33 = d_tm.mkDatatypeConstructorDecl("_cons33");
-  _cons33.addSelector("_sel31", s1);
-  _cons33.addSelector("_sel32", _p7);
-  _dt5.addConstructor(_cons33);
-  std::vector<Sort> _s6 = d_tm.mkDatatypeSorts({_dt5});
-  Sort s6 = _s6[0];
-  Sort s21 = s6.instantiate({s3});
-  Sort s42 = d_tm.mkSequenceSort(s21);
-  Term t40 = d_tm.mkConst(s42, "_x64");
-  Term t75 = d_tm.mkTerm(Kind::SEQ_REV, {t40});
-  Term t91 = d_tm.mkTerm(Kind::SEQ_PREFIX, {t75, t40});
-  d_solver->checkSatAssuming({t91});
-}
 
 TEST_F(TestApiBlackSolver, pow2Large1)
 {
@@ -140,26 +106,11 @@ TEST_F(TestApiBlackSolver, declareFunFresh)
   ASSERT_FALSE(t2 == t4);
   Term t5 = d_solver->declareFun(std::string("b"), {}, intSort, false);
   ASSERT_FALSE(t2 == t5);
-}
 
-TEST_F(TestApiBlackSolver, mkConstArray)
-{
-  Sort intSort = d_tm.getIntegerSort();
-  Sort arrSort = d_tm.mkArraySort(intSort, intSort);
-  Term zero = d_tm.mkInteger(0);
-  Term constArr = d_tm.mkConstArray(arrSort, zero);
-
-  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort, zero));
-  ASSERT_THROW(d_tm.mkConstArray(Sort(), zero), CVC5ApiException);
-  ASSERT_THROW(d_tm.mkConstArray(arrSort, Term()), CVC5ApiException);
-  ASSERT_THROW(d_tm.mkConstArray(arrSort, d_tm.mkBitVector(1, 1)),
-               CVC5ApiException);
-  ASSERT_THROW(d_tm.mkConstArray(intSort, zero), CVC5ApiException);
-  Term zero2 = d_tm.mkInteger(0);
-  Sort arrSort2 =
-      d_tm.mkArraySort(d_tm.getIntegerSort(), d_tm.getIntegerSort());
-  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort2, zero));
-  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort, zero2));
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.declareFun(std::string("b"), {}, intSort, false));
 }
 
 TEST_F(TestApiBlackSolver, declareDatatype)
@@ -192,8 +143,12 @@ TEST_F(TestApiBlackSolver, declareDatatype)
   Sort s3 = d_solver->declareDatatype(std::string("_x17"), {ctor1, ctor2});
   ASSERT_THROW(d_solver->declareDatatype(std::string("_x86"), {ctor1, ctor2}),
                CVC5ApiException);
-  Solver slv(d_tm);
-  ASSERT_THROW(slv.declareDatatype(std::string("a"), ctors1), CVC5ApiException);
+
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  DatatypeConstructorDecl nnil = d_tm.mkDatatypeConstructorDecl("nil");
+  ASSERT_NO_THROW(slv.declareDatatype(std::string("a"), {nnil}));
 }
 
 TEST_F(TestApiBlackSolver, declareFun)
@@ -209,7 +164,10 @@ TEST_F(TestApiBlackSolver, declareFun)
   ASSERT_NO_THROW(d_solver->declareFun("f4", {bvSort, funSort}, bvSort));
   ASSERT_THROW(d_solver->declareFun("f5", {bvSort, bvSort}, funSort),
                CVC5ApiException);
-  Solver slv(d_tm);
+
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
   ASSERT_NO_THROW(slv.declareFun("f1", {}, bvSort));
 }
 
@@ -254,11 +212,13 @@ TEST_F(TestApiBlackSolver, defineFun)
   // b3 has function sort, which is allowed as an argument
   ASSERT_NO_THROW(d_solver->defineFun("fffff", {b1, b3}, bvSort, v1));
 
-  Solver slv(d_tm);
-  Sort bvSort2 = d_tm.mkBitVectorSort(32);
-  Term v12 = d_tm.mkConst(bvSort2, "v1");
-  Term b12 = d_tm.mkVar(bvSort2, "b1");
-  Term b22 = d_tm.mkVar(d_tm.getIntegerSort(), "b2");
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  Sort bvSort2 = tm.mkBitVectorSort(32);
+  Term v12 = tm.mkConst(bvSort2, "v1");
+  Term b12 = tm.mkVar(bvSort2, "b1");
+  Term b22 = tm.mkVar(d_tm.getIntegerSort(), "b2");
   ASSERT_NO_THROW(slv.defineFun("f", {}, bvSort, v12));
   ASSERT_NO_THROW(slv.defineFun("f", {}, bvSort2, v1));
   ASSERT_NO_THROW(slv.defineFun("ff", {b1, b22}, bvSort2, v12));
@@ -289,6 +249,11 @@ TEST_F(TestApiBlackSolver, defineFunGlobal)
       Kind::OR,
       {f.notTerm(), d_tm.mkTerm(Kind::APPLY_UF, {g, bTrue}).notTerm()}));
   ASSERT_TRUE(d_solver->checkSat().isUnsat());
+
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.defineFun("f", {}, bSort, bTrue, true));
 }
 
 TEST_F(TestApiBlackSolver, defineFunRec)
@@ -324,11 +289,13 @@ TEST_F(TestApiBlackSolver, defineFunRec)
   ASSERT_THROW(d_solver->defineFunRec(f2, {b1}, v2), CVC5ApiException);
   ASSERT_THROW(d_solver->defineFunRec(f3, {b1}, v1), CVC5ApiException);
 
-  Solver slv(d_tm);
-  Sort bvSort2 = d_tm.mkBitVectorSort(32);
-  Term v12 = d_tm.mkConst(bvSort2, "v1");
-  Term b12 = d_tm.mkVar(bvSort2, "b1");
-  Term b22 = d_tm.mkVar(d_tm.getIntegerSort(), "b2");
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  Sort bvSort2 = tm.mkBitVectorSort(32);
+  Term v12 = tm.mkConst(bvSort2, "v1");
+  Term b12 = tm.mkVar(bvSort2, "b1");
+  Term b22 = tm.mkVar(d_tm.getIntegerSort(), "b2");
   ASSERT_NO_THROW(slv.defineFunRec("f", {}, bvSort2, v12));
   ASSERT_NO_THROW(slv.defineFunRec("ff", {b12, b22}, bvSort2, v12));
   ASSERT_NO_THROW(slv.defineFunRec("f", {}, bvSort, v12));
@@ -354,16 +321,15 @@ TEST_F(TestApiBlackSolver, defineFunRecWrongLogic)
 TEST_F(TestApiBlackSolver, defineFunRecGlobal)
 {
   Sort bSort = d_tm.getBooleanSort();
-  Sort fSort = d_tm.mkFunctionSort({bSort}, bSort);
 
   d_solver->push();
   Term bTrue = d_tm.mkBoolean(true);
   // (define-fun f () Bool true)
   Term f = d_solver->defineFunRec("f", {}, bSort, bTrue, true);
   Term b = d_tm.mkVar(bSort, "b");
-  Term gSym = d_tm.mkConst(fSort, "g");
   // (define-fun g (b Bool) Bool b)
-  Term g = d_solver->defineFunRec(gSym, {b}, b, true);
+  Term g = d_solver->defineFunRec(
+      d_tm.mkConst(d_tm.mkFunctionSort({bSort}, bSort), "g"), {b}, b, true);
 
   // (assert (or (not f) (not (g true))))
   d_solver->assertFormula(d_tm.mkTerm(
@@ -376,6 +342,24 @@ TEST_F(TestApiBlackSolver, defineFunRecGlobal)
       Kind::OR,
       {f.notTerm(), d_tm.mkTerm(Kind::APPLY_UF, {g, bTrue}).notTerm()}));
   ASSERT_TRUE(d_solver->checkSat().isUnsat());
+
+  TermManager tm;
+  Solver slv(tm);
+  Term bb = tm.mkVar(tm.getBooleanSort(), "b");
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.defineFunRec(
+      d_tm.mkConst(
+          d_tm.mkFunctionSort({d_tm.getBooleanSort()}, d_tm.getBooleanSort()),
+          "g"),
+      {bb},
+      bb,
+      true));
+  ASSERT_NO_THROW(slv.defineFunRec(
+      tm.mkConst(tm.mkFunctionSort({tm.getBooleanSort()}, tm.getBooleanSort()),
+                 "g"),
+      {b},
+      b,
+      true));
 }
 
 TEST_F(TestApiBlackSolver, defineFunsRec)
@@ -409,18 +393,20 @@ TEST_F(TestApiBlackSolver, defineFunsRec)
   ASSERT_THROW(d_solver->defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v4}),
                CVC5ApiException);
 
-  Solver slv(d_tm);
-  Sort uSort2 = d_tm.mkUninterpretedSort("u");
-  Sort bvSort2 = d_tm.mkBitVectorSort(32);
-  Sort funSort12 = d_tm.mkFunctionSort({bvSort2, bvSort2}, bvSort2);
-  Sort funSort22 = d_tm.mkFunctionSort({uSort2}, d_tm.getIntegerSort());
-  Term b12 = d_tm.mkVar(bvSort2, "b1");
-  Term b112 = d_tm.mkVar(bvSort2, "b1");
-  Term b42 = d_tm.mkVar(uSort2, "b4");
-  Term v12 = d_tm.mkConst(bvSort2, "v1");
-  Term v22 = d_tm.mkConst(d_tm.getIntegerSort(), "v2");
-  Term f12 = d_tm.mkConst(funSort12, "f1");
-  Term f22 = d_tm.mkConst(funSort22, "f2");
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  Sort uSort2 = tm.mkUninterpretedSort("u");
+  Sort bvSort2 = tm.mkBitVectorSort(32);
+  Sort funSort12 = tm.mkFunctionSort({bvSort2, bvSort2}, bvSort2);
+  Sort funSort22 = tm.mkFunctionSort({uSort2}, d_tm.getIntegerSort());
+  Term b12 = tm.mkVar(bvSort2, "b1");
+  Term b112 = tm.mkVar(bvSort2, "b1");
+  Term b42 = tm.mkVar(uSort2, "b4");
+  Term v12 = tm.mkConst(bvSort2, "v1");
+  Term v22 = tm.mkConst(d_tm.getIntegerSort(), "v2");
+  Term f12 = tm.mkConst(funSort12, "f1");
+  Term f22 = tm.mkConst(funSort22, "f2");
   ASSERT_NO_THROW(
       slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v12, v22}));
   ASSERT_NO_THROW(
@@ -477,26 +463,6 @@ TEST_F(TestApiBlackSolver, defineFunsRecGlobal)
   ASSERT_TRUE(d_solver->checkSat().isUnsat());
 }
 
-TEST_F(TestApiBlackSolver, uFIteration)
-{
-  Sort intSort = d_tm.getIntegerSort();
-  Sort funSort = d_tm.mkFunctionSort({intSort, intSort}, intSort);
-  Term x = d_tm.mkConst(intSort, "x");
-  Term y = d_tm.mkConst(intSort, "y");
-  Term f = d_tm.mkConst(funSort, "f");
-  Term fxy = d_tm.mkTerm(Kind::APPLY_UF, {f, x, y});
-
-  // Expecting the uninterpreted function to be one of the children
-  Term expected_children[3] = {f, x, y};
-  uint32_t idx = 0;
-  for (auto c : fxy)
-  {
-    ASSERT_LT(idx, 3);
-    ASSERT_EQ(c, expected_children[idx]);
-    idx++;
-  }
-}
-
 TEST_F(TestApiBlackSolver, getAssertions)
 {
   Term a = d_tm.mkConst(d_tm.getBooleanSort(), "a");
@@ -540,11 +506,30 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term output2;
   Grammar g = d_solver->mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::GT, {x, zero});
+  ASSERT_THROW(d_solver->getAbduct(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the abduction api, while the resulting abduct is the output
   output2 = d_solver->getAbduct(conj2, g);
   // abduct must be true
   ASSERT_EQ(output2, truen);
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-abducts", "true");
+  Term xx = tm.mkConst(intSort, "x");
+  Term yy = tm.mkConst(intSort, "y");
+  Term zzero = tm.mkInteger(0);
+  Term sstart = tm.mkVar(tm.getBooleanSort());
+  slv.assertFormula(
+      tm.mkTerm(Kind::GT, {tm.mkTerm(Kind::ADD, {xx, yy}), zzero}));
+  Grammar gg = slv.mkGrammar({}, {sstart});
+  gg.addRule(sstart, tm.mkTrue());
+  Term cconj2 = tm.mkTerm(Kind::EQUAL, {zzero, zzero});
+  ASSERT_NO_THROW(slv.getAbduct(cconj2, gg));
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.getAbduct(conj2));
+  ASSERT_NO_THROW(slv.getAbduct(conj2, gg));
+  ASSERT_NO_THROW(slv.getAbduct(cconj2, g));
 }
 
 TEST_F(TestApiBlackSolver, getAbduct2)
@@ -617,11 +602,28 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Term start = d_tm.mkVar(boolean);
   Grammar g = d_solver->mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::EQUAL, {zero, zero});
+  ASSERT_THROW(d_solver->getInterpolant(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the interpolation api, while the resulting interpolant is the output
   Term output2 = d_solver->getInterpolant(conj2, g);
   // interpolant must be true
   ASSERT_EQ(output2, truen);
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-interpolants", "true");
+  Term xx = tm.mkConst(intSort, "x");
+  Term yy = tm.mkConst(intSort, "y");
+  Term zzero = tm.mkInteger(0);
+  Term sstart = tm.mkVar(tm.getBooleanSort());
+  Grammar gg = slv.mkGrammar({}, {sstart});
+  gg.addRule(sstart, tm.mkTrue());
+  Term cconj2 = tm.mkTerm(Kind::EQUAL, {zzero, zzero});
+  ASSERT_NO_THROW(slv.getInterpolant(cconj2, gg));
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.getInterpolant(conj2));
+  ASSERT_NO_THROW(slv.getInterpolant(conj2, gg));
+  ASSERT_NO_THROW(slv.getInterpolant(cconj2, g));
 }
 
 TEST_F(TestApiBlackSolver, getInterpolantNext)
@@ -665,6 +667,26 @@ TEST_F(TestApiBlackSolver, declarePool)
   // cannot pass null sort
   Sort nullSort;
   ASSERT_THROW(d_solver->declarePool("i", nullSort, {}), CVC5ApiException);
+
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.declarePool(
+      "p",
+      d_tm.getIntegerSort(),
+      {tm.mkInteger(0), tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")}));
+  ASSERT_NO_THROW(slv.declarePool(
+      "p",
+      tm.getIntegerSort(),
+      {d_tm.mkInteger(0), tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")}));
+  ASSERT_NO_THROW(slv.declarePool(
+      "p",
+      tm.getIntegerSort(),
+      {tm.mkInteger(0), d_tm.mkConst(intSort, "x"), tm.mkConst(intSort, "y")}));
+  ASSERT_NO_THROW(slv.declarePool(
+      "p",
+      tm.getIntegerSort(),
+      {tm.mkInteger(0), tm.mkConst(intSort, "x"), d_tm.mkConst(intSort, "y")}));
 }
 
 TEST_F(TestApiBlackSolver, getOption)
@@ -813,11 +835,11 @@ TEST_F(TestApiBlackSolver, getStatistics)
   ASSERT_NO_THROW(cvc5::Stat());
   // do some array reasoning to make sure we have a double statistics
   {
-    Sort s1 = d_solver->getIntegerSort();
-    Sort s2 = d_solver->mkArraySort(s1, s1);
-    Term t1 = d_solver->mkConst(s1, "i");
-    Term t2 = d_solver->mkVar(s2, "a");
-    Term t3 = d_solver->mkTerm(Kind::SELECT, {t2, t1});
+    Sort s1 = d_tm.getIntegerSort();
+    Sort s2 = d_tm.mkArraySort(s1, s1);
+    Term t1 = d_tm.mkConst(s1, "i");
+    Term t2 = d_tm.mkVar(s2, "a");
+    Term t3 = d_tm.mkTerm(Kind::SELECT, {t2, t1});
     d_solver->checkSat();
   }
   cvc5::Statistics stats = d_solver->getStatistics();
@@ -860,18 +882,7 @@ TEST_F(TestApiBlackSolver, getStatistics)
     // check some basic utility methods
     ASSERT_TRUE(!(it == stats.end()));
     ASSERT_EQ(s.first, it->first);
-    if (s.first == "cvc5::CONSTANT")
-    {
-      ASSERT_FALSE(s.second.isInternal());
-      ASSERT_FALSE(s.second.isDefault());
-      ASSERT_TRUE(s.second.isHistogram());
-      auto hist = s.second.getHistogram();
-      ASSERT_FALSE(hist.empty());
-      std::stringstream ss;
-      ss << s.second;
-      ASSERT_EQ(ss.str(), "{ integer type: 1 }");
-    }
-    else if (s.first == "theory::arrays::avgIndexListLength")
+    if (s.first == "theory::arrays::avgIndexListLength")
     {
       ASSERT_TRUE(s.second.isInternal());
       ASSERT_TRUE(s.second.isDouble());
@@ -1244,8 +1255,25 @@ TEST_F(TestApiBlackSolver, getValue3)
   ASSERT_NO_THROW(b = d_solver->getValue({x, y, z}));
   ASSERT_EQ(a,b);
 
-  Solver slv(d_tm);
-  ASSERT_THROW(slv.getValue(x), CVC5ApiException);
+  ASSERT_THROW(Solver(d_tm).getValue(x), CVC5ApiException);
+  {
+    Solver slv(d_tm);
+    slv.setOption("produce-models", "true");
+    ASSERT_THROW(slv.getValue(x), CVC5ApiException);
+  }
+  {
+    Solver slv(d_tm);
+    slv.setOption("produce-models", "true");
+    slv.checkSat();
+    ASSERT_NO_THROW(slv.getValue(x));
+  }
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-models", "true");
+  slv.checkSat();
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.getValue(d_tm.mkConst(d_tm.getBooleanSort(), "x")));
 }
 
 TEST_F(TestApiBlackSolver, getModelDomainElements)
@@ -1262,6 +1290,13 @@ TEST_F(TestApiBlackSolver, getModelDomainElements)
   ASSERT_NO_THROW(d_solver->getModelDomainElements(uSort));
   ASSERT_TRUE(d_solver->getModelDomainElements(uSort).size() >= 3);
   ASSERT_THROW(d_solver->getModelDomainElements(intSort), CVC5ApiException);
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-models", "true");
+  slv.checkSat();
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.getModelDomainElements(d_tm.mkUninterpretedSort("u")));
 }
 
 TEST_F(TestApiBlackSolver, getModelDomainElements2)
@@ -1297,6 +1332,13 @@ TEST_F(TestApiBlackSolver, isModelCoreSymbol)
   ASSERT_TRUE(d_solver->isModelCoreSymbol(y));
   ASSERT_FALSE(d_solver->isModelCoreSymbol(z));
   ASSERT_THROW(d_solver->isModelCoreSymbol(zero), CVC5ApiException);
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-models", "true");
+  slv.checkSat();
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.isModelCoreSymbol(d_tm.mkConst(uSort, "x")));
 }
 
 TEST_F(TestApiBlackSolver, getModel)
@@ -1351,6 +1393,18 @@ TEST_F(TestApiBlackSolver, getQuantifierElimination)
   ASSERT_THROW(d_solver->getQuantifierElimination(d_tm.mkBoolean(false)),
                CVC5ApiException);
   ASSERT_NO_THROW(d_solver->getQuantifierElimination(forall));
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-models", "true");
+  slv.checkSat();
+  Term xx = tm.mkVar(tm.getBooleanSort(), "x");
+  Term fforall =
+      tm.mkTerm(Kind::FORALL,
+                {tm.mkTerm(Kind::VARIABLE_LIST, {xx}),
+                 tm.mkTerm(Kind::OR, {xx, tm.mkTerm(Kind::NOT, {xx})})});
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.getQuantifierElimination(fforall));
 }
 
 TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
@@ -1366,6 +1420,18 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
       d_solver->getQuantifierEliminationDisjunct(d_tm.mkBoolean(false)),
       CVC5ApiException);
   ASSERT_NO_THROW(d_solver->getQuantifierEliminationDisjunct(forall));
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-models", "true");
+  slv.checkSat();
+  Term xx = tm.mkVar(tm.getBooleanSort(), "x");
+  Term fforall =
+      tm.mkTerm(Kind::FORALL,
+                {tm.mkTerm(Kind::VARIABLE_LIST, {xx}),
+                 tm.mkTerm(Kind::OR, {xx, tm.mkTerm(Kind::NOT, {xx})})});
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.getQuantifierEliminationDisjunct(fforall));
 }
 
 TEST_F(TestApiBlackSolver, declareSepHeap)
@@ -1376,6 +1442,26 @@ TEST_F(TestApiBlackSolver, declareSepHeap)
   ASSERT_NO_THROW(d_solver->declareSepHeap(integer, integer));
   // cannot declare separation logic heap more than once
   ASSERT_THROW(d_solver->declareSepHeap(integer, integer), CVC5ApiException);
+
+  TermManager tm;
+  {
+    Solver slv(tm);
+    // no logic set yet
+    ASSERT_THROW(slv.declareSepHeap(tm.getIntegerSort(), tm.getIntegerSort()),
+                 CVC5ApiException);
+  }
+  {
+    Solver slv(tm);
+    slv.setLogic("ALL");
+    // this will throw when NodeManager is not a singleton anymore
+    ASSERT_NO_THROW(slv.declareSepHeap(integer, tm.getRealSort()));
+  }
+  {
+    Solver slv(tm);
+    slv.setLogic("ALL");
+    // this will throw when NodeManager is not a singleton anymore
+    ASSERT_NO_THROW(slv.declareSepHeap(tm.getBooleanSort(), integer));
+  }
 }
 
 namespace {
@@ -1569,6 +1655,13 @@ TEST_F(TestApiBlackSolver, blockModelValues1)
   ASSERT_THROW(d_solver->blockModelValues({}), CVC5ApiException);
   ASSERT_THROW(d_solver->blockModelValues({Term()}), CVC5ApiException);
   ASSERT_NO_THROW(d_solver->blockModelValues({d_tm.mkBoolean(false)}));
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("produce-models", "true");
+  slv.checkSat();
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.blockModelValues({d_tm.mkFalse()}));
 }
 
 TEST_F(TestApiBlackSolver, blockModelValues2)
@@ -1680,8 +1773,6 @@ TEST_F(TestApiBlackSolver, simplify)
   ASSERT_NO_THROW(d_solver->simplify(x_eq_b));
   ASSERT_NE(d_tm.mkTrue(), x_eq_b);
   ASSERT_NE(d_tm.mkTrue(), d_solver->simplify(x_eq_b));
-  Solver slv(d_tm);
-  ASSERT_NO_THROW(slv.simplify(x));
 
   Term i1 = d_tm.mkConst(d_tm.getIntegerSort(), "i1");
   ASSERT_NO_THROW(d_solver->simplify(i1));
@@ -1723,13 +1814,20 @@ TEST_F(TestApiBlackSolver, simplify)
   d_solver->defineFunsRec({f1, f2}, {{b1, b2}, {b3}}, {v1, v2});
   ASSERT_NO_THROW(d_solver->simplify(f1));
   ASSERT_NO_THROW(d_solver->simplify(f2));
+
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.simplify(x));
 }
 
 TEST_F(TestApiBlackSolver, assertFormula)
 {
   ASSERT_NO_THROW(d_solver->assertFormula(d_tm.mkTrue()));
   ASSERT_THROW(d_solver->assertFormula(Term()), CVC5ApiException);
-  Solver slv(d_tm);
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
   ASSERT_NO_THROW(slv.assertFormula(d_tm.mkTrue()));
 }
 
@@ -1745,7 +1843,9 @@ TEST_F(TestApiBlackSolver, checkSatAssuming)
   d_solver->setOption("incremental", "false");
   ASSERT_NO_THROW(d_solver->checkSatAssuming(d_tm.mkTrue()));
   ASSERT_THROW(d_solver->checkSatAssuming(d_tm.mkTrue()), CVC5ApiException);
-  Solver slv(d_tm);
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
   ASSERT_NO_THROW(slv.checkSatAssuming(d_tm.mkTrue()));
 }
 
@@ -1873,8 +1973,14 @@ TEST_F(TestApiBlackSolver, declareSygusVar)
   ASSERT_NO_THROW(d_solver->declareSygusVar(std::string("b"), boolSort));
   ASSERT_THROW(d_solver->declareSygusVar("", Sort()), CVC5ApiException);
   ASSERT_THROW(d_solver->declareSygusVar("a", Sort()), CVC5ApiException);
-  Solver slv(d_tm);
-  ASSERT_THROW(slv.declareSygusVar("", boolSort), CVC5ApiException);
+
+  ASSERT_THROW(Solver(d_tm).declareSygusVar("", boolSort), CVC5ApiException);
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("sygus", "true");
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.declareSygusVar("", boolSort));
 }
 
 TEST_F(TestApiBlackSolver, mkGrammar)
@@ -1890,9 +1996,12 @@ TEST_F(TestApiBlackSolver, mkGrammar)
   ASSERT_THROW(d_solver->mkGrammar({}, {nullTerm}), CVC5ApiException);
   ASSERT_THROW(d_solver->mkGrammar({}, {boolTerm}), CVC5ApiException);
   ASSERT_THROW(d_solver->mkGrammar({boolTerm}, {intVar}), CVC5ApiException);
-  Solver slv(d_tm);
-  Term boolVar2 = d_tm.mkVar(d_tm.getBooleanSort());
-  Term intVar2 = d_tm.mkVar(d_tm.getIntegerSort());
+
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  Term boolVar2 = tm.mkVar(d_tm.getBooleanSort());
+  Term intVar2 = tm.mkVar(d_tm.getIntegerSort());
   ASSERT_NO_THROW(slv.mkGrammar({boolVar2}, {intVar2}));
   ASSERT_NO_THROW(slv.mkGrammar({boolVar}, {intVar2}));
   ASSERT_NO_THROW(slv.mkGrammar({boolVar2}, {intVar}));
@@ -1912,6 +2021,9 @@ TEST_F(TestApiBlackSolver, synthFun)
   Term start2 = d_tm.mkVar(integer);
 
   Grammar g1 = d_solver->mkGrammar({x}, {start1});
+  ASSERT_NO_THROW(d_solver->synthFun("", {}, boolean));
+  ASSERT_NO_THROW(d_solver->synthFun("f1", {x}, boolean));
+  ASSERT_THROW(d_solver->synthFun("f2", {x}, boolean, g1), CVC5ApiException);
   g1.addRule(start1, d_tm.mkBoolean(false));
 
   Grammar g2 = d_solver->mkGrammar({x}, {start2});
@@ -1924,12 +2036,15 @@ TEST_F(TestApiBlackSolver, synthFun)
   ASSERT_THROW(d_solver->synthFun("f3", {nullTerm}, boolean), CVC5ApiException);
   ASSERT_THROW(d_solver->synthFun("f4", {}, null), CVC5ApiException);
   ASSERT_THROW(d_solver->synthFun("f6", {x}, boolean, g2), CVC5ApiException);
-  Solver slv(d_tm);
+
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
   slv.setOption("sygus", "true");
-  Term x2 = d_tm.mkVar(d_tm.getBooleanSort());
+  Term x2 = tm.mkVar(tm.getBooleanSort());
   ASSERT_NO_THROW(slv.synthFun("f1", {x2}, d_tm.getBooleanSort()));
   ASSERT_NO_THROW(slv.synthFun("", {}, d_tm.getBooleanSort()));
-  ASSERT_NO_THROW(slv.synthFun("f1", {x}, d_tm.getBooleanSort()));
+  ASSERT_NO_THROW(slv.synthFun("f1", {x}, tm.getBooleanSort()));
 }
 
 TEST_F(TestApiBlackSolver, addSygusConstraint)
@@ -1943,7 +2058,9 @@ TEST_F(TestApiBlackSolver, addSygusConstraint)
   ASSERT_THROW(d_solver->addSygusConstraint(nullTerm), CVC5ApiException);
   ASSERT_THROW(d_solver->addSygusConstraint(intTerm), CVC5ApiException);
 
-  Solver slv(d_tm);
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
   slv.setOption("sygus", "true");
   ASSERT_NO_THROW(slv.addSygusConstraint(boolTerm));
 }
@@ -1970,7 +2087,9 @@ TEST_F(TestApiBlackSolver, addSygusAssume)
   ASSERT_THROW(d_solver->addSygusAssume(nullTerm), CVC5ApiException);
   ASSERT_THROW(d_solver->addSygusAssume(intTerm), CVC5ApiException);
 
-  Solver slv(d_tm);
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
   slv.setOption("sygus", "true");
   ASSERT_NO_THROW(slv.addSygusAssume(boolTerm));
 }
@@ -2039,10 +2158,13 @@ TEST_F(TestApiBlackSolver, addSygusInvConstraint)
 
   ASSERT_THROW(d_solver->addSygusInvConstraint(inv, pre, trans, trans),
                CVC5ApiException);
-  Solver slv(d_tm);
+
+  TermManager tm;
+  Solver slv(tm);
+  // this will throw when NodeManager is not a singleton anymore
   slv.setOption("sygus", "true");
-  Sort boolean2 = d_tm.getBooleanSort();
-  Sort real2 = d_tm.getRealSort();
+  Sort boolean2 = tm.getBooleanSort();
+  Sort real2 = tm.getRealSort();
   Term inv22 = slv.declareFun("inv", {real2}, boolean2);
   Term pre22 = slv.declareFun("pre", {real2}, boolean2);
   Term trans22 = slv.declareFun("trans", {real2, real2}, boolean2);
@@ -2082,8 +2204,7 @@ TEST_F(TestApiBlackSolver, getSynthSolution)
   ASSERT_THROW(d_solver->getSynthSolution(nullTerm), CVC5ApiException);
   ASSERT_THROW(d_solver->getSynthSolution(x), CVC5ApiException);
 
-  Solver slv(d_tm);
-  ASSERT_THROW(slv.getSynthSolution(f), CVC5ApiException);
+  ASSERT_THROW(Solver(d_tm).getSynthSolution(f), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, getSynthSolutions)
@@ -2107,8 +2228,7 @@ TEST_F(TestApiBlackSolver, getSynthSolutions)
   ASSERT_THROW(d_solver->getSynthSolutions({nullTerm}), CVC5ApiException);
   ASSERT_THROW(d_solver->getSynthSolutions({x}), CVC5ApiException);
 
-  Solver slv(d_tm);
-  ASSERT_THROW(slv.getSynthSolutions({x}), CVC5ApiException);
+  ASSERT_THROW(Solver(d_tm).getSynthSolutions({x}), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, checkSynthNext)
@@ -2150,6 +2270,9 @@ TEST_F(TestApiBlackSolver, findSynth)
   Sort boolean = d_tm.getBooleanSort();
   Term start = d_tm.mkVar(boolean);
   Grammar g = d_solver->mkGrammar({}, {start});
+  ASSERT_THROW(d_solver->synthFun("f", {}, d_tm.getBooleanSort(), g),
+               CVC5ApiException);
+
   Term truen = d_tm.mkBoolean(true);
   Term falsen = d_tm.mkBoolean(false);
   g.addRule(start, truen);
@@ -2245,469 +2368,12 @@ TEST_F(TestApiBlackSolver, Output)
   ASSERT_NE(null_os.rdbuf(), d_solver->getOutput("inst").rdbuf());
 }
 
-TEST_F(TestApiBlackSolver, issue7000)
-{
-  Sort s1 = d_tm.getIntegerSort();
-  Sort s2 = d_tm.mkFunctionSort({s1}, s1);
-  Sort s3 = d_tm.getRealSort();
-  Term t4 = d_tm.mkPi();
-  Term t7 = d_tm.mkConst(s3, "_x5");
-  Term t37 = d_tm.mkConst(s2, "_x32");
-  Term t59 = d_tm.mkConst(s2, "_x51");
-  Term t72 = d_tm.mkTerm(Kind::EQUAL, {t37, t59});
-  Term t74 = d_tm.mkTerm(Kind::GT, {t4, t7});
-  Term query = d_tm.mkTerm(Kind::AND, {t72, t74, t72, t72});
-  // throws logic exception since logic is not higher order by default
-  ASSERT_THROW(d_solver->checkSatAssuming(query.notTerm()), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, issue5893)
-{
-  Sort bvsort4 = d_tm.mkBitVectorSort(4);
-  Sort bvsort8 = d_tm.mkBitVectorSort(8);
-  Sort arrsort = d_tm.mkArraySort(bvsort4, bvsort8);
-  Term arr = d_tm.mkConst(arrsort, "arr");
-  Term idx = d_tm.mkConst(bvsort4, "idx");
-  Term ten = d_tm.mkBitVector(8, "10", 10);
-  Term sel = d_tm.mkTerm(Kind::SELECT, {arr, idx});
-  Term distinct = d_tm.mkTerm(Kind::DISTINCT, {sel, ten});
-  ASSERT_NO_FATAL_FAILURE(distinct.getOp());
-}
-
-TEST_F(TestApiBlackSolver, proj_issue308)
-{
-  d_solver->setOption("check-proofs", "true");
-  Sort s1 = d_tm.getBooleanSort();
-  Term t1 = d_tm.mkConst(s1, "_x0");
-  Term t2 = d_tm.mkTerm(Kind::XOR, {t1, t1});
-  d_solver->checkSatAssuming({t2});
-  auto unsat_core = d_solver->getUnsatCore();
-  ASSERT_FALSE(unsat_core.empty());
-}
-
-TEST_F(TestApiBlackSolver, proj_issue373)
-{
-  Sort s1 = d_tm.getRealSort();
-
-  DatatypeConstructorDecl ctor13 = d_tm.mkDatatypeConstructorDecl("_x115");
-  ctor13.addSelector("_x109", s1);
-  Sort s4 = d_solver->declareDatatype("_x86", {ctor13});
-
-  Term t452 = d_tm.mkVar(s1, "_x281");
-  Term bvl = d_tm.mkTerm(d_tm.mkOp(Kind::VARIABLE_LIST), {t452});
-  Term acons =
-      d_tm.mkTerm(d_tm.mkOp(Kind::APPLY_CONSTRUCTOR),
-                  {s4.getDatatype().getConstructor("_x115").getTerm(), t452});
-  // type exception
-  ASSERT_THROW(
-      d_tm.mkTerm(d_tm.mkOp(Kind::APPLY_CONSTRUCTOR), {bvl, acons, t452}),
-      CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, proj_issue378)
-{
-  DatatypeDecl dtdecl;
-  DatatypeConstructorDecl cdecl;
-
-  Sort s1 = d_tm.getBooleanSort();
-
-  dtdecl = d_tm.mkDatatypeDecl("_x0");
-  cdecl = d_tm.mkDatatypeConstructorDecl("_x6");
-  cdecl.addSelector("_x1", s1);
-  dtdecl.addConstructor(cdecl);
-  Sort s2 = d_tm.mkDatatypeSort(dtdecl);
-
-  dtdecl = d_tm.mkDatatypeDecl("_x36");
-  cdecl = d_tm.mkDatatypeConstructorDecl("_x42");
-  cdecl.addSelector("_x37", s1);
-  dtdecl.addConstructor(cdecl);
-  Sort s4 = d_tm.mkDatatypeSort(dtdecl);
-
-  Term t1 = d_tm.mkConst(s1, "_x53");
-  Term t4 = d_tm.mkConst(s4, "_x56");
-  Term t7 = d_tm.mkConst(s2, "_x58");
-
-  Sort sp = d_tm.mkParamSort("_x178");
-  dtdecl = d_tm.mkDatatypeDecl("_x176", {sp});
-  cdecl = d_tm.mkDatatypeConstructorDecl("_x184");
-  cdecl.addSelector("_x180", s2);
-  dtdecl.addConstructor(cdecl);
-  cdecl = d_tm.mkDatatypeConstructorDecl("_x186");
-  cdecl.addSelector("_x185", sp);
-  dtdecl.addConstructor(cdecl);
-  Sort s7 = d_tm.mkDatatypeSort(dtdecl);
-  Sort s9 = s7.instantiate({s2});
-  Term t1507 =
-      d_tm.mkTerm(Kind::APPLY_CONSTRUCTOR,
-                  {s9.getDatatype().getConstructor("_x184").getTerm(), t7});
-  ASSERT_NO_THROW(d_tm.mkTerm(
-      Kind::APPLY_UPDATER,
-      {s9.getDatatype().getConstructor("_x186").getSelector("_x185").getTerm(),
-       t1507,
-       t7}));
-}
-
-TEST_F(TestApiBlackSolver, proj_issue379)
-{
-  Sort bsort = d_tm.getBooleanSort();
-  Sort psort = d_tm.mkParamSort("_x1");
-  DatatypeConstructorDecl cdecl;
-  DatatypeDecl dtdecl = d_tm.mkDatatypeDecl("x_0", {psort});
-  cdecl = d_tm.mkDatatypeConstructorDecl("_x8");
-  cdecl.addSelector("_x7", bsort);
-  dtdecl.addConstructor(cdecl);
-  cdecl = d_tm.mkDatatypeConstructorDecl("_x6");
-  cdecl.addSelector("_x2", psort);
-  cdecl.addSelectorSelf("_x3");
-  cdecl.addSelector("_x4", psort);
-  cdecl.addSelector("_x5", bsort);
-  Sort s2 = d_tm.mkDatatypeSort(dtdecl);
-  Sort s6 = s2.instantiate({bsort});
-  Term t317 = d_tm.mkConst(bsort, "_x345");
-  Term t843 = d_tm.mkConst(s6, "_x346");
-  Term t879 = d_tm.mkTerm(Kind::APPLY_UPDATER,
-                          {t843.getSort()
-                               .getDatatype()
-                               .getConstructor("_x8")
-                               .getSelector("_x7")
-                               .getUpdaterTerm(),
-                           t843,
-                           t317});
-  ASSERT_EQ(t879.getSort(), s6);
-}
-
 TEST_F(TestApiBlackSolver, getDatatypeArity)
 {
   DatatypeConstructorDecl ctor1 = d_tm.mkDatatypeConstructorDecl("_x21");
   DatatypeConstructorDecl ctor2 = d_tm.mkDatatypeConstructorDecl("_x31");
   Sort s3 = d_solver->declareDatatype(std::string("_x17"), {ctor1, ctor2});
   ASSERT_EQ(s3.getDatatypeArity(), 0);
-}
-
-TEST_F(TestApiBlackSolver, proj_issue381)
-{
-  Sort s1 = d_tm.getBooleanSort();
-
-  Sort psort = d_tm.mkParamSort("_x9");
-  DatatypeDecl dtdecl = d_tm.mkDatatypeDecl("_x8", {psort});
-  DatatypeConstructorDecl ctor = d_tm.mkDatatypeConstructorDecl("_x22");
-  ctor.addSelector("_x19", s1);
-  dtdecl.addConstructor(ctor);
-  Sort s3 = d_tm.mkDatatypeSort(dtdecl);
-  Sort s6 = s3.instantiate({s1});
-  Term t26 = d_tm.mkConst(s6, "_x63");
-  Term t5 = d_tm.mkTrue();
-  Term t187 = d_tm.mkTerm(Kind::APPLY_UPDATER,
-                          {t26.getSort()
-                               .getDatatype()
-                               .getConstructor("_x22")
-                               .getSelector("_x19")
-                               .getUpdaterTerm(),
-                           t26,
-                           t5});
-  ASSERT_NO_THROW(d_solver->simplify(t187));
-}
-
-
-TEST_F(TestApiBlackSolver, proj_issue382)
-{
-  Sort s1 = d_tm.getBooleanSort();
-  Sort psort = d_tm.mkParamSort("_x1");
-  DatatypeConstructorDecl ctor = d_tm.mkDatatypeConstructorDecl("_x20");
-  ctor.addSelector("_x19", psort);
-  DatatypeDecl dtdecl = d_tm.mkDatatypeDecl("_x0", {psort});
-  dtdecl.addConstructor(ctor);
-  Sort s2 = d_tm.mkDatatypeSort(dtdecl);
-  Sort s6 = s2.instantiate({s1});
-  Term t13 = d_tm.mkVar(s6, "_x58");
-  Term t18 = d_tm.mkConst(s6, "_x63");
-  Term t52 = d_tm.mkVar(s6, "_x70");
-  Term t53 = d_tm.mkTerm(Kind::MATCH_BIND_CASE,
-                         {d_tm.mkTerm(Kind::VARIABLE_LIST, {t52}), t52, t18});
-  Term t73 = d_tm.mkVar(s1, "_x78");
-  Term t81 = d_tm.mkTerm(
-      Kind::MATCH_BIND_CASE,
-      {d_tm.mkTerm(Kind::VARIABLE_LIST, {t73}),
-       d_tm.mkTerm(
-           Kind::APPLY_CONSTRUCTOR,
-           {s6.getDatatype().getConstructor("_x20").getInstantiatedTerm(s6),
-            t73}),
-       t18});
-  Term t82 = d_tm.mkTerm(Kind::MATCH, {t13, t53, t53, t53, t81});
-  Term t325 = d_tm.mkTerm(
-      Kind::APPLY_SELECTOR,
-      {t82.getSort().getDatatype().getSelector("_x19").getTerm(), t82});
-  ASSERT_NO_THROW(d_solver->simplify(t325));
-}
-
-TEST_F(TestApiBlackSolver, proj_issue383)
-{
-  d_solver->setOption("produce-models", "true");
-
-  Sort s1 = d_tm.getBooleanSort();
-
-  DatatypeConstructorDecl ctordecl = d_tm.mkDatatypeConstructorDecl("_x5");
-  DatatypeDecl dtdecl = d_tm.mkDatatypeDecl("_x0");
-  dtdecl.addConstructor(ctordecl);
-  Sort s2 = d_tm.mkDatatypeSort(dtdecl);
-
-  ctordecl = d_tm.mkDatatypeConstructorDecl("_x23");
-  ctordecl.addSelectorSelf("_x21");
-  dtdecl = d_tm.mkDatatypeDecl("_x12");
-  dtdecl.addConstructor(ctordecl);
-  ASSERT_THROW(d_tm.mkDatatypeSort(dtdecl), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, proj_issue386)
-{
-  Sort s1 = d_tm.getBooleanSort();
-  Sort p1 = d_tm.mkParamSort("_p1");
-  Sort p2 = d_tm.mkParamSort("_p2");
-  DatatypeDecl dtdecl = d_tm.mkDatatypeDecl("_x0", {p1, p2});
-  DatatypeConstructorDecl ctordecl = d_tm.mkDatatypeConstructorDecl("_x1");
-  ctordecl.addSelector("_x2", p1);
-  dtdecl.addConstructor(ctordecl);
-  Sort s2 = d_tm.mkDatatypeSort(dtdecl);
-  ASSERT_THROW(s2.instantiate({s1}), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, proj_issue414)
-{
-  Sort s2 = d_tm.getRealSort();
-  Term t1 = d_tm.mkConst(s2, "_x0");
-  Term t16 = d_tm.mkTerm(Kind::PI);
-  Term t53 = d_tm.mkTerm(Kind::SUB, {t1, t16});
-  Term t54 = d_tm.mkTerm(Kind::SECANT, {t53});
-  ASSERT_NO_THROW(d_solver->simplify(t54));
-}
-
-TEST_F(TestApiBlackSolver, proj_issue420)
-{
-  d_solver->setOption("strings-exp", "true");
-  d_solver->setOption("produce-models", "true");
-  d_solver->setOption("produce-unsat-cores", "true");
-  Sort s2 = d_tm.getRealSort();
-  Sort s3 = d_tm.mkUninterpretedSort("_u0");
-  DatatypeDecl _dt1 = d_tm.mkDatatypeDecl("_dt1", {});
-  DatatypeConstructorDecl _cons16 = d_tm.mkDatatypeConstructorDecl("_cons16");
-  _cons16.addSelector("_sel13", s3);
-  _dt1.addConstructor(_cons16);
-  std::vector<Sort> _s4 = d_tm.mkDatatypeSorts({_dt1});
-  Sort s4 = _s4[0];
-  Sort s5 = d_tm.mkSequenceSort(s2);
-  Term t3 = d_tm.mkConst(s5, "_x18");
-  Term t7 = d_tm.mkConst(s4, "_x22");
-  // was initially a dt size application
-  Term t13 = d_tm.mkConst(d_tm.getIntegerSort(), "t13");
-  Term t53 = d_tm.mkTerm(Kind::SEQ_NTH, {t3, t13});
-  ASSERT_NO_THROW(d_solver->checkSat());
-  ASSERT_NO_THROW(d_solver->blockModelValues({t53, t7}));
-  ASSERT_NO_THROW(d_solver->checkSat());
-}
-
-TEST_F(TestApiBlackSolver, proj_issue440)
-{
-  d_solver->setLogic("QF_ALL");
-  d_solver->setOption("global-negate", "true");
-  d_solver->setOption("produce-unsat-cores", "true");
-  Sort s1 = d_tm.getBooleanSort();
-  Term t9 = d_tm.mkBoolean(true);
-  Term t109 = d_tm.mkTerm(Kind::NOT, {t9});
-  // should throw an option exception
-  ASSERT_THROW(d_solver->checkSatAssuming({t109}), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, proj_issue434)
-{
-  d_solver->setOption("dump-difficulty", "true");
-  d_solver->setOption("debug-check-models", "true");
-  Sort s1 = d_tm.mkUninterpretedSort("_u0");
-  Sort s2 = d_tm.mkUninterpretedSort("_u1");
-  Sort s3 = d_tm.mkUninterpretedSort("_u2");
-  Sort s4 = d_tm.getBooleanSort();
-  Term t1 = d_tm.mkConst(s1, "_x3");
-  Term t3 = d_tm.mkConst(s3, "_x5");
-  Term t15 = d_tm.mkConst(s1, "_x17");
-  Term t26 = d_tm.mkBoolean(false);
-  Term t60 = d_tm.mkVar(s4, "_f29_1");
-  Term t73 = d_solver->defineFun("_f29", {t60}, t60.getSort(), t60);
-  Term t123 = d_tm.mkVar(s4, "_f31_0");
-  Term t135 = d_solver->defineFun("_f31", {t123}, t123.getSort(), t123);
-  Term t506 = d_tm.mkVar(s1, "_f37_0");
-  Term t507 = d_tm.mkVar(s4, "_f37_1");
-  Term t510 = d_tm.mkTerm(Kind::APPLY_UF, {t73, t507});
-  Term t530 = d_solver->defineFun("_f37", {t507}, t510.getSort(), t510);
-  Term t559 = d_tm.mkTerm(Kind::DISTINCT, {t15, t1});
-  Term t631 = d_tm.mkTerm(Kind::XOR, {t559, t26});
-  Term t632 = d_tm.mkTerm(Kind::APPLY_UF, {t135, t631});
-  Term t715 = d_tm.mkVar(s4, "_f40_0");
-  Term t721 = d_tm.mkTerm(Kind::APPLY_UF, {t530, t715});
-  Term t722 = d_tm.mkTerm(Kind::APPLY_UF, {t530, t721});
-  Term t731 = d_solver->defineFun("_f40", {t715}, t722.getSort(), t722);
-  Term t1014 = d_tm.mkVar(s4, "_f45_0");
-  Term t1034 = d_tm.mkTerm(Kind::DISTINCT, {t510, t510});
-  Term t1035 = d_tm.mkTerm(Kind::XOR, {t1034, t632});
-  Term t1037 = d_tm.mkTerm(Kind::APPLY_UF, {t135, t1035});
-  Term t1039 = d_tm.mkTerm(Kind::APPLY_UF, {t731, t1037});
-  Term t1040 = d_solver->defineFun("_f45", {t1014}, t1039.getSort(), t1039);
-  Term t1072 = d_tm.mkTerm(Kind::APPLY_UF, {t1040, t510});
-  Term t1073 = d_tm.mkTerm(Kind::APPLY_UF, {t73, t1072});
-  // the query has free variables, and should throw an exception
-  ASSERT_THROW(d_solver->checkSatAssuming({t1073, t510}), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, proj_issue436)
-{
-  d_solver->setOption("produce-abducts", "true");
-  d_solver->setOption("solve-bv-as-int", "sum");
-  Sort s8 = d_tm.mkBitVectorSort(68);
-  Term t17 = d_tm.mkConst(s8, "_x6");
-  Term t23;
-  {
-    uint32_t bw = s8.getBitVectorSize();
-    t23 = d_tm.mkBitVector(bw, 1);
-  }
-  Term t33 = d_tm.mkTerm(Kind::BITVECTOR_ULT, {t17, t23});
-  // solve-bv-as-int is incompatible with get-abduct
-  ASSERT_THROW(d_solver->getAbduct(t33), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, proj_issue431)
-{
-  d_solver->setOption("produce-models", "true");
-  d_solver->setOption("produce-unsat-assumptions", "true");
-  d_solver->setOption("produce-assertions", "true");
-  Sort s1 = d_tm.getStringSort();
-  Sort s3 = d_tm.getIntegerSort();
-  Sort s7 = d_tm.mkArraySort(s1, s3);
-  Term t3 = d_tm.mkConst(s1, "_x2");
-  Term t57 = d_tm.mkVar(s7, "_x38");
-  Term t103 = d_tm.mkTerm(Kind::SELECT, {t57, t3});
-  d_solver->checkSat();
-  ASSERT_THROW(d_solver->blockModelValues({t103}), CVC5ApiException);
-}
-TEST_F(TestApiBlackSolver, proj_issue426)
-{
-  d_solver->setLogic("ALL");
-  d_solver->setOption("strings-exp", "true");
-  d_solver->setOption("produce-models", "true");
-  d_solver->setOption("produce-assertions", "true");
-  Sort s1 = d_tm.getRealSort();
-  Sort s2 = d_tm.getRoundingModeSort();
-  Sort s4 = d_tm.mkSequenceSort(s1);
-  Sort s5 = d_tm.mkArraySort(s4, s4);
-  Term t4 = d_tm.mkConst(s1, "_x3");
-  Term t5 = d_tm.mkReal("9192/832927743");
-  Term t19 = d_tm.mkConst(s2, "_x42");
-  Term t24 = d_tm.mkConst(s5, "_x44");
-  Term t37 = d_tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE);
-  d_solver->checkSat();
-  d_solver->blockModelValues({t24, t19, t4, t37});
-  d_solver->checkSat();
-  ASSERT_NO_THROW(d_solver->getValue({t5}));
-}
-
-TEST_F(TestApiBlackSolver, proj_issue429)
-{
-  Sort s1 = d_tm.getRealSort();
-  Term t6 = d_tm.mkConst(s1, "_x5");
-  Term t16 =
-      d_tm.mkReal(std::stoll("1696223.9473797265702297792792306581323741"));
-  Term t111 = d_tm.mkTerm(Kind::SEQ_UNIT, {t16});
-  Term t119 = d_tm.mkTerm(d_tm.mkOp(Kind::SEQ_UNIT), {t6});
-  Term t126 = d_tm.mkTerm(Kind::SEQ_PREFIX, {t111, t119});
-  d_solver->checkSatAssuming({t126.notTerm()});
-}
-
-TEST_F(TestApiBlackSolver, proj_issue422)
-{
-  d_solver->setOption("strings-exp", "true");
-  d_solver->setOption("sygus-abort-size", "1");
-  Sort s1 = d_tm.mkBitVectorSort(36);
-  Sort s2 = d_tm.getStringSort();
-  Term t1 = d_tm.mkConst(s2, "_x0");
-  Term t2 = d_tm.mkConst(s1, "_x1");
-  Term t11;
-  {
-    uint32_t bw = s1.getBitVectorSize();
-    std::string val(bw, '1');
-    val[0] = '0';
-    t11 = d_tm.mkBitVector(bw, val, 2);
-  }
-  Term t60 = d_tm.mkTerm(Kind::SET_SINGLETON, {t1});
-  Term t66 = d_tm.mkTerm(Kind::BITVECTOR_COMP, {t2, t11});
-  Term t92 = d_tm.mkRegexpAll();
-  Term t96 = d_tm.mkTerm(d_tm.mkOp(Kind::BITVECTOR_ZERO_EXTEND, {51}), {t66});
-  Term t105 = d_tm.mkTerm(Kind::BITVECTOR_ADD, {t96, t96});
-  Term t113 = d_tm.mkTerm(Kind::BITVECTOR_SUB, {t105, t105});
-  Term t137 = d_tm.mkTerm(Kind::BITVECTOR_XOR, {t113, t105});
-  Term t211 = d_tm.mkTerm(Kind::BITVECTOR_SLTBV, {t137, t137});
-  Term t212 = d_tm.mkTerm(Kind::SET_MINUS, {t60, t60});
-  Term t234 = d_tm.mkTerm(Kind::SET_CHOOSE, {t212});
-  Term t250 = d_tm.mkTerm(Kind::STRING_REPLACE_RE_ALL, {t1, t92, t1});
-  Term t259 = d_tm.mkTerm(Kind::STRING_REPLACE_ALL, {t234, t234, t250});
-  Term t263 = d_tm.mkTerm(Kind::STRING_TO_LOWER, {t259});
-  Term t272 = d_tm.mkTerm(Kind::BITVECTOR_SDIV, {t211, t66});
-  Term t276 = d_tm.mkTerm(d_tm.mkOp(Kind::BITVECTOR_ZERO_EXTEND, {71}), {t272});
-  Term t288 = d_tm.mkTerm(Kind::EQUAL, {t263, t1});
-  Term t300 = d_tm.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
-  Term t301 = d_tm.mkTerm(Kind::EQUAL, {t288, t300});
-  d_solver->assertFormula({t301});
-  Term t = d_solver->findSynth(modes::FindSynthTarget::REWRITE_INPUT);
-}
-
-TEST_F(TestApiBlackSolver, proj_issue423)
-{
-  d_solver->setOption("produce-models", "true");
-  d_solver->setOption("produce-difficulty", "true");
-  Sort s2 = d_tm.getRealSort();
-  Sort s3 = d_tm.mkSequenceSort(s2);
-  Term t2;
-  {
-    t2 = d_tm.mkEmptySequence(s3.getSequenceElementSort());
-  }
-  Term t22 = d_tm.mkReal("119605652059157009");
-  Term t32 = d_tm.mkTerm(Kind::SEQ_UNIT, {t22});
-  Term t43 = d_tm.mkTerm(Kind::SEQ_CONCAT, {t2, t32});
-  Term t51 = d_tm.mkTerm(Kind::DISTINCT, {t32, t32});
-  d_solver->checkSat();
-  d_solver->blockModelValues({t51, t43});
-}
-
-TEST_F(TestApiBlackSolver, projIssue431)
-{
-  d_solver->setOption("produce-abducts", "true");
-  Sort s2 = d_tm.mkBitVectorSort(22);
-  Sort s4 = d_tm.mkSetSort(s2);
-  Sort s5 = d_tm.getBooleanSort();
-  Sort s6 = d_tm.getRealSort();
-  Sort s7 = d_tm.mkFunctionSort({s6}, s5);
-  DatatypeDecl _dt46 = d_tm.mkDatatypeDecl("_dt46", {});
-  DatatypeConstructorDecl _cons64 = d_tm.mkDatatypeConstructorDecl("_cons64");
-  _cons64.addSelector("_sel62", s6);
-  _cons64.addSelector("_sel63", s4);
-  _dt46.addConstructor(_cons64);
-  Sort s14 = d_tm.mkDatatypeSorts({_dt46})[0];
-  Term t31 = d_tm.mkConst(s7, "_x100");
-  Term t47 = d_tm.mkConst(s14, "_x112");
-  Term sel = t47.getSort()
-                 .getDatatype()
-                 .getConstructor("_cons64")
-                 .getSelector("_sel62")
-                 .getTerm();
-  Term t274 = d_tm.mkTerm(Kind::APPLY_SELECTOR, {sel, t47});
-  Term t488 = d_tm.mkTerm(Kind::APPLY_UF, {t31, t274});
-  d_solver->assertFormula({t488});
-  Term abduct;
-  abduct = d_solver->getAbduct(t488);
-}
-
-TEST_F(TestApiBlackSolver, projIssue337)
-{
-  Term t =
-      d_tm.mkTerm(Kind::SEQ_UNIT, {d_tm.mkReal("3416574625719121610379268")});
-  Term tt = d_solver->simplify(t);
-  ASSERT_EQ(t.getSort(), tt.getSort());
 }
 
 TEST_F(TestApiBlackSolver, declareOracleFunError)
@@ -2751,6 +2417,36 @@ TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
   d_solver->assertFormula(eq);
   // (f 3) = 5
   ASSERT_TRUE(d_solver->checkSat().isUnsat());
+
+  TermManager tm;
+  Solver slv(tm);
+  slv.setOption("oracles", "true");
+  Sort iiSort = d_tm.getIntegerSort();
+  // this will throw when NodeManager is not a singleton anymore
+  ASSERT_NO_THROW(slv.declareOracleFun(
+      "f", {iiSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return tm.mkInteger(input[0].getUInt32Value() + 1);
+        }
+        return tm.mkInteger(0);
+      }));
+  ASSERT_NO_THROW(slv.declareOracleFun(
+      "f", {iSort}, iiSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return tm.mkInteger(input[0].getUInt32Value() + 1);
+        }
+        return tm.mkInteger(0);
+      }));
+  ASSERT_NO_THROW(slv.declareOracleFun(
+      "f", {iiSort}, iiSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return d_tm.mkInteger(input[0].getUInt32Value() + 1);
+        }
+        return d_tm.mkInteger(0);
+      }));
 }
 
 TEST_F(TestApiBlackSolver, declareOracleFunSat)

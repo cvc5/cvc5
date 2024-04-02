@@ -52,7 +52,7 @@ $excluded_paths .= ')$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2023';
+my $years = '2009-2024';
 
 my $standard_template = <<EOF;
  *

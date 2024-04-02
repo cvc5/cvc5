@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -157,7 +157,7 @@ TheoryId Theory::theoryOf(TNode node,
           // Purify variables are considered theory literals and sent to the
           // UF theory to ensure theory combination is run properly on functions
           // having Boolean arguments.
-          if (sm->getId(node) == SkolemFunId::PURIFY)
+          if (sm->getId(node) == SkolemId::PURIFY)
           {
             tid = THEORY_UF;
           }
@@ -188,7 +188,7 @@ TheoryId Theory::theoryOf(TNode node,
         else
         {
           SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-          if (sm->getId(node) == SkolemFunId::PURIFY)
+          if (sm->getId(node) == SkolemId::PURIFY)
           {
             // purify vars also go to UF
             tid = THEORY_UF;

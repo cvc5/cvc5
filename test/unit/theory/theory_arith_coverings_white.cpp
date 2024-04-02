@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -391,9 +391,10 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   env.finishInit(pfm.getProofNodeManager());
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need
-  builtin::BuiltinProofRuleChecker btchecker(env);
+  NodeManager * nm = env.getNodeManager();
+  builtin::BuiltinProofRuleChecker btchecker(nm, env.getRewriter(), env);
   btchecker.registerTo(env.getProofNodeManager()->getChecker());
-  coverings::CoveringsProofRuleChecker checker;
+  coverings::CoveringsProofRuleChecker checker(nm);
   checker.registerTo(env.getProofNodeManager()->getChecker());
   // do the coverings problem
   coverings::CDCAC cac(env, {});

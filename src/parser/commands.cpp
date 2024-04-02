@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1485,8 +1485,8 @@ void GetModelCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
-    std::vector<cvc5::Sort> declareSorts = sm->getModelDeclareSorts();
-    std::vector<cvc5::Term> declareTerms = sm->getModelDeclareTerms();
+    std::vector<cvc5::Sort> declareSorts = sm->getDeclaredSorts();
+    std::vector<cvc5::Term> declareTerms = sm->getDeclaredTerms();
     d_result = solver->getModel(declareSorts, declareTerms);
     d_commandStatus = CommandSuccess::instance();
   }

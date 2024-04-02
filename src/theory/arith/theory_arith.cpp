@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,9 +50,9 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
       d_arithPreproc(env, d_im, d_pnm, d_opElim),
-      d_rewriter(d_opElim),
+      d_rewriter(nodeManager(), d_opElim),
       d_arithModelCacheSet(false),
-      d_checker()
+      d_checker(nodeManager())
 {
 #ifdef CVC5_USE_COCOA
   // must be initialized before using CoCoA.

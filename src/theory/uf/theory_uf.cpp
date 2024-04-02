@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,8 @@ TheoryUF::TheoryUF(Env& env,
       d_ho(nullptr),
       d_functionsTerms(context()),
       d_symb(env, instanceName),
-      d_rewriter(),
+      d_rewriter(nodeManager()),
+      d_checker(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this),

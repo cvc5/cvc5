@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -951,6 +951,19 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
   return lit;
+}
+
+void ProofCnfStream::dumpDimacs(std::ostream& out,
+                                const std::vector<Node>& clauses)
+{
+  d_cnfStream.dumpDimacs(out, clauses);
+}
+
+void ProofCnfStream::dumpDimacs(std::ostream& out,
+                                const std::vector<Node>& clauses,
+                                const std::vector<Node>& auxUnits)
+{
+  d_cnfStream.dumpDimacs(out, clauses, auxUnits);
 }
 
 }  // namespace prop

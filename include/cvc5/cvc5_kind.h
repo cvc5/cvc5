@@ -163,6 +163,16 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(VARIABLE),
   /**
+   * A Skolem.
+   *
+   * \rst
+   * .. note:: Represents an internally generated term. Information on the
+   * skolem is available via the calls `Solver::getSkolemId` and
+   * `Solver::getSkolemIndices`.
+   * \endrst
+   */
+  EVALUE(SKOLEM),
+  /**
    * Symbolic expression.
    *
    * - Arity: ``n > 0``
