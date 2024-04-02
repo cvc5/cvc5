@@ -38,11 +38,11 @@ class TheorySepRewriter : public TheoryRewriter
 
  private:
   void getStarChildren(Node n,
-                              std::vector<Node>& s_children,
-                              std::vector<Node>& ns_children) const;
+                       std::vector<Node>& s_children,
+                       std::vector<Node>& ns_children) const;
   void getAndChildren(Node n,
-                             std::vector<Node>& s_children,
-                             std::vector<Node>& ns_children) const;
+                      std::vector<Node>& s_children,
+                      std::vector<Node>& ns_children) const;
   bool isSpatial(Node n, std::map<Node, bool>& visited) const;
 }; /* class TheorySepRewriter */
 

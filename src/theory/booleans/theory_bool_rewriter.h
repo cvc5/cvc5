@@ -37,16 +37,16 @@ class TheoryBoolRewriter : public TheoryRewriter
  protected:
   /**
    * Helper method which performs flattening.
-   * 
+   *
    * @param n The node to flatten
    * @param trivialNode The trivial node, e.g. false if n is an AND application
    * @param skipNode The skip node, e.g. true if n is an AND application
    * @return The flattened node.
    */
   RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode);
-  /** 
+  /**
    * Helper method for making a negation
-   * 
+   *
    * @param n The node to negate
    * @return The negation of n.
    */

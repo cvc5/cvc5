@@ -26,77 +26,92 @@ namespace sep {
 
 TheorySepRewriter::TheorySepRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
 
-void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& scs, std::vector< Node >& nscs ) const{
+void TheorySepRewriter::getStarChildren(Node n,
+                                        std::vector<Node>& scs,
+                                        std::vector<Node>& nscs) const
+{
   Assert(n.getKind() == Kind::SEP_STAR);
   Node tr = nodeManager()->mkConst(true);
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if (n[i].getKind() == Kind::SEP_EMP)
     {
-      scs.push_back( n[i] );
+      scs.push_back(n[i]);
     }
     else if (n[i].getKind() == Kind::SEP_STAR)
     {
-      getStarChildren( n[i], scs, nscs );
+      getStarChildren(n[i], scs, nscs);
     }
     else if (n[i].getKind() == Kind::SEP_PTO)
     {
-      scs.push_back( n[i] );
+      scs.push_back(n[i]);
     }
     else
     {
-      std::vector< Node > temp_scs;
-      getAndChildren( n[i], temp_scs, nscs );
+      std::vector<Node> temp_scs;
+      getAndChildren(n[i], temp_scs, nscs);
       Node to_add;
-      if( temp_scs.size()==0 ){
-        if( std::find( scs.begin(), scs.end(), tr )==scs.end() ){
+      if (temp_scs.size() == 0)
+      {
+        if (std::find(scs.begin(), scs.end(), tr) == scs.end())
+        {
           to_add = tr;
         }
-      }else if( temp_scs.size()==1 ){
+      }
+      else if (temp_scs.size() == 1)
+      {
         to_add = temp_scs[0];
-      }else{
+      }
+      else
+      {
         to_add = nodeManager()->mkNode(Kind::AND, temp_scs);
       }
       if( !to_add.isNull() ){
         //flatten star
         if (to_add.getKind() == Kind::SEP_STAR)
         {
-          getStarChildren( to_add, scs, nscs );
+          getStarChildren(to_add, scs, nscs);
         }
         else if (to_add.getKind() != Kind::SEP_EMP || scs.empty())
         {  // remove sep emp
-          scs.push_back( to_add );
+          scs.push_back(to_add);
         }
       }
     }
   }
 }
 
-void TheorySepRewriter::getAndChildren( Node n, std::vector< Node >& scs, std::vector< Node >& nscs ) const{
+void TheorySepRewriter::getAndChildren(Node n,
+                                       std::vector<Node>& scs,
+                                       std::vector<Node>& nscs) const
+{
   if (n.getKind() == Kind::AND)
   {
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      getAndChildren( n[i], scs, nscs );
+      getAndChildren(n[i], scs, nscs);
     }
   }
   else
   {
     std::map< Node, bool > visited;
     if( isSpatial( n, visited ) ){
-      if( std::find( scs.begin(), scs.end(), n )==scs.end() ){
-        scs.push_back( n );
+      if (std::find(scs.begin(), scs.end(), n) == scs.end())
+      {
+        scs.push_back(n);
       }
     }else{
-      if( std::find( nscs.begin(), nscs.end(), n )==nscs.end() ){
+      if (std::find(nscs.begin(), nscs.end(), n) == nscs.end())
+      {
         if (n != nodeManager()->mkConst(true))
         {
-          nscs.push_back( n );
+          nscs.push_back(n);
         }
       }
     }
   }
 }
 
-bool TheorySepRewriter::isSpatial( Node n, std::map< Node, bool >& visited )  const{
+bool TheorySepRewriter::isSpatial(Node n, std::map<Node, bool>& visited) const
+{
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     if (n.getKind() == Kind::SEP_STAR || n.getKind() == Kind::SEP_PTO
@@ -123,22 +138,29 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
     case Kind::SEP_STAR:
     {
       //flatten
-      std::vector< Node > scs;
-      std::vector< Node > nscs;
-      getStarChildren( node, scs, nscs );
-      if( !scs.empty() ){
+      std::vector<Node> scs;
+      std::vector<Node> nscs;
+      getStarChildren(node, scs, nscs);
+      if (!scs.empty())
+      {
         Node schild;
-        if( scs.size()==1 ) {
+        if (scs.size() == 1)
+        {
           schild = scs[0];
-        }else{
+        }
+        else
+        {
           schild = nodeManager()->mkNode(Kind::SEP_STAR, scs);
         }
-        nscs.push_back( schild );
+        nscs.push_back(schild);
       }
       Assert(!nscs.empty());
-      if( nscs.size()==1 ){
+      if (nscs.size() == 1)
+      {
         retNode = nscs[0];
-      }else{
+      }
+      else
+      {
         retNode = nodeManager()->mkNode(Kind::AND, nscs);
       }
       break;

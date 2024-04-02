@@ -513,11 +513,11 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] const "
                           << n << ": " << resp << std::endl;
         return RewriteResponse(REWRITE_AGAIN, resp);
-    }
-    else if (n[2].isConst() && (n[2] == d_true || n[2] == d_false))
-    {
-      // ITE C x true --> ~C v x
-      // ITE C x false --> C ^ x
+      }
+      else if (n[2].isConst() && (n[2] == d_true || n[2] == d_false))
+      {
+        // ITE C x true --> ~C v x
+        // ITE C x false --> C ^ x
         Node resp =
             n[2] == d_true ? (n[0].negate()).orNode(n[1]) : n[0].andNode(n[1]);
         Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[2] const "

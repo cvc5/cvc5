@@ -49,7 +49,7 @@ class TranscendentalProofRuleChecker : public ProofRuleChecker
                      const std::vector<Node>& args) override;
   /**
    * Helper method to construct (t >= lb) AND (t <= up)
-   * 
+   *
    * @param t term in the above formula
    * @param lb term in the above formula
    * @param ub term in the above formula
@@ -59,7 +59,7 @@ class TranscendentalProofRuleChecker : public ProofRuleChecker
   /**
    * Helper method to construct a secant plane:
    * evall + ((evall - evalu) / (l - u)) * (t - l)
-   * 
+   *
    * @param t term in the above formula
    * @param l term in the above formula
    * @param u term in the above formula
