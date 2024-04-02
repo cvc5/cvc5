@@ -77,6 +77,7 @@ Building cvc5 Java API
   * class `SymbolManager <io/github/cvc5/SymbolManager.html>`_
   * class `SynthResult <io/github/cvc5/SynthResult.html>`_
   * class `Term <io/github/cvc5/Term.html>`_
+  * class `TermManager <io/github/cvc5/TermManager.html>`_
   * class `Triplet<A,B,C> <io/github/cvc5/Triplet.html>`_
   * class `Utils <io/github/cvc5/Utils.html>`_
   * enum `Kind <io/github/cvc5/Kind.html>`_

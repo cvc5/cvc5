@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -131,14 +131,21 @@ set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
 # Supported language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
+option(ONLY_PYTHON_EXT_SRC "Create only Python bindings source files")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 # Api documentation
 option(BUILD_DOCS "Build Api documentation")
 
+option(BUILD_GMP "Build GMP from sources")
+
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
+
+option(SKIP_COMPRESS_DEBUG "Skip compression of debug symbols")
+option(SKIP_SET_RPATH      "Skip setting of rpath")
+option(USE_DEFAULT_LINKER  "Use default linker")
 
 # Custom flags for WebAssembly compilation
 set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
@@ -236,7 +243,7 @@ endif ()
 
 # Changing the default linker on MSYS prevents the build system from
 # using the GMP system library if available
-if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles"))
+if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND NOT USE_DEFAULT_LINKER)
   #-----------------------------------------------------------------------------#
   # Use ld.mold if available, otherwise use ld.gold if available
 
@@ -306,7 +313,9 @@ endif()
 #
 # More information on RPATH in CMake:
 # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
+if(NOT SKIP_SET_RPATH)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
+endif()
 
 # Set visibility to default if unit tests are enabled. If unit tests are
 # enabled, we also check if we can execute white box unit tests (some versions
@@ -354,14 +363,6 @@ if(DEFINED BUILD_BINDINGS_PYTHON_VERSION)
   find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
 else()
   find_package(Python COMPONENTS Interpreter REQUIRED)
-endif()
-
-# Some cmake packages are not compatible with the newest version
-# of FindPython, introduced in cmake 3.12.
-# We define the symbols below to be backward compatible.
-# FindPython Interpreter sets Python_EXECUTABLE
-if(NOT DEFINED PYTHON_EXECUTABLE) 
-  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
 endif()
 
 find_package(GMP 6.3 REQUIRED)
@@ -413,7 +414,9 @@ endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
   add_check_c_cxx_flag("-ggdb3")
-  add_check_c_cxx_flag("-gz")
+  if(NOT SKIP_COMPRESS_DEBUG)
+    add_check_c_cxx_flag("-gz")
+  endif()
 endif()
 
 if(ENABLE_COMP_INC_TRACK)

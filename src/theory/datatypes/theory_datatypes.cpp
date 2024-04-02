@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,16 +60,15 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_functionTerms(context()),
       d_singleton_eq(userContext()),
       d_sygusExtension(nullptr),
-      d_rewriter(env.getEvaluator(), env.getOptions()),
+      d_rewriter(nodeManager(), env.getEvaluator(), options()),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_notify(d_im, *this),
-      d_checker(env.getOptions().datatypes.dtSharedSelectors),
+      d_checker(nodeManager(), options().datatypes.dtSharedSelectors),
       d_cpacb(*this)
 {
-
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_true = nodeManager()->mkConst(true);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
@@ -356,7 +355,7 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
   // generated.
   if (in.getKind() == Kind::DT_SIZE)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     Node k = sm->mkPurifySkolem(in);
     Node lem = nm->mkNode(Kind::LEQ, d_zero, k);
@@ -386,11 +385,11 @@ TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
     std::vector< Node > rew;
     if (utils::checkClash(in[0], in[1], rew))
     {
-      nn = NodeManager::currentNM()->mkConst(false);
+      nn = nodeManager()->mkConst(false);
     }
     else
     {
-      nn = NodeManager::currentNM()->mkAnd(rew);
+      nn = nodeManager()->mkAnd(rew);
     }
     if (in != nn)
     {
@@ -645,7 +644,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
   {
     NodeMap::const_iterator it = d_term_sk.find( n );
     if( it==d_term_sk.end() ){
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       SkolemManager* sm = nm->getSkolemManager();
       //add purification unit lemma ( k = n )
       Node k = sm->mkPurifySkolem(n);
@@ -775,7 +774,7 @@ void TheoryDatatypes::addTester(
             }
           }
           Node t_concl = testerIndex == -1
-                             ? NodeManager::currentNM()->mkConst(false)
+                             ? nodeManager()->mkConst(false)
                              : utils::mkTester(t_arg, testerIndex, dt);
           Node t_concl_exp = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
           d_im.addPendingInference(
@@ -890,8 +889,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     Trace("dt-collapse-sel")
         << "selector index is " << selectorIndex << std::endl;
     wrong = selectorIndex<0;
-    r = NodeManager::currentNM()->mkNode(
-        Kind::APPLY_SELECTOR, s.getOperator(), c);
+    r = nodeManager()->mkNode(Kind::APPLY_SELECTOR, s.getOperator(), c);
   }
   if( !r.isNull() ){
     Node rrs;
@@ -937,7 +935,8 @@ EqualityStatus TheoryDatatypes::getEqualityStatus(TNode a, TNode b){
 }
 
 void TheoryDatatypes::computeCareGraph(){
-  Trace("dt-cg-summary") << "Compute graph for dt..." << d_functionTerms.size() << " " << d_sharedTerms.size() << std::endl;
+  Trace("dt-cg-summary") << "Compute graph for dt..." << d_functionTerms.size()
+                         << std::endl;
   Trace("dt-cg") << "Build indices..." << std::endl;
   std::map<TypeNode, std::map<Node, TNodeTrie> > index;
   std::map< Node, unsigned > arity;
@@ -1094,7 +1093,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
 
 Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth ){
   std::map< Node, int >::iterator itv = vmap.find( n );
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if( itv!=vmap.end() ){
     int debruijn = depth - 1 - itv->second;
     return nm->mkConst(CodatatypeBoundVariable(n.getType(), debruijn));
@@ -1119,7 +1118,7 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
 }
 
 Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   int index = pol ? 0 : 1;
   std::map< TypeNode, Node >::iterator it = d_singleton_lemma[index].find( tn );
@@ -1154,7 +1153,7 @@ void TheoryDatatypes::registerInitialLemmas(Node n)
   }
   d_initialLemmaCache[n] = true;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Kind nk = n.getKind();
   if (nk == Kind::DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
   {
@@ -1338,7 +1337,7 @@ void TheoryDatatypes::checkCycles() {
           }
           Trace("dt-cdt") << std::endl;
           Node eq = part_out[i][0].eqNode( part_out[i][j] );
-          Node eqExp = NodeManager::currentNM()->mkAnd(exp);
+          Node eqExp = nodeManager()->mkAnd(exp);
           d_im.addPendingInference(eq, InferenceId::DATATYPES_BISIMILAR, eqExp);
           Trace("datatypes-infer") << "DtInfer : cdt-bisimilar : " << eq << " by " << eqExp << std::endl;
         }
@@ -1609,10 +1608,9 @@ void TheoryDatatypes::checkSplit()
           {
             Node assumption = n.eqNode(itrs->second);
             assumptions.push_back(assumption);
-            Node lemma =
-                assumptions.size() == 1
-                    ? assumptions[0]
-                    : NodeManager::currentNM()->mkNode(Kind::OR, assumptions);
+            Node lemma = assumptions.size() == 1
+                             ? assumptions[0]
+                             : nodeManager()->mkNode(Kind::OR, assumptions);
             Trace("dt-singleton") << "*************Singleton equality lemma "
                                   << lemma << std::endl;
             d_im.lemma(lemma, InferenceId::DATATYPES_REC_SINGLETON_EQ);
@@ -1879,7 +1877,7 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
           eqToExplain = n.eqNode(lbl[0]);
         }
         d_equalityEngine->explainLit(eqToExplain, exp_c);
-        Node exp = NodeManager::currentNM()->mkAnd(exp_c);
+        Node exp = nodeManager()->mkAnd(exp_c);
         Trace("dt-entail") << "  entailed, explanation is " << exp << std::endl;
         return make_pair(true, exp);
       }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,11 +34,11 @@ namespace nl {
 
 NlModel::NlModel(Env& env) : EnvObj(env), d_used_approx(false)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConstReal(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
-  d_two = NodeManager::currentNM()->mkConstReal(Rational(2));
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
+  d_zero = nodeManager()->mkConstReal(Rational(0));
+  d_one = nodeManager()->mkConstReal(Rational(1));
+  d_two = nodeManager()->mkConstReal(Rational(2));
 }
 
 NlModel::~NlModel() {}
@@ -119,7 +119,7 @@ Node NlModel::computeModelValue(TNode n, bool isConcrete)
       {
         children.emplace_back(computeModelValue(n[i], isConcrete));
       }
-      ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+      ret = nodeManager()->mkNode(n.getKind(), children);
       ret = rewrite(ret);
     }
   }
@@ -402,7 +402,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   Node var;
   Node b = d_zero;
   Node c = d_zero;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // the list of variables that occur as a monomial in msum, and whose value
   // is so far unconstrained in the model.
   std::unordered_set<Node> unc_vars;
@@ -557,7 +557,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
     Trace("nl-ext-cms") << "  return constant." << std::endl;
     return lit.getConst<bool>();
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   bool pol = lit.getKind() != Kind::NOT;
   Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
 
@@ -758,7 +758,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
 bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
 {
   Trace("nl-ext-cms-debug") << "* Try simple interval analysis..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // map from transcendental functions to whether they were set to lower
   // bound
   bool simpleSuccess = true;
@@ -1028,7 +1028,7 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 
 void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   // If we extended the model with entries x -> 0 for unconstrained values,
   // we first update the map to the extended one.

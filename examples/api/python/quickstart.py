@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,9 +18,13 @@ import cvc5
 from cvc5 import Kind
 
 if __name__ == "__main__":
+  # Create a term manager
+  #! [docs-python-quickstart-0 start]
+  tm = cvc5.TermManager()
+  #! [docs-python-quickstart-0 end]
   # Create a solver
   #! [docs-python-quickstart-1 start]
-  solver = cvc5.Solver()
+  solver = cvc5.Solver(tm)
   #! [docs-python-quickstart-1 end]
 
   # We will ask the solver to produce models and unsat cores,

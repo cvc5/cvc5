@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
+ *   Tim King, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -256,11 +256,11 @@ public:
      case Kind::ARCSECANT:
      case Kind::ARCCOTANGENT:
      case Kind::SQRT:
-     case Kind::PI: return areChildrenPolynomialMembers(n);
+     case Kind::PI:
      case Kind::ABS:
      case Kind::TO_INTEGER:
-       // Treat to_int as a variable; it is replaced in early preprocessing
-       // by a variable.
+       // All of the above are treated as variables. We assume their arguments
+       // are rewritten.
        return true;
      default: return isLeafMember(n);
    }

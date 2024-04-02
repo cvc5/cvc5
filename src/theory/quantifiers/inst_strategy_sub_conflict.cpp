@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,6 +60,10 @@ bool InstStrategySubConflict::needsCheck(Theory::Effort e)
 void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
 {
   if (quant_e != QEFFORT_CONFLICT)
+  {
+    return;
+  }
+  if (e != Theory::EFFORT_LAST_CALL)
   {
     return;
   }

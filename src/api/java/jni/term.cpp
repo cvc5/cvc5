@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -865,11 +865,12 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_Term_getFloatingPointValue(
   auto [exponent, significand, term] = current->getFloatingPointValue();
   Term* termPointer = new Term(term);
 
+  jstring e = env->NewStringUTF(std::to_string(exponent).c_str());
+  jstring s = env->NewStringUTF(std::to_string(significand).c_str());
+
   // Long longObject = new Long(pointer)
   jclass longClass = env->FindClass("Ljava/lang/Long;");
   jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
-  jobject e = env->NewObject(longClass, longConstructor, exponent);
-  jobject s = env->NewObject(longClass, longConstructor, significand);
   jobject t = env->NewObject(longClass, longConstructor, termPointer);
 
   // Triplet triplet = new Triplet<Long, Long, Long>(e, s, t);
@@ -1060,6 +1061,52 @@ Java_io_github_cvc5_Term_getRealAlgebraicNumberUpperBound(JNIEnv* env,
   Term* current = reinterpret_cast<Term*>(pointer);
   Term* ret = new Term(current->getRealAlgebraicNumberUpperBound());
   return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    isSkolem
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isSkolem(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isSkolem());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    getSkolemId
+ * Signature: (J)I;
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Term_getSkolemId(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jint>(current->getSkolemId());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    getSkolemIndices
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_Term_getSkolemIndices(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  std::vector<Term> args = current->getSkolemIndices();
+  jlongArray ret = getPointersFromObjects<Term>(env, args);
+  return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

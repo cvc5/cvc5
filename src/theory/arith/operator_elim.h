@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,7 +76,7 @@ class OperatorElim : public EagerProofGenerator
    * Note that this cache is used only for performance reasons. Conceptually,
    * these skolem functions actually live in SkolemManager.
    */
-  std::map<SkolemFunId, Node> d_arithSkolem;
+  std::map<SkolemId, Node> d_arithSkolem;
   /**
    * Eliminate operators in term n. If n has top symbol that is not a core
    * one (including division, int division, mod, to_int, is_int, syntactic sugar
@@ -103,7 +103,7 @@ class OperatorElim : public EagerProofGenerator
    * Returns the Skolem in the above map for the given id, creating it if it
    * does not already exist.
    */
-  Node getArithSkolem(SkolemFunId asi);
+  Node getArithSkolem(SkolemId asi);
   /**
    * Get the skolem lemma for lem, based on whether we are proof producing.
    * A skolem lemma is a wrapper around lem that also tracks its associated
@@ -122,7 +122,7 @@ class OperatorElim : public EagerProofGenerator
    * If the option arithNoPartialFun is enabled, this returns f, where f is
    * the Skolem constant for the identifier asi.
    */
-  Node getArithSkolemApp(Node n, SkolemFunId asi);
+  Node getArithSkolemApp(Node n, SkolemId asi);
 
   /**
    * Called when a non-linear term n is given to this class. Throw an exception
@@ -131,7 +131,7 @@ class OperatorElim : public EagerProofGenerator
   void checkNonLinearLogic(Node term);
 
   /** Whether we should use a partial function for the given id */
-  bool usePartialFunction(SkolemFunId id) const;
+  bool usePartialFunction(SkolemId id) const;
 };
 
 }  // namespace arith

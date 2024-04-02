@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -42,7 +42,11 @@ if(Editline_INCLUDE_DIRS)
   unset(CMAKE_REQUIRED_INCLUDES)
 
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(Editline_LIBRARIES ${Editline_LIBRARIES} bsd tinfo)
+    find_library(BSD_LIBRARIES NAMES bsd)
+    if (BSD_LIBRARIES)
+      set(Editline_LIBRARIES ${Editline_LIBRARIES} bsd)
+    endif()
+    set(Editline_LIBRARIES ${Editline_LIBRARIES} tinfo)
   endif()
 endif()
 

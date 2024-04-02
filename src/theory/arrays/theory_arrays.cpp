@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,16 +76,19 @@ TheoryArrays::TheoryArrays(Env& env,
           name + "number of setModelVal splits")),
       d_numSetModelValConflicts(statisticsRegistry().registerInt(
           name + "number of setModelVal conflicts")),
-      d_ppEqualityEngine(d_env, userContext(), name + "pp", true),
+      d_ppEqualityEngine(env, userContext(), name + "pp", true),
       d_ppFacts(userContext()),
-      d_rewriter(env),
+      d_rrEpg(env.isTheoryProofProducing() ? new EagerProofGenerator(env)
+                                           : nullptr),
+      d_rewriter(env.getNodeManager(), env.getRewriter(), d_rrEpg.get()),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_literalsToPropagate(context()),
       d_literalsToPropagateIndex(context(), 0),
       d_isPreRegistered(context()),
-      d_mayEqualEqualityEngine(d_env, context(), name + "mayEqual", true),
+      d_mayEqualEqualityEngine(env, context(), name + "mayEqual", true),
       d_notify(*this),
+      d_checker(nodeManager()),
       d_infoMap(statisticsRegistry(), context(), name),
       d_mergeQueue(context()),
       d_mergeInProgress(false),
@@ -108,8 +111,8 @@ TheoryArrays::TheoryArrays(Env& env,
       d_dstrat(new TheoryArraysDecisionStrategy(this)),
       d_dstratInit(false)
 {
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 
   // The preprocessing congruence kinds
   d_ppEqualityEngine.addFunctionKind(Kind::SELECT);
@@ -210,7 +213,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
     rightWrites = tmpWrites;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (rightWrites == 0) {
     if (e1 != e2) {
       return term;
@@ -319,7 +322,7 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
     return TrustNode::null();
   }
   d_ppEqualityEngine.addTerm(term);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node ret;
   switch (k)
   {
@@ -761,7 +764,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
 
       TNode i = node[1];
       TNode v = node[2];
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node ni = nm->mkNode(Kind::SELECT, node, i);
       if (!d_equalityEngine->hasTerm(ni))
       {
@@ -1040,7 +1043,7 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
 {
   // termSet contains terms appearing in assertions and shared terms, and also
   // includes additional reads due to the RIntro1 and RIntro2 rules.
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // Compute arrays that we need to produce representatives for
   std::vector<Node> arrays;
 
@@ -1352,7 +1355,7 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
     // Apply ArrDiseq Rule if diseq is between arrays
     if (fact[0][0].getType().isArray() && !d_state.isInConflict())
     {
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
 
       TNode k;
       // k is the skolem for this disequality.
@@ -1671,7 +1674,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
   if (!constArr.isNull()) {
     ArrayStoreAll storeAll = constArr.getConst<ArrayStoreAll>();
     Node defValue = storeAll.getValue();
-    Node selConst = NodeManager::currentNM()->mkNode(Kind::SELECT, constArr, i);
+    Node selConst = nodeManager()->mkNode(Kind::SELECT, constArr, i);
     if (!d_equalityEngine->hasTerm(selConst))
     {
       preRegisterTermInternal(selConst);
@@ -1738,8 +1741,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   if (!constArr.isNull()) {
     for( ; it < i_a->size(); ++it) {
       TNode i = (*i_a)[it];
-      Node selConst =
-          NodeManager::currentNM()->mkNode(Kind::SELECT, constArr, i);
+      Node selConst = nodeManager()->mkNode(Kind::SELECT, constArr, i);
       if (!d_equalityEngine->hasTerm(selConst))
       {
         preRegisterTermInternal(selConst);
@@ -1805,7 +1807,7 @@ void TheoryArrays::propagateRowLemma(RowLemmaType lem)
     return;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node aj = nm->mkNode(Kind::SELECT, a, j);
   Node bj = nm->mkNode(Kind::SELECT, b, j);
 
@@ -1876,7 +1878,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     return;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node aj = nm->mkNode(Kind::SELECT, a, j);
   Node bj = nm->mkNode(Kind::SELECT, b, j);
 
@@ -2019,7 +2021,7 @@ bool TheoryArrays::dischargeLemmas()
     std::tie(a, b, i, j) = l;
     Assert(a.getType().isArray() && b.getType().isArray());
 
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node aj = nm->mkNode(Kind::SELECT, a, j);
     Node bj = nm->mkNode(Kind::SELECT, b, j);
     bool ajExists = d_equalityEngine->hasTerm(aj);
@@ -2151,7 +2153,7 @@ std::string TheoryArrays::TheoryArraysDecisionStrategy::identify() const
 
 void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // make sure RIntro1 reads are included in the relevant set of reads
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   for (; !eqcs_i.isFinished(); ++eqcs_i)

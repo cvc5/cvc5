@@ -29,6 +29,8 @@ cvc5 1.1.2
 - Fixes the parsing of `define-fun-rec` and `define-funs-rec` in interactive
   mode.
 - Renamed `bag.duplicate_removal` to `bag.setof`.
+- Improvements to handling of constant production rules (`Constant`) in SyGuS
+  grammars.
 
 cvc5 1.1.1
 ==========

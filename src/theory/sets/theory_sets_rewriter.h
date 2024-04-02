@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,7 @@ namespace sets {
 class TheorySetsRewriter : public TheoryRewriter
 {
  public:
+  TheorySetsRewriter(NodeManager* nm);
   /**
    * Rewrite a node into the normal form for the theory of sets.
    * Called in post-order (really reverse-topological order) when

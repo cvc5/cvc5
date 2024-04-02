@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli, Mudathir Mohamed, Aina Niemetz
+#   Hans-Jörg Schurr, Andres Noetzli, Mudathir Mohamed
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -107,6 +107,7 @@ CPP_JAVA_MAPPING = \
         r"cvc5::": "cvc5.",
         r"Term::Term\(\)": "{@link Term#Term()}",
         r"ProofRule::(.*?)>": r"{@link ProofRule#\1}>",
+        r"SkolemId::(.*?)>": r"{@link SkolemId#\1}>",
         r"([a-zA-Z]*)::(.*?\))": r"{@link \1#\2}",
         r"std::vector<int>": "int[]",
         r"std::vector<Term>": "Term[]",
@@ -227,9 +228,9 @@ def format_comment(comment):
             insert = components[i+1].replace(">", "&gt;").replace("<", "&lt;")
             i = i + 2
             if component == ":math:":
-                comment += "\(" + insert + "\)"
+                comment += r"\(" + insert + r"\)"
             else:
-                comment += "\[" + insert + "\]"
+                comment += r"\[" + insert + r"\]"
         else:
             for pattern, replacement in CPP_JAVA_MAPPING.items():
                 component = re.sub(pattern, replacement, component)

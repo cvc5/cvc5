@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-inference
+; COMMAND-LINE: --sygus-inference=try
 ; EXPECT: sat
 (set-logic ALL)
 (declare-sort S 1)
