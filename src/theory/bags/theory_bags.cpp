@@ -39,7 +39,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_ig(&d_state, &d_im),
       d_notify(*this, d_im),
       d_statistics(statisticsRegistry()),
-      d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
+      d_rewriter(nodeManager(), env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_solver(env, d_state, d_im, d_termReg),
       d_cpacb(*this)
@@ -151,7 +151,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   // use canonical constant to ensure it can be typed
   Node mkElem = nm->mkGroundValue(bagType);
   // a Null node is used here to get a unique skolem function per bag type
-  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, mkElem);
+  Node uf = sm->mkSkolemFunction(SkolemId::BAGS_CHOOSE, mkElem);
   Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);
 
   Node equal = x.eqNode(ufA);

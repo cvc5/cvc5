@@ -36,6 +36,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
     : EnvObj(env),
       d_notify(*this),
       d_trrc(env),
+      d_rdnc(nodeManager()),
       d_db(db),
       d_eval(nullptr),
       d_currRecLimit(0),
@@ -340,7 +341,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     {
       return false;
     }
-    Node r = rewrite(target[0]);
+    Node r = rewriteConcrete(target[0]);
     if (r != r2)
     {
       return false;
@@ -351,7 +352,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     std::vector<Node> rchildren;
     for (size_t i = 0; i < nchild; i++)
     {
-      Node rr = rewrite(target[0][i]);
+      Node rr = rewriteConcrete(target[0][i]);
       if (!rr.isConst())
       {
         return false;
@@ -449,7 +450,8 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
       // The conclusion term may actually change type. Note that we must rewrite
       // the terms, since they may involve operators with abstract type that
       // evaluate to terms with concrete types.
-      if (!rewrite(stgt).getType().isComparableTo(rewrite(target[1]).getType()))
+      if (!rewriteConcrete(stgt).getType().isComparableTo(
+              rewriteConcrete(target[1]).getType()))
       {
         Trace("rpc-debug2") << "...fail (types)" << std::endl;
         return false;
@@ -630,7 +632,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
         Trace("rpc-debug2") << "...fail, ill-typed equality" << std::endl;
         return true;
       }
-      Node eqr = rewrite(eq);
+      Node eqr = rewriteConcrete(eq);
       if (eqr.isConst())
       {
         // definitely not true
@@ -1057,6 +1059,15 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
       cpi.d_vars.emplace_back(lhs.eqNode(rhs));
     }
   }
+}
+
+Node RewriteDbProofCons::rewriteConcrete(const Node& n)
+{
+  if (expr::hasAbstractSubterm(n))
+  {
+    return n;
+  }
+  return rewrite(n);
 }
 
 }  // namespace rewriter

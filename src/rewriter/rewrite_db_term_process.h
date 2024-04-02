@@ -45,11 +45,16 @@ namespace rewriter {
 class RewriteDbNodeConverter : public NodeConverter
 {
  public:
+  RewriteDbNodeConverter(NodeManager* nm);
   /**
    * This converts the node n to the internal shape that it should be in
    * for the DSL proof reconstruction algorithm.
    */
   Node postConvert(Node n) override;
+
+ protected:
+  /** Should we traverse n? */
+  bool shouldTraverse(Node n) override;
 };
 
 }  // namespace rewriter

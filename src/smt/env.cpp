@@ -43,12 +43,11 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_proofNodeManager(nullptr),
-      d_rewriter(new theory::Rewriter()),
+      d_rewriter(new theory::Rewriter(nm)),
       d_evalRew(nullptr),
       d_eval(nullptr),
       d_topLevelSubs(nullptr),
       d_logic(),
-      d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
       d_resourceManager(),
       d_uninterpretedSortOwner(theory::THEORY_UF)
@@ -57,6 +56,8 @@ Env::Env(NodeManager* nm, const Options* opts)
   {
     d_options.copyValues(*opts);
   }
+  d_statisticsRegistry.reset(new StatisticsRegistry(
+      d_options.base.statisticsInternal, d_options.base.statisticsAll));
   // make the evaluators, which depend on the alphabet of strings
   d_evalRew.reset(new theory::Evaluator(d_rewriter.get(),
                                         d_options.strings.stringsAlphaCard));

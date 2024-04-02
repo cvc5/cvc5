@@ -24,6 +24,7 @@ extern "C" {
 #include <cvc5/cvc5_kind.h>
 #include <cvc5/cvc5_types.h>
 #include <cvc5/cvc5_proof_rule.h>
+#include <cvc5/cvc5_skolem_id.h>
 #undef CVC5_API_USE_C_ENUMS
 
 #include <stdint.h>
@@ -1490,6 +1491,32 @@ Cvc5Term cvc5_term_get_real_algebraic_number_lower_bound(Cvc5Term term);
  * @return The upper bound.
  */
 Cvc5Term cvc5_term_get_real_algebraic_number_upper_bound(Cvc5Term term);
+
+/**
+ * Is the given term a skolem?
+ * @warning This function is experimental and may change in future versions.
+ * @param term The skolem.
+ * @return True if the term is a skolem function.
+ */
+bool cvc5_term_is_skolem(Cvc5Term term);
+/**
+ * Get skolem identifier of a term.
+ * @note Asserts isSkolem().
+ * @warning This function is experimental and may change in future versions.
+ * @param term The skolem.
+ * @return The skolem identifier of the term.
+ */
+Cvc5SkolemId cvc5_term_get_skolem_id(Cvc5Term term);
+/**
+ * Get the skolem indices of a term.
+ * @note Asserts isSkolem().
+ * @warning This function is experimental and may change in future versions.
+ * @param term The skolem.
+ * @return The skolem indices of the term. This is list of terms that the
+ * skolem function is indexed by. For example, the array diff skolem
+ * `Cvc5SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
+ */
+const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term);
 
 /**
  * Compute the hash value of a term.

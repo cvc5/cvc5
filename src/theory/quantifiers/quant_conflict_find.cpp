@@ -2277,6 +2277,7 @@ void QuantConflictFind::reset_round( Theory::Effort level ) {
     if (tdb->hasTermCurrent(r))
     {
       TypeNode rtn = r.getType();
+      // check regardless of options
       if (!TermUtil::hasInstConstAttr(r))
       {
         d_eqcs[rtn].push_back(r);

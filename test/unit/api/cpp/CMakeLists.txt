@@ -16,6 +16,7 @@ cvc5_add_unit_test_black(datatype_api_black api/cpp)
 cvc5_add_unit_test_black(grammar_black api/cpp)
 cvc5_add_unit_test_black(api_kind_black api/cpp)
 cvc5_add_unit_test_black(api_proof_rule_black api/cpp)
+cvc5_add_unit_test_black(api_skolem_id_black api/cpp)
 cvc5_add_unit_test_black(api_sort_kind_black api/cpp)
 cvc5_add_unit_test_black(api_term_manager_black api/cpp)
 cvc5_add_unit_test_black(op_black api/cpp)
@@ -32,13 +33,8 @@ cvc5_add_unit_test_black(proof_black api/cpp)
 cvc5_add_unit_test_white(command_black api/cpp)
 cvc5_add_unit_test_white(symbol_manager_black api/cpp)
 cvc5_add_unit_test_white(input_parser_black api/cpp)
-
-# suppress deprecated warnings to not error in CI
-# getStatistics() test currently still uses deprecated interface
-set_source_files_properties(solver_black.cpp
-  PROPERTIES COMPILE_OPTIONS
-  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 cvc5_add_unit_test_black(solver_black api/cpp)
+
 # tests to cover deprecated functions for API coverage build in nightlies
 set_source_files_properties(api_deprecated_black.cpp
   PROPERTIES COMPILE_OPTIONS

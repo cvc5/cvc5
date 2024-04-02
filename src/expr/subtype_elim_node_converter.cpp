@@ -21,7 +21,10 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-SubtypeElimNodeConverter::SubtypeElimNodeConverter() {}
+SubtypeElimNodeConverter::SubtypeElimNodeConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
 
 bool SubtypeElimNodeConverter::isRealTypeStrict(TypeNode tn)
 {
@@ -73,7 +76,7 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   if (n.isVar())
   {
     SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
-    SkolemFunId id;
+    SkolemId id;
     Node cacheVal;
     if (skm->isSkolemFunction(n, id, cacheVal))
     {
