@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of the Solver class of the  C++ API.
+ * Black box testing of the TermManager class of the  C++ API.
  */
 
 #include <gtest/gtest.h>
