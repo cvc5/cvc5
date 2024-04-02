@@ -290,10 +290,11 @@ EvalResult Evaluator::evalInternal(
           }
           ptrdiff_t pos = std::distance(args.begin(), it);
           currNodeVal = vals[pos];
+          needsReconstruct = false;
           // Don't need to rewrite since range of substitution should already
           // be normalized.
         }
-        else
+        if (needsReconstruct)
         {
           // Reconstruct the node with a combination of the children that
           // successfully evaluated, and the children that did not.
@@ -305,15 +306,18 @@ EvalResult Evaluator::evalInternal(
             // if we are able to turn it into a valid EvalResult.
             currNodeVal = d_rr->rewrite(currNodeVal);
           }
+          needsReconstruct = false;
         }
-        needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
-        if (currNodeVal.getNumChildren() > 0)
+        if (currNodeVal.getNumChildren() > 0
+            && currNodeVal.getKind() != Kind::BITVECTOR_SIZE)
         {
           // We may continue with a valid EvalResult at this point only if
           // we have no children. We must otherwise fail here since some of
           // our children may not have successful evaluations.
+          // bvsize is a rare exception to this, where the evaluation does
+          // not depend on the value of the argument.
           results[currNode] = EvalResult();
           evalAsNode[currNode] = currNodeVal;
           continue;
