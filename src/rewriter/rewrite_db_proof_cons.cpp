@@ -36,6 +36,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
     : EnvObj(env),
       d_notify(*this),
       d_trrc(env),
+      d_rdnc(nodeManager()),
       d_db(db),
       d_eval(nullptr),
       d_currRecLimit(0),

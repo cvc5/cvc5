@@ -32,8 +32,7 @@ namespace arith {
 class ArithProofRuleChecker : public ProofRuleChecker
 {
  public:
-  ArithProofRuleChecker();
-  ~ArithProofRuleChecker() {}
+  ArithProofRuleChecker(NodeManager* nm);
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;

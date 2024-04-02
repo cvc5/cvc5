@@ -154,7 +154,7 @@ Node mkSygusTerm(const Node& op,
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(nm->getSkolemManager()->getInternalId(op)
-         != InternalSkolemFunId::SYGUS_ANY_CONSTANT);
+         != InternalSkolemId::SYGUS_ANY_CONSTANT);
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {

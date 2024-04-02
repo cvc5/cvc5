@@ -47,6 +47,7 @@ namespace sep {
 TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SEP, env, out, valuation),
       d_bounds_init(false),
+      d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::sep::"),
       d_notify(*this),

@@ -71,7 +71,7 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s);
 class QuantifiersRewriter : public TheoryRewriter
 {
  public:
-  QuantifiersRewriter(Rewriter* r, const Options& opts);
+  QuantifiersRewriter(NodeManager* nm, Rewriter* r, const Options& opts);
   /** Pre-rewrite n */
   RewriteResponse preRewrite(TNode in) override;
   /** Post-rewrite n */
