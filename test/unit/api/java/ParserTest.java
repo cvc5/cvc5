@@ -22,6 +22,7 @@ import org.junit.jupiter.api.TestInfo;
 
 class ParserTest
 {
+  protected TermManager d_tm;
   protected Solver d_solver;
   protected SymbolManager d_symman;
 
@@ -29,7 +30,8 @@ class ParserTest
   void setUp(TestInfo testInfo)
   {
     System.out.println("Setting up test: " + testInfo.getDisplayName());
-    d_solver = new Solver();
+    d_tm = new TermManager();
+    d_solver = new Solver(d_tm);
     d_solver.setOption("parse-only", "true");
     d_symman = new SymbolManager(d_solver);
   }
