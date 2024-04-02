@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1361,12 +1361,17 @@ void CegInstantiator::processAssertions() {
   }
 }
 
-Node CegInstantiator::getModelValue( Node n ) {
+Node CegInstantiator::getModelValue(Node n)
+{
   Node mv = d_treg.getModel()->getValue(n);
-  // Witness terms with identifiers may appear in the model. We require
-  // dropping their annotations here.
-  AnnotationElimNodeConverter aenc;
-  mv = aenc.convert(mv);
+  // if the model value is not constant, it may require some processing
+  if (!mv.isConst())
+  {
+    // Witness terms with identifiers may appear in the model. We require
+    // dropping their annotations here.
+    AnnotationElimNodeConverter aenc(nodeManager());
+    mv = aenc.convert(mv);
+  }
   return mv;
 }
 

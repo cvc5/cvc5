@@ -1,16 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Mathias Preiner, Andres Noetzli
+ *   Aina Niemetz, Mudathir Mohamed, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * An example of solving floating-point problems with cvc5's cpp API
+ * An example of solving floating-point problems with cvc5's cpp API.
  *
  * This example shows to create floating-point types, variables and expressions,
  * and how to create rounding mode constants by solving toy problems. The

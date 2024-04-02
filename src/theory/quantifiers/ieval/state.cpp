@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,8 +41,8 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode btype = nm->booleanType();
-  d_none = sm->mkInternalSkolemFunction(InternalSkolemFunId::IEVAL_NONE, btype);
-  d_some = sm->mkInternalSkolemFunction(InternalSkolemFunId::IEVAL_SOME, btype);
+  d_none = sm->mkInternalSkolemFunction(InternalSkolemId::IEVAL_NONE, btype);
+  d_some = sm->mkInternalSkolemFunction(InternalSkolemId::IEVAL_SOME, btype);
 }
 
 bool State::hasInitialized() const { return d_initialized.get(); }

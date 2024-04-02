@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -532,9 +532,9 @@ void TermDbSygus::registerEnumerator(Node e,
     {
       SkolemManager* sm = nm->getSkolemManager();
       Assert(sm->getInternalId(f)
-             == InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
+             == InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED);
       Node ff;
-      SkolemFunId id;
+      SkolemId id;
       sm->isSkolemFunction(f, id, ff);
       // get the argument, which is stored after the internal identifier
       Assert(ff.getKind() == Kind::SEXPR && ff.getNumChildren() == 2);

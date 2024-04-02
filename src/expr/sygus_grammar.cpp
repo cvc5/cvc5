@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds
+ *   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,7 +126,7 @@ void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
   Assert(tn.isInstanceOf(ntSym.getType()));
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   Node anyConst =
-      sm->mkInternalSkolemFunction(InternalSkolemFunId::SYGUS_ANY_CONSTANT, tn);
+      sm->mkInternalSkolemFunction(InternalSkolemId::SYGUS_ANY_CONSTANT, tn);
   addRule(ntSym, anyConst);
 }
 
@@ -237,7 +237,7 @@ void addSygusConstructor(DType& dt,
   SkolemManager* sm = nm->getSkolemManager();
   std::stringstream ss;
   if (rule.getKind() == Kind::SKOLEM
-      && sm->getInternalId(rule) == InternalSkolemFunId::SYGUS_ANY_CONSTANT)
+      && sm->getInternalId(rule) == InternalSkolemId::SYGUS_ANY_CONSTANT)
   {
     ss << dt.getName() << "_any_constant";
     dt.addSygusConstructor(rule, ss.str(), {rule.getType()}, 0);
@@ -311,8 +311,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
       for (const Node& rule : d_rules[ntSym])
       {
         if (rule.getKind() == Kind::SKOLEM
-            && sm->getInternalId(rule)
-                   == InternalSkolemFunId::SYGUS_ANY_CONSTANT)
+            && sm->getInternalId(rule) == InternalSkolemId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(ntSym);
         }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Abdalrhman Mohamed
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -226,7 +226,7 @@ void SynthConjecture::assign(Node q)
     Node v = d_embed_quant[0][i];
     vars.push_back(v);
     Node e = sm->mkInternalSkolemFunction(
-        InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED,
+        InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED,
         v.getType(),
         {d_simp_quant[0][i]});
     d_candidates.push_back(e);

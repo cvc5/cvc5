@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Mathias Preiner
+ *   Andrew Reynolds, Paul Meng, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -784,7 +784,7 @@ Node SortInference::simplifyNode(
       if( it!=var_bound.end() ){
         ret = it->second;
       }
-      else if (n.getKind() == Kind::VARIABLE || n.getKind() == Kind::SKOLEM)
+      else if (n.isVar() && n.getKind() != Kind::BOUND_VARIABLE)
       {
         if( d_symbol_map.find( n )==d_symbol_map.end() ){
           TypeNode tn = getOrCreateTypeForId( d_op_return_types[n], n.getType() );

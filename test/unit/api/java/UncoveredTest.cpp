@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Andrew Reynolds
+ *   Gereon Kremer, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -115,6 +115,7 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
   ss << cvc5::modes::ProofFormat::LFSC
      << std::to_string(cvc5::modes::ProofFormat::LFSC);
+  ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
   ss << cvc5::ProofRule::ASSUME;
   ss << cvc5::Result();
   ss << cvc5::Op();
@@ -133,6 +134,7 @@ TEST_F(TestApiBlackUncovered, mkString)
 {
   std::wstring s;
   ASSERT_EQ(d_tm.mkString(s).getStringValue(), s);
+  ASSERT_EQ(d_solver->mkString(s).getStringValue(), s);
 }
 
 TEST_F(TestApiBlackUncovered, hash)
@@ -228,6 +230,12 @@ TEST_F(TestApiBlackUncovered, Proof)
   ASSERT_TRUE(proof.getResult().isNull());
   ASSERT_TRUE(proof.getChildren().empty());
   ASSERT_TRUE(proof.getArguments().empty());
+}
+
+TEST_F(TestApiBlackUncovered, SkolemId)
+{
+  ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
+            static_cast<size_t>(SkolemId::PURIFY));
 }
 
 TEST_F(TestApiBlackUncovered, Parser)

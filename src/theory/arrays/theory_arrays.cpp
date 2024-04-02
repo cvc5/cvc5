@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,16 +76,19 @@ TheoryArrays::TheoryArrays(Env& env,
           name + "number of setModelVal splits")),
       d_numSetModelValConflicts(statisticsRegistry().registerInt(
           name + "number of setModelVal conflicts")),
-      d_ppEqualityEngine(d_env, userContext(), name + "pp", true),
+      d_ppEqualityEngine(env, userContext(), name + "pp", true),
       d_ppFacts(userContext()),
-      d_rewriter(env),
+      d_rrEpg(env.isTheoryProofProducing() ? new EagerProofGenerator(env)
+                                           : nullptr),
+      d_rewriter(env.getNodeManager(), env.getRewriter(), d_rrEpg.get()),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_literalsToPropagate(context()),
       d_literalsToPropagateIndex(context(), 0),
       d_isPreRegistered(context()),
-      d_mayEqualEqualityEngine(d_env, context(), name + "mayEqual", true),
+      d_mayEqualEqualityEngine(env, context(), name + "mayEqual", true),
       d_notify(*this),
+      d_checker(nodeManager()),
       d_infoMap(statisticsRegistry(), context(), name),
       d_mergeQueue(context()),
       d_mergeInProgress(false),

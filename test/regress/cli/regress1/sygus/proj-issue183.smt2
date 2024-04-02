@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: sat
 (set-logic ALL)
-(set-option :sygus-inference true)
+(set-option :sygus-inference try)
 (set-info :status sat)
 (declare-fun a () String)
 (declare-fun b () String)

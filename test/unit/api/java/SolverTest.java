@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1807,16 +1807,7 @@ class SolverTest
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
       Map.Entry<String, Stat> elem = it.next();
-      if (elem.getKey().equals("cvc5::CONSTANT"))
-      {
-        assertFalse(elem.getValue().isInternal());
-        assertFalse(elem.getValue().isDefault());
-        assertTrue(elem.getValue().isHistogram());
-        Map<String, Long> hist = elem.getValue().getHistogram();
-        assertFalse(hist.isEmpty());
-        assertEquals(elem.getValue().toString(), "{ integer type: 1 }");
-      }
-      else if (elem.getKey().equals("theory::arrays::avgIndexListLength"))
+      if (elem.getKey().equals("theory::arrays::avgIndexListLength"))
       {
         assertTrue(elem.getValue().isInternal());
         assertTrue(elem.getValue().isDouble());

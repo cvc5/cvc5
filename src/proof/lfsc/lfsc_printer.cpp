@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Mathias Preiner
+ *   Andrew Reynolds, Hans-Jörg Schurr, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1150,7 +1150,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
            << std::endl;
       // body must be converted to incorporate list semantics for substitutions
       // first traversal applies nary_elim to required n-ary applications
-      LfscListScNodeConverter llsncp(d_tproc, listVars, true);
+      LfscListScNodeConverter llsncp(nodeManager(), d_tproc, listVars, true);
       Node tscp;
       if (isConclusion)
       {
@@ -1166,7 +1166,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       // second traversal converts to LFSC form
       Node t = d_tproc.convert(tscp);
       // third traversal applies nary_concat where list variables are used
-      LfscListScNodeConverter llsnc(d_tproc, listVars, false);
+      LfscListScNodeConverter llsnc(nodeManager(), d_tproc, listVars, false);
       Node tsc = llsnc.convert(t);
       oscs << "  ";
       print(oscs, tsc);

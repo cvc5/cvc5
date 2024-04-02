@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -301,6 +301,29 @@ TEST_F(TestInputParserBlack, incrementalSetString)
     ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
   }
   ASSERT_EQ(out.str().empty(), true);
+}
+
+TEST_F(TestInputParserBlack, getDeclaredTermsAndSorts)
+{
+  InputParser p(d_solver.get(), d_symman.get());
+  Command cmd;
+  std::stringstream out;
+  p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                              "input_parser_black");
+  p.appendIncrementalStringInput("(set-logic ALL)");
+  p.appendIncrementalStringInput("(declare-sort U 0)");
+  p.appendIncrementalStringInput("(declare-fun x () U)");
+  for (size_t i = 0; i < 3; i++)
+  {
+    cmd = p.nextCommand();
+    ASSERT_NE(cmd.isNull(), true);
+    ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
+  }
+  std::vector<Sort> sorts = d_symman->getDeclaredSorts();
+  std::vector<Term> terms = d_symman->getDeclaredTerms();
+  ASSERT_EQ(sorts.size(), 1);
+  ASSERT_EQ(terms.size(), 1);
+  ASSERT_EQ(terms[0].getSort(), sorts[0]);
 }
 
 }  // namespace test

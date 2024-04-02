@@ -65,7 +65,7 @@
 )
 
 ; Return reverse of t if rev = true, return t unchanged otherwise.
-(define string_rev ((U Type :implicit) (rev Bool) (t U)) (alf.ite rev (nary.reverse str.++ alf.nil t) t))
+(define string_rev ((U Type :implicit) (rev Bool) (t U)) (alf.ite rev (nary.reverse str.++ alf.null t) t))
 
 ;;-------------------- Reductions
 
@@ -195,11 +195,11 @@
 ; is equivalent to
 ;   (and (= x (str.++ t1 ... tn)) M)
 ; We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
-; application of the unfolding skolem program @k.RE_UNFOLD_POS_COMPONENT.
+; application of the unfolding skolem program @re_unfold_pos_component.
 (program re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
   (String RegLan RegLan Int) (@Pair String Bool)
   (
-    ((re_unfold_pos_concat_rec t alf.nil ro i)       (@pair alf.nil true))
+    ((re_unfold_pos_concat_rec t alf.null ro i)       (@pair alf.null true))
     ((re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
       ; match recursive call
       (alf.match ((c String :list) (M Bool :list))
@@ -212,7 +212,7 @@
               ; a constant regular expression, append s
               ((str.to_re s) (@pair (str.++ s c) M))
               ; otherwise, make the skolem and append with constraint
-              (r             (let ((k (skolem (@k.RE_UNFOLD_POS_COMPONENT t ro i))))
+              (r             (let ((k (skolem (@re_unfold_pos_component t ro i))))
                             (@pair (str.++ k c) (and (str.in_re k r) M))))
             )
           )
@@ -234,7 +234,7 @@
 (program non_empty_concats ((U Type) (t U) (s U :list))
   (U Type) Bool
   (
-    ((non_empty_concats alf.nil U)       alf.nil)
+    ((non_empty_concats alf.null U)       alf.null)
     ((non_empty_concats (str.++ t s) U)  (alf.cons and (not (= t (mk_emptystr U))) (non_empty_concats s U)))
   )
 )
@@ -247,12 +247,12 @@
 
 ; Get first character or empty string from term t.
 ; If t is of the form (str.++ t ...), return t.
-; If t is of the form alf.nil, return alf.nil.
+; If t is of the form alf.null, return alf.null.
 (program string_head_or_empty ((U Type) (T Type) (t U) (tail U :list) (s T))
   (U) U
   (
     ((string_head_or_empty (str.++ t tail)) t)
-    ((string_head_or_empty alf.nil)         alf.nil)
+    ((string_head_or_empty alf.null)         alf.null)
   )
 )
 
@@ -270,29 +270,29 @@
 ; str.++ application corresponding to a string term in cvc5 rewritten form.
 ; It returns the flattened form such that there are no nested applications of
 ; str.++. For example, given input:
-;    (str.++ "AB" (str.++ x alf.nil))
+;    (str.++ "AB" (str.++ x alf.null))
 ; we return:
-;    (str.++ "A" (str.++ "B" (str.++ x alf.nil)))
+;    (str.++ "A" (str.++ "B" (str.++ x alf.null)))
 ; Notice that this is done for all word constants in the chain recursively.
 ; It does not insist that the nested concatenations are over characters only.
 ; This rule may fail if s is not a str.++ application corresponding to a term
 ; in cvc5 rewritten form.
 
 ; Helper for below, assumes t is a non-empty word constant.
-; For example, given "AB", this returns (str.++ "A" (str.++ "B" alf.nil)).
+; For example, given "AB", this returns (str.++ "A" (str.++ "B" alf.null)).
 (program string_flatten_word ((t String))
   (String) String
   (
     ((string_flatten_word t) 
       (alf.ite (string_check_length_one t)
-        (alf.cons str.++ t alf.nil)
+        (alf.cons str.++ t alf.null)
         (alf.cons str.++ (alf.extract t 0 0) (string_flatten_word (alf.extract t 1 (alf.len t))))))
   )
 )
 (program string_flatten ((U Type) (t U) (tail U :list) (tail2 U :list))
   (U) U
   (
-    ((string_flatten alf.nil) alf.nil)
+    ((string_flatten alf.null) alf.null)
     ; required for sequences
     ((string_flatten (str.++ (str.++ t tail2) tail)) 
         (alf.concat str.++ (str.++ t tail2) (string_flatten tail)))
@@ -311,9 +311,9 @@
 ; whose first component corresponds to a word constant, and whose second
 ; component is a str.++ application whose first element is not a character.
 ; For example, for:
-;   (str.++ "A" (str.++ "B" (str.++ x alf.nil)))
+;   (str.++ "A" (str.++ "B" (str.++ x alf.null)))
 ; We return:
-;   (@pair "AB" (str.++ x alf.nil))
+;   (@pair "AB" (str.++ x alf.null))
 (program string_collect_acc ((U Type) (t U) (tail String :list))
   (U) (@Pair U U)
   (
@@ -324,32 +324,32 @@
         (alf.match ((s1 U) (s2 U)) 
           (string_collect_acc tail)
           (
-            ((@pair alf.nil s2)  (@pair t s2))
+            ((@pair alf.null s2)  (@pair t s2))
             ((@pair s1 s2)       (@pair (alf.concat t s1) s2))    ; concatentate the constant
           )
         )
-        (@pair alf.nil (str.++ t tail))))
-    ((string_collect_acc alf.nil)            (@pair alf.nil alf.nil))
+        (@pair alf.null (str.++ t tail))))
+    ((string_collect_acc alf.null)            (@pair alf.null alf.null))
   )
 )
 
 ; Collect adjacent constants for the prefix of string s. For example:
-;    (str.++ "A" (str.++ "B" (str.++ x alf.nil)))
+;    (str.++ "A" (str.++ "B" (str.++ x alf.null)))
 ; we return:
-;    (str.++ (str.++ "A" (str.++ "B" alf.nil)) (str.++ x alf.nil))
+;    (str.++ (str.++ "A" (str.++ "B" alf.null)) (str.++ x alf.null))
 ; This side condition may fail if s is not a str.++ application.
 ; Notice that the collection of constants is done for all word constants in the
 ; term s recursively.
 (program string_collect ((U Type) (t U) (s U :list))
   (U) U
   (
-    ((string_collect alf.nil)       alf.nil)
+    ((string_collect alf.null)       alf.null)
     ((string_collect (str.++ t s))
       (alf.match ((s1 U) (s2 U))
         (string_collect_acc (str.++ t s))
         (
           ; did not strip a constant prefix, just append t to the result of processing s
-          ((@pair alf.nil s2)
+          ((@pair alf.null s2)
             (alf.cons str.++ t (string_collect s)))
           ; stripped a constant prefix, append it to second term in the pair
           ((@pair s1 s2)
@@ -382,7 +382,7 @@
 ; (3) (optionally) reverse.
 (define string_to_flat_form ((U Type :implicit) (s U) (rev Bool))
   ; intro, flatten, reverse
-  (string_rev rev (string_flatten (nary.intro str.++ (mk_emptystr (alf.typeof s)) alf.nil s)))
+  (string_rev rev (string_flatten (nary.intro str.++ (mk_emptystr (alf.typeof s)) alf.null s)))
 )
 
 ; Converts a term in "flat form" to a term that is in a form that corresponds
@@ -393,5 +393,5 @@
 ; (3) eliminate n-ary form to its element if the term is a singleton list.
 (define string_from_flat_form ((U Type :implicit) (s U) (rev Bool))
   ; reverse, collect, elim
-  (nary.elim str.++ alf.nil (mk_emptystr (alf.typeof s)) (string_collect (string_rev rev s)))
+  (nary.elim str.++ alf.null (mk_emptystr (alf.typeof s)) (string_collect (string_rev rev s)))
 )

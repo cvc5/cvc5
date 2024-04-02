@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner
+#   Gereon Kremer, Andres Noetzli, Vinícius Camillo
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -17,10 +17,12 @@
 
 include(deps-helper)
 
-find_path(GMP_INCLUDE_DIR NAMES gmp.h)
-find_path(GMPXX_INCLUDE_DIR NAMES gmpxx.h)
-find_library(GMP_LIBRARIES NAMES gmp)
-find_library(GMPXX_LIBRARIES NAMES gmpxx)
+if (NOT BUILD_GMP)
+  find_path(GMP_INCLUDE_DIR NAMES gmp.h)
+  find_path(GMPXX_INCLUDE_DIR NAMES gmpxx.h)
+  find_library(GMP_LIBRARIES NAMES gmp)
+  find_library(GMPXX_LIBRARIES NAMES gmpxx)
+endif()
 
 set(GMP_FOUND_SYSTEM FALSE)
 if(GMP_INCLUDE_DIR AND GMPXX_INCLUDE_DIR AND GMP_LIBRARIES AND GMPXX_LIBRARIES)

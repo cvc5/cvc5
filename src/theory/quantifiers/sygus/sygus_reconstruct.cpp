@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,7 @@ namespace quantifiers {
 SygusReconstruct::SygusReconstruct(Env& env,
                                    TermDbSygus* tds,
                                    SygusStatistics& s)
-    : EnvObj(env), d_tds(tds), d_stats(s)
+    : NodeConverter(env.getNodeManager()), EnvObj(env), d_tds(tds), d_stats(s)
 {
 }
 

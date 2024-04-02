@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -223,5 +223,25 @@ class InputParserTest extends ParserTest
     InputParser p5 = new InputParser(s4, d_symman);
     assertThrows(CVC5ApiException.class,
         () -> p5.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black"));
+  }
+  @Test
+  void getDeclaredTermsAndSorts()
+  {
+    InputParser p = new InputParser(d_solver, d_symman);
+    p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
+    p.appendIncrementalStringInput("(set-logic ALL)");
+    p.appendIncrementalStringInput("(declare-sort U 0)");
+    p.appendIncrementalStringInput("(declare-fun x () U)");
+    for (int i = 0; i < 3; i++)
+    {
+      final Command cmd = p.nextCommand();
+      assertNotEquals(cmd.isNull(), true);
+      assertDoesNotThrow(() -> cmd.invoke(d_solver, d_symman));
+    }
+    Sort[] sorts = d_symman.getDeclaredSorts();
+    Term[] terms = d_symman.getDeclaredTerms();
+    assertEquals(sorts.length, 1);
+    assertEquals(terms.length, 1);
+    assertEquals(terms[0].getSort(), sorts[0]);
   }
 }

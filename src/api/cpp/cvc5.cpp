@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,6 +126,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::DISTINCT, internal::Kind::DISTINCT),
         KIND_ENUM(Kind::CONSTANT, internal::Kind::VARIABLE),
         KIND_ENUM(Kind::VARIABLE, internal::Kind::BOUND_VARIABLE),
+        KIND_ENUM(Kind::SKOLEM, internal::Kind::SKOLEM),
         KIND_ENUM(Kind::SEXPR, internal::Kind::SEXPR),
         KIND_ENUM(Kind::LAMBDA, internal::Kind::LAMBDA),
         KIND_ENUM(Kind::WITNESS, internal::Kind::WITNESS),
@@ -508,6 +509,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::EQUAL, Kind::EQUAL},
         {internal::Kind::DISTINCT, Kind::DISTINCT},
         {internal::Kind::VARIABLE, Kind::CONSTANT},
+        {internal::Kind::SKOLEM, Kind::SKOLEM},
         {internal::Kind::BOUND_VARIABLE, Kind::VARIABLE},
         {internal::Kind::SEXPR, Kind::SEXPR},
         {internal::Kind::LAMBDA, Kind::LAMBDA},
@@ -527,6 +529,7 @@ const static std::unordered_map<internal::Kind,
         /* Arithmetic ------------------------------------------------------ */
         {internal::Kind::ADD, Kind::ADD},
         {internal::Kind::MULT, Kind::MULT},
+        {internal::Kind::NONLINEAR_MULT, Kind::MULT},
         {internal::Kind::IAND, Kind::IAND},
         {internal::Kind::POW2, Kind::POW2},
         {internal::Kind::SUB, Kind::SUB},
@@ -3595,6 +3598,60 @@ Term Term::getRealAlgebraicNumberUpperBound() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Term::isSkolem() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->getKind() == internal::Kind::SKOLEM;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+SkolemId Term::getSkolemId() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+      << "Term to be a skolem when calling getSkolemId";
+  //////// all checks before this line
+  return skm->getId(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> Term::getSkolemIndices() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+      << "Term to be a skolem when calling getSkolemIndices";
+  //////// all checks before this line
+  internal::Node cacheVal;
+  SkolemId id;
+  skm->isSkolemFunction(*d_node, id, cacheVal);
+  std::vector<Term> args;
+  if (!cacheVal.isNull())
+  {
+    if (cacheVal.getKind() == internal::Kind::SEXPR)
+    {
+      for (const internal::Node& nc : cacheVal)
+      {
+        args.push_back(Term(d_tm, nc));
+      }
+    }
+    else
+    {
+      args.push_back(Term(d_tm, cacheVal));
+    }
+  }
+  return args;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   // Note that this ignores the options::ioutils properties of `out`.
@@ -4991,12 +5048,67 @@ const std::shared_ptr<internal::ProofNode>& Proof::getProofNode(void) const
 /* TermManager                                                                */
 /* -------------------------------------------------------------------------- */
 
-TermManager::TermManager() { d_nm = internal::NodeManager::currentNM(); }
+TermManager::TermManager()
+{
+  d_nm = internal::NodeManager::currentNM();
+
+  if constexpr (internal::configuration::isStatisticsBuild())
+  {
+    d_statsReg.reset(new internal::StatisticsRegistry());
+    resetStatistics();
+  }
+}
 
 TermManager::~TermManager() {}
 
+Statistics TermManager::getStatistics() const
+{
+  return Statistics(*d_statsReg);
+}
+
+void TermManager::printStatisticsSafe(int fd) const
+{
+  d_statsReg->printSafe(fd);
+}
+
 /* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */
+
+void TermManager::increment_term_stats(Kind kind) const
+{
+  if constexpr (internal::configuration::isStatisticsBuild())
+  {
+    d_stats->d_terms << kind;
+  }
+}
+
+void TermManager::increment_vars_consts_stats(const internal::TypeNode& type,
+                                              bool is_var) const
+{
+  if constexpr (internal::configuration::isStatisticsBuild())
+  {
+    internal::TypeConstant tc = type.getKind() == internal::Kind::TYPE_CONSTANT
+                                    ? type.getConst<internal::TypeConstant>()
+                                    : internal::LAST_TYPE;
+    if (is_var)
+    {
+      d_stats->d_vars << tc;
+    }
+    else
+    {
+      d_stats->d_consts << tc;
+    }
+  }
+}
+
+void TermManager::resetStatistics()
+{
+  d_stats.reset(new APIStatistics{
+      d_statsReg->registerHistogram<internal::TypeConstant>("cvc5::CONSTANT"),
+      d_statsReg->registerHistogram<internal::TypeConstant>("cvc5::VARIABLE"),
+      d_statsReg->registerHistogram<Kind>("cvc5::TERM"),
+  });
+}
 
 TermManager* TermManager::currentTM()
 {
@@ -5065,6 +5177,29 @@ bool TermManager::isValidInteger(const std::string& s) const
 
 // This helpers are split out to avoid nested API calls (problematic with API
 // tracing).
+
+internal::Node TermManager::mkVarHelper(
+    const internal::TypeNode& type, const std::optional<std::string>& symbol)
+{
+  internal::Node res =
+      symbol ? d_nm->mkBoundVar(*symbol, type) : d_nm->mkBoundVar(type);
+  (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(type, true);
+  return res;
+}
+
+internal::Node TermManager::mkConstHelper(
+    const internal::TypeNode& type,
+    const std::optional<std::string>& symbol,
+    bool fresh)
+{
+  Assert(fresh || symbol);
+  internal::Node res =
+      symbol ? d_nm->mkVar(*symbol, type, fresh) : d_nm->mkVar(type);
+  (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(type, false);
+  return res;
+}
 
 template <typename T>
 Op TermManager::mkOpHelper(Kind kind, const T& t)
@@ -5458,11 +5593,7 @@ Sort TermManager::mkRecordSort(
   for (size_t i = 0, size = fields.size(); i < size; ++i)
   {
     const auto& p = fields[i];
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(!p.second.isNull(), "sort", fields, i)
-        << "non-null sort";
-    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == p.second.d_tm, "sort", fields, i)
-        << "sort associated with the node manager of this solver object";
+    CVC5_API_TM_CHECK_SORT_AT_INDEX(p.second, fields, i);
     f.emplace_back(p.first, *p.second.d_type);
   }
   //////// all checks before this line
@@ -5576,7 +5707,9 @@ Term TermManager::mkTerm(Kind kind, const std::vector<Term>& children)
   CVC5_API_KIND_CHECK(kind);
   CVC5_API_TM_CHECK_TERMS(children);
   //////// all checks before this line
-  return mkTermHelper(kind, children);
+  Term res = mkTermHelper(kind, children);
+  increment_term_stats(kind);
+  return res;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5587,7 +5720,9 @@ Term TermManager::mkTerm(const Op& op, const std::vector<Term>& children)
   CVC5_API_TM_CHECK_OP(op);
   CVC5_API_TM_CHECK_TERMS(children);
   //////// all checks before this line
-  return mkTermHelper(op, children);
+  Term res = mkTermHelper(op, children);
+  increment_term_stats(op.getKind());
+  return res;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6172,7 +6307,7 @@ Term TermManager::mkNullableLift(Kind kind, const std::vector<Term>& args)
   {
     internal::TypeNode type = t.d_node->getType();
     internal::TypeNode elementType = type[0];
-    internal::Node var = d_nm->mkBoundVar(elementType);
+    internal::Node var = mkVarHelper(elementType);
     vars.push_back(var);
   }
   internal::Node varList = d_nm->mkNode(internal::Kind::BOUND_VAR_LIST, vars);
@@ -6197,10 +6332,7 @@ Term TermManager::mkConst(const Sort& sort,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res =
-      symbol ? d_nm->mkVar(*symbol, *sort.d_type) : d_nm->mkVar(*sort.d_type);
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
+  return Term(this, mkConstHelper(*sort.d_type, symbol));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6211,10 +6343,7 @@ Term TermManager::mkVar(const Sort& sort,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_SORT(sort);
   //////// all checks before this line
-  internal::Node res = symbol ? d_nm->mkBoundVar(*symbol, *sort.d_type)
-                              : d_nm->mkBoundVar(*sort.d_type);
-  (void)res.getType(true); /* kick off type checking */
-  return Term(this, res);
+  return Term(this, mkVarHelper(*sort.d_type, symbol));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6378,7 +6507,6 @@ Solver::Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original)
   d_slv.reset(new internal::SolverEngine(d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
-  resetStatistics();
 }
 
 Solver::Solver(TermManager& tm)
@@ -6395,33 +6523,6 @@ Solver::~Solver() {}
 
 /* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */
-
-void Solver::increment_term_stats(Kind kind) const
-{
-  if constexpr (internal::configuration::isStatisticsBuild())
-  {
-    d_stats->d_terms << kind;
-  }
-}
-
-void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
-{
-  if constexpr (internal::configuration::isStatisticsBuild())
-  {
-    const internal::TypeNode tn = sort.getTypeNode();
-    internal::TypeConstant tc = tn.getKind() == internal::Kind::TYPE_CONSTANT
-                                    ? tn.getConst<internal::TypeConstant>()
-                                    : internal::LAST_TYPE;
-    if (is_var)
-    {
-      d_stats->d_vars << tc;
-    }
-    else
-    {
-      d_stats->d_consts << tc;
-    }
-  }
-}
 
 Term Solver::synthFunHelper(const std::string& symbol,
                             const std::vector<Term>& boundVars,
@@ -6443,14 +6544,22 @@ Term Solver::synthFunHelper(const std::string& symbol,
     }
     varTypes.push_back(bv.d_node->getType());
   }
+  if (grammar)
+  {
+    for (const auto& sym : grammar->d_sg->getNtSyms())
+    {
+      CVC5_API_CHECK(!grammar->d_sg->getRulesFor(sym).empty())
+          << "Invalid grammar, must have at least one rule for each "
+             "non-terminal symbol";
+    }
+  }
   //////// all checks before this line
 
   internal::TypeNode funType =
       varTypes.empty() ? *sort.d_type
                        : d_tm.d_nm->mkFunctionType(varTypes, *sort.d_type);
 
-  internal::Node fun = d_tm.d_nm->mkBoundVar(symbol, funType);
-  (void)fun.getType(true); /* kick off type checking */
+  internal::Node fun = d_tm.mkVarHelper(funType, symbol);
 
   std::vector<internal::Node> bvns = Term::termVectorToNodes(boundVars);
 
@@ -6497,20 +6606,6 @@ void Solver::ensureWellFormedTerms(const std::vector<Term>& ts) const
     {
       ensureWellFormedTerm(t);
     }
-  }
-}
-
-void Solver::resetStatistics()
-{
-  if constexpr (internal::configuration::isStatisticsBuild())
-  {
-    d_stats.reset(new APIStatistics{
-        d_slv->getStatisticsRegistry()
-            .registerHistogram<internal::TypeConstant>("cvc5::CONSTANT"),
-        d_slv->getStatisticsRegistry()
-            .registerHistogram<internal::TypeConstant>("cvc5::VARIABLE"),
-        d_slv->getStatisticsRegistry().registerHistogram<Kind>("cvc5::TERM"),
-    });
   }
 }
 
@@ -6772,14 +6867,12 @@ Term Solver::mkNullableLift(Kind kind, const std::vector<Term>& args) const
 Term Solver::mkConst(const Sort& sort,
                      const std::optional<std::string>& symbol) const
 {
-  increment_vars_consts_stats(sort, false);
   return d_tm.mkConst(sort, symbol);
 }
 
 Term Solver::mkVar(const Sort& sort,
                    const std::optional<std::string>& symbol) const
 {
-  increment_vars_consts_stats(sort, true);
   return d_tm.mkVar(sort, symbol);
 }
 
@@ -6803,13 +6896,11 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  increment_term_stats(kind);
   return d_tm.mkTerm(kind, children);
 }
 
 Term Solver::mkTerm(const Op& op, const std::vector<Term>& children) const
 {
-  increment_term_stats(op.getKind());
   return d_tm.mkTerm(op, children);
 }
 
@@ -6977,7 +7068,7 @@ Term Solver::declareFun(const std::string& symbol,
     std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = d_tm.d_nm->mkFunctionType(types, type);
   }
-  internal::Node res = d_tm.d_nm->mkVar(symbol, type, fresh);
+  internal::Node res = d_tm.mkConstHelper(type, symbol, fresh);
   // notify the solver engine of the declaration
   d_slv->declareConst(res);
   return Term(&d_tm, res);
@@ -7806,6 +7897,8 @@ void Solver::declareSepHeap(const Sort& locSort, const Sort& dataSort) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(locSort);
   CVC5_API_SOLVER_CHECK_SORT(dataSort);
+  CVC5_API_CHECK(d_slv->isLogicSet())
+      << "Cannot call 'declareSepHeap()' if logic is not set";
   CVC5_API_CHECK(
       d_slv->getLogicInfo().isTheoryEnabled(internal::theory::THEORY_SEP))
       << "Cannot obtain separation logic expressions if not using the "
@@ -7861,9 +7954,10 @@ Term Solver::declarePool(const std::string& symbol,
   CVC5_API_SOLVER_CHECK_TERMS(initValue);
   //////// all checks before this line
   internal::TypeNode setType = d_tm.d_nm->mkSetType(*sort.d_type);
-  internal::Node pool = d_tm.d_nm->mkBoundVar(symbol, setType);
+  internal::Node pool = d_tm.mkVarHelper(setType, symbol);
   std::vector<internal::Node> initv = Term::termVectorToNodes(initValue);
   d_slv->declarePool(pool, initv);
+  d_tm.increment_vars_consts_stats(setType, true);
   return Term(&d_tm, pool);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7888,7 +7982,7 @@ Term Solver::declareOracleFun(
     std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = d_tm.d_nm->mkFunctionType(types, type);
   }
-  internal::Node fun = d_tm.d_nm->mkVar(symbol, type);
+  internal::Node fun = d_tm.mkConstHelper(type, symbol);
   // Wrap the terms-to-term function so that it is nodes-to-nodes. Note we
   // make the method return a vector of size one to conform to the interface
   // at the SolverEngine level.
@@ -7941,6 +8035,12 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
+  for (const auto& sym : grammar.d_sg->getNtSyms())
+  {
+    CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
+        << "Invalid grammar, must have at least one rule for each "
+           "non-terminal symbol";
+  }
   //////// all checks before this line
   internal::Node result =
       d_slv->getInterpolant(*conj.d_node, *grammar.resolve().d_type);
@@ -7985,6 +8085,12 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
+  for (const auto& sym : grammar.d_sg->getNtSyms())
+  {
+    CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
+        << "Invalid grammar, must have at least one rule for each "
+           "non-terminal symbol";
+  }
   //////// all checks before this line
   internal::Node result =
       d_slv->getAbduct(*conj.d_node, *grammar.resolve().d_type);
@@ -8186,11 +8292,8 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
       << "Cannot call declareSygusVar unless sygus is enabled (use --sygus)";
   //////// all checks before this line
-  internal::Node res = d_tm.d_nm->mkBoundVar(symbol, *sort.d_type);
-  (void)res.getType(true); /* kick off type checking */
-
+  internal::Node res = d_tm.mkVarHelper(*sort.d_type, symbol);
   d_slv->declareSygusVar(res);
-
   return Term(&d_tm, res);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -8436,6 +8539,12 @@ Term Solver::findSynth(modes::FindSynthTarget fst) const
 Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  for (const auto& sym : grammar.d_sg->getNtSyms())
+  {
+    CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
+        << "Invalid grammar, must have at least one rule for each "
+           "non-terminal symbol";
+  }
   //////// all checks before this line
   return Term(&d_tm, d_slv->findSynth(fst, *grammar.resolve().d_type));
   ////////
