@@ -456,8 +456,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{C_1 \mid -}{C_2}
    *
-   * where :math:`C_2` is the clause :math:`C_1`, but every occurence of a literal
-   * after its first occurence is omitted.
+   * where :math:`C_2` is the clause :math:`C_1`, but every occurrence of a literal
+   * after its first occurrence is omitted.
    * \endverbatim
    */
   EVALUE(FACTORING),

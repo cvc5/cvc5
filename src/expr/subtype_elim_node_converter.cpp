@@ -21,7 +21,10 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-SubtypeElimNodeConverter::SubtypeElimNodeConverter() {}
+SubtypeElimNodeConverter::SubtypeElimNodeConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
 
 bool SubtypeElimNodeConverter::isRealTypeStrict(TypeNode tn)
 {

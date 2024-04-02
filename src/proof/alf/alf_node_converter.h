@@ -35,6 +35,7 @@ namespace proof {
 class BaseAlfNodeConverter : public NodeConverter
 {
  public:
+  BaseAlfNodeConverter(NodeManager* nm);
   /**
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
@@ -59,7 +60,7 @@ class BaseAlfNodeConverter : public NodeConverter
 class AlfNodeConverter : public BaseAlfNodeConverter
 {
  public:
-  AlfNodeConverter();
+  AlfNodeConverter(NodeManager* nm);
   ~AlfNodeConverter() {}
   /** Convert at pre-order traversal */
   Node preConvert(Node n) override;
