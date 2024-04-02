@@ -54,6 +54,8 @@ enum class InternalSkolemId
   QUANTIFIERS_SYNTH_FUN_EMBED,
   /** Higher-order type match predicate, see HoTermDb */
   HO_TYPE_MATCH_PRED,
+  /** Input variables for MBQI */
+  MBQI_INPUT,
   /** abstract value for a term t */
   ABSTRACT_VALUE,
 };
