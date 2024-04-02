@@ -1536,29 +1536,8 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     }
     else if (kind == Kind::SUB && args.size() == 1)
     {
-      if (isConstInt(args[0]) && args[0].getRealOrIntegerValueSign() > 0)
-      {
-        // (- n) denotes a negative value
-        std::stringstream suminus;
-        suminus << "-" << args[0].getIntegerValue();
-        Term ret = d_tm.mkInteger(suminus.str());
-        Trace("parser") << "applyParseOp: return negative constant " << ret
-                        << std::endl;
-        return ret;
-      }
       Term ret = d_tm.mkTerm(Kind::NEG, {args[0]});
       Trace("parser") << "applyParseOp: return uminus " << ret << std::endl;
-      return ret;
-    }
-    else if (kind == Kind::DIVISION && args.size() == 2 && isConstInt(args[0])
-             && isConstInt(args[1]) && args[1].getRealOrIntegerValueSign() > 0)
-    {
-      // (/ m n) or (/ (- m) n) denote values in reals
-      std::stringstream sdiv;
-      sdiv << args[0].getIntegerValue() << "/" << args[1].getIntegerValue();
-      Term ret = d_tm.mkReal(sdiv.str());
-      Trace("parser") << "applyParseOp: return rational constant " << ret
-                      << std::endl;
       return ret;
     }
     else if (kind == Kind::FLOATINGPOINT_FP)
