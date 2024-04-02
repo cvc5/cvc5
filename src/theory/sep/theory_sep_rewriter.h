@@ -37,12 +37,31 @@ class TheorySepRewriter : public TheoryRewriter
   }
 
  private:
+  /**
+   * Get the children of a SEP_STAR application, partition children based on
+   * whether they are spatial.
+   * @param n The node to inspect
+   * @param s_children The spatial children of n
+   * @param ns_children The non-spatial children of n
+   */
   void getStarChildren(Node n,
                        std::vector<Node>& s_children,
                        std::vector<Node>& ns_children) const;
+  /**
+   * Get the children of an AND application, partition children based on whether
+   * they are spatial.
+   * @param n The node to inspect
+   * @param s_children The spatial children of n
+   * @param ns_children The non-spatial children of n
+   */
   void getAndChildren(Node n,
                       std::vector<Node>& s_children,
                       std::vector<Node>& ns_children) const;
+  /**
+   * @param n The node to inspect
+   * @param visited A cache for the nodes we have visited already
+   * @return true if n is a spatial term.
+   */
   bool isSpatial(Node n, std::map<Node, bool>& visited) const;
 }; /* class TheorySepRewriter */
 
