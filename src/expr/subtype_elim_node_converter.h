@@ -35,7 +35,7 @@ namespace cvc5::internal {
 class SubtypeElimNodeConverter : public NodeConverter
 {
  public:
-  SubtypeElimNodeConverter();
+  SubtypeElimNodeConverter(NodeManager* nm);
   ~SubtypeElimNodeConverter() {}
   /** convert node n as described above during post-order traversal */
   Node postConvert(Node n) override;
