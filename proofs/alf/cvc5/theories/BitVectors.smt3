@@ -3,7 +3,7 @@
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
-(program get_bitwidth ((T Type) (n Int))
+(program get_bitwidth ((n Int))
   (Type) Int
   (
     ((get_bitwidth (BitVec n)) n)
