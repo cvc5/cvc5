@@ -1,4 +1,4 @@
-; COMMAND-LINE: --mobql-based-arith-bv-conv
+; COMMAND-LINE: --model-based-arith-bv-conv
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun x () (_ BitVec 8))
