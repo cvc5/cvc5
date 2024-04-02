@@ -10,5 +10,6 @@
 (declare-fun a () Int)
 (assert (and (>= a 0) (< a 2) (not (= a 1))))
 (assert (or (= f (lambda ((x Int)) (> x a))) (= f (lambda ((x Int)) (< x a)))))
+(assert (f 3))
 (check-sat)
 (get-model)
