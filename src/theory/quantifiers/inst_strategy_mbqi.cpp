@@ -659,7 +659,7 @@ Node InstStrategyMbqi::mkMbqiSkolem(const Node& t)
 {
   SkolemManager* skm = nodeManager()->getSkolemManager();
   return skm->mkInternalSkolemFunction(
-      InternalSkolemFunId::MBQI_INPUT, t.getType(), {t});
+      InternalSkolemId::MBQI_INPUT, t.getType(), {t});
 }
 
 }  // namespace quantifiers
