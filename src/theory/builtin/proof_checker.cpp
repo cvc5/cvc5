@@ -420,7 +420,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
-    rewriter::RewriteDbNodeConverter rconv;
+    rewriter::RewriteDbNodeConverter rconv(nodeManager());
     Node f = children[0];
     Node g = args[0];
     // equivalent up to conversion via utility
@@ -437,7 +437,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::DSL_REWRITE)
   {
-    // consult rewrite db, apply args[1]...args[n] as a substituion
+    // consult rewrite db, apply args[1]...args[n] as a substitution
     // to variable list and prove equality between LHS and RHS.
     Assert(d_rdb != nullptr);
     rewriter::DslProofRule di;
