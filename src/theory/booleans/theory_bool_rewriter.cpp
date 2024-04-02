@@ -427,7 +427,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         else if (n[1] == d_false && n[2] == d_true)
         {
           Trace("bool-ite") << "TheoryBoolRewriter::preRewrite_ITE: n[1] "
-                               "==d_false && n[2] == d_true "
+                               "== d_false && n[2] == d_true "
                             << n << ": " << n[0].notNode() << std::endl;
           return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
         }
@@ -448,7 +448,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
             << "TheoryBoolRewriter::preRewrite_ITE:  equalityParity n[1], n[2] "
             << parityTmp << " " << n << ": " << resp << std::endl;
         return RewriteResponse(REWRITE_AGAIN, resp);
-        // Curiously, this rewrite ad_falseects several benchmarks dramatically,
+        // Curiously, this rewrite affects several benchmarks dramatically,
         // including copy_array and some simple_startup - disable for now } else
         // if (n[0].getKind() == Kind::NOT) {
         //   return RewriteResponse(REWRITE_AGAIN, n[0][0].iteNode(n[2], n[1]));
