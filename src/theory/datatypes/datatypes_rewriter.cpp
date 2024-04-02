@@ -36,8 +36,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval, const Options& opts)
-    : d_sygusEval(sygusEval), d_opts(opts)
+DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
+                                     Evaluator* sygusEval,
+                                     const Options& opts)
+    : TheoryRewriter(nm), d_sygusEval(sygusEval), d_opts(opts)
 {
 }
 

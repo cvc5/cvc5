@@ -30,7 +30,16 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-ArithProofRuleChecker::ArithProofRuleChecker() {}
+ArithProofRuleChecker::ArithProofRuleChecker(NodeManager* nm)
+    : ProofRuleChecker(nm),
+      d_extChecker(nm),
+      d_trChecker(nm)
+#ifdef CVC5_POLY_IMP
+      ,
+      d_covChecker(nm)
+#endif
+{
+}
 
 void ArithProofRuleChecker::registerTo(ProofChecker* pc)
 {

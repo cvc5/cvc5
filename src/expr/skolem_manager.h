@@ -18,6 +18,8 @@
 #ifndef CVC5__EXPR__SKOLEM_MANAGER_H
 #define CVC5__EXPR__SKOLEM_MANAGER_H
 
+#include <cvc5/cvc5_skolem_id.h>
+
 #include <string>
 
 #include "expr/node.h"
@@ -26,439 +28,15 @@ namespace cvc5::internal {
 
 class ProofGenerator;
 
-/** Skolem function identifier */
-enum class SkolemFunId
-{
-  NONE,
-  /** An internal skolem */
-  INTERNAL,
-  /** input variable with a given name */
-  INPUT_VARIABLE,
-  /** purification skolem for a term t */
-  PURIFY,
-  /** abstract value for a term t */
-  ABSTRACT_VALUE,
-  /** array diff to witness (not (= A B)) */
-  ARRAY_DEQ_DIFF,
-  /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
-  DIV_BY_ZERO,
-  /** an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
-  INT_DIV_BY_ZERO,
-  /** an uninterpreted function f s.t. f(x) = x mod 0 */
-  MOD_BY_ZERO,
-  /** an uninterpreted function f s.t. f(x) = sqrt(x) */
-  SQRT,
-  /**
-   * Argument used to purify trancendental function app f(x).
-   * For sin(x), this is a variable that is assumed to be in phase with x that
-   * is between -pi and pi
-   */
-  TRANSCENDENTAL_PURIFY_ARG,
-  /**
-   * The n^th skolem for quantified formula Q. Its arguments are (Q,n).
-   */
-  QUANTIFIERS_SKOLEMIZE,
-  //----- string skolems are cached based on (a, b)
-  /** exists k. ( string b occurs k times in string a ) */
-  STRINGS_NUM_OCCUR,
-  /** exists k. ( regular expression b can be matched k times in a ) */
-  STRINGS_NUM_OCCUR_RE,
-  /** For function k: Int -> Int
-   *   exists k.
-   *     forall 0 <= x <= n,
-   *       k(x) is the end index of the x^th occurrence of b in a
-   *   where n is the number of occurrences of b in a, and k(0)=0.
-   */
-  STRINGS_OCCUR_INDEX,
-  /** Same, but where b is a regular expression */
-  STRINGS_OCCUR_INDEX_RE,
-  /**
-   * For function k: Int -> Int
-   *   exists k.
-   *     forall 0 <= x < n,
-   *       k(x) is the length of the x^th occurrence of b in a (excluding
-   *       matches of empty strings)
-   *   where b is a regular expression, n is the number of occurrences of b
-   *   in a, and k(0)=0.
-   */
-  STRINGS_OCCUR_LEN,
-  /** Same, but where b is a regular expression */
-  STRINGS_OCCUR_LEN_RE,
-  /**
-   * Diff index for disequalities a != b => substr(a,k,1) != substr(b,k,1)
-   */
-  STRINGS_DEQ_DIFF,
-  //-----
-  /**
-   * A function used to define intermediate results of str.replace_all and
-   * str.replace_re_all applications.
-   */
-  STRINGS_REPLACE_ALL_RESULT,
-  /**
-   * A function used to define intermediate results of str.from_int
-   * applications.
-   */
-  STRINGS_ITOS_RESULT,
-  /**
-   * A function used to define intermediate results of str.to_int
-   * applications.
-   */
-  STRINGS_STOI_RESULT,
-  /**
-   * An index containing a non-digit in a string, used when (str.to_int a) = -1.
-   */
-  STRINGS_STOI_NON_DIGIT,
-  /**
-   * For sequence a and regular expression b,
-   * in_re(a, re.++(_*, b, _*)) =>
-   *    exists k_pre, k_match, k_post.
-   *       a = k_pre ++ k_match ++ k_post ^
-   *       len(k_pre) = indexof_re(x, y, 0) ^
-   *       (forall l. 0 < l < len(k_match) =>
-   *         ~in_re(substr(k_match, 0, l), r)) ^
-   *       in_re(k_match, b)
-   *
-   * k_pre is the prefix before the first, shortest match of b in a. k_match
-   * is the substring of a matched by b. It is either empty or there is no
-   * shorter string that matches b.
-   */
-  RE_FIRST_MATCH_PRE,
-  RE_FIRST_MATCH,
-  RE_FIRST_MATCH_POST,
-  /**
-   * Regular expression unfold component: if (str.in_re t R), where R is
-   * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string
-   * skolem ki such that t = (str.++ k0 ... kn) and (str.in_re k0 r0) for
-   * i = 0, ..., n.
-   */
-  RE_UNFOLD_POS_COMPONENT,
-  /**
-   * An uninterpreted function for bag.card operator:
-   * To compute (bag.card A), we need a function that
-   * counts multiplicities of distinct elements. We call this function
-   * combine of type Int -> Int where:
-   * combine(0) = 0.
-   * combine(i) = m(elements(i), A) + combine(i-1) for 1 <= i <= n.
-   * elements: a skolem function for (bag.fold f t A)
-   *            see BAGS_CARD_ELEMENTS.
-   * n: is the number of distinct elements in A.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` the bag argument A.
-   */
-  BAGS_CARD_COMBINE,
-  /**
-   * An uninterpreted function for bag.card operator:
-   * To compute (bag.card A), we need a function for
-   * distinct elements in A. We call this function
-   * elements of type Int -> T where T is the type of
-   * elements of A.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` the bag argument A.
-   */
-  BAGS_CARD_ELEMENTS,
-  /**
-   * An uninterpreted function for bag.card operator:
-   * To compute (bag.card A), we need to guess n
-   * the number of distinct elements in A.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` the bag argument A.
-   */
-  BAGS_CARD_N,
-  /**
-   * An uninterpreted function for bag.card operator:
-   * To compute (bag.card A), we need a function for
-   * distinct elements in A which is given by elements defined in
-   * BAGS_CARD_ELEMENTS.
-   * We also need unionDisjoint: Int -> (Bag T) to compute
-   * the disjoint union such that:
-   * unionDisjoint(0) = bag.empty.
-   * unionDisjoint(i) = disjoint union of {<elements(i), m(elements(i), A)>}
-   * and unionDisjoint(i-1).
-   * unionDisjoint(n) = A.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` the bag argument A.
-   */
-  BAGS_CARD_UNION_DISJOINT,
-  /**
-   * An uninterpreted function for bag.fold operator:
-   * To compute (bag.fold f t A), we need to guess the cardinality n of
-   * bag A using a skolem function with BAGS_FOLD_CARD id.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` the bag argument A.
-   */
-  BAGS_FOLD_CARD,
-  /**
-   * An uninterpreted function for bag.fold operator:
-   * To compute (bag.fold f t A), we need a function that
-   * accumulates intermidiate values. We call this function
-   * combine of type Int -> T2 where:
-   * combine(0) = t
-   * combine(i) = f(elements(i), combine(i - 1)) for 1 <= i <= n.
-   * elements: a skolem function for (bag.fold f t A)
-   *           see BAGS_FOLD_ELEMENTS.
-   * n: is the cardinality of A.
-   * T2: is the type of initial value t.
-   *
-   * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type T1 -> T2.
-   *   - ``2:`` the initial value t of type T2.
-   *   - ``3:`` the bag argument A of type (Bag T1).
-   */
-  BAGS_FOLD_COMBINE,
-  /**
-   * An uninterpreted function for bag.fold operator:
-   * To compute (bag.fold f t A), we need a function for
-   * elements of A. We call this function
-   * elements of type Int -> T1 where T1 is the type of
-   * elements of A.
-   * If the cardinality of A is n, then
-   * A is the disjoint union of {<elements(i),1>} for 1 <= i <= n.
-   * See BAGS_FOLD_UNION_DISJOINT.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` a bag argument A.
-   */
-  BAGS_FOLD_ELEMENTS,
-  /**
-   * An uninterpreted function for bag.fold operator:
-   * To compute (bag.fold f t A), we need a function for
-   * elements of A which is given by elements defined in
-   * BAGS_FOLD_ELEMENTS.
-   * We also need unionDisjoint: Int -> (Bag T1) to compute
-   * the disjoint union such that:
-   * unionDisjoint(0) = bag.empty.
-   * unionDisjoint(i) = disjoint union of {elements(i)} and unionDisjoint (i-1).
-   * unionDisjoint(n) = A.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` the bag argument A.
-   */
-  BAGS_FOLD_UNION_DISJOINT,
-  /**
-   * An interpreted function for bag.choose operator:
-   * (bag.choose A) is expanded as
-   * (witness ((x elementType))
-   *    (ite
-   *      (= A (as emptybag (Bag E)))
-   *      (= x (uf A))
-   *      (and (>= (bag.count x A) 1) (= x (uf A)))
-   * where uf: (Bag E) -> E is a skolem function, and E is the type of elements
-   * of A.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` a ground value for the type (Bag E).
-   */
-  BAGS_CHOOSE,
-  /**
-   * An uninterpreted function for distinct elements of a bag A.
-   *
-   * - Number of skolem arguments: ``1``
-   * - ``1:`` the bag argument A.
-   */
-  BAGS_DISTINCT_ELEMENTS,
-  /**
-   * Same as above, but used when f is injective.
-   * The returned skolem is an element representing preimage of {y}.
-   *
-   * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type E -> T.
-   *   - ``2:`` the bag argument A of (Bag E).
-   *   - ``3:`` the element argument e type E.
-   */
-  BAGS_MAP_PREIMAGE_INJECTIVE,
-  /**
-   * A skolem variable for the size of the distinct elements of a bag A.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` the bag argument A.
-   */
-  BAGS_DISTINCT_ELEMENTS_SIZE,
-  /**
-   * A skolem variable for the index that is unique per terms
-   * (bag.map f A), y, size, y, e where:
-   * f: E -> T,
-   * A: (Bag E),
-   * y: T,
-   * e: E
-   *
-   * - Number of skolem arguments: ``5``
-   *   - ``1:`` a map term of the form (bag.map f A)
-   *   - ``2:`` a skolem function with id BAGS_DISTINCT_ELEMENTS
-   *   - ``3:`` a skolem function with id BAGS_DISTINCT_ELEMENTS_SIZE.
-   *   - ``4:`` an element y of type T representing the mapped value.
-   *   - ``5:`` an element x of type E.
-   */
-  BAGS_MAP_INDEX,
-  /**
-   * An uninterpreted function for bag.map operator:
-   * If the set of distinct elements in A is {uf(1), ..., uf(n)} (see
-   * BAGS_DISTINCT_ELEMENTS}, then the multiplicity of an element y in a bag
-   * (map f A) is sum(n), where sum: Int -> Int is a skolem function such that:
-   * sum(0) = 0
-   * sum(i) = sum (i-1) + (bag.count (uf i) A)
-   *
-   * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type E -> T.
-   *   - ``2:`` the bag argument A of (Bag E).
-   *   - ``3:`` the element argument e type E.
-   */
-  BAGS_MAP_SUM,
-  /**
-   * bag diff to witness (not (= A B)).
-   *
-   * - Number of skolem arguments: ``2``
-   *   - ``1:`` the first bag.
-   *   - ``2:`` the second bag.
-   */
-  BAGS_DEQ_DIFF,
-  /**
-   * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
-   * this uninterpreted function maps elements of A to their parts in the
-   * resulting partition. It has type (-> T (Table T))
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` a group term of the form ((_ table.group n1 ... nk) A).
-   */
-  TABLES_GROUP_PART,
-  /**
-   * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
-   * and a part B of type (Table T), this function returns a skolem element
-   * that is a member of B if B is not empty.
-   *
-   * - Number of skolem arguments: ``2``
-   *   - ``1:`` a group term of the form ((_ table.group n1 ... nk) A).
-   *   - ``2:`` a table B of type (Table T).
-   */
-  TABLES_GROUP_PART_ELEMENT,
-  /**
-   * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
-   * this uninterpreted function maps elements of A to their parts in the
-   * resulting partition. It has type (-> T (Relation T))
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` a relation of the form ((_ rel.group n1 ... nk) A).
-   */
-  RELATIONS_GROUP_PART,
-  /**
-   * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
-   * and a part B of type (Relation T), this function returns a skolem element
-   * that is a member of B if B is not empty.
-   * - Number of skolem arguments: ``2``
-   *   - ``1:`` a group term of the form ((_ rel.group n1 ... nk) A).
-   *   - ``2:`` a relation B of type (Relation T).
-   */
-  RELATIONS_GROUP_PART_ELEMENT,
-  /**
-   * An interpreted function for set.choose operator:
-   * (set.choose A) is expanded as
-   * (witness ((x elementType))
-   *    (ite
-   *      (= A (as set.empty (Set E)))
-   *      (= x (uf A))
-   *      (and (set.member x A) (= x uf(A)))
-   * where uf: (Set E) -> E is a skolem function, and E is the type of elements
-   * of A
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` a ground value for the type (Set E).
-   */
-  SETS_CHOOSE,
-  /**
-   * set diff to witness (not (= A B))
-   * - Number of skolem arguments: ``2``
-   *   - ``1:`` the first set.
-   *   - ``2:`` the second set.
-   */
-  SETS_DEQ_DIFF,
-  /**
-   * An uninterpreted function for set.fold operator:
-   * To compute (set.fold f t A), we need to guess the cardinality n of
-   * set A using a skolem function with SETS_FOLD_CARD id.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` the set argument A.
-   */
-  SETS_FOLD_CARD,
-  /**
-   * An uninterpreted function for set.fold operator:
-   * To compute (set.fold f t A), we need a function that
-   * accumulates intermidiate values. We call this function
-   * combine of type Int -> T2 where:
-   * combine(0) = t
-   * combine(i) = f(elements(i), combine(i - 1)) for 1 <= i <= n
-   * elements: a skolem function for (set.fold f t A)
-   *           see SETS_FOLD_ELEMENTS
-   * n: is the cardinality of A
-   * T2: is the type of initial value t
-   *
-   * - Number of skolem arguments: ``3``
-   *   - ``1:`` the function f of type T1 -> T2.
-   *   - ``2:`` the initial value t of type T2.
-   *   - ``3:`` the set argument A of type (Set T1).
-   */
-  SETS_FOLD_COMBINE,
-  /**
-   * An uninterpreted function for set.fold operator:
-   * To compute (set.fold f t A), we need a function for
-   * elements of A. We call this function
-   * elements of type Int -> T1 where T1 is the type of
-   * elements of A.
-   * If the cardinality of A is n, then
-   * A is the union of {elements(i)} for 1 <= i <= n.
-   * See SETS_FOLD_UNION_DISJOINT.
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` a set argument A.
-   */
-  SETS_FOLD_ELEMENTS,
-  /**
-   * An uninterpreted function for set.fold operator:
-   * To compute (set.fold f t A), we need a function for
-   * elements of A which is given by elements defined in
-   * SETS_FOLD_ELEMENTS.
-   * We also need unionFn: Int -> (Set T1) to compute
-   * the union such that:
-   * unionFn(0) = set.empty
-   * unionFn(i) = union of {elements(i)} and unionFn (i-1)
-   * unionFn(n) = A
-   *
-   * - Number of skolem arguments: ``1``
-   *   - ``1:`` a set argument A.
-   */
-  SETS_FOLD_UNION,
-  /**
-   * A skolem variable that is unique per terms (set.map f A), y which is an
-   * element in (set.map f A). The skolem is constrained to be an element in A,
-   * and it is mapped to y by f.
-   *
-   * - Number of skolem arguments: ``2``
-   *   - ``1:`` a map term of the form (set.map f A)
-   *   - ``3:`` the element argument y.
-   */
-  SETS_MAP_DOWN_ELEMENT,
-  /** a shared selector */
-  SHARED_SELECTOR,
-  UNKNOWN
-};
-/** Converts a skolem function name to a string. */
-const char* toString(SkolemFunId id);
-/** Writes a skolem function name to a stream. */
-std::ostream& operator<<(std::ostream& out, SkolemFunId id);
-
 /**
  * Internal skolem function identifier, used for identifying internal skolems
  * that are not exported as part of the API.
  *
- * This is a subclassification of skolems whose SkolemFunId is INTERNAL. It is
+ * This is a subclassification of skolems whose SkolemId is INTERNAL. It is
  * used to generate canonical skolems but without exporting to the API. Skolems
  * can be created using mkInternalSkolemFunction below.
  */
-enum class InternalSkolemFunId
+enum class InternalSkolemId
 {
   NONE,
   /** Sequence model construction, element for base */
@@ -475,12 +53,14 @@ enum class InternalSkolemFunId
    */
   QUANTIFIERS_SYNTH_FUN_EMBED,
   /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED
+  HO_TYPE_MATCH_PRED,
+  /** abstract value for a term t */
+  ABSTRACT_VALUE,
 };
 /** Converts an internal skolem function name to a string. */
-const char* toString(InternalSkolemFunId id);
+const char* toString(InternalSkolemId id);
 /** Writes an internal skolem function name to a stream. */
-std::ostream& operator<<(std::ostream& out, InternalSkolemFunId id);
+std::ostream& operator<<(std::ostream& out, InternalSkolemId id);
 
 /**
  * A manager for skolems that can be used in proofs. This is designed to be
@@ -491,10 +71,10 @@ std::ostream& operator<<(std::ostream& out, InternalSkolemFunId id);
  * (2) an identifier (`mkSkolemFunction`) and a set of "cache values", which
  * can be seen as arguments to the skolem function. These are typically used for
  * implementing theory-specific inferences that introduce symbols that
- * are not interpreted by the theory (see SkolemFunId enum).
+ * are not interpreted by the theory (see SkolemId enum).
  *
  * Note that (1) is a special instance of (2), where the purification skolem
- * for t is equivalent to calling mkSkolemFunction on SkolemFunId::PURIFY
+ * for t is equivalent to calling mkSkolemFunction on SkolemId::PURIFY
  * and t.
  *
  * If a variable cannot be associated with any of the above information,
@@ -569,7 +149,7 @@ class SkolemManager
                       ProofGenerator* pg = nullptr);
   /**
    * Make skolem function. This method should be used for creating fixed
-   * skolem functions of the forms described in SkolemFunId. The user of this
+   * skolem functions of the forms described in SkolemId. The user of this
    * method is responsible for providing a proper type for the identifier that
    * matches the description of id. Skolem functions are useful for modelling
    * the behavior of partial functions, or for theory-specific inferences that
@@ -595,32 +175,36 @@ class SkolemManager
    * e.g. the wrongly applied case of selectors.
    * @return The skolem function.
    */
-  Node mkSkolemFunction(SkolemFunId id,
-                        Node cacheVal = Node::null());
+  Node mkSkolemFunction(SkolemId id, Node cacheVal = Node::null());
   /** Same as above, with multiple cache values */
-  Node mkSkolemFunction(SkolemFunId id, const std::vector<Node>& cacheVals);
+  Node mkSkolemFunction(SkolemId id, const std::vector<Node>& cacheVals);
   /**
    * Same as above, with multiple cache values and an internal skolem id.
    * This will call mkSkolemFunction where the (external) id is
-   * SkolemFunId::INTERNAL. The type is provided explicitly.
+   * SkolemId::INTERNAL. The type is provided explicitly.
    */
-  Node mkInternalSkolemFunction(InternalSkolemFunId id,
+  Node mkInternalSkolemFunction(InternalSkolemId id,
                                 TypeNode tn,
                                 const std::vector<Node>& cacheVals = {});
   /**
    * Is k a skolem function? Returns true if k was generated by the above
+   * call.
+   */
+  bool isSkolemFunction(TNode k) const;
+  /**
+   * Is k a skolem function? Returns true if k was generated by the above
    * call. Updates the arguments to the values used when constructing it.
    */
-  bool isSkolemFunction(TNode k, SkolemFunId& id, Node& cacheVal) const;
+  bool isSkolemFunction(TNode k, SkolemId& id, Node& cacheVal) const;
   /**
    * Get skolem function id
    */
-  SkolemFunId getId(TNode k) const;
+  SkolemId getId(TNode k) const;
   /**
    * Get the internal skolem function id, for skolems whose id is
-   * SkolemFunId::INTERNAL.
+   * SkolemId::INTERNAL.
    */
-  InternalSkolemFunId getInternalId(TNode k) const;
+  InternalSkolemId getInternalId(TNode k) const;
   /**
    * Create a skolem constant with the given name, type, and comment. This
    * should only be used if the definition of the skolem does not matter.
@@ -672,9 +256,9 @@ class SkolemManager
 
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */
-  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
+  std::map<std::tuple<SkolemId, TypeNode, Node>, Node> d_skolemFuns;
   /** Backwards mapping of above */
-  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>> d_skolemFunMap;
+  std::map<Node, std::tuple<SkolemId, TypeNode, Node>> d_skolemFunMap;
   /**
    * Mapping from witness terms to proof generators.
    */
@@ -689,11 +273,11 @@ class SkolemManager
    */
   size_t d_skolemCounter;
   /** Same as mkSkolemFunction, with explicit type */
-  Node mkSkolemFunctionTyped(SkolemFunId id,
+  Node mkSkolemFunctionTyped(SkolemId id,
                              TypeNode tn,
                              Node cacheVal = Node::null());
   /** Same as above, with multiple cache values and explicit Type */
-  Node mkSkolemFunctionTyped(SkolemFunId id,
+  Node mkSkolemFunctionTyped(SkolemId id,
                              TypeNode tn,
                              const std::vector<Node>& cacheVals);
   /**
@@ -708,7 +292,7 @@ class SkolemManager
                     const TypeNode& type,
                     int flags = SKOLEM_DEFAULT);
   /** Get type for skolem */
-  TypeNode getTypeFor(SkolemFunId id, const std::vector<Node>& cacheVals);
+  TypeNode getTypeFor(SkolemId id, const std::vector<Node>& cacheVals);
 };
 
 }  // namespace cvc5::internal

@@ -44,9 +44,9 @@
 (declare-const rel.join_image (-> (! Type :var T :implicit) (Set (Tuple T T)) Int (Set (Tuple T))))
 
 ; Skolems for the theory of sets.
-(declare-const @k.SETS_DEQ_DIFF (-> (! Type :var T :implicit) (Set T) (Set T) T))
-(declare-const @k.RELATIONS_GROUP_PART (-> (! Type :var T :implicit) (Set (Set T)) T (Set T)))
-(declare-const @k.RELATIONS_GROUP_PART_ELEMENT (-> (! Type :var T :implicit) (Set (Set T)) (Set T) T))
+(declare-const @sets_deq_diff (-> (! Type :var T :implicit) (Set T) (Set T) T))
+(declare-const @relations_group_part (-> (! Type :var T :implicit) (Set (Set T)) T (Set T)))
+(declare-const @relations_group_part_element (-> (! Type :var T :implicit) (Set (Set T)) (Set T) T))
 
 ; The following skolems are not yet incorporated into the signature:
 ;SETS_CHOOSE

@@ -91,8 +91,8 @@ Java_io_github_cvc5_Proof_getArguments(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Proof* current = reinterpret_cast<Proof*>(pointer);
-  std::vector<Term> proofs = current->getArguments();
-  jlongArray ret = getPointersFromObjects<Term>(env, proofs);
+  std::vector<Term> args = current->getArguments();
+  jlongArray ret = getPointersFromObjects<Term>(env, args);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

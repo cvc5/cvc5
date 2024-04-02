@@ -870,10 +870,20 @@ name   = "Quantifiers"
 [[option]]
   name       = "sygusInference"
   category   = "expert"
-  long       = "sygus-inference"
-  type       = "bool"
-  default    = "false"
-  help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
+  long       = "sygus-inference=MODE"
+  type       = "SygusInferenceMode"
+  default    = "OFF"
+  help       = "mode for preprocessing arbitrary inputs to sygus conjectures"
+  help_mode  = "Modes  for preprocessing arbitrary inputs to sygus conjectures."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not use sygus inference techniques."
+[[option.mode.TRY]]
+  name = "try"
+  help = "Try to use sygus inference techniques but resort to ordinary SMT solving if it does not apply."
+[[option.mode.ON]]
+  name = "on"
+  help = "Try to sygus inference and abort if it does not apply."
 
 # this is set to true for sygus inputs
 [[option]]

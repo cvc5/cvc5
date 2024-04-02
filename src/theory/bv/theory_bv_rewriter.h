@@ -29,7 +29,7 @@ typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 class TheoryBVRewriter : public TheoryRewriter
 {
  public:
-  TheoryBVRewriter();
+  TheoryBVRewriter(NodeManager* nm);
 
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
@@ -91,9 +91,8 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteSsubo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSdivo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteEagerAtom(TNode node, bool prerewrite = false);
-
-  static RewriteResponse RewriteBVToNat(TNode node, bool prerewrite = false);
-  static RewriteResponse RewriteIntToBV(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSize(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteConstBvSym(TNode node, bool prerewrite = false);
 
   void initializeRewrites();
 

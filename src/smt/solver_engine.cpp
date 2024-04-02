@@ -538,7 +538,7 @@ void SolverEngine::defineFunction(Node func,
   Node def = formula;
   if (!formals.empty())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = d_env->getNodeManager();
     def = nm->mkNode(
         Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, formals), def);
   }
@@ -1102,7 +1102,7 @@ Node SolverEngine::simplify(const Node& t)
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
   // make so that the returned term does not involve arithmetic subtyping
-  SubtypeElimNodeConverter senc;
+  SubtypeElimNodeConverter senc(d_env->getNodeManager());
   ret = senc.convert(ret);
   endCall();
   return ret;
@@ -1168,7 +1168,8 @@ Node SolverEngine::getValue(const Node& t) const
     {
       // construct the skolem function
       SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
-      Node a = skm->mkSkolemFunction(SkolemFunId::ABSTRACT_VALUE, resultNode);
+      Node a = skm->mkInternalSkolemFunction(
+          InternalSkolemId::ABSTRACT_VALUE, rtn, {resultNode});
       // add to top-level substitutions if applicable
       theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
       if (!tsm.get().hasSubstitution(resultNode))
