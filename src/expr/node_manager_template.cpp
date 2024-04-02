@@ -260,6 +260,7 @@ NodeManager::~NodeManager()
   d_dtypes.clear();
   d_oracles.clear();
   d_nfreshSorts.clear();
+  d_nfreshVars.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -1095,15 +1096,22 @@ Node NodeManager::mkVar(const std::string& name,
     setAttribute(n, expr::VarNameAttr(), name);
     return n;
   }
-  // to construct a variable in a canonical way, we use the skolem
-  // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
-  // variable is unique.
-  std::vector<Node> cnodes;
-  cnodes.push_back(mkConst(String(name, false)));
-  // Since we index only on Node, we must construct a SortToTerm here.
-  Node gt = mkConst(SortToTerm(type));
-  cnodes.push_back(gt);
-  return d_skManager->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, cnodes);
+  // Note that the constructed variable must have kind VARIABLE, not SKOLEM,
+  // which is why this is not implemented as a case inside SkolemManager.
+  std::pair<std::string, TypeNode> key(name, type);
+  std::map<std::pair<std::string, TypeNode>, Node>::iterator it;
+  it = d_nfreshVars.find(key);
+  if (it != d_nfreshVars.end())
+  {
+    return it->second;
+  }
+  Node n = NodeBuilder(this, Kind::VARIABLE);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, TypeCheckedAttr(), true);
+  setAttribute(n, expr::VarNameAttr(), name);
+  Node v = n;
+  d_nfreshVars[key] = v;
+  return v;
 }
 
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)

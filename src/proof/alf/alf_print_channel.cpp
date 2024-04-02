@@ -72,7 +72,8 @@ void AlfPrintChannelOut::printStepInternal(const std::string& rname,
   d_out << "(" << (isPop ? "step-pop" : "step") << " @p" << i;
   if (!n.isNull())
   {
-    printNode(n);
+    d_out << " ";
+    printNodeInternal(d_out, n);
   }
   d_out << " :rule " << rname;
   bool firstTime = true;
@@ -144,7 +145,6 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
 
 void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
-  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   if (d_lbind)
   {
     // use the toStream with custom letification method
@@ -153,13 +153,12 @@ void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
   else
   {
     // just use default print
-    out << n;
+    Printer::getPrinter(out)->toStream(out, n);
   }
 }
 
 void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
-  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   tn.toStream(out);
 }
 

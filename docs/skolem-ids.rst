@@ -1,5 +1,5 @@
 Skolem Identifiers
 ==================
 
-.. doxygenenum:: cvc5::SkolemFunId
+.. doxygenenum:: cvc5::SkolemId
     :project: cvc5

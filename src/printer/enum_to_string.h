@@ -38,7 +38,7 @@ namespace cvc5::internal {
  * @param id The proof rule
  * @return The name of the proof rule
  */
-const char* toString(cvc5::SkolemFunId id);
+const char* toString(cvc5::SkolemId id);
 
 }  // namespace cvc5::internal
 
