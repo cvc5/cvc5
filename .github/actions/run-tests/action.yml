@@ -50,7 +50,8 @@ runs:
       run: |
         if [[ "${{ inputs.check-examples }}" != "true" ]]; then exit 0; fi
         mkdir -p build && cd build
-        cmake .. -DCMAKE_PREFIX_PATH=${{ inputs.build-dir }}/install/lib/cmake
+        cmake .. -DCMAKE_PREFIX_PATH=${{ inputs.build-dir }}/install/lib/cmake \
+          -DPython_EXECUTABLE=$(command -v python3)
         make -j${{ env.num_proc }}
         ctest -j${{ env.num_proc }} --output-on-failure
       working-directory: examples

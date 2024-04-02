@@ -122,7 +122,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // ignore internally generated symbols
     return n;
   }
-  else if (k == Kind::SKOLEM)
+  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -794,12 +794,12 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  SkolemFunId sfi = SkolemFunId::NONE;
+  SkolemId sfi = SkolemId::NONE;
   Node cacheVal;
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
-    if (sfi == SkolemFunId::RE_UNFOLD_POS_COMPONENT)
+    if (sfi == SkolemId::RE_UNFOLD_POS_COMPONENT)
     {
       // a skolem corresponding to a regular expression unfolding component
       // should print as (skolem_re_unfold_pos t R n) where the skolem is the

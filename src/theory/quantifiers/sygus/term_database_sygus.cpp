@@ -532,9 +532,9 @@ void TermDbSygus::registerEnumerator(Node e,
     {
       SkolemManager* sm = nm->getSkolemManager();
       Assert(sm->getInternalId(f)
-             == InternalSkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
+             == InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED);
       Node ff;
-      SkolemFunId id;
+      SkolemId id;
       sm->isSkolemFunction(f, id, ff);
       // get the argument, which is stored after the internal identifier
       Assert(ff.getKind() == Kind::SEXPR && ff.getNumChildren() == 2);
