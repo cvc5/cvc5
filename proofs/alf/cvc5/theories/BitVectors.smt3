@@ -11,7 +11,7 @@
 )
 
 ; used as the nil terminator for concat
-(declare-const bvempty (BitVec 0))
+(declare-const @bvempty (alf.to_bin 0 0))
 
 (declare-const concat (->
   (! Int :var n :implicit)

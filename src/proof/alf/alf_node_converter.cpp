@@ -403,7 +403,7 @@ Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     case Kind::NONLINEAR_MULT:
       return NodeManager::currentNM()->mkConstInt(Rational(1));
     case Kind::BITVECTOR_CONCAT:
-      return mkInternalSymbol("bvempty",
+      return mkInternalSymbol("@bvempty",
                               NodeManager::currentNM()->mkBitVectorType(0));
     default: break;
   }
