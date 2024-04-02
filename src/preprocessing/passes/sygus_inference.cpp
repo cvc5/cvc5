@@ -43,7 +43,7 @@ PreprocessingPassResult SygusInference::applyInternal(
   Trace("sygus-infer") << "Run sygus inference..." << std::endl;
   std::vector<Node> funs;
   std::vector<Node> sols;
-  // see if we can succesfully solve the input as a sygus problem
+  // see if we can successfully solve the input as a sygus problem
   if (solveSygus(assertionsToPreprocess->ref(), funs, sols))
   {
     Trace("sygus-infer") << "...Solved:" << std::endl;

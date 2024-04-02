@@ -356,7 +356,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       }
       else
       {
-        // prints as the corresponding concatentation of seq.unit
+        // prints as the corresponding concatenation of seq.unit
         Node cc = theory::strings::utils::mkConcatForConstSequence(n);
         toStream(out, cc, lbind, toDepth);
       }

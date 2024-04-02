@@ -222,7 +222,7 @@ public:
    * Returns true if x -> val is a legal elimination of variable x. This is
    * useful for ppAssert, when x = val is an entailed equality. This function
    * determines whether indeed x can be eliminated from the problem via the
-   * substituion x -> val.
+   * substitution x -> val.
    *
    * The following criteria imply that x -> val is *not* a legal elimination:
    * (1) If x is contained in val,
