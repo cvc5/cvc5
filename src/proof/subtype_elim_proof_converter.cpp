@@ -23,7 +23,7 @@
 namespace cvc5::internal {
 
 SubtypeElimConverterCallback::SubtypeElimConverterCallback(Env& env)
-    : EnvObj(env)
+    : EnvObj(env), d_nconv(nodeManager())
 {
   d_pc = d_env.getProofNodeManager()->getChecker();
 }

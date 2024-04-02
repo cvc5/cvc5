@@ -97,23 +97,22 @@
 
 ; Skolem functions for strings and sequences.
 
-(declare-const @k.RE_UNFOLD_POS_COMPONENT (-> String RegLan Int String))
-(declare-const @k.STRINGS_DEQ_DIFF (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
-(declare-const @k.STRINGS_STOI_RESULT (-> String Int Int))
-(declare-const @k.STRINGS_STOI_NON_DIGIT (-> String Int))
-(declare-const @k.STRINGS_ITOS_RESULT (-> Int Int Int))
+(declare-const @re_unfold_pos_component (-> String RegLan Int String))
+(declare-const @strings_deq_diff (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
+(declare-const @strings_stoi_result (-> String Int Int))
+(declare-const @strings_stoi_non_digit (-> String Int))
+(declare-const @strings_itos_result (-> Int Int Int))
 
-(declare-const @k.STRINGS_NUM_OCCUR (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
-(declare-const @k.STRINGS_NUM_OCCUR_RE (-> String RegLan Int))
-(declare-const @k.STRINGS_OCCUR_INDEX (-> (! Type :var T :implicit) (Seq T) (Seq T) Int Int))
-(declare-const @k.STRINGS_OCCUR_INDEX_RE (-> String RegLan Int Int))
-(declare-const @k.STRINGS_OCCUR_LEN (-> (! Type :var T :implicit) (Seq T) (Seq T) Int Int))
-(declare-const @k.STRINGS_OCCUR_LEN_RE (-> String RegLan Int Int))
+(declare-const @strings_num_occur (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
+(declare-const @strings_num_occur_re (-> String RegLan Int))
+(declare-const @strings_occur_index (-> (! Type :var T :implicit) (Seq T) (Seq T) Int Int))
+(declare-const @strings_occur_index_re (-> String RegLan Int Int))
+(declare-const @strings_occur_len_re (-> String RegLan Int Int))
 
-(declare-const @k.STRINGS_REPLACE_ALL_RESULT (-> (! Type :var T :implicit) (Seq T) Int (Seq T)))
+(declare-const @strings_replace_all_result (-> (! Type :var T :implicit) (Seq T) Int (Seq T)))
 
-(declare-const @k.RE_FIRST_MATCH_PRE (-> String RegLan String))
-(declare-const @k.RE_FIRST_MATCH (-> String RegLan String))
-(declare-const @k.RE_FIRST_MATCH_POST (-> String RegLan String))
+(declare-const @re_first_match_pre (-> String RegLan String))
+(declare-const @re_first_match (-> String RegLan String))
+(declare-const @re_first_match_post (-> String RegLan String))
 
 

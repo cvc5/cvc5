@@ -60,11 +60,11 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_functionTerms(context()),
       d_singleton_eq(userContext()),
       d_sygusExtension(nullptr),
-      d_rewriter(env.getEvaluator(), env.getOptions()),
+      d_rewriter(nodeManager(), env.getEvaluator(), options()),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_notify(d_im, *this),
-      d_checker(env.getOptions().datatypes.dtSharedSelectors),
+      d_checker(nodeManager(), options().datatypes.dtSharedSelectors),
       d_cpacb(*this)
 {
   d_true = nodeManager()->mkConst(true);

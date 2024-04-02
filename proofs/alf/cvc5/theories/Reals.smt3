@@ -15,4 +15,4 @@
 (declare-const INDEXED_ROOT_PREDICATE (-> Int Bool Real Bool))
 
 ; skolems
-(declare-const @k.DIV_BY_ZERO (-> Real Real))
+(declare-const @div_by_zero (-> Real Real))

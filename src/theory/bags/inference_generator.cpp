@@ -415,10 +415,10 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node f = n[0];
   Node A = n[1];
   // declare an uninterpreted function uf: Int -> T
-  Node uf = d_sm->mkSkolemFunction(SkolemFunId::BAGS_DISTINCT_ELEMENTS, {A});
+  Node uf = d_sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS, {A});
 
   // declare uninterpreted function sum: Int -> Int
-  Node sum = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_SUM, {f, A, e});
+  Node sum = d_sm->mkSkolemFunction(SkolemId::BAGS_MAP_SUM, {f, A, e});
 
   // (= (sum 0) 0)
   Node sum_zero = d_nm->mkNode(Kind::APPLY_UF, sum, d_zero);
@@ -426,7 +426,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
 
   // guess the size of distinct elements in A
   Node size =
-      d_sm->mkSkolemFunction(SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE, {A});
+      d_sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE, {A});
 
   // (= (sum size) (bag.count e skolem))
   Node mapSkolem = registerAndAssertSkolemLemma(n);
@@ -502,8 +502,8 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
   Node f = n[0];
   Node A = n[1];
   // declare a fresh skolem of type T
-  Node x = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE,
-                                  {f, A, y});
+  Node x =
+      d_sm->mkSkolemFunction(SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE, {f, A, y});
 
   Node mapSkolem = registerAndAssertSkolemLemma(n);
   Node countY = getMultiplicityTerm(y, mapSkolem);
@@ -558,7 +558,7 @@ InferInfo InferenceGenerator::mapUp2(Node n, Node uf, Node size, Node y, Node x)
       d_nm->mkNode(Kind::EQUAL, d_nm->mkNode(Kind::APPLY_UF, f, x), y).negate();
 
   Node k =
-      d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_INDEX, {n, uf, size, y, x});
+      d_sm->mkSkolemFunction(SkolemId::BAGS_MAP_INDEX, {n, uf, size, y, x});
   Node inRange = d_nm->mkNode(Kind::AND,
                               d_nm->mkNode(Kind::GEQ, k, d_one),
                               d_nm->mkNode(Kind::LEQ, k, size));
@@ -869,8 +869,7 @@ InferInfo InferenceGenerator::groupPartCount(Node n, Node B, Node part)
   Node A_notEmpty = A.eqNode(empty).notNode();
   inferInfo.d_premises.push_back(A_notEmpty);
 
-  Node x =
-      d_sm->mkSkolemFunction(SkolemFunId::TABLES_GROUP_PART_ELEMENT, {n, B});
+  Node x = d_sm->mkSkolemFunction(SkolemId::TABLES_GROUP_PART_ELEMENT, {n, B});
   d_state->registerPartElementSkolem(n, x);
   Node part_x = d_nm->mkNode(Kind::APPLY_UF, part, x);
   part_x = registerAndAssertSkolemLemma(part_x);
@@ -983,7 +982,7 @@ Node InferenceGenerator::defineSkolemPartFunction(Node n)
   TypeNode elementType = tableType.getBagElementType();
 
   // declare an uninterpreted function part: T -> (Table T)
-  Node part = d_sm->mkSkolemFunction(SkolemFunId::TABLES_GROUP_PART, {n});
+  Node part = d_sm->mkSkolemFunction(SkolemId::TABLES_GROUP_PART, {n});
   return part;
 }
 

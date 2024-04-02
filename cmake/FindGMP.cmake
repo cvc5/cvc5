@@ -17,10 +17,12 @@
 
 include(deps-helper)
 
-find_path(GMP_INCLUDE_DIR NAMES gmp.h)
-find_path(GMPXX_INCLUDE_DIR NAMES gmpxx.h)
-find_library(GMP_LIBRARIES NAMES gmp)
-find_library(GMPXX_LIBRARIES NAMES gmpxx)
+if (NOT BUILD_GMP)
+  find_path(GMP_INCLUDE_DIR NAMES gmp.h)
+  find_path(GMPXX_INCLUDE_DIR NAMES gmpxx.h)
+  find_library(GMP_LIBRARIES NAMES gmp)
+  find_library(GMPXX_LIBRARIES NAMES gmpxx)
+endif()
 
 set(GMP_FOUND_SYSTEM FALSE)
 if(GMP_INCLUDE_DIR AND GMPXX_INCLUDE_DIR AND GMP_LIBRARIES AND GMPXX_LIBRARIES)
