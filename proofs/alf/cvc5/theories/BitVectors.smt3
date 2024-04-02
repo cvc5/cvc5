@@ -11,14 +11,14 @@
 )
 
 ; used as the nil terminator for concat
-(declare-const @bvempty (alf.to_bin 0 0))
+(define @bvempty () (alf.to_bin 0 0))
 
 (declare-const concat (->
   (! Int :var n :implicit)
   (! Int :var m :implicit)
   (BitVec n)
   (BitVec m)
-  (BitVec (alf.add n m))) :right-assoc-nil bvempty
+  (BitVec (alf.add n m))) :right-assoc-nil @bvempty
 )
 
 (declare-const extract (->
@@ -309,7 +309,7 @@
   (! Int :var n :implicit)
   Bool
   (BitVec n)
-  (BitVec (alf.add 1 n))) :right-assoc-nil bvempty
+  (BitVec (alf.add 1 n))) :right-assoc-nil @bvempty
 )
 
 ; symbolic constant
