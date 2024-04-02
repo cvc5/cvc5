@@ -1351,6 +1351,7 @@ set(regress_0_tests
   regress0/quantifiers/agg-rew-test-cf.smt2
   regress0/quantifiers/agg-rew-test.smt2
   regress0/quantifiers/ari056.smt2
+  regress0/quantifiers/ari-syqi.smt2
   regress0/quantifiers/ARI176e1.smt2
   regress0/quantifiers/bug269.smt2
   regress0/quantifiers/bug290.smt2
