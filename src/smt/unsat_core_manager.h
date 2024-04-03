@@ -100,6 +100,8 @@ class UnsatCoreManager : protected EnvObj
    *
    * The unsat core is stored in the core argument.
    *
+   * @param pfn The refutation proof
+   * @param core The unsat core, which is populated in this call
    * @param isInternal Whether this call was made internally (not by the user).
    * This impacts whether the unsat core is post-processed.
    */
