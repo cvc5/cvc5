@@ -14,6 +14,7 @@
 import pytest
 import cvc5
 import sys
+from math import isnan
 
 from cvc5 import Kind, SortKind, TermManager, Solver
 from cvc5 import RoundingMode
@@ -1018,26 +1019,34 @@ def test_get_instantiations(tm, solver):
     solver.checkSat()
     solver.getInstantiations()
 
-def test_get_statistics(solver):
-    intSort = solver.getIntegerSort()
-    x = solver.mkConst(intSort, "x")
-    y = solver.mkConst(intSort, "y")
-    zero = solver.mkInteger(0)
-    ten = solver.mkInteger(10)
-    f0 = solver.mkTerm(Kind.GEQ, x, ten)
-    f1 = solver.mkTerm(
-            Kind.OR,
-            solver.mkTerm(Kind.GEQ, zero, x),
-            solver.mkTerm(Kind.GEQ, y, zero))
-    solver.assertFormula(f0)
-    solver.assertFormula(f1)
+def test_get_statistics(tm, solver):
+    # do some array reasoning to make sure we have a double statistics
+    s1 = tm.getIntegerSort()
+    s2 = tm.mkArraySort(s1, s1)
+    t1 = tm.mkConst(s1, "i")
+    t2 = tm.mkVar(s2, "a")
+    t3 = tm.mkTerm(Kind.SELECT, t2, t1)
     solver.checkSat()
-    s = solver.getStatistics()
-    assert s['cvc5::TERM'] == {
-            'defaulted': False,
-            'internal': False,
-            'value': {'GEQ': 3, 'OR': 1}}
-    assert s.get(True, False) != {}
+
+    stats = solver.getStatistics()
+
+    assert not stats['global::totalTime']['internal']
+    assert not stats['global::totalTime']['default']
+    assert stats['global::totalTime']['value'][-2:] == 'ms' # ends with 'ms'
+    assert stats['resource::resourceUnitsUsed']['internal']
+    assert not stats['resource::resourceUnitsUsed']['default']
+    assert stats.get(True)['resource::resourceUnitsUsed']['internal']
+    assert not stats.get(True)['resource::resourceUnitsUsed']['default']
+
+    assert '' not in stats
+    assert len([s for s in stats]) > 0
+
+    for s in stats:
+        if s[0] == 'theory::arrays::avgIndexListLength':
+            assert s[1]['internal']
+            assert s[1]['default']
+            assert isnan(s[1]['value'])
+
 
 def test_set_info(solver):
     with pytest.raises(RuntimeError):
