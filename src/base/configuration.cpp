@@ -168,6 +168,11 @@ std::string Configuration::copyright() {
          << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
          << " information\n\n";
     }
+    if (Configuration::isBuiltWithCoCoA()) {
+      ss << "  CoCoALib - a computer algebra library\n"
+         << "  See https://cocoa.dima.unige.it/cocoa/cocoalib/index.shtml for copyright"
+         << " information\n\n";
+    }
   }
 
   ss << "See the file COPYING (distributed with the source code, and with\n"
