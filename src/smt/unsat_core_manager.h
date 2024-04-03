@@ -93,10 +93,10 @@ class UnsatCoreManager : protected EnvObj
   /**
    * Gets the unsat core.
    *
-   * The unsat core is the intersection of the assertions in as and the free
-   * assumptions of the underlying refutation proof of pfn. Note that pfn must
-   * be a "final proof", which means that it's a proof of false under a scope
-   * containing all assertions.
+   * The unsat core is the intersection of the assertions of the underlying
+   * solver and the free assumptions of the refutation proof pfn. Note that pfn
+   * must be a "final proof", which means that it's a proof of false under a
+   * scope containing all assertions.
    *
    * The unsat core is stored in the core argument.
    *
