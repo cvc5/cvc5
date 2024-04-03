@@ -15,6 +15,7 @@
 
 #include "theory/uf/conversions_solver.h"
 
+#include "options/uf_options.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/theory_model.h"
@@ -74,6 +75,17 @@ void ConversionsSolver::checkReduction(Node n)
     // "model-based reduction" strategy, do not reduce things that already have
     // correct model values
     Trace("bv-convs") << "...already correct in model" << std::endl;
+    return;
+  }
+  if (options().uf.modelBasedArithBvConv)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node argval = d_state.getModel()->getValue(n[0]);
+    Trace("bv-convs-debug") << "  arg value = " << argval << std::endl;
+    Node eval = rewrite(nm->mkNode(n.getOperator(), argval));
+    Trace("bv-convs-debug") << "  evaluated = " << eval << std::endl;
+    Node lem = nm->mkNode(Kind::IMPLIES, n[0].eqNode(argval), n.eqNode(eval));
+    d_im.lemma(lem, InferenceId::UF_ARITH_BV_CONV_VALUE_REFINE);
     return;
   }
 
