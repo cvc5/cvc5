@@ -36,10 +36,10 @@ bool hasListVar(TNode n);
 
 /**
  * Compute list variable context
- * Get the parent kind of each list variable in n, or fail if a list
- * variable occurs in two contexts.
+ * Stores (one of the) parents for each list variable in n, or fail if a list
+ * variable occurs beneath parents that have different kinds.
  */
-bool getListVarContext(TNode n, std::map<Node, Kind>& context);
+bool getListVarContext(TNode n, std::map<Node, Node>& context);
 
 /**
  * Get the null terminator for kind k and type node tn.
@@ -60,6 +60,13 @@ Node getNullTerminator(Kind k, TypeNode tn);
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs);
+/**
+ * Same as above, with visited cache.
+ */
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited);
 
 /**
  * @param k A kind
