@@ -46,7 +46,7 @@ Node SkolemCache::getExtIndexSkolem(Node deq)
 
   // make the skolem, which is deterministic for a,b.
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  return sm->mkSkolemFunction(SkolemFunId::ARRAY_DEQ_DIFF, {a, b});
+  return sm->mkSkolemFunction(SkolemId::ARRAY_DEQ_DIFF, {a, b});
 }
 
 Node SkolemCache::getEqRangeVar(TNode eqr)

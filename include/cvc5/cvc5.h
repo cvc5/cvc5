@@ -19,8 +19,9 @@
 #define CVC5__API__CVC5_H
 
 #include <cvc5/cvc5_kind.h>
-#include <cvc5/cvc5_types.h>
 #include <cvc5/cvc5_proof_rule.h>
+#include <cvc5/cvc5_skolem_id.h>
+#include <cvc5/cvc5_types.h>
 
 #include <functional>
 #include <map>
@@ -1299,8 +1300,8 @@ class CVC5_EXPORT Term
    *
    * @note Requires that this term has a symbol (see hasSymbol()).
    *
-   * The symbol of the term is the string that was
-   * provided when constructing it via Solver::mkConst() or Solver::mkVar().
+   * The symbol of the term is the string that was provided when constructing
+   * it via TermManager::mkConst() or TermManager::mkVar().
    *
    * @return The raw symbol of the term.
    */
@@ -1858,6 +1859,29 @@ class CVC5_EXPORT Term
    * @return The upper bound.
    */
   Term getRealAlgebraicNumberUpperBound() const;
+
+  /**
+   * Is this term a skolem?
+   * @warning This function is experimental and may change in future versions.
+   * @return True if this term is a skolem function.
+   */
+  bool isSkolem() const;
+  /**
+   * Get skolem identifier of this term.
+   * @note Asserts isSkolem().
+   * @warning This function is experimental and may change in future versions.
+   * @return The skolem identifier of this term.
+   */
+  SkolemId getSkolemId() const;
+  /**
+   * Get the skolem indices of this term.
+   * @note Asserts isSkolem().
+   * @warning This function is experimental and may change in future versions.
+   * @return The skolem indices of this term. This is list of terms that the
+   * skolem function is indexed by. For example, the array diff skolem
+   * `SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
+   */
+  std::vector<Term> getSkolemIndices() const;
 
  protected:
   /**
@@ -3280,11 +3304,17 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& sv);
  * \verbatim embed:rst:leading-asterisk
  * Represents a snapshot of the solver statistics. See :doc:`/statistics` for
  * how statistics can be used.
- * Once obtained via :cpp:func:`Solver::getStatistics()
- * <cvc5::Solver::getStatistics()>`, an instance of this class is independent of
- * the :cpp:class:`Solver <cvc5::Solver>` object: it will not change when the
- * solvers internal statistics do, and it will not be invalidated if the solver
- * is destroyed. Iterating over this class (via :cpp:func:`begin()
+ *
+ * Statistics can be queried from the Solver via
+ * :cpp:func:`Solver::getStatistics() <cvc5::Solver::getStatistics()>`, and
+ * from the TermManager via :cpp:func:`TermManager::getStatistics()
+ * <cvc5::TermManager::getStatistics()>`. An statistics instance obtained from
+ * either call is independent of the :cpp:class:`Solver <cvc5::Solver>` (and
+ * its associated :cpp:class:`TermManager <cvc5::TermManager>`object: it will
+ * not change when new terms are created or the solver's internal statistics
+ * do. It will also not be invalidated if the solver/term manageris destroyed.
+ *
+ * Iterating over this class (via :cpp:func:`begin()
  * <cvc5::Statistics::begin()>` and :cpp:func:`end() <cvc5::Statistics::end()>`)
  * shows only public statistics that have been changed. By passing appropriate
  * flags to :cpp:func:`begin() <cvc5::Statistics::begin()>`, statistics that are
@@ -3295,6 +3325,7 @@ class CVC5_EXPORT Statistics
 {
  public:
   friend class Solver;
+  friend class TermManager;
   /** How the statistics are stored internally. */
   using BaseType = std::map<std::string, Stat>;
 
@@ -3343,7 +3374,7 @@ class CVC5_EXPORT Statistics
    * @param internal If set to true, internal statistics are shown as well.
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool internal = false, bool defaulted = false) const;
+  iterator begin(bool internal = true, bool defaulted = true) const;
   /** End iteration */
   iterator end() const;
 
@@ -3429,6 +3460,25 @@ class CVC5_EXPORT TermManager
   TermManager();
   /** Destructor. */
   ~TermManager();
+
+  /**
+   * Get a snapshot of the current state of the statistic values of this
+   * term manager.
+   *
+   * Term manager statistics are independent from any solver instance. The
+   * returned object is completely decoupled from the term manager and will
+   * not change when the solver is used again.
+   *
+   * @return A snapshot of the current state of the statistic values.
+   */
+  Statistics getStatistics() const;
+
+  /**
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
+   * @param fd The file descriptor.
+   */
+  void printStatisticsSafe(int fd) const;
 
   /* Sorts -------------------------------------------------------------- */
 
@@ -3993,7 +4043,7 @@ class CVC5_EXPORT TermManager
    * Create a free constant.
    *
    * Note that the returned term is always fresh, even if the same arguments
-   * were provided on a previous call to mkConst.
+   * were provided on a previous call to mkConst().
    *
    * SMT-LIB:
    *
@@ -4016,7 +4066,7 @@ class CVC5_EXPORT TermManager
    * lambda, or a witness binder).
    *
    * @note The returned term is always fresh, even if the same arguments
-   *       were provided on a previous call to mkConst.
+   *       were provided on a previous call to mkConst().
    *
    * @param sort   The sort of the variable.
    * @param symbol The name of the variable (optional).
@@ -4069,6 +4119,15 @@ class CVC5_EXPORT TermManager
    *          TermManager instance, and this workaround will be removed.
    */
   static TermManager* currentTM();
+
+  /** Reset the API statistics. */
+  void resetStatistics();
+  /** Increment the term stats counter. */
+  void increment_term_stats(Kind kind) const;
+  /** Increment the vars stats or consts stats counter. */
+  void increment_vars_consts_stats(const internal::TypeNode& type,
+                                   bool is_var) const;
+
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /**
@@ -4077,8 +4136,29 @@ class CVC5_EXPORT TermManager
    * @return True if `s` is a valid decimal integer.
    */
   bool isValidInteger(const std::string& s) const;
+
   /**
-   * Helper for mk-functions that call d_nm->mkConst().
+   * Helper for calls to mkVar from the TermManager and Solver. Ensures that
+   * API statistics are collected.
+   * @param sort   The internal type of the variable.
+   * @param symbol The symbol of the variable.
+   */
+  internal::Node mkVarHelper(
+      const internal::TypeNode& type,
+      const std::optional<std::string>& symbol = std::nullopt);
+  /**
+   * Helper for calls to mkConst from the TermManager and Solver. Ensures that
+   * API statistics are collected.
+   * @param sort   The internal type of the const.
+   * @param symbol The symbol of the const.
+   * @param fresh  True to return a fresh variable. If false, it returns the
+   *               same variable for the given type and name.
+   */
+  internal::Node mkConstHelper(const internal::TypeNode& type,
+                               const std::optional<std::string>& symbol,
+                               bool fresh = true);
+  /**
+   * Helper for mk-functions that call NodeManager::mkConst().
    * @param t  The value.
    * @return The value term.
    */
@@ -4161,6 +4241,10 @@ class CVC5_EXPORT TermManager
 
   /** The associated node manager. */
   internal::NodeManager* d_nm;
+  /** The statistics collected on the Api level. */
+  std::unique_ptr<APIStatistics> d_stats;
+  /** The statistics registry (independent from any Solver's registry). */
+  std::unique_ptr<internal::StatisticsRegistry> d_statsReg;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -5107,7 +5191,7 @@ class CVC5_EXPORT Solver
    * Create a free constant.
    *
    * Note that the returned term is always fresh, even if the same arguments
-   * were provided on a previous call to mkConst.
+   * were provided on a previous call to mkConst().
    *
    * SMT-LIB:
    *
@@ -5408,7 +5492,7 @@ class CVC5_EXPORT Solver
    *     (define-fun-rec <function_def>)
    * \endverbatim
    *
-   * Create parameter `fun` with mkConst().
+   * Create parameter `fun` with TermManager::mkConst().
    *
    * @param fun The sorted function.
    * @param bound_vars The parameters to this function.
@@ -5436,7 +5520,7 @@ class CVC5_EXPORT Solver
    *     )
    * \endverbatim
    *
-   * Create elements of parameter `funs` with `Solver::mkConst()`.
+   * Create elements of parameter `funs` with `TermManager::mkConst()`.
    *
    * @param funs The sorted functions.
    * @param bound_vars The list of parameters to the functions.
@@ -6569,9 +6653,6 @@ class CVC5_EXPORT Solver
    */
   Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original);
 
-  /** Reset the API statistics */
-  void resetStatistics();
-
   /**
    * Synthesize n-ary function following specified syntactic constraints.
    *
@@ -6595,6 +6676,7 @@ class CVC5_EXPORT Solver
                       const Sort& sort,
                       bool isInv = false,
                       Grammar* grammar = nullptr) const;
+
   /** Helper for getting timeout cores */
   std::pair<Result, std::vector<Term>> getTimeoutCoreHelper(
       const std::vector<Term>& assumptions) const;
@@ -6615,25 +6697,14 @@ class CVC5_EXPORT Solver
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Term>& ts) const;
 
-  /** Increment the term stats counter. */
-  void increment_term_stats(Kind kind) const;
-  /** Increment the vars stats (if 'is_var') or consts stats counter. */
-  void increment_vars_consts_stats(const Sort& sort, bool is_var) const;
-
   /** Keep a copy of the original option settings (for resets). */
   std::unique_ptr<internal::Options> d_originalOptions;
-  /** The statistics collected on the Api level. */
-  std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */
   std::unique_ptr<internal::SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<internal::Random> d_rng;
 
-  /**
-   * The associated term manager.
-   * @note This is only needed temporarily until deprecated term/sort handling
-   * functions are removed.
-   */
+  /** The associated term manager. */
   TermManager& d_tm;
 };
 

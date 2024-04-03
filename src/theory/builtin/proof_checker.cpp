@@ -35,8 +35,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env)
-    : d_env(env), d_rdb(nullptr)
+BuiltinProofRuleChecker::BuiltinProofRuleChecker(NodeManager* nm,
+                                                 Rewriter* r,
+                                                 Env& env)
+    : ProofRuleChecker(nm), d_rewriter(r), d_env(env), d_rdb(nullptr)
 {
 }
 
@@ -329,7 +331,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
                              << SkolemManager::getOriginalForm(res) << std::endl;
     // **** NOTE: can rewrite the witness form here. This enables certain lemmas
     // to be provable, e.g. (= k t) where k is a purification Skolem for t.
-    res = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res));
+    res = d_rewriter->rewrite(SkolemManager::getOriginalForm(res));
     if (!res.isConst() || !res.getConst<bool>())
     {
       Trace("builtin-pfcheck")
@@ -379,8 +381,8 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
           << "Failed to show " << res1 << " == " << res2
           << ", resort to original forms..." << std::endl;
       // can rewrite the witness forms
-      res1 = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res1));
-      res2 = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res2));
+      res1 = d_rewriter->rewrite(SkolemManager::getOriginalForm(res1));
+      res2 = d_rewriter->rewrite(SkolemManager::getOriginalForm(res2));
       if (res1.isNull() || res1 != res2)
       {
         Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
@@ -418,7 +420,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
-    rewriter::RewriteDbNodeConverter rconv;
+    rewriter::RewriteDbNodeConverter rconv(nodeManager());
     Node f = children[0];
     Node g = args[0];
     // equivalent up to conversion via utility
@@ -435,7 +437,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::DSL_REWRITE)
   {
-    // consult rewrite db, apply args[1]...args[n] as a substituion
+    // consult rewrite db, apply args[1]...args[n] as a substitution
     // to variable list and prove equality between LHS and RHS.
     Assert(d_rdb != nullptr);
     rewriter::DslProofRule di;

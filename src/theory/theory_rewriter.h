@@ -87,6 +87,7 @@ struct TrustRewriteResponse
 class TheoryRewriter
 {
  public:
+  TheoryRewriter(NodeManager* nm) : d_nm(nm) {}
   virtual ~TheoryRewriter() = default;
 
   /**
@@ -169,6 +170,12 @@ class TheoryRewriter
    * under-specified operations using partially defined functions.
    */
   virtual TrustNode expandDefinition(Node node);
+
+ protected:
+  /** The underlying node manager */
+  NodeManager* d_nm;
+  /** Get a pointer to the node manager */
+  NodeManager* nodeManager() const;
 };
 
 }  // namespace theory

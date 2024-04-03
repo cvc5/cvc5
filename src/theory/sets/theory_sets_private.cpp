@@ -59,6 +59,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_rels_enabled(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
+      d_rewriter(nodeManager()),
       d_cpacb(cpacb)
 {
   d_true = nodeManager()->mkConst(true);
@@ -839,8 +840,7 @@ void TheorySetsPrivate::checkMapDown()
       //     (set.member x A)
       //     (= (f x) y))
       // )
-      Node x =
-          sm->mkSkolemFunction(SkolemFunId::SETS_MAP_DOWN_ELEMENT, {term, y});
+      Node x = sm->mkSkolemFunction(SkolemId::SETS_MAP_DOWN_ELEMENT, {term, y});
 
       d_state.registerMapSkolemElement(term, x);
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
@@ -1100,8 +1100,7 @@ void TheorySetsPrivate::groupPartMember(Node n, Node B, Node part)
   Node A_notEmpty = A.eqNode(empty).notNode();
   exp.push_back(A_notEmpty);
 
-  Node x = sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART_ELEMENT,
-                                {n, B});
+  Node x = sm->mkSkolemFunction(SkolemId::RELATIONS_GROUP_PART_ELEMENT, {n, B});
   d_state.registerPartElementSkolem(n, x);
   Node part_x = nm->mkNode(Kind::APPLY_UF, part, x);
   part_x = registerAndAssertSkolemLemma(part_x);
@@ -1208,7 +1207,7 @@ Node TheorySetsPrivate::defineSkolemPartFunction(Node n)
   // declare an uninterpreted function part: T -> (Relation T)
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
-  Node part = sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART, {n});
+  Node part = sm->mkSkolemFunction(SkolemId::RELATIONS_GROUP_PART, {n});
   return part;
 }
 
@@ -1262,7 +1261,7 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq);
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
-    Node x = sm->mkSkolemFunction(SkolemFunId::SETS_DEQ_DIFF, {deq[0], deq[1]});
+    Node x = sm->mkSkolemFunction(SkolemId::SETS_DEQ_DIFF, {deq[0], deq[1]});
     Node mem1 = nm->mkNode(Kind::SET_MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(Kind::SET_MEMBER, x, deq[1]);
     Node lem =
@@ -1681,7 +1680,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   // use canonical constant to ensure it can be typed
   Node mkElem = nm->mkGroundValue(setType);
   // a Null node is used here to get a unique skolem function per set type
-  Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, mkElem);
+  Node uf = sm->mkSkolemFunction(SkolemId::SETS_CHOOSE, mkElem);
   Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);
 
   Node equal = x.eqNode(ufA);

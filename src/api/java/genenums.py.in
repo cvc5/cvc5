@@ -107,6 +107,7 @@ CPP_JAVA_MAPPING = \
         r"cvc5::": "cvc5.",
         r"Term::Term\(\)": "{@link Term#Term()}",
         r"ProofRule::(.*?)>": r"{@link ProofRule#\1}>",
+        r"SkolemId::(.*?)>": r"{@link SkolemId#\1}>",
         r"([a-zA-Z]*)::(.*?\))": r"{@link \1#\2}",
         r"std::vector<int>": "int[]",
         r"std::vector<Term>": "Term[]",

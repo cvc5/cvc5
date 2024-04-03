@@ -1208,6 +1208,15 @@ TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
   }
 }
 
+TEST_F(TestApiBlackTerm, getSkolem)
+{
+  // ordinary variables are not skolems
+  Term x = d_tm.mkConst(d_tm.getIntegerSort(), "x");
+  ASSERT_FALSE(x.isSkolem());
+  ASSERT_THROW(x.getSkolemId(), CVC5ApiException);
+  ASSERT_THROW(x.getSkolemIndices(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackTerm, termScopedToString)
 {
   Sort intsort = d_tm.getIntegerSort();
