@@ -1208,7 +1208,7 @@ bool InferProofCons::purifyCoreSubstitutionAndTarget(
   {
     return false;
   }
-  // no need to purify, e.g. if all LHS of substituion are variables
+  // no need to purify, e.g. if all LHS of substitution are variables
   if (termsToPurify.empty())
   {
     return true;

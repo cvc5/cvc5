@@ -356,7 +356,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       }
       else
       {
-        // prints as the corresponding concatentation of seq.unit
+        // prints as the corresponding concatenation of seq.unit
         Node cc = theory::strings::utils::mkConcatForConstSequence(n);
         toStream(out, cc, lbind, toDepth);
       }
@@ -893,7 +893,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       break;
     }
     case Kind::BITVECTOR_BITOF:
-      out << "(_ bitOf "
+      out << "(_ @bitOf "
           << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex << ")";
       stillNeedToPrintParams = false;
       break;
@@ -1244,12 +1244,12 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_ROTATE_LEFT: return "rotate_left";
     case Kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
     case Kind::INT_TO_BITVECTOR: return "int2bv";
-    case Kind::BITVECTOR_BB_TERM: return "bbT";
-    case Kind::BITVECTOR_BITOF: return "bitOf";
     case Kind::BITVECTOR_ITE: return "bvite";
     case Kind::BITVECTOR_ULTBV: return "bvultbv";
     case Kind::BITVECTOR_SLTBV: return "bvsltbv";
 
+    case Kind::BITVECTOR_BB_TERM: return "@bbT";
+    case Kind::BITVECTOR_BITOF: return "@bitOf";
     case Kind::BITVECTOR_SIZE: return "@bvsize";
     case Kind::CONST_BITVECTOR_SYMBOLIC: return "@bv";
 
