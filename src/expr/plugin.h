@@ -37,7 +37,7 @@ class Plugin
 {
  public:
   /** Construct a plugin. */
-  Plugin(NodeManager * nm);
+  Plugin(NodeManager* nm);
   virtual ~Plugin();
   /**
    * Check function.
@@ -46,18 +46,18 @@ class Plugin
   virtual std::vector<Node> check() = 0;
   /**
    * Notify SAT clause, called when lem is learned by the SAT solver.
-   * 
+   *
    * @param lem The lemma learned by the SAT solver.
    */
   virtual void notifySatClause(const Node& lem) = 0;
   /**
    * Notify theory lemma, called when lem is added a theory lemma to the SAT
    * solver.
-   * 
+   *
    * @param lem The theory lemma given to the SAT solver.
    */
   virtual void notifyTheoryLemma(const Node& lem) = 0;
-  /** 
+  /**
    * Get name of this plugin, for debugging.
    * @return the name of the plugin.
    */
@@ -74,9 +74,10 @@ class Plugin
    * form. If n cannot be tranformed, this returns null.
    */
   Node getSharableFormula(const Node& n) const;
+
  private:
   /** Pointer to node manager */
-  NodeManager * d_nm;
+  NodeManager* d_nm;
 };
 
 }  // namespace cvc5::internal

@@ -21,10 +21,10 @@
 
 namespace cvc5::internal {
 
-Plugin::Plugin(NodeManager * nm) : d_nm(nm){}
+Plugin::Plugin(NodeManager* nm) : d_nm(nm) {}
 
 Plugin::~Plugin() {}
-  
+
 Node Plugin::getSharableFormula(const Node& n) const
 {
   Node on = SkolemManager::getOriginalForm(n);
