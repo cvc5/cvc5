@@ -56,12 +56,22 @@ Node getNullTerminator(Kind k, TypeNode tn);
  * Substitution with list semantics.
  * Handles mixtures of list / non-list variables in vars.
  * List variables are mapped to SEXPR whose children are the list to substitute.
+ *
+ * @param src The term to substitute
+ * @param vars The domain of the substitution
+ * @param subs The range of the substitution
+ * @return the substituted term.
  */
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs);
 /**
  * Same as above, with visited cache.
+ *
+ * @param src The term to substitute
+ * @param vars The domain of the substitution
+ * @param subs The range of the substitution
+ * @return the substituted term.
  */
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
