@@ -189,7 +189,7 @@
 
 ; A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
 ; For a regular expression (re.++ R1 ... Rn), re_unfold_pos_concat returns a pair of terms
-; where the first term is a concatentation (str.++ t1 ... tn) and the second
+; where the first term is a concatenation (str.++ t1 ... tn) and the second
 ; is a conjunction M of literals of the form (str.in_re ti Ri), such that
 ;   (str.in_re x (re.++ R1 ... Rn))
 ; is equivalent to
@@ -325,7 +325,7 @@
           (string_collect_acc tail)
           (
             ((@pair alf.null s2)  (@pair t s2))
-            ((@pair s1 s2)       (@pair (alf.concat t s1) s2))    ; concatentate the constant
+            ((@pair s1 s2)       (@pair (alf.concat t s1) s2))    ; concatenate the constant
           )
         )
         (@pair alf.null (str.++ t tail))))

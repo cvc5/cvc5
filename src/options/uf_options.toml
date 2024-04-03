@@ -74,3 +74,11 @@ name   = "Uninterpreted Functions Theory"
   type       = "bool"
   default    = "false"
   help       = "eagerly expand bit-vector to arithmetic conversions during preprocessing"
+
+[[option]]
+  name       = "modelBasedArithBvConv"
+  category   = "expert"
+  long       = "model-based-arith-bv-conv"
+  type       = "bool"
+  default    = "false"
+  help       = "model-based inferences for bit-vector to arithmetic conversions"

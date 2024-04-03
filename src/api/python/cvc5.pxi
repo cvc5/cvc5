@@ -4233,7 +4233,7 @@ cdef class Solver:
         """
             Get the next abduct.
 
-            Can only be called immediately after a succesful call to
+            Can only be called immediately after a successful call to
             :py:func:`Solver.getAbduct()` or
             :py:func:`Solver.getAbductNext()`.
             Is guaranteed to produce a syntactically different abduct wrt the
