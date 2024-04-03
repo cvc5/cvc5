@@ -522,7 +522,7 @@ name   = "Arithmetic Theory"
   long       = "nl-cov-prune"
   type       = "bool"
   default    = "false"
-  help       = "whether to prune intervals more agressively"
+  help       = "whether to prune intervals more aggressively"
 
 [[option]]
   name       = "nlCovLinearModel"

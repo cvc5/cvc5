@@ -24,12 +24,12 @@
 
 ; Return the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (alf.concat (alf._ str.++ ($char_type_of (alf.typeof x))) x y))
+  (alf.concat str.++ x y))
 
 ; Return the result of prepending of string x to string y where the latter is
 ; treated as a list.
 (define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (alf.cons (alf._ str.++ ($char_type_of (alf.typeof x))) x y))
+  (alf.cons str.++ x y))
 
 ; Return t if it corresponds to the empty string, otherwise evaluates
 ; to an unevaluated alf.requires term.
@@ -239,7 +239,7 @@
 
 ; A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
 ; For a regular expression (re.++ R1 ... Rn), re_unfold_pos_concat returns a pair of terms
-; where the first term is a concatentation (str.++ t1 ... tn) and the second
+; where the first term is a concatenation (str.++ t1 ... tn) and the second
 ; is a conjunction M of literals of the form (str.in_re ti Ri), such that
 ;   (str.in_re x (re.++ R1 ... Rn))
 ; is equivalent to
@@ -375,7 +375,7 @@
           (string_collect_acc tail)
           (
             ((@pair "" s2)  (@pair t s2))
-            ((@pair s1 s2)  (@pair (alf.concat t s1) s2))    ; concatentate the constant
+            ((@pair s1 s2)  (@pair (alf.concat t s1) s2))    ; concatenate the constant
           )
         )
         (@pair "" (str.++ t tail))))

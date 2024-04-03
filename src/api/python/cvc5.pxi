@@ -1118,6 +1118,21 @@ cdef class TermManager:
     """
     cdef c_TermManager* ctm
 
+    def getStatistics(self):
+        """
+            Get a snapshot of the current state of the statistic values of
+            this term manager.
+
+            Term manager statistics are independent from any solver instance.
+            The returned object is completely decoupled from the term manager
+            and will not change when the solver is used again.
+
+            :return: A snapshot of the current state of the statistic values.
+        """
+        res = Statistics()
+        res.cstats = self.ctm.getStatistics()
+        return res
+
     def __cinit__(self):
         self.ctm = new c_TermManager()
 
@@ -2409,17 +2424,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        # This does not forward to term manager because of current handling
-        # of statistics (recorded at solver level for terms created via mkTerm).
-        cdef vector[c_Term] v
-        op = kind_or_op
-        if isinstance(kind_or_op, Kind):
-            op = self.mkOp(kind_or_op)
-        if len(args) == 0:
-            return _term(self.tm, self.csolver.mkTerm((<Op?> op).cop))
-        for a in args:
-            v.push_back((<Term?> a).cterm)
-        return _term(self.tm, self.csolver.mkTerm((<Op?> op).cop, v))
+        return self.tm.mkTerm(kind_or_op, *args)
 
     def mkTuple(self, terms):
         """
@@ -2885,13 +2890,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        # This does not forward to term manager because of current handling
-        # statistics (recorded at the solver level for consts).
-        if symbol is None:
-            return _term(self.tm, self.csolver.mkConst(sort.csort))
-        return _term(
-            self.tm,
-            self.csolver.mkConst(sort.csort, (<str?> symbol).encode()))
+        return self.tm.mkConst(sort, symbol)
 
     def mkVar(self, Sort sort, symbol=None):
         """
@@ -2904,13 +2903,7 @@ cdef class Solver:
             .. warning:: This function is deprecated and will be removed in a
                          future release.
         """
-        # This does not forward to term manager because of current handling
-        # statistics (recorded at the solver level for vars).
-        if symbol is None:
-            return _term(self.tm, self.csolver.mkVar(sort.csort))
-        return _term(
-            self.tm,
-            self.csolver.mkVar(sort.csort, (<str?> symbol).encode()))
+        return self.tm.mkVar(sort, symbol)
 
     def mkDatatypeConstructorDecl(self, str name):
         """
@@ -4240,7 +4233,7 @@ cdef class Solver:
         """
             Get the next abduct.
 
-            Can only be called immediately after a succesful call to
+            Can only be called immediately after a successful call to
             :py:func:`Solver.getAbduct()` or
             :py:func:`Solver.getAbductNext()`.
             Is guaranteed to produce a syntactically different abduct wrt the
@@ -4908,11 +4901,23 @@ cdef class Statistics:
         The cvc5 Statistics.
 
         Wrapper class for :cpp:class:`cvc5::Statistics`.
-        Obtain a single statistic value using ``stats["name"]`` and a dictionary
-        with all (visible) statistics using
-        ``stats.get(internal=False, defaulted=False)``.
+
+        Obtain a single statistic value using ``stats["name"]`` and a
+        dictionary with, configurably all (including internal and unchanged)
+        statistics using :meth:`Statistics.get()`.
+
+        Iterate over all (including internal and unchanged) statistics via (the
+        standard iterable functions) :meth:`__iter__()` and :meth:`__next__()`.
     """
     cdef c_Statistics cstats
+    cdef c_Statistics.iterator cit
+
+    def __init__(self):
+        # Initialize iterator to begin() to avoid erroneous behavior due to
+        # calling __next__() immediately after creation of the statistics
+        # object. Note that this will not enable iteration (for this __iter__()
+        # has to be called first)
+        self.cit = self.cstats.begin(<bint> True, <bint> True)
 
     cdef __stat_to_dict(self, const c_Stat& s):
         res = None
@@ -4925,7 +4930,7 @@ cdef class Statistics:
         elif s.isHistogram():
             res = { h.first.decode(): h.second for h in s.getHistogram() }
         return {
-            'defaulted': s.isDefault(),
+            'default': s.isDefault(),
             'internal': s.isInternal(),
             'value': res
         }
@@ -4933,14 +4938,35 @@ cdef class Statistics:
     def __getitem__(self, str name):
         """
             Get the statistics information for the statistic called ``name``.
+
+            :param name: The name of the statistic to get.
         """
         return self.__stat_to_dict(self.cstats.get(name.encode()))
 
+    def __iter__(self):
+        """
+            Iterate over all statistics (including internal and unchanged
+            statistics).
+        """
+        self.cit = self.cstats.begin(<bint> True, <bint> True)
+        return self
+
+    def __next__(self):
+        """
+            Get next statistic as a pair ``[name, <dict: name -> value>]``.
+        """
+        if self.cit != self.cstats.end():
+            s = &dereference(self.cit)
+            preincrement(self.cit)
+            return [s.first.decode(), self.__stat_to_dict(s.second)]
+        raise StopIteration
+
     def get(self, bint internal = False, bint defaulted = False):
         """
-            Get all statistics as a dictionary. See :cpp:func:`cvc5::Statistics::begin()`
-            for more information on which statistics are included based on the parameters.
+            Get all statistics as a dictionary.
 
+            :param internal:  True to also inclue internal statistics.
+            :param defaulted: True to also include unchanged statistics.
             :return: A dictionary with all available statistics.
         """
         cdef c_Statistics.iterator it = self.cstats.begin(internal, defaulted)

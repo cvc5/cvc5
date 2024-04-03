@@ -99,7 +99,6 @@ if tags.has('bindings_java'):
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
 
-
 # -- core extension:: sphinx.ext.extlinks ------------------------------------
 
 extlinks = {

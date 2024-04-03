@@ -8,14 +8,14 @@
   (alf.match ((n Int)) T (((BitVec n) n))))
 
 ; used as the nil terminator for concat
-(define bvempty () (alf.to_bin 0 0))
+(define @bvempty () (alf.to_bin 0 0))
 
 (declare-const concat (->
   (! Int :var n :implicit)
   (! Int :var m :implicit)
   (BitVec n)
   (BitVec m)
-  (BitVec (alf.add n m))) :right-assoc-nil bvempty
+  (BitVec (alf.add n m))) :right-assoc-nil @bvempty
 )
 
 (declare-const extract (->
@@ -223,11 +223,6 @@
         (BitVec m) (BitVec m) (BitVec 1))
 )
 
-(declare-const bitOf
-    (-> (! Int :var m :implicit)
-        Int (BitVec m) Bool))
-
-
 (declare-const bvuaddo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
@@ -284,13 +279,6 @@
         (BitVec m) (BitVec 1))
 )
 
-(declare-const bbT (->
-  (! Int :var n :implicit)
-  Bool
-  (BitVec n)
-  (BitVec (alf.add 1 n)))
-)
-
 (declare-const int2bv (->
   (! Int :var w)
   Int (BitVec w))
@@ -303,11 +291,21 @@
 
 (declare-const BITVECTOR_EAGER_ATOM (-> Bool Bool))
 
+; internal operators
+
+(declare-const @bitOf
+    (-> (! Int :var m :implicit)
+        Int (BitVec m) Bool))
+
+(declare-const @bbT (->
+  (! Int :var n :implicit)
+  Bool
+  (BitVec n)
+  (BitVec (alf.add 1 n))) :right-assoc-nil @bvempty
+)
+
 ; symbolic constant
 (declare-const @bv (-> Int (! Int :var w) (BitVec w)))
-;(define @bv ((n Int) (w Int)) (alf.to_bin n w))
 
 ; bvsize
-; should be a define
-; (declare-const @bvsize (-> (! Int :var m :implicit) (BitVec m) Int))
 (define @bvsize ((m Int :implicit) (x (BitVec m))) ($bv_bitwidth (alf.typeof x)))
