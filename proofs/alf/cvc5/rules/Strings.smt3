@@ -35,7 +35,7 @@
   (let ((sf (string_to_flat_form s rev)))
   (let ((sf1 (string_to_flat_form s1 rev)))
   (let ((U (alf.typeof s)))
-  (nary.is_prefix (alf._ str.++ ($char_type_of U)) (mk_emptystr U) sf1 sf))))
+  (nary.is_prefix str.++ (mk_emptystr U) sf1 sf))))
 )
 
 ; ProofRule::CONCAT_UNIFY
