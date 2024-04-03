@@ -37,8 +37,8 @@ class Plugin
 {
  public:
   /** Construct a plugin. */
-  Plugin() {}
-  virtual ~Plugin() {}
+  Plugin(NodeManager * nm);
+  virtual ~Plugin();
   /**
    * Check function.
    * @return a vector of lemmas to add to the SAT solver.
@@ -73,7 +73,10 @@ class Plugin
    * @return A tranformed version of n that is its represenation in a sharable
    * form. If n cannot be tranformed, this returns null.
    */
-  static Node getSharableFormula(const Node& n);
+  Node getSharableFormula(const Node& n) const;
+ private:
+  /** Pointer to node manager */
+  NodeManager * d_nm;
 };
 
 }  // namespace cvc5::internal

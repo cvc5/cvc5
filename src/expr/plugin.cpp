@@ -21,7 +21,11 @@
 
 namespace cvc5::internal {
 
-Node Plugin::getSharableFormula(const Node& n)
+Plugin::Plugin(NodeManager * nm) : d_nm(nm){}
+
+Plugin::~Plugin() {}
+  
+Node Plugin::getSharableFormula(const Node& n) const
 {
   Node on = SkolemManager::getOriginalForm(n);
   if (expr::hasSubtermKind(Kind::SKOLEM, on))
@@ -30,7 +34,7 @@ Node Plugin::getSharableFormula(const Node& n)
     return Node::null();
   }
   // also eliminate subtyping
-  SubtypeElimNodeConverter senc;
+  SubtypeElimNodeConverter senc(d_nm);
   on = senc.convert(on);
   return on;
 }

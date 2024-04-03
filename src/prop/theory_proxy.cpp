@@ -338,7 +338,8 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
     clauseNodes.push_back(d_cnfStream->getNode(l));
   }
   Node cln = NodeManager::currentNM()->mkOr(clauseNodes);
-  Node clns = Plugin::getSharableFormula(cln);
+  // getSharableFormula is independent of specific plugin, just use first
+  Node clns = plugins[0]->getSharableFormula(cln);
   if (!clns.isNull())
   {
     Trace("prop") << "Clause from SAT solver: " << clns << std::endl;
