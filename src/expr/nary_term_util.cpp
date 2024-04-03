@@ -400,11 +400,11 @@ bool isACINorm(Node a, Node b)
 {
   Node an = getACINormalForm(a);
   Node bn = getACINormalForm(b);
-  if (a.getKind()==b.getKind())
+  if (a.getKind() == b.getKind())
   {
     // if the kinds are equal, we compare their normal forms only, as the checks
     // below are spurious.
-    return (an==bn);
+    return (an == bn);
   }
   // note we compare three possibilities, to handle cases like
   //   (or (and A B) false) == (and A B).
