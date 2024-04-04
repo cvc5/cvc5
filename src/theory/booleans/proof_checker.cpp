@@ -278,7 +278,14 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       AlwaysAssert(itrhs != rhsClause.end());
       lhsClause.insert(lhsClause.end(), rhsClause.begin(), itrhs);
       lhsClause.insert(lhsClause.end(), itrhs + 1, rhsClause.end());
-      Trace("bool-pfcheck") << "\t.. after rhsClause: " << lhsClause << "\n";
+      if (TraceIsOn("bool-pfcheck"))
+      {
+        std::vector<Node> updatedRhsClause{rhsClause.begin(), itrhs};
+        updatedRhsClause.insert(
+            updatedRhsClause.end(), itrhs + 1, rhsClause.end());
+        Trace("bool-pfcheck")
+            << "\t.. after rhsClause: " << updatedRhsClause << "\n";
+      }
       rhsClause.clear();
     }
     Trace("bool-pfcheck") << "\n resulting clause: " << lhsClause << "\n"
