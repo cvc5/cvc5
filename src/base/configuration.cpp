@@ -218,6 +218,8 @@ bool Configuration::isBuiltWithPoly()
 }
 bool Configuration::isBuiltWithCoCoA() { return IS_COCOA_BUILD; }
 
+bool Configuration::isBuiltWithPortfolio() { return IS_PORTFOLIO_BUILD; }
+
 const std::vector<std::string>& Configuration::getTraceTags()
 {
   return Trace_tags;
