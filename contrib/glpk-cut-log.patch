@@ -822,7 +822,7 @@ index f1ee43a..f32867d 100644
 @@ This code applies against glpios03 around GLPK 4.65.
 @@
 diff --git a/src/draft/glpios03.c b/src/draft/glpios03.c
-index 2c1180f..ec1da44 100644
+index 2c1180f..a79c1c3 100644
 --- a/src/draft/glpios03.c
 +++ b/src/draft/glpios03.c
 @@ -359,12 +394,12 @@ static void fix_by_red_cost(glp_tree *T)
@@ -856,24 +856,7 @@ index 2c1180f..ec1da44 100644
           goto done;
        }
        /* both down- and up-branches seem to be hopeful */
-@@ -650,8 +687,16 @@ static void gmi_gen(glp_tree *T)
-          val = xcalloc(1+P->n, sizeof(double));
-          for (i = 1; i <= pool->m; i++)
-          {  len = glp_get_mat_row(pool, i, ind, val);
-             glp_ios_add_row(T, NULL, GLP_RF_GMI, 0, len, ind, val,
-                GLP_LO, pool->row[i]->lb);
-+
-+            /** callback for a cut being added to the cut pool */
-+            if (T->parm->cb_func != NULL)
-+            {  xassert(T->reason == GLP_ICUTGEN);
-+                T->reason = GLP_ICUTADDED;
-+                T->parm->cb_func(T, T->parm->cb_info);
-+                T->reason = GLP_ICUTGEN;
-+            }
-          }
-          xfree(ind);
-          xfree(val);
-@@ -728,6 +773,15 @@ static void clq_gen(glp_tree *T, glp_cfg *G)
+@@ -728,6 +765,15 @@ static void clq_gen(glp_tree *T, glp_cfg *G)
        if (len > 0)
           glp_ios_add_row(T, NULL, GLP_RF_CLQ, 0, len, ind, val, GLP_UP,
              val[0]);
@@ -889,7 +872,7 @@ index 2c1180f..ec1da44 100644
        tfree(ind);
        tfree(val);
        return;
-@@ -814,7 +868,8 @@ static void remove_cuts(glp_tree *T)
+@@ -814,7 +860,8 @@ static void remove_cuts(glp_tree *T)
           }
        }
        if (cnt > 0)
@@ -899,7 +882,7 @@ index 2c1180f..ec1da44 100644
  #if 0
           xprintf("%d inactive cut(s) removed\n", cnt);
  #endif
-@@ -896,6 +951,7 @@ static void display_cut_info(glp_tree *T)
+@@ -896,6 +943,7 @@ static void display_cut_info(glp_tree *T)
  
  int ios_driver(glp_tree *T)
  {     int p, curr_p, p_stat, d_stat, ret;
@@ -907,7 +890,7 @@ index 2c1180f..ec1da44 100644
  #if 1 /* carry out to glp_tree */
        int pred_p = 0;
        /* if the current subproblem has been just created due to
-@@ -1164,6 +1220,12 @@ more: /* minor loop starts here */
+@@ -1164,6 +1212,12 @@ more: /* minor loop starts here */
           if (T->parm->msg_lev >= GLP_MSG_DBG)
              xprintf("LP relaxation has no feasible solution\n");
           /* prune the branch */
@@ -920,7 +903,7 @@ index 2c1180f..ec1da44 100644
           goto fath;
        }
        else
-@@ -1398,6 +1460,14 @@ more: /* minor loop starts here */
+@@ -1398,6 +1452,14 @@ more: /* minor loop starts here */
           ios_process_cuts(T);
           T->reason = 0;
        }
@@ -935,7 +918,7 @@ index 2c1180f..ec1da44 100644
        /* clear the local cut pool */
        ios_clear_pool(T, T->local);
        /* perform re-optimization, if necessary */
-@@ -1442,7 +1512,34 @@ more: /* minor loop starts here */
+@@ -1442,7 +1504,34 @@ more: /* minor loop starts here */
           T->br_var = ios_choose_var(T, &T->br_sel);
        /* perform actual branching */
        curr_p = T->curr->p;
@@ -1000,7 +983,7 @@ index 986cf88..bfe708c 100644
 %% src/cglib was renamed into src/intopt in GLPK 4.65
 %%
 diff --git a/src/intopt/gmicut.c b/src/intopt/gmicut.c
-index ae75a8c..61b2fda 100644
+index ae75a8c..779beac 100644
 --- a/src/intopt/gmicut.c
 +++ b/src/intopt/gmicut.c
 @@ -21,6 +21,7 @@
@@ -1043,13 +1026,17 @@ index ae75a8c..61b2fda 100644
        /* now the cut has the form sum_k phi[k] * x[k] >= rho, where cut
         * coefficients are stored in the array phi in dense format;
         * x[1,...,m] are auxiliary variables, x[m+1,...,m+n] are struc-
-@@ -276,6 +288,17 @@ skip:    ;
+@@ -276,6 +288,21 @@ skip:    ;
           rhs = 0.0;
        ind[0] = 0, val[0] = rhs;
        /* the cut has been successfully generated */
 +
 +      glp_tree *tree = P->tree;
++      int ord;
++      ord = glp_ios_add_row(tree, NULL, GLP_RF_GMI, 0, len, ind, val,
++                            GLP_LO, rhs);
 +      /* printf("ord: % d beta %f\n", ord, beta); */
++      ios_cut_set_single_aux(tree, ord, input_j);
 +
 +      /** callback for a cut being added to the cut pool */
 +      if (tree->parm->cb_func != NULL)
