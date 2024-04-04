@@ -421,7 +421,7 @@ void BoundedIntegers::checkOwnership(Node f)
           // Purify the cardinality term, since we don't want to introduce
           // cardinality terms. We do minimization on this variable for
           // consistency, although it will have no impact on the sets models.
-          d_range[f][v] = nm->getSkolemManager()->mkPurifySkolem(cardTerm);
+          d_range[f][v] = cardTerm;
           Trace("bound-int") << "Variable " << v
                              << " is bound because of set membership literal "
                              << bound_lit_map[2][v] << std::endl;
@@ -551,6 +551,13 @@ void BoundedIntegers::checkOwnership(Node f)
           d_range[f][v] = new_range;
           r = new_range;
           isProxy = true;
+        }
+        if (r.getKind()==Kind::SET_CARD)
+        {
+          // Purify the cardinality term, since we don't want to introduce
+          // cardinality terms. We do minimization on this variable for
+          // consistency, although it will have no impact on the sets models.
+          r = nm->getSkolemManager()->mkPurifySkolem(r);
         }
         if( !r.isConst() ){
           if (d_rms.find(r) == d_rms.end())
