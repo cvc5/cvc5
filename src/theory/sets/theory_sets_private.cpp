@@ -311,10 +311,21 @@ void TheorySetsPrivate::fullEffortCheck()
       }
     }
 
-    if (d_card_enabled && d_higher_order_kinds_enabled)
+    // sources of incompleteness
+    if (d_card_enabled)
     {
-      d_fullCheckIncomplete = true;
-      d_fullCheckIncompleteId = IncompleteId::SETS_HO_CARD;
+      if (d_higher_order_kinds_enabled)
+      {
+        d_fullCheckIncomplete = true;
+        d_fullCheckIncompleteId = IncompleteId::SETS_HO_CARD;
+      }
+      if (options().quantifiers.fmfBound)
+      {
+        // fmfBound is incomplete since cardinality may introduce slack
+        // elements.
+        d_fullCheckIncomplete = true;
+        d_fullCheckIncompleteId = IncompleteId::SETS_FMF_BOUND_CARD;
+      }
     }
 
     // We may have sent lemmas while registering the terms in the loop above,

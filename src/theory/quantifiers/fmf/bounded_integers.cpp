@@ -298,6 +298,11 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
   }
   else if (n.getKind() == Kind::SET_MEMBER)
   {
+    // Note this is incomplete when combined with cardinality constraints,
+    // since we may introduce slack elements during model construction.
+    // Here, fmfBound should be enabled, otherwise the incompleteness check
+    // in the theory of sets is out of sync.
+    Assert (options().quantifiers.fmfBound);
     if( !pol && !hasNonBoundVar( q, n[1] ) ){
       std::vector< Node > bound_vars;
       std::map< Node, bool > visited;
