@@ -21,6 +21,7 @@
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "options/quantifiers_options.h"
 #include "options/sets_options.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
