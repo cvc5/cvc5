@@ -25,12 +25,14 @@ import org.junit.jupiter.api.Test;
 
 class ResultTest
 {
+  private TermManager d_tm;
   private Solver d_solver;
 
   @BeforeEach
   void setUp()
   {
-    d_solver = new Solver();
+    d_tm = new TermManager();
+    d_solver = new Solver(d_tm);
   }
 
   @AfterEach
@@ -47,8 +49,8 @@ class ResultTest
     assertFalse(res_null.isSat());
     assertFalse(res_null.isUnsat());
     assertFalse(res_null.isUnknown());
-    Sort u_sort = d_solver.mkUninterpretedSort("u");
-    Term x = d_solver.mkConst(u_sort, "x");
+    Sort u_sort = d_tm.mkUninterpretedSort("u");
+    Term x = d_tm.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
     Result res = d_solver.checkSat();
     assertFalse(res.isNull());
@@ -57,8 +59,8 @@ class ResultTest
   @Test
   void eq()
   {
-    Sort u_sort = d_solver.mkUninterpretedSort();
-    Term x = d_solver.mkConst(u_sort, "x");
+    Sort u_sort = d_tm.mkUninterpretedSort();
+    Term x = d_tm.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
     Result res = null;
     Result res2 = d_solver.checkSat();
@@ -73,8 +75,8 @@ class ResultTest
   @Test
   void isSat()
   {
-    Sort u_sort = d_solver.mkUninterpretedSort("u");
-    Term x = d_solver.mkConst(u_sort, "x");
+    Sort u_sort = d_tm.mkUninterpretedSort("u");
+    Term x = d_tm.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x));
     Result res = d_solver.checkSat();
     assertTrue(res.isSat());
@@ -84,8 +86,8 @@ class ResultTest
   @Test
   void isUnsat()
   {
-    Sort u_sort = d_solver.mkUninterpretedSort();
-    Term x = d_solver.mkConst(u_sort, "x");
+    Sort u_sort = d_tm.mkUninterpretedSort();
+    Term x = d_tm.mkConst(u_sort, "x");
     d_solver.assertFormula(x.eqTerm(x).notTerm());
     Result res = d_solver.checkSat();
     assertTrue(res.isUnsat());
@@ -98,10 +100,10 @@ class ResultTest
     d_solver.setLogic("QF_NIA");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("solve-real-as-int", "true");
-    Sort real_sort = d_solver.getIntegerSort();
-    Term x = d_solver.mkConst(real_sort, "x");
-    d_solver.assertFormula(d_solver.mkTerm(LT, d_solver.mkReal("0.0"), x));
-    d_solver.assertFormula(d_solver.mkTerm(LT, x, d_solver.mkReal("1.0")));
+    Sort real_sort = d_tm.getIntegerSort();
+    Term x = d_tm.mkConst(real_sort, "x");
+    d_solver.assertFormula(d_tm.mkTerm(LT, d_tm.mkReal("0.0"), x));
+    d_solver.assertFormula(d_tm.mkTerm(LT, x, d_tm.mkReal("1.0")));
     Result res = d_solver.checkSat();
     assertFalse(res.isSat());
     assertTrue(res.isUnknown());

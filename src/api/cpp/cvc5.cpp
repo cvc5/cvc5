@@ -7544,9 +7544,6 @@ DriverOptions Solver::getDriverOptions() const { return DriverOptions(*this); }
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "Cannot get unsat assumptions unless incremental solving is enabled "
-         "(try --incremental)";
   CVC5_API_CHECK(d_slv->getOptions().smt.unsatAssumptions)
       << "Cannot get unsat assumptions unless explicitly enabled "
          "(try --produce-unsat-assumptions)";
