@@ -557,6 +557,7 @@ const char* toString(InferenceId i)
       return "UF_ARITH_BV_CONV_VALUE_REFINE";
     case InferenceId::PARTITION_GENERATOR_PARTITION:
       return "PARTITION_GENERATOR_PARTITION";
+    case InferenceId::PLUGIN_LEMMA: return "PLUGIN_LEMMA";
     case InferenceId::UNKNOWN: return "?";
 
     default:
