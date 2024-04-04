@@ -314,7 +314,11 @@ endif()
 # More information on RPATH in CMake:
 # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
 if(NOT SKIP_SET_RPATH)
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
+  if (APPLE)
+    SET(CMAKE_INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
+  else()
+    SET(CMAKE_INSTALL_RPATH "\${ORIGIN}/../${CMAKE_INSTALL_LIBDIR}")
+  endif()
 endif()
 
 # Set visibility to default if unit tests are enabled. If unit tests are
