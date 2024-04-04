@@ -78,5 +78,7 @@ TrustNode TheoryRewriter::expandDefinition(Node node)
   return TrustNode::null();
 }
 
+NodeManager* TheoryRewriter::nodeManager() const { return d_nm; }
+
 }  // namespace theory
 }  // namespace cvc5::internal

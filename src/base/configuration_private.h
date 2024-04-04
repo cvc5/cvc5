@@ -114,6 +114,12 @@ namespace cvc5::internal {
 #define IS_EDITLINE_BUILD false
 #endif /* HAVE_LIBEDITLINE */
 
+#if HAVE_SYS_WAIT_H
+#define IS_PORTFOLIO_BUILD true
+#else /* HAVE_SYS_WAIT_H */
+#define IS_PORTFOLIO_BUILD false
+#endif /* HAVE_SYS_WAIT_H */
+
 #if CVC5_GPL_DEPS
 #  define IS_GPL_BUILD true
 #else /* CVC5_GPL_DEPS */

@@ -47,9 +47,12 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-AlfNodeConverter::AlfNodeConverter()
+BaseAlfNodeConverter::BaseAlfNodeConverter(NodeManager* nm) : NodeConverter(nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
+}
+
+AlfNodeConverter::AlfNodeConverter(NodeManager* nm) : BaseAlfNodeConverter(nm)
+{
   d_sortType = nm->mkSort("sortType");
 }
 
@@ -201,19 +204,6 @@ Node AlfNodeConverter::postConvert(Node n)
     Node lam = theory::uf::FunctionConst::toLambda(n);
     Assert(!lam.isNull());
     return convert(lam);
-  }
-  else if (k == Kind::BITVECTOR_BB_TERM)
-  {
-    Node curr = mkInternalSymbol("bvempty", nm->mkBitVectorType(0));
-    for (size_t i = 0, nchildren = n.getNumChildren(); i < nchildren; i++)
-    {
-      size_t ii = (nchildren - 1) - i;
-      std::vector<Node> args;
-      args.push_back(n[ii]);
-      args.push_back(curr);
-      curr = mkInternalApp("bbT", args, nm->mkBitVectorType(i + 1));
-    }
-    return curr;
   }
   else if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER || k == Kind::NEG
            || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
@@ -416,7 +406,7 @@ Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     case Kind::NONLINEAR_MULT:
       return NodeManager::currentNM()->mkConstInt(Rational(1));
     case Kind::BITVECTOR_CONCAT:
-      return mkInternalSymbol("bvempty",
+      return mkInternalSymbol("@bvempty",
                               NodeManager::currentNM()->mkBitVectorType(0));
     default: break;
   }
