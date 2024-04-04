@@ -413,21 +413,18 @@ void BoundedIntegers::checkOwnership(Node f)
             Trace("bound-int") << "Variable " << v << " is bound because of int range literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
         }else if( it->second==BOUND_SET_MEMBER ){
-          // only handles infinite element types currently (cardinality is not
-          // supported for finite element types #1123). Regardless, this is
-          // typically not a limitation since this variable can be bound in a
-          // standard way below since its type is finite.
-          if (!d_env.isFiniteType(v.getType()))
-          {
-            setBoundedVar(f, v, BOUND_SET_MEMBER);
-            setBoundVar = true;
-            d_setm_range[f][v] = bound_lit_map[2][v][1];
-            d_setm_range_lit[f][v] = bound_lit_map[2][v];
-            d_range[f][v] = nm->mkNode(Kind::SET_CARD, d_setm_range[f][v]);
-            Trace("bound-int") << "Variable " << v
-                               << " is bound because of set membership literal "
-                               << bound_lit_map[2][v] << std::endl;
-          }
+          setBoundedVar(f, v, BOUND_SET_MEMBER);
+          setBoundVar = true;
+          d_setm_range[f][v] = bound_lit_map[2][v][1];
+          d_setm_range_lit[f][v] = bound_lit_map[2][v];
+          Node cardTerm = nm->mkNode(Kind::SET_CARD, d_setm_range[f][v]);
+          // Purify the cardinality term, since we don't want to introduce
+          // cardinality terms. We do minimization on this variable for
+          // consistency, although it will have no impact on the sets models.
+          d_range[f][v] = nm->getSkolemManager()->mkPurifySkolem(cardTerm);
+          Trace("bound-int") << "Variable " << v
+                              << " is bound because of set membership literal "
+                              << bound_lit_map[2][v] << std::endl;
         }else if( it->second==BOUND_FIXED_SET ){
           setBoundedVar(f, v, BOUND_FIXED_SET);
           setBoundVar = true;
