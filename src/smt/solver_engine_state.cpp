@@ -78,8 +78,9 @@ void SolverEngineState::notifyCheckSatResult(const Result& r)
     if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
         && d_status != d_expectedStatus)
     {
-      CVC5_FATAL() << "Expected result " << d_expectedStatus << " but got "
-                   << d_status;
+      std::stringstream ss;
+      ss << "Expected result " << d_expectedStatus << " but got " << d_status;
+      throw Exception(ss.str());
     }
   }
   // clear expected status
