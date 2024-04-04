@@ -18,6 +18,7 @@
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
 #include "expr/dtype_cons.h"
+#include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/datatypes_options.h"
@@ -31,7 +32,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
-#include "expr/emptyset.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -303,7 +303,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
     // since we may introduce slack elements during model construction.
     // Here, fmfBound should be enabled, otherwise the incompleteness check
     // in the theory of sets is out of sync.
-    Assert (options().quantifiers.fmfBound);
+    Assert(options().quantifiers.fmfBound);
     if( !pol && !hasNonBoundVar( q, n[1] ) ){
       std::vector< Node > bound_vars;
       std::map< Node, bool > visited;
@@ -423,8 +423,8 @@ void BoundedIntegers::checkOwnership(Node f)
           // consistency, although it will have no impact on the sets models.
           d_range[f][v] = nm->getSkolemManager()->mkPurifySkolem(cardTerm);
           Trace("bound-int") << "Variable " << v
-                              << " is bound because of set membership literal "
-                              << bound_lit_map[2][v] << std::endl;
+                             << " is bound because of set membership literal "
+                             << bound_lit_map[2][v] << std::endl;
         }else if( it->second==BOUND_FIXED_SET ){
           setBoundedVar(f, v, BOUND_FIXED_SET);
           setBoundVar = true;
@@ -730,15 +730,15 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
       }
       choices.pop_back();
       Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, choice_i);
-      choice_i =
-          nm->mkNode(Kind::WITNESS, bvl, nm->mkNode(Kind::OR, sro.eqNode(nsr), cBody));
+      choice_i = nm->mkNode(
+          Kind::WITNESS, bvl, nm->mkNode(Kind::OR, sro.eqNode(nsr), cBody));
       d_setm_choice[sro].push_back(choice_i);
     }
     Assert(i < d_setm_choice[sro].size());
     choice_i = d_setm_choice[sro][i];
     choices.push_back(choice_i);
     Node sChoiceI = nm->mkNode(Kind::SET_SINGLETON, choice_i);
-    if (nsr.getKind()==Kind::SET_EMPTY)
+    if (nsr.getKind() == Kind::SET_EMPTY)
     {
       nsr = sChoiceI;
     }
