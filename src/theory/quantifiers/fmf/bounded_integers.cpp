@@ -31,6 +31,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
+#include "expr/emptyset.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -701,8 +702,9 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     return sr;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node nsr;
-  TypeNode tne = sr.getType().getSetElementType();
+  TypeNode srt = sr.getType();
+  TypeNode tne = srt.getSetElementType();
+  Node nsr = nm->mkConst(EmptySet(srt));
 
   // we can use choice functions for canonical symbolic instantiations
   unsigned srCard = 0;
@@ -716,7 +718,6 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   // choices[i] stores the canonical symbolic representation of the (i+1)^th
   // element of sro
   std::vector<Node> choices;
-  Node srCardN = nm->mkNode(Kind::SET_CARD, sro);
   Node choice_i;
   for (unsigned i = 0; i < srCard; i++)
   {
@@ -732,17 +733,15 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
       }
       choices.pop_back();
       Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, choice_i);
-      Node cMinCard =
-          nm->mkNode(Kind::LEQ, srCardN, nm->mkConstInt(Rational(i)));
       choice_i =
-          nm->mkNode(Kind::WITNESS, bvl, nm->mkNode(Kind::OR, cMinCard, cBody));
+          nm->mkNode(Kind::WITNESS, bvl, nm->mkNode(Kind::OR, sro.eqNode(nsr), cBody));
       d_setm_choice[sro].push_back(choice_i);
     }
     Assert(i < d_setm_choice[sro].size());
     choice_i = d_setm_choice[sro][i];
     choices.push_back(choice_i);
     Node sChoiceI = nm->mkNode(Kind::SET_SINGLETON, choice_i);
-    if (nsr.isNull())
+    if (nsr.getKind()==Kind::SET_EMPTY)
     {
       nsr = sChoiceI;
     }
@@ -755,8 +754,8 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   //   e.g.
   // singleton(0) union singleton(1)
   //   becomes
-  // C1 union ( witness y. card(S)<=1 OR ( y in S AND distinct( y, C1 ) ) )
-  // where C1 = ( witness x. card(S)<=0 OR x in S ).
+  // C1 union (witness y. S =(set.singleton C1) OR (y in S AND distinct(y, C1)))
+  // where C1 = (witness x. S=empty OR x in S).
   Trace("bound-int-rsi") << "...reconstructed " << nsr << std::endl;
   return nsr;
 }

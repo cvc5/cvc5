@@ -263,6 +263,7 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         else if (nk == Kind::SET_CARD)
         {
+          Trace("ajr-temp") << "Found card term: " << n << std::endl;
           d_card_enabled = true;
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
