@@ -1,5 +1,5 @@
 ; DISABLE-TESTER: lfsc
-;; unsupported bitblasting of bvudiv
+;; slow conversion
 ; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-info :status unsat)

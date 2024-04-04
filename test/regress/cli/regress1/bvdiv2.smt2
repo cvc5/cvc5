@@ -1,5 +1,5 @@
 ; DISABLE-TESTER: lfsc
-;; unsupported bitblasting of bvudiv
+;; slow conversion
 ; DISABLE-TESTER: alethe
 (set-logic QF_AUFBVLIA)
 (set-info :smt-lib-version 2.6)

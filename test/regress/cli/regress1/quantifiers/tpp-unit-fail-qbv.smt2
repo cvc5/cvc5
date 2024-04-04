@@ -1,6 +1,4 @@
 ; DISABLE-TESTER: lfsc
-;; unsupported bitblasting of bvurem
-; DISABLE-TESTER: alethe
 (set-logic BV)
 (set-info :status unsat)
 (declare-fun t () (_ BitVec 4))

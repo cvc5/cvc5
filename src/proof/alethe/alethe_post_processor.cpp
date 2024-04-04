@@ -1465,19 +1465,23 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::BV_BITBLAST_STEP:
     {
       Kind k = res[0].getKind();
-      if (k == Kind::BITVECTOR_UDIV || k == Kind::BITVECTOR_UREM
-          || k == Kind::BITVECTOR_SHL || k == Kind::BITVECTOR_LSHR
-          || k == Kind::BITVECTOR_ASHR)
-      {
-        std::stringstream ss;
-        ss << "Bit-blasting of " << k << " is not supported in Alethe.";
-        *d_reasonForConversionFailure = ss.str();
-      }
       Node conv = d_anc.maybeConvert(res);
       if (conv.isNull())
       {
         *d_reasonForConversionFailure = d_anc.d_error;
         return false;
+      }
+      // no checking for those yet in Carcara or Isabelle, so we produce holes
+      if (k == Kind::BITVECTOR_UDIV || k == Kind::BITVECTOR_UREM
+          || k == Kind::BITVECTOR_SHL || k == Kind::BITVECTOR_LSHR
+          || k == Kind::BITVECTOR_ASHR)
+      {
+        return addAletheStep(AletheRule::HOLE,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, conv),
+                             children,
+                             {},
+                             *cdp);
       }
       // if the term being bitblasted is a variable or a nonbv term, then this
       // is a "bitblast var" step

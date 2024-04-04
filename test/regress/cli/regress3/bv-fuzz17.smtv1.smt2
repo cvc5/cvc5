@@ -1,4 +1,4 @@
-;; unsupported bitblasting of bvshl
+;; slow conversion
 ; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-info :status unsat)
