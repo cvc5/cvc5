@@ -168,6 +168,6 @@
   :requires (((let ((an (get_aci_normal_form a)) (bn (get_aci_normal_form b)))
               (alf.ite (alf.is_eq an b) true
               (alf.ite (alf.is_eq a bn) true
-                (alf.requires an bn true)))) true))
+                (alf.is_eq an bn)))) true))
   :conclusion (= a b)
 )
