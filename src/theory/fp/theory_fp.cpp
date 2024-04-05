@@ -928,7 +928,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
     // if FpWordBlaster::getValue() does not return a null node.
     if (!wordBlasted.isNull() && !m->assertEquality(node, wordBlasted, true))
     {
-      Trace("fp-collectModelInfo")
+      Trace("fp-collectModelValues")
           << "TheoryFp::collectModelValues(): ... not converted" << std::endl;
       return false;
     }
