@@ -840,6 +840,8 @@ set(regress_0_tests
   regress0/fp/from_sbv.smt2
   regress0/fp/fp-set-comprehension-basic.smt2
   regress0/fp/issue-5524.smt2
+  regress0/fp/issue10144.smt2
+  regress0/fp/issue10507.smt2
   regress0/fp/issue3536.smt2
   regress0/fp/issue3582.smt2
   regress0/fp/issue3619.smt2
@@ -849,8 +851,12 @@ set(regress_0_tests
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
+  regress0/fp/issue9854.smt2
   regress0/fp/issue9858.smt2
   regress0/fp/issue9864.smt2
+  regress0/fp/issue9966.smt2
+  regress0/fp/issue9972.smt2
+  regress0/fp/issue9972-2.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2
