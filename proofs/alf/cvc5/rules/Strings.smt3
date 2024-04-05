@@ -47,7 +47,7 @@
 )
 
 ; ProofRule::CONCAT_CSPLIT
-(declare-rule concat_csplit ((U Type) (t (Seq U)) (s (Seq U)) (u U) (rev Bool))
+(declare-rule concat_csplit ((U Type) (t (Seq U)) (s (Seq U)) (u (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len u) 0)))
   :args (rev)
   :conclusion
