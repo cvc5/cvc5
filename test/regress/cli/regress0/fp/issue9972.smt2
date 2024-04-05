@@ -1,4 +1,8 @@
 ; EXPECT: sat
+; REQUIRES: no-assertions
+; This regression test failed with a check-model failure prior to #10589 without
+; assertions. With assertions, this fails with a spurious assertion failure in
+; SymFPU. We thus, for now, only test this for builds without assertions.
 (set-logic QF_BVFP)
 (set-option :check-models true)
 (declare-const a Float64)
