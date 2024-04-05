@@ -820,10 +820,10 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @return The skolem identifier of this term.
    * @throws CVC5ApiException
    */
-  public SkolemFunId getSkolemId() throws CVC5ApiException
+  public SkolemId getSkolemId() throws CVC5ApiException
   {
     int value = getSkolemId(pointer);
-    return SkolemFunId.fromInt(value);
+    return SkolemId.fromInt(value);
   }
 
   private native int getSkolemId(long pointer);
@@ -834,7 +834,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @api.note This method is experimental and may change in future versions.
    * @return The skolem indices of this term. This a list of terms that the
    * skolem function is indexed by. For example, the array diff skolem
-   * {@link SkolemFunId#ARRAY_DEQ_DIFF} is indexed by two arrays.
+   * {@link SkolemId#ARRAY_DEQ_DIFF} is indexed by two arrays.
    * @throws CVC5ApiException
    */
   public Term[] getSkolemIndices() throws CVC5ApiException

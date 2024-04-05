@@ -46,8 +46,7 @@ namespace quantifiers {
 class OracleChecker : protected EnvObj, public NodeConverter
 {
  public:
-  OracleChecker(Env& env) : EnvObj(env) {}
-  ~OracleChecker() {}
+  OracleChecker(Env& env);
 
   /**
    * Check predicted io pair is consistent, generate a lemma if

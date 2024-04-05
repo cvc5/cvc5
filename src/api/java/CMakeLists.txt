@@ -58,9 +58,9 @@ add_custom_command(
 )
 add_custom_target(generate-java-proofrules DEPENDS ${JAVA_PROOF_RULE_FILE})
 
-# Generate SkolemFunId.java
+# Generate SkolemId.java
 set(JAVA_SKOLEM_FUN_ID_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SkolemFunId.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SkolemId.java"
 )
 add_custom_command(
   OUTPUT
@@ -135,6 +135,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/SymbolManager.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/SynthResult.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Term.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/TermManager.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Utils.java
   ${JAVA_KIND_FILE}
@@ -163,6 +164,7 @@ set(JNI_HEADERS
   ${JNI_DIR}/io_github_cvc5_Statistics.h
   ${JNI_DIR}/io_github_cvc5_SynthResult.h
   ${JNI_DIR}/io_github_cvc5_Term.h
+  ${JNI_DIR}/io_github_cvc5_TermManager.h
 )
 
 # generate jni headers
@@ -213,14 +215,8 @@ set(jni_files
   jni/statistics.cpp
   jni/symbol_manager.cpp
   jni/synth_result.cpp
-  jni/term.cpp)
-
-# suppress deprecated warnings to not error in CI
-foreach(f ${jni_files})
-set_source_files_properties(${f}
-  PROPERTIES COMPILE_OPTIONS
-  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
-endforeach()
+  jni/term.cpp
+  jni/term_manager.cpp)
 
 add_library(cvc5jni ${jni_files})
 add_dependencies(cvc5jni generate-jni-headers)

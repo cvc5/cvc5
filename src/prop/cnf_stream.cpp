@@ -267,7 +267,7 @@ SatLiteral CnfStream::convertAtom(TNode node)
   if (node.isVar())
   {
     SkolemManager* sm = nodeManager()->getSkolemManager();
-    isInternalBoolVar = (sm->getId(node) != SkolemFunId::PURIFY);
+    isInternalBoolVar = (sm->getId(node) != SkolemId::PURIFY);
   }
   if (isInternalBoolVar)
   {
