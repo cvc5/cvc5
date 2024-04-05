@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,8 +27,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-void TupleUtils::checkTypeIndices(Node n,
-                                  TypeNode tupleType,
+bool TupleUtils::checkTypeIndices(const TypeNode& tupleType,
                                   const std::vector<uint32_t> indices)
 {
   // make sure all indices are less than the size of the tuple
@@ -40,11 +39,10 @@ void TupleUtils::checkTypeIndices(Node n,
     std::stringstream ss;
     if (index >= numArgs)
     {
-      ss << "Index " << index << " in term " << n << " is > " << (numArgs - 1)
-         << " the maximum value ";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      return false;
     }
   }
+  return true;
 }
 
 TypeNode TupleUtils::concatTupleTypes(TypeNode tupleType1, TypeNode tupleType2)

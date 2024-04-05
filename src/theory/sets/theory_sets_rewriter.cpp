@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,8 @@ using namespace cvc5::internal::theory::datatypes;
 namespace cvc5::internal {
 namespace theory {
 namespace sets {
+
+TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
 
 bool TheorySetsRewriter::checkConstantMembership(TNode elementTerm, TNode setTerm)
 {

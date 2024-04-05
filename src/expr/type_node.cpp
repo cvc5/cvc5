@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -690,6 +690,12 @@ std::string TypeNode::toString() const {
 const DType& TypeNode::getDType() const
 {
   return NodeManager::currentNM()->getDTypeFor(*this);
+}
+
+bool TypeNode::isRelation() const
+{
+  return getKind() == Kind::SET_TYPE
+         && (*this)[0].getKind() == Kind::TUPLE_TYPE;
 }
 
 bool TypeNode::isBag() const { return getKind() == Kind::BAG_TYPE; }

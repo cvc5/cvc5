@@ -1,7 +1,15 @@
 Quickstart Guide
 ================
 
-First, create a cvc5 :cpp:class:`Solver <cvc5::Solver>` instance:
+First, create a cvc5 :cpp:class:`TermManager <cvc5::TermManager>` instance:
+
+.. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
+   :language: cpp
+   :dedent: 2
+   :start-after: docs-cpp-quickstart-0 start
+   :end-before: docs-cpp-quickstart-0 end
+
+Then, create a cvc5 :cpp:class:`Solver <cvc5::Solver>` instance:
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
    :language: cpp

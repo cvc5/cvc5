@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -114,7 +114,7 @@ void DTypeConstructor::setSygus(Node op)
     // check if stands for the "any constant" constructor
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
-    if (sm->getId(op) == SkolemFunId::SYGUS_ANY_CONSTANT)
+    if (sm->getInternalId(op) == InternalSkolemId::SYGUS_ANY_CONSTANT)
     {
       // mark with attribute, which is a faster lookup
       SygusAnyConstAttribute saca;
@@ -142,7 +142,12 @@ bool DTypeConstructor::isSygusAnyConstant() const
 {
   Assert(isResolved());
   Assert(!d_sygusOp.isNull());
-  return d_sygusOp.getAttribute(SygusAnyConstAttribute());
+  return isSygusAnyConstantOp(d_sygusOp);
+}
+
+bool DTypeConstructor::isSygusAnyConstantOp(const Node& n)
+{
+  return n.getAttribute(SygusAnyConstAttribute());
 }
 
 unsigned DTypeConstructor::getWeight() const

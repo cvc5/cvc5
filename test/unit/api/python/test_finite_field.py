@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Alex Ozdemir
+#   Alex Ozdemir, Alex Sokolov
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -17,26 +17,29 @@ from cvc5 import Sort, Term, Kind
 
 
 @pytest.fixture
-def solver():
-    return cvc5.Solver()
+def tm():
+    return cvc5.TermManager()
+@pytest.fixture
+def solver(tm):
+    return cvc5.Solver(tm)
 
 
-def test_basic_finite_field(solver):
+def test_basic_finite_field(tm, solver):
     solver.setOption("produce-models", "true")
-    F = solver.mkFiniteFieldSort(5)
-    a = solver.mkConst(F, "a")
-    b = solver.mkConst(F, "b")
+    F = tm.mkFiniteFieldSort(5)
+    a = tm.mkConst(F, "a")
+    b = tm.mkConst(F, "b")
     assert 5 == F.getFiniteFieldSize()
 
-    inv = solver.mkTerm(
+    inv = tm.mkTerm(
         Kind.EQUAL,
-        solver.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
-        solver.mkFiniteFieldElem(1, F),
+        tm.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
+        tm.mkFiniteFieldElem(1, F),
     )
-    aIsTwo = solver.mkTerm(
+    aIsTwo = tm.mkTerm(
         Kind.EQUAL,
         a,
-        solver.mkFiniteFieldElem(2, F),
+        tm.mkFiniteFieldElem(2, F),
     )
     solver.assertFormula(inv)
     solver.assertFormula(aIsTwo)
@@ -45,31 +48,31 @@ def test_basic_finite_field(solver):
     assert solver.getValue(a).toPythonObj() == 2
     assert solver.getValue(b).toPythonObj() == -2
 
-    bIsTwo = solver.mkTerm(
+    bIsTwo = tm.mkTerm(
         Kind.EQUAL,
         b,
-        solver.mkFiniteFieldElem(2, F),
+        tm.mkFiniteFieldElem(2, F),
     )
     solver.assertFormula(bIsTwo)
     r = solver.checkSat()
     assert not r.isSat()
 
-def test_basic_finite_field_base(solver):
+def test_basic_finite_field_base(tm, solver):
     solver.setOption("produce-models", "true")
-    F = solver.mkFiniteFieldSort("101", 2)
-    a = solver.mkConst(F, "a")
-    b = solver.mkConst(F, "b")
+    F = tm.mkFiniteFieldSort("101", 2)
+    a = tm.mkConst(F, "a")
+    b = tm.mkConst(F, "b")
     assert 5 == F.getFiniteFieldSize()
 
-    inv = solver.mkTerm(
+    inv = tm.mkTerm(
         Kind.EQUAL,
-        solver.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
-        solver.mkFiniteFieldElem("1", F, 3),
+        tm.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
+        tm.mkFiniteFieldElem("1", F, 3),
     )
-    aIsTwo = solver.mkTerm(
+    aIsTwo = tm.mkTerm(
         Kind.EQUAL,
         a,
-        solver.mkFiniteFieldElem("10", F, 2),
+        tm.mkFiniteFieldElem("10", F, 2),
     )
     solver.assertFormula(inv)
     solver.assertFormula(aIsTwo)
@@ -78,18 +81,18 @@ def test_basic_finite_field_base(solver):
     assert solver.getValue(a).toPythonObj() == 2
     assert solver.getValue(b).toPythonObj() == -2
 
-    bIsTwo = solver.mkTerm(
+    bIsTwo = tm.mkTerm(
         Kind.EQUAL,
         b,
-        solver.mkFiniteFieldElem(2, F),
+        tm.mkFiniteFieldElem(2, F),
     )
     solver.assertFormula(bIsTwo)
     r = solver.checkSat()
     assert not r.isSat()
 
-def test_finite_field_base_equality(solver):
-    F = solver.mkFiniteFieldSort("11", 4)
-    c = solver.mkFiniteFieldElem("-6d", F, 16)
-    d = solver.mkFiniteFieldElem("1", F, 16)
+def test_finite_field_base_equality(tm):
+    F = tm.mkFiniteFieldSort("11", 4)
+    c = tm.mkFiniteFieldElem("-6d", F, 16)
+    d = tm.mkFiniteFieldElem("1", F, 16)
     assert c == d
 

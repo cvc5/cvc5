@@ -1,0 +1,118 @@
+(include "../theories/Builtin.smt3")
+(include "../theories/Arith.smt3")
+
+; The sequence type.
+(declare-type Seq (Type))
+
+; String is treated as a sequence of characters in the ALF signature.
+; Note that this is only for the purposes of simplifying the type rules below.
+; Internally, cvc5 will never generate any proofs involving the Char type.
+(declare-sort Char 0)
+(define-fun String () Type (Seq Char))
+
+; The regular expression type.
+(declare-sort RegLan 0)
+
+; String literals are strings.
+(declare-consts <string> String)
+
+; Core functions of strings.
+(declare-const str.len 
+  (-> (! Type :var T :implicit)
+      (Seq T) Int))
+(declare-const str.++
+  (-> (! Type :var T :implicit)
+      (Seq T) (Seq T) (Seq T)) :right-assoc-nil)
+
+; Extended functions for strings.
+(declare-const str.substr (-> (! Type :var T :implicit)
+                              (Seq T) Int Int (Seq T)))
+(declare-const str.contains (-> (! Type :var T :implicit)
+                                (Seq T) (Seq T) Bool))
+(declare-const str.replace (-> (! Type :var T :implicit)
+                               (Seq T) (Seq T) (Seq T) (Seq T)))
+(declare-const str.indexof (-> (! Type :var T :implicit)
+                               (Seq T) (Seq T) Int Int))
+(declare-const str.at (-> (! Type :var T :implicit)
+                          (Seq T) Int (Seq T)))
+(declare-const str.prefixof (-> (! Type :var T :implicit)
+                                (Seq T) (Seq T) Bool))
+(declare-const str.suffixof (-> (! Type :var T :implicit)
+                                (Seq T) (Seq T) Bool))
+(declare-const str.rev (-> (! Type :var T :implicit)
+                           (Seq T) (Seq T)))
+(declare-const str.unit (-> Int String))
+(declare-const str.update (-> (! Type :var T :implicit)
+                              (Seq T) Int (Seq T) (Seq T)))
+(declare-const str.to_lower (-> String String))
+(declare-const str.to_upper (-> String String))
+(declare-const str.to_code (-> String Int))
+(declare-const str.from_code (-> Int String))
+(declare-const str.is_digit (-> String Bool))
+(declare-const str.to_int (-> String Int))
+(declare-const str.from_int (-> Int String))
+(declare-const str.< (-> String String Bool))
+(declare-const str.<= (-> String String Bool))
+(declare-const str.replace_all (-> (! Type :var T :implicit)
+                                   (Seq T) (Seq T) (Seq T) (Seq T)))
+(declare-const str.replace_re (-> String RegLan String String))
+(declare-const str.replace_re_all (-> String RegLan String String))
+(declare-const str.indexof_re (-> String RegLan Int Int))
+
+; Regular expression operators.
+(declare-const re.allchar RegLan)
+(declare-const re.none RegLan)
+(declare-const re.all RegLan)
+(declare-const re.empty RegLan)
+(declare-const str.to_re (-> String RegLan))
+(declare-const re.* (-> RegLan RegLan))
+(declare-const re.+ (-> RegLan RegLan))
+(declare-const re.opt (-> RegLan RegLan))
+(declare-const re.comp (-> RegLan RegLan))
+(declare-const re.range (-> String String RegLan))
+(declare-const re.++ (-> RegLan RegLan RegLan) :right-assoc-nil)
+(declare-const re.inter (-> RegLan RegLan RegLan) :right-assoc-nil)
+(declare-const re.union (-> RegLan RegLan RegLan) :right-assoc-nil)
+(declare-const re.diff (-> RegLan RegLan RegLan))
+(declare-const re.loop (-> Int Int RegLan RegLan))
+(declare-const str.in_re (-> String RegLan Bool))
+
+; Sequence-specific operators.
+(declare-const seq.empty (-> (! Type :var T) T))
+(declare-const seq.unit (-> (! Type :var T :implicit) T (Seq T)))
+(declare-const seq.nth (-> (! Type :var T :implicit) (Seq T) Int (alf.ite (alf.is_eq T Char) Int T)))
+
+; Sequence operators are automatically translated to the string operators.
+(define seq.len () str.len)
+(define seq.++ () str.++)
+(define seq.extract () str.substr)
+(define seq.contains () str.contains)
+(define seq.replace () str.replace)
+(define seq.indexof () str.indexof)
+(define seq.prefixof () str.prefixof)
+(define seq.suffixof () str.suffixof)
+(define seq.rev () str.rev)
+(define seq.update () str.update)
+(define seq.at () str.at)
+
+; Skolem functions for strings and sequences.
+
+(declare-const @re_unfold_pos_component (-> String RegLan Int String))
+(declare-const @strings_deq_diff (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
+(declare-const @strings_stoi_result (-> String Int Int))
+(declare-const @strings_stoi_non_digit (-> String Int))
+(declare-const @strings_itos_result (-> Int Int Int))
+
+(declare-const @strings_num_occur (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
+(declare-const @strings_num_occur_re (-> String RegLan Int))
+(declare-const @strings_occur_index (-> (! Type :var T :implicit) (Seq T) (Seq T) Int Int))
+(declare-const @strings_occur_index_re (-> String RegLan Int Int))
+(declare-const @strings_occur_len_re (-> String RegLan Int Int))
+
+(declare-const @strings_replace_all_result (-> (! Type :var T :implicit) (Seq T) Int (Seq T)))
+
+(declare-const @re_first_match_pre (-> String RegLan String))
+(declare-const @re_first_match (-> String RegLan String))
+(declare-const @re_first_match_post (-> String RegLan String))
+
+

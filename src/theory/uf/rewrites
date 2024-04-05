@@ -1,0 +1,17 @@
+; Equality
+
+(define-rule eq-refl ((t ?)) (= t t) true)
+(define-rule eq-symm ((t ?) (s ?)) (= t s) (= s t))
+
+(define-rule distinct-binary-elim ((t ?) (s ?)) (distinct t s) (not (= t s)))
+
+; bv to arith conversions
+
+;(define-cond-rule uf-bv2nat-int2bv ((w Int) (t ?BitVec))
+;  (= (bvsize t) w)
+;  (int2bv w (bv2nat t))
+;  t)
+;
+;(define-rule uf-int2bv-bv2nat ((w Int) (t Int))
+;  (bv2nat (int2bv w t))
+;  (mod t (^ 2 w)))

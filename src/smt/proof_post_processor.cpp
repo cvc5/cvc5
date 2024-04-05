@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
+ *   Andrew Reynolds, Haniel Barbosa, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/resolution_proofs_util.h"
+#include "proof/subtype_elim_proof_converter.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -47,7 +48,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
       d_elimAllTrusted(false),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
 }
 
 void ProofPostprocessCallback::initializeUpdate(ProofGenerator* pppg)
@@ -442,7 +443,19 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   {
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
-    std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
+    std::vector<Node> pols;
+    std::vector<Node> lits;
+    Assert((args.size() + 1) % 2 == 0);
+    for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
+    {
+      pols.push_back(args[i]);
+      lits.push_back(args[i + 1]);
+    }
+    Assert(pols.size() == children.size() - 1);
+    NodeManager* nm = nodeManager();
+    std::vector<Node> chainResArgs;
+    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, pols));
+    chainResArgs.push_back(nm->mkNode(Kind::SEXPR, lits));
     Node chainConclusion = d_pc->checkDebug(
         ProofRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
@@ -471,7 +484,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       return chainConclusion;
     }
     size_t initProofSize = cdp->getNumProofNodes();
-    NodeManager* nm = NodeManager::currentNM();
     // If we got here, then chainConclusion is NECESSARILY an OR node
     Assert(chainConclusion.getKind() == Kind::OR);
     // get the literals in the chain conclusion
@@ -501,7 +513,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     //
     // Thus we rely on the standard utility to determine if args[0] is singleton
     // based on the premises and arguments of the resolution
-    if (proof::isSingletonClause(args[0], children, chainResArgs))
+    std::vector<Node> chainResArgsOrig{args.begin() + 1, args.end()};
+    if (proof::isSingletonClause(args[0], children, chainResArgsOrig))
     {
       conclusionLits.push_back(args[0]);
     }
@@ -599,7 +612,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   }
   else if (id == ProofRule::SUBS)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     // Notice that a naive way to reconstruct SUBS is to do a term conversion
     // proof for each substitution.
     // The proof of f(a) * { a -> g(b) } * { b -> c } = f(g(c)) is:
@@ -920,7 +933,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     ProofStepBuffer steps{d_pc};
 
     // Scale all children, accumulating
@@ -930,8 +943,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       TNode child = children[i];
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp = nm->mkNode(
-          isPos ? Kind::GT : Kind::LT, scalar, nm->mkConstInt(Rational(0)));
+      Node scalarCmp =
+          nm->mkNode(isPos ? Kind::GT : Kind::LT,
+                     scalar,
+                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue =
           steps.tryStep(ProofRule::EVALUATE, {}, {scalarCmp});
@@ -1011,9 +1026,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       getMethodId(args[2], mid);
     }
     int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
+    int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
     // attempt to reconstruct the proof of the equality into cdp using the
     // rewrite database proof reconstructor
-    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit))
+    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
     {
       // If we made (= res true) above, conclude the original res.
       if (reqTrueElim)
@@ -1133,6 +1149,18 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
+
+  // eliminate subtypes if option is specified
+  if (options().proof.proofElimSubtypes)
+  {
+    SubtypeElimConverterCallback secc(d_env);
+    ProofNodeConverter subtypeConvert(d_env, secc);
+    std::shared_ptr<ProofNode> pfc = subtypeConvert.process(pf);
+    AlwaysAssert(pfc != nullptr);
+    // now update
+    d_env.getProofNodeManager()->updateNode(pf.get(), pfc.get());
+  }
+
   // take stats and check pedantic
   d_finalCb.initializeUpdate();
   d_finalizer.process(pf);

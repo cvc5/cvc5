@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Morgan Deters
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -74,7 +74,8 @@ std::string parse(std::string instr,
   (declare-fun a () (Array U (Array U U)))\n\
   ";
 
-  cvc5::Solver solver;
+  cvc5::TermManager tm;
+  cvc5::Solver solver(tm);
   modes::InputLanguage ilang = modes::InputLanguage::SMT_LIB_2_6;
 
   solver.setOption("input-language", input_language);

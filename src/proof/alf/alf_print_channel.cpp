@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "printer/printer.h"
-#include "proof/alf/alf_proof_rule.h"
+#include "rewriter/rewrite_db.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -72,7 +72,8 @@ void AlfPrintChannelOut::printStepInternal(const std::string& rname,
   d_out << "(" << (isPop ? "step-pop" : "step") << " @p" << i;
   if (!n.isNull())
   {
-    printNode(n);
+    d_out << " ";
+    printNodeInternal(d_out, n);
   }
   d_out << " :rule " << rname;
   bool firstTime = true;
@@ -119,6 +120,7 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
                                         TNode n,
                                         size_t i,
                                         const std::vector<size_t>& premises,
+                                        const std::vector<Node>& args,
                                         TNode nc)
 {
   Assert(!nc.isNull());
@@ -127,14 +129,22 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
     d_out << "; WARNING: add trust step for " << r << std::endl;
     d_warnedRules.insert(r);
   }
-  d_out << "; trust " << r << std::endl;
+  d_out << "; trust " << r;
+  if (r == ProofRule::DSL_REWRITE)
+  {
+    rewriter::DslProofRule di;
+    if (rewriter::getDslProofRule(args[0], di))
+    {
+      d_out << " " << di;
+    }
+  }
+  d_out << std::endl;
   // trust takes a premise-list which must be specified even if empty
   printStepInternal("trust", n, i, premises, {nc}, false, true);
 }
 
 void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
-  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   if (d_lbind)
   {
     // use the toStream with custom letification method
@@ -143,13 +153,12 @@ void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
   else
   {
     // just use default print
-    out << n;
+    Printer::getPrinter(out)->toStream(out, n);
   }
 }
 
 void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
-  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   tn.toStream(out);
 }
 
@@ -189,6 +198,7 @@ void AlfPrintChannelPre::printTrustStep(ProofRule r,
                                         TNode n,
                                         size_t i,
                                         const std::vector<size_t>& premises,
+                                        const std::vector<Node>& args,
                                         TNode nc)
 {
   Assert(!nc.isNull());

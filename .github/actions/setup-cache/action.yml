@@ -3,6 +3,8 @@ description: Setup caches (ccache, contribs and dependencies)
 inputs:
   cache-key:
     default: "none"
+  shell:
+    default: bash
 
 # The GitHub action for caching currently does not support modifying an
 # already existing cache. We thus have a few different possibilities:
@@ -40,9 +42,9 @@ runs:
         restore-keys: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-
 
     - name: Configure ccache
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
-        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
+        ccache --set-config=cache_dir="${{ github.workspace }}/ccache-dir"
         ccache --set-config=compression=true
         ccache --set-config=compression_level=6
         ccache -M 500M
@@ -56,10 +58,9 @@ runs:
         key: ${{ inputs.cache-key }}-${{ runner.os }}-contrib-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/**') }}
 
     - name: Install contrib dependencies
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         if [[ "${{ steps.contrib-cache.outputs.cache-hit }}" == "true" ]]; then exit 0; fi
-        ./contrib/get-lfsc-checker
         ./contrib/get-alf-checker
 
     - name: Setup dependencies cache

@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -17,8 +17,11 @@ import cvc5
 from cvc5 import InputParser, SymbolManager
 
 @pytest.fixture
-def solver():
-    return cvc5.Solver()
+def tm():
+    return cvc5.TermManager()
+@pytest.fixture
+def solver(tm):
+    return cvc5.Solver(tm)
 
 def parse_and_set_logic(solver, sm, logic):
     parser = InputParser(solver, sm)
@@ -40,3 +43,8 @@ def test_get_logic(solver):
         sm.getLogic()
     parse_and_set_logic(solver, sm, "QF_LIA")
     assert sm.getLogic() == "QF_LIA"
+
+def test_get_declared_terms_and_sorts(solver):
+    sm = SymbolManager(solver)
+    assert len(sm.getDeclaredSorts()) == 0
+    assert len(sm.getDeclaredTerms()) == 0

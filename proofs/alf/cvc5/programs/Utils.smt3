@@ -1,0 +1,13 @@
+
+(declare-type @Pair (Type Type))
+(declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
+
+; untyped list
+(declare-sort @List 0)
+(declare-const @list.nil @List)
+(declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
+
+; This is used to have a canonical ordering of variables.
+; It could potentially be improved by having a builtin operator, e.g. alf.compare.
+(define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
+  (alf.is_neg (alf.add (alf.hash a) (alf.neg (alf.hash b)))))

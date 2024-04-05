@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
+ *   Haniel Barbosa, Andrew Reynolds, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +30,7 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SYMM, this);
   pc->registerChecker(ProofRule::TRANS, this);
   pc->registerChecker(ProofRule::CONG, this);
+  pc->registerChecker(ProofRule::NARY_CONG, this);
   pc->registerChecker(ProofRule::TRUE_INTRO, this);
   pc->registerChecker(ProofRule::TRUE_ELIM, this);
   pc->registerChecker(ProofRule::FALSE_INTRO, this);
@@ -89,7 +90,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     }
     return first.eqNode(curr);
   }
-  else if (id == ProofRule::CONG)
+  else if (id == ProofRule::CONG || id == ProofRule::NARY_CONG)
   {
     Assert(children.size() > 0);
     Assert(args.size() >= 1 && args.size() <= 2);
@@ -102,23 +103,20 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    if (k == Kind::UNDEFINED_KIND)
+    // cannot use HO_APPLY
+    if (k == Kind::UNDEFINED_KIND || k == Kind::HO_APPLY)
     {
       return Node::null();
     }
     Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k
                         << ", metakind=" << kind::metaKindOf(k) << std::endl;
-    if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+    if (args.size() == 2)
     {
-      if (args.size() <= 1)
-      {
-        return Node::null();
-      }
       // parameterized kinds require the operator
       lchildren.push_back(args[1]);
       rchildren.push_back(args[1]);
     }
-    else if (args.size() > 1)
+    else if (args.size() > 2)
     {
       return Node::null();
     }
@@ -179,8 +177,11 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   }
   if (id == ProofRule::HO_CONG)
   {
-    Assert(children.size() > 0);
-    Assert(args.empty());
+    Kind k;
+    if (!getKind(args[0], k))
+    {
+      return Node::null();
+    }
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
     for (size_t i = 0, nchild = children.size(); i < nchild; ++i)
@@ -194,8 +195,8 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       rchildren.push_back(eqp[1]);
     }
     NodeManager* nm = NodeManager::currentNM();
-    Node l = nm->mkNode(Kind::APPLY_UF, lchildren);
-    Node r = nm->mkNode(Kind::APPLY_UF, rchildren);
+    Node l = nm->mkNode(k, lchildren);
+    Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
   }
   else if (id == ProofRule::HO_APP_ENCODE)

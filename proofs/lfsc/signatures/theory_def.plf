@@ -31,6 +31,8 @@
 (declare Bag (! e sort sort))
 ; Finite fields
 (declare FiniteField (! s mpz sort))
+; Nullable
+(declare Nullable (! e sort sort))
 
 ;; ---- Arithmetic
 
@@ -139,6 +141,17 @@
 (declare update (! s term term))
 ; "shared selector" for (sort, index), see Reynolds et al IJCAR 2018.
 (declare sel (! s sort (! z mpz term)))
+; Nullables
+(declare nullable.null (! s sort term))
+(declare f_nullable.some term)
+(define nullable.some (# x term (apply f_nullable.some x)))
+(declare f_nullable.is_some term)
+(define nullable.is_some (# x term (apply f_nullable.is_some x)))
+(declare f_nullable.is_null term)
+(define nullable.is_null (# x
+ term (apply f_nullable.is_null x)))
+(declare f_nullable.val term)
+(define nullable.val (# x term (apply f_nullable.val x)))
 
 ;; ---- Strings
 
@@ -237,26 +250,17 @@
 (define seq.unit (# x term (apply f_seq.unit x)))
 (declare f_seq.nth term)
 (define seq.nth (# x term (# y term (apply (apply f_seq.nth x) y))))
-(declare f_seq.len term)
-(define seq.len (# x term (apply f_seq.len x)))
-(declare f_seq.++ term)
-(define seq.++ (# x term (# y term (apply (apply f_seq.++ x) y))))
-(declare f_seq.extract term)
-(define seq.extract (# x term (# y term (# z term (apply (apply (apply f_seq.extract x) y) z)))))
-(declare f_seq.contains term)
-(define seq.contains (# x term (# y term (apply (apply f_seq.contains x) y))))
-(declare f_seq.replace term)
-(define seq.replace (# x term (# y term (# z term (apply (apply (apply f_seq.replace x) y) z)))))
-(declare f_seq.indexof term)
-(define seq.indexof (# x term (# y term (# z term (apply (apply (apply f_seq.indexof x) y) z)))))
-(declare f_seq.prefixof term)
-(define seq.prefixof (# x term (# y term (apply (apply f_seq.prefixof x) y))))
-(declare f_seq.suffixof term)
-(define seq.suffixof (# x term (# y term (apply (apply f_seq.suffixof x) y))))
-(declare f_seq.rev term)
-(define seq.rev (# x term (apply f_seq.rev x)))
-(declare f_seq.update term)
-(define seq.update (# x term (# y term (# z term (apply (apply (apply f_seq.update x) y) z)))))
+(define seq.len (# x term (apply f_str.len x)))
+(define seq.++ (# x term (# y term (apply (apply f_str.++ x) y))))
+(define seq.extract (# x term (# y term (# z term (apply (apply (apply f_str.substr x) y) z)))))
+(define seq.contains (# x term (# y term (apply (apply f_str.contains x) y))))
+(define seq.replace (# x term (# y term (# z term (apply (apply (apply f_str.replace x) y) z)))))
+(define seq.indexof (# x term (# y term (# z term (apply (apply (apply f_str.indexof x) y) z)))))
+(define seq.prefixof (# x term (# y term (apply (apply f_str.prefixof x) y))))
+(define seq.suffixof (# x term (# y term (apply (apply f_str.suffixof x) y))))
+(define seq.rev (# x term (apply f_str.rev x)))
+(define seq.update (# x term (# y term (# z term (apply (apply (apply f_str.update x) y) z)))))
+(define seq.at (# x term (# y term (apply (apply f_str.at x) y))))
 ; skolem types
 (declare skolem_re_unfold_pos (! t term (! r term (! z mpz term))))
 
@@ -337,9 +341,9 @@
 (declare f_bvsdivo term)
 (define bvsdivo (# x term (# y term (apply (apply f_bvsdivo x) y))))
 (declare f_bvredor term)
-(define bvredor (# x term (# y term (apply (apply f_bvredor x) y))))
+(define bvredor (# x term (apply f_bvredor x)))
 (declare f_bvredand term)
-(define bvredand (# x term (# y term (apply (apply f_bvredand x) y))))
+(define bvredand (# x term (apply f_bvredand x)))
 (declare f_rotate_left (! v mpz term))
 (define rotate_left (# x mpz (# y term (apply (f_rotate_left x) y))))
 (declare f_rotate_right (! v mpz term))
@@ -532,8 +536,8 @@
 (define bag.count (# x term (# y term (apply (apply f_bag.count x) y))))
 (declare f_bag term)
 (define bag (# x term (# y term (apply (apply f_bag x) y))))
-(declare f_bag.duplicate_removal term)
-(define bag.duplicate_removal (# x term (apply f_bag.duplicate_removal x)))
+(declare f_bag.setof term)
+(define bag.setof (# x term (apply f_bag.setof x)))
 (declare f_bag.card term)
 (define bag.card (# x term (apply f_bag.card x)))
 (declare f_bag.choose term)
@@ -586,3 +590,5 @@
 (define ff.neg (# x term (apply f_ff.neg x)))
 (declare f_ff.mul term)
 (define ff.mul (# x term (# y term (apply (apply f_ff.mul x) y))))
+(declare f_ff.bitsum term)
+(define ff.bitsum (# x term (# y term (apply (apply f_ff.bitsum x) y))))

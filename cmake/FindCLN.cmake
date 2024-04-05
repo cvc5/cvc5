@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andrew V. Jones
+#   Gereon Kremer, Mathias Preiner, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -26,9 +26,14 @@ if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
   set(CLN_FOUND_SYSTEM TRUE)
 
   file(STRINGS ${CLN_INCLUDE_DIR}/cln/version.h CLN_VERSION
-       REGEX "^#define[\t ]+CL_VERSION .*"
+       REGEX "^#define[\t ]+CL_VERSION.*"
   )
-  string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" CLN_VERSION "${CLN_VERSION}")
+  if(CLN_VERSION MATCHES
+     "MAJOR ([0-9]+).*MINOR ([0-9]+).*PATCHLEVEL ([0-9]+)")
+    string(CONCAT CLN_VERSION ${CMAKE_MATCH_1} "." ${CMAKE_MATCH_2} "." ${CMAKE_MATCH_3})
+  else()
+    string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" CLN_VERSION "${CLN_VERSION}")
+  endif()
 
   check_system_version("CLN")
 endif()

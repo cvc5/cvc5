@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 ###############################################################################
 # Top contributors (to current version):
-#   Andrew Reynolds
+#   Andrew Reynolds, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,14 +18,17 @@
 import sys
 import pexpect
 
+def error_message(s):
+    return "Unexpected output '" + s + "'"
+
 def expect_exact(child, s):
     child.expect_exact(s)
-    assert child.before == b""
-    assert child.after == s.encode('UTF-8')
+    assert child.before == b"", error_message(child.before.decode('UTF-8'))
+    assert child.after == s.encode('UTF-8'), error_message(child.after)
 
 def sendline(child, s):
     child.sendline(s)
-    child.expect_exact(s+'\r\n')
+    expect_exact(child, s+'\r\n')
 
 def check_iteractive_shell_parser_inc():
     """

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,6 +25,7 @@
 #include "smt/env.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::internal;
 using namespace cvc5::internal::kind;
@@ -152,7 +153,8 @@ Node mkSygusTerm(const Node& op,
                  bool doBetaReduction)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(nm->getSkolemManager()->getId(op) != SkolemFunId::SYGUS_ANY_CONSTANT);
+  Assert(nm->getSkolemManager()->getInternalId(op)
+         != InternalSkolemId::SYGUS_ANY_CONSTANT);
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {
@@ -423,7 +425,11 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
     }
   }
   // make the sygus variable list for the formal argument list
-  Node abvl = nm->mkNode(Kind::BOUND_VAR_LIST, formalVars);
+  Node abvl;
+  if (!formalVars.empty())
+  {
+    abvl = nm->mkNode(Kind::BOUND_VAR_LIST, formalVars);
+  }
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   // must convert all constructors to version with variables in "vars"
@@ -602,6 +608,39 @@ Node getExpandedDefinitionForm(Node op)
   Node eop = op.getAttribute(SygusExpDefFormAttribute());
   // if not set, assume original
   return eop.isNull() ? op : eop;
+}
+
+void computeExpandedDefinitionForms(Env& env, const TypeNode& tn)
+{
+  std::unordered_set<TypeNode> processed;
+  std::vector<TypeNode> toProcess;
+  toProcess.push_back(tn);
+  while (!toProcess.empty())
+  {
+    TypeNode tnp = toProcess.back();
+    toProcess.pop_back();
+    Assert(tnp.isSygusDatatype());
+    const DType& dt = tnp.getDType();
+    const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
+        dt.getConstructors();
+    for (const std::shared_ptr<DTypeConstructor>& c : cons)
+    {
+      Node op = c->getSygusOp();
+      Node eop = env.getTopLevelSubstitutions().apply(op);
+      eop = env.getRewriter()->rewrite(eop);
+      setExpandedDefinitionForm(op, eop);
+      // also must consider the arguments
+      for (size_t j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
+      {
+        TypeNode tnc = c->getArgType(j);
+        if (tnc.isSygusDatatype() && processed.find(tnc) == processed.end())
+        {
+          toProcess.push_back(tnc);
+          processed.insert(tnc);
+        }
+      }
+    }
+  }
 }
 
 }  // namespace utils

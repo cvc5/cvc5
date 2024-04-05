@@ -1,0 +1,49 @@
+(include "../programs/Quantifiers.smt3")
+(include "../theories/Quantifiers.smt3")
+
+
+(declare-rule instantiate ((F Bool) (xs @List) (ts @List))
+  :premises ((forall xs F))
+  :args (ts)
+  :conclusion (substitute_list xs ts F))
+
+; returns the list of skolems for F
+(program mk_skolems ((x @List) (xs @List :list) (F Bool))
+  (@List Bool) @List
+  (
+    ((mk_skolems (@list x xs) F) (alf.cons @list (skolem (@quantifiers_skolemize F x)) (mk_skolems xs F)))
+    ((mk_skolems @list.nil F)    @list.nil)
+  )
+)
+
+(declare-rule skolemize ((F Bool))
+  :premises (F)
+  :conclusion
+    (alf.match ((T Type) (x @List) (G Bool))
+        F
+        (
+          ((exists x G)       (substitute_list x (mk_skolems x F) G))
+          ((not (forall x G)) (substitute_list x (mk_skolems x (exists x (not G))) (not G)))
+        ))
+)
+
+(declare-rule skolem_intro ((T Type) (t T))
+  :args (t)
+  :conclusion 
+    (alf.match ((T Type) (x T) (F Bool))
+      t
+      (
+        ; special case for witness
+        ((skolem (@quantifiers_skolemize (exists (@list x) F) x)) (= t (witness (@list x) F)))
+        ((skolem x)                                                 (= t x))
+      )
+   )
+)
+
+; B is the formula to apply to
+; vs is a list of variables to substitution for the variable list ts
+; Note we don't currently check whether this is valid renaming.
+(declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
+  :args (B vs ts)
+  :conclusion (= B (substitute_list vs ts B))
+)

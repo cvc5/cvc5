@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,13 +60,13 @@ TEST_F(TestTheoryWhiteBagsTypeRule, count_operator)
                TypeCheckingExceptionPrivate);
 }
 
-TEST_F(TestTheoryWhiteBagsTypeRule, duplicate_removal_operator)
+TEST_F(TestTheoryWhiteBagsTypeRule, setof_operator)
 {
   std::vector<Node> elements = getNStrings(1);
   Node bag = d_nodeManager->mkNode(
       Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
-  ASSERT_NO_THROW(d_nodeManager->mkNode(Kind::BAG_DUPLICATE_REMOVAL, bag));
-  ASSERT_EQ(d_nodeManager->mkNode(Kind::BAG_DUPLICATE_REMOVAL, bag).getType(),
+  ASSERT_NO_THROW(d_nodeManager->mkNode(Kind::BAG_SETOF, bag));
+  ASSERT_EQ(d_nodeManager->mkNode(Kind::BAG_SETOF, bag).getType(),
             bag.getType());
 }
 
@@ -84,23 +84,6 @@ TEST_F(TestTheoryWhiteBagsTypeRule, mkBag_operator)
   ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager, negative));
   ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager, zero));
   ASSERT_TRUE(BagMakeTypeRule::computeIsConst(d_nodeManager, positive));
-}
-
-TEST_F(TestTheoryWhiteBagsTypeRule, from_set_operator)
-{
-  std::vector<Node> elements = getNStrings(1);
-  Node set = d_nodeManager->mkNode(Kind::SET_SINGLETON, elements[0]);
-  ASSERT_NO_THROW(d_nodeManager->mkNode(Kind::BAG_FROM_SET, set));
-  ASSERT_TRUE(d_nodeManager->mkNode(Kind::BAG_FROM_SET, set).getType().isBag());
-}
-
-TEST_F(TestTheoryWhiteBagsTypeRule, to_set_operator)
-{
-  std::vector<Node> elements = getNStrings(1);
-  Node bag = d_nodeManager->mkNode(
-      Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
-  ASSERT_NO_THROW(d_nodeManager->mkNode(Kind::BAG_TO_SET, bag));
-  ASSERT_TRUE(d_nodeManager->mkNode(Kind::BAG_TO_SET, bag).getType().isSet());
 }
 
 TEST_F(TestTheoryWhiteBagsTypeRule, map_operator)

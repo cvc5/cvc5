@@ -18,7 +18,6 @@
     || (defined(CVC5_API_USE_C_ENUMS)               \
         && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
-#include <iosfwd>
 #include <cstdint>
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -27,7 +26,7 @@
 #else
 #include <cvc5/cvc5_export.h>
 
-#include <cstdint>
+#include <iosfwd>
 #include <ostream>
 namespace cvc5 {
 #undef ENUM
@@ -168,6 +167,22 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(EVALUATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- associative/commutative/idempotency/identity normalization**
+   *
+   * .. math::
+   *   \inferrule{- \mid t = s}{t = s}
+   *
+   * where :math:`\texttt{expr::isACNorm(t, s)} = \top`. This
+   * method normalizes currently based on two kinds of operators:
+   * (1) those that are associative, commutative, idempotent, and have an
+   * identity element (examples are or, and, bvand),
+   * (2) those that are associative and have an identity element (examples
+   * are str.++, re.++).
+   * \endverbatim
+   */
+  EVALUE(ACI_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting equality introduction**
@@ -356,7 +371,29 @@ enum ENUM(ProofRule) : uint32_t
    * SAT solver. \endverbatim
    */
   EVALUE(SAT_REFUTATION),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **DRAT Refutation**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid D, P}{\bot}
+   *
+   * where :math:`F_1 \dots F_n` correspond to the clauses in the
+   * DIMACS file given by filename `D` and `P` is a filename of a file storing
+   * a DRAT proof. \endverbatim
+   */
+  EVALUE(DRAT_REFUTATION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **SAT external prove Refutation**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid D}{\bot}
+   *
+   * where :math:`F_1 \dots F_n` correspond to the input clauses in the
+   * DIMACS file `D`. \endverbatim
+   */
+  EVALUE(SAT_EXTERNAL_PROVE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Resolution**
@@ -394,7 +431,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Boolean -- N-ary Resolution**
    *
    * .. math::
-   *   \inferrule{C_1 \dots C_n \mid pol_1,L_1 \dots pol_{n-1},L_{n-1}}{C}
+   *   \inferrule{C_1 \dots C_n \mid (pol_1 \dots pol_{n-1}), (L_1 \dots L_{n-1})}{C}
    *
    * where
    *
@@ -405,6 +442,8 @@ enum ENUM(ProofRule) : uint32_t
    * - let :math:`C_1' = C_1`,
    * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond{L_{i-1},
    *   \mathit{pol}_{i-1}} C_i'`
+   *
+   * Note the list of polarities and pivots are provided as s-expressions.
    *
    * The result of the chain resolution is :math:`C = C_n'`
    * \endverbatim
@@ -417,8 +456,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{C_1 \mid -}{C_2}
    *
-   * where :math:`C_2` is the clause :math:`C_1`, but every occurence of a literal
-   * after its first occurence is omitted.
+   * where :math:`C_2` is the clause :math:`C_1`, but every occurrence of a literal
+   * after its first occurrence is omitted.
    * \endverbatim
    */
   EVALUE(FACTORING),
@@ -988,12 +1027,37 @@ enum ENUM(ProofRule) : uint32_t
    *   k(f?)(s_1,\dots, s_n)}
    *
    * where :math:`k` is the application kind. Notice that :math:`f` must be
-   * provided iff :math:`k` is a parameterized kind, e.g. ``APPLY_UF``. The
-   * actual node for :math:`k` is constructible via
-   * ``ProofRuleChecker::mkKindNode``.
+   * provided iff :math:`k` is a parameterized kind, e.g. 
+   * `cvc5::Kind::APPLY_UF`. The actual node for
+   * :math:`k` is constructible via ``ProofRuleChecker::mkKindNode``.
+   * If :math:`k` is a binder kind (e.g. ``cvc5::Kind::FORALL``) then :math:`f`
+   * is a term of kind ``cvc5::Kind::VARIABLE_LIST``
+   * denoting the variables bound by both sides of the conclusion.
+   * This rule is used for kinds that have a fixed arity, such as
+   * ``cvc5::Kind::ITE``, ``cvc5::Kind::EQUAL``, and so on. It is also used for
+   * ``cvc5::Kind::APPLY_UF`` where :math:`f` must be provided.
+   * It is not used for equality between
+   * ``cvc5::Kind::HO_APPLY`` terms, which should
+   * use the :cpp:enumerator:`HO_CONG <cvc5::ProofRule::HO_CONG>` proof rule.
    * \endverbatim
    */
   EVALUE(CONG),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- N-ary Congruence**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k}{k(t_1,\dots, t_n) =
+   *   k(s_1,\dots, s_n)}
+   *
+   * where :math:`k` is the application kind. The actual node for :math:`k` is
+   * constructible via ``ProofRuleChecker::mkKindNode``. This rule is used for
+   * kinds that have variadic arity, such as ``cvc5::Kind::AND``,
+   * ``cvc5::Kind::PLUS`` and so on.
+   * \endverbatim
+   */
+  EVALUE(NARY_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**
@@ -1053,10 +1117,11 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid -}{f(t_1,\dots, t_n) =
-   *   g(s_1,\dots, s_n)}
+   *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid k}{k(f, t_1,\dots, t_n) =
+   *   k(g, s_1,\dots, s_n)}
    *
-   * Notice that this rule is only used when the application kinds are ``APPLY_UF``.
+   * Notice that this rule is only used when the application kind :math:`k` is
+   * either `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`.
    * \endverbatim
    */
   EVALUE(HO_CONG),
@@ -1777,7 +1842,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
    *
-   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`.
+   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
+   * method normalizes polynomials over arithmetic or bitvectors.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM),
@@ -1826,12 +1892,12 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Multiplication tangent plane**
    *
    * .. math::
-   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
+   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
    *
-   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
+   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
    *
    * where :math:`x,y` are real terms (variables or extended terms),
-   * :math:`t = x \cdot y` (possibly under rewriting), :math:`a,b` are real
+   * :math:`t = x \cdot y`, :math:`a,b` are real
    * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
    * \endverbatim
    */
@@ -2190,23 +2256,13 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALETHE_RULE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- AletheLF**
-   *
-   * Place holder for AletheLF rules.
-   *
-   * .. math::
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external AletheLF
-   * calculus. \endverbatim
-   */
-  EVALUE(ALF_RULE),
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 // clang-format on
 

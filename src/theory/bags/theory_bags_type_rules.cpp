@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -171,24 +171,23 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode DuplicateRemovalTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetofTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
 }
-TypeNode DuplicateRemovalTypeRule::computeType(NodeManager* nodeManager,
-                                               TNode n,
-                                               bool check,
-                                               std::ostream* errOut)
+TypeNode SetofTypeRule::computeType(NodeManager* nodeManager,
+                                    TNode n,
+                                    bool check,
+                                    std::ostream* errOut)
 {
-  Assert(n.getKind() == Kind::BAG_DUPLICATE_REMOVAL);
+  Assert(n.getKind() == Kind::BAG_SETOF);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
     if (!bagType.isBag())
     {
       std::stringstream ss;
-      ss << "Applying BAG_DUPLICATE_REMOVAL on a non-bag argument in term "
-         << n;
+      ss << "Applying BAG_SETOF on a non-bag argument in term " << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
   }
@@ -234,28 +233,6 @@ bool BagMakeTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
   // be constants, and the multiplicity should be > 0.
   return n[0].isConst() && n[1].isConst()
          && n[1].getConst<Rational>().sgn() == 1;
-}
-
-TypeNode IsSingletonTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  return nm->booleanType();
-}
-TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
-                                          TNode n,
-                                          bool check,
-                                          std::ostream* errOut)
-{
-  Assert(n.getKind() == Kind::BAG_IS_SINGLETON);
-  TypeNode bagType = n[0].getType(check);
-  if (check)
-  {
-    if (!bagType.isBag())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "BAG_IS_SINGLETON operator expects a bag, a non-bag is found");
-    }
-  }
-  return nodeManager->booleanType();
 }
 
 TypeNode EmptyBagTypeRule::preComputeType(NodeManager* nm, TNode n)
@@ -314,54 +291,6 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
     }
   }
   return bagType.getBagElementType();
-}
-
-TypeNode FromSetTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  return TypeNode::null();
-}
-TypeNode FromSetTypeRule::computeType(NodeManager* nodeManager,
-                                      TNode n,
-                                      bool check,
-                                      std::ostream* errOut)
-{
-  Assert(n.getKind() == Kind::BAG_FROM_SET);
-  TypeNode setType = n[0].getType(check);
-  if (check)
-  {
-    if (!setType.isSet())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "bag.from_set operator expects a set, a non-set is found");
-    }
-  }
-  TypeNode elementType = setType.getSetElementType();
-  TypeNode bagType = nodeManager->mkBagType(elementType);
-  return bagType;
-}
-
-TypeNode ToSetTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  return TypeNode::null();
-}
-TypeNode ToSetTypeRule::computeType(NodeManager* nodeManager,
-                                    TNode n,
-                                    bool check,
-                                    std::ostream* errOut)
-{
-  Assert(n.getKind() == Kind::BAG_TO_SET);
-  TypeNode bagType = n[0].getType(check);
-  if (check)
-  {
-    if (!bagType.isBag())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "bag.to_set operator expects a bag, a non-bag is found");
-    }
-  }
-  TypeNode elementType = bagType.getBagElementType();
-  TypeNode setType = nodeManager->mkSetType(elementType);
-  return setType;
 }
 
 TypeNode BagMapTypeRule::preComputeType(NodeManager* nm, TNode n)
@@ -704,7 +633,15 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
-    TupleUtils::checkTypeIndices(n, tupleType, indices);
+    if (!TupleUtils::checkTypeIndices(tupleType, indices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its argument";
+      }
+      return TypeNode::null();
+    }
 
     TypeNode elementType = bagType.getBagElementType();
 
@@ -786,8 +723,24 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     auto [aIndices, bIndices] = BagsUtils::splitTableJoinIndices(n);
-    TupleUtils::checkTypeIndices(n, aTupleType, aIndices);
-    TupleUtils::checkTypeIndices(n, bTupleType, bIndices);
+    if (!TupleUtils::checkTypeIndices(aTupleType, aIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its first argument";
+      }
+      return TypeNode::null();
+    }
+    if (!TupleUtils::checkTypeIndices(bTupleType, bIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its second argument";
+      }
+      return TypeNode::null();
+    }
 
     // check the types of columns
     std::vector<TypeNode> aTypes = aTupleType.getTupleTypes();
@@ -847,7 +800,15 @@ TypeNode TableGroupTypeRule::computeType(NodeManager* nm,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
-    TupleUtils::checkTypeIndices(n, tupleType, indices);
+    if (!TupleUtils::checkTypeIndices(tupleType, indices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its argument";
+      }
+      return TypeNode::null();
+    }
   }
   return nm->mkBagType(bagType);
 }

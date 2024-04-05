@@ -296,7 +296,8 @@ operator EQUAL 2 "equality (two parameters only, sorts must match)"
 operator DISTINCT 2: "disequality (N-ary, sorts must match)"
 variable VARIABLE "a variable (not permitted in bindings)"
 variable BOUND_VARIABLE "a bound variable (permitted in bindings and the associated lambda and quantifier bodies only)"
-variable SKOLEM "a Skolem variable (internal only)"
+variable SKOLEM "a Skolem variable"
+variable DUMMY_SKOLEM "a Skolem variable (internal only)"
 operator SEXPR 0: "a symbolic expression (any arity)"
 
 operator WITNESS 2:3 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
@@ -338,5 +339,15 @@ parameterized APPLY_INDEXED_SYMBOLIC APPLY_INDEXED_SYMBOLIC_OP 1: "generic index
 
 typerule APPLY_INDEXED_SYMBOLIC_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule APPLY_INDEXED_SYMBOLIC ::cvc5::internal::theory::builtin::ApplyIndexedSymbolicTypeRule
+
+
+# constants
+constant SORT_TO_TERM \
+  class \
+  SortToTerm \
+  ::cvc5::internal::SortToTermHashFunction \
+  "expr/sort_to_term.h" \
+  "term representing a sort; payload is an instance of the cvc5::internal::SortToTerm class"
+typerule SORT_TO_TERM "SimpleTypeRule<RBuiltinOperator>"
 
 endtheory

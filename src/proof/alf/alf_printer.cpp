@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,6 @@
 #include "expr/subs.h"
 #include "options/main_options.h"
 #include "printer/printer.h"
-#include "proof/alf/alf_proof_rule.h"
 #include "proof/proof_node_to_sexpr.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
@@ -38,8 +37,8 @@ namespace proof {
 AlfPrinter::AlfPrinter(Env& env, BaseAlfNodeConverter& atp)
     : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
 {
-  d_pfType = NodeManager::currentNM()->mkSort("proofType");
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_pfType = nodeManager()->mkSort("proofType");
+  d_false = nodeManager()->mkConst(false);
 }
 
 bool AlfPrinter::isHandled(const ProofNode* pfn) const
@@ -53,6 +52,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::SYMM:
     case ProofRule::TRANS:
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     case ProofRule::HO_CONG:
     case ProofRule::TRUE_INTRO:
     case ProofRule::TRUE_ELIM:
@@ -131,9 +131,18 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
-    case ProofRule::DSL_REWRITE:
-    // alf rule is handled
-    case ProofRule::ALF_RULE: return true;
+    case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::ARITH_POLY_NORM:
+    {
+      // we don't support bitvectors yet
+      Assert(pargs[0].getKind() == Kind::EQUAL);
+      if (pargs[0][0].getType().isBoolean())
+      {
+        return pargs[0][0][0].getType().isRealOrInt();
+      }
+      return pargs[0][0].getType().isRealOrInt();
+    }
+    break;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
@@ -206,7 +215,10 @@ bool AlfPrinter::canEvaluate(Node n) const
         case Kind::STRING_CONTAINS:
         case Kind::BITVECTOR_ADD:
         case Kind::BITVECTOR_SUB:
-        case Kind::BITVECTOR_NEG: break;
+        case Kind::BITVECTOR_NEG:
+        case Kind::BITVECTOR_MULT:
+        case Kind::BITVECTOR_AND:
+        case Kind::BITVECTOR_OR: break;
         default:
           Trace("alf-printer-debug")
               << "Cannot evaluate " << cur.getKind() << std::endl;
@@ -223,15 +235,8 @@ bool AlfPrinter::canEvaluate(Node n) const
 
 std::string AlfPrinter::getRuleName(const ProofNode* pfn)
 {
-  std::string name;
   ProofRule r = pfn->getRule();
-  switch (r)
-  {
-    case ProofRule::ALF_RULE:
-      name = AlfRuleToString(getAlfRule(pfn->getArguments()[0]));
-      break;
-    default: name = toString(pfn->getRule()); break;
-  }
+  std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
     return std::tolower(c);
   });
@@ -255,6 +260,9 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 
 void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
+  // ensures options are set once and for all
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyPrintArithLitToken(out, true);
   d_pfIdCounter = 0;
 
   // Get the definitions and assertions and print the declarations from them
@@ -300,10 +308,10 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       }
       if (options().proof.alfPrintReference)
       {
-        // parse_normalize is used as the normalization function for the input
         // [1] print the reference
-        out << "(reference \"" << options().driver.filename
-            << "\" parse_normalize)" << std::endl;
+        // we currently do not need to provide a normalization routine.
+        out << "(reference \"" << options().driver.filename << "\")"
+            << std::endl;
         // [2] print the universal variables
         out << outVars.str();
       }
@@ -384,8 +392,8 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
       printStepPre(out, cur);
       processingChildren[cur] = true;
       // will revisit this proof node
-      const std::vector<std::shared_ptr<ProofNode>>& children =
-          cur->getChildren();
+      std::vector<std::shared_ptr<ProofNode>> children;
+      getChildrenFromProofRule(cur, children);
       // visit each child
       for (const std::shared_ptr<ProofNode>& c : children)
       {
@@ -420,6 +428,31 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
   }
 }
 
+void AlfPrinter::getChildrenFromProofRule(
+    const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children)
+{
+  const std::vector<std::shared_ptr<ProofNode>>& cc = pn->getChildren();
+  switch (pn->getRule())
+  {
+    case ProofRule::CONG:
+    {
+      Node res = pn->getResult();
+      if (res[0].isClosure())
+      {
+        // Ignore the children after the required arguments.
+        // This ensures that we ignore e.g. equalities between patterns
+        // which can appear in term conversion proofs.
+        size_t arity = kind::metakind::getMinArityForKind(res[0].getKind());
+        children.insert(children.end(), cc.begin(), cc.begin() + arity - 1);
+        return;
+      }
+    }
+    break;
+    default: break;
+  }
+  children.insert(children.end(), cc.begin(), cc.end());
+}
+
 void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
                                       std::vector<Node>& args)
 {
@@ -428,16 +461,19 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::CHAIN_RESOLUTION:
+    case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
-      // we combine into a list
-      NodeManager* nm = NodeManager::currentNM();
-      Node argsList = nm->mkNode(Kind::AND, pargs);
-      argsList = d_tproc.convert(argsList);
-      args.push_back(argsList);
+      Node op = d_tproc.getOperatorOfTerm(res[0], true);
+      args.push_back(d_tproc.convert(op));
       return;
     }
     break;
+    case ProofRule::HO_CONG:
+    {
+      // argument is ignored
+      return;
+    }
     case ProofRule::INSTANTIATE:
     {
       // ignore arguments past the term vector
@@ -467,20 +503,11 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     conclusionPrint = conclusion;
   }
   ProofRule r = pn->getRule();
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  std::vector<std::shared_ptr<ProofNode>> children;
+  getChildrenFromProofRule(pn, children);
   std::vector<Node> args;
   bool handled = isHandled(pn);
-  if (r == ProofRule::ALF_RULE)
-  {
-    const std::vector<Node> aargs = pn->getArguments();
-    Node rn = aargs[0];
-    // arguments are converted here
-    for (size_t i = 2, nargs = aargs.size(); i < nargs; i++)
-    {
-      args.push_back(d_tproc.convert(aargs[i]));
-    }
-  }
-  else if (handled)
+  if (handled)
   {
     getArgsFromProofRule(pn, args);
   }
@@ -510,8 +537,12 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   // if we don't handle the rule, print trust
   if (!handled)
   {
-    out->printTrustStep(
-        pn->getRule(), conclusionPrint, id, premises, conclusion);
+    out->printTrustStep(pn->getRule(),
+                        conclusionPrint,
+                        id,
+                        premises,
+                        pn->getArguments(),
+                        conclusion);
     return;
   }
   std::string rname = getRuleName(pn);

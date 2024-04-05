@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Dejan Jovanovic, Haniel Barbosa
+ *   Aina Niemetz, Tim King, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,8 @@
 namespace cvc5::internal {
 namespace theory {
 namespace booleans {
+
+TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
 
 RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
   return preRewrite(node);

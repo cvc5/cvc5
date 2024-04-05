@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -124,7 +124,7 @@ class VtsTermCache : protected EnvObj
    */
   bool containsVtsTerm(std::vector<Node>& n, bool isFree = false);
   /**
-   * This method returns true iff n contains an occurence of the virtual term
+   * This method returns true iff n contains an occurrence of the virtual term
    * infinity. If isFree is true, if returns true iff n contains the free
    * virtual term infinity.
    */

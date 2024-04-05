@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +68,7 @@ enum class MethodId : uint32_t
   SBA_SIMUL,
   // multiple substitutions are applied to fix point
   SBA_FIXPOINT
-  // For example, for x -> u, y -> f(z), z -> g(x), applying this substituion to
+  // For example, for x -> u, y -> f(z), z -> g(x), applying this substitution to
   // y gives:
   // - f(g(x)) for SBA_SEQUENTIAL
   // - f(z) for SBA_SIMUL

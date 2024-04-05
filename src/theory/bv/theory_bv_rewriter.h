@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@ typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 class TheoryBVRewriter : public TheoryRewriter
 {
  public:
-  TheoryBVRewriter();
+  TheoryBVRewriter(NodeManager* nm);
 
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
@@ -91,9 +91,8 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteSsubo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSdivo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteEagerAtom(TNode node, bool prerewrite = false);
-
-  static RewriteResponse RewriteBVToNat(TNode node, bool prerewrite = false);
-  static RewriteResponse RewriteIntToBV(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSize(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteConstBvSym(TNode node, bool prerewrite = false);
 
   void initializeRewrites();
 

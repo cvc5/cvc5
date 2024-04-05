@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,6 +50,11 @@ class PolyNorm
   void subtract(const PolyNorm& p);
   /** Multiply this polynomial by p */
   void multiply(const PolyNorm& p);
+  /**
+   * Modulus the coefficients of this polynomial by constant c, where c must be
+   * integral.
+   */
+  void modCoeffs(const Rational& c);
   /** Clear this polynomial */
   void clear();
   /** Return true if this polynomial is empty */
@@ -57,14 +62,38 @@ class PolyNorm
   /** Is this polynomial equal to polynomial p? */
   bool isEqual(const PolyNorm& p) const;
   /**
+   * Is this polynomial equal to polynomial p*c for some c? If so, return
+   * true and store in c.
+   */
+  bool isEqualMod(const PolyNorm& p, Rational& c) const;
+  /**
    * Make polynomial from real term n. This method normalizes applications
-   * of operators ADD, SUB, NEG, MULT, and NONLINEAR_MULT only.
+   * of operators ADD, SUB, NEG, MULT, NONLINEAR_MULT, bitvector equivalent
+   * of these operators, and TO_REAL.
    */
   static PolyNorm mkPolyNorm(TNode n);
-  /** Do a and b normalize to the same polynomial? */
+  /**
+   * If a and b are atoms, do they normalize to atoms over the same
+   * polynomial?
+   * Otherwise, do a and b normalize to the same polynomial?
+   */
   static bool isArithPolyNorm(TNode a, TNode b);
+  /**
+   * Do atoms a and b normalize to an atom over the same polynomial?
+   * In particular, for relations a1 ~ a2 / b1 ~ b2, we return true
+   * if the normalization of (a1-a2) is equivalent to the normalization of
+   * (b1-b2).
+   *
+   * This method can return true if a/b are Int/Real and ~ is in {=,>=,>,<=,<}
+   * or if a/b are bitvector and ~ is in {=}.
+   */
+  static bool isArithPolyNormAtom(TNode a, TNode b);
 
  private:
+  /**
+   * Make the difference of two nodes a and b, independent of their type.
+   */
+  static PolyNorm mkDiff(TNode a, TNode b);
   /**
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.

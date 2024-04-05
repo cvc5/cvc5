@@ -1,0 +1,23 @@
+(include "../theories/Arith.smt3")
+
+; Transcendental-specific operators of arithmetic.
+
+(declare-const real.pi Real)
+(declare-const exp (-> Real Real))
+(declare-const sin (-> Real Real))
+(declare-const cos (-> Real Real))
+(declare-const tan (-> Real Real))
+(declare-const csc (-> Real Real))
+(declare-const sec (-> Real Real))
+(declare-const cot (-> Real Real))
+(declare-const arcsin (-> Real Real))
+(declare-const arccos (-> Real Real))
+(declare-const arctan (-> Real Real))
+(declare-const arccsc (-> Real Real))
+(declare-const arcsec (-> Real Real))
+(declare-const arccot (-> Real Real))
+(declare-const sqrt (-> Real Real))
+
+; skolems
+(declare-const @transcendental_purify (-> (-> Real Real) Real Real))
+(declare-const @transcendental_purify_arg (-> Real Real))

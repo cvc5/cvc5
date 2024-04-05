@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -206,11 +206,11 @@ class BagsUtils
   static Node evaluateBagCount(TNode n);
 
   /**
-   * @param n has the form (bag.duplicate_removal A) where A is a constant bag
+   * @param n has the form (bag.setof A) where A is a constant bag
    * @return a constant bag constructed from the elements in A where each
    * element has multiplicity one
    */
-  static Node evaluateDuplicateRemoval(TNode n);
+  static Node evaluateSetof(TNode n);
 
   /**
    * evaluates union disjoint node such that the returned node is a canonical
@@ -256,21 +256,6 @@ class BagsUtils
    * @return the number of elements in bag A
    */
   static Node evaluateCard(TNode n);
-  /**
-   * @param n has the form (bag.is_singleton A) where A is a constant bag
-   * @return whether the bag A has cardinality one.
-   */
-  static Node evaluateIsSingleton(TNode n);
-  /**
-   * @param n has the form (bag.from_set A) where A is a constant set
-   * @return a constant bag that contains exactly the elements in A.
-   */
-  static Node evaluateFromSet(TNode n);
-  /**
-   * @param n has the form (bag.to_set A) where A is a constant bag
-   * @return a constant set constructed from the elements in A.
-   */
-  static Node evaluateToSet(TNode n);
   /**
    * @param n has the form (bag.map f A) where A is a constant bag
    * @return a constant bag constructed from the images of elements in A.

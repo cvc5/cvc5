@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
+ *   Haniel Barbosa, Hans-Jörg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,11 @@
 namespace cvc5::internal {
 namespace theory {
 namespace booleans {
+
+BoolProofRuleChecker::BoolProofRuleChecker(NodeManager* nm)
+    : ProofRuleChecker(nm)
+{
+}
 
 void BoolProofRuleChecker::registerTo(ProofChecker* pc)
 {
@@ -75,6 +80,8 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::CNF_ITE_NEG2, this);
   pc->registerChecker(ProofRule::CNF_ITE_NEG3, this);
   pc->registerTrustedChecker(ProofRule::SAT_REFUTATION, this, 1);
+  pc->registerTrustedChecker(ProofRule::DRAT_REFUTATION, this, 1);
+  pc->registerTrustedChecker(ProofRule::SAT_EXTERNAL_PROVE, this, 1);
 }
 
 Node BoolProofRuleChecker::checkInternal(ProofRule id,
@@ -190,7 +197,9 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   if (id == ProofRule::CHAIN_RESOLUTION)
   {
     Assert(children.size() > 1);
-    Assert(args.size() == 2 * (children.size() - 1));
+    Assert(args.size() == 2);
+    Assert(args[0].getNumChildren() == (children.size() - 1));
+    Assert(args[1].getNumChildren() == (children.size() - 1));
     Trace("bool-pfcheck") << "chain_res:\n" << push;
     NodeManager* nm = NodeManager::currentNM();
     Node trueNode = nm->mkConst(true);
@@ -214,11 +223,13 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     // If the child is not an OR, it is a singleton clause and we take the
     // child itself as the clause. Otherwise the child can only be a singleton
     // clause if the child itself is used as a resolution literal, i.e. if the
-    // first child equal to the first pivot (which is args[1] or
-    // args[1].notNote() depending on the polarity).
+    // first child equal to the first pivot (which is args[1][0] or
+    // args[1][0].notNode() depending on the polarity).
+    Node pols = args[0];
+    Node lits = args[1];
     if (children[0].getKind() != Kind::OR
-        || (args[0] == trueNode && children[0] == args[1])
-        || (args[0] == falseNode && children[0] == args[1].notNode()))
+        || (pols[0] == trueNode && children[0] == lits[0])
+        || (pols[0] == falseNode && children[0] == lits[0].notNode()))
     {
       lhsClause.push_back(children[0]);
     }
@@ -228,22 +239,22 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     // Traverse the links, which amounts to for each pair of args removing a
     // literal from the lhs and a literal from the lhs.
-    for (size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
+    for (size_t i = 0, argsSize = pols.getNumChildren(); i < argsSize; i++)
     {
       // Polarity determines how the pivot occurs in lhs and rhs
-      if (args[i] == trueNode)
+      if (pols[i] == trueNode)
       {
-        lhsElim = args[i + 1];
-        rhsElim = args[i + 1].notNode();
+        lhsElim = lits[i];
+        rhsElim = lits[i].notNode();
       }
       else
       {
-        Assert(args[i] == falseNode);
-        lhsElim = args[i + 1].notNode();
-        rhsElim = args[i + 1];
+        Assert(pols[i] == falseNode);
+        lhsElim = lits[i].notNode();
+        rhsElim = lits[i];
       }
       // The index of the child corresponding to the current rhs clause
-      size_t childIndex = i / 2 + 1;
+      size_t childIndex = i + 1;
       // Get rhs clause. It's a singleton if not an OR node or if equal to
       // rhsElim
       if (children[childIndex].getKind() != Kind::OR
@@ -255,7 +266,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       {
         rhsClause = {children[childIndex].begin(), children[childIndex].end()};
       }
-      Trace("bool-pfcheck") << i / 2 << "-th res link:\n";
+      Trace("bool-pfcheck") << i << "-th res link:\n";
       Trace("bool-pfcheck") << "\t - lhsClause: " << lhsClause << "\n";
       Trace("bool-pfcheck") << "\t\t - lhsElim: " << lhsElim << "\n";
       Trace("bool-pfcheck") << "\t - rhsClause: " << rhsClause << "\n";
@@ -928,9 +939,13 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
         args[0], args[0][1].notNode(), args[0][2].notNode()};
     return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
-  if (id == ProofRule::SAT_REFUTATION)
+  if (id == ProofRule::SAT_REFUTATION || id == ProofRule::DRAT_REFUTATION
+      || id == ProofRule::SAT_EXTERNAL_PROVE)
   {
-    Assert(args.empty());
+    Assert(args.size()
+           == (id == ProofRule::SAT_REFUTATION
+                   ? 0
+                   : (id == ProofRule::SAT_EXTERNAL_PROVE ? 1 : 2)));
     return NodeManager::currentNM()->mkConst(false);
   }
   // no rule

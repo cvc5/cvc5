@@ -1,0 +1,155 @@
+(include "../theories/Strings.smt3")
+(include "../programs/Strings.smt3")
+
+;;-------------------- Core
+
+(declare-rule string_length_pos ((U Type) (s U))
+  :args (s)
+  :conclusion
+    (or (and (= (str.len s) 0) (= s (mk_emptystr (alf.typeof s)))) (> (str.len s) 0))
+)
+
+(declare-rule string_length_non_empty ((U Type) (s Type) (t Type))
+  :premises ((not (= s t)))
+  :requires (((string_is_empty t) true))
+  :conclusion (not (= (str.len s) 0))
+)
+
+; the ProofRule::CONCAT_EQ rule
+(declare-rule concat_eq ((U Type) (s U) (t U) (rev Bool))
+  :premises ((= s t))
+  :args (rev)
+  :conclusion
+    (alf.match ((ss U) (ts U))
+      (strip_prefix
+           (string_to_flat_form s rev)
+           (string_to_flat_form t rev))
+      (((@pair ss ts)
+        (= 
+          (string_from_flat_form ss rev)
+          (string_from_flat_form ts rev)))))
+)
+
+; returns true if s1 is a prefix of s, taking into account flattening
+(define string_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
+  (let ((sf (string_to_flat_form s rev)))
+  (let ((sf1 (string_to_flat_form s1 rev)))
+  (nary.is_prefix str.++ alf.null sf1 sf)))
+)
+
+; ProofRule::CONCAT_UNIFY
+(declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
+  :premises ((= s t) (= (str.len s1) (str.len t1)))
+  :args (rev)
+  :requires (((string_is_prefix s s1 rev) true) ((string_is_prefix t t1 rev) true))
+  :conclusion (= s1 t1)
+)
+
+; ProofRule::CONCAT_CSPLIT
+(declare-rule concat_csplit ((U Type) (t U) (s U) (u U) (rev Bool))
+  :premises ((= t s) (not (= (str.len u) 0)))
+  :args (rev)
+  :conclusion
+    (alf.match ((t1 U) (t2 U :list))
+      (string_to_flat_form t rev)
+      (((str.++ t1 t2)
+        (alf.requires t1 u
+          (alf.match ((s1 U) (s2 U :list))
+            (string_to_flat_form s rev)
+            (((str.++ s1 s2)
+              (alf.requires (string_check_length_one s1) true    ; checks if char
+                (= u
+                  (alf.ite rev
+                    (str.++ (skolem (skolem_prefix u (- (str.len u) 1))) s1)
+                    (str.++ s1 (skolem (skolem_suffix_rem u 1)))))))))))))
+)
+
+; ProofRule::CONCAT_CONFLICT, for strings only
+(declare-rule concat_conflict ((s String) (t String) (rev Bool))
+  :premises ((= s t))
+  :args (rev)
+  :conclusion
+    ; strip the prefix of the equality
+    (alf.match ((ss String) (ts String))
+      (strip_prefix
+           (string_to_flat_form s rev)
+           (string_to_flat_form t rev))
+      (((@pair ss ts)
+          (let ((cs (string_head_or_empty ss)))
+          (let ((ct (string_head_or_empty ts)))
+            ; ensure they are disequal, return false
+            (alf.requires
+              (alf.ite (alf.is_eq cs alf.null)
+                (string_check_length_one ct)
+                (alf.ite (string_check_length_one cs)
+                  (alf.ite (alf.is_eq ct alf.null)
+                    true
+                    (alf.ite (string_check_length_one ct)
+                      (alf.not (alf.is_eq cs ct))
+                      false))
+                  false))
+              true
+              false)))))
+    )
+)
+
+; ProofRule::CONCAT_CONFLICT_DEQ, for sequences only
+(declare-rule concat_conflict_deq ((U Type) (s (Seq U)) (t (Seq U)) (x U) (y U) (rev Bool))
+  :premises ((= s t) (not (= (seq.unit x) (seq.unit y))))
+  :args (rev)
+  :conclusion
+    ; strip the prefix of the equality
+    (alf.match ((ss (Seq U)) (ts (Seq U)))
+      (strip_prefix
+           (string_to_flat_form s rev)
+           (string_to_flat_form t rev))
+      (((@pair ss ts)
+          ; take the first character from each side, should give x and y
+          (alf.requires (string_head_or_empty ss) (seq.unit x)
+          (alf.requires (string_head_or_empty ts) (seq.unit y)
+              false)))))
+)
+
+;;-------------------- Regular expressions
+
+(declare-rule re_inter ((x String) (s RegLan) (t RegLan))
+  :premises ((str.in_re x s) (str.in_re x t))
+  :conclusion (str.in_re x (re.inter s t))
+)
+
+(declare-rule re_unfold_pos ((t String) (r RegLan))
+  :premises ((str.in_re t r))
+  :conclusion
+    (alf.match ((r1 RegLan) (r2 RegLan :list))
+      r
+      (
+        ((re.* r1)
+            (alf.match ((k1 String) (k2 String) (k3 String) (M Bool :list))
+            (re_unfold_pos_concat t (re.++ r1 r r1))
+            (((@pair (str.++ k1 k2 k3) M)
+                (or 
+                (= t "") 
+                (str.in_re t r1)
+                (and
+                    (alf.cons and (= t (str.++ k1 k2 k3)) M)
+                    (not (= k1 ""))
+                    (not (= k3 ""))))))))
+        ((re.++ r1 r2)
+            (alf.match ((tk String) (M Bool :list))
+            (re_unfold_pos_concat t r)
+            (((@pair tk M)
+                (let ((teq (= t tk))) (alf.ite (alf.is_eq M true) teq (and teq M)))))))
+    ))
+)
+
+;;-------------------- Extended functions 
+
+(declare-rule string_reduction ((U Type) (s U))
+  :args (s)
+  :conclusion (and (string_reduction_pred s) (= s (skolem s)))
+)
+
+(declare-rule string_eager_reduction ((U Type) (s U))
+  :args (s)
+  :conclusion (mk_string_eager_reduction s)
+)

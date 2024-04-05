@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar, Alex Ozdemir, Vinícius Camillo
+#   Yoni Zohar, Vinícius Camillo
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -23,16 +23,13 @@ macro(cvc5_add_python_api_test name filename)
             ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
     # directory for importing the python bindings
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
-    set_tests_properties(${test_name} 
+    set_tests_properties(${test_name}
       PROPERTIES LABELS "api"
       ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH}:${CMAKE_SOURCE_DIR}/api/python)
 endmacro()
 
 # add specific test files
 cvc5_add_python_api_test(pyapi_boilerplate boilerplate.py)
-if(USE_COCOA)
-  cvc5_add_python_api_test(pyapi_finite_field finite_field.py)
-endif()
 cvc5_add_python_api_test(pyapi_issue4889 issue4889.py)
 cvc5_add_python_api_test(pyapi_issue5074 issue5074.py)
 cvc5_add_python_api_test(pyapi_issue6111 issue6111.py)
