@@ -660,7 +660,7 @@ enum ENUM(SkolemId) : uint32_t
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The floating-point sort ``FP`` of the fp.min operator.
-   * - Sort: ``(-> (FP FP) (_ BitVector 1)``
+   * - Sort: ``(-> FP FP (_ BitVec 1))``
    */
   EVALUE(FP_MIN_ZERO),
   /**
@@ -669,7 +669,7 @@ enum ENUM(SkolemId) : uint32_t
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The floating-point sort ``FP`` of the fp.max operator.
-   * - Sort: ``(-> (FP FP) (_ BitVector 1)``
+   * - Sort: ``(-> FP FP (_ BitVec 1))``
    */
   EVALUE(FP_MAX_ZERO),
   /**
@@ -680,7 +680,7 @@ enum ENUM(SkolemId) : uint32_t
    * - Number of skolem indices: ``2``
    *   - ``1:`` The floating-point sort ``FP`` of operand of fp.to_ubv.
    *   - ``2:`` The bit-vector sort ``BV`` to convert to.
-   * - Sort: ``(-> (RoundingMode FP) BV)``
+   * - Sort: ``(-> RoundingMode FP BV)``
    */
   EVALUE(FP_TO_UBV),
   /**
@@ -691,7 +691,7 @@ enum ENUM(SkolemId) : uint32_t
    * - Number of skolem indices: ``2``
    *   - ``1:`` The floating-point sort ``FP`` of operand of fp.to_sbv.
    *   - ``2:`` The bit-vector sort ``BV`` to convert to.
-   * - Sort: ``(-> (RoundingMode FP) BV)``
+   * - Sort: ``(-> RoundingMode FP BV)``
    */
   EVALUE(FP_TO_SBV),
   /**
