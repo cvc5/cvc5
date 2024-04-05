@@ -108,6 +108,11 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
+  /**
+   * Notify SAT clause. This should be called whenever the SAT solver learns
+   * a SAT clause. It notifies user plugins of the added clauses.
+   */
+  void notifySatClause(const SatClause& clause);
 
   void theoryPropagate(SatClause& output);
 

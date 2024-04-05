@@ -162,7 +162,10 @@ Node ProofChecker::checkInternal(ProofRule id,
   {
     if (useTrustedChecker)
     {
-      (*out) << "ProofChecker::check: trusting ProofRule " << id << std::endl;
+      if (out != nullptr)
+      {
+        (*out) << "ProofChecker::check: trusting ProofRule " << id << std::endl;
+      }
       // trusted checker
       return expected;
     }

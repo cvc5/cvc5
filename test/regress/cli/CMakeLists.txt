@@ -258,6 +258,7 @@ set(regress_0_tests
   regress0/bug639.smt2
   regress0/buggy-ite.smt2
   regress0/bv2nat-logic.smt2
+  regress0/bv-conv-value-refine.smt2
   regress0/bv/ackermann1.smt2
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
@@ -910,6 +911,7 @@ set(regress_0_tests
   regress0/ho/lambda-test-deps-simple.smt2
   regress0/ho/lazy-lambda-model.smt2
   regress0/ho/match-middle.smt2
+  regress0/ho/model-lam-simple.smt2
   regress0/ho/modulo-func-equality.smt2
   regress0/ho/qgu-fuzz-ho-1-dd.smt2
   regress0/ho/qgu-fuzz-ho-2-dd-no-ext.smt2
@@ -1041,6 +1043,9 @@ set(regress_0_tests
   regress0/nl/nta/exp-n0.5-ub.smt2
   regress0/nl/nta/exp-neg2-unsat-unsound.smt2
   regress0/nl/nta/exp1-ub.smt2
+  regress0/nl/nta/issue10541.smt2
+  regress0/nl/nta/issue10542-2.smt2
+  regress0/nl/nta/issue10543-2.smt2
   regress0/nl/nta/issue4693-inc-purify.smt2
   regress0/nl/nta/issue4693-4-inc-purify-sat.smt2
   regress0/nl/nta/issue4693-5-inc-purify.smt2
@@ -1141,6 +1146,7 @@ set(regress_0_tests
   regress0/parser/issue9990-nprint-char.smt2
   regress0/parser/issue10093.smt2
   regress0/parser/issue10156-bad-tester.smt2
+  regress0/parser/issue10489.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1294,6 +1300,7 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
+  regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/t1-difficulty-filter.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
@@ -1348,6 +1355,7 @@ set(regress_0_tests
   regress0/quantifiers/agg-rew-test-cf.smt2
   regress0/quantifiers/agg-rew-test.smt2
   regress0/quantifiers/ari056.smt2
+  regress0/quantifiers/ari-syqi.smt2
   regress0/quantifiers/ARI176e1.smt2
   regress0/quantifiers/bug269.smt2
   regress0/quantifiers/bug290.smt2

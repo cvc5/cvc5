@@ -3,8 +3,7 @@
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
-; Returns the (integer value) bitwidth for a given bit-vector type.
-(program get_bitwidth ((T Type) (n Int))
+(program get_bitwidth ((n Int))
   (Type) Int
   (
     ((get_bitwidth (BitVec n)) n)
@@ -12,14 +11,14 @@
 )
 
 ; used as the nil terminator for concat
-(declare-const bvempty (BitVec 0))
+(define @bvempty () (alf.to_bin 0 0))
 
 (declare-const concat (->
   (! Int :var n :implicit)
   (! Int :var m :implicit)
   (BitVec n)
   (BitVec m)
-  (BitVec (alf.add n m))) :right-assoc-nil bvempty
+  (BitVec (alf.add n m))) :right-assoc-nil @bvempty
 )
 
 (declare-const extract (->
@@ -232,11 +231,6 @@
         (BitVec m) (BitVec m) (BitVec 1))
 )
 
-(declare-const bitOf
-    (-> (! Int :var m :implicit)
-        Int (BitVec m) Bool))
-
-
 (declare-const bvuaddo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
@@ -293,13 +287,6 @@
         (BitVec m) (BitVec 1))
 )
 
-(declare-const bbT (->
-  (! Int :var n :implicit)
-  Bool
-  (BitVec n)
-  (BitVec (alf.add 1 n)))
-)
-
 (declare-const int2bv (->
   (! Int :var w)
   Int (BitVec w))
@@ -312,9 +299,21 @@
 
 (declare-const BITVECTOR_EAGER_ATOM (-> Bool Bool))
 
+; internal operators
+
+(declare-const @bitOf
+    (-> (! Int :var m :implicit)
+        Int (BitVec m) Bool))
+
+(declare-const @bbT (->
+  (! Int :var n :implicit)
+  Bool
+  (BitVec n)
+  (BitVec (alf.add 1 n))) :right-assoc-nil @bvempty
+)
+
 ; symbolic constant
-;(declare-const bv (-> Int (! Int :var w) (BitVec w)))
+(declare-const @bv (-> Int (! Int :var w) (BitVec w)))
 
 ; bvsize
-; should be a define
-(declare-const bvsize (-> (! Int :var m :implicit) (BitVec m) Int))
+(define @bvsize ((m Int :implicit) (x (BitVec m))) (get_bitwidth (alf.typeof x)))

@@ -364,6 +364,7 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   print_config_cond("ubsan", Configuration::isUbsanBuild());
   print_config_cond("tsan", Configuration::isTsanBuild());
   print_config_cond("competition", Configuration::isCompetitionBuild());
+  print_config_cond("portfolio", Configuration::isBuiltWithPortfolio());
 
   std::cout << std::endl;
 

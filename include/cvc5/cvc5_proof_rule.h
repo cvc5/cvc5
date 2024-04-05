@@ -456,8 +456,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{C_1 \mid -}{C_2}
    *
-   * where :math:`C_2` is the clause :math:`C_1`, but every occurence of a literal
-   * after its first occurence is omitted.
+   * where :math:`C_2` is the clause :math:`C_1`, but every occurrence of a literal
+   * after its first occurrence is omitted.
    * \endverbatim
    */
   EVALUE(FACTORING),
@@ -2259,6 +2259,10 @@ enum ENUM(ProofRule) : uint32_t
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 // clang-format on
 
