@@ -58,9 +58,8 @@ Node FpExpandDefs::toUbvSbvUF(TNode node)
       nm->getSkolemManager()->mkSkolemFunction(
           kind == Kind::FLOATINGPOINT_TO_SBV ? SkolemId::FP_TO_SBV
                                              : SkolemId::FP_TO_UBV,
-          {nm->mkConst(SortToTerm(type)),
-           nm->mkConst(SortToTerm(node[0].getType())),
-           nm->mkConst(SortToTerm(node[1].getType()))}),
+          {nm->mkConst(SortToTerm(node[1].getType())),
+           nm->mkConst(SortToTerm(type))}),
       node[0],
       node[1]);
 }

@@ -657,28 +657,45 @@ enum ENUM(SkolemId) : uint32_t
   /**
    * A skolem function that is unique per floating-point sort, introduced for
    * the undefined zero case of ``fp.min``.
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` The Sort of the fp.min operator.
    */
   EVALUE(FP_MIN_ZERO),
   /**
    * A skolem function that is unique per floating-point sort, introduced for
    * the undefined zero case of ``fp.max``.
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` The floating-point sort of the fp.max operator.
    */
   EVALUE(FP_MAX_ZERO),
   /**
    * A skolem function introduced for the undefined out-ouf-bounds case of
    * ``fp.to_ubv`` that is unique per floating-point sort and sort of the
    * arguments to the operator.
+   *
+   * - Number of skolem indices: ``2``
+   *   - ``1:`` The floating-point sort of operand of fp.to_ubv.
+   *   - ``2:`` The bit-vector sort to convert to.
    */
   EVALUE(FP_TO_UBV),
   /**
    * A skolem function introduced for the undefined out-ouf-bounds case of
    * ``fp.to_sbv`` that is unique per floating-point sort and sort of the
    * arguments to the operator.
+   *
+   * - Number of skolem indices: ``2``
+   *   - ``1:`` The floating-point sort of operand of fp.to_sbv.
+   *   - ``2:`` The bit-vector sort to convert to.
    */
   EVALUE(FP_TO_SBV),
   /**
    * A skolem function introduced for the undefined of ``fp.to_real`` that is
    * unique per floating-point sort.
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` The floating-point sort of the operand of fp.to_real.
    */
   EVALUE(FP_TO_REAL),
   //================================================= Unknown rule
