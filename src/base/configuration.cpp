@@ -154,7 +154,8 @@ std::string Configuration::copyright() {
   }
 
   if (Configuration::isBuiltWithCln()
-      || Configuration::isBuiltWithGlpk ()) {
+      || Configuration::isBuiltWithGlpk()
+      || Configuration::isBuiltWithCoCoA()) {
     ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the GPLv3 license.\n"
        << "See licenses/gpl-3.0.txt for more information.\n\n";
