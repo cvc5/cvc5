@@ -654,6 +654,33 @@ enum ENUM(SkolemId) : uint32_t
    * - Type: ``E``
    */
   EVALUE(SETS_MAP_DOWN_ELEMENT),
+  /**
+   * A skolem function that is unique per floating-point sort, introduced for
+   * the undefined zero case of ``fp.min``.
+   */
+  EVALUE(FP_MIN_ZERO),
+  /**
+   * A skolem function that is unique per floating-point sort, introduced for
+   * the undefined zero case of ``fp.max``.
+   */
+  EVALUE(FP_MAX_ZERO),
+  /**
+   * A skolem function introduced for the undefined out-ouf-bounds case of
+   * ``fp.to_ubv`` that is unique per floating-point sort and sort of the
+   * arguments to the operator.
+   */
+  EVALUE(FP_TO_UBV),
+  /**
+   * A skolem function introduced for the undefined out-ouf-bounds case of
+   * ``fp.to_sbv`` that is unique per floating-point sort and sort of the
+   * arguments to the operator.
+   */
+  EVALUE(FP_TO_SBV),
+  /**
+   * A skolem function introduced for the undefined of ``fp.to_real`` that is
+   * unique per floating-point sort.
+   */
+  EVALUE(FP_TO_REAL),
   //================================================= Unknown rule
   /** Indicates this is not a skolem. */
   EVALUE(NONE),
