@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; REQUIRES: no-debug code
+; REQUIRES: no-assertions
 ; This regression test failed with a check-model failure prior to #10589 in
 ; production. In debug, this fails with a spurious assertion failure in SymFPU.
 ; We thus, for now, only test this for production.
