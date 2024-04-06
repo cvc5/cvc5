@@ -41,7 +41,8 @@ HoExtension::HoExtension(Env& env,
       d_ll(ll),
       d_extensionality(userContext()),
       d_cachedLemmas(userContext()),
-      d_uf_std_skolem(userContext())
+      d_uf_std_skolem(userContext()),
+      d_lamEqProcessed(userContext())
 {
   d_true = nodeManager()->mkConst(true);
   // don't send true lemma
@@ -536,6 +537,20 @@ unsigned HoExtension::checkLazyLambda()
         // two lambda functions are in same equivalence class
         Node f = lamRep < n ? lamRep : n;
         Node g = lamRep < n ? n : lamRep;
+        // swap based on order
+        if (g<f)
+        {
+          Node tmp = f;
+          f = g;
+          g = tmp;
+        }
+        Node fgEq = f.eqNode(g);
+        if (d_lamEqProcessed.find(fgEq)!=d_lamEqProcessed.end())
+        {
+          continue;
+        }
+        d_lamEqProcessed.insert(fgEq);
+
         Trace("uf-ho-debug") << "  found equivalent lambda functions " << f
                              << " and " << g << std::endl;
         Node flam = lamRep < n ? lamRepLam : lam;
@@ -550,18 +565,21 @@ unsigned HoExtension::checkLazyLambda()
         // do quantifier elimination??
         if (options().uf.ufHoLambdaQe)
         {
+          Trace("uf-lambda-qe") << "Given " << flam << " == " << glam << std::endl;
+          Trace("uf-lambda-qe") << "Run QE on " << univ << std::endl;
           std::unique_ptr<SolverEngine> lqe;
           // initialize the subsolver using the standard method
           initializeSubsolver(lqe, d_env);
-          Node univQe = lqe->getQuantifierElimination(univ);
-          Trace("uf-ho-debug") << "QE is " << univQe << std::endl;
+          Node univQe = lqe->getQuantifierElimination(univ, true);
+          Trace("uf-lambda-qe") << "QE is " << univQe << std::endl;
+          univ = univQe;
         }
         // f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
         //
         // For example, if f -> lambda z. z+1, g -> lambda y. y+3, this
         // will infer: f = g => forall x. x+1 = x+3, which simplifies to
         // f != g.
-        Node lem = nm->mkNode(Kind::IMPLIES, f.eqNode(g), univ);
+        Node lem = nm->mkNode(Kind::IMPLIES, fgEq, univ);
         if (cacheLemma(lem))
         {
           d_im.lemma(lem, InferenceId::UF_HO_LAMBDA_UNIV_EQ);
