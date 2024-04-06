@@ -22,6 +22,7 @@
 #include "theory/uf/function_const.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -546,6 +547,15 @@ unsigned HoExtension::checkLazyLambda()
         std::vector<Node> args(flam[0].begin(), flam[0].end());
         Node rhs = d_ll.betaReduce(glam, args);
         Node univ = nm->mkNode(Kind::FORALL, flam[0], lhs.eqNode(rhs));
+        // do quantifier elimination??
+        if (options().uf.ufHoLambdaQe)
+        {
+          std::unique_ptr<SolverEngine> lqe;
+          // initialize the subsolver using the standard method
+          initializeSubsolver(lqe, d_env);
+          Node univQe = lqe->getQuantifierElimination(univ);
+          Trace("uf-ho-debug") << "QE is " << univQe << std::endl;
+        }
         // f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
         //
         // For example, if f -> lambda z. z+1, g -> lambda y. y+3, this
