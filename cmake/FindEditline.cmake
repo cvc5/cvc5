@@ -42,7 +42,11 @@ if(Editline_INCLUDE_DIRS)
   unset(CMAKE_REQUIRED_INCLUDES)
 
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(Editline_LIBRARIES ${Editline_LIBRARIES} bsd tinfo)
+    find_library(BSD_LIBRARIES NAMES bsd)
+    if (BSD_LIBRARIES)
+      set(Editline_LIBRARIES ${Editline_LIBRARIES} bsd)
+    endif()
+    set(Editline_LIBRARIES ${Editline_LIBRARIES} tinfo)
   endif()
 endif()
 

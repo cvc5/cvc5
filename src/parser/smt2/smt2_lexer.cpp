@@ -153,7 +153,7 @@ Token Smt2Lexer::computeNextToken()
           // parse [0-9a-fA-F]+
           if (!parseNonEmptyCharList(CharacterClass::HEXADECIMAL_DIGIT))
           {
-            parseError("Error expected hexidecimal string");
+            parseError("Error expected hexadecimal string");
           }
           return Token::HEX_LITERAL;
         case 'f':
