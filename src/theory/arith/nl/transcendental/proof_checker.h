@@ -59,7 +59,9 @@ class TranscendentalProofRuleChecker : public ProofRuleChecker
   Node mkBounds(TNode t, TNode lb, TNode ub);
   /**
    * Helper method to construct a secant plane:
-   * evall + ((evall - evalu) / (l - u)) * (t - l)
+   * evall + ((evall - evalu) / (l - u)) * (t - l).
+   * Used for ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS and
+   * ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG.
    *
    * @param t term in the above formula
    * @param l term in the above formula
