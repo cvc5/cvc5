@@ -48,12 +48,13 @@ class TranscendentalProofRuleChecker : public ProofRuleChecker
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
   /**
-   * Helper method to construct (t >= lb) AND (t <= up)
+   * Helper method to construct a bounds constraint  (t >= lb) AND (t <= up)
+   * for a given term `t`.
    *
-   * @param t term in the above formula
-   * @param lb term in the above formula
-   * @param ub term in the above formula
-   * @return the formula of the form above
+   * @param t The given term.
+   * @param lb The lower bound.
+   * @param ub The upper bound.
+   * @return The bounds constraint as the formula of the form above.
    */
   Node mkBounds(TNode t, TNode lb, TNode ub);
   /**
