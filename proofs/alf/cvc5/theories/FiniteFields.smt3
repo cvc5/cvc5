@@ -2,7 +2,7 @@
 
 (declare-const FiniteField (-> Int Type))
 
-; Returns the (integer value) bitwidth for a given bit-vector type.
+; Returns the (integer value) size for a given finite field type.
 (define $ff_size ((T Type))
   (alf.match ((n Int)) T (((FiniteField n) n))))
 
