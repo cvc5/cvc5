@@ -43,38 +43,46 @@ def test_mk_datatype_sort(tm):
     nilConstr.getTerm()
 
 def test_is_null(tm):
-  # creating empty (null) objects.
-  dtypeSpec = DatatypeDecl(tm)
-  cons = DatatypeConstructorDecl(tm)
-  d = Datatype(tm)
-  consConstr = DatatypeConstructor(tm)
-  sel = DatatypeSelector(tm)
+    # creating empty (null) objects.
+    dtypeSpec = DatatypeDecl(tm)
+    cons = DatatypeConstructorDecl(tm)
+    d = Datatype(tm)
+    consConstr = DatatypeConstructor(tm)
+    sel = DatatypeSelector(tm)
 
-  # verifying that the objects are considered null.
-  assert dtypeSpec.isNull()
-  assert cons.isNull()
-  assert d.isNull()
-  assert consConstr.isNull()
-  assert sel.isNull()
+    # verifying that the objects are considered null.
+    assert dtypeSpec.isNull()
+    assert cons.isNull()
+    assert d.isNull()
+    assert consConstr.isNull()
+    assert sel.isNull()
 
-  # changing the objects to be non-null
-  dtypeSpec = tm.mkDatatypeDecl("list")
-  cons = tm.mkDatatypeConstructorDecl("cons")
-  cons.addSelector("head", tm.getIntegerSort())
-  dtypeSpec.addConstructor(cons)
-  assert dtypeSpec.getNumConstructors() == 1
-  assert not dtypeSpec.isParametric()
-  listSort = tm.mkDatatypeSort(dtypeSpec)
-  d = listSort.getDatatype()
-  consConstr = d[0]
-  sel = consConstr[0]
+    # changing the objects to be non-null
+    dtypeSpec = tm.mkDatatypeDecl("list")
+    cons = tm.mkDatatypeConstructorDecl("cons")
+    cons.addSelector("head", tm.getIntegerSort())
+    dtypeSpec.addConstructor(cons)
+    assert dtypeSpec.getNumConstructors() == 1
+    assert not dtypeSpec.isParametric()
+    listSort = tm.mkDatatypeSort(dtypeSpec)
+    d = listSort.getDatatype()
+    consConstr = d[0]
+    sel = consConstr[0]
 
-  # verifying that the new objects are non-null
-  assert not dtypeSpec.isNull()
-  assert not cons.isNull()
-  assert not d.isNull()
-  assert not consConstr.isNull()
-  assert not sel.isNull()
+    # verifying that the new objects are non-null
+    assert not dtypeSpec.isNull()
+    assert not cons.isNull()
+    assert not d.isNull()
+    assert not consConstr.isNull()
+    assert not sel.isNull()
+
+    # str()
+    print(str(cons))
+    print(str(sel))
+    print(str(consConstr))
+    print(str(dtypeSpec))
+    print(str(d))
+
 
 def test_mk_datatype_sorts(tm):
     # Create two mutual datatypes corresponding to this definition
