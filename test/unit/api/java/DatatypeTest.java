@@ -97,6 +97,7 @@ class DatatypeTest
     cons.toString();
     sel.toString();
     consConstr.toString();
+    dtypeSpec.toString();
     d.toString();
   }
 

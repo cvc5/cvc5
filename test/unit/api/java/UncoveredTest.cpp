@@ -336,6 +336,7 @@ TEST_F(TestApiBlackUncovered, Datatypes)
     ss << d;
     ss << dtcd;
     ss << dc;
+    ss << dtd;
     ss << d.getSelector("head");
   }
 }
