@@ -56,19 +56,41 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
   q = quantifiers::NestedQe::doNestedQe(d_env, q, true);
   Trace("smt-qe") << "QuantElimSolver: after nested quantifier elimination : "
                   << q << std::endl;
-  // tag the quantified formula with the quant-elim attribute
-  TypeNode t = nm->booleanType();
-  TheoryEngine* te = d_smtSolver.getTheoryEngine();
-  Assert(te != nullptr);
-  Node keyword =
-      nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
-  Node n_attr = nm->mkNode(Kind::INST_ATTRIBUTE, keyword);
-  n_attr = nm->mkNode(Kind::INST_PATTERN_LIST, n_attr);
-  std::vector<Node> children;
-  children.push_back(q[0]);
-  children.push_back(q.getKind() == Kind::EXISTS ? q[1] : q[1].negate());
-  children.push_back(n_attr);
-  Node ne = nm->mkNode(Kind::EXISTS, children);
+  // if we have no free variables, just use a quantifier-free query
+  std::unordered_set<Node> syms;
+  expr::getSymbols(q, syms);
+  bool closed = false;
+  Node ne;
+  if (syms.empty())
+  {
+    closed = true;
+    Subs sq;
+    SkolemManager * sm = nm->getSkolemManager();
+    for (const Node& v : q[0])
+    {
+      Node k = sm->mkInternalSkolemFunction(InternalSkolemId::QE_CLOSED_INPUT, v.getType(), {v});
+      sq.add(v, k);
+    }
+    ne = sq.apply(q[1]);
+    if (q.getKind() == Kind::FORALL)
+    {
+      ne = ne.negate();
+    }
+  }
+  else
+  {
+    // tag the quantified formula with the quant-elim attribute
+    TypeNode t = nm->booleanType();
+    Node keyword =
+        nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
+    Node n_attr = nm->mkNode(Kind::INST_ATTRIBUTE, keyword);
+    n_attr = nm->mkNode(Kind::INST_PATTERN_LIST, n_attr);
+    std::vector<Node> children;
+    children.push_back(q[0]);
+    children.push_back(q.getKind() == Kind::EXISTS ? q[1] : q[1].negate());
+    children.push_back(n_attr);
+    ne = nm->mkNode(Kind::EXISTS, children);
+  }
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
@@ -86,22 +108,27 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
       // failed, return original
       return q;
     }
-    QuantifiersEngine* qe = te->getQuantifiersEngine();
     // must use original quantified formula to compute QE, which ensures that
     // e.g. term formula removal is not run on the body. Notice that we assume
     // that the (single) quantified formula is preprocessed, rewritten
     // version of the input quantified formula q.
     std::vector<Node> inst_qs;
-    qe->getInstantiatedQuantifiedFormulas(inst_qs);
     Node topq;
-    // Find the quantified formula corresponding to the quantifier elimination
-    for (const Node& qinst : inst_qs)
+    if (!closed)
     {
-      // Should have the same attribute mark as above
-      if (qinst.getNumChildren() == 3 && qinst[2] == n_attr)
+      TheoryEngine* te = d_smtSolver.getTheoryEngine();
+      Assert(te != nullptr);
+      QuantifiersEngine* qe = te->getQuantifiersEngine();
+      qe->getInstantiatedQuantifiedFormulas(inst_qs);
+      // Find the quantified formula corresponding to the quantifier elimination
+      for (const Node& qinst : inst_qs)
       {
-        topq = qinst;
-        break;
+        // Should have the same attribute mark as above
+        if (qinst.getNumChildren() == 3 && qinst[2] == n_attr)
+        {
+          topq = qinst;
+          break;
+        }
       }
     }
     Node ret;
@@ -120,22 +147,22 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
       {
         ret = rewrite(ret.negate());
       }
+      // do extended rewrite to minimize the size of the formula aggressively
+      ret = extendedRewrite(ret);
+      // if we are not an internal subsolver, convert to witness form, since
+      // internally generated skolems should not escape
+      if (!isInternalSubsolver)
+      {
+        ret = SkolemManager::getOriginalForm(ret);
+      }
+      // make so that the returned formula does not involve arithmetic subtyping
+      SubtypeElimNodeConverter senc(nodeManager());
+      ret = senc.convert(ret);
     }
     else
     {
       ret = nm->mkConst(q.getKind() != Kind::EXISTS);
     }
-    // do extended rewrite to minimize the size of the formula aggressively
-    ret = extendedRewrite(ret);
-    // if we are not an internal subsolver, convert to witness form, since
-    // internally generated skolems should not escape
-    if (!isInternalSubsolver)
-    {
-      ret = SkolemManager::getOriginalForm(ret);
-    }
-    // make so that the returned formula does not involve arithmetic subtyping
-    SubtypeElimNodeConverter senc(nodeManager());
-    ret = senc.convert(ret);
     return ret;
   }
   // otherwise, just true/false
