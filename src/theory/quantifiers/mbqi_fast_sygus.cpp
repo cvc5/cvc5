@@ -64,21 +64,21 @@ void MVarInfo::initialize(Env& env,
       trules.push_back(symbol);
     }
   }
-  Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;
+  Trace("mbqi-fast-enum") << "Symbols: " << trules << std::endl;
   // TODO: could add more symbols to trules to improve the enumerated terms
   SygusGrammarCons sgc;
   Node bvl;
   TypeNode tng = sgc.mkDefaultSygusType(env, retType, bvl, trules);
-  if (TraceIsOn("mbqi-model-enum"))
+  if (TraceIsOn("mbqi-fast-enum"))
   {
-    Trace("mbqi-model-enum") << "Enumerate terms for " << retType;
+    Trace("mbqi-fast-enum") << "Enumerate terms for " << retType;
     if (!d_lamVars.isNull())
     {
-      Trace("mbqi-model-enum") << ", variable list " << d_lamVars;
+      Trace("mbqi-fast-enum") << ", variable list " << d_lamVars;
     }
-    Trace("mbqi-model-enum") << std::endl;
-    Trace("mbqi-model-enum") << "Based on grammar:" << std::endl;
-    Trace("mbqi-model-enum")
+    Trace("mbqi-fast-enum") << std::endl;
+    Trace("mbqi-fast-enum") << "Based on grammar:" << std::endl;
+    Trace("mbqi-fast-enum")
         << printer::smt2::Smt2Printer::sygusGrammarString(tng) << std::endl;
   }
   d_senum.reset(new SygusTermEnumerator(env, tng));
@@ -209,12 +209,12 @@ bool MbqiFastSygus::constructInstantiation(
   // from the main solver. This is likely a better notion of filtering.
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());
-  if (TraceIsOn("mbqi-model-enum"))
+  if (TraceIsOn("mbqi-fast-enum"))
   {
-    Trace("mbqi-model-enum") << "Instantiate " << q << std::endl;
+    Trace("mbqi-fast-enum") << "Instantiate " << q << std::endl;
     for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
     {
-      Trace("mbqi-model-enum")
+      Trace("mbqi-fast-enum")
           << "  " << q[0][i] << " -> " << mvs[i] << std::endl;
     }
   }
@@ -232,16 +232,16 @@ bool MbqiFastSygus::constructInstantiation(
     {
       return false;
     }
-    Trace("mbqi-model-enum")
+    Trace("mbqi-fast-enum")
         << "* Assume: " << q[0][i] << " -> " << v << std::endl;
     // if we don't enumerate it, we are already considering this instantiation
     inst.add(vars[i], v);
     vinst.add(q[0][i], v);
   }
   Node queryCurr = query;
-  Trace("mbqi-model-enum") << "...query is " << queryCurr << std::endl;
+  Trace("mbqi-fast-enum") << "...query is " << queryCurr << std::endl;
   queryCurr = rewrite(inst.apply(queryCurr));
-  Trace("mbqi-model-enum") << "...processed is " << queryCurr << std::endl;
+  Trace("mbqi-fast-enum") << "...processed is " << queryCurr << std::endl;
   std::shuffle(indices.begin(), indices.end(), Random::getRandom());
   for (size_t i = 0, isize = indices.size(); i < isize; i++)
   {
@@ -258,7 +258,7 @@ bool MbqiFastSygus::constructInstantiation(
       Node retc;
       if (!ret.isNull())
       {
-        Trace("mbqi-model-enum") << "- Try candidate: " << ret << std::endl;
+        Trace("mbqi-fast-enum") << "- Try candidate: " << ret << std::endl;
         // apply current substitution (to account for cases where ret has
         // other variables in its grammar).
         ret = vinst.apply(ret);
@@ -271,7 +271,7 @@ bool MbqiFastSygus::constructInstantiation(
       }
       else
       {
-        Trace("mbqi-model-enum")
+        Trace("mbqi-fast-enum")
             << "- Failed to enumerate candidate" << std::endl;
         // if we failed to enumerate, just try the original
         Node mc = d_parent.convertFromModel(mvs[ii], tmpCMap, mvFreshVar);
@@ -284,23 +284,23 @@ bool MbqiFastSygus::constructInstantiation(
         retc = mc;
         successEnum = false;
       }
-      Trace("mbqi-model-enum")
+      Trace("mbqi-fast-enum")
           << "- Converted candidate: " << v << " -> " << retc << std::endl;
       // see if it is still satisfiable, if still SAT, we replace
       Node queryCheck = queryCurr.substitute(v, TNode(retc));
       queryCheck = rewrite(queryCheck);
-      Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
+      Trace("mbqi-fast-enum") << "...check " << queryCheck << std::endl;
       // since we may have free constants from the grammar, we must ensure
       // their model value is considered.
-      Trace("mbqi-model-enum") << "...converted " << queryCheck << std::endl;
+      Trace("mbqi-fast-enum") << "...converted " << queryCheck << std::endl;
       SubsolverSetupInfo ssi(d_env);
       Result r = checkWithSubsolver(queryCheck, ssi);
       if (r == Result::SAT)
       {
         // remember the updated query
         queryCurr = queryCheck;
-        Trace("mbqi-model-enum") << "...success" << std::endl;
-        Trace("mbqi-model-enum")
+        Trace("mbqi-fast-enum") << "...success" << std::endl;
+        Trace("mbqi-fast-enum")
             << "* Enumerated " << q[0][ii] << " -> " << ret << std::endl;
         mvs[ii] = ret;
         vinst.add(q[0][ii], ret);
