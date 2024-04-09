@@ -79,7 +79,14 @@ class MVarInfo
 class MQuantInfo
 {
  public:
-  void initialize(Env& env, InstStrategyMbqi& d_parent, const Node& q);
+  /**
+   * Intialize the instantiation strategy for quantified formula q.
+   * 
+   * @param env Reference to the environment.
+   * @param parent Reference to the parent instantiation strategy.
+   * @param q The quantified formula.
+   */
+  void initialize(Env& env, InstStrategyMbqi& parent, const Node& q);
   /** Get indicies of variables to instantiate */
   std::vector<size_t> getInstIndicies();
   /** Get indicies of variables not to instantiate */
@@ -88,7 +95,6 @@ class MQuantInfo
   MVarInfo& getVarInfo(size_t index);
   /** Should we enumerate terms for type tn? */
   static bool shouldEnumerate(const TypeNode& tn);
-
  private:
   /** The quantified formula */
   Node d_quant;
@@ -144,4 +150,4 @@ class MbqiFastSygus : protected EnvObj
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_MBQI_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__MBQI_FAST_SYGUS_H */
