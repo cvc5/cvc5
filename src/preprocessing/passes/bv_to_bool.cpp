@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -135,7 +135,7 @@ Node BVToBool::convertBvAtom(TNode node)
   Assert(bv::utils::getSize(node[1]) == 1);
   Node a = convertBvTerm(node[0]);
   Node b = convertBvTerm(node[1]);
-  Node result = NodeManager::currentNM()->mkNode(Kind::EQUAL, a, b);
+  Node result = nodeManager()->mkNode(Kind::EQUAL, a, b);
   Trace("bv-to-bool") << "BVToBool::convertBvAtom " << node << " => " << result
                       << "\n";
 
@@ -150,7 +150,7 @@ Node BVToBool::convertBvTerm(TNode node)
 
   if (hasBoolCache(node)) return getBoolCache(node);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   if (!isConvertibleBvTerm(node))
   {

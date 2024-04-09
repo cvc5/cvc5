@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Andres Noetzli
+#   Gereon Kremer, Alex Ozdemir, Sorawee Porncharoenwase
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -63,7 +63,7 @@ if(NOT CoCoA_FOUND_SYSTEM)
     PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
         -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoALib-0.99800-trace.patch
     BUILD_IN_SOURCE YES
-    CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> --with-libgmp=${GMP_LIBRARY}
+    CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> --with-libgmp=${GMP_LIBRARY} --with-cxx=${CMAKE_CXX_COMPILER}
     BUILD_COMMAND ${make_cmd} library
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcocoa.a
   )

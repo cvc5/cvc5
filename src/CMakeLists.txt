@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,6 +21,7 @@ libcvc5_add_sources(
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
   api/cpp/cvc5_proof_rule.cpp
+  api/cpp/cvc5_skolem_id.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
   decision/decision_engine.cpp
@@ -138,6 +139,8 @@ libcvc5_add_sources(
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
   printer/ast/ast_printer.h
+  printer/enum_to_string.cpp
+  printer/enum_to_string.h
   printer/let_binding.cpp
   printer/let_binding.h
   printer/printer.cpp
@@ -246,6 +249,8 @@ libcvc5_add_sources(
   prop/kissat.h
   prop/learned_db.cpp
   prop/learned_db.h
+  prop/lemma_inprocess.cpp
+  prop/lemma_inprocess.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -417,6 +422,8 @@ libcvc5_add_sources(
   theory/arith/linear/fc_simplex.h
   theory/arith/linear/infer_bounds.cpp
   theory/arith/linear/infer_bounds.h
+  theory/arith/linear/linear_solver.cpp
+  theory/arith/linear/linear_solver.h
   theory/arith/linear/linear_equality.cpp
   theory/arith/linear/linear_equality.h
   theory/arith/linear/matrix.cpp
@@ -567,8 +574,6 @@ libcvc5_add_sources(
   theory/bags/bags_statistics.h
   theory/bags/bags_utils.cpp
   theory/bags/bags_utils.h
-  theory/bags/card_solver.cpp
-  theory/bags/card_solver.h
   theory/bags/infer_info.cpp
   theory/bags/infer_info.h
   theory/bags/inference_generator.cpp
@@ -881,6 +886,8 @@ libcvc5_add_sources(
   theory/quantifiers/inst_strategy_mbqi.h
   theory/quantifiers/inst_strategy_pool.cpp
   theory/quantifiers/inst_strategy_pool.h
+  theory/quantifiers/inst_strategy_sub_conflict.cpp
+  theory/quantifiers/inst_strategy_sub_conflict.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
   theory/quantifiers/instantiation_list.cpp
@@ -1118,6 +1125,8 @@ libcvc5_add_sources(
   theory/sort_inference.h
   theory/partition_generator.cpp
   theory/partition_generator.h
+  theory/plugin_module.cpp
+  theory/plugin_module.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
   theory/strings/array_core_solver.cpp
@@ -1271,6 +1280,11 @@ libcvc5_add_sources(
   theory/valuation.h
 )
 
+# suppress deprecated warnings to not error in CI
+set_source_files_properties(api/cpp/cvc5.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+
 #-----------------------------------------------------------------------------#
 # Add required include paths for this and all subdirectories.
 
@@ -1389,7 +1403,17 @@ set(KINDS_FILES
 #-----------------------------------------------------------------------------#
 
 set(REWRITES_FILES
-  ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites)
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/builtin/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites-elimination
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites-simplification
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/rewrites
+)
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories

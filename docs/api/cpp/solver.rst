@@ -5,9 +5,8 @@ This class represents a cvc5 solver instance.
 
 :cpp:class:`Terms <cvc5::Term>`, :cpp:class:`Sorts <cvc5::Sort>` and
 :cpp:class:`Ops <cvc5::Op>` are not tied to a :cpp:class:`cvc5::Solver`
-instance and can be shared between instances.
-Term kinds are defined via enum class :doc:`cvc5::Kind <kind>`, and sort kinds
-via enum class :doc:`cvc5::SortKind <sortkind>`.
+but associated with a :cpp:class:`cvc5::TermManager` instance, which can be
+shared between solver instances.
 
 Solver options are configured via :cpp:func:`cvc5::Solver::setOption()`
 and queried via :cpp:func:`cvc5::Solver::getOption()`

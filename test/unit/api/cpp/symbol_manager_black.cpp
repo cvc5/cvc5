@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,13 +40,13 @@ class TestSymbolManagerBlack : public TestParser
   {
     std::stringstream ss;
     ss << "(set-logic " << logic << ")" << std::endl;
-    InputParser parser(&d_solver, d_symman.get());
+    InputParser parser(d_solver.get(), d_symman.get());
     parser.setStreamInput(
         modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
     Command cmd = parser.nextCommand();
     ASSERT_NE(cmd.isNull(), true);
     std::stringstream out;
-    cmd.invoke(&d_solver, d_symman.get(), out);
+    cmd.invoke(d_solver.get(), d_symman.get(), out);
   }
 };
 
@@ -62,6 +62,12 @@ TEST_F(TestSymbolManagerBlack, getLogic)
   ASSERT_THROW(d_symman->getLogic(), CVC5ApiException);
   parseAndSetLogic("QF_LIA");
   ASSERT_EQ(d_symman->getLogic(), "QF_LIA");
+}
+
+TEST_F(TestSymbolManagerBlack, getDeclaredTermsAndSorts)
+{
+  ASSERT_EQ(d_symman->getDeclaredSorts().size(), 0);
+  ASSERT_EQ(d_symman->getDeclaredTerms().size(), 0);
 }
 
 }  // namespace test

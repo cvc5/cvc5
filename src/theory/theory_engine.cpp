@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *   Andrew Reynolds, Dejan Jovanovic, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,17 +27,18 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
-#include "smt/solver_engine_state.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_ensure_closed.h"
 #include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
+#include "smt/solver_engine_state.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/ee_manager_central.h"
 #include "theory/partition_generator.h"
+#include "theory/plugin_module.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
@@ -217,6 +218,17 @@ void TheoryEngine::finishInit()
         std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
     d_modules.push_back(d_partitionGen.get());
   }
+
+  // add user-provided plugins
+  const std::vector<Plugin*> plugins = d_env.getPlugins();
+  Trace("theory") << "initialize with " << plugins.size()
+                  << " user-provided plugins" << std::endl;
+  for (Plugin* p : plugins)
+  {
+    d_userPlugins.push_back(
+        std::unique_ptr<PluginModule>(new PluginModule(d_env, this, p)));
+    d_modules.push_back(d_userPlugins.back().get());
+  }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
 
@@ -350,12 +362,17 @@ void TheoryEngine::printAssertions(const char* tag) {
 
         if (logicInfo().isSharingEnabled())
         {
-          Trace(tag) << "Shared terms of " << theory->getId() << ": " << endl;
-          context::CDList<TNode>::const_iterator
-              it = theory->shared_terms_begin(),
-              it_end = theory->shared_terms_end();
-          for (unsigned i = 0; it != it_end; ++ it, ++i) {
+          TheoryState* state = theory->getTheoryState();
+          if (state != nullptr)
+          {
+            Trace(tag) << "Shared terms of " << theory->getId() << ": " << endl;
+            context::CDList<TNode>::const_iterator
+                it = state->shared_terms_begin(),
+                it_end = state->shared_terms_end();
+            for (unsigned i = 0; it != it_end; ++it, ++i)
+            {
               Trace(tag) << "[" << i << "]: " << (*it) << endl;
+            }
           }
         }
       }
@@ -816,6 +833,39 @@ bool TheoryEngine::isRelevant(Node lit) const
   }
   // otherwise must assume its relevant
   return true;
+}
+
+bool TheoryEngine::isLegalElimination(TNode x, TNode val)
+{
+  Assert(x.isVar());
+  if (expr::hasSubterm(val, x))
+  {
+    return false;
+  }
+  if (val.getType() != x.getType())
+  {
+    return false;
+  }
+  if (!options().smt.produceModels || options().smt.modelVarElimUneval)
+  {
+    // Don't care about the model, or we allow variables to be eliminated by
+    // unevaluatable terms, we can eliminate. Notice that when
+    // options().smt.modelVarElimUneval is true, val may contain unevaluatable
+    // kinds. This means that e.g. a Boolean variable may be eliminated based on
+    // an equality (= b (forall ((x)) (P x))), where its model value is (forall
+    // ((x)) (P x)).
+    return true;
+  }
+  // If models are enabled, then it depends on whether the term contains any
+  // unevaluable operators like FORALL, SINE, etc. Having such operators makes
+  // model construction contain non-constant values for variables, which is
+  // not ideal from a user perspective.
+  // We also insist on this check since the term to eliminate should never
+  // contain quantifiers, or else variable shadowing issues may arise.
+  // there should be a model object
+  TheoryModel* tm = getModel();
+  Assert(tm != nullptr);
+  return tm->isLegalElimination(x, val);
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(

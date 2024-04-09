@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,15 +27,12 @@ class TupleUtils
  public:
   /**
    *
-   * @param n a node to print in the message if TypeCheckingExceptionPrivate
-   * exception is thrown
    * @param tupleType the type of the tuple
    * @param indices a list of indices for projection
-   * @throw an exception if one of the indices in node n is greater than the
+   * @return false if one of the indices is greater than the
    * expected tuple's length
    */
-  static void checkTypeIndices(Node n,
-                               TypeNode tupleType,
+  static bool checkTypeIndices(const TypeNode& tupleType,
                                const std::vector<uint32_t> indices);
   /**
    * @param tupleType1 tuple type

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(Env& env,
                                  TermDbSygus* tds,
-                                 SygusEnumeratorCallback* sec,
+                                 SygusTermEnumeratorCallback* sec,
                                  SygusStatistics* s,
                                  bool enumShapes,
                                  bool enumAnyConstHoles,
@@ -190,7 +190,7 @@ SygusEnumerator::TermCache::TermCache()
 void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
                                             Node e,
                                             TypeNode tn,
-                                            SygusEnumeratorCallback* sec)
+                                            SygusTermEnumeratorCallback* sec)
 {
   Trace("sygus-enum-debug") << "Init term cache " << tn << "..." << std::endl;
   d_stats = s;
@@ -566,7 +566,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
 
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
 {
-  if (tn.isDatatype() && tn.getDType().isSygus())
+  if (tn.isSygusDatatype())
   {
     std::map<TypeNode, TermEnumMaster>::iterator it = d_masterEnum.find(tn);
     if (it != d_masterEnum.end())

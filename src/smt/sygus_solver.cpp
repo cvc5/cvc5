@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,6 +36,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
@@ -71,7 +72,7 @@ void SygusSolver::declareSynthFun(Node fn,
                                   const std::vector<Node>& vars)
 {
   Trace("smt") << "SygusSolver::declareSynthFun: " << fn << "\n";
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_sygusFunSymbols.push_back(fn);
   if (!vars.empty())
   {
@@ -85,8 +86,8 @@ void SygusSolver::declareSynthFun(Node fn,
   {
     // use an attribute to mark its grammar
     quantifiers::SygusUtils::setSygusType(fn, sygusType);
-    // we must expand definitions for sygus operators in the block
-    expandDefinitionsSygusDt(fn, sygusType);
+    // we now check for free variables for sygus operators in the block
+    checkDefinitionsSygusDt(fn, sygusType);
   }
 
   // sygus conjecture is now stale
@@ -157,7 +158,7 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   terms.push_back(trans);
   terms.push_back(post);
   // variables are built based on the invariant type
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<TypeNode> argTypes = inv.getType().getArgTypes();
   for (const TypeNode& tn : argTypes)
   {
@@ -229,7 +230,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
   }
   if (d_sygusConjectureStale)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     // build synthesis conjecture from asserted constraints and declared
     // variables/functions
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
@@ -428,7 +429,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
   // check all conjectures
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const Node& conj : conjs)
   {
     // Start new SMT engine to check solutions
@@ -546,7 +547,7 @@ bool SygusSolver::usingSygusSubsolver() const
   return options().base.incrementalSolving;
 }
 
-void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
+void SygusSolver::checkDefinitionsSygusDt(const Node& fn, TypeNode tn) const
 {
   std::unordered_set<TypeNode> processed;
   std::vector<TypeNode> toProcess;
@@ -580,22 +581,11 @@ void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
            << " with free variables in grammar of " << fn;
         throw LogicException(ss.str());
       }
-      // Only expand definitions if the operator is not constant, since
-      // calling expandDefinitions on them should be a no-op. This check
-      // ensures we don't try to expand e.g. bitvector extract operators,
-      // whose type is undefined, and thus should not be passed to
-      // expandDefinitions.
-      Node eop = op.isConst()
-                     ? op
-                     : d_smtSolver.getPreprocessor()->applySubstitutions(op);
-      eop = rewrite(eop);
-      datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments
       for (unsigned j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
       {
         TypeNode tnc = c->getArgType(j);
-        if (tnc.isDatatype() && tnc.getDType().isSygus()
-            && processed.find(tnc) == processed.end())
+        if (tnc.isSygusDatatype() && processed.find(tnc) == processed.end())
         {
           toProcess.push_back(tnc);
           processed.insert(tnc);

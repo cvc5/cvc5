@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Dejan Jovanovic
+ *   Andrew Reynolds, Aina Niemetz, Leni Aniva
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,6 +96,38 @@ TypeNode BitVectorConstantTypeRule::computeType(NodeManager* nodeManager,
     }
   }
   return nodeManager->mkBitVectorType(n.getConst<BitVector>().getSize());
+}
+
+TypeNode BitVectorConstantSymbolicTypeRule::preComputeType(NodeManager* nm,
+                                                           TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode BitVectorConstantSymbolicTypeRule::computeType(
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
+{
+  if (check)
+  {
+    for (const Node& nc : n)
+    {
+      const TypeNode& tn = nc.getTypeOrNull();
+      if (!tn.isInteger() && !tn.isFullyAbstract())
+      {
+        (*errOut)
+            << "expecting integer argument to symbolic bitvector constant";
+        return TypeNode::null();
+      }
+    }
+  }
+  if (n[1].isConst())
+  {
+    const Rational& r = n[1].getConst<Rational>();
+    if (r.sgn() == 1 && r.getNumerator().fitsUnsignedInt())
+    {
+      return nodeManager->mkBitVectorType(r.getNumerator().toUnsignedInt());
+    }
+  }
+  return nodeManager->mkAbstractType(Kind::BITVECTOR_TYPE);
 }
 
 TypeNode BitVectorFixedWidthTypeRule::preComputeType(NodeManager* nm, TNode n)

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Alex Ozdemir, Mathias Preiner
+#   Daniel Larraz, Makai Mann
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -13,23 +13,97 @@
 #
 # This script is automatically configured with cmake when cvc5
 # is built with --python-bindings. It is called during make
-# install to automatically install the python bindings using
-# distutils.
+# install to automatically install the python bindings using pip.
 # If it is called from a python virtualenv, the bindings are
 # installed in the virtualenv, otherwise, it respects the
 # configured install prefix using the setup.py --prefix option
 ##
 
+import os
 from setuptools import setup
 
-CVC5_VERSION='${CVC5_VERSION}'
+ext_suffix = 'pyd' if os.name == 'nt' else 'so'
+ext_filename = 'cvc5_python_base.' + ext_suffix
 
-setup(name='cvc5',
-      version=CVC5_VERSION,
-      long_description='Python bindings for cvc5 ' + CVC5_VERSION,
-      url='https://github.com/cvc5/cvc5',
-      zip_safe=False,
-      packages=['cvc5', 'cvc5.pythonic'],
-      package_dir={'':'${CMAKE_CURRENT_BINARY_DIR}'},
-      package_data={'': ['cvc5_python_base*.so']},
-      extras_require={'test': ['pytest']})
+packages=['cvc5', 'cvc5.pythonic']
+license_files=["COPYING", "licenses/*"]
+
+# If we have already compiled the Python extension module,
+# include the module directly instead of recompiling it.
+if os.path.isfile(os.path.join('cvc5', ext_filename)):
+    setup(
+        packages=packages,
+        package_data={'': [ext_filename]},
+        # Let setuptools know the package include an extension module
+        # so that the generated wheel name includes
+        # the python version, the ABI tag, and the platform name.
+        has_ext_modules=lambda: True,
+        license_files=license_files
+    )
+else:
+    import sys
+    import sysconfig
+    from setuptools.extension import Extension
+
+    from Cython.Distutils import build_ext
+    from Cython.Build import cythonize
+
+    if sys.platform == 'darwin':
+        import platform
+        mac_ver = os.environ.get("MACOSX_DEPLOYMENT_TARGET")
+        if mac_ver is None:
+          version_str, _, _ = platform.mac_ver()
+          major_minor = version_str.split(".")[:2]
+          mac_ver = ".".join(major_minor)
+          os.environ.setdefault("MACOSX_DEPLOYMENT_TARGET", mac_ver)
+        arch = "${MACOS_ARCH}" # Optionally set by CMake
+        if not arch:
+            arch = platform.machine()
+        host_platform = "macosx-" + mac_ver + "-" + arch
+        os.environ.setdefault("_PYTHON_HOST_PLATFORM", host_platform)
+        arch_flags = "-arch " + arch
+        os.environ.setdefault("ARCHFLAGS", arch_flags)
+
+    compiler_directives = {
+        'language_level': 3,
+        'binding': False,
+    }
+
+    extra_compile_args = ["-std=c++17", "-fno-var-tracking"]
+
+    if sys.platform == 'win32':
+        # Compile argument '-DMS_WIN64' fixes a division by zero error
+        # See https://stackoverflow.com/q/64898146
+        extra_compile_args += ["-DMS_WIN64"]
+        # Add default MSYS2 installation path for local development
+        os.environ['PATH'] += r';C:\msys64\mingw64\bin'
+
+    ext_options = {
+        "libraries" : ["cvc5", "cvc5parser"],
+        "language" : "c++",
+        "extra_compile_args" : extra_compile_args
+    }
+
+    mod_name = "cvc5.cvc5_python_base"
+    mod_src_files = ["cvc5_python_base.pyx"]
+
+    ext_module = Extension(mod_name, mod_src_files, **ext_options)
+    ext_module.cython_directives = {"embedsignature": True}
+
+    class ExtensionBuilder(build_ext):
+        def get_ext_filename(self, ext_name):
+            # Do not include the python version, the ABI tag, and
+            # the platform name in the extension module name.
+            # This facilitates specifying the dependencies of
+            # the module in CMake.
+            filename = super().get_ext_filename(ext_name)
+            suffix = sysconfig.get_config_var('EXT_SUFFIX')
+            ext = os.path.splitext(filename)[1]
+            return filename.replace(suffix, "") + ext
+
+    setup(
+        cmdclass={'build_ext': ExtensionBuilder},
+        ext_modules=cythonize([ext_module], compiler_directives=compiler_directives),
+        packages=packages,
+        license_files=license_files
+    )
