@@ -562,7 +562,7 @@ unsigned HoExtension::checkLazyLambda()
         std::vector<Node> args(flam[0].begin(), flam[0].end());
         Node rhs = d_ll.betaReduce(glam, args);
         Node univ = nm->mkNode(Kind::FORALL, flam[0], lhs.eqNode(rhs));
-        // do quantifier elimination??
+        // do quantifier elimination if the option is set
         if (options().uf.ufHoLambdaQe)
         {
           Trace("uf-lambda-qe") << "Given " << flam << " == " << glam << std::endl;
@@ -572,6 +572,9 @@ unsigned HoExtension::checkLazyLambda()
           initializeSubsolver(lqe, d_env);
           Node univQe = lqe->getQuantifierElimination(univ, true);
           Trace("uf-lambda-qe") << "QE is " << univQe << std::endl;
+          Assert (!univQe.isNull());
+          // Note that if quantifier elimination failed, then univQe will
+          // be equal to univ, in which case this above code has no effect.
           univ = univQe;
         }
         // f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
