@@ -60,13 +60,19 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
   Node keyword =
       nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
   Node n_attr = nm->mkNode(Kind::INST_ATTRIBUTE, keyword);
+  // Polarity is the Boolean constant we return if the subquery is "sat".
+  bool polarity = (q.getKind() != Kind::EXISTS);
   Node ne;
-  // if we have no free variables, just use a quantifier-free query
+  // Special case: if we have no free variables, just use a quantifier-free
+  // query.
   std::unordered_set<Node> syms;
   expr::getSymbols(q, syms);
   bool closed = false;
   if (syms.empty())
   {
+    // Partial elimination is irrelevant since we are a closed formula, so we
+    // assume we are doing full elimination.
+    doFull = true;
     closed = true;
     Subs sq;
     SkolemManager* sm = nm->getSkolemManager();
@@ -77,7 +83,9 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
       sq.add(v, k);
     }
     ne = sq.apply(q[1]);
-    if (q.getKind() == Kind::FORALL)
+    // We are skolemizing, so we flip the polarity
+    polarity = !polarity;
+    if (q.getKind() == Kind::EXISTS)
     {
       ne = ne.negate();
     }
@@ -92,10 +100,10 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
     children.push_back(q.getKind() == Kind::EXISTS ? q[1] : q[1].negate());
     children.push_back(n_attr);
     ne = nm->mkNode(Kind::EXISTS, children);
+    Assert(ne.getNumChildren() == 3);
   }
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
                         << std::endl;
-  Assert(ne.getNumChildren() == 3);
   // use a single call driver
   SmtDriverSingleCall sdsc(d_env, d_smtSolver, d_ctx);
   Result r = sdsc.checkSat(std::vector<Node>{ne.notNode()});
@@ -166,12 +174,12 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
     // subsolver, then we are a constant.
     if (ret.isNull())
     {
-      ret = nm->mkConst(q.getKind() != Kind::EXISTS);
+      ret = nm->mkConst(polarity);
     }
     return ret;
   }
   // otherwise, just true/false
-  return nm->mkConst(q.getKind() == Kind::EXISTS);
+  return nm->mkConst(!polarity);
 }
 
 }  // namespace smt
