@@ -2,8 +2,8 @@
 
 ; Note that ?Seq is used for rules that can be used where Seq/String are
 ; interchangable, where note that String is assumed to be a macro for (Seq Char)
-; according to RARE. Note however that Char is not accessible as a standalone
-; type.
+; according cvc5's implementation of RARE. Note however that Char is not
+; accessible as a standalone type.
 
 ; ---
 
