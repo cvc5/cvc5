@@ -21,7 +21,7 @@
 
 namespace std {
 
-std::string to_string(cvc5::SkolemFunId id)
+std::string to_string(cvc5::SkolemId id)
 {
   return cvc5::internal::toString(id);
 }
@@ -29,7 +29,7 @@ std::string to_string(cvc5::SkolemFunId id)
 
 namespace cvc5 {
 
-std::ostream& operator<<(std::ostream& out, SkolemFunId id)
+std::ostream& operator<<(std::ostream& out, SkolemId id)
 {
   out << std::to_string(id);
   return out;
@@ -38,7 +38,7 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 
 namespace std {
 
-size_t hash<cvc5::SkolemFunId>::operator()(cvc5::SkolemFunId id) const
+size_t hash<cvc5::SkolemId>::operator()(cvc5::SkolemId id) const
 {
   return static_cast<size_t>(id);
 }

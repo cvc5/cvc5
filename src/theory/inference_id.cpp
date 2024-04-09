@@ -555,8 +555,11 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
+    case InferenceId::UF_ARITH_BV_CONV_VALUE_REFINE:
+      return "UF_ARITH_BV_CONV_VALUE_REFINE";
     case InferenceId::PARTITION_GENERATOR_PARTITION:
       return "PARTITION_GENERATOR_PARTITION";
+    case InferenceId::PLUGIN_LEMMA: return "PLUGIN_LEMMA";
     case InferenceId::UNKNOWN: return "?";
 
     default:

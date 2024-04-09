@@ -47,9 +47,12 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-AlfNodeConverter::AlfNodeConverter()
+BaseAlfNodeConverter::BaseAlfNodeConverter(NodeManager* nm) : NodeConverter(nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
+}
+
+AlfNodeConverter::AlfNodeConverter(NodeManager* nm) : BaseAlfNodeConverter(nm)
+{
   d_sortType = nm->mkSort("sortType");
 }
 
@@ -79,7 +82,7 @@ Node AlfNodeConverter::postConvert(Node n)
     return n;
   }
   TypeNode tn = n.getType();
-  if (k == Kind::SKOLEM)
+  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -202,19 +205,6 @@ Node AlfNodeConverter::postConvert(Node n)
     Assert(!lam.isNull());
     return convert(lam);
   }
-  else if (k == Kind::BITVECTOR_BB_TERM)
-  {
-    Node curr = mkInternalSymbol("bvempty", nm->mkBitVectorType(0));
-    for (size_t i = 0, nchildren = n.getNumChildren(); i < nchildren; i++)
-    {
-      size_t ii = (nchildren - 1) - i;
-      std::vector<Node> args;
-      args.push_back(n[ii]);
-      args.push_back(curr);
-      curr = mkInternalApp("bbT", args, nm->mkBitVectorType(i + 1));
-    }
-    return curr;
-  }
   else if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER || k == Kind::NEG
            || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
            || k == Kind::INTS_MODULUS_TOTAL || k == Kind::APPLY_CONSTRUCTOR
@@ -314,13 +304,13 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  SkolemFunId sfi = SkolemFunId::NONE;
+  SkolemId sfi = SkolemId::NONE;
   Node cacheVal;
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
     Node app;
-    if (sfi == SkolemFunId::PURIFY)
+    if (sfi == SkolemId::PURIFY)
     {
       Assert(cacheVal.getType() == k.getType());
       // special case: just use self
@@ -330,35 +320,18 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
     {
       // convert every skolem function to its name applied to arguments
       std::stringstream ss;
-      ss << "@k." << sfi;
+      ss << "@" << sfi;
       std::vector<Node> args;
-      if (sfi == SkolemFunId::QUANTIFIERS_SKOLEMIZE)
+      if (cacheVal.getKind() == Kind::SEXPR)
       {
-        // must provide the variable, not the index (for typing)
-        Assert(cacheVal.getNumChildren() == 2);
-        Assert(cacheVal[0].getKind() == Kind::EXISTS);
-        Node q = convert(cacheVal[0]);
-        Node index = cacheVal[1];
-        Assert(index.getKind() == Kind::CONST_INTEGER);
-        const Integer& i = index.getConst<Rational>().getNumerator();
-        Assert(i.fitsUnsignedInt());
-        size_t ii = i.getUnsignedInt();
-        args.push_back(q);
-        args.push_back(convert(q[0][ii]));
+        for (const Node& cv : cacheVal)
+        {
+          args.push_back(convert(cv));
+        }
       }
-      else
+      else if (!cacheVal.isNull())
       {
-        if (cacheVal.getKind() == Kind::SEXPR)
-        {
-          for (const Node& cv : cacheVal)
-          {
-            args.push_back(convert(cv));
-          }
-        }
-        else if (!cacheVal.isNull())
-        {
-          args.push_back(convert(cacheVal));
-        }
+        args.push_back(convert(cacheVal));
       }
       // must convert all arguments
       app = mkInternalApp(ss.str(), args, k.getType());
@@ -433,7 +406,7 @@ Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     case Kind::NONLINEAR_MULT:
       return NodeManager::currentNM()->mkConstInt(Rational(1));
     case Kind::BITVECTOR_CONCAT:
-      return mkInternalSymbol("bvempty",
+      return mkInternalSymbol("@bvempty",
                               NodeManager::currentNM()->mkBitVectorType(0));
     default: break;
   }
@@ -614,11 +587,64 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   }
   else
   {
-    opName << printer::smt2::Smt2Printer::smtKindString(k);
-    if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-        || k == Kind::INTS_MODULUS_TOTAL)
+    bool isParameterized = false;
+    if (reqCast)
     {
-      opName << "_total";
+      // If the operator is a parameterized constant and reqCast is true,
+      // then we must apply the parameters of the operator, e.g. such that
+      // bvor becomes (alf._ bvor 32) where 32 is the bitwidth of the first
+      // argument.
+      if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
+          || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND
+          || k == Kind::BITVECTOR_XOR)
+      {
+        TypeNode tna = n[0].getType();
+        indices.push_back(nm->mkConstInt(tna.getBitVectorSize()));
+        isParameterized = true;
+      }
+      else if (k == Kind::FINITE_FIELD_ADD || k == Kind::FINITE_FIELD_BITSUM
+               || k == Kind::FINITE_FIELD_MULT)
+      {
+        TypeNode tna = n[0].getType();
+        indices.push_back(nm->mkConstInt(tna.getFfSize()));
+        isParameterized = true;
+      }
+      else if (k == Kind::STRING_CONCAT)
+      {
+        // String concatenation is parameterized by the character type, which
+        // is the "Char" type in the ALF signature for String (which note does
+        // not exist internally in cvc5). Otherwise it is the sequence element
+        // type.
+        TypeNode tna = n[0].getType();
+        Node cht;
+        if (tna.isString())
+        {
+          cht = mkInternalSymbol("Char", d_sortType);
+        }
+        else
+        {
+          cht = typeAsNode(tna.getSequenceElementType());
+        }
+        indices.push_back(cht);
+        isParameterized = true;
+      }
+    }
+    if (isParameterized)
+    {
+      opName << "alf._";
+      std::stringstream oppName;
+      oppName << printer::smt2::Smt2Printer::smtKindString(k);
+      Node opp = mkInternalSymbol(oppName.str(), n.getType());
+      indices.insert(indices.begin(), opp);
+    }
+    else
+    {
+      opName << printer::smt2::Smt2Printer::smtKindString(k);
+      if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
+          || k == Kind::INTS_MODULUS_TOTAL)
+      {
+        opName << "_total";
+      }
     }
   }
   std::vector<Node> args(n.begin(), n.end());
@@ -669,39 +695,39 @@ size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
   return id;
 }
 
-bool AlfNodeConverter::isHandledSkolemId(SkolemFunId id)
+bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
 {
   switch (id)
   {
-    case SkolemFunId::PURIFY:
-    case SkolemFunId::ARRAY_DEQ_DIFF:
-    case SkolemFunId::DIV_BY_ZERO:
-    case SkolemFunId::INT_DIV_BY_ZERO:
-    case SkolemFunId::MOD_BY_ZERO:
-    case SkolemFunId::TRANSCENDENTAL_PURIFY:
-    case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
-    case SkolemFunId::QUANTIFIERS_SKOLEMIZE:
-    case SkolemFunId::STRINGS_NUM_OCCUR:
-    case SkolemFunId::STRINGS_NUM_OCCUR_RE:
-    case SkolemFunId::STRINGS_OCCUR_INDEX:
-    case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
-    case SkolemFunId::STRINGS_OCCUR_LEN_RE:
-    case SkolemFunId::STRINGS_DEQ_DIFF:
-    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
-    case SkolemFunId::STRINGS_ITOS_RESULT:
-    case SkolemFunId::STRINGS_STOI_RESULT:
-    case SkolemFunId::STRINGS_STOI_NON_DIGIT:
-    case SkolemFunId::RE_FIRST_MATCH_PRE:
-    case SkolemFunId::RE_FIRST_MATCH:
-    case SkolemFunId::RE_FIRST_MATCH_POST:
-    case SkolemFunId::RE_UNFOLD_POS_COMPONENT:
-    case SkolemFunId::BAGS_DEQ_DIFF:
-    case SkolemFunId::BAGS_DISTINCT_ELEMENTS:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
-    case SkolemFunId::BAGS_DISTINCT_ELEMENTS_SIZE:
-    case SkolemFunId::BAGS_MAP_SUM:
-    case SkolemFunId::TABLES_GROUP_PART:
-    case SkolemFunId::TABLES_GROUP_PART_ELEMENT: return true;
+    case SkolemId::PURIFY:
+    case SkolemId::ARRAY_DEQ_DIFF:
+    case SkolemId::DIV_BY_ZERO:
+    case SkolemId::INT_DIV_BY_ZERO:
+    case SkolemId::MOD_BY_ZERO:
+    case SkolemId::TRANSCENDENTAL_PURIFY:
+    case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
+    case SkolemId::QUANTIFIERS_SKOLEMIZE:
+    case SkolemId::STRINGS_NUM_OCCUR:
+    case SkolemId::STRINGS_NUM_OCCUR_RE:
+    case SkolemId::STRINGS_OCCUR_INDEX:
+    case SkolemId::STRINGS_OCCUR_INDEX_RE:
+    case SkolemId::STRINGS_OCCUR_LEN_RE:
+    case SkolemId::STRINGS_DEQ_DIFF:
+    case SkolemId::STRINGS_REPLACE_ALL_RESULT:
+    case SkolemId::STRINGS_ITOS_RESULT:
+    case SkolemId::STRINGS_STOI_RESULT:
+    case SkolemId::STRINGS_STOI_NON_DIGIT:
+    case SkolemId::RE_FIRST_MATCH_PRE:
+    case SkolemId::RE_FIRST_MATCH:
+    case SkolemId::RE_FIRST_MATCH_POST:
+    case SkolemId::RE_UNFOLD_POS_COMPONENT:
+    case SkolemId::BAGS_DEQ_DIFF:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS:
+    case SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
+    case SkolemId::BAGS_MAP_SUM:
+    case SkolemId::TABLES_GROUP_PART:
+    case SkolemId::TABLES_GROUP_PART_ELEMENT: return true;
     default: break;
   }
   return false;

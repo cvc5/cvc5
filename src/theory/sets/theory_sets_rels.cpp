@@ -1353,7 +1353,8 @@ void TheorySetsRels::check(Theory::Effort level)
     std::map< Node, TupleTrie >::iterator       it;
 
     if( argIndex==(int)reps.size()-1 ){
-      if (reps[argIndex].getKind() == Kind::SKOLEM)
+      Kind k = reps[argIndex].getKind();
+      if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
       {
         it = d_data.begin();
         while(it != d_data.end()) {

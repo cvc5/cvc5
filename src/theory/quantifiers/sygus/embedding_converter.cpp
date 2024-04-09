@@ -234,7 +234,7 @@ Node EmbeddingConverter::process(Node q,
       Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
                            << " with arg " << templ_arg << std::endl;
       Trace("cegqi-debug")
-          << "  apply this template as a substituion during preprocess..."
+          << "  apply this template as a substitution during preprocess..."
           << std::endl;
       std::vector<Node> schildren;
       std::vector<Node> largs;

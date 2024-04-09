@@ -167,7 +167,7 @@ class BaseSolver : protected EnvObj
   struct BaseEqcInfo
   {
     /**
-     * Either a constant or a concatentation of constants and variables that
+     * Either a constant or a concatenation of constants and variables that
      * this equivalence class is entailed to be equal to. If it is a
      * concatenation, this is the concatenation that is currently known to have
      * the highest score (see `d_bestScore`).
