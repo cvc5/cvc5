@@ -144,15 +144,6 @@ void MQuantInfo::initialize(Env& env, InstStrategyMbqi& parent, const Node& q)
       etrules.push_back(v);
     }
   }
-  // include the global symbols if applicable
-  if (env.getOptions().quantifiers.mbqiFastSygusGlobalSymGrammar)
-  {
-    const context::CDHashSet<Node>& gsyms = parent.getGlobalSyms();
-    for (const Node& v : gsyms)
-    {
-      etrules.push_back(v);
-    }
-  }
   // initialize the variables we are instantiating
   for (size_t index : d_indices)
   {
