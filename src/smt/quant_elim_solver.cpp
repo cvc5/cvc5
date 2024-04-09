@@ -16,6 +16,7 @@
 #include "smt/quant_elim_solver.h"
 
 #include "base/modal_exception.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
 #include "expr/subtype_elim_node_converter.h"
@@ -25,7 +26,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "util/string.h"
-#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
@@ -56,8 +56,8 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
   // do nested quantifier elimination if necessary
   q = quantifiers::NestedQe::doNestedQe(d_env, q, true);
   Trace("smt-qe") << "QuantElimSolver: after nested quantifier elimination : "
-                  << q << std::endl;    
-                Node keyword =
+                  << q << std::endl;
+  Node keyword =
       nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
   Node n_attr = nm->mkNode(Kind::INST_ATTRIBUTE, keyword);
   Node ne;
@@ -156,7 +156,8 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
         {
           ret = SkolemManager::getOriginalForm(ret);
         }
-        // make so that the returned formula does not involve arithmetic subtyping
+        // make so that the returned formula does not involve arithmetic
+        // subtyping
         SubtypeElimNodeConverter senc(nodeManager());
         ret = senc.convert(ret);
       }
