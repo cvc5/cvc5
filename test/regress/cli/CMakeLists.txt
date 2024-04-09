@@ -1628,6 +1628,7 @@ set(regress_0_tests
   regress0/sets/error1.smt2
   regress0/sets/error2.smt2
   regress0/sets/filter-qe-simple.smt2
+  regress0/sets/filter-qe-simple-bv.smt2
   regress0/sets/insert.smt2
   regress0/sets/int-real-univ-unsat.smt2
   regress0/sets/int-real-univ.smt2
