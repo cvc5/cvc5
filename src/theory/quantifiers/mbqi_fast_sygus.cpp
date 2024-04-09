@@ -13,12 +13,13 @@
  * Model-based quantifier instantiation
  */
 
+#include "theory/quantifiers/mbqi_fast_sygus.h"
+
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/inst_strategy_mbqi.h"
-#include "theory/quantifiers/mbqi_fast_sygus.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"

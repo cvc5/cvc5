@@ -81,7 +81,7 @@ class MQuantInfo
  public:
   /**
    * Intialize the instantiation strategy for quantified formula q.
-   * 
+   *
    * @param env Reference to the environment.
    * @param parent Reference to the parent instantiation strategy.
    * @param q The quantified formula.
@@ -95,6 +95,7 @@ class MQuantInfo
   MVarInfo& getVarInfo(size_t index);
   /** Should we enumerate terms for type tn? */
   static bool shouldEnumerate(const TypeNode& tn);
+
  private:
   /** The quantified formula */
   Node d_quant;
