@@ -760,8 +760,24 @@ TypeNode RelationTableJoinTypeRule::computeType(NodeManager* nm,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     auto [aIndices, bIndices] = bags::BagsUtils::splitTableJoinIndices(n);
-    TupleUtils::checkTypeIndices(aTupleType, aIndices);
-    TupleUtils::checkTypeIndices(bTupleType, bIndices);
+    if (!TupleUtils::checkTypeIndices(aTupleType, aIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its first argument";
+      }
+      return TypeNode::null();
+    }
+    if (!TupleUtils::checkTypeIndices(bTupleType, bIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its second argument";
+      }
+      return TypeNode::null();
+    }
 
     // check the types of columns
     std::vector<TypeNode> aTypes = aTupleType.getTupleTypes();
