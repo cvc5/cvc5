@@ -63,11 +63,12 @@ class PropPfManager : protected EnvObj
    * goes through is saved as a concrete step in d_proof. This method makes a
    * call to the convertAndAssert method of d_pfCnfStream.
    *
-   * @param node formula to convert and assert
-   * @param negated whether we are asserting the node negated
-   * @param removable whether the SAT solver can choose to remove the clauses
-   * @param input whether the node is from the input
-   * @param pg a proof generator for node
+   * @param id The inference id indicating the source of the formula.
+   * @param node The formula to convert and assert.
+   * @param negated Whether we are asserting the node negated.
+   * @param removable Whether the SAT solver can choose to remove the clauses.
+   * @param input Whether the node is from the input.
+   * @param pg A proof generator for node.
    */
   void convertAndAssert(theory::InferenceId id,
                         TNode node,
