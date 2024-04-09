@@ -205,19 +205,6 @@ Node AlfNodeConverter::postConvert(Node n)
     Assert(!lam.isNull());
     return convert(lam);
   }
-  else if (k == Kind::BITVECTOR_BB_TERM)
-  {
-    Node curr = mkInternalSymbol("bvempty", nm->mkBitVectorType(0));
-    for (size_t i = 0, nchildren = n.getNumChildren(); i < nchildren; i++)
-    {
-      size_t ii = (nchildren - 1) - i;
-      std::vector<Node> args;
-      args.push_back(n[ii]);
-      args.push_back(curr);
-      curr = mkInternalApp("bbT", args, nm->mkBitVectorType(i + 1));
-    }
-    return curr;
-  }
   else if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER || k == Kind::NEG
            || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
            || k == Kind::INTS_MODULUS_TOTAL || k == Kind::APPLY_CONSTRUCTOR
@@ -419,7 +406,7 @@ Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     case Kind::NONLINEAR_MULT:
       return NodeManager::currentNM()->mkConstInt(Rational(1));
     case Kind::BITVECTOR_CONCAT:
-      return mkInternalSymbol("bvempty",
+      return mkInternalSymbol("@bvempty",
                               NodeManager::currentNM()->mkBitVectorType(0));
     default: break;
   }
@@ -600,11 +587,64 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   }
   else
   {
-    opName << printer::smt2::Smt2Printer::smtKindString(k);
-    if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-        || k == Kind::INTS_MODULUS_TOTAL)
+    bool isParameterized = false;
+    if (reqCast)
     {
-      opName << "_total";
+      // If the operator is a parameterized constant and reqCast is true,
+      // then we must apply the parameters of the operator, e.g. such that
+      // bvor becomes (alf._ bvor 32) where 32 is the bitwidth of the first
+      // argument.
+      if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
+          || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND
+          || k == Kind::BITVECTOR_XOR)
+      {
+        TypeNode tna = n[0].getType();
+        indices.push_back(nm->mkConstInt(tna.getBitVectorSize()));
+        isParameterized = true;
+      }
+      else if (k == Kind::FINITE_FIELD_ADD || k == Kind::FINITE_FIELD_BITSUM
+               || k == Kind::FINITE_FIELD_MULT)
+      {
+        TypeNode tna = n[0].getType();
+        indices.push_back(nm->mkConstInt(tna.getFfSize()));
+        isParameterized = true;
+      }
+      else if (k == Kind::STRING_CONCAT)
+      {
+        // String concatenation is parameterized by the character type, which
+        // is the "Char" type in the ALF signature for String (which note does
+        // not exist internally in cvc5). Otherwise it is the sequence element
+        // type.
+        TypeNode tna = n[0].getType();
+        Node cht;
+        if (tna.isString())
+        {
+          cht = mkInternalSymbol("Char", d_sortType);
+        }
+        else
+        {
+          cht = typeAsNode(tna.getSequenceElementType());
+        }
+        indices.push_back(cht);
+        isParameterized = true;
+      }
+    }
+    if (isParameterized)
+    {
+      opName << "alf._";
+      std::stringstream oppName;
+      oppName << printer::smt2::Smt2Printer::smtKindString(k);
+      Node opp = mkInternalSymbol(oppName.str(), n.getType());
+      indices.insert(indices.begin(), opp);
+    }
+    else
+    {
+      opName << printer::smt2::Smt2Printer::smtKindString(k);
+      if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
+          || k == Kind::INTS_MODULUS_TOTAL)
+      {
+        opName << "_total";
+      }
     }
   }
   std::vector<Node> args(n.begin(), n.end());

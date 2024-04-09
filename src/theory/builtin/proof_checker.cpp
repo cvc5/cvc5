@@ -204,7 +204,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // compute what was proven
   if (id == ProofRule::ASSUME)
   {
@@ -437,7 +437,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::DSL_REWRITE)
   {
-    // consult rewrite db, apply args[1]...args[n] as a substituion
+    // consult rewrite db, apply args[1]...args[n] as a substitution
     // to variable list and prove equality between LHS and RHS.
     Assert(d_rdb != nullptr);
     rewriter::DslProofRule di;

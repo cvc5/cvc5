@@ -130,7 +130,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       lchildren.push_back(eqp[0]);
       rchildren.push_back(eqp[1]);
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node l = nm->mkNode(k, lchildren);
     Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
@@ -139,7 +139,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    Node trueNode = NodeManager::currentNM()->mkConst(true);
+    Node trueNode = nodeManager()->mkConst(true);
     return children[0].eqNode(trueNode);
   }
   else if (id == ProofRule::TRUE_ELIM)
@@ -161,7 +161,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    Node falseNode = NodeManager::currentNM()->mkConst(false);
+    Node falseNode = nodeManager()->mkConst(false);
     return children[0][0].eqNode(falseNode);
   }
   else if (id == ProofRule::FALSE_ELIM)
@@ -194,7 +194,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       lchildren.push_back(eqp[0]);
       rchildren.push_back(eqp[1]);
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node l = nm->mkNode(k, lchildren);
     Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
@@ -219,7 +219,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     std::vector<Node> appArgs;
     appArgs.push_back(lambda);
     appArgs.insert(appArgs.end(), subs.begin(), subs.end());

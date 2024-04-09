@@ -124,7 +124,7 @@ class VtsTermCache : protected EnvObj
    */
   bool containsVtsTerm(std::vector<Node>& n, bool isFree = false);
   /**
-   * This method returns true iff n contains an occurence of the virtual term
+   * This method returns true iff n contains an occurrence of the virtual term
    * infinity. If isFree is true, if returns true iff n contains the free
    * virtual term infinity.
    */

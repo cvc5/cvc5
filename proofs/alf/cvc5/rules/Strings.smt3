@@ -11,7 +11,7 @@
 
 (declare-rule string_length_non_empty ((U Type) (s Type) (t Type))
   :premises ((not (= s t)))
-  :requires (((string_is_empty t) true))
+  :requires ((($str_is_empty t) true))
   :conclusion (not (= (str.len s) 0))
 )
 
@@ -34,7 +34,8 @@
 (define string_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
   (let ((sf (string_to_flat_form s rev)))
   (let ((sf1 (string_to_flat_form s1 rev)))
-  (nary.is_prefix str.++ alf.null sf1 sf)))
+  (let ((U (alf.typeof s)))
+  (nary.is_prefix str.++ (mk_emptystr U) sf1 sf))))
 )
 
 ; ProofRule::CONCAT_UNIFY
@@ -46,15 +47,15 @@
 )
 
 ; ProofRule::CONCAT_CSPLIT
-(declare-rule concat_csplit ((U Type) (t U) (s U) (u U) (rev Bool))
+(declare-rule concat_csplit ((U Type) (t (Seq U)) (s (Seq U)) (u (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len u) 0)))
   :args (rev)
   :conclusion
-    (alf.match ((t1 U) (t2 U :list))
+    (alf.match ((V Type) (t1 (Seq V)) (t2 (Seq V) :list))
       (string_to_flat_form t rev)
       (((str.++ t1 t2)
         (alf.requires t1 u
-          (alf.match ((s1 U) (s2 U :list))
+          (alf.match ((W Type) (s1 (Seq W)) (s2 (Seq W) :list))
             (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires (string_check_length_one s1) true    ; checks if char
@@ -79,10 +80,10 @@
           (let ((ct (string_head_or_empty ts)))
             ; ensure they are disequal, return false
             (alf.requires
-              (alf.ite (alf.is_eq cs alf.null)
+              (alf.ite ($str_is_empty cs)
                 (string_check_length_one ct)
                 (alf.ite (string_check_length_one cs)
-                  (alf.ite (alf.is_eq ct alf.null)
+                  (alf.ite ($str_is_empty ct)
                     true
                     (alf.ite (string_check_length_one ct)
                       (alf.not (alf.is_eq cs ct))

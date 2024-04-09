@@ -43,6 +43,13 @@ jobs:
       with:
         fetch-depth: 0
 
+    # Required by PEP-668
+    - name: Set up Python virtual environment
+      if: runner.os == 'macOS'
+      run: |
+        python3 -m venv ~/.venv
+        echo "$HOME/.venv/bin" >> $GITHUB_PATH
+
     # cibuildwheel only supports arm64 Linux wheels through emulation.
     # It works fine, but it is slow. Cross-compilation is not supported yet,
     # see: https://github.com/pypa/cibuildwheel/issues/598

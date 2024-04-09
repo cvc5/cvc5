@@ -258,6 +258,7 @@ set(regress_0_tests
   regress0/bug639.smt2
   regress0/buggy-ite.smt2
   regress0/bv2nat-logic.smt2
+  regress0/bv-conv-value-refine.smt2
   regress0/bv/ackermann1.smt2
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
@@ -839,6 +840,8 @@ set(regress_0_tests
   regress0/fp/from_sbv.smt2
   regress0/fp/fp-set-comprehension-basic.smt2
   regress0/fp/issue-5524.smt2
+  regress0/fp/issue10144.smt2
+  regress0/fp/issue10507.smt2
   regress0/fp/issue3536.smt2
   regress0/fp/issue3582.smt2
   regress0/fp/issue3619.smt2
@@ -848,8 +851,12 @@ set(regress_0_tests
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
+  regress0/fp/issue9854.smt2
   regress0/fp/issue9858.smt2
   regress0/fp/issue9864.smt2
+  regress0/fp/issue9966.smt2
+  regress0/fp/issue9972.smt2
+  regress0/fp/issue9972-2.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2
@@ -914,6 +921,7 @@ set(regress_0_tests
   regress0/ho/m-enum-bug2.smt2 
   regress0/ho/m-enum-bug3.smt2 
   regress0/ho/match-middle.smt2
+  regress0/ho/model-lam-simple.smt2
   regress0/ho/modulo-func-equality.smt2
   regress0/ho/qgu-fuzz-ho-1-dd.smt2
   regress0/ho/qgu-fuzz-ho-2-dd-no-ext.smt2
@@ -1148,6 +1156,7 @@ set(regress_0_tests
   regress0/parser/issue9990-nprint-char.smt2
   regress0/parser/issue10093.smt2
   regress0/parser/issue10156-bad-tester.smt2
+  regress0/parser/issue10489.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1301,6 +1310,7 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
+  regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/t1-difficulty-filter.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2

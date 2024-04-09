@@ -109,6 +109,8 @@ public:
 
   static bool isBuiltWithCoCoA();
 
+  static bool isBuiltWithPortfolio();
+
   /* Return a sorted array of the trace tags name */
   static const std::vector<std::string>& getTraceTags();
   /* Test if the given argument is a known trace tag name */
