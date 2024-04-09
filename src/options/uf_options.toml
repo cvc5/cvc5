@@ -69,7 +69,7 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufHoLambdaQe"
-  category   = "regular"
+  category   = "expert"
   long       = "uf-lambda-qe"
   type       = "bool"
   default    = "false"
