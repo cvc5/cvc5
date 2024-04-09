@@ -298,7 +298,7 @@ class SequencesRewriter : public TheoryRewriter
    * string consisting of "A" repeated n times. Returns the null node if no such
    * string exists.
    */
-  static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
+  Node canonicalStrForSymbolicLength(Node n, TypeNode stype) const;
 
   /**
    * post-process rewrite

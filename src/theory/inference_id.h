@@ -972,6 +972,8 @@ enum class InferenceId
   //-------------------------------------- lemma from modules
   // From the partition generator
   PARTITION_GENERATOR_PARTITION,
+  // From a plugin
+  PLUGIN_LEMMA,
   //-------------------------------------- unknown
   UNKNOWN
 };

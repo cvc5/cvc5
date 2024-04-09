@@ -42,24 +42,36 @@ class FpExpandDefs
       CDHashMap<std::pair<TypeNode, TypeNode>, Node, PairTypeNodeHashFunction>;
 
  public:
-  FpExpandDefs(context::UserContext* u);
+  FpExpandDefs() {}
   /** expand definitions in node */
   TrustNode expandDefinition(Node node);
 
  private:
-  /** TODO: document (projects issue #265) */
-  Node minUF(Node);
-  Node maxUF(Node);
-  Node toUBVUF(Node);
-  Node toSBVUF(Node);
-  Node toRealUF(Node);
-  Node abstractRealToFloat(Node);
-  Node abstractFloatToReal(Node);
-  ComparisonUFMap d_minMap;
-  ComparisonUFMap d_maxMap;
-  ConversionUFMap d_toUBVMap;
-  ConversionUFMap d_toSBVMap;
-  ComparisonUFMap d_toRealMap;
+  /**
+   * Helper to create a function application on a fresh UF for the undefined
+   * zero case of fp.min/fp.max. The UF is instantiated with the operands of
+   * the given node.
+   * @param node The fp.min/fp.maxnode to create the UF and its application for.
+   * @return The function application.
+   */
+  Node minMaxUF(TNode node);
+  /**
+   * Helper to create a function application on a fresh UF for the undefined
+   * cases of fp.to_ubv/fp.to_sbv. The UF is instantiated with the operands of
+   * the given node.
+   * @param node The fp.to_sbv/to_ubv node to create the UF and its application
+   *             for.
+   * @return The function application.
+   */
+  Node toUbvSbvUF(TNode node);
+  /**
+   * Helper to create a function application on a fresh UF for the undefined
+   * cases of fp.to_real. The UF is instantiated with the operands of the given
+   * fp.to_real node.
+   * @param node The fp.to_real node to create the UF and its application for.
+   * @return The function application.
+   */
+  Node toRealUF(TNode node);
 }; /* class TheoryFp */
 
 }  // namespace fp
