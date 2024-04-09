@@ -38,16 +38,37 @@ class InstStrategyMbqi;
 class MVarInfo
 {
  public:
+  /**
+   * Initialize this class for variable v of quantified formula q.
+   * 
+   * @param env Reference to the environment.
+   * @param parent Reference to the parent instantiation strategy.
+   * @param q The quantified formula.
+   * @param v The variable from q we are enumerating terms for.
+   * @param etrules A list of terms which to consider terminals in the grammar
+   * we enumerate. These terms may be of any sort.
+   */
   void initialize(Env& env,
-                  InstStrategyMbqi& d_parent,
+                  InstStrategyMbqi& parent,
                   const Node& q,
                   const Node& v,
                   const std::vector<Node>& etrules);
+  /**
+   * Get the i^th term in the enumeration maintained by this class. Will
+   * continue the sygus enumeration if i is greater than the number of terms
+   * enumerated so far.
+   */
   Node getEnumeratedTerm(size_t i);
-
  private:
+  /** The underlying sygus enumerator utility */
   std::unique_ptr<SygusTermEnumerator> d_senum;
+  /** A cache of all enumerated terms so far */
   std::vector<Node> d_enum;
+  /** 
+   * If we are enumerating function values, this is a BOUND_VAR_LIST node.
+   * The terms we enumerate are t_1, ..., which are transformed to
+   * (lambda <var_list> t_1) ... for this variable list.
+   */
   Node d_lamVars;
 };
 
@@ -70,6 +91,7 @@ class MQuantInfo
   static bool shouldEnumerate(const TypeNode& tn);
 
  private:
+  /** The quantified formula */
   Node d_quant;
   std::vector<MVarInfo> d_vinfo;
   std::vector<size_t> d_indices;
@@ -77,20 +99,27 @@ class MQuantInfo
 };
 
 /**
- * MbqiSygusEnum, which postprocesses an instantiation from MBQI based on
+ * MbqiFastSygus, which postprocesses an instantiation from MBQI based on
  * sygus enumeration.
  */
-class MbqiSygusEnum : protected EnvObj
+class MbqiFastSygus : protected EnvObj
 {
  public:
-  MbqiSygusEnum(Env& env, InstStrategyMbqi& parent);
-  ~MbqiSygusEnum() {}
+  MbqiFastSygus(Env& env, InstStrategyMbqi& parent);
+  ~MbqiFastSygus() {}
 
   /**
    * Updates mvs to the desired instantiation of q.
    * Returns true if successful.
    *
-   * @param mvFreshVar Maps model values to variables
+   * @param q The quantified formula to instantiate.
+   * @param query The query that was made to a subsolver for MBQI.
+   * @param vars The input variables that were used in the query, which
+   * correspond 1-to-1 with the variables of the quantified formula.
+   * @param mvs The model values of vars found in the subsolver for MBQI.
+   * @param mvFreshVar Maps model values to variables, for the purposes
+   * of representing term models for uninterpreted sorts.
+   * @return true if we successfully modified the instantiation.
    */
   bool constructInstantiation(const Node& q,
                               const Node& query,
@@ -99,8 +128,13 @@ class MbqiSygusEnum : protected EnvObj
                               const std::map<Node, Node>& mvFreshVar);
   
  private:
+  /**
+   * @return The information for quantified formula q.
+   */
   MQuantInfo& getOrMkQuantInfo(const Node& q);
+  /** Map from quantified formulas to information above */
   std::map<Node, MQuantInfo> d_qinfo;
+  /** Reference to the parent instantiation strategy */
   InstStrategyMbqi& d_parent;
 };
 

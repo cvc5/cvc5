@@ -193,20 +193,20 @@ name   = "Quantifiers"
   help       = "use model-based quantifier instantiation"
 
 [[option]]
-  name       = "mbqiModelExp"
+  name       = "mbqiFastSygus"
   category   = "expert"
-  long       = "mbqi-model-exp"
+  long       = "mbqi-fast-sygus"
   type       = "bool"
   default    = "false"
-  help       = "experimental option for models in mbqi"
+  help       = "use fast enumeration to augment instantiations from MBQI"
 
 [[option]]
-  name       = "mbqiModelExpGlobalSymGrammar"
+  name       = "mbqiFastSygusGlobalSymGrammar"
   category   = "expert"
-  long       = "mbqi-model-exp-global-syms-grammar"
+  long       = "mbqi-fast-sygus-global-syms-grammar"
   type       = "bool"
   default    = "false"
-  help       = "include global symbols from all available assertions in grammars for enumerative mbqi"
+  help       = "include global symbols from all available assertions in grammars for fast enumerative mbqi"
 
 #### E-matching options
 

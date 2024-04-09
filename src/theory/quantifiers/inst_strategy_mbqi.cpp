@@ -21,7 +21,7 @@
 #include "printer/smt2/smt2_printer.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/mbqi_sygus_enum.h"
+#include "theory/quantifiers/mbqi_fast_sygus.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_util.h"
@@ -49,9 +49,9 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   d_nonClosedKinds.insert(Kind::CODATATYPE_BOUND_VARIABLE);
   d_nonClosedKinds.insert(Kind::UNINTERPRETED_SORT_VALUE);
 
-  if (options().quantifiers.mbqiModelExp)
+  if (options().quantifiers.mbqiFastSygus)
   {
-    d_msenum.reset(new MbqiSygusEnum(env, *this));
+    d_msenum.reset(new MbqiFastSygus(env, *this));
   }
 }
 
@@ -491,7 +491,7 @@ Node InstStrategyMbqi::convertToQuery(
 Node InstStrategyMbqi::modelValueToQuery(const Node& t)
 {
   FirstOrderModel* fm = d_treg.getModel();
-  if (!options().quantifiers.mbqiModelExp)
+  if (!options().quantifiers.mbqiFastSygus)
   {
     return fm->getValue(t);
   }
@@ -536,7 +536,7 @@ void InstStrategyMbqi::modelValueFromQuery(
     std::vector<Node>& mvs,
     const std::map<Node, Node>& mvToFreshVar)
 {
-  if (!options().quantifiers.mbqiModelExp)
+  if (!options().quantifiers.mbqiFastSygus)
   {
     getModelFromSubsolver(smt, vars, mvs);
     return;

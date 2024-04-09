@@ -32,7 +32,7 @@ class SolverEngine;
 namespace theory {
 namespace quantifiers {
 
-class MbqiSygusEnum;
+class MbqiFastSygus;
 
 /**
  * InstStrategyMbqi
@@ -47,7 +47,7 @@ class MbqiSygusEnum;
  */
 class InstStrategyMbqi : public QuantifiersModule
 {
-  friend class MbqiSygusEnum;
+  friend class MbqiFastSygus;
 
  public:
   InstStrategyMbqi(Env& env,
@@ -130,7 +130,7 @@ class InstStrategyMbqi : public QuantifiersModule
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
   /** Submodule for sygus enum */
-  std::unique_ptr<MbqiSygusEnum> d_msenum;
+  std::unique_ptr<MbqiFastSygus> d_msenum;
   /* Set of global ground terms in assertions (outside of quantifiers). */
   context::CDHashSet<Node> d_globalSyms;
 };

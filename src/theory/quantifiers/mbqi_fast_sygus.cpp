@@ -30,7 +30,7 @@ namespace theory {
 namespace quantifiers {
 
 void MVarInfo::initialize(Env& env,
-                          InstStrategyMbqi& d_parent,
+                          InstStrategyMbqi& parent,
                           const Node& q,
                           const Node& v,
                           const std::vector<Node>& etrules)
@@ -60,7 +60,7 @@ void MVarInfo::initialize(Env& env,
   // include the external terminal rules
   trules.insert(trules.end(), etrules.begin(), etrules.end());
   // add extra symbols to grammar
-  for (const auto& symbol : d_parent.getGlobalSyms()) {
+  for (const auto& symbol : parent.getGlobalSyms()) {
     if (std::find(trules.begin(), trules.end(), symbol) == trules.end()) {
         trules.push_back(symbol);
     }
@@ -170,12 +170,12 @@ bool MQuantInfo::shouldEnumerate(const TypeNode& tn)
   return true;
 }
 
-MbqiSygusEnum::MbqiSygusEnum(Env& env, InstStrategyMbqi& parent)
+MbqiFastSygus::MbqiFastSygus(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)
 {
 }
 
-MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
+MQuantInfo& MbqiFastSygus::getOrMkQuantInfo(const Node& q)
 {
   std::map<Node, MQuantInfo>::iterator it = d_qinfo.find(q);
   if (it == d_qinfo.end())
@@ -187,7 +187,7 @@ MQuantInfo& MbqiSygusEnum::getOrMkQuantInfo(const Node& q)
   return it->second;
 }
 
-bool MbqiSygusEnum::constructInstantiation(
+bool MbqiFastSygus::constructInstantiation(
     const Node& q,
     const Node& query,
     const std::vector<Node>& vars,
