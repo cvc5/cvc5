@@ -20,21 +20,25 @@
 
 ; Return the character type of the string-like type T
 (define $char_type_of ((T Type)) 
-  (alf.match ((U Type)) T (((Seq U) U))))
+  (alf.match ((U Type)) T (((Seq U) U)))
+)
 
 ; Return the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (alf.concat str.++ x y))
+  (alf.concat str.++ x y)
+)
 
 ; Return the result of prepending of string x to string y where the latter is
 ; treated as a list.
 (define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (alf.cons str.++ x y))
+  (alf.cons str.++ x y)
+)
 
 ; Return t if it corresponds to the empty string, otherwise evaluates
 ; to an unevaluated alf.requires term.
 (define $str_self_if_empty ((T Type :implicit) (t T))
-  (alf.requires t (mk_emptystr (alf.typeof t)) t))
+  (alf.requires t (mk_emptystr (alf.typeof t)) t)
+)
 
 ;;-------------------- Skolem terms
 
