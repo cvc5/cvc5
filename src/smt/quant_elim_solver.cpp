@@ -65,10 +65,11 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
   {
     closed = true;
     Subs sq;
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     for (const Node& v : q[0])
     {
-      Node k = sm->mkInternalSkolemFunction(InternalSkolemId::QE_CLOSED_INPUT, v.getType(), {v});
+      Node k = sm->mkInternalSkolemFunction(
+          InternalSkolemId::QE_CLOSED_INPUT, v.getType(), {v});
       sq.add(v, k);
     }
     ne = sq.apply(q[1]);
