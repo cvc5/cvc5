@@ -34,7 +34,27 @@ class TheoryBoolRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
 
-}; /* class TheoryBoolRewriter */
+ protected:
+  /**
+   * Helper method which performs flattening.
+   *
+   * @param n The node to flatten
+   * @param trivialNode The trivial node, e.g. false if n is an AND application
+   * @param skipNode The skip node, e.g. true if n is an AND application
+   * @return The flattened node.
+   */
+  RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode);
+  /**
+   * Helper method for making a negation
+   *
+   * @param n The node to negate
+   * @return The negation of n.
+   */
+  Node makeNegation(TNode n);
+  /** Common constants */
+  Node d_true;
+  Node d_false;
+};
 
 }  // namespace booleans
 }  // namespace theory

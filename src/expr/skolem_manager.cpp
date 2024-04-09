@@ -51,6 +51,7 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED:
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
+    case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     default: return "?";
   }
@@ -549,10 +550,40 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       TypeNode t = cacheVals[1].getConst<SortToTerm>().getType();
       return nm->mkSelectorType(dtt, t);
     }
+    // fp skolems
+    case SkolemId::FP_MIN_ZERO:
+    case SkolemId::FP_MAX_ZERO:
+    {
+      Assert(cacheVals.size() == 1);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      TypeNode type = cacheVals[0].getConst<SortToTerm>().getType();
+      Assert(type.isFloatingPoint());
+      return nm->mkFunctionType({type, type}, nm->mkBitVectorType(1));
+    }
+    case SkolemId::FP_TO_SBV:
+    case SkolemId::FP_TO_UBV:
+    {
+      Assert(cacheVals.size() == 2);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      TypeNode fptype = cacheVals[0].getConst<SortToTerm>().getType();
+      Assert(fptype.isFloatingPoint());
+      Assert(cacheVals[1].getKind() == Kind::SORT_TO_TERM);
+      TypeNode bvtype = cacheVals[1].getConst<SortToTerm>().getType();
+      Assert(bvtype.isBitVector());
+      return nm->mkFunctionType({nm->roundingModeType(), fptype}, bvtype);
+    }
+    case SkolemId::FP_TO_REAL:
+    {
+      Assert(cacheVals.size() == 1);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      TypeNode type = cacheVals[0].getConst<SortToTerm>().getType();
+      Assert(type.isFloatingPoint());
+      return nm->mkFunctionType({type}, nm->realType());
+    }
+    //
     default: break;
   }
-  TypeNode ret;
-  return ret;
+  return TypeNode();
 }
 
 }  // namespace cvc5::internal

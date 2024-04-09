@@ -878,8 +878,15 @@ EqualityStatus TheoryFp::getEqualityStatus(TNode a, TNode b)
     Trace("theory-fp") << EqualityStatus::EQUALITY_TRUE_IN_MODEL << std::endl;
     return EqualityStatus::EQUALITY_TRUE_IN_MODEL;
   }
-  Trace("theory-fp") << EqualityStatus::EQUALITY_FALSE_IN_MODEL << std::endl;
-  return EqualityStatus::EQUALITY_FALSE_IN_MODEL;
+  // We can get values that are not consts due to the fact that we word-blast
+  // to BV, value terms can be non-const bit-vector terms. We thus may only
+  // conclude false if the values are disequal consts.
+  if (value_a.isConst() && value_b.isConst())
+  {
+    Trace("theory-fp") << EqualityStatus::EQUALITY_FALSE_IN_MODEL << std::endl;
+    return EqualityStatus::EQUALITY_FALSE_IN_MODEL;
+  }
+  return EqualityStatus::EQUALITY_UNKNOWN;
 }
 
 bool TheoryFp::collectModelInfo(TheoryModel* m,
@@ -921,7 +928,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
     // if FpWordBlaster::getValue() does not return a null node.
     if (!wordBlasted.isNull() && !m->assertEquality(node, wordBlasted, true))
     {
-      Trace("fp-collectModelInfo")
+      Trace("fp-collectModelValues")
           << "TheoryFp::collectModelValues(): ... not converted" << std::endl;
       return false;
     }

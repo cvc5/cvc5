@@ -1340,12 +1340,12 @@ inline Node RewriteRule<XorSimplify>::apply(TNode node)
     }
     else if (pos % 2)
     {
-      // we had a positive occurence left
+      // we had a positive occurrence left
       children.push_back(it->first);
     }
     else if (neg % 2)
     {
-      // we had a negative occurence left
+      // we had a negative occurrence left
       children.push_back(nm->mkNode(Kind::BITVECTOR_NOT, it->first));
     }
     // otherwise both reduced to false

@@ -366,6 +366,7 @@ TEST_F(TestApiBlackUncovered, Statistics)
 
     testing::internal::CaptureStdout();
     d_solver->printStatisticsSafe(STDOUT_FILENO);
+    d_tm.printStatisticsSafe(STDOUT_FILENO);
     testing::internal::GetCapturedStdout();
 }
 
