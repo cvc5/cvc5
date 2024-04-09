@@ -760,8 +760,8 @@ TypeNode RelationTableJoinTypeRule::computeType(NodeManager* nm,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     auto [aIndices, bIndices] = bags::BagsUtils::splitTableJoinIndices(n);
-    TupleUtils::checkTypeIndices(n, aTupleType, aIndices);
-    TupleUtils::checkTypeIndices(n, bTupleType, bIndices);
+    TupleUtils::checkTypeIndices(aTupleType, aIndices);
+    TupleUtils::checkTypeIndices(bTupleType, bIndices);
 
     // check the types of columns
     std::vector<TypeNode> aTypes = aTupleType.getTupleTypes();
