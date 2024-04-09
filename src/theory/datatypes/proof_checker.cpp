@@ -42,7 +42,7 @@ Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
                                               const std::vector<Node>& children,
                                               const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (id == ProofRule::DT_UNIF)
   {
     Assert(children.size() == 1);
