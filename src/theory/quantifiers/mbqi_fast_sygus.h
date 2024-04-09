@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Model-based quantifier instantiation
+ * A class for augmenting model-based instantiations via fast sygus enumeration.
  */
 
 #include "cvc5_private.h"
