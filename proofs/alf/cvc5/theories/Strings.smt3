@@ -16,13 +16,24 @@
 ; String literals are strings.
 (declare-consts <string> String)
 
+; Empty sequence
+(declare-const seq.empty (-> (! Type :var T) T))
+
+; Make empty string of the given string-like sort U.
+(program mk_emptystr ((U Type))
+  (Type) U
+  (
+    ((mk_emptystr String)  "")
+    ((mk_emptystr (Seq U)) (seq.empty (Seq U)))
+  )
+)
+
 ; Core functions of strings.
 (declare-const str.len 
   (-> (! Type :var T :implicit)
       (Seq T) Int))
-(declare-const str.++
-  (-> (! Type :var T :implicit)
-      (Seq T) (Seq T) (Seq T)) :right-assoc-nil)
+(declare-parameterized-const str.++ ((T Type))
+  (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil (mk_emptystr (Seq T)))
 
 ; Extended functions for strings.
 (declare-const str.substr (-> (! Type :var T :implicit)
@@ -78,7 +89,6 @@
 (declare-const str.in_re (-> String RegLan Bool))
 
 ; Sequence-specific operators.
-(declare-const seq.empty (-> (! Type :var T) T))
 (declare-const seq.unit (-> (! Type :var T :implicit) T (Seq T)))
 (declare-const seq.nth (-> (! Type :var T :implicit) (Seq T) Int (alf.ite (alf.is_eq T Char) Int T)))
 

@@ -1229,4 +1229,12 @@ TEST_F(TestApiBlackTermManager, getStatistics)
     }
   }
 }
+
+TEST_F(TestApiBlackTermManager, printStatisticsSafe)
+{
+  testing::internal::CaptureStdout();
+  d_tm.printStatisticsSafe(STDOUT_FILENO);
+  testing::internal::GetCapturedStdout();
+}
+
 }  // namespace cvc5::internal::test

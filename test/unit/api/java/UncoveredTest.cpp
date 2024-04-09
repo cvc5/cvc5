@@ -287,6 +287,7 @@ TEST_F(TestApiBlackUncovered, Statistics)
   --it;
   testing::internal::CaptureStdout();
   d_solver->printStatisticsSafe(STDOUT_FILENO);
+  d_tm.printStatisticsSafe(STDOUT_FILENO);
   testing::internal::GetCapturedStdout();
 }
 
@@ -335,6 +336,7 @@ TEST_F(TestApiBlackUncovered, Datatypes)
     ss << d;
     ss << dtcd;
     ss << dc;
+    ss << dtd;
     ss << d.getSelector("head");
   }
 }

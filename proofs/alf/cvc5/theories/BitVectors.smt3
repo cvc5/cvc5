@@ -3,12 +3,9 @@
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
-(program get_bitwidth ((n Int))
-  (Type) Int
-  (
-    ((get_bitwidth (BitVec n)) n)
-  )
-)
+; Returns the (integer value) bitwidth for a given bit-vector type.
+(define $bv_bitwidth ((T Type))
+  (alf.match ((n Int)) T (((BitVec n) n))))
 
 ; used as the nil terminator for concat
 (define @bvempty () (alf.to_bin 0 0))
@@ -42,16 +39,14 @@
         (BitVec m) (BitVec m))
 )
 
-(declare-const bvand
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvand ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.not (alf.to_bin m 0))
 )
 
-(declare-const bvor
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvor ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.to_bin m 0)
 )
 
 (declare-const bvnand
@@ -64,10 +59,9 @@
         (BitVec m) (BitVec m) (BitVec m)) 
 )
 
-(declare-const bvxor
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvxor ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.to_bin m 0)
 )
 
 (declare-const bvxnor
@@ -85,16 +79,14 @@
         (BitVec m) (BitVec m))
 )
 
-(declare-const bvadd
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvadd ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.to_bin m 0)
 )
 
-(declare-const bvmul
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvmul ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.to_bin m 1)
 )
 
 (declare-const bvudiv
@@ -316,4 +308,4 @@
 (declare-const @bv (-> Int (! Int :var w) (BitVec w)))
 
 ; bvsize
-(define @bvsize ((m Int :implicit) (x (BitVec m))) (get_bitwidth (alf.typeof x)))
+(define @bvsize ((m Int :implicit) (x (BitVec m))) ($bv_bitwidth (alf.typeof x)))
