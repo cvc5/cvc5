@@ -226,6 +226,7 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
     output(OutputTag::LEMMAS) << "(lemma ";
     // use original form of the lemma here
     output(OutputTag::LEMMAS) << SkolemManager::getOriginalForm(node);
+    output(OutputTag::LEMMAS) << " :source " << id;
     output(OutputTag::LEMMAS) << ")" << std::endl;
   }
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
