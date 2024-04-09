@@ -13,13 +13,12 @@
  * Model-based quantifier instantiation
  */
 
-#include "theory/quantifiers/mbqi_sygus_enum.h"
-
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/inst_strategy_mbqi.h"
+#include "theory/quantifiers/mbqi_sygus_enum.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
@@ -60,9 +59,11 @@ void MVarInfo::initialize(Env& env,
   // include the external terminal rules
   trules.insert(trules.end(), etrules.begin(), etrules.end());
   // add extra symbols to grammar
-  for (const auto& symbol : parent.getGlobalSyms()) {
-    if (std::find(trules.begin(), trules.end(), symbol) == trules.end()) {
-        trules.push_back(symbol);
+  for (const auto& symbol : parent.getGlobalSyms())
+  {
+    if (std::find(trules.begin(), trules.end(), symbol) == trules.end())
+    {
+      trules.push_back(symbol);
     }
   }
   Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;

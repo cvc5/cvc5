@@ -21,8 +21,8 @@
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
-#include "context/cdhashset.h"
 
+#include "context/cdhashset.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {

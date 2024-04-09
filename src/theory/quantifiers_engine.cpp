@@ -194,7 +194,7 @@ void QuantifiersEngine::ppNotifyAssertions(
   if (options().quantifiers.mbqiModelExpGlobalSymGrammar)
   {
     quantifiers::InstStrategyMbqi* mi = d_qmodules->d_mbqi.get();
-    if (mi!=nullptr)
+    if (mi != nullptr)
     {
       mi->ppNotifyAssertions(assertions);
     }

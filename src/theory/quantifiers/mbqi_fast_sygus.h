@@ -40,7 +40,7 @@ class MVarInfo
  public:
   /**
    * Initialize this class for variable v of quantified formula q.
-   * 
+   *
    * @param env Reference to the environment.
    * @param parent Reference to the parent instantiation strategy.
    * @param q The quantified formula.
@@ -59,12 +59,13 @@ class MVarInfo
    * enumerated so far.
    */
   Node getEnumeratedTerm(size_t i);
+
  private:
   /** The underlying sygus enumerator utility */
   std::unique_ptr<SygusTermEnumerator> d_senum;
   /** A cache of all enumerated terms so far */
   std::vector<Node> d_enum;
-  /** 
+  /**
    * If we are enumerating function values, this is a BOUND_VAR_LIST node.
    * The terms we enumerate are t_1, ..., which are transformed to
    * (lambda <var_list> t_1) ... for this variable list.
@@ -126,7 +127,7 @@ class MbqiFastSygus : protected EnvObj
                               const std::vector<Node>& vars,
                               std::vector<Node>& mvs,
                               const std::map<Node, Node>& mvFreshVar);
-  
+
  private:
   /**
    * @return The information for quantified formula q.
