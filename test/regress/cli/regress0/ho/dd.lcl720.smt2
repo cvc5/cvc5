@@ -1,4 +1,4 @@
-; COMMAND-LINE: --mbqi --mbqi-model-exp
+; COMMAND-LINE: --mbqi --mbqi-fast-sygus
 ; EXPECT: sat
 (set-logic HO_ALL)
 (declare-const P (-> Int Bool))

@@ -191,13 +191,11 @@ void QuantifiersEngine::ppNotifyAssertions(
     quantifiers::SygusInst* si = d_qmodules->d_sygus_inst.get();
     si->ppNotifyAssertions(assertions);
   }
-  if (options().quantifiers.mbqiModelExpGlobalSymGrammar)
+  if (options().quantifiers.mbqi)
   {
+    // may need to be notified of assertions, for mbqi-fast-sygus
     quantifiers::InstStrategyMbqi* mi = d_qmodules->d_mbqi.get();
-    if (mi != nullptr)
-    {
-      mi->ppNotifyAssertions(assertions);
-    }
+    mi->ppNotifyAssertions(assertions);
   }
 }
 

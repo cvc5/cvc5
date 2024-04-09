@@ -18,7 +18,7 @@
 #include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/inst_strategy_mbqi.h"
-#include "theory/quantifiers/mbqi_sygus_enum.h"
+#include "theory/quantifiers/mbqi_fast_sygus.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
@@ -29,7 +29,6 @@ namespace theory {
 namespace quantifiers {
 
 void MVarInfo::initialize(Env& env,
-                          InstStrategyMbqi& parent,
                           const Node& q,
                           const Node& v,
                           const std::vector<Node>& etrules)
@@ -57,9 +56,7 @@ void MVarInfo::initialize(Env& env,
   expr::getSymbols(q[1], syms);
   trules.insert(trules.end(), syms.begin(), syms.end());
   // include the external terminal rules
-  trules.insert(trules.end(), etrules.begin(), etrules.end());
-  // add extra symbols to grammar
-  for (const auto& symbol : parent.getGlobalSyms())
+  for (const Node& symbol : etrules)
   {
     if (std::find(trules.begin(), trules.end(), symbol) == trules.end())
     {
@@ -125,7 +122,7 @@ Node MVarInfo::getEnumeratedTerm(size_t i)
   return d_enum[i];
 }
 
-void MQuantInfo::initialize(Env& env, InstStrategyMbqi& d_parent, const Node& q)
+void MQuantInfo::initialize(Env& env, InstStrategyMbqi& parent, const Node& q)
 {
   // TODO: external terminal rules? maybe pass all symbols to this?
   std::vector<Node> etrules;
@@ -146,10 +143,19 @@ void MQuantInfo::initialize(Env& env, InstStrategyMbqi& d_parent, const Node& q)
       etrules.push_back(v);
     }
   }
+  // include the global symbols if applicable
+  if (env.getOptions().quantifiers.mbqiFastSygusGlobalSymGrammar)
+  {
+    const context::CDHashSet<Node>& gsyms = parent.getGlobalSyms();
+    for (const Node& v : gsyms)
+    {
+      etrules.push_back(v);
+    }
+  }
   // initialize the variables we are instantiating
   for (size_t index : d_indices)
   {
-    d_vinfo[index].initialize(env, d_parent, q, q[0][index], etrules);
+    d_vinfo[index].initialize(env, q, q[0][index], etrules);
   }
 }
 

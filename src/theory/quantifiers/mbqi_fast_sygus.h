@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__MBQI_SYGUS_ENUM_H
-#define CVC5__THEORY__QUANTIFIERS__MBQI_SYGUS_ENUM_H
+#ifndef CVC5__THEORY__QUANTIFIERS__MBQI_FAST_SYGUS_H
+#define CVC5__THEORY__QUANTIFIERS__MBQI_FAST_SYGUS_H
 
 #include <map>
 #include <unordered_map>
@@ -42,14 +42,12 @@ class MVarInfo
    * Initialize this class for variable v of quantified formula q.
    *
    * @param env Reference to the environment.
-   * @param parent Reference to the parent instantiation strategy.
    * @param q The quantified formula.
    * @param v The variable from q we are enumerating terms for.
    * @param etrules A list of terms which to consider terminals in the grammar
    * we enumerate. These terms may be of any sort.
    */
   void initialize(Env& env,
-                  InstStrategyMbqi& parent,
                   const Node& q,
                   const Node& v,
                   const std::vector<Node>& etrules);
@@ -86,7 +84,7 @@ class MQuantInfo
   std::vector<size_t> getInstIndicies();
   /** Get indicies of variables not to instantiate */
   std::vector<size_t> getNoInstIndicies();
-  /** Get variable info */
+  /** Get variable info for the index^th variable of the quantified formula */
   MVarInfo& getVarInfo(size_t index);
   /** Should we enumerate terms for type tn? */
   static bool shouldEnumerate(const TypeNode& tn);
@@ -94,8 +92,11 @@ class MQuantInfo
  private:
   /** The quantified formula */
   Node d_quant;
+  /** A list of variable informations for each of the variables of q */
   std::vector<MVarInfo> d_vinfo;
+  /** The indices of variables we are enumerating */
   std::vector<size_t> d_indices;
+  /** The indices of variables we are not enumerating */
   std::vector<size_t> d_nindices;
 };
 
