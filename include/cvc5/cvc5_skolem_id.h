@@ -432,7 +432,7 @@ enum ENUM(SkolemId) : uint32_t
   /**
    * An interpreted function ``uf`` for bag.choose operator:
    * ``(bag.choose A)`` is replaced by ``(uf A)`` along with the inference
-   * ``(=> (not (= A (as emptybag (Bag T)))) (>= (bag.count (uf A) A) 1))``.
+   * that ``(>= (bag.count (uf A) A) 1)`` when ``A`` is non-empty.
    * where ``T`` is the type of elements of A.
    *
    * - Number of skolem indices: ``1``
@@ -555,9 +555,9 @@ enum ENUM(SkolemId) : uint32_t
   EVALUE(RELATIONS_GROUP_PART_ELEMENT),
   /**
    * An interpreted function for set.choose operator, where ``(set.choose A)``
-   * is expanded to ``(uf A)`` along with the inference 
-   * ``(=> (not (= A (as set.empty (Set E))) (set.member (uf A) A))``,
-   * where uf: ``(-> (Set E) E)`` is a skolem function, and E is the type of
+   * is expanded to ``(uf A)`` along with the inference
+   * ``(set.member (uf A) A))`` when ``A`` is non-empty,
+   * where uf: ``(-> (Set E) E)`` is this skolem function, and E is the type of
    * elements of ``A``.
    *
    * - Number of skolem indices: ``1``
