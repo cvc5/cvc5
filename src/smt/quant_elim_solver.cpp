@@ -64,7 +64,9 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
   bool polarity = (q.getKind() != Kind::EXISTS);
   Node ne;
   // Special case: if we have no free variables, just use a quantifier-free
-  // query.
+  // query. This ensures we don't depend on quantifier instantiation in
+  // these cases, which is especially important if the theory does not admit
+  // QE, e.g. strings.
   std::unordered_set<Node> syms;
   expr::getSymbols(q, syms);
   bool closed = false;
