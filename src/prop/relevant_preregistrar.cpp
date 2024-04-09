@@ -535,7 +535,7 @@ bool RelevantPreregistrar::isAtomPreregister(TNode n)
   }
   // only preregister variables corresponding to Boolean purification
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  return (sm->getId(n) == SkolemFunId::PURIFY);
+  return (sm->getId(n) == SkolemId::PURIFY);
 }
 
 }  // namespace prop
