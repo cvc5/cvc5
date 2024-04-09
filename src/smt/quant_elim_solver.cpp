@@ -25,6 +25,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "util/string.h"
+#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
@@ -55,12 +56,15 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
   // do nested quantifier elimination if necessary
   q = quantifiers::NestedQe::doNestedQe(d_env, q, true);
   Trace("smt-qe") << "QuantElimSolver: after nested quantifier elimination : "
-                  << q << std::endl;
+                  << q << std::endl;    
+                Node keyword =
+      nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
+  Node n_attr = nm->mkNode(Kind::INST_ATTRIBUTE, keyword);
+  Node ne;
   // if we have no free variables, just use a quantifier-free query
   std::unordered_set<Node> syms;
   expr::getSymbols(q, syms);
   bool closed = false;
-  Node ne;
   if (syms.empty())
   {
     closed = true;
@@ -82,9 +86,6 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
   {
     // tag the quantified formula with the quant-elim attribute
     TypeNode t = nm->booleanType();
-    Node keyword =
-        nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
-    Node n_attr = nm->mkNode(Kind::INST_ATTRIBUTE, keyword);
     n_attr = nm->mkNode(Kind::INST_PATTERN_LIST, n_attr);
     std::vector<Node> children;
     children.push_back(q[0]);
@@ -115,6 +116,7 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
     // version of the input quantified formula q.
     std::vector<Node> inst_qs;
     Node topq;
+    Node ret;
     if (!closed)
     {
       TheoryEngine* te = d_smtSolver.getTheoryEngine();
@@ -131,36 +133,37 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
           break;
         }
       }
-    }
-    Node ret;
-    if (!topq.isNull())
-    {
-      Assert(topq.getKind() == Kind::FORALL);
-      Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
-                      << topq << std::endl;
-      std::vector<Node> insts;
-      qe->getInstantiations(topq, insts);
-      // note we do not convert to witness form here, since we could be
-      // an internal subsolver (SolverEngine::isInternalSubsolver).
-      ret = nm->mkAnd(insts);
-      Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
-      if (q.getKind() == Kind::EXISTS)
+      if (!topq.isNull())
       {
-        ret = rewrite(ret.negate());
+        Assert(topq.getKind() == Kind::FORALL);
+        Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
+                        << topq << std::endl;
+        std::vector<Node> insts;
+        qe->getInstantiations(topq, insts);
+        // note we do not convert to witness form here, since we could be
+        // an internal subsolver (SolverEngine::isInternalSubsolver).
+        ret = nm->mkAnd(insts);
+        Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
+        if (q.getKind() == Kind::EXISTS)
+        {
+          ret = rewrite(ret.negate());
+        }
+        // do extended rewrite to minimize the size of the formula aggressively
+        ret = extendedRewrite(ret);
+        // if we are not an internal subsolver, convert to witness form, since
+        // internally generated skolems should not escape
+        if (!isInternalSubsolver)
+        {
+          ret = SkolemManager::getOriginalForm(ret);
+        }
+        // make so that the returned formula does not involve arithmetic subtyping
+        SubtypeElimNodeConverter senc(nodeManager());
+        ret = senc.convert(ret);
       }
-      // do extended rewrite to minimize the size of the formula aggressively
-      ret = extendedRewrite(ret);
-      // if we are not an internal subsolver, convert to witness form, since
-      // internally generated skolems should not escape
-      if (!isInternalSubsolver)
-      {
-        ret = SkolemManager::getOriginalForm(ret);
-      }
-      // make so that the returned formula does not involve arithmetic subtyping
-      SubtypeElimNodeConverter senc(nodeManager());
-      ret = senc.convert(ret);
     }
-    else
+    // If we are closed, or the quantified formula was not instantiated in the
+    // subsolver, then we are a constant.
+    if (ret.isNull())
     {
       ret = nm->mkConst(q.getKind() != Kind::EXISTS);
     }
