@@ -52,7 +52,7 @@ void MVarInfo::initialize(Env& env,
     d_lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
     trules.insert(trules.end(), vs.begin(), vs.end());
   }
-  // NOTE: get free symbols from body of quantified formula here??
+  // Get free symbols from body of quantified formula here
   std::unordered_set<Node> syms;
   expr::getSymbols(q[1], syms);
   trules.insert(trules.end(), syms.begin(), syms.end());
@@ -65,7 +65,6 @@ void MVarInfo::initialize(Env& env,
     }
   }
   Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;
-  // TODO: could add more symbols to trules to improve the enumerated terms
   SygusGrammarCons sgc;
   Node bvl;
   TypeNode tng = sgc.mkDefaultSygusType(env, retType, bvl, trules);
@@ -125,7 +124,8 @@ Node MVarInfo::getEnumeratedTerm(size_t i)
 
 void MQuantInfo::initialize(Env& env, InstStrategyMbqi& parent, const Node& q)
 {
-  // TODO: external terminal rules? maybe pass all symbols to this?
+  // The externally provided terminal rules. This set is shared between
+  // all variables we instantiate.
   std::vector<Node> etrules;
   for (const Node& v : q[0])
   {
@@ -140,7 +140,7 @@ void MQuantInfo::initialize(Env& env, InstStrategyMbqi& parent, const Node& q)
     else
     {
       d_nindices.push_back(index);
-      // variables defined in terms of others
+      // Include variables defined in terms of others we are not enumerating.
       etrules.push_back(v);
     }
   }
@@ -193,11 +193,6 @@ bool MbqiFastSygus::constructInstantiation(
     std::vector<Node>& mvs,
     const std::map<Node, Node>& mvFreshVar)
 {
-  // TODO: it would better for the last child to simply invoke addInstantiation
-  // as an oracle to determine if the instantiation is feasiable. This would
-  // avoid one subsolver call per instantiation we construct.
-  // Doing this ignores the constructed model in favor of using "entailment"
-  // from the main solver. This is likely a better notion of filtering.
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());
   if (TraceIsOn("mbqi-model-enum"))
