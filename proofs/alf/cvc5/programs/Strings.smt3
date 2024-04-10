@@ -59,6 +59,21 @@
   (str.substr s n (- (str.len s) n))
 )
 
+; The unified splitting term for t and s, which is the term that denotes the
+; prefix (or suffix if rev is true) remainder of t (resp. s) in the case that
+; t (resp. s) is the longer string.
+(program skolem_unify_split ((U Type) (t (Seq U)) (s (Seq U)) (rev Bool))
+  ((Seq U) (Seq U) Bool) (Seq U)
+  (
+    ((skolem_unify_split t s true)  (ite (>= (str.len t) (str.len s))
+                                      (skolem_prefix t (- (str.len t) (str.len s)))
+                                      (skolem_prefix s (- (str.len s) (str.len t)))))
+    ((skolem_unify_split t s false) (ite (>= (str.len t) (str.len s))
+                                      (skolem_suffix_rem t (str.len s))
+                                      (skolem_suffix_rem s (str.len t))))
+  )
+)
+
 ; Get the term corresponding to the prefix of s before the first occurrence of
 ; t in s.
 (define skolem_first_ctn_pre ((U Type :implicit) (s (Seq U)) (t (Seq U)))
