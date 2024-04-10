@@ -32,7 +32,7 @@ namespace quantifiers {
 void MVarInfo::initialize(Env& env,
                           const Node& q,
                           const Node& v,
-                          const std::vector<Node>& trules)
+                          const std::vector<Node>& etrules)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = v.getType();
@@ -52,6 +52,7 @@ void MVarInfo::initialize(Env& env,
     d_lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
     trules.insert(trules.end(), vs.begin(), vs.end());
   }
+  trules.insert(trules.end(), etrules.begin(), etrules.end());
   SygusGrammarCons sgc;
   Node bvl;
   TypeNode tng = sgc.mkDefaultSygusType(env, retType, bvl, trules);
@@ -141,7 +142,7 @@ void MQuantInfo::initialize(Env& env, InstStrategyMbqi& parent, const Node& q)
       etrules.push_back(symbol);
     }
   }
-  Trace("mbqi-model-enum") << "Symbols: " << trules << std::endl;
+  Trace("mbqi-model-enum") << "Terminals: " << etrules << std::endl;
   // initialize the variables we are instantiating
   for (size_t index : d_indices)
   {
