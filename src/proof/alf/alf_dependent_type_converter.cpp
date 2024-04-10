@@ -21,8 +21,8 @@
 namespace cvc5::internal {
 namespace proof {
 
-AlfDependentTypeConverter::AlfDependentTypeConverter(NodeManager* nm,
-                                                   BaseAlfNodeConverter& tproc)
+AlfDependentTypeConverter::AlfDependentTypeConverter(
+    NodeManager* nm, BaseAlfNodeConverter& tproc)
     : d_nm(nm), d_tproc(tproc), d_typeCounter(0), d_intCounter(0)
 {
   d_sortType = nm->mkSort("Type");
@@ -62,9 +62,9 @@ Node AlfDependentTypeConverter::process(const TypeNode& tn)
       case Kind::FINITE_FIELD_TYPE:
       case Kind::FLOATINGPOINT_TYPE:
       {
-        size_t nindices = (ak==Kind::FLOATINGPOINT_TYPE ? 2 : 1);
+        size_t nindices = (ak == Kind::FLOATINGPOINT_TYPE ? 2 : 1);
         std::vector<Node> indices;
-        for (size_t i=0; i<nindices; i++)
+        for (size_t i = 0; i < nindices; i++)
         {
           std::stringstream ss;
           ss << "@n" << d_intCounter;
