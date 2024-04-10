@@ -179,13 +179,15 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
     Trace("rpc-debug2") << "...proved via congruence" << std::endl;
     return RewriteProofStatus::CONG;
   }
-  if (proveWithRule(RewriteProofStatus::CONG_EVAL, eqi, {}, {}, false, false, true))
+  if (proveWithRule(
+          RewriteProofStatus::CONG_EVAL, eqi, {}, {}, false, false, true))
   {
     Trace("rpc-debug2") << "...proved via congruence + evaluation" << std::endl;
     return RewriteProofStatus::CONG_EVAL;
   }
   // standard normalization
-  if (proveWithRule(RewriteProofStatus::ACI_NORM, eqi, {}, {}, false, false, true))
+  if (proveWithRule(
+          RewriteProofStatus::ACI_NORM, eqi, {}, {}, false, false, true))
   {
     return RewriteProofStatus::ACI_NORM;
   }
@@ -215,8 +217,9 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   }
   // if target is (= (= t1 t2) true), maybe try showing (= t1 t2); otherwise
   // try showing (= target true)
-  RewriteProofStatus eqTrueId =
-      eqi[1] == d_true ? RewriteProofStatus::TRUE_INTRO : RewriteProofStatus::TRUE_ELIM;
+  RewriteProofStatus eqTrueId = eqi[1] == d_true
+                                    ? RewriteProofStatus::TRUE_INTRO
+                                    : RewriteProofStatus::TRUE_ELIM;
   if (proveWithRule(eqTrueId, eqi, {}, {}, false, false, true))
   {
     Trace("rpc-debug2") << "...proved via " << eqTrueId << std::endl;
@@ -264,7 +267,13 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
     // We also don't permit inflection matching (which regardless should not
     // apply).
     if (proveWithRule(RewriteProofStatus::DSL,
-           target, vars, subs, false, false, false, d_currFixedPointId))
+                      target,
+                      vars,
+                      subs,
+                      false,
+                      false,
+                      false,
+                      d_currFixedPointId))
     {
       // successfully proved, store in temporary variable
       d_currFixedPointConc = target;
@@ -284,7 +293,14 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
   {
     // try to prove target with the current rule, using inflection matching
     // and fixed point semantics
-    if (proveWithRule(RewriteProofStatus::DSL, d_target, vars, subs, true, true, recurse, id))
+    if (proveWithRule(RewriteProofStatus::DSL,
+                      d_target,
+                      vars,
+                      subs,
+                      true,
+                      true,
+                      recurse,
+                      id))
     {
       // if successful, we do not want to be notified of further matches
       // and return false here.
@@ -555,7 +571,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   return true;
 }
 
-bool RewriteDbProofCons::proveInternalBase(const Node& eqi, RewriteProofStatus& idb)
+bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
+                                           RewriteProofStatus& idb)
 {
   Trace("rpc-debug2") << "Prove internal base: " << eqi << "?" << std::endl;
   Assert(eqi.getKind() == Kind::EQUAL);
@@ -779,7 +796,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           }
           else
           {
-            Assert (pcur.d_dslId!=DslProofRule::NONE);
+            Assert(pcur.d_dslId != DslProofRule::NONE);
             const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
             // add the DSL proof rule we used
             pfac.push_back(
@@ -890,7 +907,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       else
       {
         Assert(pfArgs.find(cur) != pfArgs.end());
-        Assert (pcur.d_dslId!=DslProofRule::NONE);
+        Assert(pcur.d_dslId != DslProofRule::NONE);
         const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
         const std::vector<Node>& args = pfArgs[cur];
         std::vector<Node> subs(args.begin() + 1, args.end());

@@ -18,7 +18,6 @@
 namespace cvc5::internal {
 namespace rewriter {
 
-
 const char* toString(RewriteProofStatus s)
 {
   switch (s)
@@ -33,7 +32,7 @@ const char* toString(RewriteProofStatus s)
     case RewriteProofStatus::TRUE_INTRO: return "TRUE_INTRO";
     case RewriteProofStatus::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case RewriteProofStatus::ACI_NORM: return "ACI_NORM";
-    default : Unreachable();
+    default: Unreachable();
   }
 }
 
@@ -45,4 +44,3 @@ std::ostream& operator<<(std::ostream& out, RewriteProofStatus s)
 
 }  // namespace rewriter
 }  // namespace cvc5::internal
-

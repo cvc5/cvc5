@@ -96,7 +96,12 @@ class RewriteDbProofCons : protected EnvObj
   class ProvenInfo
   {
    public:
-    ProvenInfo() : d_id(RewriteProofStatus::FAIL), d_dslId(DslProofRule::NONE), d_failMaxDepth(0) {}
+    ProvenInfo()
+        : d_id(RewriteProofStatus::FAIL),
+          d_dslId(DslProofRule::NONE),
+          d_failMaxDepth(0)
+    {
+    }
     /** The identifier of the proof rule, or fail if we failed */
     RewriteProofStatus d_id;
     /** The identifier of the DSL proof rule if d_id is DSL */
@@ -112,7 +117,7 @@ class RewriteDbProofCons : protected EnvObj
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
-    bool isInternalRule() const { return d_id!=RewriteProofStatus::DSL; }
+    bool isInternalRule() const { return d_id != RewriteProofStatus::DSL; }
   };
   /**
    * Prove and store the proof of eq with internal form eqi in cdp if possible,
@@ -125,15 +130,16 @@ class RewriteDbProofCons : protected EnvObj
                int64_t stepLimit);
   /**
    * Prove internal, which is the main entry point for proven an equality eqi.
-   * Returns the proof rule that was used to prove eqi, or RewriteProofStatus::FAIL
-   * if we failed to prove.
+   * Returns the proof rule that was used to prove eqi, or
+   * RewriteProofStatus::FAIL if we failed to prove.
    *
    * In detail, this runs a strategy of builtin tactics and otherwise consults
    * the rewrite rule database for the set of rewrite rules that match the
    * left hand side of eqi.
    *
    * If this call is successful (i.e. the returned rule is not
-   * RewriteProofStatus::FAIL), the proven info for eqi is stored in d_pcache[eqi].
+   * RewriteProofStatus::FAIL), the proven info for eqi is stored in
+   * d_pcache[eqi].
    *
    * Note this method depends on the current step and recursion limits
    * d_currRecLimit/d_currStepLimit.
