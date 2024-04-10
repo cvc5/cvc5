@@ -374,45 +374,6 @@ Node AlfNodeConverter::mkNil(TypeNode tn)
   return mkInternalSymbol("alf.nil", tn);
 }
 
-Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
-{
-  // note this method should remain in sync with getCongRule in
-  // proof_node_algorithm.cpp.
-  switch (k)
-  {
-    case Kind::APPLY_UF:
-    case Kind::DISTINCT:
-    case Kind::FLOATINGPOINT_LT:
-    case Kind::FLOATINGPOINT_LEQ:
-    case Kind::FLOATINGPOINT_GT:
-    case Kind::FLOATINGPOINT_GEQ:
-      // the above operators may take arbitrary number of arguments but are not
-      // marked as n-ary in ALF
-      return Node::null();
-    case Kind::APPLY_CONSTRUCTOR:
-      // tuple constructor is n-ary with unit tuple as null terminator
-      if (tn.isTuple())
-      {
-        TypeNode tnu = NodeManager::currentNM()->mkTupleType({});
-        return NodeManager::currentNM()->mkGroundValue(tnu);
-      }
-      return Node::null();
-      break;
-    case Kind::OR: return NodeManager::currentNM()->mkConst(false);
-    case Kind::SEP_STAR:
-    case Kind::AND: return NodeManager::currentNM()->mkConst(true);
-    case Kind::ADD: return NodeManager::currentNM()->mkConstInt(Rational(0));
-    case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      return NodeManager::currentNM()->mkConstInt(Rational(1));
-    case Kind::BITVECTOR_CONCAT:
-      return mkInternalSymbol("@bvempty",
-                              NodeManager::currentNM()->mkBitVectorType(0));
-    default: break;
-  }
-  return mkNil(tn);
-}
-
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
 {
   TypeNode tn = NodeManager::currentNM()->booleanType();
