@@ -590,9 +590,14 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // by default, symmetry breaker is on only for non-incremental QF_UF
   if (!opts.uf.ufSymmetryBreakerWasSetByUser)
   {
+    // We disable this technique when using unsat core production, since it
+    // uses a non-standard implementation that sends (unsound) lemmas during
+    // presolve. We also disable it by default when any form of proofs are
+    // enabled.
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !opts.base.incrementalSolving
-                       && !safeUnsatCores(opts);
+                       && !safeUnsatCores(opts)
+                       && !opts.smt.produceProofs;
     SET_AND_NOTIFY_VAL_SYM(
         Uf, ufSymmetryBreaker, qf_uf_noinc, "logic and options");
   }
