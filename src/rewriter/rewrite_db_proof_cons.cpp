@@ -944,7 +944,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
   // if fixed point, we continue applying
   if (doFixedPoint && rpr.isFixedPoint())
   {
-    Assert(d_currFixedPointId == RewriteProofStatus::FAIL);
+    Assert(d_currFixedPointId == DslProofRule::NONE);
     Assert(d_currFixedPointConc.isNull());
     d_currFixedPointId = rpr.getId();
     // check if stgt also rewrites with the same rule?

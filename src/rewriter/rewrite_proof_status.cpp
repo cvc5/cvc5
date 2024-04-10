@@ -32,6 +32,7 @@ const char* toString(RewriteProofStatus s)
     case RewriteProofStatus::TRUE_INTRO: return "TRUE_INTRO";
     case RewriteProofStatus::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case RewriteProofStatus::ACI_NORM: return "ACI_NORM";
+    case RewriteProofStatus::DSL: return "DSL";
     default: Unreachable();
   }
 }

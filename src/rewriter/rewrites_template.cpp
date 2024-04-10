@@ -42,6 +42,7 @@ const char* toString(DslProofRule drule)
 {
   switch (drule)
   {
+    case DslProofRule::NONE: return "NONE";
       // clang-format off
 ${printer}$
     default : Unreachable();
