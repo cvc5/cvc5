@@ -187,6 +187,8 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
 
 Node SortProperties::mkGroundTerm(TypeNode type)
 {
+  // we typically use this method for sorts, although there are other types
+  // where it is used as well, e.g. arrays that are not closed enumerable.
   NodeManager * nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   std::vector<Node> cacheVals;
