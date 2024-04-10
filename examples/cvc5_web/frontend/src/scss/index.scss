@@ -1,0 +1,26 @@
+@import '~normalize.css';
+@import '~@blueprintjs/core/lib/css/blueprint.css';
+@import '~@blueprintjs/icons/lib/css/blueprint-icons.css';
+
+/* SCROLLBAR */
+/* Works on Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #f5f8fa transparent;
+}
+
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+    width: 7px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #f5f8fa;
+    border-radius: 20px;
+    border: 3px solid transparent;
+}
+/* SCROLLBAR - END */

@@ -1,0 +1,14 @@
+.proof-element-card {
+    height: 100px;
+    margin-bottom: 10px;
+    margin-right: 5px;
+    .left {
+        float: left;
+        .title {
+            font-weight: bold;
+        }
+    }
+    .right {
+        float: right;
+    }
+}

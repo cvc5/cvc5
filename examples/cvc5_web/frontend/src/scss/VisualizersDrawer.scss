@@ -1,0 +1,54 @@
+.bp3-tabs {
+    width: 100%;
+    .services-tab {
+        &:focus {
+            outline: none;
+        }
+        margin: 0;
+    }
+    .bp3-tab-list {
+        margin-top: 8px;
+        margin-left: 18px;
+        user-select: none;
+    }
+
+    .bp3-tab {
+        margin-right: 20px !important;
+    }
+}
+
+.view-infos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    & > * {
+        display: flex;
+        flex-flow: column;
+        padding: 1px 0px;
+    }
+
+    .bts {
+        border-right: 1px solid;
+        padding-right: 10px;
+
+        & > * {
+            outline: none;
+        }
+    }
+
+    .views-color-map {
+        padding-left: 10px;
+    }
+
+    .bts,
+    .views-color-map {
+        & > *:not(& > *:last-child) {
+            margin-bottom: 5px;
+        }
+
+        span:hover {
+            cursor: pointer;
+            color: #48aff0;
+        }
+    }
+}

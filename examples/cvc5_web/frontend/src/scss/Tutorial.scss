@@ -1,0 +1,143 @@
+.arrow-up {
+    position: fixed;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+
+    border-bottom: 8px solid;
+    z-index: 52;
+}
+
+.arrow-2 {
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+
+    border-bottom: 10px solid;
+    z-index: inherit;
+}
+
+.tutorial-popover {
+    position: fixed;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    .bp3-icon {
+        margin: 0 !important;
+        cursor: pointer;
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.185);
+        }
+    }
+
+    .bp3-dialog-header {
+        display: flex;
+        justify-content: space-between;
+        height: auto !important;
+        min-height: 0;
+
+        .bp3-button {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+
+            &:hover {
+                background-color: none !important;
+            }
+        }
+    }
+
+    .cur-page {
+        display: flex;
+    }
+
+    .page-ball {
+        width: 4px;
+        height: 4px;
+        background-color: rgba(189, 189, 189, 0.795);
+        margin-right: 2px;
+        border-radius: 50%;
+        transition: background-color 0.3s ease-out;
+    }
+
+    .page-on {
+        background-color: rgb(255, 255, 255);
+    }
+    .page-on-light {
+        background-color: rgb(0, 0, 0);
+    }
+
+    body {
+        color: inherit;
+        display: grid;
+        grid-template-columns: 13px 1fr 13px;
+    }
+    .next-page {
+        font-weight: bolder;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+
+        padding: 0;
+        background-color: transparent;
+        border: 0px;
+        color: inherit;
+        z-index: 30;
+
+        &:hover {
+            cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.315);
+        }
+
+        &:focus {
+            outline: 1px rgba(125, 188, 255, 0.6) solid 1px;
+            border: 1px white solid;
+        }
+    }
+    .regress {
+        border-right: rgba(255, 255, 255, 0.397) 1px solid;
+        justify-content: start;
+        grid-column: 1 / 1;
+        border-bottom-left-radius: 6px;
+    }
+    .progress {
+        border-left: rgba(255, 255, 255, 0.397) 1px solid;
+        justify-content: end;
+        place-self: 2;
+        border-bottom-right-radius: 6px;
+    }
+
+    .content {
+        flex-wrap: wrap;
+        margin: 7px;
+        place-self: 1;
+        grid-column: 2 / 2;
+        text-align: justify;
+    }
+
+    .bp3-button {
+        padding: 3px;
+        min-height: 0;
+    }
+
+    .bp3-dialog-footer {
+        display: flex;
+        justify-content: end;
+        padding: 2px 0;
+    }
+
+    .bp3-divider {
+        margin-bottom: 1px;
+    }
+}
+
+.tutorial-portal {
+    z-index: 51;
+    pointer-events: none;
+    .bp3-overlay-enter-done {
+        transition: background-color 0.2s ease-out;
+        background-color: rgba(87, 82, 82, 0.233);
+        width: 100%;
+        height: 100%;
+    }
+}
