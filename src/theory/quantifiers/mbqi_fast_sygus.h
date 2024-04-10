@@ -44,13 +44,13 @@ class MVarInfo
    * @param env Reference to the environment.
    * @param q The quantified formula.
    * @param v The variable from q we are enumerating terms for.
-   * @param etrules A list of terms which to consider terminals in the grammar
+   * @param trules A list of terms which to consider terminals in the grammar
    * we enumerate. These terms may be of any sort.
    */
   void initialize(Env& env,
                   const Node& q,
                   const Node& v,
-                  const std::vector<Node>& etrules);
+                  const std::vector<Node>& trules);
   /**
    * Get the i^th term in the enumeration maintained by this class. Will
    * continue the sygus enumeration if i is greater than the number of terms
