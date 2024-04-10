@@ -1,3 +1,4 @@
+; REQUIRES: portfolio
 ; COMMAND-LINE: --use-portfolio -o portfolio
 ; SCRUBBER: grep -o "portfolio-success"
 ; EXPECT: portfolio-success
