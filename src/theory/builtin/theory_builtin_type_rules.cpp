@@ -19,6 +19,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/builtin/generic_op.h"
 #include "util/uninterpreted_sort_value.h"
+#include "expr/sort_to_term.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -186,10 +187,11 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
 
 Node SortProperties::mkGroundTerm(TypeNode type)
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<Node> cacheVals;
   cacheVals.push_back(nm->mkConst(SortToTerm(type)));
-  return sm->mkSkolemFun(SkolemId::GROUND_TERM, cacheVals);
+  return sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
 }
 
 }  // namespace builtin
