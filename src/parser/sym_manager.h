@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -172,11 +172,11 @@ class CVC5_EXPORT SymManager
   /**
    * @return The sorts we have declared that should be printed in the model.
    */
-  std::vector<cvc5::Sort> getModelDeclareSorts() const;
+  std::vector<cvc5::Sort> getDeclaredSorts() const;
   /**
    * @return The terms we have declared that should be printed in the model.
    */
-  std::vector<cvc5::Term> getModelDeclareTerms() const;
+  std::vector<cvc5::Term> getDeclaredTerms() const;
   /**
    * @return The functions we have declared that should be printed in a response
    * to check-synth.

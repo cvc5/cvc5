@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -398,7 +398,8 @@ class PropEngine : protected EnvObj
   void assertLemmasInternal(TrustNode trn,
                             const std::vector<theory::SkolemLemma>& ppLemmas,
                             bool removable,
-                            bool inprocess);
+                            bool inprocess,
+                            bool local);
 
   /**
    * Indicates that the SAT solver is currently solving something and we should

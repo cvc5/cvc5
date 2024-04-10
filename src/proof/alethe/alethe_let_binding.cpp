@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa
+ *   Haniel Barbosa, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,7 +75,7 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
         // If the input of this method is letified and it has not yet been
         // declared, we will need to declare its post-visit result. So we do
         // nothing at this point other than book-keep. The information is
-        // necessary to guarentee that this occurence, its first in the overall
+        // necessary to guarantee that this occurrence, its first in the overall
         // term, is ultimately used as a declaration rather than as just the
         // letified variable. For this we find the parent of this first
         // occurrence of cur and the position in its children in which cur

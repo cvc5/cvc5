@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
+ *   Andrew Reynolds, Haniel Barbosa, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +46,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
       d_collectAllTrusted(false),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
 }
 
 void ProofPostprocessCallback::initializeUpdate(ProofGenerator* pppg)
@@ -455,7 +455,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       lits.push_back(args[i + 1]);
     }
     Assert(pols.size() == children.size() - 1);
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     std::vector<Node> chainResArgs;
     chainResArgs.push_back(nm->mkNode(Kind::SEXPR, pols));
     chainResArgs.push_back(nm->mkNode(Kind::SEXPR, lits));
@@ -615,7 +615,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   }
   else if (id == ProofRule::SUBS)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     // Notice that a naive way to reconstruct SUBS is to do a term conversion
     // proof for each substitution.
     // The proof of f(a) * { a -> g(b) } * { b -> c } = f(g(c)) is:
@@ -936,7 +936,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     ProofStepBuffer steps{d_pc};
 
     // Scale all children, accumulating

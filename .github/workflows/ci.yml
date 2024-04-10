@@ -23,37 +23,46 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+          - name: ubuntu:production-arm64-cross
+            os: ubuntu-latest
+            config: production --auto-download --arm64
+            cache-key: production-arm64-cross
+            strip-bin: aarch64-linux-gnu-strip
+            package-name: cvc5-Linux-arm64
+
           - name: macos:production
-            os: macos-11
-            config: production --auto-download --all-bindings --editline
+            os: macos-13
+            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
             python-bindings: true
             check-examples: true
             package-name: cvc5-macOS
+            macos-target: 10.13
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
  
           - name: macos:production-arm64
             os: macos-14
-            config: production --auto-download --all-bindings --editline
+            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-arm64
             strip-bin: strip
             python-bindings: true
             check-examples: true
+            package-name: cvc5-macOS-arm64
+            macos-target: 11.0
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production-arm64-cross
-            os: macos-11
+            os: macos-13
             config: production --auto-download --all-bindings --editline --arm64
             cache-key: production-arm64-cross
             strip-bin: strip
             python-bindings: true
-            package-name: cvc5-macOS-arm64
 
           - name: win64:production
-            os: windows-2019
+            os: windows-latest
             config: production --auto-download --win64-native
             cache-key: production-win64-native
             strip-bin: strip
@@ -69,7 +78,7 @@ jobs:
             package-name: cvc5-Win64
 
           - name: ubuntu:production-clang
-            os: ubuntu-latest
+            os: ubuntu-20.04
             env: CC=clang CXX=clang++
             config: production --auto-download --no-poly
             cache-key: productionclang
@@ -78,7 +87,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:production-dbg
-            os: ubuntu-latest
+            os: ubuntu-20.04
             config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa
             cache-key: dbg
             exclude_regress: 3-4
@@ -86,12 +95,12 @@ jobs:
             python-bindings: true
 
           - name: ubuntu:production-dbg-clang
-            os: ubuntu-latest
+            os: ubuntu-20.04
             env: CC=clang CXX=clang++
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
+            run_regression_args: --tester alf --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -125,14 +134,11 @@ jobs:
       with:
         configure-env: ${{ matrix.env }}
         configure-config: ${{ matrix.config }}
+        macos-target: ${{ matrix.macos-target }}
         build-shared: ${{ matrix.build-shared }}
         build-static: ${{ matrix.build-static }}
         strip-bin: ${{ matrix.strip-bin }}
         shell: ${{ matrix.shell }}
-
-    - name: ccache Statistics
-      if: runner.os != 'Windows'
-      run: ccache -s
 
     - name: Run tests
       if: matrix.run_regression_args
@@ -188,7 +194,7 @@ jobs:
       group: update-pr
     steps:
       - name: Automatically update PR
-        uses: adRise/update-pr-branch@v0.6.0
+        uses: adRise/update-pr-branch@v0.7.2
         with:
           token: ${{ secrets.ACTION_USER_TOKEN }}
           base: 'main'

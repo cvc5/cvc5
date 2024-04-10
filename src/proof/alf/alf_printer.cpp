@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,8 +37,8 @@ namespace proof {
 AlfPrinter::AlfPrinter(Env& env, BaseAlfNodeConverter& atp)
     : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
 {
-  d_pfType = NodeManager::currentNM()->mkSort("proofType");
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_pfType = nodeManager()->mkSort("proofType");
+  d_false = nodeManager()->mkConst(false);
 }
 
 bool AlfPrinter::isHandled(const ProofNode* pfn) const
@@ -132,6 +132,17 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
     case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::ARITH_POLY_NORM:
+    {
+      // we don't support bitvectors yet
+      Assert(pargs[0].getKind() == Kind::EQUAL);
+      if (pargs[0][0].getType().isBoolean())
+      {
+        return pargs[0][0][0].getType().isRealOrInt();
+      }
+      return pargs[0][0].getType().isRealOrInt();
+    }
+    break;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
@@ -249,6 +260,9 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 
 void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
+  // ensures options are set once and for all
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyPrintArithLitToken(out, true);
   d_pfIdCounter = 0;
 
   // Get the definitions and assertions and print the declarations from them
@@ -294,10 +308,10 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       }
       if (options().proof.alfPrintReference)
       {
-        // parse_normalize is used as the normalization function for the input
         // [1] print the reference
-        out << "(reference \"" << options().driver.filename
-            << "\" parse_normalize)" << std::endl;
+        // we currently do not need to provide a normalization routine.
+        out << "(reference \"" << options().driver.filename << "\")"
+            << std::endl;
         // [2] print the universal variables
         out << outVars.str();
       }
@@ -523,8 +537,12 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   // if we don't handle the rule, print trust
   if (!handled)
   {
-    out->printTrustStep(
-        pn->getRule(), conclusionPrint, id, premises, conclusion);
+    out->printTrustStep(pn->getRule(),
+                        conclusionPrint,
+                        id,
+                        premises,
+                        pn->getArguments(),
+                        conclusion);
     return;
   }
   std::string rname = getRuleName(pn);

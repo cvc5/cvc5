@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,6 +25,9 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 namespace cvc5::internal {
+
+class Env;
+
 namespace theory {
 
 // ----------------------- sygus datatype attributes
@@ -218,20 +221,24 @@ TypeNode generalizeSygusType(TypeNode sdt);
 unsigned getSygusTermSize(Node n);
 
 /**
- * Set expanded definition form of sygus op to eop. This is called when
- * we require associating a sygus operator op to its expanded form, which
- * replaces user-defined functions with their definitions. This allows
- * the utilities above to consider op to be the original form, which is
- * printed in the final solution (see isExternal to sygusToBuiltin above),
- * whereas the internal solver will reason about eop.
- */
-void setExpandedDefinitionForm(Node op, Node eop);
-/**
  * Get the expanded definition form of sygus operator op, returns the
  * expanded form if the above method has been called for op, or returns op
  * otherwise.
  */
 Node getExpandedDefinitionForm(Node op);
+/**
+ * Compute expanded definition form for all operators in sygus datatype tn,
+ * recursively. This ensures that getExpandedDefinitionForm can be called
+ * on all operators in tn, and moreover that mkSygusTerm can be called on
+ * applications of terms of type tn.
+ *
+ * This method is required since sygus grammars may include user-defined
+ * functions. Thus, we must use the top level substitutions in env to
+ * associate the use of those functions with their expanded form, since
+ * the internal sygus solver must reason about sygus operators after
+ * expansion.
+ */
+void computeExpandedDefinitionForms(Env& env, const TypeNode& tn);
 // ------------------------ end sygus utils
 
 }  // namespace utils

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Mudathir Mohamed, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,9 @@ struct BagsRewriteResponse
 class BagsRewriter : public TheoryRewriter
 {
  public:
-  BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics = nullptr);
+  BagsRewriter(NodeManager* nm,
+               Rewriter* r,
+               HistogramStat<Rewrite>* statistics = nullptr);
 
   /**
    * postRewrite nodes with kinds: BAG_MAKE, BAG_COUNT, BAG_UNION_MAX,
@@ -242,7 +244,6 @@ class BagsRewriter : public TheoryRewriter
 
  private:
   /** Reference to the rewriter statistics. */
-  NodeManager* d_nm;
   Node d_zero;
   Node d_one;
   /**

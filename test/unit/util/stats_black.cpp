@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Aina Niemetz, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +48,7 @@ class TestUtilBlackStats : public TestEnv
 TEST_F(TestUtilBlackStats, stats)
 {
 #ifdef CVC5_STATISTICS_ON
-  StatisticsRegistry reg(*d_env.get(), false);
+  StatisticsRegistry reg(false, false, false);
   std::string empty, bar = "bar", baz = "baz";
 
   AverageStat avg = reg.registerAverage("avg");

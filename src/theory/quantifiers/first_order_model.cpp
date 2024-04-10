@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -335,7 +335,7 @@ Node FirstOrderModel::getModelBasisOpTerm(Node op)
     else
     {
       d_model_basis_op_term[op] =
-          NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
+          nodeManager()->mkNode(Kind::APPLY_UF, children);
     }
   }
   return d_model_basis_op_term[op];

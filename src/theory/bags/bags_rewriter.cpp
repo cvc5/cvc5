@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,10 +42,11 @@ BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
 {
 }
 
-BagsRewriter::BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics)
-    : d_rewriter(r), d_statistics(statistics)
+BagsRewriter::BagsRewriter(NodeManager* nm,
+                           Rewriter* r,
+                           HistogramStat<Rewrite>* statistics)
+    : TheoryRewriter(nm), d_rewriter(r), d_statistics(statistics)
 {
-  d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(Rational(0));
   d_one = d_nm->mkConstInt(Rational(1));
 }

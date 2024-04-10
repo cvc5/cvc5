@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -553,8 +553,11 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
+    case InferenceId::UF_ARITH_BV_CONV_VALUE_REFINE:
+      return "UF_ARITH_BV_CONV_VALUE_REFINE";
     case InferenceId::PARTITION_GENERATOR_PARTITION:
       return "PARTITION_GENERATOR_PARTITION";
+    case InferenceId::PLUGIN_LEMMA: return "PLUGIN_LEMMA";
     case InferenceId::UNKNOWN: return "?";
 
     default:
