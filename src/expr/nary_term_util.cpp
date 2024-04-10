@@ -172,6 +172,11 @@ Node getNullTerminator(Kind k, TypeNode tn)
         nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       }
       break;
+    case Kind::BITVECTOR_CONCAT:
+    {
+      nullTerm = nm->getSkolemManager()->mkSkolemFunction(SkolemId::BV_EMPTY);
+    }
+    break;
     case Kind::FINITE_FIELD_ADD:
       if (tn.isFiniteField())
       {
