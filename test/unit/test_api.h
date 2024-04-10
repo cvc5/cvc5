@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner
+ *   Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,9 @@ namespace test {
 class TestApi : public ::testing::Test
 {
  protected:
-  cvc5::Solver d_solver;
+  void SetUp() override { d_solver.reset(new cvc5::Solver(d_tm)); }
+  cvc5::TermManager d_tm;
+  std::unique_ptr<cvc5::Solver> d_solver;
 };
 
 }  // namespace test

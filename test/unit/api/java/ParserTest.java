@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@ import org.junit.jupiter.api.TestInfo;
 
 class ParserTest
 {
+  protected TermManager d_tm;
   protected Solver d_solver;
   protected SymbolManager d_symman;
 
@@ -29,7 +30,8 @@ class ParserTest
   void setUp(TestInfo testInfo)
   {
     System.out.println("Setting up test: " + testInfo.getDisplayName());
-    d_solver = new Solver();
+    d_tm = new TermManager();
+    d_solver = new Solver(d_tm);
     d_solver.setOption("parse-only", "true");
     d_symman = new SymbolManager(d_solver);
   }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,7 +96,7 @@ ExtTheory::ExtTheory(Env& env, ExtTheoryCallback& p, TheoryInferenceManager& im)
       d_has_extf(context()),
       d_lemmas(userContext())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
 }
 
 // Gets all leaf terms in n.
@@ -235,7 +235,7 @@ bool ExtTheory::doInferencesInternal(int effort,
       {
         if (!nr.isNull() && n != nr)
         {
-          Node lem = NodeManager::currentNM()->mkNode(Kind::EQUAL, n, nr);
+          Node lem = nodeManager()->mkNode(Kind::EQUAL, n, nr);
           if (sendLemma(lem, InferenceId::EXTT_SIMPLIFY))
           {
             Trace("extt-lemma")
@@ -253,7 +253,7 @@ bool ExtTheory::doInferencesInternal(int effort,
     std::vector<std::vector<Node> > exp;
     getSubstitutedTerms(effort, terms, sterms, exp);
     std::map<Node, unsigned> sterm_index;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
       bool processed = false;

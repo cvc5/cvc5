@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,6 +49,7 @@ class ProofNode;
 class Env;
 class UnsatCore;
 class StatisticsRegistry;
+class Plugin;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
@@ -483,6 +484,12 @@ class CVC5_EXPORT SolverEngine
    */
   void declareOracleFun(
       Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn);
+  /**
+   * Adds plugin to the theory engine of this solver engine.
+   *
+   * @param p The plugin to add.
+   */
+  void addPlugin(Plugin* p);
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current

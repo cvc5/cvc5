@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Aina Niemetz, Clark Barrett
+ *   Aina Niemetz, Liana Hadarean, Clark Barrett
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1340,12 +1340,12 @@ inline Node RewriteRule<XorSimplify>::apply(TNode node)
     }
     else if (pos % 2)
     {
-      // we had a positive occurence left
+      // we had a positive occurrence left
       children.push_back(it->first);
     }
     else if (neg % 2)
     {
-      // we had a negative occurence left
+      // we had a negative occurrence left
       children.push_back(nm->mkNode(Kind::BITVECTOR_NOT, it->first));
     }
     // otherwise both reduced to false

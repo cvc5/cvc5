@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -90,7 +90,7 @@ size_t MipLibTrick::removeFromConjunction(
     Node& n, const std::unordered_set<unsigned long>& toRemove)
 {
   Assert(n.getKind() == Kind::AND);
-  Node trueNode = NodeManager::currentNM()->mkConst(true);
+  Node trueNode = nodeManager()->mkConst(true);
   size_t removals = 0;
   for (Node::iterator j = n.begin(); j != n.end(); ++j)
   {
@@ -208,7 +208,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap& top_level_substs = tlsm.get();
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConstInt(Rational(0)), one = nm->mkConstInt(Rational(1));
   Node trueNode = nm->mkConst(true);
@@ -325,7 +325,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           break;
         }
         sort(posv.begin(), posv.end());
-        const Node pos = NodeManager::currentNM()->mkNode(Kind::AND, posv);
+        const Node pos = nodeManager()->mkNode(Kind::AND, posv);
         const TNode var = ((*j1)[1][0].isConst()) ? (*j1)[1][1] : (*j1)[1][0];
         const pair<Node, Node> pos_var(pos, var);
         const Rational& constant = ((*j1)[1][0].isConst())

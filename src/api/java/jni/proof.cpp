@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Jörg Schurr
+ *   Hans-Jörg Schurr, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -91,8 +91,8 @@ Java_io_github_cvc5_Proof_getArguments(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Proof* current = reinterpret_cast<Proof*>(pointer);
-  std::vector<Term> proofs = current->getArguments();
-  jlongArray ret = getPointersFromObjects<Term>(env, proofs);
+  std::vector<Term> args = current->getArguments();
+  jlongArray ret = getPointersFromObjects<Term>(env, args);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

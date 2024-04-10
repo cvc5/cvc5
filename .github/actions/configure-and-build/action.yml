@@ -5,6 +5,8 @@ inputs:
     default: ""
   configure-config:
     default: ""
+  macos-target:
+    default: ""
   build-shared:
     default: true
     type: boolean
@@ -25,6 +27,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Set MACOSX_DEPLOYMENT_TARGET
+      if: runner.os == 'macOS' && inputs.macos-target
+      shell: ${{ inputs.shell }}
+      run: echo "MACOSX_DEPLOYMENT_TARGET=${{ inputs.macos-target }}" >> $GITHUB_ENV
+
     - name: Shared build
       id: shared-build
       # Boolean inputs are actually strings:
@@ -34,11 +41,14 @@ runs:
       run: |
         echo "::group::Shared build"
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
-          --prefix=$(pwd)/build-shared/install --werror --name=build-shared
+          --prefix=$(pwd)/build-shared/install --werror --name=build-shared \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
         
-        # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
         cd build-shared/ && pwd=$(pwd)
-        if [[ "$RUNNER_OS" != "Windows" ]]; then
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          ccache --set-config="base_dir=$pwd"
+        else
+          # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
           $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
         fi
         
@@ -56,10 +66,14 @@ runs:
       run: |
         echo "::group::Static build"
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
-          --prefix=$(pwd)/build-static/install --werror --static --name=build-static --no-java-bindings
+          --prefix=$(pwd)/build-static/install --werror --static --name=build-static --no-java-bindings \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
 
         cd build-static/ && pwd=$(pwd)
-        if [[ "$RUNNER_OS" != "Windows" ]]; then
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          ccache --set-config="base_dir=$pwd"
+        else
+          # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
           $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
         fi
 
@@ -73,9 +87,16 @@ runs:
         echo "::endgroup::"
         
     - name: Reset ccache base_dir
-      if: runner.os != 'Windows'
       shell: ${{ inputs.shell }}
       run: |
         echo "::group::Reset ccache base_dir"
-        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir =" $CCACHE_CONFIGPATH
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          ccache --set-config="base_dir="
+        else
+          $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir =" $CCACHE_CONFIGPATH
+        fi
         echo "::endgroup::"
+
+    - name: ccache Statistics
+      shell: ${{ inputs.shell }}
+      run: ccache -s

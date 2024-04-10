@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +41,7 @@ namespace datatypes {
 class DatatypesRewriter : public TheoryRewriter
 {
  public:
-  DatatypesRewriter(Evaluator* sygusEval, const Options& opts);
+  DatatypesRewriter(NodeManager* nm, Evaluator* sygusEval, const Options& opts);
   RewriteResponse postRewrite(TNode in) override;
   RewriteResponse preRewrite(TNode in) override;
 
@@ -114,13 +114,13 @@ class DatatypesRewriter : public TheoryRewriter
 
  private:
   /** rewrite constructor term in */
-  static RewriteResponse rewriteConstructor(TNode in);
+  RewriteResponse rewriteConstructor(TNode in);
   /** rewrite selector term in */
-  static RewriteResponse rewriteSelector(TNode in);
+  RewriteResponse rewriteSelector(TNode in);
   /** rewrite tester term in */
-  static RewriteResponse rewriteTester(TNode in);
+  RewriteResponse rewriteTester(TNode in);
   /** rewrite updater term in */
-  static RewriteResponse rewriteUpdater(TNode in);
+  RewriteResponse rewriteUpdater(TNode in);
 
   /** collect references
    *
@@ -200,10 +200,7 @@ class DatatypesRewriter : public TheoryRewriter
    * Tree datatype, replaceDebruijn( node( 0, c[0], node( 1, c[0], c[1] ) ), t,
    * Tree, 0 ) returns node( 0, t, node( 1, c[0], t ) ).
    */
-  static Node replaceDebruijn(Node n,
-                              Node orig,
-                              TypeNode orig_tn,
-                              unsigned depth);
+  Node replaceDebruijn(Node n, Node orig, TypeNode orig_tn, unsigned depth);
 
   /** Sygus to builtin eval
    *

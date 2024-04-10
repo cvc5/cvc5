@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Yoni Zohar, Mathias Preiner
+ *   Andrew Reynolds, Yoni Zohar, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,7 +87,7 @@ GlobalNegate::GlobalNegate(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult GlobalNegate::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node simplifiedNode = simplify(assertionsToPreprocess->ref(), nm);
   Node trueNode = nm->mkConst(true);
   // mark as negated

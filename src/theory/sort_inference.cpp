@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Mathias Preiner
+ *   Andrew Reynolds, Paul Meng, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,7 +126,7 @@ void SortInference::initialize(const std::vector<Node>& assertions)
   Trace("sort-inference-proc") << "Calculating sort inference..." << std::endl;
   // process all assertions
   std::map<Node, int> visited;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   int btId = getIdForType( nm->booleanType() );
   for (const Node& a : assertions)
   {
@@ -218,7 +218,7 @@ Node SortInference::simplify(Node n,
 
 void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // now, ensure constants are distinct
   for (const std::pair<const TypeNode, std::map<Node, Node> >& cm : d_const_map)
   {
@@ -584,7 +584,7 @@ TypeNode SortInference::getOrCreateTypeForId( int t, TypeNode pref ){
       //must create new type
       std::stringstream ss;
       ss << "it_" << t << "_" << pref;
-      retType = NodeManager::currentNM()->mkSort(ss.str());
+      retType = nodeManager()->mkSort(ss.str());
     }
     Trace("sort-inference") << "-> Make type " << retType << " to correspond to ";
     printSort("sort-inference", t );
@@ -605,7 +605,7 @@ TypeNode SortInference::getTypeForId( int t ){
 }
 
 Node SortInference::getNewSymbol( Node old, TypeNode tn ){
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   // if no sort was inferred for this node, return original
   if (tn.isNull() || tn == old.getType())
@@ -647,7 +647,7 @@ Node SortInference::simplifyNode(
   if( itv!=visited[n].end() ){
     return itv->second;
   }else{
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     Trace("sort-inference-debug2") << "Simplify " << n << ", type context=" << tnn << std::endl;
     std::vector< Node > children;
@@ -784,7 +784,7 @@ Node SortInference::simplifyNode(
       if( it!=var_bound.end() ){
         ret = it->second;
       }
-      else if (n.getKind() == Kind::VARIABLE || n.getKind() == Kind::SKOLEM)
+      else if (n.isVar() && n.getKind() != Kind::BOUND_VARIABLE)
       {
         if( d_symbol_map.find( n )==d_symbol_map.end() ){
           TypeNode tn = getOrCreateTypeForId( d_op_return_types[n], n.getType() );
@@ -812,7 +812,7 @@ Node SortInference::simplifyNode(
 }
 
 Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::vector< TypeNode > tns;
   tns.push_back( tn1 );

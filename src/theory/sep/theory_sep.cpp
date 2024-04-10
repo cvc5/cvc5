@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,6 +47,7 @@ namespace sep {
 TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SEP, env, out, valuation),
       d_bounds_init(false),
+      d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::sep::"),
       d_notify(*this),

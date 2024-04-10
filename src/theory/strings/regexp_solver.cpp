@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,10 +45,10 @@ RegExpSolver::RegExpSolver(Env& env,
       d_statistics(stats),
       d_regexp_opr(env, tr.getSkolemCache())
 {
-  d_emptyString = NodeManager::currentNM()->mkConst(cvc5::internal::String(""));
-  d_emptyRegexp = NodeManager::currentNM()->mkNode(Kind::REGEXP_NONE);
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_emptyString = nodeManager()->mkConst(cvc5::internal::String(""));
+  d_emptyRegexp = nodeManager()->mkNode(Kind::REGEXP_NONE);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 std::map<Node, std::vector<Node>> RegExpSolver::computeAssertions(Kind k) const
@@ -437,7 +437,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
   // the initial regular expression membership and its constant type
   Node mi;
   RegExpConstType rcti = RE_C_UNKNOWN;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const Node& m : mems)
   {
     if (m.getKind() != Kind::STRING_IN_REGEXP)
@@ -653,8 +653,7 @@ bool RegExpSolver::deriveRegExp(Node x,
         }
         Node left = utils::mkConcat(vec_nodes, x.getType());
         left = rewrite(left);
-        conc =
-            NodeManager::currentNM()->mkNode(Kind::STRING_IN_REGEXP, left, dc);
+        conc = nodeManager()->mkNode(Kind::STRING_IN_REGEXP, left, dc);
       }
     }
     std::vector<Node> iexp = ant;
@@ -682,7 +681,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
         Node tmp = d_csolver.getNormalString(r[0], nf_exp);
         if (tmp != r[0])
         {
-          ret = NodeManager::currentNM()->mkNode(Kind::STRING_TO_REGEXP, tmp);
+          ret = nodeManager()->mkNode(Kind::STRING_TO_REGEXP, tmp);
         }
       }
       break;
@@ -698,7 +697,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
       {
         vec_nodes.push_back(getNormalSymRegExp(cr, nf_exp));
       }
-      ret = rewrite(NodeManager::currentNM()->mkNode(r.getKind(), vec_nodes));
+      ret = rewrite(nodeManager()->mkNode(r.getKind(), vec_nodes));
       break;
     }
     default:
@@ -713,7 +712,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
 
 void RegExpSolver::checkEvaluations()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const std::pair<const Node, std::vector<Node>>& mr : d_assertedMems)
   {
     Node rep = mr.first;

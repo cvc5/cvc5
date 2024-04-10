@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -965,11 +965,15 @@ enum class InferenceId
   //-------------------- UF arith/bv conversions solver
   // reductions of an arithmetic/bit-vector conversion term
   UF_ARITH_BV_CONV_REDUCTION,
+  // value-based refinement of an arithmetic/bit-vector conversion term
+  UF_ARITH_BV_CONV_VALUE_REFINE,
   //-------------------------------------- end uf theory
 
   //-------------------------------------- lemma from modules
   // From the partition generator
   PARTITION_GENERATOR_PARTITION,
+  // From a plugin
+  PLUGIN_LEMMA,
   //-------------------------------------- unknown
   UNKNOWN
 };
