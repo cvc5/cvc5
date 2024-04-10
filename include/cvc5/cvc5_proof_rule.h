@@ -1468,24 +1468,26 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r_t)
-   *   \vee (s_1 = t_1\cdot r_s)}{if $b=\bot$}
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r)
+   *   \vee (s_1 = t_1\cdot r)}{if $b=\bot$}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))` and
-   * :math:`r_s` is :math:`\mathit{skolem}(\mathit{suf}(s_1,\mathit{len}(t_1)))`.
+   * where :math:`r` is
+   * :math:`\mathit{skolem}(\mathit{ite}(
+   * \mathit{len}(t_1) >= mathit{len}(s_1), 
+   * \mathit{suf}(t_1,\mathit{len}(s_1)), 
+   * \mathit{suf}(s_1,\mathit{len}(t_1))))`.
    *
    * .. math::
    *
    *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r_t)
-   *   \vee (s_1 = t_1\cdot r_s)}{if $b=\top$}
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_2 = r \cdot s_2)
+   *   \vee (s_2 = r \cdot t_2)}{if $b=\top$}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) -
-   * \mathit{len}(s_2)))` and :math:`r_s` is
-   * :math:`\mathit{skolem}(\mathit{pre}(s_2,\mathit{len}(s_2) -
-   * \mathit{len}(t_2)))`.
+   * where :math:`r` is
+   * :math:`\mathit{skolem}(\mathit{ite}(
+   * \mathit{len}(t_2) >= mathit{len}(s_2), 
+   * \mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2))),
+   * \mathit{skolem}(\mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))))`.
    *
    * Above, :math:`\mathit{suf}(x,n)` is shorthand for
    * :math:`\mathit{substr}(x,n, \mathit{len}(x) - n)` and
