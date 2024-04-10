@@ -86,16 +86,24 @@ enum ENUM(SkolemId) : uint32_t
    * 
    * - Number of skolem indices: ``1``
    *   - ``1:`` The term t that this skolem purifies.
-   * - Sort: The type of t.
+   * - Sort: The sort of t.
    */
   EVALUE(PURIFY),
+  /** 
+   * An arbitrary ground term of a given sort.
+   * 
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` A term that represents the sort of the term.
+   * - Sort: The sort given by the index.
+   */
+  EVALUE(GROUND_TERM),
   /** 
    * The array diff skolem, which is the witness k for the inference
    * ``(=> (not (= A B)) (not (= (select A k) (select B k))))``.
    *
    * - Number of skolem indices: ``2``
-   *   - ``1:`` The first array of type ``(Array T1 T2)``.
-   *   - ``2:`` The second array of type ``(Array T1 T2)``.
+   *   - ``1:`` The first array of sort ``(Array T1 T2)``.
+   *   - ``2:`` The second array of sort ``(Array T1 T2)``.
    * - Sort: ``T1``
    */
   EVALUE(ARRAY_DEQ_DIFF),
