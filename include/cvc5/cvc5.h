@@ -2043,7 +2043,7 @@ class CVC5_EXPORT DatatypeConstructorDecl
   /**
    * Equality operator.
    * @param decl The datatype constructor declaration to compare to for
-   * equality.
+   *             equality.
    * @return True if the datatype constructor declarations are equal.
    */
   bool operator==(const DatatypeConstructorDecl& decl) const;
