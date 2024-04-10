@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
 {
   Assert(in.getKind() == Kind::DISTINCT);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   if (in[0].getType().isCardinalityLessThan(in.getNumChildren()))
   {
@@ -64,8 +64,18 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
   return nm->mkNode(Kind::AND, diseqs);
 }
 
-RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
-  // otherwise, do the default call
+TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
+    : TheoryRewriter(nm)
+{
+}
+
+RewriteResponse TheoryBuiltinRewriter::preRewrite(TNode node)
+{
+  return doRewrite(node);
+}
+
+RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node)
+{
   return doRewrite(node);
 }
 
@@ -124,12 +134,12 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
   else if (node[1] == node[0][0])
   {
     // (witness ((x Bool)) x) ---> true
-    return NodeManager::currentNM()->mkConst(true);
+    return nodeManager()->mkConst(true);
   }
   else if (node[1].getKind() == Kind::NOT && node[1][0] == node[0][0])
   {
     // (witness ((x Bool)) (not x)) ---> false
-    return NodeManager::currentNM()->mkConst(false);
+    return nodeManager()->mkConst(false);
   }
   // eliminate shadowing
   return ElimShadowNodeConverter::eliminateShadow(node);

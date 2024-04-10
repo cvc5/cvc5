@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,8 +44,8 @@ struct ExtRewriteAggAttributeId
 };
 typedef expr::Attribute<ExtRewriteAggAttributeId, Node> ExtRewriteAggAttribute;
 
-ExtendedRewriter::ExtendedRewriter(Rewriter& rew, bool aggr)
-    : d_rew(rew), d_aggr(aggr)
+ExtendedRewriter::ExtendedRewriter(NodeManager* nm, Rewriter& rew, bool aggr)
+    : d_nm(nm), d_rew(rew), d_aggr(aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -1706,7 +1706,7 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   Kind k = node.getKind();
   if (k == Kind::EQUAL)
   {
-    strings::SequencesRewriter sr(&d_rew, nullptr);
+    strings::SequencesRewriter sr(d_nm, &d_rew, nullptr);
     return sr.rewriteEqualityExt(node);
   }
   else if (k == Kind::STRING_SUBSTR)

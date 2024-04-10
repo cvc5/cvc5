@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,8 +56,12 @@ enum class TrustId : uint32_t
   SUBS_MAP,
   /** A proof of a substitution x=t that could not be shown by rewrite */
   SUBS_EQ,
+  /** A step of the form (~ s t) = (~ (to_real s) (to_real t)) */
+  ARITH_PRED_CAST_TYPE,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
+  /** A subtype elimination step that could not be processed */
+  SUBTYPE_ELIMINATION,
 };
 /** Converts a trust id to a string. */
 const char* toString(TrustId id);

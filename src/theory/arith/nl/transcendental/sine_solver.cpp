@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Tim King
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -460,7 +460,7 @@ void SineSolver::checkMonotonic()
       {
         mono_lem = nm->mkNode(Kind::IMPLIES,
                               nm->mkNode(Kind::LEQ, targ, sarg),
-                              nm->mkNode(Kind::LEQ, t, s));
+                              nm->mkNode(Kind::LEQ, s, t));
       }
       if (!mono_lem.isNull())
       {

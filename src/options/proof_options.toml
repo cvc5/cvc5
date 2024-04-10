@@ -3,7 +3,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofFormatMode"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-format-mode=MODE"
   type       = "ProofFormatMode"
   default    = "ALF"
@@ -26,12 +26,36 @@ name   = "Proof"
   help       = "Output AletheLF proof"
 
 [[option]]
+  name       = "proofAletheExperimental"
+  category   = "expert"
+  long       = "proof-alethe-experimental"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable the use of Alethe proofs (experimental)"
+
+[[option]]
   name       = "proofPrintConclusion"
   category   = "expert"
   long       = "proof-print-conclusion"
   type       = "bool"
   default    = "false"
   help       = "Print conclusion of proof steps when printing AST"
+
+[[option]]
+  name       = "proofDagGlobal"
+  category   = "expert"
+  long       = "proof-dag-global"
+  type       = "bool"
+  default    = "true"
+  help       = "Dagify terms in proofs using global definitions"
+
+[[option]]
+  name       = "proofElimSubtypes"
+  category   = "expert"
+  long       = "proof-elim-subtypes"
+  type       = "bool"
+  default    = "false"
+  help       = "Eliminate subtypes (mixed arithmetic) in proofs"
 
 [[option]]
   name       = "proofPedantic"
@@ -95,10 +119,18 @@ name   = "Proof"
 [[option]]
   name       = "proofRewriteRconsRecLimit"
   category   = "regular"
-  long       = "proof-rewrite-rcons-limit=N"
-  type       = "int64_t"
+  long       = "proof-rewrite-rcons-rec-limit=N"
+  type       = "uint64_t"
   default    = "5"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
+
+[[option]]
+  name       = "proofRewriteRconsStepLimit"
+  category   = "regular"
+  long       = "proof-rewrite-rcons-step-limit=N"
+  type       = "uint64_t"
+  default    = "200"
+  help       = "the limit of steps considered for reconstructing proofs of theory rewrites"
 
 [[option]]
   name       = "proofAnnotate"
@@ -179,3 +211,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"
+
+[[option]]
+  name       = "dratBinaryFormat"
+  category   = "expert"
+  long       = "drat-binary-format"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the DRAT proof in binary format"

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli, Abdalrhman Mohamed, Aina Niemetz
+#   Andres Noetzli, Abdalrhman Mohamed, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -208,12 +208,12 @@ class LfscTester(Tester):
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
         with tempfile.NamedTemporaryFile() as tmpf:
-            cvc5_args = benchmark_info.command_line_args + [
+            cvc5_args = [
                 "--dump-proofs",
                 "--proof-format=lfsc",
                 "--proof-granularity=theory-rewrite",
                 "--proof-check=lazy",
-            ]
+            ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + cvc5_args
@@ -265,12 +265,12 @@ class AlfTester(Tester):
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
         with tempfile.NamedTemporaryFile() as tmpf:
-            cvc5_args = benchmark_info.command_line_args + [
+            cvc5_args = [
                 "--dump-proofs",
                 "--proof-format=alf",
                 "--proof-granularity=theory-rewrite",
                 "--proof-print-conclusion",
-            ]
+            ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + cvc5_args
@@ -279,7 +279,7 @@ class AlfTester(Tester):
                 benchmark_info.timeout,
             )
             alf_sig_dir = os.path.abspath(g_args.alf_sig_dir)
-            tmpf.write(("(include \"" + alf_sig_dir + "/Cvc5.smt3\")").encode())
+            tmpf.write(("(include \"" + alf_sig_dir + "/cvc5/Cvc5.smt3\")").encode())
             tmpf.write(output.strip("unsat\n".encode()))
             tmpf.flush()
             output, error = output.decode(), error.decode()

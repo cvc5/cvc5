@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
@@ -53,8 +54,9 @@ OracleEngine::OracleEngine(Env& env,
                            TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
       d_oracleFuns(userContext()),
-      d_ochecker(tr.getOracleChecker()),
-      d_consistencyCheckPassed(false)
+      d_ochecker(env.getOracleChecker()),
+      d_consistencyCheckPassed(false),
+      d_dstrat(env, "OracleArgValue", qs.getValuation())
 {
   Assert(d_ochecker != nullptr);
 }
@@ -92,6 +94,12 @@ void OracleEngine::presolve() {
       }
     }
   }
+  // register the decision strategy which will insist that arguments are
+  // decided to be equal to values.
+  d_qim.getDecisionManager()->registerStrategy(
+      DecisionManager::STRAT_ORACLE_ARG_VALUE,
+      &d_dstrat,
+      DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);
 }
 
 bool OracleEngine::needsCheck(Theory::Effort e)
@@ -183,9 +191,29 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
       // call oracle
       Node fappWithValues = nm->mkNode(Kind::APPLY_UF, arguments);
       Node predictedResponse = fm->getValue(fapp);
-      if (!d_ochecker->checkConsistent(
-              fappWithValues, predictedResponse, learnedLemmas))
+      Node result =
+          d_ochecker->checkConsistent(fappWithValues, predictedResponse);
+      if (!result.isNull())
       {
+        // Note that we add (=> (= args values) (= (f args) result))
+        // instead of (= (f values) result) here. The latter may be more
+        // compact, but we require introducing literals for (= args values)
+        // so that they can be preferred by the decision strategy.
+        std::vector<Node> ant;
+        for (size_t i = 0, nchild = fapp.getNumChildren(); i < nchild; i++)
+        {
+          Node eqa = fapp[i].eqNode(arguments[i + 1]);
+          eqa = rewrite(eqa);
+          // Insist that the decision strategy tries to make (= args values)
+          // true first. This is to ensure that the value of the oracle can be
+          // used.
+          d_dstrat.addLiteral(eqa);
+          ant.push_back(eqa);
+        }
+        Node antn = nm->mkAnd(ant);
+        Node conc = nm->mkNode(Kind::EQUAL, fapp, result);
+        Node lem = nm->mkNode(Kind::OR, conc, antn.notNode());
+        learnedLemmas.push_back(lem);
         allFappsConsistent = false;
       }
     }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa, Andrew Reynolds
+ *   Hanna Lachnitt, Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,7 +54,7 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     Env& env, AletheNodeConverter& anc, bool resPivots)
     : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
@@ -86,7 +86,7 @@ bool AletheProofPostprocessCallback::update(Node res,
   Trace("alethe-proof") << "...Alethe pre-update " << res << " " << id << " "
                         << children << " / " << args << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<Node> new_args = std::vector<Node>();
 
   switch (id)
@@ -436,15 +436,28 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::CHAIN_RESOLUTION:
     {
       std::vector<Node> newArgs;
+      std::vector<Node> cargs;
+      if (id == ProofRule::CHAIN_RESOLUTION)
+      {
+        for (size_t i = 0, nargs = args[0].getNumChildren(); i < nargs; i++)
+        {
+          cargs.push_back(args[0][i]);
+          cargs.push_back(args[1][i]);
+        }
+      }
+      else
+      {
+        cargs = args;
+      }
       // checker expects opposite order. We always keep the pivots because we
       // need them to compute in updatePost whether we will add OR steps. If
       // d_resPivots is off we will remove the pivots after that.
-      for (size_t i = 0, size = args.size(); i < size; i = i + 2)
+      for (size_t i = 0, size = cargs.size(); i < size; i = i + 2)
       {
-        newArgs.push_back(args[i + 1]);
-        newArgs.push_back(args[i]);
+        newArgs.push_back(cargs[i + 1]);
+        newArgs.push_back(cargs[i]);
       }
-      if (!isSingletonClause(res, children, args))
+      if (!isSingletonClause(res, children, cargs))
       {
         return addAletheStepFromOr(
             AletheRule::RESOLUTION_OR, res, children, newArgs, *cdp);
@@ -1084,6 +1097,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
     // s1 ... sn))
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
       if (res[0].isClosure())
       {
@@ -1438,7 +1452,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       for (size_t i = 0, size = children[0][0].getNumChildren(); i < size; i++)
       {
-        new_args.push_back(children[0][0][i].eqNode(args[i]));
+        new_args.push_back(children[0][0][i].eqNode(args[0][i]));
       }
       Node vp1 = nm->mkNode(
           Kind::SEXPR, d_cl, nm->mkNode(Kind::OR, children[0].notNode(), res));
@@ -1858,7 +1872,7 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   // The solution is to *not* use FACTORING/REORDERING (which in Alethe
   // operate on clauses) but generate a proof to obtain (via rewriting) the
   // expected node (or t1' ... tn') from the original node (or t1 ... tn).
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("alethe-proof") << "\n";
   CVC5_UNUSED AletheRule premiseProofRule =
       getAletheRule(premisePf->getArguments()[0]);
@@ -1927,7 +1941,7 @@ bool AletheProofPostprocessCallback::updatePost(
     const std::vector<Node>& args,
     CDProof* cdp)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   AletheRule rule = getAletheRule(args[0]);
   Trace("alethe-proof") << "...Alethe post-update " << rule << " / " << res
                         << " / args: " << args << std::endl;
@@ -2190,7 +2204,7 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
                                                const std::vector<Node>& args,
                                                CDProof* cdp)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
 
   // convert inner proof, i.e., children[0], if its conclusion is (cl false) or
@@ -2235,8 +2249,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  std::vector<Node> newArgs{NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(rule)))};
+  std::vector<Node> newArgs{
+      nodeManager()->mkConstInt(Rational(static_cast<uint32_t>(rule)))};
   newArgs.push_back(res);
   newArgs.push_back(d_anc.convert(conclusion));
   for (const Node& arg : args)
@@ -2258,7 +2272,7 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
 {
   std::vector<Node> subterms = {d_cl};
   subterms.insert(subterms.end(), res.begin(), res.end());
-  Node conclusion = NodeManager::currentNM()->mkNode(Kind::SEXPR, subterms);
+  Node conclusion = nodeManager()->mkNode(Kind::SEXPR, subterms);
   return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
 

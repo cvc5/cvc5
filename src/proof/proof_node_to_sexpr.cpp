@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *   Andrew Reynolds, Hans-Jörg Schurr, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -296,6 +296,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
   switch (r)
   {
     case ProofRule::CONG:
+    case ProofRule::NARY_CONG:
     {
       if (i == 0)
       {
@@ -339,10 +340,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       break;
     case ProofRule::INSTANTIATE:
     {
-      Assert(!pn->getChildren().empty());
-      Node q = pn->getChildren()[0]->getResult();
-      Assert(q.getKind() == Kind::FORALL);
-      if (i == q[0].getNumChildren())
+      if (i == 1)
       {
         return ArgFormat::INFERENCE_ID;
       }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -446,6 +446,8 @@ std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
 
 bool TypeNode::isTuple() const { return getKind() == Kind::TUPLE_TYPE; }
 
+bool TypeNode::isNullable() const { return getKind() == Kind::NULLABLE_TYPE; }
+
 bool TypeNode::isRecord() const
 {
   return (getKind() == Kind::DATATYPE_TYPE && getDType().isRecord());
@@ -466,10 +468,17 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
   return args;
 }
 
+TypeNode TypeNode::getNullableElementType() const
+{
+  Assert(isNullable());
+  return (*this)[0];
+}
+
 /** Is this an instantiated datatype type */
 bool TypeNode::isInstantiatedDatatype() const {
   Kind k = getKind();
-  if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE)
+  if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE
+      || k == Kind::NULLABLE_TYPE)
   {
     return true;
   }
@@ -596,7 +605,7 @@ bool TypeNode::isDatatype() const
 {
   Kind k = getKind();
   return k == Kind::DATATYPE_TYPE || k == Kind::PARAMETRIC_DATATYPE
-         || k == Kind::TUPLE_TYPE;
+         || k == Kind::TUPLE_TYPE || k == Kind::NULLABLE_TYPE;
 }
 
 bool TypeNode::isParametricDatatype() const
@@ -681,6 +690,12 @@ std::string TypeNode::toString() const {
 const DType& TypeNode::getDType() const
 {
   return NodeManager::currentNM()->getDTypeFor(*this);
+}
+
+bool TypeNode::isRelation() const
+{
+  return getKind() == Kind::SET_TYPE
+         && (*this)[0].getKind() == Kind::TUPLE_TYPE;
 }
 
 bool TypeNode::isBag() const { return getKind() == Kind::BAG_TYPE; }

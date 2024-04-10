@@ -10,6 +10,7 @@ from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
 from cvc5proofrules cimport ProofRule
+from cvc5skolemids cimport SkolemId
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -213,8 +214,9 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint isUnknown() except +
         string toString() except +
 
-    cdef cppclass Solver:
-        Solver() except +
+    cdef cppclass TermManager:
+        TermManager() except +
+        Statistics getStatistics() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
         Sort getRealSort() except +
@@ -242,9 +244,106 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkUninterpretedSortConstructorSort(size_t arity) except +
         Sort mkUninterpretedSortConstructorSort(size_t arity, const string& symbol) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
+        Sort mkNullableSort(Sort elemSort) except +
         Term mkTerm(Op op) except +
         Term mkTerm(Op op, const vector[Term]& children) except +
         Term mkTuple(const vector[Term]& terms) except +
+        Term mkNullableSome(const Term& term) except +
+        Term mkNullableVal(const Term& term) except +
+        Term mkNullableIsNull(const Term& term) except +
+        Term mkNullableIsSome(const Term& term) except +
+        Term mkNullableNull(const Sort& sort) except +
+        Term mkNullableLift(Kind kind, const vector[Term]& args) except +
+        Op mkOp(Kind kind) except +
+        Op mkOp(Kind kind, const string& arg) except +
+        Op mkOp(Kind kind, const vector[uint32_t]& args) except +
+        Term mkTrue() except +
+        Term mkFalse() except +
+        Term mkBoolean(bint val) except +
+        Term mkPi() except +
+        Term mkInteger(const uint64_t i) except +
+        Term mkInteger(const string& s) except +
+        Term mkReal(const string& s) except +
+        Term mkRegexpAll() except +
+        Term mkRegexpAllchar() except +
+        Term mkRegexpNone() except +
+        Term mkEmptySet(Sort s) except +
+        Term mkEmptyBag(Sort s) except +
+        Term mkSepEmp() except +
+        Term mkSepNil(Sort sort) except +
+        Term mkString(const string& s) except +
+        Term mkString(const wstring& s) except +
+        Term mkString(const string& s, bint useEscSequences) except +
+        Term mkEmptySequence(Sort sort) except +
+        Term mkUniverseSet(Sort sort) except +
+        Term mkBitVector(uint32_t size) except +
+        Term mkBitVector(uint32_t size, uint64_t val) except +
+        Term mkBitVector(const string& s) except +
+        Term mkBitVector(const string& s, uint32_t base) except +
+        Term mkBitVector(uint32_t size, string& s, uint32_t base) except +
+        Term mkFiniteFieldElem(const string& s, Sort sort, uint32_t base) except +
+        Term mkConstArray(Sort sort, Term val) except +
+        Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) except +
+        Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) except +
+        Term mkRoundingMode(RoundingMode rm) except +
+        Term mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) except +
+        Term mkFloatingPoint(const Term& arg0, const Term& arg1, const Term& arg2) except +
+        Term mkCardinalityConstraint(Sort sort, int32_t index) except +
+        Term mkConst(Sort sort, const string& symbol) except +
+        # default value for symbol defined in cpp/cvc5.h
+        Term mkConst(Sort sort) except +
+        Term mkVar(Sort sort, const string& symbol) except +
+        DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
+        DatatypeDecl mkDatatypeDecl(const string& name) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
+        # default value for symbol defined in cpp/cvc5.h
+        Term mkVar(Sort sort) except +
+
+    cdef cppclass Solver:
+        Solver(TermManager& tm) except +
+        TermManager getTermManager() except +
+        Sort getBooleanSort() except +
+        Sort getIntegerSort() except +
+        Sort getRealSort() except +
+        Sort getRegExpSort() except +
+        Sort getRoundingModeSort() except +
+        Sort getStringSort() except +
+        Sort mkArraySort(Sort indexSort, Sort elemSort) except +
+        Sort mkBitVectorSort(uint32_t size) except +
+        Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
+        Sort mkFiniteFieldSort(const string& size, uint32_t base) except +
+        Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
+        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls) except +
+        Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
+        Sort mkParamSort() except +
+        Sort mkParamSort(const string& symbol) except +
+        Sort mkPredicateSort(const vector[Sort]& sorts) except +
+        Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
+        Sort mkSetSort(Sort elemSort) except +
+        Sort mkBagSort(Sort elemSort) except +
+        Sort mkSequenceSort(Sort elemSort) except +
+        Sort mkAbstractSort(SortKind kind) except +
+        Sort mkUninterpretedSort() except +
+        Sort mkUninterpretedSort(const string& symbol) except +
+        Sort mkUnresolvedDatatypeSort(const string& symbol, size_t arity) except +
+        Sort mkUninterpretedSortConstructorSort(size_t arity) except +
+        Sort mkUninterpretedSortConstructorSort(size_t arity, const string& symbol) except +
+        Sort mkTupleSort(const vector[Sort]& sorts) except +
+        Sort mkNullableSort(Sort elemSort) except +
+        Term mkTerm(Op op) except +
+        Term mkTerm(Op op, const vector[Term]& children) except +
+        Term mkTuple(const vector[Term]& terms) except +
+        Term mkNullableSome(const Term& term) except +
+        Term mkNullableVal(const Term& term) except +
+        Term mkNullableIsNull(const Term& term) except +
+        Term mkNullableIsSome(const Term& term) except +
+        Term mkNullableNull(const Sort& sort) except +
+        Term mkNullableLift(Kind kind, const vector[Term]& args) except +
         Op mkOp(Kind kind) except +
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, const vector[uint32_t]& args) except +
@@ -413,6 +512,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint isFunction() except +
         bint isPredicate() except +
         bint isTuple() except +
+        bint isNullable() except +
         bint isRecord() except +
         bint isArray() except +
         bint isFiniteField() except +
@@ -453,6 +553,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         size_t getDatatypeArity() except +
         size_t getTupleLength() except +
         vector[Sort] getTupleSorts() except +
+        Sort getNullableElementSort() except +
         string toString() except +
 
     cdef cppclass SortHashFunction:
@@ -525,6 +626,9 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) except +
         Term getRealAlgebraicNumberLowerBound() except +
         Term getRealAlgebraicNumberUpperBound() except +
+        bint isSkolem() except +
+        SkolemId getSkolemId() except +
+        vector[Term] getSkolemIndices() except +
 
         bint isConstArray() except +
         bint isBooleanValue() except +
@@ -577,6 +681,8 @@ cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
         SymbolManager(Solver* solver) except +
         bint isLogicSet() except +
         string getLogic() except +
+        vector[Sort] getDeclaredSorts() except +
+        vector[Term] getDeclaredTerms() except +
 
     cdef cppclass Command:
         Command() except +

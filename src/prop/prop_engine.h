@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -133,6 +133,16 @@ class PropEngine : protected EnvObj
    * @param p the properties of the lemma
    */
   void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
+
+  /**
+   * This is called when a theory propagation was explained with texp.
+   * In other words, texp corresponds to a formula that was added to the SAT
+   * solver. This method is only used for proofs. It stores the proof of the
+   * clause corresponding to texp in the proof CNF stream.
+   *
+   * @param texp The explained propagation.
+   */
+  void notifyExplainedPropagation(TrustNode texp);
 
   /**
    * Configure the preferred phase of a decision variable. This occurs
@@ -296,9 +306,6 @@ class PropEngine : protected EnvObj
    */
   bool properExplanation(TNode node, TNode expl) const;
 
-  /** Retrieve this modules proof CNF stream. */
-  ProofCnfStream* getProofCnfStream();
-
   /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
    * well as to the given assertions. */
   void checkProof(const context::CDList<Node>& assertions);
@@ -390,7 +397,9 @@ class PropEngine : protected EnvObj
    */
   void assertLemmasInternal(TrustNode trn,
                             const std::vector<theory::SkolemLemma>& ppLemmas,
-                            bool removable);
+                            bool removable,
+                            bool inprocess,
+                            bool local);
 
   /**
    * Indicates that the SAT solver is currently solving something and we should
@@ -415,8 +424,6 @@ class PropEngine : protected EnvObj
 
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
-  /** Proof-producing CNF converter */
-  std::unique_ptr<ProofCnfStream> d_pfCnfStream;
   /** A default proof generator for theory lemmas */
   CDProof d_theoryLemmaPg;
 

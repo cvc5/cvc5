@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Gereon Kremer, Andres Noetzli
+ *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,12 @@
 #include <deque>
 
 #include "base/check.h"
+#include "options/main_options.h"
+#include "options/proof_options.h"
 #include "prop/theory_proxy.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -252,7 +255,6 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     {
       return true;
     }
-
     // CaDiCaL may backtrack while importing clauses, which can result in some
     // clauses not being processed. Make sure to add all clauses before
     // checking the model.
@@ -949,13 +951,15 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
-                             const std::string& name)
+                             const std::string& name,
+                             bool logProofs)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
       d_context(nullptr),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
+      d_logProofs(logProofs),
       d_inSatMode(false),
       d_statistics(registry, name)
 {
@@ -978,6 +982,17 @@ void CadicalSolver::init()
   d_solver->add(0);
   d_solver->add(-toCadicalVar(d_false));
   d_solver->add(0);
+
+  if (d_logProofs)
+  {
+    d_pfFile = options().driver.filename + ".drat_proof.txt";
+    if (!options().proof.dratBinaryFormat)
+    {
+      d_solver->set("binary", 0);
+    }
+    d_solver->set("inprocessing", 0);
+    d_solver->trace_proof(d_pfFile.c_str());
+  }
 }
 
 CadicalSolver::~CadicalSolver() {}
@@ -1169,7 +1184,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 void CadicalSolver::initialize(context::Context* context,
                                prop::TheoryProxy* theoryProxy,
                                context::UserContext* userContext,
-                               ProofNodeManager* pnm)
+                               PropPfManager* ppm)
 {
   d_context = context;
   d_proxy = theoryProxy;
@@ -1236,9 +1251,22 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
 
 std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
-std::shared_ptr<ProofNode> CadicalSolver::getProof() { return nullptr; }
+std::shared_ptr<ProofNode> CadicalSolver::getProof()
+{
+  Unimplemented() << "getProof for CaDiCaL not supported";
+  return nullptr;
+}
 
-SatProofManager* CadicalSolver::getProofManager() { return nullptr; }
+std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
+{
+  Assert(d_logProofs);
+  d_solver->flush_proof_trace();
+  std::vector<Node> args = {NodeManager::currentNM()->mkConst(String(d_pfFile))};
+  // The proof is DRAT_REFUTATION whose premises is all inputs + theory lemmas.
+  // The DRAT file is an argument to the file proof.
+  return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,
+                                                 args);
+}
 
 /* -------------------------------------------------------------------------- */
 }  // namespace prop

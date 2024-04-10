@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
+#include "prop/proof_cnf_stream.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
@@ -73,7 +74,6 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_theoryProxy(nullptr),
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
-      d_pfCnfStream(nullptr),
       d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
@@ -82,7 +82,6 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
 {
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
-  ProofNodeManager* pnm = d_env.getProofNodeManager();
 
   if (options().prop.satSolver == options::SatSolverMode::MINISAT
       || d_env.isSatProofProducing())
@@ -109,36 +108,19 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // connect theory proxy
   d_theoryProxy->finishInit(d_satSolver, d_cnfStream);
   bool satProofs = d_env.isSatProofProducing();
-  // connect SAT solver
-  d_satSolver->initialize(d_env.getContext(),
-                          d_theoryProxy,
-                          d_env.getUserContext(),
-                          satProofs ? pnm : nullptr);
   if (satProofs)
   {
-    d_pfCnfStream.reset(
-        new ProofCnfStream(env, *d_cnfStream, d_satSolver->getProofManager()));
-    d_ppm.reset(
-        new PropPfManager(env, userContext, d_satSolver, d_pfCnfStream.get()));
+    d_ppm.reset(new PropPfManager(env, d_satSolver, *d_cnfStream));
   }
+  // connect SAT solver
+  d_satSolver->initialize(
+      d_env.getContext(), d_theoryProxy, d_env.getUserContext(), d_ppm.get());
 }
 
 void PropEngine::finishInit()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
-  // this is necessary because if True is later asserted to the prop engine the
-  // CNF stream will ignore it since the SAT solver already had it registered,
-  // thus not having True as an assumption for the SAT proof. To solve this
-  // issue we track it directly here
-  if (isProofEnabled())
-  {
-    SatProofManager* spfm = d_satSolver->getProofManager();
-    if (spfm)
-    {
-      spfm->registerSatAssumptions({nm->mkConst(true)});
-    }
-  }
   d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
 
@@ -193,6 +175,8 @@ void PropEngine::assertInputFormulas(
 void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
+  bool local = isLemmaPropertyLocal(p);
+  bool inprocess = isLemmaPropertyInprocess(p);
 
   // call preprocessor
   std::vector<theory::SkolemLemma> ppLemmas;
@@ -226,7 +210,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(tplemma, ppLemmas, removable);
+  assertLemmasInternal(tplemma, ppLemmas, removable, inprocess, local);
 }
 
 void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
@@ -281,12 +265,7 @@ void PropEngine::assertInternal(
   }
   else if (isProofEnabled())
   {
-    d_pfCnfStream->convertAndAssert(node, negated, removable, input, pg);
-    // if input, register the assertion in the proof manager
-    if (input)
-    {
-      d_ppm->registerAssertion(node);
-    }
+    d_ppm->convertAndAssert(node, negated, removable, input, pg);
   }
   else
   {
@@ -297,22 +276,27 @@ void PropEngine::assertInternal(
 void PropEngine::assertLemmasInternal(
     TrustNode trn,
     const std::vector<theory::SkolemLemma>& ppLemmas,
-    bool removable)
+    bool removable,
+    bool inprocess,
+    bool local)
 {
-  if (!removable)
+  // notify skolem definitions first to ensure that the computation of
+  // when a literal contains a skolem is accurate in the calls below.
+  Trace("prop") << "Notify skolem definitions..." << std::endl;
+  for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    // notify skolem definitions first to ensure that the computation of
-    // when a literal contains a skolem is accurate in the calls below.
-    Trace("prop") << "Notify skolem definitions..." << std::endl;
-    for (const theory::SkolemLemma& lem : ppLemmas)
-    {
-      d_theoryProxy->notifySkolemDefinition(lem.getProven(), lem.d_skolem);
-    }
+    d_theoryProxy->notifySkolemDefinition(lem.getProven(), lem.d_skolem);
   }
   // Assert to the SAT solver first
   Trace("prop") << "Push to SAT..." << std::endl;
   if (!trn.isNull())
   {
+    // inprocess
+    if (inprocess
+        && options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
+    {
+      trn = d_theoryProxy->inprocessLemma(trn);
+    }
     assertTrustedLemmaInternal(trn, removable);
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
@@ -327,21 +311,24 @@ void PropEngine::assertLemmasInternal(
   // e.g. for string reduction lemmas, where preregistration lemmas are
   // introduced for skolems that appear in reductions. Moving the above
   // block after the one below has mixed performance on SMT-LIB strings logics.
-  if (!removable)
+  Trace("prop") << "Notify assertions..." << std::endl;
+  // also add to the decision engine, where notice we don't need proofs
+  if (!trn.isNull())
   {
-    Trace("prop") << "Notify assertions..." << std::endl;
-    // also add to the decision engine, where notice we don't need proofs
-    if (!trn.isNull())
-    {
-      // notify the theory proxy of the lemma
-      d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true);
-    }
-    for (const theory::SkolemLemma& lem : ppLemmas)
-    {
-      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
-    }
+    // notify the theory proxy of the lemma
+    d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true, local);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true, local);
   }
   Trace("prop") << "Finish " << trn << std::endl;
+}
+
+void PropEngine::notifyExplainedPropagation(TrustNode texp)
+{
+  Assert(d_ppm != nullptr);
+  d_ppm->notifyExplainedPropagation(texp);
 }
 
 void PropEngine::preferPhase(TNode n, bool phase)
@@ -503,11 +490,11 @@ Node PropEngine::getValue(TNode node) const
   SatValue v = d_satSolver->value(lit);
   if (v == SAT_VALUE_TRUE)
   {
-    return NodeManager::currentNM()->mkConst(true);
+    return nodeManager()->mkConst(true);
   }
   else if (v == SAT_VALUE_FALSE)
   {
-    return NodeManager::currentNM()->mkConst(false);
+    return nodeManager()->mkConst(false);
   }
   else
   {
@@ -559,7 +546,7 @@ Node PropEngine::ensureLiteral(TNode n)
                          << std::endl;
   if (isProofEnabled())
   {
-    d_pfCnfStream->ensureLiteral(preprocessed);
+    d_ppm->ensureLiteral(preprocessed);
   }
   else
   {
@@ -575,7 +562,7 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   TrustNode trnNull;
-  assertLemmasInternal(trnNull, newLemmas, false);
+  assertLemmasInternal(trnNull, newLemmas, false, false, false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 
@@ -708,8 +695,6 @@ void PropEngine::checkProof(const context::CDList<Node>& assertions)
   return d_ppm->checkProof(assertions);
 }
 
-ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
-
 std::shared_ptr<ProofNode> PropEngine::getProof(bool connectCnf)
 {
   if (!d_env.isSatProofProducing())
@@ -722,12 +707,13 @@ std::shared_ptr<ProofNode> PropEngine::getProof(bool connectCnf)
   return d_ppm->getProof(connectCnf);
 }
 
-std::vector<std::shared_ptr<ProofNode>> PropEngine::getProofLeaves(modes::ProofComponent pc)
+std::vector<std::shared_ptr<ProofNode>> PropEngine::getProofLeaves(
+    modes::ProofComponent pc)
 {
   return d_ppm->getProofLeaves(pc);
 }
 
-bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
+bool PropEngine::isProofEnabled() const { return d_ppm != nullptr; }
 
 void PropEngine::getUnsatCore(std::vector<Node>& core)
 {

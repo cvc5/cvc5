@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -132,7 +132,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(Smt, produceDifficulty, true, "dumpDifficulty");
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
-      || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
+      || opts.driver.dumpUnsatCoresLemmas || opts.smt.unsatAssumptions
+      || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
     SET_AND_NOTIFY(
@@ -176,6 +177,28 @@ void SetDefaults::setDefaultsPre(Options& opts)
                      unsatCoresMode,
                      options::UnsatCoresMode::SAT_PROOF,
                      "enabling proofs");
+    }
+    // note that this test assumes that granularity modes are ordered and
+    // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
+    // levels
+    if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE)
+    {
+      if (!opts.proof.proofAletheExperimental)
+      {
+        std::stringstream ss;
+        ss << "proof-format=alethe is experimental in this version. If "
+              "you know what you are doing, you can try "
+              "--proof-alethe-experimental";
+        throw OptionException(ss.str());
+      }
+      if (opts.proof.proofGranularityMode
+          < options::ProofGranularityMode::THEORY_REWRITE)
+      {
+        SET_AND_NOTIFY(Proof,
+                       proofGranularityMode,
+                       options::ProofGranularityMode::THEORY_REWRITE,
+                       "Alethe requires granularity at least theory-rewrite");
+      }
     }
   }
   if (!opts.smt.produceProofs)
@@ -239,7 +262,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     // these options must be disabled on internal subsolvers, as they are
     // used by the user to rephrase the input.
-    SET_AND_NOTIFY(Quantifiers, sygusInference, false, "internal subsolver");
+    SET_AND_NOTIFY(Quantifiers,
+                   sygusInference,
+                   options::SygusInferenceMode::OFF,
+                   "internal subsolver");
     // deep restart does not work with internal subsolvers?
     SET_AND_NOTIFY(Smt,
                    deepRestartMode,
@@ -863,7 +889,7 @@ bool SetDefaults::isSygus(const Options& opts) const
   if (!d_isInternalSubsolver)
   {
     if (opts.smt.produceAbducts || opts.smt.produceInterpolants
-        || opts.quantifiers.sygusInference)
+        || opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       return true;
@@ -948,6 +974,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     reason << "deep restarts";
     return true;
   }
+  if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
+  {
+    // lemma inprocessing introduces depencencies from learned unit literals
+    // that are not tracked.
+    reason << "lemma inprocessing";
+    return true;
+  }
   return false;
 }
 
@@ -1013,14 +1046,17 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     suggest << "Try --bitblast=lazy.";
     return true;
   }
-  if (opts.quantifiers.sygusInference)
+  if (opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     if (opts.quantifiers.sygusInferenceWasSetByUser)
     {
       reason << "sygus inference";
       return true;
     }
-    SET_AND_NOTIFY(Quantifiers, sygusInference, false, "incremental solving");
+    SET_AND_NOTIFY(Quantifiers,
+                   sygusInference,
+                   options::SygusInferenceMode::OFF,
+                   "incremental solving");
   }
   if (opts.quantifiers.sygusInst)
   {
@@ -1507,7 +1543,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     SET_AND_NOTIFY_IF_NOT_USER(Quantifiers, cegqi, true, "sygusRepairConst");
   }
-  if (opts.quantifiers.sygusInference)
+  if (opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     // optimization: apply preskolemization, makes it succeed more often
     SET_AND_NOTIFY_IF_NOT_USER(Quantifiers,

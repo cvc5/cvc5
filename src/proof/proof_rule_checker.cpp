@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds, Mathias Preiner, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,8 +33,7 @@ Node ProofRuleChecker::check(ProofRule id,
 bool ProofRuleChecker::getUInt32(TNode n, uint32_t& i)
 {
   // must be a non-negative integer constant that fits an unsigned int
-  if (n.isConst() && n.getType().isInteger()
-      && n.getConst<Rational>().sgn() >= 0
+  if (n.getKind() == Kind::CONST_INTEGER && n.getConst<Rational>().sgn() >= 0
       && n.getConst<Rational>().getNumerator().fitsUnsignedInt())
   {
     i = n.getConst<Rational>().getNumerator().toUnsignedInt();
@@ -74,5 +73,7 @@ Node ProofRuleChecker::mkKindNode(Kind k)
   return NodeManager::currentNM()->mkConstInt(
       Rational(static_cast<uint32_t>(k)));
 }
+
+NodeManager* ProofRuleChecker::nodeManager() const { return d_nm; }
 
 }  // namespace cvc5::internal

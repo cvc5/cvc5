@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
+#include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "theory/theory_engine.h"
@@ -35,7 +36,8 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
       d_ppnAtoms(userContext()),
       d_ppnTerms(userContext()),
       d_ppnSyms(userContext()),
-      d_assertNoLearnCount(0)
+      d_assertNoLearnCount(0),
+      d_tsmap(env, userContext(), "ZllSimplificationMap")
 {
   // get the learned types
   options::DeepRestartMode lmode = options().smt.deepRestartMode;
@@ -58,6 +60,7 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
       d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
     }
   }
+  d_trackSimplifications = true;
 }
 
 ZeroLevelLearner::~ZeroLevelLearner() {}
@@ -128,6 +131,10 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
     if (!lit.isConst() || !lit.getConst<bool>())
     {
       // output learned literals from preprocessing
+      if (d_trackSimplifications)
+      {
+        computeLearnedLiteralType(lit);
+      }
       processLearnedLiteral(lit, modes::LearnedLitType::PREPROCESS);
       // also get its symbols
       expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
@@ -216,7 +223,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
   }
   if (TraceIsOn("level-zero-debug"))
   {
-    if (d_assertNoLearnCount > 0
+    if (d_assertNoLearnCount > 0 && d_deepRestartThreshold > 0
         && d_assertNoLearnCount % d_deepRestartThreshold == 0)
     {
       Trace("level-zero-debug")
@@ -229,50 +236,107 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
 }
 
 modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
-    const Node& lit)
+    const Node& input)
 {
   // literal was learned, determine its type
+  // apply substitutions first
+  Node lit = d_tsmap.apply(input, d_env.getRewriter());
   TNode aatom = lit.getKind() == Kind::NOT ? lit[0] : lit;
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
   modes::LearnedLitType ltype =
       internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
   // compute if solvable
-  if (internal)
+  if (internal || d_trackSimplifications)
   {
     Subs ss;
+    bool processed = false;
     if (getSolved(lit, ss))
     {
       // if we solved for any variable from input, we are SOLVABLE.
-      for (const Node& v : ss.d_vars)
+      for (size_t i = 0, nvars = ss.d_vars.size(); i < nvars; i++)
       {
+        Node v = ss.d_vars[i];
         if (d_ppnSyms.find(v) != d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
-          ltype = modes::LearnedLitType::SOLVABLE;
-          break;
+          if (ltype == modes::LearnedLitType::INTERNAL)
+          {
+            ltype = modes::LearnedLitType::SOLVABLE;
+          }
+        }
+        if (d_trackSimplifications)
+        {
+          bool addSubs = true;
+          switch (options().theory.lemmaInprocessSubsMode)
+          {
+            case options::LemmaInprocessSubsMode::SIMPLE:
+              addSubs = ss.d_subs[i].getNumChildren() == 0;
+              break;
+            default: break;
+          }
+          if (addSubs)
+          {
+            processed = true;
+            Trace("lemma-inprocess-subs")
+                << "Add subs: " << v << " -> " << ss.d_subs[i] << std::endl;
+            d_tsmap.addSubstitution(v, ss.d_subs[i]);
+          }
         }
       }
     }
-    if (ltype != modes::LearnedLitType::SOLVABLE)
+    if ((d_trackSimplifications && !processed)
+        || ltype != modes::LearnedLitType::SOLVABLE)
     {
       // maybe a constant prop?
       if (lit.getKind() == Kind::EQUAL)
       {
         for (size_t i = 0; i < 2; i++)
         {
-          if (lit[i].isConst()
-              && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
+          // Only consider substitutions whose RHS are constants.
+          // A more general policy could consider lit[i].getNumChildren()==0.
+          if (lit[i].isConst())
           {
-            ltype = modes::LearnedLitType::CONSTANT_PROP;
+            if (ltype == modes::LearnedLitType::INTERNAL
+                && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
+            {
+              ltype = modes::LearnedLitType::CONSTANT_PROP;
+            }
+            if (d_trackSimplifications && !processed)
+            {
+              Trace("lemma-inprocess-subs")
+                  << "Add cp: " << lit[1 - i] << " -> " << lit[i] << std::endl;
+              d_tsmap.addSubstitution(lit[1 - i], lit[i]);
+              processed = true;
+            }
+            break;
+          }
+          else if ((d_trackSimplifications && !processed)
+                   && expr::hasSubterm(lit[1 - i], lit[i]))
+          {
+            Trace("lemma-inprocess-subs") << "Add cp subterm: " << lit[1 - i]
+                                          << " -> " << lit[i] << std::endl;
+            d_tsmap.addSubstitution(lit[1 - i], lit[i]);
+            processed = true;
             break;
           }
         }
+      }
+      if (!processed)
+      {
+        Trace("lemma-inprocess-subs-n")
+            << "Unused unit learned: " << lit << std::endl;
       }
     }
   }
   Trace("level-zero-assert")
       << "Level zero assert: " << lit << ", type=" << ltype << std::endl;
   return ltype;
+}
+
+theory::TrustSubstitutionMap& ZeroLevelLearner::getSimplifications()
+{
+  Assert(d_trackSimplifications);
+  return d_tsmap;
 }
 
 void ZeroLevelLearner::processLearnedLiteral(const Node& lit,

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,7 @@ namespace uf {
 class TheoryUfRewriter : public TheoryRewriter
 {
  public:
-  TheoryUfRewriter();
+  TheoryUfRewriter(NodeManager* nm);
   /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
   /** pre-rewrite */
@@ -72,11 +72,11 @@ class TheoryUfRewriter : public TheoryRewriter
 
  private:
   /** Entry point for rewriting lambdas */
-  static Node rewriteLambda(Node node);
+  Node rewriteLambda(Node node);
   /** rewrite bv2nat */
-  static RewriteResponse rewriteBVToNat(TNode node);
+  RewriteResponse rewriteBVToNat(TNode node);
   /** rewrite int2bv */
-  static RewriteResponse rewriteIntToBV(TNode node);
+  RewriteResponse rewriteIntToBV(TNode node);
 }; /* class TheoryUfRewriter */
 
 }  // namespace uf

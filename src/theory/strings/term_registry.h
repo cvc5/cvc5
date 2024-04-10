@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -227,7 +227,7 @@ class TermRegistry : protected EnvObj
   Node mkNConcat(Node n1, Node n2, Node n3) const;
 
   /**
-   * Returns the rewritten form of the concatentation from vector c of
+   * Returns the rewritten form of the concatenation from vector c of
    * (string-like) type tn.
    */
   Node mkNConcat(const std::vector<Node>& c, TypeNode tn) const;

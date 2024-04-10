@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@ class Evaluator;
 class Rewriter {
   friend class cvc5::internal::Env;  // to set the resource manager
  public:
-  Rewriter();
+  Rewriter(NodeManager* nm);
 
   /**
    * Rewrites the node using theoryOf() to determine which rewriter to
@@ -145,6 +145,9 @@ class Rewriter {
    * Has n been rewritten with proofs? This checks if n is in d_tpgNodes.
    */
   bool hasRewrittenWithProofs(TNode n) const;
+
+  /** Pointer to the node manager */
+  NodeManager* d_nm;
 
   /** The resource manager, for tracking resource usage */
   ResourceManager* d_resourceManager;

@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,243 +21,215 @@ from cvc5 import Kind, SortKind, Sort
 
 
 @pytest.fixture
-def solver():
-    return cvc5.Solver()
+def tm():
+    return cvc5.TermManager()
 
 
-def create_datatype_sort(solver):
-    intSort = solver.getIntegerSort()
+def create_datatype_sort(tm):
+    intSort = tm.getIntegerSort()
     # create datatype sort to test
-    dtypeSpec = solver.mkDatatypeDecl("list")
-    cons = solver.mkDatatypeConstructorDecl("cons")
+    dtypeSpec = tm.mkDatatypeDecl("list")
+    cons = tm.mkDatatypeConstructorDecl("cons")
     cons.addSelector("head", intSort)
     cons.addSelectorSelf("tail")
     dtypeSpec.addConstructor(cons)
-    nil = solver.mkDatatypeConstructorDecl("nil")
+    nil = tm.mkDatatypeConstructorDecl("nil")
     dtypeSpec.addConstructor(nil)
-    dtypeSort = solver.mkDatatypeSort(dtypeSpec)
+    dtypeSort = tm.mkDatatypeSort(dtypeSpec)
     return dtypeSort
 
 
-def create_param_datatype_sort(solver):
-    sort = solver.mkParamSort("T")
-    paramDtypeSpec = solver.mkDatatypeDecl("paramlist", [sort])
-    paramCons = solver.mkDatatypeConstructorDecl("cons")
-    paramNil = solver.mkDatatypeConstructorDecl("nil")
+def create_param_datatype_sort(tm):
+    sort = tm.mkParamSort("T")
+    paramDtypeSpec = tm.mkDatatypeDecl("paramlist", [sort])
+    paramCons = tm.mkDatatypeConstructorDecl("cons")
+    paramNil = tm.mkDatatypeConstructorDecl("nil")
     paramCons.addSelector("head", sort)
     paramDtypeSpec.addConstructor(paramCons)
     paramDtypeSpec.addConstructor(paramNil)
-    paramDtypeSort = solver.mkDatatypeSort(paramDtypeSpec)
+    paramDtypeSort = tm.mkDatatypeSort(paramDtypeSpec)
     return paramDtypeSort
 
 
-def test_hash(solver):
-    hash(solver.getIntegerSort())
+def test_hash(tm):
+    hash(tm.getIntegerSort())
 
 
-def test_operators_comparison(solver):
-    solver.getIntegerSort() == Sort(solver)
-    solver.getIntegerSort() != Sort(solver)
-    solver.getIntegerSort() < Sort(solver)
-    solver.getIntegerSort() <= Sort(solver)
-    solver.getIntegerSort() > Sort(solver)
-    solver.getIntegerSort() >= Sort(solver)
+def test_operators_comparison(tm):
+    assert tm.getIntegerSort() == tm.getIntegerSort()
+    assert tm.getIntegerSort() != tm.getBooleanSort()
+    assert not tm.getIntegerSort() < tm.getIntegerSort()
+    assert tm.getIntegerSort() <= tm.getIntegerSort()
+    assert not tm.getIntegerSort() > tm.getIntegerSort()
+    assert tm.getIntegerSort() >= tm.getIntegerSort()
 
-def test_get_kind(solver):
-    b = solver.getBooleanSort()
-    dt_sort = create_datatype_sort(solver)
-    arr_sort = solver.mkArraySort(solver.getRealSort(), solver.getIntegerSort())
+def test_get_kind(tm):
+    b = tm.getBooleanSort()
+    dt_sort = create_datatype_sort(tm)
+    arr_sort = tm.mkArraySort(tm.getRealSort(), tm.getIntegerSort())
     assert b.getKind() == SortKind.BOOLEAN_SORT
     assert dt_sort.getKind()== SortKind.DATATYPE_SORT
     assert arr_sort.getKind()== SortKind.ARRAY_SORT
 
-def test_has_get_symbol(solver):
-    n = Sort(solver)
-    b = solver.getBooleanSort()
-    s0 = solver.mkParamSort("s0")
-    s1 = solver.mkParamSort("|s1\\|")
-
-    with pytest.raises(RuntimeError):
-        n.hasSymbol()
+def test_has_get_symbol(tm):
+    b = tm.getBooleanSort()
+    s0 = tm.mkParamSort("s0")
+    s1 = tm.mkParamSort("|s1\\|")
     assert not b.hasSymbol()
     assert s0.hasSymbol()
     assert s1.hasSymbol()
-
-    with pytest.raises(RuntimeError):
-        n.getSymbol()
     with pytest.raises(RuntimeError):
         b.getSymbol()
     assert s0.getSymbol() == "s0"
     assert s1.getSymbol() == "|s1\\|"
 
 
-def test_is_null(solver):
-   x = Sort(solver)
-   assert x.isNull()
-   x = solver.getBooleanSort()
+def test_is_null(tm):
+   x = tm.getBooleanSort()
    assert not x.isNull()
 
-def test_is_boolean(solver):
-    assert solver.getBooleanSort().isBoolean()
-    Sort(solver).isBoolean()
+def test_is_boolean(tm):
+    assert tm.getBooleanSort().isBoolean()
 
 
-def test_is_integer(solver):
-    assert solver.getIntegerSort().isInteger()
-    assert not solver.getRealSort().isInteger()
-    Sort(solver).isInteger()
+def test_is_integer(tm):
+    assert tm.getIntegerSort().isInteger()
+    assert not tm.getRealSort().isInteger()
 
 
-def test_is_real(solver):
-    assert solver.getRealSort().isReal()
-    assert not solver.getIntegerSort().isReal()
-    Sort(solver).isReal()
+def test_is_real(tm):
+    assert tm.getRealSort().isReal()
+    assert not tm.getIntegerSort().isReal()
 
 
-def test_is_string(solver):
-    assert solver.getStringSort().isString()
-    Sort(solver).isString()
+def test_is_string(tm):
+    assert tm.getStringSort().isString()
 
 
-def test_is_reg_exp(solver):
-    assert solver.getRegExpSort().isRegExp()
-    Sort(solver).isRegExp()
+def test_is_reg_exp(tm):
+    assert tm.getRegExpSort().isRegExp()
 
 
-def test_is_rounding_mode(solver):
-    assert solver.getRoundingModeSort().isRoundingMode()
-    Sort(solver).isRoundingMode()
+def test_is_rounding_mode(tm):
+    assert tm.getRoundingModeSort().isRoundingMode()
 
 
-def test_is_bit_vector(solver):
-    assert solver.mkBitVectorSort(8).isBitVector()
-    Sort(solver).isBitVector()
+def test_is_bit_vector(tm):
+    assert tm.mkBitVectorSort(8).isBitVector()
 
 
-def test_is_floating_point(solver):
-    assert solver.mkFloatingPointSort(8, 24).isFloatingPoint()
-    Sort(solver).isFloatingPoint()
+def test_is_floating_point(tm):
+    assert tm.mkFloatingPointSort(8, 24).isFloatingPoint()
 
 
-def test_is_datatype(solver):
-    dt_sort = create_datatype_sort(solver)
+def test_is_datatype(tm):
+    dt_sort = create_datatype_sort(tm)
     assert dt_sort.isDatatype()
-    Sort(solver).isDatatype()
 
 
-def test_is_constructor(solver):
-    dt_sort = create_datatype_sort(solver)
+def test_is_constructor(tm):
+    dt_sort = create_datatype_sort(tm)
     dt = dt_sort.getDatatype()
     cons_sort = dt[0].getTerm().getSort()
     assert cons_sort.isDatatypeConstructor()
-    Sort(solver).isDatatypeConstructor()
 
 
-def test_is_selector(solver):
-    dt_sort = create_datatype_sort(solver)
+def test_is_selector(tm):
+    dt_sort = create_datatype_sort(tm)
     dt = dt_sort.getDatatype()
     dt0 = dt[0]
     dt01 = dt0[1]
     cons_sort = dt01.getTerm().getSort()
     assert cons_sort.isDatatypeSelector()
-    Sort(solver).isDatatypeSelector()
 
 
-def test_is_tester(solver):
-    dt_sort = create_datatype_sort(solver)
+def test_is_tester(tm):
+    dt_sort = create_datatype_sort(tm)
     dt = dt_sort.getDatatype()
     cons_sort = dt[0].getTesterTerm().getSort()
     assert cons_sort.isDatatypeTester()
-    Sort(solver).isDatatypeTester()
 
-def test_is_updater(solver):
-  dt_sort = create_datatype_sort(solver)
+def test_is_updater(tm):
+  dt_sort = create_datatype_sort(tm)
   dt = dt_sort.getDatatype()
   updater_sort = dt[0][0].getUpdaterTerm().getSort()
   assert updater_sort.isDatatypeUpdater()
-  Sort(solver).isDatatypeUpdater()
 
-def test_is_function(solver):
-    fun_sort = solver.mkFunctionSort(solver.getRealSort(),
-                                     solver.getIntegerSort())
+def test_is_function(tm):
+    fun_sort = tm.mkFunctionSort(tm.getRealSort(),
+                                     tm.getIntegerSort())
     assert fun_sort.isFunction()
-    Sort(solver).isFunction()
 
 
-def test_is_predicate(solver):
-    pred_sort = solver.mkPredicateSort(solver.getRealSort())
+def test_is_predicate(tm):
+    pred_sort = tm.mkPredicateSort(tm.getRealSort())
     assert pred_sort.isPredicate()
-    Sort(solver).isPredicate()
 
 
-def test_is_tuple(solver):
-    tup_sort = solver.mkTupleSort(solver.getRealSort())
+def test_is_tuple(tm):
+    tup_sort = tm.mkTupleSort(tm.getRealSort())
     assert tup_sort.isTuple()
-    Sort(solver).isTuple()
 
 
-def test_is_record(solver):
-    rec_sort = solver.mkRecordSort(("asdf", solver.getRealSort()))
+def test_is_nullable(tm):
+    nullable_sort = tm.mkNullableSort(tm.getRealSort())
+    assert nullable_sort.isNullable()
+
+
+def test_is_record(tm):
+    rec_sort = tm.mkRecordSort(("asdf", tm.getRealSort()))
     assert rec_sort.isRecord()
-    Sort(solver).isRecord()
 
 
-def test_is_array(solver):
-    arr_sort = solver.mkArraySort(solver.getRealSort(),
-                                  solver.getIntegerSort())
+def test_is_array(tm):
+    arr_sort = tm.mkArraySort(tm.getRealSort(),
+                                  tm.getIntegerSort())
     assert arr_sort.isArray()
-    Sort(solver).isArray()
 
 
-def test_is_set(solver):
-    set_sort = solver.mkSetSort(solver.getRealSort())
+def test_is_set(tm):
+    set_sort = tm.mkSetSort(tm.getRealSort())
     assert set_sort.isSet()
-    Sort(solver).isSet()
 
 
-def test_is_bag(solver):
-    bag_sort = solver.mkBagSort(solver.getRealSort())
+def test_is_bag(tm):
+    bag_sort = tm.mkBagSort(tm.getRealSort())
     assert bag_sort.isBag()
-    Sort(solver).isBag()
 
 
-def test_is_sequence(solver):
-    seq_sort = solver.mkSequenceSort(solver.getRealSort())
+def test_is_sequence(tm):
+    seq_sort = tm.mkSequenceSort(tm.getRealSort())
     assert seq_sort.isSequence()
-    Sort(solver).isSequence()
 
 
-def test_is_abstract(solver):
-  assert solver.mkAbstractSort(SortKind.BITVECTOR_SORT).isAbstract()
-  assert not solver.mkAbstractSort(SortKind.ARRAY_SORT).isAbstract()
-  assert solver.mkAbstractSort(SortKind.ABSTRACT_SORT).isAbstract()
-  Sort(solver).isAbstract()
+def test_is_abstract(tm):
+  assert tm.mkAbstractSort(SortKind.BITVECTOR_SORT).isAbstract()
+  assert not tm.mkAbstractSort(SortKind.ARRAY_SORT).isAbstract()
+  assert tm.mkAbstractSort(SortKind.ABSTRACT_SORT).isAbstract()
 
 
-def test_is_uninterpreted(solver):
-    un_sort = solver.mkUninterpretedSort("asdf")
+def test_is_uninterpreted(tm):
+    un_sort = tm.mkUninterpretedSort("asdf")
     assert un_sort.isUninterpretedSort()
-    Sort(solver).isUninterpretedSort()
 
 
-def test_is_sort_constructor(solver):
-    sc_sort = solver.mkUninterpretedSortConstructorSort(1, "asdf")
+def test_is_sort_constructor(tm):
+    sc_sort = tm.mkUninterpretedSortConstructorSort(1, "asdf")
     assert sc_sort.isUninterpretedSortConstructor()
-    Sort(solver).isUninterpretedSortConstructor()
 
 
-def test_get_datatype(solver):
-    dtypeSort = create_datatype_sort(solver)
+def test_get_datatype(tm):
+    dtypeSort = create_datatype_sort(tm)
     dtypeSort.getDatatype()
     # create bv sort, check should fail
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getDatatype()
 
 
-def test_datatype_sorts(solver):
-    intSort = solver.getIntegerSort()
-    dtypeSort = create_datatype_sort(solver)
+def test_datatype_sorts(tm):
+    intSort = tm.getIntegerSort()
+    dtypeSort = create_datatype_sort(tm)
     dt = dtypeSort.getDatatype()
     assert not dtypeSort.isDatatypeConstructor()
     with pytest.raises(RuntimeError):
@@ -283,7 +255,7 @@ def test_datatype_sorts(solver):
     # get tester
     isConsTerm = dcons.getTesterTerm()
     assert isConsTerm.getSort().isDatatypeTester()
-    booleanSort = solver.getBooleanSort()
+    booleanSort = tm.getBooleanSort()
 
     assert isConsTerm.getSort().getDatatypeTesterDomainSort() == dtypeSort
     assert isConsTerm.getSort().getDatatypeTesterCodomainSort() == booleanSort
@@ -304,57 +276,57 @@ def test_datatype_sorts(solver):
         booleanSort.getDatatypeSelectorCodomainSort()
 
 
-def test_instantiate(solver):
+def test_instantiate(tm):
     # instantiate parametric datatype, check should not fail
-    paramDtypeSort = create_param_datatype_sort(solver)
-    paramDtypeSort.instantiate([solver.getIntegerSort()])
+    paramDtypeSort = create_param_datatype_sort(tm)
+    paramDtypeSort.instantiate([tm.getIntegerSort()])
     # instantiate non-parametric datatype sort, check should fail
-    dtypeSpec = solver.mkDatatypeDecl("list")
-    cons = solver.mkDatatypeConstructorDecl("cons")
-    cons.addSelector("head", solver.getIntegerSort())
+    dtypeSpec = tm.mkDatatypeDecl("list")
+    cons = tm.mkDatatypeConstructorDecl("cons")
+    cons.addSelector("head", tm.getIntegerSort())
     dtypeSpec.addConstructor(cons)
-    nil = solver.mkDatatypeConstructorDecl("nil")
+    nil = tm.mkDatatypeConstructorDecl("nil")
     dtypeSpec.addConstructor(nil)
-    dtypeSort = solver.mkDatatypeSort(dtypeSpec)
+    dtypeSort = tm.mkDatatypeSort(dtypeSpec)
     with pytest.raises(RuntimeError):
-        dtypeSort.instantiate([solver.getIntegerSort()])
+        dtypeSort.instantiate([tm.getIntegerSort()])
     # instantiate uninterpreted sort constructor
-    sortConsSort = solver.mkUninterpretedSortConstructorSort(1, "s")
-    sortConsSort.instantiate([solver.getIntegerSort()])
+    sortConsSort = tm.mkUninterpretedSortConstructorSort(1, "s")
+    sortConsSort.instantiate([tm.getIntegerSort()])
 
-def test_is_instantiated(solver):
-    paramDtypeSort = create_param_datatype_sort(solver)
+def test_is_instantiated(tm):
+    paramDtypeSort = create_param_datatype_sort(tm)
     assert not paramDtypeSort.isInstantiated()
-    instParamDtypeSort = paramDtypeSort.instantiate([solver.getIntegerSort()]);
+    instParamDtypeSort = paramDtypeSort.instantiate([tm.getIntegerSort()]);
     assert instParamDtypeSort.isInstantiated()
 
-    sortConsSort = solver.mkUninterpretedSortConstructorSort(1, "s")
+    sortConsSort = tm.mkUninterpretedSortConstructorSort(1, "s")
     assert not sortConsSort.isInstantiated()
-    instSortConsSort = sortConsSort.instantiate([solver.getIntegerSort()])
+    instSortConsSort = sortConsSort.instantiate([tm.getIntegerSort()])
     assert instSortConsSort.isInstantiated()
 
-    assert not solver.getIntegerSort().isInstantiated()
-    assert not solver.mkBitVectorSort(32).isInstantiated()
+    assert not tm.getIntegerSort().isInstantiated()
+    assert not tm.mkBitVectorSort(32).isInstantiated()
 
-def test_get_instantiated_parameters(solver):
-    intSort  = solver.getIntegerSort()
-    realSort = solver.getRealSort()
-    boolSort = solver.getBooleanSort()
-    bvSort = solver.mkBitVectorSort(8)
+def test_get_instantiated_parameters(tm):
+    intSort  = tm.getIntegerSort()
+    realSort = tm.getRealSort()
+    boolSort = tm.getBooleanSort()
+    bvSort = tm.mkBitVectorSort(8)
 
     # parametric datatype instantiation
-    p1 = solver.mkParamSort("p1")
-    p2 = solver.mkParamSort("p2")
-    pspec = solver.mkDatatypeDecl("pdtype", [p1, p2])
-    pcons1 = solver.mkDatatypeConstructorDecl("cons1")
-    pcons2 = solver.mkDatatypeConstructorDecl("cons2")
-    pnil = solver.mkDatatypeConstructorDecl("nil")
+    p1 = tm.mkParamSort("p1")
+    p2 = tm.mkParamSort("p2")
+    pspec = tm.mkDatatypeDecl("pdtype", [p1, p2])
+    pcons1 = tm.mkDatatypeConstructorDecl("cons1")
+    pcons2 = tm.mkDatatypeConstructorDecl("cons2")
+    pnil = tm.mkDatatypeConstructorDecl("nil")
     pcons1.addSelector("sel", p1)
     pcons2.addSelector("sel", p2)
     pspec.addConstructor(pcons1)
     pspec.addConstructor(pcons2)
     pspec.addConstructor(pnil)
-    paramDtypeSort = solver.mkDatatypeSort(pspec)
+    paramDtypeSort = tm.mkDatatypeSort(pspec)
 
     with pytest.raises(RuntimeError):
         paramDtypeSort.getInstantiatedParameters()
@@ -367,7 +339,7 @@ def test_get_instantiated_parameters(solver):
     assert instSorts[1] == boolSort
 
     # uninterpreted sort constructor sort instantiation
-    sortConsSort = solver.mkUninterpretedSortConstructorSort(4, "s")
+    sortConsSort = tm.mkUninterpretedSortConstructorSort(4, "s")
     with pytest.raises(RuntimeError):
         sortConsSort.getInstantiatedParameters()
 
@@ -385,201 +357,221 @@ def test_get_instantiated_parameters(solver):
     with pytest.raises(RuntimeError):
         bvSort.getInstantiatedParameters()
 
-def test_get_uninterpreted_sort_constructor(solver):
-    intSort = solver.getIntegerSort()
-    realSort = solver.getRealSort()
-    boolSort = solver.getBooleanSort()
-    bvSort = solver.mkBitVectorSort(8)
-    sortConsSort = solver.mkUninterpretedSortConstructorSort(4, "s")
+def test_get_uninterpreted_sort_constructor(tm):
+    intSort = tm.getIntegerSort()
+    realSort = tm.getRealSort()
+    boolSort = tm.getBooleanSort()
+    bvSort = tm.mkBitVectorSort(8)
+    sortConsSort = tm.mkUninterpretedSortConstructorSort(4, "s")
     with pytest.raises(RuntimeError):
         sortConsSort.getUninterpretedSortConstructor()
     instSortConsSort = \
         sortConsSort.instantiate([boolSort, intSort, bvSort, realSort]);
     assert sortConsSort == instSortConsSort.getUninterpretedSortConstructor()
 
-def test_get_function_arity(solver):
-    funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
-                                    solver.getIntegerSort())
+def test_get_function_arity(tm):
+    funSort = tm.mkFunctionSort(tm.mkUninterpretedSort("u"),
+                                    tm.getIntegerSort())
     funSort.getFunctionArity()
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getFunctionArity()
 
 
-def test_get_function_domain_sorts(solver):
-    funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
-                                    solver.getIntegerSort())
+def test_get_function_domain_sorts(tm):
+    funSort = tm.mkFunctionSort(tm.mkUninterpretedSort("u"),
+                                    tm.getIntegerSort())
     funSort.getFunctionDomainSorts()
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getFunctionDomainSorts()
 
 
-def test_get_function_codomain_sort(solver):
-    funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
-                                    solver.getIntegerSort())
+def test_get_function_codomain_sort(tm):
+    funSort = tm.mkFunctionSort(tm.mkUninterpretedSort("u"),
+                                    tm.getIntegerSort())
     funSort.getFunctionCodomainSort()
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getFunctionCodomainSort()
 
 
-def test_get_array_index_sort(solver):
-    elementSort = solver.mkBitVectorSort(32)
-    indexSort = solver.mkBitVectorSort(32)
-    arraySort = solver.mkArraySort(indexSort, elementSort)
+def test_get_array_index_sort(tm):
+    elementSort = tm.mkBitVectorSort(32)
+    indexSort = tm.mkBitVectorSort(32)
+    arraySort = tm.mkArraySort(indexSort, elementSort)
     arraySort.getArrayIndexSort()
     with pytest.raises(RuntimeError):
         indexSort.getArrayIndexSort()
 
 
-def test_get_array_element_sort(solver):
-    elementSort = solver.mkBitVectorSort(32)
-    indexSort = solver.mkBitVectorSort(32)
-    arraySort = solver.mkArraySort(indexSort, elementSort)
+def test_get_array_element_sort(tm):
+    elementSort = tm.mkBitVectorSort(32)
+    indexSort = tm.mkBitVectorSort(32)
+    arraySort = tm.mkArraySort(indexSort, elementSort)
     arraySort.getArrayElementSort()
     with pytest.raises(RuntimeError):
         indexSort.getArrayElementSort()
 
 
-def test_get_set_element_sort(solver):
-    setSort = solver.mkSetSort(solver.getIntegerSort())
+def test_get_set_element_sort(tm):
+    setSort = tm.mkSetSort(tm.getIntegerSort())
     setSort.getSetElementSort()
     elementSort = setSort.getSetElementSort()
-    assert elementSort == solver.getIntegerSort()
-    bvSort = solver.mkBitVectorSort(32)
+    assert elementSort == tm.getIntegerSort()
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getSetElementSort()
 
 
-def test_get_bag_element_sort(solver):
-    bagSort = solver.mkBagSort(solver.getIntegerSort())
+def test_get_bag_element_sort(tm):
+    bagSort = tm.mkBagSort(tm.getIntegerSort())
     bagSort.getBagElementSort()
     elementSort = bagSort.getBagElementSort()
-    assert elementSort == solver.getIntegerSort()
-    bvSort = solver.mkBitVectorSort(32)
+    assert elementSort == tm.getIntegerSort()
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getBagElementSort()
 
 
-def test_get_sequence_element_sort(solver):
-    seqSort = solver.mkSequenceSort(solver.getIntegerSort())
+def test_get_sequence_element_sort(tm):
+    seqSort = tm.mkSequenceSort(tm.getIntegerSort())
     assert seqSort.isSequence()
     seqSort.getSequenceElementSort()
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     assert not bvSort.isSequence()
     with pytest.raises(RuntimeError):
         bvSort.getSequenceElementSort()
 
 
-def test_get_abstract_kind(solver):
-    assert solver.mkAbstractSort(SortKind.BITVECTOR_SORT).getAbstractedKind() == SortKind.BITVECTOR_SORT
+def test_get_abstract_kind(tm):
+    assert tm.mkAbstractSort(SortKind.BITVECTOR_SORT).getAbstractedKind() == SortKind.BITVECTOR_SORT
     with pytest.raises(RuntimeError):
-        solver.mkAbstractSort(SortKind.ARRAY_SORT).getAbstractedKind()
-    assert solver.mkAbstractSort(SortKind.ABSTRACT_SORT).getAbstractedKind() == SortKind.ABSTRACT_SORT
+        tm.mkAbstractSort(SortKind.ARRAY_SORT).getAbstractedKind()
+    assert tm.mkAbstractSort(SortKind.ABSTRACT_SORT).getAbstractedKind() == SortKind.ABSTRACT_SORT
 
 
-def test_get_uninterpreted_sort_name(solver):
-    uSort = solver.mkUninterpretedSort("u")
+def test_get_uninterpreted_sort_name(tm):
+    uSort = tm.mkUninterpretedSort("u")
     uSort.getSymbol()
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getSymbol()
 
 
-def test_get_uninterpreted_sort_constructor_name(solver):
-    sSort = solver.mkUninterpretedSortConstructorSort(2, "s")
+def test_get_uninterpreted_sort_constructor_name(tm):
+    sSort = tm.mkUninterpretedSortConstructorSort(2, "s")
     sSort.getSymbol()
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getSymbol()
 
 
-def test_get_uninterpreted_sort_constructor_arity(solver):
-    sSort = solver.mkUninterpretedSortConstructorSort(2, "s")
+def test_get_uninterpreted_sort_constructor_arity(tm):
+    sSort = tm.mkUninterpretedSortConstructorSort(2, "s")
     sSort.getUninterpretedSortConstructorArity()
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getUninterpretedSortConstructorArity()
 
 
-def test_get_bv_size(solver):
-    bvSort = solver.mkBitVectorSort(32)
+def test_get_bv_size(tm):
+    bvSort = tm.mkBitVectorSort(32)
     bvSort.getBitVectorSize()
-    setSort = solver.mkSetSort(solver.getIntegerSort())
+    setSort = tm.mkSetSort(tm.getIntegerSort())
     with pytest.raises(RuntimeError):
         setSort.getBitVectorSize()
 
 
-def test_get_fp_exponent_size(solver):
-    fpSort = solver.mkFloatingPointSort(4, 8)
+def test_get_fp_exponent_size(tm):
+    fpSort = tm.mkFloatingPointSort(4, 8)
     fpSort.getFloatingPointExponentSize()
-    setSort = solver.mkSetSort(solver.getIntegerSort())
+    setSort = tm.mkSetSort(tm.getIntegerSort())
     with pytest.raises(RuntimeError):
         setSort.getFloatingPointExponentSize()
 
 
-def test_get_fp_significand_size(solver):
-    fpSort = solver.mkFloatingPointSort(4, 8)
+def test_get_fp_significand_size(tm):
+    fpSort = tm.mkFloatingPointSort(4, 8)
     fpSort.getFloatingPointSignificandSize()
-    setSort = solver.mkSetSort(solver.getIntegerSort())
+    setSort = tm.mkSetSort(tm.getIntegerSort())
     with pytest.raises(RuntimeError):
         setSort.getFloatingPointSignificandSize()
 
 
-def test_get_datatype_arity(solver):
+def test_get_datatype_arity(tm):
     # create datatype sort, check should not fail
-    dtypeSpec = solver.mkDatatypeDecl("list")
-    cons = solver.mkDatatypeConstructorDecl("cons")
-    cons.addSelector("head", solver.getIntegerSort())
+    dtypeSpec = tm.mkDatatypeDecl("list")
+    cons = tm.mkDatatypeConstructorDecl("cons")
+    cons.addSelector("head", tm.getIntegerSort())
     dtypeSpec.addConstructor(cons)
-    nil = solver.mkDatatypeConstructorDecl("nil")
+    nil = tm.mkDatatypeConstructorDecl("nil")
     dtypeSpec.addConstructor(nil)
-    dtypeSort = solver.mkDatatypeSort(dtypeSpec)
+    dtypeSort = tm.mkDatatypeSort(dtypeSpec)
     dtypeSort.getDatatypeArity()
     # create bv sort, check should fail
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getDatatypeArity()
 
 
-def test_get_tuple_length(solver):
-    tupleSort = solver.mkTupleSort(
-        solver.getIntegerSort(),
-        solver.getIntegerSort())
+def test_get_tuple_length(tm):
+    tupleSort = tm.mkTupleSort(
+        tm.getIntegerSort(),
+        tm.getIntegerSort())
     tupleSort.getTupleLength()
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getTupleLength()
 
 
-def test_get_tuple_sorts(solver):
-    tupleSort = solver.mkTupleSort(
-        solver.getIntegerSort(),
-        solver.getIntegerSort())
+def test_get_tuple_sorts(tm):
+    tupleSort = tm.mkTupleSort(
+        tm.getIntegerSort(),
+        tm.getIntegerSort())
     tupleSort.getTupleSorts()
-    bvSort = solver.mkBitVectorSort(32)
+    bvSort = tm.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
         bvSort.getTupleSorts()
 
 
-def test_sort_compare(solver):
-    boolSort = solver.getBooleanSort()
-    intSort = solver.getIntegerSort()
-    bvSort = solver.mkBitVectorSort(32)
-    bvSort2 = solver.mkBitVectorSort(32)
+def test_get_nullable_element_sort(tm):
+    nullableSort = tm.mkNullableSort(tm.getIntegerSort())
+    nullableSort.getNullableElementSort()
+    elementSort = nullableSort.getNullableElementSort()
+    assert elementSort == tm.getIntegerSort()
+    bvSort = tm.mkBitVectorSort(32)
+    with pytest.raises(RuntimeError):
+        bvSort.getNullableElementSort()
+
+
+def test_sort_compare(tm):
+    boolSort = tm.getBooleanSort()
+    intSort = tm.getIntegerSort()
+    bvSort = tm.mkBitVectorSort(32)
+    bvSort2 = tm.mkBitVectorSort(32)
     assert bvSort >= bvSort2
     assert bvSort <= bvSort2
     assert (intSort > boolSort) != (intSort < boolSort)
     assert (intSort > bvSort or intSort == bvSort) == (intSort >= bvSort)
 
 
-def test_sort_scoped_tostring(solver):
+def test_sort_scoped_tostring(tm):
     name = "uninterp-sort"
-    bvsort8 = solver.mkBitVectorSort(8)
-    uninterp_sort = solver.mkUninterpretedSort(name)
+    bvsort8 = tm.mkBitVectorSort(8)
+    uninterp_sort = tm.mkUninterpretedSort(name)
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name
-    solver2 = cvc5.Solver()
     assert str(bvsort8) == "(_ BitVec 8)"
     assert str(uninterp_sort) == name
+
+def test_sort_substitute(tm):
+    sortVar0 = tm.mkParamSort("T0")
+    sortVar1 = tm.mkParamSort("T1")
+    intSort = tm.getIntegerSort()
+    realSort = tm.getRealSort()
+    arraySort0 = tm.mkArraySort(sortVar0, sortVar0)
+    arraySort1 = tm.mkArraySort(sortVar0, sortVar1)
+    # Now create instantiations of the defined sorts
+    arraySort0.substitute(sortVar0, intSort)
+    arraySort1.substitute([sortVar0, sortVar1], [intSort, realSort])

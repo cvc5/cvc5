@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -235,7 +235,7 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
   poly::AlgebraicNumber az = get_ran({-3, 0, 1}, 1, 2);
 
   Options opts;
-  Env env(&opts);
+  Env env(d_nodeManager, &opts);
   coverings::LazardEvaluation lazard(env.getStatisticsRegistry());
   lazard.add(x, ax);
   lazard.add(y, ay);
@@ -251,7 +251,7 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_1)
 {
   Options opts;
-  Env env(&opts);
+  Env env(d_nodeManager, &opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -273,7 +273,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_1)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_2)
 {
   Options opts;
-  Env env(&opts);
+  Env env(d_nodeManager, &opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -306,7 +306,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_2)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_3)
 {
   Options opts;
-  Env env(&opts);
+  Env env(d_nodeManager, &opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -329,7 +329,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_3)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_4)
 {
   Options opts;
-  Env env(&opts);
+  Env env(d_nodeManager, &opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -351,10 +351,10 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_4)
   std::cout << "SAT: " << cac.getModel() << std::endl;
 }
 
-void test_delta(const std::vector<Node>& a)
+void test_delta(NodeManager* nm, const std::vector<Node>& a)
 {
   Options opts;
-  Env env(&opts);
+  Env env(nm, &opts);
   coverings::CDCAC cac(env, {});
   cac.reset();
   for (const Node& n : a)
@@ -386,14 +386,15 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   // enable proofs
   opts.writeSmt().proofMode = options::ProofMode::FULL;
   opts.writeSmt().produceProofs = true;
-  Env env(&opts);
+  Env env(d_nodeManager, &opts);
   smt::PfManager pfm(env);
   env.finishInit(pfm.getProofNodeManager());
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need
-  builtin::BuiltinProofRuleChecker btchecker(env);
+  NodeManager * nm = env.getNodeManager();
+  builtin::BuiltinProofRuleChecker btchecker(nm, env.getRewriter(), env);
   btchecker.registerTo(env.getProofNodeManager()->getChecker());
-  coverings::CoveringsProofRuleChecker checker;
+  coverings::CoveringsProofRuleChecker checker(nm);
   checker.registerTo(env.getProofNodeManager()->getChecker());
   // do the coverings problem
   coverings::CDCAC cac(env, {});
@@ -443,7 +444,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_delta_one)
   a.emplace_back(q == (one + (fifth * g * s)));
   a.emplace_back(l == u + q * s + (fifth * g * s * s));
 
-  test_delta(a);
+  test_delta(d_nodeManager, a);
 }
 
 TEST_F(TestTheoryWhiteArithCoverings, test_delta_two)
@@ -466,7 +467,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_delta_two)
   a.emplace_back(q == (one + (fifth * g * s)));
   a.emplace_back(l == u + q * s + (fifth * g * s * s));
 
-  test_delta(a);
+  test_delta(d_nodeManager, a);
 }
 
 TEST_F(TestTheoryWhiteArithCoverings, test_ran_conversion)

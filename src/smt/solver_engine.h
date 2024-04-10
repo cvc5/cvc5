@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,6 +49,7 @@ class ProofNode;
 class Env;
 class UnsatCore;
 class StatisticsRegistry;
+class Plugin;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
@@ -126,7 +127,9 @@ class CVC5_EXPORT SolverEngine
    */
   bool isFullyInited() const;
   /**
-   * Return true if a checkSatisfiability() has been made.
+   * @return True if a call to check-sat or check-synth has been made and
+   * completed. Other calls (e.g., get-interpolant, get-abduct, get-qe) do not
+   * impact this, since they are handled independently via subsolvers.
    */
   bool isQueryMade() const;
   /** Return the user context level.  */
@@ -481,6 +484,12 @@ class CVC5_EXPORT SolverEngine
    */
   void declareOracleFun(
       Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn);
+  /**
+   * Adds plugin to the theory engine of this solver engine.
+   *
+   * @param p The plugin to add.
+   */
+  void addPlugin(Plugin* p);
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
@@ -1047,7 +1056,8 @@ class CVC5_EXPORT SolverEngine
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
-                  modes::ProofFormat proofFormat);
+                  modes::ProofFormat proofFormat,
+                  const std::map<Node, std::string>& assertionNames);
 
   /* Members -------------------------------------------------------------- */
 
@@ -1113,6 +1123,11 @@ class CVC5_EXPORT SolverEngine
   LogicInfo d_userLogic;
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
+
+  /** Have we set a regular option yet? (for --safe-options) */
+  bool d_safeOptsSetRegularOption;
+  /** The regular option we set (for --safe-options) */
+  std::string d_safeOptsRegularOption;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

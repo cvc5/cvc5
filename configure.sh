@@ -45,6 +45,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
   --python-bindings        build Python bindings based on new C++ API
+  --python-only-src        create only Python bindings source files
   --java-bindings          build Java bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
   --asan                   build with ASan instrumentation
@@ -123,6 +124,7 @@ muzzle=default
 ninja=default
 profiling=default
 python_bindings=default
+python_only_src=default
 java_bindings=default
 editline=default
 build_shared=ON
@@ -267,6 +269,8 @@ do
 
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
+    --python-only-src) python_only_src=ON;;
+    --no-python-only-src) python_only_src=OFF;;
 
     --java-bindings) java_bindings=ON;;
     --no-java-bindings) java_bindings=OFF;;
@@ -380,6 +384,8 @@ fi
   && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
+[ $python_only_src != default ] \
+  && cmake_opts="$cmake_opts -DONLY_PYTHON_EXT_SRC=$python_only_src"
 [ $java_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$java_bindings"
 [ $valgrind != default ] \

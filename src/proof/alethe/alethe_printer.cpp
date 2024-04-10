@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
+ *   Hanna Lachnitt, Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,8 +82,10 @@ void AletheProofPrinter::printTerm(std::ostream& out, TNode n)
   out << ss.str();
 }
 
-void AletheProofPrinter::print(std::ostream& out,
-                               std::shared_ptr<ProofNode> pfn)
+void AletheProofPrinter::print(
+    std::ostream& out,
+    std::shared_ptr<ProofNode> pfn,
+    const std::map<Node, std::string>& assertionNames)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
   std::shared_ptr<ProofNode> innerPf = pfn->getChildren()[0];
@@ -119,11 +121,19 @@ void AletheProofPrinter::print(std::ostream& out,
   // Print assumptions and add them to the list but do not print anchor.
   for (size_t i = 3, size = args.size(); i < size; i++)
   {
-    // assumptions are always being declared
-    out << "(assume a" << i - 3 << " ";
+    auto it = assertionNames.find(args[i]);
+    if (it != assertionNames.end())
+    {
+      out << "(assume " << it->second << " ";
+      assumptions[args[i]] = it->second;
+    }
+    else
+    {  // assumptions are always being declared
+      out << "(assume a" << i - 3 << " ";
+      assumptions[args[i]] = "a" + std::to_string(i - 3);
+    }
     printTerm(out, args[i]);
     out << ")\n";
-    assumptions[args[i]] = "a" + std::to_string(i - 3);
   }
   // Then, print the rest of the proof node
   uint32_t start_t = 1;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tianyi Liang, Andrew Reynolds, Mathias Preiner
+ *   Tianyi Liang, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1114,8 +1114,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
       else
       {
         Node ivalue = nm->mkConstInt(Rational(i));
-        Node sk = sm->mkSkolemFunction(SkolemFunId::RE_UNFOLD_POS_COMPONENT,
-                                       s.getType(),
+        Node sk = sm->mkSkolemFunction(SkolemId::RE_UNFOLD_POS_COMPONENT,
                                        {mem[0], mem[1], ivalue});
         newSkolems.push_back(sk);
         nvec.push_back(nm->mkNode(Kind::STRING_IN_REGEXP, newSkolems[i], r[i]));

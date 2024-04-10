@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,7 +94,7 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
     std::map<Node, std::vector<Node>>& sks,
     bool getDebugInfo)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
@@ -115,9 +115,11 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
     ProofRule r = cur->getRule();
     if (r == ProofRule::INSTANTIATE)
     {
-      const std::vector<Node>& instTerms = cur->getArguments();
+      Node tlist = cur->getArguments()[0];
       Assert(cs.size() == 1);
       Node q = cs[0]->getResult();
+      std::vector<Node> instTerms(tlist.begin(), tlist.end());
+      Assert(instTerms.size() == q[0].getNumChildren());
       // the instantiation is a prefix of the arguments up to the number of
       // variables
       itq = insts.find(q);
@@ -126,12 +128,11 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
         insts[q].initialize(q);
         itq = insts.find(q);
       }
-      itq->second.d_inst.push_back(InstantiationVec(
-          {instTerms.begin(), instTerms.begin() + q[0].getNumChildren()}));
+      itq->second.d_inst.push_back(InstantiationVec(instTerms));
       if (getDebugInfo)
       {
-        std::vector<Node> extraArgs(instTerms.begin() + q[0].getNumChildren(),
-                                    instTerms.end());
+        const std::vector<Node>& args = cur->getArguments();
+        std::vector<Node> extraArgs(args.begin() + 1, args.end());
         if (extraArgs.size() >= 1)
         {
           getInferenceId(extraArgs[0], itq->second.d_inst.back().d_id);

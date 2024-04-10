@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Jörg Schurr, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,6 +47,8 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
               "finalProof::dslRuleCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
+      d_trustTheoryIdCount(statisticsRegistry().registerHistogram<theory::TheoryId>(
+          "finalProof::trustTheoryIdCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -111,10 +113,10 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     Node q = pn->getChildren()[0]->getResult();
     const std::vector<Node>& args = pn->getArguments();
-    if (args.size() > q[0].getNumChildren())
+    if (args.size() > 1)
     {
       InferenceId id;
-      if (getInferenceId(args[q[0].getNumChildren()], id))
+      if (getInferenceId(args[1], id))
       {
         d_instRuleIds << id;
       }
@@ -150,20 +152,19 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     }
     Trace("final-pf-hole") << ": " << pn->getResult() << std::endl;
   }
-  // print for debugging
-  if (TraceIsOn("final-pf-hole"))
+  else if (r == ProofRule::TRUST_THEORY_REWRITE)
   {
-    // currently only track theory rewrites
-    if (r == ProofRule::TRUST_THEORY_REWRITE)
-    {
-      const std::vector<Node>& args = pn->getArguments();
-      Node eq = args[0];
-      TheoryId tid = THEORY_BUILTIN;
-      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-      Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
-                             << " ---> " << eq[1] << std::endl;
-    }
-    else if (r == ProofRule::MACRO_REWRITE)
+    const std::vector<Node>& args = pn->getArguments();
+    Node eq = args[0];
+    TheoryId tid = THEORY_BUILTIN;
+    builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+    Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
+                           << " ---> " << eq[1] << std::endl;
+    d_trustTheoryIdCount << tid;
+  }
+  else if (r == ProofRule::MACRO_REWRITE)
+  {
+    if (TraceIsOn("final-pf-hole"))
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];
@@ -188,7 +189,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       {
         premises.push_back(pncc->getResult());
       }
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), conc);
       if (isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
       {

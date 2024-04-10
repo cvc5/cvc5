@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+#   Andrew Reynolds, Mathias Preiner, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -68,7 +68,7 @@ add_library(cvc5parserapi-objs OBJECT ${libcvc5parserapi_src_files})
 set_target_properties(cvc5parserapi-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(cvc5parserapi-objs PUBLIC -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 
-add_dependencies(cvc5parser-objs gen-expr)
+add_dependencies(cvc5parser-objs gen-expr gen-options)
 add_dependencies(cvc5parserapi-objs cvc5parser-objs gen-expr)
 
 add_library(cvc5parser

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,6 +43,13 @@ struct RealAlgebraicNumberVarAttributeId
 };
 typedef expr::Attribute<RealAlgebraicNumberVarAttributeId, Node>
     RealAlgebraicNumberVarAttribute;
+/**
+ * A bound variable used for transcendental function purification.
+ */
+struct TrPurifyAttributeId
+{
+};
+using TrPurifyAttribute = expr::Attribute<TrPurifyAttributeId, Node>;
 
 OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
 
@@ -78,7 +85,7 @@ Node OperatorElim::eliminateOperators(Node node,
                                       TConvProofGenerator* tg,
                                       bool partialOnly)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
   switch (k)
@@ -248,7 +255,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         checkNonLinearLogic(node);
-        Node divByZeroNum = getArithSkolemApp(num, SkolemFunId::DIV_BY_ZERO);
+        Node divByZeroNum = getArithSkolemApp(num, SkolemId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(Kind::EQUAL, den, mkZero(den.getType()));
         ret = nm->mkNode(Kind::ITE, denEq0, divByZeroNum, ret);
       }
@@ -266,7 +273,7 @@ Node OperatorElim::eliminateOperators(Node node,
       {
         checkNonLinearLogic(node);
         Node intDivByZeroNum =
-            getArithSkolemApp(num, SkolemFunId::INT_DIV_BY_ZERO);
+            getArithSkolemApp(num, SkolemId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(Kind::EQUAL, den, nm->mkConstInt(Rational(0)));
         ret = nm->mkNode(Kind::ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -283,7 +290,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         checkNonLinearLogic(node);
-        Node modZeroNum = getArithSkolemApp(num, SkolemFunId::MOD_BY_ZERO);
+        Node modZeroNum = getArithSkolemApp(num, SkolemId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(Kind::EQUAL, den, nm->mkConstInt(Rational(0)));
         ret = nm->mkNode(Kind::ITE, denEq0, modZeroNum, ret);
       }
@@ -316,29 +323,36 @@ Node OperatorElim::eliminateOperators(Node node,
         return node;
       }
       checkNonLinearLogic(node);
-      // eliminate inverse functions here
-      Node var = sm->mkPurifySkolem(node);
+      // We eliminate these functions using an uninterpreted function via
+      // the skolem id TRANSCENDENTAL_PURIFY.
+      // Make (lambda ((x Real)) (f x)) for this function, using the bound
+      // variable manager to ensure this function is always the same.
+      BoundVarManager* bvm = nm->getBoundVarManager();
+      Node x = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
+          node.getOperator(), "x", nm->realType());
+      Node lam = nm->mkNode(
+          Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x));
+      Node fun = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY, lam);
+      // Make (@TRANSCENDENTAL_PURIFY t), where t is node[0]
+      Node var = nm->mkNode(Kind::APPLY_UF, fun, node[0]);
       Node lem;
       if (k == Kind::SQRT)
       {
-        Node skolemApp = getArithSkolemApp(node[0], SkolemFunId::SQRT);
-        Node uf = skolemApp.eqNode(var);
-        Node nonNeg = nm->mkNode(
-            Kind::AND, nm->mkNode(Kind::MULT, var, var).eqNode(node[0]), uf);
+        Node nonNeg = nm->mkNode(Kind::MULT, var, var).eqNode(node[0]);
 
-        // sqrt(x) reduces to:
-        // witness y. ite(x >= 0.0, y * y = x ^ y = Uf(x), y = Uf(x))
+        // (sqrt x) reduces to:
+        // (=> (>= x 0.0) (= (* y y) x))
+        // where y is (@TRANSCENDENTAL_PURIFY x).
         //
-        // Uf(x) makes sure that the reduction still behaves like a function,
+        // This makes sure that the reduction still behaves like a function,
         // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
         // satisfiable. On the original formula, this would require that we
         // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
         // model.
         lem = nm->mkNode(
-            Kind::ITE,
+            Kind::IMPLIES,
             nm->mkNode(Kind::GEQ, node[0], nm->mkConstReal(Rational(0))),
-            nonNeg,
-            uf);
+            nonNeg);
       }
       else
       {
@@ -428,25 +442,16 @@ Node OperatorElim::eliminateOperators(Node node,
 
 Node OperatorElim::getAxiomFor(Node n) { return Node::null(); }
 
-Node OperatorElim::getArithSkolem(SkolemFunId id)
+Node OperatorElim::getArithSkolem(SkolemId id)
 {
-  std::map<SkolemFunId, Node>::iterator it = d_arithSkolem.find(id);
+  std::map<SkolemId, Node>::iterator it = d_arithSkolem.find(id);
   if (it == d_arithSkolem.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
-    TypeNode tn;
-    if (id == SkolemFunId::DIV_BY_ZERO || id == SkolemFunId::SQRT)
-    {
-      tn = nm->realType();
-    }
-    else
-    {
-      tn = nm->integerType();
-    }
+    NodeManager* nm = nodeManager();
     Node skolem;
     SkolemManager* sm = nm->getSkolemManager();
     // introduce the skolem function
-    skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
+    skolem = sm->mkSkolemFunction(id);
     // cache it
     d_arithSkolem[id] = skolem;
     return skolem;
@@ -454,10 +459,10 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
   return it->second;
 }
 
-Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
+Node OperatorElim::getArithSkolemApp(Node n, SkolemId id)
 {
   Node skolem = getArithSkolem(id);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (usePartialFunction(id))
   {
     Assert(skolem.getType().isFunction()
@@ -482,10 +487,11 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
   return skolem;
 }
 
-bool OperatorElim::usePartialFunction(SkolemFunId id) const
+bool OperatorElim::usePartialFunction(SkolemId id) const
 {
   // always use partial function for sqrt
-  return !options().arith.arithNoPartialFun || id == SkolemFunId::SQRT;
+  return !options().arith.arithNoPartialFun
+         || id == SkolemId::TRANSCENDENTAL_PURIFY;
 }
 
 SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)

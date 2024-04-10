@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ class TestTheoryWhiteBagsRewriter : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_rewriter.reset(new BagsRewriter(nullptr));
+    d_rewriter.reset(new BagsRewriter(d_nodeManager, nullptr));
   }
 
   std::vector<Node> getNStrings(size_t n)
@@ -183,14 +183,14 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
               && response2.d_node == three);
 }
 
-TEST_F(TestTheoryWhiteBagsRewriter, duplicate_removal)
+TEST_F(TestTheoryWhiteBagsRewriter, setof)
 {
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node bag = d_nodeManager->mkNode(
       Kind::BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(5)));
 
-  // (bag.duplicate_removal (bag x n)) = (bag x 1)
-  Node n = d_nodeManager->mkNode(Kind::BAG_DUPLICATE_REMOVAL, bag);
+  // (bag.setof (bag x n)) = (bag x 1)
+  Node n = d_nodeManager->mkNode(Kind::BAG_SETOF, bag);
   RewriteResponse response = d_rewriter->postRewrite(n);
   Node noDuplicate = d_nodeManager->mkNode(
       Kind::BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(1)));
@@ -647,57 +647,6 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_card)
   RewriteResponse response2 = d_rewriter->postRewrite(n2);
   ASSERT_TRUE(response2.d_node == c
               && response2.d_status == REWRITE_AGAIN_FULL);
-}
-
-TEST_F(TestTheoryWhiteBagsRewriter, is_singleton)
-{
-  Node emptybag = d_nodeManager->mkConst(
-      EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
-  Node c = d_skolemManager->mkDummySkolem("c", d_nodeManager->integerType());
-  Node bag = d_nodeManager->mkNode(Kind::BAG_MAKE, x, c);
-
-  // (bag.is_singleton (as bag.empty (Bag String)) = false
-  Node n1 = d_nodeManager->mkNode(Kind::BAG_IS_SINGLETON, emptybag);
-  RewriteResponse response1 = d_rewriter->postRewrite(n1);
-  ASSERT_TRUE(response1.d_node == d_nodeManager->mkConst(false)
-              && response1.d_status == REWRITE_AGAIN_FULL);
-
-  // (bag.is_singleton (bag x c) = (c == 1)
-  Node n2 = d_nodeManager->mkNode(Kind::BAG_IS_SINGLETON, bag);
-  RewriteResponse response2 = d_rewriter->postRewrite(n2);
-  Node one = d_nodeManager->mkConstInt(Rational(1));
-  Node equal = c.eqNode(one);
-  ASSERT_TRUE(response2.d_node == equal
-              && response2.d_status == REWRITE_AGAIN_FULL);
-}
-
-TEST_F(TestTheoryWhiteBagsRewriter, from_set)
-{
-  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
-  Node singleton = d_nodeManager->mkNode(Kind::SET_SINGLETON, x);
-
-  // (bag.from_set (set.singleton (set.singleton_op Int) x)) = (bag x 1)
-  Node n = d_nodeManager->mkNode(Kind::BAG_FROM_SET, singleton);
-  RewriteResponse response = d_rewriter->postRewrite(n);
-  Node one = d_nodeManager->mkConstInt(Rational(1));
-  Node bag = d_nodeManager->mkNode(Kind::BAG_MAKE, x, one);
-  ASSERT_TRUE(response.d_node == bag
-              && response.d_status == REWRITE_AGAIN_FULL);
-}
-
-TEST_F(TestTheoryWhiteBagsRewriter, to_set)
-{
-  Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
-  Node bag = d_nodeManager->mkNode(
-      Kind::BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(5)));
-
-  // (bag.to_set (bag x n)) = (set.singleton (set.singleton_op T) x)
-  Node n = d_nodeManager->mkNode(Kind::BAG_TO_SET, bag);
-  RewriteResponse response = d_rewriter->postRewrite(n);
-  Node singleton = d_nodeManager->mkNode(Kind::SET_SINGLETON, x);
-  ASSERT_TRUE(response.d_node == singleton
-              && response.d_status == REWRITE_AGAIN_FULL);
 }
 
 TEST_F(TestTheoryWhiteBagsRewriter, map)

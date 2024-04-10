@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -2452,8 +2452,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemCache* sc = d_termReg.getSkolemCache();
-  TypeNode intType = nm->integerType();
-  Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
+  Node k = sc->mkSkolemFun(SkolemId::STRINGS_DEQ_DIFF, n1, n2);
   Node deq = eq.negate();
   // we could use seq.nth instead of substr
   Node ss1, ss2;
@@ -2720,6 +2719,24 @@ size_t CoreSolver::pickInferInfo(const std::vector<CoreInferInfo>& pinfer)
   return use_index;
 }
 
+void CoreSolver::processFact(InferInfo& ii, ProofGenerator*& pg)
+{
+  // process it with the inference manager
+  d_im.processFact(ii, pg);
+}
+
+TrustNode CoreSolver::processLemma(InferInfo& ii, LemmaProperty& p)
+{
+  // process the state change to this solver
+  if (!ii.d_nfPair[0].isNull())
+  {
+    Assert(!ii.d_nfPair[1].isNull());
+    addNormalFormPair(ii.d_nfPair[0], ii.d_nfPair[1]);
+  }
+  // now, process it with the inference manager
+  return d_im.processLemma(ii, p);
+}
+
 void CoreSolver::checkNormalFormsEq()
 {
   // we've computed the possible inferences above
@@ -2728,12 +2745,9 @@ void CoreSolver::checkNormalFormsEq()
     // add one inference from our list of possible inferences
     size_t use_index = pickInferInfo(d_pinfers);
     InferInfo& ii = d_pinfers[use_index].d_infer;
-    // process the state change to this solver
-    if (!ii.d_nfPair[0].isNull())
-    {
-      Assert(!ii.d_nfPair[1].isNull());
-      addNormalFormPair(ii.d_nfPair[0], ii.d_nfPair[1]);
-    }
+    // Send the inference, which is a lemma. This class will process the side
+    // effects of the inference.
+    ii.d_sim = this;
     d_im.sendInference(ii, true);
     return;
   }

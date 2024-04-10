@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,7 +65,7 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
         d_printer->toStreamCmdDeclareType(outDecl, ctn);
         outDecl << std::endl;
       }
-      else if (ctn.isDatatype() && !ctn.isTuple())
+      else if (ctn.isDatatype() && !ctn.isTuple() && !ctn.isNullable())
       {
         datatypeBlock.push_back(ctn);
       }
