@@ -39,7 +39,7 @@ runs:
         make -j${{ env.num_proc }} install
         echo "#include <cvc5/cvc5.h>" > /tmp/test.cpp
         echo "using namespace cvc5;" >> /tmp/test.cpp
-        echo "int main() { Solver s(TermManager()); return 0; }" >> /tmp/test.cpp
+        echo "int main() { TermManager tm; Solver s(tm); return 0; }" >> /tmp/test.cpp
         g++ -std=c++17 /tmp/test.cpp -I install/include -L install/lib -lcvc5
 
     - name: Python Install Check
