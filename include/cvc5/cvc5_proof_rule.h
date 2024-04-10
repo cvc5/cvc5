@@ -1450,7 +1450,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \deq s_1 \mid b}{\bot}
+   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \neq s_1 \mid b}{\bot}
    *
    * where $t_1$ and $s_1$ are constants of length one, or otherwise one side
    * of the equality is the empty sequence and $t_1$ or $s_1$ corresponding to
@@ -1468,8 +1468,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r)
-   *   \vee (s_1 = t_1\cdot r)}{if $b=\bot$}
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{((t_1 = s_1\cdot r)
+   *   \vee (s_1 = t_1\cdot r)) \wedge r \neq \empty \wedge \mathit{len}(r)>0}{if $b=\bot$}
    *
    * where :math:`r` is
    * :math:`\mathit{skolem}(\mathit{ite}(
@@ -1480,8 +1480,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_2 = r \cdot s_2)
-   *   \vee (s_2 = r \cdot t_2)}{if $b=\top$}
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{((t_2 = r \cdot s_2)
+   *   \vee (s_2 = r \cdot t_2)) \wedge r \neq \empty \wedge \mathit{len}(r)>0}{if $b=\top$}
    *
    * where :math:`r` is
    * :math:`\mathit{skolem}(\mathit{ite}(
