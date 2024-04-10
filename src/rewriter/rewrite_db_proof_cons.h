@@ -27,6 +27,7 @@
 #include "rewriter/basic_rewrite_rcons.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/rewrite_proof_status.h"
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
 #include "theory/evaluator.h"
@@ -95,9 +96,11 @@ class RewriteDbProofCons : protected EnvObj
   class ProvenInfo
   {
    public:
-    ProvenInfo() : d_id(RewriteProofStatus::FAIL), d_failMaxDepth(0) {}
+    ProvenInfo() : d_id(RewriteProofStatus::FAIL), d_dslId(DslProofRule::NONE), d_failMaxDepth(0) {}
     /** The identifier of the proof rule, or fail if we failed */
     RewriteProofStatus d_id;
+    /** The identifier of the DSL proof rule if d_id is DSL */
+    DslProofRule d_dslId;
     /** The substitution used, if successful */
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
@@ -180,7 +183,7 @@ class RewriteDbProofCons : protected EnvObj
    * Prove with rule, which attempts to prove the equality target using the
    * DSL proof rule id, which may be a builtin rule or a user-provided rule.
    *
-   * @param id The rule to consider
+   * @param id The rule to consider, which may be a DSL rule given by r if DSL.
    * @param target The equality to prove
    * @param vars The variables (arguments) of the proof rule
    * @param subs The substitution (instantiated arguments) of the proof rule
@@ -191,6 +194,7 @@ class RewriteDbProofCons : protected EnvObj
    * point
    * @param doRecurse Whether we should attempt to prove the rule when premises
    * are required, by making a recursive call to proveInternal.
+   * @param r The DSL rule to consider if id is DSL.
    */
   bool proveWithRule(RewriteProofStatus id,
                      const Node& target,
@@ -198,7 +202,8 @@ class RewriteDbProofCons : protected EnvObj
                      const std::vector<Node>& subs,
                      bool doTrans,
                      bool doFixedPoint,
-                     bool doRecurse);
+                     bool doRecurse,
+                     DslProofRule r = DslProofRule::NONE);
   /**
    * Get conclusion of rewrite rule rpr under the current variable and
    * substitution. Store the information in proven info pi. If doFixedPoint
@@ -260,7 +265,7 @@ class RewriteDbProofCons : protected EnvObj
   /** current step recursion limit */
   uint64_t d_currStepLimit;
   /** current rule we are applying to fixed point */
-  RewriteProofStatus d_currFixedPointId;
+  DslProofRule d_currFixedPointId;
   /** current substitution from fixed point */
   std::vector<Node> d_currFixedPointSubs;
   /** current conclusion from fixed point */
