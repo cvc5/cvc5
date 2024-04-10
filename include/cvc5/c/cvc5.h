@@ -67,12 +67,20 @@ typedef struct cvc5_term_t* Cvc5Term;
 typedef struct cvc5_op_t* Cvc5Op;
 
 /** A cvc5 datatype. */
-typedef struct Cvc5Datatype Cvc5Datatype;
+typedef struct cvc5_dt_t* Cvc5Datatype;
+/**
+ * A cvc5 datatype selector.
+ */
+typedef struct cvc5_dt_sel_t* Cvc5DatatypeSelector;
+/**
+ * A cvc5 datatype constructor.
+ */
+typedef struct cvc5_dt_cons_t* Cvc5DatatypeConstructor;
 /**
  * A cvc5 datatype constructor declaration. A datatype constructor declaration
  * is a specification used for creating a datatype constructor.
  */
-typedef struct Cvc5DatatypeConstructorDecl Cvc5DatatypeConstructorDecl;
+typedef struct cvc5_dt_cons_decl_t* Cvc5DatatypeConstructorDecl;
 /**
  * A cvc5 datatype declaration. A datatype declaration is not itself a datatype
  * (see Datatype), but a specification for creating a datatype sort.
@@ -85,15 +93,7 @@ typedef struct Cvc5DatatypeConstructorDecl Cvc5DatatypeConstructorDecl;
  *   - cvc5_mk_datatype_sort()
  *   - cvc5_mk_datatype_sorts()
  */
-typedef struct Cvc5DatatypeDecl Cvc5DatatypeDecl;
-/**
- * A cvc5 datatype selector.
- */
-typedef struct Cvc5DatatypeSelector Cvc5DatatypeSelector;
-/**
- * A cvc5 datatype constructor.
- */
-typedef struct Cvc5DatatypeConstructor Cvc5DatatypeConstructor;
+typedef struct cvc5_dt_decl_t* Cvc5DatatypeDecl;
 
 /**
  * A Sygus Grammar. This can be used to define a context-free grammar
@@ -539,11 +539,14 @@ Cvc5Datatype* cvc5_sort_get_datatype(Cvc5Sort sort);
  *
  * Create sort parameters with cvc5_mk_param_sort().
  *
- * @param sort The sort to instantiate.
+ * @param sort   The sort to instantiate.
+ * @param size   The number of sort parameters to instantiate with.
  * @param params The list of sort parameters to instantiate with.
  * @return The instantiated sort.
  */
-Cvc5Sort cvc5_sort_instantiate(Cvc5Sort sort, Cvc5Sort params[]);
+Cvc5Sort cvc5_sort_instantiate(Cvc5Sort sort,
+                               size_t size,
+                               const Cvc5Sort params[]);
 
 /**
  * Get the sorts used to instantiate the sort parameters of a given parametric
@@ -593,8 +596,8 @@ Cvc5Sort cvc5_sort_substitute(Cvc5Sort sort, Cvc5Sort s, Cvc5Sort replacement);
  */
 Cvc5Sort cvc5_sort_substitute_sorts(Cvc5Sort sort,
                                     size_t size,
-                                    const Cvc5Sort* sorts,
-                                    const Cvc5Sort* replacements);
+                                    const Cvc5Sort sorts[],
+                                    const Cvc5Sort replacements[]);
 
 /**
  * Get a string representation of a given sort.
@@ -1002,8 +1005,8 @@ Cvc5Term cvc5_term_substitute_term(Cvc5Term term,
  */
 Cvc5Term cvc5_term_substitute_terms(Cvc5Term term,
                                     size_t size,
-                                    const Cvc5Term* terms,
-                                    const Cvc5Term* replacements);
+                                    const Cvc5Term terms[],
+                                    const Cvc5Term replacements[]);
 
 /**
  * Determine if a given term has an operator.
@@ -1375,7 +1378,7 @@ bool cvc5_term_is_fp_value(Cvc5Term term);
  * @param term The term.
  * @param ew   The resulting exponent width.
  * @param sw   The resulting significand width.
- * @param val  The bit-vector value term.
+ * @param val  The resulting bit-vector value term.
  */
 void cvc5_term_get_fp_value(Cvc5Term term,
                             uint32_t* ew,
@@ -1561,17 +1564,17 @@ size_t cvc5_term_hash(Cvc5Term term);
  * @param name The name of the datatype selector declaration to add.
  * @param sort The codomain sort of the datatype selector declaration to add.
  */
-void cvc5_dt_consdecl_add_selector(Cvc5DatatypeConstructorDecl* decl,
-                                   const char* name,
-                                   Cvc5Sort sort);
+void cvc5_dt_cons_decl_add_selector(Cvc5DatatypeConstructorDecl decl,
+                                    const char* name,
+                                    Cvc5Sort sort);
 /**
  * Add datatype selector declaration whose codomain type is the datatype
  * itself to a given constructor declaration.
  * @param decl The datatype constructor declaration.
  * @param name The name of the datatype selector declaration to add.
  */
-void cvc5_dt_consdecl_add_selector_self(Cvc5DatatypeConstructorDecl* decl,
-                                        const char* name);
+void cvc5_dt_cons_decl_add_selector_self(Cvc5DatatypeConstructorDecl decl,
+                                         const char* name);
 
 /**
  * Add datatype selector declaration whose codomain sort is an unresolved
@@ -1581,9 +1584,9 @@ void cvc5_dt_consdecl_add_selector_self(Cvc5DatatypeConstructorDecl* decl,
  * @param unres_name The name of the unresolved datatype. The codomain of the
  *                   selector will be the resolved datatype with the given name.
  */
-void cvc5_dt_consdecl_add_selector_unresolved(Cvc5DatatypeConstructorDecl* decl,
-                                              const char* name,
-                                              const char* unres_name);
+void cvc5_dt_cons_decl_add_selector_unresolved(Cvc5DatatypeConstructorDecl decl,
+                                               const char* name,
+                                               const char* unres_name);
 /**
  * Get a string representation of a given constructor declaration.
  * @param decl The datatype constructor declaration.
@@ -1591,7 +1594,7 @@ void cvc5_dt_consdecl_add_selector_unresolved(Cvc5DatatypeConstructorDecl* decl,
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_consdecl_to_string(Cvc5DatatypeConstructorDecl* decl);
+const char* cvc5_dt_cons_decl_to_string(Cvc5DatatypeConstructorDecl decl);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeDecl                                                           */
@@ -1602,15 +1605,15 @@ const char* cvc5_dt_consdecl_to_string(Cvc5DatatypeConstructorDecl* decl);
  * @param decl The datatype declaration.
  * @param ctor The datatype constructor declaration to add.
  */
-void cvc5_dt_decl_add_constructor(Cvc5DatatypeDecl* decl,
-                                  const Cvc5DatatypeConstructorDecl* ctor);
+void cvc5_dt_decl_add_constructor(Cvc5DatatypeDecl decl,
+                                  Cvc5DatatypeConstructorDecl ctor);
 
 /**
  * Get the number of constructors for a given Datatype declaration.
  * @param decl The datatype declaration.
  * @return The number of constructors.
  */
-size_t cvc5_dt_decl_get_num_constructors(const Cvc5DatatypeDecl* decl);
+size_t cvc5_dt_decl_get_num_constructors(Cvc5DatatypeDecl decl);
 
 /**
  * Determine if a given Datatype declaration is parametric.
@@ -1618,7 +1621,7 @@ size_t cvc5_dt_decl_get_num_constructors(const Cvc5DatatypeDecl* decl);
  * @param decl The datatype declaration.
  * @return True if the datatype declaration is parametric.
  */
-bool cvc5_dt_decl_is_parametric(const Cvc5DatatypeDecl* decl);
+bool cvc5_dt_decl_is_parametric(Cvc5DatatypeDecl decl);
 
 /**
  * Determine if a given datatype declaration is resolved (has already been
@@ -1626,7 +1629,7 @@ bool cvc5_dt_decl_is_parametric(const Cvc5DatatypeDecl* decl);
  * @param decl The datatype declaration.
  * @return True if the datatype declaration is resolved.
  */
-bool cvc5_dt_decl_is_resolved(const Cvc5DatatypeDecl* decl);
+bool cvc5_dt_decl_is_resolved(Cvc5DatatypeDecl decl);
 
 /**
  * Get a string representation of a given datatype declaration.
@@ -1635,7 +1638,7 @@ bool cvc5_dt_decl_is_resolved(const Cvc5DatatypeDecl* decl);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_decl_to_string(const Cvc5DatatypeDecl* decl);
+const char* cvc5_dt_decl_to_string(Cvc5DatatypeDecl decl);
 
 /**
  * Get the name of a given datatype declaration.
@@ -1644,7 +1647,7 @@ const char* cvc5_dt_decl_to_string(const Cvc5DatatypeDecl* decl);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_decl_get_name(const Cvc5DatatypeDecl* decl);
+const char* cvc5_dt_decl_get_name(Cvc5DatatypeDecl decl);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeSelector                                                       */
@@ -1657,7 +1660,7 @@ const char* cvc5_dt_decl_get_name(const Cvc5DatatypeDecl* decl);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_del_get_name(const Cvc5DatatypeSelector* sel);
+const char* cvc5_dt_del_get_name(Cvc5DatatypeSelector sel);
 
 /**
  * Get the selector term of a given datatype selector.
@@ -1669,7 +1672,7 @@ const char* cvc5_dt_del_get_name(const Cvc5DatatypeSelector* sel);
  * @param sel The datatype selector.
  * @return The selector term.
  */
-Cvc5Term cvc5_dt_sel_get_term(const Cvc5DatatypeSelector* sel);
+Cvc5Term cvc5_dt_sel_get_term(Cvc5DatatypeSelector sel);
 
 /**
  * Get the updater term of a given datatype selector.
@@ -1681,14 +1684,14 @@ Cvc5Term cvc5_dt_sel_get_term(const Cvc5DatatypeSelector* sel);
  * @param sel The datatype selector.
  * @return The updater term.
  */
-Cvc5Term cvc5_dt_sel_get_updater_term(const Cvc5DatatypeSelector* sel);
+Cvc5Term cvc5_dt_sel_get_updater_term(Cvc5DatatypeSelector sel);
 
 /**
  * Get the codomain sort of a given selector.
  * @param sel The datatype selector.
  * @return The codomain sort of the selector.
  */
-Cvc5Sort cvc5_dt_sel_get_codomain_sort(const Cvc5DatatypeSelector* sel);
+Cvc5Sort cvc5_dt_sel_get_codomain_sort(Cvc5DatatypeSelector sel);
 
 /**
  * Get the string representation of a given datatype selector.
@@ -1697,7 +1700,7 @@ Cvc5Sort cvc5_dt_sel_get_codomain_sort(const Cvc5DatatypeSelector* sel);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_sel_to_string(const Cvc5DatatypeSelector* sel);
+const char* cvc5_dt_sel_to_string(Cvc5DatatypeSelector sel);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeConstructor                                                    */
@@ -1710,7 +1713,7 @@ const char* cvc5_dt_sel_to_string(const Cvc5DatatypeSelector* sel);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_cons_get_name(const Cvc5DatatypeConstructor* cons);
+const char* cvc5_dt_cons_get_name(Cvc5DatatypeConstructor cons);
 
 /**
  * Get the constructor term of a given datatype constructor.
@@ -1729,7 +1732,7 @@ const char* cvc5_dt_cons_get_name(const Cvc5DatatypeConstructor* cons);
  * @param cons The datatype constructor.
  * @return The constructor term.
  */
-Cvc5Term cvc5_dt_cons_get_term(const Cvc5DatatypeConstructor* cons);
+Cvc5Term cvc5_dt_cons_get_term(Cvc5DatatypeConstructor cons);
 
 /**
  * Get the constructor term of this datatype constructor whose return
@@ -1772,7 +1775,7 @@ Cvc5Term cvc5_dt_cons_get_term(const Cvc5DatatypeConstructor* cons);
  * @param sort The desired return sort of the constructor.
  * @return The constructor term.
  */
-Cvc5Term cvc5_dt_cons_get_instantiated_term(const Cvc5DatatypeConstructor* cons,
+Cvc5Term cvc5_dt_cons_get_instantiated_term(Cvc5DatatypeConstructor cons,
                                             Cvc5Sort sort);
 
 /**
@@ -1785,22 +1788,22 @@ Cvc5Term cvc5_dt_cons_get_instantiated_term(const Cvc5DatatypeConstructor* cons,
  * @param cons The datatype constructor.
  * @return The tester term.
  */
-Cvc5Term cvc5_dt_cons_get_tester_term(const Cvc5DatatypeConstructor* cons);
+Cvc5Term cvc5_dt_cons_get_tester_term(Cvc5DatatypeConstructor cons);
 
 /**
  * Get the number of selectors of a given datatype constructor.
  * @param cons The datatype constructor.
  * @return The number of selectors.
  */
-size_t cvc5_dt_cons_get_num_selectors(const Cvc5DatatypeConstructor* cons);
+size_t cvc5_dt_cons_get_num_selectors(Cvc5DatatypeConstructor cons);
 
 /**
  * Get the selector at index `i` of a given datatype constructor.
  * @param cons The datatype constructor.
  * @return The i^th DatatypeSelector.
  */
-Cvc5DatatypeSelector* cvc5_dt_cons_get_selector(
-    const Cvc5DatatypeConstructor* cons, size_t index);
+Cvc5DatatypeSelector cvc5_dt_cons_get_selector(Cvc5DatatypeConstructor cons,
+                                               size_t index);
 /**
  * Get the datatype selector with the given name.
  * @note This is a linear search through the selectors, so in case of
@@ -1809,8 +1812,8 @@ Cvc5DatatypeSelector* cvc5_dt_cons_get_selector(
  * @param name The name of the datatype selector.
  * @return The first datatype selector with the given name.
  */
-Cvc5DatatypeSelector* cvc5_dt_cons_get_selector_by_name(
-    const Cvc5DatatypeConstructor* cons, const char* name);
+Cvc5DatatypeSelector cvc5_dt_cons_get_selector_by_name(
+    Cvc5DatatypeConstructor cons, const char* name);
 
 /**
  * Get a string representation of a given datatype constructor.
@@ -1819,7 +1822,7 @@ Cvc5DatatypeSelector* cvc5_dt_cons_get_selector_by_name(
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_cons_to_string(const Cvc5DatatypeConstructor* cons);
+const char* cvc5_dt_cons_to_string(Cvc5DatatypeConstructor cons);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Datatype                                                               */
@@ -1831,8 +1834,7 @@ const char* cvc5_dt_cons_to_string(const Cvc5DatatypeConstructor* cons);
  * @param idx The index of the datatype constructor to return.
  * @return The datatype constructor with the given index.
  */
-Cvc5DatatypeConstructor* cvc5_dt_get_constructor(const Cvc5Datatype* dt,
-                                                 size_t idx);
+Cvc5DatatypeConstructor cvc5_dt_get_constructor(Cvc5Datatype dt, size_t idx);
 
 /**
  * Get the datatype constructor of a given datatype with the given name.
@@ -1842,8 +1844,8 @@ Cvc5DatatypeConstructor* cvc5_dt_get_constructor(const Cvc5Datatype* dt,
  * @param name The name of the datatype constructor.
  * @return The datatype constructor with the given name.
  */
-Cvc5DatatypeConstructor* cvc5_dt_get_constructor_by_name(const Cvc5Datatype* dt,
-                                                         const char* name);
+Cvc5DatatypeConstructor cvc5_dt_get_constructor_by_name(Cvc5Datatype dt,
+                                                        const char* name);
 
 /**
  * Get the datatype selector of a given datatype with the given name.
@@ -1854,8 +1856,7 @@ Cvc5DatatypeConstructor* cvc5_dt_get_constructor_by_name(const Cvc5Datatype* dt,
  * @param name The name of the datatype selector.
  * @return The datatype selector with the given name.
  */
-Cvc5DatatypeSelector* cvc5_dt_get_selector(const Cvc5Datatype* dt,
-                                           const char* name);
+Cvc5DatatypeSelector cvc5_dt_get_selector(Cvc5Datatype dt, const char* name);
 
 /**
  * Get the name of a given datatype.
@@ -1864,14 +1865,14 @@ Cvc5DatatypeSelector* cvc5_dt_get_selector(const Cvc5Datatype* dt,
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_get_name(const Cvc5Datatype* dt);
+const char* cvc5_dt_get_name(Cvc5Datatype dt);
 
 /**
  * Get the number of constructors of a given datatype.
  * @param dt   The datatype.
  * @return The number of constructors.
  */
-size_t cvc5_dt_get_num_constructors(const Cvc5Datatype* dt);
+size_t cvc5_dt_get_num_constructors(Cvc5Datatype dt);
 
 /**
  * Get the parameters of a given datatype, if it is parametric.
@@ -1881,7 +1882,7 @@ size_t cvc5_dt_get_num_constructors(const Cvc5Datatype* dt);
  * @param size The size of the resulting array.
  * @return The parameters of this datatype.
  */
-const Cvc5Sort* cvc5_dt_get_parameters(const Cvc5Datatype* dt, size_t* size);
+const Cvc5Sort* cvc5_dt_get_parameters(Cvc5Datatype dt, size_t* size);
 
 /**
  * Determine if a given datatype is parametric.
@@ -1889,21 +1890,21 @@ const Cvc5Sort* cvc5_dt_get_parameters(const Cvc5Datatype* dt, size_t* size);
  * @param dt The datatype.
  * @return True if the datatype is parametric.
  */
-bool cvc5_dt_is_parametric(const Cvc5Datatype* dt);
+bool cvc5_dt_is_parametric(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype corresponds to a co-datatype.
  * @param dt The datatype.
  * @return True if the datatype corresponds to a co-datatype.
  */
-bool cvc5_dt_is_codatatype(const Cvc5Datatype* dt);
+bool cvc5_dt_is_codatatype(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype corresponds to a tuple.
  * @param dt The datatype.
  * @return True if this datatype corresponds to a tuple.
  */
-bool cvc5_dt_is_tuple(const Cvc5Datatype* dt);
+bool cvc5_dt_is_tuple(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype corresponds to a record.
@@ -1911,14 +1912,14 @@ bool cvc5_dt_is_tuple(const Cvc5Datatype* dt);
  * @param dt The datatype.
  * @return True if the datatype corresponds to a record.
  */
-bool cvc5_dt_is_record(const Cvc5Datatype* dt);
+bool cvc5_dt_is_record(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype is finite.
  * @param dt The datatype.
  * @return True if the datatype is finite.
  */
-bool cvc5_dt_is_finite(const Cvc5Datatype* dt);
+bool cvc5_dt_is_finite(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype is well-founded.
@@ -1929,7 +1930,7 @@ bool cvc5_dt_is_finite(const Cvc5Datatype* dt);
  * @param dt The datatype.
  * @return True if the datatype is well-founded.
  */
-bool cvc5_dt_is_well_founded(const Cvc5Datatype* dt);
+bool cvc5_dt_is_well_founded(Cvc5Datatype dt);
 
 /**
  * Get a string representation of a given datatype.
@@ -1937,7 +1938,7 @@ bool cvc5_dt_is_well_founded(const Cvc5Datatype* dt);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_to_string(const Cvc5Datatype* dt);
+const char* cvc5_dt_to_string(Cvc5Datatype dt);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Grammar                                                                */
@@ -1963,7 +1964,7 @@ void cvc5_grammar_add_rule(Cvc5Grammar* grammar,
 void cvc5_grammar_add_rules(Cvc5Grammar* grammar,
                             Cvc5Term symbol,
                             size_t size,
-                            const Cvc5Term* rules);
+                            const Cvc5Term rules[]);
 
 /**
  * Allow `symbol` to be an arbitrary constant of a given grammar.
@@ -2004,6 +2005,18 @@ Cvc5TermManager* cvc5_term_manager_new();
  * @param tm The term manager instance.
  */
 void cvc5_term_manager_delete(Cvc5TermManager* tm);
+
+/**
+ * Release all managed references.
+ *
+ * This will free all memory used by any managed objects allocated by the
+ * term manager.
+ *
+ * @note This invalidates all managed objects created by the term manager.
+ *
+ * @param tm The term manager instance.
+ */
+void cvc5_term_manager_release(Cvc5TermManager* tm);
 
 /* .................................................................... */
 /* Sorts Handling                                                       */
@@ -2088,23 +2101,23 @@ Cvc5Sort cvc5_mk_ff_sort(Cvc5TermManager* tm, const char* size, uint32_t base);
 
 /**
  * Create a datatype sort.
- * @param tm The term manager instance.
- * @param dtypedecl The datatype declaration from which the sort is created.
+ * @param tm   The term manager instance.
+ * @param decl The datatype declaration from which the sort is created.
  * @return The datatype sort.
  */
-Cvc5Sort cvc5_mk_dt_sort(Cvc5TermManager* tm, const Cvc5DatatypeDecl& dtypedecl);
+Cvc5Sort cvc5_mk_dt_sort(Cvc5TermManager* tm, Cvc5DatatypeDecl decl);
 
 /**
  * Create a vector of datatype sorts.
  * @note The names of the datatype declarations must be distinct.
- * @param tm The term manager instance.
- * @param size The number of datatype declarations.
- * @param dtypedecls The datatype declarations from which the sort is created.
+ * @param tm    The term manager instance.
+ * @param size  The number of datatype declarations.
+ * @param decls The datatype declarations from which the sort is created.
  * @return The datatype sorts.
  */
 const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
                                  size_t size,
-                                 const Cvc5DatatypeDecl* dtypedecls);
+                                 const Cvc5DatatypeDecl decls[]);
 /**
  * Create function sort.
  * @param tm The term manager instance.
@@ -2115,7 +2128,7 @@ const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
  */
 Cvc5Sort cvc5_mk_fun_sort(Cvc5TermManager* tm,
                           size_t size,
-                          const Cvc5Sort* sorts,
+                          const Cvc5Sort sorts[],
                           Cvc5Sort codomain);
 
 /**
@@ -2138,7 +2151,7 @@ Cvc5Sort cvc5_mk_param_sort(Cvc5TermManager* tm, const char* symbol);
  */
 Cvc5Sort cvc5_mk_predicate_sort(Cvc5TermManager* tm,
                                 size_t size,
-                                const Cvc5Sort* sorts);
+                                const Cvc5Sort sorts[]);
 
 /**
  * Create a record sort
@@ -2150,8 +2163,8 @@ Cvc5Sort cvc5_mk_predicate_sort(Cvc5TermManager* tm,
  */
 Cvc5Sort cvc5_mk_record_sort(Cvc5TermManager* tm,
                              size_t size,
-                             const char** names,
-                             const Cvc5Sort* sorts);
+                             const char* names[],
+                             const Cvc5Sort sorts[]);
 /**
  * Create a set sort.
  * @param tm The term manager instance.
@@ -2251,7 +2264,15 @@ Cvc5Sort cvc5_mk_uninterpreted_sort_constructor_sort(Cvc5TermManager* tm,
  */
 Cvc5Sort cvc5_mk_tuple_sort(Cvc5TermManager* tm,
                             size_t size,
-                            const Cvc5Sort* sorts);
+                            const Cvc5Sort sorts[]);
+
+/**
+ * Create a nullable sort.
+ * @param tm The term manager instance.
+ * @param sort The sort of the element of the nullable.
+ * @return The nullable sort.
+ */
+Cvc5Sort cvc5_mk_nullable_sort(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /* .................................................................... */
 /* Create Terms                                                         */
@@ -2267,7 +2288,7 @@ Cvc5Sort cvc5_mk_tuple_sort(Cvc5TermManager* tm,
 Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
                       Cvc5Kind kind,
                       size_t size,
-                      const Cvc5Term* children);
+                      const Cvc5Term children[]);
 
 /**
  * Create n-ary term of given kind from a given operator.
@@ -2281,7 +2302,7 @@ Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
 Cvc5Term cvc5_mk_term_from_op(Cvc5TermManager* tm,
                               Cvc5Op op,
                               size_t size,
-                              const Cvc5Term* children);
+                              const Cvc5Term children[]);
 
 /**
  * Create a tuple term.
@@ -2290,7 +2311,9 @@ Cvc5Term cvc5_mk_term_from_op(Cvc5TermManager* tm,
  * @param terms The elements.
  * @return The tuple Term.
  */
-Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm, size_t size, const Cvc5Term* terms);
+Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm,
+                       size_t size,
+                       const Cvc5Term terms[]);
 
 /**
  * Create a nullable some term.
@@ -2341,7 +2364,9 @@ Cvc5Term cvc5_mk_nullable_null(Cvc5Sort sort);
  *         is a lambda expression, and the remaining children are
  *         the original arguments.
  */
-Cvc5Term cvc5_mk_nullable_lift(Cvc5Kind kind, size_t nargs, Cvc5Term* args);
+Cvc5Term cvc5_mk_nullable_lift(Cvc5Kind kind,
+                               size_t nargs,
+                               const Cvc5Term args[]);
 
 /* .................................................................... */
 /* Create Operators                                                     */
@@ -2379,7 +2404,7 @@ Cvc5Term cvc5_mk_nullable_lift(Cvc5Kind kind, size_t nargs, Cvc5Term* args);
 Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
                   Cvc5Kind kind,
                   size_t size,
-                  const uint32_t* idxs);
+                  const uint32_t idxs[]);
 
 /**
  * Create operator of kind:
@@ -2760,7 +2785,7 @@ Cvc5Term cvc5_mk_var(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol);
  * @param name The name of the datatype constructor.
  * @return The DatatypeConstructorDecl.
  */
-Cvc5DatatypeConstructorDecl* cvc5_mk_dt_consdecl(Cvc5TermManager* tm,
+Cvc5DatatypeConstructorDecl cvc5_mk_dt_cons_decl(Cvc5TermManager* tm,
                                                  const char* name);
 
 /* .................................................................... */
@@ -2774,9 +2799,9 @@ Cvc5DatatypeConstructorDecl* cvc5_mk_dt_consdecl(Cvc5TermManager* tm,
  * @param is_codt True if a codatatype is to be constructed.
  * @return The Cvc5DatatypeDecl.
  */
-Cvc5DatatypeDecl* cvc5_mk_dt_decl(Cvc5TermManager* tm,
-                                  const char* name,
-                                  bool is_codt);
+Cvc5DatatypeDecl cvc5_mk_dt_decl(Cvc5TermManager* tm,
+                                 const char* name,
+                                 bool is_codt);
 
 /**
  * Create a datatype declaration.
@@ -2791,11 +2816,11 @@ Cvc5DatatypeDecl* cvc5_mk_dt_decl(Cvc5TermManager* tm,
  * @param is_codt True if a codatatype is to be constructed.
  * @return The Cvc5DatatypeDecl.
  */
-Cvc5DatatypeDecl* cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
-                                              const char* name,
-                                              size_t size,
-                                              const Cvc5Sort* params,
-                                              bool is_codt);
+Cvc5DatatypeDecl cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
+                                             const char* name,
+                                             size_t size,
+                                             const Cvc5Sort params[],
+                                             bool is_codt);
 
 /* .................................................................... */
 /* SMT-LIB-style Term/Sort Creation                                     */
@@ -2821,7 +2846,7 @@ Cvc5DatatypeDecl* cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
 Cvc5Sort cvc5_declare_dt(Cvc5* solver,
                          const char* symbol,
                          size_t size,
-                         const Cvc5DatatypeConstructorDecl* ctors);
+                         const Cvc5DatatypeConstructorDecl ctors[]);
 
 /**
  * Declare n-ary function symbol.
@@ -2847,7 +2872,7 @@ Cvc5Sort cvc5_declare_dt(Cvc5* solver,
 Cvc5Term cvc5_declare_fun(Cvc5* solver,
                           const char* symbol,
                           size_t size,
-                          const Cvc5Sort* sorts,
+                          const Cvc5Sort sorts[],
                           Cvc5Sort sort,
                           bool fresh);
 
@@ -2936,8 +2961,8 @@ const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof* proof);
 const char* cvc5_proof_to_string(Cvc5Proof* proof,
                                  Cvc5ProofFormat format,
                                  size_t assertions_size,
-                                 Cvc5Term* assertions,
-                                 const char** assertion_names);
+                                 const Cvc5Term assertions[],
+                                 const char* assertion_names[]);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
@@ -2945,9 +2970,10 @@ const char* cvc5_proof_to_string(Cvc5Proof* proof,
 
 /**
  * Construct a new instance of a cvc5 solver.
+ * @param tm The associated term manager instance.
  * @return The cvc5 solver instance.
  */
-Cvc5* cvc5_new();
+Cvc5* cvc5_new(Cvc5TermManager* tm);
 
 /**
  * Delete a cvc5 solver instance.
@@ -2983,7 +3009,7 @@ void cvc5_delete(Cvc5* cvc5);
 Cvc5Term cvc5_define_fun(Cvc5* cvc5,
                          const char* symbol,
                          size_t nbound_vars,
-                         const Cvc5Term* bound_vars,
+                         const Cvc5Term bound_vars[],
                          const Cvc5Sort sort,
                          const Cvc5Term term,
                          bool global);
@@ -3012,7 +3038,7 @@ Cvc5Term cvc5_define_fun(Cvc5* cvc5,
 Cvc5Term cvc5_define_fun_rec(Cvc5* cvc5,
                              const char* symbol,
                              size_t nbound_vars,
-                             const Cvc5Term* bound_vars,
+                             const Cvc5Term bound_vars[],
                              const Cvc5Sort sort,
                              const Cvc5Term term,
                              bool global);
@@ -3041,7 +3067,7 @@ Cvc5Term cvc5_define_fun_rec(Cvc5* cvc5,
 Cvc5Term cvc5_define_fun_rec_from_const(Cvc5* cvc5,
                                         Cvc5Term fun,
                                         size_t nbound_vars,
-                                        const Cvc5Term* bound_vars,
+                                        const Cvc5Term bound_vars[],
                                         const Cvc5Term term,
                                         bool global);
 /**
@@ -3071,10 +3097,10 @@ Cvc5Term cvc5_define_fun_rec_from_const(Cvc5* cvc5,
  */
 void cvc5_define_funs_rec(Cvc5* cvc5,
                           size_t nfuns,
-                          const Cvc5Term* funs,
-                          size_t* nbound_vars,
-                          const Cvc5Term** bound_vars,
-                          const Cvc5Term* terms,
+                          const Cvc5Term funs[],
+                          size_t nbound_vars[],
+                          const Cvc5Term* bound_vars[],
+                          const Cvc5Term terms[],
                           bool global);
 /**
  * Simplify a formula without doing "much" work.
@@ -3141,7 +3167,7 @@ Cvc5Result* cvc5_check_sat(Cvc5* cvc5);
  */
 Cvc5Result* cvc5_check_sat_assuming(Cvc5* cvc5,
                                     size_t size,
-                                    const Cvc5Term* assumptions);
+                                    const Cvc5Term assumptions[]);
 /**
  * Get the list of asserted formulas.
  *
@@ -3276,7 +3302,10 @@ const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size);
  * @param inputs The resulting inputs that are mapped to the resulting `values`.
  * @param values The resulting real values.
  */
-void cvc5_get_difficulty(Cvc5* cvc5, size_t* size, Cvc5Term* inputs, Cvc5Term* values);
+void cvc5_get_difficulty(Cvc5* cvc5,
+                         size_t* size,
+                         const Cvc5Term inputs[],
+                         const Cvc5Term values[]);
 
 /**
  * Get a timeout core, which computes a subset of the current assertions that
@@ -3388,7 +3417,9 @@ Cvc5Term cvc5_get_value(Cvc5* cvc5, Cvc5Term term);
  * @param terms The terms.
  * @return The values of the given terms.
  */
-const Cvc5Term* cvc5_get_values(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
+const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
+                                size_t size,
+                                const Cvc5Term terms[]);
 
 /**
  * Get the domain elements of uninterpreted sort s in the current model. The
@@ -3451,9 +3482,9 @@ bool cvc5_is_model_core_symbol(Cvc5* cvc5, Cvc5Term v);
  */
 const char* cvc5_get_model(Cvc5* cvc5,
                            size_t nsorts,
-                           const Cvc5Sort* sorts,
+                           const Cvc5Sort sorts[],
                            size_t nconsts,
-                           const Cvc5Term* consts);
+                           const Cvc5Term consts[]);
 
 /**
  * Do quantifier elimination.
@@ -3595,7 +3626,7 @@ Cvc5Term cvc5_declare_pool(Cvc5* cvc5,
                            const char* symbol,
                            Cvc5Sort sort,
                            size_t size,
-                           const Cvc5Term* init_value);
+                           const Cvc5Term init_value[]);
 /**
  * Declare an oracle function with reference to an implementation.
  *
@@ -3627,7 +3658,7 @@ Cvc5Term cvc5_declare_pool(Cvc5* cvc5,
 Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
                                  const char* symbol,
                                  size_t nsorts,
-                                 const Cvc5Sort* sorts,
+                                 const Cvc5Sort sorts[],
                                  Cvc5Sort sort,
                                  Cvc5Term (*fun)(const Cvc5Term*));
 /**
@@ -3849,7 +3880,7 @@ void cvc5_block_model(Cvc5BlockModelsMode mode);
  * @param size The number of values to block.
  * @param terms The values to block.
  */
-void cvc5_block_model_values(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
+void cvc5_block_model_values(Cvc5* cvc5, size_t size, const Cvc5Term terms[]);
 
 /**
  * @warning This function is experimental and may change in future versions.
@@ -3973,7 +4004,7 @@ Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5, const char* symbol, Cvc5Sort sort);
  */
 Cvc5Grammar* cvc5_mk_grammar(Cvc5* cvc5,
                              size_t size,
-                             const Cvc5Term* bound_vars,
+                             const Cvc5Term bound_vars[],
                              Cvc5Term symbols);
 
 /**
@@ -3997,7 +4028,7 @@ Cvc5Grammar* cvc5_mk_grammar(Cvc5* cvc5,
 Cvc5Term cvc5_synth_fun(Cvc5* cvc5,
                         const char* symbol,
                         size_t size,
-                        const Cvc5Term* bound_vars,
+                        const Cvc5Term bound_vars[],
                         Cvc5Sort sort);
 
 /**
@@ -4022,7 +4053,7 @@ Cvc5Term cvc5_synth_fun(Cvc5* cvc5,
 Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
                                      const char* symbol,
                                      size_t size,
-                                     const Cvc5Term* bound_vars,
+                                     const Cvc5Term bound_vars[],
                                      Cvc5Sort sort,
                                      Cvc5Grammar* grammar);
 
@@ -4158,7 +4189,7 @@ Cvc5Term cvc5_get_synth_solution(Cvc5Term term);
  * @return The synthesis solutions of the given terms.
  */
 const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
-                                         const Cvc5Term* terms,
+                                         const Cvc5Term terms[],
                                          size_t* size);
 
 /**

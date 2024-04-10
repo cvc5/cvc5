@@ -69,6 +69,15 @@ class Cvc5CApiAbortStream
 
 #endif
 
+#define CVC5_CAPI_CHECK_NOT_NULL(arg)                                          \
+  CVC5_API_CHECK(arg != nullptr) << "Invalid call to '" << __PRETTY_FUNCTION__ \
+                                 << "', unexpected NULL argument";
+
+#define CVC5_CAPI_CHECK_NOT_NULL_AT_IDX(arg, i)     \
+  CVC5_API_CHECK(arg[i] != nullptr)                 \
+      << "Invalid call to '" << __PRETTY_FUNCTION__ \
+      << "', unexpected NULL argument at index " << i;
+
 /* -------------------------------------------------------------------------- */
 
 #define CVC5_CAPI_CHECK_KIND(kind)                 \
@@ -111,6 +120,34 @@ class Cvc5CApiAbortStream
 #define CVC5_CAPI_CHECK_PROOF_FORMAT(format)                         \
   CVC5_API_CHECK((format) >= 0 && (format) < CVC5_PROOF_FORMAT_LAST) \
       << "invalid proof format";
+
+/* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_SORT(sort) \
+  CVC5_API_CHECK(sort != nullptr) << "invalid sort";
+
+#define CVC5_CAPI_CHECK_SORT_AT_IDX(sorts, i) \
+  CVC5_API_CHECK(sorts[i] != nullptr) << "invalid sort at index " << i;
+
+#define CVC5_CAPI_CHECK_DT_DECL(decl) \
+  CVC5_API_CHECK(decl != nullptr) << "invalid datatype declaration";
+
+#define CVC5_CAPI_CHECK_DT_DECL_AT_IDX(decls, i) \
+  CVC5_API_CHECK(decls[i] != nullptr)            \
+      << "invalid datatype declaration at index " << i;
+
+#define CVC5_CAPI_CHECK_DT_CONS_DECL(decl)                           \
+  CVC5_API_CHECK(decl != nullptr) << "invalid datatype constructor " \
+                                     "declaration";
+
+#define CVC5_CAPI_CHECK_DT_SEL(sel) \
+  CVC5_API_CHECK(sel != nullptr) << "invalid datatype selector";
+
+#define CVC5_CAPI_CHECK_DT_CONS(cons) \
+  CVC5_API_CHECK(cons != nullptr) << "invalid datatype constructor";
+
+#define CVC5_CAPI_CHECK_DT(dt) \
+  CVC5_API_CHECK(dt != nullptr) << "invalid datatype";
 
 /* -------------------------------------------------------------------------- */
 }
