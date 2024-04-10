@@ -118,8 +118,15 @@ class MbqiFastSygus : protected EnvObj
   ~MbqiFastSygus() {}
 
   /**
-   * Updates mvs to the desired instantiation of q.
-   * Returns true if successful.
+   * Updates mvs to the desired instantiation of q. Returns true if successful.
+   *
+   * In detail, this method maintains the invariant that
+   *   query[ mvs / vars ] is satisfiable.
+   * This is initially guaranteed since mvs is a model for vars in query
+   * due to MBQI. This method iterates over the variables vars[i] and replaces
+   * mvs[i] with the first term in the SyGuS enumeration such that the updated
+   * mvs still satisfies the query. Checking whether the invariant holds is
+   * confirmed via a subsolver call for each replacement.
    *
    * @param q The quantified formula to instantiate.
    * @param query The query that was made to a subsolver for MBQI.

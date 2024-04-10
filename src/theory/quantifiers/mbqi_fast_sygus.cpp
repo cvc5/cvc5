@@ -228,6 +228,7 @@ bool MbqiFastSygus::constructInstantiation(
   Trace("mbqi-model-enum") << "...query is " << queryCurr << std::endl;
   queryCurr = rewrite(inst.apply(queryCurr));
   Trace("mbqi-model-enum") << "...processed is " << queryCurr << std::endl;
+  // consider variables in random order, for diversity of instantiations
   std::shuffle(indices.begin(), indices.end(), Random::getRandom());
   for (size_t i = 0, isize = indices.size(); i < isize; i++)
   {
@@ -276,9 +277,6 @@ bool MbqiFastSygus::constructInstantiation(
       Node queryCheck = queryCurr.substitute(v, TNode(retc));
       queryCheck = rewrite(queryCheck);
       Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
-      // since we may have free constants from the grammar, we must ensure
-      // their model value is considered.
-      Trace("mbqi-model-enum") << "...converted " << queryCheck << std::endl;
       SubsolverSetupInfo ssi(d_env);
       Result r = checkWithSubsolver(queryCheck, ssi);
       if (r == Result::SAT)
