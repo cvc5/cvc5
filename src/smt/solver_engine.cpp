@@ -2126,9 +2126,10 @@ void SolverEngine::setOption(const std::string& key,
          << " cannot be set when safeOptions is true.";
       // If we are setting to a default value, the exception can be avoided
       // by omitting.
-      if (getOption(key)==value)
+      if (getOption(key) == value)
       {
-        ss << " The value for " << key << " is already its current value (\"" << value << "\"). Omitting this option will avoid this exception.";
+        ss << " The value for " << key << " is already its current value (\""
+           << value << "\"). Omitting this option will avoid this exception.";
       }
       throw OptionException(ss.str());
     }
@@ -2139,24 +2140,27 @@ void SolverEngine::setOption(const std::string& key,
         d_safeOptsSetRegularOption = true;
         d_safeOptsRegularOption = key;
         d_safeOptsRegularOptionValue = value;
-        d_safeOptsSetRegularOptionToDefault = (getOption(key)==value);
+        d_safeOptsSetRegularOptionToDefault = (getOption(key) == value);
       }
       else
       {
         // option exception
         std::stringstream ss;
-        ss << "cannot set two regular options (" << d_safeOptsRegularOption << " and "
-           << key << ") when safeOptions is true.";
+        ss << "cannot set two regular options (" << d_safeOptsRegularOption
+           << " and " << key << ") when safeOptions is true.";
         // similar to above, if setting to default value for either of the
         // regular options.
-        for (size_t i=0; i<2; i++)
+        for (size_t i = 0; i < 2; i++)
         {
-          std::string rkey = i==0 ? d_safeOptsRegularOption : key;
-          std::string rvalue = i==0 ? d_safeOptsRegularOptionValue : value;
-          bool isDefault = i==0 ? d_safeOptsSetRegularOptionToDefault : (getOption(key)==value);
+          std::string rkey = i == 0 ? d_safeOptsRegularOption : key;
+          std::string rvalue = i == 0 ? d_safeOptsRegularOptionValue : value;
+          bool isDefault = i == 0 ? d_safeOptsSetRegularOptionToDefault
+                                  : (getOption(key) == value);
           if (isDefault)
           {
-            ss << " The value for " << rkey << " is already its current value (\"" << rvalue << "\"). Omitting this option will avoid this exception.";
+            ss << " The value for " << rkey
+               << " is already its current value (\"" << rvalue
+               << "\"). Omitting this option will avoid this exception.";
           }
         }
         throw OptionException(ss.str());
