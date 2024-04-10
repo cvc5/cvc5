@@ -117,6 +117,7 @@ SolverEngine::SolverEngine(const Options* optr)
       d_quantElimSolver(nullptr),
       d_userLogicSet(false),
       d_safeOptsSetRegularOption(false),
+      d_safeOptsSetRegularOptionToDefault(false),
       d_isInternalSubsolver(false),
       d_stats(nullptr)
 {
@@ -2122,7 +2123,11 @@ void SolverEngine::setOption(const std::string& key,
       // option exception
       std::stringstream ss;
       ss << "expert option " << key
-         << " cannot be set when safeOptions is true";
+         << " cannot be set when safeOptions is true.";
+      if (getOption(key)==value)
+      {
+        ss << " Note the set value for " << key << " is already its current value; omitting it will avoid this exception.";
+      }
       throw OptionException(ss.str());
     }
     else if (oinfo.category == options::OptionInfo::Category::REGULAR)
@@ -2131,13 +2136,23 @@ void SolverEngine::setOption(const std::string& key,
       {
         d_safeOptsSetRegularOption = true;
         d_safeOptsRegularOption = key;
+        d_safeOptsSetRegularOptionToDefault = (getOption(key)==value);
       }
       else
       {
         // option exception
         std::stringstream ss;
-        ss << "cannot set two regular options (" << key << " and "
-           << d_safeOptsRegularOption << ") when safeOptions is true";
+        ss << "cannot set two regular options (" << d_safeOptsRegularOption << " and "
+           << key << ") when safeOptions is true.";
+        for (size_t i=0; i<2; i++)
+        {
+          std::string rkey = i==0 ? d_safeOptsRegularOption : key;
+          bool isDefault = i==0 ? d_safeOptsSetRegularOptionToDefault : (getOption(key)==value);
+          if (isDefault)
+          {
+            ss << " Note the set value for " << rkey << " is already its current value; omitting it will avoid this exception.";
+          }
+        }
         throw OptionException(ss.str());
       }
     }
