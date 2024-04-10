@@ -43,7 +43,7 @@ macro(cvc5_add_api_test name)
   target_compile_definitions(${name} PRIVATE ${CVC5_API_TEST_FLAGS})
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
-  add_test(api/cpp/${name} ${test_bin_dir}/${name})
+  add_test(api/cpp/${name} ${ENV_PATH_CMD} ${test_bin_dir}/${name})
   set_tests_properties(api/cpp/${name} PROPERTIES LABELS "api")
   # set_tests_properties(api/cpp/${name} PROPERTIES FIXTURES_REQUIRED build_apitests_fixture)
   add_dependencies(build-apitests ${name})
