@@ -1480,14 +1480,14 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{((t_2 = r \cdot s_2)
+   *   \mathit{len}(t_2) \neq \mathit{len}(s_2)\mid b}{((t_2 = r \cdot s_2)
    *   \vee (s_2 = r \cdot t_2)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}{if $b=\top$}
    *
    * where :math:`r` is
    * :math:`\mathit{skolem}(\mathit{ite}(
    * \mathit{len}(t_2) >= \mathit{len}(s_2),
-   * \mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2))),
-   * \mathit{skolem}(\mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))))`,
+   * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
+   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2))))`,
    * and `\epsilon` is the empty string (or sequence).
    *
    * Above, :math:`\mathit{suf}(x,n)` is shorthand for
