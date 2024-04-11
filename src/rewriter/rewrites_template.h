@@ -15,8 +15,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__THEORY_REWRITER_REWRITES_H
-#define CVC5__THEORY_REWRITER_REWRITES_H
+#ifndef CVC5__REWRITER__REWRITES__H
+#define CVC5__REWRITER__REWRITES__H
 
 #include "expr/node.h"
 
@@ -30,25 +30,12 @@ class RewriteDb;
  */
 enum class DslProofRule : uint32_t
 {
-  FAIL = 0,
-  REFL,
-  EVAL,
-  // the following rules can be generated temporarily during reconstruction
-  TRANS,
-  CONG,
-  CONG_EVAL,
-  TRUE_ELIM,
-  TRUE_INTRO,
-  ARITH_POLY_NORM,
-  ACI_NORM,
+  NONE = 0,
   // Generated rule ids
   // clang-format off
   ${rule_ids}$
   // clang-format on
 };
-
-/** Is internal rule? */
-bool isInternalDslProofRule(DslProofRule drule);
 
 /**
  * The body of this method is auto-generated. This populates the provided
