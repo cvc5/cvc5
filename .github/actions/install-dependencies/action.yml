@@ -77,8 +77,8 @@ runs:
         cd emsdk/
         ./emsdk install '3.1.18'
         ./emsdk activate '3.1.18'
-        echo "/home/runner/work/cvc5/cvc5/emsdk" >> $GITHUB_PATH
-        echo "/home/runner/work/cvc5/cvc5/emsdk/upstream/emscripten" >> $GITHUB_PATH
+        echo "$(pwd)" >> $GITHUB_PATH
+        echo "$(pwd)/upstream/emscripten" >> $GITHUB_PATH
 
     - name: Install Windows software
       if: runner.os == 'Windows' && inputs.windows-build == 'true'
