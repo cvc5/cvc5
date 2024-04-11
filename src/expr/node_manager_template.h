@@ -957,12 +957,21 @@ class NodeManager
   bool safeToReclaimZombies() const;
 
   /**
-   * Create a variable with the given name and type.  NOTE that no
-   * lookup is done on the name.  If you mkVar("a", type) and then
-   * mkVar("a", type) again, you have two variables.  This method is private to
-   * avoid internal uses of mkVar() from within cvc5. Instead, the SkolemManager
-   * submodule is the interface for constructing internal variables
-   * (see expr/skolem_manager.h).
+   * Create a variable with the given name and type.
+   *
+   * @note If `fresh` is true, no lookup is done on the name.  If you
+   *       mkVar("a", type) and then mkVar("a", type) again, you have will
+   *       have two variables.
+   *
+   * @warning This function is private to avoid internal uses of mkVar() from
+   *          within cvc5. Instead, the SkolemManager submodule is the
+   *          interface for constructing internal variables (see
+   *          expr/skolem_manager.h).
+   *
+   * @param name  The symbol of the variable.
+   * @param type  The type of the variable.
+   * @param fresh True to return a fresh variable. If false, it returns the
+   *              same variable for the given type and name.
    */
   Node mkVar(const std::string& name, const TypeNode& type, bool fresh = true);
 

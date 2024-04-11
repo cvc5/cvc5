@@ -38,18 +38,16 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   {
     if (node[0] == node[1])
     {
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
     }
     else if (node[0].isConst() && node[1].isConst())
     {
       // uninterpreted constants are all distinct
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(false));
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
     }
     if (node[0] > node[1])
     {
-      Node newNode = NodeManager::currentNM()->mkNode(k, node[1], node[0]);
+      Node newNode = nodeManager()->mkNode(k, node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, newNode);
     }
   }
@@ -70,7 +68,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       Node new_body = lambda[1];
       if (!fvs.empty())
       {
-        ElimShadowNodeConverter esnc(node, fvs);
+        ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
         new_body = esnc.convert(new_body);
       }
       Node ret = new_body.substitute(
@@ -98,10 +96,9 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       {
         std::vector<Node> new_vars(lambda[0].begin() + 1, lambda[0].end());
         std::vector<Node> largs;
-        largs.push_back(
-            NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, new_vars));
+        largs.push_back(nodeManager()->mkNode(Kind::BOUND_VAR_LIST, new_vars));
         largs.push_back(new_body);
-        new_body = NodeManager::currentNM()->mkNode(Kind::LAMBDA, largs);
+        new_body = nodeManager()->mkNode(Kind::LAMBDA, largs);
         Trace("uf-ho-beta")
             << "uf-ho-beta : ....new lambda : " << new_body << "\n";
       }
@@ -111,7 +108,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       expr::getFreeVariables(arg, fvs);
       if (!fvs.empty())
       {
-        ElimShadowNodeConverter esnc(node, fvs);
+        ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
         new_body = esnc.convert(new_body);
       }
       TNode var = lambda[0][0];
@@ -145,14 +142,12 @@ RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
   {
     if (node[0] == node[1])
     {
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(true));
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
     }
     else if (node[0].isConst() && node[1].isConst())
     {
       // uninterpreted constants are all distinct
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(false));
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
     }
   }
   return RewriteResponse(REWRITE_DONE, node);
@@ -221,8 +216,8 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   if (!anode.isNull() && anode.isConst())
   {
     Assert(anode.getType().isArray());
-    Node retNode = NodeManager::currentNM()->mkConst(
-        FunctionArrayConst(node.getType(), anode));
+    Node retNode =
+        nodeManager()->mkConst(FunctionArrayConst(node.getType(), anode));
     Assert(anode.isConst() == retNode.isConst());
     Assert(retNode.getType() == node.getType());
     Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
@@ -263,7 +258,7 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
 RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 {
   Assert(node.getKind() == Kind::BITVECTOR_TO_NAT);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (node[0].isConst())
   {
     Node resultNode = nm->mkConstInt(node[0].getConst<BitVector>().toInteger());
@@ -286,7 +281,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
   Assert(node.getKind() == Kind::INT_TO_BITVECTOR);
   if (node[0].isConst())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
     Node resultNode = nm->mkConst(
         BitVector(size, node[0].getConst<Rational>().getNumerator()));
@@ -306,8 +301,8 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
     {
       // ((_ int2bv w) (bv2nat x)) ---> (concat (_ bv0 v) x)
       Node zero = bv::utils::mkZero(osize - isize);
-      Node concat = NodeManager::currentNM()->mkNode(
-          Kind::BITVECTOR_CONCAT, zero, node[0][0]);
+      Node concat =
+          nodeManager()->mkNode(Kind::BITVECTOR_CONCAT, zero, node[0][0]);
       return RewriteResponse(REWRITE_AGAIN_FULL, concat);
     }
     else

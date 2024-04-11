@@ -134,7 +134,7 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
       ret = SkolemManager::getOriginalForm(ret);
     }
     // make so that the returned formula does not involve arithmetic subtyping
-    SubtypeElimNodeConverter senc;
+    SubtypeElimNodeConverter senc(nodeManager());
     ret = senc.convert(ret);
     return ret;
   }

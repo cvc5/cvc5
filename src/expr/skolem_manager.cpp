@@ -51,6 +51,7 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED:
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
+    case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     default: return "?";
   }
@@ -72,12 +73,11 @@ Node SkolemManager::mkPurifySkolem(Node t,
   if (t.getKind() == Kind::WITNESS)
   {
     // The purification skolem for (witness ((x T)) P) is the same as
-    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) 0).
+    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) x).
     NodeManager* nm = NodeManager::currentNM();
     Node exists =
         nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
-    k = mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
-                         {exists, nm->mkConstInt(Rational(0))});
+    k = mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {exists, t[0][0]});
     // store the proof generator if it exists
     if (pg != nullptr)
     {
@@ -198,21 +198,20 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
 
 bool SkolemManager::isSkolemFunction(TNode k) const
 {
-  std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  return it != d_skolemFunMap.end();
+  return k.getKind() == Kind::SKOLEM;
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
                                      SkolemId& id,
                                      Node& cacheVal) const
 {
-  std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  if (it == d_skolemFunMap.end())
+  if (k.getKind() != Kind::SKOLEM)
   {
     return false;
   }
+  std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
+      d_skolemFunMap.find(k);
+  Assert(it != d_skolemFunMap.end());
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;
@@ -251,7 +250,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return mkSkolemNode(Kind::SKOLEM, prefix, type, flags);
+  return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const
@@ -409,6 +408,11 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(cacheVals.size() > 0);
       return cacheVals[0].getType();
       break;
+    case SkolemId::GROUND_TERM:
+    {
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      return cacheVals[0].getConst<SortToTerm>().getType();
+    }
     // real -> real function
     case SkolemId::DIV_BY_ZERO:
     {
@@ -462,16 +466,7 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     case SkolemId::QUANTIFIERS_SKOLEMIZE:
     {
       Assert(cacheVals.size() == 2);
-      Node vi = cacheVals[1];
-      if (vi.getKind() == Kind::CONST_INTEGER
-          && vi.getConst<Rational>().sgn() >= 0
-          && vi.getConst<Rational>().getNumerator().fitsUnsignedInt())
-      {
-        uint32_t i = vi.getConst<Rational>().getNumerator().toUnsignedInt();
-        Assert(cacheVals[0].getKind() == Kind::EXISTS
-               && i < cacheVals[0][0].getNumChildren());
-        return cacheVals[0][0][i].getType();
-      }
+      return cacheVals[1].getType();
     }
     break;
     // skolems that return the set element type
@@ -560,10 +555,40 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       TypeNode t = cacheVals[1].getConst<SortToTerm>().getType();
       return nm->mkSelectorType(dtt, t);
     }
+    // fp skolems
+    case SkolemId::FP_MIN_ZERO:
+    case SkolemId::FP_MAX_ZERO:
+    {
+      Assert(cacheVals.size() == 1);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      TypeNode type = cacheVals[0].getConst<SortToTerm>().getType();
+      Assert(type.isFloatingPoint());
+      return nm->mkFunctionType({type, type}, nm->mkBitVectorType(1));
+    }
+    case SkolemId::FP_TO_SBV:
+    case SkolemId::FP_TO_UBV:
+    {
+      Assert(cacheVals.size() == 2);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      TypeNode fptype = cacheVals[0].getConst<SortToTerm>().getType();
+      Assert(fptype.isFloatingPoint());
+      Assert(cacheVals[1].getKind() == Kind::SORT_TO_TERM);
+      TypeNode bvtype = cacheVals[1].getConst<SortToTerm>().getType();
+      Assert(bvtype.isBitVector());
+      return nm->mkFunctionType({nm->roundingModeType(), fptype}, bvtype);
+    }
+    case SkolemId::FP_TO_REAL:
+    {
+      Assert(cacheVals.size() == 1);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      TypeNode type = cacheVals[0].getConst<SortToTerm>().getType();
+      Assert(type.isFloatingPoint());
+      return nm->mkFunctionType({type}, nm->realType());
+    }
+    //
     default: break;
   }
-  TypeNode ret;
-  return ret;
+  return TypeNode();
 }
 
 }  // namespace cvc5::internal
