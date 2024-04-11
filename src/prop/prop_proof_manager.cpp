@@ -454,8 +454,8 @@ LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 
 void PropPfManager::getProofInternal(CDProof* cdp)
 {
-  // This method is called when the SAT solver does not that a fully self
-  // contained ProofNode proving false. This involves adding a step to cdp
+  // This method is called when the SAT solver did not generate a fully self
+  // contained ProofNode proving false. This method adds a step to cdp
   // based on a set of computed assumptions, possibly relying on the internal
   // proof.
   NodeManager* nm = NodeManager::currentNM();
