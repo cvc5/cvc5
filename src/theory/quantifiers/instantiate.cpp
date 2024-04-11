@@ -52,8 +52,9 @@ Instantiate::Instantiate(Env& env,
       d_qreg(qr),
       d_treg(tr),
       d_insts(userContext()),
-      d_c_inst_match_trie_dom(options().quantifiers.instLocal ? context()
+      d_ictx(options().quantifiers.instLocal ? context()
                                                               : userContext()),
+      d_c_inst_match_trie_dom(d_ictx),
       d_pfInst(isProofEnabled()
                    ? new CDProof(env, userContext(), "Instantiate::pfInst")
                    : nullptr)
@@ -550,7 +551,7 @@ bool Instantiate::existsInstantiation(Node q, const std::vector<Node>& terms)
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
-      return it->second->existsInstMatch(userContext(), q, terms);
+      return it->second->existsInstMatch(d_ictx, q, terms);
     }
   }
   else
@@ -642,10 +643,10 @@ bool Instantiate::recordInstantiationInternal(Node q,
     const auto res = d_c_inst_match_trie.insert({q, nullptr});
     if (res.second)
     {
-      res.first->second = new CDInstMatchTrie(userContext());
+      res.first->second = new CDInstMatchTrie(d_ictx);
     }
     d_c_inst_match_trie_dom.insert(q);
-    return res.first->second->addInstMatch(userContext(), q, terms);
+    return res.first->second->addInstMatch(d_ictx, q, terms);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
   return d_inst_match_trie[q].addInstMatch(q, terms);

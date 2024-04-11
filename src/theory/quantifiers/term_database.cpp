@@ -293,6 +293,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     return;
   }
+  Trace("term-db-debug") << "computeUfEqcTerms for " << f << std::endl;
   TNodeTrie& tnt = d_func_map_eqc_trie[f];
   tnt.clear();
   // get the matchable operators in the equivalence class of f
@@ -309,6 +310,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
         computeArgReps(n);
         TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
         tnt.d_data[r].addTerm(n, d_arg_reps[n]);
+        Trace("term-db-debug") << "Adding term " << n << " to eqc " << r << " with arg reps : " << d_arg_reps[n] << std::endl;
       }
     }
   }
@@ -359,7 +361,7 @@ void TermDb::computeUfTerms( TNode f ) {
 
       computeArgReps(n);
       std::vector<TNode>& reps = d_arg_reps[n];
-      Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
+      Trace("term-db-debug") << "Adding term " << n << " with arg reps : " << reps << std::endl;
       std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
       size_t rsize = reps.size();
       // ensure the relevant domain vector has been allocated
@@ -367,14 +369,12 @@ void TermDb::computeUfTerms( TNode f ) {
       for (size_t i = 0; i < rsize; i++)
       {
         TNode r = reps[i];
-        Trace("term-db-debug") << r << " ";
         std::vector<TNode>& frd = frds[i];
         if (std::find(frd.begin(), frd.end(), r) == frd.end())
         {
           frd.push_back(r);
         }
       }
-      Trace("term-db-debug") << std::endl;
       Assert(d_qstate.hasTerm(n));
       Trace("term-db-debug")
           << "  and value : " << d_qstate.getRepresentative(n) << std::endl;
