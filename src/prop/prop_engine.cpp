@@ -222,7 +222,7 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
 {
   if (local)
   {
-    // if local, filter here
+    // if local, filter here FIXME
   }
   Node node = trn.getNode();
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
