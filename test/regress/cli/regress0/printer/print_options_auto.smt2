@@ -1,6 +1,6 @@
 ; COMMAND-LINE: -o options-auto
 ; SCRUBBER: sed -e 's/(options-auto.*//'
-; EXPECT: unsat
+; EXPECT: sat
 (set-logic QF_LRA)
-(assert false)
+(assert true)
 (check-sat)
