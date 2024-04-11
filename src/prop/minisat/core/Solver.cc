@@ -557,6 +557,11 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           {
             d_pfManager->registerSatLitAssumption(ps[0]);
           }
+          // Call notifySatClause. This call site handles unit clauses not
+          // learned in the standard way.
+          SatClause satClause;
+          satClause.push_back(MinisatSatSolver::toSatLiteral(ps[0]));
+          d_proxy->notifySatClause(satClause);
         }
         CRef confl = propagate(CHECK_WITHOUT_THEORY);
         if (!(ok = (confl == CRef_Undef)))
@@ -1527,12 +1532,20 @@ lbool Solver::search(int nof_conflicts)
         {
           d_pfManager->endResChain(learnt_clause[0]);
         }
+        // Call notifySatClause here.
+        SatClause satClause;
+        satClause.push_back(MinisatSatSolver::toSatLiteral(learnt_clause[0]));
+        d_proxy->notifySatClause(satClause);
       }
       else
       {
         CRef cr = ca.alloc(assertionLevelOnly() ? assertionLevel : max_level,
                            learnt_clause,
                            true);
+        // Call notifySatClause here.
+        SatClause satClause;
+        MinisatSatSolver::toSatClause(ca[cr], satClause);
+        d_proxy->notifySatClause(satClause);
         clauses_removable.push(cr);
         attachClause(cr);
         claBumpActivity(ca[cr]);
