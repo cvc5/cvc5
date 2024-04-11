@@ -95,6 +95,8 @@ code).
 which modifies how the wasm and glue code are built and how they behave. An ``-s``
 should precede each flag.
 
+For example, to generate a HTML page, use:
+
 .. code:: bash
 
   ./configure.sh --static --static-binary --auto-download --wasm=HTML --name=prod
