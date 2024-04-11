@@ -75,7 +75,7 @@ class UnsatCoreManager : protected EnvObj
   /** Gets the relevant instaniations and skolemizations for the refutation.
    *
    * The relevant instantiations are all the conclusions of proof nodes of type
-   * INSTANTIATE that occur in pfn.
+   * INSTANTIATE that occur in the proof returned by the prop engine.
    *
    * This method populates the insts map from quantified formulas occurring as
    * premises of INSTANTIATE proof nodes to its instantiations, which are a
@@ -93,13 +93,15 @@ class UnsatCoreManager : protected EnvObj
   /**
    * Gets the unsat core.
    *
-   * The unsat core is the intersection of the assertions in as and the free
-   * assumptions of the underlying refutation proof of pfn. Note that pfn must
-   * be a "final proof", which means that it's a proof of false under a scope
-   * containing all assertions.
+   * The unsat core is the intersection of the assertions of the underlying
+   * solver and the free assumptions of the refutation proof pfn. Note that pfn
+   * must be a "final proof", which means that it's a proof of false under a
+   * scope containing all assertions.
    *
    * The unsat core is stored in the core argument.
    *
+   * @param pfn The refutation proof
+   * @param core The unsat core, which is populated in this call
    * @param isInternal Whether this call was made internally (not by the user).
    * This impacts whether the unsat core is post-processed.
    */

@@ -881,7 +881,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     break;
     case ProofRule::DSL_REWRITE:
     {
-      DslProofRule di = DslProofRule::FAIL;
+      DslProofRule di = DslProofRule::NONE;
       if (!rewriter::getDslProofRule(args[0], di))
       {
         Assert(false);
