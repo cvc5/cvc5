@@ -408,6 +408,11 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(cacheVals.size() > 0);
       return cacheVals[0].getType();
       break;
+    case SkolemId::GROUND_TERM:
+    {
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      return cacheVals[0].getConst<SortToTerm>().getType();
+    }
     // real -> real function
     case SkolemId::DIV_BY_ZERO:
     {
