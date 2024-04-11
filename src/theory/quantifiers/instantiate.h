@@ -345,7 +345,7 @@ class Instantiate : public QuantifiersUtil
    */
   std::map<Node, InstMatchTrie> d_inst_match_trie;
   std::map<Node, CDInstMatchTrie*> d_c_inst_match_trie;
-  /** 
+  /**
    * The context which d_c_inst_match_trie depends on, if applicable. If
    * instLocal is true, this is the SAT context, otherwise it is the user
    * context.

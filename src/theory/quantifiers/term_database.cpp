@@ -310,7 +310,9 @@ void TermDb::computeUfEqcTerms( TNode f ) {
         computeArgReps(n);
         TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
         tnt.d_data[r].addTerm(n, d_arg_reps[n]);
-        Trace("term-db-debug") << "Adding term " << n << " to eqc " << r << " with arg reps : " << d_arg_reps[n] << std::endl;
+        Trace("term-db-debug")
+            << "Adding term " << n << " to eqc " << r
+            << " with arg reps : " << d_arg_reps[n] << std::endl;
       }
     }
   }
@@ -361,7 +363,8 @@ void TermDb::computeUfTerms( TNode f ) {
 
       computeArgReps(n);
       std::vector<TNode>& reps = d_arg_reps[n];
-      Trace("term-db-debug") << "Adding term " << n << " with arg reps : " << reps << std::endl;
+      Trace("term-db-debug")
+          << "Adding term " << n << " with arg reps : " << reps << std::endl;
       std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
       size_t rsize = reps.size();
       // ensure the relevant domain vector has been allocated

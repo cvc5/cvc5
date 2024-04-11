@@ -52,8 +52,7 @@ Instantiate::Instantiate(Env& env,
       d_qreg(qr),
       d_treg(tr),
       d_insts(userContext()),
-      d_ictx(options().quantifiers.instLocal ? context()
-                                                              : userContext()),
+      d_ictx(options().quantifiers.instLocal ? context() : userContext()),
       d_c_inst_match_trie_dom(d_ictx),
       d_pfInst(isProofEnabled()
                    ? new CDProof(env, userContext(), "Instantiate::pfInst")
