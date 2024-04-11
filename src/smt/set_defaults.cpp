@@ -1691,6 +1691,17 @@ void SetDefaults::notifyModifyOption(const std::string& x,
     verbose(1) << " due to " << reason;
   }
   verbose(1) << std::endl;
+  if (isOutputOn(OutputTag::OPTIONS_AUTO))
+  {
+    output(OutputTag::OPTIONS_AUTO) << "(option-auto";
+    output(OutputTag::OPTIONS_AUTO) << " " << x;
+    output(OutputTag::OPTIONS_AUTO) << " " << val;
+    if (!reason.empty())
+    {
+      output(OutputTag::OPTIONS_AUTO) << " :reason \"" << reason << "\"";
+    }
+    output(OutputTag::OPTIONS_AUTO) << ")" << std::endl;
+  }
 }
 
 void SetDefaults::disableChecking(Options& opts)
