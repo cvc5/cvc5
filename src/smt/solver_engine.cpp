@@ -1636,36 +1636,6 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
         "UNSAT response.");
   }
   return d_ucManager->getUnsatCoreLemmas(false);
-  /*
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  std::vector<Node> lemmas = pe->getUnsatCoreLemmas();
-  if (options().proof.proofAnnotate)
-  {
-    std::vector<std::shared_ptr<ProofNode>> ps =
-        pe->getProofLeaves(modes::ProofComponent::THEORY_LEMMAS);
-    std::map<Node, std::shared_ptr<ProofNode>> proven;
-    for (std::shared_ptr<ProofNode>& p : ps)
-    {
-      proven[p->getResult()] = p;
-    }
-    std::map<Node, std::shared_ptr<ProofNode>>::iterator itp;
-    for (const Node& lem : lemmas)
-    {
-      itp = proven.find(lem);
-      if (itp != proven.end())
-      {
-        Trace("ajr-temp") << "; from " << itp->second->getRule() << std::endl;
-      }
-      else
-      {
-        Trace("ajr-temp") << "; no source" << std::endl;
-      }
-      Trace("ajr-temp") << "(assert " << lem << ")" << std::endl;
-    }
-  }
-  return lemmas;
-  */
 }
 
 void SolverEngine::getRelevantQuantTermVectors(
