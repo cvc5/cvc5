@@ -51,10 +51,10 @@ enum class RewriteProofStatus : uint32_t
  */
 const char* toString(RewriteProofStatus s);
 /**
- * Writes a rewrite proof status  to a stream.
+ * Writes a rewrite proof status to a stream.
  *
  * @param out The stream to write to
- * @param s The rewrite proof status  to write to the stream
+ * @param s The rewrite proof status to write to the stream
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, RewriteProofStatus s);
