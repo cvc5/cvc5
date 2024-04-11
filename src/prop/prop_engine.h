@@ -378,10 +378,14 @@ class PropEngine : protected EnvObj
    * @param trn The trust node storing the formula to assert.
    * @param removable Whether this lemma can be quietly removed based
    * on an activity heuristic.
+   * @param local Whether this lemma is considered local to the SAT context.
+   * In this case, we must cache whether it has been added to the SAT solver
+   * already.
    */
   void assertTrustedLemmaInternal(theory::InferenceId id,
                                   TrustNode trn,
-                                  bool removable);
+                                  bool removable,
+                                  bool local);
   /**
    * Assert node as a formula to the CNF stream
    * @param id The inference identifier.
