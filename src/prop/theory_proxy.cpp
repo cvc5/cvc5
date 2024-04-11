@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,8 @@
 #include "decision/decision_engine.h"
 #include "decision/justification_strategy.h"
 #include "expr/node_algorithm.h"
+#include "expr/plugin.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/parallel_options.h"
@@ -318,6 +320,34 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
          << "] ";
     }
     Trace("sat-proof") << ss.str() << "\n";
+  }
+}
+
+void TheoryProxy::notifySatClause(const SatClause& clause)
+{
+  const std::vector<Plugin*>& plugins = d_env.getPlugins();
+  if (plugins.empty())
+  {
+    // nothing to do if no plugins
+    return;
+  }
+  // convert to node
+  std::vector<Node> clauseNodes;
+  for (const SatLiteral& l : clause)
+  {
+    clauseNodes.push_back(d_cnfStream->getNode(l));
+  }
+  Node cln = NodeManager::currentNM()->mkOr(clauseNodes);
+  // getSharableFormula is independent of specific plugin, just use first
+  Node clns = plugins[0]->getSharableFormula(cln);
+  if (!clns.isNull())
+  {
+    Trace("prop") << "Clause from SAT solver: " << clns << std::endl;
+    // notify the plugins
+    for (Plugin* p : plugins)
+    {
+      p->notifySatClause(clns);
+    }
   }
 }
 

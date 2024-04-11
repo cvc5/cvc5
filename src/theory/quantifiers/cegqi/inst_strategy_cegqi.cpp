@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,8 +56,8 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(userContext()),
-      d_small_const_multiplier(NodeManager::currentNM()->mkConstReal(
-          Rational(1) / Rational(1000000))),
+      d_small_const_multiplier(
+          nodeManager()->mkConstReal(Rational(1) / Rational(1000000))),
       d_small_const(d_small_const_multiplier),
       d_freeDeltaLb(userContext(), false)
 {
@@ -92,7 +92,7 @@ QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
 bool InstStrategyCegqi::registerCbqiLemma(Node q)
 {
   if( !hasAddedCbqiLemma( q ) ){
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     d_added_cbqi_lemma.insert( q );
     Trace("cegqi-debug") << "Do cbqi for " << q << std::endl;
     //add cbqi lemma
@@ -101,8 +101,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     Node ceBody = d_qreg.getInstConstantBody(q);
     if( !ceBody.isNull() ){
       //add counterexample lemma
-      Node lem = NodeManager::currentNM()->mkNode(
-          Kind::OR, ceLit.negate(), ceBody.negate());
+      Node lem =
+          nodeManager()->mkNode(Kind::OR, ceLit.negate(), ceBody.negate());
       //require any decision on cel to be phase=true
       d_qim.addPendingPhaseRequirement(ceLit, true);
       Trace("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
@@ -392,7 +392,7 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
       d_qstate.getValuation().getPreprocessedTerm(lem, skAsserts, skolems);
   std::vector<Node> lemp{ppLem};
   lemp.insert(lemp.end(), skAsserts.begin(), skAsserts.end());
-  ppLem = NodeManager::currentNM()->mkAnd(lemp);
+  ppLem = nodeManager()->mkAnd(lemp);
   Trace("cegqi-debug") << "Counterexample lemma (post-preprocess): " << ppLem
                        << std::endl;
   std::vector<Node> auxLems;
@@ -439,7 +439,7 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   }
 
   // now, process the bounding lemmas for virtual terms
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   VtsTermCache* vtc = d_treg.getVtsTermCache();
   if (e == 0)
   {
@@ -497,7 +497,7 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
   {
     return it->second;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node g = sm->mkDummySkolem("g", nm->booleanType());
   // ensure that it is a SAT literal

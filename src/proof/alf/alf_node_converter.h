@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,6 +35,7 @@ namespace proof {
 class BaseAlfNodeConverter : public NodeConverter
 {
  public:
+  BaseAlfNodeConverter(NodeManager* nm);
   /**
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
@@ -59,7 +60,7 @@ class BaseAlfNodeConverter : public NodeConverter
 class AlfNodeConverter : public BaseAlfNodeConverter
 {
  public:
-  AlfNodeConverter();
+  AlfNodeConverter(NodeManager* nm);
   ~AlfNodeConverter() {}
   /** Convert at pre-order traversal */
   Node preConvert(Node n) override;
@@ -136,7 +137,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   /** Is k a kind that is printed as an indexed operator in ALF? */
   static bool isIndexedOperatorKind(Kind k);
   /** Do we handle the given skolem id? */
-  static bool isHandledSkolemId(SkolemFunId id);
+  static bool isHandledSkolemId(SkolemId id);
   /** Get indices for printing the operator of n in the ALF format */
   static std::vector<Node> getOperatorIndices(Kind k, Node n);
   /** The set of all internally generated symbols */

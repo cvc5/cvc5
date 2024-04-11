@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +59,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
           statsName + "inferencesLemma"))
 {
   // don't add true lemma
-  Node truen = NodeManager::currentNM()->mkConst(true);
+  Node truen = nodeManager()->mkConst(true);
   d_lemmasSent.insert(truen);
 
   if (isProofEnabled())
@@ -329,7 +329,7 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
   }
   // otherwise, not using proofs, explain and make trust node
   Node ant = mkExplainPartial(exp, noExplain);
-  Node lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, ant, conc);
+  Node lem = nodeManager()->mkNode(Kind::IMPLIES, ant, conc);
   return TrustNode::mkTrustLemma(lem, nullptr);
 }
 
@@ -358,7 +358,7 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
   }
   // otherwise, not using proofs, explain and make trust node
   Node ant = mkExplainPartial(exp, noExplain);
-  Node lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, ant, conc);
+  Node lem = nodeManager()->mkNode(Kind::IMPLIES, ant, conc);
   return TrustNode::mkTrustLemma(lem, nullptr);
 }
 
@@ -420,7 +420,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   d_factIdStats << iid;
   resourceManager()->spendResource(iid);
   // make the node corresponding to the explanation
-  Node expn = NodeManager::currentNM()->mkAnd(exp);
+  Node expn = nodeManager()->mkAnd(exp);
   Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())
               << " " << expn << ")" << std::endl;
   // call the pre-notify fact method with preReg = false, isInternal = true
@@ -465,7 +465,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
       else
       {
         Assert(d_ee->hasTerm(eatom));
-        Assert(d_ee->areEqual(eatom, NodeManager::currentNM()->mkConst(epol)));
+        Assert(d_ee->areEqual(eatom, nodeManager()->mkConst(epol)));
       }
     }
   }
@@ -538,7 +538,7 @@ Node TheoryInferenceManager::mkExplain(TNode n)
 {
   std::vector<TNode> assumptions;
   explain(n, assumptions);
-  return NodeManager::currentNM()->mkAnd(assumptions);
+  return nodeManager()->mkAnd(assumptions);
 }
 
 Node TheoryInferenceManager::mkExplainPartial(
@@ -559,7 +559,7 @@ Node TheoryInferenceManager::mkExplainPartial(
     // otherwise, explain it
     explain(e, assumps);
   }
-  return NodeManager::currentNM()->mkAnd(assumps);
+  return nodeManager()->mkAnd(assumps);
 }
 
 uint32_t TheoryInferenceManager::numSentFacts() const

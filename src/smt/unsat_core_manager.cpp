@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,9 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/proof.h"
 #include "proof/proof_node_algorithm.h"
+#include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/print_benchmark.h"
@@ -32,13 +34,34 @@
 namespace cvc5::internal {
 namespace smt {
 
-UnsatCoreManager::UnsatCoreManager(Env& env) : EnvObj(env) {}
-
-void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
-                                    const Assertions& as,
-                                    std::vector<Node>& core,
-                                    bool isInternal)
+UnsatCoreManager::UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm)
+    : EnvObj(env), d_slv(slv), d_pfm(pfm)
 {
+}
+
+std::vector<Node> UnsatCoreManager::getUnsatCore(bool isInternal)
+{
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  // first get the unsat core from the prop engine
+  std::vector<Node> pcore;
+  pe->getUnsatCore(pcore);
+  // convert to input
+  return convertPreprocessedToInput(pcore, isInternal);
+}
+
+std::vector<Node> UnsatCoreManager::getUnsatCoreLemmas(bool isInternal)
+{
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  return pe->getUnsatCoreLemmas();
+}
+
+void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
+                                            std::vector<Node>& core,
+                                            bool isInternal)
+{
+  const Assertions& as = d_slv.getAssertions();
   Trace("unsat-core") << "UCManager::getUnsatCore: final proof: " << *pfn.get()
                       << "\n";
   Assert(pfn->getRule() == ProofRule::SCOPE);
@@ -89,12 +112,17 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
 }
 
 void UnsatCoreManager::getRelevantQuantTermVectors(
-    std::shared_ptr<ProofNode> pfn,
     std::map<Node, InstantiationList>& insts,
     std::map<Node, std::vector<Node>>& sks,
     bool getDebugInfo)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  // note that we don't have to connect the SAT proof to the input assertions,
+  // and preprocessing proofs don't impact what instantiations are used
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  std::shared_ptr<ProofNode> pfn = pe->getProof();
+  Assert(pfn != nullptr);
+  NodeManager* nm = nodeManager();
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
@@ -226,6 +254,21 @@ std::vector<Node> UnsatCoreManager::reduceUnsatCore(
     }
   }
   return newUcAssertions;
+}
+
+std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
+    const std::vector<Node>& ppa, bool isInternal)
+{
+  std::vector<Node> core;
+  CDProof cdp(d_env);
+  Node fnode = nodeManager()->mkConst(false);
+  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
+  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
+  Assert(pepf != nullptr);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfm.connectProofToAssertions(pepf, d_slv, ProofScopeMode::UNIFIED);
+  getUnsatCoreInternal(pfn, core, isInternal);
+  return core;
 }
 
 }  // namespace smt

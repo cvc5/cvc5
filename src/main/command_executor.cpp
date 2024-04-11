@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,12 +82,25 @@ void CommandExecutor::printStatistics(std::ostream& out) const
 {
   if (d_solver->getOptionInfo("stats").boolValue())
   {
-    const auto& stats = d_solver->getStatistics();
-    auto it = stats.begin(d_solver->getOptionInfo("stats-internal").boolValue(),
-                          d_solver->getOptionInfo("stats-all").boolValue());
-    for (; it != stats.end(); ++it)
     {
-      out << it->first << " = " << it->second << std::endl;
+      const auto& stats = d_solver->getStatistics();
+      auto it =
+          stats.begin(d_solver->getOptionInfo("stats-internal").boolValue(),
+                      d_solver->getOptionInfo("stats-all").boolValue());
+      for (; it != stats.end(); ++it)
+      {
+        out << it->first << " = " << it->second << std::endl;
+      }
+    }
+    {
+      const auto& stats = d_solver->getTermManager().getStatistics();
+      auto it =
+          stats.begin(d_solver->getOptionInfo("stats-internal").boolValue(),
+                      d_solver->getOptionInfo("stats-all").boolValue());
+      for (; it != stats.end(); ++it)
+      {
+        out << it->first << " = " << it->second << std::endl;
+      }
     }
   }
 }
@@ -96,6 +109,7 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 {
   if (d_solver->getOptionInfo("stats").boolValue())
   {
+    d_solver->getTermManager().printStatisticsSafe(fd);
     d_solver->printStatisticsSafe(fd);
   }
 }

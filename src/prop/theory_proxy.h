@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
+ *   Andrew Reynolds, Aina Niemetz, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -108,6 +108,11 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
+  /**
+   * Notify SAT clause. This should be called whenever the SAT solver learns
+   * a SAT clause. It notifies user plugins of the added clauses.
+   */
+  void notifySatClause(const SatClause& clause);
 
   void theoryPropagate(SatClause& output);
 

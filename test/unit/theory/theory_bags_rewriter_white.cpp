@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ class TestTheoryWhiteBagsRewriter : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_rewriter.reset(new BagsRewriter(nullptr));
+    d_rewriter.reset(new BagsRewriter(d_nodeManager, nullptr));
   }
 
   std::vector<Node> getNStrings(size_t n)

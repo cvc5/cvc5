@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Aina Niemetz, Mathias Preiner
+ *   Aina Niemetz, Liana Hadarean, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,8 @@ using namespace cvc5;
 
 int main()
 {
-  Solver slv;
+  TermManager tm;
+  Solver slv(tm);
   slv.setOption("produce-models", "true");      // Produce Models
   slv.setOption("output-language", "smtlib"); // output-language
   slv.setLogic("QF_AUFBV");                   // Set the logic
@@ -48,48 +49,48 @@ int main()
 
 
   // Sorts
-  Sort elementSort = slv.mkBitVectorSort(32);
-  Sort indexSort = slv.mkBitVectorSort(index_size);
-  Sort arraySort = slv.mkArraySort(indexSort, elementSort);
+  Sort elementSort = tm.mkBitVectorSort(32);
+  Sort indexSort = tm.mkBitVectorSort(index_size);
+  Sort arraySort = tm.mkArraySort(indexSort, elementSort);
 
   // Variables
-  Term current_array = slv.mkConst(arraySort, "current_array");
+  Term current_array = tm.mkConst(arraySort, "current_array");
 
   // Making a bit-vector constant
-  Term zero = slv.mkBitVector(index_size, 0u);
+  Term zero = tm.mkBitVector(index_size, 0u);
 
   // Asserting that current_array[0] > 0
-  Term current_array0 = slv.mkTerm(Kind::SELECT, {current_array, zero});
-  Term current_array0_gt_0 = slv.mkTerm(
-      Kind::BITVECTOR_SGT, {current_array0, slv.mkBitVector(32, 0u)});
+  Term current_array0 = tm.mkTerm(Kind::SELECT, {current_array, zero});
+  Term current_array0_gt_0 = tm.mkTerm(
+      Kind::BITVECTOR_SGT, {current_array0, tm.mkBitVector(32, 0u)});
   slv.assertFormula(current_array0_gt_0);
 
   // Building the assertions in the loop unrolling
-  Term index = slv.mkBitVector(index_size, 0u);
-  Term old_current = slv.mkTerm(Kind::SELECT, {current_array, index});
-  Term two = slv.mkBitVector(32, 2u);
+  Term index = tm.mkBitVector(index_size, 0u);
+  Term old_current = tm.mkTerm(Kind::SELECT, {current_array, index});
+  Term two = tm.mkBitVector(32, 2u);
 
   std::vector<Term> assertions;
   for (unsigned i = 1; i < k; ++i) {
-    index = slv.mkBitVector(index_size, i);
-    Term new_current = slv.mkTerm(Kind::BITVECTOR_MULT, {two, old_current});
+    index = tm.mkBitVector(index_size, i);
+    Term new_current = tm.mkTerm(Kind::BITVECTOR_MULT, {two, old_current});
     // current[i] = 2 * current[i-1]
     current_array =
-        slv.mkTerm(Kind::STORE, {current_array, index, new_current});
+        tm.mkTerm(Kind::STORE, {current_array, index, new_current});
     // current[i-1] < current [i]
     Term current_slt_new_current =
-        slv.mkTerm(Kind::BITVECTOR_SLT, {old_current, new_current});
+        tm.mkTerm(Kind::BITVECTOR_SLT, {old_current, new_current});
     assertions.push_back(current_slt_new_current);
 
-    old_current = slv.mkTerm(Kind::SELECT, {current_array, index});
+    old_current = tm.mkTerm(Kind::SELECT, {current_array, index});
   }
 
-  Term query = slv.mkTerm(Kind::NOT, {slv.mkTerm(Kind::AND, assertions)});
+  Term query = tm.mkTerm(Kind::NOT, {tm.mkTerm(Kind::AND, assertions)});
 
   cout << "Asserting " << query << " to cvc5 " << endl;
   slv.assertFormula(query);
   cout << "Expect sat. " << endl;
-  cout << "cvc5: " << slv.checkSatAssuming(slv.mkTrue()) << endl;
+  cout << "cvc5: " << slv.checkSatAssuming(tm.mkTrue()) << endl;
 
   // Getting the model
   cout << "The satisfying model is: " << endl;

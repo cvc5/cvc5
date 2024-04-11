@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,6 +36,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
     : EnvObj(env),
       d_notify(*this),
       d_trrc(env),
+      d_rdnc(nodeManager()),
       d_db(db),
       d_eval(nullptr),
       d_currRecLimit(0),
@@ -48,7 +49,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_statTotalInputSuccess(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputSuccess"))
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -75,7 +76,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     return true;
   }
   // if there are quantifiers, fail immediately
-  if (expr::hasBoundVar(a) || expr::hasBoundVar(b))
+  if (a.isClosure())
   {
     Trace("rpc") << "...fail (out of scope)" << std::endl;
     return false;
@@ -84,14 +85,31 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   // prove the equality
   Node eq = a.eqNode(b);
-  bool success = proveEq(cdp, eq, eq, recLimit, stepLimit);
+  bool success = false;
+  for (int64_t i = 0; i <= recLimit; i++)
+  {
+    Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+    if (proveEq(cdp, eq, eq, i, stepLimit))
+    {
+      success = true;
+      break;
+    }
+  }
   if (!success)
   {
     Node eqi = d_rdnc.convert(eq);
     // if converter didn't make a difference, don't try to prove again
     if (eqi != eq)
     {
-      success = proveEq(cdp, eq, eqi, recLimit, stepLimit);
+      for (int64_t i = 0; i <= recLimit; i++)
+      {
+        Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+        if (proveEq(cdp, eq, eqi, i, stepLimit))
+        {
+          success = true;
+          break;
+        }
+      }
     }
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
@@ -104,14 +122,14 @@ bool RewriteDbProofCons::proveEq(CDProof* cdp,
                                  int64_t recLimit,
                                  int64_t stepLimit)
 {
+  // add one to recursion limit, since it is decremented whenever we
+  // initiate the getMatches routine.
+  d_currRecLimit = recLimit + 1;
+  d_currStepLimit = stepLimit;
   DslProofRule id;
   if (!proveInternalBase(eqi, id))
   {
     Trace("rpc-debug") << "- prove internal" << std::endl;
-    // add one to recursion limit, since it is decremented whenever we
-    // initiate the getMatches routine.
-    d_currRecLimit = recLimit + 1;
-    d_currStepLimit = stepLimit;
     // Otherwise, we call the main prove internal method, which recurisvely
     // tries to find a matched conclusion whose conditions can be proven
     id = proveInternal(eqi);
@@ -166,6 +184,11 @@ DslProofRule RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
     Trace("rpc-debug2") << "...proved via congruence + evaluation" << std::endl;
     return DslProofRule::CONG_EVAL;
   }
+  // standard normalization
+  if (proveWithRule(DslProofRule::ACI_NORM, eqi, {}, {}, false, false, true))
+  {
+    return DslProofRule::ACI_NORM;
+  }
   // if arithmetic, maybe holds by arithmetic normalization?
   if (proveWithRule(
           DslProofRule::ARITH_POLY_NORM, eqi, {}, {}, false, false, true))
@@ -179,13 +202,16 @@ DslProofRule RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   d_db->getMatches(eqi[0], &d_notify);
   d_target = prevTarget;
   d_currRecLimit++;
-  // if we cached it during the above call, we succeeded
+  // check if we determined the proof in the above call, which is the case
+  // if we succeeded, or we are already marked as a failure at a lower depth.
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
-    // Assert(it->second.d_id != DslProofRule::FAIL)
-    //    << "unexpected failure for " << eqi;
-    return it->second.d_id;
+    if (it->second.d_id != DslProofRule::FAIL
+        || d_currRecLimit <= it->second.d_failMaxDepth)
+    {
+      return it->second.d_id;
+    }
   }
   // if target is (= (= t1 t2) true), maybe try showing (= t1 t2); otherwise
   // try showing (= target true)
@@ -315,7 +341,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     {
       return false;
     }
-    Node r = rewrite(target[0]);
+    Node r = rewriteConcrete(target[0]);
     if (r != r2)
     {
       return false;
@@ -326,7 +352,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     std::vector<Node> rchildren;
     for (size_t i = 0; i < nchild; i++)
     {
-      Node rr = rewrite(target[0][i]);
+      Node rr = rewriteConcrete(target[0][i]);
       if (!rr.isConst())
       {
         return false;
@@ -344,7 +370,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     {
       rchildren.insert(rchildren.begin(), target[0].getOperator());
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node tappc = nm->mkNode(target[0].getKind(), rchildren);
     if (doEvaluate(tappc) != r2)
     {
@@ -374,6 +400,14 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
     Node eq = target[0];
     vcs.push_back(eq);
     pic.d_vars.push_back(eq);
+  }
+  else if (id == DslProofRule::ACI_NORM)
+  {
+    if (!expr::isACINorm(target[0], target[1]))
+    {
+      return false;
+    }
+    pic.d_id = id;
   }
   else if (id == DslProofRule::ARITH_POLY_NORM)
   {
@@ -416,7 +450,8 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
       // The conclusion term may actually change type. Note that we must rewrite
       // the terms, since they may involve operators with abstract type that
       // evaluate to terms with concrete types.
-      if (!rewrite(stgt).getType().isComparableTo(rewrite(target[1]).getType()))
+      if (!rewriteConcrete(stgt).getType().isComparableTo(
+              rewriteConcrete(target[1]).getType()))
       {
         Trace("rpc-debug2") << "...fail (types)" << std::endl;
         return false;
@@ -546,7 +581,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
       Trace("rpc-debug2") << "...fail (at higher depth)" << std::endl;
       return true;
     }
-    Trace("rpc-debug2") << "...fail (already fail)" << std::endl;
+    Trace("rpc-debug2") << "...unknown (already fail)" << std::endl;
     // Will not succeed below, since we know we've already tried. Hence, we
     // are in a situation where we have yet to succeed to prove eqi for some
     // depth, but we are currently trying at a higher maximum depth.
@@ -597,7 +632,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
         Trace("rpc-debug2") << "...fail, ill-typed equality" << std::endl;
         return true;
       }
-      Node eqr = rewrite(eq);
+      Node eqr = rewriteConcrete(eq);
       if (eqr.isConst())
       {
         // definitely not true
@@ -648,6 +683,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
     pi.d_id = idb;
     return true;
   }
+  Trace("rpc-debug2") << "...unknown (default)" << std::endl;
   // otherwise, we fail to either prove or disprove the equality
   return false;
 }
@@ -655,7 +691,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
 bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 {
   // note we could use single internal cdp to improve subproof sharing
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, std::vector<Node>> premises;
   std::unordered_map<TNode, std::vector<Node>> pfArgs;
@@ -840,6 +876,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         conc = ps[0].eqNode(d_true);
         cdp->addStep(conc, ProofRule::TRUE_INTRO, ps, {});
       }
+      else if (pcur.d_id == DslProofRule::ACI_NORM)
+      {
+        cdp->addStep(cur, ProofRule::ACI_NORM, {}, {cur});
+      }
       else if (pcur.d_id == DslProofRule::ARITH_POLY_NORM)
       {
         cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
@@ -1019,6 +1059,15 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
       cpi.d_vars.emplace_back(lhs.eqNode(rhs));
     }
   }
+}
+
+Node RewriteDbProofCons::rewriteConcrete(const Node& n)
+{
+  if (expr::hasAbstractSubterm(n))
+  {
+    return n;
+  }
+  return rewrite(n);
 }
 
 }  // namespace rewriter
