@@ -1487,7 +1487,7 @@ enum ENUM(ProofRule) : uint32_t
    * :math:`\mathit{skolem}(\mathit{ite}(
    * \mathit{len}(t_2) >= \mathit{len}(s_2),
    * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
-   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2))))`,
+   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2))))`
    * and `\epsilon` is the empty string (or sequence).
    *
    * Above, :math:`\mathit{suf}(x,n)` is shorthand for
