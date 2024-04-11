@@ -297,6 +297,7 @@ public class Solver extends AbstractPointer
    * @return The datatype sort.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
   {
     return d_tm.mkDatatypeSort(dtypedecl);
@@ -316,6 +317,7 @@ public class Solver extends AbstractPointer
    * @return The datatype sorts.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
     return d_tm.mkDatatypeSorts(dtypedecls);
@@ -333,6 +335,7 @@ public class Solver extends AbstractPointer
    * @param codomain The sort of the function return value.
    * @return The function sort.
    */
+  @Deprecated
   public Sort mkFunctionSort(Sort domain, Sort codomain)
   {
     return d_tm.mkFunctionSort(domain, codomain);
@@ -350,6 +353,7 @@ public class Solver extends AbstractPointer
    * @param codomain The sort of the function return value.
    * @return The function sort.
    */
+  @Deprecated
   public Sort mkFunctionSort(Sort[] sorts, Sort codomain)
   {
     return d_tm.mkFunctionSort(sorts, codomain);
@@ -368,6 +372,7 @@ public class Solver extends AbstractPointer
    * @param symbol The name of the sort.
    * @return The sort parameter.
    */
+  @Deprecated
   public Sort mkParamSort(String symbol)
   {
     return d_tm.mkParamSort(symbol);
@@ -385,6 +390,7 @@ public class Solver extends AbstractPointer
    *
    * @return The sort parameter.
    */
+  @Deprecated
   public Sort mkParamSort()
   {
     return d_tm.mkParamSort();
@@ -401,6 +407,7 @@ public class Solver extends AbstractPointer
    * @param sorts The list of sorts of the predicate.
    * @return The predicate sort.
    */
+  @Deprecated
   public Sort mkPredicateSort(Sort[] sorts)
   {
     return d_tm.mkPredicateSort(sorts);
@@ -419,6 +426,7 @@ public class Solver extends AbstractPointer
    * @param fields The list of fields of the record.
    * @return The record sort.
    */
+  @Deprecated
   public Sort mkRecordSort(Pair<String, Sort>[] fields)
   {
     return d_tm.mkRecordSort(fields);
@@ -435,6 +443,7 @@ public class Solver extends AbstractPointer
    * @param elemSort The sort of the set elements.
    * @return The set sort.
    */
+  @Deprecated
   public Sort mkSetSort(Sort elemSort)
   {
     return d_tm.mkSetSort(elemSort);
@@ -451,6 +460,7 @@ public class Solver extends AbstractPointer
    * @param elemSort The sort of the bag elements.
    * @return The bag sort.
    */
+  @Deprecated
   public Sort mkBagSort(Sort elemSort)
   {
     return d_tm.mkBagSort(elemSort);
@@ -467,6 +477,7 @@ public class Solver extends AbstractPointer
    * @param elemSort The sort of the sequence elements.
    * @return The sequence sort.
    */
+  @Deprecated
   public Sort mkSequenceSort(Sort elemSort)
   {
     return d_tm.mkSequenceSort(elemSort);
@@ -503,6 +514,7 @@ public class Solver extends AbstractPointer
    *
    * @api.note This method is experimental and may change in future versions.
    */
+  @Deprecated
   public Sort mkAbstractSort(SortKind kind)
   {
     return d_tm.mkAbstractSort(kind);
@@ -519,6 +531,7 @@ public class Solver extends AbstractPointer
    * @param symbol The name of the sort.
    * @return The uninterpreted sort.
    */
+  @Deprecated
   public Sort mkUninterpretedSort(String symbol)
   {
     return d_tm.mkUninterpretedSort(symbol);
@@ -534,6 +547,7 @@ public class Solver extends AbstractPointer
    *
    * @return The uninterpreted sort.
    */
+  @Deprecated
   public Sort mkUninterpretedSort()
   {
     return d_tm.mkUninterpretedSort();
@@ -555,6 +569,7 @@ public class Solver extends AbstractPointer
    * @return The unresolved sort.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Sort mkUnresolvedDatatypeSort(String symbol, int arity) throws CVC5ApiException
   {
     return d_tm.mkUnresolvedDatatypeSort(symbol, arity);
@@ -575,6 +590,7 @@ public class Solver extends AbstractPointer
    * @return The unresolved sort.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Sort mkUnresolvedDatatypeSort(String symbol) throws CVC5ApiException
   {
     return mkUnresolvedDatatypeSort(symbol, 0);
@@ -596,6 +612,7 @@ public class Solver extends AbstractPointer
    * @return The sort constructor sort.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Sort mkUninterpretedSortConstructorSort(int arity, String symbol) throws CVC5ApiException
   {
     return d_tm.mkUninterpretedSortConstructorSort(arity, symbol);
@@ -616,6 +633,7 @@ public class Solver extends AbstractPointer
    * @return The sort constructor sort.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Sort mkUninterpretedSortConstructorSort(int arity) throws CVC5ApiException
   {
     return d_tm.mkUninterpretedSortConstructorSort(arity);
@@ -632,6 +650,7 @@ public class Solver extends AbstractPointer
    * @param sorts Of the elements of the tuple.
    * @return The tuple sort.
    */
+  @Deprecated
   public Sort mkTupleSort(Sort[] sorts)
   {
     return d_tm.mkTupleSort(sorts);
@@ -648,6 +667,7 @@ public class Solver extends AbstractPointer
    * @param sort The sort of the element of the nullable.
    * @return The nullable sort.
    */
+  @Deprecated
   public Sort mkNullableSort(Sort sort)
   {
     return d_tm.mkNullableSort(sort);
@@ -668,6 +688,7 @@ public class Solver extends AbstractPointer
    * @param kind The kind of the term.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Kind kind)
   {
     return d_tm.mkTerm(kind);
@@ -685,6 +706,7 @@ public class Solver extends AbstractPointer
    * @param child The child of the term.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Kind kind, Term child)
   {
     return d_tm.mkTerm(kind, child);
@@ -703,6 +725,7 @@ public class Solver extends AbstractPointer
    * @param child2 The second child of the term.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Kind kind, Term child1, Term child2)
   {
     return d_tm.mkTerm(kind, child1, child2);
@@ -722,6 +745,7 @@ public class Solver extends AbstractPointer
    * @param child3 The third child of the term.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
   {
     return d_tm.mkTerm(kind, child1, child2, child3);
@@ -739,6 +763,7 @@ public class Solver extends AbstractPointer
    * @param children The children of the term.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Kind kind, Term[] children)
   {
     return d_tm.mkTerm(kind, children);
@@ -756,6 +781,7 @@ public class Solver extends AbstractPointer
    * @param op The operator.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Op op)
   {
     return d_tm.mkTerm(op);
@@ -774,6 +800,7 @@ public class Solver extends AbstractPointer
    * @param child The child of the term.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Op op, Term child)
   {
     return d_tm.mkTerm(op, child);
@@ -793,6 +820,7 @@ public class Solver extends AbstractPointer
    * @param child2 The second child of the term.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Op op, Term child1, Term child2)
   {
     return d_tm.mkTerm(op, child1, child2);
@@ -813,6 +841,7 @@ public class Solver extends AbstractPointer
    * @param child3 The third child of the term.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Op op, Term child1, Term child2, Term child3)
   {
     return d_tm.mkTerm(op, child1, child2, child3);
@@ -831,6 +860,7 @@ public class Solver extends AbstractPointer
    * @param children The children of the term.
    * @return The Term.
    */
+  @Deprecated
   public Term mkTerm(Op op, Term[] children)
   {
     return d_tm.mkTerm(op, children);
@@ -848,6 +878,7 @@ public class Solver extends AbstractPointer
    * @param terms The elements in the tuple.
    * @return The tuple Term.
    */
+  @Deprecated
   public Term mkTuple(Term[] terms)
   {
     return d_tm.mkTuple(terms);
@@ -864,6 +895,7 @@ public class Solver extends AbstractPointer
    * @param term The element value.
    * @return the Element value wrapped in some constructor.
    */
+  @Deprecated
   public Term mkNullableSome(Term term)
   {
     return d_tm.mkNullableSome(term);
@@ -882,6 +914,7 @@ public class Solver extends AbstractPointer
    * @param term A nullable term.
    * @return The element value of the nullable term.
    */
+  @Deprecated
   public Term mkNullableVal(Term term)
   {
     return d_tm.mkNullableVal(term);
@@ -898,6 +931,7 @@ public class Solver extends AbstractPointer
    * @param term A nullable term.
    * @return A tester whether term is null.
    */
+  @Deprecated
   public Term mkNullableIsNull(Term term)
   {
     return d_tm.mkNullableIsNull(term);
@@ -914,6 +948,7 @@ public class Solver extends AbstractPointer
    * @param term A nullable term.
    * @return A tester whether term is some.
    */
+  @Deprecated
   public Term mkNullableIsSome(Term term)
   {
     return d_tm.mkNullableIsSome(term);
@@ -930,6 +965,7 @@ public class Solver extends AbstractPointer
    * @param sort The sort of the Nullable element.
    * @return The null constant.
    */
+  @Deprecated
   public Term mkNullableNull(Sort sort)
   {
     return d_tm.mkNullableNull(sort);
@@ -956,6 +992,7 @@ public class Solver extends AbstractPointer
    * is a lambda expression, and the remaining children are
    * the original arguments.
    */
+  @Deprecated
   public Term mkNullableLift(Kind kind, Term[] args)
   {
     return d_tm.mkNullableLift(kind, args);
@@ -981,6 +1018,7 @@ public class Solver extends AbstractPointer
    * @param kind The kind to wrap.
    * @return The operator.
    */
+  @Deprecated
   public Op mkOp(Kind kind)
   {
     return d_tm.mkOp(kind);
@@ -1004,6 +1042,7 @@ public class Solver extends AbstractPointer
    * @param arg The string argument to this operator.
    * @return The operator.
    */
+  @Deprecated
   public Op mkOp(Kind kind, String arg)
   {
     return d_tm.mkOp(kind, arg);
@@ -1037,6 +1076,7 @@ public class Solver extends AbstractPointer
    * @return The operator.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
   {
     return d_tm.mkOp(kind, arg);
@@ -1065,6 +1105,7 @@ public class Solver extends AbstractPointer
    * @return The operator.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
   {
     return d_tm.mkOp(kind, arg1, arg2);
@@ -1087,6 +1128,7 @@ public class Solver extends AbstractPointer
    * @return The operator.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
   {
     return d_tm.mkOp(kind, args);
@@ -1106,6 +1148,7 @@ public class Solver extends AbstractPointer
    *
    * @return The true constant.
    */
+  @Deprecated
   public Term mkTrue()
   {
     return d_tm.mkTrue();
@@ -1121,6 +1164,7 @@ public class Solver extends AbstractPointer
    *
    * @return The false constant.
    */
+  @Deprecated
   public Term mkFalse()
   {
     return d_tm.mkFalse();
@@ -1137,6 +1181,7 @@ public class Solver extends AbstractPointer
    * @param val The value of the constant.
    * @return The Boolean constant.
    */
+  @Deprecated
   public Term mkBoolean(boolean val)
   {
     return d_tm.mkBoolean(val);
@@ -1152,6 +1197,7 @@ public class Solver extends AbstractPointer
    *
    * @return A constant representing Pi.
    */
+  @Deprecated
   public Term mkPi()
   {
     return d_tm.mkPi();
@@ -1171,6 +1217,7 @@ public class Solver extends AbstractPointer
    *         integer).
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkInteger(String s) throws CVC5ApiException
   {
     return d_tm.mkInteger(s);
@@ -1187,6 +1234,7 @@ public class Solver extends AbstractPointer
    * @param val The value of the constant.
    * @return A constant of sort Integer.
    */
+  @Deprecated
   public Term mkInteger(long val)
   {
     return d_tm.mkInteger(val);
@@ -1206,6 +1254,7 @@ public class Solver extends AbstractPointer
    * @return A constant of sort Real.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkReal(String s) throws CVC5ApiException
   {
     return d_tm.mkReal(s);
@@ -1222,6 +1271,7 @@ public class Solver extends AbstractPointer
    * @param val The value of the constant.
    * @return A constant of sort Integer.
    */
+  @Deprecated
   public Term mkReal(long val)
   {
     return d_tm.mkReal(val);
@@ -1239,6 +1289,7 @@ public class Solver extends AbstractPointer
    * @param den The value of the denominator.
    * @return A constant of sort Real.
    */
+  @Deprecated
   public Term mkReal(long num, long den)
   {
     return d_tm.mkReal(num, den);
@@ -1254,6 +1305,7 @@ public class Solver extends AbstractPointer
    *
    * @return The none term.
    */
+  @Deprecated
   public Term mkRegexpNone()
   {
     return d_tm.mkRegexpNone();
@@ -1269,6 +1321,7 @@ public class Solver extends AbstractPointer
    *
    * @return The all term.
    */
+  @Deprecated
   public Term mkRegexpAll()
   {
     return d_tm.mkRegexpAll();
@@ -1284,6 +1337,7 @@ public class Solver extends AbstractPointer
    *
    * @return The allchar term.
    */
+  @Deprecated
   public Term mkRegexpAllchar()
   {
     return d_tm.mkRegexpAllchar();
@@ -1300,6 +1354,7 @@ public class Solver extends AbstractPointer
    * @param sort The sort of the set elements.
    * @return The empty set constant.
    */
+  @Deprecated
   public Term mkEmptySet(Sort sort)
   {
     return d_tm.mkEmptySet(sort);
@@ -1316,6 +1371,7 @@ public class Solver extends AbstractPointer
    * @param sort The sort of the bag elements.
    * @return The empty bag constant.
    */
+  @Deprecated
   public Term mkEmptyBag(Sort sort)
   {
     return d_tm.mkEmptyBag(sort);
@@ -1333,6 +1389,7 @@ public class Solver extends AbstractPointer
    *
    * @return The separation logic empty term.
    */
+  @Deprecated
   public Term mkSepEmp()
   {
     return d_tm.mkSepEmp();
@@ -1351,6 +1408,7 @@ public class Solver extends AbstractPointer
    * @param sort The sort of the nil term.
    * @return The separation logic nil term.
    */
+  @Deprecated
   public Term mkSepNil(Sort sort)
   {
     return d_tm.mkSepNil(sort);
@@ -1367,6 +1425,7 @@ public class Solver extends AbstractPointer
    * @param s The string this constant represents.
    * @return The String constant.
    */
+  @Deprecated
   public Term mkString(String s)
   {
     return d_tm.mkString(s);
@@ -1386,6 +1445,7 @@ public class Solver extends AbstractPointer
    *                        character.
    * @return The String constant.
    */
+  @Deprecated
   public Term mkString(String s, boolean useEscSequences)
   {
     // TODO: review unicode https://github.com/cvc5/cvc5-wishues/issues/150
@@ -1405,6 +1465,7 @@ public class Solver extends AbstractPointer
    * @return The String constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkString(int[] s) throws CVC5ApiException
   {
     return d_tm.mkString(s);
@@ -1421,6 +1482,7 @@ public class Solver extends AbstractPointer
    * @param sort The element sort of the sequence.
    * @return The empty sequence with given element sort.
    */
+  @Deprecated
   public Term mkEmptySequence(Sort sort)
   {
     return d_tm.mkEmptySequence(sort);
@@ -1437,6 +1499,7 @@ public class Solver extends AbstractPointer
    * @param sort The sort of the set elements.
    * @return The universe set constant.
    */
+  @Deprecated
   public Term mkUniverseSet(Sort sort)
   {
     return d_tm.mkUniverseSet(sort);
@@ -1454,6 +1517,7 @@ public class Solver extends AbstractPointer
    * @return The bit-vector constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkBitVector(int size) throws CVC5ApiException
   {
     return d_tm.mkBitVector(size);
@@ -1474,6 +1538,7 @@ public class Solver extends AbstractPointer
    * @return The bit-vector constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkBitVector(int size, long val) throws CVC5ApiException
   {
     return d_tm.mkBitVector(size, val);
@@ -1496,6 +1561,7 @@ public class Solver extends AbstractPointer
    * @return The bit-vector constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkBitVector(int size, String s, int base) throws CVC5ApiException
   {
     return d_tm.mkBitVector(size, s, base);
@@ -1517,6 +1583,7 @@ public class Solver extends AbstractPointer
    * @return The finite field constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkFiniteFieldElem(String val, Sort sort, int base) throws CVC5ApiException
   {
     return d_tm.mkFiniteFieldElem(val, sort, base);
@@ -1536,6 +1603,7 @@ public class Solver extends AbstractPointer
    *            sort).
    * @return The constant array term.
    */
+  @Deprecated
   public Term mkConstArray(Sort sort, Term val)
   {
     return d_tm.mkConstArray(sort, val);
@@ -1554,6 +1622,7 @@ public class Solver extends AbstractPointer
    * @return The floating-point constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkFloatingPointPosInf(int exp, int sig) throws CVC5ApiException
   {
     return d_tm.mkFloatingPointPosInf(exp, sig);
@@ -1572,6 +1641,7 @@ public class Solver extends AbstractPointer
    * @return The floating-point constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkFloatingPointNegInf(int exp, int sig) throws CVC5ApiException
   {
     return d_tm.mkFloatingPointNegInf(exp, sig);
@@ -1590,6 +1660,7 @@ public class Solver extends AbstractPointer
    * @return The floating-point constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkFloatingPointNaN(int exp, int sig) throws CVC5ApiException
   {
     return d_tm.mkFloatingPointNaN(exp, sig);
@@ -1608,6 +1679,7 @@ public class Solver extends AbstractPointer
    * @return The floating-point constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkFloatingPointPosZero(int exp, int sig) throws CVC5ApiException
   {
     return d_tm.mkFloatingPointPosZero(exp, sig);
@@ -1626,6 +1698,7 @@ public class Solver extends AbstractPointer
    * @return The floating-point constant.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkFloatingPointNegZero(int exp, int sig) throws CVC5ApiException
   {
     return d_tm.mkFloatingPointNegZero(exp, sig);
@@ -1642,6 +1715,7 @@ public class Solver extends AbstractPointer
    * @param rm The floating point rounding mode this constant represents.
    * @return The rounding mode.
    */
+  @Deprecated
   public Term mkRoundingMode(RoundingMode rm)
   {
     return d_tm.mkRoundingMode(rm);
@@ -1662,6 +1736,7 @@ public class Solver extends AbstractPointer
    * @return The floating-point value.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
   {
     return d_tm.mkFloatingPoint(exp, sig, val);
@@ -1682,6 +1757,7 @@ public class Solver extends AbstractPointer
    * @return The floating-point value.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkFloatingPoint(Term sign, Term exp, Term sig) throws CVC5ApiException
   {
     return d_tm.mkFloatingPoint(sign, exp, sig);
@@ -1703,6 +1779,7 @@ public class Solver extends AbstractPointer
    * @return The cardinality constraint.
    * @throws CVC5ApiException
    */
+  @Deprecated
   public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
   {
     return d_tm.mkCardinalityConstraint(sort, upperBound);
@@ -1730,6 +1807,7 @@ public class Solver extends AbstractPointer
    * @param symbol The name of the constant.
    * @return The first-order constant.
    */
+  @Deprecated
   public Term mkConst(Sort sort, String symbol)
   {
     return d_tm.mkConst(sort, symbol);
@@ -1746,6 +1824,7 @@ public class Solver extends AbstractPointer
    * @param sort The sort of the constant.
    * @return The first-order constant.
    */
+  @Deprecated
   public Term mkConst(Sort sort)
   {
     return d_tm.mkConst(sort);
@@ -1763,6 +1842,7 @@ public class Solver extends AbstractPointer
    * @param sort The sort of the variable.
    * @return The variable.
    */
+  @Deprecated
   public Term mkVar(Sort sort)
   {
     return d_tm.mkVar(sort);
@@ -1781,6 +1861,7 @@ public class Solver extends AbstractPointer
    * @param symbol The name of the variable.
    * @return The variable.
    */
+  @Deprecated
   public Term mkVar(Sort sort, String symbol)
   {
     return d_tm.mkVar(sort, symbol);
@@ -1801,6 +1882,7 @@ public class Solver extends AbstractPointer
    * @param name The name of the datatype constructor.
    * @return The DatatypeConstructorDecl.
    */
+  @Deprecated
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
     return d_tm.mkDatatypeConstructorDecl(name);
@@ -1821,6 +1903,7 @@ public class Solver extends AbstractPointer
    * @param name The name of the datatype.
    * @return The DatatypeDecl.
    */
+  @Deprecated
   public DatatypeDecl mkDatatypeDecl(String name)
   {
     return d_tm.mkDatatypeDecl(name);
@@ -1838,6 +1921,7 @@ public class Solver extends AbstractPointer
    * @param isCoDatatype True if a codatatype is to be constructed.
    * @return The DatatypeDecl.
    */
+  @Deprecated
   public DatatypeDecl mkDatatypeDecl(String name, boolean isCoDatatype)
   {
     return d_tm.mkDatatypeDecl(name, isCoDatatype);
@@ -1859,6 +1943,7 @@ public class Solver extends AbstractPointer
    * @param params A list of sort parameters.
    * @return The DatatypeDecl.
    */
+  @Deprecated
   public DatatypeDecl mkDatatypeDecl(String name, Sort[] params)
   {
     return d_tm.mkDatatypeDecl(name, params);
@@ -1879,6 +1964,7 @@ public class Solver extends AbstractPointer
    * @param isCoDatatype True if a codatatype is to be constructed.
    * @return The DatatypeDecl.
    */
+  @Deprecated
   public DatatypeDecl mkDatatypeDecl(String name, Sort[] params, boolean isCoDatatype)
   {
     return d_tm.mkDatatypeDecl(name, params, isCoDatatype);
