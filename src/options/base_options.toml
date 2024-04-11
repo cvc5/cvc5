@@ -244,6 +244,7 @@ name   = "Base"
   name = "unsat-core-lemmas-benchmark"
   help = "print the corresponding benchmark when successfully computing an unsat core with theory lemmas."
   description = "With ``-o unsat-core-lemmas-benchmark``, cvc5 prints the corresponding benchmark when it successfully computes an unsat core that includes the theory lemmas used."
+  example-file = "regress0/printer/print_unsat_core_lemmas.smt2"
 [[option.mode.PORTFOLIO]]
   name = "portfolio"
   help = "prints the option strings tried in portfolio mode."
