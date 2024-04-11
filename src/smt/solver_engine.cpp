@@ -2128,8 +2128,8 @@ void SolverEngine::setOption(const std::string& key,
       // by omitting.
       if (getOption(key) == value)
       {
-        ss << " The value for " << key << " is already its current value (\""
-           << value << "\"). Omitting this option will avoid this exception.";
+        ss << " The value for " << key << " is already its current value ("
+           << value << "). Omitting this option will avoid this exception.";
       }
       throw OptionException(ss.str());
     }
@@ -2159,8 +2159,8 @@ void SolverEngine::setOption(const std::string& key,
           if (isDefault)
           {
             ss << " The value for " << rkey
-               << " is already its current value (\"" << rvalue
-               << "\"). Omitting this option will avoid this exception.";
+               << " is already its current value (" << rvalue
+               << "). Omitting this option will avoid this exception.";
           }
         }
         throw OptionException(ss.str());
