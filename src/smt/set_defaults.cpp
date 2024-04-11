@@ -1693,7 +1693,7 @@ void SetDefaults::notifyModifyOption(const std::string& x,
   verbose(1) << std::endl;
   if (isOutputOn(OutputTag::OPTIONS_AUTO))
   {
-    output(OutputTag::OPTIONS_AUTO) << "(option-auto";
+    output(OutputTag::OPTIONS_AUTO) << "(options-auto";
     output(OutputTag::OPTIONS_AUTO) << " " << x;
     output(OutputTag::OPTIONS_AUTO) << " " << val;
     if (!reason.empty())
