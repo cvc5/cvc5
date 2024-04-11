@@ -3761,6 +3761,17 @@ DatatypeConstructorDecl::~DatatypeConstructorDecl()
   }
 }
 
+bool DatatypeConstructorDecl::operator==(
+    const DatatypeConstructorDecl& decl) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_ctor == decl.d_ctor;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 void DatatypeConstructorDecl::addSelector(const std::string& name,
                                           const Sort& sort)
 {
@@ -3861,6 +3872,16 @@ DatatypeDecl::DatatypeDecl(TermManager* tm,
   std::vector<internal::TypeNode> tparams = Sort::sortVectorToTypeNodes(params);
   d_dtype = std::shared_ptr<internal::DType>(
       new internal::DType(name, tparams, isCoDatatype));
+}
+
+bool DatatypeDecl::operator==(const DatatypeDecl& decl) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype == decl.d_dtype;
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 
 bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
@@ -3988,6 +4009,16 @@ DatatypeSelector::~DatatypeSelector()
   }
 }
 
+bool DatatypeSelector::operator==(const DatatypeSelector& sel) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_stor == sel.d_stor;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::string DatatypeSelector::getName() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -4074,6 +4105,16 @@ DatatypeConstructor::~DatatypeConstructor()
   {
     d_ctor.reset();
   }
+}
+
+bool DatatypeConstructor::operator==(const DatatypeConstructor& cons) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_ctor == cons.d_ctor;
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 
 std::string DatatypeConstructor::getName() const
@@ -4317,6 +4358,16 @@ Datatype::~Datatype()
   {
     d_dtype.reset();
   }
+}
+
+bool Datatype::operator==(const Datatype& dt) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype == dt.d_dtype;
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
@@ -8655,6 +8706,35 @@ size_t std::hash<cvc5::Sort>::operator()(const cvc5::Sort& s) const
 size_t std::hash<cvc5::Term>::operator()(const cvc5::Term& t) const
 {
   return std::hash<cvc5::internal::Node>()(*t.d_node);
+}
+
+size_t std::hash<cvc5::DatatypeConstructorDecl>::operator()(
+    const cvc5::DatatypeConstructorDecl& decl) const
+{
+  return std::hash<cvc5::internal::DTypeConstructor>()(*decl.d_ctor);
+}
+
+size_t std::hash<cvc5::DatatypeDecl>::operator()(
+    const cvc5::DatatypeDecl& decl) const
+{
+  return std::hash<cvc5::internal::DType>()(*decl.d_dtype);
+}
+
+size_t std::hash<cvc5::DatatypeSelector>::operator()(
+    const cvc5::DatatypeSelector& sel) const
+{
+  return std::hash<cvc5::internal::DTypeSelector>()(*sel.d_stor);
+}
+
+size_t std::hash<cvc5::DatatypeConstructor>::operator()(
+    const cvc5::DatatypeConstructor& cons) const
+{
+  return std::hash<cvc5::internal::DTypeConstructor>()(*cons.d_ctor);
+}
+
+size_t hash<cvc5::Datatype>::operator()(const cvc5::Datatype& dt) const
+{
+  return std::hash<cvc5::internal::DType>()(*dt.d_dtype);
 }
 
 }  // namespace std
