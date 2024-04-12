@@ -17,8 +17,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__LFSC__LFSC_PRINTER_H
-#define CVC4__PROOF__LFSC__LFSC_PRINTER_H
+#ifndef CVC5__PROOF__LFSC__LFSC_PRINTER_H
+#define CVC5__PROOF__LFSC__LFSC_PRINTER_H
 
 #include <iosfwd>
 #include <map>
