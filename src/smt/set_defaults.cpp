@@ -1691,16 +1691,20 @@ void SetDefaults::notifyModifyOption(const std::string& x,
     verbose(1) << " due to " << reason;
   }
   verbose(1) << std::endl;
-  if (isOutputOn(OutputTag::OPTIONS_AUTO))
+  // don't print -o options-auto for internal subsolvers
+  if (!d_isInternalSubsolver)
   {
-    output(OutputTag::OPTIONS_AUTO) << "(options-auto";
-    output(OutputTag::OPTIONS_AUTO) << " " << x;
-    output(OutputTag::OPTIONS_AUTO) << " " << val;
-    if (!reason.empty())
+    if (isOutputOn(OutputTag::OPTIONS_AUTO))
     {
-      output(OutputTag::OPTIONS_AUTO) << " :reason \"" << reason << "\"";
+      output(OutputTag::OPTIONS_AUTO) << "(options-auto";
+      output(OutputTag::OPTIONS_AUTO) << " " << x;
+      output(OutputTag::OPTIONS_AUTO) << " " << val;
+      if (!reason.empty())
+      {
+        output(OutputTag::OPTIONS_AUTO) << " :reason \"" << reason << "\"";
+      }
+      output(OutputTag::OPTIONS_AUTO) << ")" << std::endl;
     }
-    output(OutputTag::OPTIONS_AUTO) << ")" << std::endl;
   }
 }
 
