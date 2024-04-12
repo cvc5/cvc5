@@ -239,14 +239,14 @@ Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
 
 Node ProofNodeToSExpr::getOrMkDslRewriteVariable(TNode n)
 {
-  rewriter::DslProofRule rid;
-  if (!rewriter::getDslProofRule(n, rid))
+  RewriteRuleId rid;
+  if (!rewriter::getRewriteRuleId(n, rid))
   {
     // just use self if we failed to get the node, throw a debug failure
     Assert(false) << "Expected inference id node, got " << n;
     return n;
   }
-  std::map<rewriter::DslProofRule, Node>::iterator it = d_dslrMap.find(rid);
+  std::map<RewriteRuleId, Node>::iterator it = d_dslrMap.find(rid);
   if (it != d_dslrMap.end())
   {
     return it->second;

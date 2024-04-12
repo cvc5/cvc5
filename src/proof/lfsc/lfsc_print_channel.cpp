@@ -106,10 +106,10 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   else if (pn->getRule() == ProofRule::DSL_REWRITE)
   {
     const std::vector<Node>& args = pn->getArguments();
-    DslProofRule di;
-    if (rewriter::getDslProofRule(args[0], di))
+    RewriteRuleId di;
+    if (rewriter::getRewriteRuleId(args[0], di))
     {
-      printDslProofRuleId(out, di);
+      printRewriteRuleId(out, di);
     }
     else
     {
@@ -135,8 +135,8 @@ void LfscPrintChannelOut::printId(std::ostream& out,
   out << prefix << id;
 }
 
-void LfscPrintChannelOut::printDslProofRuleId(std::ostream& out,
-                                              DslProofRule id)
+void LfscPrintChannelOut::printRewriteRuleId(std::ostream& out,
+                                             RewriteRuleId id)
 {
   out << "dsl." << id;
 }
@@ -170,8 +170,8 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
   if (pn->getRule() == ProofRule::DSL_REWRITE)
   {
     Node idn = pn->getArguments()[0];
-    DslProofRule di;
-    if (rewriter::getDslProofRule(idn, di))
+    RewriteRuleId di;
+    if (rewriter::getRewriteRuleId(idn, di))
     {
       d_dprs.insert(di);
     }
@@ -182,7 +182,7 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
   }
 }
 
-const std::unordered_set<DslProofRule>& LfscPrintChannelPre::getDslRewrites()
+const std::unordered_set<RewriteRuleId>& LfscPrintChannelPre::getDslRewrites()
     const
 {
   return d_dprs;

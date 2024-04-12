@@ -132,8 +132,8 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
   d_out << "; trust " << r;
   if (r == ProofRule::DSL_REWRITE)
   {
-    rewriter::DslProofRule di;
-    if (rewriter::getDslProofRule(args[0], di))
+    RewriteRuleId di;
+    if (rewriter::getRewriteRuleId(args[0], di))
     {
       d_out << " " << di;
     }

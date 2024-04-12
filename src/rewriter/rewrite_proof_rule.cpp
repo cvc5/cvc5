@@ -26,9 +26,9 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-RewriteProofRule::RewriteProofRule() : d_id(DslProofRule::NONE) {}
+RewriteProofRule::RewriteProofRule() : d_id(RewriteRuleId::NONE) {}
 
-void RewriteProofRule::init(DslProofRule id,
+void RewriteProofRule::init(RewriteRuleId id,
                             const std::vector<Node>& userFvs,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
@@ -79,7 +79,7 @@ void RewriteProofRule::init(DslProofRule id,
   }
 }
 
-rewriter::DslProofRule RewriteProofRule::getId() const { return d_id; }
+RewriteRuleId RewriteProofRule::getId() const { return d_id; }
 
 const char* RewriteProofRule::getName() const { return toString(d_id); }
 

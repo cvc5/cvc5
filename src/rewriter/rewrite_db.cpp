@@ -45,7 +45,7 @@ RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
   }
 }
 
-void RewriteDb::addRule(DslProofRule id,
+void RewriteDb::addRule(RewriteRuleId id,
                         const std::vector<Node> fvs,
                         Node a,
                         Node b,
@@ -151,18 +151,18 @@ void RewriteDb::getMatches(const Node& eq, expr::NotifyMatch* ntm)
   d_mt.getMatches(eq, ntm);
 }
 
-const RewriteProofRule& RewriteDb::getRule(DslProofRule id) const
+const RewriteProofRule& RewriteDb::getRule(RewriteRuleId id) const
 {
-  std::map<DslProofRule, RewriteProofRule>::const_iterator it =
+  std::map<RewriteRuleId, RewriteProofRule>::const_iterator it =
       d_rewDbRule.find(id);
   Assert(it != d_rewDbRule.end());
   return it->second;
 }
 
-const std::vector<DslProofRule>& RewriteDb::getRuleIdsForConclusion(
+const std::vector<RewriteRuleId>& RewriteDb::getRuleIdsForConclusion(
     const Node& eq) const
 {
-  std::map<Node, std::vector<DslProofRule> >::const_iterator it =
+  std::map<Node, std::vector<RewriteRuleId> >::const_iterator it =
       d_concToRules.find(eq);
   if (it != d_concToRules.end())
   {
@@ -171,10 +171,10 @@ const std::vector<DslProofRule>& RewriteDb::getRuleIdsForConclusion(
   return d_emptyVec;
 }
 
-const std::vector<DslProofRule>& RewriteDb::getRuleIdsForHead(
+const std::vector<RewriteRuleId>& RewriteDb::getRuleIdsForHead(
     const Node& eq) const
 {
-  std::map<Node, std::vector<DslProofRule> >::const_iterator it =
+  std::map<Node, std::vector<RewriteRuleId> >::const_iterator it =
       d_headToRules.find(eq);
   if (it != d_headToRules.end())
   {

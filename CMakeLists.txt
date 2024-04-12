@@ -541,7 +541,7 @@ include_directories(include)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
 # Install public headers
-install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/cvc5 ${CMAKE_BINARY_DIR}/include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_subdirectory(src)
 

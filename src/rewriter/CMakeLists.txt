@@ -29,13 +29,13 @@ libcvc5_add_sources(
   rewrite_proof_rule.h
   rewrite_proof_status.cpp
   rewrite_proof_status.h
+  rewrites.h
 )
 
 set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)
 
 set(REWRITE_OUTPUT_FILES
   rewrites.cpp
-  rewrites.h
 )
 foreach(rewrite_in IN LISTS REWRITES_FILES)
   # NOTE: In CMake 3.20+, the `cmake_path` command can be used instead
@@ -50,6 +50,20 @@ libcvc5_add_sources(GENERATED
   ${REWRITE_OUTPUT_FILES}
 )
 
+# Add the generated public sources manually to specify where they should be located.
+
+list(APPEND REWRITE_OUTPUT_FILES
+  ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_rewrite_rule_id.cpp
+  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_rewrite_rule_id.h
+)
+
+list(APPEND LIBCVC5_GEN_SRCS
+  ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_rewrite_rule_id.cpp
+  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_rewrite_rule_id.h
+)
+
+set(LIBCVC5_GEN_SRCS ${LIBCVC5_GEN_SRCS} PARENT_SCOPE)
+
 add_custom_command(
     OUTPUT
       ${REWRITE_OUTPUT_FILES}
@@ -58,13 +72,15 @@ add_custom_command(
       ${mkrewrites_script}
       rewrite-db
       ${CMAKE_CURRENT_LIST_DIR}
+      ${CMAKE_BINARY_DIR}
       ${REWRITES_FILES}
     DEPENDS
       ${mkrewrites_script}
       ${REWRITES_FILES}
       ${CMAKE_CURRENT_LIST_DIR}/theory_rewrites_template.cpp
       ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.cpp
-      ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.h
+      ${CMAKE_CURRENT_LIST_DIR}/cvc5_rewrite_rule_id_template.cpp
+      ${CMAKE_CURRENT_LIST_DIR}/cvc5_rewrite_rule_id_template.h
     COMMENT
       "Generating rewrites.{h,cpp}"
 )

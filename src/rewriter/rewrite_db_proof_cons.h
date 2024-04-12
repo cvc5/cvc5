@@ -98,14 +98,14 @@ class RewriteDbProofCons : protected EnvObj
    public:
     ProvenInfo()
         : d_id(RewriteProofStatus::FAIL),
-          d_dslId(DslProofRule::NONE),
+          d_dslId(RewriteRuleId::NONE),
           d_failMaxDepth(0)
     {
     }
     /** The identifier of the proof rule, or fail if we failed */
     RewriteProofStatus d_id;
     /** The identifier of the DSL proof rule if d_id is DSL */
-    DslProofRule d_dslId;
+    RewriteRuleId d_dslId;
     /** The substitution used, if successful */
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
@@ -209,7 +209,7 @@ class RewriteDbProofCons : protected EnvObj
                      bool doTrans,
                      bool doFixedPoint,
                      bool doRecurse,
-                     DslProofRule r = DslProofRule::NONE);
+                     RewriteRuleId r = RewriteRuleId::NONE);
   /**
    * Get conclusion of rewrite rule rpr under the current variable and
    * substitution. Store the information in proven info pi. If doFixedPoint
@@ -271,7 +271,7 @@ class RewriteDbProofCons : protected EnvObj
   /** current step recursion limit */
   uint64_t d_currStepLimit;
   /** current rule we are applying to fixed point */
-  DslProofRule d_currFixedPointId;
+  RewriteRuleId d_currFixedPointId;
   /** current substitution from fixed point */
   std::vector<Node> d_currFixedPointSubs;
   /** current conclusion from fixed point */

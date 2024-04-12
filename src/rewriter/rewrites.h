@@ -13,29 +13,19 @@
  * Generated rewrites
  */
 
-#include "cvc5_public.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__REWRITER__REWRITES__H
 #define CVC5__REWRITER__REWRITES__H
 
+#include "cvc5/cvc5_rewrite_rule_id.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
+
 namespace rewriter {
 
 class RewriteDb;
-
-/**
- * Identifiers for DSL proof rules
- */
-enum class DslProofRule : uint32_t
-{
-  NONE = 0,
-  // Generated rule ids
-  // clang-format off
-  ${rule_ids}$
-  // clang-format on
-};
 
 /**
  * The body of this method is auto-generated. This populates the provided
@@ -44,26 +34,11 @@ enum class DslProofRule : uint32_t
  */
 void addRules(RewriteDb& db);
 
-/**
- * Converts a DSL proof rule to a string.
- * @param drule The DSL proof rule
- * @return The name of the DSL proof rule
- */
-const char* toString(DslProofRule drule);
-/**
- * Writes a DSL proof rule name to a stream.
- *
- * @param out The stream to write to
- * @param drule The DSL proof rule to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, DslProofRule drule);
+/** Make node from rewrite proof rule id */
+Node mkRewriteRuleNode(RewriteRuleId id);
 
-/** Make node from DSL proof rule id */
-Node mkDslProofRuleNode(DslProofRule i);
-
-/** get a DSL proof rule identifier from a node, return false if we fail */
-bool getDslProofRule(TNode n, DslProofRule& i);
+/** get a rewrite proof rule identifier from a node, return false if we fail */
+bool getRewriteRuleId(TNode n, RewriteRuleId& id);
 
 }  // namespace rewriter
 }  // namespace cvc5::internal
