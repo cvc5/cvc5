@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__NARY_TERM_UTIL__H
-#define CVC4__EXPR__NARY_TERM_UTIL__H
+#ifndef CVC5__EXPR__NARY_TERM_UTIL__H
+#define CVC5__EXPR__NARY_TERM_UTIL__H
 
 #include <map>
 #include <vector>
@@ -93,4 +93,4 @@ bool isACINorm(Node a, Node b);
 }  // namespace expr
 }  // namespace cvc5::internal
 
-#endif /* CVC4__EXPR__NARY_TERM_UTIL__H */
+#endif /* CVC5__EXPR__NARY_TERM_UTIL__H */
