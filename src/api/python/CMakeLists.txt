@@ -81,7 +81,7 @@ add_custom_command(
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
     "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_rewrite_rule_id.h"
 )
-add_custom_target(cvc5rewriteruleids DEPENDS ${GENERATED_REWRITE_RULE_ID_FILES})
+add_custom_target(cvc5rewriteruleids DEPENDS gen-rewrites ${GENERATED_REWRITE_RULE_ID_FILES})
 
 # Generate cvc5skolemids.{pxd,pxi}
 set(GENERATED_SKOLEM_ID_FILES

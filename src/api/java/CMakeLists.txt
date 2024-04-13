@@ -75,7 +75,7 @@ add_custom_command(
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
     "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_rewrite_rule_id.h"
 )
-add_custom_target(generate-java-rewriteruleids DEPENDS ${JAVA_REWRITE_RULE_ID_FILE})
+add_custom_target(generate-java-rewriteruleids DEPENDS gen-rewrites ${JAVA_REWRITE_RULE_ID_FILE})
 
 # Generate SkolemId.java
 set(JAVA_SKOLEM_FUN_ID_FILE
