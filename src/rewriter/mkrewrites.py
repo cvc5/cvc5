@@ -352,7 +352,7 @@ def gen_rewrite_db(args):
         args.src_dir, 'cvc5_rewrite_rule_id_template.h')
     with open(f'{args.bin_dir}/include/cvc5/cvc5_rewrite_rule_id.h', 'w') as f:
         f.write(format_cpp(cvc5_rewrite_rule_id_h.format(
-            rule_ids=','.join([f'EVALUE({id})' for id in ids]))))
+            rule_ids=',\n'.join([f'EVALUE({id})' for id in ids]))))
 
     cvc5_rewrite_rule_id_cpp = read_tpl(
         args.src_dir, 'cvc5_rewrite_rule_id_template.cpp')

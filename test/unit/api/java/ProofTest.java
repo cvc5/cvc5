@@ -86,7 +86,8 @@ class ProofTest
     Term x = d_tm.mkConst(intSort, "x");
     Term twoX = d_tm.mkTerm(Kind.MULT, new Term[]{d_tm.mkInteger(2), x});
     Term xPlusX = d_tm.mkTerm(Kind.ADD, new Term[]{x, x});
-    d_solver.assertFormula(d_tm.mkTerm(Kind.DISTINCT, new Term[]{twoX, xPlusX}));
+    d_solver.assertFormula(
+        d_tm.mkTerm(Kind.DISTINCT, new Term[]{twoX, xPlusX}));
     d_solver.checkSat();
     return d_solver.getProof()[0];
   }
@@ -111,8 +112,8 @@ class ProofTest
     {
       curr = stack.get(stack.size() - 1);
       stack.remove(stack.size() - 1);
-      rule = proof.getRule();
-      Proof[] children = proof.getChildren();
+      rule = curr.getRule();
+      Proof[] children = curr.getChildren();
       stack.addAll(Arrays.asList(children));
     } while (rule != ProofRule.DSL_REWRITE);
     Proof rewriteProof = curr;
