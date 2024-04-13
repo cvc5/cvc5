@@ -48,11 +48,11 @@ enum ENUM(RewriteRuleId) : uint32_t
   EVALUE(NONE),
   // Generated rule ids
   // clang-format off
-  ${rule_ids}$
+  ${rule_ids}$,
 // clang-format on
 #ifdef CVC5_API_USE_C_ENUMS
-      // must be last entry
-      EVALUE(LAST)
+  // must be last entry
+  EVALUE(LAST)
 #endif
 };
 

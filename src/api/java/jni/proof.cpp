@@ -51,6 +51,21 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_Proof_getRule(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Proof
+ * Method:    getRewriteRuleId
+ * Signature: (J)I;
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Proof_getRewriteRuleId(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Proof* current = reinterpret_cast<Proof*>(pointer);
+  return static_cast<jint>(current->getRewriteRuleId());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Proof
  * Method:    getResult
  * Signature: (J)J
  */

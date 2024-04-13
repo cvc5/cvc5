@@ -17,7 +17,7 @@
 
 import pytest
 import cvc5
-from cvc5 import Kind
+from cvc5 import Kind, ProofRule
 
 
 @pytest.fixture
@@ -58,10 +58,36 @@ def create_proof(tm, solver):
     return solver.getProof()[0]
 
 
+def create_rewrite_proof(tm, solver):
+    solver.setOption("produce-proofs", "true")
+    solver.setOption("proof-granularity", "dsl-rewrite")
+    int_sort = tm.getIntegerSort()
+    x = tm.mkConst(int_sort, "x")
+    two_x = tm.mkTerm(Kind.MULT, tm.mkInteger(2), x)
+    x_plus_x = tm.mkTerm(Kind.ADD, x, x)
+    solver.assertFormula(tm.mkTerm(Kind.DISTINCT, two_x, x_plus_x))
+    solver.checkSat()
+    return solver.getProof()[0]
+
+
 def test_get_result(tm, solver):
     proof = create_proof(tm, solver)
     rule = proof.getRule()
     assert rule == "SCOPE"
+
+
+def test_get_rewrite_rule_id(tm, solver):
+    proof = create_rewrite_proof(tm, solver)
+    with pytest.raises(RuntimeError):
+        proof.getRewriteRuleId()
+    rule = None
+    stack = [proof]
+    while rule != ProofRule.DSL_REWRITE:
+        proof = stack.pop()
+        rule = proof.getRule()
+        children = proof.getChildren()
+        stack.extend(children)
+    assert proof.getRewriteRuleId() is not None
 
 
 def test_get_result(tm, solver):

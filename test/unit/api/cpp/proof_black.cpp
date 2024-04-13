@@ -56,16 +56,15 @@ class TestApiBlackProof : public TestApi
     return d_solver->getProof().front();
   }
 
-  Proof create_rewrite_proof()
+  Proof createRewriteProof()
   {
     d_solver->setOption("produce-proofs", "true");
     d_solver->setOption("proof-granularity", "dsl-rewrite");
-    d_solver->setOption("dag-thresh", "0");
     Sort intSort = d_tm.getIntegerSort();
     Term x = d_tm.mkConst(intSort, "x");
     Term twoX = d_tm.mkTerm(Kind::MULT, {d_tm.mkInteger(2), x});
-    Term xx = d_tm.mkTerm(Kind::ADD, {x, x});
-    d_solver->assertFormula(d_tm.mkTerm(Kind::DISTINCT, {twoX, xx}));
+    Term xPlusX = d_tm.mkTerm(Kind::ADD, {x, x});
+    d_solver->assertFormula(d_tm.mkTerm(Kind::DISTINCT, {twoX, xPlusX}));
     d_solver->checkSat();
     return d_solver->getProof().front();
   }
@@ -91,7 +90,7 @@ TEST_F(TestApiBlackProof, getRule)
 
 TEST_F(TestApiBlackProof, getRewriteRuleId)
 {
-  Proof proof = create_rewrite_proof();
+  Proof proof = createRewriteProof();
   ASSERT_THROW(proof.getRewriteRuleId(), CVC5ApiException);
   ProofRule rule;
   std::vector<Proof> stack;

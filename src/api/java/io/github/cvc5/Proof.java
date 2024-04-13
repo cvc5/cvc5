@@ -57,6 +57,18 @@ public class Proof implements IPointer
 
   private native int getRule(long pointer);
 
+  /**
+   * @return The rewrite proof rule used by the root step of the proof.
+   * @throws CVC5ApiException if `getRule()` does not return `DSL_REWRITE`.
+   */
+  public RewriteRuleId getRewriteRuleId() throws CVC5ApiException
+  {
+    int value = getRewriteRuleId(pointer);
+    return RewriteRuleId.fromInt(value);
+  }
+
+  private native int getRewriteRuleId(long pointer);
+
   /** @return The conclusion of the root step of the proof. */
   public Term getResult()
   {
