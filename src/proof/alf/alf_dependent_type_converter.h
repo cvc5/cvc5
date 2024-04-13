@@ -55,6 +55,9 @@ namespace proof {
  *    ?FloatingPoint ---> (FloatingPoint @n0 @n1)
  *    ?Tuple --> @T0, where note tuples do not have fixed arity so they are
  *               approximated as a type variable.
+ *
+ * Note that approximate functions and approximate tuples are the only two types
+ * that are not converted precisely in this translation.
  */
 class AlfDependentTypeConverter
 {
