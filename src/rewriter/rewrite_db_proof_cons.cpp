@@ -339,6 +339,16 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     pic.d_id = id;
     for (size_t i = 0; i < nchild; i++)
     {
+      // for closures, their first argument (the bound variable list) must be
+      // equivalent, and should not be given as a child proof.
+      if (i == 0 && target[0].isClosure())
+      {
+        if (target[0][0] != target[1][0])
+        {
+          return false;
+        }
+        continue;
+      }
       if (!target[0][i].getType().isComparableTo(target[1][i].getType()))
       {
         // type error on children (required for certain polymorphic operators)
