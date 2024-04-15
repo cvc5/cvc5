@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/sygus_grammar.h"
 #include "expr/type_node.h"
 #include "smt/env_obj.h"
 

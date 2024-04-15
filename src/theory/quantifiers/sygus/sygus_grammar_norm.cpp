@@ -18,7 +18,6 @@
 
 #include "expr/dtype_cons.h"
 #include "expr/subs.h"
-#include "expr/sygus_grammar.h"
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
