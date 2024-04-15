@@ -48,7 +48,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygusVars)
   SygusGrammar sg(svars, tn);
   return normalizeSygusType(sg);
 }
-TypeNodeSygusGrammarNorm:: normalizeSygusType(Grammar g)
+TypeNodeSygusGrammarNorm::normalizeSygusType(Grammar g)
 {
   const std::vector<Node>& nts = sg.getNtSyms();
   Trace("sygus-grammar-norm") << "Reconstructed grammar " << nts << std::endl;

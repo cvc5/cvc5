@@ -1393,8 +1393,8 @@ std::vector<Node> SolverEngine::convertPreprocessedToInput(
   cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
   Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
+  std::shared_ptr<ProofNode> pfn = d_pfManager->connectProofToAssertions(
+      pepf, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
   d_ucManager->getUnsatCore(
       pfn, d_smtSolver->getAssertions(), core, isInternal);
   return core;

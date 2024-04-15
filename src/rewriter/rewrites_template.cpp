@@ -62,7 +62,8 @@ const char* toString(DslProofRule drule)
     case DslProofRule::TRUE_ELIM: return "TRUE_ELIM";
     case DslProofRule::TRUE_INTRO: return "TRUE_INTRO";
     case DslProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
-    case DslProofRule::ACI_NORM: return "ACI_NORM";
+    case DslProofRule::ACI_NORM:
+      return "ACI_NORM";
       // clang-format off
 ${printer}$
     default : Unreachable();
