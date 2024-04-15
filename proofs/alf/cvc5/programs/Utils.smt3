@@ -29,8 +29,8 @@
 ; Append the children of two applications of an ACI operator, which takes:
 ; (1) a function f
 ; (2) the identity element of f
-; (3) the first term to append
-; (4) the second term to append
+; (3) the first f :list term to append
+; (4) the second f :list term to append
 (program ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
   ((-> T U S) S S S) S
   (
@@ -61,7 +61,7 @@
 
 ; Normalize an application of an ACI operator.
 (define get_aci_norm ((T Type :implicit) (t T))
-  (alf.match ((S Type) (U Type) (f (-> S U U)) (x S) (y U :list))
+  (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
     t
     (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_aci_norm_rec f id t))))))
 )
@@ -84,7 +84,7 @@
 
 ; Normalize an application of an associative operator.
 (define get_a_norm ((T Type :implicit) (t T))
-  (alf.match ((S Type) (U Type) (f (-> S U U)) (x S) (y U :list))
+  (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
     t
     (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_a_norm_rec f id t))))))
 )
