@@ -78,10 +78,10 @@ class SygusGrammarReduce : protected EnvObj
    * SygusGrammar::getLambdaForRule).
    * @param tset The set of terms we have computed thus far.
    * @param vlist The list of non-terminal variables and a unique index. The
-   * variable we are considering for each p in this vector is
-   * ntvMap[p.first][p.second].
+   * variable we are considering for each pair in this vector is
+   * ntvMap[pair.first][pair.second].
    * @param ntlist The list of non-terminals (unique variables that occur
-   * as the first component of some p in vlist).
+   * as the first component of some pair in vlist).
    * @param ntvMap The partition of variables we are considering, grouped by
    * their corresponding non-terminal. We consider permutations of the
    * range of this map.

@@ -286,7 +286,7 @@ void DType::addSygusConstructor(Node op,
                                 const std::vector<TypeNode>& cargs,
                                 int weight)
 {
-  //  avoid name clashes
+  // avoid name clashes
   std::stringstream ss;
   ss << getName() << "_" << getNumConstructors() << "_" << cname;
   std::string name = ss.str();
