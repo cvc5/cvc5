@@ -159,6 +159,9 @@
 )
 
 ; ProofRule::ACI_NORM
+; Note that we need three checks. The first two handle the cases where one side
+; is treated as a singleton child of the other side. The remaining case checks
+; where both terms are not singletons.
 (declare-rule aci_norm ((U Type) (a U) (b U))
   :args ((= a b))
   :requires (((let ((an (get_aci_normal_form a)) (bn (get_aci_normal_form b)))
