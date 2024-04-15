@@ -100,4 +100,14 @@ std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg);
 
 }  // namespace cvc5::internal
 
+namespace std {
+/**
+ * A hash function for DTypeSelectors.
+ */
+template <>
+struct hash<cvc5::internal::DTypeSelector>
+{
+  size_t operator()(const cvc5::internal::DTypeSelector& cons) const;
+};
+}  // namespace std
 #endif

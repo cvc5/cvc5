@@ -35,7 +35,7 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
 {
   Assert(in.getKind() == Kind::DISTINCT);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   if (in[0].getType().isCardinalityLessThan(in.getNumChildren()))
   {
@@ -134,12 +134,12 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
   else if (node[1] == node[0][0])
   {
     // (witness ((x Bool)) x) ---> true
-    return NodeManager::currentNM()->mkConst(true);
+    return nodeManager()->mkConst(true);
   }
   else if (node[1].getKind() == Kind::NOT && node[1][0] == node[0][0])
   {
     // (witness ((x Bool)) (not x)) ---> false
-    return NodeManager::currentNM()->mkConst(false);
+    return nodeManager()->mkConst(false);
   }
   // eliminate shadowing
   return ElimShadowNodeConverter::eliminateShadow(node);

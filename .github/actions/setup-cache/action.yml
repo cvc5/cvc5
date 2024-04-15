@@ -54,14 +54,13 @@ runs:
       id: contrib-cache
       uses: actions/cache@v4
       with:
-        path: deps/install
+        path: deps/bin
         key: ${{ inputs.cache-key }}-${{ runner.os }}-contrib-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/**') }}
 
     - name: Install contrib dependencies
+      if: steps.contrib-cache.outputs.cache-hit != 'true'
       shell: ${{ inputs.shell }}
-      run: |
-        if [[ "${{ steps.contrib-cache.outputs.cache-hit }}" == "true" ]]; then exit 0; fi
-        ./contrib/get-alf-checker
+      run: ./contrib/get-alf-checker
 
     - name: Setup dependencies cache
       uses: actions/cache@v4

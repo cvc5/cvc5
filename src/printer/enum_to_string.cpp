@@ -23,6 +23,7 @@ const char* toString(cvc5::SkolemId id)
   {
     case cvc5::SkolemId::INTERNAL: return "internal";
     case cvc5::SkolemId::PURIFY: return "purify";
+    case cvc5::SkolemId::GROUND_TERM: return "ground_term";
     case cvc5::SkolemId::ARRAY_DEQ_DIFF: return "array_deq_diff";
     case cvc5::SkolemId::DIV_BY_ZERO: return "div_by_zero";
     case cvc5::SkolemId::FP_MIN_ZERO: return "fp_min_zero";
