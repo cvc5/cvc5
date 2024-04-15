@@ -81,7 +81,8 @@ bool hasBoundVar(TNode n);
  * of kind BOUND_VARIABLE that is not bound in n.
  *
  * NOTE: this method should only be called on terms that do not have shadowing,
- * which is the case if n is rewritten.
+ * which is the case if n is rewritten. Otherwise, an assertion failure is
+ * thrown in debug builds.
  *
  * @param n The node under investigation
  * @return true iff this node contains a free variable.

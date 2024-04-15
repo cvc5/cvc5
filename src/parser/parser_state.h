@@ -221,7 +221,7 @@ class CVC5_EXPORT ParserState
                     const Sort& type,
                     bool fresh = true);
   /**
-   * Create a new cvc5 bound variable expressions of the given names and types.
+   * Create new cvc5 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
    *
