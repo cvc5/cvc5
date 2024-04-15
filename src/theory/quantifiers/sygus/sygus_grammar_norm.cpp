@@ -34,18 +34,22 @@ namespace quantifiers {
 
 SygusGrammarNorm::SygusGrammarNorm(Env& env) : EnvObj(env) {}
 
-TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
+TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygusVars)
 {
   Assert(tn.isSygusDatatype());
   std::vector<Node> svars;
-  if (!sygus_vars.isNull())
+  if (!sygusVars.isNull())
   {
-    svars.insert(svars.end(), sygus_vars.begin(), sygus_vars.end());
+    svars.insert(svars.end(), sygusVars.begin(), sygusVars.end());
   }
   Trace("sygus-grammar-norm") << "Normalize " << tn.getDType() << std::endl;
   // Make the sygus grammar for the sygus datatype, which makes things easier
   // to operate on.
   SygusGrammar sg(svars, tn);
+  return normalizeSygusType(sg);
+}
+TypeNodeSygusGrammarNorm:: normalizeSygusType(Grammar g)
+{
   const std::vector<Node>& nts = sg.getNtSyms();
   Trace("sygus-grammar-norm") << "Reconstructed grammar " << nts << std::endl;
   bool changed = false;

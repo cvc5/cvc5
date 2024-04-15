@@ -49,7 +49,7 @@ void SygusGrammarReduce::minimize(SygusGrammar& g, const Node& v)
   std::unordered_set<Node> allTerms;
   for (const Node& r : rules)
   {
-    std::unordered_set<Node> tset = getGenericList(g, r);
+    std::unordered_set<Node> tset = getGenericTerms(g, r);
     bool dup = false;
     // if any rule can simulate one of the variants of this rule, we are
     // redundant.
@@ -73,7 +73,7 @@ void SygusGrammarReduce::minimize(SygusGrammar& g, const Node& v)
   }
 }
 
-std::unordered_set<Node> SygusGrammarReduce::getGenericList(
+std::unordered_set<Node> SygusGrammarReduce::getGenericTerms(
     const SygusGrammar& g, const Node& r)
 {
   Trace("sygus-grammar-red-debug") << "Compute variants of " << r << std::endl;
@@ -111,7 +111,7 @@ std::unordered_set<Node> SygusGrammarReduce::getGenericList(
       d_cacheValues.push_back(cacheVal);
     }
     // add all variants
-    getGenericListRec(lam, tset, vlist, ntlist, ntvMap, 0, 0);
+    getGenericTermsRec(lam, tset, vlist, ntlist, ntvMap, 0, 0);
   }
   if (TraceIsOn("sygus-grammar-red"))
   {
@@ -124,7 +124,7 @@ std::unordered_set<Node> SygusGrammarReduce::getGenericList(
   return tset;
 }
 
-void SygusGrammarReduce::getGenericListRec(
+void SygusGrammarReduce::getGenericTermsRec(
     const Node& lam,
     std::unordered_set<Node>& tset,
     const std::vector<std::pair<Node, size_t>>& vlist,
@@ -158,14 +158,14 @@ void SygusGrammarReduce::getGenericListRec(
   if (vindex == ntvs.size())
   {
     // go to next non-terminal
-    return getGenericListRec(lam, tset, vlist, ntlist, ntvMap, ntindex + 1, 0);
+    return getGenericTermsRec(lam, tset, vlist, ntlist, ntvMap, ntindex + 1, 0);
   }
   for (size_t i = vindex, nvars = ntvs.size(); i < nvars; i++)
   {
     // swap the variables
     std::swap(ntvs[i], ntvs[vindex]);
     // recurse
-    getGenericListRec(lam, tset, vlist, ntlist, ntvMap, ntindex, vindex + 1);
+    getGenericTermsRec(lam, tset, vlist, ntlist, ntvMap, ntindex, vindex + 1);
     // revert
     std::swap(ntvs[i], ntvs[vindex]);
   }

@@ -71,7 +71,7 @@ class SygusGrammarReduce : protected EnvObj
    *   and( x1, x2, x3 ) and and( x2, x1, x3 )
    * to terms.
    */
-  std::unordered_set<Node> getGenericList(const SygusGrammar& g, const Node& r);
+  std::unordered_set<Node> getGenericTerms(const SygusGrammar& g, const Node& r);
   /**
    * A recursive helper for the above method.
    * @param lam The lambda corresponding to the non-terminal rule (see
@@ -89,7 +89,7 @@ class SygusGrammarReduce : protected EnvObj
    * @param vindex The sub-vector of variables for the current non-terminal
    * we are considering.
    */
-  void getGenericListRec(const Node& lam,
+  void getGenericTermsRec(const Node& lam,
                          std::unordered_set<Node>& tset,
                          const std::vector<std::pair<Node, size_t>>& vlist,
                          const std::vector<Node>& ntlist,
