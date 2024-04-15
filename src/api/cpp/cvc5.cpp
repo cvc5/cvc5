@@ -5038,7 +5038,7 @@ ProofRule Proof::getRule() const
   CVC5_API_TRY_CATCH_END;
 }
 
-RewriteRuleId Proof::getRewriteRuleId() const
+ProofRewriteRule Proof::getProofRewriteRule() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(this->getProofNode()->getRule() == ProofRule::DSL_REWRITE)
@@ -5047,11 +5047,11 @@ RewriteRuleId Proof::getRewriteRuleId() const
   //////// all checks before this line
   if (d_proof_node != nullptr)
   {
-    return static_cast<RewriteRuleId>(
+    return static_cast<ProofRewriteRule>(
         detail::getInteger(this->d_proof_node->getArguments()[0])
             .getUnsignedInt());
   }
-  return RewriteRuleId::NONE;
+  return ProofRewriteRule::NONE;
   ////////
   CVC5_API_TRY_CATCH_END;
 }

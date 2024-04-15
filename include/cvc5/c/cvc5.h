@@ -22,8 +22,8 @@ extern "C" {
 
 #define CVC5_API_USE_C_ENUMS
 #include <cvc5/cvc5_kind.h>
+#include <cvc5/cvc5_proof_rewrite_rule.h>
 #include <cvc5/cvc5_proof_rule.h>
-#include <cvc5/cvc5_rewrite_rule_id.h>
 #include <cvc5/cvc5_skolem_id.h>
 #include <cvc5/cvc5_types.h>
 #undef CVC5_API_USE_C_ENUMS
@@ -2896,12 +2896,12 @@ struct Cvc5OptionInfo
 Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof* proof);
 
 /**
- * @return The rewrite proof rule used by the root step of the proof.
+ * @return The proof rewrite rule used by the root step of the proof.
  *
  * @exception raises an exception if `getRule()` does not return
  * `CVC5_PROOF_RULE_DSL_REWRITE`.
  */
-Cvc5RewriteRuleId cvc5_proof_get_rewrite_rule_id(Cvc5Proof* proof);
+Cvc5ProofRewriteRule cvc5_proof_get_proof_rewrite_rule(Cvc5Proof* proof);
 
 /**
  * Get the conclusion of the root step of a given proof.

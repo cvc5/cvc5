@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Rewrite proof rule class
+ * proof rewrite rule class
  */
 
 #include "rewriter/rewrite_proof_rule.h"
@@ -26,9 +26,9 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-RewriteProofRule::RewriteProofRule() : d_id(RewriteRuleId::NONE) {}
+RewriteProofRule::RewriteProofRule() : d_id(ProofRewriteRule::NONE) {}
 
-void RewriteProofRule::init(RewriteRuleId id,
+void RewriteProofRule::init(ProofRewriteRule id,
                             const std::vector<Node>& userFvs,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
@@ -79,7 +79,7 @@ void RewriteProofRule::init(RewriteRuleId id,
   }
 }
 
-RewriteRuleId RewriteProofRule::getId() const { return d_id; }
+ProofRewriteRule RewriteProofRule::getId() const { return d_id; }
 
 const char* RewriteProofRule::getName() const { return toString(d_id); }
 

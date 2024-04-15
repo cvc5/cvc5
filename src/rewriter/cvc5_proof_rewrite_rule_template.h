@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Generated rewrite proof rules.
+ * Generated proof rewrite rules.
  */
 
-#if (!defined(CVC5_API_USE_C_ENUMS)                      \
-     && !defined(CVC5__API__CVC5_CPP_REWRITE_RULE_ID_H)) \
-    || (defined(CVC5_API_USE_C_ENUMS)                    \
-        && !defined(CVC5__API__CVC5_C_REWRITE_RULE_ID_H))
+#if (!defined(CVC5_API_USE_C_ENUMS)                         \
+     && !defined(CVC5__API__CVC5_CPP_PROOF_REWRITE_RULE_H)) \
+    || (defined(CVC5_API_USE_C_ENUMS)                       \
+        && !defined(CVC5__API__CVC5_C_PROOF_REWRITE_RULE_H))
 
 #ifdef CVC5_API_USE_C_ENUMS
 #include <stddef.h>
@@ -37,13 +37,13 @@ namespace cvc5 {
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef EVALUE
-#define EVALUE(name) CVC5_REWRITE_RULE_ID_##name
+#define EVALUE(name) CVC5_PROOF_REWRITE_RULE_##name
 #endif
 
 /**
- * Identifiers for rewrite proof rules.
+ * Identifiers for proof rewrite rules.
  */
-enum ENUM(RewriteRuleId) : uint32_t
+enum ENUM(ProofRewriteRule) : uint32_t
 {
   EVALUE(NONE),
   // Generated rule ids
@@ -58,82 +58,82 @@ enum ENUM(RewriteRuleId) : uint32_t
 
 #ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
-typedef enum ENUM(RewriteRuleId) ENUM(RewriteRuleId);
+typedef enum ENUM(ProofRewriteRule) ENUM(ProofRewriteRule);
 #endif
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
 
 /**
- * Get a string representation of a Cvc5RewriteRuleId.
- * @param id The rewrite proof rule.
+ * Get a string representation of a Cvc5ProofRewriteRule.
+ * @param rule The proof rewrite rule.
  * @return The string representation.
  */
-const char* cvc5_rewrite_rule_id_to_string(Cvc5RewriteRuleId id);
+const char* cvc5_proof_rewrite_rule_to_string(Cvc5ProofRewriteRule rule);
 
 /**
- * Hash function for Cvc5RewriteRuleId.
- * @param id The rewrite proof rule.
+ * Hash function for Cvc5ProofRewriteRule.
+ * @param rule The proof rewrite rule.
  * @return The hash value.
  */
-size_t cvc5_rewrite_rule_id_hash(Cvc5RewriteRuleId id);
+size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
 
 #else
 
 /**
- * Converts a rewrite proof rule to a string. Note: This function is also
+ * Converts a proof rewrite rule to a string. Note: This function is also
  * used in `safe_print()`. Changing this function name or signature will result
  * in `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
  *
- * @param id The rewrite proof rule
+ * @param rule The proof rewrite rule
  * @return The name of the proof rule
  */
-const char* toString(RewriteRuleId id);
+const char* toString(ProofRewriteRule rule);
 
 /**
- * Writes a rewrite proof rule name to a stream.
+ * Writes a proof rewrite rule name to a stream.
  *
  * @param out The stream to write to
- * @param id The rewrite proof rule to write to the stream
+ * @param rule The proof rewrite rule to write to the stream
  * @return The stream
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, RewriteRuleId id);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule);
 
 }  // namespace cvc5
 
 namespace std {
 /**
- * Hash function for RewriteRuleIds.
+ * Hash function for ProofRewriteRules.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::RewriteRuleId>
+struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
 {
   /**
-   * Hashes a RewriteRuleId to a size_t.
-   * @param id The rewrite proof rule.
+   * Hashes a ProofRewriteRule to a size_t.
+   * @param rule The proof rewrite rule.
    * @return The hash value.
    */
-  size_t operator()(cvc5::RewriteRuleId id) const;
+  size_t operator()(cvc5::ProofRewriteRule rule) const;
 };
 /**
- * Converts a rewrite proof rule to a string.
+ * Converts a proof rewrite rule to a string.
  *
- * @param id The rewrite proof rule
- * @return The name of the rewrite proof rule
+ * @param rule The proof rewrite rule
+ * @return The name of the proof rewrite rule
  */
-std::string to_string(cvc5::RewriteRuleId id);
+std::string to_string(cvc5::ProofRewriteRule rule);
 }  // namespace std
 
 #endif
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
-#ifndef CVC5__API__CVC5_C_REWRITE_RULE_ID_H
-#define CVC5__API__CVC5_C_REWRITE_RULE_ID_H
+#ifndef CVC5__API__CVC5_C_PROOF_REWRITE_RULE_H
+#define CVC5__API__CVC5_C_PROOF_REWRITE_RULE_H
 #endif
 #else
-#ifndef CVC5__API__CVC5_CPP_REWRITE_RULE_ID_H
-#define CVC5__API__CVC5_CPP_REWRITE_RULE_ID_H
+#ifndef CVC5__API__CVC5_CPP_PROOF_REWRITE_RULE_H
+#define CVC5__API__CVC5_CPP_PROOF_REWRITE_RULE_H
 #endif
 #endif

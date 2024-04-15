@@ -217,8 +217,8 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   }
 
   // [6] print the DSL rewrite rule declarations
-  const std::unordered_set<RewriteRuleId>& dslrs = lpcp.getDslRewrites();
-  for (RewriteRuleId dslr : dslrs)
+  const std::unordered_set<ProofRewriteRule>& dslrs = lpcp.getDslRewrites();
+  for (ProofRewriteRule dslr : dslrs)
   {
     // also computes the format for the rule
     printDslRule(out, dslr, d_dslFormat[dslr]);
@@ -881,8 +881,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     break;
     case ProofRule::DSL_REWRITE:
     {
-      RewriteRuleId di = RewriteRuleId::NONE;
-      if (!rewriter::getRewriteRuleId(args[0], di))
+      ProofRewriteRule di = ProofRewriteRule::NONE;
+      if (!rewriter::getProofRewriteRule(args[0], di))
       {
         Assert(false);
       }
@@ -961,7 +961,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       }
       // print child proofs, which is based on the format computed for the rule
       size_t ccounter = 0;
-      std::map<RewriteRuleId, std::vector<Node>>::iterator itf =
+      std::map<ProofRewriteRule, std::vector<Node>>::iterator itf =
           d_dslFormat.find(di);
       if (itf == d_dslFormat.end())
       {
@@ -1087,7 +1087,7 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 }
 
 void LfscPrinter::printDslRule(std::ostream& out,
-                               RewriteRuleId id,
+                               ProofRewriteRule id,
                                std::vector<Node>& format)
 {
   const rewriter::RewriteProofRule& rpr = d_rdb->getRule(id);
@@ -1101,7 +1101,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
 
   std::stringstream rparen;
   odecl << "(declare ";
-  LfscPrintChannelOut::printRewriteRuleId(odecl, id);
+  LfscPrintChannelOut::printProofRewriteRule(odecl, id);
   std::vector<Node> vlsubs;
   // streams for printing the computation of term in side conditions or
   // list semantics substitutions

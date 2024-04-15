@@ -42,7 +42,7 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
       d_annotationRuleIds(
           statisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::annotationRuleId")),
-      d_dslRuleCount(statisticsRegistry().registerHistogram<RewriteRuleId>(
+      d_dslRuleCount(statisticsRegistry().registerHistogram<ProofRewriteRule>(
           "finalProof::dslRuleCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
@@ -102,8 +102,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   if (r == ProofRule::DSL_REWRITE)
   {
     const std::vector<Node>& args = pn->getArguments();
-    RewriteRuleId di;
-    if (rewriter::getRewriteRuleId(args[0], di))
+    ProofRewriteRule di;
+    if (rewriter::getProofRewriteRule(args[0], di))
     {
       d_dslRuleCount << di;
     }

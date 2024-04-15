@@ -10,19 +10,19 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Generated rewrite proof rules.
+ * Generated proof rewrite rules.
  */
 
 #include "base/check.h"
-#include "cvc5/cvc5_rewrite_rule_id.h"
+#include "cvc5/cvc5_proof_rewrite_rule.h"
 
 namespace cvc5 {
 
-const char* toString(cvc5::RewriteRuleId id)
+const char* toString(cvc5::ProofRewriteRule rule)
 {
-  switch (id)
+  switch (rule)
   {
-    case RewriteRuleId::NONE:
+    case ProofRewriteRule::NONE:
       return "NONE";
       // clang-format off
 ${printer}$
@@ -31,9 +31,9 @@ ${printer}$
   }
 }
 
-std::ostream& operator<<(std::ostream& out, RewriteRuleId id)
+std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule)
 {
-  out << toString(id);
+  out << toString(rule);
   return out;
 }
 
@@ -41,11 +41,15 @@ std::ostream& operator<<(std::ostream& out, RewriteRuleId id)
 
 namespace std {
 
-size_t hash<cvc5::RewriteRuleId>::operator()(cvc5::RewriteRuleId id) const
+size_t hash<cvc5::ProofRewriteRule>::operator()(
+    cvc5::ProofRewriteRule rule) const
 {
-  return static_cast<size_t>(id);
+  return static_cast<size_t>(rule);
 }
 
-std::string to_string(cvc5::RewriteRuleId id) { return cvc5::toString(id); }
+std::string to_string(cvc5::ProofRewriteRule rule)
+{
+  return cvc5::toString(rule);
+}
 
 }  // namespace std

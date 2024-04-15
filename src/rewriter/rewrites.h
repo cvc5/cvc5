@@ -18,7 +18,7 @@
 #ifndef CVC5__REWRITER__REWRITES__H
 #define CVC5__REWRITER__REWRITES__H
 
-#include "cvc5/cvc5_rewrite_rule_id.h"
+#include "cvc5/cvc5_proof_rewrite_rule.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
@@ -34,11 +34,11 @@ class RewriteDb;
  */
 void addRules(RewriteDb& db);
 
-/** Make node from rewrite proof rule id */
-Node mkRewriteRuleNode(RewriteRuleId id);
+/** Make node from proof rewrite rule */
+Node mkRewriteRuleNode(ProofRewriteRule rule);
 
-/** get a rewrite proof rule identifier from a node, return false if we fail */
-bool getRewriteRuleId(TNode n, RewriteRuleId& id);
+/** get a proof rewrite rule from a node, return false if we fail */
+bool getProofRewriteRule(TNode n, ProofRewriteRule& rule);
 
 }  // namespace rewriter
 }  // namespace cvc5::internal

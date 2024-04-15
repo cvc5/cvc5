@@ -41,7 +41,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_eval(nullptr),
       d_currRecLimit(0),
       d_currStepLimit(0),
-      d_currFixedPointId(RewriteRuleId::NONE),
+      d_currFixedPointId(ProofRewriteRule::NONE),
       d_statTotalInputs(
           statisticsRegistry().registerInt("RewriteDbProofCons::totalInputs")),
       d_statTotalAttempts(statisticsRegistry().registerInt(
@@ -252,7 +252,7 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
   Assert(d_target.getKind() == Kind::EQUAL);
   Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
-  if (d_currFixedPointId != RewriteRuleId::NONE)
+  if (d_currFixedPointId != ProofRewriteRule::NONE)
   {
     Trace("rpc-debug2") << "Part of fixed point for rule " << d_currFixedPointId
                         << std::endl;
@@ -286,10 +286,10 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
   Assert(d_target[0] == s);
   bool recurse = d_currRecLimit > 0;
   // get the rule identifiers for the conclusion
-  const std::vector<RewriteRuleId>& ids = d_db->getRuleIdsForHead(n);
+  const std::vector<ProofRewriteRule>& ids = d_db->getRuleIdsForHead(n);
   Assert(!ids.empty());
   // check each rule instance, succeed if one proves
-  for (RewriteRuleId id : ids)
+  for (ProofRewriteRule id : ids)
   {
     // try to prove target with the current rule, using inflection matching
     // and fixed point semantics
@@ -320,7 +320,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
                                        bool doInflectMatch,
                                        bool doFixedPoint,
                                        bool doRecurse,
-                                       RewriteRuleId r)
+                                       ProofRewriteRule r)
 {
   Assert(!target.isNull() && target.getKind() == Kind::EQUAL);
   Trace("rpc-debug2") << "Check rule " << id << std::endl;
@@ -806,7 +806,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           }
           else
           {
-            Assert(pcur.d_dslId != RewriteRuleId::NONE);
+            Assert(pcur.d_dslId != ProofRewriteRule::NONE);
             const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
             // add the DSL proof rule we used
             pfac.push_back(
@@ -917,7 +917,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       else
       {
         Assert(pfArgs.find(cur) != pfArgs.end());
-        Assert(pcur.d_dslId != RewriteRuleId::NONE);
+        Assert(pcur.d_dslId != ProofRewriteRule::NONE);
         const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
         const std::vector<Node>& args = pfArgs[cur];
         std::vector<Node> subs(args.begin() + 1, args.end());
@@ -954,7 +954,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
   // if fixed point, we continue applying
   if (doFixedPoint && rpr.isFixedPoint())
   {
-    Assert(d_currFixedPointId == RewriteRuleId::NONE);
+    Assert(d_currFixedPointId == ProofRewriteRule::NONE);
     Assert(d_currFixedPointConc.isNull());
     d_currFixedPointId = rpr.getId();
     // check if stgt also rewrites with the same rule?
@@ -1016,7 +1016,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       prev = stepConc;
     }
 
-    d_currFixedPointId = RewriteRuleId::NONE;
+    d_currFixedPointId = ProofRewriteRule::NONE;
     // add the transistivity rule here if needed
     if (transEq.size() >= 2)
     {

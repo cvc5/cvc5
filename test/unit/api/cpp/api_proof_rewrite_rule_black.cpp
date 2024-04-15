@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of the RewriteRuleId enum of the C++ API.
+ * Black box testing of the ProofRewriteRule enum of the C++ API.
  */
 
-#include <cvc5/cvc5_rewrite_rule_id.h>
+#include <cvc5/cvc5_proof_rewrite_rule.h>
 
 #include <algorithm>
 
@@ -24,27 +24,27 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiRewriteRuleId : public ::testing::Test
+class TestApiProofRewriteRule : public ::testing::Test
 {
 };
 
-TEST_F(TestApiRewriteRuleId, RewriteRuleIdToString)
+TEST_F(TestApiProofRewriteRule, ProofRewriteRuleToString)
 {
-  for (int32_t i = static_cast<int32_t>(RewriteRuleId::NONE);
-       i <= static_cast<int32_t>(RewriteRuleId::DISTINCT_BINARY_ELIM);
+  for (int32_t i = static_cast<int32_t>(ProofRewriteRule::NONE);
+       i <= static_cast<int32_t>(ProofRewriteRule::DISTINCT_BINARY_ELIM);
        ++i)
   {
-    auto rulestr = std::to_string(static_cast<RewriteRuleId>(i));
+    auto rulestr = std::to_string(static_cast<ProofRewriteRule>(i));
     // If this assertion fails, the switch in enum_to_string.cpp is missing
     // id i.
     ASSERT_NE(rulestr, "?");
   }
 }
 
-TEST_F(TestApiRewriteRuleId, RewriteRuleIdHash)
+TEST_F(TestApiProofRewriteRule, ProofRewriteRuleHash)
 {
-  ASSERT_EQ(std::hash<cvc5::RewriteRuleId>()(RewriteRuleId::NONE),
-            static_cast<size_t>(RewriteRuleId::NONE));
+  ASSERT_EQ(std::hash<cvc5::ProofRewriteRule>()(ProofRewriteRule::NONE),
+            static_cast<size_t>(ProofRewriteRule::NONE));
 }
 
 }  // namespace test

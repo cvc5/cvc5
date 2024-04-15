@@ -105,7 +105,7 @@ def gen_rewrite_db_rule(defns, rule):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
     fixed_point_arg = gen_mk_node(defns, rule.rhs_context) \
         if rule.rhs_context else 'Node::null()'
-    return f'db.addRule(RewriteRuleId::{rule.get_enum()}, {{ {fvs_list} }}, ' \
+    return f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
            f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
            f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
 
@@ -302,7 +302,7 @@ def gen_individual_rewrite_db(rewrites_file: Path, template):
         enum = rule.get_enum()
         ids.append(enum)
         printer_code.append(
-            f'case RewriteRuleId::{enum}: return "{rule.name}";')
+            f'case ProofRewriteRule::{enum}: return "{rule.name}";')
 
     rules_code.append(
         block_tpl.format(filename=output_file,
@@ -348,17 +348,17 @@ def gen_rewrite_db(args):
         decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
         call_individual_rewrites.append(f"{db.function_name}(db);")
 
-    cvc5_rewrite_rule_id_h = read_tpl(
-        args.src_dir, 'cvc5_rewrite_rule_id_template.h')
-    with open(f'{args.bin_dir}/include/cvc5/cvc5_rewrite_rule_id.h', 'w') as f:
-        f.write(format_cpp(cvc5_rewrite_rule_id_h.format(
+    cvc5_proof_rewrite_rule_h = read_tpl(
+        args.src_dir, 'cvc5_proof_rewrite_rule_template.h')
+    with open(f'{args.bin_dir}/include/cvc5/cvc5_proof_rewrite_rule.h', 'w') as f:
+        f.write(format_cpp(cvc5_proof_rewrite_rule_h.format(
             rule_ids=',\n'.join([f'EVALUE({id})' for id in ids]))))
 
-    cvc5_rewrite_rule_id_cpp = read_tpl(
-        args.src_dir, 'cvc5_rewrite_rule_id_template.cpp')
+    cvc5_proof_rewrite_rule_cpp = read_tpl(
+        args.src_dir, 'cvc5_proof_rewrite_rule_template.cpp')
     os.makedirs(f'{args.bin_dir}/src/api/cpp', exist_ok=True)
-    with open(f'{args.bin_dir}/src/api/cpp/cvc5_rewrite_rule_id.cpp', 'w') as f:
-        f.write(format_cpp(cvc5_rewrite_rule_id_cpp.format(
+    with open(f'{args.bin_dir}/src/api/cpp/cvc5_proof_rewrite_rule.cpp', 'w') as f:
+        f.write(format_cpp(cvc5_proof_rewrite_rule_cpp.format(
             printer='\n'.join(printer_code))))
 
     rewrites_cpp = read_tpl(args.src_dir, 'rewrites_template.cpp')

@@ -38,20 +38,20 @@ ${decl_individual_rewrites}$
         // clang-format on
     }
 
-Node mkRewriteRuleNode(RewriteRuleId id)
+Node mkRewriteRuleNode(ProofRewriteRule rule)
 {
   return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(id)));
+      Rational(static_cast<uint32_t>(rule)));
 }
 
-bool getRewriteRuleId(TNode n, RewriteRuleId& id)
+bool getProofRewriteRule(TNode n, ProofRewriteRule& rule)
 {
   uint32_t index;
   if (!ProofRuleChecker::getUInt32(n, index))
   {
     return false;
   }
-  id = static_cast<RewriteRuleId>(index);
+  rule = static_cast<ProofRewriteRule>(index);
   return true;
 }
 

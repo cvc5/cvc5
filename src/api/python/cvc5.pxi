@@ -49,7 +49,7 @@ from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
 from cvc5proofrules cimport ProofRule as c_ProofRule
-from cvc5rewriteruleids cimport RewriteRuleId as c_RewriteRuleId
+from cvc5proofrewriterules cimport ProofRewriteRule as c_ProofRewriteRule
 from cvc5skolemids cimport SkolemId as c_SkolemId
 
 cdef extern from "Python.h":
@@ -5674,13 +5674,13 @@ cdef class Proof:
         """
         return ProofRule(<int> self.cproof.getRule())
 
-    def getRewriteRuleId(self):
+    def getProofRewriteRule(self):
         """
-            :return: The rewrite proof rule used by the root step of the proof.
+            :return: The proof rewrite rule used by the root step of the proof.
                      Raises an exception if `getRule()` does not return
                      `DSL_REWRITE`.
         """
-        return RewriteRuleId(<int> self.cproof.getRewriteRuleId())
+        return ProofRewriteRule(<int> self.cproof.getProofRewriteRule())
 
     def getResult(self):
         """

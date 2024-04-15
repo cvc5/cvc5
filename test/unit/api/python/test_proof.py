@@ -76,10 +76,10 @@ def test_get_result(tm, solver):
     assert rule == "SCOPE"
 
 
-def test_get_rewrite_rule_id(tm, solver):
+def test_get_proof_rewrite_rule(tm, solver):
     proof = create_rewrite_proof(tm, solver)
     with pytest.raises(RuntimeError):
-        proof.getRewriteRuleId()
+        proof.getProofRewriteRule()
     rule = None
     stack = [proof]
     while rule != ProofRule.DSL_REWRITE:
@@ -87,7 +87,7 @@ def test_get_rewrite_rule_id(tm, solver):
         rule = proof.getRule()
         children = proof.getChildren()
         stack.extend(children)
-    assert proof.getRewriteRuleId() is not None
+    assert proof.getProofRewriteRule() is not None
 
 
 def test_get_result(tm, solver):

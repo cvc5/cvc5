@@ -19,8 +19,8 @@
 #define CVC5__API__CVC5_H
 
 #include <cvc5/cvc5_kind.h>
+#include <cvc5/cvc5_proof_rewrite_rule.h>
 #include <cvc5/cvc5_proof_rule.h>
-#include <cvc5/cvc5_rewrite_rule_id.h>
 #include <cvc5/cvc5_skolem_id.h>
 #include <cvc5/cvc5_types.h>
 
@@ -3530,12 +3530,12 @@ class CVC5_EXPORT Proof
   ProofRule getRule() const;
 
   /**
-   * @return The rewrite proof rule used by the root step of the proof.
+   * @return The proof rewrite rule used by the root step of the proof.
    *
    * @exception raises an exception if `getRule()` does not return
    * `DSL_REWRITE`.
    */
-  RewriteRuleId getRewriteRuleId() const;
+  ProofRewriteRule getProofRewriteRule() const;
 
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;
