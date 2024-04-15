@@ -351,24 +351,18 @@ class DTypeConstructor
   mutable std::map<TypeNode, std::pair<CardinalityClass, bool> > d_cardInfo;
 }; /* class DTypeConstructor */
 
-/**
- * A hash function for DTypeConstructors.  Needed to store them in hash sets
- * and hash maps.
- */
-struct DTypeConstructorHashFunction
-{
-  size_t operator()(const DTypeConstructor& dtc) const
-  {
-    return std::hash<std::string>()(dtc.getName());
-  }
-  size_t operator()(const DTypeConstructor* dtc) const
-  {
-    return std::hash<std::string>()(dtc->getName());
-  }
-}; /* struct DTypeConstructorHashFunction */
-
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 
 }  // namespace cvc5::internal
 
+namespace std {
+/**
+ * A hash function for DTypeConstructors.
+ */
+template <>
+struct hash<cvc5::internal::DTypeConstructor>
+{
+  size_t operator()(const cvc5::internal::DTypeConstructor& cons) const;
+};
+}  // namespace std
 #endif

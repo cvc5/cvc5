@@ -41,7 +41,7 @@ Node ArraysProofRuleChecker::checkInternal(ProofRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (id == ProofRule::ARRAYS_READ_OVER_WRITE)
   {
     Assert(children.size() == 1);

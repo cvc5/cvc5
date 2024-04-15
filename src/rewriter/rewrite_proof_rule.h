@@ -188,4 +188,4 @@ class RewriteProofRule
 }  // namespace rewriter
 }  // namespace cvc5::internal
 
-#endif /* CVC4__REWRITER__REWRITE_PROOF_RULE__H */
+#endif /* CVC5__REWRITER__REWRITE_PROOF_RULE__H */

@@ -408,20 +408,22 @@ bool isACINorm(Node a, Node b)
 {
   Node an = getACINormalForm(a);
   Node bn = getACINormalForm(b);
+  if (a.getKind() == b.getKind())
+  {
+    // if the kinds are equal, we compare their normal forms only, as the checks
+    // below are spurious.
+    return (an == bn);
+  }
   // note we compare three possibilities, to handle cases like
-  //   (or (and b true) false) == (and b true),
-  // where N((or (and b true) false)) = (and b true),
-  //       N((and b true)) = b.
-  // In other words, one of the terms may be an element of the
-  // normalization of the other, which itself normalizes. Comparing
-  // all three ensures we are robust to this.
-  // However, note that we are intentionally incomplete for cases like:
-  //   (or (and b a) false) == (and a b),
-  // where this can be shown recursively via 2 normalization steps:
-  //   (or (and b a) false) ---> (and b a) ---> (and a b).
-  // We do this for simplicity; proof rules should be given that do these
-  // two steps separately.
-  return (an == bn) || (a == bn) || (an == b);
+  //   (or (and A B) false) == (and A B).
+  //
+  // Note that we do *not* succeed if an==bn here, since this depends on the
+  // chosen ordering. For example, if (or (and A B) false) == (and B A),
+  // we get a normal form of (and A B) for the LHS. The normal form of the
+  // RHS is either (and A B) or (and B A). If we succeeded when an==bn,
+  // then this would only be the case if the former was chosen as a normal
+  // form. Instead, both fail.
+  return (a == bn) || (an == b);
 }
 
 }  // namespace expr

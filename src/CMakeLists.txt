@@ -147,6 +147,8 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
+  proof/alf/alf_dependent_type_converter.cpp
+  proof/alf/alf_dependent_type_converter.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
   proof/alf/alf_print_channel.cpp
@@ -1125,6 +1127,8 @@ libcvc5_add_sources(
   theory/sort_inference.h
   theory/partition_generator.cpp
   theory/partition_generator.h
+  theory/plugin_module.cpp
+  theory/plugin_module.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
   theory/strings/array_core_solver.cpp

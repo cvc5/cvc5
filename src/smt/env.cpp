@@ -274,6 +274,9 @@ void Env::declareSepHeap(TypeNode locT, TypeNode dataT)
   d_sepDataType = dataT;
 }
 
+void Env::addPlugin(Plugin* p) { d_plugins.push_back(p); }
+const std::vector<Plugin*>& Env::getPlugins() const { return d_plugins; }
+
 theory::quantifiers::OracleChecker* Env::getOracleChecker() const
 {
   return d_ochecker.get();

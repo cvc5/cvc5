@@ -23,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/plugin.h"
 #include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
 #include "expr/sygus_term_enumerator.h"
@@ -186,7 +187,8 @@ void SolverEngine::finishInit()
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     // start the unsat core manager
-    d_ucManager.reset(new UnsatCoreManager(*d_env.get()));
+    d_ucManager.reset(new UnsatCoreManager(
+        *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
   // enable proof support in the environment/rewriter
@@ -826,7 +828,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   {
     if (!ret.second.empty())
     {
-      core = convertPreprocessedToInput(ret.second, true);
+      core = d_ucManager->convertPreprocessedToInput(ret.second, true);
     }
   }
   else
@@ -1090,6 +1092,17 @@ void SolverEngine::declareOracleFun(
       inputs, outputs, assume, constraint, o);
   // assert it
   assertFormula(q);
+}
+
+void SolverEngine::addPlugin(Plugin* p)
+{
+  if (d_state->isFullyInited())
+  {
+    throw ModalException(
+        "Cannot add plugin after the solver has been fully initialized.");
+  }
+  // we do not initialize the solver here.
+  d_env->addPlugin(p);
 }
 
 Node SolverEngine::simplify(const Node& t)
@@ -1372,22 +1385,6 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
   }
 }
 
-std::vector<Node> SolverEngine::convertPreprocessedToInput(
-    const std::vector<Node>& ppa, bool isInternal)
-{
-  std::vector<Node> core;
-  CDProof cdp(*d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
-  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
-  Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
-  d_ucManager->getUnsatCore(
-      pfn, d_smtSolver->getAssertions(), core, isInternal);
-  return core;
-}
-
 void SolverEngine::printProof(std::ostream& out,
                               std::shared_ptr<ProofNode> fp,
                               modes::ProofFormat proofFormat,
@@ -1541,15 +1538,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT response.");
   }
-  // generate with new proofs
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-
-  // make the proof corresponding to a dummy step (SAT_REFUTATION) of the
-  // unsat core computed by the prop engine
-  std::vector<Node> pcore;
-  pe->getUnsatCore(pcore);
-  std::vector<Node> core = convertPreprocessedToInput(pcore, isInternal);
+  std::vector<Node> core = d_ucManager->getUnsatCore(isInternal);
   return UnsatCore(core);
 }
 
@@ -1646,9 +1635,7 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
         "Cannot get lemmas used to derive unsat unless immediately preceded by "
         "UNSAT response.");
   }
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  return pe->getUnsatCoreLemmas();
+  return d_ucManager->getUnsatCoreLemmas(false);
 }
 
 void SolverEngine::getRelevantQuantTermVectors(
@@ -1659,14 +1646,7 @@ void SolverEngine::getRelevantQuantTermVectors(
   Assert(d_state->getMode() == SmtMode::UNSAT);
   Assert(d_env->getOptions().smt.produceProofs
          && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
-  // generate with new proofs
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pfn = pe->getProof();
-  // note that we don't have to connect the SAT proof to the input assertions,
-  // and preprocessing proofs don't impact what instantiations are used
-  d_ucManager->getRelevantQuantTermVectors(pfn, insts, sks, getDebugInfo);
+  d_ucManager->getRelevantQuantTermVectors(insts, sks, getDebugInfo);
 }
 
 std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(

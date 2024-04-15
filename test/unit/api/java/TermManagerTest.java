@@ -18,6 +18,7 @@ package tests;
 import static io.github.cvc5.Kind.*;
 import static io.github.cvc5.RoundingMode.*;
 import static io.github.cvc5.SortKind.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
 import java.math.BigInteger;
@@ -29,11 +30,13 @@ import org.junit.jupiter.api.function.Executable;
 class TermManagerTest
 {
   private TermManager d_tm;
+  private Solver d_solver;
 
   @BeforeEach
   void setUp()
   {
     d_tm = new TermManager();
+    d_solver = new Solver(d_tm);
   }
 
   @AfterEach
