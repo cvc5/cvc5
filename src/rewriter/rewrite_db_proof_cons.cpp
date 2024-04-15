@@ -341,9 +341,9 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     {
       // for closures, their first argument (the bound variable list) must be
       // equivalent, and should not be given as a child proof.
-      if (i==0 && target[0].isClosure())
+      if (i == 0 && target[0].isClosure())
       {
-        if (target[0][0]!=target[1][0])
+        if (target[0][0] != target[1][0])
         {
           return false;
         }
