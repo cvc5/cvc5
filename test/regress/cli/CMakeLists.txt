@@ -1831,6 +1831,8 @@ set(regress_0_tests
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/declare-var-grammar-err.sy
+  regress0/sygus/defs-reduce-grammar.sy
+  regress0/sygus/dns_monolithic.sy
   regress0/sygus/dt-no-syntax.sy
   regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/find-synth-next.smt2
@@ -1865,6 +1867,7 @@ set(regress_0_tests
   regress0/sygus/proj-issue464-rr-option.smt2
   regress0/sygus/real-si-all.sy
   regress0/sygus/setFeature.sy
+  regress0/sygus/simple-reduce-grammar.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/sygus-no-wf.sy
   regress0/sygus/sygus-no-incremental-err.sy

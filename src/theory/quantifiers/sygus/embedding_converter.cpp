@@ -139,7 +139,7 @@ Node EmbeddingConverter::process(Node q,
       sfvl = preGrammarType.getDType().getSygusVarList();
       tn = preGrammarType;
       // normalize type, if user-provided
-      SygusGrammarNorm sygus_norm(d_env, d_tds);
+      SygusGrammarNorm sygus_norm(d_env);
       tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }
     else

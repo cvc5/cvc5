@@ -10,16 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of sygus_grammar_red.
+ * Implementation of sygus grammar reduction.
  */
 
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 
-#include "expr/dtype.h"
-#include "expr/dtype_cons.h"
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_util.h"
+#include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -29,150 +26,148 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-void SygusRedundantCons::initialize(TermDbSygus* tds, TypeNode tn)
+/** An attribute for canonical variables used in this class */
+struct GrammarRedFreeVarAttributeId
 {
-  Assert(tds != nullptr);
-  Trace("sygus-red") << "Compute redundant cons for " << tn << std::endl;
-  d_type = tn;
-  Assert(tn.isDatatype());
-  tds->registerSygusType(tn);
-  const DType& dt = tn.getDType();
-  Assert(dt.isSygus());
-  TypeNode btn = dt.getSygusType();
-  for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+};
+using GrammarRedFreeVarAttribute =
+    expr::Attribute<GrammarRedFreeVarAttributeId, Node>;
+
+void SygusGrammarReduce::minimize(SygusGrammar& g)
+{
+  const std::vector<Node>& nts = g.getNtSyms();
+  for (const Node& v : nts)
   {
-    Trace("sygus-red") << "  Is " << dt[i].getName() << " a redundant operator?"
-                       << std::endl;
-    if (dt[i].isSygusAnyConstant())
+    minimize(g, v);
+  }
+}
+
+void SygusGrammarReduce::minimize(SygusGrammar& g, const Node& v)
+{
+  std::vector<Node> rules = g.getRulesFor(v);
+  Trace("sygus-grammar-norm") << "Rules " << v << " " << rules << std::endl;
+  std::unordered_set<Node> allTerms;
+  for (const Node& r : rules)
+  {
+    std::unordered_set<Node> tset = getGenericTerms(g, r);
+    bool dup = false;
+    // if any rule can simulate one of the variants of this rule, we are
+    // redundant.
+    for (const Node& t : tset)
     {
-      // the any constant constructor is never redundant
-      d_sygus_red_status.push_back(0);
-      continue;
-    }
-    Node sop = dt[i].getSygusOp();
-    std::map<int, Node> pre;
-    // We do not do beta reduction, since we want the arguments to match the
-    // the types of the datatype.
-    Node g = tds->mkGeneric(dt, i, pre, false);
-    Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
-    d_gen_terms[i] = g;
-    // is the operator a lambda of the form (lambda x1...xn. f(x1...xn))?
-    bool lamInOrder = false;
-    if (sop.getKind() == Kind::LAMBDA
-        && sop[0].getNumChildren() == sop[1].getNumChildren())
-    {
-      Assert(g.getNumChildren()==sop[0].getNumChildren());
-      lamInOrder = true;
-      for (size_t j = 0, nchild = sop[1].getNumChildren(); j < nchild; j++)
+      if (allTerms.find(t) != allTerms.end())
       {
-        if (sop[0][j] != sop[1][j])
-        {
-          // arguments not in order
-          lamInOrder = false;
-          break;
-        }
-      }
-    }
-    // a list of variants of the generic term (see getGenericList).
-    std::vector<Node> glist;
-    if (lamInOrder)
-    {
-      // If it is a lambda whose arguments are one-to-one with the datatype
-      // arguments, then we can add variants of this operator by permuting
-      // the argument list (see getGenericList).
-      Assert(g.getNumChildren()==dt[i].getNumArgs());
-      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
-      {
-        pre[j] = g[j];
-      }
-      getGenericList(tds, dt, i, 0, pre, glist);
-    }
-    else
-    {
-      // It is a builtin (possibly) ground term. Its children do not correspond
-      // one-to-one with the arugments of the constructor. Hence, we consider
-      // only g itself as a variant.
-      glist.push_back(g);
-    }
-    // call the extended rewriter
-    bool red = false;
-    for (const Node& gr : glist)
-    {
-      Trace("sygus-red-debug") << "  ...variant : " << gr << std::endl;
-      std::map<Node, unsigned>::iterator itg = d_gen_cons.find(gr);
-      if (itg != d_gen_cons.end() && itg->second != i)
-      {
-        red = true;
-        Trace("sygus-red") << "  ......redundant, since a variant of " << g
-                           << " and " << d_gen_terms[itg->second]
-                           << " both rewrite to " << gr << std::endl;
+        Trace("sygus-grammar-red")
+            << "... " << r << " is duplicate since we already have variant "
+            << t << std::endl;
+        g.removeRule(v, r);
+        dup = true;
         break;
       }
-      else
-      {
-        d_gen_cons[gr] = i;
-        Trace("sygus-red") << "  ......not redundant." << std::endl;
-      }
     }
-    d_sygus_red_status.push_back(red ? 1 : 0);
-  }
-  Trace("sygus-red") << "Compute redundant cons for " << tn << " finished"
-                     << std::endl;
-}
-
-void SygusRedundantCons::getRedundant(std::vector<unsigned>& indices)
-{
-  const DType& dt = d_type.getDType();
-  for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
-  {
-    if (isRedundant(i))
+    // if not a duplicate, remember all the variants
+    if (!dup)
     {
-      indices.push_back(i);
+      allTerms.insert(tset.begin(), tset.end());
     }
   }
 }
 
-bool SygusRedundantCons::isRedundant(unsigned i)
+std::unordered_set<Node> SygusGrammarReduce::getGenericTerms(
+    const SygusGrammar& g, const Node& r)
 {
-  Assert(i < d_sygus_red_status.size());
-  return d_sygus_red_status[i] == 1;
+  Trace("sygus-grammar-red-debug") << "Compute variants of " << r << std::endl;
+  std::unordered_set<Node> tset;
+  std::map<Node, Node> mapToNtSym;
+  Node lam = g.getLambdaForRule(r, mapToNtSym);
+  if (lam.getKind() != Kind::LAMBDA)
+  {
+    Node lamr = extendedRewrite(lam);
+    // if no arguments, there are no further variants
+    tset.insert(lamr);
+  }
+  else
+  {
+    // otherwise, consider permutations of all variables introduced for the same
+    // non-terminal group by non-terminal to set up variable swapping
+    std::vector<std::pair<Node, size_t>> vlist;
+    std::vector<Node> ntlist;
+    std::map<Node, std::vector<Node>> ntvMap;
+    BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
+    for (const Node& v : lam[0])
+    {
+      Assert(mapToNtSym.find(v) != mapToNtSym.end());
+      Node nts = mapToNtSym[v];
+      std::vector<Node>& vs = ntvMap[nts];
+      if (vs.empty())
+      {
+        ntlist.push_back(nts);
+      }
+      vlist.emplace_back(nts, vs.size());
+      Node cacheVal = BoundVarManager::getCacheValue(nts, vs.size());
+      vs.push_back(
+          bvm->mkBoundVar<GrammarRedFreeVarAttribute>(cacheVal, nts.getType()));
+      // remember cache values to ensure determinism
+      d_cacheValues.push_back(cacheVal);
+    }
+    // add all variants
+    getGenericTermsRec(lam, tset, vlist, ntlist, ntvMap, 0, 0);
+  }
+  if (TraceIsOn("sygus-grammar-red"))
+  {
+    Trace("sygus-grammar-red") << "Variants of " << r << ":" << std::endl;
+    for (const Node& t : tset)
+    {
+      Trace("sygus-grammar-red") << "  " << t << std::endl;
+    }
+  }
+  return tset;
 }
 
-void SygusRedundantCons::getGenericList(TermDbSygus* tds,
-                                        const DType& dt,
-                                        unsigned c,
-                                        unsigned index,
-                                        std::map<int, Node>& pre,
-                                        std::vector<Node>& terms)
+void SygusGrammarReduce::getGenericTermsRec(
+    const Node& lam,
+    std::unordered_set<Node>& tset,
+    const std::vector<std::pair<Node, size_t>>& vlist,
+    const std::vector<Node>& ntlist,
+    std::map<Node, std::vector<Node>>& ntvMap,
+    size_t ntindex,
+    size_t vindex)
 {
-  if (index == dt[c].getNumArgs())
+  // to avoid exponential behavior, stop if we have more than 10 variants
+  // already
+  if (tset.size() >= 10)
   {
-    Node gt = tds->mkGeneric(dt, c, pre);
-    gt = extendedRewrite(gt);
-    terms.push_back(gt);
     return;
   }
-  // with no swap
-  getGenericList(tds, dt, c, index + 1, pre, terms);
-  // swapping is exponential, only use for operators with small # args.
-  if (dt[c].getNumArgs() <= 5)
+  if (ntindex == ntlist.size())
   {
-    TypeNode atype = tds->getArgType(dt[c], index);
-    for (unsigned s = index + 1, nargs = dt[c].getNumArgs(); s < nargs; s++)
+    std::vector<Node> args;
+    args.push_back(lam);
+    for (const std::pair<Node, size_t>& v : vlist)
     {
-      if (tds->getArgType(dt[c], s) == atype)
-      {
-        // swap s and index
-        Node tmp = pre[s];
-        pre[s] = pre[index];
-        pre[index] = tmp;
-        getGenericList(tds, dt, c, index + 1, pre, terms);
-        // revert
-        tmp = pre[s];
-        pre[s] = pre[index];
-        pre[index] = tmp;
-      }
+      args.push_back(ntvMap[v.first][v.second]);
     }
+    Node app = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, args);
+    // apply extended rewriting to maximize chances for duplication
+    app = extendedRewrite(app);
+    tset.insert(app);
+    return;
+  }
+  Node nts = ntlist[ntindex];
+  std::vector<Node>& ntvs = ntvMap[nts];
+  if (vindex == ntvs.size())
+  {
+    // go to next non-terminal
+    return getGenericTermsRec(lam, tset, vlist, ntlist, ntvMap, ntindex + 1, 0);
+  }
+  for (size_t i = vindex, nvars = ntvs.size(); i < nvars; i++)
+  {
+    // swap the variables
+    std::swap(ntvs[i], ntvs[vindex]);
+    // recurse
+    getGenericTermsRec(lam, tset, vlist, ntlist, ntvMap, ntindex, vindex + 1);
+    // revert
+    std::swap(ntvs[i], ntvs[vindex]);
   }
 }
 
