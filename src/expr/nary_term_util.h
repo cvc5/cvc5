@@ -36,10 +36,10 @@ bool hasListVar(TNode n);
 
 /**
  * Compute list variable context
- * Get the parent kind of each list variable in n, or fail if a list
- * variable occurs in two contexts.
+ * Stores (one of the) parents for each list variable in n, or fail if a list
+ * variable occurs beneath parents that have different kinds.
  */
-bool getListVarContext(TNode n, std::map<Node, Kind>& context);
+bool getListVarContext(TNode n, std::map<Node, Node>& context);
 
 /**
  * Get the null terminator for kind k and type node tn.
@@ -56,10 +56,27 @@ Node getNullTerminator(Kind k, TypeNode tn);
  * Substitution with list semantics.
  * Handles mixtures of list / non-list variables in vars.
  * List variables are mapped to SEXPR whose children are the list to substitute.
+ *
+ * @param src The term to substitute
+ * @param vars The domain of the substitution
+ * @param subs The range of the substitution
+ * @return the substituted term.
  */
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs);
+/**
+ * Same as above, with visited cache.
+ *
+ * @param src The term to substitute
+ * @param vars The domain of the substitution
+ * @param subs The range of the substitution
+ * @return the substituted term.
+ */
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited);
 
 /**
  * @param k A kind
