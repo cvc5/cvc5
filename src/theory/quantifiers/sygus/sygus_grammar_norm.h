@@ -67,7 +67,7 @@ class SygusGrammarNorm : protected EnvObj
    * @param g The sygus grammar to normalize.
    * @return A sygus datatype corresponding to resolving the normalization of g.
    */
-  TypeNode normalizeSygusType(Grammar g);
+  TypeNode normalizeSygusType(SygusGrammar g);
 };
 
 }  // namespace quantifiers
