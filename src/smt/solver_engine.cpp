@@ -2152,8 +2152,8 @@ void SolverEngine::setOption(const std::string& key,
         // regular options.
         for (size_t i = 0; i < 2; i++)
         {
-          std::string rkey = i == 0 ? d_safeOptsRegularOption : key;
-          std::string rvalue = i == 0 ? d_safeOptsRegularOptionValue : value;
+          const std::string& rkey = i == 0 ? d_safeOptsRegularOption : key;
+          const std::string& rvalue = i == 0 ? d_safeOptsRegularOptionValue : value;
           bool isDefault = i == 0 ? d_safeOptsSetRegularOptionToDefault
                                   : (getOption(key) == value);
           if (isDefault)
