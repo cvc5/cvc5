@@ -150,7 +150,7 @@ configure_file(setup.cfg.in setup.cfg)
 configure_file(__init__.py.in cvc5/__init__.py)
 
 set(PYTHON_EXT_SRC_FILES
-  cvc5kinds cvc5types cvc5proofrules cvc5proofrewriterules cvc5skolemids
+  cvc5kinds cvc5types cvc5proofrewriterules cvc5proofrules cvc5skolemids
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxi
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxd
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5_python_base.pyx

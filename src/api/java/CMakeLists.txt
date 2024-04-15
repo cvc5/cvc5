@@ -204,8 +204,8 @@ add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
 add_dependencies(generate-jni-headers
   generate-java-kinds
   generate-java-types
-  generate-java-proofrules
   generate-java-proofrewriterules
+  generate-java-proofrules
   generate-java-skolemfunids)
 
 # find jni package

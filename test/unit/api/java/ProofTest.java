@@ -100,10 +100,10 @@ class ProofTest
   }
 
   @Test
-  void getProofRewriteRule() throws CVC5ApiException
+  void getRewriteRule() throws CVC5ApiException
   {
     Proof proof = createRewriteProof();
-    assertThrows(CVC5ApiException.class, () -> proof.getProofRewriteRule());
+    assertThrows(CVC5ApiException.class, () -> proof.getRewriteRule());
     ProofRule rule;
     List<Proof> stack = new ArrayList<Proof>();
     stack.add(proof);
@@ -117,7 +117,7 @@ class ProofTest
       stack.addAll(Arrays.asList(children));
     } while (rule != ProofRule.DSL_REWRITE);
     Proof rewriteProof = curr;
-    assertDoesNotThrow(() -> rewriteProof.getProofRewriteRule());
+    assertDoesNotThrow(() -> rewriteProof.getRewriteRule());
   }
 
   @Test

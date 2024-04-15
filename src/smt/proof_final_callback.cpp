@@ -103,7 +103,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     const std::vector<Node>& args = pn->getArguments();
     ProofRewriteRule di;
-    if (rewriter::getProofRewriteRule(args[0], di))
+    if (rewriter::getRewriteRule(args[0], di))
     {
       d_dslRuleCount << di;
     }

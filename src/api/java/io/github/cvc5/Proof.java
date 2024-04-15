@@ -61,13 +61,13 @@ public class Proof implements IPointer
    * @return The proof rewrite rule used by the root step of the proof.
    * @throws CVC5ApiException if `getRule()` does not return `DSL_REWRITE`.
    */
-  public ProofRewriteRule getProofRewriteRule() throws CVC5ApiException
+  public ProofRewriteRule getRewriteRule() throws CVC5ApiException
   {
-    int value = getProofRewriteRule(pointer);
+    int value = getRewriteRule(pointer);
     return ProofRewriteRule.fromInt(value);
   }
 
-  private native int getProofRewriteRule(long pointer);
+  private native int getRewriteRule(long pointer);
 
   /** @return The conclusion of the root step of the proof. */
   public Term getResult()

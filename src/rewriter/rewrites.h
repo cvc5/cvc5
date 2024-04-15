@@ -38,7 +38,7 @@ void addRules(RewriteDb& db);
 Node mkRewriteRuleNode(ProofRewriteRule rule);
 
 /** get a proof rewrite rule from a node, return false if we fail */
-bool getProofRewriteRule(TNode n, ProofRewriteRule& rule);
+bool getRewriteRule(TNode n, ProofRewriteRule& rule);
 
 }  // namespace rewriter
 }  // namespace cvc5::internal

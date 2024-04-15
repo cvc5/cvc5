@@ -3535,7 +3535,7 @@ class CVC5_EXPORT Proof
    * @exception raises an exception if `getRule()` does not return
    * `DSL_REWRITE`.
    */
-  ProofRewriteRule getProofRewriteRule() const;
+  ProofRewriteRule getRewriteRule() const;
 
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;

@@ -107,7 +107,7 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   {
     const std::vector<Node>& args = pn->getArguments();
     ProofRewriteRule di;
-    if (rewriter::getProofRewriteRule(args[0], di))
+    if (rewriter::getRewriteRule(args[0], di))
     {
       printProofRewriteRule(out, di);
     }
@@ -171,7 +171,7 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
   {
     Node idn = pn->getArguments()[0];
     ProofRewriteRule di;
-    if (rewriter::getProofRewriteRule(idn, di))
+    if (rewriter::getRewriteRule(idn, di))
     {
       d_dprs.insert(di);
     }

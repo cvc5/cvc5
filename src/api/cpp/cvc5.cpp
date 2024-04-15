@@ -5038,7 +5038,7 @@ ProofRule Proof::getRule() const
   CVC5_API_TRY_CATCH_END;
 }
 
-ProofRewriteRule Proof::getProofRewriteRule() const
+ProofRewriteRule Proof::getRewriteRule() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(this->getProofNode()->getRule() == ProofRule::DSL_REWRITE)

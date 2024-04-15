@@ -44,7 +44,7 @@ Node mkRewriteRuleNode(ProofRewriteRule rule)
       Rational(static_cast<uint32_t>(rule)));
 }
 
-bool getProofRewriteRule(TNode n, ProofRewriteRule& rule)
+bool getRewriteRule(TNode n, ProofRewriteRule& rule)
 {
   uint32_t index;
   if (!ProofRuleChecker::getUInt32(n, index))

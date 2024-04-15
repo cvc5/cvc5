@@ -240,7 +240,7 @@ Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
 Node ProofNodeToSExpr::getOrMkDslRewriteVariable(TNode n)
 {
   ProofRewriteRule rid;
-  if (!rewriter::getProofRewriteRule(n, rid))
+  if (!rewriter::getRewriteRule(n, rid))
   {
     // just use self if we failed to get the node, throw a debug failure
     Assert(false) << "Expected inference id node, got " << n;

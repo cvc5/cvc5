@@ -88,10 +88,10 @@ TEST_F(TestApiBlackProof, getRule)
   ASSERT_EQ(proof.getRule(), ProofRule::SCOPE);
 }
 
-TEST_F(TestApiBlackProof, getProofRewriteRule)
+TEST_F(TestApiBlackProof, getRewriteRule)
 {
   Proof proof = createRewriteProof();
-  ASSERT_THROW(proof.getProofRewriteRule(), CVC5ApiException);
+  ASSERT_THROW(proof.getRewriteRule(), CVC5ApiException);
   ProofRule rule;
   std::vector<Proof> stack;
   stack.push_back(proof);
@@ -103,7 +103,7 @@ TEST_F(TestApiBlackProof, getProofRewriteRule)
     std::vector<Proof> children = proof.getChildren();
     stack.insert(stack.cend(), children.cbegin(), children.cend());
   } while (rule != ProofRule::DSL_REWRITE);
-  ASSERT_NO_THROW(proof.getProofRewriteRule());
+  ASSERT_NO_THROW(proof.getRewriteRule());
 }
 
 TEST_F(TestApiBlackProof, getResult)

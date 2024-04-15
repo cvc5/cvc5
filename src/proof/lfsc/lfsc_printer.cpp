@@ -882,7 +882,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case ProofRule::DSL_REWRITE:
     {
       ProofRewriteRule di = ProofRewriteRule::NONE;
-      if (!rewriter::getProofRewriteRule(args[0], di))
+      if (!rewriter::getRewriteRule(args[0], di))
       {
         Assert(false);
       }

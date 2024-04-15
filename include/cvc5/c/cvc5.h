@@ -2901,7 +2901,7 @@ Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof* proof);
  * @exception raises an exception if `getRule()` does not return
  * `CVC5_PROOF_RULE_DSL_REWRITE`.
  */
-Cvc5ProofRewriteRule cvc5_proof_get_proof_rewrite_rule(Cvc5Proof* proof);
+Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof* proof);
 
 /**
  * Get the conclusion of the root step of a given proof.
