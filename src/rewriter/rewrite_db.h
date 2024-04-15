@@ -117,4 +117,4 @@ class RewriteDb
 }  // namespace rewriter
 }  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__REWRITE_DB__H */
+#endif /* CVC5__THEORY__REWRITE_DB__H */
