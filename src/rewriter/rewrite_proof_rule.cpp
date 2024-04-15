@@ -26,7 +26,7 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-RewriteProofRule::RewriteProofRule() : d_id(DslProofRule::FAIL) {}
+RewriteProofRule::RewriteProofRule() : d_id(DslProofRule::NONE) {}
 
 void RewriteProofRule::init(DslProofRule id,
                             const std::vector<Node>& userFvs,
@@ -95,10 +95,10 @@ bool RewriteProofRule::isExplicitVar(Node v) const
 }
 Kind RewriteProofRule::getListContext(Node v) const
 {
-  std::map<Node, Kind>::const_iterator it = d_listVarCtx.find(v);
+  std::map<Node, Node>::const_iterator it = d_listVarCtx.find(v);
   if (it != d_listVarCtx.end())
   {
-    return it->second;
+    return it->second.getKind();
   }
   return Kind::UNDEFINED_KIND;
 }
@@ -127,22 +127,71 @@ void RewriteProofRule::getMatches(Node h, expr::NotifyMatch* ntm) const
   d_mt.getMatches(h, ntm);
 }
 
-Node RewriteProofRule::getConclusion() const { return d_conc; }
-
-Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
+Node RewriteProofRule::getConclusion(bool includeContext) const
 {
-  Assert(d_fvs.size() == ss.size());
   Node conc = d_conc;
   // if the rule has conclusion s, and term context (lambda x. t[x]), then the
   // conclusion is t[s], which we compute in the block below.
-  if (isFixedPoint())
+  if (includeContext && isFixedPoint())
   {
     Node context = d_context;
     Node rhs = context[1].substitute(TNode(context[0][0]), TNode(conc[1]));
     conc = conc[0].eqNode(rhs);
   }
+  return conc;
+}
+
+Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
+{
+  Assert(d_fvs.size() == ss.size());
+  Node conc = getConclusion(true);
   return expr::narySubstitute(conc, d_fvs, ss);
 }
+
+Node RewriteProofRule::getConclusionFor(
+    const std::vector<Node>& ss,
+    std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms) const
+{
+  Assert(d_fvs.size() == ss.size());
+  Node conc = getConclusion(true);
+  std::unordered_map<TNode, Node> visited;
+  Node ret = expr::narySubstitute(conc, d_fvs, ss, visited);
+  std::map<Node, Node>::const_iterator itl;
+  for (size_t i = 0, nfvs = ss.size(); i < nfvs; i++)
+  {
+    TNode v = d_fvs[i];
+    Kind wk = Kind::UNDEFINED_KIND;
+    std::vector<Node> wargs;
+    if (!expr::isListVar(v))
+    {
+      // if not a list variable, it is the given term
+      wargs.push_back(ss[i]);
+    }
+    else
+    {
+      itl = d_listVarCtx.find(v);
+      Assert(itl != d_listVarCtx.end());
+      Node ctx = itl->second;
+      if (ss[i].getNumChildren() == 0)
+      {
+        // to determine the type, we get the type of the substitution of the
+        // list context of the variable.
+        Node subsCtx = visited[ctx];
+        Assert(!subsCtx.isNull());
+        Node nt = expr::getNullTerminator(ctx.getKind(), subsCtx.getType());
+        wargs.push_back(nt);
+      }
+      else
+      {
+        wk = ctx.getKind();
+        wargs.insert(wargs.end(), ss[i].begin(), ss[i].end());
+      }
+    }
+    witnessTerms.emplace_back(wk, wargs);
+  }
+  return ret;
+}
+
 bool RewriteProofRule::isFixedPoint() const
 {
   return d_context != Node::null();

@@ -29,6 +29,7 @@
 #include "prop/learned_db.h"
 #include "prop/skolem_def_manager.h"
 #include "smt/env_obj.h"
+#include "theory/inference_id.h"
 #include "theory/output_channel.h"
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
@@ -129,10 +130,13 @@ class PropEngine : protected EnvObj
    * The formula can be removed by the SAT solver after backtracking lower
    * than the (SAT and SMT) level at which it was asserted.
    *
-   * @param trn the trust node storing the formula to assert
-   * @param p the properties of the lemma
+   * @param id The inference identifier.
+   * @param trn The trust node storing the formula to assert.
+   * @param p The properties of the lemma.
    */
-  void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
+  void assertLemma(theory::InferenceId id,
+                   TrustNode tlemma,
+                   theory::LemmaProperty p);
 
   /**
    * This is called when a theory propagation was explained with texp.
@@ -370,21 +374,26 @@ class PropEngine : protected EnvObj
    * The formula can be removed by the SAT solver after backtracking lower
    * than the (SAT and SMT) level at which it was asserted.
    *
-   * @param trn the trust node storing the formula to assert
-   * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic
+   * @param id The inference identifier.
+   * @param trn The trust node storing the formula to assert.
+   * @param removable Whether this lemma can be quietly removed based
+   * on an activity heuristic.
    */
-  void assertTrustedLemmaInternal(TrustNode trn, bool removable);
+  void assertTrustedLemmaInternal(theory::InferenceId id,
+                                  TrustNode trn,
+                                  bool removable);
   /**
    * Assert node as a formula to the CNF stream
-   * @param node The formula to assert
-   * @param negated Whether to assert the negation of node
-   * @param removable Whether the formula is removable
-   * @param input Whether the formula came from the input
+   * @param id The inference identifier.
+   * @param node The formula to assert.
+   * @param negated Whether to assert the negation of node.
+   * @param removable Whether the formula is removable.
+   * @param input Whether the formula came from the input.
    * @param pg Pointer to a proof generator that can provide a proof of node
    * (or its negation if negated is true).
    */
-  void assertInternal(TNode node,
+  void assertInternal(theory::InferenceId id,
+                      TNode node,
                       bool negated,
                       bool removable,
                       bool input,
@@ -395,7 +404,8 @@ class PropEngine : protected EnvObj
    * obtained from preprocessing it, and removable is whether the lemma is
    * removable.
    */
-  void assertLemmasInternal(TrustNode trn,
+  void assertLemmasInternal(theory::InferenceId id,
+                            TrustNode trn,
                             const std::vector<theory::SkolemLemma>& ppLemmas,
                             bool removable,
                             bool inprocess,

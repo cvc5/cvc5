@@ -47,6 +47,30 @@ class TranscendentalProofRuleChecker : public ProofRuleChecker
   Node checkInternal(ProofRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
+  /**
+   * Helper method to construct a bounds constraint  (t >= lb) AND (t <= up)
+   * for a given term `t`.
+   *
+   * @param t The given term `t`.
+   * @param lb The lower bound `lb` in the formula above.
+   * @param ub The upper bound `ub` in the formula above.
+   * @return The bounds constraint as the formula of the form above.
+   */
+  Node mkBounds(TNode t, TNode lb, TNode ub);
+  /**
+   * Helper method to construct a secant plane:
+   * evall + ((evall - evalu) / (l - u)) * (t - l).
+   * Used for ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS and
+   * ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG.
+   *
+   * @param t The term `t` in the above formula.
+   * @param l The term `l` in the above formula.
+   * @param u The term `u` in the above formula.
+   * @param evall The term `evall` in the above formula.
+   * @param evalu The term in `evalu` the above formula.
+   * @return The formula of the form above.
+   */
+  Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu);
 };
 
 }  // namespace transcendental

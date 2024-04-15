@@ -65,8 +65,6 @@ class TheoryArraysRewriter : public TheoryRewriter
 
   TrustNode expandDefinition(Node node) override;
 
-  static inline void init() {}
-
   /**
    * Puts array constant node into normal form. This is so that array constants
    * that are distinct nodes are semantically disequal.
