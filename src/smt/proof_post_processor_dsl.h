@@ -32,7 +32,9 @@
 namespace cvc5::internal {
 namespace smt {
 
-/** Final callback class, for stats and pedantic checking */
+/**
+ * A class for running RARE proof reconstruction for rewrite rules.
+ */
 class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
 {
  public:

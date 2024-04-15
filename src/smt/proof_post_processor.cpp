@@ -70,7 +70,7 @@ void ProofPostprocessCallback::setCollectAllTrustedRules()
 std::unordered_set<std::shared_ptr<ProofNode>>&
 ProofPostprocessCallback::getTrustedProofs()
 {
-  return d_rconsPf;
+  return d_trustedPfs;
 }
 
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -82,7 +82,7 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   if (d_collectAllTrusted
       && (id == ProofRule::TRUST_THEORY_REWRITE || id == ProofRule::TRUST))
   {
-    d_rconsPf.insert(pn);
+    d_trustedPfs.insert(pn);
     return false;
   }
   if (shouldExpand(id))

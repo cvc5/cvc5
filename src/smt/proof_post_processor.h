@@ -97,10 +97,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<ProofRule, std::hash<ProofRule>> d_elimRules;
-  /** Whether we are trying to collecting any trusted rule */
+  /** Whether we are collecting all trusted rules */
   bool d_collectAllTrusted;
   /** Set of all proofs to attempt to reconstruct */
-  std::unordered_set<std::shared_ptr<ProofNode>> d_rconsPf;
+  std::unordered_set<std::shared_ptr<ProofNode>> d_trustedPfs;
   /** Whether we post-process assumptions in scope. */
   bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update
