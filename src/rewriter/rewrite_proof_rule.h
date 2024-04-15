@@ -101,7 +101,7 @@ class RewriteProofRule
    * Get conclusion of the rule for the substituted terms ss for the variables
    * v = getVarList() of this rule.
    *
-   * @param ss The terms to substitute this rule. Each ss[i] is the same sort
+   * @param ss The terms to substitute in this rule. Each ss[i] is the same sort
    * as v[i] if v[i] is not a list variable, or is an SEXPR if v[i] is a list
    * variable,
    * @return the substituted conclusion of the rule.
@@ -118,7 +118,7 @@ class RewriteProofRule
    * Note that we don't construct (<k> t1 ... tn) since it may be illegal to
    * do so if e.g. k=or, and n=1 due to restrictions on the arity of Kinds.
    *
-   * @param ss The terms to substitute this rule. Each ss[i] is the same sort
+   * @param ss The terms to substitute in this rule. Each ss[i] is the same sort
    * as v[i] if v[i] is not a list variable, or is an SEXPR if v[i] is a list
    * variable,
    * @param witnessTerms The computed witness terms for each variable of this
