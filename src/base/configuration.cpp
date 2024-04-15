@@ -154,7 +154,8 @@ std::string Configuration::copyright() {
   }
 
   if (Configuration::isBuiltWithCln()
-      || Configuration::isBuiltWithGlpk ()) {
+      || Configuration::isBuiltWithGlpk()
+      || Configuration::isBuiltWithCoCoA()) {
     ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the GPLv3 license.\n"
        << "See licenses/gpl-3.0.txt for more information.\n\n";
@@ -166,6 +167,11 @@ std::string Configuration::copyright() {
       ss << "  glpk-cut-log - a modified version of GPLK, "
          << "the GNU Linear Programming Kit\n"
          << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
+         << " information\n\n";
+    }
+    if (Configuration::isBuiltWithCoCoA()) {
+      ss << "  CoCoALib - a computer algebra library\n"
+         << "  See https://cocoa.dima.unige.it/cocoa/cocoalib/index.shtml for copyright"
          << " information\n\n";
     }
   }
@@ -217,6 +223,8 @@ bool Configuration::isBuiltWithPoly()
   return IS_POLY_BUILD;
 }
 bool Configuration::isBuiltWithCoCoA() { return IS_COCOA_BUILD; }
+
+bool Configuration::isBuiltWithPortfolio() { return IS_PORTFOLIO_BUILD; }
 
 const std::vector<std::string>& Configuration::getTraceTags()
 {

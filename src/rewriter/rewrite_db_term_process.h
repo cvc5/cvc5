@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__REWRITER__REWRITE_DB_TERM_PROCESS__H
-#define CVC4__REWRITER__REWRITE_DB_TERM_PROCESS__H
+#ifndef CVC5__REWRITER__REWRITE_DB_TERM_PROCESS__H
+#define CVC5__REWRITER__REWRITE_DB_TERM_PROCESS__H
 
 #include <map>
 #include <unordered_map>
@@ -45,6 +45,7 @@ namespace rewriter {
 class RewriteDbNodeConverter : public NodeConverter
 {
  public:
+  RewriteDbNodeConverter(NodeManager* nm);
   /**
    * This converts the node n to the internal shape that it should be in
    * for the DSL proof reconstruction algorithm.
@@ -59,4 +60,4 @@ class RewriteDbNodeConverter : public NodeConverter
 }  // namespace rewriter
 }  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__REWRITE_DB_TERM_PROCESS__H */
+#endif /* CVC5__THEORY__REWRITE_DB_TERM_PROCESS__H */

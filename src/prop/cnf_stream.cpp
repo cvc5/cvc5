@@ -267,7 +267,7 @@ SatLiteral CnfStream::convertAtom(TNode node)
   if (node.isVar())
   {
     SkolemManager* sm = nodeManager()->getSkolemManager();
-    isInternalBoolVar = (sm->getId(node) != SkolemFunId::PURIFY);
+    isInternalBoolVar = (sm->getId(node) != SkolemId::PURIFY);
   }
   if (isInternalBoolVar)
   {
@@ -776,6 +776,52 @@ CnfStream::Statistics::Statistics(StatisticsRegistry& sr,
         sr.registerTimer(name + "::CnfStream::cnfConversionTime")),
       d_numAtoms(sr.registerInt(name + "::CnfStream::numAtoms"))
 {
+}
+
+void CnfStream::dumpDimacs(std::ostream& out, const std::vector<Node>& clauses)
+{
+  std::vector<Node> auxUnits;
+  dumpDimacs(out, clauses, auxUnits);
+}
+
+void CnfStream::dumpDimacs(std::ostream& out,
+                           const std::vector<Node>& clauses,
+                           const std::vector<Node>& auxUnits)
+{
+  std::stringstream dclauses;
+  SatVariable maxVar = 0;
+  for (size_t j = 0; j < 2; j++)
+  {
+    const std::vector<Node>& cls = j == 0 ? clauses : auxUnits;
+    for (const Node& i : cls)
+    {
+      std::vector<Node> lits;
+      if (j == 0 && i.getKind() == Kind::OR)
+      {
+        // print as clause if not an auxiliary unit
+        lits.insert(lits.end(), i.begin(), i.end());
+      }
+      else
+      {
+        lits.push_back(i);
+      }
+      Trace("dimacs-debug") << "Print " << i << std::endl;
+      for (const Node& l : lits)
+      {
+        bool negated = l.getKind() == Kind::NOT;
+        const Node& atom = negated ? l[0] : l;
+        SatLiteral lit = getLiteral(atom);
+        SatVariable v = lit.getSatVariable();
+        maxVar = v > maxVar ? v : maxVar;
+        dclauses << (negated ? "-" : "") << v << " ";
+      }
+      dclauses << "0" << std::endl;
+    }
+  }
+
+  out << "p cnf " << maxVar << " " << (clauses.size() + auxUnits.size())
+      << std::endl;
+  out << dclauses.str();
 }
 
 }  // namespace prop

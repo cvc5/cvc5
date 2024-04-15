@@ -881,7 +881,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     break;
     case ProofRule::DSL_REWRITE:
     {
-      DslProofRule di = DslProofRule::FAIL;
+      DslProofRule di = DslProofRule::NONE;
       if (!rewriter::getDslProofRule(args[0], di))
       {
         Assert(false);
@@ -1150,7 +1150,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
            << std::endl;
       // body must be converted to incorporate list semantics for substitutions
       // first traversal applies nary_elim to required n-ary applications
-      LfscListScNodeConverter llsncp(d_tproc, listVars, true);
+      LfscListScNodeConverter llsncp(nodeManager(), d_tproc, listVars, true);
       Node tscp;
       if (isConclusion)
       {
@@ -1166,7 +1166,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       // second traversal converts to LFSC form
       Node t = d_tproc.convert(tscp);
       // third traversal applies nary_concat where list variables are used
-      LfscListScNodeConverter llsnc(d_tproc, listVars, false);
+      LfscListScNodeConverter llsnc(nodeManager(), d_tproc, listVars, false);
       Node tsc = llsnc.convert(t);
       oscs << "  ";
       print(oscs, tsc);

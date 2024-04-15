@@ -19,7 +19,10 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-AnnotationElimNodeConverter::AnnotationElimNodeConverter() {}
+AnnotationElimNodeConverter::AnnotationElimNodeConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
 
 Node AnnotationElimNodeConverter::postConvert(Node n)
 {

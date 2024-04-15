@@ -42,6 +42,8 @@ enum class InferenceId
 {
   NONE,
   // ---------------------------------- core
+  // formulas coming from input
+  INPUT,
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
   // a split from theory combination
@@ -50,6 +52,8 @@ enum class InferenceId
   CONFLICT_REWRITE_LIT,
   // an explained theory propagation
   EXPLAINED_PROPAGATION,
+  // a skolem lemma introduced by the theory preprocessor
+  THEORY_PP_SKOLEM_LEM,
   // ---------------------------------- ext theory
   // a simplification from the extended theory utility
   EXTT_SIMPLIFY,
@@ -965,11 +969,15 @@ enum class InferenceId
   //-------------------- UF arith/bv conversions solver
   // reductions of an arithmetic/bit-vector conversion term
   UF_ARITH_BV_CONV_REDUCTION,
+  // value-based refinement of an arithmetic/bit-vector conversion term
+  UF_ARITH_BV_CONV_VALUE_REFINE,
   //-------------------------------------- end uf theory
 
   //-------------------------------------- lemma from modules
   // From the partition generator
   PARTITION_GENERATOR_PARTITION,
+  // From a plugin
+  PLUGIN_LEMMA,
   //-------------------------------------- unknown
   UNKNOWN
 };

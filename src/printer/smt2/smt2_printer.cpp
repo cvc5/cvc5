@@ -73,44 +73,76 @@ static void toStreamRational(std::ostream& out,
                              Variant v)
 {
   bool neg = r.sgn() < 0;
+  bool arithTokens = options::ioutils::getPrintArithLitToken(out);
   // Print the rational, possibly as a real.
   // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
   // the former is compliant with real values in the smt lib standard.
   if (r.isIntegral())
   {
-    if (neg)
+    if (arithTokens)
     {
-      out << "(- " << -r;
+      if (neg)
+      {
+        out << "-" << -r;
+      }
+      else
+      {
+        out << r;
+      }
+      if (isReal)
+      {
+        out << ".0";
+      }
     }
     else
     {
-      out << r;
-    }
-    if (isReal)
-    {
-      out << ".0";
-    }
-    if (neg)
-    {
-      out << ")";
+      if (neg)
+      {
+        out << "(- " << -r;
+      }
+      else
+      {
+        out << r;
+      }
+      if (isReal)
+      {
+        out << ".0";
+      }
+      if (neg)
+      {
+        out << ")";
+      }
     }
   }
   else
   {
     Assert(isReal);
-    out << "(/ ";
-    if (neg)
+    if (arithTokens)
     {
-      Rational abs_r = (-r);
-      out << "(- " << abs_r.getNumerator();
-      out << ") " << abs_r.getDenominator();
+      if (neg)
+      {
+        Rational abs_r = (-r);
+        out << '-' << abs_r.getNumerator() << '/' << abs_r.getDenominator();
+      }
+      else
+      {
+        out << r.getNumerator() << '/' << r.getDenominator();
+      }
     }
     else
     {
-      out << r.getNumerator();
-      out << ' ' << r.getDenominator();
+      out << "(/ ";
+      if (neg)
+      {
+        Rational abs_r = (-r);
+        out << "(- " << abs_r.getNumerator() << ") " << abs_r.getDenominator();
+      }
+      else
+      {
+        out << r.getNumerator() << ' ' << r.getDenominator();
+      }
+      out << ')';
     }
-    out << ')';
   }
 }
 
@@ -324,7 +356,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       }
       else
       {
-        // prints as the corresponding concatentation of seq.unit
+        // prints as the corresponding concatenation of seq.unit
         Node cc = theory::strings::utils::mkConcatForConstSequence(n);
         toStream(out, cc, lbind, toDepth);
       }
@@ -555,38 +587,76 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   }
   else if (n.isVar())
   {
-    if (k == Kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
+    bool printed = false;
+    if (k == Kind::SKOLEM)
     {
-      // abstract value
-      std::string s = n.getName();
-      out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType()
-          << ")";
-    }
-    // variable
-    else if (n.hasName())
-    {
-      std::string s = n.getName();
-      if (k == Kind::RAW_SYMBOL)
+      SkolemManager* sm = nm->getSkolemManager();
+      SkolemId id;
+      Node cacheVal;
+      if (sm->isSkolemFunction(n, id, cacheVal))
       {
-        // raw symbols are never quoted
-        out << s;
+        if (id == SkolemId::INTERNAL)
+        {
+          if (sm->isAbstractValue(n))
+          {
+            // abstract value
+            std::string s = n.getName();
+            out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType()
+                << ")";
+            printed = true;
+          }
+        }
+        else if (options::ioutils::getPrintSkolemDefinitions(out))
+        {
+          if (!cacheVal.isNull())
+          {
+            out << "(";
+          }
+          out << "@" << id;
+          if (cacheVal.getKind() == Kind::SEXPR)
+          {
+            for (const Node& cv : cacheVal)
+            {
+              out << " " << cv;
+            }
+            out << ")";
+          }
+          else if (!cacheVal.isNull())
+          {
+            out << " " << cacheVal << ")";
+          }
+          printed = true;
+        }
+      }
+    }
+    if (!printed)
+    {
+      // variable
+      if (n.hasName())
+      {
+        std::string s = n.getName();
+        if (k == Kind::RAW_SYMBOL)
+        {
+          // raw symbols are never quoted
+          out << s;
+        }
+        else
+        {
+          out << cvc5::internal::quoteSymbol(s);
+        }
       }
       else
       {
-        out << cvc5::internal::quoteSymbol(s);
+        if (k == Kind::VARIABLE)
+        {
+          out << "var_";
+        }
+        else
+        {
+          out << k << '_';
+        }
+        out << n.getId();
       }
-    }
-    else
-    {
-      if (k == Kind::VARIABLE)
-      {
-        out << "var_";
-      }
-      else
-      {
-        out << k << '_';
-      }
-      out << n.getId();
     }
     return true;
   }
@@ -823,7 +893,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       break;
     }
     case Kind::BITVECTOR_BITOF:
-      out << "(_ bitOf "
+      out << "(_ @bitOf "
           << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex << ")";
       stillNeedToPrintParams = false;
       break;
@@ -1174,12 +1244,12 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_ROTATE_LEFT: return "rotate_left";
     case Kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
     case Kind::INT_TO_BITVECTOR: return "int2bv";
-    case Kind::BITVECTOR_BB_TERM: return "bbT";
-    case Kind::BITVECTOR_BITOF: return "bitOf";
     case Kind::BITVECTOR_ITE: return "bvite";
     case Kind::BITVECTOR_ULTBV: return "bvultbv";
     case Kind::BITVECTOR_SLTBV: return "bvsltbv";
 
+    case Kind::BITVECTOR_BB_TERM: return "@bbT";
+    case Kind::BITVECTOR_BITOF: return "@bitOf";
     case Kind::BITVECTOR_SIZE: return "@bvsize";
     case Kind::CONST_BITVECTOR_SYMBOLIC: return "@bv";
 

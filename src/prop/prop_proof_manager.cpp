@@ -69,8 +69,12 @@ PropPfManager::PropPfManager(Env& env,
 
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
 
-void PropPfManager::convertAndAssert(
-    TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
+void PropPfManager::convertAndAssert(theory::InferenceId id,
+                                     TNode node,
+                                     bool negated,
+                                     bool removable,
+                                     bool input,
+                                     ProofGenerator* pg)
 {
   d_pfCnfStream.convertAndAssert(node, negated, removable, input, pg);
   // if input, register the assertion in the proof manager
@@ -269,6 +273,33 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
 }
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
+
+std::vector<Node> PropPfManager::computeAuxiliaryUnits(
+    const std::vector<Node>& clauses)
+{
+  std::vector<Node> auxUnits;
+  for (const Node& c : clauses)
+  {
+    if (c.getKind() != Kind::OR)
+    {
+      continue;
+    }
+    // Determine if any OR child occurs as a top level clause. If so, it may
+    // be relevant to include this as a unit clause.
+    for (const Node& l : c)
+    {
+      const Node& atom = l.getKind() == Kind::NOT ? l[0] : l;
+      if (atom.getKind() == Kind::OR
+          && std::find(clauses.begin(), clauses.end(), atom) != clauses.end()
+          && std::find(auxUnits.begin(), auxUnits.end(), atom)
+                 == auxUnits.end())
+      {
+        auxUnits.push_back(atom);
+      }
+    }
+  }
+  return auxUnits;
+}
 
 std::vector<Node> PropPfManager::getInputClauses()
 {

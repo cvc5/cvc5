@@ -93,7 +93,7 @@ msg () {
 
 #--------------------------------------------------------------------------#
 
-[ ! -e src/theory ] && die "$0 not called from CVC4 base directory"
+[ ! -e src/theory ] && die "$0 not called from cvc5 base directory"
 
 #--------------------------------------------------------------------------#
 

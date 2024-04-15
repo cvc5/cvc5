@@ -14,8 +14,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
-#define CVC4__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
+#define CVC5__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
 
 #include "expr/node_converter.h"
 #include "proof/lfsc/lfsc_node_converter.h"
@@ -61,7 +61,8 @@ namespace proof {
 class LfscListScNodeConverter : public NodeConverter
 {
  public:
-  LfscListScNodeConverter(LfscNodeConverter& conv,
+  LfscListScNodeConverter(NodeManager* nm,
+                          LfscNodeConverter& conv,
                           const std::unordered_set<Node>& listVars,
                           bool isPre = false);
   /** convert to internal */

@@ -29,10 +29,12 @@ const char* toString(InferenceId i)
   switch (i)
   {
     case InferenceId::NONE: return "NONE";
+    case InferenceId::INPUT: return "INPUT";
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
     case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
     case InferenceId::CONFLICT_REWRITE_LIT: return "CONFLICT_REWRITE_LIT";
     case InferenceId::EXPLAINED_PROPAGATION: return "EXPLAINED_PROPAGATION";
+    case InferenceId::THEORY_PP_SKOLEM_LEM: return "THEORY_PP_SKOLEM_LEM";
     case InferenceId::EXTT_SIMPLIFY: return "EXTT_SIMPLIFY";
     case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
     case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
@@ -553,8 +555,11 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
+    case InferenceId::UF_ARITH_BV_CONV_VALUE_REFINE:
+      return "UF_ARITH_BV_CONV_VALUE_REFINE";
     case InferenceId::PARTITION_GENERATOR_PARTITION:
       return "PARTITION_GENERATOR_PARTITION";
+    case InferenceId::PLUGIN_LEMMA: return "PLUGIN_LEMMA";
     case InferenceId::UNKNOWN: return "?";
 
     default:

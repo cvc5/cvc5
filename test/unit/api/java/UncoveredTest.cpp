@@ -25,6 +25,125 @@ class TestApiBlackUncovered : public TestApi
 {
 };
 
+TEST_F(TestApiBlackUncovered, deprecated)
+{
+  std::stringstream ss;
+  ss << cvc5::Kind::EQUAL << cvc5::kindToString(cvc5::Kind::EQUAL);
+  ss << cvc5::SortKind::ARRAY_SORT
+     << cvc5::sortKindToString(cvc5::SortKind::ARRAY_SORT);
+
+  Solver slv;
+  (void)slv.getBooleanSort();
+  (void)slv.getIntegerSort();
+  (void)slv.getRealSort();
+  (void)slv.getRegExpSort();
+  (void)slv.getRoundingModeSort();
+  (void)slv.getStringSort();
+  (void)slv.mkArraySort(slv.getBooleanSort(), slv.getIntegerSort());
+  (void)slv.mkBitVectorSort(32);
+  (void)slv.mkFloatingPointSort(5, 11);
+  (void)slv.mkFiniteFieldSort("37");
+
+  {
+    DatatypeDecl decl = slv.mkDatatypeDecl("list");
+    DatatypeConstructorDecl cons = slv.mkDatatypeConstructorDecl("cons");
+    cons.addSelector("head", slv.getIntegerSort());
+    decl.addConstructor(cons);
+    decl.addConstructor(slv.mkDatatypeConstructorDecl("nil"));
+    (void)slv.mkDatatypeSort(decl);
+  }
+  {
+    DatatypeDecl decl1 = slv.mkDatatypeDecl("list1");
+    DatatypeConstructorDecl cons1 = slv.mkDatatypeConstructorDecl("cons1");
+    cons1.addSelector("head1", slv.getIntegerSort());
+    decl1.addConstructor(cons1);
+    DatatypeConstructorDecl nil1 = slv.mkDatatypeConstructorDecl("nil1");
+    decl1.addConstructor(nil1);
+    DatatypeDecl decl2 = slv.mkDatatypeDecl("list2");
+    DatatypeConstructorDecl cons2 = slv.mkDatatypeConstructorDecl("cons2");
+    cons2.addSelector("head2", slv.getIntegerSort());
+    decl2.addConstructor(cons2);
+    DatatypeConstructorDecl nil2 = slv.mkDatatypeConstructorDecl("nil2");
+    decl2.addConstructor(nil2);
+    std::vector<DatatypeDecl> decls = {decl1, decl2};
+    ASSERT_NO_THROW(slv.mkDatatypeSorts(decls));
+  }
+
+  (void)slv.mkFunctionSort({slv.mkUninterpretedSort("u")},
+                           slv.getIntegerSort());
+  (void)slv.mkParamSort("T");
+  (void)slv.mkPredicateSort({slv.getIntegerSort()});
+
+  (void)slv.mkRecordSort({std::make_pair("b", slv.getBooleanSort()),
+                          std::make_pair("bv", slv.mkBitVectorSort(8)),
+                          std::make_pair("i", slv.getIntegerSort())});
+  (void)slv.mkSetSort(slv.getBooleanSort());
+  (void)slv.mkBagSort(slv.getBooleanSort());
+  (void)slv.mkSequenceSort(slv.getBooleanSort());
+  (void)slv.mkAbstractSort(SortKind::ARRAY_SORT);
+  (void)slv.mkUninterpretedSort("u");
+  (void)slv.mkUnresolvedDatatypeSort("u");
+  (void)slv.mkUninterpretedSortConstructorSort(2, "s");
+  (void)slv.mkTupleSort({slv.getIntegerSort()});
+  (void)slv.mkNullableSort({slv.getIntegerSort()});
+  (void)slv.mkTerm(Kind::STRING_IN_REGEXP,
+                   {slv.mkConst(slv.getStringSort(), "s"), slv.mkRegexpAll()});
+  (void)slv.mkTerm(slv.mkOp(Kind::REGEXP_ALLCHAR));
+  (void)slv.mkTuple({slv.mkBitVector(3, "101", 2)});
+  (void)slv.mkNullableSome(slv.mkBitVector(3, "101", 2));
+  (void)slv.mkNullableVal(slv.mkNullableSome(slv.mkInteger(5)));
+  (void)slv.mkNullableNull(slv.mkNullableSort(slv.getBooleanSort()));
+  (void)slv.mkNullableIsNull(slv.mkNullableSome(slv.mkInteger(5)));
+  (void)slv.mkNullableIsSome(slv.mkNullableSome(slv.mkInteger(5)));
+  (void)slv.mkNullableSort(slv.getBooleanSort());
+  (void)slv.mkNullableLift(Kind::ADD,
+                           {slv.mkNullableSome(slv.mkInteger(1)),
+                            slv.mkNullableSome(slv.mkInteger(2))});
+  (void)slv.mkOp(Kind::DIVISIBLE, "2147483648");
+  (void)slv.mkOp(Kind::TUPLE_PROJECT, {1, 2, 2});
+
+  (void)slv.mkTrue();
+  (void)slv.mkFalse();
+  (void)slv.mkBoolean(true);
+  (void)slv.mkPi();
+  (void)slv.mkInteger("2");
+  (void)slv.mkInteger(2);
+  (void)slv.mkReal("2.1");
+  (void)slv.mkReal(2);
+  (void)slv.mkReal(2, 3);
+  (void)slv.mkRegexpAll();
+  (void)slv.mkRegexpAllchar();
+  (void)slv.mkRegexpNone();
+  (void)slv.mkEmptySet(slv.mkSetSort(slv.getIntegerSort()));
+  (void)slv.mkEmptyBag(slv.mkBagSort(slv.getIntegerSort()));
+  (void)slv.mkSepEmp();
+  (void)slv.mkSepNil(slv.getIntegerSort());
+  (void)slv.mkString("asdfasdf");
+  std::wstring s;
+  (void)slv.mkString(s);
+  (void)slv.mkEmptySequence(slv.getIntegerSort());
+  (void)slv.mkUniverseSet(slv.getIntegerSort());
+  (void)slv.mkBitVector(32, 2);
+  (void)slv.mkBitVector(32, "2", 10);
+  (void)slv.mkFiniteFieldElem("0", slv.mkFiniteFieldSort("7"));
+  (void)slv.mkConstArray(
+      slv.mkArraySort(slv.getIntegerSort(), slv.getIntegerSort()),
+      slv.mkInteger(2));
+  (void)slv.mkFloatingPointPosInf(5, 11);
+  (void)slv.mkFloatingPointNegInf(5, 11);
+  (void)slv.mkFloatingPointNaN(5, 11);
+  (void)slv.mkFloatingPointPosZero(5, 11);
+  (void)slv.mkFloatingPointNegZero(5, 11);
+  (void)slv.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
+  (void)slv.mkFloatingPoint(5, 11, slv.mkBitVector(16));
+  (void)slv.mkFloatingPoint(
+      slv.mkBitVector(1), slv.mkBitVector(5), slv.mkBitVector(10));
+  (void)slv.mkCardinalityConstraint(slv.mkUninterpretedSort("u"), 3);
+
+  (void)slv.mkVar(slv.getIntegerSort());
+  (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
+}
+
 TEST_F(TestApiBlackUncovered, comparison_operators)
 {
   cvc5::Result res;
@@ -95,10 +214,9 @@ TEST_F(TestApiBlackUncovered, term_iterators)
 TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
 {
   std::stringstream ss;
-  ss << cvc5::Kind::EQUAL << std::to_string(cvc5::Kind::EQUAL)
-     << cvc5::kindToString(cvc5::Kind::EQUAL);
-  ss << cvc5::SortKind::ARRAY_SORT << std::to_string(cvc5::SortKind::ARRAY_SORT)
-     << cvc5::sortKindToString(cvc5::SortKind::ARRAY_SORT);
+  ss << cvc5::Kind::EQUAL << std::to_string(cvc5::Kind::EQUAL);
+  ss << cvc5::SortKind::ARRAY_SORT
+     << std::to_string(cvc5::SortKind::ARRAY_SORT);
   ss << cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE
      << std::to_string(cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE);
   ss << cvc5::UnknownExplanation::UNKNOWN_REASON
@@ -115,6 +233,7 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
   ss << cvc5::modes::ProofFormat::LFSC
      << std::to_string(cvc5::modes::ProofFormat::LFSC);
+  ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
   ss << cvc5::ProofRule::ASSUME;
   ss << cvc5::Result();
   ss << cvc5::Op();
@@ -168,6 +287,7 @@ TEST_F(TestApiBlackUncovered, Statistics)
   --it;
   testing::internal::CaptureStdout();
   d_solver->printStatisticsSafe(STDOUT_FILENO);
+  d_tm.printStatisticsSafe(STDOUT_FILENO);
   testing::internal::GetCapturedStdout();
 }
 
@@ -216,6 +336,7 @@ TEST_F(TestApiBlackUncovered, Datatypes)
     ss << d;
     ss << dtcd;
     ss << dc;
+    ss << dtd;
     ss << d.getSelector("head");
   }
 }
@@ -229,6 +350,12 @@ TEST_F(TestApiBlackUncovered, Proof)
   ASSERT_TRUE(proof.getResult().isNull());
   ASSERT_TRUE(proof.getChildren().empty());
   ASSERT_TRUE(proof.getArguments().empty());
+}
+
+TEST_F(TestApiBlackUncovered, SkolemId)
+{
+  ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
+            static_cast<size_t>(SkolemId::PURIFY));
 }
 
 TEST_F(TestApiBlackUncovered, Parser)
