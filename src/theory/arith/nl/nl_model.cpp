@@ -299,6 +299,12 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       return false;
     }
   }
+  Node subsFull = d_substitutions.apply(s);
+  if (expr::hasSubterm(subsFull, v))
+  {
+    return false;
+  }
+  
   // if we previously had an approximate bound, the exact bound should be in its
   // range
   std::map<Node, std::pair<Node, Node>>::iterator itb =
