@@ -303,8 +303,17 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       {
         if (v.getKind() == Kind::BOUND_VARIABLE)
         {
-          outVars << "(declare-var " << v << " " << v.getType() << ")"
-                  << std::endl;
+          std::string origName = v.getName();
+          // Strip off "@v.N." from the variable. It may also be an original
+          // variable appearing in a quantifier, in which case we skip.
+          if (origName.substr(0, 3) != "@v.")
+          {
+            continue;
+          }
+          origName = origName.substr(4);
+          origName = origName.substr(origName.find(".") + 1);
+          outVars << "(define " << v << " () (alf.var \"" << origName << "\" "
+                  << v.getType() << "))" << std::endl;
         }
       }
       if (options().proof.alfPrintReference)
