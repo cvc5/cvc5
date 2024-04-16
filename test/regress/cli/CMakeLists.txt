@@ -590,6 +590,7 @@ set(regress_0_tests
   regress0/bv/issue8240-rewrite-bvnot.smt2
   regress0/bv/issue8274.smt2
   regress0/bv/issue8654-bitblast-quant-exc.smt2
+  regress0/bv/issue8809.smt2
   regress0/bv/issue9101-unsat-cores.smt2
   regress0/bv/issue9415-bv2nat.smt2
   regress0/bv/issue9518.smt2
