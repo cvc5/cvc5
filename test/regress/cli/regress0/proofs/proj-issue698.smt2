@@ -1,3 +1,5 @@
+; EXPECT: sat
+(set-logic ALL)
 (set-option :check-unsat-cores true)
 (set-option :proof-mode sat-proof)
 (set-option :incremental true)
