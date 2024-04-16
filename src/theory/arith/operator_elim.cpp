@@ -416,7 +416,8 @@ Node OperatorElim::eliminateOperators(Node node,
             << "Elimination lemma " << lem << " for " << node << std::endl;
       }
       Assert(!lem.isNull());
-      lems.push_back(mkSkolemLemma(lem, var));
+      // the skolem lemma is for the function
+      lems.push_back(mkSkolemLemma(lem, fun));
       return var;
     }
     case Kind::REAL_ALGEBRAIC_NUMBER:
