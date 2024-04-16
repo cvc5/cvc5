@@ -54,14 +54,14 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrules"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
 )
-add_custom_target(cvc5proofrules DEPENDS gen-rewrites ${GENERATED_PROOF_RULES_FILES})
+add_custom_target(cvc5proofrules DEPENDS ${GENERATED_PROOF_RULES_FILES})
 
 # Generate cvc5skolemids.{pxd,pxi}
 set(GENERATED_SKOLEM_ID_FILES

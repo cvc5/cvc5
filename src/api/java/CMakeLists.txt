@@ -49,14 +49,14 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
 )
-add_custom_target(generate-java-proofrules DEPENDS gen-rewrites ${JAVA_PROOF_RULE_FILE})
+add_custom_target(generate-java-proofrules DEPENDS ${JAVA_PROOF_RULE_FILE})
 
 # Generate SkolemId.java
 set(JAVA_SKOLEM_FUN_ID_FILE
@@ -181,11 +181,7 @@ add_custom_command(
 )
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
-add_dependencies(generate-jni-headers
-  generate-java-kinds
-  generate-java-types
-  generate-java-proofrules
-  generate-java-skolemfunids)
+add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules generate-java-skolemfunids)
 
 # find jni package
 find_package(JNI REQUIRED)

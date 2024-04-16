@@ -20,6 +20,7 @@ libcvc5_add_sources(
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
+  api/cpp/cvc5_proof_rule.cpp
   api/cpp/cvc5_skolem_id.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
@@ -1467,6 +1468,11 @@ include(GenerateExportHeader)
 generate_export_header(cvc5-obj
   BASE_NAME cvc5
   EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_export.h
+)
+install(FILES
+  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_export.h
+  DESTINATION
+    ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/
 )
 
 # Add library/include dependencies

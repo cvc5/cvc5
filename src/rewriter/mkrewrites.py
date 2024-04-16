@@ -330,10 +330,10 @@ def gen_rewrite_db(args):
             {block_code}
         }}
     '''
-    rewriter_dir = os.path.join(args.src_dir, 'src', 'rewriter')
+
     decls = []
     rewrites = []
-    individual_rewrites_cpp = read_tpl(rewriter_dir, 'theory_rewrites_template.cpp')
+    individual_rewrites_cpp = read_tpl(args.src_dir, 'theory_rewrites_template.cpp')
 
     printer_code = []
     ids = []
@@ -348,20 +348,7 @@ def gen_rewrite_db(args):
         decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
         call_individual_rewrites.append(f"{db.function_name}(db);")
 
-    cvc5_proof_rule_h = read_tpl(os.path.join(
-        args.src_dir, 'include', 'cvc5'), 'cvc5_proof_rule_template.h')
-    with open(f'{args.bin_dir}/include/cvc5/cvc5_proof_rule.h', 'w') as f:
-        f.write(format_cpp(cvc5_proof_rule_h.format(
-            rule_ids=',\n'.join([f'EVALUE({id})' for id in ids]))))
-
-    cvc5_proof_rule_cpp = read_tpl(os.path.join(
-        args.src_dir, 'src', 'api', 'cpp'), 'cvc5_proof_rule_template.cpp')
-    os.makedirs(f'{args.bin_dir}/src/api/cpp', exist_ok=True)
-    with open(f'{args.bin_dir}/src/api/cpp/cvc5_proof_rule.cpp', 'w') as f:
-        f.write(format_cpp(cvc5_proof_rule_cpp.format(
-            printer='\n'.join(printer_code))))
-
-    rewrites_cpp = read_tpl(rewriter_dir, 'rewrites_template.cpp')
+    rewrites_cpp = read_tpl(args.src_dir, 'rewrites_template.cpp')
     with open('rewrites.cpp', 'w') as f:
         f.write(
             format_cpp(
@@ -375,7 +362,6 @@ def main():
 
     parser_compile = subparsers.add_parser("rewrite-db")
     parser_compile.add_argument("src_dir", help="Source directory")
-    parser_compile.add_argument("bin_dir", help="Binary directory")
     parser_compile.add_argument("rewrites_files",
                                 nargs='+',
                                 type=str,
