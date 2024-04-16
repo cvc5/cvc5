@@ -1,3 +1,4 @@
+; SCRUBBER: grep -w 'sat'
 (set-option :check-models true)
 (set-logic QF_FF)
 (set-info :status sat)
