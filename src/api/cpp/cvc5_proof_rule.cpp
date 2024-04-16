@@ -17,8 +17,6 @@
 
 #include <iostream>
 
-#include "base/check.h"
-
 namespace cvc5 {
 
 const char* toString(ProofRule rule)
@@ -585,7 +583,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::EQ_REFL: return "eq-refl";
     case ProofRewriteRule::EQ_SYMM: return "eq-symm";
     case ProofRewriteRule::DISTINCT_BINARY_ELIM: return "distinct-binary-elim";
-    default: Unreachable();
+    default: return "?";
   }
 }
 
