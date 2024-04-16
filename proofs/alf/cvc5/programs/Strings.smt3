@@ -258,7 +258,7 @@
               ; a constant regular expression, append s
               ((str.to_re s) (@pair (str.++ s c) M))
               ; otherwise, make the skolem and append with constraint
-              (r             (let ((k (skolem (@re_unfold_pos_component t ro i))))
+              (r            (let ((k (skolem (@re_unfold_pos_component t ro i))))
                             (@pair (str.++ k c) (and (str.in_re k r) M))))
             )
           )
