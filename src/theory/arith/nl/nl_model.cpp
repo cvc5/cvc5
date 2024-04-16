@@ -304,7 +304,7 @@ bool NlModel::addSubstitution(TNode v, TNode s)
   {
     return false;
   }
-  
+
   // if we previously had an approximate bound, the exact bound should be in its
   // range
   std::map<Node, std::pair<Node, Node>>::iterator itb =
