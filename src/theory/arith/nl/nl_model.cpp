@@ -299,6 +299,11 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       return false;
     }
   }
+  // Check if the substitution is cyclic when looking inside of abstracted
+  // arithmetic terms. This prevents substitutions like:
+  //   {x -> y, y -> (exp x)}
+  // Where note that {x->y}.applyArith((exp x)) = (exp x), but
+  // {x->y}.applyArith((exp x)) = (exp y), which is caught here.
   Node subsFull = d_substitutions.apply(s);
   if (expr::hasSubterm(subsFull, v))
   {
