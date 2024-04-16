@@ -1058,6 +1058,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             {
               new_arg = nm->mkNode(Kind::ADD, new_arg, rem);
             }
+            new_arg = rewriter::ensureReal(new_arg);
             // sin( 2*n*PI + x ) = sin( x )
             return RewriteResponse(REWRITE_AGAIN_FULL,
                                    nm->mkNode(Kind::SINE, new_arg));
@@ -1072,6 +1073,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             }
             else
             {
+              rem = rewriter::ensureReal(rem);
               return RewriteResponse(
                   REWRITE_AGAIN_FULL,
                   nm->mkNode(Kind::NEG, nm->mkNode(Kind::SINE, rem)));

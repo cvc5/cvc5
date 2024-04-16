@@ -1070,6 +1070,7 @@ set(regress_0_tests
   regress0/nl/nta/proj-issue460-pi-value.smt2
   regress0/nl/nta/proj-issue483-arccos-oob.smt2
   regress0/nl/nta/proj-issue505-pi-red.smt2
+  regress0/nl/nta/proj-issue701-sine-rr-int-arg.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
   regress0/nl/nta/sin-sym-schema.smt2
