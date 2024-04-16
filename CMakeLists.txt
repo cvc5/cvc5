@@ -541,7 +541,16 @@ include_directories(include)
 include_directories(${CMAKE_BINARY_DIR}/include)
 
 # Install public headers
-install(DIRECTORY include/cvc5 ${CMAKE_BINARY_DIR}/include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES
+  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_export.h
+  ${CMAKE_SOURCE_DIR}/include/cvc5/cvc5_kind.h
+  ${CMAKE_SOURCE_DIR}/include/cvc5/cvc5_parser.h
+  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h
+  ${CMAKE_SOURCE_DIR}/include/cvc5/cvc5_skolem_id.h
+  ${CMAKE_SOURCE_DIR}/include/cvc5/cvc5_types.h
+  ${CMAKE_SOURCE_DIR}/include/cvc5/cvc5.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cvc5)
+install(FILES ${CMAKE_SOURCE_DIR}/include/cvc5/c/cvc5.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/c)
 
 add_subdirectory(src)
 
