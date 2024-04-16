@@ -34,7 +34,7 @@ add_custom_target(apitests
   COMMAND ctest --output-on-failure -L "api" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-apitests)
 
-set(CVC5_API_TEST_FLAGS -D__BUILDING_CVC5_API_TEST)
+set(CVC5_API_TEST_FLAGS -D__BUILDING_CVC5_API_TEST -Dcvc5_obj_EXPORTS)
 
 macro(cvc5_add_api_test name)
   set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/cpp)

@@ -154,8 +154,7 @@ jobs:
         shell: ${{ matrix.shell }}
   
     - name: Run tests
-      # Builds of static tests don't work on Windows yet
-      if: matrix.run_regression_args && runner.os != 'Windows'
+      if: matrix.run_regression_args
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
