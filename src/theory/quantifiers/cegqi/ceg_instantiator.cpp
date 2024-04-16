@@ -130,7 +130,7 @@ CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
       || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION
       || k == Kind::INTS_DIVISION_TOTAL || k == Kind::INTS_MODULUS
       || k == Kind::INTS_MODULUS_TOTAL || k == Kind::TO_INTEGER
-      || k == Kind::IS_INTEGER || k == Kind::TO_REAL)
+      || k == Kind::IS_INTEGER || k == Kind::TO_REAL || k==Kind::ABS)
   {
     return CEG_HANDLED;
   }
