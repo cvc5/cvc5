@@ -2267,8 +2267,30 @@ enum ENUM(ProofRule) : uint32_t
 // clang-format on
 
 #ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_PROOF_REWRITE_RULE_##name
+#endif
+
+/**
+ * Identifiers for proof rewrite rules.
+ */
+enum ENUM(ProofRewriteRule) : uint32_t
+{
+  EVALUE(NONE),
+  // Generated rule ids
+  // clang-format off
+  ${rule_ids}$,
+// clang-format on
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST)
+#endif
+};
+
+#ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
 typedef enum ENUM(ProofRule) ENUM(ProofRule);
+typedef enum ENUM(ProofRewriteRule) ENUM(ProofRewriteRule);
 #endif
 #endif
 
@@ -2279,7 +2301,7 @@ typedef enum ENUM(ProofRule) ENUM(ProofRule);
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_proof_rule_to_string(Cvc5ProofRule kind);
+const char* cvc5_proof_rule_to_string(Cvc5ProofRule rule);
 
 /**
  * Hash function for Cvc5ProofRule.
@@ -2288,29 +2310,66 @@ const char* cvc5_proof_rule_to_string(Cvc5ProofRule kind);
  */
 size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
 
+/**
+ * Get a string representation of a Cvc5ProofRewriteRule.
+ * @param rule The proof rewrite rule.
+ * @return The string representation.
+ */
+const char* cvc5_proof_rewrite_rule_to_string(Cvc5ProofRewriteRule rule);
+
+/**
+ * Hash function for Cvc5ProofRewriteRule.
+ * @param rule The proof rewrite rule.
+ * @return The hash value.
+ */
+size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
+
 #else
+
 /**
  * Converts a proof rule to a string. Note: This function is also used in
  * `safe_print()`. Changing this function name or signature will result in
  * `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
  *
- * @param id The proof rule
+ * @param rule The proof rule
  * @return The name of the proof rule
  */
-const char* toString(ProofRule id);
+const char* toString(ProofRule rule);
 
 /**
  * Writes a proof rule name to a stream.
  *
  * @param out The stream to write to
- * @param id The proof rule to write to the stream
+ * @param rule The proof rule to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, ProofRule id);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRule rule);
+
+/**
+ * Converts a proof rewrite rule to a string. Note: This function is also
+ * used in `safe_print()`. Changing this function name or signature will result
+ * in `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param rule The proof rewrite rule
+ * @return The name of the proof rewrite rule
+ */
+const char* toString(ProofRewriteRule rule);
+
+/**
+ * Writes a proof rewrite rule name to a stream.
+ *
+ * @param out The stream to write to
+ * @param rule The proof rewrite rule to write to the stream
+ * @return The stream
+ */
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule);
+
 }  // namespace cvc5
 
 namespace std {
+
 /**
  * Hash function for ProofRules.
  */
@@ -2324,6 +2383,37 @@ struct CVC5_EXPORT hash<cvc5::ProofRule>
    */
   size_t operator()(cvc5::ProofRule rule) const;
 };
+
+/**
+ * Converts a proof rule to a string.
+ *
+ * @param rule The proof rule
+ * @return The name of the proof rule
+ */
+std::string to_string(cvc5::ProofRule rule);
+
+/**
+ * Hash function for ProofRewriteRules.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
+{
+  /**
+   * Hashes a ProofRewriteRule to a size_t.
+   * @param rule The proof rewrite rule.
+   * @return The hash value.
+   */
+  size_t operator()(cvc5::ProofRewriteRule rule) const;
+};
+
+/**
+ * Converts a proof rewrite rule to a string.
+ *
+ * @param rule The proof rewrite rule
+ * @return The name of the proof rewrite rule
+ */
+std::string to_string(cvc5::ProofRewriteRule rule);
+
 }  // namespace std
 
 #endif

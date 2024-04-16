@@ -53,13 +53,13 @@ libcvc5_add_sources(GENERATED
 # Add the generated public sources manually to specify where they should be located.
 
 list(APPEND REWRITE_OUTPUT_FILES
-  ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_proof_rewrite_rule.cpp
-  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rewrite_rule.h
+  ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
+  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h
 )
 
 list(APPEND LIBCVC5_GEN_SRCS
-  ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_proof_rewrite_rule.cpp
-  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rewrite_rule.h
+  ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
+  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h
 )
 
 set(LIBCVC5_GEN_SRCS ${LIBCVC5_GEN_SRCS} PARENT_SCOPE)
@@ -71,7 +71,7 @@ add_custom_command(
       ${Python_EXECUTABLE}
       ${mkrewrites_script}
       rewrite-db
-      ${CMAKE_CURRENT_LIST_DIR}
+      ${CMAKE_SOURCE_DIR}
       ${CMAKE_BINARY_DIR}
       ${REWRITES_FILES}
     DEPENDS
@@ -79,8 +79,8 @@ add_custom_command(
       ${REWRITES_FILES}
       ${CMAKE_CURRENT_LIST_DIR}/theory_rewrites_template.cpp
       ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.cpp
-      ${CMAKE_CURRENT_LIST_DIR}/cvc5_proof_rewrite_rule_template.cpp
-      ${CMAKE_CURRENT_LIST_DIR}/cvc5_proof_rewrite_rule_template.h
+      ${CMAKE_SOURCE_DIR}/src/api/cpp/cvc5_proof_rule_template.cpp
+      ${CMAKE_SOURCE_DIR}/include/cvc5/cvc5_proof_rule_template.h
     COMMENT
       "Generating rewrites.{h,cpp}"
 )

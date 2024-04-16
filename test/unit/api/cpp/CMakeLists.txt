@@ -14,7 +14,6 @@
 ##
 cvc5_add_unit_test_black(api_kind_black api/cpp)
 cvc5_add_unit_test_black(api_proof_rule_black api/cpp)
-cvc5_add_unit_test_black(api_proof_rewrite_rule_black api/cpp)
 cvc5_add_unit_test_black(api_skolem_id_black api/cpp)
 cvc5_add_unit_test_black(api_sort_kind_black api/cpp)
 cvc5_add_unit_test_black(api_term_manager_black api/cpp)

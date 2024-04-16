@@ -49,33 +49,14 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
+    --enums-header "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
+    "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h"
 )
-add_custom_target(generate-java-proofrules DEPENDS ${JAVA_PROOF_RULE_FILE})
-
-# Generate ProofRewriteRule.java
-set(JAVA_PROOF_REWRITE_RULE_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/ProofRewriteRule.java"
-)
-add_custom_command(
-  OUTPUT
-    ${JAVA_PROOF_REWRITE_RULE_FILE}
-  COMMAND
-    "${Python_EXECUTABLE}"
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rewrite_rule.h"
-    --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
-  DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rewrite_rule.h"
-)
-add_custom_target(generate-java-proofrewriterules DEPENDS gen-rewrites ${JAVA_PROOF_REWRITE_RULE_FILE})
+add_custom_target(generate-java-proofrules DEPENDS gen-rewrites ${JAVA_PROOF_RULE_FILE})
 
 # Generate SkolemId.java
 set(JAVA_SKOLEM_FUN_ID_FILE
@@ -159,7 +140,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Utils.java
   ${JAVA_KIND_FILE}
   ${JAVA_PROOF_RULE_FILE}
-  ${JAVA_PROOF_REWRITE_RULE_FILE}
   ${JAVA_SKOLEM_FUN_ID_FILE}
   ${JAVA_SORT_KIND_FILE}
   ${JAVA_TYPES_FILES}
@@ -204,7 +184,6 @@ add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
 add_dependencies(generate-jni-headers
   generate-java-kinds
   generate-java-types
-  generate-java-proofrewriterules
   generate-java-proofrules
   generate-java-skolemfunids)
 

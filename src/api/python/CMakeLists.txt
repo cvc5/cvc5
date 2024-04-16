@@ -54,34 +54,14 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
+    --enums-header "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrules"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
+    "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h"
 )
-add_custom_target(cvc5proofrules DEPENDS ${GENERATED_PROOF_RULES_FILES})
-
-# Generate cvc5proofrewriterules.{pxd,pxi}
-set(GENERATED_PROOF_REWRITE_RULE_FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrewriterules.pxd"
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrewriterules.pxi"
-)
-add_custom_command(
-  OUTPUT
-    ${GENERATED_PROOF_REWRITE_RULE_FILES}
-  COMMAND
-    "${Python_EXECUTABLE}"
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rewrite_rule.h"
-    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrewriterules"
-  DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rewrite_rule.h"
-)
-add_custom_target(cvc5proofrewriterules DEPENDS gen-rewrites ${GENERATED_PROOF_REWRITE_RULE_FILES})
+add_custom_target(cvc5proofrules DEPENDS gen-rewrites ${GENERATED_PROOF_RULES_FILES})
 
 # Generate cvc5skolemids.{pxd,pxi}
 set(GENERATED_SKOLEM_ID_FILES
@@ -150,7 +130,7 @@ configure_file(setup.cfg.in setup.cfg)
 configure_file(__init__.py.in cvc5/__init__.py)
 
 set(PYTHON_EXT_SRC_FILES
-  cvc5kinds cvc5types cvc5proofrewriterules cvc5proofrules cvc5skolemids
+  cvc5kinds cvc5types cvc5proofrules cvc5skolemids
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxi
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxd
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5_python_base.pyx

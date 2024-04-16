@@ -1,10 +1,10 @@
 ; depends: theory_def.plf
 
 ; The following encodes the proof rules for the theory of equality in the
-; internal proof calculus of cvc5 (see include/cvc5/cvc5_proof_rule.h). Rules
-; from that calculus are referenced by ProofRule::NAME, where NAME
+; internal proof calculus of cvc5 (see include/cvc5/cvc5_proof_rule_template.h).
+; Rules from that calculus are referenced by ProofRule::NAME, where NAME
 ; is the name of the identifier in the ProofRule enumeration (see
-; include/cvc5/cvc5_proof_rule.h). For this and other theory signature
+; include/cvc5/cvc5_proof_rule_template.h). For this and other theory signature
 ; definitions, unless otherwise stated, we use a naming convention in which
 ; the corresponding LFSC rule is the same as the ProofRule, but converted
 ; to lower case. For example, `refl` corresponds to the LFSC encoding of

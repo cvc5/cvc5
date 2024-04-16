@@ -9,8 +9,7 @@ from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
-from cvc5proofrewriterules cimport ProofRewriteRule
-from cvc5proofrules cimport ProofRule
+from cvc5proofrules cimport ProofRewriteRule, ProofRule
 from cvc5skolemids cimport SkolemId
 
 

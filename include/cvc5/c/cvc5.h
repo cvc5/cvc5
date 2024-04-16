@@ -22,7 +22,6 @@ extern "C" {
 
 #define CVC5_API_USE_C_ENUMS
 #include <cvc5/cvc5_kind.h>
-#include <cvc5/cvc5_proof_rewrite_rule.h>
 #include <cvc5/cvc5_proof_rule.h>
 #include <cvc5/cvc5_skolem_id.h>
 #include <cvc5/cvc5_types.h>

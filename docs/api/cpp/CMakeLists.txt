@@ -15,15 +15,16 @@
 find_package(Doxygen REQUIRED)
 
 # basic parameters
-set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/include/cvc5)
+set(DOXYGEN_SOURCE_INPUT_DIR ${PROJECT_SOURCE_DIR}/include/cvc5)
+set(DOXYGEN_BINARY_INPUT_DIR ${PROJECT_BINARY_DIR}/include/cvc5)
 set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
 set(DOXYGEN_INPUT "\
-${DOXYGEN_INPUT_DIR}/cvc5.h \
-${DOXYGEN_INPUT_DIR}/cvc5_kind.h \
-${DOXYGEN_INPUT_DIR}/cvc5_parser.h \
-${DOXYGEN_INPUT_DIR}/cvc5_types.h \
-${DOXYGEN_INPUT_DIR}/cvc5_proof_rule.h \
-${DOXYGEN_INPUT_DIR}/cvc5_skolem_id.h
+${DOXYGEN_SOURCE_INPUT_DIR}/cvc5.h \
+${DOXYGEN_SOURCE_INPUT_DIR}/cvc5_kind.h \
+${DOXYGEN_SOURCE_INPUT_DIR}/cvc5_parser.h \
+${DOXYGEN_SOURCE_INPUT_DIR}/cvc5_types.h \
+${DOXYGEN_BINARY_INPUT_DIR}/cvc5_proof_rule.h \
+${DOXYGEN_SOURCE_INPUT_DIR}/cvc5_skolem_id.h
 ")
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 
@@ -41,11 +42,11 @@ add_custom_command(
   COMMAND Doxygen::doxygen ${DOXYFILE_OUT}
   MAIN_DEPENDENCY ${DOXYFILE_OUT}
   DEPENDS
-    ${DOXYGEN_INPUT_DIR}/cvc5.h
-    ${DOXYGEN_INPUT_DIR}/cvc5_kind.h
-    ${DOXYGEN_INPUT_DIR}/cvc5_types.h
-    ${DOXYGEN_INPUT_DIR}/cvc5_proof_rule.h
-    ${DOXYGEN_INPUT_DIR}/cvc5_skolem_id.h
+    ${DOXYGEN_SOURCE_INPUT_DIR}/cvc5.h
+    ${DOXYGEN_SOURCE_INPUT_DIR}/cvc5_kind.h
+    ${DOXYGEN_SOURCE_INPUT_DIR}/cvc5_types.h
+    ${DOXYGEN_BINARY_INPUT_DIR}/cvc5_proof_rule.h
+    ${DOXYGEN_SOURCE_INPUT_DIR}/cvc5_skolem_id.h
   COMMENT "Generating doxygen API docs"
 )
 add_custom_target(docs-cpp DEPENDS ${DOXYGEN_INDEX_FILE})

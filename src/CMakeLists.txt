@@ -20,7 +20,6 @@ libcvc5_add_sources(
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
-  api/cpp/cvc5_proof_rule.cpp
   api/cpp/cvc5_skolem_id.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
