@@ -140,6 +140,7 @@ set(regress_0_tests
   regress0/arrays/issue6807-idem-rew.smt2
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/issue8103-1-weak-equiv-models.smt2
+  regress0/arrays/issue8274.smt2
   regress0/arrays/issue8276-arith-getModelValue.smt2
   regress0/arrays/issue8810-model-success.smt2
   regress0/arrays/issue9041.smt2

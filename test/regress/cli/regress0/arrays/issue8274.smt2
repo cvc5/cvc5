@@ -1,0 +1,7 @@
+; EXPECT: unsat
+(set-logic ALL)
+(declare-const  a (Array (_ BitVec 64) (_ BitVec 64)))                             
+(declare-const  b (_ BitVec 64))                                                   
+(assert (= (store a (bvadd b b) (bvadd b #x1111111111111111))                      
+(store (store a #x1111111111111111 b) (bvadd b b) (bvneg b))))                     
+(check-sat) 
