@@ -619,6 +619,7 @@ set(regress_0_tests
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
   regress0/bv/proj-issue343.smt2
   regress0/bv/proj-issue320.smt2
+  regress0/bv/proj-issue321.smt2
   regress0/bv/proj-issue438-prerewrite-fixed-point.smt2
   regress0/bv/redand.smt2
   regress0/bv/redor.smt2
