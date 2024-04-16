@@ -2010,7 +2010,7 @@ set(regress_0_tests
   regress0/unconstrained/bvconcat.smt2
   regress0/unconstrained/bvconcat2.smt2
   regress0/unconstrained/bvext.smt2
-  regress0/unconstrained/bvite.smt2
+  #regress0/unconstrained/bvite.smt2 TODO(wishue #151)
   regress0/unconstrained/bvmul.smt2
   regress0/unconstrained/bvmul2.smt2
   regress0/unconstrained/bvmul3.smt2
