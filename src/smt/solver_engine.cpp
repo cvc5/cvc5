@@ -187,7 +187,8 @@ void SolverEngine::finishInit()
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     // start the unsat core manager
-    d_ucManager.reset(new UnsatCoreManager(*d_env.get()));
+    d_ucManager.reset(new UnsatCoreManager(
+        *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
   // enable proof support in the environment/rewriter
@@ -827,7 +828,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   {
     if (!ret.second.empty())
     {
-      core = convertPreprocessedToInput(ret.second, true);
+      core = d_ucManager->convertPreprocessedToInput(ret.second, true);
     }
   }
   else
@@ -1352,21 +1353,17 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
 {
   if (Configuration::isAssertionBuild())
   {
-    bool wasShadow = false;
-    if (expr::hasFreeOrShadowedVar(n, wasShadow))
+    // Must rewrite before checking for free variables
+    Node nr = d_env->getRewriter()->rewrite(n);
+    // Don't check for shadowing here, since shadowing may occur from API
+    // users, including the smt2 parser.
+    std::unordered_set<internal::Node> fvs;
+    expr::getFreeVariables(nr, fvs);
+    if (!fvs.empty())
     {
       std::stringstream se;
-      se << "Cannot process term " << n << " with ";
-      if (wasShadow)
-      {
-        se << "shadowed variables " << std::endl;
-      }
-      else
-      {
-        std::unordered_set<internal::Node> fvs;
-        expr::getFreeVariables(n, fvs);
-        se << "free variables: " << fvs << std::endl;
-      }
+      se << "Cannot process term " << nr << " with ";
+      se << "free variables: " << fvs << std::endl;
       throw ModalException(se.str().c_str());
     }
   }
@@ -1382,22 +1379,6 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
       ensureWellFormedTerm(n, src);
     }
   }
-}
-
-std::vector<Node> SolverEngine::convertPreprocessedToInput(
-    const std::vector<Node>& ppa, bool isInternal)
-{
-  std::vector<Node> core;
-  CDProof cdp(*d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
-  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
-  Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
-  d_ucManager->getUnsatCore(
-      pfn, d_smtSolver->getAssertions(), core, isInternal);
-  return core;
 }
 
 void SolverEngine::printProof(std::ostream& out,
@@ -1553,15 +1534,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT response.");
   }
-  // generate with new proofs
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-
-  // make the proof corresponding to a dummy step (SAT_REFUTATION) of the
-  // unsat core computed by the prop engine
-  std::vector<Node> pcore;
-  pe->getUnsatCore(pcore);
-  std::vector<Node> core = convertPreprocessedToInput(pcore, isInternal);
+  std::vector<Node> core = d_ucManager->getUnsatCore(isInternal);
   return UnsatCore(core);
 }
 
@@ -1658,9 +1631,7 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
         "Cannot get lemmas used to derive unsat unless immediately preceded by "
         "UNSAT response.");
   }
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  return pe->getUnsatCoreLemmas();
+  return d_ucManager->getUnsatCoreLemmas(false);
 }
 
 void SolverEngine::getRelevantQuantTermVectors(
@@ -1671,14 +1642,7 @@ void SolverEngine::getRelevantQuantTermVectors(
   Assert(d_state->getMode() == SmtMode::UNSAT);
   Assert(d_env->getOptions().smt.produceProofs
          && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
-  // generate with new proofs
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pfn = pe->getProof();
-  // note that we don't have to connect the SAT proof to the input assertions,
-  // and preprocessing proofs don't impact what instantiations are used
-  d_ucManager->getRelevantQuantTermVectors(pfn, insts, sks, getDebugInfo);
+  d_ucManager->getRelevantQuantTermVectors(insts, sks, getDebugInfo);
 }
 
 std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
