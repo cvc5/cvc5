@@ -642,24 +642,19 @@ class DType
   mutable std::map<TypeNode, CardinalityClass> d_cardClass;
 }; /* class DType */
 
-/**
- * A hash function for DTypes.  Needed to store them in hash sets
- * and hash maps.
- */
-struct DTypeHashFunction
-{
-  size_t operator()(const DType& dt) const
-  {
-    return std::hash<std::string>()(dt.getName());
-  }
-  size_t operator()(const DType* dt) const
-  {
-    return std::hash<std::string>()(dt->getName());
-  }
-}; /* struct DTypeHashFunction */
-
 std::ostream& operator<<(std::ostream& os, const DType& dt);
 
 }  // namespace cvc5::internal
+
+namespace std {
+/**
+ * A hash function for DTypes.
+ */
+template <>
+struct hash<cvc5::internal::DType>
+{
+  size_t operator()(const cvc5::internal::DType& dt) const;
+};
+}  // namespace std
 
 #endif

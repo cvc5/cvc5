@@ -93,7 +93,7 @@ msg () {
 
 #--------------------------------------------------------------------------#
 
-[ ! -e src/theory ] && die "$0 not called from CVC4 base directory"
+[ ! -e src/theory ] && die "$0 not called from cvc5 base directory"
 
 #--------------------------------------------------------------------------#
 
@@ -147,6 +147,12 @@ wasm=default
 wasm_flags=""
 
 #--------------------------------------------------------------------------#
+
+uname_output=$(uname)
+
+if [[ $uname_output =~ ^MSYS || $uname_output =~ ^MINGW ]]; then
+  win64_native=ON
+fi
 
 cmake_opts=""
 

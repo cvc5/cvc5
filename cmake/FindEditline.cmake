@@ -25,7 +25,7 @@ pkg_check_modules(Editline REQUIRED libedit)
 
 if(Editline_INCLUDE_DIRS)
   # Check which standard of editline is installed on the system.
-  # https://github.com/CVC4/CVC4/issues/702
+  # https://github.com/cvc5/cvc5/issues/702
   include(CheckCXXSourceCompiles)
   set(CMAKE_REQUIRED_QUIET TRUE)
   set(CMAKE_REQUIRED_LIBRARIES ${Editline_LIBRARIES})

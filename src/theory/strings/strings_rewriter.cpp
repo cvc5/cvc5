@@ -98,7 +98,7 @@ RewriteResponse StringsRewriter::postRewrite(TNode node)
 Node StringsRewriter::rewriteStrToInt(Node node)
 {
   Assert(node.getKind() == Kind::STRING_STOI);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (node[0].isConst())
   {
     Node ret;
@@ -134,7 +134,7 @@ Node StringsRewriter::rewriteStrToInt(Node node)
 Node StringsRewriter::rewriteIntToStr(Node node)
 {
   Assert(node.getKind() == Kind::STRING_ITOS);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (node[0].isConst())
   {
     Node ret;
@@ -157,7 +157,7 @@ Node StringsRewriter::rewriteStrConvert(Node node)
 {
   Kind nk = node.getKind();
   Assert(nk == Kind::STRING_TO_LOWER || nk == Kind::STRING_TO_UPPER);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (node[0].isConst())
   {
     std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
@@ -216,7 +216,7 @@ Node StringsRewriter::rewriteStrConvert(Node node)
 Node StringsRewriter::rewriteStringLt(Node n)
 {
   Assert(n.getKind() == Kind::STRING_LT);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // eliminate s < t ---> s != t AND s <= t
   Node retNode = nm->mkNode(Kind::AND,
                             n[0].eqNode(n[1]).negate(),
@@ -227,7 +227,7 @@ Node StringsRewriter::rewriteStringLt(Node n)
 Node StringsRewriter::rewriteStringLeq(Node n)
 {
   Assert(n.getKind() == Kind::STRING_LEQ);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (n[0] == n[1])
   {
     Node ret = nm->mkConst(true);
@@ -277,7 +277,7 @@ Node StringsRewriter::rewriteStringLeq(Node n)
 Node StringsRewriter::rewriteStringFromCode(Node n)
 {
   Assert(n.getKind() == Kind::STRING_FROM_CODE);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   if (n[0].isConst())
   {
@@ -302,7 +302,7 @@ Node StringsRewriter::rewriteStringToCode(Node n)
   Assert(n.getKind() == Kind::STRING_TO_CODE);
   if (n[0].isConst())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     String s = n[0].getConst<String>();
     Node ret;
     if (s.size() == 1)
@@ -323,7 +323,7 @@ Node StringsRewriter::rewriteStringToCode(Node n)
 Node StringsRewriter::rewriteStringIsDigit(Node n)
 {
   Assert(n.getKind() == Kind::STRING_IS_DIGIT);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
   Node t = nm->mkNode(Kind::STRING_TO_CODE, n[0]);
   Node retNode =
@@ -336,7 +336,7 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
 Node StringsRewriter::rewriteStringUnit(Node n)
 {
   Assert(n.getKind() == Kind::STRING_UNIT);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (n[0].isConst())
   {
     Integer i = n[0].getConst<Rational>().getNumerator();
