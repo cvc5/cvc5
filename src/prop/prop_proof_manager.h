@@ -182,7 +182,7 @@ class PropPfManager : protected EnvObj
    * Return theory lemmas used for showing unsat. If the SAT solver has a proof,
    * we examine its leaves. Otherwise, we recompute the unsat core lemmas
    * using the method reproveUnsatCore.
-   * 
+   *
    * @param outDimacs If provided, we write the DIMACS output of uc to this
    * stream
    * @return the unsat core of lemmas.
@@ -201,8 +201,8 @@ class PropPfManager : protected EnvObj
    *
    * @param cset The set of formulas to compute an unsat core for
    * @param uc The set of formulas returned as the unsat core
-   * @param outDimacs If provided, we write a DIMACS representation of uc to this
-   * stream
+   * @param outDimacs If provided, we write a DIMACS representation of uc to
+   * this stream
    */
   bool reproveUnsatCore(const std::unordered_set<Node>& cset,
                         std::vector<Node>& uc,
