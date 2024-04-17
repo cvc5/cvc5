@@ -964,7 +964,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     Assert(d_currFixedPointConc.isNull());
     d_currFixedPointId = rpr.getId();
     Node context = rpr.getContext();
-    Assert (!context.isNull());
+    Assert(!context.isNull());
     Trace("rpc-ctx") << "Context is " << context << std::endl;
     // check if stgt also rewrites with the same rule?
     bool continueFixedPoint;
@@ -1001,7 +1001,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
         std::unordered_map<Node, Node> msubs;
         expr::match(context[1], stgt, msubs);
         Trace("rpc-ctx") << "Matching context " << context << " with " << stgt
-                          << " gives " << msubs[context[0][0]] << std::endl;
+                         << " gives " << msubs[context[0][0]] << std::endl;
         stgt = msubs[context[0][0]];
         Assert(!stgt.isNull());
         steps.push_back(stgt);
