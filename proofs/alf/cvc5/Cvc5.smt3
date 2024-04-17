@@ -31,10 +31,16 @@
   (
     ((encode_transform (f y)) (_ (encode_transform f) (encode_transform y)))
     ((encode_transform x)     (alf.ite (alf.is_eq (alf.to_str x) x)
+                                ; string constants
+                                ; e.g. "AB" ---> (str.++ "A" "B")
                                 (alf.ite (check_length_gt_one x)
                                   ($str_flatten_word x)
                                   x)
-                                x))
+                              (alf.ite (alf.is_eq (alf.to_bin (alf.len x) x) x)
+                                ; bitvector constants
+                                ; e.g. #b0000 ----> (@bv 0 4)
+                                (@bv (alf.to_z x) (alf.len x))
+                                x)))
   )
 )
 
@@ -78,6 +84,11 @@
       ((run_evaluate (div x y))          (alf.zdiv (run_evaluate x) (run_evaluate y)))
       ((run_evaluate (div_total x y))    (let ((d (run_evaluate y)))
                                            (alf.ite (alf.is_eq d 0) 0 (alf.zdiv (run_evaluate x) d))))
+      ((run_evaluate (mod x y))          (alf.zmod (run_evaluate x) (run_evaluate y)))
+      ((run_evaluate (to_real x))        (alf.to_q (run_evaluate x)))
+      ((run_evaluate (to_int x))         (alf.to_z (run_evaluate x)))
+      ((run_evaluate (is_int x))         (alf.is_eq (alf.to_q (alf.to_z x)) (alf.to_q x)))
+
 
       ; strings
       ((run_evaluate (str.++ xs yss))    (alf.concat (run_evaluate xs) (run_evaluate yss)))
@@ -85,6 +96,15 @@
       ((run_evaluate (str.substr x n m)) (let ((r (run_evaluate n)))
                                             (alf.extract (run_evaluate x) r (alf.add r (run_evaluate m) -1))))
       ((run_evaluate (str.contains x y)) (alf.not (alf.is_neg (alf.find (run_evaluate x) (run_evaluate y)))))
+      ((run_evaluate (str.replace x y z))(let ((ex (run_evaluate x)))
+                                         (let ((ey (run_evaluate y)))
+                                         (let ((i (alf.find ex ey)))
+                                            (alf.ite (alf.or (alf.is_eq i 0) (alf.is_neg (alf.neg i)))
+                                              (alf.concat (alf.extract ex 0 (alf.add i -1)) (run_evaluate z) (alf.extract ex (alf.add i (alf.len ey)) (alf.len ex)))
+                                              ex)))))
+      ((run_evaluate (str.indexof x y n))(let ((ex (run_evaluate (str.substr x n (str.len x)))))
+                                         (let ((ey (run_evaluate y)))
+                                            (alf.find (alf.to_str ex) (alf.to_str ey)))))
       ; bitvectors
       ((run_evaluate (bvadd xb ybs))     (alf.add (run_evaluate xb) (run_evaluate ybs)))
       ((run_evaluate (bvmul xb ybs))     (alf.mul (run_evaluate xb) (run_evaluate ybs)))
@@ -97,6 +117,8 @@
       ((run_evaluate (bvule x y))        (run_evaluate (<= (alf.to_z x) (alf.to_z y))))
       ((run_evaluate (bvugt x y))        (run_evaluate (> (alf.to_z x) (alf.to_z y))))
       ((run_evaluate (bvuge x y))        (run_evaluate (>= (alf.to_z x) (alf.to_z y))))
+      ((run_evaluate (@bv n m))          (alf.to_bin (run_evaluate m) (run_evaluate n)))
+      ((run_evaluate (@bvsize x))        ($bv_bitwidth (alf.typeof x)))
   
       ((run_evaluate z)                  z)
     )
