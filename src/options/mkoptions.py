@@ -515,7 +515,8 @@ def generate_module_long_name_decl(module):
         if option.name is None:
             continue
         if option.long_name:
-            res.append('const char* {} = "{}";'.format(option.name, option.long_name))
+            res.append('static constexpr const char* {} = "{}";'.format(
+                       option.name, option.long_name))
     return '\n    '.join(res)
 
 ################################################################################

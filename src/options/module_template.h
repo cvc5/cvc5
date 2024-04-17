@@ -29,6 +29,12 @@ ${includes}$
 
 namespace cvc5::internal::options {
 
+namespace ${id}$::longName {
+// clang-format off
+  ${long_name_decl}$
+// clang-format on
+}
+
 // clang-format off
 ${modes_decl}$
 // clang-format on
@@ -43,11 +49,6 @@ struct Holder${id_cap}$
 {
 // clang-format off
   ${holder_decl}$
-
-  struct
-  {
-    ${long_name_decl}$
-  } longName;
 // clang-format on
 };
 
