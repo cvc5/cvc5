@@ -864,7 +864,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (opts.arith.nlCovWasSetByUser)
     {
       std::stringstream ss;
-      ss << "Cannot use --" << optinos::arith::longName::nlCov
+      ss << "Cannot use --" << options::arith::longName::nlCov
          << " without configuring with --poly.";
       throw OptionException(ss.str());
     }
