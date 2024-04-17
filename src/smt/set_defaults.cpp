@@ -252,7 +252,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
   }
-  //
   if (opts.smt.produceProofs)
   {
     // determine the prop proof mode, based on which SAT solver we are using
@@ -276,7 +275,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   Assert(opts.smt.produceProofs
          == (opts.smt.proofMode != options::ProofMode::OFF));
 
-  // if we requiring disabling options due to proofs, disable them now
+  // if we require disabling options due to proofs, disable them now
   if (opts.smt.produceProofs)
   {
     std::stringstream reasonNoProofs;

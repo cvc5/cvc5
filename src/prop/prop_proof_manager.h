@@ -183,7 +183,7 @@ class PropPfManager : protected EnvObj
   /**
    * Get minimized assumptions. Returns a vector of nodes which is a
    * subset of the assumptions (d_assumptions) that appear in the unsat
-   * core. This should be called only an unsat core is available (after
+   * core. This should be called only when the unsat core is available (after
    * an unsatisfiable check-sat).
    */
   std::vector<Node> getMinimizedAssumptions();
@@ -193,7 +193,7 @@ class PropPfManager : protected EnvObj
    *
    * @param cset The set of formulas to compute an unsat core for
    * @param uc The set of formulas returned as the unsat core
-   * @param outDimacs If provided, we write the DIMACS output of uc to this
+   * @param outDimacs If provided, we write a DIMACS representation of uc to this
    * stream
    */
   bool reproveUnsatCore(const std::unordered_set<Node>& cset,
@@ -206,7 +206,7 @@ class PropPfManager : protected EnvObj
    * (2) input clauses (d_inputClauses),
    * (3) lemma clauses (d_lemmaClauses).
    * The choice of what to add to cdp is dependent on the prop-proof-mode.
-   * 
+   *
    * @param cdp The proof object to add the refutation proof to.
    */
   void getProofInternal(CDProof* cdp);

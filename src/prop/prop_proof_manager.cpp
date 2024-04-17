@@ -153,12 +153,9 @@ std::vector<Node> PropPfManager::getMinimizedAssumptions()
         // never include true
         continue;
       }
-      else
-      {
-        minAssumptions.clear();
-        minAssumptions.push_back(nc);
-        return minAssumptions;
-      }
+      minAssumptions.clear();
+      minAssumptions.push_back(nc);
+      return minAssumptions;
     }
     else if (d_pfCnfStream.hasLiteral(nc))
     {
