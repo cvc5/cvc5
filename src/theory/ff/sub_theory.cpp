@@ -156,13 +156,13 @@ Result SubTheory::postCheck(Theory::Effort e)
           // SAT: populate d_model from the root
           Assert(d_model.empty());
           const auto nm = nodeManager();
+          Trace("ff::model") << "Model GF(" << size() << "):" << std::endl;
           for (const auto& [idx, node] : enc.nodeIndets())
           {
             if (isFfLeaf(node))
             {
               Node value = nm->mkConst(enc.cocoaFfToFfVal(root[idx]));
-              Trace("ff::model")
-                  << "Model: " << node << " = " << value << std::endl;
+              Trace("ff::model") << " " << node << " = " << value << std::endl;
               d_model.emplace(node, value);
             }
           }
