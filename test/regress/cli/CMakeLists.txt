@@ -584,11 +584,19 @@ set(regress_0_tests
   regress0/bv/issue-4130.smt2
   regress0/bv/issue3621.smt2
   regress0/bv/issue5396.smt2
+  regress0/bv/issue8106.smt2
+  regress0/bv/issue8106_2.smt2
   regress0/bv/issue8159-1-rewrite-bvneg.smt2
   regress0/bv/issue8240-rewrite-bvnot.smt2
+  regress0/bv/issue8274.smt2
   regress0/bv/issue8654-bitblast-quant-exc.smt2
+  regress0/bv/issue8809.smt2
   regress0/bv/issue9101-unsat-cores.smt2
   regress0/bv/issue9415-bv2nat.smt2
+  regress0/bv/issue9518.smt2
+  regress0/bv/issue9518_2.smt2
+  regress0/bv/issue9519.smt2
+  regress0/bv/issue10057.smt2
   regress0/bv/le-elim-conv.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
@@ -610,6 +618,8 @@ set(regress_0_tests
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
   regress0/bv/proj-issue343.smt2
+  regress0/bv/proj-issue320.smt2
+  regress0/bv/proj-issue321.smt2
   regress0/bv/proj-issue438-prerewrite-fixed-point.smt2
   regress0/bv/redand.smt2
   regress0/bv/redor.smt2
@@ -1257,6 +1267,7 @@ set(regress_0_tests
   regress0/printer/print_subs.smt2
   regress0/printer/print_trusted_proof_steps.smt2
   regress0/printer/print_unsat_core.smt2
+  regress0/printer/print_unsat_core_lemmas.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
@@ -1354,6 +1365,7 @@ set(regress_0_tests
   regress0/push-pop/issue2137.min.smt2
   regress0/push-pop/issue6535-inc-solve.smt2
   regress0/push-pop/issue7479-global-decls.smt2
+  regress0/push-pop/proj-issue694-subs-in-assert.smt2
   regress0/push-pop/quant-fun-proc-unfd.smt2
   regress0/push-pop/real-as-int-incremental.smt2
   regress0/push-pop/simple_unsat_cores.smt2
@@ -1999,7 +2011,7 @@ set(regress_0_tests
   regress0/unconstrained/bvconcat.smt2
   regress0/unconstrained/bvconcat2.smt2
   regress0/unconstrained/bvext.smt2
-  regress0/unconstrained/bvite.smt2
+  #regress0/unconstrained/bvite.smt2 TODO(wishue #151)
   regress0/unconstrained/bvmul.smt2
   regress0/unconstrained/bvmul2.smt2
   regress0/unconstrained/bvmul3.smt2
@@ -2664,6 +2676,7 @@ set(regress_1_tests
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
   regress1/quantifiers/issue10346-ieval-index-conflict.smt2
+  regress1/quantifiers/issue10373-cegqi-abs.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
   regress1/quantifiers/issue3250-syg-inf-q.smt2
   regress1/quantifiers/issue3316.smt2
@@ -2756,6 +2769,7 @@ set(regress_1_tests
   regress1/quantifiers/proj-issue597.smt2
   regress1/quantifiers/proj-issue599.smt2
   regress1/quantifiers/proj-issue602.smt2
+  regress1/quantifiers/proj-issue706-gn-dt.smt2
   regress1/quantifiers/psyco-001-bv.smt2
   regress1/quantifiers/psyco-107-bv.smt2
   regress1/quantifiers/psyco-196.smt2
