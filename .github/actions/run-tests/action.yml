@@ -55,6 +55,10 @@ runs:
         if [[ "${{ inputs.check-examples }}" != "true" ]]; then exit 0; fi
         cd examples
         mkdir -p build && cd build
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          export PATH="${{ inputs.build-dir }}/install/lib:$PATH"
+          export CMAKE_GENERATOR="MSYS Makefiles"
+        fi
         cmake .. -DCMAKE_PREFIX_PATH=${{ inputs.build-dir }}/install/lib/cmake \
           -DPython_EXECUTABLE=$(command -v python3)
         make -j${{ env.num_proc }}

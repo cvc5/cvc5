@@ -68,6 +68,7 @@ jobs:
             strip-bin: strip
             windows-build: true
             shell: 'msys2 {0}'
+            check-examples: true
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
