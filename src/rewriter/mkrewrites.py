@@ -352,10 +352,14 @@ def gen_rewrite_db(args):
         decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
         call_individual_rewrites.append(f"{db.function_name}(db);")
 
+    def doc(rule: str):
+        rule = rule.lower().replace('_', '-')
+        return f'/** Auto-generated from RARE rule {rule} */'
+
     cvc5_proof_rule_h = read_tpl_enclosed(src_include_dir, 'cvc5_proof_rule.h')
     with open(os.path.join(bin_include_dir, 'cvc5_proof_rule.h'), 'w') as f:
         f.write(format_cpp(cvc5_proof_rule_h.format(
-            rules='\n'.join([f'EVALUE({id}),' for id in ids]))))
+            rules='\n'.join([f'{doc(id)}\nEVALUE({id}),' for id in ids]))))
 
     cvc5_proof_rule_cpp = read_tpl_enclosed(src_api_dir, 'cvc5_proof_rule.cpp')
     os.makedirs(bin_api_dir, exist_ok=True)
