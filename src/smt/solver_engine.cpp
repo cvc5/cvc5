@@ -1353,21 +1353,17 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
 {
   if (Configuration::isAssertionBuild())
   {
-    bool wasShadow = false;
-    if (expr::hasFreeOrShadowedVar(n, wasShadow))
+    // Must rewrite before checking for free variables
+    Node nr = d_env->getRewriter()->rewrite(n);
+    // Don't check for shadowing here, since shadowing may occur from API
+    // users, including the smt2 parser.
+    std::unordered_set<internal::Node> fvs;
+    expr::getFreeVariables(nr, fvs);
+    if (!fvs.empty())
     {
       std::stringstream se;
-      se << "Cannot process term " << n << " with ";
-      if (wasShadow)
-      {
-        se << "shadowed variables " << std::endl;
-      }
-      else
-      {
-        std::unordered_set<internal::Node> fvs;
-        expr::getFreeVariables(n, fvs);
-        se << "free variables: " << fvs << std::endl;
-      }
+      se << "Cannot process term " << nr << " with ";
+      se << "free variables: " << fvs << std::endl;
       throw ModalException(se.str().c_str());
     }
   }
@@ -1646,6 +1642,8 @@ void SolverEngine::getRelevantQuantTermVectors(
   Assert(d_state->getMode() == SmtMode::UNSAT);
   Assert(d_env->getOptions().smt.produceProofs
          && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
+  // note that we don't have to connect the SAT proof to the input assertions,
+  // and preprocessing proofs don't impact what instantiations are used
   d_ucManager->getRelevantQuantTermVectors(insts, sks, getDebugInfo);
 }
 
