@@ -188,7 +188,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
         std::stringstream ss;
         ss << "proof-format=alethe is experimental in this version. If "
               "you know what you are doing, you can try "
-              "--proof-alethe-experimental";
+              "--"
+           << opts.proof.longName.proofAletheExperimental;
         throw OptionException(ss.str());
       }
       if (opts.proof.proofGranularityMode
@@ -303,10 +304,12 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       if (opts.bv.bitblastModeWasSetByUser
           || opts.smt.produceModelsWasSetByUser)
       {
-        throw OptionException(std::string(
-            "Eager bit-blasting currently does not support model generation "
-            "for the combination of bit-vectors with arrays or uinterpreted "
-            "functions. Try --bitblast=lazy"));
+        std::stringstream ss;
+        ss << "Eager bit-blasting currently does not support model generation ";
+        ss << "for the combination of bit-vectors with arrays or uinterpreted ";
+        ss << "functions. Try --" << opts.bv.longName.bitblastMode << "="
+           << options::BitblastMode::LAZY << ".";
+        throw OptionException(ss.str());
       }
       SET_AND_NOTIFY(
           Bv, bitblastMode, options::BitblastMode::LAZY, "model generation");
@@ -340,8 +343,10 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   {
     if (opts.bv.boolToBitvector != options::BoolToBVMode::OFF)
     {
-      throw OptionException(
-          "solving bitvectors as integers is incompatible with --bool-to-bv.");
+      std::stringstream ss;
+      ss << "solving bitvectors as integers is incompatible with --"
+         << opts.bv.longName.boolToBitvector << ".";
+      throw OptionException(ss.str());
     }
     if (logic.isTheoryEnabled(THEORY_BV))
     {
@@ -830,10 +835,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     throw OptionException(
         "Eager bit-blasting does not currently support theory combination with "
-        "any theory other than UF. "
-        "Note that in a QF_BV problem UF symbols can be introduced for "
-        "division. "
-        "Try --bv-div-zero-const to interpret division by zero as a constant.");
+        "any theory other than UF. ");
   }
 
 #ifdef CVC5_USE_POLY
@@ -862,8 +864,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (opts.arith.nlCovWasSetByUser)
     {
-      throw OptionException(
-          "Cannot use --nl-cov without configuring with --poly.");
+      std::stringstream ss;
+      ss << "Cannot use --" << opts.arith.longName.nlCov
+         << " without configuring with --poly.";
+      throw OptionException(ss.str());
     }
     else
     {
@@ -1043,7 +1047,8 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       && !logic.isPure(THEORY_BV))
   {
     reason << "eager bit-blasting in non-QF_BV logic";
-    suggest << "Try --bitblast=lazy.";
+    suggest << "Try --" << opts.bv.longName.bitblastMode << "="
+            << options::BitblastMode::LAZY << ".";
     return true;
   }
   if (opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
@@ -1203,7 +1208,7 @@ bool SetDefaults::incompatibleWithQuantifiers(const Options& opts,
     // appropriate policy for the relevance of counterexample lemmas (when their
     // guard is entailed to be false, the entire lemma is relevant, not just the
     // guard). Hence, we throw an option exception if quantifiers are enabled.
-    reason << "--nl-ext-rlv";
+    reason << "--" << opts.arith.longName.nlRlvMode;
     return true;
   }
   return false;

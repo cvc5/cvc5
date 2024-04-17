@@ -43,6 +43,11 @@ struct Holder${id_cap}$
 {
 // clang-format off
   ${holder_decl}$
+
+  struct
+  {
+    ${long_name_decl}$
+  } longName;
 // clang-format on
 };
 
