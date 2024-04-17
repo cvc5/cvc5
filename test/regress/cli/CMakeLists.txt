@@ -2674,6 +2674,7 @@ set(regress_1_tests
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
+  regress1/quantifiers/issue10373-cegqi-abs.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
   regress1/quantifiers/issue3250-syg-inf-q.smt2
   regress1/quantifiers/issue3316.smt2
