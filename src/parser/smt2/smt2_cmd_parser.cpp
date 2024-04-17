@@ -869,6 +869,11 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         ss = d_state.stripQuotes(ss);
       }
+      else if (key=="use-portfolio")
+      {
+        // we don't allow setting portfolio via the command line
+        d_lex.parseError("Can only enable use-portfolio via the command line");
+      }
       cmd.reset(new SetOptionCommand(key, ss));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
