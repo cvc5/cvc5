@@ -1,3 +1,4 @@
+(include "../theories/Ints.smt3")
 (include "../theories/Arith.smt3")
 (include "../programs/Utils.smt3")
 
@@ -33,6 +34,20 @@
 (define arith_eval_qsub ((U Type :implicit) (T Type :implicit) (x U) (y T))
   (alf.add (alf.to_q x) (alf.neg (alf.to_q y)))
 )
+
+; Helper method for arith_eval_int_log_2 below.
+(program arith_eval_int_log_2_rec ((x Int))
+  (Int) Int
+  (
+  ((arith_eval_int_log_2_rec 1) 0)
+  ((arith_eval_int_log_2_rec x) (alf.add 1 (arith_eval_int_log_2_rec (alf.zdiv x 2))))
+  )
+)
+
+; Computes the log (base 2) of x.
+; If x is not strictly positive, we return (int.log x).
+(define arith_eval_int_log_2 ((x Int))
+  (alf.ite (alf.is_neg (alf.neg x)) (arith_eval_int_log_2_rec x) (int.log2 x)))
 
 ;; =============== for ARITH_POLY_NORM
 
@@ -130,6 +145,7 @@
                                   (@poly (@mon (* a) 1.0)))))    ; introduces list
   )
 )
+
 
 ; Helper for the method below.
 (program poly_is_equal_mod_c_rec ((c Real) (T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list))
