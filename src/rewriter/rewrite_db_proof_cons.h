@@ -27,6 +27,7 @@
 #include "rewriter/basic_rewrite_rcons.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/rewrite_proof_status.h"
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
 #include "theory/evaluator.h"
@@ -95,9 +96,16 @@ class RewriteDbProofCons : protected EnvObj
   class ProvenInfo
   {
    public:
-    ProvenInfo() : d_id(DslProofRule::FAIL), d_failMaxDepth(0) {}
+    ProvenInfo()
+        : d_id(RewriteProofStatus::FAIL),
+          d_dslId(DslProofRule::NONE),
+          d_failMaxDepth(0)
+    {
+    }
     /** The identifier of the proof rule, or fail if we failed */
-    DslProofRule d_id;
+    RewriteProofStatus d_id;
+    /** The identifier of the DSL proof rule if d_id is DSL */
+    DslProofRule d_dslId;
     /** The substitution used, if successful */
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
@@ -109,7 +117,7 @@ class RewriteDbProofCons : protected EnvObj
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
-    bool isInternalRule() const { return isInternalDslProofRule(d_id); }
+    bool isInternalRule() const { return d_id != RewriteProofStatus::DSL; }
   };
   /**
    * Prove and store the proof of eq with internal form eqi in cdp if possible,
@@ -122,22 +130,23 @@ class RewriteDbProofCons : protected EnvObj
                int64_t stepLimit);
   /**
    * Prove internal, which is the main entry point for proven an equality eqi.
-   * Returns the proof rule that was used to prove eqi, or DslProofRule::FAIL
-   * if we failed to prove.
+   * Returns the proof rule that was used to prove eqi, or
+   * RewriteProofStatus::FAIL if we failed to prove.
    *
    * In detail, this runs a strategy of builtin tactics and otherwise consults
    * the rewrite rule database for the set of rewrite rules that match the
    * left hand side of eqi.
    *
    * If this call is successful (i.e. the returned rule is not
-   * DslProofRule::FAIL), the proven info for eqi is stored in d_pcache[eqi].
+   * RewriteProofStatus::FAIL), the proven info for eqi is stored in
+   * d_pcache[eqi].
    *
    * Note this method depends on the current step and recursion limits
    * d_currRecLimit/d_currStepLimit.
    */
-  DslProofRule proveInternal(const Node& eqi);
+  RewriteProofStatus proveInternal(const Node& eqi);
   /** Prove internal via strategy, a helper method for above. */
-  DslProofRule proveInternalViaStrategy(const Node& eqi);
+  RewriteProofStatus proveInternalViaStrategy(const Node& eqi);
   /**
    * Prove internal base eqi via DSL rule id.
    *
@@ -145,9 +154,9 @@ class RewriteDbProofCons : protected EnvObj
    * recursion. If so, we store the rule used for eqi in its proven info
    * (d_pcache[eqi]). Notice that this method returns true if eqi is
    * proven or *disproven*, where in the latter case proven info has d_id
-   * DslProofRule::FAIL.
+   * RewriteProofStatus::FAIL.
    */
-  bool proveInternalBase(const Node& eqi, DslProofRule& id);
+  bool proveInternalBase(const Node& eqi, RewriteProofStatus& id);
   /**
    * Ensure proof for proven fact exists in cdp. This method is called on
    * equalities eqi after they have been successfully proven by this class.
@@ -180,7 +189,7 @@ class RewriteDbProofCons : protected EnvObj
    * Prove with rule, which attempts to prove the equality target using the
    * DSL proof rule id, which may be a builtin rule or a user-provided rule.
    *
-   * @param id The rule to consider
+   * @param id The rule to consider, which may be a DSL rule given by r if DSL.
    * @param target The equality to prove
    * @param vars The variables (arguments) of the proof rule
    * @param subs The substitution (instantiated arguments) of the proof rule
@@ -191,14 +200,16 @@ class RewriteDbProofCons : protected EnvObj
    * point
    * @param doRecurse Whether we should attempt to prove the rule when premises
    * are required, by making a recursive call to proveInternal.
+   * @param r The DSL rule to consider if id is DSL.
    */
-  bool proveWithRule(DslProofRule id,
+  bool proveWithRule(RewriteProofStatus id,
                      const Node& target,
                      const std::vector<Node>& vars,
                      const std::vector<Node>& subs,
                      bool doTrans,
                      bool doFixedPoint,
-                     bool doRecurse);
+                     bool doRecurse,
+                     DslProofRule r = DslProofRule::NONE);
   /**
    * Get conclusion of rewrite rule rpr under the current variable and
    * substitution. Store the information in proven info pi. If doFixedPoint
