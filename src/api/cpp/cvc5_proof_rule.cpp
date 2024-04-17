@@ -219,8 +219,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
 {
   switch (rule)
   {
-    case ProofRewriteRule::NONE: return "NONE";
-    //================================================= RARE rule
+    case ProofRewriteRule::NONE:
+      return "NONE";
+      //================================================= RARE rule
+      // ${printer}$
     case ProofRewriteRule::ARITH_PLUS_ZERO: return "arith-plus-zero";
     case ProofRewriteRule::ARITH_MUL_ONE: return "arith-mul-one";
     case ProofRewriteRule::ARITH_MUL_ZERO: return "arith-mul-zero";
@@ -582,7 +584,9 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::SEQ_REV_UNIT: return "seq-rev-unit";
     case ProofRewriteRule::EQ_REFL: return "eq-refl";
     case ProofRewriteRule::EQ_SYMM: return "eq-symm";
-    case ProofRewriteRule::DISTINCT_BINARY_ELIM: return "distinct-binary-elim";
+    case ProofRewriteRule::DISTINCT_BINARY_ELIM:
+      return "distinct-binary-elim";
+      // ${printer}$
     default: return "?";
   }
 }

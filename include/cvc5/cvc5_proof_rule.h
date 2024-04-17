@@ -2281,6 +2281,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
 {
   EVALUE(NONE),
   // RARE rules
+  // ${rules}$
   EVALUE(ARITH_PLUS_ZERO),
   EVALUE(ARITH_MUL_ONE),
   EVALUE(ARITH_MUL_ZERO),
@@ -2580,6 +2581,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(EQ_REFL),
   EVALUE(EQ_SYMM),
   EVALUE(DISTINCT_BINARY_ELIM),
+// ${rules}$
 #ifdef CVC5_API_USE_C_ENUMS
   // must be last entry
   EVALUE(LAST)
