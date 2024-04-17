@@ -226,7 +226,7 @@ name   = "Proof"
   long       = "sat-proof-min-dimacs"
   type       = "bool"
   default    = "true"
-  help       = "Minimize the DIMACs emitted as the preamble"
+  help       = "Minimize the DIMACs emitted when prop-proof-mode is set to sat-external-prove"
 
 [[option]]
   name       = "propProofMode"

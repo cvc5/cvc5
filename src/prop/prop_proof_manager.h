@@ -178,7 +178,15 @@ class PropPfManager : protected EnvObj
   std::vector<Node> getInputClauses();
   /** Retrieve the clauses derived from lemmas */
   std::vector<Node> getLemmaClauses();
-  /** Return lemmas used in the SAT proof. */
+  /**
+   * Return theory lemmas used for showing unsat. If the SAT solver has a proof,
+   * we examine its leaves. Otherwise, we recompute the unsat core lemmas
+   * using the method reproveUnsatCore.
+   * 
+   * @param outDimacs If provided, we write the DIMACS output of uc to this
+   * stream
+   * @return the unsat core of lemmas.
+   */
   std::vector<Node> getUnsatCoreClauses(std::ostream* outDimacs = nullptr);
   /**
    * Get minimized assumptions. Returns a vector of nodes which is a

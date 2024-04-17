@@ -187,7 +187,7 @@ std::vector<Node> PropPfManager::getUnsatCoreClauses(std::ostream* outDimacs)
     {
       std::vector<Node> auxUnits = computeAuxiliaryUnits(uc);
       d_pfCnfStream.dumpDimacs(*outDimacs, uc, auxUnits);
-      // include the auxiliary units if necessary
+      // include the auxiliary units if any
       uc.insert(uc.end(), auxUnits.begin(), auxUnits.end());
     }
     return uc;
@@ -515,7 +515,7 @@ void PropPfManager::getProofInternal(CDProof* cdp)
     clauses.insert(clauses.end(), cset.begin(), cset.end());
     std::vector<Node> auxUnits = computeAuxiliaryUnits(clauses);
     d_pfCnfStream.dumpDimacs(dout, clauses, auxUnits);
-    // include the auxiliary units if necessary
+    // include the auxiliary units if any
     clauses.insert(clauses.end(), auxUnits.begin(), auxUnits.end());
   }
   // construct the proof
