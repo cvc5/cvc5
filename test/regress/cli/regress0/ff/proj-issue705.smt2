@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 (set-option :check-models true)
 (set-logic QF_ALL)
 (set-info :status sat)
