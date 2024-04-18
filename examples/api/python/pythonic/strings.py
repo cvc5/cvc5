@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Aina Niemetz, Alex Ozdemir
+#   Yoni Zohar
 #
 # This file is part of the cvc5 project.
 #
@@ -9,9 +9,10 @@
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
-# #############################################################################
+# ############################################################################
 #
-# A simple demonstration of the solving capabilities of the cvc5 strings solver.
+# A simple demonstration of the solving capabilities of the cvc5 strings solver. A simple translation of the base python API
+# example.
 ##
 
 from cvc5.pythonic import *
