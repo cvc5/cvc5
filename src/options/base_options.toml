@@ -240,11 +240,16 @@ name   = "Base"
   help = "print the corresponding benchmark when successfully computing an unsat core."
   description = "With ``-o unsat-core-benchmark``, cvc5 prints the corresponding benchmark when it successfully computes an unsat core."
   example-file = "regress0/printer/print_unsat_core.smt2"
+[[option.mode.UNSAT_CORE_LEMMAS_BENCHMARK]]
+  name = "unsat-core-lemmas-benchmark"
+  help = "print the corresponding benchmark when successfully computing an unsat core with theory lemmas."
+  description = "With ``-o unsat-core-lemmas-benchmark``, cvc5 prints the corresponding benchmark when it successfully computes an unsat core that includes the theory lemmas used."
+  example-file = "regress0/printer/print_unsat_core_lemmas.smt2"
 [[option.mode.PORTFOLIO]]
   name = "portfolio"
   help = "prints the option strings tried in portfolio mode."
   description = "With ``-o portfolio``, cvc5 prints the option strings tried in portfolio mode."
-  example-file = "regress0/printer/portfolio-out.smt2"
+  example-file = "regress0/printer/portfolio-out.smt2 --use-portfolio"
 [[option.mode.BLOCK_MODEL]]
   name = "block-model"
   help = "prints the formulas used when block-model is run."

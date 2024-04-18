@@ -147,6 +147,8 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
+  proof/alf/alf_dependent_type_converter.cpp
+  proof/alf/alf_dependent_type_converter.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
   proof/alf/alf_print_channel.cpp
@@ -340,6 +342,8 @@ libcvc5_add_sources(
   smt/proof_final_callback.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
+  smt/proof_post_processor_dsl.cpp
+  smt/proof_post_processor_dsl.h
   smt/set_defaults.cpp
   smt/set_defaults.h
   smt/solver_engine.cpp
