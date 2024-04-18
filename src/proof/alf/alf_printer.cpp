@@ -122,6 +122,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
     case ProofRule::CONCAT_CONFLICT:
+    case ProofRule::CONCAT_SPLIT: 
     case ProofRule::STRING_LENGTH_POS:
     case ProofRule::STRING_LENGTH_NON_EMPTY:
     case ProofRule::RE_INTER:
@@ -131,6 +132,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
+    case ProofRule::ACI_NORM:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::ARITH_POLY_NORM:
     {
