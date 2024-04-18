@@ -40,6 +40,7 @@ if __name__ == "__main__":
     # Check satisfiability
     s = Solver()
     result = s.check([q])
+    assert result == sat
     m = s.model()
     print("x = {}".format(m[x]))
     print("y = {}".format(m[y]))
