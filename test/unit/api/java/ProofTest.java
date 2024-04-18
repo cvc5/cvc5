@@ -78,11 +78,46 @@ class ProofTest
     return d_solver.getProof()[0];
   }
 
+  Proof createRewriteProof() throws CVC5ApiException
+  {
+    d_solver.setOption("produce-proofs", "true");
+    d_solver.setOption("proof-granularity", "dsl-rewrite");
+    Sort intSort = d_tm.getIntegerSort();
+    Term x = d_tm.mkConst(intSort, "x");
+    Term twoX = d_tm.mkTerm(Kind.MULT, new Term[]{d_tm.mkInteger(2), x});
+    Term xPlusX = d_tm.mkTerm(Kind.ADD, new Term[]{x, x});
+    d_solver.assertFormula(
+        d_tm.mkTerm(Kind.DISTINCT, new Term[]{twoX, xPlusX}));
+    d_solver.checkSat();
+    return d_solver.getProof()[0];
+  }
+
   @Test
   void getRule() throws CVC5ApiException
   {
     Proof proof = create_proof();
     assertEquals(ProofRule.SCOPE, proof.getRule());
+  }
+
+  @Test
+  void getRewriteRule() throws CVC5ApiException
+  {
+    Proof proof = createRewriteProof();
+    assertThrows(CVC5ApiException.class, () -> proof.getRewriteRule());
+    ProofRule rule;
+    List<Proof> stack = new ArrayList<Proof>();
+    stack.add(proof);
+    Proof curr;
+    do
+    {
+      curr = stack.get(stack.size() - 1);
+      stack.remove(stack.size() - 1);
+      rule = curr.getRule();
+      Proof[] children = curr.getChildren();
+      stack.addAll(Arrays.asList(children));
+    } while (rule != ProofRule.DSL_REWRITE);
+    Proof rewriteProof = curr;
+    assertDoesNotThrow(() -> rewriteProof.getRewriteRule());
   }
 
   @Test
