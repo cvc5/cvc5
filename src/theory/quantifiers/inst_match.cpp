@@ -130,6 +130,12 @@ bool InstMatch::set(size_t i, TNode n)
     {
       return false;
     }
+    // The above checks may also have triggered a conflict due to term
+    // indexing, we fail in this case as well.
+    if (d_qs.isInConflict())
+    {
+      return false;
+    }
   }
   // otherwise, we update the value
   d_vals[i] = n;
