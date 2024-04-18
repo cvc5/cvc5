@@ -78,11 +78,7 @@ Node FieldObj::mkMul(const std::vector<NodeTemplate<ref_count>>& factors)
 
 bool isFfLeaf(const Node& n)
 {
-  return n.getType().isFiniteField()
-         && !(n.getKind() == Kind::FINITE_FIELD_ADD
-              || n.getKind() == Kind::FINITE_FIELD_MULT
-              || n.getKind() == Kind::FINITE_FIELD_NEG
-              || n.getKind() == Kind::FINITE_FIELD_BITSUM);
+  return n.getType().isFiniteField() && Theory::isLeafOf(n, THEORY_FF);
 }
 
 bool isFfTerm(const Node& n) { return n.getType().isFiniteField(); }
@@ -96,11 +92,7 @@ bool isFfFact(const Node& n)
 
 bool isFfLeaf(const Node& n, const FfSize& field)
 {
-  return n.getType().isFiniteField()
-         && !(n.getKind() == Kind::FINITE_FIELD_ADD
-              || n.getKind() == Kind::FINITE_FIELD_MULT
-              || n.getKind() == Kind::FINITE_FIELD_NEG
-              || n.getKind() == Kind::FINITE_FIELD_BITSUM)
+  return n.getType().isFiniteField() && Theory::isLeafOf(n, THEORY_FF)
          && n.getType().getFfSize() == field;
 }
 
