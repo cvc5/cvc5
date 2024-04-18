@@ -153,7 +153,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     SET_AND_NOTIFY(smt, checkProofs, true, "check-proof-steps");
     // maximize the granularity
-    SET_AND_NOTIFY_IF_NOT_USER(proof,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(proof,
                                proofGranularityMode,
                                options::ProofGranularityMode::DSL_REWRITE,
                                "check-proof-steps");
@@ -175,7 +175,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
       SET_AND_NOTIFY(smt, produceUnsatCores, true, "enabling proofs");
-      SET_AND_NOTIFY(smt,
+      SET_AND_NOTIFY_VAL_SYM(smt,
                      unsatCoresMode,
                      options::UnsatCoresMode::SAT_PROOF,
                      "enabling proofs");
@@ -196,7 +196,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       if (opts.proof.proofGranularityMode
           < options::ProofGranularityMode::THEORY_REWRITE)
       {
-        SET_AND_NOTIFY(proof,
+        SET_AND_NOTIFY_VAL_SYM(proof,
                        proofGranularityMode,
                        options::ProofGranularityMode::THEORY_REWRITE,
                        "Alethe requires granularity at least theory-rewrite");
@@ -218,7 +218,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       // ensure at least preprocessing proofs are enabled
       if (opts.smt.proofMode == options::ProofMode::OFF)
       {
-        SET_AND_NOTIFY(
+        SET_AND_NOTIFY_VAL_SYM(
             smt, proofMode, options::ProofMode::PP_ONLY, "produce difficulty");
       }
     }
@@ -230,13 +230,13 @@ void SetDefaults::setDefaultsPre(Options& opts)
       {
         // if requested to be based on proofs, we produce (preprocessing +) SAT
         // proofs
-        SET_AND_NOTIFY(
+        SET_AND_NOTIFY_VAL_SYM(
             smt, proofMode, options::ProofMode::SAT, "unsat cores SAT proof");
       }
       else if (opts.smt.proofMode == options::ProofMode::OFF)
       {
         // otherwise, we always produce preprocessing proofs
-        SET_AND_NOTIFY(
+        SET_AND_NOTIFY_VAL_SYM(
             smt, proofMode, options::ProofMode::PP_ONLY, "unsat cores");
       }
     }
@@ -264,12 +264,12 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     // these options must be disabled on internal subsolvers, as they are
     // used by the user to rephrase the input.
-    SET_AND_NOTIFY(quantifiers,
+    SET_AND_NOTIFY_VAL_SYM(quantifiers,
                    sygusInference,
                    options::SygusInferenceMode::OFF,
                    "internal subsolver");
     // deep restart does not work with internal subsolvers?
-    SET_AND_NOTIFY(smt,
+    SET_AND_NOTIFY_VAL_SYM(smt,
                    deepRestartMode,
                    options::DeepRestartMode::NONE,
                    "internal subsolver");
@@ -531,14 +531,14 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       // quantifiers, not others
       if (qf_sat)
       {
-        SET_AND_NOTIFY(smt,
+        SET_AND_NOTIFY_VAL_SYM(smt,
                        simplificationMode,
                        options::SimplificationMode::NONE,
                        "logic");
       }
       else
       {
-        SET_AND_NOTIFY(smt,
+        SET_AND_NOTIFY_VAL_SYM(smt,
                        simplificationMode,
                        options::SimplificationMode::BATCH,
                        "logic");
@@ -556,7 +556,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
             "bool-to-bv != off not supported with CEGQI BV for quantified "
             "logics");
       }
-      SET_AND_NOTIFY(
+      SET_AND_NOTIFY_VAL_SYM(
           bv, boolToBitvector, options::BoolToBVMode::OFF, "cegqiBv");
     }
   }
@@ -586,7 +586,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && !(logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
              && !logic.isQuantified()))
     {
-      SET_AND_NOTIFY(theory,
+      SET_AND_NOTIFY_VAL_SYM(theory,
                      theoryOfMode,
                      options::TheoryOfMode::THEORY_OF_TERM_BASED,
                      "logic");
@@ -658,7 +658,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       throw OptionException(
           "bool-to-bv=all not supported for non-bitvector logics.");
     }
-    SET_AND_NOTIFY(
+    SET_AND_NOTIFY_VAL_SYM(
         bv, boolToBitvector, options::BoolToBVMode::OFF, "non-BV logic");
   }
 
@@ -764,7 +764,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         || opts.smt.checkModels
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
-      SET_AND_NOTIFY_IF_NOT_USER(prop,
+      SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(prop,
                                  minisatSimpMode,
                                  options::MinisatSimpMode::CLAUSE_ELIM,
                                  "non-basic logic");
@@ -786,7 +786,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   if (opts.strings.stringFMF)
   {
-    SET_AND_NOTIFY_IF_NOT_USER(strings,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(strings,
                                stringProcessLoopMode,
                                options::ProcessLoopMode::SIMPLE,
                                "strings-fmf");
@@ -845,7 +845,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
       SET_AND_NOTIFY(arith, nlCov, true, "QF_UFNRA");
-      SET_AND_NOTIFY_IF_NOT_USER(
+      SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
           arith, nlExt, options::NlExtMode::LIGHT, "QF_UFNRA");
     }
   }
@@ -856,7 +856,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
       SET_AND_NOTIFY(arith, nlCov, true, "logic with reals");
-      SET_AND_NOTIFY_IF_NOT_USER(
+      SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
           arith, nlExt, options::NlExtMode::LIGHT, "logic with reals");
     }
   }
@@ -873,14 +873,14 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     else
     {
       SET_AND_NOTIFY(arith, nlCov, false, "no support for libpoly");
-      SET_AND_NOTIFY(
+      SET_AND_NOTIFY_VAL_SYM(
           arith, nlExt, options::NlExtMode::FULL, "no support for libpoly");
     }
   }
 #endif
   if (logic.isTheoryEnabled(theory::THEORY_ARITH) && logic.areTranscendentalsUsed())
   {
-    SET_AND_NOTIFY_IF_NOT_USER(
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         arith, nlExt, options::NlExtMode::FULL, "logic with transcendentals");
   }
 }
@@ -964,13 +964,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   // options that are automatically set to support proofs
   if (opts.bv.bvAssertInput)
   {
-    SET_AND_NOTIFY(bv, bvAssertInput, false, "proofs");
+    SET_AND_NOTIFY_VAL_SYM(bv, bvAssertInput, false, "proofs");
   }
   // If proofs are required and the user did not specify a specific BV solver,
   // we make sure to use the proof producing BITBLAST_INTERNAL solver.
   if (opts.smt.proofMode == options::ProofMode::FULL)
   {
-    SET_AND_NOTIFY_IF_NOT_USER(
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         bv, bvSolver, options::BVSolver::BITBLAST_INTERNAL, "proofs");
   }
   SET_AND_NOTIFY_IF_NOT_USER(arith, nlCovVarElim, false, "proofs");
@@ -1059,7 +1059,7 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       reason << "sygus inference";
       return true;
     }
-    SET_AND_NOTIFY(quantifiers,
+    SET_AND_NOTIFY_VAL_SYM(quantifiers,
                    sygusInference,
                    options::SygusInferenceMode::OFF,
                    "incremental solving");
@@ -1114,7 +1114,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "deep restarts";
       return true;
     }
-    SET_AND_NOTIFY(
+    SET_AND_NOTIFY_VAL_SYM(
         smt, deepRestartMode, options::DeepRestartMode::NONE, "unsat cores");
   }
   if (opts.smt.learnedRewrite)
@@ -1360,16 +1360,16 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.fmfBound)
   {
     // if bounded integers are set, use no MBQI by default
-    SET_AND_NOTIFY_IF_NOT_USER(
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         quantifiers, fmfMbqiMode, options::FmfMbqiMode::NONE, "fmfBound");
-    SET_AND_NOTIFY_IF_NOT_USER(
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         quantifiers, prenexQuant, options::PrenexQuantMode::NONE, "fmfBound");
   }
   if (logic.isHigherOrder())
   {
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
-    SET_AND_NOTIFY(quantifiers,
+    SET_AND_NOTIFY_VAL_SYM(quantifiers,
                    fmfMbqiMode,
                    options::FmfMbqiMode::NONE,
                    "higher-order logic");
@@ -1398,7 +1398,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.finiteModelFind)
   {
     // apply conservative quantifiers splitting
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                quantDynamicSplit,
                                options::QuantDSplitMode::DEFAULT,
                                "finiteModelFind");
@@ -1409,7 +1409,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // instantiate only on last call
     if (opts.quantifiers.eMatching)
     {
-      SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+      SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                  instWhenMode,
                                  options::InstWhenMode::LAST_CALL,
                                  "finiteModelFind");
@@ -1456,7 +1456,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
       SET_AND_NOTIFY_IF_NOT_USER(
           quantifiers, instNoEntail, false, "cegqi pure logic");
       // only instantiation should happen at last call when model is avaiable
-      SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+      SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                  instWhenMode,
                                  options::InstWhenMode::LAST_CALL,
                                  "cegqi pure logic");
@@ -1468,7 +1468,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     }
     if (opts.quantifiers.globalNegate)
     {
-      SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+      SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                  prenexQuant,
                                  options::PrenexQuantMode::NONE,
                                  "globalNegate");
@@ -1482,7 +1482,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.cegqiNestedQE)
   {
     SET_AND_NOTIFY(quantifiers, prenexQuantUser, true, "cegqiNestedQE");
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                preSkolemQuant,
                                options::PreSkolemQuantMode::ON,
                                "cegqiNestedQE");
@@ -1500,7 +1500,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // try to remove ITEs from quantified formulas
     SET_AND_NOTIFY_IF_NOT_USER(
         quantifiers, iteDtTesterSplitQuant, true, "dtStcInduction");
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                iteLiftQuant,
                                options::IteLiftQuantMode::ALL,
                                "dtStcInduction");
@@ -1525,14 +1525,14 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   }
   if (!logic.isTheoryEnabled(THEORY_DATATYPES))
   {
-    SET_AND_NOTIFY(quantifiers,
+    SET_AND_NOTIFY_VAL_SYM(quantifiers,
                    quantDynamicSplit,
                    options::QuantDSplitMode::NONE,
                    "non-datatypes logic");
   }
   if (opts.quantifiers.globalNegate)
   {
-    SET_AND_NOTIFY(
+    SET_AND_NOTIFY_VAL_SYM(
         smt, deepRestartMode, options::DeepRestartMode::NONE, "globalNegate");
   }
 }
@@ -1552,7 +1552,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   if (opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     // optimization: apply preskolemization, makes it succeed more often
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                preSkolemQuant,
                                options::PreSkolemQuantMode::ON,
                                "sygusInference");
@@ -1560,7 +1560,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
         quantifiers, preSkolemQuantNested, true, "sygusInference");
   }
   // counterexample-guided instantiation for sygus
-  SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+  SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                              cegqiSingleInvMode,
                              options::CegqiSingleInvMode::USE,
                              "sygus");
@@ -1577,7 +1577,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   if (opts.smt.produceAbducts)
   {
     // if doing abduction, we should filter strong solutions
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                sygusFilterSolMode,
                                options::SygusFilterSolMode::STRONG,
                                "produceAbducts");
@@ -1595,21 +1595,21 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   if (reqBasicSygus)
   {
     SET_AND_NOTIFY_IF_NOT_USER(quantifiers, sygusUnifPbe, false, "basic sygus");
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                sygusUnifPi,
                                options::SygusUnifPiMode::NONE,
                                "basic sygus");
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                sygusInvTemplMode,
                                options::SygusInvTemplMode::NONE,
                                "basic sygus");
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                cegqiSingleInvMode,
                                options::CegqiSingleInvMode::NONE,
                                "basic sygus");
   }
   // do not miniscope
-  SET_AND_NOTIFY_IF_NOT_USER(
+  SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
       quantifiers, miniscopeQuant, options::MiniscopeQuantMode::OFF, "sygus");
   // do not do macros
   SET_AND_NOTIFY_IF_NOT_USER(quantifiers, macrosQuant, false, "sygus");
