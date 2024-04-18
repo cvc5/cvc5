@@ -5038,6 +5038,24 @@ ProofRule Proof::getRule() const
   CVC5_API_TRY_CATCH_END;
 }
 
+ProofRewriteRule Proof::getRewriteRule() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(this->getProofNode()->getRule() == ProofRule::DSL_REWRITE)
+      << "Expected `getRule()` to return `DSL_REWRITE`, got "
+      << this->getProofNode()->getRule() << " instead.";
+  //////// all checks before this line
+  if (d_proof_node != nullptr)
+  {
+    return static_cast<ProofRewriteRule>(
+        detail::getInteger(this->d_proof_node->getArguments()[0])
+            .getUnsignedInt());
+  }
+  return ProofRewriteRule::NONE;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Proof::getResult() const
 {
   CVC5_API_TRY_CATCH_BEGIN;

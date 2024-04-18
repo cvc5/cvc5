@@ -1118,6 +1118,7 @@ set(regress_0_tests
   regress0/options/safe-options1.smt2
   regress0/options/safe-options2.smt2
   regress0/options/safe-options3.smt2
+  regress0/options/safe-opts-warn.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -3883,6 +3884,7 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
+    ${ENV_PATH_CMD}
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
