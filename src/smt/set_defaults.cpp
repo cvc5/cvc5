@@ -153,10 +153,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     SET_AND_NOTIFY(smt, checkProofs, true, "check-proof-steps");
     // maximize the granularity
-    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(proof,
-                               proofGranularityMode,
-                               options::ProofGranularityMode::DSL_REWRITE,
-                               "check-proof-steps");
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
+        proof,
+        proofGranularityMode,
+        options::ProofGranularityMode::DSL_REWRITE,
+        "check-proof-steps");
   }
   // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
   // enabled is implied
@@ -176,9 +177,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       SET_AND_NOTIFY(smt, produceUnsatCores, true, "enabling proofs");
       SET_AND_NOTIFY_VAL_SYM(smt,
-                     unsatCoresMode,
-                     options::UnsatCoresMode::SAT_PROOF,
-                     "enabling proofs");
+                             unsatCoresMode,
+                             options::UnsatCoresMode::SAT_PROOF,
+                             "enabling proofs");
     }
     // note that this test assumes that granularity modes are ordered and
     // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
@@ -196,10 +197,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
       if (opts.proof.proofGranularityMode
           < options::ProofGranularityMode::THEORY_REWRITE)
       {
-        SET_AND_NOTIFY_VAL_SYM(proof,
-                       proofGranularityMode,
-                       options::ProofGranularityMode::THEORY_REWRITE,
-                       "Alethe requires granularity at least theory-rewrite");
+        SET_AND_NOTIFY_VAL_SYM(
+            proof,
+            proofGranularityMode,
+            options::ProofGranularityMode::THEORY_REWRITE,
+            "Alethe requires granularity at least theory-rewrite");
       }
     }
   }
@@ -265,14 +267,14 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // these options must be disabled on internal subsolvers, as they are
     // used by the user to rephrase the input.
     SET_AND_NOTIFY_VAL_SYM(quantifiers,
-                   sygusInference,
-                   options::SygusInferenceMode::OFF,
-                   "internal subsolver");
+                           sygusInference,
+                           options::SygusInferenceMode::OFF,
+                           "internal subsolver");
     // deep restart does not work with internal subsolvers?
     SET_AND_NOTIFY_VAL_SYM(smt,
-                   deepRestartMode,
-                   options::DeepRestartMode::NONE,
-                   "internal subsolver");
+                           deepRestartMode,
+                           options::DeepRestartMode::NONE,
+                           "internal subsolver");
   }
 }
 
@@ -532,16 +534,16 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       if (qf_sat)
       {
         SET_AND_NOTIFY_VAL_SYM(smt,
-                       simplificationMode,
-                       options::SimplificationMode::NONE,
-                       "logic");
+                               simplificationMode,
+                               options::SimplificationMode::NONE,
+                               "logic");
       }
       else
       {
         SET_AND_NOTIFY_VAL_SYM(smt,
-                       simplificationMode,
-                       options::SimplificationMode::BATCH,
-                       "logic");
+                               simplificationMode,
+                               options::SimplificationMode::BATCH,
+                               "logic");
       }
     }
   }
@@ -587,9 +589,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
              && !logic.isQuantified()))
     {
       SET_AND_NOTIFY_VAL_SYM(theory,
-                     theoryOfMode,
-                     options::TheoryOfMode::THEORY_OF_TERM_BASED,
-                     "logic");
+                             theoryOfMode,
+                             options::TheoryOfMode::THEORY_OF_TERM_BASED,
+                             "logic");
     }
   }
 
@@ -765,9 +767,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
       SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(prop,
-                                 minisatSimpMode,
-                                 options::MinisatSimpMode::CLAUSE_ELIM,
-                                 "non-basic logic");
+                                         minisatSimpMode,
+                                         options::MinisatSimpMode::CLAUSE_ELIM,
+                                         "non-basic logic");
     }
   }
 
@@ -787,9 +789,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (opts.strings.stringFMF)
   {
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(strings,
-                               stringProcessLoopMode,
-                               options::ProcessLoopMode::SIMPLE,
-                               "strings-fmf");
+                                       stringProcessLoopMode,
+                                       options::ProcessLoopMode::SIMPLE,
+                                       "strings-fmf");
   }
 
   // !!! All options that require disabling models go here
@@ -1060,9 +1062,9 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       return true;
     }
     SET_AND_NOTIFY_VAL_SYM(quantifiers,
-                   sygusInference,
-                   options::SygusInferenceMode::OFF,
-                   "incremental solving");
+                           sygusInference,
+                           options::SygusInferenceMode::OFF,
+                           "incremental solving");
   }
   if (opts.quantifiers.sygusInst)
   {
@@ -1370,9 +1372,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
     SET_AND_NOTIFY_VAL_SYM(quantifiers,
-                   fmfMbqiMode,
-                   options::FmfMbqiMode::NONE,
-                   "higher-order logic");
+                           fmfMbqiMode,
+                           options::FmfMbqiMode::NONE,
+                           "higher-order logic");
     // by default, use store axioms only if --ho-elim is set
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
                                        hoElimStoreAx,
@@ -1399,9 +1401,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     // apply conservative quantifiers splitting
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                               quantDynamicSplit,
-                               options::QuantDSplitMode::DEFAULT,
-                               "finiteModelFind");
+                                       quantDynamicSplit,
+                                       options::QuantDSplitMode::DEFAULT,
+                                       "finiteModelFind");
     // do not use E-matching by default. For E-matching + FMF, the user should
     // specify --finite-model-find --e-matching.
     SET_AND_NOTIFY_IF_NOT_USER(
@@ -1410,9 +1412,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     if (opts.quantifiers.eMatching)
     {
       SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                                 instWhenMode,
-                                 options::InstWhenMode::LAST_CALL,
-                                 "finiteModelFind");
+                                         instWhenMode,
+                                         options::InstWhenMode::LAST_CALL,
+                                         "finiteModelFind");
     }
   }
 
@@ -1457,9 +1459,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
           quantifiers, instNoEntail, false, "cegqi pure logic");
       // only instantiation should happen at last call when model is avaiable
       SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                                 instWhenMode,
-                                 options::InstWhenMode::LAST_CALL,
-                                 "cegqi pure logic");
+                                         instWhenMode,
+                                         options::InstWhenMode::LAST_CALL,
+                                         "cegqi pure logic");
     }
     else
     {
@@ -1469,9 +1471,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     if (opts.quantifiers.globalNegate)
     {
       SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                                 prenexQuant,
-                                 options::PrenexQuantMode::NONE,
-                                 "globalNegate");
+                                         prenexQuant,
+                                         options::PrenexQuantMode::NONE,
+                                         "globalNegate");
     }
   }
   // implied options...
@@ -1483,9 +1485,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     SET_AND_NOTIFY(quantifiers, prenexQuantUser, true, "cegqiNestedQE");
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                               preSkolemQuant,
-                               options::PreSkolemQuantMode::ON,
-                               "cegqiNestedQE");
+                                       preSkolemQuant,
+                                       options::PreSkolemQuantMode::ON,
+                                       "cegqiNestedQE");
   }
   // for induction techniques
   if (opts.quantifiers.quantInduction)
@@ -1501,9 +1503,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     SET_AND_NOTIFY_IF_NOT_USER(
         quantifiers, iteDtTesterSplitQuant, true, "dtStcInduction");
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                               iteLiftQuant,
-                               options::IteLiftQuantMode::ALL,
-                               "dtStcInduction");
+                                       iteLiftQuant,
+                                       options::IteLiftQuantMode::ALL,
+                                       "dtStcInduction");
   }
   if (opts.quantifiers.intWfInduction)
   {
@@ -1526,9 +1528,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (!logic.isTheoryEnabled(THEORY_DATATYPES))
   {
     SET_AND_NOTIFY_VAL_SYM(quantifiers,
-                   quantDynamicSplit,
-                   options::QuantDSplitMode::NONE,
-                   "non-datatypes logic");
+                           quantDynamicSplit,
+                           options::QuantDSplitMode::NONE,
+                           "non-datatypes logic");
   }
   if (opts.quantifiers.globalNegate)
   {
@@ -1553,17 +1555,17 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     // optimization: apply preskolemization, makes it succeed more often
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                               preSkolemQuant,
-                               options::PreSkolemQuantMode::ON,
-                               "sygusInference");
+                                       preSkolemQuant,
+                                       options::PreSkolemQuantMode::ON,
+                                       "sygusInference");
     SET_AND_NOTIFY_IF_NOT_USER(
         quantifiers, preSkolemQuantNested, true, "sygusInference");
   }
   // counterexample-guided instantiation for sygus
   SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                             cegqiSingleInvMode,
-                             options::CegqiSingleInvMode::USE,
-                             "sygus");
+                                     cegqiSingleInvMode,
+                                     options::CegqiSingleInvMode::USE,
+                                     "sygus");
   SET_AND_NOTIFY_IF_NOT_USER(quantifiers, conflictBasedInst, false, "sygus");
   SET_AND_NOTIFY_IF_NOT_USER(quantifiers, instNoEntail, false, "sygus");
   // should use full effort cbqi for single invocation and repair const
@@ -1578,9 +1580,9 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     // if doing abduction, we should filter strong solutions
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                               sygusFilterSolMode,
-                               options::SygusFilterSolMode::STRONG,
-                               "produceAbducts");
+                                       sygusFilterSolMode,
+                                       options::SygusFilterSolMode::STRONG,
+                                       "produceAbducts");
     // we must use basic sygus algorithms, since e.g. we require checking
     // a sygus side condition for consistency with axioms.
     reqBasicSygus = true;
@@ -1596,17 +1598,17 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     SET_AND_NOTIFY_IF_NOT_USER(quantifiers, sygusUnifPbe, false, "basic sygus");
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                               sygusUnifPi,
-                               options::SygusUnifPiMode::NONE,
-                               "basic sygus");
+                                       sygusUnifPi,
+                                       options::SygusUnifPiMode::NONE,
+                                       "basic sygus");
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                               sygusInvTemplMode,
-                               options::SygusInvTemplMode::NONE,
-                               "basic sygus");
+                                       sygusInvTemplMode,
+                                       options::SygusInvTemplMode::NONE,
+                                       "basic sygus");
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(quantifiers,
-                               cegqiSingleInvMode,
-                               options::CegqiSingleInvMode::NONE,
-                               "basic sygus");
+                                       cegqiSingleInvMode,
+                                       options::CegqiSingleInvMode::NONE,
+                                       "basic sygus");
   }
   // do not miniscope
   SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
