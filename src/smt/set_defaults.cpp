@@ -50,11 +50,11 @@ namespace smt {
  * Set domain.optName to value due to reason. Notify if value changes.
  * Note this macro should be used if the value is concrete.
  */
-#define SET_AND_NOTIFY(domain, optName, value, reason) \
-  if (opts.write_##domain().optName != value)           \
-  {                                                    \
-    notifyModifyOption(options::domain::longName::optName, #value, reason);      \
-    opts.write_##domain().optName = value;              \
+#define SET_AND_NOTIFY(domain, optName, value, reason)                      \
+  if (opts.write_##domain().optName != value)                               \
+  {                                                                         \
+    notifyModifyOption(options::domain::longName::optName, #value, reason); \
+    opts.write_##domain().optName = value;                                  \
   }
 /**
  * Set domain.optName to value due to reason. Notify if value changes.
@@ -62,38 +62,40 @@ namespace smt {
  * Note this macro should be used if the value passed to the macro is not
  * concrete (i.e., stored in a variable).
  */
-#define SET_AND_NOTIFY_VAL_SYM(domain, optName, value, reason) \
-  if (opts.write_##domain().optName != value)                   \
-  {                                                            \
-    std::stringstream sstmp;                                   \
-    sstmp << value;                                            \
-    notifyModifyOption(options::domain::longName::optName, sstmp.str(), reason);         \
-    opts.write_##domain().optName = value;                      \
+#define SET_AND_NOTIFY_VAL_SYM(domain, optName, value, reason)    \
+  if (opts.write_##domain().optName != value)                     \
+  {                                                               \
+    std::stringstream sstmp;                                      \
+    sstmp << value;                                               \
+    notifyModifyOption(                                           \
+        options::domain::longName::optName, sstmp.str(), reason); \
+    opts.write_##domain().optName = value;                        \
   }
 /**
  * Set domain.optName to value due to reason if the option was not already set
  * by the user. Notify if value changes.
  * Note this macro should be used if the value is concrete.
  */
-#define SET_AND_NOTIFY_IF_NOT_USER(domain, optName, value, reason) \
-  if (!opts.write_##domain().optName##WasSetByUser                  \
-      && opts.write_##domain().optName != value)                    \
-  {                                                                \
-    notifyModifyOption(options::domain::longName::optName, #value, reason);                  \
-    opts.write_##domain().optName = value;                          \
+#define SET_AND_NOTIFY_IF_NOT_USER(domain, optName, value, reason)          \
+  if (!opts.write_##domain().optName##WasSetByUser                          \
+      && opts.write_##domain().optName != value)                            \
+  {                                                                         \
+    notifyModifyOption(options::domain::longName::optName, #value, reason); \
+    opts.write_##domain().optName = value;                                  \
   }
 /**
  * Set domain.optName to value due to reason if the option was not already set
  * by the user. Notify if value changes.
  */
 #define SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(domain, optName, value, reason) \
-  if (!opts.write_##domain().optName##WasSetByUser                          \
-      && opts.write_##domain().optName != value)                            \
+  if (!opts.write_##domain().optName##WasSetByUser                         \
+      && opts.write_##domain().optName != value)                           \
   {                                                                        \
     std::stringstream sstmp;                                               \
     sstmp << value;                                                        \
-    notifyModifyOption(options::domain::longName::optName, sstmp.str(), reason);                     \
-    opts.write_##domain().optName = value;                                  \
+    notifyModifyOption(                                                    \
+        options::domain::longName::optName, sstmp.str(), reason);          \
+    opts.write_##domain().optName = value;                                 \
   }
 
 SetDefaults::SetDefaults(Env& env, bool isInternalSubsolver)
