@@ -122,6 +122,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
     case ProofRule::CONCAT_CONFLICT:
+    case ProofRule::CONCAT_SPLIT: 
     case ProofRule::STRING_LENGTH_POS:
     case ProofRule::STRING_LENGTH_NON_EMPTY:
     case ProofRule::RE_INTER:
@@ -210,16 +211,28 @@ bool AlfPrinter::canEvaluate(Node n) const
         case Kind::LEQ:
         case Kind::MULT:
         case Kind::NONLINEAR_MULT:
+        case Kind::INTS_MODULUS:
+        case Kind::INTS_MODULUS_TOTAL:
+        case Kind::DIVISION:
+        case Kind::DIVISION_TOTAL:
+        case Kind::INTS_DIVISION:
+        case Kind::INTS_DIVISION_TOTAL:
+        case Kind::TO_REAL:
+        case Kind::TO_INTEGER:
+        case Kind::IS_INTEGER:
         case Kind::STRING_CONCAT:
         case Kind::STRING_SUBSTR:
         case Kind::STRING_LENGTH:
         case Kind::STRING_CONTAINS:
+        case Kind::STRING_REPLACE:
+        case Kind::STRING_INDEXOF:
         case Kind::BITVECTOR_ADD:
         case Kind::BITVECTOR_SUB:
         case Kind::BITVECTOR_NEG:
         case Kind::BITVECTOR_MULT:
         case Kind::BITVECTOR_AND:
-        case Kind::BITVECTOR_OR: break;
+        case Kind::BITVECTOR_OR:
+        case Kind::CONST_BITVECTOR_SYMBOLIC: break;
         default:
           Trace("alf-printer-debug")
               << "Cannot evaluate " << cur.getKind() << std::endl;
