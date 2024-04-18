@@ -174,7 +174,7 @@ class LfscPrinter : protected EnvObj
                                 std::map<const ProofNode*, size_t>& pletMap);
   /** Print DSL rule */
   void printDslRule(std::ostream& out,
-                    rewriter::DslProofRule id,
+                    ProofRewriteRule id,
                     std::vector<Node>& format);
   //------------------------------ end printing proofs
   /** The term processor */
@@ -209,7 +209,7 @@ class LfscPrinter : protected EnvObj
    * Each rule is mapped to a list of terms, where Node::null signifies
    * positions of holes, non-null nodes are child proofs to print.
    */
-  std::map<rewriter::DslProofRule, std::vector<Node>> d_dslFormat;
+  std::map<ProofRewriteRule, std::vector<Node>> d_dslFormat;
 };
 
 }  // namespace proof

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Rewrite proof rule class
+ * proof rewrite rule class
  */
 
 #include "cvc5_private.h"
@@ -55,14 +55,14 @@ class RewriteProofRule
    * non-null for all rules that should be applied to fixed-point. The context
    * is a lambda term that specifies the next position of the term to rewrite.
    */
-  void init(DslProofRule id,
+  void init(ProofRewriteRule id,
             const std::vector<Node>& userFvs,
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
             Node conc,
             Node context);
   /** get id */
-  DslProofRule getId() const;
+  ProofRewriteRule getId() const;
   /** get name */
   const char* getName() const;
   /** Get user variable list */
@@ -157,7 +157,7 @@ class RewriteProofRule
 
  private:
   /** The id of the rule */
-  DslProofRule d_id;
+  ProofRewriteRule d_id;
   /** The conditions of the rule */
   std::vector<Node> d_cond;
   /** The obligation generator formulas of the rule */
