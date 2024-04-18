@@ -1515,7 +1515,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
   }
 
   // assert the lemma
-  d_propEngine->assertLemma(tlemma, p);
+  d_propEngine->assertLemma(id, tlemma, p);
 
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,

@@ -440,8 +440,8 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     // consult rewrite db, apply args[1]...args[n] as a substitution
     // to variable list and prove equality between LHS and RHS.
     Assert(d_rdb != nullptr);
-    rewriter::DslProofRule di;
-    if (!getDslProofRule(args[0], di))
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
     {
       return Node::null();
     }
