@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,14 +14,15 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALF__ALF_NODE_CONVERTER_H
-#define CVC4__PROOF__ALF__ALF_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__ALF__ALF_NODE_CONVERTER_H
+#define CVC5__PROOF__ALF__ALF_NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_node.h"
 
 namespace cvc5::internal {
@@ -34,6 +35,7 @@ namespace proof {
 class BaseAlfNodeConverter : public NodeConverter
 {
  public:
+  BaseAlfNodeConverter(NodeManager* nm);
   /**
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
@@ -49,6 +51,24 @@ class BaseAlfNodeConverter : public NodeConverter
    * passed as arguments to terms and proof rules.
    */
   virtual Node typeAsNode(TypeNode tni) = 0;
+
+  /**
+   * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
+   * has a distinguished status so that it is *not* printed as (bvar ...). The
+   * returned variable is always fresh.
+   */
+  virtual Node mkInternalSymbol(const std::string& name,
+                                TypeNode tn,
+                                bool useRawSym = true) = 0;
+  /**
+   * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
+   * has a distinguished status so that it is *not* printed as (bvar ...). The
+   * returned variable is always fresh.
+   */
+  virtual Node mkInternalApp(const std::string& name,
+                             const std::vector<Node>& args,
+                             TypeNode ret,
+                             bool useRawSym = true) = 0;
 };
 
 /**
@@ -58,7 +78,7 @@ class BaseAlfNodeConverter : public NodeConverter
 class AlfNodeConverter : public BaseAlfNodeConverter
 {
  public:
-  AlfNodeConverter();
+  AlfNodeConverter(NodeManager* nm);
   ~AlfNodeConverter() {}
   /** Convert at pre-order traversal */
   Node preConvert(Node n) override;
@@ -92,7 +112,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    */
   Node mkInternalSymbol(const std::string& name,
                         TypeNode tn,
-                        bool useRawSym = true);
+                        bool useRawSym = true) override;
   /**
    * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
    * has a distinguished status so that it is *not* printed as (bvar ...). The
@@ -101,7 +121,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   Node mkInternalApp(const std::string& name,
                      const std::vector<Node>& args,
                      TypeNode ret,
-                     bool useRawSym = true);
+                     bool useRawSym = true) override;
   /**
    * Type as node, returns a node that prints in the form that ALF will
    * interpret as the type tni. This method is required since types can be
@@ -134,6 +154,8 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   Node maybeMkSkolemFun(Node k);
   /** Is k a kind that is printed as an indexed operator in ALF? */
   static bool isIndexedOperatorKind(Kind k);
+  /** Do we handle the given skolem id? */
+  static bool isHandledSkolemId(SkolemId id);
   /** Get indices for printing the operator of n in the ALF format */
   static std::vector<Node> getOperatorIndices(Kind k, Node n);
   /** The set of all internally generated symbols */

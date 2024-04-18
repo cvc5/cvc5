@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,5 +49,11 @@ class SymbolManagerTest extends ParserTest
     assertThrows(CVC5ApiException.class, () -> d_symman.getLogic());
     parseAndSetLogic("QF_LIA");
     assertEquals(d_symman.getLogic(), "QF_LIA");
+  }
+  @Test
+  void getDeclaredTermsAndSorts()
+  {
+    assertEquals(d_symman.getDeclaredSorts().length, 0);
+    assertEquals(d_symman.getDeclaredTerms().length, 0);
   }
 }

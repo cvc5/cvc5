@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,6 +55,11 @@ void QuantifiersModules::initialize(Env& env,
   {
     d_qcf.reset(new QuantConflictFind(env, qs, qim, qr, tr));
     modules.push_back(d_qcf.get());
+  }
+  if (options.quantifiers.quantSubCbqi)
+  {
+    d_issc.reset(new InstStrategySubConflict(env, qs, qim, qr, tr));
+    modules.push_back(d_issc.get());
   }
   if (options.quantifiers.conjectureGen)
   {

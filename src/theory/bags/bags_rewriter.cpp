@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,10 +42,11 @@ BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
 {
 }
 
-BagsRewriter::BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics)
-    : d_rewriter(r), d_statistics(statistics)
+BagsRewriter::BagsRewriter(NodeManager* nm,
+                           Rewriter* r,
+                           HistogramStat<Rewrite>* statistics)
+    : TheoryRewriter(nm), d_rewriter(r), d_statistics(statistics)
 {
-  d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(Rational(0));
   d_one = d_nm->mkConstInt(Rational(1));
 }
@@ -78,9 +79,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
     {
       case Kind::BAG_MAKE: response = rewriteMakeBag(n); break;
       case Kind::BAG_COUNT: response = rewriteBagCount(n); break;
-      case Kind::BAG_DUPLICATE_REMOVAL:
-        response = rewriteDuplicateRemoval(n);
-        break;
+      case Kind::BAG_SETOF: response = rewriteSetof(n); break;
       case Kind::BAG_UNION_MAX: response = rewriteUnionMax(n); break;
       case Kind::BAG_UNION_DISJOINT: response = rewriteUnionDisjoint(n); break;
       case Kind::BAG_INTER_MIN: response = rewriteIntersectionMin(n); break;
@@ -91,9 +90,6 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
         response = rewriteDifferenceRemove(n);
         break;
       case Kind::BAG_CARD: response = rewriteCard(n); break;
-      case Kind::BAG_IS_SINGLETON: response = rewriteIsSingleton(n); break;
-      case Kind::BAG_FROM_SET: response = rewriteFromSet(n); break;
-      case Kind::BAG_TO_SET: response = rewriteToSet(n); break;
       case Kind::BAG_MAP: response = postRewriteMap(n); break;
       case Kind::BAG_FILTER: response = postRewriteFilter(n); break;
       case Kind::BAG_FOLD: response = postRewriteFold(n); break;
@@ -207,16 +203,16 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
-BagsRewriteResponse BagsRewriter::rewriteDuplicateRemoval(const TNode& n) const
+BagsRewriteResponse BagsRewriter::rewriteSetof(const TNode& n) const
 {
-  Assert(n.getKind() == Kind::BAG_DUPLICATE_REMOVAL);
+  Assert(n.getKind() == Kind::BAG_SETOF);
   if (n[0].getKind() == Kind::BAG_MAKE && n[0][1].isConst()
       && n[0][1].getConst<Rational>().sgn() == 1)
   {
-    // (bag.duplicate_removal (bag x n)) = (bag x 1)
+    // (bag.setof (bag x n)) = (bag x 1)
     //  where n is a positive constant
     Node bag = d_nm->mkNode(Kind::BAG_MAKE, n[0][0], d_one);
-    return BagsRewriteResponse(bag, Rewrite::DUPLICATE_REMOVAL_BAG_MAKE);
+    return BagsRewriteResponse(bag, Rewrite::SETOF_BAG_MAKE);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
@@ -469,44 +465,6 @@ BagsRewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
     return BagsRewriteResponse(n[0][1], Rewrite::CARD_BAG_MAKE);
   }
 
-  return BagsRewriteResponse(n, Rewrite::NONE);
-}
-
-BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
-{
-  Assert(n.getKind() == Kind::BAG_IS_SINGLETON);
-  if (n[0].getKind() == Kind::BAG_MAKE)
-  {
-    // (bag.is_singleton (bag x c)) = (c == 1)
-    Node equal = n[0][1].eqNode(d_one);
-    return BagsRewriteResponse(equal, Rewrite::IS_SINGLETON_BAG_MAKE);
-  }
-  return BagsRewriteResponse(n, Rewrite::NONE);
-}
-
-BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
-{
-  Assert(n.getKind() == Kind::BAG_FROM_SET);
-  if (n[0].getKind() == Kind::SET_SINGLETON)
-  {
-    // (bag.from_set (set.singleton x)) = (bag x 1)
-    Node bag = d_nm->mkNode(Kind::BAG_MAKE, n[0][0], d_one);
-    return BagsRewriteResponse(bag, Rewrite::FROM_SINGLETON);
-  }
-  return BagsRewriteResponse(n, Rewrite::NONE);
-}
-
-BagsRewriteResponse BagsRewriter::rewriteToSet(const TNode& n) const
-{
-  Assert(n.getKind() == Kind::BAG_TO_SET);
-  if (n[0].getKind() == Kind::BAG_MAKE && n[0][1].isConst()
-      && n[0][1].getConst<Rational>().sgn() == 1)
-  {
-    // (bag.to_set (bag x n)) = (set.singleton x)
-    // where n is a positive constant and T is the type of the bag's elements
-    Node set = d_nm->mkNode(Kind::SET_SINGLETON, n[0][0]);
-    return BagsRewriteResponse(set, Rewrite::TO_SINGLETON);
-  }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 

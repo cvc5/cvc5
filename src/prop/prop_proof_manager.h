@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Aina Niemetz, Andrew Reynolds
+ *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,7 @@
 #include "prop/proof_cnf_stream.h"
 #include "prop/proof_post_processor.h"
 #include "smt/env_obj.h"
+#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -62,14 +63,19 @@ class PropPfManager : protected EnvObj
    * goes through is saved as a concrete step in d_proof. This method makes a
    * call to the convertAndAssert method of d_pfCnfStream.
    *
-   * @param node formula to convert and assert
-   * @param negated whether we are asserting the node negated
-   * @param removable whether the SAT solver can choose to remove the clauses
-   * @param input whether the node is from the input
-   * @param pg a proof generator for node
+   * @param id The inference id indicating the source of the formula.
+   * @param node The formula to convert and assert.
+   * @param negated Whether we are asserting the node negated.
+   * @param removable Whether the SAT solver can choose to remove the clauses.
+   * @param input Whether the node is from the input.
+   * @param pg A proof generator for node.
    */
-  void convertAndAssert(
-      TNode node, bool negated, bool removable, bool input, ProofGenerator* pg);
+  void convertAndAssert(theory::InferenceId id,
+                        TNode node,
+                        bool negated,
+                        bool removable,
+                        bool input,
+                        ProofGenerator* pg);
   /** Saves assertion for later checking whether refutation proof is closed.
    *
    * The assertions registered via this interface are preprocessed assertions
@@ -163,6 +169,27 @@ class PropPfManager : protected EnvObj
   std::vector<Node> getInputClauses();
   /** Retrieve the clauses derived from lemmas */
   std::vector<Node> getLemmaClauses();
+  /**
+   * Get auxilary units. Computes top-level formulas in clauses that
+   * also occur as literals which we call "auxiliary units". In particular,
+   * consider the set of propositionally unsatisfiable clauses:
+   *
+   * (or ~(or A B) ~C)
+   * (or A B)
+   * C
+   *
+   * Here, we return (or A B) as an auxilary unit clause.
+   *
+   * Note that in the above example, it is ambiguous whether to interpret the
+   * second clause (or A B) as a unit clause or as a clause with literals
+   * A and B. To ensure that we generate an unsatisfiable DIMACS, we include
+   * both in a proof output. In particular, Any OR-term that occurs as a literal
+   * of another clause is included in the return vector.
+   *
+   * @param clauses The clauses
+   * @return the auxiliary units for the set of clauses.
+   */
+  std::vector<Node> computeAuxiliaryUnits(const std::vector<Node>& clauses);
   /** The proofs of this proof manager, which are saved once requested (note the
    * cache is for both the request of the full proof (true) or not (false)).
    *

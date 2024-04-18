@@ -11,7 +11,7 @@
 
 (declare-rule string_length_non_empty ((U Type) (s Type) (t Type))
   :premises ((not (= s t)))
-  :requires (((string_is_empty t) true))
+  :requires ((($str_is_empty t) true))
   :conclusion (not (= (str.len s) 0))
 )
 
@@ -34,7 +34,8 @@
 (define string_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
   (let ((sf (string_to_flat_form s rev)))
   (let ((sf1 (string_to_flat_form s1 rev)))
-  (nary.is_prefix str.++ alf.nil sf1 sf)))
+  (let ((U (alf.typeof s)))
+  (nary.is_prefix str.++ (mk_emptystr U) sf1 sf))))
 )
 
 ; ProofRule::CONCAT_UNIFY
@@ -46,15 +47,15 @@
 )
 
 ; ProofRule::CONCAT_CSPLIT
-(declare-rule concat_csplit ((U Type) (t U) (s U) (u U) (rev Bool))
+(declare-rule concat_csplit ((U Type) (t (Seq U)) (s (Seq U)) (u (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len u) 0)))
   :args (rev)
   :conclusion
-    (alf.match ((t1 U) (t2 U :list))
+    (alf.match ((t1 (Seq U)) (t2 (Seq U) :list))
       (string_to_flat_form t rev)
       (((str.++ t1 t2)
         (alf.requires t1 u
-          (alf.match ((s1 U) (s2 U :list))
+          (alf.match ((s1 (Seq U)) (s2 (Seq U) :list))
             (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires (string_check_length_one s1) true    ; checks if char
@@ -62,6 +63,35 @@
                   (alf.ite rev
                     (str.++ (skolem (skolem_prefix u (- (str.len u) 1))) s1)
                     (str.++ s1 (skolem (skolem_suffix_rem u 1)))))))))))))
+)
+
+; ProofRule::CONCAT_SPLIT
+(declare-rule concat_split ((U Type) (t (Seq U)) (s (Seq U)) (tc (Seq U)) (sc (Seq U)) (rev Bool))
+  :premises ((= t s) (not (= (str.len tc) (str.len sc))))
+  :args (rev)
+  :conclusion
+    (alf.match ((t1 (Seq U)) (t2 (Seq U) :list))
+      (string_to_flat_form t rev)
+      (((str.++ t1 t2)
+        (alf.requires t1 tc
+          (alf.match ((s1 (Seq U)) (s2 (Seq U) :list))
+            (string_to_flat_form s rev)
+            (((str.++ s1 s2)
+              (alf.requires s1 sc
+                (let ((k (skolem (skolem_unify_split t1 s1 rev))))
+                (and 
+                  (or 
+                    (= t1
+                      (alf.ite rev
+                        (str.++ k s1)
+                        (str.++ s1 k)))
+                    (= s1
+                      (alf.ite rev
+                        (str.++ k t1)
+                        (str.++ t1 k))))
+                    (not (= k (mk_emptystr (alf.typeof k))))
+                    (> (str.len k) 0)
+                ))))))))))
 )
 
 ; ProofRule::CONCAT_CONFLICT, for strings only
@@ -79,10 +109,10 @@
           (let ((ct (string_head_or_empty ts)))
             ; ensure they are disequal, return false
             (alf.requires
-              (alf.ite (alf.is_eq cs alf.nil)
+              (alf.ite ($str_is_empty cs)
                 (string_check_length_one ct)
                 (alf.ite (string_check_length_one cs)
-                  (alf.ite (alf.is_eq ct alf.nil)
+                  (alf.ite ($str_is_empty ct)
                     true
                     (alf.ite (string_check_length_one ct)
                       (alf.not (alf.is_eq cs ct))

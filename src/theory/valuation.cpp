@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -221,6 +221,11 @@ bool Valuation::needCheck() const{
 }
 
 bool Valuation::isRelevant(Node lit) const { return d_engine->isRelevant(lit); }
+
+bool Valuation::isLegalElimination(TNode x, TNode val)
+{
+  return d_engine->isLegalElimination(x, val);
+}
 
 context::CDList<Assertion>::const_iterator Valuation::factsBegin(TheoryId tid)
 {

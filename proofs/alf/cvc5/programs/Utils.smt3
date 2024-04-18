@@ -1,4 +1,13 @@
 
+; Returns true if x is a binary literal.
+(define $is_bin_literal ((T Type :implicit) (x T))
+  (alf.is_eq (alf.to_bin (alf.len x) x) x))
+
+; Returns true if x is a string literal.
+(define $is_str_literal ((T Type :implicit) (x T))
+  (alf.is_eq (alf.to_str x) x))
+
+
 (declare-type @Pair (Type Type))
 (declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
 
@@ -6,4 +15,86 @@
 (declare-sort @List 0)
 (declare-const @list.nil @List)
 (declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
+
+; This is used to have a canonical ordering of variables.
+; It could potentially be improved by having a builtin operator, e.g. alf.compare.
+(define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
+  (alf.is_neg (alf.add (alf.hash a) (alf.neg (alf.hash b)))))
+
+; Eliminate singleton list, which takes:
+; (1) a function f
+; (2) the identity element of f
+; (3) the term to process
+(program singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S) S
+  (
+    ((singleton_elim f id (f x1 x2))  (alf.ite (alf.is_eq x2 id) x1 (f x1 x2)))
+    ((singleton_elim f id x)          x)
+  )
+)
+
+;; =============== for ACI_NORM associative, commutative and idempotent
+
+; Append the children of two applications of an ACI operator, which takes:
+; (1) a function f
+; (2) the identity element of f
+; (3) the first f :list term to append
+; (4) the second f :list term to append
+(program ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
+  ((-> T U S) S S S) S
+  (
+    ((ac_append f id (f x1 x2) (f y1 y2)) (alf.ite (alf.is_eq x1 y1)
+                                            (ac_append f id (f x1 x2) y2)
+                                          (alf.ite (compare_var x1 y1)
+                                            (alf.cons f x1 (ac_append f id x2 (f y1 y2)))
+                                            (alf.cons f y1 (ac_append f id (f x1 x2) y2)))))
+    ((ac_append f id (f x1 x2) id)        (f x1 x2))
+    ((ac_append f id id (f y1 y2))        (f y1 y2))
+    ((ac_append f id id id)               id)
+  )
+)
+
+; Helper to normalize an application of an ACI operator, which takes:
+; (1) a function f
+; (2) the identity element of f
+; (3) the term to process
+(program get_aci_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S) S
+  (
+    ((get_aci_norm_rec f id (f id x2))   (get_aci_norm_rec f id x2))
+    ((get_aci_norm_rec f id (f x1 x2))   (ac_append f id (get_aci_norm_rec f id x1) (get_aci_norm_rec f id x2)))
+    ((get_aci_norm_rec f id id)          id)
+    ((get_aci_norm_rec f id x)           (alf.cons f x id))
+  )
+)
+
+; Normalize an application of an ACI operator.
+(define get_aci_norm ((T Type :implicit) (t T))
+  (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+    t
+    (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_aci_norm_rec f id t))))))
+)
+
+;; =============== for ACI_NORM associative
+
+; Helper to normalize an application of an associative operator, which takes:
+; (1) a function f
+; (2) the identity element of f
+; (3) the term to process
+(program get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S) S
+  (
+    ((get_a_norm_rec f id (f id x2))  (get_a_norm_rec f id x2))
+    ((get_a_norm_rec f id (f x1 x2))  (alf.concat f (get_a_norm_rec f id x1) (get_a_norm_rec f id x2)))
+    ((get_a_norm_rec f id id)         id)
+    ((get_a_norm_rec f id x)          (alf.cons f x id))
+  )
+)
+
+; Normalize an application of an associative operator.
+(define get_a_norm ((T Type :implicit) (t T))
+  (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+    t
+    (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_a_norm_rec f id t))))))
+)
 

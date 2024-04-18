@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__LFSC__LFSC_PRINT_CHANNEL_H
-#define CVC4__PROOF__LFSC__LFSC_PRINT_CHANNEL_H
+#ifndef CVC5__PROOF__LFSC__LFSC_PRINT_CHANNEL_H
+#define CVC5__PROOF__LFSC__LFSC_PRINT_CHANNEL_H
 
 #include <iostream>
 #include <map>
@@ -89,7 +89,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
   static void printTypeNodeInternal(std::ostream& out, TypeNode tn);
   static void printRule(std::ostream& out, const ProofNode* pn);
   static void printId(std::ostream& out, size_t id, const std::string& prefix);
-  static void printDslProofRuleId(std::ostream& out, rewriter::DslProofRule id);
+  static void printProofRewriteRule(std::ostream& out, ProofRewriteRule id);
   //------------------- end helper methods
  private:
   /**
@@ -115,13 +115,13 @@ class LfscPrintChannelPre : public LfscPrintChannel
   void printOpenRule(const ProofNode* pn) override;
 
   /** Get the DSL rewrites */
-  const std::unordered_set<rewriter::DslProofRule>& getDslRewrites() const;
+  const std::unordered_set<ProofRewriteRule>& getDslRewrites() const;
 
  private:
   /** The let binding */
   LetBinding& d_lbind;
   /** The DSL rules we have seen */
-  std::unordered_set<rewriter::DslProofRule> d_dprs;
+  std::unordered_set<ProofRewriteRule> d_dprs;
 };
 
 }  // namespace proof

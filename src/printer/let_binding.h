@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,7 +80,7 @@ namespace cvc5::internal {
  * Since we do not traverse underneath quantified formulas, this means that Q
  * may be marked as a term-to-letify before (+ a a), which leads to violation
  * of the above invariant concerning containment. Thus, when converting, if
- * a let symbol is introduced for (+ a a), we will not replace the occurence
+ * a let symbol is introduced for (+ a a), we will not replace the occurrence
  * of (+ a a) within Q. Instead, the user of this class is responsible for
  * letifying the bodies of quantified formulas independently.
  */

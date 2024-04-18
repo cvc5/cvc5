@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,13 +64,17 @@ PropPfManager::PropPfManager(Env& env,
   // is when a propagated literal has an empty explanation (i.e., it is a valid
   // literal), which leads to adding True as its explanation, since for creating
   // a learned clause we need at least two literals.
-  d_assertions.push_back(NodeManager::currentNM()->mkConst(true));
+  d_assertions.push_back(nodeManager()->mkConst(true));
 }
 
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
 
-void PropPfManager::convertAndAssert(
-    TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
+void PropPfManager::convertAndAssert(theory::InferenceId id,
+                                     TNode node,
+                                     bool negated,
+                                     bool removable,
+                                     bool input,
+                                     ProofGenerator* pg)
 {
   d_pfCnfStream.convertAndAssert(node, negated, removable, input, pg);
   // if input, register the assertion in the proof manager
@@ -178,33 +182,12 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   }
   if (!connectCnf)
   {
-    // if the sat proof was previously connected to the cnf, then the
-    // assumptions will have been updated and we'll not have the expected
-    // behavior here (i.e., the sat proof with the clauses given to the SAT
-    // solver as leaves). In this case we will build a new proof node in which
-    // we will erase the connected proofs (via overwriting them with
-    // assumptions). This will be done in a cloned proof node so we do not alter
-    // what is stored in d_propProofs.
-    if (d_propProofs.find(true) != d_propProofs.end())
-    {
-      CDProof cdp(d_env);
-      // get the clauses added to the SAT solver and add them as assumptions
-      std::vector<Node> inputs = getInputClauses();
-      std::vector<Node> lemmas = getLemmaClauses();
-      std::vector<Node> allAssumptions{inputs.begin(), inputs.end()};
-      allAssumptions.insert(allAssumptions.end(), lemmas.begin(), lemmas.end());
-      for (const Node& a : allAssumptions)
-      {
-        cdp.addStep(a, ProofRule::ASSUME, {}, {a});
-      }
-      // add the sat proof copying the proof nodes but not overwriting the
-      // assumption clauses
-      cdp.addProof(conflictProof, CDPOverwrite::NEVER, true);
-      conflictProof = cdp.getProof(NodeManager::currentNM()->mkConst(false));
-    }
     d_propProofs[connectCnf] = conflictProof;
     return conflictProof;
   }
+  // Must clone if we are using the original proof, since we don't want to
+  // modify the original SAT proof.
+  conflictProof = conflictProof->clone();
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
   if (TraceIsOn("sat-proof"))
@@ -270,6 +253,33 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 
+std::vector<Node> PropPfManager::computeAuxiliaryUnits(
+    const std::vector<Node>& clauses)
+{
+  std::vector<Node> auxUnits;
+  for (const Node& c : clauses)
+  {
+    if (c.getKind() != Kind::OR)
+    {
+      continue;
+    }
+    // Determine if any OR child occurs as a top level clause. If so, it may
+    // be relevant to include this as a unit clause.
+    for (const Node& l : c)
+    {
+      const Node& atom = l.getKind() == Kind::NOT ? l[0] : l;
+      if (atom.getKind() == Kind::OR
+          && std::find(clauses.begin(), clauses.end(), atom) != clauses.end()
+          && std::find(auxUnits.begin(), auxUnits.end(), atom)
+                 == auxUnits.end())
+      {
+        auxUnits.push_back(atom);
+      }
+    }
+  }
+  return auxUnits;
+}
+
 std::vector<Node> PropPfManager::getInputClauses()
 {
   std::vector<Node> cls;
@@ -333,7 +343,7 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   }
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node clauseImpliesElim;
   if (proofLogging)
   {

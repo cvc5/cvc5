@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -181,14 +181,24 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // note that this test assumes that granularity modes are ordered and
     // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
     // levels
-    if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE
-        && opts.proof.proofGranularityMode
-               < options::ProofGranularityMode::THEORY_REWRITE)
+    if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE)
     {
-      SET_AND_NOTIFY(Proof,
-                     proofGranularityMode,
-                     options::ProofGranularityMode::THEORY_REWRITE,
-                     "Alethe requires granularity at least theory-rewrite");
+      if (!opts.proof.proofAletheExperimental)
+      {
+        std::stringstream ss;
+        ss << "proof-format=alethe is experimental in this version. If "
+              "you know what you are doing, you can try --"
+           << options::proof::longName::proofAletheExperimental;
+        throw OptionException(ss.str());
+      }
+      if (opts.proof.proofGranularityMode
+          < options::ProofGranularityMode::THEORY_REWRITE)
+      {
+        SET_AND_NOTIFY(Proof,
+                       proofGranularityMode,
+                       options::ProofGranularityMode::THEORY_REWRITE,
+                       "Alethe requires granularity at least theory-rewrite");
+      }
     }
   }
   if (!opts.smt.produceProofs)
@@ -252,7 +262,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     // these options must be disabled on internal subsolvers, as they are
     // used by the user to rephrase the input.
-    SET_AND_NOTIFY(Quantifiers, sygusInference, false, "internal subsolver");
+    SET_AND_NOTIFY(Quantifiers,
+                   sygusInference,
+                   options::SygusInferenceMode::OFF,
+                   "internal subsolver");
     // deep restart does not work with internal subsolvers?
     SET_AND_NOTIFY(Smt,
                    deepRestartMode,
@@ -290,10 +303,12 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       if (opts.bv.bitblastModeWasSetByUser
           || opts.smt.produceModelsWasSetByUser)
       {
-        throw OptionException(std::string(
-            "Eager bit-blasting currently does not support model generation "
-            "for the combination of bit-vectors with arrays or uinterpreted "
-            "functions. Try --bitblast=lazy"));
+        std::stringstream ss;
+        ss << "Eager bit-blasting currently does not support model generation ";
+        ss << "for the combination of bit-vectors with arrays or uinterpreted ";
+        ss << "functions. Try --" << options::bv::longName::bitblastMode << "="
+           << options::BitblastMode::LAZY << ".";
+        throw OptionException(ss.str());
       }
       SET_AND_NOTIFY(
           Bv, bitblastMode, options::BitblastMode::LAZY, "model generation");
@@ -327,8 +342,10 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   {
     if (opts.bv.boolToBitvector != options::BoolToBVMode::OFF)
     {
-      throw OptionException(
-          "solving bitvectors as integers is incompatible with --bool-to-bv.");
+      std::stringstream ss;
+      ss << "solving bitvectors as integers is incompatible with --"
+         << options::bv::longName::boolToBitvector << ".";
+      throw OptionException(ss.str());
     }
     if (logic.isTheoryEnabled(THEORY_BV))
     {
@@ -817,10 +834,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     throw OptionException(
         "Eager bit-blasting does not currently support theory combination with "
-        "any theory other than UF. "
-        "Note that in a QF_BV problem UF symbols can be introduced for "
-        "division. "
-        "Try --bv-div-zero-const to interpret division by zero as a constant.");
+        "any theory other than UF. ");
   }
 
 #ifdef CVC5_USE_POLY
@@ -849,8 +863,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (opts.arith.nlCovWasSetByUser)
     {
-      throw OptionException(
-          "Cannot use --nl-cov without configuring with --poly.");
+      std::stringstream ss;
+      ss << "Cannot use --" << options::arith::longName::nlCov
+         << " without configuring with --poly.";
+      throw OptionException(ss.str());
     }
     else
     {
@@ -876,7 +892,7 @@ bool SetDefaults::isSygus(const Options& opts) const
   if (!d_isInternalSubsolver)
   {
     if (opts.smt.produceAbducts || opts.smt.produceInterpolants
-        || opts.quantifiers.sygusInference)
+        || opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       return true;
@@ -961,6 +977,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     reason << "deep restarts";
     return true;
   }
+  if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
+  {
+    // lemma inprocessing introduces depencencies from learned unit literals
+    // that are not tracked.
+    reason << "lemma inprocessing";
+    return true;
+  }
   return false;
 }
 
@@ -1023,17 +1046,21 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
       && !logic.isPure(THEORY_BV))
   {
     reason << "eager bit-blasting in non-QF_BV logic";
-    suggest << "Try --bitblast=lazy.";
+    suggest << "Try --" << options::bv::longName::bitblastMode << "="
+            << options::BitblastMode::LAZY << ".";
     return true;
   }
-  if (opts.quantifiers.sygusInference)
+  if (opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     if (opts.quantifiers.sygusInferenceWasSetByUser)
     {
       reason << "sygus inference";
       return true;
     }
-    SET_AND_NOTIFY(Quantifiers, sygusInference, false, "incremental solving");
+    SET_AND_NOTIFY(Quantifiers,
+                   sygusInference,
+                   options::SygusInferenceMode::OFF,
+                   "incremental solving");
   }
   if (opts.quantifiers.sygusInst)
   {
@@ -1180,7 +1207,7 @@ bool SetDefaults::incompatibleWithQuantifiers(const Options& opts,
     // appropriate policy for the relevance of counterexample lemmas (when their
     // guard is entailed to be false, the entire lemma is relevant, not just the
     // guard). Hence, we throw an option exception if quantifiers are enabled.
-    reason << "--nl-ext-rlv";
+    reason << "--" << options::arith::longName::nlRlvMode;
     return true;
   }
   return false;
@@ -1520,7 +1547,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     SET_AND_NOTIFY_IF_NOT_USER(Quantifiers, cegqi, true, "sygusRepairConst");
   }
-  if (opts.quantifiers.sygusInference)
+  if (opts.quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     // optimization: apply preskolemization, makes it succeed more often
     SET_AND_NOTIFY_IF_NOT_USER(Quantifiers,

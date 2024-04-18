@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +41,7 @@ ProofEqEngine::ProofEqEngine(Env& env, EqualityEngine& ee)
               "pfee::LazyCDProof::" + ee.identify()),
       d_keep(env.getContext())
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   AlwaysAssert(env.getProofNodeManager() != nullptr)
@@ -77,7 +77,7 @@ bool ProofEqEngine::assertFact(Node lit,
   // add lazy step to proof
   d_proof.addLazyStep(lit, &d_factPg);
   // second, assert it to the equality engine
-  Node reason = NodeManager::currentNM()->mkAnd(exp);
+  Node reason = nodeManager()->mkAnd(exp);
   return assertFactInternal(atom, polarity, reason);
 }
 
@@ -329,7 +329,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   Trace("pfee-proof") << std::endl;
   Trace("pfee-proof") << "pfee::ensureProofForFact: input " << conc << " via "
                       << assumps << ", TrustNodeKind=" << tnk << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // The proof
   std::shared_ptr<ProofNode> pf;
   ProofGenerator* pfg = nullptr;

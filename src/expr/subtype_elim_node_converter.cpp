@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,10 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-SubtypeElimNodeConverter::SubtypeElimNodeConverter() {}
+SubtypeElimNodeConverter::SubtypeElimNodeConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
 
 bool SubtypeElimNodeConverter::isRealTypeStrict(TypeNode tn)
 {
@@ -73,7 +76,7 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   if (n.isVar())
   {
     SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
-    SkolemFunId id;
+    SkolemId id;
     Node cacheVal;
     if (skm->isSkolemFunction(n, id, cacheVal))
     {
