@@ -8308,7 +8308,7 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
   if (keyword == "filename")
   {
     // only the Solver object has non-const access to the original options
-    d_originalOptions->writeDriver().filename = value;
+    d_originalOptions->write_driver().filename = value;
   }
   d_slv->setInfo(keyword, value);
   ////////
