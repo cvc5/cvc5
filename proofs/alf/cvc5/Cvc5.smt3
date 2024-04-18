@@ -99,9 +99,9 @@
       ((run_evaluate (str.replace x y z))(let ((ex (run_evaluate x)))
                                          (let ((ey (run_evaluate y)))
                                          (let ((i (alf.find ex ey)))
-                                            (alf.ite (alf.or (alf.is_eq i 0) (alf.is_neg (alf.neg i)))
-                                              (alf.concat (alf.extract ex 0 (alf.add i -1)) (run_evaluate z) (alf.extract ex (alf.add i (alf.len ey)) (alf.len ex)))
-                                              ex)))))
+                                            (alf.ite (alf.is_neg i)
+                                              ex
+                                              (alf.concat (alf.extract ex 0 (alf.add i -1)) (run_evaluate z) (alf.extract ex (alf.add i (alf.len ey)) (alf.len ex))))))))
       ((run_evaluate (str.indexof x y n))(let ((ex (run_evaluate (str.substr x n (str.len x)))))
                                          (let ((ey (run_evaluate y)))
                                             (alf.find (alf.to_str ex) (alf.to_str ey)))))

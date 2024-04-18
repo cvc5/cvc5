@@ -45,7 +45,7 @@
 )
 
 ; Computes the log (base 2) of x.
-; If x is not strictly positive, we return (int.log x).
+; If x is not strictly positive, we return (int.log2 x).
 (define arith_eval_int_log_2 ((x Int))
   (alf.ite (alf.is_neg (alf.neg x)) (arith_eval_int_log_2_rec x) (int.log2 x)))
 
@@ -145,7 +145,6 @@
                                   (@poly (@mon (* a) 1.0)))))    ; introduces list
   )
 )
-
 
 ; Helper for the method below.
 (program poly_is_equal_mod_c_rec ((c Real) (T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list))
