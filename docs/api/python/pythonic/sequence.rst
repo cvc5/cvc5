@@ -1,4 +1,4 @@
-Strings
+Sequences
 ============
 
 
@@ -8,7 +8,7 @@ Basic Sequence Term Builders
 .. autofunction:: cvc5.pythonic.SeqSort
 .. autofunction:: cvc5.pythonic.Unit
 
-String Operators
+Sequence Operators
 -------------------
 
 .. autofunction:: cvc5.pythonic.Empty
@@ -17,7 +17,7 @@ String Operators
 .. autofunction:: cvc5.pythonic.SeqUpdate
 
 
-See the following operator overload for string terms:
+See the following operator overload for sequence terms:
 
 * is member: :py:meth:`cvc5.pythonic.SeqRef.__getitem__`
 
