@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 ; COMMAND-LINE: --tlimit-per 500 --incremental
 ; EXPECT: unknown
 ; EXPECT: unsat
