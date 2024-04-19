@@ -83,7 +83,7 @@ std::string extractStr(const T& t)
  * Throws an FfTimeoutException if the timeout is exceeded.
  */
 const std::vector<Poly>& GBasisTimeout(const CoCoA::ideal& ideal,
-                                       const ResourceManager& rm);
+                                       const ResourceManager* rm);
 
 }  // namespace ff
 }  // namespace theory

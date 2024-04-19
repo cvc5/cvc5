@@ -91,9 +91,13 @@ CoCoA::BigInt intToCocoa(const Integer& i)
 }
 
 const std::vector<Poly>& GBasisTimeout(const CoCoA::ideal& ideal,
-                                       const ResourceManager& rm)
+                                       const ResourceManager* rm)
 {
-  double sec = static_cast<double>(rm.getRemainingTime()) / 1e3;
+  if (rm == nullptr)
+  {
+    return CoCoA::GBasis(ideal);
+  }
+  double sec = static_cast<double>(rm->getRemainingTime()) / 1e3;
   Trace("ff::gb") << "Computing a GB; limit " << sec << "s" << std::endl;
   try
   {

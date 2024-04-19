@@ -112,7 +112,6 @@ std::string RoundRobinEnumerator::name() { return "round-robin"; }
 
 bool isUnsat(const CoCoA::ideal& ideal)
 {
-  Assert(CoCoA::HasGBasis(ideal));
   const auto& gens = CoCoA::GBasis(ideal);
   return !(gens.size() > 1 || CoCoA::deg(gens[0]) > 0);
 }
@@ -257,7 +256,7 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
     // choose one ideal
     const auto& ideal = ideals.back();
     // make sure we have a GBasis:
-    GBasisTimeout(ideal, *env.getResourceManager());
+    GBasisTimeout(ideal, env.getResourceManager());
     Assert(CoCoA::HasGBasis(ideal));
     // If the ideal is UNSAT, drop it.
     if (isUnsat(ideal))

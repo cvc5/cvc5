@@ -118,7 +118,7 @@ Result SubTheory::postCheck(Theory::Effort e)
         Tracer tracer(generators);
         if (options().ff.ffTraceGb) tracer.setFunctionPointers();
         CoCoA::ideal ideal = CoCoA::ideal(generators);
-        const auto basis = GBasisTimeout(ideal, *d_env.getResourceManager());
+        const auto basis = GBasisTimeout(ideal, d_env.getResourceManager());
         if (options().ff.ffTraceGb) tracer.unsetFunctionPointers();
 
         // if it is trivial, create a conflict
