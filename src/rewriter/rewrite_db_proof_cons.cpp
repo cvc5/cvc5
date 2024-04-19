@@ -996,8 +996,9 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
         // where stgt is the RHS. We now want to continue to process, where
         // to find the next term, we match the context of the rule to the RHS.
         // In particular, given a context (+ (str.len S0) ?0), we would match
-        // ?0 to (str.len (str.++ y z)). We update stgt to this term to
-        // proceed with the loop.
+        // ?0 to (str.len (str.++ y z)). This indicates that the user suggests
+        // that (str.len (str.++ y z)) is the term to continue to rewrite.
+        // We update stgt to this term to proceed with the loop.
         std::unordered_map<Node, Node> msubs;
         expr::match(context[1], stgt, msubs);
         Trace("rpc-ctx") << "Matching context " << context << " with " << stgt
