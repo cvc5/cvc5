@@ -45,12 +45,9 @@
 )
 
 ; Computes the log (base 2) of x.
-; If x is not a strictly positive numeral, we return (int.log x).
+; If x is not strictly positive, we return (int.log2 x).
 (define arith_eval_int_log_2 ((x Int))
-  (alf.ite (alf.is_neg (alf.neg x))
-    (arith_eval_int_log_2_rec x)
-    (int.log2 x))
-)
+  (alf.ite (alf.is_neg (alf.neg x)) (arith_eval_int_log_2_rec x) (int.log2 x)))
 
 ;; =============== for ARITH_POLY_NORM
 

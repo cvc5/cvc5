@@ -22,9 +22,9 @@ extern "C" {
 
 #define CVC5_API_USE_C_ENUMS
 #include <cvc5/cvc5_kind.h>
-#include <cvc5/cvc5_types.h>
 #include <cvc5/cvc5_proof_rule.h>
 #include <cvc5/cvc5_skolem_id.h>
+#include <cvc5/cvc5_types.h>
 #undef CVC5_API_USE_C_ENUMS
 
 #include <stdint.h>
@@ -193,6 +193,8 @@ Cvc5UnknownExplanation cvc5_result_get_unknown_explanation(
  * Get the string representation of a given result.
  * @param result The result.
  * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_result_to_string(const Cvc5Result* result);
 
@@ -235,6 +237,8 @@ bool cvc5_synth_result_is_unknown(const Cvc5SynthResult* result);
  * Get the string representation of a given result.
  * @param result The result.
  * @return A string representation of the given synthesis result.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_synth_result_to_string(const Cvc5SynthResult* result);
 
@@ -301,8 +305,10 @@ bool cvc5_sort_has_symbol(Cvc5Sort sort);
  *
  * @param sort The sort.
  * @return The raw symbol of the sort.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
-const char* cvc5_sort_get_symbol();
+const char* cvc5_sort_get_symbol(Cvc5Sort sort);
 
 /**
  * Determine if given sort is the Boolean sort (SMT-LIB: `Bool`).
@@ -594,6 +600,8 @@ Cvc5Sort cvc5_sort_substitute_sorts(Cvc5Sort sort,
  * Get a string representation of a given sort.
  * @param sort The sort.
  * @return A string representation of the given sort.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_sort_to_string(Cvc5Sort sort);
 
@@ -768,6 +776,8 @@ uint32_t cvc5_sort_bv_get_size(Cvc5Sort sort);
  * Get the size of a finite field sort.
  * @param sort The sort.
  * @return The size of the finite field sort.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_sort_ff_get_size();
 
@@ -876,6 +886,8 @@ Cvc5Term cvc5_op_get_index(Cvc5Op op, size_t i);
  * Get a string representation of a given operator.
  * @param op The operator.
  * @return A string representation of the operator.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_op_to_string(Cvc5Op op);
 
@@ -1030,6 +1042,8 @@ bool cvc5_term_has_symbol(Cvc5Term term);
  *
  * @param term The term.
  * @return The raw symbol of the term.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_term_get_symbol(Cvc5Term term);
 
@@ -1037,6 +1051,8 @@ const char* cvc5_term_get_symbol(Cvc5Term term);
  * Get a string representation of a given term.
  * @param term The term.
  * @return A string representation of the term.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_term_to_string(Cvc5Term term);
 
@@ -1124,6 +1140,8 @@ bool cvc5_term_isIntegerValue(Cvc5Term term);
  *       cvc5_term_is_integer_value()).
  * @param term The term.
  * @return The integral term in (decimal) string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_term_get_integer_value(Cvc5Term term);
 
@@ -1195,6 +1213,8 @@ bool cvc5_term_is_real_value(Cvc5Term term);
  *       cvc5_term_is_real_value()).
  * @param term The term.
  * @return The representation of a rational value as a (rational) string.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_term_get_real_value(Cvc5Term term);
 
@@ -1238,6 +1258,8 @@ bool cvc5_term_is_bv_value(Cvc5Term term);
  * @param term The term.
  * @param base `2` for binary, `10` for decimal, and `16` for hexadecimal.
  * @return The string representation of a bit-vector value.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_term_get_bv_value(Cvc5Term term, uint32_t base);
 
@@ -1257,6 +1279,8 @@ bool cvc5_term_is_ff_value(Cvc5Term term);
  * @param term The term.
  * @return The string representation of the integer representation of the
  *         finite field value.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_term_get_ff_value(Cvc5Term term);
 
@@ -1271,6 +1295,8 @@ bool cvc5_term_is_uninterpreted_sort_value(Cvc5Term term);
  * @note Asserts cvc5_term_is_uninterpreted_sort_value().
  * @param term The term.
  * @return The representation of an uninterpreted sort value as a string.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_term_get_uninterpreted_sort_value(Cvc5Term term);
 
@@ -1550,19 +1576,20 @@ void cvc5_dt_consdecl_add_selector_self(Cvc5DatatypeConstructorDecl* decl,
 /**
  * Add datatype selector declaration whose codomain sort is an unresolved
  * datatype with the given name to a given constructor declaration.
- * @param decl The datatype constructor declaration.
- * @param name The name of the datatype selector declaration to add.
- * @param unresDataypeName The name of the unresolved datatype. The codomain
- *                         of the selector will be the resolved datatype with
- *                         the given name.
+ * @param decl       The datatype constructor declaration.
+ * @param name       The name of the datatype selector declaration to add.
+ * @param unres_name The name of the unresolved datatype. The codomain of the
+ *                   selector will be the resolved datatype with the given name.
  */
 void cvc5_dt_consdecl_add_selector_unresolved(Cvc5DatatypeConstructorDecl* decl,
                                               const char* name,
-                                              const char* unresDataypeName);
+                                              const char* unres_name);
 /**
  * Get a string representation of a given constructor declaration.
  * @param decl The datatype constructor declaration.
  * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_dt_consdecl_to_string(Cvc5DatatypeConstructorDecl* decl);
 
@@ -1605,6 +1632,8 @@ bool cvc5_dt_decl_is_resolved(const Cvc5DatatypeDecl* decl);
  * Get a string representation of a given datatype declaration.
  * @param decl The datatype declaration.
  * @return A string representation of the datatype declaration.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_dt_decl_to_string(const Cvc5DatatypeDecl* decl);
 
@@ -1612,6 +1641,8 @@ const char* cvc5_dt_decl_to_string(const Cvc5DatatypeDecl* decl);
  * Get the name of a given datatype declaration.
  * @param decl The datatype declaration.
  * @return The name of the datatype declaration.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_dt_decl_get_name(const Cvc5DatatypeDecl* decl);
 
@@ -1623,6 +1654,8 @@ const char* cvc5_dt_decl_get_name(const Cvc5DatatypeDecl* decl);
  * Get the name of a given datatype selector.
  * @param sel The datatype selector.
  * @return The name of the Datatype selector.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_dt_del_get_name(const Cvc5DatatypeSelector* sel);
 
@@ -1661,6 +1694,8 @@ Cvc5Sort cvc5_dt_sel_get_codomain_sort(const Cvc5DatatypeSelector* sel);
  * Get the string representation of a given datatype selector.
  * @param sel The datatype selector.
  * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_dt_sel_to_string(const Cvc5DatatypeSelector* sel);
 
@@ -1672,6 +1707,8 @@ const char* cvc5_dt_sel_to_string(const Cvc5DatatypeSelector* sel);
  * Get the name of a given datatype constructor.
  * @param cons The datatype constructor.
  * @return The name.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_dt_cons_get_name(const Cvc5DatatypeConstructor* cons);
 
@@ -1779,6 +1816,8 @@ Cvc5DatatypeSelector* cvc5_dt_cons_get_selector_by_name(
  * Get a string representation of a given datatype constructor.
  * @param cons The datatype constructor.
  * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_dt_cons_to_string(const Cvc5DatatypeConstructor* cons);
 
@@ -1822,6 +1861,8 @@ Cvc5DatatypeSelector* cvc5_dt_get_selector(const Cvc5Datatype* dt,
  * Get the name of a given datatype.
  * @param dt   The datatype.
  * @return The name.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_dt_get_name(const Cvc5Datatype* dt);
 
@@ -1893,6 +1934,8 @@ bool cvc5_dt_is_well_founded(const Cvc5Datatype* dt);
 /**
  * Get a string representation of a given datatype.
  * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_dt_to_string(const Cvc5Datatype* dt);
 
@@ -1941,6 +1984,8 @@ void cvc5_grammar_add_any_variable(Cvc5Grammar* grammar, Cvc5Term symbol);
  * Get a string representation of a given grammar.
  * @param grammar The grammar.
  * @return A string representation of the grammar.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_grammar_to_string(const Cvc5Grammar* grammar);
 
@@ -1952,13 +1997,13 @@ const char* cvc5_grammar_to_string(const Cvc5Grammar* grammar);
  * Construct a new instance of a cvc5 term manager.
  * @return The cvc5 term manager.
  */
-Cvc5* cvc5_new();
+Cvc5TermManager* cvc5_term_manager_new();
 
 /**
- * Delete a cvc5 solver instance.
- * @param cvc5 The solver instance.
+ * Delete a cvc5 term manager instance.
+ * @param tm The term manager instance.
  */
-void cvc5_delete(Cvc5* cvc5);
+void cvc5_term_manager_delete(Cvc5TermManager* tm);
 
 /* .................................................................... */
 /* Sorts Handling                                                       */
@@ -2069,6 +2114,7 @@ const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
  * @return The function sort.
  */
 Cvc5Sort cvc5_mk_fun_sort(Cvc5TermManager* tm,
+                          size_t size,
                           const Cvc5Sort* sorts,
                           Cvc5Sort codomain);
 
@@ -2766,13 +2812,13 @@ Cvc5DatatypeDecl* cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
  *     (declare-datatype <symbol> <datatype_decl>)
  * \endverbatim
  *
- * @param tm The term manager instance.
+ * @param solver The solver instance.
  * @param symbol The name of the datatype sort.
  * @param size The number of constructor declarations of the datatype sort.
  * @param ctors The constructor declarations.
  * @return The datatype sort.
  */
-Cvc5Sort cvc5_declare_dt(Cvc5TermManager* tm,
+Cvc5Sort cvc5_declare_dt(Cvc5* solver,
                          const char* symbol,
                          size_t size,
                          const Cvc5DatatypeConstructorDecl* ctors);
@@ -2788,7 +2834,7 @@ Cvc5Sort cvc5_declare_dt(Cvc5TermManager* tm,
  *     (declare-fun <symbol> ( <sort>* ) <sort>)
  * \endverbatim
  *
- * @param tm The term manager instance.
+ * @param solver The solver instance.
  * @param symbol The name of the function.
  * @param size   The number of domain sorts of the function.
  * @param sorts  The domain sorts of the function.
@@ -2798,7 +2844,7 @@ Cvc5Sort cvc5_declare_dt(Cvc5TermManager* tm,
  *               the given sorts and symbol where fresh is false.
  * @return The function.
  */
-Cvc5Term cvc5_declare_fun(Cvc5TermManager* tm,
+Cvc5Term cvc5_declare_fun(Cvc5* solver,
                           const char* symbol,
                           size_t size,
                           const Cvc5Sort* sorts,
@@ -2849,6 +2895,14 @@ struct Cvc5OptionInfo
 Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof* proof);
 
 /**
+ * @return The proof rewrite rule used by the root step of the proof.
+ *
+ * @exception raises an exception if `getRule()` does not return
+ * `CVC5_PROOF_RULE_DSL_REWRITE`.
+ */
+Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof* proof);
+
+/**
  * Get the conclusion of the root step of a given proof.
  * @return The conclusion term.
  */
@@ -2884,6 +2938,8 @@ const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof* proof);
  * @param assertion_names The names of the `assertions` (1:1 mapping). May
  *                        by NULL if `assertions` is NULL.
  * @return The string representation of the proof in the given format.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_proof_to_string(Cvc5Proof* proof,
                                  Cvc5ProofFormat format,
@@ -3124,6 +3180,8 @@ const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t* size);
  *
  * @param cvc5 The solver instance.
  * @return The info.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_get_info(Cvc5* cvc5, const char* flag);
 
@@ -3141,6 +3199,8 @@ const char* cvc5_get_info(Cvc5* cvc5, const char* flag);
  * @param cvc5 The solver instance.
  * @param option The option for which the value is queried.
  * @return A string representation of the option value.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_get_option(Cvc5* cvc5, const char* option);
 
@@ -3150,6 +3210,8 @@ const char* cvc5_get_option(Cvc5* cvc5, const char* option);
  * @param cvc5 The solver instance.
  * @param size The size of the resulting option names array.
  * @return All option names.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size);
 
@@ -3392,6 +3454,8 @@ bool cvc5_is_model_core_symbol(Cvc5* cvc5, Cvc5Term v);
  *             model. A subset of these may be printed based on
  *             isModelCoreSymbol().
  * @return A string representing the model.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_get_model(Cvc5* cvc5,
                            size_t nsorts,
@@ -3801,6 +3865,8 @@ void cvc5_block_model_values(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
  * @param cvc5 The solver instance.
  * @return A string that contains information about all instantiations made
  *         by the quantifiers module.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_get_instantiations(Cvc5* cvc5);
 
@@ -4195,6 +4261,8 @@ bool cvc5_is_output_on(const char* tag);
  * Get a string representation of the version of this solver.
  * @param cvc5 The solver instance.
  * @return The version string.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
  */
 const char* cvc5_get_version(Cvc5* cvc5);
 

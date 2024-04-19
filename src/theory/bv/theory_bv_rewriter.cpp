@@ -650,12 +650,6 @@ RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite) {
         RewriteRule<ReflexivityEq>
         >::apply(node);
 
-    if(RewriteRule<SolveEq>::applies(resultNode)) {
-      resultNode = RewriteRule<SolveEq>::run<false>(resultNode);
-      if (resultNode != node) {
-        return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
-      }
-    }
     return RewriteResponse(REWRITE_DONE, resultNode);
   }
 }
