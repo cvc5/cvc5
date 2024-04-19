@@ -3,7 +3,7 @@ Strings
 
 
 Basic Sequence Term Builders
--------------------------
+------------------------------
 
 .. autofunction:: cvc5.pythonic.StringSort
 .. autofunction:: cvc5.pythonic.String
@@ -14,7 +14,7 @@ String Operators
 -------------------
 
 .. autofunction:: cvc5.pythonic.Length
-.. autofunction:: cvc5.pythonic.Substring
+.. autofunction:: cvc5.pythonic.SubString
 .. autofunction:: cvc5.pythonic.Contains
 .. autofunction:: cvc5.pythonic.PrefixOf
 .. autofunction:: cvc5.pythonic.SuffixOf
@@ -23,7 +23,7 @@ String Operators
 .. autofunction:: cvc5.pythonic.StrToInt
 .. autofunction:: cvc5.pythonic.IntToStr
 .. autofunction:: cvc5.pythonic.StrToCode
-.. autofunction:: cvc5.pythonic.CodeFromStr
+.. autofunction:: cvc5.pythonic.StrFromCode
 
 Basic Regular Expression Term Builders
 ---------------------------------------

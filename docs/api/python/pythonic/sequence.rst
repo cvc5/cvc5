@@ -3,10 +3,9 @@ Strings
 
 
 Basic Sequence Term Builders
--------------------------
+-------------------------------
 
 .. autofunction:: cvc5.pythonic.SeqSort
-.. autofunction:: cvc5.pythonic.Const
 .. autofunction:: cvc5.pythonic.Unit
 
 String Operators
@@ -24,7 +23,7 @@ See the following operator overload for string terms:
 
 
 Classes (with overloads)
-------------------------
+----------------------------
 
 .. autoclass:: cvc5.pythonic.SeqSortRef
   :members:
