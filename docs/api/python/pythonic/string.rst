@@ -2,7 +2,7 @@ Strings
 ============
 
 
-Basic Sequence Term Builders
+Basic String Term Builders
 ------------------------------
 
 .. autofunction:: cvc5.pythonic.StringSort
@@ -25,6 +25,12 @@ String Operators
 .. autofunction:: cvc5.pythonic.StrToCode
 .. autofunction:: cvc5.pythonic.StrFromCode
 
+See the following operator overload for string terms:
+
+* get character (special case of SubString): :py:meth:`cvc5.pythonic.StringRef.__getitem__`
+
+
+
 Basic Regular Expression Term Builders
 ---------------------------------------
 .. autofunction:: cvc5.pythonic.Re
@@ -45,10 +51,6 @@ Regular Expression Operators
 .. autofunction:: cvc5.pythonic.Loop
 .. autofunction:: cvc5.pythonic.Diff
 
-
-See the following operator overload for string terms:
-
-* is member: :py:meth:`cvc5.pythonic.StringRef.__getitem__`
 
 
 Classes (with overloads)
