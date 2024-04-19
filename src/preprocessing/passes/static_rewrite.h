@@ -20,8 +20,8 @@
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "proof/trust_node.h"
 #include "proof/conv_proof_generator.h"
+#include "proof/trust_node.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -49,7 +49,8 @@ class StaticRewrite : public PreprocessingPass
    * Returns the trust node corresponding to the rewrite.
    */
   TrustNode rewriteAssertion(TNode assertion);
-private:
+
+ private:
   /** A term conversion proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
 };

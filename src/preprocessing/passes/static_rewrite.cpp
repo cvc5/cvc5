@@ -15,10 +15,10 @@
 
 #include "preprocessing/passes/static_rewrite.h"
 
+#include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/theory_engine.h"
-#include "options/smt_options.h"
 
 using namespace cvc5::internal::theory;
 
@@ -26,18 +26,16 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-StaticRewrite::StaticRewrite(
-    PreprocessingPassContext* preprocContext)
+StaticRewrite::StaticRewrite(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "static-rewrite")
 {
   if (options().smt.produceProofs)
   {
-    d_tpg.reset(
-            new TConvProofGenerator(d_env,
-                                    userContext(),
-                                    TConvPolicy::FIXPOINT,
-                                    TConvCachePolicy::NEVER,
-                                    "StaticRewrite::tpg"));
+    d_tpg.reset(new TConvProofGenerator(d_env,
+                                        userContext(),
+                                        TConvPolicy::FIXPOINT,
+                                        TConvCachePolicy::NEVER,
+                                        "StaticRewrite::tpg"));
   }
 }
 
@@ -137,9 +135,13 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
         rewrittenTo[cur] = retr;
         rewrittenTo[ret] = retr;
         visit.push_back(retr);
-        if (d_tpg!=nullptr)
+        if (d_tpg != nullptr)
         {
-          d_tpg->addRewriteStep(ret, trn.getNode(), trn.getGenerator(), false, TrustId::PP_STATIC_REWRITE);
+          d_tpg->addRewriteStep(ret,
+                                trn.getNode(),
+                                trn.getGenerator(),
+                                false,
+                                TrustId::PP_STATIC_REWRITE);
         }
       }
       if (!wasRewritten)
