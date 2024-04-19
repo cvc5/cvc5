@@ -59,7 +59,6 @@ runs:
           export PATH="${{ inputs.build-dir }}/install/lib:$PATH"
           export CMAKE_GENERATOR="MSYS Makefiles"
         fi
-        cmake .. -DCMAKE_PREFIX_PATH=${{ inputs.build-dir }}/install/lib/cmake \
-          -DPython_EXECUTABLE=$(command -v python3)
+        cmake .. -DCMAKE_PREFIX_PATH=${{ inputs.build-dir }}/install/lib/cmake
         make -j${{ env.num_proc }}
         ctest -j${{ env.num_proc }} --output-on-failure

@@ -363,6 +363,10 @@ else()
   endif()
 endif()
 
+# Give preference to Python binaries in the PATH
+set(Python_FIND_REGISTRY LAST)
+set(Python_FIND_FRAMEWORK LAST)
+
 if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
   find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
 else()

@@ -37,6 +37,10 @@ set(EXAMPLES_API_PYTHON
   transcendentals
 )
 
+# Give preference to Python binaries in the PATH
+set(Python_FIND_REGISTRY LAST)
+set(Python_FIND_FRAMEWORK LAST)
+
 find_package(Python ${CVC5_BINDINGS_PYTHON_VERSION} EXACT REQUIRED)
 
 # Find Python bindings in the corresponding python-*/site-packages directory.
