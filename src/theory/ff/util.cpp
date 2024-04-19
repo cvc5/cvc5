@@ -94,6 +94,13 @@ bool isFfFact(const Node& n)
              && n[0][0].getType().isFiniteField());
 }
 
+FfTimeoutException::FfTimeoutException(const std::string& where)
+    : Exception(std::string("finite field solver timeout in ") + where)
+{
+}
+
+FfTimeoutException::~FfTimeoutException() {}
+
 }  // namespace ff
 }  // namespace theory
 }  // namespace cvc5::internal

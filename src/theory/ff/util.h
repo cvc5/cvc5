@@ -24,6 +24,7 @@
 #endif /* CVC5_USE_COCOA */
 
 // std includes
+#include <exception>
 #include <unordered_map>
 
 // internal includes
@@ -80,6 +81,14 @@ bool isFfLeaf(const Node& n);
 bool isFfTerm(const Node& n);
 /** Is this a field fact (equality of disequality)? */
 bool isFfFact(const Node& n);
+
+/** Used to signal check timeouts */
+class FfTimeoutException : public Exception
+{
+ public:
+  FfTimeoutException(const std::string& where);
+  ~FfTimeoutException() override;
+};
 
 }  // namespace ff
 }  // namespace theory
