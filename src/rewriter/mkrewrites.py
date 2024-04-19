@@ -361,7 +361,7 @@ def gen_rewrite_db(args):
         f.write(format_cpp(cvc5_proof_rule_h.format(
             rules='\n'.join([f'{doc(id)}\nEVALUE({id}),' for id in ids]))))
 
-    cvc5_proof_rule_cpp = read_tpl_enclosed(src_api_dir, 'cvc5_proof_rule.cpp')
+    cvc5_proof_rule_cpp = read_tpl(src_api_dir, 'cvc5_proof_rule_template.cpp')
     os.makedirs(bin_api_dir, exist_ok=True)
     with open(os.path.join(bin_api_dir, 'cvc5_proof_rule.cpp'), 'w') as f:
         f.write(format_cpp(cvc5_proof_rule_cpp.format(
