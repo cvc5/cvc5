@@ -79,6 +79,10 @@ Node AletheNodeConverter::postConvert(Node n)
     {
       Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
                            << "\n";
+      SkolemManager* sm = nm->getSkolemManager();
+      SkolemId sfi = SkolemId::NONE;
+      Node cacheVal;
+      sm->isSkolemFunction(n, sfi, cacheVal);
       // skolems v print as their original forms
       // v is (skolem W) where W is the original or original form of v
       Node wi = SkolemManager::getUnpurifiedForm(n);
@@ -87,20 +91,18 @@ Node AletheNodeConverter::postConvert(Node n)
         Trace("alethe-conv")
             << "...to convert original form " << wi << std::endl;
         Node conv = convert(wi);
-        d_skolems[n] = conv;
+        // ignore purification skolems
+        if (sfi != SkolemId::PURIFY)
+        {
+          d_skolems[n] = conv;
+        }
         return conv;
       }
-      // might be a skolem function. For now we only handle the function for
-      // skolemization of strong quantifiers.
-      SkolemManager* sm = nm->getSkolemManager();
-      SkolemId sfi = SkolemId::NONE;
-      Node cacheVal;
       // create the witness term (witness ((x_i T_i)) (exists ((x_i+1 T_i+1)
       // ... (x_n T_n)) body), where the bound variables and the body come from
       // the quantifier term which must be the first element of cacheVal (which
       // should be a list), and i the second.
-      if (sm->isSkolemFunction(n, sfi, cacheVal)
-          && sfi == SkolemId::QUANTIFIERS_SKOLEMIZE)
+      if (sfi == SkolemId::QUANTIFIERS_SKOLEMIZE)
       {
         Trace("alethe-conv")
             << ".. to build witness with index/quant: " << cacheVal[1] << " / "
