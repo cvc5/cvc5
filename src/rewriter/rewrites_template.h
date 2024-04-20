@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +15,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__THEORY_REWRITER_REWRITES_H
-#define CVC5__THEORY_REWRITER_REWRITES_H
+#ifndef CVC5__REWRITER__REWRITES__H
+#define CVC5__REWRITER__REWRITES__H
 
 #include "expr/node.h"
 
@@ -30,24 +30,12 @@ class RewriteDb;
  */
 enum class DslProofRule : uint32_t
 {
-  FAIL = 0,
-  REFL,
-  EVAL,
-  // the following rules can be generated temporarily during reconstruction
-  TRANS,
-  CONG,
-  CONG_EVAL,
-  TRUE_ELIM,
-  TRUE_INTRO,
-  ARITH_POLY_NORM,
+  NONE = 0,
   // Generated rule ids
   // clang-format off
   ${rule_ids}$
   // clang-format on
 };
-
-/** Is internal rule? */
-bool isInternalDslProofRule(DslProofRule drule);
 
 /**
  * The body of this method is auto-generated. This populates the provided

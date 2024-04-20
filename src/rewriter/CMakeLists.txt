@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andrew Reynolds, Mathias Preiner
+#   Andrew Reynolds, Leni Aniva, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -27,6 +27,8 @@ libcvc5_add_sources(
   rewrite_db_term_process.h
   rewrite_proof_rule.cpp
   rewrite_proof_rule.h
+  rewrite_proof_status.cpp
+  rewrite_proof_status.h
 )
 
 set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)

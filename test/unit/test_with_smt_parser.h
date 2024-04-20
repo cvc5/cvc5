@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir
+ *   Alex Ozdemir, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,9 +39,10 @@ class TestWithSmtParser : public TestInternal
 
   void SetUp() override
   {
-    d_solver.setLogic("ALL");
-    d_symman.reset(new parser::SymbolManager(&d_solver));
-    d_ip.reset(new parser::InputParser(&d_solver, d_symman.get()));
+    d_solver.reset(new cvc5::Solver(d_tm));
+    d_solver->setLogic("ALL");
+    d_symman.reset(new parser::SymbolManager(d_solver.get()));
+    d_ip.reset(new parser::InputParser(d_solver.get(), d_symman.get()));
   }
 
   void TearDown() override
@@ -50,7 +51,8 @@ class TestWithSmtParser : public TestInternal
     d_ip.reset(nullptr);
   }
 
-  cvc5::Solver d_solver;
+  cvc5::TermManager d_tm;
+  std::unique_ptr<cvc5::Solver> d_solver;
   std::unique_ptr<parser::SymbolManager> d_symman;
   std::unique_ptr<cvc5::parser::InputParser> d_ip;
 
@@ -63,7 +65,7 @@ class TestWithSmtParser : public TestInternal
   {
     d_ip->setStringInput(modes::InputLanguage::SMT_LIB_2_6, s, "temp");
     auto command = d_ip->nextCommand();
-    command.invoke(&d_solver, d_symman.get(), std::cout);
+    command.invoke(d_solver.get(), d_symman.get(), std::cout);
   }
 
   /**

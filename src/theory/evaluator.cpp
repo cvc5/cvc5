@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Mathias Preiner
+ *   Andres Noetzli, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -341,42 +341,6 @@ EvalResult Evaluator::evalInternal(
         // Otherwise, we may be able to turn the overall result into an
         // valid EvalResult and continue. We fallthrough and continue with the
         // block of code below.
-      }
-      else if (currNodeVal.getKind()==Kind::APPLY_INDEXED_SYMBOLIC)
-      {
-        // We incorporate the rewrite that changes e.g. (extract 2 0 #b0000)
-        // to ((_ extract 2 0) #b0000). To do this, we reconstruct the
-        // application, invoke the rewrite step, ensure the rewritten term is
-        // processed, then set the result of the indexed symbolic term to that
-        // term.
-        Node cval = reconstruct(currNode, results, evalAsNode);
-        cval = builtin::TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(cval);
-        // if we did not eliminate, then we fail to evaluate
-        if (currNodeVal.getKind()==Kind::APPLY_INDEXED_SYMBOLIC)
-        {
-          results[currNode] = EvalResult();
-          evalAsNode[currNode] = cval;
-          continue;
-        }
-        itr = results.find(cval);
-        if (itr == results.end())
-        {
-          // first compute the value of the rewritten form
-          queue.emplace_back(cval);
-          continue;
-        }
-        if (itr->second.d_tag == EvalResult::INVALID)
-        {
-          // failed to evaluate the converted node
-          results[currNode] = EvalResult();
-          evalAsNode[currNode] = cval;
-        }
-        else
-        {
-          // now we are ready
-          results[currNode] = itr->second;
-        }
-        continue;
       }
 
       Trace("evaluator") << "Current node val : " << currNodeVal << std::endl;

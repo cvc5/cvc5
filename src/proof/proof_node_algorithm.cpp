@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *   Andrew Reynolds, Haniel Barbosa, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -260,6 +260,7 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
     case Kind::FLOATINGPOINT_GT:
     case Kind::FLOATINGPOINT_GEQ:
     case Kind::NULLABLE_LIFT:
+    case Kind::APPLY_INDEXED_SYMBOLIC:
       // takes arbitrary but we use CONG
       break;
     case Kind::HO_APPLY:
@@ -285,6 +286,11 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
   if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
   {
     args.push_back(n.getOperator());
+  }
+  else if (n.isClosure())
+  {
+    // bound variable list is an argument for closure over congruence
+    args.push_back(n[0]);
   }
   return r;
 }

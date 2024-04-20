@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,8 +21,11 @@ from cvc5 import SynthResult
 
 
 @pytest.fixture
-def solver():
-    return cvc5.Solver()
+def tm():
+    return cvc5.TermManager()
+@pytest.fixture
+def solver(tm):
+    return cvc5.Solver(tm)
 
 
 def test_is_null(solver):
@@ -32,10 +35,10 @@ def test_is_null(solver):
     assert not res_null.hasNoSolution()
     assert not res_null.isUnknown()
 
-def test_has_solution(solver):
+def test_has_solution(tm, solver):
     solver.setOption("sygus", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
-    boolTerm = solver.mkBoolean(True)
+    boolTerm = tm.mkBoolean(True)
     solver.addSygusConstraint(boolTerm)
     res = solver.checkSynth()
     assert not res.isNull()
@@ -48,10 +51,10 @@ def test_has_no_solution(solver):
     res_null = SynthResult(solver)
     assert not res_null.hasNoSolution()
 
-def test_has_is_unknown(solver):
+def test_has_is_unknown(tm, solver):
     solver.setOption("sygus", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
-    boolTerm = solver.mkBoolean(False)
+    boolTerm = tm.mkBoolean(False)
     solver.addSygusConstraint(boolTerm)
     res = solver.checkSynth()
     assert not res.isNull()

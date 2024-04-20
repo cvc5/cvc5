@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,6 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 
 using namespace cvc5::internal::kind;
@@ -27,7 +26,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersPreprocess::QuantifiersPreprocess(Env& env) : EnvObj(env) {}
+QuantifiersPreprocess::QuantifiersPreprocess(Env& env)
+    : EnvObj(env), d_qrew(nodeManager(), env.getRewriter(), options())
+{
+}
 
 Node QuantifiersPreprocess::computePrenexAgg(
     Node n, std::map<Node, Node>& visited) const
@@ -42,7 +44,7 @@ Node QuantifiersPreprocess::computePrenexAgg(
     // trivial
     return n;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node ret = n;
   if (n.getKind() == Kind::NOT)
   {
@@ -55,7 +57,7 @@ Node QuantifiersPreprocess::computePrenexAgg(
     std::vector<Node> args;
     args.insert(args.end(), n[0].begin(), n[0].end());
     // only combine if standard
-    if (QuantifiersRewriter::isStandard(n, options()))
+    if (d_qrew.isStandard(n, options()))
     {
       // for each child, strip top level quant
       for (unsigned i = 0; i < children.size(); i++)
@@ -74,15 +76,14 @@ Node QuantifiersPreprocess::computePrenexAgg(
       iplc.insert(iplc.end(), n[2].begin(), n[2].end());
     }
     Node nb = nm->mkOr(children);
-    ret = QuantifiersRewriter::mkForall(args, nb, iplc, true);
+    ret = d_qrew.mkForall(args, nb, iplc, true);
   }
   else
   {
     std::unordered_set<Node> argsSet;
     std::unordered_set<Node> nargsSet;
     Node q;
-    QuantifiersRewriter qrew(d_env.getRewriter(), options());
-    Node nn = qrew.computePrenex(q, n, argsSet, nargsSet, true, true);
+    Node nn = d_qrew.computePrenex(q, n, argsSet, nargsSet, true, true);
     Assert(n != nn || argsSet.empty());
     Assert(n != nn || nargsSet.empty());
     if (n != nn)
@@ -96,8 +97,7 @@ Node QuantifiersPreprocess::computePrenexAgg(
         // pos polarity variables are inner
         if (!argsSet.empty())
         {
-          nnn = QuantifiersRewriter::mkForall(
-              {argsSet.begin(), argsSet.end()}, nnn, true);
+          nnn = d_qrew.mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
         }
         argsSet.clear();
       }
@@ -108,14 +108,14 @@ Node QuantifiersPreprocess::computePrenexAgg(
       }
       if (!nargsSet.empty())
       {
-        nnn = QuantifiersRewriter::mkForall(
-                  {nargsSet.begin(), nargsSet.end()}, nnn.negate(), true)
+        nnn = d_qrew
+                  .mkForall(
+                      {nargsSet.begin(), nargsSet.end()}, nnn.negate(), true)
                   .negate();
       }
       if (!argsSet.empty())
       {
-        nnn = QuantifiersRewriter::mkForall(
-            {argsSet.begin(), argsSet.end()}, nnn, true);
+        nnn = d_qrew.mkForall({argsSet.begin(), argsSet.end()}, nnn, true);
       }
       ret = nnn;
     }
@@ -140,7 +140,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
   {
     return it->second;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("pre-sk") << "Pre-skolem " << n << " " << polarity << " " << fvs.size()
                   << std::endl;
   if (n.getKind() == Kind::FORALL)

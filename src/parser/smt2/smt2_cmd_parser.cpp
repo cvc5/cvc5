@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -869,6 +869,11 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         ss = d_state.stripQuotes(ss);
       }
+      else if (key=="use-portfolio")
+      {
+        // we don't allow setting portfolio via the command line
+        d_lex.parseError("Can only enable use-portfolio via the command line");
+      }
       cmd.reset(new SetOptionCommand(key, ss));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
@@ -904,7 +909,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       bool isInv = (tok == Token::SYNTH_INV_TOK);
       if (isInv)
       {
-        range = d_state.getSolver()->getBooleanSort();
+        range = d_state.getSolver()->getTermManager().getBooleanSort();
       }
       else
       {

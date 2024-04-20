@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Mathias Preiner
+ *   Andrew Reynolds, Hans-Jörg Schurr, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +45,7 @@ LfscPrinter::LfscPrinter(Env& env,
       d_pletTrustChildPrefix("q"),
       d_rdb(rdb)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_boolType = nm->booleanType();
   // used for the `flag` type in LFSC
   d_tt = d_tproc.mkInternalSymbol("tt", d_boolType);
@@ -186,7 +186,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     }
     const DType& dt = stc.getDType();
     preamble << "; DATATYPE " << dt.getName() << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DTypeConstructor& cons = dt[i];
@@ -881,7 +881,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     break;
     case ProofRule::DSL_REWRITE:
     {
-      DslProofRule di = DslProofRule::FAIL;
+      DslProofRule di = DslProofRule::NONE;
       if (!rewriter::getDslProofRule(args[0], di))
       {
         Assert(false);
@@ -901,7 +901,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           if (as[i].getKind() == Kind::SEXPR)
           {
             Assert(args[i].getKind() == Kind::SEXPR);
-            NodeManager* nm = NodeManager::currentNM();
+            NodeManager* nm = nodeManager();
             Kind k = rpr.getListContext(v);
             // notice we use d_tproc.getNullTerminator and not
             // expr::getNullTerminator here, which has subtle differences
@@ -1150,7 +1150,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
            << std::endl;
       // body must be converted to incorporate list semantics for substitutions
       // first traversal applies nary_elim to required n-ary applications
-      LfscListScNodeConverter llsncp(d_tproc, listVars, true);
+      LfscListScNodeConverter llsncp(nodeManager(), d_tproc, listVars, true);
       Node tscp;
       if (isConclusion)
       {
@@ -1166,7 +1166,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       // second traversal converts to LFSC form
       Node t = d_tproc.convert(tscp);
       // third traversal applies nary_concat where list variables are used
-      LfscListScNodeConverter llsnc(d_tproc, listVars, false);
+      LfscListScNodeConverter llsnc(nodeManager(), d_tproc, listVars, false);
       Node tsc = llsnc.convert(t);
       oscs << "  ";
       print(oscs, tsc);

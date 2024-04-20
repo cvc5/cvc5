@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mudathir Mohamed, Mathias Preiner
+#   Aina Niemetz, Mathias Preiner, Mudathir Mohamed
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -25,10 +25,6 @@ enable_testing()
 # use `cmake .. -DCMAKE_PREFIX_PATH=path/to/lib/cmake` to specify the location
 # of cvc5Config.cmake.
 find_package(cvc5)
-
-# Some of the examples require boost. Enable these examples if boost is
-# installed.
-find_package(Boost 1.50.0)
 
 set(EXAMPLES_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 

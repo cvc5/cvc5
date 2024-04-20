@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,11 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace rewriter {
+
+RewriteDbNodeConverter::RewriteDbNodeConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
 
 Node RewriteDbNodeConverter::postConvert(Node n)
 {
@@ -65,6 +70,15 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     children.push_back(nm->mkConstInt(Rational(theory::bv::utils::getSize(n))));
     return nm->mkNode(Kind::CONST_BITVECTOR_SYMBOLIC, children);
   }
+  else if (k == Kind::FORALL)
+  {
+    // ignore annotation
+    if (n.getNumChildren() == 3)
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      return nm->mkNode(Kind::FORALL, n[0], n[1]);
+    }
+  }
   // convert indexed operators to symbolic
   if (GenericOp::isIndexedOperatorKind(k))
   {
@@ -81,12 +95,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
 
 bool RewriteDbNodeConverter::shouldTraverse(Node n)
 {
-  Kind k = n.getKind();
-  if (k == Kind::INST_PATTERN_LIST)
-  {
-    return false;
-  }
-  return true;
+  return n.getKind() != Kind::INST_PATTERN_LIST;
 }
 
 }  // namespace rewriter

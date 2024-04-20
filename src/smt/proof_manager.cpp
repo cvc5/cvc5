@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -112,7 +112,7 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
     d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
 }
 
 PfManager::~PfManager() {}
@@ -272,7 +272,7 @@ void PfManager::printProof(std::ostream& out,
   else if (mode == options::ProofFormatMode::ALF)
   {
     Assert(fp->getRule() == ProofRule::SCOPE);
-    proof::AlfNodeConverter atp;
+    proof::AlfNodeConverter atp(nodeManager());
     proof::AlfPrinter alfp(d_env, atp);
     alfp.print(out, fp);
   }
@@ -280,7 +280,8 @@ void PfManager::printProof(std::ostream& out,
   {
     // convert using Alethe post-processor
     std::string reasonForConversionFailure;
-    proof::AletheNodeConverter anc;
+    proof::AletheNodeConverter anc(nodeManager());
+
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
     if (vpfpp.process(fp, reasonForConversionFailure))
@@ -299,7 +300,7 @@ void PfManager::printProof(std::ostream& out,
     options::ProofCheckMode oldMode = options().proof.proofCheck;
     d_pnm->getChecker()->setProofCheckMode(options::ProofCheckMode::NONE);
     std::string reasonForConversionFailure;
-    proof::AletheNodeConverter anc(options().proof.proofDefineSkolems);
+    proof::AletheNodeConverter anc(nodeManager(), options().proof.proofDefineSkolems);
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
     if (vpfpp.process(fp, reasonForConversionFailure))
@@ -316,7 +317,7 @@ void PfManager::printProof(std::ostream& out,
   else if (mode == options::ProofFormatMode::LFSC)
   {
     Assert(fp->getRule() == ProofRule::SCOPE);
-    proof::LfscNodeConverter ltp;
+    proof::LfscNodeConverter ltp(nodeManager());
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
     proof::LfscPrinter lp(d_env, ltp, d_rewriteDb.get());
@@ -357,7 +358,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
   CDProof cdp(d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
+  Node fnode = nodeManager()->mkConst(false);
   cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   Trace("difficulty-proc") << "Get final proof" << std::endl;

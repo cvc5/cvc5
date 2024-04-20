@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,6 +36,7 @@ namespace cvc5::internal {
 
 class NodeManager;
 class StatisticsRegistry;
+class Plugin;
 class ProofNodeManager;
 class Printer;
 class ResourceManager;
@@ -73,11 +74,14 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(const Options* opts);
+  Env(NodeManager* nm, const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
   /* Access to members------------------------------------------------------- */
+  /** Get a pointer to the node manager */
+  NodeManager* getNodeManager();
+
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();
 
@@ -263,6 +267,15 @@ class Env
   /** get the separation logic data type */
   TypeNode getSepDataType() const;
 
+  /**
+   * Add plugin to this environment. Any theory engine that uses this
+   * environment will use these plugins. These plugins should not be added
+   * after having fully initialized the solver engine for this environment.
+   */
+  void addPlugin(Plugin* p);
+  /** Get plugins */
+  const std::vector<Plugin*>& getPlugins() const;
+
   /** get oracle checker */
   theory::quantifiers::OracleChecker* getOracleChecker() const;
 
@@ -280,6 +293,8 @@ class Env
   void shutdown();
   /* Members ---------------------------------------------------------------- */
 
+  /** Pointer to the node manager */
+  NodeManager* d_nm;
   /** The SAT context owned by this Env */
   std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */
@@ -333,6 +348,11 @@ class Env
   /** The separation logic location and data types */
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
+  /**
+   * List of plugins, to be used in any theory engine that uses this
+   * environment
+   */
+  std::vector<Plugin*> d_plugins;
   /** oracle checker */
   std::unique_ptr<theory::quantifiers::OracleChecker> d_ochecker;
 }; /* class Env */

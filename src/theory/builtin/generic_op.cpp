@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "theory/evaluator.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "util/bitvector.h"
@@ -235,11 +236,23 @@ bool convertToNumeralList(const std::vector<Node>& indices,
 {
   for (const Node& i : indices)
   {
-    if (i.getKind() != Kind::CONST_INTEGER)
+    Node in = i;
+    if (in.getKind() != Kind::CONST_INTEGER)
     {
-      return false;
+      // If trivially evaluatable, take that as the numeral.
+      // This implies that we can concretize applications of
+      // APPLY_INDEXED_SYMBOLIC whose indices can evaluate. This in turn
+      // implies that e.g. (extract (+ 2 2) 2 x) concretizes via getConcreteApp
+      // to ((_ extract 4 2) x), which implies it has type (BitVec 3) based
+      // on the type rule for APPLY_INDEXED_SYMBOLIC.
+      theory::Evaluator e(nullptr);
+      in = e.eval(in, {}, {});
+      if (in.isNull() || in.getKind() != Kind::CONST_INTEGER)
+      {
+        return false;
+      }
     }
-    const Integer& ii = i.getConst<Rational>().getNumerator();
+    const Integer& ii = in.getConst<Rational>().getNumerator();
     if (!ii.fitsUnsignedInt())
     {
       return false;

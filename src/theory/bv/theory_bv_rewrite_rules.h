@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -238,6 +238,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case RepeatEliminate:     out << "RepeatEliminate";     return out;
   case RotateLeftEliminate: out << "RotateLeftEliminate"; return out;
   case RotateRightEliminate:out << "RotateRightEliminate";return out;
+  case SizeEliminate: out << "SizeEliminate"; return out;
   case NandEliminate:       out << "NandEliminate";       return out;
   case NorEliminate :       out << "NorEliminate";        return out;
   case SdivEliminate :      out << "SdivEliminate";       return out;
@@ -269,7 +270,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalUlt :            out << "EvalUlt";             return out;
   case EvalUle :            out << "EvalUle";             return out;
   case EvalSlt :            out << "EvalSlt";             return out;
-  case EvalSle :            out << "EvalSle";             return out; 
+  case EvalSle :            out << "EvalSle";             return out;
   case EvalSltBv:           out << "EvalSltBv";           return out;
   case EvalITEBv:           out << "EvalITEBv";           return out;
   case EvalComp:            out << "EvalComp";            return out;
@@ -341,7 +342,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case XnorEliminate :            out << "XnorEliminate";             return out;
   case SignExtendEliminate :            out << "SignExtendEliminate";             return out;
   case NotIdemp :                  out << "NotIdemp"; return out;
-  case UleSelf:                    out << "UleSelf"; return out; 
+  case UleSelf:                    out << "UleSelf"; return out;
   case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out;
   case FlattenAssocCommutNoDuplicates:
     out << "FlattenAssocCommutNoDuplicates";
@@ -429,18 +430,18 @@ class RewriteRule {
 public:
 
   RewriteRule() {
-    
+
     // if (s_statistics == NULL) {
     //   s_statistics = new RuleStatistics();
     // }
-    
+
   }
 
   ~RewriteRule() {
-    
+
     // delete s_statistics;
     // s_statistics = NULL;
-    
+
   }
 
   static inline bool applies(TNode node)
@@ -626,7 +627,7 @@ bool RewriteRule<EmptyRule>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<EmptyRule>::apply(TNode node) {
-  Trace("bv-rewrite") << "RewriteRule<EmptyRule> for " << node.getKind() <<"\n"; 
+  Trace("bv-rewrite") << "RewriteRule<EmptyRule> for " << node.getKind() <<"\n";
   Unreachable();
   return node;
 }
@@ -733,7 +734,7 @@ template <
   >
 struct FixpointRewriteStrategy {
   static Node apply(TNode node) {
-    Node previous = node; 
+    Node previous = node;
     Node current = node;
     do {
       previous = current;

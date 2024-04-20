@@ -3,7 +3,6 @@
 (define-rule bool-eq-true ((t Bool)) (= t true) t)
 (define-rule bool-eq-false ((t Bool)) (= t false) (not t))
 (define-rule bool-eq-nrefl ((x Bool)) (= x (not x)) false)
-;(define-rule bool-eq-nnf ((x Bool) (y Bool)) (= (not x) y) (not (= x y)))
 
 (define-rule bool-impl-false1 ((t Bool)) (=> t false) (not t))
 (define-rule bool-impl-false2 ((t Bool)) (=> false t) true)
@@ -40,8 +39,3 @@
 
 (define-rule ite-then-lookahead-self ((c Bool) (x Bool)) (ite c c x) (ite c true x))
 (define-rule ite-else-lookahead-self ((c Bool) (x Bool)) (ite c x c) (ite c x false))
-
-
-;(define-rule bool-commutative-and ((x Bool) (y Bool)) (and x y) (and y x))
-;(define-rule bool-commutative-or ((x Bool) (y Bool)) (or x y) (or y x))
-;(define-rule bool-commutative-xor ((x Bool) (y Bool)) (xor x y) (xor y x))

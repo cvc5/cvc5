@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa, Andrew Reynolds
+ *   Hanna Lachnitt, Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +68,7 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
       d_resPivots(resPivots),
       d_reasonForConversionFailure(reasonForConversionFailure)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());
   d_becomes = nm->mkRawSymbol(":=", nm->sExprType());
   d_true = nm->mkConst(true);
@@ -105,7 +105,7 @@ bool AletheProofPostprocessCallback::update(Node res,
   Trace("alethe-proof") << "...Alethe pre-update " << res << " " << id << " "
                         << children << " / " << args << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<Node> new_args = std::vector<Node>();
 
   switch (id)
@@ -1411,11 +1411,11 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         // mk the skolem corresponding for this variable and retrieve its
         // conversion from the node converter
-        Node r = nm->mkConstInt(Rational(i));
+        Node v = quant[0][i];
         Node q = nm->mkNode(
             Kind::EXISTS, quant[0], isExists ? quant[1] : quant[1].notNode());
-        std::vector<Node> cacheVals{q, r};
-        Node sk = sm->mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE, cacheVals);
+        std::vector<Node> cacheVals{q, v};
+        Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, cacheVals);
         Assert(!sk.isNull());
         Assert(d_anc.d_skolems.find(sk) != d_anc.d_skolems.end())
             << sk << " " << d_anc.d_skolems;
@@ -2167,7 +2167,7 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   // easy way to get access to (or t1 ... tn), in which case we delive (cl (or
   // t1' ... tn')) by introducing n or_neg steps, similarly to the translation
   // of EQ_RESOLVE.
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("alethe-proof") << "\n";
   AletheRule premiseProofRule = getAletheRule(premisePf->getArguments()[0]);
   if ((premiseProofRule == AletheRule::CONTRACTION
@@ -2273,7 +2273,7 @@ bool AletheProofPostprocessCallback::updatePost(
     const std::vector<Node>& args,
     CDProof* cdp)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   AletheRule rule = getAletheRule(args[0]);
   Trace("alethe-proof") << "...Alethe post-update " << rule << " / " << res
                         << " / args: " << args << std::endl;
@@ -2436,11 +2436,10 @@ bool AletheProofPostprocessCallback::updatePost(
                          Node conv = d_anc.convert(n);
                          // note that the new child may have been introduced
                          // above and is a cl node
-                         return conv.getKind() == Kind::SEXPR ? nm->mkNode(
-                                    Kind::OR,
-                                    std::vector<Node>{conv.begin() + 1,
-                                                      conv.end()})
-                                                              : conv;
+                         return conv.getKind() == Kind::SEXPR
+                                    ? nm->mkOr(std::vector<Node>{
+                                        conv.begin() + 1, conv.end()})
+                                    : conv;
                        });
         std::vector<Node> argsPol;
         std::vector<Node> convPivots;
@@ -2624,7 +2623,7 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
                                                CDProof* cdp)
 {
   bool success = true;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
 
   // convert inner proof, i.e., children[0], if its conclusion is (cl false) or
@@ -2683,8 +2682,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  std::vector<Node> newArgs{NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(rule)))};
+  std::vector<Node> newArgs{
+      nodeManager()->mkConstInt(Rational(static_cast<uint32_t>(rule)))};
   newArgs.push_back(res);
   conclusion = d_anc.maybeConvert(conclusion);
   if (conclusion.isNull())
@@ -2718,7 +2717,7 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
 {
   std::vector<Node> subterms = {d_cl};
   subterms.insert(subterms.end(), res.begin(), res.end());
-  Node conclusion = NodeManager::currentNM()->mkNode(Kind::SEXPR, subterms);
+  Node conclusion = nodeManager()->mkNode(Kind::SEXPR, subterms);
   return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
 

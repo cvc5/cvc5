@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -930,7 +930,7 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   cacheVals.push_back(nm->mkConst(SortToTerm(dtt)));
   cacheVals.push_back(nm->mkConst(SortToTerm(t)));
   cacheVals.push_back(nm->mkConstInt(Rational(index)));
-  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, cacheVals);
+  s = sm->mkSkolemFunction(SkolemId::SHARED_SELECTOR, cacheVals);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
@@ -1005,3 +1005,11 @@ void DType::toStream(std::ostream& out) const
 }
 
 }  // namespace cvc5::internal
+
+namespace std {
+size_t hash<cvc5::internal::DType>::operator()(
+    const cvc5::internal::DType& dt) const
+{
+  return std::hash<std::string>()(dt.getName());
+}
+}  // namespace std

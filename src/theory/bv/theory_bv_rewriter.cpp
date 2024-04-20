@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,10 @@ using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::theory::bv;
 
-TheoryBVRewriter::TheoryBVRewriter() { initializeRewrites(); }
+TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
+{
+  initializeRewrites();
+}
 
 RewriteResponse TheoryBVRewriter::preRewrite(TNode node) {
   // no prerewrite to avoid issues with abstract subterms
@@ -646,12 +649,6 @@ RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite) {
         RewriteRule<ReflexivityEq>
         >::apply(node);
 
-    if(RewriteRule<SolveEq>::applies(resultNode)) {
-      resultNode = RewriteRule<SolveEq>::run<false>(resultNode);
-      if (resultNode != node) {
-        return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
-      }
-    }
     return RewriteResponse(REWRITE_DONE, resultNode);
   }
 }
@@ -794,5 +791,6 @@ void TheoryBVRewriter::initializeRewrites()
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_EAGER_ATOM)] =
       RewriteEagerAtom;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SIZE)] = RewriteSize;
-  d_rewriteTable[static_cast<uint32_t>(Kind::CONST_BITVECTOR_SYMBOLIC)] = RewriteConstBvSym;
+  d_rewriteTable[static_cast<uint32_t>(Kind::CONST_BITVECTOR_SYMBOLIC)] =
+      RewriteConstBvSym;
 }

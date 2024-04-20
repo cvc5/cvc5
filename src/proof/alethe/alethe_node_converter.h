@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,11 +32,13 @@ namespace proof {
 class AletheNodeConverter : public BaseAlfNodeConverter
 {
  public:
-  AletheNodeConverter(bool defineSkolems = false)
-      : d_defineSkolems(defineSkolems)
+
+  AletheNodeConverter(NodeManager* nm, bool defineSkolems = false)
+    : BaseAlfNodeConverter(nm), d_defineSkolems(defineSkolems)
   {
   }
   ~AletheNodeConverter() {}
+
   /** convert at post-order traversal */
   Node postConvert(Node n) override;
 
@@ -48,14 +50,28 @@ class AletheNodeConverter : public BaseAlfNodeConverter
 
   std::map<Node, Node> d_skolems;
 
+  Node getOperatorOfTerm(Node n, bool reqCast = false) override
+  {
+    return Node::null();
+  };
+  Node typeAsNode(TypeNode tni) override { return Node::null(); };
+
+  Node mkInternalSymbol(const std::string& name,
+                        TypeNode tn,
+                        bool useRawSym = true) override;
+
+  Node mkInternalApp(const std::string& name,
+                     const std::vector<Node>& args,
+                     TypeNode ret,
+                     bool useRawSym = true) override
+  {
+    return Node::null();
+  };
+
  private:
   bool d_defineSkolems;
   std::map<Node, Node> d_skolemsAux;
 
-  /**
-   * Make or get an internal symbol with custom name and type.
-   */
-  Node mkInternalSymbol(const std::string& name, TypeNode tn);
   /**
    * As above but uses the s-expression type.
    */

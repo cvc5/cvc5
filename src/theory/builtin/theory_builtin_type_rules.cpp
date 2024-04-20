@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/builtin/generic_op.h"
 #include "util/uninterpreted_sort_value.h"
+#include "expr/sort_to_term.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -183,29 +184,16 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
   // if we can make concrete, return its type
   return cn.getType();
 }
-/**
- * Attribute for caching the ground term for each type. Maps TypeNode to the
- * skolem to return for mkGroundTerm.
- */
-struct GroundTermAttributeId
-{
-};
-typedef expr::Attribute<GroundTermAttributeId, Node> GroundTermAttribute;
 
 Node SortProperties::mkGroundTerm(TypeNode type)
 {
   // we typically use this method for sorts, although there are other types
   // where it is used as well, e.g. arrays that are not closed enumerable.
-  GroundTermAttribute gta;
-  if (type.hasAttribute(gta))
-  {
-    return type.getAttribute(gta);
-  }
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node k = sm->mkDummySkolem(
-      "groundTerm", type, "a ground term created for type " + type.toString());
-  type.setAttribute(gta, k);
-  return k;
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  std::vector<Node> cacheVals;
+  cacheVals.push_back(nm->mkConst(SortToTerm(type)));
+  return sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
 }
 
 }  // namespace builtin

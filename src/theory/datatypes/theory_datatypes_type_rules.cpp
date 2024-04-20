@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,7 +83,6 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
     for (; child_it != child_it_end; ++child_it, ++tchild_it)
     {
       TypeNode childType = (*child_it).getTypeOrNull();
-      // FIXME
       if (!m.doMatching(*tchild_it, childType))
       {
         if (errOut)
@@ -179,7 +178,8 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    // FIXME
+    // note that parametric datatype matching does not account for gradual
+    // types.
     if (!m.doMatching(selType[0], childType))
     {
       if (errOut)

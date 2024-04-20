@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
+ *   Haniel Barbosa, Hans-Jörg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,11 @@
 namespace cvc5::internal {
 namespace theory {
 namespace booleans {
+
+BoolProofRuleChecker::BoolProofRuleChecker(NodeManager* nm)
+    : ProofRuleChecker(nm)
+{
+}
 
 void BoolProofRuleChecker::registerTo(ProofChecker* pc)
 {
@@ -87,7 +92,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 2);
     Assert(args.size() == 2);
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     std::vector<Node> disjuncts;
     Node pivots[2];
     if (args[0] == nm->mkConst(true))
@@ -157,7 +162,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     return nm->mkOr(disjuncts);
   }
   if (id == ProofRule::REORDERING)
@@ -196,7 +201,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getNumChildren() == (children.size() - 1));
     Assert(args[1].getNumChildren() == (children.size() - 1));
     Trace("bool-pfcheck") << "chain_res:\n" << push;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
     // The lhs and rhs clauses in a binary resolution step, respectively. Since
@@ -303,7 +308,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.size() > 1);
     Assert(args.size() == 2 * (children.size() - 1) + 1);
     Trace("bool-pfcheck") << "macro_res: " << args[0] << "\n" << push;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
     std::vector<Node> clauseNodes;
@@ -412,15 +417,14 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    return NodeManager::currentNM()->mkNode(
-        Kind::OR, args[0], args[0].notNode());
+    return nodeManager()->mkNode(Kind::OR, args[0], args[0].notNode());
   }
   if (id == ProofRule::CONTRA)
   {
     Assert(children.size() == 2);
     if (children[1].getKind() == Kind::NOT && children[0] == children[1][0])
     {
-      return NodeManager::currentNM()->mkConst(false);
+      return nodeManager()->mkConst(false);
     }
     return Node::null();
   }
@@ -474,9 +478,8 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   if (id == ProofRule::AND_INTRO)
   {
     Assert(children.size() >= 1);
-    return children.size() == 1
-               ? children[0]
-               : NodeManager::currentNM()->mkNode(Kind::AND, children);
+    return children.size() == 1 ? children[0]
+                                : nodeManager()->mkNode(Kind::AND, children);
   }
   if (id == ProofRule::NOT_OR_ELIM)
   {
@@ -502,7 +505,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0].notNode(), children[0][1]);
   }
   if (id == ProofRule::NOT_IMPLIES_ELIM1)
@@ -535,7 +538,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0].notNode(), children[0][1]);
   }
   if (id == ProofRule::EQUIV_ELIM2)
@@ -546,7 +549,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0], children[0][1].notNode());
   }
   if (id == ProofRule::NOT_EQUIV_ELIM1)
@@ -558,7 +561,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0][0], children[0][0][1]);
   }
   if (id == ProofRule::NOT_EQUIV_ELIM2)
@@ -570,7 +573,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
   }
   if (id == ProofRule::XOR_ELIM1)
@@ -581,8 +584,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
-        Kind::OR, children[0][0], children[0][1]);
+    return nodeManager()->mkNode(Kind::OR, children[0][0], children[0][1]);
   }
   if (id == ProofRule::XOR_ELIM2)
   {
@@ -592,7 +594,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0].notNode(), children[0][1].notNode());
   }
   if (id == ProofRule::NOT_XOR_ELIM1)
@@ -604,7 +606,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0][0], children[0][0][1].notNode());
   }
   if (id == ProofRule::NOT_XOR_ELIM2)
@@ -616,7 +618,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0][0].notNode(), children[0][0][1]);
   }
   if (id == ProofRule::ITE_ELIM1)
@@ -627,7 +629,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0].notNode(), children[0][1]);
   }
   if (id == ProofRule::ITE_ELIM2)
@@ -638,8 +640,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
-        Kind::OR, children[0][0], children[0][2]);
+    return nodeManager()->mkNode(Kind::OR, children[0][0], children[0][2]);
   }
   if (id == ProofRule::NOT_ITE_ELIM1)
   {
@@ -650,7 +651,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
   }
   if (id == ProofRule::NOT_ITE_ELIM2)
@@ -662,7 +663,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
+    return nodeManager()->mkNode(
         Kind::OR, children[0][0][0], children[0][0][2].notNode());
   }
   // De Morgan
@@ -681,7 +682,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       disjuncts.push_back(children[0][0][i].notNode());
     }
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   // valid clauses rules for Tseitin CNF transformation
   if (id == ProofRule::CNF_AND_POS)
@@ -697,8 +698,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
-        Kind::OR, args[0].notNode(), args[0][i]);
+    return nodeManager()->mkNode(Kind::OR, args[0].notNode(), args[0][i]);
   }
   if (id == ProofRule::CNF_AND_NEG)
   {
@@ -713,7 +713,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       disjuncts.push_back(args[0][i].notNode());
     }
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_OR_POS)
   {
@@ -728,7 +728,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       disjuncts.push_back(args[0][i]);
     }
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_OR_NEG)
   {
@@ -743,8 +743,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    return NodeManager::currentNM()->mkNode(
-        Kind::OR, args[0], args[0][i].notNode());
+    return nodeManager()->mkNode(Kind::OR, args[0], args[0][i].notNode());
   }
   if (id == ProofRule::CNF_IMPLIES_POS)
   {
@@ -756,7 +755,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0].notNode(), args[0][1]};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_IMPLIES_NEG1)
   {
@@ -767,7 +766,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0]};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_IMPLIES_NEG2)
   {
@@ -778,7 +777,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_EQUIV_POS1)
   {
@@ -790,7 +789,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0].notNode(), args[0][1]};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_EQUIV_POS2)
   {
@@ -802,7 +801,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0], args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_EQUIV_NEG1)
   {
@@ -813,7 +812,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0], args[0][1]};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_EQUIV_NEG2)
   {
@@ -825,7 +824,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     std::vector<Node> disjuncts{
         args[0], args[0][0].notNode(), args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_XOR_POS1)
   {
@@ -836,7 +835,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0].notNode(), args[0][0], args[0][1]};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_XOR_POS2)
   {
@@ -848,7 +847,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0].notNode(), args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_XOR_NEG1)
   {
@@ -859,7 +858,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0].notNode(), args[0][1]};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_XOR_NEG2)
   {
@@ -870,7 +869,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0], args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_POS1)
   {
@@ -882,7 +881,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0].notNode(), args[0][1]};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_POS2)
   {
@@ -893,7 +892,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0].notNode(), args[0][0], args[0][2]};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_POS3)
   {
@@ -904,7 +903,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0].notNode(), args[0][1], args[0][2]};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_NEG1)
   {
@@ -916,7 +915,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     std::vector<Node> disjuncts{
         args[0], args[0][0].notNode(), args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_NEG2)
   {
@@ -927,7 +926,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0], args[0][2].notNode()};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_NEG3)
   {
@@ -939,7 +938,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     std::vector<Node> disjuncts{
         args[0], args[0][1].notNode(), args[0][2].notNode()};
-    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+    return nodeManager()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::SAT_REFUTATION || id == ProofRule::DRAT_REFUTATION
       || id == ProofRule::SAT_EXTERNAL_PROVE)
@@ -948,7 +947,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
            == (id == ProofRule::SAT_REFUTATION
                    ? 0
                    : (id == ProofRule::SAT_EXTERNAL_PROVE ? 1 : 2)));
-    return NodeManager::currentNM()->mkConst(false);
+    return nodeManager()->mkConst(false);
   }
   // no rule
   return Node::null();
