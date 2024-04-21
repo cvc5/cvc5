@@ -134,7 +134,8 @@ void AletheProofPrinter::print(
   // print quantifier Skolems, if they are being defined
   if (options().proof.proofDefineSkolems)
   {
-    for (const auto& [skolem, choice] : d_anc.d_skolems)
+    const std::map<Node, Node>& skolemDefs = d_anc.getSkolemDefinitions();
+    for (const auto& [skolem, choice] : skolemDefs)
     {
       out << "(define-fun " << skolem << " () " << skolem.getType() << " ";
       std::stringstream ss;
@@ -175,15 +176,11 @@ void AletheProofPrinter::print(
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
   Assert(!args.empty());
-  Assert(!d_anc.d_convToOriginalAssumption.empty());
   for (size_t i = 0, size = args.size(); i < size; i++)
   {
     // search name with original assumption rather than its conversion
-    Assert(d_anc.d_convToOriginalAssumption.find(args[i])
-           != d_anc.d_convToOriginalAssumption.end())
-        << "Converted assumption: " << args[i]
-        << "\nMap: " << d_anc.d_convToOriginalAssumption;
-    Node original = d_anc.d_convToOriginalAssumption[args[i]];
+    Assert(!d_anc.getOriginalAssumption(args[i]).isNull());
+    Node original = d_anc.getOriginalAssumption(args[i]);
     auto it = assertionNames.find(original);
     if (it != assertionNames.end())
     {
@@ -281,7 +278,7 @@ void AletheProofPrinter::printInternal(
           out << ")" << (i != args.size() - 1 ? " " : "");
           continue;
         }
-        Assert(args[i].getKind() == Kind::BOUND_VARIABLE);
+        Assert(args[i].getKind() == Kind::BOUND_VARIABLE) << args[i];
         out << "(" << args[i] << " " << args[i].getType() << ") ";
       }
       out << "))\n";

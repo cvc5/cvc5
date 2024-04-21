@@ -25,13 +25,17 @@ namespace cvc5::internal {
 namespace proof {
 
 
-Node AletheNodeConverter::maybeConvert(Node n)
+Node AletheNodeConverter::maybeConvert(Node n, bool isAssumption)
 {
   d_error = "";
   Node res = convert(n);
   if (!d_error.empty())
   {
     return Node::null();
+  }
+  if (isAssumption)
+  {
+    d_convToOriginalAssumption[res] = n;
   }
   return res;
 }
@@ -245,6 +249,20 @@ Node AletheNodeConverter::mkInternalSymbol(const std::string& name)
 {
   return mkInternalSymbol(name, NodeManager::currentNM()->sExprType());
 }
+
+const std::string& AletheNodeConverter::getError() { return d_error; }
+
+Node AletheNodeConverter::getOriginalAssumption(Node n)
+{
+  auto it = d_convToOriginalAssumption.find(n);
+  if (it != d_convToOriginalAssumption.end())
+  {
+    return it->second;
+  }
+  return Node::null();
+}
+
+const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions() { return d_skolems; }
 
 }  // namespace proof
 }  // namespace cvc5::internal

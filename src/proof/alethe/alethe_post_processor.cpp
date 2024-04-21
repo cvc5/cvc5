@@ -1398,7 +1398,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node conv = d_anc.maybeConvert(quant[1].eqNode(skolemized));
       if (conv.isNull())
       {
-        *d_reasonForConversionFailure = d_anc.d_error;
+        *d_reasonForConversionFailure = d_anc.getError();
         return false;
       }
       Node premise = nm->mkNode(
@@ -1407,9 +1407,10 @@ bool AletheProofPostprocessCallback::update(Node res,
       std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
       std::vector<Node> skoSubstitutions;
       SkolemManager* sm = nm->getSkolemManager();
+      const std::map<Node, Node>& skolemDefs = d_anc.getSkolemDefinitions();
       for (size_t i = 0, size = quant[0].getNumChildren(); i < size; ++i)
       {
-        // mk the skolem corresponding for this variable and retrieve its
+        // Make the Skolem corresponding to this variable and retrieve its
         // conversion from the node converter
         Node v = quant[0][i];
         Node q = nm->mkNode(
@@ -1417,10 +1418,14 @@ bool AletheProofPostprocessCallback::update(Node res,
         std::vector<Node> cacheVals{q, v};
         Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, cacheVals);
         Assert(!sk.isNull());
-        Assert(d_anc.d_skolems.find(sk) != d_anc.d_skolems.end())
-            << sk << " " << d_anc.d_skolems;
-        skoSubstitutions.push_back(quant[0][i].eqNode(
-            options().proof.proofDefineSkolems ? sk : d_anc.d_skolems[sk]));
+        if (options().proof.proofDefineSkolems)
+        {
+          skoSubstitutions.push_back(quant[0][i].eqNode(sk));
+          continue;
+        }
+        auto it = skolemDefs.find(sk);
+        Assert(it != skolemDefs.end()) << sk << " " << skolemDefs;
+        skoSubstitutions.push_back(quant[0][i].eqNode(it->second));
       }
       Assert(!d_anc.convert(quant.eqNode(skolemized)).isNull());
       Node conclusion = nm->mkNode(
@@ -1468,7 +1473,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node conv = d_anc.maybeConvert(res);
       if (conv.isNull())
       {
-        *d_reasonForConversionFailure = d_anc.d_error;
+        *d_reasonForConversionFailure = d_anc.getError();
         return false;
       }
       // no checking for those yet in Carcara or Isabelle, so we produce holes
@@ -2655,17 +2660,16 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
   std::vector<Node> sanitizedArgs;
   for (const Node& a : args)
   {
-    Node conv = d_anc.maybeConvert(a);
+    Node conv = d_anc.maybeConvert(a, true);
     if (conv.isNull())
     {
-      *d_reasonForConversionFailure = d_anc.d_error;
+      *d_reasonForConversionFailure = d_anc.getError();
       success = false;
       break;
     }
     // avoid repeated assumptions
     if (std::find(sanitizedArgs.begin(), sanitizedArgs.end(), conv) == sanitizedArgs.end())
     {
-      d_anc.d_convToOriginalAssumption[conv] = a;
       sanitizedArgs.push_back(conv);
     }
   }
@@ -2688,7 +2692,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   conclusion = d_anc.maybeConvert(conclusion);
   if (conclusion.isNull())
   {
-    *d_reasonForConversionFailure = d_anc.d_error;
+    *d_reasonForConversionFailure = d_anc.getError();
     return false;
   }
   newArgs.push_back(conclusion);
@@ -2697,7 +2701,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
     Node conv = d_anc.maybeConvert(arg);
     if (conv.isNull())
     {
-      *d_reasonForConversionFailure = d_anc.d_error;
+      *d_reasonForConversionFailure = d_anc.getError();
       return false;
     }
     newArgs.push_back(conv);
