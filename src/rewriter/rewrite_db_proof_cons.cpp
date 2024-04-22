@@ -993,8 +993,9 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
         stgt = d_currFixedPointConc[1];
         // For example, we have now computed
         //   (str.len (str.++ x y z)) --> (+ (str.len x) (str.len (str.++ y z)))
-        // where stgt is the RHS. We now want to continue to process, where
-        // to find the next term, we match the context of the rule to the RHS.
+        // where stgt is the RHS. We now want to continue to rewrite the right
+        // hand side, where to find the next target term to rewrite, we match
+        // the context of the rule to the RHS.
         // In particular, given a context (+ (str.len S0) ?0), we would match
         // ?0 to (str.len (str.++ y z)). This indicates that the user suggests
         // that (str.len (str.++ y z)) is the term to continue to rewrite.
