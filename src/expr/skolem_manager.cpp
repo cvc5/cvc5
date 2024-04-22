@@ -408,6 +408,11 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(cacheVals.size() > 0);
       return cacheVals[0].getType();
       break;
+    case SkolemId::GROUND_TERM:
+    {
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      return cacheVals[0].getConst<SortToTerm>().getType();
+    }
     // real -> real function
     case SkolemId::DIV_BY_ZERO:
     {
@@ -429,6 +434,10 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     {
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, itype);
+    }
+    case SkolemId::BV_EMPTY:
+    {
+      return nm->mkBitVectorType(0);
     }
     // int -> Type(args[0])
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:

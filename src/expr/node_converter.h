@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__NODE_CONVERTER_H
-#define CVC4__EXPR__NODE_CONVERTER_H
+#ifndef CVC5__EXPR__NODE_CONVERTER_H
+#define CVC5__EXPR__NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
