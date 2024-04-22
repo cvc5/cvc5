@@ -108,6 +108,13 @@ enum ENUM(SkolemId) : uint32_t
    */
   EVALUE(ARRAY_DEQ_DIFF),
   /** 
+   * The empty bitvector.
+   *
+   * - Number of skolem indices: ``0``
+   * - Type: ``(_ BitVec 0)``
+   */
+  EVALUE(BV_EMPTY),
+  /** 
    * The function for division by zero. This is semantically equivalent to the
    * SMT-LIB term ``(lambda ((x Real)) (/ x 0.0))``.
    *
