@@ -63,6 +63,33 @@ bool BasicRewriteRCons::prove(
   return false;
 }
 
+bool BasicRewriteRCons::postProve(
+    CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
+{
+  Node eq = a.eqNode(b);
+
+  if (theory::TheoryId::THEORY_BV == tid)
+  {
+#define TRY_THEORY_REWRITE(id) \
+    if (tryRule( \
+            cdp, \
+            eq, \
+            ProofRule::THEORY_REWRITE, \
+            {mkRewriteRuleNode(ProofRewriteRule::id), eq[0]})) \
+    { \
+      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid \
+                              << ", " << mid << ")" << std::endl; \
+      return true; \
+    } \
+    /* end of macro */
+
+    TRY_THEORY_REWRITE(EXISTS_ELIM)
+  }
+
+  Trace("trewrite-rcons") << "...(fail)" << std::endl;
+  return false;
+}
+
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                 Node eq,
                                 ProofRule r,

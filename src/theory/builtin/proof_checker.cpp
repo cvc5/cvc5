@@ -53,6 +53,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
   pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
+  pc->registerChecker(ProofRule::THEORY_REWRITE, this);
   // rules depending on the rewriter
   pc->registerTrustedChecker(ProofRule::MACRO_REWRITE, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_EQ_INTRO, this, 4);
@@ -468,7 +469,16 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return rpr.getConclusionFor(subs);
   }
-
+  else if (id == ProofRule::THEORY_REWRITE)
+  {
+    Assert (args.size()==2);
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
+    {
+      return Node::null();
+    }
+    return d_trpc.check(di, args[1]);
+  }
   // no rule
   return Node::null();
 }
