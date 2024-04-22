@@ -2520,7 +2520,7 @@ class PluginUnsat : public Plugin
 TEST_F(TestApiBlackSolver, pluginUnsat)
 {
   PluginUnsat pu(d_tm);
-  d_solver->addPlugin(&pu);
+  d_solver->addPlugin(pu);
   // should be unsat since the plugin above asserts "false" as a lemma
   ASSERT_TRUE(d_solver->checkSat().isUnsat());
 }
