@@ -18,8 +18,9 @@
 #ifndef CVC5__THEORY__BUILTIN__THEORY_REWRITE_PROOF_CHECKER_H
 #define CVC5__THEORY__BUILTIN__THEORY_REWRITE_PROOF_CHECKER_H
 
-#include "expr/node.h"
 #include <cvc5/cvc5_proof_rule.h>
+
+#include "expr/node.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -41,6 +42,7 @@ class TheoryRewriteProofChecker
    * @return The right hand side of THEORY_REWRITE for the identifier and term.
    */
   Node checkRewrite(ProofRewriteRule id, const Node& lhs);
+
  private:
   /** Pointer to the node manager */
   NodeManager* d_nm;

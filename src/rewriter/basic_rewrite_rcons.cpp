@@ -16,8 +16,8 @@
 
 #include "rewriter/basic_rewrite_rcons.h"
 
-#include "rewriter/rewrites.h"
 #include "proof/proof_checker.h"
+#include "rewriter/rewrites.h"
 #include "smt/env.h"
 
 using namespace cvc5::internal::kind;
@@ -69,22 +69,20 @@ bool BasicRewriteRCons::postProve(
 {
   Node eq = a.eqNode(b);
 
-#define TRY_THEORY_REWRITE(id) \
-  if (tryRule( \
-          cdp, \
-          eq, \
-          ProofRule::THEORY_REWRITE, \
-          {mkRewriteRuleNode(ProofRewriteRule::id), eq[0]})) \
-  { \
+#define TRY_THEORY_REWRITE(id)                                          \
+  if (tryRule(cdp,                                                      \
+              eq,                                                       \
+              ProofRule::THEORY_REWRITE,                                \
+              {mkRewriteRuleNode(ProofRewriteRule::id), eq[0]}))        \
+  {                                                                     \
     Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid \
-                            << ", " << mid << ")" << std::endl; \
-    return true; \
-  } \
+                            << ", " << mid << ")" << std::endl;         \
+    return true;                                                        \
+  }                                                                     \
   /* end of macro */
 
   // ad-hoc rewrites should be listed here
   TRY_THEORY_REWRITE(EXISTS_ELIM)
-
 
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;

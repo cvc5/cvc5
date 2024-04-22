@@ -52,7 +52,9 @@ class BasicRewriteRCons : protected EnvObj
    * used as a last resort method so this is executed only when other rules
    * fail.
    */
-  bool postProve(CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
+  bool postProve(
+      CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
+
  private:
   /**
    * Try rule r, return true if eq could be proven by r with arguments args.

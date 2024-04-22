@@ -220,9 +220,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
 {
   switch (rule)
   {
-    case ProofRewriteRule::NONE:return "NONE";
+    case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
-    case ProofRewriteRule::EXISTS_ELIM:return "exists_elim";
+    case ProofRewriteRule::EXISTS_ELIM:
+      return "exists_elim";
       //================================================= RARE rules
       // clang-format off
       ${printer}$

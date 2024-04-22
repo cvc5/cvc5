@@ -38,7 +38,11 @@ namespace builtin {
 BuiltinProofRuleChecker::BuiltinProofRuleChecker(NodeManager* nm,
                                                  Rewriter* r,
                                                  Env& env)
-    : ProofRuleChecker(nm), d_rewriter(r), d_env(env), d_rdb(nullptr), d_trpc(nm)
+    : ProofRuleChecker(nm),
+      d_rewriter(r),
+      d_env(env),
+      d_rdb(nullptr),
+      d_trpc(nm)
 {
 }
 
@@ -471,7 +475,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::THEORY_REWRITE)
   {
-    Assert (args.size()==2);
+    Assert(args.size() == 2);
     ProofRewriteRule di;
     if (!rewriter::getRewriteRule(args[0], di))
     {

@@ -19,9 +19,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-TheoryRewriteProofChecker::TheoryRewriteProofChecker(NodeManager* nm) : d_nm(nm){}
+TheoryRewriteProofChecker::TheoryRewriteProofChecker(NodeManager* nm) : d_nm(nm)
+{
+}
 
-Node TheoryRewriteProofChecker::checkRewrite(ProofRewriteRule id, const Node& lhs)
+Node TheoryRewriteProofChecker::checkRewrite(ProofRewriteRule id,
+                                             const Node& lhs)
 {
   Trace("theory-rewrite-pc") << "Check " << id << " " << lhs << std::endl;
   switch (id)
@@ -42,8 +45,7 @@ Node TheoryRewriteProofChecker::checkRewrite(ProofRewriteRule id, const Node& lh
       return d_nm->mkNode(Kind::NOT, d_nm->mkNode(Kind::FORALL, fchildren));
     }
     break;
-    default:
-      break;
+    default: break;
   }
   return Node::null();
 }
@@ -51,4 +53,3 @@ Node TheoryRewriteProofChecker::checkRewrite(ProofRewriteRule id, const Node& lh
 }  // namespace builtin
 }  // namespace theory
 }  // namespace cvc5::internal
-
