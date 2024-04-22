@@ -264,7 +264,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
       {
         // use SAT_EXTERNAL_PROVE for cadical by default
-        SET_AND_NOTIFY(Proof,
+        SET_AND_NOTIFY(proof,
                        propProofMode,
                        options::PropProofMode::SAT_EXTERNAL_PROVE,
                        "cadical");
