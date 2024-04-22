@@ -2505,7 +2505,7 @@ class PluginUnsat : public Plugin
 {
  public:
   PluginUnsat(TermManager& tm) : Plugin(tm), d_tm(tm) {}
-  virtual ~Plugin();
+  virtual ~PluginUnsat();
   std::vector<Term> check() override
   {
     std::vector<Term> lemmas;
