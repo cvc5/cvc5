@@ -20,7 +20,6 @@ libcvc5_add_sources(
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
-  api/cpp/cvc5_proof_rule.cpp
   api/cpp/cvc5_skolem_id.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
@@ -149,6 +148,8 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   proof/alf/alf_dependent_type_converter.cpp
   proof/alf/alf_dependent_type_converter.h
+  proof/alf/alf_list_node_converter.cpp
+  proof/alf/alf_list_node_converter.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
   proof/alf/alf_print_channel.cpp

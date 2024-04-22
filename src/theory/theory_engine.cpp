@@ -2062,6 +2062,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         if (val != d_true)
         {
           std::stringstream ss;
+          for (Node child : assertion)
+          {
+            Node value = d_tc->getModel()->getValue(child);
+            ss << "getValue(" << child << "): " << value << std::endl;
+          }
           ss << " " << theoryId << " has an asserted fact that";
           if (val == d_false)
           {
