@@ -435,6 +435,10 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, itype);
     }
+    case SkolemId::BV_EMPTY:
+    {
+      return nm->mkBitVectorType(0);
+    }
     // int -> Type(args[0])
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:
     {
