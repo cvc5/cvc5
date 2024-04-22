@@ -37,6 +37,7 @@ const char* toString(ProofRule rule)
     case ProofRule::ENCODE_PRED_TRANSFORM: return "ENCODE_PRED_TRANSFORM";
     case ProofRule::ANNOTATION: return "ANNOTATION";
     case ProofRule::DSL_REWRITE: return "DSL_REWRITE";
+    case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
       return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
