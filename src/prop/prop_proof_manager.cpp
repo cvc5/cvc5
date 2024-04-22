@@ -168,7 +168,7 @@ std::vector<Node> PropPfManager::getMinimizedAssumptions()
     }
     else
     {
-      Always(false) << "Missing literal for assumption " << nc;
+      Assert(false) << "Missing literal for assumption " << nc;
     }
     minAssumptions.push_back(nc);
   }
