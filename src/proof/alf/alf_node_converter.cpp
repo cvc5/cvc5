@@ -111,13 +111,23 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     // note: we always distinguish variables, to ensure they do not have
     // names that are overloaded with user names
-    std::stringstream ss;
-    ss << n;
-    std::string sname = ss.str();
+    std::string sname;
+    if (n.hasName())
+    {
+      // get its name if it has one
+      sname = n.getName();
+    }
+    else
+    {
+      // otherwise invoke the printer to get its name
+      std::stringstream ss;
+      ss << n;
+      sname = ss.str();
+    }
     size_t index = d_varIndex[sname];
     d_varIndex[sname]++;
     std::stringstream ssn;
-    ssn << "alf." << index << "." << sname;
+    ssn << "@v." << index << "." << sname;
     return NodeManager::currentNM()->mkBoundVar(ssn.str(), tn);
   }
   else if (k == Kind::VARIABLE)
@@ -142,19 +152,14 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (n.isClosure())
   {
-    // e.g. (forall ((x1 T1) ... (xn Tk)) P) is
-    // (forall ((<name_1> T1) ... (<name_n> Tk)) P) for updated (disambiguated)
-    // variable names.
-    std::vector<Node> vars;
-    for (const Node& v : n[0])
-    {
-      vars.push_back(convert(v));
-    }
-    // use a bound variable list with the updated variables.
-    Node vl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
-    // notice that intentionally we drop annotations here
+    Node vl = n[0];
+    // notice that intentionally we drop annotations here.
     std::vector<Node> args;
-    args.push_back(vl);
+    // We take the *original* bound variable list, since variable names are
+    // preserved in the translation; using the updated variable `@v.N.x`
+    // would lead to using a variable named "@v.N.x" instead of "x", where
+    // `@v.N.x` is a macro for the variable "x".
+    args.push_back(n[0]);
     args.insert(args.end(),
                 n.begin() + 1,
                 n.begin() + getNumChildrenToProcessForClosure(k));
@@ -618,8 +623,9 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   else if (n.isClosure())
   {
     // The operator of a closure by convention includes its variable list.
-    // This is required for cong over binders.
-    Node vl = convert(n[0]);
+    // This is required for cong over binders. We do not convert the variable
+    // list here, for the same reason as why it is not converted in convert(..).
+    Node vl = n[0];
     // the type of this term is irrelevant, just use vl's type
     ret = mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
