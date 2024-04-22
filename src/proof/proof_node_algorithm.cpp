@@ -70,9 +70,10 @@ void getFreeAssumptionsMap(
           // map a recursive call, which is bound in depth by the number of
           // nested SCOPE (never expected to be more than 1 or 2).
           expr::getFreeAssumptionsMap(cs[0], amapTmp);
-          for (std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>& a : amapTmp)
+          for (std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
+                   a : amapTmp)
           {
-            if (std::find(cargs.begin(), cargs.end(), a.first)==cargs.end())
+            if (std::find(cargs.begin(), cargs.end(), a.first) == cargs.end())
             {
               std::vector<std::shared_ptr<ProofNode>>& pfs = amap[a.first];
               pfs.insert(pfs.end(), a.second.begin(), a.second.end());
