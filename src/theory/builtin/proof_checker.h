@@ -22,6 +22,7 @@
 #include "proof/method_id.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "theory/builtin/theory_rewrite_proof_checker.h"
 
 namespace cvc5::internal {
 
