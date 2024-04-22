@@ -67,7 +67,7 @@ void getFreeAssumptionsMap(
         {
           // mark that its arguments are bound in the current scope
           std::map<Node, std::vector<std::shared_ptr<ProofNode>>> amapTmp;
-          // map a recursive call, which is bound in depth by the number of
+          // make a recursive call, which is bound in depth by the number of
           // nested SCOPE (never expected to be more than 1 or 2).
           expr::getFreeAssumptionsMap(cs[0], amapTmp);
           for (std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
