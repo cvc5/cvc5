@@ -50,12 +50,18 @@ libcvc5_add_sources(GENERATED
   ${REWRITE_OUTPUT_FILES}
 )
 
-# If the generated files differ from the source files, they should be copied to
-# the source directory manually for compilation to succeed.
 list(APPEND REWRITE_OUTPUT_FILES
   ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
   ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_proof_rule.h
 )
+
+# If the generated header differs from the source header, it should be copied to
+# the source directory manually for compilation to succeed.
+list(APPEND LIBCVC5_GEN_SRCS
+  ${CMAKE_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
+)
+
+set(LIBCVC5_GEN_SRCS ${LIBCVC5_GEN_SRCS} PARENT_SCOPE)
 
 add_custom_command(
     OUTPUT
@@ -72,7 +78,7 @@ add_custom_command(
       ${REWRITES_FILES}
       ${CMAKE_CURRENT_LIST_DIR}/theory_rewrites_template.cpp
       ${CMAKE_CURRENT_LIST_DIR}/rewrites_template.cpp
-      ${CMAKE_SOURCE_DIR}/src/api/cpp/cvc5_proof_rule.cpp
+      ${CMAKE_SOURCE_DIR}/src/api/cpp/cvc5_proof_rule_template.cpp
       ${CMAKE_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h
     COMMENT
       "Generating rewrites.{h,cpp}"

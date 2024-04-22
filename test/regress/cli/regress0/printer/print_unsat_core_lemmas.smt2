@@ -11,7 +11,7 @@
 ; EXPECT: (or (not (>= x 3)) (>= x 0))
 ; EXPECT: )
 (set-logic ALL)
-(set-option :produce-unsat-cores true)
+(set-option :produce-proofs true)
 (declare-fun x () Int)
 (declare-fun y () Int)
 (assert (! (and (> x 2) (< x 0)) :named x20))
