@@ -2503,18 +2503,19 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
 
 class PluginUnsat : public Plugin
 
- public:
-  PluginUnsat(TermManager& tm) : Plugin(tm) {}
-  virtual ~Plugin();
-  std::vector<Term> check()
-  {
-    std::vector<Term> lemmas;
-    // add the "false" lemma.
-    Term flem = d_tm.mkBoolean(false);
-    lemmas.push_back(flem);
-    return lemmas;
-  }
-  std::string getName() { return "PluginUnsat"; }
+                    public : PluginUnsat(TermManager& tm)
+    : Plugin(tm)
+{
+} virtual ~Plugin();
+std::vector<Term> check()
+{
+  std::vector<Term> lemmas;
+  // add the "false" lemma.
+  Term flem = d_tm.mkBoolean(false);
+  lemmas.push_back(flem);
+  return lemmas;
+}
+std::string getName() { return "PluginUnsat"; }
 };
 
 TEST_F(TestApiBlackSolver, pluginUnsat)

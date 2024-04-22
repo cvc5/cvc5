@@ -1069,7 +1069,12 @@ uint32_t maxArity(Kind k)
 class PluginInternal : public internal::Plugin
 {
  public:
-  PluginInternal(internal::NodeManager * nm, cvc5::TermManager& tm, cvc5::Plugin& e) : internal::Plugin(nm), d_tm(tm), d_external(e) {}
+  PluginInternal(internal::NodeManager* nm,
+                 cvc5::TermManager& tm,
+                 cvc5::Plugin& e)
+      : internal::Plugin(nm), d_tm(tm), d_external(e)
+  {
+  }
   /** Check method */
   std::vector<internal::Node> check() override
   {
@@ -5153,7 +5158,10 @@ const std::shared_ptr<internal::ProofNode>& Proof::getProofNode(void) const
 /* Plugin                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Plugin::Plugin(TermManager& tm) : d_pExtToInt(new PluginInternal(tm.d_nm, tm, *this)) {}
+Plugin::Plugin(TermManager& tm)
+    : d_pExtToInt(new PluginInternal(tm.d_nm, tm, *this))
+{
+}
 Plugin::~Plugin() {}
 
 std::vector<Term> Plugin::check()
