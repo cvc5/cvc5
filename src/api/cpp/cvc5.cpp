@@ -52,6 +52,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
+#include "expr/plugin.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "expr/sygus_grammar.h"
@@ -1061,6 +1062,41 @@ uint32_t maxArity(Kind k)
 }
 
 }  // namespace
+
+/**
+ * Class that acts as a converter from an external to an internal plugin.
+ */
+class PluginInternal : public internal::Plugin
+{
+ public:
+  PluginInternal(internal::NodeManager * nm, cvc5::TermManager& tm, cvc5::Plugin& e) : internal::Plugin(nm), d_tm(tm), d_external(e) {}
+  /** Check method */
+  std::vector<internal::Node> check() override
+  {
+    std::vector<Term> lemsExt = d_external.check();
+    return Term::termVectorToNodes(lemsExt);
+  }
+  /** Notify SAT clause method */
+  void notifySatClause(const internal::Node& n) override
+  {
+    Term t = Term(&d_tm, n);
+    return d_external.notifySatClause(t);
+  }
+  /** Notify theory lemma method */
+  void notifyTheoryLemma(const internal::Node& n) override
+  {
+    Term t = Term(&d_tm, n);
+    return d_external.notifyTheoryLemma(t);
+  }
+  /** Get name */
+  std::string getName() override { return d_external.getName(); }
+
+ private:
+  /** Reference to the term manager */
+  cvc5::TermManager& d_tm;
+  /** Reference to the external (user-provided) plugin */
+  cvc5::Plugin& d_external;
+};
 
 std::string kindToString(Kind k)
 {
@@ -5114,6 +5150,21 @@ const std::shared_ptr<internal::ProofNode>& Proof::getProofNode(void) const
 }
 
 /* -------------------------------------------------------------------------- */
+/* Plugin                                                                     */
+/* -------------------------------------------------------------------------- */
+
+Plugin::Plugin(TermManager& tm) : d_pExtToInt(new PluginInternal(tm.d_nm, tm, *this)) {}
+Plugin::~Plugin() {}
+
+std::vector<Term> Plugin::check()
+{
+  std::vector<Term> ret;
+  return ret;
+}
+void Plugin::notifySatClause(const Term& cl) {}
+void Plugin::notifyTheoryLemma(const Term& lem) {}
+
+/* -------------------------------------------------------------------------- */
 /* TermManager                                                                */
 /* -------------------------------------------------------------------------- */
 
@@ -8078,6 +8129,13 @@ Term Solver::declareOracleFun(
       });
   return Term(&d_tm, fun);
   ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+void Solver::addPlugin(Plugin& p)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  d_slv->addPlugin(p.d_pExtToInt.get());
   CVC5_API_TRY_CATCH_END;
 }
 
