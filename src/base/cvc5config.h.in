@@ -29,9 +29,6 @@
 /* Define to use the libpoly polynomial library. */
 #cmakedefine CVC5_POLY_IMP
 
-/* Define to 1 if Boost threading library has support for thread attributes. */
-#cmakedefine01 BOOST_HAS_THREAD_ATTR
-
 /* Define if `clock_gettime' is supported by the platform. */
 #cmakedefine HAVE_CLOCK_GETTIME
 

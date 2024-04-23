@@ -122,6 +122,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
     case ProofRule::CONCAT_CONFLICT:
+    case ProofRule::CONCAT_SPLIT: 
     case ProofRule::STRING_LENGTH_POS:
     case ProofRule::STRING_LENGTH_NON_EMPTY:
     case ProofRule::RE_INTER:
@@ -131,6 +132,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
+    case ProofRule::ACI_NORM:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::ARITH_POLY_NORM:
     {
@@ -199,26 +201,49 @@ bool AlfPrinter::canEvaluate(Node n) const
         case Kind::CONST_INTEGER:
         case Kind::CONST_RATIONAL:
         case Kind::CONST_STRING:
+        case Kind::CONST_BITVECTOR:
         case Kind::ADD:
         case Kind::SUB:
         case Kind::NEG:
-        case Kind::EQUAL:
         case Kind::LT:
         case Kind::GT:
         case Kind::GEQ:
         case Kind::LEQ:
         case Kind::MULT:
         case Kind::NONLINEAR_MULT:
+        case Kind::INTS_MODULUS:
+        case Kind::INTS_MODULUS_TOTAL:
+        case Kind::DIVISION:
+        case Kind::DIVISION_TOTAL:
+        case Kind::INTS_DIVISION:
+        case Kind::INTS_DIVISION_TOTAL:
+        case Kind::TO_REAL:
+        case Kind::TO_INTEGER:
+        case Kind::IS_INTEGER:
         case Kind::STRING_CONCAT:
         case Kind::STRING_SUBSTR:
         case Kind::STRING_LENGTH:
         case Kind::STRING_CONTAINS:
+        case Kind::STRING_REPLACE:
+        case Kind::STRING_INDEXOF:
         case Kind::BITVECTOR_ADD:
         case Kind::BITVECTOR_SUB:
         case Kind::BITVECTOR_NEG:
+        case Kind::BITVECTOR_NOT:
         case Kind::BITVECTOR_MULT:
         case Kind::BITVECTOR_AND:
-        case Kind::BITVECTOR_OR: break;
+        case Kind::BITVECTOR_OR:
+        case Kind::CONST_BITVECTOR_SYMBOLIC: break;
+        case Kind::EQUAL:
+        {
+          TypeNode tn = cur[0].getType();
+          return tn.isBoolean() || tn.isReal() || tn.isInteger()
+                 || tn.isString() || tn.isBitVector();
+        }
+        break;
+        case Kind::BITVECTOR_SIZE:
+          // special case, evaluates no matter what is inside
+          continue;
         default:
           Trace("alf-printer-debug")
               << "Cannot evaluate " << cur.getKind() << std::endl;
@@ -302,8 +327,17 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       {
         if (v.getKind() == Kind::BOUND_VARIABLE)
         {
-          outVars << "(declare-var " << v << " " << v.getType() << ")"
-                  << std::endl;
+          std::string origName = v.getName();
+          // Strip off "@v.N." from the variable. It may also be an original
+          // variable appearing in a quantifier, in which case we skip.
+          if (origName.substr(0, 3) != "@v.")
+          {
+            continue;
+          }
+          origName = origName.substr(4);
+          origName = origName.substr(origName.find(".") + 1);
+          outVars << "(define " << v << " () (alf.var \"" << origName << "\" "
+                  << v.getType() << "))" << std::endl;
         }
       }
       if (options().proof.alfPrintReference)

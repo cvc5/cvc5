@@ -34,6 +34,12 @@ namespace sets {
 
 class TheorySetsPrivate;
 
+/**
+ * A prefix tree for tuples and their elements' representatives. 
+ * Suppose we have a tuple representative t = <e1, ..., en>,
+ * then the tuple tree would be 
+ * e1 -> e2 -> ... -> e_n -> t
+*/
 class TupleTrie {
 public:
   /** the data */
@@ -100,7 +106,9 @@ class TheorySetsRels : protected EnvObj
   NodeSet                       d_shared_terms;
 
   std::unordered_set<Node> d_rel_nodes;
+  /** a map from tuples to their elements' representatives*/
   std::map< Node, std::vector<Node> >           d_tuple_reps;
+  /** a map from relation terms to their member tuples*/
   std::map< Node, TupleTrie >                   d_membership_trie;
 
   /** Symbolic tuple variables that has been reduced to concrete ones */
@@ -149,6 +157,20 @@ class TheorySetsRels : protected EnvObj
   void applyTransposeRule( Node rel, Node rel_rep, Node exp );
   void applyProductRule( Node rel, Node rel_rep, Node exp );
   void applyJoinRule( Node rel, Node rel_rep, Node exp);
+  /**
+   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
+   * @param nRep a representative of n
+   * @param exp a membership constraint of the form (set.member e n)
+   *        where e is an element of the form (tuple a1 ... am b1 ... bn)
+   * This function sends a fact that represents the following
+   * (=>
+   *   (set.member e n)
+   *   (and
+   *     (= a_{m1} b_{n1}) ... (= a_{mk} b_{nk})
+   *     (set.member (tuple a1 ... am) A)
+   *     (set.member (tuple b1 ... bn) B)))
+   */
+  void applyTableJoinRule(Node n, Node nRep, Node exp);
   void applyJoinImageRule( Node mem_rep, Node rel_rep, Node exp);
   void applyIdenRule( Node mem_rep, Node rel_rep, Node exp);
   void applyTCRule( Node mem, Node rel, Node rel_rep, Node exp);
@@ -166,6 +188,19 @@ class TheorySetsRels : protected EnvObj
                      std::unordered_set<Node>& seen);
 
   void composeMembersForRels( Node );
+  /**
+   * @param n is ((_ rel.join m1 n1 ... mk nk) A B) where A, B are relations
+   * This functions looks for current members of A, B.
+   * For each pair e1 = (tuple a1 ... am) in A, e2 = (tuple b1 ... bn) in B
+   * this function sends the following fact
+   *  (=>
+   *    (and
+   *      (set.member e1 A)
+   *      (set.member e2 B)
+   *      (= a_{m1} b_{n1}) ... (= a_{mk} b_{nk}))
+   *    (set.member (tuple a1 ... am b1 ... bn) n))
+   */
+  void applyTableJoinUp(Node);
   void computeMembersForBinOpRel( Node );
   void computeMembersForIdenTerm( Node );
   void computeMembersForUnaryOpRel( Node );

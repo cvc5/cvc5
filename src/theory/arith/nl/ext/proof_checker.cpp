@@ -40,7 +40,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
                                         const std::vector<Node>& children,
                                         const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("nl-ext-checker") << "Checking " << id << std::endl;
   for (const auto& c : children)
   {
