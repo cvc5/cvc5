@@ -563,6 +563,21 @@ unsigned HoExtension::checkLazyLambda()
         Node rhs = d_ll.betaReduce(glam, args);
         Node univ = nm->mkNode(Kind::FORALL, flam[0], lhs.eqNode(rhs));
         // do quantifier elimination if the option is set
+        // For example, say (= f1 f2) where f1 is (lambda ((x Int)) (< x a))
+        // and f2 is (lambda ((x Int)) (< x b)).
+        // By default, we would generate the inference
+        //  (=> (= f1 f2) (forall ((x Int)) (= (< x a) (< x b))),
+        // where quantified reasoning is introduced into the main solving
+        // procedure.
+        // With --uf-lambda-qe, we use a subsolver to compute the quantifier
+        // elimination of:
+        //   (forall ((x Int)) (= (< x a) (< x b)),
+        // which is (and (<= a b) (<= b a)). We instead generate the lemma
+        //   (=> (= f1 f2) (and (<= a b) (<= b a)).
+        // The motivation for this is to reduce the complexity of constraints
+        // in the main solver. This is motivated by usages of set.filter where
+        // the lambdas are over a decidable theory that admits quantifier
+        // elimination, e.g. LIA or BV.
         if (options().uf.ufHoLambdaQe)
         {
           Trace("uf-lambda-qe") << "Given " << flam << " == " << glam << std::endl;
