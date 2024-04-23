@@ -3555,6 +3555,38 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(RELATION_JOIN),
+   /**
+   * \rst
+   *  Table join operator for relations has the form
+   *  :math:`((\_ \; rel.table\_join \; m_1 \; n_1 \; \dots \; m_k \; n_k) \; A \; B)`
+   *  where :math:`m_1 \; n_1 \; \dots \; m_k \; n_k` are natural numbers,
+   *  and :math:`A, B` are relations.
+   *  This operator filters the product of two sets based on the equality of
+   *  projected tuples using indices :math:`m_1, \dots, m_k` in relation :math:`A`,
+   *  and indices :math:`n_1, \dots, n_k` in relation :math:`B`.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of relation Sort
+   *
+   *   - ``2:`` Term of relation Sort
+   *
+   * - Indices: ``n``
+   *   - ``1..n:``  Indices of the projection
+   *
+   * \endrst
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(RELATION_TABLE_JOIN),
   /**
    * Relation cartesian product.
    *

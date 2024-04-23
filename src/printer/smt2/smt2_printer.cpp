@@ -514,6 +514,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     case Kind::RELATION_GROUP_OP:
     case Kind::RELATION_AGGREGATE_OP:
     case Kind::RELATION_PROJECT_OP:
+    case Kind::RELATION_TABLE_JOIN_OP:
     {
       ProjectOp op = n.getConst<ProjectOp>();
       const std::vector<uint32_t>& indices = op.getIndices();
@@ -1281,6 +1282,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SET_FILTER: return "set.filter";
     case Kind::SET_FOLD: return "set.fold";
     case Kind::RELATION_JOIN: return "rel.join";
+    case Kind::RELATION_TABLE_JOIN: return "rel.table_join";
     case Kind::RELATION_PRODUCT: return "rel.product";
     case Kind::RELATION_TRANSPOSE: return "rel.transpose";
     case Kind::RELATION_TCLOSURE: return "rel.tclosure";
