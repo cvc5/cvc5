@@ -52,4 +52,4 @@ class TheoryRewriteProofChecker
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__BUILTIN__PROOF_CHECKER_H */
+#endif
