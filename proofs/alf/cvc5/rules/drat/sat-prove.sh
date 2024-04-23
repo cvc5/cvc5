@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-#/space/ajreynol/cvc5-ajr/proofs/alf/rules/drat/drat-trim $1 $2
 
-#INPUT=$1
-#PROOF=$2
-#echo "parse"
+# This script expects an input in the form:
+# (
+# "<input>"
+# )
+# Where <input> is the name of a DIMACS file.
+# We typically pipe this input to this script.
+
 # Emptying IFS supresses word splitting by Bash
 # Using '"' in IFS makes bash drop the quotes
 IFS= read -r line
@@ -15,21 +18,16 @@ IFS= read -r line
 if [[ "$line" != ")" ]]; then
       exit 1
 fi
-#echo "got input $INPUT"
 
-#INPUT=`sed -e 's/^"//' -e 's/"$//' <<<"$INPUT"`
-#PROOF=`sed -e 's/^"//' -e 's/"$//' <<<"$PROOF"`
-
-#echo "RUN: drat-trim $INPUT $PROOF"
-#echo "run cadical"
-#cadical $INPUT $INPUT.proof > /dev/null
-# without binary makes drat-trim fail sometimes
+# First, call cadical to construct the DRAT proof.
+# We disable binary, since otherwise drat-trim fails to check sometimes.
 cadical $INPUT $INPUT.proof --binary=false > /dev/null
-#echo "run drat-trim"
+
+# Then, check with drat-trim and record the result in RESULT
 RESULT=$(cat $INPUT.proof | drat-trim $INPUT)
-#echo "finished"
 rm -f $INPUT.proof
 
+# If the result contains the text "VERIFIED", we are successful.
 if [[ $RESULT == *"s VERIFIED"* ]];
 then
       echo "true"

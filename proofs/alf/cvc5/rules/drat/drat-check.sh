@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-#/space/ajreynol/cvc5-ajr/proofs/alf/rules/drat/drat-trim $1 $2
 
-#INPUT=$1
-#PROOF=$2
+# This script expects an input in the form:
+# (
+# "<input>"
+# "<proof>"
+# )
+# Where <input> is the name of a DIMACS file and <proof> is the name of a DRAT
+# proof. We typically pipe this input to this script.
 
 # Emptying IFS supresses word splitting by Bash
 # Using '"' in IFS makes bash drop the quotes
@@ -17,10 +21,6 @@ if [[ "$line" != ")" ]]; then
       exit 1
 fi
 
-#INPUT=`sed -e 's/^"//' -e 's/"$//' <<<"$INPUT"`
-#PROOF=`sed -e 's/^"//' -e 's/"$//' <<<"$PROOF"`
-
-#echo "RUN: drat-trim $INPUT $PROOF"
 RESULT=$(drat-trim $INPUT $PROOF)
 
 if [[ $RESULT == *"s VERIFIED"* ]];
