@@ -338,10 +338,12 @@ Node OperatorElim::eliminateOperators(Node node,
       Node lem;
       if (k == Kind::SQRT)
       {
+        Node zero = nm->mkConstReal(Rational(0));
         Node nonNeg = nm->mkNode(Kind::MULT, var, var).eqNode(node[0]);
+        Node resNonNeg = nm->mkNode(Kind::GEQ, var, zero);
 
         // (sqrt x) reduces to:
-        // (=> (>= x 0.0) (= (* y y) x))
+        // (=> (>= x 0.0) (and (>= y 0.0) (= (* y y) x))
         // where y is (@TRANSCENDENTAL_PURIFY x).
         //
         // This makes sure that the reduction still behaves like a function,
@@ -351,8 +353,8 @@ Node OperatorElim::eliminateOperators(Node node,
         // model.
         lem = nm->mkNode(
             Kind::IMPLIES,
-            nm->mkNode(Kind::GEQ, node[0], nm->mkConstReal(Rational(0))),
-            nonNeg);
+            nm->mkNode(Kind::GEQ, node[0], zero),
+            nm->mkNode(Kind::AND, resNonNeg, nonNeg));
       }
       else
       {
