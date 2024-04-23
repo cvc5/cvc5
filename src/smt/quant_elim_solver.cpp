@@ -72,7 +72,7 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
   bool closed = false;
   if (syms.empty())
   {
-    // Partial elimination is irrelevant since we are a closed formula, so we
+    // Partial elimination is irrelevant since we have a closed formula, so we
     // assume we are doing full elimination.
     doFull = true;
     closed = true;
