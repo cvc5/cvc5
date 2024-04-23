@@ -75,41 +75,48 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     Trace("rpc") << "...success (basic)" << std::endl;
     return true;
   }
-  // if there are quantifiers, fail immediately
-  if (a.isClosure())
-  {
-    Trace("rpc") << "...fail (out of scope)" << std::endl;
-    return false;
-  }
-  ++d_statTotalInputs;
-  Trace("rpc-debug") << "- convert to internal" << std::endl;
-  // prove the equality
-  Node eq = a.eqNode(b);
   bool success = false;
-  for (int64_t i = 0; i <= recLimit; i++)
+  // if there are quantifiers, skip immediately
+  if (!a.isClosure())
   {
-    Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-    if (proveEq(cdp, eq, eq, i, stepLimit))
+    ++d_statTotalInputs;
+    Trace("rpc-debug") << "- convert to internal" << std::endl;
+    // prove the equality
+    Node eq = a.eqNode(b);
+    for (int64_t i = 0; i <= recLimit; i++)
     {
-      success = true;
-      break;
+      Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+      if (proveEq(cdp, eq, eq, i, stepLimit))
+      {
+        success = true;
+        break;
+      }
+    }
+    if (!success)
+    {
+      Node eqi = d_rdnc.convert(eq);
+      // if converter didn't make a difference, don't try to prove again
+      if (eqi != eq)
+      {
+        for (int64_t i = 0; i <= recLimit; i++)
+        {
+          Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+          if (proveEq(cdp, eq, eqi, i, stepLimit))
+          {
+            success = true;
+            break;
+          }
+        }
+      }
     }
   }
   if (!success)
   {
-    Node eqi = d_rdnc.convert(eq);
-    // if converter didn't make a difference, don't try to prove again
-    if (eqi != eq)
+    // now try the "post-prove" method as a last resort
+    if (d_trrc.postProve(cdp, a, b, tid, mid))
     {
-      for (int64_t i = 0; i <= recLimit; i++)
-      {
-        Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-        if (proveEq(cdp, eq, eqi, i, stepLimit))
-        {
-          success = true;
-          break;
-        }
-      }
+      Trace("rpc") << "...success (post-prove basic)" << std::endl;
+      return true;
     }
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
