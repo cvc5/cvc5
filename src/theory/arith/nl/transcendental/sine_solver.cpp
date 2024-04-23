@@ -460,7 +460,7 @@ void SineSolver::checkMonotonic()
       {
         mono_lem = nm->mkNode(Kind::IMPLIES,
                               nm->mkNode(Kind::LEQ, targ, sarg),
-                              nm->mkNode(Kind::LEQ, t, s));
+                              nm->mkNode(Kind::LEQ, s, t));
       }
       if (!mono_lem.isNull())
       {

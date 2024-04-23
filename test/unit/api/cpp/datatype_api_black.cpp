@@ -92,6 +92,11 @@ TEST_F(TestApiBlackDatatype, isNull)
   }
   {
     std::stringstream ss;
+    ss << dtypeSpec;
+    ASSERT_EQ(ss.str(), dtypeSpec.toString());
+  }
+  {
+    std::stringstream ss;
     ss << d;
     ASSERT_EQ(ss.str(), d.toString());
   }

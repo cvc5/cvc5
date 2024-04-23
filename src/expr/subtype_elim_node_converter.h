@@ -14,11 +14,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__EXPR__SUBTYPE_ELIM_NODE_CONVERTER_H
-#define CVC4__PROOF__EXPR__SUBTYPE_ELIM_NODE_CONVERTER_H
-
-#include <iostream>
-#include <map>
+#ifndef CVC5__PROOF__EXPR__SUBTYPE_ELIM_NODE_CONVERTER_H
+#define CVC5__PROOF__EXPR__SUBTYPE_ELIM_NODE_CONVERTER_H
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
@@ -38,7 +35,7 @@ namespace cvc5::internal {
 class SubtypeElimNodeConverter : public NodeConverter
 {
  public:
-  SubtypeElimNodeConverter();
+  SubtypeElimNodeConverter(NodeManager* nm);
   ~SubtypeElimNodeConverter() {}
   /** convert node n as described above during post-order traversal */
   Node postConvert(Node n) override;

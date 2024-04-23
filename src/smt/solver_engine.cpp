@@ -23,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/plugin.h"
 #include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
 #include "expr/sygus_term_enumerator.h"
@@ -116,6 +117,7 @@ SolverEngine::SolverEngine(const Options* optr)
       d_quantElimSolver(nullptr),
       d_userLogicSet(false),
       d_safeOptsSetRegularOption(false),
+      d_safeOptsSetRegularOptionToDefault(false),
       d_isInternalSubsolver(false),
       d_stats(nullptr)
 {
@@ -186,7 +188,8 @@ void SolverEngine::finishInit()
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     // start the unsat core manager
-    d_ucManager.reset(new UnsatCoreManager(*d_env.get()));
+    d_ucManager.reset(new UnsatCoreManager(
+        *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
   // enable proof support in the environment/rewriter
@@ -339,7 +342,7 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_env->d_options.writeDriver().filename = value;
+    d_env->d_options.write_driver().filename = value;
     d_env->getStatisticsRegistry().registerValue<std::string>(
         "driver::filename", value);
   }
@@ -352,12 +355,12 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    getOptions().writeBase().inputLanguage = Language::LANG_SMTLIB_V2_6;
+    getOptions().write_base().inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
     if (!getOptions().printer.outputLanguageWasSetByUser)
     {
       setOption("output-language", "smtlib2.6");
-      getOptions().writePrinter().outputLanguageWasSetByUser = false;
+      getOptions().write_printer().outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
@@ -538,7 +541,7 @@ void SolverEngine::defineFunction(Node func,
   Node def = formula;
   if (!formals.empty())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = d_env->getNodeManager();
     def = nm->mkNode(
         Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, formals), def);
   }
@@ -826,7 +829,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   {
     if (!ret.second.empty())
     {
-      core = convertPreprocessedToInput(ret.second, true);
+      core = d_ucManager->convertPreprocessedToInput(ret.second, true);
     }
   }
   else
@@ -1092,6 +1095,17 @@ void SolverEngine::declareOracleFun(
   assertFormula(q);
 }
 
+void SolverEngine::addPlugin(Plugin* p)
+{
+  if (d_state->isFullyInited())
+  {
+    throw ModalException(
+        "Cannot add plugin after the solver has been fully initialized.");
+  }
+  // we do not initialize the solver here.
+  d_env->addPlugin(p);
+}
+
 Node SolverEngine::simplify(const Node& t)
 {
   beginCall(true);
@@ -1102,7 +1116,7 @@ Node SolverEngine::simplify(const Node& t)
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
   // make so that the returned term does not involve arithmetic subtyping
-  SubtypeElimNodeConverter senc;
+  SubtypeElimNodeConverter senc(d_env->getNodeManager());
   ret = senc.convert(ret);
   endCall();
   return ret;
@@ -1169,7 +1183,7 @@ Node SolverEngine::getValue(const Node& t) const
       // construct the skolem function
       SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
       Node a = skm->mkInternalSkolemFunction(
-          InternalSkolemFunId::ABSTRACT_VALUE, rtn, {resultNode});
+          InternalSkolemId::ABSTRACT_VALUE, rtn, {resultNode});
       // add to top-level substitutions if applicable
       theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
       if (!tsm.get().hasSubstitution(resultNode))
@@ -1340,21 +1354,17 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
 {
   if (Configuration::isAssertionBuild())
   {
-    bool wasShadow = false;
-    if (expr::hasFreeOrShadowedVar(n, wasShadow))
+    // Must rewrite before checking for free variables
+    Node nr = d_env->getRewriter()->rewrite(n);
+    // Don't check for shadowing here, since shadowing may occur from API
+    // users, including the smt2 parser.
+    std::unordered_set<internal::Node> fvs;
+    expr::getFreeVariables(nr, fvs);
+    if (!fvs.empty())
     {
       std::stringstream se;
-      se << "Cannot process term " << n << " with ";
-      if (wasShadow)
-      {
-        se << "shadowed variables " << std::endl;
-      }
-      else
-      {
-        std::unordered_set<internal::Node> fvs;
-        expr::getFreeVariables(n, fvs);
-        se << "free variables: " << fvs << std::endl;
-      }
+      se << "Cannot process term " << nr << " with ";
+      se << "free variables: " << fvs << std::endl;
       throw ModalException(se.str().c_str());
     }
   }
@@ -1370,22 +1380,6 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
       ensureWellFormedTerm(n, src);
     }
   }
-}
-
-std::vector<Node> SolverEngine::convertPreprocessedToInput(
-    const std::vector<Node>& ppa, bool isInternal)
-{
-  std::vector<Node> core;
-  CDProof cdp(*d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
-  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
-  Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
-  d_ucManager->getUnsatCore(
-      pfn, d_smtSolver->getAssertions(), core, isInternal);
-  return core;
 }
 
 void SolverEngine::printProof(std::ostream& out,
@@ -1541,15 +1535,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT response.");
   }
-  // generate with new proofs
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-
-  // make the proof corresponding to a dummy step (SAT_REFUTATION) of the
-  // unsat core computed by the prop engine
-  std::vector<Node> pcore;
-  pe->getUnsatCore(pcore);
-  std::vector<Node> core = convertPreprocessedToInput(pcore, isInternal);
+  std::vector<Node> core = d_ucManager->getUnsatCore(isInternal);
   return UnsatCore(core);
 }
 
@@ -1646,9 +1632,7 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
         "Cannot get lemmas used to derive unsat unless immediately preceded by "
         "UNSAT response.");
   }
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  return pe->getUnsatCoreLemmas();
+  return d_ucManager->getUnsatCoreLemmas(false);
 }
 
 void SolverEngine::getRelevantQuantTermVectors(
@@ -1659,14 +1643,9 @@ void SolverEngine::getRelevantQuantTermVectors(
   Assert(d_state->getMode() == SmtMode::UNSAT);
   Assert(d_env->getOptions().smt.produceProofs
          && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
-  // generate with new proofs
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pfn = pe->getProof();
   // note that we don't have to connect the SAT proof to the input assertions,
   // and preprocessing proofs don't impact what instantiations are used
-  d_ucManager->getRelevantQuantTermVectors(pfn, insts, sks, getDebugInfo);
+  d_ucManager->getRelevantQuantTermVectors(insts, sks, getDebugInfo);
 }
 
 std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
@@ -2059,16 +2038,16 @@ void SolverEngine::setResourceLimit(uint64_t units, bool cumulative)
 {
   if (cumulative)
   {
-    d_env->d_options.writeBase().cumulativeResourceLimit = units;
+    d_env->d_options.write_base().cumulativeResourceLimit = units;
   }
   else
   {
-    d_env->d_options.writeBase().perCallResourceLimit = units;
+    d_env->d_options.write_base().perCallResourceLimit = units;
   }
 }
 void SolverEngine::setTimeLimit(uint64_t millis)
 {
-  d_env->d_options.writeBase().perCallMillisecondLimit = millis;
+  d_env->d_options.write_base().perCallMillisecondLimit = millis;
 }
 
 unsigned long SolverEngine::getResourceUsage() const
@@ -2110,7 +2089,14 @@ void SolverEngine::setOption(const std::string& key,
       // option exception
       std::stringstream ss;
       ss << "expert option " << key
-         << " cannot be set when safeOptions is true";
+         << " cannot be set when safeOptions is true.";
+      // If we are setting to a default value, the exception can be avoided
+      // by omitting.
+      if (getOption(key) == value)
+      {
+        ss << " The value for " << key << " is already its current value ("
+           << value << "). Omitting this option will avoid this exception.";
+      }
       throw OptionException(ss.str());
     }
     else if (oinfo.category == options::OptionInfo::Category::REGULAR)
@@ -2119,13 +2105,30 @@ void SolverEngine::setOption(const std::string& key,
       {
         d_safeOptsSetRegularOption = true;
         d_safeOptsRegularOption = key;
+        d_safeOptsRegularOptionValue = value;
+        d_safeOptsSetRegularOptionToDefault = (getOption(key) == value);
       }
       else
       {
         // option exception
         std::stringstream ss;
-        ss << "cannot set two regular options (" << key << " and "
-           << d_safeOptsRegularOption << ") when safeOptions is true";
+        ss << "cannot set two regular options (" << d_safeOptsRegularOption
+           << " and " << key << ") when safeOptions is true.";
+        // similar to above, if setting to default value for either of the
+        // regular options.
+        for (size_t i = 0; i < 2; i++)
+        {
+          const std::string& rkey = i == 0 ? d_safeOptsRegularOption : key;
+          const std::string& rvalue = i == 0 ? d_safeOptsRegularOptionValue : value;
+          bool isDefault = i == 0 ? d_safeOptsSetRegularOptionToDefault
+                                  : (getOption(key) == value);
+          if (isDefault)
+          {
+            ss << " The value for " << rkey
+               << " is already its current value (" << rvalue
+               << "). Omitting this option will avoid this exception.";
+          }
+        }
         throw OptionException(ss.str());
       }
     }

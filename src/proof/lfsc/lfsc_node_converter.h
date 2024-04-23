@@ -14,8 +14,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__LFSC__LFSC_NODE_CONVERTER_H
-#define CVC4__PROOF__LFSC__LFSC_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__LFSC__LFSC_NODE_CONVERTER_H
+#define CVC5__PROOF__LFSC__LFSC_NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
@@ -34,8 +34,7 @@ namespace proof {
 class LfscNodeConverter : public NodeConverter
 {
  public:
-  LfscNodeConverter();
-  ~LfscNodeConverter() {}
+  LfscNodeConverter(NodeManager* nm);
   /** convert at pre-order traversal */
   Node preConvert(Node n) override;
   /** convert at post-order traversal */

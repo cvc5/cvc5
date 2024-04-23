@@ -9,8 +9,8 @@ from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
-from cvc5proofrules cimport ProofRule
-from cvc5skolemids cimport SkolemFunId
+from cvc5proofrules cimport ProofRewriteRule, ProofRule
+from cvc5skolemids cimport SkolemId
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -216,6 +216,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
 
     cdef cppclass TermManager:
         TermManager() except +
+        Statistics getStatistics() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
         Sort getRealSort() except +
@@ -626,7 +627,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term getRealAlgebraicNumberLowerBound() except +
         Term getRealAlgebraicNumberUpperBound() except +
         bint isSkolem() except +
-        SkolemFunId getSkolemId() except +
+        SkolemId getSkolemId() except +
         vector[Term] getSkolemIndices() except +
 
         bint isConstArray() except +
@@ -670,6 +671,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
 
     cdef cppclass Proof:
         ProofRule getRule() except +
+        ProofRewriteRule getRewriteRule() except +
         Term getResult() except +
         vector[Proof] getChildren() except +
         vector[Term] getArguments() except +

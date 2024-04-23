@@ -2452,7 +2452,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemCache* sc = d_termReg.getSkolemCache();
-  Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, n1, n2);
+  Node k = sc->mkSkolemFun(SkolemId::STRINGS_DEQ_DIFF, n1, n2);
   Node deq = eq.negate();
   // we could use seq.nth instead of substr
   Node ss1, ss2;

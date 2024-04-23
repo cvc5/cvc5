@@ -26,76 +26,92 @@ namespace sep {
 
 TheorySepRewriter::TheorySepRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
 
-void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ){
+void TheorySepRewriter::getStarChildren(Node n,
+                                        std::vector<Node>& scs,
+                                        std::vector<Node>& nscs) const
+{
   Assert(n.getKind() == Kind::SEP_STAR);
-  Node tr = NodeManager::currentNM()->mkConst( true );
+  Node tr = nodeManager()->mkConst(true);
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if (n[i].getKind() == Kind::SEP_EMP)
     {
-      s_children.push_back( n[i] );
+      scs.push_back(n[i]);
     }
     else if (n[i].getKind() == Kind::SEP_STAR)
     {
-      getStarChildren( n[i], s_children, ns_children );
+      getStarChildren(n[i], scs, nscs);
     }
     else if (n[i].getKind() == Kind::SEP_PTO)
     {
-      s_children.push_back( n[i] );
+      scs.push_back(n[i]);
     }
     else
     {
-      std::vector< Node > temp_s_children;
-      getAndChildren( n[i], temp_s_children, ns_children );
+      std::vector<Node> temp_scs;
+      getAndChildren(n[i], temp_scs, nscs);
       Node to_add;
-      if( temp_s_children.size()==0 ){
-        if( std::find( s_children.begin(), s_children.end(), tr )==s_children.end() ){
+      if (temp_scs.size() == 0)
+      {
+        if (std::find(scs.begin(), scs.end(), tr) == scs.end())
+        {
           to_add = tr;
         }
-      }else if( temp_s_children.size()==1 ){
-        to_add = temp_s_children[0];
-      }else{
-        to_add = NodeManager::currentNM()->mkNode(Kind::AND, temp_s_children);
+      }
+      else if (temp_scs.size() == 1)
+      {
+        to_add = temp_scs[0];
+      }
+      else
+      {
+        to_add = nodeManager()->mkNode(Kind::AND, temp_scs);
       }
       if( !to_add.isNull() ){
         //flatten star
         if (to_add.getKind() == Kind::SEP_STAR)
         {
-          getStarChildren( to_add, s_children, ns_children );
+          getStarChildren(to_add, scs, nscs);
         }
-        else if (to_add.getKind() != Kind::SEP_EMP || s_children.empty())
+        else if (to_add.getKind() != Kind::SEP_EMP || scs.empty())
         {  // remove sep emp
-          s_children.push_back( to_add );
+          scs.push_back(to_add);
         }
       }
     }
   }
 }
 
-void TheorySepRewriter::getAndChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ) {
+void TheorySepRewriter::getAndChildren(Node n,
+                                       std::vector<Node>& scs,
+                                       std::vector<Node>& nscs) const
+{
   if (n.getKind() == Kind::AND)
   {
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      getAndChildren( n[i], s_children, ns_children );
+      getAndChildren(n[i], scs, nscs);
     }
   }
   else
   {
     std::map< Node, bool > visited;
     if( isSpatial( n, visited ) ){
-      if( std::find( s_children.begin(), s_children.end(), n )==s_children.end() ){
-        s_children.push_back( n );
+      if (std::find(scs.begin(), scs.end(), n) == scs.end())
+      {
+        scs.push_back(n);
       }
     }else{
-      if( std::find( ns_children.begin(), ns_children.end(), n )==ns_children.end() ){
-        if( n!=NodeManager::currentNM()->mkConst(true) ){
-          ns_children.push_back( n );
+      if (std::find(nscs.begin(), nscs.end(), n) == nscs.end())
+      {
+        if (n != nodeManager()->mkConst(true))
+        {
+          nscs.push_back(n);
         }
       }
     }
   }
 }
 
-bool TheorySepRewriter::isSpatial( Node n, std::map< Node, bool >& visited ) {
+bool TheorySepRewriter::isSpatial(Node n, std::map<Node, bool>& visited) const
+{
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     if (n.getKind() == Kind::SEP_STAR || n.getKind() == Kind::SEP_PTO
@@ -122,36 +138,43 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
     case Kind::SEP_STAR:
     {
       //flatten
-      std::vector< Node > s_children;
-      std::vector< Node > ns_children;
-      getStarChildren( node, s_children, ns_children );
-      if( !s_children.empty() ){
+      std::vector<Node> scs;
+      std::vector<Node> nscs;
+      getStarChildren(node, scs, nscs);
+      if (!scs.empty())
+      {
         Node schild;
-        if( s_children.size()==1 ) {
-          schild = s_children[0];
-        }else{
-          schild = NodeManager::currentNM()->mkNode(Kind::SEP_STAR, s_children);
+        if (scs.size() == 1)
+        {
+          schild = scs[0];
         }
-        ns_children.push_back( schild );
+        else
+        {
+          schild = nodeManager()->mkNode(Kind::SEP_STAR, scs);
+        }
+        nscs.push_back(schild);
       }
-      Assert(!ns_children.empty());
-      if( ns_children.size()==1 ){
-        retNode = ns_children[0];
-      }else{
-        retNode = NodeManager::currentNM()->mkNode(Kind::AND, ns_children);
+      Assert(!nscs.empty());
+      if (nscs.size() == 1)
+      {
+        retNode = nscs[0];
+      }
+      else
+      {
+        retNode = nodeManager()->mkNode(Kind::AND, nscs);
       }
       break;
     }
     case Kind::EQUAL:
     {
       if(node[0] == node[1]) {
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
       }
       else if (node[0].isConst() && node[1].isConst()) {
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(false));
       }
       if (node[0] > node[1]) {
-        Node newNode = NodeManager::currentNM()->mkNode(node.getKind(), node[1], node[0]);
+        Node newNode = nodeManager()->mkNode(node.getKind(), node[1], node[0]);
         return RewriteResponse(REWRITE_DONE, newNode);
       }
       break;

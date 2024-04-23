@@ -3,30 +3,51 @@
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
+; Returns the (integer value) bitwidth for a given bit-vector type.
+(define $bv_bitwidth ((T Type))
+  (alf.match ((n Int)) T (((BitVec n) n)))
+)
+
+; bvsize
+(declare-const @bvsize (-> (! Int :var m :implicit) (BitVec m) Int))
+
+; evaluator for terms that may impact the type of nodes
+(program $eval_bv_sym ((S Type) (T Type) (f (-> T S)) (x S) (ys S :list) (z S) (y T) (m Int) (xb (BitVec m)))
+    (S) S
+    (
+    (($eval_bv_sym (+ x ys))     (arith_eval_add ($eval_bv_sym x) ($eval_bv_sym ys)))
+    (($eval_bv_sym (- x z))      (arith_eval_sub ($eval_bv_sym x) ($eval_bv_sym z)))
+    (($eval_bv_sym (@bvsize xb)) ($bv_bitwidth (alf.typeof xb)))
+    (($eval_bv_sym (int.log2 x)) (arith_eval_int_log_2 ($eval_bv_sym x)))
+    (($eval_bv_sym (mod x z))    (alf.zmod ($eval_bv_sym x) ($eval_bv_sym z)))
+    (($eval_bv_sym x)            x)
+    )
+)
+
 ; used as the nil terminator for concat
-(declare-const bvempty (BitVec 0))
+(define @bv_empty () (alf.to_bin 0 0))
 
 (declare-const concat (->
   (! Int :var n :implicit)
   (! Int :var m :implicit)
   (BitVec n)
   (BitVec m)
-  (BitVec (alf.add n m))) :right-assoc-nil bvempty
+  (BitVec (alf.add n m))) :right-assoc-nil @bv_empty
 )
 
 (declare-const extract (->
   (! Int :var n :implicit)
   (! Int :var h)
-  (! Int :var l :requires ((alf.is_neg l) false))
+  (! Int :var l)
   (BitVec n)
-  (BitVec (alf.add h (alf.neg l) 1)))
+  (BitVec (alf.add ($eval_bv_sym h) (alf.neg ($eval_bv_sym l)) 1)))
 )
 
 (declare-const repeat 
     (-> (! Int :var n :implicit)
         (! Int :var i)
         (BitVec n)
-        (BitVec (alf.mul i n))
+        (BitVec (alf.mul ($eval_bv_sym i) n))
     ) 
 )
 
@@ -35,16 +56,14 @@
         (BitVec m) (BitVec m))
 )
 
-(declare-const bvand
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvand ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.not (alf.to_bin m 0))
 )
 
-(declare-const bvor
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvor ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.to_bin m 0)
 )
 
 (declare-const bvnand
@@ -57,10 +76,9 @@
         (BitVec m) (BitVec m) (BitVec m)) 
 )
 
-(declare-const bvxor
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvxor ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.to_bin m 0)
 )
 
 (declare-const bvxnor
@@ -78,16 +96,14 @@
         (BitVec m) (BitVec m))
 )
 
-(declare-const bvadd
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvadd ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.to_bin m 0)
 )
 
-(declare-const bvmul
-    (-> (! Int :var m :implicit)
-        (BitVec m) (BitVec m) (BitVec m))
-    :right-assoc-nil
+(declare-parameterized-const bvmul ((m Int))
+    (-> (BitVec m) (BitVec m) (BitVec m))
+    :right-assoc-nil (alf.to_bin m 1)
 )
 
 (declare-const bvudiv
@@ -179,13 +195,13 @@
 (declare-const zero_extend
     (-> (! Int :var m :implicit)
         (! Int :var i)
-        (BitVec m) (BitVec (alf.add m i)))
+        (BitVec m) (BitVec (alf.add m ($eval_bv_sym i))))
 )
 
 (declare-const sign_extend
     (-> (! Int :var m :implicit)
         (! Int :var i)
-        (BitVec m) (BitVec (alf.add m i)))
+        (BitVec m) (BitVec (alf.add m ($eval_bv_sym i))))
 )
 
 (declare-const rotate_left
@@ -223,11 +239,6 @@
     (-> (! Int :var m :implicit) 
         (BitVec m) (BitVec m) (BitVec 1))
 )
-
-(declare-const bitOf
-    (-> (! Int :var m :implicit)
-        Int (BitVec m) Bool))
-
 
 (declare-const bvuaddo
   (-> (! Int :var m :implicit)
@@ -285,13 +296,6 @@
         (BitVec m) (BitVec 1))
 )
 
-(declare-const bbT (->
-  (! Int :var n :implicit)
-  Bool
-  (BitVec n)
-  (BitVec (alf.add 1 n)))
-)
-
 (declare-const int2bv (->
   (! Int :var w)
   Int (BitVec w))
@@ -304,9 +308,18 @@
 
 (declare-const BITVECTOR_EAGER_ATOM (-> Bool Bool))
 
-; symbolic constant
-;(declare-const bv (-> Int (! Int :var w) (BitVec w)))
+; internal operators
 
-; bvsize
-; should be a define
-(declare-const bvsize (-> (! Int :var m :implicit) (BitVec m) Int))
+(declare-const @bitOf
+    (-> (! Int :var m :implicit)
+        Int (BitVec m) Bool))
+
+(declare-const @bbT (->
+  (! Int :var n :implicit)
+  Bool
+  (BitVec n)
+  (BitVec (alf.add 1 n))) :right-assoc-nil @bv_empty
+)
+
+; symbolic constant
+(declare-const @bv (-> Int (! Int :var w) (BitVec ($eval_bv_sym w))))

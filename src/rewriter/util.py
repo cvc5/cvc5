@@ -45,7 +45,7 @@ def read_tpl(directory, name):
     Read a template file directory/name. The contents of the template file will
     be read into a string, which will later be used to fill in the generated
     code/documentation via format. Hence, we have to escape curly braces. All
-    placeholder variables in the template files are enclosed in ${placeholer}$
+    placeholder variables in the template files are enclosed in ${placeholder}$
     and will be {placeholder} in the returned string.
     """
     fname = os.path.join(directory, name)
@@ -59,6 +59,37 @@ def read_tpl(directory, name):
                             replace('${', '').replace('}$', '').\
                             replace('// clang-format on\n', '').\
                             replace('// clang-format off\n', '')
+            return contents
+    except IOError:
+        die("Could not find '{}'. Aborting.".format(fname))
+
+
+def read_tpl_enclosed(directory, name):
+    """
+    Read a template file directory/name. The contents of the template file will
+    be read into a string, which will later be used to update the generated
+    code/documentation via format. Hence, we have to escape curly braces. All
+    the code to update in the template files is enclosed between two
+    ${{placeholder}}$ tokens and will be {placeholder} in the returned string.
+    """
+    fname = os.path.join(directory, name)
+    try:
+        # Escape { and } since we later use .format to add the generated code.
+        # Further, strip ${ and }$ from placeholder variables in the template
+        # file.
+        with open(fname, 'r') as file:
+            contents = file.read().replace('{', '{{').replace('}', '}}')
+            index = 0
+            while True:
+                start = contents.find('// ${{', index)
+                if start == -1:
+                    break
+                end = contents.find('}}$', start)
+                name = contents[start+6:end]
+                i = start + len(f'// ${{{{{name}}}}}$\n')
+                j = contents.find(f'// ${{{{{name}}}}}$\n', i)
+                contents = contents[:i] + f'{{{name}}}\n' + contents[j:]
+                index = i + len(f'{{{name}}}\n// ${{{{{name}}}}}$\n')
             return contents
     except IOError:
         die("Could not find '{}'. Aborting.".format(fname))

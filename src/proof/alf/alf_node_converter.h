@@ -14,8 +14,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALF__ALF_NODE_CONVERTER_H
-#define CVC4__PROOF__ALF__ALF_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__ALF__ALF_NODE_CONVERTER_H
+#define CVC5__PROOF__ALF__ALF_NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
@@ -35,6 +35,7 @@ namespace proof {
 class BaseAlfNodeConverter : public NodeConverter
 {
  public:
+  BaseAlfNodeConverter(NodeManager* nm);
   /**
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
@@ -50,6 +51,23 @@ class BaseAlfNodeConverter : public NodeConverter
    * passed as arguments to terms and proof rules.
    */
   virtual Node typeAsNode(TypeNode tni) = 0;
+  /**
+   * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
+   * has a distinguished status so that it is *not* printed as (bvar ...). The
+   * returned variable is always fresh.
+   */
+  virtual Node mkInternalSymbol(const std::string& name,
+                                TypeNode tn,
+                                bool useRawSym = true) = 0;
+  /**
+   * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
+   * has a distinguished status so that it is *not* printed as (bvar ...). The
+   * returned variable is always fresh.
+   */
+  virtual Node mkInternalApp(const std::string& name,
+                             const std::vector<Node>& args,
+                             TypeNode ret,
+                             bool useRawSym = true) = 0;
 };
 
 /**
@@ -59,7 +77,7 @@ class BaseAlfNodeConverter : public NodeConverter
 class AlfNodeConverter : public BaseAlfNodeConverter
 {
  public:
-  AlfNodeConverter();
+  AlfNodeConverter(NodeManager* nm);
   ~AlfNodeConverter() {}
   /** Convert at pre-order traversal */
   Node preConvert(Node n) override;
@@ -75,15 +93,6 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * @return the operator.
    */
   Node getOperatorOfTerm(Node n, bool reqCast = false) override;
-  /**
-   * Get the null terminator for kind k and type tn. The type tn can be
-   * omitted if applications of kind k do not have parametric type.
-   *
-   * The returned null terminator is *not* converted to internal form.
-   *
-   * For examples of null terminators, see nary_term_utils.h.
-   */
-  Node getNullTerminator(Kind k, TypeNode tn);
   /** Make generic list */
   Node mkList(const std::vector<Node>& args);
   /**
@@ -93,7 +102,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    */
   Node mkInternalSymbol(const std::string& name,
                         TypeNode tn,
-                        bool useRawSym = true);
+                        bool useRawSym = true) override;
   /**
    * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
    * has a distinguished status so that it is *not* printed as (bvar ...). The
@@ -102,7 +111,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   Node mkInternalApp(const std::string& name,
                      const std::vector<Node>& args,
                      TypeNode ret,
-                     bool useRawSym = true);
+                     bool useRawSym = true) override;
   /**
    * Type as node, returns a node that prints in the form that ALF will
    * interpret as the type tni. This method is required since types can be
@@ -136,7 +145,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   /** Is k a kind that is printed as an indexed operator in ALF? */
   static bool isIndexedOperatorKind(Kind k);
   /** Do we handle the given skolem id? */
-  static bool isHandledSkolemId(SkolemFunId id);
+  static bool isHandledSkolemId(SkolemId id);
   /** Get indices for printing the operator of n in the ALF format */
   static std::vector<Node> getOperatorIndices(Kind k, Node n);
   /** The set of all internally generated symbols */

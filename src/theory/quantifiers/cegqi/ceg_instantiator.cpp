@@ -130,7 +130,7 @@ CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
       || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION
       || k == Kind::INTS_DIVISION_TOTAL || k == Kind::INTS_MODULUS
       || k == Kind::INTS_MODULUS_TOTAL || k == Kind::TO_INTEGER
-      || k == Kind::IS_INTEGER || k == Kind::TO_REAL)
+      || k == Kind::IS_INTEGER || k == Kind::TO_REAL || k == Kind::ABS)
   {
     return CEG_HANDLED;
   }
@@ -1361,12 +1361,17 @@ void CegInstantiator::processAssertions() {
   }
 }
 
-Node CegInstantiator::getModelValue( Node n ) {
+Node CegInstantiator::getModelValue(Node n)
+{
   Node mv = d_treg.getModel()->getValue(n);
-  // Witness terms with identifiers may appear in the model. We require
-  // dropping their annotations here.
-  AnnotationElimNodeConverter aenc;
-  mv = aenc.convert(mv);
+  // if the model value is not constant, it may require some processing
+  if (!mv.isConst())
+  {
+    // Witness terms with identifiers may appear in the model. We require
+    // dropping their annotations here.
+    AnnotationElimNodeConverter aenc(nodeManager());
+    mv = aenc.convert(mv);
+  }
   return mv;
 }
 

@@ -25,12 +25,14 @@ import org.junit.jupiter.api.Test;
 
 class GrammarTest
 {
+  private TermManager d_tm;
   private Solver d_solver;
 
   @BeforeEach
   void setUp()
   {
-    d_solver = new Solver();
+    d_tm = new TermManager();
+    d_solver = new Solver(d_tm);
   }
 
   @AfterEach
@@ -43,10 +45,10 @@ class GrammarTest
   void testToString()
   {
     d_solver.setOption("sygus", "true");
-    Sort bool = d_solver.getBooleanSort();
-    Term start = d_solver.mkVar(bool);
+    Sort bool = d_tm.getBooleanSort();
+    Term start = d_tm.mkVar(bool);
     Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
-    g.addRule(start, d_solver.mkBoolean(false));
+    g.addRule(start, d_tm.mkBoolean(false));
     g.toString();
   }
 
@@ -54,65 +56,63 @@ class GrammarTest
   void addRule()
   {
     d_solver.setOption("sygus", "true");
-    Sort bool = d_solver.getBooleanSort();
-    Sort integer = d_solver.getIntegerSort();
+    Sort bool = d_tm.getBooleanSort();
+    Sort integer = d_tm.getIntegerSort();
 
     Term nullTerm = new Term();
-    Term start = d_solver.mkVar(bool);
-    Term nts = d_solver.mkVar(bool);
+    Term start = d_tm.mkVar(bool);
+    Term nts = d_tm.mkVar(bool);
 
     Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
-    assertDoesNotThrow(() -> g.addRule(start, d_solver.mkBoolean(false)));
+    assertDoesNotThrow(() -> g.addRule(start, d_tm.mkBoolean(false)));
 
-    assertThrows(CVC5ApiException.class, () -> g.addRule(nullTerm, d_solver.mkBoolean(false)));
+    assertThrows(CVC5ApiException.class, () -> g.addRule(nullTerm, d_tm.mkBoolean(false)));
     assertThrows(CVC5ApiException.class, () -> g.addRule(start, nullTerm));
-    assertThrows(CVC5ApiException.class, () -> g.addRule(nts, d_solver.mkBoolean(false)));
-    assertThrows(CVC5ApiException.class, () -> g.addRule(start, d_solver.mkInteger(0)));
+    assertThrows(CVC5ApiException.class, () -> g.addRule(nts, d_tm.mkBoolean(false)));
+    assertThrows(CVC5ApiException.class, () -> g.addRule(start, d_tm.mkInteger(0)));
 
     d_solver.synthFun("f", new Term[] {}, bool, g);
 
-    assertThrows(CVC5ApiException.class, () -> g.addRule(start, d_solver.mkBoolean(false)));
+    assertThrows(CVC5ApiException.class, () -> g.addRule(start, d_tm.mkBoolean(false)));
   }
 
   @Test
   void addRules()
   {
     d_solver.setOption("sygus", "true");
-    Sort bool = d_solver.getBooleanSort();
-    Sort integer = d_solver.getIntegerSort();
+    Sort bool = d_tm.getBooleanSort();
+    Sort integer = d_tm.getIntegerSort();
 
     Term nullTerm = new Term();
-    Term start = d_solver.mkVar(bool);
-    Term nts = d_solver.mkVar(bool);
+    Term start = d_tm.mkVar(bool);
+    Term nts = d_tm.mkVar(bool);
 
     Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
-    assertDoesNotThrow(() -> g.addRules(start, new Term[] {d_solver.mkBoolean(false)}));
+    assertDoesNotThrow(() -> g.addRules(start, new Term[] {d_tm.mkBoolean(false)}));
 
     assertThrows(
-        CVC5ApiException.class, () -> g.addRules(nullTerm, new Term[] {d_solver.mkBoolean(false)}));
+        CVC5ApiException.class, () -> g.addRules(nullTerm, new Term[] {d_tm.mkBoolean(false)}));
     assertThrows(CVC5ApiException.class, () -> g.addRules(start, new Term[] {nullTerm}));
-    assertThrows(
-        CVC5ApiException.class, () -> g.addRules(nts, new Term[] {d_solver.mkBoolean(false)}));
-    assertThrows(
-        CVC5ApiException.class, () -> g.addRules(start, new Term[] {d_solver.mkInteger(0)}));
+    assertThrows(CVC5ApiException.class, () -> g.addRules(nts, new Term[] {d_tm.mkBoolean(false)}));
+    assertThrows(CVC5ApiException.class, () -> g.addRules(start, new Term[] {d_tm.mkInteger(0)}));
 
     d_solver.synthFun("f", new Term[] {}, bool, g);
 
     assertThrows(
-        CVC5ApiException.class, () -> g.addRules(start, new Term[] {d_solver.mkBoolean(false)}));
+        CVC5ApiException.class, () -> g.addRules(start, new Term[] {d_tm.mkBoolean(false)}));
   }
 
   @Test
   void addAnyConstant()
   {
     d_solver.setOption("sygus", "true");
-    Sort bool = d_solver.getBooleanSort();
+    Sort bool = d_tm.getBooleanSort();
 
     Term nullTerm = new Term();
-    Term start = d_solver.mkVar(bool);
-    Term nts = d_solver.mkVar(bool);
+    Term start = d_tm.mkVar(bool);
+    Term nts = d_tm.mkVar(bool);
 
     Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
 
@@ -131,12 +131,12 @@ class GrammarTest
   void addAnyVariable()
   {
     d_solver.setOption("sygus", "true");
-    Sort bool = d_solver.getBooleanSort();
+    Sort bool = d_tm.getBooleanSort();
 
     Term nullTerm = new Term();
-    Term x = d_solver.mkVar(bool);
-    Term start = d_solver.mkVar(bool);
-    Term nts = d_solver.mkVar(bool);
+    Term x = d_tm.mkVar(bool);
+    Term start = d_tm.mkVar(bool);
+    Term nts = d_tm.mkVar(bool);
 
     Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start});
     Grammar g2 = d_solver.mkGrammar(new Term[] {}, new Term[] {start});

@@ -435,8 +435,8 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     // Start new SMT engine to check solutions
     std::unique_ptr<SolverEngine> solChecker;
     initializeSygusSubsolver(solChecker, as);
-    solChecker->getOptions().writeSmt().checkSynthSol = false;
-    solChecker->getOptions().writeQuantifiers().sygusRecFun = false;
+    solChecker->getOptions().write_smt().checkSynthSol = false;
+    solChecker->getOptions().write_quantifiers().sygusRecFun = false;
     Assert(conj.getKind() == Kind::FORALL);
     Node conjBody = conj[1];
     // we must apply substitutions here, since define-fun may contain the

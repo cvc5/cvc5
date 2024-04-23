@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of the Kind enum of the  C++ API.
+ * Black box testing of the ProofRule enum of the C++ API.
  */
 
 #include <cvc5/cvc5_proof_rule.h>
@@ -31,22 +31,42 @@ class TestApiProofRule : public ::testing::Test
 TEST_F(TestApiProofRule, proofRuleToString)
 {
   for (int32_t r = static_cast<int32_t>(ProofRule::ASSUME);
-       r < static_cast<int32_t>(ProofRule::UNKNOWN);
+       r <= static_cast<int32_t>(ProofRule::UNKNOWN);
        ++r)
   {
-    auto rulestr = toString(static_cast<ProofRule>(r));
-    if (r == static_cast<int32_t>(ProofRule::UNKNOWN))
-    {
-      ASSERT_EQ(rulestr, "UNKNONW");
-    }
-    else
-    {
-      // If this assertion fails, the switch in cvc5_proof_rule.cpp is missing
-      // rule r.
-      ASSERT_NE(rulestr, "UNKNOWN");
-      ASSERT_NE(rulestr, "?");
-    }
+    ProofRule rule = static_cast<ProofRule>(r);
+    auto rulestr = toString(rule);
+    // If this assertion fails, the switch is missing rule r.
+    ASSERT_NE(rulestr, "?");
   }
+}
+
+TEST_F(TestApiProofRule, ProofRuleHash)
+{
+  ASSERT_EQ(std::hash<cvc5::ProofRule>()(ProofRule::UNKNOWN),
+            static_cast<size_t>(ProofRule::UNKNOWN));
+}
+
+class TestApiProofRewriteRule : public ::testing::Test
+{
+};
+
+TEST_F(TestApiProofRewriteRule, ProofRewriteRuleToString)
+{
+  for (int32_t r = static_cast<int32_t>(ProofRewriteRule::NONE);
+       r <= static_cast<int32_t>(ProofRewriteRule::DISTINCT_BINARY_ELIM);
+       ++r)
+  {
+    auto rulestr = std::to_string(static_cast<ProofRewriteRule>(r));
+    // If this assertion fails, the switch is missing rule r.
+    ASSERT_NE(rulestr, "?");
+  }
+}
+
+TEST_F(TestApiProofRewriteRule, ProofRewriteRuleHash)
+{
+  ASSERT_EQ(std::hash<cvc5::ProofRewriteRule>()(ProofRewriteRule::NONE),
+            static_cast<size_t>(ProofRewriteRule::NONE));
 }
 
 }  // namespace test
