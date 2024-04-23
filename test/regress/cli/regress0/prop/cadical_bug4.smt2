@@ -1,4 +1,5 @@
 ; COMMAND-LINE: -i --sat-solver=cadical
+; DISABLE-TESTER: alf
 (set-logic QF_LIA)
 (declare-fun s () Int)
 (push)
