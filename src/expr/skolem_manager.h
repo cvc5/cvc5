@@ -58,6 +58,8 @@ enum class InternalSkolemId
   MBQI_INPUT,
   /** abstract value for a term t */
   ABSTRACT_VALUE,
+  /** Input variables for quantifier elimination of closed formulas */
+  QE_CLOSED_INPUT
 };
 /** Converts an internal skolem function name to a string. */
 const char* toString(InternalSkolemId id);
