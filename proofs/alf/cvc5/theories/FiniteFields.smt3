@@ -2,24 +2,28 @@
 
 (declare-const FiniteField (-> Int Type))
 
+; Returns the (integer value) size for a given finite field type.
+(define $ff_size ((T Type))
+  (alf.match ((n Int)) T (((FiniteField n) n))))
+
 ; A finite field constant is a term having 2 integer children.
 ; NOTE: we do not support the native syntax.
 (declare-const ff.value
     (-> (! Int :var p) Int (FiniteField p)))
 
-(declare-const ff.add
-    (-> (! Int :var p :implicit)
-        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+(declare-parameterized-const ff.add ((p Int))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p)) 
+    :right-assoc-nil (ff.value p 0)
 )
 (declare-const ff.neg
     (-> (! Int :var p :implicit)
         (FiniteField p) (FiniteField p))
 )
-(declare-const ff.mul
-    (-> (! Int :var p :implicit)
-        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+(declare-parameterized-const ff.mul ((p Int))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p))
+    :right-assoc-nil (ff.value p 1)
 )
-(declare-const ff.bitsum
-    (-> (! Int :var p :implicit)
-        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+(declare-parameterized-const ff.bitsum ((p Int))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p))
+    :right-assoc-nil (ff.value p 0)
 )

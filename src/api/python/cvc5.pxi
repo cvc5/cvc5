@@ -48,6 +48,7 @@ from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
+from cvc5proofrules cimport ProofRewriteRule as c_ProofRewriteRule
 from cvc5proofrules cimport ProofRule as c_ProofRule
 from cvc5skolemids cimport SkolemId as c_SkolemId
 
@@ -5672,6 +5673,14 @@ cdef class Proof:
             :return: The proof rule used by the root step of the proof.
         """
         return ProofRule(<int> self.cproof.getRule())
+
+    def getRewriteRule(self):
+        """
+            :return: The proof rewrite rule used by the root step of the proof.
+                     Raises an exception if `getRule()` does not return
+                     `DSL_REWRITE` or `THEORY_REWRITE`.
+        """
+        return ProofRewriteRule(<int> self.cproof.getRewriteRule())
 
     def getResult(self):
         """
