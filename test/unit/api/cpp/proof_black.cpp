@@ -55,6 +55,19 @@ class TestApiBlackProof : public TestApi
 
     return d_solver->getProof().front();
   }
+
+  Proof createRewriteProof()
+  {
+    d_solver->setOption("produce-proofs", "true");
+    d_solver->setOption("proof-granularity", "dsl-rewrite");
+    Sort intSort = d_tm.getIntegerSort();
+    Term x = d_tm.mkConst(intSort, "x");
+    Term twoX = d_tm.mkTerm(Kind::MULT, {d_tm.mkInteger(2), x});
+    Term xPlusX = d_tm.mkTerm(Kind::ADD, {x, x});
+    d_solver->assertFormula(d_tm.mkTerm(Kind::DISTINCT, {twoX, xPlusX}));
+    d_solver->checkSat();
+    return d_solver->getProof().front();
+  }
 };
 
 TEST_F(TestApiBlackProof, nullProof)
@@ -73,6 +86,24 @@ TEST_F(TestApiBlackProof, getRule)
 {
   Proof proof = create_proof();
   ASSERT_EQ(proof.getRule(), ProofRule::SCOPE);
+}
+
+TEST_F(TestApiBlackProof, getRewriteRule)
+{
+  Proof proof = createRewriteProof();
+  ASSERT_THROW(proof.getRewriteRule(), CVC5ApiException);
+  ProofRule rule;
+  std::vector<Proof> stack;
+  stack.push_back(proof);
+  do
+  {
+    proof = stack.back();
+    stack.pop_back();
+    rule = proof.getRule();
+    std::vector<Proof> children = proof.getChildren();
+    stack.insert(stack.cend(), children.cbegin(), children.cend());
+  } while (rule != ProofRule::DSL_REWRITE);
+  ASSERT_NO_THROW(proof.getRewriteRule());
 }
 
 TEST_F(TestApiBlackProof, getResult)

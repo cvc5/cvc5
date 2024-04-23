@@ -16,6 +16,7 @@
 #include "expr/nary_term_util.h"
 
 #include "expr/attribute.h"
+#include "expr/skolem_manager.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
@@ -36,7 +37,7 @@ using IsListAttr = expr::Attribute<IsListTag, bool>;
 
 void markListVar(TNode fv)
 {
-  Assert(fv.getKind() == Kind::BOUND_VARIABLE);
+  Assert(fv.isVar());
   fv.setAttribute(IsListAttr(), true);
 }
 
@@ -68,11 +69,11 @@ bool hasListVar(TNode n)
   return false;
 }
 
-bool getListVarContext(TNode n, std::map<Node, Kind>& context)
+bool getListVarContext(TNode n, std::map<Node, Node>& context)
 {
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;
-  std::map<Node, Kind>::iterator itc;
+  std::map<Node, Node>::iterator itc;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -96,9 +97,9 @@ bool getListVarContext(TNode n, std::map<Node, Kind>& context)
           itc = context.find(cn);
           if (itc == context.end())
           {
-            context[cn] = cur.getKind();
+            context[cn] = cur;
           }
-          else if (itc->second != cur.getKind())
+          else if (itc->second.getKind() != cur.getKind())
           {
             return false;
           }
@@ -172,6 +173,11 @@ Node getNullTerminator(Kind k, TypeNode tn)
         nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       }
       break;
+    case Kind::BITVECTOR_CONCAT:
+    {
+      nullTerm = nm->getSkolemManager()->mkSkolemFunction(SkolemId::BV_EMPTY);
+    }
+    break;
     case Kind::FINITE_FIELD_ADD:
       if (tn.isFiniteField())
       {
@@ -195,9 +201,17 @@ Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs)
 {
+  std::unordered_map<TNode, Node> visited;
+  return narySubstitute(src, vars, subs, visited);
+}
+
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited)
+{
   // assumes all variables are list variables
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   std::vector<Node>::const_iterator itv;

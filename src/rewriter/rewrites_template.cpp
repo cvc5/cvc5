@@ -28,68 +28,30 @@ namespace rewriter {
 
 // clang-format off
 ${decl_individual_rewrites}$
-// clang-format on
+    // clang-format on
 
-void addRules(RewriteDb& db)
-{
-  // Calls to individual rewrites
-  // clang-format off
+    void
+    addRules(RewriteDb& db){
+        // Calls to individual rewrites
+        // clang-format off
   ${call_individual_rewrites}$
-  // clang-format on
-}
+        // clang-format on
+    }
 
-bool isInternalDslProofRule(DslProofRule drule)
-{
-  return drule == DslProofRule::FAIL || drule == DslProofRule::REFL
-         || drule == DslProofRule::EVAL || drule == DslProofRule::TRANS
-         || drule == DslProofRule::CONG || drule == DslProofRule::CONG_EVAL
-         || drule == DslProofRule::TRUE_ELIM
-         || drule == DslProofRule::TRUE_INTRO
-         || drule == DslProofRule::ARITH_POLY_NORM
-         || drule == DslProofRule::ACI_NORM;
-}
-
-const char* toString(DslProofRule drule)
-{
-  switch (drule)
-  {
-    case DslProofRule::FAIL: return "FAIL";
-    case DslProofRule::REFL: return "REFL";
-    case DslProofRule::EVAL: return "EVAL";
-    case DslProofRule::TRANS: return "TRANS";
-    case DslProofRule::CONG: return "CONG";
-    case DslProofRule::CONG_EVAL: return "CONG_EVAL";
-    case DslProofRule::TRUE_ELIM: return "TRUE_ELIM";
-    case DslProofRule::TRUE_INTRO: return "TRUE_INTRO";
-    case DslProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
-    case DslProofRule::ACI_NORM: return "ACI_NORM";
-      // clang-format off
-${printer}$
-    default : Unreachable();
-      // clang-format on
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, DslProofRule drule)
-{
-  out << toString(drule);
-  return out;
-}
-
-Node mkDslProofRuleNode(DslProofRule i)
+Node mkRewriteRuleNode(ProofRewriteRule rule)
 {
   return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(i)));
+      Rational(static_cast<uint32_t>(rule)));
 }
 
-bool getDslProofRule(TNode n, DslProofRule& i)
+bool getRewriteRule(TNode n, ProofRewriteRule& rule)
 {
   uint32_t index;
   if (!ProofRuleChecker::getUInt32(n, index))
   {
     return false;
   }
-  i = static_cast<DslProofRule>(index);
+  rule = static_cast<ProofRewriteRule>(index);
   return true;
 }
 

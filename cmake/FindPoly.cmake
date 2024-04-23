@@ -237,8 +237,8 @@ else()
 
   ExternalProject_Get_Property(Poly-EP BUILD_BYPRODUCTS INSTALL_DIR)
   string(REPLACE "<INSTALL_DIR>" "${INSTALL_DIR}" BUILD_BYPRODUCTS "${BUILD_BYPRODUCTS}")
-  install(FILES
-    ${BUILD_BYPRODUCTS}
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+  # Only install shared libraries
+  if (BUILD_SHARED_LIBS)
+    install(FILES ${BUILD_BYPRODUCTS} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()
