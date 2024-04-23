@@ -78,6 +78,11 @@ TrustNode TheoryRewriter::expandDefinition(Node node)
   return TrustNode::null();
 }
 
+Node TheoryRewriter::rewriteViaRule(ProofRewriteRule pr, const Node& n)
+{
+  return n;
+}
+
 NodeManager* TheoryRewriter::nodeManager() const { return d_nm; }
 
 }  // namespace theory

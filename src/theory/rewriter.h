@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <cvc5/cvc5_proof_rule.h>
+
 #include "expr/node.h"
 #include "theory/theory_rewriter.h"
 
@@ -98,6 +100,15 @@ class Rewriter {
 
   /** Get the theory rewriter for the given id */
   TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
+
+  /**
+   * Rewrite n based on the proof rewrite rule pr.
+   * @param pr The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on pr, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule pr, const Node& n);
 
  private:
 
