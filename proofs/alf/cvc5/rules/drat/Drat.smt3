@@ -1,0 +1,92 @@
+(include "../../theories/Builtin.smt3")
+(include "../../theories/Strings.smt3")
+
+(program to_drat_lit ((l Bool))
+  (Bool) Int
+  (
+    ((to_drat_lit (not l))  (alf.neg (alf.hash l)))
+    ((to_drat_lit l)        (alf.hash l))
+  )
+)
+(program to_drat_clause ((l Bool) (C Bool :list))
+  (Bool) String
+  (
+    ((to_drat_clause false)    "0")
+    ((to_drat_clause (or l C)) (alf.concat (alf.to_str (to_drat_lit l)) " " (to_drat_clause C)))
+    ((to_drat_clause l)        (alf.concat (alf.to_str (to_drat_lit l)) " 0"))
+  )
+)
+
+(program to_drat_input ((C Bool) (F Bool :list))
+  (Bool) String
+  (
+    ((to_drat_input true)       "")
+    ((to_drat_input (and C F)) (alf.concat (to_drat_clause C) " " (to_drat_input F)))
+  )
+)
+
+; run_drat_verify takes:
+; - A string corresponding to a DIMACS declaration of the input with an arbitrary mapping,
+; in particular, the mapping is determined by alf.hash in the side conditions above.
+; - A DIMACS file, whose file name is given as a String.
+; It returns "true" if the DIMACS input file matches (modulo renaming
+; identifiers) the input clauses, as determined by the first arguments.
+(declare-oracle-fun run_drat_verify (String String) Bool ./drat-verify)
+
+; run_drat_check takes:
+; - A DIMACS input file, whose file name is given as a String.
+; - A DRAT proof file, whose file name is given as a String.
+; It returns "true" if the DIMACs input + DRAT proof is a valid refutation proof
+; by calling drat-trim.
+(declare-oracle-fun run_drat_check (String String) Bool ./drat-check.sh)
+
+; The DRAT proof rule.
+; Takes arbitrary list of premises, the file name of a DIMACS input, and the
+; file name of a DRAT proof and invokes the oracles run_drat_verify and
+; run_drat_check.
+(declare-rule drat_refutation ((F Bool) (D String) (P String))
+  :premise-list F and
+  :args (D P)
+; NOTE: run_drat_verify is not currently implemented.
+;  :requires (((run_drat_verify (to_drat_input F) D) true) ((run_drat_check D P) true))
+  :requires (((run_drat_check D P) true))
+  :conclusion false
+)
+
+; run_sat_prove takes:
+; - A DIMACS input file, whose file name is given as a String.
+; It returns "true" if the DIMACs file is unsatisfiable and a proof can be
+; generated and checked. This is done by calling CaDiCaL and drat-trim.
+(declare-oracle-fun run_sat_prove (String) Bool ./sat-prove.sh)
+
+; The SAT external prove rule.
+; Takes arbitrary list of premises, the file name of a DIMACS input, and invokes
+; the oracles run_drat_verify and run_sat_prove.
+(declare-rule sat_external_prove ((F Bool) (D String))
+  :premise-list F and
+  :args (D)
+; NOTE: run_drat_verify is not currently implemented.
+;  :requires (((run_drat_verify (to_drat_input F) D) true) ((run_sat_prove D) true))
+  :requires (((run_sat_prove D) true))
+  :conclusion false
+)
+
+
+
+
+; run_sat_prove_dimacs takes:
+; - A string corresponding to a DIMACS input.
+; It returns "true" if the DIMACs file is unsatisfiable and a proof can be
+; generated and checked. This is done by calling CaDiCaL and drat-trim.
+;(declare-oracle-fun run_sat_gen_prove (String) Bool ./sat-gen-prove.sh)
+
+
+; The SAT external prove rule.
+; Takes arbitrary list of premises, the string a DIMACS header, and invokes
+; the oracles run_sat_prove_dimacs.
+;(declare-rule sat_external_gen_prove ((F Bool) (h String))
+;  :premise-list F and
+;  :args (h)
+;  :requires (((run_sat_gen_prove (alf.concat h (to_drat_input F)) true)))
+;  :conclusion false
+;)
