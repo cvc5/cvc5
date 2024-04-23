@@ -73,7 +73,7 @@ bool BasicRewriteRCons::postProve(
   if (tryRule(cdp,                                                      \
               eq,                                                       \
               ProofRule::THEORY_REWRITE,                                \
-              {mkRewriteRuleNode(ProofRewriteRule::id), eq[0]}))        \
+              {mkRewriteRuleNode(ProofRewriteRule::id), a}))            \
   {                                                                     \
     Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid \
                             << ", " << mid << ")" << std::endl;         \
