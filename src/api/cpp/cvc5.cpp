@@ -5048,8 +5048,11 @@ ProofRule Proof::getRule() const
 ProofRewriteRule Proof::getRewriteRule() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(this->getProofNode()->getRule() == ProofRule::DSL_REWRITE)
-      << "Expected `getRule()` to return `DSL_REWRITE`, got "
+  CVC5_API_CHECK(this->getProofNode()->getRule() == ProofRule::DSL_REWRITE
+                 || this->getProofNode()->getRule()
+                        == ProofRule::THEORY_REWRITE)
+      << "Expected `getRule()` to return `DSL_REWRITE` or `THEORY_REWRITE`, "
+         "got "
       << this->getProofNode()->getRule() << " instead.";
   //////// all checks before this line
   if (d_proof_node != nullptr)
@@ -8316,7 +8319,7 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
   if (keyword == "filename")
   {
     // only the Solver object has non-const access to the original options
-    d_originalOptions->writeDriver().filename = value;
+    d_originalOptions->write_driver().filename = value;
   }
   d_slv->setInfo(keyword, value);
   ////////

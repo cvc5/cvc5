@@ -99,7 +99,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   d_ruleCount << r;
   ++d_totalRuleCount;
   // if a DSL rewrite, take DSL stat
-  if (r == ProofRule::DSL_REWRITE)
+  if (r == ProofRule::DSL_REWRITE || r == ProofRule::THEORY_REWRITE)
   {
     const std::vector<Node>& args = pn->getArguments();
     ProofRewriteRule di;

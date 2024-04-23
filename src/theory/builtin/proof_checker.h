@@ -22,6 +22,7 @@
 #include "proof/method_id.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "theory/builtin/theory_rewrite_proof_checker.h"
 
 namespace cvc5::internal {
 
@@ -126,6 +127,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Env& d_env;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
+  /** Theory rewrite proof checker */
+  TheoryRewriteProofChecker d_trpc;
 };
 
 }  // namespace builtin

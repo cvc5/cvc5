@@ -342,7 +342,7 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_env->d_options.writeDriver().filename = value;
+    d_env->d_options.write_driver().filename = value;
     d_env->getStatisticsRegistry().registerValue<std::string>(
         "driver::filename", value);
   }
@@ -355,12 +355,12 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    getOptions().writeBase().inputLanguage = Language::LANG_SMTLIB_V2_6;
+    getOptions().write_base().inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
     if (!getOptions().printer.outputLanguageWasSetByUser)
     {
       setOption("output-language", "smtlib2.6");
-      getOptions().writePrinter().outputLanguageWasSetByUser = false;
+      getOptions().write_printer().outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
@@ -2038,16 +2038,16 @@ void SolverEngine::setResourceLimit(uint64_t units, bool cumulative)
 {
   if (cumulative)
   {
-    d_env->d_options.writeBase().cumulativeResourceLimit = units;
+    d_env->d_options.write_base().cumulativeResourceLimit = units;
   }
   else
   {
-    d_env->d_options.writeBase().perCallResourceLimit = units;
+    d_env->d_options.write_base().perCallResourceLimit = units;
   }
 }
 void SolverEngine::setTimeLimit(uint64_t millis)
 {
-  d_env->d_options.writeBase().perCallMillisecondLimit = millis;
+  d_env->d_options.write_base().perCallMillisecondLimit = millis;
 }
 
 unsigned long SolverEngine::getResourceUsage() const

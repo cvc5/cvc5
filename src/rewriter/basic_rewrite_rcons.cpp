@@ -17,6 +17,7 @@
 #include "rewriter/basic_rewrite_rcons.h"
 
 #include "proof/proof_checker.h"
+#include "rewriter/rewrites.h"
 #include "smt/env.h"
 
 using namespace cvc5::internal::kind;
@@ -59,6 +60,30 @@ bool BasicRewriteRCons::prove(
       return true;
     }
   }
+  Trace("trewrite-rcons") << "...(fail)" << std::endl;
+  return false;
+}
+
+bool BasicRewriteRCons::postProve(
+    CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
+{
+  Node eq = a.eqNode(b);
+
+#define TRY_THEORY_REWRITE(id)                                          \
+  if (tryRule(cdp,                                                      \
+              eq,                                                       \
+              ProofRule::THEORY_REWRITE,                                \
+              {mkRewriteRuleNode(ProofRewriteRule::id), a}))            \
+  {                                                                     \
+    Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid \
+                            << ", " << mid << ")" << std::endl;         \
+    return true;                                                        \
+  }                                                                     \
+  /* end of macro */
+
+  // ad-hoc rewrites should be listed here
+  TRY_THEORY_REWRITE(EXISTS_ELIM)
+
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
 }
