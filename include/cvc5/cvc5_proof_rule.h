@@ -291,7 +291,7 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
    * 
-   * where the DSL rewrite rule with the given identifier is
+   * where `id` is a `ProofRewriteRule` whose definition in the RARE DSL is
    * :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
    * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
    * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
@@ -305,6 +305,23 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(DSL_REWRITE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Other theory rewrite rules**
+   *
+   * .. math::
+   *   \inferrule{- \mid id, t}{t = t'}
+   *
+   * where `id` is the `ProofRewriteRule` of the theory rewrite rule which
+   * transforms :math:`t` to :math `t'`.
+   * 
+   * In contrast to `DSL_REWRITE`, theory rewrite rules used by this proof
+   * rule are not necessarily expressible in RARE. Each rule that can be used
+   * in this proof rule are documented explicitly in cases within the
+   * `ProofRewriteRule` enum.
+   * \endverbatim
+   */
+  EVALUE(THEORY_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Annotation**
@@ -2278,11 +2295,24 @@ enum ENUM(ProofRule) : uint32_t
  * This enumeration represents the rewrite rules used in a rewrite proof. Some
  * of the rules are internal ad-hoc rewrites, while others are rewrites
  * specified by the RARE DSL. This enumeration is used as the first argument to
- * the :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::DSL_REWRITE>` proof rule.
+ * the :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::DSL_REWRITE>` proof rule
+ * and the :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::THEORY_REWRITE>` proof
+ * rule.
  */
 enum ENUM(ProofRewriteRule) : uint32_t
 {
   EVALUE(NONE),
+  // Custom theory rewrites.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Exists elimination**
+   *
+   * .. math::
+   *   \exists x_1\dots x_n.\> F = \neg \forall x_1\dots x_n.\> \neg F
+   *
+   * \endverbatim
+   */
+  EVALUE(EXISTS_ELIM),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-plus-zero */
