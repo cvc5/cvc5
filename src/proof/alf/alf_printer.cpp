@@ -25,6 +25,8 @@
 #include "expr/subs.h"
 #include "options/main_options.h"
 #include "printer/printer.h"
+#include "printer/smt2/smt2_printer.h"
+#include "proof/alf/alf_dependent_type_converter.h"
 #include "proof/proof_node_to_sexpr.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
@@ -34,8 +36,14 @@ namespace cvc5::internal {
 
 namespace proof {
 
-AlfPrinter::AlfPrinter(Env& env, BaseAlfNodeConverter& atp)
-    : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
+AlfPrinter::AlfPrinter(Env& env,
+                       BaseAlfNodeConverter& atp,
+                       rewriter::RewriteDb* rdb)
+    : EnvObj(env),
+      d_tproc(atp),
+      d_termLetPrefix("@t"),
+      d_ltproc(nodeManager(), atp),
+      d_rdb(rdb)
 {
   d_pfType = nodeManager()->mkSort("proofType");
   d_false = nodeManager()->mkConst(false);
@@ -133,7 +141,8 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
     case ProofRule::ACI_NORM:
-    case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::DSL_REWRITE:
+      return true;
     case ProofRule::ARITH_POLY_NORM:
     {
       // we don't support bitvectors yet
@@ -247,14 +256,103 @@ bool AlfPrinter::canEvaluate(Node n) const
   return true;
 }
 
-std::string AlfPrinter::getRuleName(const ProofNode* pfn)
+std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
 {
   ProofRule r = pfn->getRule();
+  if (r == ProofRule::DSL_REWRITE)
+  {
+    ProofRewriteRule dr;
+    rewriter::getRewriteRule(pfn->getArguments()[0], dr);
+    std::stringstream ss;
+    ss << "dsl." << dr;
+    return ss.str();
+  }
   std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
     return std::tolower(c);
   });
   return name;
+}
+
+void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
+{
+  const rewriter::RewriteProofRule& rpr = d_rdb->getRule(r);
+  const std::vector<Node>& varList = rpr.getVarList();
+  const std::vector<Node>& uvarList = rpr.getUserVarList();
+  const std::vector<Node>& conds = rpr.getConditions();
+  Node conc = rpr.getConclusion(true);
+
+  Subs su;
+
+  out << "(declare-rule dsl." << r << " (";
+  AlfDependentTypeConverter adtc(nodeManager(), d_tproc);
+  std::stringstream ssExplicit;
+  for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
+  {
+    if (i > 0)
+    {
+      ssExplicit << " ";
+    }
+    const Node& uv = uvarList[i];
+    std::stringstream sss;
+    sss << uv;
+    Node uvi = d_tproc.mkInternalSymbol(sss.str(), uv.getType());
+    su.add(varList[i], uvi);
+    ssExplicit << "(" << uv << " ";
+    TypeNode uvt = uv.getType();
+    Node uvtp = adtc.process(uvt);
+    ssExplicit << uvtp;
+    if (expr::isListVar(uv))
+    {
+      expr::markListVar(uvi);
+      ssExplicit << " :list";
+    }
+    ssExplicit << ")";
+  }
+  // print implicit parameters
+  const std::vector<Node>& params = adtc.getFreeParameters();
+  for (const Node& p : params)
+  {
+    out << "(" << p << " " << p.getType() << ") ";
+  }
+  // now print explicit variables
+  out << ssExplicit.str();
+  out << ")" << std::endl;
+  if (!conds.empty())
+  {
+    out << "  :premises (";
+    bool firstTime = true;
+    for (const Node& c : conds)
+    {
+      if (firstTime)
+      {
+        firstTime = false;
+      }
+      else
+      {
+        out << " ";
+      }
+      Node cc = d_tproc.convert(su.apply(c));
+      cc = d_ltproc.convert(cc);
+      out << cc;
+    }
+    out << ")" << std::endl;
+  }
+  out << "  :args (";
+  for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
+  {
+    if (i > 0)
+    {
+      out << " ";
+    }
+    out << uvarList[i];
+  }
+  out << ")" << std::endl;
+  Node sconc = d_tproc.convert(su.apply(conc));
+  sconc = d_ltproc.convert(sconc);
+  Assert(sconc.getKind() == Kind::EQUAL);
+  out << "  :conclusion (= " << sconc[0] << " " << sconc[1] << ")" << std::endl;
+  out << ")" << std::endl;
 }
 
 void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
@@ -329,14 +427,17 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
                   << v.getType() << "))" << std::endl;
         }
       }
+      // [1] print DSL rules
+      for (ProofRewriteRule r : d_dprs)
+      {
+        printDslRule(out, r);
+      }
       if (options().proof.alfPrintReference)
       {
-        // [1] print the reference
-        // we currently do not need to provide a normalization routine.
-        out << "(reference \"" << options().driver.filename << "\")"
-            << std::endl;
-        // [2] print the universal variables
+        // [1] print only the universal variables
         out << outVars.str();
+        // we do not print the reference command here, since we don't know
+        // where the proof is stored.
       }
       else
       {
@@ -504,6 +605,42 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       args.push_back(ts);
       return;
     }
+    case ProofRule::DSL_REWRITE:
+    {
+      ProofRewriteRule dr;
+      if (!rewriter::getRewriteRule(pargs[0], dr))
+      {
+        Unhandled() << "Failed to get DSL proof rule";
+      }
+      Trace("alf-printer-debug") << "Get args for " << dr << std::endl;
+      const rewriter::RewriteProofRule& rpr = d_rdb->getRule(dr);
+      std::vector<Node> ss(pargs.begin() + 1, pargs.end());
+      std::vector<std::pair<Kind, std::vector<Node>>> witnessTerms;
+      rpr.getConclusionFor(ss, witnessTerms);
+      TypeNode absType = nodeManager()->mkAbstractType(Kind::ABSTRACT_TYPE);
+      // the arguments are the computed witness terms
+      for (const std::pair<Kind, std::vector<Node>>& w : witnessTerms)
+      {
+        if (w.first == Kind::UNDEFINED_KIND)
+        {
+          Assert(w.second.size() == 1);
+          args.push_back(d_tproc.convert(w.second[0]));
+        }
+        else
+        {
+          std::vector<Node> wargs;
+          for (const Node& wc : w.second)
+          {
+            wargs.push_back(d_tproc.convert(wc));
+          }
+          args.push_back(d_tproc.mkInternalApp(
+              printer::smt2::Smt2Printer::smtKindString(w.first),
+              wargs,
+              absType));
+        }
+      }
+      return;
+    }
     default: break;
   }
   for (size_t i = 0, nargs = pargs.size(); i < nargs; i++)
@@ -532,6 +669,21 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   bool handled = isHandled(pn);
   if (handled)
   {
+    if (r == ProofRule::DSL_REWRITE)
+    {
+      const std::vector<Node> aargs = pn->getArguments();
+      // if its a DSL rule, remember it
+      Node idn = aargs[0];
+      ProofRewriteRule di;
+      if (rewriter::getRewriteRule(idn, di))
+      {
+        d_dprs.insert(di);
+      }
+      else
+      {
+        Unhandled();
+      }
+    }
     getArgsFromProofRule(pn, args);
   }
   size_t id = allocateProofId(pn, wasAlloc);
@@ -560,6 +712,11 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   // if we don't handle the rule, print trust
   if (!handled)
   {
+    if (!options().proof.alfAllowTrust)
+    {
+      Unreachable() << "An ALF proof equires a trust step for " << pn->getRule()
+                    << ", but --alf-allow-trust is false" << std::endl;
+    }
     out->printTrustStep(pn->getRule(),
                         conclusionPrint,
                         id,
