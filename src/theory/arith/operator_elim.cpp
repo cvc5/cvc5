@@ -351,10 +351,9 @@ Node OperatorElim::eliminateOperators(Node node,
         // satisfiable. On the original formula, this would require that we
         // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
         // model.
-        lem = nm->mkNode(
-            Kind::IMPLIES,
-            nm->mkNode(Kind::GEQ, node[0], zero),
-            nm->mkNode(Kind::AND, resNonNeg, nonNeg));
+        lem = nm->mkNode(Kind::IMPLIES,
+                         nm->mkNode(Kind::GEQ, node[0], zero),
+                         nm->mkNode(Kind::AND, resNonNeg, nonNeg));
       }
       else
       {
