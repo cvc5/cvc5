@@ -141,8 +141,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_PRED_TRANSFORM:
     case ProofRule::ACI_NORM:
-    case ProofRule::DSL_REWRITE:
-      return true;
+    case ProofRule::DSL_REWRITE: return true;
     case ProofRule::ARITH_POLY_NORM:
     {
       // we don't support bitvectors yet
