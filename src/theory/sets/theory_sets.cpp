@@ -85,6 +85,7 @@ void TheorySets::finishInit()
   // relation operators
   d_equalityEngine->addFunctionKind(Kind::RELATION_PRODUCT);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_TABLE_JOIN);
   d_equalityEngine->addFunctionKind(Kind::RELATION_TRANSPOSE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_TCLOSURE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN_IMAGE);

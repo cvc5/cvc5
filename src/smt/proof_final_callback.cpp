@@ -42,13 +42,13 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
       d_annotationRuleIds(
           statisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::annotationRuleId")),
-      d_dslRuleCount(
-          statisticsRegistry().registerHistogram<rewriter::DslProofRule>(
-              "finalProof::dslRuleCount")),
+      d_dslRuleCount(statisticsRegistry().registerHistogram<ProofRewriteRule>(
+          "finalProof::dslRuleCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
-      d_trustTheoryIdCount(statisticsRegistry().registerHistogram<theory::TheoryId>(
-          "finalProof::trustTheoryIdCount")),
+      d_trustTheoryIdCount(
+          statisticsRegistry().registerHistogram<theory::TheoryId>(
+              "finalProof::trustTheoryIdCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -99,11 +99,11 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   d_ruleCount << r;
   ++d_totalRuleCount;
   // if a DSL rewrite, take DSL stat
-  if (r == ProofRule::DSL_REWRITE)
+  if (r == ProofRule::DSL_REWRITE || r == ProofRule::THEORY_REWRITE)
   {
     const std::vector<Node>& args = pn->getArguments();
-    rewriter::DslProofRule di;
-    if (rewriter::getDslProofRule(args[0], di))
+    ProofRewriteRule di;
+    if (rewriter::getRewriteRule(args[0], di))
     {
       d_dslRuleCount << di;
     }
