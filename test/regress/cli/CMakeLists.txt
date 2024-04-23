@@ -1266,6 +1266,7 @@ set(regress_0_tests
   regress0/printer/portfolio-out-err.smt2
   regress0/printer/post-asserts-output.smt2
   regress0/printer/pre-asserts-output.smt2
+  regress0/printer/print_options_auto.smt2
   regress0/printer/print_sat_lemmas.smt2
   regress0/printer/print_subs.smt2
   regress0/printer/print_trusted_proof_steps.smt2
