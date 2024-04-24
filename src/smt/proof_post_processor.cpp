@@ -199,12 +199,15 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   Trace("smt-proof-pp-debug") << "Expand macro " << id << std::endl;
   if (id==ProofRule::TRUST)
   {
-    // maybe its just an (extended) rewrite?
-    Node ppp =
-        d_pc->checkDebug(ProofRule::MACRO_SR_PRED_INTRO, {}, {res});
-    if (ppp == res)
+    // maybe we can show it rewrites to true based on (extended) rewriting 
+    // modulo original forms (MACRO_SR_PRED_INTRO).
+    TheoryProofStepBuffer psb(d_pc);
+    if (psb.applyPredIntro(res, {},
+                             MethodId::SB_DEFAULT,
+                             MethodId::SBA_SEQUENTIAL,
+                             MethodId::RW_EXT_REWRITE))
     {
-      cdp->addStep(res, ProofRule::MACRO_SR_PRED_INTRO, {}, {res});
+      cdp->addSteps(psb);
       return res;
     }
     return Node::null();
