@@ -171,6 +171,8 @@ bool TheoryProofStepBuffer::applyExtendedPredInfer(Node src,
   }
   else if (psrco.getKind() == Kind::AND)
   {
+    // see if src rewrites to (and ... tgt ...). In this case, we can
+    // infer tgt via AND_ELIM.
     for (size_t i = 0, nchild = psrco.getNumChildren(); i < nchild; i++)
     {
       if (psrco[i] == ptgto)
@@ -185,6 +187,8 @@ bool TheoryProofStepBuffer::applyExtendedPredInfer(Node src,
   }
   if (success)
   {
+    // If we were successful, now go back and justify the conversion to
+    // original forms, which should be trivial.
     applyPredTransform(src, srco, {});
     applyPredTransform(tgt, tgto, {});
   }
