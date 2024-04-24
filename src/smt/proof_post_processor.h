@@ -69,7 +69,11 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   void setCollectAllTrustedRules();
   /**
    * Get trusted proofs, which is the set of all trusted proofs
-   * that were encountered in the last call to process.
+   * that were encountered in the last call to process. Note that this is the
+   * list of proofs that were trusted steps *prior* to macro expansion.
+   * Some proofs in this set may already be elaborated by this class. The DSL
+   * proof postprocessor will only process those that are still TRUST or
+   * TRUST_THEORY_REWRITE after this postprocessing pass.
    */
   std::unordered_set<std::shared_ptr<ProofNode>>& getTrustedProofs();
   /** Should proof pn be updated? */

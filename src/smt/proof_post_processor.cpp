@@ -83,7 +83,9 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       && (id == ProofRule::TRUST_THEORY_REWRITE || id == ProofRule::TRUST))
   {
     d_trustedPfs.insert(pn);
-    // we may fill it in
+    // Note that we may fill in TRUST steps below. Thus, some proofs in
+    // d_trustedPfs may already be filled in when they are returned by this
+    // class.
   }
   if (shouldExpand(id))
   {
