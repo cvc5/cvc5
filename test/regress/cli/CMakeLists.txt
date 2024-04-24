@@ -83,6 +83,7 @@ set(regress_0_tests
   regress0/arith/mod.01.smt2
   regress0/arith/mult.01.smt2
   regress0/arith/non-normal.smt2
+  regress0/arith/pow-issue-10676.smt2
   regress0/arith/projissue469-int-equality.smt2
   regress0/arith-bv-conv-ineq-rewrites.smt2
   regress0/arr1.smt2
