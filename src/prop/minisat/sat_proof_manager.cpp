@@ -645,7 +645,12 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     Trace("sat-proof") << "expand assumptions to prove false\n";
     std::shared_ptr<ProofNode> pfn = d_resChains.getProofFor(d_false);
     Assert(pfn);
-    Trace("sat-proof-debug") << "sat proof of flase: " << *pfn.get() << "\n";
+    if (TraceIsOn("sat-proof-debug"))
+    {
+      std::stringstream ss;
+      pfn->printDebug(ss, true);
+      Trace("sat-proof-debug") << "sat proof of false: " << ss.str() << "\n";
+    }
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
     if (TraceIsOn("sat-proof"))
