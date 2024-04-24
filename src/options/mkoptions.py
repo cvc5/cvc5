@@ -233,7 +233,7 @@ def generate_holder_mem_decls(modules):
 def generate_holder_ref_decls(modules):
     """Render reference declarations for holder members of the Option class"""
     return concat_format('''  const options::Holder{id_cap}& {id};
-  options::Holder{id_cap}& write{id_capitalized}();''', modules)
+  options::Holder{id_cap}& write_{id}();''', modules)
 
 
 ################################################################################
@@ -259,7 +259,7 @@ def generate_holder_ref_inits(modules):
 
 def generate_write_functions(modules):
     """Render write functions for holders within the Option class"""
-    return concat_format('''  options::Holder{id_cap}& Options::write{id_capitalized}()
+    return concat_format('''  options::Holder{id_cap}& Options::write_{id}()
   {{
     return *d_{id};
   }}
@@ -347,7 +347,7 @@ def generate_get_impl(modules):
             ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
                 module.id, option.name)
         res.append('  case OptionEnum::{}: {}'.format(option.enum_name(), ret))
-    res.append('  default:'.format(option.enum_name()))
+    res.append('  default:')
     res.append('  {')
     res.append('    throw OptionException(\"Ungettable option key or setting: \" + name);')
     res.append('  }')
@@ -401,10 +401,10 @@ def generate_set_impl(modules):
         for pred in _set_predicates(module, option):
             res.append('    {}'.format(pred))
         if option.name:
-            res.append('    opts.write{module}().{name} = value;'.format(
-                module=module.id_capitalized, name=option.name))
-            res.append('    opts.write{module}().{name}WasSetByUser = true;'.format(
-                module=module.id_capitalized, name=option.name))
+            res.append('    opts.write_{module}().{name} = value;'.format(
+                module=module.id, name=option.name))
+            res.append('    opts.write_{module}().{name}WasSetByUser = true;'.format(
+                module=module.id, name=option.name))
         res.append('    break;')
         res.append('  }')
     res.append('}')
@@ -508,6 +508,16 @@ def generate_module_holder_decl(module):
             res.append('{} {};'.format(option.type, option.name))
         res.append('bool {}WasSetByUser = false;'.format(option.name))
     return '\n  '.join(res)
+
+def generate_module_long_name_decl(module):
+    res = []
+    for option in module.options:
+        if option.name is None:
+            continue
+        if option.long_name:
+            res.append('static constexpr const char* {} = "{}";'.format(
+                       option.name, option.long_name))
+    return '\n    '.join(res)
 
 ################################################################################
 # for options/<module>.cpp
@@ -952,6 +962,7 @@ def codegen_module(module, dst_dir, tpls):
         'includes': generate_module_includes(module),
         'modes_decl': generate_module_mode_decl(module),
         'holder_decl': generate_module_holder_decl(module),
+        'long_name_decl': generate_module_long_name_decl(module),
         # module source
         'header': module.header,
         'modes_impl': generate_module_mode_impl(module),

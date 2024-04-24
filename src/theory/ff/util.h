@@ -54,14 +54,14 @@ class FieldObj
   template <bool ref_count>
   Node mkMul(const std::vector<NodeTemplate<ref_count>>& summands);
   /** the one constant in this field */
-  const Node& one() { return d_one; }
+  const Node& one() const { return d_one; }
   /** the zero constant in this field */
-  const Node& zero() { return d_zero; }
+  const Node& zero() const { return d_zero; }
   /** the size of this field */
-  const FfSize& size() { return d_size; }
+  const FfSize& size() const { return d_size; }
 #ifdef CVC5_USE_COCOA
   /** the CoCoA ring of integers modulo this field's size */
-  const CoCoA::ring& coeffRing() { return d_coeffRing; }
+  const CoCoA::ring& coeffRing() const { return d_coeffRing; }
 #endif /* CVC5_USE_COCOA */
 
  private:
@@ -74,12 +74,23 @@ class FieldObj
 #endif /* CVC5_USE_COCOA */
 };
 
+/** Testing whether something is related to (any) FF */
+
 /** Is this a field term with non-field kind? */
 bool isFfLeaf(const Node& n);
 /** Is this a field term? */
 bool isFfTerm(const Node& n);
 /** Is this a field fact (equality of disequality)? */
 bool isFfFact(const Node& n);
+
+/** Testing whether something is related to (this specific) FF */
+
+/** Is this a (this) field term with non-field kind? */
+bool isFfLeaf(const Node& n, const FfSize& field);
+/** Is this a (this) field term? */
+bool isFfTerm(const Node& n, const FfSize& field);
+/** Is this a (this) field fact (equality of disequality)? */
+bool isFfFact(const Node& n, const FfSize& field);
 
 }  // namespace ff
 }  // namespace theory

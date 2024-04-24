@@ -64,6 +64,8 @@ enum class IncompleteId
   SETS_HO_CARD,
   // relations were used in combination with set cardinality constraints
   SETS_RELS_CARD,
+  // finite model finding used in combination with set cardinality constraints
+  SETS_FMF_BOUND_CARD,
   // we skipped processing a looping word equation
   STRINGS_LOOP_SKIP,
   // we could not simplify a regular expression membership

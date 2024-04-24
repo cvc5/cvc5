@@ -787,6 +787,7 @@ set(regress_0_tests
   regress0/ff/bool_nary_or_unsound.smt2
   regress0/ff/combination.smt2
   regress0/ff/ctx.smt2
+  regress0/ff/proj-issue704.smt2
   regress0/ff/ff_is_zero_sound.smt2
   regress0/ff/ff_is_zero_unsound.smt2
   regress0/ff/ff_xor_sound.smt2
@@ -795,6 +796,7 @@ set(regress_0_tests
   regress0/ff/field_poly.smt2
   regress0/ff/multicheck.smt2
   regress0/ff/negneg.smt2
+  regress0/ff/proj-issue705.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
   regress0/ff/randcompile-sound-3i-5t-zokcirc.smt2
   regress0/ff/randcompile-sound-3i-5t-zokref.smt2
@@ -1117,6 +1119,7 @@ set(regress_0_tests
   regress0/options/safe-options1.smt2
   regress0/options/safe-options2.smt2
   regress0/options/safe-options3.smt2
+  regress0/options/safe-opts-warn.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -1263,10 +1266,12 @@ set(regress_0_tests
   regress0/printer/portfolio-out-err.smt2
   regress0/printer/post-asserts-output.smt2
   regress0/printer/pre-asserts-output.smt2
+  regress0/printer/print_options_auto.smt2
   regress0/printer/print_sat_lemmas.smt2
   regress0/printer/print_subs.smt2
   regress0/printer/print_trusted_proof_steps.smt2
   regress0/printer/print_unsat_core.smt2
+  regress0/printer/print_unsat_core_lemmas.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
@@ -1321,6 +1326,7 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
   regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
+  regress0/proofs/str-term-276-indexof-eval.smt2
   regress0/proofs/t1-difficulty-filter.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
   regress0/proofs/trust-subs-eq-open.smt2
@@ -1470,6 +1476,7 @@ set(regress_0_tests
   regress0/quantifiers/qbv-test-invert-concat-1.smt2
   regress0/quantifiers/qbv-test-invert-sign-extend.smt2
   regress0/quantifiers/qcf-rel-dom-opt.smt2
+  regress0/quantifiers/qe-closed-str-re.smt2
   regress0/quantifiers/quant-model-simplification.smt2
   regress0/quantifiers/rew-to-scala.smt2
   regress0/quantifiers/selector-trigger.smt2
@@ -1641,9 +1648,12 @@ set(regress_0_tests
   regress0/sets/eqtest.smt2
   regress0/sets/error1.smt2
   regress0/sets/error2.smt2
+  regress0/sets/filter-qe-simple.smt2
+  regress0/sets/filter-qe-simple-bv.smt2
   regress0/sets/insert.smt2
   regress0/sets/int-real-univ-unsat.smt2
   regress0/sets/int-real-univ.smt2
+  regress0/sets/issue10584-card-fmf-bound.smt2
   regress0/sets/issue5400-card-minus-univ.smt2
   regress0/sets/issue5400-2-card-minus-univ.smt2
   regress0/sets/issue5402-1-card.smt2
@@ -2674,6 +2684,8 @@ set(regress_1_tests
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
+  regress1/quantifiers/issue10346-ieval-index-conflict.smt2
+  regress1/quantifiers/issue10373-cegqi-abs.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
   regress1/quantifiers/issue3250-syg-inf-q.smt2
   regress1/quantifiers/issue3316.smt2
@@ -2856,6 +2868,7 @@ set(regress_1_tests
   regress1/rels/rel_tc_6.cvc.smt2
   regress1/rels/rel_tc_9_1.cvc.smt2
   regress1/rels/rel_tp_2.cvc.smt2
+  regress1/rels/relation_join1.smt2
   regress1/rels/rel_tp_join_2_1.cvc.smt2
   regress1/rels/set-strat.cvc.smt2
   regress1/rels/strat.cvc.smt2
@@ -3878,6 +3891,7 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
+    ${ENV_PATH_CMD}
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
