@@ -63,6 +63,8 @@
 
 (declare-const @re.null RegLan)
 
+; *** NOTE: This method has an exponential runtime. It is a placeholder for a
+; more efficient algorithm (via NFAs) to be written later.
 ; The call ($str_eval_str_in_re_rec s 0 r1 @re.null) returns true if s is in r1.
 ; The call ($str_eval_str_in_re_rec s n r1 r2) returns true if s = s1 ++ s2 for some s1, s2 such that:
 ; - s1 in r1
