@@ -20,6 +20,17 @@
   (alf.is_eq (alf.to_str x) x))
 
 
+; Compare arithmetic greater than. Assumes x and y are values.
+; Returns true if x > y.
+(define $compare_gt ((T Type :implicit) (x T) (y T))
+  (alf.is_neg (alf.add (alf.neg x) y)))
+
+; Compare arithmetic greater than. Assumes x and y are values.
+; Returns true if x >= y.
+(define $compare_geq ((T Type :implicit) (x T) (y T))
+  (alf.not (alf.is_neg (alf.add (alf.neg y) x))))
+
+
 (declare-type @Pair (Type Type))
 (declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
 
@@ -32,6 +43,16 @@
 ; It could potentially be improved by having a builtin operator, e.g. alf.compare.
 (define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (alf.is_neg (alf.add (alf.hash a) (alf.neg (alf.hash b)))))
+
+; Version that does not care about f
+(program $dsl.singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
+  (S) S
+  (
+    (($dsl.singleton_elim (f x1 x2))  (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
+    (($dsl.singleton_elim x)          x)
+  )
+)
+
 
 ; Eliminate singleton list, which takes:
 ; (1) a function f

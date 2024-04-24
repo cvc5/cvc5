@@ -40,6 +40,76 @@
   (alf.requires t (mk_emptystr (alf.typeof t)) t)
 )
 
+; Return the fixed length for the regular expression if it can be inferred.
+(program $str_fixed_len_re ((r RegLan) (s1 String) (s2 String) (r1 RegLan :list))
+  (RegLan) Int
+  (
+  (($str_fixed_len_re (re.++ r r1))     (alf.add ($str_fixed_len_re r) ($str_fixed_len_re r1)))
+  (($str_fixed_len_re re.allchar)       1)
+  (($str_fixed_len_re (re.range s1 s2)) 1)
+  (($str_fixed_len_re (str.to_re s1))   (alf.len s1))
+  (($str_fixed_len_re (re.union r r1))  (let ((n ($str_fixed_len_re r)))
+                                          (alf.ite (alf.is_eq r1 re.none)
+                                            n
+                                            (alf.requires ($str_fixed_len_re r1) n n))))
+  (($str_fixed_len_re (re.inter r r1))  (let ((n ($str_fixed_len_re r)))
+                                          (alf.ite (alf.is_eq r1 re.all)
+                                            n
+                                            (alf.requires ($str_fixed_len_re r1) n n))))
+  )
+)
+
+;;-------------------- RE evaluation
+
+(declare-const @re.null RegLan)
+
+; The call ($str_eval_str_in_re_rec s 0 r1 @re.null) returns true if s is in r1.
+; The call ($str_eval_str_in_re_rec s n r1 r2) returns true if s = s1 ++ s2 for some s1, s2 such that:
+; - s1 in r1
+; - s2 in r2
+; - s1 contains at least n characters.
+(program $str_eval_str_in_re_rec ((s String) (s1 String) (s2 String) (n Int) (r1 RegLan) (rr RegLan :list) (r2 RegLan) (sr String))
+  (String Int RegLan RegLan) Bool
+  (
+  (($str_eval_str_in_re_rec s 0 (re.++ r1 rr) @re.null)     ($str_eval_str_in_re_rec s 0 r1 rr))
+  (($str_eval_str_in_re_rec s 0 (re.inter r1 rr) @re.null)  (alf.ite ($str_eval_str_in_re_rec s 0 r1 @re.null)
+                                                              ($str_eval_str_in_re_rec s 0 rr @re.null)
+                                                              false))
+  (($str_eval_str_in_re_rec s 0 (re.union r1 rr) @re.null)  (alf.ite ($str_eval_str_in_re_rec s 0 r1 @re.null)
+                                                              true
+                                                              ($str_eval_str_in_re_rec s 0 rr @re.null)))
+  (($str_eval_str_in_re_rec s 0 (re.* r1) @re.null)         (alf.ite (alf.is_eq s "")
+                                                              true
+                                                              ; to make progress, first component must be non-empty
+                                                              ($str_eval_str_in_re_rec s 1 r1 (re.* r1))))
+  (($str_eval_str_in_re_rec s 0 (str.to_re sr) @re.null)    (alf.is_eq s sr))
+  (($str_eval_str_in_re_rec s 0 (re.range s1 s2) @re.null)  (let ((cs (alf.to_z s)))
+                                                            (alf.requires (alf.len s1) 1
+                                                            (alf.requires (alf.len s2) 1
+                                                            (alf.ite (alf.is_eq (alf.len s) 1)
+                                                                (alf.and ($compare_geq cs (alf.to_z s1))
+                                                                         ($compare_geq (alf.to_z s2) cs))
+                                                                false)))))
+  (($str_eval_str_in_re_rec s 0 re.allchar @re.null)        (alf.is_eq (alf.len s) 1))
+  (($str_eval_str_in_re_rec s 0 re.all @re.null)            true)
+  (($str_eval_str_in_re_rec s 0 re.none @re.null)           false)
+  (($str_eval_str_in_re_rec s n r1 r2)                      (let ((ls (alf.len s)))
+                                                            (let ((ss1 (alf.extract s 0 (alf.add n -1))))
+                                                            (let ((ss2 (alf.extract s n ls)))
+                                                            (let ((res (alf.ite ($str_eval_str_in_re_rec ss1 0 r1 @re.null)
+                                                                       (alf.ite ($str_eval_str_in_re_rec ss2 0 r2 @re.null)
+                                                                         true false)
+                                                                       false)))
+                                                            (alf.ite res true
+                                                            (alf.ite (alf.is_eq n ls) false
+                                                              ($str_eval_str_in_re_rec s (alf.add n 1) r1 r2))))))))
+  )
+)
+
+; Returns true if s is in regular expression r.
+(define $str_eval_str_in_re ((s String) (r RegLan))
+  ($str_eval_str_in_re_rec s 0 r @re.null))
+
 ;;-------------------- Skolem terms
 
 ; The following side conditions are used for computing terms that define
@@ -238,13 +308,21 @@
   )
 )
 
+(program string_eager_reduction_in_re ((U Type) (x (Seq U)) (r RegLan))
+  (U RegLan) Bool
+  (
+    ((string_eager_reduction_in_re x r) (=> (str.in_re x r) (= (str.len x) ($str_fixed_len_re r))))
+  )
+)
+
 ; Compute the eager reduction predicate of term t of type U.
-(program mk_string_eager_reduction ((U Type) (x U) (y U) (n Int) (m Int))
+(program mk_string_eager_reduction ((U Type) (x U) (y U) (r RegLan) (n Int) (m Int))
   (U) Bool
   (
     ((mk_string_eager_reduction (str.to_code x)) (string_eager_reduction_to_code x))
     ((mk_string_eager_reduction (str.contains x y)) (string_eager_reduction_contains x y))
     ((mk_string_eager_reduction (str.indexof x y n)) (string_eager_reduction_indexof x y n))
+    ((mk_string_eager_reduction (str.in_re x r)) (string_eager_reduction_in_re x r))
   )
 )
 
@@ -435,6 +513,18 @@
     ((strip_prefix t s)                         (@pair t s))
   )
 )
+
+(program $str.mk_re_loop_elim_rec ((n Int) (d Int) (r RegLan) (rr RegLan :list))
+  (Int Int RegLan RegLan) RegLan
+  (
+    (($str.mk_re_loop_elim_rec 0 0 r rr) (alf.cons re.union ($dsl.singleton_elim rr) re.none))
+    (($str.mk_re_loop_elim_rec 0 d r rr) (alf.cons re.union ($dsl.singleton_elim rr) ($str.mk_re_loop_elim_rec 0 (alf.add d -1) r (re.++ r rr))))
+    (($str.mk_re_loop_elim_rec n d r rr) ($str.mk_re_loop_elim_rec (alf.add n -1) d r (re.++ r rr)))
+  )
+)
+
+(define $str.mk_re_loop_elim ((n Int) (diff Int) (r RegLan))
+  ($dsl.singleton_elim ($str.mk_re_loop_elim_rec n diff r (str.to_re ""))))
 
 ; Converts a str.++ application into "flat form" so that we are ready to
 ; process its prefix. This consists of the following steps:

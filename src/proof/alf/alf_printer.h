@@ -54,6 +54,10 @@ class AlfPrinter : protected EnvObj
    * ProofRule::EVALUATE can be applied.
    */
   bool canEvaluate(Node n) const;
+  /**
+   * Whether we support evaluating (str.in_re s r) for any constant string s.
+   */
+  bool canEvaluateRegExp(Node r) const;
   /* Returns the normalized name of the proof rule of pfn */
   static std::string getRuleName(const ProofNode* pfn);
 
