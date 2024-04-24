@@ -339,7 +339,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (k == Kind::SQRT)
       {
         Node zero = nm->mkConstReal(Rational(0));
-        Node nonNeg = nm->mkNode(Kind::MULT, var, var).eqNode(node[0]);
+        Node eq = nm->mkNode(Kind::MULT, var, var).eqNode(node[0]);
         Node resNonNeg = nm->mkNode(Kind::GEQ, var, zero);
 
         // (sqrt x) reduces to:
@@ -347,13 +347,11 @@ Node OperatorElim::eliminateOperators(Node node,
         // where y is (@TRANSCENDENTAL_PURIFY x).
         //
         // This makes sure that the reduction still behaves like a function,
-        // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
-        // satisfiable. On the original formula, this would require that we
-        // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
-        // model.
+        // otherwise the reduction of (x = -1) ^ (sqrt(x) != sqrt(-1)) would be
+        // satisfiable.
         lem = nm->mkNode(Kind::IMPLIES,
                          nm->mkNode(Kind::GEQ, node[0], zero),
-                         nm->mkNode(Kind::AND, resNonNeg, nonNeg));
+                         nm->mkNode(Kind::AND, resNonNeg, eq));
       }
       else
       {
