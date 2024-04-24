@@ -60,7 +60,15 @@
     (S) S
     (
       ; core
-      ((run_evaluate (= x y))             (alf.is_eq (run_evaluate x) (run_evaluate y))) ; FIXME
+      ((run_evaluate (= x y))             (let ((ex (run_evaluate x)))
+                                          (let ((ey (run_evaluate y)))
+                                          (let ((res (alf.is_eq ex ey)))
+                                          (alf.ite (alf.and ($is_q_literal ex) ($is_q_literal ey)) res
+                                          (alf.ite (alf.and ($is_z_literal ex) ($is_z_literal ey)) res
+                                          (alf.ite (alf.and ($is_bin_literal ex) ($is_bin_literal ey)) res
+                                          (alf.ite (alf.and ($is_str_literal ex) ($is_str_literal ey)) res
+                                          (alf.ite (alf.and ($is_bool_literal ex) ($is_bool_literal ey)) res
+                                            (= ex ey))))))))))
       ((run_evaluate (not b))             (alf.not (run_evaluate b)))
       ((run_evaluate (ite b x y))         (alf.ite (run_evaluate b) (run_evaluate x) (run_evaluate y)))
       ((run_evaluate (or x ys))           (alf.or (run_evaluate x) (run_evaluate ys)))
@@ -113,7 +121,10 @@
                                           (let ((ey (run_evaluate y)))
                                           (let ((r (alf.find (alf.to_str ex) (alf.to_str ey))))
                                               (alf.ite (alf.is_neg r) r (alf.add n r))))))
+
       ; bitvectors
+      ((run_evaluate (bvnot xb))          (alf.not (run_evaluate xb)))
+      ((run_evaluate (bvneg xb))          (alf.neg (run_evaluate xb)))
       ((run_evaluate (bvadd xb ybs))      (alf.add (run_evaluate xb) (run_evaluate ybs)))
       ((run_evaluate (bvmul xb ybs))      (alf.mul (run_evaluate xb) (run_evaluate ybs)))
       ((run_evaluate (bvand xb ybs))      (alf.and (run_evaluate xb) (run_evaluate ybs)))
@@ -126,6 +137,7 @@
       ((run_evaluate (bvugt x y))         (run_evaluate (> (alf.to_z x) (alf.to_z y))))
       ((run_evaluate (bvuge x y))         (run_evaluate (>= (alf.to_z x) (alf.to_z y))))
       ((run_evaluate (@bv n m))           (alf.to_bin (run_evaluate m) (run_evaluate n)))
+      ((run_evaluate (@bvsize x))         ($bv_bitwidth (alf.typeof x)))
   
       ((run_evaluate z)                   z)
     )
