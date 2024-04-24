@@ -201,6 +201,14 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   Trace("smt-proof-pp-debug") << "Expand macro " << id << std::endl;
   if (id == ProofRule::TRUST)
   {
+    TrustId tid;
+    getTrustId(args[0], tid);
+    // we don't do this for steps that are already extended theory rewrite
+    // steps, or we would get an infinite loop in reconstruction.
+    if (tid==TrustId::EXT_THEORY_REWRITE)
+    {
+      return Node::null();
+    }
     // maybe we can show it rewrites to true based on (extended) rewriting
     // modulo original forms (MACRO_SR_PRED_INTRO).
     TheoryProofStepBuffer psb(d_pc);
@@ -910,24 +918,12 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       }
       if (retCurr != ret)
       {
-        // try to prove the rewritten form is equal to the extended rewritten
-        // form, treated as a stand alone (theory) rewrite
+        // We were unable to show it via ordinary rewriting, so we insert
+        // a trusted step. This cannot be TRUST_THEORY_REWRITE since it is
+        // not an ordinary theory rewrite.
         Node eqp = retCurr.eqNode(ret);
-        std::vector<Node> targs;
-        targs.push_back(eqp);
-        targs.push_back(
-            builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
-        // in this case, must be a non-standard rewrite kind
-        Assert(args.size() >= 2);
-        targs.push_back(args[1]);
-        Node eqpp =
-            expandMacros(ProofRule::TRUST_THEORY_REWRITE, {}, targs, cdp);
+        cdp->addTrustedStep(eqp, TrustId::EXT_THEORY_REWRITE, {}, {});
         transEq.push_back(eqp);
-        if (eqpp.isNull())
-        {
-          // don't know how to eliminate
-          return Node::null();
-        }
       }
       if (transEq.size() > 1)
       {
