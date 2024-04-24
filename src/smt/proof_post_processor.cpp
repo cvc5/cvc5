@@ -83,7 +83,7 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       && (id == ProofRule::TRUST_THEORY_REWRITE || id == ProofRule::TRUST))
   {
     d_trustedPfs.insert(pn);
-    return false;
+    // we may fill it in
   }
   if (shouldExpand(id))
   {
@@ -197,6 +197,18 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     return Node::null();
   }
   Trace("smt-proof-pp-debug") << "Expand macro " << id << std::endl;
+  if (id==ProofRule::TRUST)
+  {
+    // maybe its just an (extended) rewrite?
+    Node ppp =
+        d_pc->checkDebug(ProofRule::MACRO_SR_PRED_INTRO, {}, {res});
+    if (ppp == res)
+    {
+      cdp->addStep(res, ProofRule::MACRO_SR_PRED_INTRO, {}, {res});
+      return res;
+    }
+    return Node::null();
+  }
   // macro elimination
   if (id == ProofRule::MACRO_SR_EQ_INTRO)
   {
