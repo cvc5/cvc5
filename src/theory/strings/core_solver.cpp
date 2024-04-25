@@ -758,9 +758,7 @@ Node CoreSolver::getConclusion(Node x,
     {
       Node eq2 = y.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, x)
                                 : nm->mkNode(Kind::STRING_CONCAT, x, sk));
-      // make agnostic to x/y
-      conc = x < y ? nm->mkNode(Kind::OR, eq1, eq2)
-                   : nm->mkNode(Kind::OR, eq2, eq1);
+      conc = nm->mkNode(Kind::OR, eq1, eq2);
     }
     // we can assume its length is greater than zero
     Node emp = Word::mkEmptyWord(sk.getType());
