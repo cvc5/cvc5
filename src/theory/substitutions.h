@@ -103,6 +103,12 @@ class SubstitutionMap
   CacheInvalidator d_cacheInvalidator;
 
  public:
+  /**
+   * @param context The context this substitution depends on.
+   * @param compress If true, we may update the range of substitutions based
+   * on further substitutions. For example, if we add { y -> f(x) } and later
+   * add { x -> a }, then we may update the entry for y to { y -> f(a) }.
+   */
   SubstitutionMap(context::Context* context = nullptr, bool compress = true);
 
   /** Get substitutions in this object as a raw map */
@@ -117,7 +123,13 @@ class SubstitutionMap
    */
   void addSubstitutions(SubstitutionMap& subMap, bool invalidateCache = true);
 
-  /** Erase substitution */
+  /** 
+   * Erase substitution. This erases x from the domain of this substitution.
+   * This method should only be called if compression is disabled. Otherwise,
+   * x may be substituted into the range of the substitution in this class.
+   * @param x The variable to erase.
+   * @param invalidateCache If true, we clear the cache.
+   */
   void eraseSubstitution(TNode x, bool invalidateCache = true);
 
   /** Size of the substitutions */
