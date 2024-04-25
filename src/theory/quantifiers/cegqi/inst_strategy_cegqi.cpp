@@ -255,6 +255,10 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   if (quant_e == QEFFORT_STANDARD)
   {
     Assert(!d_qstate.isInConflict());
+    if (d_active_quant.empty())
+    {
+      return;
+    }
     beginCallDebug();
     size_t lastWaiting = d_qim.numPendingLemmas();
     for( int ee=0; ee<=1; ee++ ){
@@ -263,7 +267,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
       //  if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
       for( std::map< Node, bool >::iterator it = d_active_quant.begin(); it != d_active_quant.end(); ++it ){
         Node q = it->first;
-        Trace("cegqi") << "CBQI : Process quantifier " << q[0] << " at effort " << ee << std::endl;
+        Trace("cegqi") << "CEGQI : Process quantifier " << q[0] << " at effort " << ee << std::endl;
         if (d_qreg.getQuantAttributes().isQuantElimPartial(q))
         {
           d_cbqi_set_quant_inactive = true;
