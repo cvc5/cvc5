@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Hans-Jörg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +45,7 @@ RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
   }
 }
 
-void RewriteDb::addRule(DslProofRule id,
+void RewriteDb::addRule(ProofRewriteRule id,
                         const std::vector<Node> fvs,
                         Node a,
                         Node b,
@@ -151,18 +151,18 @@ void RewriteDb::getMatches(const Node& eq, expr::NotifyMatch* ntm)
   d_mt.getMatches(eq, ntm);
 }
 
-const RewriteProofRule& RewriteDb::getRule(DslProofRule id) const
+const RewriteProofRule& RewriteDb::getRule(ProofRewriteRule id) const
 {
-  std::map<DslProofRule, RewriteProofRule>::const_iterator it =
+  std::map<ProofRewriteRule, RewriteProofRule>::const_iterator it =
       d_rewDbRule.find(id);
   Assert(it != d_rewDbRule.end());
   return it->second;
 }
 
-const std::vector<DslProofRule>& RewriteDb::getRuleIdsForConclusion(
+const std::vector<ProofRewriteRule>& RewriteDb::getRuleIdsForConclusion(
     const Node& eq) const
 {
-  std::map<Node, std::vector<DslProofRule> >::const_iterator it =
+  std::map<Node, std::vector<ProofRewriteRule> >::const_iterator it =
       d_concToRules.find(eq);
   if (it != d_concToRules.end())
   {
@@ -171,10 +171,10 @@ const std::vector<DslProofRule>& RewriteDb::getRuleIdsForConclusion(
   return d_emptyVec;
 }
 
-const std::vector<DslProofRule>& RewriteDb::getRuleIdsForHead(
+const std::vector<ProofRewriteRule>& RewriteDb::getRuleIdsForHead(
     const Node& eq) const
 {
-  std::map<Node, std::vector<DslProofRule> >::const_iterator it =
+  std::map<Node, std::vector<ProofRewriteRule> >::const_iterator it =
       d_headToRules.find(eq);
   if (it != d_headToRules.end())
   {

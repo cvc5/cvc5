@@ -117,7 +117,7 @@ versions; more recent versions should be compatible.
 
 - `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
   or `Clang (>= 5) <https://clang.llvm.org>`_
-- `CMake >= 3.12 <https://cmake.org>`_
+- `CMake >= 3.16 <https://cmake.org>`_
 - `GNU Make <https://www.gnu.org/software/make/>`_
   or `Ninja <https://ninja-build.org/>`_
 - `Python >= 3.6 <https://www.python.org>`_
@@ -186,6 +186,16 @@ LibPoly >= v0.1.13 (Optional polynomial library)
 nonlinear reasoning. It can be downloaded and built automatically. Configure
 cvc5 with ``configure.sh --poly`` to build with this dependency.
 
+CoCoA (Optional computer algebra library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`CoCoA <https://cocoa.dima.unige.it/cocoa/>`_ is required for some non-linear
+reasoning and for finite field reasoning. We use a patched version of it, so we
+recommend downloading it using the ``--auto-download`` configuration flag,
+which applies our patch automatically. It is included in the build through the
+``--cocoa`` configuration flag.
+
+CoCoA is covered by the GPLv3 license. See below for the ramifications of this.
 
 CLN >= v1.3 (Class Library for Numbers)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -259,7 +269,6 @@ Dependencies for Language Bindings
 - Python
 
   - `Cython <https://cython.org/>`_ >= 3.0.0
-  - `scikit-build <https://pypi.org/project/scikit-build/>`_
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
   - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
 

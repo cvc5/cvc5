@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include "expr/node.h"
 #include "proof/proof_set.h"
 #include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 

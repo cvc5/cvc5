@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -125,7 +125,7 @@ void CocoaEncoder::endScan()
 
 void CocoaEncoder::addFact(const Node& fact)
 {
-  Assert(isFfFact(fact));
+  Assert(isFfFact(fact, size()));
   if (d_stage == Stage::Scan)
   {
     for (const auto& node :
@@ -137,7 +137,7 @@ void CocoaEncoder::addFact(const Node& fact)
       {
         continue;
       }
-      if (isFfLeaf(node) && !node.isConst())
+      if (isFfLeaf(node, size()) && !node.isConst())
       {
         Trace("ff::cocoa") << "CoCoA var sym for " << node << std::endl;
         CoCoA::symbol sym = freshSym(node.getName());
@@ -146,7 +146,7 @@ void CocoaEncoder::addFact(const Node& fact)
         d_varSyms.insert({node, sym});
         d_symNodes.insert({extractStr(sym), node});
       }
-      else if (node.getKind() == Kind::NOT && isFfFact(node))
+      else if (node.getKind() == Kind::NOT && isFfFact(node, size()))
       {
         Trace("ff::cocoa") << "CoCoA != sym for " << node << std::endl;
         CoCoA::symbol sym = freshSym("diseq", d_diseqSyms.size());
@@ -199,7 +199,7 @@ std::vector<std::pair<size_t, Node>> CocoaEncoder::nodeIndets() const
     {
       Node n = symNode(d_syms[i]);
       // skip indets for !=
-      if (isFfLeaf(n))
+      if (isFfLeaf(n, size()))
       {
         out.emplace_back(i, n);
       }
@@ -232,11 +232,11 @@ void CocoaEncoder::encodeTerm(const Node& t)
   {
     // a rule must put the encoding here
     Poly elem;
-    if (isFfFact(node) || isFfTerm(node))
+    if (isFfFact(node, size()) || isFfTerm(node, size()))
     {
       Trace("ff::cocoa::enc") << "Encode " << node;
       // ff leaf
-      if (isFfLeaf(node) && !node.isConst())
+      if (isFfLeaf(node, size()) && !node.isConst())
       {
         elem = symPoly(d_varSyms.at(node));
       }
@@ -292,7 +292,7 @@ void CocoaEncoder::encodeTerm(const Node& t)
 void CocoaEncoder::encodeFact(const Node& f)
 {
   Assert(d_stage == Stage::Encode);
-  Assert(isFfFact(f));
+  Assert(isFfFact(f, size()));
   // ==
   if (f.getKind() == Kind::EQUAL)
   {

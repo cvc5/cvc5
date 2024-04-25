@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -95,6 +95,14 @@ class InstStrategyMbqi : public QuantifiersModule
   Node convertFromModel(Node t,
                         std::unordered_map<Node, Node>& cmap,
                         const std::map<Node, Node>& mvToFreshVar);
+  /**
+   * Make skolem for term. We use a separate skolem identifier MBQI_INPUT
+   * to refer to the variables of a quantified formula. While purification
+   * skolems could also suffice, this avoids further complications due to
+   * purification skolems for Boolean variables being treated as UF atoms,
+   * which can lead to logic exceptions in subsolvers.
+   */
+  Node mkMbqiSkolem(const Node& t);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */

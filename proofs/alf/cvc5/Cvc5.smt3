@@ -21,25 +21,6 @@
 (declare-sort @ho-elim-sort 1)
 (declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
 
-; side condition for normalizing inputs for the purposes of the reference command
-(program parse_normalize ((T Type) (U Type) (S Type) (x T) (y U) (f (-> T S)) (z S))
-  (S) S
-  (
-    ((parse_normalize (/ x y))  (let ((xn (parse_normalize x)) (yn (parse_normalize y)))
-                                (let ((xz (alf.to_z xn)) (yz (alf.to_z yn)))
-                                (alf.ite (alf.and (alf.is_eq xz xn) (alf.is_eq yz yn) (alf.not (alf.is_eq yz 0)))
-                                  (alf.qdiv xn yn)
-                                  (/ xn yn)))))
-    ((parse_normalize (- x))    (let ((xn (parse_normalize x)))
-                                (let ((xz (alf.to_z xn)) (xq (alf.to_q xn)))
-                                (alf.ite (alf.is_eq xn xz) (alf.neg xn)
-                                (alf.ite (alf.is_eq xn xq) (alf.neg xn)
-                                  (- xn))))))
-    ((parse_normalize (f x))    (_ (parse_normalize f) (parse_normalize x)))
-    ((parse_normalize z)        z)
-  )
-)
-
 ; Converts x to an equivalent form, for ProofRule::ENCODE_TRANSFORM.
 ; This side condition is used to convert between the native
 ; representation in cvc5 to the form expected by DSL rewrite rules.
@@ -49,11 +30,17 @@
   (T) T
   (
     ((encode_transform (f y)) (_ (encode_transform f) (encode_transform y)))
-    ((encode_transform x)     (alf.ite (alf.is_eq (alf.to_str x) x)
+    ((encode_transform x)     (alf.ite ($is_str_literal x)
+                                ; string constants
+                                ; e.g. "AB" ---> (str.++ "A" "B")
                                 (alf.ite (check_length_gt_one x)
-                                  (string_flatten_word x)
+                                  ($str_flatten_word x)
                                   x)
-                                x))
+                              (alf.ite ($is_bin_literal x)
+                                ; bitvector constants
+                                ; e.g. #b0000 ----> (@bv 0 4)
+                                (@bv (alf.to_z x) (alf.len x))
+                                x)))
   )
 )
 
@@ -67,53 +54,92 @@
 ; evaluate, for all theories
 (program run_evaluate ((T Type) (S Type) 
                        (x T) (y T) (z S) (ys S :list)
-                       (b Bool) (n Int) (m Int))
+                       (b Bool) (n Int) (m Int)
+                       (xb (BitVec m)) (ybs (BitVec m) :list)
+                       (xs (Seq T)) (yss (Seq T) :list))
     (S) S
     (
       ; core
-      ((run_evaluate (= x y))            (alf.is_eq (run_evaluate x) (run_evaluate y))) ; FIXME
-      ((run_evaluate (not b))            (alf.not (run_evaluate b)))
-      ((run_evaluate (ite b x y))        (alf.ite (run_evaluate b) (run_evaluate x) (run_evaluate y)))
-      ((run_evaluate (or x ys))          (alf.or (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (and x ys))         (alf.and (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (xor x y))          (alf.xor (run_evaluate x) (run_evaluate y)))
+      ((run_evaluate (= x y))             (let ((ex (run_evaluate x)))
+                                          (let ((ey (run_evaluate y)))
+                                          (let ((res (alf.is_eq ex ey)))
+                                          (alf.ite (alf.and ($is_q_literal ex) ($is_q_literal ey)) res
+                                          (alf.ite (alf.and ($is_z_literal ex) ($is_z_literal ey)) res
+                                          (alf.ite (alf.and ($is_bin_literal ex) ($is_bin_literal ey)) res
+                                          (alf.ite (alf.and ($is_str_literal ex) ($is_str_literal ey)) res
+                                          (alf.ite (alf.and ($is_bool_literal ex) ($is_bool_literal ey)) res
+                                            (= ex ey))))))))))
+      ((run_evaluate (not b))             (alf.not (run_evaluate b)))
+      ((run_evaluate (ite b x y))         (alf.ite (run_evaluate b) (run_evaluate x) (run_evaluate y)))
+      ((run_evaluate (or x ys))           (alf.or (run_evaluate x) (run_evaluate ys)))
+      ((run_evaluate (and x ys))          (alf.and (run_evaluate x) (run_evaluate ys)))
+      ((run_evaluate (xor x y))           (alf.xor (run_evaluate x) (run_evaluate y)))
   
       ; arithmetic
-      ((run_evaluate (< x z))            (alf.is_neg (arith_eval_qsub x z)))
-      ((run_evaluate (<= x z))           (let ((d (arith_eval_qsub x z)))
-                                           (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
-      ((run_evaluate (> x z))            (alf.is_neg (arith_eval_qsub z x)))
-      ((run_evaluate (>= x z))           (let ((d (arith_eval_qsub z x)))
-                                           (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
-      ((run_evaluate (+ x ys))           (arith_eval_add (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (- x z))            (arith_eval_sub (run_evaluate x) (run_evaluate z)))
-      ((run_evaluate (* x ys))           (arith_eval_mul (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (- x))              (alf.neg (run_evaluate x)))
-      ((run_evaluate (/ x y))            (alf.qdiv (alf.to_q (run_evaluate x)) (alf.to_q (run_evaluate y))))
-      ((run_evaluate (/_total x y))      (let ((d (alf.to_q (run_evaluate y))))
-                                           (alf.ite (alf.is_eq d 0/1) 0/1 (alf.qdiv (alf.to_q (run_evaluate x)) d))))
-      ((run_evaluate (div x y))          (alf.zdiv (run_evaluate x) (run_evaluate y)))
-      ((run_evaluate (div_total x y))    (let ((d (run_evaluate y)))
-                                           (alf.ite (alf.is_eq d 0) 0 (alf.zdiv (run_evaluate x) d))))
+      ((run_evaluate (< x z))             (alf.is_neg (arith_eval_qsub (run_evaluate x) (run_evaluate z))))
+      ((run_evaluate (<= x z))            (let ((d (arith_eval_qsub (run_evaluate x) (run_evaluate z))))
+                                            (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
+      ((run_evaluate (> x z))             (alf.is_neg (arith_eval_qsub (run_evaluate z) (run_evaluate x))))
+      ((run_evaluate (>= x z))            (let ((d (arith_eval_qsub (run_evaluate z) (run_evaluate x))))
+                                            (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
+      ((run_evaluate (+ x ys))            (arith_eval_add (run_evaluate x) (run_evaluate ys)))
+      ((run_evaluate (- x z))             (arith_eval_sub (run_evaluate x) (run_evaluate z)))
+      ((run_evaluate (* x ys))            (arith_eval_mul (run_evaluate x) (run_evaluate ys)))
+      ((run_evaluate (- x))               (alf.neg (run_evaluate x)))
+      ((run_evaluate (/ x y))             (alf.qdiv (alf.to_q (run_evaluate x)) (alf.to_q (run_evaluate y))))
+      ((run_evaluate (/_total x y))       (let ((d (alf.to_q (run_evaluate y))))
+                                            (alf.ite (alf.is_eq d 0/1) 0/1 (alf.qdiv (alf.to_q (run_evaluate x)) d))))
+      ((run_evaluate (div x y))           (alf.zdiv (run_evaluate x) (run_evaluate y)))
+      ((run_evaluate (div_total x y))     (let ((d (run_evaluate y)))
+                                            (alf.ite (alf.is_eq d 0) 0 (alf.zdiv (run_evaluate x) d))))
+      ((run_evaluate (mod x y))           (alf.zmod (run_evaluate x) (run_evaluate y)))
+      ((run_evaluate (mod_total x y))     (let ((d (run_evaluate y)))
+                                            (alf.ite (alf.is_eq d 0) 0 (alf.zmod (run_evaluate x) d))))
+      ((run_evaluate (to_real x))         (alf.to_q (run_evaluate x)))
+      ((run_evaluate (to_int x))          (alf.to_z (run_evaluate x)))
+      ((run_evaluate (is_int x))          (alf.is_eq (alf.to_q (alf.to_z x)) (alf.to_q x)))
+
 
       ; strings
-      ((run_evaluate (str.++ x y))       (alf.concat (run_evaluate x) (run_evaluate y)))
-      ((run_evaluate (str.len x))        (alf.len (run_evaluate x)))
-      ((run_evaluate (str.substr x n m)) (let ((r (run_evaluate n)))
+      ((run_evaluate (str.++ xs yss))     (alf.concat (run_evaluate xs) (run_evaluate yss)))
+      ((run_evaluate (str.len x))         (alf.len (run_evaluate x)))
+      ((run_evaluate (str.substr x n m))  (let ((r (run_evaluate n)))
                                             (alf.extract (run_evaluate x) r (alf.add r (run_evaluate m) -1))))
-      ((run_evaluate (str.contains x y)) (alf.not (alf.is_neg (alf.find (run_evaluate x) (run_evaluate y)))))
+      ((run_evaluate (str.contains x y))  (alf.not (alf.is_neg (alf.find (run_evaluate x) (run_evaluate y)))))
+      ((run_evaluate (str.replace x y z)) (let ((ex (run_evaluate x)))
+                                          (let ((ey (run_evaluate y)))
+                                          (let ((r (alf.find (alf.to_str ex) (alf.to_str ey)))) ; ensure string literals
+                                            (alf.ite (alf.is_neg r)
+                                              ex
+                                              (alf.concat 
+                                                (alf.extract ex 0 (alf.add r -1)) 
+                                                (run_evaluate z) 
+                                                (alf.extract ex (alf.add r (alf.len ey)) (alf.len ex)))
+                                            )
+                                          ))))
+      ((run_evaluate (str.indexof x y n)) (let ((ex (run_evaluate (str.substr x n (str.len x)))))
+                                          (let ((ey (run_evaluate y)))
+                                          (let ((r (alf.find (alf.to_str ex) (alf.to_str ey))))
+                                              (alf.ite (alf.is_neg r) r (alf.add n r))))))
+
       ; bitvectors
-      ((run_evaluate (bvadd x ys))       (alf.add (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (bvsub x y))        (alf.add (run_evaluate x) (alf.neg (run_evaluate y))))
-      ((run_evaluate (bvmul x ys))       (alf.mul (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (concat x ys))      (alf.concat (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (extract m n x))    (alf.extract (run_evaluate x) n m)) ; note swap n/m
-      ((run_evaluate (bvult x y))        (run_evaluate (< (alf.to_z x) (alf.to_z y))))
-      ((run_evaluate (bvule x y))        (run_evaluate (<= (alf.to_z x) (alf.to_z y))))
-      ((run_evaluate (bvugt x y))        (run_evaluate (> (alf.to_z x) (alf.to_z y))))
-      ((run_evaluate (bvuge x y))        (run_evaluate (>= (alf.to_z x) (alf.to_z y))))
+      ((run_evaluate (bvnot xb))          (alf.not (run_evaluate xb)))
+      ((run_evaluate (bvneg xb))          (alf.neg (run_evaluate xb)))
+      ((run_evaluate (bvadd xb ybs))      (alf.add (run_evaluate xb) (run_evaluate ybs)))
+      ((run_evaluate (bvmul xb ybs))      (alf.mul (run_evaluate xb) (run_evaluate ybs)))
+      ((run_evaluate (bvand xb ybs))      (alf.and (run_evaluate xb) (run_evaluate ybs)))
+      ((run_evaluate (bvor xb ybs))       (alf.or (run_evaluate xb) (run_evaluate ybs)))
+      ((run_evaluate (concat x ys))       (alf.concat (run_evaluate x) (run_evaluate ys)))
+      ((run_evaluate (bvsub x y))         (alf.add (run_evaluate x) (alf.neg (run_evaluate y))))
+      ((run_evaluate (extract m n x))     (alf.extract (run_evaluate x) n m)) ; note swap n/m
+      ((run_evaluate (bvult x y))         (run_evaluate (< (alf.to_z x) (alf.to_z y))))
+      ((run_evaluate (bvule x y))         (run_evaluate (<= (alf.to_z x) (alf.to_z y))))
+      ((run_evaluate (bvugt x y))         (run_evaluate (> (alf.to_z x) (alf.to_z y))))
+      ((run_evaluate (bvuge x y))         (run_evaluate (>= (alf.to_z x) (alf.to_z y))))
+      ((run_evaluate (@bv n m))           (alf.to_bin (run_evaluate m) (run_evaluate n)))
+      ((run_evaluate (@bvsize x))         ($bv_bitwidth (alf.typeof x)))
   
-      ((run_evaluate z)                  z)
+      ((run_evaluate z)                   z)
     )
 )
 
@@ -121,4 +147,67 @@
 (declare-rule evaluate ((U Type) (t U))
   :args (t)
   :conclusion (= t (run_evaluate t))
+)
+
+(program is_poly_norm ((T Type) (U Type) (a T) (b T) (a1 U) (a2 U) (b1 U) (b2 U))
+  (T T) Bool
+  (
+    ((is_poly_norm (> a1 a2) (> b1 b2))   (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (>= a1 a2) (>= b1 b2)) (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (<= a1 a2) (<= b1 b2)) (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (< a1 a2) (< b1 b2))   (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    ((is_poly_norm (= a1 a2) (= b1 b2))   (alf.ite (is_arith_type (alf.typeof a1)) 
+                                          (alf.ite (is_arith_type (alf.typeof b1))
+                                            (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) false)
+                                            false)
+                                          false)) ; TODO: bv
+    ((is_poly_norm a b)                   (alf.ite (is_arith_type (alf.typeof a)) 
+                                          (alf.ite (is_arith_type (alf.typeof b))
+                                            (is_poly_norm_arith a b)
+                                            false)
+                                          false)) ; TODO: bv
+  )
+)
+
+; ProofRule::ARITH_POLY_NORM
+(declare-rule arith_poly_norm ((U Type) (a U) (b U))
+  :args ((= a b))
+  :requires (((is_poly_norm a b) true))
+  :conclusion (= a b)
+)
+
+(define get_aci_normal_form ((S Type :implicit) (t S))
+  (alf.match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
+              (xb1 (BitVec m)) (xb2 (BitVec m) :list)
+              (xf1 (FiniteField m)) (xf2 (FiniteField m) :list)
+              (xs1 (Seq U)) (xs2 (Seq U) :list))
+    t
+    (
+      ((or x1 x2)        (get_aci_norm t))
+      ((and x1 x2)       (get_aci_norm t))
+      ((sep x1 x2)       (get_aci_norm t))
+      ((re.union x1 x2)  (get_aci_norm t))
+      ((re.inter x1 x2)  (get_aci_norm t))
+      ((bvor xb1 xb2)    (get_aci_norm t))
+      ((bvand xb1 xb2)   (get_aci_norm t))
+      ((ff.add xf1 xf2)  (get_aci_norm t))
+      ((ff.mul xf1 xf2)  (get_aci_norm t))
+      ((str.++ xs1 xs2)  (get_a_norm t))
+      ((re.++ x1 x2)     (get_a_norm t))
+      (x                 x)
+    )
+  )
+)
+
+; ProofRule::ACI_NORM
+; Note that we need three checks. The first two handle the cases where one side
+; is treated as a singleton child of the other side. The remaining case checks
+; where both terms are not singletons.
+(declare-rule aci_norm ((U Type) (a U) (b U))
+  :args ((= a b))
+  :requires (((let ((an (get_aci_normal_form a)) (bn (get_aci_normal_form b)))
+              (alf.ite (alf.is_eq an b) true
+              (alf.ite (alf.is_eq a bn) true
+                (alf.is_eq an bn)))) true))
+  :conclusion (= a b)
 )

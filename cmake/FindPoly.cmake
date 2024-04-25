@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Andres Noetzli, Mathias Preiner
+#   Gereon Kremer, Andres Noetzli, Vinícius Camillo
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -237,8 +237,8 @@ else()
 
   ExternalProject_Get_Property(Poly-EP BUILD_BYPRODUCTS INSTALL_DIR)
   string(REPLACE "<INSTALL_DIR>" "${INSTALL_DIR}" BUILD_BYPRODUCTS "${BUILD_BYPRODUCTS}")
-  install(FILES
-    ${BUILD_BYPRODUCTS}
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+  # Only install shared libraries
+  if (BUILD_SHARED_LIBS)
+    install(FILES ${BUILD_BYPRODUCTS} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+#   Andrew Reynolds, Mathias Preiner, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -82,9 +82,9 @@ endif()
 set_target_properties(cvc5parser PROPERTIES OUTPUT_NAME cvc5parser)
 target_link_libraries(cvc5parser PRIVATE cvc5)
 
-install(TARGETS cvc5parser
-  EXPORT cvc5-targets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR})
+# On Windows, CMake's default install action places
+# DLLs into the runtime path (by default "bin")
+install(TARGETS cvc5parser EXPORT cvc5-targets)
 
 # The generated lexer/parser files define some functions as
 # __declspec(dllexport) via the ANTLR3_API macro, which leads to lots of

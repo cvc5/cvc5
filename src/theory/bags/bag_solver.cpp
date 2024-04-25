@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,10 +43,10 @@ BagSolver::BagSolver(Env& env,
       d_termReg(tr),
       d_mapCache(userContext())
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
+  d_one = nodeManager()->mkConstInt(Rational(1));
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 BagSolver::~BagSolver() {}
@@ -75,7 +75,7 @@ void BagSolver::checkBasicOperations()
         case Kind::BAG_INTER_MIN: checkIntersectionMin(n); break;
         case Kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case Kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
-        case Kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
+        case Kind::BAG_SETOF: checkSetof(n); break;
         case Kind::BAG_FILTER: checkFilter(n); break;
         case Kind::TABLE_PRODUCT: checkProduct(n); break;
         case Kind::TABLE_JOIN: checkJoin(n); break;
@@ -202,7 +202,7 @@ bool BagSolver::checkBagMake()
   for (const Node& bag : d_state.getBags())
   {
     TypeNode bagType = bag.getType();
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node empty = nm->mkConst(EmptyBag(bagType));
     if (d_state.areEqual(empty, bag) || d_state.areDisequal(empty, bag))
     {
@@ -258,9 +258,9 @@ void BagSolver::checkDifferenceRemove(const Node& n)
   }
 }
 
-void BagSolver::checkDuplicateRemoval(Node n)
+void BagSolver::checkSetof(Node n)
 {
-  Assert(n.getKind() == Kind::BAG_DUPLICATE_REMOVAL);
+  Assert(n.getKind() == Kind::BAG_SETOF);
   set<Node> elements;
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[0]);
@@ -270,7 +270,7 @@ void BagSolver::checkDuplicateRemoval(Node n)
 
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.duplicateRemoval(n, d_state.getRepresentative(e));
+    InferInfo i = d_ig.setof(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }

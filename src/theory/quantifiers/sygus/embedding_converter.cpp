@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Yoni Zohar
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +56,7 @@ bool EmbeddingConverter::hasSyntaxRestrictions(Node q)
 void EmbeddingConverter::collectTerms(
     Node n, std::map<TypeNode, std::unordered_set<Node>>& consts)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;
   std::vector<TNode> visit;
@@ -112,7 +112,7 @@ Node EmbeddingConverter::process(Node q,
   std::map<TypeNode, std::unordered_set<Node>> exc_cons;
   std::map<TypeNode, std::unordered_set<Node>> inc_cons;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   std::vector<Node> ebvl;
   for (unsigned i = 0; i < q[0].getNumChildren(); i++)
@@ -167,6 +167,9 @@ Node EmbeddingConverter::process(Node q,
       tn = SygusGrammarCons::mkDefaultSygusType(
           d_env, preGrammarType, sfvl, trules);
     }
+    // Ensure the expanded definition forms are set. This is done after
+    // normalization above.
+    datatypes::utils::computeExpandedDefinitionForms(d_env, tn);
     // print the grammar
     if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
     {
@@ -206,7 +209,7 @@ Node EmbeddingConverter::process(Node q,
   Assert(q[0].getNumChildren() == ebvl.size());
   Assert(d_synth_fun_vars.empty());
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   std::vector<Node> qchildren;
   Node qbody_subs = q[1];
@@ -231,7 +234,7 @@ Node EmbeddingConverter::process(Node q,
       Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
                            << " with arg " << templ_arg << std::endl;
       Trace("cegqi-debug")
-          << "  apply this template as a substituion during preprocess..."
+          << "  apply this template as a substitution during preprocess..."
           << std::endl;
       std::vector<Node> schildren;
       std::vector<Node> largs;
@@ -287,7 +290,7 @@ Node EmbeddingConverter::process(Node q,
 
 Node EmbeddingConverter::convertToEmbedding(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;

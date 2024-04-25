@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,7 +58,7 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 class TermDbSygus : protected EnvObj
 {
  public:
-  TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc = nullptr);
+  TermDbSygus(Env& env, QuantifiersState& qs);
   ~TermDbSygus() {}
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);

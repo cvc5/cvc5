@@ -3,7 +3,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofFormatMode"
-  category   = "regular"
+  category   = "expert"
   long       = "proof-format-mode=MODE"
   type       = "ProofFormatMode"
   default    = "ALF"
@@ -24,6 +24,14 @@ name   = "Proof"
 [[option.mode.ALF]]
   name       = "alf"
   help       = "Output AletheLF proof"
+
+[[option]]
+  name       = "proofAletheExperimental"
+  category   = "expert"
+  long       = "proof-alethe-experimental"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable the use of Alethe proofs (experimental)"
 
 [[option]]
   name       = "proofPrintConclusion"
@@ -113,7 +121,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-rewrite-rcons-rec-limit=N"
   type       = "uint64_t"
-  default    = "15"
+  default    = "5"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
 
 [[option]]
@@ -203,3 +211,37 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"
+
+[[option]]
+  name       = "dratBinaryFormat"
+  category   = "expert"
+  long       = "drat-binary-format"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the DRAT proof in binary format"
+
+[[option]]
+  name       = "satProofMinDimacs"
+  category   = "expert"
+  long       = "sat-proof-min-dimacs"
+  type       = "bool"
+  default    = "true"
+  help       = "Minimize the DIMACs emitted when prop-proof-mode is set to sat-external-prove"
+
+[[option]]
+  name       = "propProofMode"
+  category   = "regular"
+  long       = "prop-proof-mode=MODE"
+  type       = "PropProofMode"
+  default    = "PROOF"
+  help       = "modes for proof granularity"
+  help_mode  = "Modes for proof granularity."
+[[option.mode.PROOF]]
+  name = "proof"
+  help = "A proof computed by the SAT solver."
+[[option.mode.SAT_EXTERNAL_PROVE]]
+  name = "sat-external-prove"
+  help = "A proof containing a step that will be proven externally."
+[[option.mode.SKETCH]]
+  name = "sketch"
+  help = "A sketch given by the SAT solver."

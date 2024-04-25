@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Liana Hadarean
+ *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@ TheoryBV::TheoryBV(Env& env,
                    std::string name)
     : Theory(THEORY_BV, env, out, valuation, name),
       d_internal(nullptr),
-      d_rewriter(),
+      d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::bv::"),
       d_notify(d_im),
@@ -290,6 +290,24 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
   return d_internal->ppRewrite(t);
 }
 
+TrustNode TheoryBV::ppStaticRewrite(TNode atom)
+{
+  Kind k = atom.getKind();
+  if (k == Kind::EQUAL)
+  {
+    if (RewriteRule<SolveEq>::applies(atom))
+    {
+      Node res = RewriteRule<SolveEq>::run<false>(atom);
+      if (res != atom)
+      {
+        res = d_env.getRewriter()->rewrite(res);
+        return TrustNode::mkTrustRewrite(atom, res);
+      }
+    }
+  }
+  return TrustNode::null();
+}
+
 void TheoryBV::presolve() { d_internal->presolve(); }
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
@@ -358,8 +376,7 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
           Node c_eq_0 = c.eqNode(zero);
           Node b_eq_c = b.eqNode(c);
 
-          Node dis = NodeManager::currentNM()->mkNode(
-              Kind::OR, b_eq_0, c_eq_0, b_eq_c);
+          Node dis = nodeManager()->mkNode(Kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
           learned << imp;
         }

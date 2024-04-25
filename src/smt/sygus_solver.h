@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -195,17 +195,12 @@ class SygusSolver : protected EnvObj
    */
   void checkSynthSolution(Assertions& as, const std::map<Node, Node>& solMap);
   /**
-   * Expand definitions in sygus datatype tn, which ensures that all
-   * sygus constructors that are used to build values of sygus datatype
-   * tn are associated with their expanded definition form.
-   *
-   * This method is required at this level since sygus grammars may include
-   * user-defined functions. Thus, we must use the preprocessor here to
-   * associate the use of those functions with their expanded form, since
-   * the internal sygus solver must reason about sygus operators after
-   * expansion.
+   * Check definitions in sygus datatype tn, which ensures that all
+   * sygus constructors do not have illegal free variables.
+   * We do not yet compute expanded definition form, which is done in the
+   * internal solver.
    */
-  void expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const;
+  void checkDefinitionsSygusDt(const Node& fn, TypeNode tn) const;
   /** List to vector helper */
   static std::vector<Node> listToVector(const NodeList& list);
   /**

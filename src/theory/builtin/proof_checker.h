@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,12 +22,16 @@
 #include "proof/method_id.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "theory/builtin/theory_rewrite_proof_checker.h"
 
 namespace cvc5::internal {
 
 class Env;
 
 namespace theory {
+
+class Rewriter;
+
 namespace builtin {
 
 /** A checker for builtin proofs */
@@ -35,7 +39,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 {
  public:
   /** Constructor. */
-  BuiltinProofRuleChecker(Env& env);
+  BuiltinProofRuleChecker(NodeManager* nm, Rewriter* r, Env& env);
   /** Destructor. */
   ~BuiltinProofRuleChecker() {}
   /**
@@ -114,10 +118,17 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                      const std::vector<Node>& args) override;
 
  private:
+  /**
+   * Pointer to the rewriter. Necessary since this uses the rewriter as an
+   * oracle for proof checking.
+   */
+  Rewriter* d_rewriter;
   /** Reference to the environment. */
   Env& d_env;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
+  /** Theory rewrite proof checker */
+  TheoryRewriteProofChecker d_trpc;
 };
 
 }  // namespace builtin

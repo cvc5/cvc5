@@ -163,6 +163,16 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(VARIABLE),
   /**
+   * A Skolem.
+   *
+   * \rst
+   * .. note:: Represents an internally generated term. Information on the
+   * skolem is available via the calls `Solver::getSkolemId` and
+   * `Solver::getSkolemIndices`.
+   * \endrst
+   */
+  EVALUE(SKOLEM),
+  /**
    * Symbolic expression.
    *
    * - Arity: ``n > 0``
@@ -590,6 +600,27 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(DIVISION),
   /**
+   * Real division, division by 0 defined to be 0, left associative.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of Sort Real
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   */
+  EVALUE(DIVISION_TOTAL),
+  /**
    * Integer division, division by 0 undefined, left associative.
    *
    * - Arity: ``n > 1``
@@ -606,6 +637,27 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_DIVISION),
+  /**
+   * Integer division, division by 0 defined to be 0, left associative.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   */
+  EVALUE(INTS_DIVISION_TOTAL),
   /**
    * Integer modulus, modulus by 0 undefined.
    *
@@ -624,6 +676,28 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_MODULUS),
+  /**
+   * Integer modulus, modulus by 0 defined to be 0.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of Sort Int
+   *   - ``2:`` Term of Sort Int
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   */
+  EVALUE(INTS_MODULUS_TOTAL),
   /**
    * Absolute value.
    *
@@ -3481,6 +3555,38 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(RELATION_JOIN),
+   /**
+   * \rst
+   *  Table join operator for relations has the form
+   *  :math:`((\_ \; rel.table\_join \; m_1 \; n_1 \; \dots \; m_k \; n_k) \; A \; B)`
+   *  where :math:`m_1 \; n_1 \; \dots \; m_k \; n_k` are natural numbers,
+   *  and :math:`A, B` are relations.
+   *  This operator filters the product of two sets based on the equality of
+   *  projected tuples using indices :math:`m_1, \dots, m_k` in relation :math:`A`,
+   *  and indices :math:`n_1, \dots, n_k` in relation :math:`B`.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of relation Sort
+   *
+   *   - ``2:`` Term of relation Sort
+   *
+   * - Indices: ``n``
+   *   - ``1..n:``  Indices of the projection
+   *
+   * \endrst
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(RELATION_TABLE_JOIN),
   /**
    * Relation cartesian product.
    *
@@ -3812,7 +3918,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BAG_MEMBER),
   /**
-   * Bag duplicate removal.
+   * Bag setof.
    *
    * Eliminate duplicates in a given bag. The returned bag contains exactly the
    * same elements in the given bag, but with multiplicity one.
@@ -3835,7 +3941,7 @@ enum ENUM(Kind) : int32_t
    *              future versions.
    * \endrst
    */
-  EVALUE(BAG_DUPLICATE_REMOVAL),
+  EVALUE(BAG_SETOF),
   /**
    * Bag make.
    *
@@ -3908,73 +4014,7 @@ enum ENUM(Kind) : int32_t
    *              future versions.
    * \endrst
    */
-  EVALUE(BAG_CHOOSE),
-  /**
-   * Bag is singleton tester.
-   *
-   * - Arity: ``1``
-   *
-   *   - ``1:`` Term of bag Sort
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  EVALUE(BAG_IS_SINGLETON),
-  /**
-   * Conversion from set to bag.
-   *
-   * - Arity: ``1``
-   *
-   *   - ``1:`` Term of set Sort
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  EVALUE(BAG_FROM_SET),
-  /**
-   * Conversion from bag to set.
-   *
-   * - Arity: ``1``
-   *
-   *   - ``1:`` Term of bag Sort
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   *
-   * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
-   * \endrst
-   */
-  EVALUE(BAG_TO_SET),
+  EVALUE(BAG_CHOOSE),  
   /**
    * Bag map.
    *
@@ -5693,18 +5733,18 @@ const char* cvc5_kind_to_string(Cvc5Kind kind);
  * Get the string representation of a given kind.
  * @param kind The kind
  * @return The string representation.
- * @note This function is deprecated and replaced by
- *       `std::to_string(Kind kind)`. It will be removed in a future release.
+ * @warning This function is deprecated and replaced by
+ *          `std::to_string(Kind kind)`. It will be removed in a future release.
  */
-[[deprecated("use std::to_string(Kind) instead.")]] std::string kindToString(
-    Kind kind) CVC5_EXPORT;
+[[deprecated("use std::to_string(Kind) instead.")]] CVC5_EXPORT std::string
+kindToString(Kind kind);
 /**
  * Serialize a kind to given stream.
  * @param out  The output stream.
  * @param kind The kind to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, Kind kind) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, Kind kind);
 
 }  // namespace cvc5
 
@@ -5993,19 +6033,19 @@ const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
  * Get the string representation of a given kind.
  * @param k the sort kind
  * @return the string representation of kind k
- * @note This function is deprecated and replaced by
- *       `std::to_string(SortKind kind)`. It will be removed in a future
- *       release.
+ * @warning This function is deprecated and replaced by
+ *          `std::to_string(SortKind kind)`. It will be removed in a future
+ *          release.
  */
-[[deprecated("use std::to_string(SortKind) instead.")]] std::string
-sortKindToString(SortKind k) CVC5_EXPORT;
+[[deprecated("use std::to_string(SortKind) instead.")]] CVC5_EXPORT std::string
+sortKindToString(SortKind k);
 /**
  * Serialize a kind to given stream.
  * @param out the output stream
  * @param k the sort kind to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, SortKind k) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, SortKind k);
 
 }  // namespace cvc5
 

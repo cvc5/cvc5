@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,16 +83,19 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
 
-  if (options().prop.satSolver == options::SatSolverMode::MINISAT
-      || d_env.isSatProofProducing())
+  if (options().prop.satSolver == options::SatSolverMode::MINISAT)
   {
     d_satSolver =
         SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
   }
   else
   {
+    // log DRAT proofs if the mode is SKETCH.
+    bool logProofs =
+        (env.isSatProofProducing()
+         && options().proof.propProofMode == options::PropProofMode::SKETCH);
     d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager());
+        d_env, statisticsRegistry(), env.getResourceManager(), "", logProofs);
   }
 
   // CNF stream and theory proxy required pointers to each other, make the
@@ -110,7 +113,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   bool satProofs = d_env.isSatProofProducing();
   if (satProofs)
   {
-    d_ppm.reset(new PropPfManager(env, d_satSolver, *d_cnfStream));
+    d_ppm.reset(
+        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
   }
   // connect SAT solver
   d_satSolver->initialize(
@@ -119,7 +123,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
 
 void PropEngine::finishInit()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
   d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
@@ -165,16 +169,20 @@ void PropEngine::assertInputFormulas(
   for (const Node& node : assertions)
   {
     Trace("prop") << "assertFormula(" << node << ")" << std::endl;
-    assertInternal(node, false, false, true);
+    assertInternal(theory::InferenceId::INPUT, node, false, false, true);
   }
   int64_t natomsPost = d_cnfStream->d_stats.d_numAtoms.get();
   Assert(natomsPost >= natomsPre);
   d_stats.d_numInputAtoms += (natomsPost - natomsPre);
 }
 
-void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
+void PropEngine::assertLemma(theory::InferenceId id,
+                             TrustNode tlemma,
+                             theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
+  bool local = isLemmaPropertyLocal(p);
+  bool inprocess = isLemmaPropertyInprocess(p);
 
   // call preprocessor
   std::vector<theory::SkolemLemma> ppLemmas;
@@ -208,10 +216,12 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(tplemma, ppLemmas, removable);
+  assertLemmasInternal(id, tplemma, ppLemmas, removable, inprocess, local);
 }
 
-void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
+void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
+                                            TrustNode trn,
+                                            bool removable)
 {
   Node node = trn.getNode();
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
@@ -220,6 +230,7 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
     output(OutputTag::LEMMAS) << "(lemma ";
     // use original form of the lemma here
     output(OutputTag::LEMMAS) << SkolemManager::getOriginalForm(node);
+    output(OutputTag::LEMMAS) << " :source " << id;
     output(OutputTag::LEMMAS) << ")" << std::endl;
   }
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
@@ -235,66 +246,86 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
     d_theoryLemmaPg.addTrustedStep(actualNode, TrustId::THEORY_LEMMA, {}, {});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
-  assertInternal(node, negated, removable, false, trn.getGenerator());
+  assertInternal(id, node, negated, removable, false, trn.getGenerator());
 }
 
-void PropEngine::assertInternal(
-    TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
+void PropEngine::assertInternal(theory::InferenceId id,
+                                TNode node,
+                                bool negated,
+                                bool removable,
+                                bool input,
+                                ProofGenerator* pg)
 {
-  // Assert as (possibly) removable
-  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
+  bool addAssumption = false;
+  if (isProofEnabled())
   {
-    if (input)
+    if (input
+        && options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
     {
-      d_cnfStream->ensureLiteral(node);
-      if (negated)
-      {
-        d_assumptions.push_back(node.notNode());
-      }
-      else
-      {
-        d_assumptions.push_back(node);
-      }
+      // use the proof CNF stream to ensure the literal
+      d_ppm->ensureLiteral(node);
+      addAssumption = true;
     }
     else
     {
-      d_cnfStream->convertAndAssert(node, removable, negated);
+      d_ppm->convertAndAssert(id, node, negated, removable, input, pg);
     }
   }
-  else if (isProofEnabled())
+  else if (input
+           && options().smt.unsatCoresMode
+                  == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    d_ppm->convertAndAssert(node, negated, removable, input, pg);
+    d_cnfStream->ensureLiteral(node);
+    addAssumption = true;
   }
   else
   {
     d_cnfStream->convertAndAssert(node, removable, negated);
   }
+  if (addAssumption)
+  {
+    if (negated)
+    {
+      d_assumptions.push_back(node.notNode());
+    }
+    else
+    {
+      d_assumptions.push_back(node);
+    }
+  }
 }
 
 void PropEngine::assertLemmasInternal(
+    theory::InferenceId id,
     TrustNode trn,
     const std::vector<theory::SkolemLemma>& ppLemmas,
-    bool removable)
+    bool removable,
+    bool inprocess,
+    bool local)
 {
-  if (!removable)
+  // notify skolem definitions first to ensure that the computation of
+  // when a literal contains a skolem is accurate in the calls below.
+  Trace("prop") << "Notify skolem definitions..." << std::endl;
+  for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    // notify skolem definitions first to ensure that the computation of
-    // when a literal contains a skolem is accurate in the calls below.
-    Trace("prop") << "Notify skolem definitions..." << std::endl;
-    for (const theory::SkolemLemma& lem : ppLemmas)
-    {
-      d_theoryProxy->notifySkolemDefinition(lem.getProven(), lem.d_skolem);
-    }
+    d_theoryProxy->notifySkolemDefinition(lem.getProven(), lem.d_skolem);
   }
   // Assert to the SAT solver first
   Trace("prop") << "Push to SAT..." << std::endl;
   if (!trn.isNull())
   {
-    assertTrustedLemmaInternal(trn, removable);
+    // inprocess
+    if (inprocess
+        && options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
+    {
+      trn = d_theoryProxy->inprocessLemma(trn);
+    }
+    assertTrustedLemmaInternal(id, trn, removable);
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
+    assertTrustedLemmaInternal(
+        theory::InferenceId::THEORY_PP_SKOLEM_LEM, lem.d_lemma, removable);
   }
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
@@ -304,19 +335,16 @@ void PropEngine::assertLemmasInternal(
   // e.g. for string reduction lemmas, where preregistration lemmas are
   // introduced for skolems that appear in reductions. Moving the above
   // block after the one below has mixed performance on SMT-LIB strings logics.
-  if (!removable)
+  Trace("prop") << "Notify assertions..." << std::endl;
+  // also add to the decision engine, where notice we don't need proofs
+  if (!trn.isNull())
   {
-    Trace("prop") << "Notify assertions..." << std::endl;
-    // also add to the decision engine, where notice we don't need proofs
-    if (!trn.isNull())
-    {
-      // notify the theory proxy of the lemma
-      d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true);
-    }
-    for (const theory::SkolemLemma& lem : ppLemmas)
-    {
-      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
-    }
+    // notify the theory proxy of the lemma
+    d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true, local);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true, local);
   }
   Trace("prop") << "Finish " << trn << std::endl;
 }
@@ -486,11 +514,11 @@ Node PropEngine::getValue(TNode node) const
   SatValue v = d_satSolver->value(lit);
   if (v == SAT_VALUE_TRUE)
   {
-    return NodeManager::currentNM()->mkConst(true);
+    return nodeManager()->mkConst(true);
   }
   else if (v == SAT_VALUE_FALSE)
   {
-    return NodeManager::currentNM()->mkConst(false);
+    return nodeManager()->mkConst(false);
   }
   else
   {
@@ -558,7 +586,12 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   TrustNode trnNull;
-  assertLemmasInternal(trnNull, newLemmas, false);
+  assertLemmasInternal(theory::InferenceId::THEORY_PP_SKOLEM_LEM,
+                       trnNull,
+                       newLemmas,
+                       false,
+                       false,
+                       false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 
