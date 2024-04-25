@@ -123,7 +123,7 @@ class SubstitutionMap
    */
   void addSubstitutions(SubstitutionMap& subMap, bool invalidateCache = true);
 
-  /** 
+  /**
    * Erase substitution. This erases x from the domain of this substitution.
    * This method should only be called if compression is disabled. Otherwise,
    * x may be substituted into the range of the substitution in this class.
