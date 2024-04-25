@@ -41,16 +41,17 @@
 
 using namespace std;
 using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::quantifiers;
 
 namespace cvc5::internal {
 namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
     Env& env,
-    quantifiers::QuantifiersState& qs,
-    quantifiers::QuantifiersRegistry& qr,
-    quantifiers::TermRegistry& tr,
-    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersState& qs,
+    QuantifiersRegistry& qr,
+    TermRegistry& tr,
+    QuantifiersInferenceManager& qim,
     ProofNodeManager* pnm)
     : EnvObj(env),
       d_qstate(qs),
@@ -78,12 +79,12 @@ QuantifiersEngine::QuantifiersEngine(
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
     d_builder.reset(
-        new quantifiers::fmcheck::FullModelChecker(env, qs, qim, qr, tr));
+        new fmcheck::FullModelChecker(env, qs, qim, qr, tr));
   }
   else
   {
     Trace("quant-init-debug") << "...make default model builder." << std::endl;
-    d_builder.reset(new quantifiers::QModelBuilder(env, qs, qim, qr, tr));
+    d_builder.reset(new QModelBuilder(env, qs, qim, qr, tr));
   }
   // set the model object
   d_builder->finishInit();
@@ -116,7 +117,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_model->finishInit(te->getModel());
   d_te = te;
   // Initialize the modules and the utilities here.
-  d_qmodules.reset(new quantifiers::QuantifiersModules());
+  d_qmodules.reset(new QuantifiersModules());
   d_qmodules->initialize(
       d_env, d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
   if (d_qmodules->d_rel_dom.get())
@@ -131,19 +132,19 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules->d_bint.get());
 }
 
-quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
+QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 {
   return d_qreg;
 }
 
-quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
+QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
 }
 
 /// !!!!!!!!!!!!!! temporary (project #15)
 
-quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
+TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_treg.getTermDatabaseSygus();
 }
@@ -172,12 +173,12 @@ void QuantifiersEngine::ppNotifyAssertions(
   {
     for (const Node& a : assertions)
     {
-      quantifiers::QuantAttributes::setInstantiationLevelAttr(a, 0);
+      QuantAttributes::setInstantiationLevelAttr(a, 0);
     }
   }
   if (options().quantifiers.sygus)
   {
-    quantifiers::SynthEngine* sye = d_qmodules->d_synth_e.get();
+    SynthEngine* sye = d_qmodules->d_synth_e.get();
     for (const Node& a : assertions)
     {
       sye->ppNotifyAssertion(a);
@@ -188,13 +189,13 @@ void QuantifiersEngine::ppNotifyAssertions(
    */
   if (options().quantifiers.sygusInst)
   {
-    quantifiers::SygusInst* si = d_qmodules->d_sygus_inst.get();
+    SygusInst* si = d_qmodules->d_sygus_inst.get();
     si->ppNotifyAssertions(assertions);
   }
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
-  quantifiers::QuantifiersStatistics& stats = d_qstate.getStats();
+  QuantifiersStatistics& stats = d_qstate.getStats();
   CodeTimer codeTimer(stats.d_time);
   Assert(d_qstate.getEqualityEngine() != nullptr);
   if (!d_qstate.getEqualityEngine()->consistent())

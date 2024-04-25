@@ -206,7 +206,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
 
 std::string InstStrategyPool::identify() const
 {
-  return std::string("InstStrategyPool");
+  return "pool-inst";
 }
 
 bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)

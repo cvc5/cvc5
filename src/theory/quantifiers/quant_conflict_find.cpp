@@ -2422,6 +2422,8 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   Trace("qcf-check2") << "QCF : finished check : " << level << std::endl;
 }
 
+  std::string QuantConflictFind::identify() const { return "cbqi"; }
+  
 void QuantConflictFind::checkQuantifiedFormula(Node q,
                                                bool& isConflict,
                                                unsigned& addedLemmas)

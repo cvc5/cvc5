@@ -17,6 +17,8 @@
 
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/quant_module.h"
+#include "options/base_options.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -30,7 +32,10 @@ QuantifiersInferenceManager::QuantifiersInferenceManager(
     TermRegistry& tr)
     : InferenceManagerBuffered(env, t, state, "theory::quantifiers::"),
       d_instantiate(new Instantiate(env, state, *this, qr, tr)),
-      d_skolemize(new Skolemize(env, state, tr))
+      d_skolemize(new Skolemize(env, state, tr)),
+      d_debugQm(nullptr),
+      d_debugNumPendingLemmas(0),
+      d_debugTimeStamp()
 {
 }
 
@@ -50,6 +55,57 @@ void QuantifiersInferenceManager::doPending()
 {
   doPendingLemmas();
   doPendingPhaseRequirements();
+}
+
+void QuantifiersInferenceManager::beginCallDebug(QuantifiersModule* qm)
+{
+  bool traceOn = TraceIsOn("inst-strategy");
+  if (!isOutputOn(OutputTag::INST_STRATEGY) && !traceOn)
+  {
+    return;
+  }
+  d_debugQm = qm;
+  d_debugNumPendingLemmas = numPendingLemmas();
+  d_debugTimeStamp = clock();
+  if (traceOn)
+  {
+    Trace("inst-strategy") << "--- Run " << qm->identify()
+                         << "---" << std::endl;
+  }
+}
+
+void QuantifiersInferenceManager::endCallDebug()
+{
+  if (d_debugQm==nullptr)
+  {
+    // trace and output is not enabled
+    return;
+  }
+  size_t numLemmas = numPendingLemmas()-d_debugNumPendingLemmas;
+  clock_t endTimeStamp = clock()-d_debugTimeStamp;
+  double time = static_cast<double>(endTimeStamp)/static_cast<double>(CLOCKS_PER_SEC);
+  bool isConflict = d_theoryState.isInConflict();
+  if (isOutputOn(OutputTag::INST_STRATEGY))
+  {
+    output(OutputTag::INST_STRATEGY) << "(inst-strategy " << d_debugQm->identify();
+    if (numLemmas>0)
+    {
+      output(OutputTag::INST_STRATEGY) << " :inst " << numLemmas;
+    }
+    output(OutputTag::INST_STRATEGY) << " :time " << time;
+    if (isConflict)
+    {
+      output(OutputTag::INST_STRATEGY) << " :conflict";
+    }
+    output(OutputTag::INST_STRATEGY) << ")" << std::endl;
+  }
+  if (TraceIsOn("inst-strategy"))
+  {
+    Trace("inst-strategy") << (isConflict ? "Conflict, a" : "A");
+    Trace("inst-strategy") << "dded Lemmas = " << numLemmas << std::endl;
+    Trace("inst-strategy") << "Time = " << time << std::endl;
+  }
+  d_debugQm = nullptr;
 }
 
 }  // namespace quantifiers

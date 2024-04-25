@@ -181,6 +181,8 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
+std::string InstStrategySubConflict::identify() const { return "sub-cbqi"; }
+  
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
