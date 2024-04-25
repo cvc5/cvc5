@@ -51,6 +51,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_decisionEngine(nullptr),
       d_trackActiveSkDefs(false),
       d_dmTrackActiveSkDefs(false),
+      d_inSolve(false),
       d_theoryEngine(theoryEngine),
       d_queue(context()),
       d_tpp(env, *theoryEngine),
@@ -365,7 +366,7 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
 
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
-  Trace("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
+  Trace("theory-proxy") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
   // Decision level = SAT context level - 1 due to global push().
   d_queue.push(std::make_pair(literalNode, context()->getLevel() - 1));
