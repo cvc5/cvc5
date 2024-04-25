@@ -82,16 +82,10 @@ quantifiers::TermRegistry& QuantifiersModule::getTermRegistry()
   return d_treg;
 }
 
-void QuantifiersModule::beginCallDebug()
-{
-  d_qim.beginCallDebug(this);
-}
+void QuantifiersModule::beginCallDebug() { d_qim.beginCallDebug(this); }
 
-void QuantifiersModule::endCallDebug()
-{
-  d_qim.endCallDebug();
-}
- 
+void QuantifiersModule::endCallDebug() { d_qim.endCallDebug(); }
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

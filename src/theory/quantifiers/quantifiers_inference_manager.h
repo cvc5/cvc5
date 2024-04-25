@@ -58,6 +58,7 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
   void beginCallDebug(QuantifiersModule* qm);
   /** End timing call */
   void endCallDebug();
+
  private:
   /** instantiate utility */
   std::unique_ptr<Instantiate> d_instantiate;

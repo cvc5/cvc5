@@ -15,10 +15,10 @@
 
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 
-#include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/quant_module.h"
 #include "options/base_options.h"
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quant_module.h"
+#include "theory/quantifiers/skolemize.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -69,26 +69,28 @@ void QuantifiersInferenceManager::beginCallDebug(QuantifiersModule* qm)
   d_debugTimeStamp = clock();
   if (traceOn)
   {
-    Trace("inst-strategy") << "--- Run " << qm->identify()
-                         << "---" << std::endl;
+    Trace("inst-strategy") << "--- Run " << qm->identify() << "---"
+                           << std::endl;
   }
 }
 
 void QuantifiersInferenceManager::endCallDebug()
 {
-  if (d_debugQm==nullptr)
+  if (d_debugQm == nullptr)
   {
     // trace and output is not enabled
     return;
   }
-  size_t numLemmas = numPendingLemmas()-d_debugNumPendingLemmas;
-  clock_t endTimeStamp = clock()-d_debugTimeStamp;
-  double time = static_cast<double>(endTimeStamp)/static_cast<double>(CLOCKS_PER_SEC);
+  size_t numLemmas = numPendingLemmas() - d_debugNumPendingLemmas;
+  clock_t endTimeStamp = clock() - d_debugTimeStamp;
+  double time =
+      static_cast<double>(endTimeStamp) / static_cast<double>(CLOCKS_PER_SEC);
   bool isConflict = d_theoryState.isInConflict();
   if (isOutputOn(OutputTag::INST_STRATEGY))
   {
-    output(OutputTag::INST_STRATEGY) << "(inst-strategy " << d_debugQm->identify();
-    if (numLemmas>0)
+    output(OutputTag::INST_STRATEGY)
+        << "(inst-strategy " << d_debugQm->identify();
+    if (numLemmas > 0)
     {
       output(OutputTag::INST_STRATEGY) << " :inst " << numLemmas;
     }

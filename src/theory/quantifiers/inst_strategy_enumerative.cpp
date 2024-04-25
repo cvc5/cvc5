@@ -173,11 +173,8 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
-std::string InstStrategyEnum::identify() const
-{
-  return "enum-inst";
-}
-  
+std::string InstStrategyEnum::identify() const { return "enum-inst"; }
+
 bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
 {
   // ignore if constant true (rare case of non-standard quantifier whose body

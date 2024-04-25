@@ -46,13 +46,12 @@ using namespace cvc5::internal::theory::quantifiers;
 namespace cvc5::internal {
 namespace theory {
 
-QuantifiersEngine::QuantifiersEngine(
-    Env& env,
-    QuantifiersState& qs,
-    QuantifiersRegistry& qr,
-    TermRegistry& tr,
-    QuantifiersInferenceManager& qim,
-    ProofNodeManager* pnm)
+QuantifiersEngine::QuantifiersEngine(Env& env,
+                                     QuantifiersState& qs,
+                                     QuantifiersRegistry& qr,
+                                     TermRegistry& tr,
+                                     QuantifiersInferenceManager& qim,
+                                     ProofNodeManager* pnm)
     : EnvObj(env),
       d_qstate(qs),
       d_qim(qim),
@@ -78,8 +77,7 @@ QuantifiersEngine::QuantifiersEngine(
               || mmode == options::FmfMbqiMode::TRUST)))
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
-    d_builder.reset(
-        new fmcheck::FullModelChecker(env, qs, qim, qr, tr));
+    d_builder.reset(new fmcheck::FullModelChecker(env, qs, qim, qr, tr));
   }
   else
   {
