@@ -156,6 +156,11 @@ name   = "Base"
   help = "print instantiations during solving"
   description = "With ``-o inst``, cvc5 prints information about quantifier instantions for individual quantifers."
   example-file = "regress1/quantifiers/qid-debug-inst.smt2"
+[[option.mode.INST_STRATEGY]]
+  name = "inst-strategy"
+  help = "prints a summary of the instantiation techniques as they are run."
+  description = "With ``-o inst-strategy``, cvc5 prints a summary of the instantiation techniques as they are run."
+  example-file = "regress0/printer/print_inst_strategy.smt2"
 [[option.mode.ORACLES]]
   name = "oracles"
   help = "print calls to oracles and responses received"
