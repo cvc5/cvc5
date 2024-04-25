@@ -352,7 +352,9 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
   Node clns = plugins[0]->getSharableFormula(cln);
   if (!clns.isNull())
   {
-    Trace("theory-proxy") << "TheoryProxy::notifySatClause: Clause from SAT solver: " << clns << std::endl;
+    Trace("theory-proxy")
+        << "TheoryProxy::notifySatClause: Clause from SAT solver: " << clns
+        << std::endl;
     // notify the plugins
     for (Plugin* p : plugins)
     {
