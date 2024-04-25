@@ -187,7 +187,7 @@ class TheoryRewriter
    * @param a The left hand side of the rewrite.
    * @param b The right hand side of the rewrite.
    * @param isPost If false, then this will not return any ProofRewriteRule
-   * where a RARE rule should take presendence.
+   * where a RARE rule should take precedence.
    * @return An identifier, if one exists, that rewrites a to b. In particular,
    * the returned rule is either ProofRewriteRule::NONE or is a rule id such
    * that rewriteViaRule(id, a) returns b.
@@ -195,13 +195,18 @@ class TheoryRewriter
   ProofRewriteRule findRule(const Node& a, const Node& b, bool isPost = false);
 
  protected:
-  /** Register proof rewrite rule */
+  /**
+   * Register proof rewrite rule, which makes it returned in findRule.
+   * @param id The identifier.
+   * @param isPost If true, then RARE rules should take precedence over this
+   * rule.
+   */
   void registerProofRewriteRule(ProofRewriteRule id, bool isPost = false);
   /** The underlying node manager */
   NodeManager* d_nm;
-  /** The rewrite rules implemented by this rewriter */
+  /** The rewrite rules implemented by this rewriter (when isPost is false) */
   std::unordered_set<ProofRewriteRule> d_pfTheoryRewrites;
-  /** The rewrite rules implemented by this rewriter */
+  /** The rewrite rules implemented by this rewriter (when isPost is true) */
   std::unordered_set<ProofRewriteRule> d_pfTheoryRewritesPost;
   /** Get a pointer to the node manager */
   NodeManager* nodeManager() const;
