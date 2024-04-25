@@ -1298,6 +1298,7 @@ set(regress_0_tests
   regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
   regress0/proofs/issue9531-alethe-resolution.smt2
   regress0/proofs/issue9669-clause-level-opt-incremental.smt2
+  regress0/proofs/issue9770-open-sat-proof.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/no-proof-uc.smt2
@@ -1319,6 +1320,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue589.smt2
   regress0/proofs/proj-issue696.smt2
   regress0/proofs/proj-issue698.smt2
+  regress0/proofs/proj-issue711-open-sat-proof.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
@@ -2180,7 +2182,7 @@ set(regress_1_tests
   regress1/bags/bag_partition1.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/card1.smt2
-  regress1/bags/card2.smt2  
+  regress1/bags/card2.smt2
   regress1/bags/choose1.smt2
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
@@ -2195,7 +2197,7 @@ set(regress_1_tests
   regress1/bags/filter2.smt2
   regress1/bags/filter3.smt2
   regress1/bags/filter4.smt2
-  regress1/bags/filter5.smt2  
+  regress1/bags/filter5.smt2
   regress1/bags/fold1.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
@@ -2219,7 +2221,7 @@ set(regress_1_tests
   regress1/bags/murxla2.smt2
   regress1/bags/murxla3.smt2
   regress1/bags/murxla4.smt2
-  regress1/bags/murxla5.smt2  
+  regress1/bags/murxla5.smt2
   regress1/bags/murxla7.smt2
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
@@ -2664,7 +2666,7 @@ set(regress_1_tests
   regress1/quantifiers/choice-move-delta-relt.smt2
   regress1/quantifiers/const.cvc.smt2
   regress1/quantifiers/constfunc.cvc.smt2
-  regress1/quantifiers/dd.binary_trees.adb_1105_16_loop_invariant_init_1.smt2 
+  regress1/quantifiers/dd.binary_trees.adb_1105_16_loop_invariant_init_1.smt2
   regress1/quantifiers/dd.bug812-ieval.smt2
   regress1/quantifiers/ddatv-delta2.smt2
   regress1/quantifiers/dt-tc-opt-small.smt2
@@ -3867,16 +3869,16 @@ foreach(tester ${testers})
 endforeach()
 
 # We must ensure that the cvc5 binary is built before running any tests.
-# In principle, this would just be a matter of adding a dependency on the 
-# 'test' target (defined by CTest). However, that built-in targets are not 
-# accessible via user code. 
+# In principle, this would just be a matter of adding a dependency on the
+# 'test' target (defined by CTest). However, that built-in targets are not
+# accessible via user code.
 #
 # This seems to be a legacy cmake bug from +10 years ago:
 #   https://stackoverflow.com/questions/48019306/how-to-add-a-dependency-to-the-test-target-in-cmake
 #   https://gitlab.kitware.com/cmake/cmake/-/issues/8774
 #   https://gitlab.kitware.com/cmake/cmake/-/issues/8438
 #
-# In order to have 'make test' work properly when cvc5 binaries are not built, 
+# In order to have 'make test' work properly when cvc5 binaries are not built,
 # we use a Cmake feature called FIXTURES to add 'build_regress' as the first test
 # which builds the 'build_regress' target.
 # Disabled temporarily due to problems in the nightly builds

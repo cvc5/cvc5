@@ -55,7 +55,6 @@
   )
 )
 
-
 ; Eliminate singleton list, which takes:
 ; (1) a function f
 ; (2) the identity element of f
