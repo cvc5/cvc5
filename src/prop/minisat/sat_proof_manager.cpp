@@ -169,6 +169,16 @@ void SatProofManager::endResChain(Node conclusion,
                                   uint32_t clauseLevel)
 {
   Trace("sat-proof") << ", " << conclusion << "\n";
+  LazyCDProof* cnfProof = d_ppm->getCnfProof();
+  if (cnfProof->hasStep(conclusion) || cnfProof->hasGenerator(conclusion))
+  {
+    Trace("sat-proof") << "SatProofManager::endResChain: cnf proof has "
+                          "step/gen for it; skip\n";
+    // clearing
+    d_resLinks.clear();
+    d_redundantLits.clear();
+    return;
+  }
   if (d_resChains.hasGenerator(conclusion))
   {
     Trace("sat-proof")
