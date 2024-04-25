@@ -112,14 +112,18 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
 
 void TheoryProxy::presolve()
 {
+  Trace("theory-proxy") << "TheoryProxy::presolve: begin" << std::endl;
   d_decisionEngine->presolve();
   d_theoryEngine->presolve();
   d_stopSearch = false;
+  Trace("theory-proxy") << "TheoryProxy::presolve: end" << std::endl;
+  d_inSolve = true;
 }
 
 void TheoryProxy::postsolve(SatValue result)
 {
   d_theoryEngine->postsolve(result);
+  d_inSolve = false;
 }
 
 void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
@@ -331,6 +335,12 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
     // nothing to do if no plugins
     return;
   }
+  if (!d_inSolve && options().prop.pluginNotifySatClauseInSolve)
+  {
+    // We are not in solving mode. We do not inform plugins of SAT clauses
+    // if pluginNotifySatClauseInSolve is true (default).
+    return;
+  }
   // convert to node
   std::vector<Node> clauseNodes;
   for (const SatLiteral& l : clause)
@@ -342,7 +352,7 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
   Node clns = plugins[0]->getSharableFormula(cln);
   if (!clns.isNull())
   {
-    Trace("prop") << "Clause from SAT solver: " << clns << std::endl;
+    Trace("theory-proxy") << "TheoryProxy::notifySatClause: Clause from SAT solver: " << clns << std::endl;
     // notify the plugins
     for (Plugin* p : plugins)
     {
