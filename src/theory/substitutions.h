@@ -70,6 +70,9 @@ class SubstitutionMap
   /** Has the cache been invalidated? */
   bool d_cacheInvalidated;
 
+  /** Are we using substitution compression */
+  bool d_compress;
+
   /** Internal method that performs substitution */
   Node internalSubstitute(TNode t,
                           NodeCache& cache,
@@ -100,7 +103,7 @@ class SubstitutionMap
   CacheInvalidator d_cacheInvalidator;
 
  public:
-  SubstitutionMap(context::Context* context = nullptr);
+  SubstitutionMap(context::Context* context = nullptr, bool compress = true);
 
   /** Get substitutions in this object as a raw map */
   std::unordered_map<Node, Node> getSubstitutions() const;
@@ -113,6 +116,9 @@ class SubstitutionMap
    * Merge subMap into current set of substitutions
    */
   void addSubstitutions(SubstitutionMap& subMap, bool invalidateCache = true);
+
+  /** Erase substitution */
+  void eraseSubstitution(TNode x, bool invalidateCache = true);
 
   /** Size of the substitutions */
   size_t size() const { return d_substitutions.size(); }
@@ -170,6 +176,8 @@ class SubstitutionMap
    * Print to the output stream
    */
   void print(std::ostream& out) const;
+  /** To string */
+  std::string toString() const;
 
   void invalidateCache() {
     d_cacheInvalidated = true;
