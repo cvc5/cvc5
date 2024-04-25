@@ -83,6 +83,29 @@ Node TheoryRewriter::rewriteViaRule(ProofRewriteRule pr, const Node& n)
   return n;
 }
 
+ProofRewriteRule TheoryRewriter::findRule(const Node& a,
+                                          const Node& b,
+                                          bool isPost)
+{
+  std::unordered_set<ProofRewriteRule>& rules =
+      isPost ? d_pfTheoryRewritesPost : d_pfTheoryRewrites;
+  for (ProofRewriteRule r : rules)
+  {
+    if (rewriteViaRule(r, a) == b)
+    {
+      return r;
+    }
+  }
+  return ProofRewriteRule::NONE;
+}
+
+void TheoryRewriter::registerProofRewriteRule(ProofRewriteRule id, bool isPost)
+{
+  std::unordered_set<ProofRewriteRule>& rules =
+      isPost ? d_pfTheoryRewritesPost : d_pfTheoryRewrites;
+  rules.insert(id);
+}
+
 NodeManager* TheoryRewriter::nodeManager() const { return d_nm; }
 
 }  // namespace theory

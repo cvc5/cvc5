@@ -19,6 +19,8 @@
 #include "proof/proof_checker.h"
 #include "rewriter/rewrites.h"
 #include "smt/env.h"
+#include "theory/bv/theory_bv_rewrite_rules.h"
+#include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
 
@@ -48,6 +50,20 @@ bool BasicRewriteRCons::prove(
     Trace("trewrite-rcons") << "...EVALUATE" << std::endl;
     return true;
   }
+
+  // try theory rewrite (pre-rare)
+  ProofRewriteRule prid = d_env.getRewriter()->findRule(a, b, false);
+  if (prid != ProofRewriteRule::NONE)
+  {
+    if (tryRule(
+            cdp, eq, ProofRule::THEORY_REWRITE, {mkRewriteRuleNode(prid), a}))
+    {
+      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << prid
+                              << ", " << mid << ")" << std::endl;
+      return true;
+    }
+  }
+
   if (eq[0].getKind() == Kind::APPLY_UF
       && eq[0].getOperator().getKind() == Kind::LAMBDA)
   {
@@ -69,20 +85,18 @@ bool BasicRewriteRCons::postProve(
 {
   Node eq = a.eqNode(b);
 
-#define TRY_THEORY_REWRITE(id)                                          \
-  if (tryRule(cdp,                                                      \
-              eq,                                                       \
-              ProofRule::THEORY_REWRITE,                                \
-              {mkRewriteRuleNode(ProofRewriteRule::id), a}))            \
-  {                                                                     \
-    Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid \
-                            << ", " << mid << ")" << std::endl;         \
-    return true;                                                        \
-  }                                                                     \
-  /* end of macro */
-
-  // ad-hoc rewrites should be listed here
-  TRY_THEORY_REWRITE(EXISTS_ELIM)
+  // try theory rewrite (post-rare)
+  ProofRewriteRule prid = d_env.getRewriter()->findRule(a, b, true);
+  if (prid != ProofRewriteRule::NONE)
+  {
+    if (tryRule(
+            cdp, eq, ProofRule::THEORY_REWRITE, {mkRewriteRuleNode(prid), a}))
+    {
+      Trace("trewrite-rcons") << "Reconstruct (post) " << eq << " (from "
+                              << prid << ", " << mid << ")" << std::endl;
+      return true;
+    }
+  }
 
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
@@ -93,6 +107,7 @@ bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                 ProofRule r,
                                 const std::vector<Node>& args)
 {
+  Trace("trewrite-rcons-debug") << "Try " << r << std::endl;
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   // do not provide expected, as this will always succeed if proof checking
   // is disabled
