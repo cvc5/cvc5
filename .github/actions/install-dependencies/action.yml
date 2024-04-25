@@ -74,6 +74,7 @@ runs:
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-gcc
           mingw-w64-x86_64-gmp
+          zip
 
     - name: Set up num_proc variable for Linux and Windows
       if: runner.os == 'Linux' || runner.os == 'Windows'
