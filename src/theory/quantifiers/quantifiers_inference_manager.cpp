@@ -64,13 +64,13 @@ void QuantifiersInferenceManager::beginCallDebug(QuantifiersModule* qm)
   {
     return;
   }
+  Assert (d_debugQm==nullptr);
   d_debugQm = qm;
   d_debugNumPendingLemmas = numPendingLemmas();
   d_debugTimeStamp = clock();
   if (traceOn)
   {
-    Trace("inst-strategy") << "--- Run " << qm->identify() << "---"
-                           << std::endl;
+    Trace("inst-strategy") << "--- Run instantiation via " << qm->identify() << std::endl;
   }
 }
 
@@ -81,6 +81,7 @@ void QuantifiersInferenceManager::endCallDebug()
     // trace and output is not enabled
     return;
   }
+  Assert (numPendingLemmas()>d_debugNumPendingLemmas);
   size_t numLemmas = numPendingLemmas() - d_debugNumPendingLemmas;
   clock_t endTimeStamp = clock() - d_debugTimeStamp;
   double time =
@@ -103,9 +104,13 @@ void QuantifiersInferenceManager::endCallDebug()
   }
   if (TraceIsOn("inst-strategy"))
   {
-    Trace("inst-strategy") << (isConflict ? "Conflict, a" : "A");
-    Trace("inst-strategy") << "dded Lemmas = " << numLemmas << std::endl;
-    Trace("inst-strategy") << "Time = " << time << std::endl;
+    Trace("inst-strategy") << "Finished " << d_debugQm->identify();
+    if (numLemmas>0)
+    {
+      Trace("inst-strategy") << ", lemmas = " << numLemmas;
+    }
+    Trace("inst-strategy") << (isConflict ? ", CONFLICT" : "");
+    Trace("inst-strategy") << ", time = " << time << std::endl;
   }
   d_debugQm = nullptr;
 }

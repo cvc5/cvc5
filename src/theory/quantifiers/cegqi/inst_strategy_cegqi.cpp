@@ -255,11 +255,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   if (quant_e == QEFFORT_STANDARD)
   {
     Assert(!d_qstate.isInConflict());
-    double clSet = 0;
-    if( TraceIsOn("cegqi-engine") ){
-      clSet = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
-    }
+    beginCallDebug();
     size_t lastWaiting = d_qim.numPendingLemmas();
     for( int ee=0; ee<=1; ee++ ){
       //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
@@ -284,16 +280,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
         break;
       }
     }
-    if( TraceIsOn("cegqi-engine") ){
-      if (d_qim.numPendingLemmas() > lastWaiting)
-      {
-        Trace("cegqi-engine")
-            << "Added lemmas = " << (d_qim.numPendingLemmas() - lastWaiting)
-            << std::endl;
-      }
-      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("cegqi-engine") << "Finished cbqi engine, time = " << (clSet2-clSet) << std::endl;
-    }
+    endCallDebug();
   }
 }
 
@@ -332,6 +319,8 @@ void InstStrategyCegqi::checkOwnership(Node q)
   }
 }
 
+std::string InstStrategyCegqi::identify() const { return "cegqi"; }
+  
 void InstStrategyCegqi::preRegisterQuantifier(Node q)
 {
   if (doCbqi(q))

@@ -486,6 +486,8 @@ void SygusInst::ppNotifyAssertions(const std::vector<Node>& assertions)
   }
 }
 
+std::string SygusInst::identify() const { return "sygus-inst"; }
+
 /*****************************************************************************/
 /* private methods                                                           */
 /*****************************************************************************/

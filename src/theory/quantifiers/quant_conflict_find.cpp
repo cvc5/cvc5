@@ -2338,12 +2338,11 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   }
   unsigned addedLemmas = 0;
   ++(d_statistics.d_inst_rounds);
-  double clSet = 0;
+  beginCallDebug();
   int prevEt = 0;
   if (TraceIsOn("qcf-engine"))
   {
     prevEt = d_statistics.d_entailment_checks.get();
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("qcf-engine") << "---Conflict Find Engine Round, effort = " << level
                         << "---" << std::endl;
   }
@@ -2399,9 +2398,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   }
   if (TraceIsOn("qcf-engine"))
   {
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("qcf-engine") << "Finished conflict find engine, time = "
-                        << (clSet2 - clSet);
+    Trace("qcf-engine") << "Finished conflict find engine";
     if (addedLemmas > 0)
     {
       Trace("qcf-engine") << ", effort = "
@@ -2420,6 +2417,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     }
   }
   Trace("qcf-check2") << "QCF : finished check : " << level << std::endl;
+  endCallDebug();
 }
 
 std::string QuantConflictFind::identify() const { return "cbqi"; }
