@@ -366,7 +366,8 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
 
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
-  Trace("theory-proxy") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
+  Trace("theory-proxy") << "enqueueing theory literal " << l << " "
+                        << literalNode << std::endl;
   Assert(!literalNode.isNull());
   // Decision level = SAT context level - 1 due to global push().
   d_queue.push(std::make_pair(literalNode, context()->getLevel() - 1));
