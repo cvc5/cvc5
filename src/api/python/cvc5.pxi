@@ -5678,7 +5678,7 @@ cdef class Proof:
         """
             :return: The proof rewrite rule used by the root step of the proof.
                      Raises an exception if `getRule()` does not return
-                     `DSL_REWRITE`.
+                     `DSL_REWRITE` or `THEORY_REWRITE`.
         """
         return ProofRewriteRule(<int> self.cproof.getRewriteRule())
 

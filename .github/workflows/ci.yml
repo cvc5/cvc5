@@ -69,6 +69,7 @@ jobs:
             windows-build: true
             shell: 'msys2 {0}'
             check-examples: true
+            package-name: cvc5-Win64
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -78,7 +79,6 @@ jobs:
             cache-key: production-win64-cross
             strip-bin: x86_64-w64-mingw32-strip
             windows-build: true
-            package-name: cvc5-Win64
 
           - name: ubuntu:production-clang
             os: ubuntu-20.04
@@ -181,6 +181,7 @@ jobs:
         # when using GITHUB_TOKEN, no further workflows are triggered
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+        shell: ${{ matrix.shell }}
 
     - name: Create and add static package to latest and release
       if: matrix.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
@@ -191,6 +192,7 @@ jobs:
         # when using GITHUB_TOKEN, no further workflows are triggered
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+        shell: ${{ matrix.shell }}
 
   update-pr:
     runs-on: ubuntu-latest

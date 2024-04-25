@@ -341,19 +341,6 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
             }
           }
         }
-        else if (t[0].isConst()
-                 && t[0].getConst<Rational>().getNumerator().toUnsignedInt()
-                        == 2
-                 && t[1].getType().isInteger())
-        {
-          Node ret = nodeManager()->mkNode(Kind::POW2, t[1]);
-          // ensure type is preserved
-          if (t.getType().isReal())
-          {
-            ret = rewriter::ensureReal(ret);
-          }
-          return RewriteResponse(REWRITE_AGAIN, ret);
-        }
         return RewriteResponse(REWRITE_DONE, t);
       }
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);

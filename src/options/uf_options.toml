@@ -68,6 +68,14 @@ name   = "Uninterpreted Functions Theory"
   help       = "do lambda lifting lazily"
 
 [[option]]
+  name       = "ufHoLambdaQe"
+  category   = "expert"
+  long       = "uf-lambda-qe"
+  type       = "bool"
+  default    = "false"
+  help       = "apply quantifier elimination eagerly when two lambdas are equated"
+
+[[option]]
   name       = "eagerArithBvConv"
   category   = "expert"
   long       = "eager-arith-bv-conv"
