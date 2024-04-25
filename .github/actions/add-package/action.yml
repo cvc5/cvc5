@@ -9,11 +9,13 @@ inputs:
     description: token to upload package to latest
   github-token-release:
     description: token to upload package to release
+  shell:
+    default: bash
 runs:
   using: composite
   steps:
     - name: Create ZIP file
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Create ZIP file"
         # Run 'make install' on build directory
@@ -41,7 +43,7 @@ runs:
         echo "::endgroup::"
 
     - name: install pyGithub
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         python3 -m pip install pyGithub
 

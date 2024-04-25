@@ -265,6 +265,18 @@ Node AlfNodeConverter::postConvert(Node n)
     args.insert(args.end(), n.begin(), n.end());
     return mkInternalApp("@list", args, tn);
   }
+  else if (k == Kind::APPLY_INDEXED_SYMBOLIC)
+  {
+    Kind okind = n.getOperator().getConst<GenericOp>().getKind();
+    if (okind == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
+    {
+      // This does not take a rounding mode, we change the smt2 syntax
+      // to distinguish this case, similar to the case in getOperatorOfTerm
+      // where it is processed as an indexed operator.
+      std::vector<Node> children(n.begin(), n.end());
+      return mkInternalApp("to_fp_bv", children, tn);
+    }
+  }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
     // return app of?
@@ -343,8 +355,15 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
     }
     if (!app.isNull())
     {
-      // wrap in "skolem" operator
-      return mkInternalApp("skolem", {app}, k.getType());
+      // If it has no children, then we don't wrap in `(skolem ...)`, since it
+      // makes no difference for substitution. Moreover, it is important not
+      // to do this since bitvector concat uses @bv_empty as its nil terminator.
+      if (sfi == SkolemId::PURIFY || app.getNumChildren() > 0)
+      {
+        // wrap in "skolem" operator
+        return mkInternalApp("skolem", {app}, k.getType());
+      }
+      return app;
     }
   }
   return Node::null();
@@ -668,6 +687,7 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
   {
     case SkolemId::PURIFY:
     case SkolemId::ARRAY_DEQ_DIFF:
+    case SkolemId::BV_EMPTY:
     case SkolemId::DIV_BY_ZERO:
     case SkolemId::INT_DIV_BY_ZERO:
     case SkolemId::MOD_BY_ZERO:

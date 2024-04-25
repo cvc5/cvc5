@@ -1,4 +1,16 @@
 
+; Returns true if x is a Boolean literal.
+(define $is_bool_literal ((T Type :implicit) (x T))
+  (alf.ite (alf.is_eq x true) true (alf.is_eq x false)))
+
+; Returns true if x is a rational literal.
+(define $is_q_literal ((T Type :implicit) (x T))
+  (alf.is_eq (alf.to_q x) x))
+
+; Returns true if x is a numeral literal.
+(define $is_z_literal ((T Type :implicit) (x T))
+  (alf.is_eq (alf.to_z x) x))
+
 ; Returns true if x is a binary literal.
 (define $is_bin_literal ((T Type :implicit) (x T))
   (alf.is_eq (alf.to_bin (alf.len x) x) x))
@@ -20,6 +32,17 @@
 ; It could potentially be improved by having a builtin operator, e.g. alf.compare.
 (define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (alf.is_neg (alf.add (alf.hash a) (alf.neg (alf.hash b)))))
+
+; Eliminate singleton list.
+; If the input term is of the form (f x1 x2) where x2 is the nil terminator of
+; f, then we return x1. Otherwise, we return the input term unchanged.
+(program $dsl.singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
+  (S) S
+  (
+    (($dsl.singleton_elim (f x1 x2))  (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
+    (($dsl.singleton_elim x)          x)
+  )
+)
 
 ; Eliminate singleton list, which takes:
 ; (1) a function f
