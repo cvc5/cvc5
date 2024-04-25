@@ -100,7 +100,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     }
     // successfully built an acceptable model, now check it
     addedLemmas += checkModel();
-    
+
     endCallDebug();
 
     if( addedLemmas==0 ){

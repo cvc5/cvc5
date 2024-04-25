@@ -887,8 +887,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
-  std::string ConjectureGenerator::identify() const { return "induction-cg"; }
-  
+std::string ConjectureGenerator::identify() const { return "induction-cg"; }
+
 unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth ) {
   if( !d_waiting_conjectures_lhs.empty() ){
     Trace("sg-proc") << "Generated " << d_waiting_conjectures_lhs.size() << " conjectures at depth " << ldepth << "/" << rdepth << "." << std::endl;

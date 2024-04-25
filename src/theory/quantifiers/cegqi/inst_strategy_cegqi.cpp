@@ -320,7 +320,7 @@ void InstStrategyCegqi::checkOwnership(Node q)
 }
 
 std::string InstStrategyCegqi::identify() const { return "cegqi"; }
-  
+
 void InstStrategyCegqi::preRegisterQuantifier(Node q)
 {
   if (doCbqi(q))
