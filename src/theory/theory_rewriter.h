@@ -31,6 +31,18 @@ namespace theory {
 class Rewriter;
 
 /**
+ * A context for when to try theory rewrites.
+ */
+enum class TheoryRewriteCtx
+{
+  // Attempt to use the theory rewrite prior to DSL rewrite reconstruction.
+  PRE_DSL,
+  // Attempt to use the theory rewrite only after DSL rewrite reconstruction
+  // fails.
+  POST_DSL,
+};
+
+/**
  * Theory rewriters signal whether more rewriting is needed (or not)
  * by using a member of this enumeration.  See RewriteResponse, below.
  */
@@ -186,28 +198,34 @@ class TheoryRewriter
    * If none can be found, return ProofRewriteRule::NONE.
    * @param a The left hand side of the rewrite.
    * @param b The right hand side of the rewrite.
-   * @param isPost If false, then this will not return any ProofRewriteRule
-   * where a RARE rule should take precedence.
+   * @param ctx The context under which we are finding the rewrites.
    * @return An identifier, if one exists, that rewrites a to b. In particular,
    * the returned rule is either ProofRewriteRule::NONE or is a rule id such
    * that rewriteViaRule(id, a) returns b.
    */
-  ProofRewriteRule findRule(const Node& a, const Node& b, bool isPost = false);
+  ProofRewriteRule findRule(const Node& a, const Node& b, TheoryRewriteCtx ctx);
 
  protected:
   /**
-   * Register proof rewrite rule, which makes it returned in findRule.
-   * @param id The identifier.
-   * @param isPost If true, then RARE rules should take precedence over this
-   * rule.
+   * Register proof rewrite rule. This method is called to notify the RARE
+   * DSL rewrite rule reconstruction algorithm that the rewrite rule id
+   * should be tried during proof reconstruction. This method should be
+   * called in the constructor of the theory rewriter.
+   *
+   * @param id The rewrite rule this theory rewriter implements via
+   * rewriteViaRule.
+   * @param ctx The context for the rewrite, which indicates when the RARE
+   * proof reconstruction should attempt this rule.
    */
-  void registerProofRewriteRule(ProofRewriteRule id, bool isPost = false);
+  void registerProofRewriteRule(ProofRewriteRule id, TheoryRewriteCtx ctx);
   /** The underlying node manager */
   NodeManager* d_nm;
-  /** The rewrite rules implemented by this rewriter (when isPost is false) */
-  std::unordered_set<ProofRewriteRule> d_pfTheoryRewrites;
-  /** The rewrite rules implemented by this rewriter (when isPost is true) */
-  std::unordered_set<ProofRewriteRule> d_pfTheoryRewritesPost;
+  /**
+   * The proof rewrite rules implemented by this rewriter, for each context.
+   * This caches the calls to registerProofRewriteRule.
+   */
+  std::map<TheoryRewriteCtx, std::unordered_set<ProofRewriteRule>>
+      d_pfTheoryRewrites;
   /** Get a pointer to the node manager */
   NodeManager* nodeManager() const;
 };

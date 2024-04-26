@@ -52,7 +52,8 @@ bool BasicRewriteRCons::prove(
   }
 
   // try theory rewrite (pre-rare)
-  ProofRewriteRule prid = d_env.getRewriter()->findRule(a, b, false);
+  ProofRewriteRule prid =
+      d_env.getRewriter()->findRule(a, b, theory::TheoryRewriteCtx::PRE_DSL);
   if (prid != ProofRewriteRule::NONE)
   {
     if (tryRule(
@@ -86,7 +87,8 @@ bool BasicRewriteRCons::postProve(
   Node eq = a.eqNode(b);
 
   // try theory rewrite (post-rare)
-  ProofRewriteRule prid = d_env.getRewriter()->findRule(a, b, true);
+  ProofRewriteRule prid =
+      d_env.getRewriter()->findRule(a, b, theory::TheoryRewriteCtx::POST_DSL);
   if (prid != ProofRewriteRule::NONE)
   {
     if (tryRule(

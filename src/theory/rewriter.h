@@ -114,13 +114,12 @@ class Rewriter {
    * If none can be found, return ProofRewriteRule::NONE.
    * @param a The left hand side of the rewrite.
    * @param b The right hand side of the rewrite.
-   * @param isPost If false, then this will not return any ProofRewriteRule
-   * where a RARE rule should take presendence.
+   * @param ctx The context for which we are finding the rule.
    * @return An identifier, if one exists, that rewrites a to b. In particular,
    * the returned rule is either ProofRewriteRule::NONE or is a rule id such
    * that rewriteViaRule(id, a) returns b.
    */
-  ProofRewriteRule findRule(const Node& a, const Node& b, bool isPost = false);
+  ProofRewriteRule findRule(const Node& a, const Node& b, TheoryRewriteCtx ctx);
 
  private:
 

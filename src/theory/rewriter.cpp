@@ -161,14 +161,16 @@ Node Rewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   return Node::null();
 }
 
-ProofRewriteRule Rewriter::findRule(const Node& a, const Node& b, bool isPost)
+ProofRewriteRule Rewriter::findRule(const Node& a,
+                                    const Node& b,
+                                    TheoryRewriteCtx ctx)
 {
   // dispatches to the appropriate theory
   TheoryId tid = theoryOf(a);
   TheoryRewriter* tr = getTheoryRewriter(tid);
   if (tr != nullptr)
   {
-    return tr->findRule(a, b, isPost);
+    return tr->findRule(a, b, ctx);
   }
   return ProofRewriteRule::NONE;
 }
