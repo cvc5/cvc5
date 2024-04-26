@@ -109,8 +109,11 @@
 )
 
 ; Returns true if s is in regular expression r.
+; Does not evaluate if s is not a string literal.
 (define $str_eval_str_in_re ((s String) (r RegLan))
-  ($str_eval_str_in_re_rec s 0 r @re.null))
+  (alf.ite ($is_str_literal s)
+    ($str_eval_str_in_re_rec s 0 r @re.null)
+    (str.in_re s r)))
 
 ;;-------------------- Skolem terms
 
