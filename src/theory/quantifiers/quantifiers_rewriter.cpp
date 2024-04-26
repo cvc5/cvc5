@@ -97,7 +97,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                                          const Options& opts)
     : TheoryRewriter(nm), d_rewriter(r), d_opts(opts)
 {
-  registerProofRewriteRule(ProofRewriteRule::EXISTS_ELIM, TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::EXISTS_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
