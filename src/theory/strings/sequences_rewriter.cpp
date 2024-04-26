@@ -59,7 +59,6 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::RE_LOOP_ELIM:
       return rewriteViaRuleReLoopElim(n);
-      break;
     default: break;
   }
   return Node::null();
