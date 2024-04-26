@@ -2318,7 +2318,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * or alternatively
    *
    * .. math::
-   *   is-c(d(t_1, \ldots, t_n)) = true
+   *   is-c(d(t_1, \ldots, t_n)) = false
    *
    * where `c` and `d` are distinct constructors.
    *
