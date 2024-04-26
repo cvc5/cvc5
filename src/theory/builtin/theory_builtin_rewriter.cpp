@@ -31,6 +31,28 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
+TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
+    : TheoryRewriter(nm)
+{
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+}
+
+Node TheoryBuiltinRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::DISTINCT_ELIM:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        return blastDistinct(n);
+      }
+      break;
+    default: break;
+  }
+  return Node::null();
+}
+
 Node TheoryBuiltinRewriter::blastDistinct(TNode in)
 {
   Assert(in.getKind() == Kind::DISTINCT);
@@ -62,11 +84,6 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
     }
   }
   return nm->mkNode(Kind::AND, diseqs);
-}
-
-TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
-    : TheoryRewriter(nm)
-{
 }
 
 RewriteResponse TheoryBuiltinRewriter::preRewrite(TNode node)
