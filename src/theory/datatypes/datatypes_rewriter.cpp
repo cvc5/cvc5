@@ -41,6 +41,74 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                                      const Options& opts)
     : TheoryRewriter(nm), d_sygusEval(sygusEval), d_opts(opts)
 {
+  registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_SELECTOR,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
+                           TheoryRewriteCtx::PRE_DSL);
+}
+
+Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
+    {
+      if (n.getKind() != Kind::APPLY_SELECTOR
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      Node selector = n.getOperator();
+      size_t constructorIndex = utils::indexOf(n[0].getOperator());
+      const DType& dt = utils::datatypeOf(selector);
+      const DTypeConstructor& c = dt[constructorIndex];
+      int selectorIndex = c.getSelectorIndexInternal(selector);
+      if (selectorIndex >= 0)
+      {
+        Assert(static_cast<size_t>(selectorIndex) < c.getNumArgs());
+        return n[0][selectorIndex];
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_COLLAPSE_TESTER:
+    {
+      if (n.getKind() != Kind::APPLY_TESTER
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      bool result =
+          utils::indexOf(n.getOperator()) == utils::indexOf(n[0].getOperator());
+      NodeManager* nm = nodeManager();
+      return nm->mkConst(result);
+    }
+    break;
+    case ProofRewriteRule::DT_CONS_EQ:
+    {
+      if (n.getKind() == Kind::EQUAL)
+      {
+        Node nn;
+        std::vector<Node> rew;
+        if (utils::checkClash(n[0], n[1], rew))
+        {
+          nn = nodeManager()->mkConst(false);
+        }
+        else
+        {
+          nn = nodeManager()->mkAnd(rew);
+        }
+        if (nn != n)
+        {
+          return nn;
+        }
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
 }
 
 RewriteResponse DatatypesRewriter::postRewrite(TNode in)
@@ -378,8 +446,6 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     // Have to be careful not to rewrite well-typed expressions
     // where the selector doesn't match the constructor,
     // e.g. "pred(zero)".
-    TypeNode tn = in.getType();
-    TypeNode argType = in[0].getType();
     Node selector = in.getOperator();
     TNode constructor = in[0].getOperator();
     size_t constructorIndex = utils::indexOf(constructor);
@@ -403,6 +469,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
       if (dt.isCodatatype() && in[0][selectorIndex].isConst())
       {
         // must replace all debruijn indices with self
+        TypeNode argType = in[0].getType();
         Node sub = replaceDebruijn(in[0][selectorIndex], in[0], argType, 0);
         Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                    << "Rewrite trivial codatatype selector "
