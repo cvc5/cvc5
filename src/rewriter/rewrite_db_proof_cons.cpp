@@ -69,7 +69,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Node eq = a.eqNode(b);
   // As a heuristic, always apply CONG if we are an equality between two
   // binder terms with the same quantifier prefix.
-  if (a.isClosure() && a.getKind()==b.getKind() && a[0]==b[0])
+  if (a.isClosure() && a.getKind() == b.getKind() && a[0] == b[0])
   {
     Node eqo = eq;
     // Ensure the equality is converted, which resolves complications with
@@ -78,7 +78,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     std::vector<Node> cargs;
     ProofRule cr = expr::getCongRule(eqoi[0], cargs);
     // only apply this to standard binders (those with 2 children)
-    if (eqoi[0].getNumChildren()==2)
+    if (eqoi[0].getNumChildren() == 2)
     {
       eq = eqoi[0][1].eqNode(eqoi[1][1]);
       cdp->addStep(eqoi, cr, {eq}, cargs);
