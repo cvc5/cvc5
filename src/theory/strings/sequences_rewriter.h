@@ -141,7 +141,7 @@ class SequencesRewriter : public TheoryRewriter
   Node returnRewrite(Node node, Node ret, Rewrite r);
   //-------------------- ProofRewriteRule
   /** Rewrite based on RE_LOOP_ELIM */
-  Node rewriteViaRuleReLoopElim(const Node& n);
+  Node rewriteViaReLoopElim(const Node& n);
 
  public:
   RewriteResponse postRewrite(TNode node) override;

@@ -58,7 +58,7 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   switch (id)
   {
     case ProofRewriteRule::RE_LOOP_ELIM:
-      return rewriteViaRuleReLoopElim(n);
+      return rewriteViaReLoopElim(n);
     default: break;
   }
   return Node::null();
@@ -1239,12 +1239,12 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   {
     return returnRewrite(node, r, Rewrite::RE_LOOP_STAR);
   }
-  retNode = rewriteViaRuleReLoopElim(node);
+  retNode = rewriteViaReLoopElim(node);
   Assert(!retNode.isNull() && retNode != node);
   return returnRewrite(node, retNode, Rewrite::RE_LOOP);
 }
 
-Node SequencesRewriter::rewriteViaRuleReLoopElim(const Node& node)
+Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
 {
   if (node.getKind() != Kind::REGEXP_LOOP)
   {
