@@ -49,7 +49,7 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_sigmaStar = nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM);
+  registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM, TheoryRewriteCtx::PRE_DSL);
 }
 
 Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
