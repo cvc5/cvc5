@@ -2313,6 +2313,18 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(EXISTS_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - regular expression loop elimination**
+   *
+   * .. math::
+   *   ((_ re.loop l u) R) = (re.union R^l ... R^u)
+   *
+   * where `u` :math:`\geq` `l`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_LOOP_ELIM),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-plus-zero */
