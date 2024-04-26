@@ -99,6 +99,8 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         {
           nn = nodeManager()->mkAnd(rew);
         }
+        // In the "else" case above will n if this rewrite does not apply. We
+        // do not return the reflexive equality in this case.
         if (nn != n)
         {
           return nn;
