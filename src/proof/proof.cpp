@@ -287,7 +287,7 @@ bool CDProof::addTheoryRewriteStep(Node expected,
   sargs.push_back(rewriter::mkRewriteRuleNode(id));
   sargs.push_back(expected[0]);
   return addStep(
-      expected, ProofRule::TRUST, {}, sargs, ensureChildren, opolicy);
+      expected, ProofRule::THEORY_REWRITE, {}, sargs, ensureChildren, opolicy);
 }
 
 bool CDProof::addStep(Node expected,
