@@ -73,6 +73,7 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
   d_becomes = nm->mkRawSymbol(":=", nm->sExprType());
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  d_reals_enabled = env.getLogicInfo().isTheoryEnabled(theory::THEORY_ARITH) ? env.getLogicInfo().areRealsUsed() : false;
 }
 
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -1602,8 +1603,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       // terms of disequalities, but ARITH_SUM_UB does not have equalities as
       // conclusions
       Assert(res.getKind() != Kind::EQUAL);
-      Node one = nm->mkConstInt(Rational(1));
-      Node minusOne = nm->mkConstInt(Rational(-1));
+      Node one = d_reals_enabled ? nm->mkConstReal(Rational(1)) : nm -> mkConstInt(Rational(1));
+      Node minusOne = d_reals_enabled ? nm->mkConstReal(Rational(-1)) : nm -> mkConstInt(Rational(-1));
       std::vector<Node> resArgs;
       std::vector<Node> resChildren;
       std::vector<Node> lits{d_cl};
@@ -1655,8 +1656,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Node vp1 = nm->mkNode(Kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
-      new_args.push_back(nm->mkConstInt(Rational(1)));
-      new_args.push_back(nm->mkConstInt(Rational(1)));
+      Node one = d_reals_enabled ? nm->mkConstReal(Rational(1)) : nm -> mkConstInt(Rational(1));
+      new_args.push_back(one);
+      new_args.push_back(one);
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1681,8 +1683,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Node vp1 = nm->mkNode(Kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
-      new_args.push_back(nm->mkConstInt(Rational(1)));
-      new_args.push_back(nm->mkConstInt(Rational(1)));
+      Node one = d_reals_enabled ? nm->mkConstReal(Rational(1)) : nm -> mkConstInt(Rational(1));
+      new_args.push_back(one);
+      new_args.push_back(one);
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,

@@ -94,6 +94,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
   AletheNodeConverter& d_anc;
   /** Whether to keep the pivots in the alguments of the resolution rule */
   bool d_resPivots;
+  bool d_reals_enabled;
   /** The cl operator
    * For every step the conclusion is a clause. But since the or operator
    *requires at least two arguments it is extended by the cl operator. In case
