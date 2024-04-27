@@ -43,7 +43,7 @@ class ForeignTheoryRewriter : protected EnvObj
    * constraints in strings.
    */
   Node rewriteStringsGeq(Node n);
-  /** A specific simplification function specific for EQUAL
+  /** A specific simplification function for EQUAL
    * constraints in strings.
    */
   Node rewriteStringsEq(Node n);
