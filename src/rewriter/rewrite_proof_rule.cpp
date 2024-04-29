@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Rewrite proof rule class
+ * proof rewrite rule class
  */
 
 #include "rewriter/rewrite_proof_rule.h"
@@ -26,9 +26,9 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-RewriteProofRule::RewriteProofRule() : d_id(DslProofRule::NONE) {}
+RewriteProofRule::RewriteProofRule() : d_id(ProofRewriteRule::NONE) {}
 
-void RewriteProofRule::init(DslProofRule id,
+void RewriteProofRule::init(ProofRewriteRule id,
                             const std::vector<Node>& userFvs,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
@@ -79,7 +79,7 @@ void RewriteProofRule::init(DslProofRule id,
   }
 }
 
-rewriter::DslProofRule RewriteProofRule::getId() const { return d_id; }
+ProofRewriteRule RewriteProofRule::getId() const { return d_id; }
 
 const char* RewriteProofRule::getName() const { return toString(d_id); }
 
@@ -156,6 +156,11 @@ Node RewriteProofRule::getConclusionFor(
   Node conc = getConclusion(true);
   std::unordered_map<TNode, Node> visited;
   Node ret = expr::narySubstitute(conc, d_fvs, ss, visited);
+  // also compute for the condition
+  for (const Node& c : d_cond)
+  {
+    expr::narySubstitute(c, d_fvs, ss, visited);
+  }
   std::map<Node, Node>::const_iterator itl;
   for (size_t i = 0, nfvs = ss.size(); i < nfvs; i++)
   {
@@ -177,7 +182,7 @@ Node RewriteProofRule::getConclusionFor(
         // to determine the type, we get the type of the substitution of the
         // list context of the variable.
         Node subsCtx = visited[ctx];
-        Assert(!subsCtx.isNull());
+        Assert(!subsCtx.isNull()) << "Failed to get context for " << ctx << " in " << d_id;
         Node nt = expr::getNullTerminator(ctx.getKind(), subsCtx.getType());
         wargs.push_back(nt);
       }

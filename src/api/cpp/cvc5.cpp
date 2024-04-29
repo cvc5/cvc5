@@ -340,6 +340,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::SET_FOLD, internal::Kind::SET_FOLD),
         /* Relations -------------------------------------------------------- */
         KIND_ENUM(Kind::RELATION_JOIN, internal::Kind::RELATION_JOIN),
+        KIND_ENUM(Kind::RELATION_TABLE_JOIN,
+                  internal::Kind::RELATION_TABLE_JOIN),
         KIND_ENUM(Kind::RELATION_PRODUCT, internal::Kind::RELATION_PRODUCT),
         KIND_ENUM(Kind::RELATION_TRANSPOSE, internal::Kind::RELATION_TRANSPOSE),
         KIND_ENUM(Kind::RELATION_TCLOSURE, internal::Kind::RELATION_TCLOSURE),
@@ -735,6 +737,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SET_FOLD, Kind::SET_FOLD},
         /* Relations ------------------------------------------------------- */
         {internal::Kind::RELATION_JOIN, Kind::RELATION_JOIN},
+        {internal::Kind::RELATION_TABLE_JOIN, Kind::RELATION_TABLE_JOIN},
+        {internal::Kind::RELATION_TABLE_JOIN_OP, Kind::RELATION_TABLE_JOIN},
         {internal::Kind::RELATION_PRODUCT, Kind::RELATION_PRODUCT},
         {internal::Kind::RELATION_TRANSPOSE, Kind::RELATION_TRANSPOSE},
         {internal::Kind::RELATION_TCLOSURE, Kind::RELATION_TCLOSURE},
@@ -905,6 +909,7 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
     {Kind::RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE_OP},
     {Kind::RELATION_GROUP, internal::Kind::RELATION_GROUP_OP},
     {Kind::RELATION_PROJECT, internal::Kind::RELATION_PROJECT_OP},
+    {Kind::RELATION_TABLE_JOIN, internal::Kind::RELATION_TABLE_JOIN_OP},
     {Kind::TABLE_PROJECT, internal::Kind::TABLE_PROJECT_OP},
     {Kind::TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE_OP},
     {Kind::TABLE_JOIN, internal::Kind::TABLE_JOIN_OP},
@@ -2131,6 +2136,7 @@ size_t Op::getNumIndicesHelper() const
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_TABLE_JOIN:
     case Kind::TABLE_AGGREGATE:
     case Kind::TABLE_GROUP:
     case Kind::TABLE_JOIN:
@@ -2302,6 +2308,7 @@ Term Op::getIndexHelper(size_t index)
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_TABLE_JOIN:
     case Kind::TABLE_AGGREGATE:
     case Kind::TABLE_GROUP:
     case Kind::TABLE_JOIN:
@@ -5038,6 +5045,27 @@ ProofRule Proof::getRule() const
   CVC5_API_TRY_CATCH_END;
 }
 
+ProofRewriteRule Proof::getRewriteRule() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(this->getProofNode()->getRule() == ProofRule::DSL_REWRITE
+                 || this->getProofNode()->getRule()
+                        == ProofRule::THEORY_REWRITE)
+      << "Expected `getRule()` to return `DSL_REWRITE` or `THEORY_REWRITE`, "
+         "got "
+      << this->getProofNode()->getRule() << " instead.";
+  //////// all checks before this line
+  if (d_proof_node != nullptr)
+  {
+    return static_cast<ProofRewriteRule>(
+        detail::getInteger(this->d_proof_node->getArguments()[0])
+            .getUnsignedInt());
+  }
+  return ProofRewriteRule::NONE;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Proof::getResult() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -5880,6 +5908,7 @@ Op TermManager::mkOp(Kind kind, const std::vector<uint32_t>& args)
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_TABLE_JOIN:
     case Kind::TABLE_AGGREGATE:
     case Kind::TABLE_GROUP:
     case Kind::TABLE_JOIN:
@@ -7036,7 +7065,8 @@ Result Solver::checkSat(void) const
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
-         "(try --incremental)";
+         "(try --"
+      << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
   return d_slv->checkSat();
   ////////
@@ -7049,7 +7079,8 @@ Result Solver::checkSatAssuming(const Term& assumption) const
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
-         "(try --incremental)";
+         "(try --"
+      << internal::options::base::longName::incrementalSolving << ")";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
   ensureWellFormedTerm(assumption);
   //////// all checks before this line
@@ -7064,7 +7095,8 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
   CVC5_API_CHECK(!d_slv->isQueryMade() || assumptions.size() == 0
                  || d_slv->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
-         "(try --incremental)";
+         "(try --"
+      << internal::options::base::longName::incrementalSolving << ")";
   CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(assumptions, getBooleanSort());
   ensureWellFormedTerms(assumptions);
   //////// all checks before this line
@@ -7597,7 +7629,8 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.unsatAssumptions)
       << "Cannot get unsat assumptions unless explicitly enabled "
-         "(try --produce-unsat-assumptions)";
+         "(try --"
+      << internal::options::smt::longName::unsatAssumptions << ")";
   CVC5_API_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
       << "Cannot get unsat assumptions unless in unsat mode.";
   //////// all checks before this line
@@ -7621,7 +7654,8 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
       << "Cannot get unsat core unless explicitly enabled "
-         "(try --produce-unsat-cores)";
+         "(try --"
+      << internal::options::smt::longName::produceUnsatCores << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
       << "Cannot get unsat core unless in unsat mode.";
   //////// all checks before this line
@@ -7644,7 +7678,8 @@ std::vector<Term> Solver::getUnsatCoreLemmas(void) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
       << "Cannot get unsat core lemmas unless explicitly enabled "
-         "(try --produce-unsat-cores)";
+         "(try --"
+      << internal::options::smt::longName::produceUnsatCores << ")";
   CVC5_API_CHECK(d_slv->getOptions().smt.unsatCoresMode
                  == internal::options::UnsatCoresMode::SAT_PROOF)
       << "Cannot get unsat core lemmas unless SAT proofs are enabled";
@@ -7686,7 +7721,8 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
       << "Cannot get timeout core unless unsat cores are enabled "
-         "(try --produce-unsat-cores)";
+         "(try --"
+      << internal::options::smt::longName::produceUnsatCores << ")";
   //////// all checks before this line
   return getTimeoutCoreHelper({});
   ////////
@@ -7701,7 +7737,8 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCoreAssuming(
       << "Cannot get timeout core assuming an empty set of assumptions";
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
       << "Cannot get timeout core unless unsat cores are enabled "
-         "(try --produce-unsat-cores)";
+         "(try --"
+      << internal::options::smt::longName::produceUnsatCores << ")";
   //////// all checks before this line
   return getTimeoutCoreHelper(assumptions);
   ////////
@@ -7725,7 +7762,8 @@ std::vector<Proof> Solver::getProof(modes::ProofComponent c) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceProofs)
-      << "Cannot get proof unless proofs are enabled (try --produce-proofs)";
+      << "Cannot get proof unless proofs are enabled (try --"
+      << internal::options::smt::longName::produceProofs << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
   //////// all checks before this line
@@ -7766,7 +7804,8 @@ std::vector<Term> Solver::getLearnedLiterals(modes::LearnedLitType t) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceLearnedLiterals)
       << "Cannot get learned literals unless enabled (try "
-         "--produce-learned-literals)";
+         "--"
+      << internal::options::smt::longName::produceLearnedLiterals << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT
                              || d_slv->getSmtMode() == internal::SmtMode::SAT
                              || d_slv->getSmtMode()
@@ -7801,7 +7840,8 @@ Term Solver::getValue(const Term& term) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
-         "(try --produce-models)";
+         "(try --"
+      << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Cannot get value unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_TERM(term);
@@ -7822,7 +7862,8 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
-         "(try --produce-models)";
+         "(try --"
+      << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Cannot get value unless after a SAT or UNKNOWN response.";
   for (const Term& t : terms)
@@ -7853,7 +7894,8 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get domain elements unless model generation is enabled "
-         "(try --produce-models)";
+         "(try --"
+      << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Cannot get domain elements unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_SORT(s);
@@ -7878,7 +7920,8 @@ bool Solver::isModelCoreSymbol(const Term& v) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot check if model core symbol unless model generation is enabled "
-         "(try --produce-models)";
+         "(try --"
+      << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Cannot check if model core symbol unless after a SAT or UNKNOWN "
          "response.";
@@ -7897,7 +7940,8 @@ std::string Solver::getModel(const std::vector<Sort>& sorts,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get model unless model generation is enabled "
-         "(try --produce-models)";
+         "(try --"
+      << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Cannot get model unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_SORTS(sorts);
@@ -7966,7 +8010,8 @@ Term Solver::getValueSepHeap() const
          "separation logic theory.";
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get separation heap term unless model generation is enabled "
-         "(try --produce-models)";
+         "(try --"
+      << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only get separtion heap term after SAT or UNKNOWN response.";
   //////// all checks before this line
@@ -7984,7 +8029,8 @@ Term Solver::getValueSepNil() const
          "separation logic theory.";
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get separation nil term unless model generation is enabled "
-         "(try --produce-models)";
+         "(try --"
+      << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only get separtion nil term after SAT or UNKNOWN response.";
   //////// all checks before this line
@@ -8022,7 +8068,8 @@ Term Solver::declareOracleFun(
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.oracles)
       << "Cannot call declareOracleFun unless oracles is enabled (use "
-         "--oracles)";
+         "--"
+      << internal::options::quantifiers::longName::oracles << ")";
   //////// all checks before this line
   internal::TypeNode type = *sort.d_type;
   if (!sorts.empty())
@@ -8049,7 +8096,8 @@ void Solver::pop(uint32_t nscopes) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "Cannot pop when not solving incrementally (use --incremental)";
+      << "Cannot pop when not solving incrementally (use --"
+      << internal::options::base::longName::incrementalSolving << ")";
   CVC5_API_CHECK(nscopes <= d_slv->getNumUserLevels())
       << "Cannot pop beyond first pushed context";
   //////// all checks before this line
@@ -8067,7 +8115,8 @@ Term Solver::getInterpolant(const Term& conj) const
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpolants)";
+         "--"
+      << internal::options::smt::longName::produceInterpolants << ")";
   //////// all checks before this line
   internal::TypeNode nullType;
   internal::Node result = d_slv->getInterpolant(*conj.d_node, nullType);
@@ -8082,7 +8131,8 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpolants)";
+         "--"
+      << internal::options::smt::longName::produceInterpolants << ")";
   for (const auto& sym : grammar.d_sg->getNtSyms())
   {
     CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
@@ -8102,10 +8152,12 @@ Term Solver::getInterpolantNext() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
-         "--produce-interpolants)";
+         "--"
+      << internal::options::smt::longName::produceInterpolants << ")";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
       << "Cannot get next interpolant when not solving incrementally (try "
-         "--incremental)";
+         "--"
+      << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
   internal::Node result = d_slv->getInterpolantNext();
   return Term(&d_tm, result);
@@ -8118,7 +8170,8 @@ Term Solver::getAbduct(const Term& conj) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
-      << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
+      << "Cannot get abduct unless abducts are enabled (try --"
+      << internal::options::smt::longName::produceAbducts << ")";
   //////// all checks before this line
   internal::TypeNode nullType;
   internal::Node result = d_slv->getAbduct(*conj.d_node, nullType);
@@ -8132,7 +8185,8 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
-      << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
+      << "Cannot get abduct unless abducts are enabled (try --"
+      << internal::options::smt::longName::produceAbducts << ")";
   for (const auto& sym : grammar.d_sg->getNtSyms())
   {
     CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
@@ -8152,10 +8206,12 @@ Term Solver::getAbductNext() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "Cannot get next abduct unless abducts are enabled (try "
-         "--produce-abducts)";
+         "--"
+      << internal::options::smt::longName::produceAbducts << ")";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
       << "Cannot get next abduct when not solving incrementally (try "
-         "--incremental)";
+         "--"
+      << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
   internal::Node result = d_slv->getAbductNext();
   return Term(&d_tm, result);
@@ -8168,7 +8224,8 @@ void Solver::blockModel(modes::BlockModelsMode mode) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
-         "(try --produce-models)";
+         "(try --"
+      << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model after SAT or UNKNOWN response.";
   //////// all checks before this line
@@ -8182,7 +8239,8 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
-         "(try --produce-models)";
+         "(try --"
+      << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Can only block model values after SAT or UNKNOWN response.";
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
@@ -8216,7 +8274,8 @@ void Solver::push(uint32_t nscopes) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "Cannot push when not solving incrementally (use --incremental)";
+      << "Cannot push when not solving incrementally (use --"
+      << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
   for (uint32_t n = 0; n < nscopes; ++n)
   {
@@ -8260,7 +8319,7 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
   if (keyword == "filename")
   {
     // only the Solver object has non-const access to the original options
-    d_originalOptions->writeDriver().filename = value;
+    d_originalOptions->write_driver().filename = value;
   }
   d_slv->setInfo(keyword, value);
   ////////
@@ -8338,7 +8397,8 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot call declareSygusVar unless sygus is enabled (use --sygus)";
+      << "Cannot call declareSygusVar unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   internal::Node res = d_tm.mkVarHelper(*sort.d_type, symbol);
   d_slv->declareSygusVar(res);
@@ -8369,7 +8429,8 @@ Term Solver::synthFun(const std::string& symbol,
   CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot call synthFun unless sygus is enabled (use --sygus)";
+      << "Cannot call synthFun unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   return synthFunHelper(symbol, boundVars, sort);
   ////////
@@ -8385,7 +8446,8 @@ Term Solver::synthFun(const std::string& symbol,
   CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot call synthFun unless sygus is enabled (use --sygus)";
+      << "Cannot call synthFun unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   return synthFunHelper(symbol, boundVars, sort, false, &grammar);
   ////////
@@ -8400,7 +8462,8 @@ void Solver::addSygusConstraint(const Term& term) const
       term.d_node->getType() == d_tm.d_nm->booleanType(), term)
       << "boolean term";
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot addSygusConstraint unless sygus is enabled (use --sygus)";
+      << "Cannot addSygusConstraint unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   d_slv->assertSygusConstraint(*term.d_node, false);
   ////////
@@ -8425,7 +8488,8 @@ void Solver::addSygusAssume(const Term& term) const
       term.d_node->getType() == d_tm.d_nm->booleanType(), term)
       << "boolean term";
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot addSygusAssume unless sygus is enabled (use --sygus)";
+      << "Cannot addSygusAssume unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   d_slv->assertSygusConstraint(*term.d_node, true);
   ////////
@@ -8467,7 +8531,8 @@ void Solver::addSygusInvConstraint(const Term& inv,
   CVC5_API_CHECK(post.d_node->getType() == invType)
       << "Expected inv and post to have the same sort";
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot addSygusInvConstraint unless sygus is enabled (use --sygus)";
+      << "Cannot addSygusInvConstraint unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
 
   const std::vector<internal::TypeNode>& invArgTypes = invType.getArgTypes();
@@ -8498,11 +8563,13 @@ SynthResult Solver::checkSynth() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot checkSynth unless sygus is enabled (use --sygus)";
+      << "Cannot checkSynth unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
       << "Cannot make multiple checkSynth calls unless incremental solving is "
-         "enabled (try --incremental)";
+         "enabled (try --"
+      << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
   return d_slv->checkSynth();
   ////////
@@ -8513,10 +8580,12 @@ SynthResult Solver::checkSynthNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot checkSynthNext unless sygus is enabled (use --sygus)";
+      << "Cannot checkSynthNext unless sygus is enabled (use --"
+      << internal::options::quantifiers::longName::sygus << ")";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
       << "Cannot checkSynthNext when not solving incrementally (use "
-         "--incremental)";
+         "--"
+      << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
   return d_slv->checkSynth(true);
   ////////
