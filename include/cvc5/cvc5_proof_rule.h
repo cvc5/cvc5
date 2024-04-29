@@ -1144,21 +1144,6 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(HO_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Equality -- Beta reduction**
-   *
-   * .. math::
-   *
-   *   \inferrule{\mid \lambda x_1\dots x_n.\> t, t_1,\dots,t_n}
-   *   {((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
-   *
-   * The right hand side of the equality in the conclusion is computed using
-   * standard substitution via Node::substitute.
-   * \endverbatim
-   */
-  EVALUE(BETA_REDUCE),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Read over write**
    *
    * .. math::
@@ -1204,19 +1189,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ARRAYS_EXT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arrays -- Expansion of array range equality**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid \mathit{eqrange}(a,b,i,j)}
-   *   {\mathit{eqrange}(a,b,i,j)=
-   *   \forall x.\> i \leq x \leq j \rightarrow
-   *   \mathit{select}(a,x)=\mathit{select}(b,x)}
-   * \endverbatim
-   */
-  EVALUE(ARRAYS_EQ_RANGE_EXPAND),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -2296,6 +2268,30 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(DISTINCT_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Beta reduction**
+   *
+   * .. math::
+   *
+   *   ((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}
+   *
+   * The right hand side of the equality in the conclusion is computed using
+   * standard substitution via Node::substitute.
+   * \endverbatim
+   */
+  EVALUE(BETA_REDUCE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Expansion of array range equality**
+   *
+   * .. math::
+   *   \mathit{eqrange}(a,b,i,j)=
+   *   \forall x.\> i \leq x \leq j \rightarrow
+   *   \mathit{select}(a,x)=\mathit{select}(b,x)
+   * \endverbatim
+   */
+  EVALUE(ARRAYS_EQ_RANGE_EXPAND),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Exists elimination**

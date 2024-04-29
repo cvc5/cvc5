@@ -37,7 +37,6 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::FALSE_ELIM, this);
   pc->registerChecker(ProofRule::HO_CONG, this);
   pc->registerChecker(ProofRule::HO_APP_ENCODE, this);
-  pc->registerChecker(ProofRule::BETA_REDUCE, this);
 }
 
 Node UfProofRuleChecker::checkInternal(ProofRule id,
