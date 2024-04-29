@@ -18,6 +18,7 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrites.h"
 #include "smt/env.h"
 
 namespace cvc5::internal {
@@ -130,9 +131,9 @@ TrustNode EagerProofGenerator::mkTrustNodeRewrite(const Node& a,
                                                   ProofRewriteRule id)
 {
   std::vector<Node> args;
-  args.push_back(mkRewriteRuleNode(id));
+  args.push_back(rewriter::mkRewriteRuleNode(id));
   args.push_back(a);
-  return mkTrustedRewrite(a, b, id, args);
+  return mkTrustedRewrite(a, b, ProofRule::THEORY_REWRITE, args);
 }
 
 TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,
@@ -150,7 +151,7 @@ TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,
 
 TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,
                                                 Node b,
-                                                ProofRewriteRule id,
+                                                ProofRule id,
                                                 const std::vector<Node>& args)
 {
   Node eq = a.eqNode(b);

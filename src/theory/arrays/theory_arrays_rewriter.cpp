@@ -68,7 +68,7 @@ TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
 }
 
-Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
