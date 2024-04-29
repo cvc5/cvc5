@@ -1417,6 +1417,7 @@ set(REWRITES_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites-simplification
   ${PROJECT_SOURCE_DIR}/src/theory/sets/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites-regexp-membership
   ${PROJECT_SOURCE_DIR}/src/theory/uf/rewrites
 )
 
