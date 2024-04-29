@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm) 
+TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
 {
   registerProofRewriteRule(ProofRewriteRule::BETA_REDUCE,
                            TheoryRewriteCtx::PRE_DSL);
@@ -163,26 +163,25 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::BETA_REDUCE:
     {
-    if (n.getKind() != Kind::APPLY_UF
+      if (n.getKind() != Kind::APPLY_UF
           || n.getOperator().getKind() != Kind::LAMBDA)
-    {
-      return Node::null();
-    }
-    Node lambda = n.getOperator();
-    std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
-    std::vector<TNode> subs(n.begin(), n.end());
-    if (vars.size() != subs.size())
-    {
-      return Node::null();
-    }
-    NodeManager* nm = nodeManager();
-    Node ret = lambda[1].substitute(
-        vars.begin(), vars.end(), subs.begin(), subs.end());
-    return ret;
+      {
+        return Node::null();
+      }
+      Node lambda = n.getOperator();
+      std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
+      std::vector<TNode> subs(n.begin(), n.end());
+      if (vars.size() != subs.size())
+      {
+        return Node::null();
+      }
+      NodeManager* nm = nodeManager();
+      Node ret = lambda[1].substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
+      return ret;
     }
     break;
-    default:
-      break;
+    default: break;
   }
   return Node::null();
 }

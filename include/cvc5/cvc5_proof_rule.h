@@ -2274,7 +2274,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    *
    * .. math::
    *
-   *   ((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}
+   *   ((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto
+   * t_1,\dots,x_n\mapsto t_n\}
    *
    * The right hand side of the equality in the conclusion is computed using
    * standard substitution via Node::substitute.

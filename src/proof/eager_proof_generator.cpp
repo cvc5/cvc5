@@ -125,10 +125,9 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
 }
 
-
 TrustNode EagerProofGenerator::mkTrustNodeRewrite(const Node& a,
-                                                const Node& b,
-                      ProofRewriteRule id)
+                                                  const Node& b,
+                                                  ProofRewriteRule id)
 {
   std::vector<Node> args;
   args.push_back(mkRewriteRuleNode(id));

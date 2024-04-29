@@ -221,7 +221,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     //================================================= ad-hoc rules
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
-    case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND: return "arrays-eq-range-expand";
+    case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
+      return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";

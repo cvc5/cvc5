@@ -151,7 +151,7 @@ class EagerProofGenerator : protected EnvObj, public ProofGenerator
    */
   TrustNode mkTrustNodeRewrite(const Node& a,
                                const Node& b,
-                        ProofRewriteRule id);
+                               ProofRewriteRule id);
   /**
    * Make trust node: wrap `exp => n` in a trust node with this generator, and
    * have it store the proof `pf` too.

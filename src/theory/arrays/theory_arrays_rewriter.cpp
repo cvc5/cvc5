@@ -68,21 +68,19 @@ TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
 }
 
-
 Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
     {
-      if (n.getKind()==Kind::EQ_RANGE)
+      if (n.getKind() == Kind::EQ_RANGE)
       {
         return expandEqRange(n);
       }
     }
     break;
-    default:
-      break;
+    default: break;
   }
   return Node::null();
 }
@@ -713,9 +711,8 @@ TrustNode TheoryArraysRewriter::expandDefinition(Node node)
     Node expandedEqRange = expandEqRange(node);
     if (d_epg)
     {
-      return d_epg->mkTrustNodeRewrite(node,
-                                               expandedEqRange,
-                                        ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND);
+      return d_epg->mkTrustNodeRewrite(
+          node, expandedEqRange, ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND);
     }
     return TrustNode::mkTrustRewrite(node, expandedEqRange, nullptr);
   }

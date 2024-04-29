@@ -22,9 +22,9 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
+#include "rewriter/rewrites.h"
 #include "smt/env.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "rewriter/rewrites.h"
 
 using namespace cvc5::internal::kind;
 
@@ -433,13 +433,13 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case ProofRule::THEORY_REWRITE:
     {
-      Assert (args.size()>=2);
+      Assert(args.size() >= 2);
       ProofRewriteRule idr;
       if (!rewriter::getRewriteRule(args[0], idr))
       {
         return false;
       }
-      if (idr==ProofRewriteRule::BETA_REDUCE)
+      if (idr == ProofRewriteRule::BETA_REDUCE)
       {
         // get the term to beta-reduce
         Node termToReduce = nm->mkNode(Kind::APPLY_UF, args[1]);

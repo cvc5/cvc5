@@ -71,7 +71,7 @@ class TheoryArraysRewriter : public TheoryRewriter
    * cannot be rewritten.
    */
   Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
-  
+
   TrustNode expandDefinition(Node node) override;
 
   /**
