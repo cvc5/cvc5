@@ -19,9 +19,9 @@
 
 namespace cvc5 {
 
-const char* toString(ProofRule id)
+const char* toString(ProofRule rule)
 {
-  switch (id)
+  switch (rule)
   {
     //================================================= Core rules
     case ProofRule::ASSUME: return "ASSUME";
@@ -37,7 +37,9 @@ const char* toString(ProofRule id)
     case ProofRule::ENCODE_PRED_TRANSFORM: return "ENCODE_PRED_TRANSFORM";
     case ProofRule::ANNOTATION: return "ANNOTATION";
     case ProofRule::DSL_REWRITE: return "DSL_REWRITE";
-    case ProofRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
+    case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
+    case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
+      return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
     case ProofRule::TRUST: return "TRUST";
     case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
@@ -124,7 +126,6 @@ const char* toString(ProofRule id)
     //================================================= Datatype rules
     case ProofRule::DT_UNIF: return "DT_UNIF";
     case ProofRule::DT_INST: return "DT_INST";
-    case ProofRule::DT_COLLAPSE: return "DT_COLLAPSE";
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
@@ -171,7 +172,8 @@ const char* toString(ProofRule id)
     case ProofRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
     case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
       return "ARITH_TRANS_EXP_POSITIVITY";
-    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN: return "ARITH_TRANS_EXP_SUPER_LIN";
+    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN:
+      return "ARITH_TRANS_EXP_SUPER_LIN";
     case ProofRule::ARITH_TRANS_EXP_ZERO: return "ARITH_TRANS_EXP_ZERO";
     case ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG:
       return "ARITH_TRANS_EXP_APPROX_ABOVE_NEG";
@@ -181,7 +183,8 @@ const char* toString(ProofRule id)
       return "ARITH_TRANS_EXP_APPROX_BELOW";
     case ProofRule::ARITH_TRANS_SINE_BOUNDS: return "ARITH_TRANS_SINE_BOUNDS";
     case ProofRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
-    case ProofRule::ARITH_TRANS_SINE_SYMMETRY: return "ARITH_TRANS_SINE_SYMMETRY";
+    case ProofRule::ARITH_TRANS_SINE_SYMMETRY:
+      return "ARITH_TRANS_SINE_SYMMETRY";
     case ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO:
       return "ARITH_TRANS_SINE_TANGENT_ZERO";
     case ProofRule::ARITH_TRANS_SINE_TANGENT_PI:
@@ -195,7 +198,8 @@ const char* toString(ProofRule id)
     case ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
       return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
     case ProofRule::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
-    case ProofRule::ARITH_NL_COVERING_RECURSIVE: return "ARITH_NL_COVERING_RECURSIVE";
+    case ProofRule::ARITH_NL_COVERING_RECURSIVE:
+      return "ARITH_NL_COVERING_RECURSIVE";
     //================================================= External rules
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
@@ -205,11 +209,38 @@ const char* toString(ProofRule id)
   }
 }
 
-std::ostream& operator<<(std::ostream& out, ProofRule id)
+std::ostream& operator<<(std::ostream& out, ProofRule rule)
 {
-  out << toString(id);
+  out << toString(rule);
   return out;
 }
+
+const char* toString(cvc5::ProofRewriteRule rule)
+{
+  switch (rule)
+  {
+    case ProofRewriteRule::NONE: return "NONE";
+    //================================================= ad-hoc rules
+    case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
+    case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
+    case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
+    case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::RE_LOOP_ELIM:
+      return "re-loop-elim";
+      //================================================= RARE rules
+      // clang-format off
+      ${printer}$
+          // clang-format on
+          default : return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule)
+{
+  out << toString(rule);
+  return out;
+}
+
 }  // namespace cvc5
 
 namespace std {
@@ -217,6 +248,19 @@ namespace std {
 size_t hash<cvc5::ProofRule>::operator()(cvc5::ProofRule rule) const
 {
   return static_cast<size_t>(rule);
+}
+
+std::string to_string(cvc5::ProofRule rule) { return cvc5::toString(rule); }
+
+size_t hash<cvc5::ProofRewriteRule>::operator()(
+    cvc5::ProofRewriteRule rule) const
+{
+  return static_cast<size_t>(rule);
+}
+
+std::string to_string(cvc5::ProofRewriteRule rule)
+{
+  return cvc5::toString(rule);
 }
 
 }  // namespace std

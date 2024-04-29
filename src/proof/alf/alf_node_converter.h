@@ -51,7 +51,6 @@ class BaseAlfNodeConverter : public NodeConverter
    * passed as arguments to terms and proof rules.
    */
   virtual Node typeAsNode(TypeNode tni) = 0;
-
   /**
    * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
    * has a distinguished status so that it is *not* printed as (bvar ...). The
@@ -94,15 +93,6 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * @return the operator.
    */
   Node getOperatorOfTerm(Node n, bool reqCast = false) override;
-  /**
-   * Get the null terminator for kind k and type tn. The type tn can be
-   * omitted if applications of kind k do not have parametric type.
-   *
-   * The returned null terminator is *not* converted to internal form.
-   *
-   * For examples of null terminators, see nary_term_utils.h.
-   */
-  Node getNullTerminator(Kind k, TypeNode tn);
   /** Make generic list */
   Node mkList(const std::vector<Node>& args);
   /**

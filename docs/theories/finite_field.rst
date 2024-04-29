@@ -99,11 +99,11 @@ Examples
   (check-sat)
   ; unsat
 
+Solvers
+^^^^^^^
 
-References
-^^^^^^^^^^
+Internally, cvc5 implements two solvers for the theory of finite fields.
 
-The theory of finite fields was defined in
-"Satisfiability Modulo Finite Fields" :cite:`Ozdemir23`.
-See the paper for more information.
+* The default solver is described in "Satisfiability Modulo Finite Fields" :cite:`Ozdemir23`.
+* The ``--ff-solver split`` flag turns on an alternate solver from "Split Groebner Bases for Satisfiability Modulo Finite Fields" :cite:`Ozdemir24`. This solver may be better on field equations that encode bit-decomposition. See the paper for more information.
 
