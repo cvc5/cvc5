@@ -36,11 +36,11 @@
 ; Eliminate singleton list.
 ; If the input term is of the form (f x1 x2) where x2 is the nil terminator of
 ; f, then we return x1. Otherwise, we return the input term unchanged.
-(program $dsl.singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
+(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
   (S) S
   (
-    (($dsl.singleton_elim (f x1 x2))  (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
-    (($dsl.singleton_elim x)          x)
+    (($singleton_elim (f x1 x2))  (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
+    (($singleton_elim x)          x)
   )
 )
 

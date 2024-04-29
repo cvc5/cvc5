@@ -40,6 +40,25 @@
   (alf.requires t (mk_emptystr (alf.typeof t)) t)
 )
 
+; Return the fixed length for the regular expression if it can be inferred.
+(program $str_fixed_len_re ((r RegLan) (s1 String) (s2 String) (r1 RegLan :list))
+  (RegLan) Int
+  (
+  (($str_fixed_len_re (re.++ r r1))     (alf.add ($str_fixed_len_re r) ($str_fixed_len_re r1)))
+  (($str_fixed_len_re re.allchar)       1)
+  (($str_fixed_len_re (re.range s1 s2)) 1)
+  (($str_fixed_len_re (str.to_re s1))   (alf.len s1))
+  (($str_fixed_len_re (re.union r r1))  (let ((n ($str_fixed_len_re r)))
+                                          (alf.ite (alf.is_eq r1 re.none)
+                                            n
+                                            (alf.requires ($str_fixed_len_re r1) n n))))
+  (($str_fixed_len_re (re.inter r r1))  (let ((n ($str_fixed_len_re r)))
+                                          (alf.ite (alf.is_eq r1 re.all)
+                                            n
+                                            (alf.requires ($str_fixed_len_re r1) n n))))
+  )
+)
+
 ;;-------------------- Skolem terms
 
 ; The following side conditions are used for computing terms that define
@@ -231,13 +250,21 @@
   )
 )
 
+(program string_eager_reduction_in_re ((U Type) (x (Seq U)) (r RegLan))
+  (U RegLan) Bool
+  (
+    ((string_eager_reduction_in_re x r) (=> (str.in_re x r) (= (str.len x) ($str_fixed_len_re r))))
+  )
+)
+
 ; Compute the eager reduction predicate of term t of type U.
-(program mk_string_eager_reduction ((U Type) (x U) (y U) (n Int) (m Int))
+(program mk_string_eager_reduction ((U Type) (x U) (y U) (r RegLan) (n Int) (m Int))
   (U) Bool
   (
     ((mk_string_eager_reduction (str.to_code x)) (string_eager_reduction_to_code x))
     ((mk_string_eager_reduction (str.contains x y)) (string_eager_reduction_contains x y))
     ((mk_string_eager_reduction (str.indexof x y n)) (string_eager_reduction_indexof x y n))
+    ((mk_string_eager_reduction (str.in_re x r)) (string_eager_reduction_in_re x r))
   )
 )
 
