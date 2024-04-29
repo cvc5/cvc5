@@ -12,11 +12,6 @@
   (= (str.++ x1 x x2) y)
   false)
 
-;(define-cond-rule str-eq-ctn-full-false ((x ?Seq) (y ?Seq))
-;  (= (str.contains y x) false)
-;  (= x y)
-;  false)
-
 ;(define-cond-rule str-eq-len-false ((x String) (y String))
 ;  (not (= (str.len x) (str.len y)))
 ;  (= x y)
