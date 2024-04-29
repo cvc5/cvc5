@@ -290,11 +290,10 @@ EvalResult Evaluator::evalInternal(
           }
           ptrdiff_t pos = std::distance(args.begin(), it);
           currNodeVal = vals[pos];
-          needsReconstruct = false;
           // Don't need to rewrite since range of substitution should already
           // be normalized.
         }
-        if (needsReconstruct)
+        else
         {
           // Reconstruct the node with a combination of the children that
           // successfully evaluated, and the children that did not.
@@ -306,8 +305,8 @@ EvalResult Evaluator::evalInternal(
             // if we are able to turn it into a valid EvalResult.
             currNodeVal = d_rr->rewrite(currNodeVal);
           }
-          needsReconstruct = false;
         }
+        needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
         if (currNodeVal.getNumChildren() > 0
