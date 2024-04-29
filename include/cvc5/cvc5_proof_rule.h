@@ -2972,6 +2972,91 @@ enum ENUM(ProofRewriteRule) : uint32_t {
   EVALUE(SEQ_NTH_UNIT),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
+  /** Auto-generated from RARE rule re-in-empty */
+  EVALUE(RE_IN_EMPTY),
+  /** Auto-generated from RARE rule re-in-sigma */
+  EVALUE(RE_IN_SIGMA),
+  /** Auto-generated from RARE rule re-in-sigma-star */
+  EVALUE(RE_IN_SIGMA_STAR),
+  /** Auto-generated from RARE rule re-in-cstring */
+  EVALUE(RE_IN_CSTRING),
+  /** Auto-generated from RARE rule re-in-comp */
+  EVALUE(RE_IN_COMP),
+  /** Auto-generated from RARE rule str-in-re-union-elim */
+  EVALUE(STR_IN_RE_UNION_ELIM),
+  /** Auto-generated from RARE rule str-in-re-inter-elim */
+  EVALUE(STR_IN_RE_INTER_ELIM),
+  /** Auto-generated from RARE rule str-in-re-range-elim */
+  EVALUE(STR_IN_RE_RANGE_ELIM),
+  /** Auto-generated from RARE rule str-in-re-contains */
+  EVALUE(STR_IN_RE_CONTAINS),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix */
+  EVALUE(STR_IN_RE_STRIP_PREFIX),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-char */
+  EVALUE(STR_IN_RE_STRIP_CHAR),
+  /** Auto-generated from RARE rule str-in-re-strip-char-s-single */
+  EVALUE(STR_IN_RE_STRIP_CHAR_S_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg-rev
+   */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-char-rev */
+  EVALUE(STR_IN_RE_STRIP_CHAR_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-char-s-single-rev */
+  EVALUE(STR_IN_RE_STRIP_CHAR_S_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-no-prefix */
+  EVALUE(STR_IN_RE_NO_PREFIX),
+  /** Auto-generated from RARE rule str-in-re-no-prefix-rev */
+  EVALUE(STR_IN_RE_NO_PREFIX_REV),
+  /** Auto-generated from RARE rule str-in-re-concat-allchar */
+  EVALUE(STR_IN_RE_CONCAT_ALLCHAR),
+  /** Auto-generated from RARE rule str-in-re-concat-allchar-base-geq */
+  EVALUE(STR_IN_RE_CONCAT_ALLCHAR_BASE_GEQ),
+  /** Auto-generated from RARE rule str-in-re-concat-allchar-base-eq */
+  EVALUE(STR_IN_RE_CONCAT_ALLCHAR_BASE_EQ),
   /** Auto-generated from RARE rule eq-refl */
   EVALUE(EQ_REFL),
   /** Auto-generated from RARE rule eq-symm */
