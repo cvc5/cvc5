@@ -54,9 +54,14 @@
   (str.substr s 0 n)
 )
 
-; Get the term corresponding to the suffix of term s of fixed length n.
+; Get the term corresponding to the suffix of term s starting from position n.
 (define skolem_suffix_rem ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s n (- (str.len s) n))
+)
+
+; Get the term corresponding to the suffix of term s of length n.
+(define $str_suffix_len ((U Type :implicit) (s (Seq U)) (n Int))
+  (str.substr s (- (str.len s) n) n)
 )
 
 ; The unified splitting term for t and s, which is the term that denotes the
@@ -86,21 +91,9 @@
 
 ;;-------------------- Utilities
 
-; Helper for reversing a concatenation term
-(program $str_rev_rec
-    ((T Type) (t (Seq T)) (ss (Seq T) :list) (acc (Seq T)))
-    ((Seq T) (Seq T) Type) (Seq T)
-    (
-        (($str_rev_rec (str.++ t ss) acc T) ($str_rev_rec ss ($str_cons t acc) T))
-        (($str_rev_rec t acc T)             (alf.requires t (mk_emptystr (Seq T)) acc))
-    )
-)
-
 ; Return reverse of t if rev = true, return t unchanged otherwise.
-(define $str_rev ((U Type :implicit) (rev Bool) (t (Seq U))) 
-  (alf.ite rev 
-    (let ((U ($char_type_of (alf.typeof t)))) ($str_rev_rec t (mk_emptystr (Seq U)) U)) 
-    t))
+(define $str_rev ((U Type :implicit) (rev Bool) (t U)) 
+  (alf.ite rev (nary.reverse t) t))
 
 ; Nary-intro, which ensures that the input t is a str.++ application.
 ; In particular, if it is not a str.++ and not the empty string, then we return
@@ -435,6 +428,29 @@
     ((strip_prefix t s)                         (@pair t s))
   )
 )
+
+
+; Helper for $str_overlap.
+(program $str_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
+  ((Seq U) (Seq U) (Seq U)) Int
+  (
+  (($str_overlap_rec nil (str.++ s s1) t) (alf.ite (nary.is_compatible str.++ nil (str.++ s s1) t)
+                                            0
+                                            (alf.add 1 ($str_overlap_rec nil s1 t))))
+  (($str_overlap_rec nil s t)             0)
+  )
+)
+
+; Returns the minimum number of characters that must be skipped in s before
+; string t can be compatible with it. For example:
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "C" "D" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "E" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
+; Expects s and t to be in nary (flattened) form.
+(define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)))
+  ($str_overlap_rec (mk_emptystr (alf.typeof s)) s t))
 
 ; Converts a str.++ application into "flat form" so that we are ready to
 ; process its prefix. This consists of the following steps:

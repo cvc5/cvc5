@@ -1570,7 +1570,7 @@ enum ENUM(ProofRule) : uint32_t
    *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot w_3)}
    *
    * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
-   * :math:`\mathit{suf}(w_2, \mathit{len}(w_2) - p)`, :math:`p` is
+   * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
    * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
    * w_1)`, and :math:`r` is :math:`\mathit{skolem}(\mathit{pre}(t_2,
    * \mathit{len}(t_2) - \mathit{len}(w_3)))`.  Note that

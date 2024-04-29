@@ -34,7 +34,7 @@
 
 ; Relation operators.
 (declare-const rel.tclosure (-> (! Type :var T :implicit) (Set (Tuple T T)) (Set (Tuple T T))))
-(declare-const rel.transpose (-> (! Type :var T :implicit) (Set T) (Set (nary.reverse Tuple UnitTuple T))))
+(declare-const rel.transpose (-> (! Type :var T :implicit) (Set T) (Set (nary.reverse T))))
 (declare-const rel.product (-> (! Type :var T :implicit) (! Type :var U :implicit) (Set T) (Set U) (Set (alf.concat Tuple T U))))
 (declare-const rel.join (-> (! Type :var T :implicit) (! Type :var U :implicit) (Set T) (Set U) (Set (nary.join Tuple UnitTuple T U))))
 (declare-const rel.group (-> (! Type :var T :implicit) @List (Set T) (Set (Set T))))

@@ -33,6 +33,13 @@
 (define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (alf.is_neg (alf.add (alf.hash a) (alf.neg (alf.hash b)))))
 
+; Returns the tail of x, where x is expected to be a function application.
+(define $tail ((S Type :implicit) (x S))
+  (alf.match ((T Type) (U Type) (S Type) (f (-> T U S)) (x1 T) (x2 T :list))
+    x
+    (((f x1 x2) x2)))
+)
+
 ; Eliminate singleton list.
 ; If the input term is of the form (f x1 x2) where x2 is the nil terminator of
 ; f, then we return x1. Otherwise, we return the input term unchanged.
