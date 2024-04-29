@@ -204,29 +204,6 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     Node ret = TheoryUfRewriter::getHoApplyForApplyUf(args[0]);
     return args[0].eqNode(ret);
   }
-  else if (id == ProofRule::BETA_REDUCE)
-  {
-    Assert(args.size() >= 2);
-    Node lambda = args[0];
-    if (lambda.getKind() != Kind::LAMBDA)
-    {
-      return Node::null();
-    }
-    std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
-    std::vector<TNode> subs(args.begin() + 1, args.end());
-    if (vars.size() != subs.size())
-    {
-      return Node::null();
-    }
-    NodeManager* nm = nodeManager();
-    std::vector<Node> appArgs;
-    appArgs.push_back(lambda);
-    appArgs.insert(appArgs.end(), subs.begin(), subs.end());
-    Node app = nm->mkNode(Kind::APPLY_UF, appArgs);
-    Node ret = lambda[1].substitute(
-        vars.begin(), vars.end(), subs.begin(), subs.end());
-    return app.eqNode(ret);
-  }
   // no rule
   return Node::null();
 }

@@ -175,7 +175,6 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
-      NodeManager* nm = nodeManager();
       Node ret = lambda[1].substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());
       return ret;
