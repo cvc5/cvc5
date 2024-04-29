@@ -66,7 +66,11 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
   /**
    * Counts number of postprocessed proof nodes for each kind of DSL proof rule
    */
-  HistogramStat<rewriter::DslProofRule> d_dslRuleCount;
+  HistogramStat<ProofRewriteRule> d_dslRuleCount;
+  /**
+   * Counts number of postprocessed proof nodes for each kind of THEORY_REWRITE
+   */
+  HistogramStat<ProofRewriteRule> d_theoryRewriteRuleCount;
   /**
    * Counts number of postprocessed proof nodes for each trusted step
    */

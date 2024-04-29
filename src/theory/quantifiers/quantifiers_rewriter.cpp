@@ -97,6 +97,33 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                                          const Options& opts)
     : TheoryRewriter(nm), d_rewriter(r), d_opts(opts)
 {
+  registerProofRewriteRule(ProofRewriteRule::EXISTS_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+}
+
+Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::EXISTS_ELIM:
+    {
+      if (n.getKind() != Kind::EXISTS)
+      {
+        return Node::null();
+      }
+      std::vector<Node> fchildren;
+      fchildren.push_back(n[0]);
+      fchildren.push_back(n[1].negate());
+      if (n.getNumChildren() == 3)
+      {
+        fchildren.push_back(n[2]);
+      }
+      return d_nm->mkNode(Kind::NOT, d_nm->mkNode(Kind::FORALL, fchildren));
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
 }
 
 bool QuantifiersRewriter::isLiteral( Node n ){
@@ -298,6 +325,11 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
       if (std::find(boundVars.begin(), boundVars.end(), v) == boundVars.end())
       {
         boundVars.push_back(v);
+      }
+      else
+      {
+        // if duplicate variable due to shadowing, we must rewrite
+        combineQuantifiers = true;
       }
     }
     continueCombine = false;
