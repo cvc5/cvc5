@@ -59,12 +59,6 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
 
   NodeManager* nm = nodeManager();
 
-  if (in[0].getType().isCardinalityLessThan(in.getNumChildren()))
-  {
-    // Cardinality of type does not allow to find distinct values for all
-    // children of this node.
-    return nm->mkConst<bool>(false);
-  }
 
   if (in.getNumChildren() == 2)
   {
@@ -110,6 +104,12 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
       return RewriteResponse(REWRITE_DONE, rnode);
     }
     case Kind::DISTINCT:
+      if (node[0].getType().isCardinalityLessThan(node.getNumChildren()))
+      {
+        // Cardinality of type does not allow to find distinct values for all
+        // children of this node.
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
+      }
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
     case Kind::APPLY_INDEXED_SYMBOLIC:
     {
