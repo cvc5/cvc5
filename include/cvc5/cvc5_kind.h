@@ -956,6 +956,9 @@ enum ENUM(Kind) : int32_t
   /**
    * Square root.
    *
+   * If the argument `x` is non-negative, then this returns a non-negative value
+   * `y` such that `y * y = x`.
+   *
    * - Arity: ``1``
    *
    *   - ``1:`` Term of Sort Real
