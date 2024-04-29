@@ -66,26 +66,41 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   d_pcache.clear();
   // clear the evaluate cache
   d_evalCache.clear();
-  Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
+  Node eq = a.eqNode(b);
+  // As a heuristic, always apply CONG if we are an equality between two
+  // binder terms with the same quantifier prefix.
+  if (a.isClosure() && a.getKind() == b.getKind() && a[0] == b[0])
+  {
+    Node eqo = eq;
+    // Ensure the equality is converted, which resolves complications with
+    // patterns.
+    Node eqoi = d_rdnc.convert(eqo);
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(eqoi[0], cargs);
+    // only apply this to standard binders (those with 2 children)
+    if (eqoi[0].getNumChildren() == 2)
+    {
+      eq = eqoi[0][1].eqNode(eqoi[1][1]);
+      cdp->addStep(eqoi, cr, {eq}, cargs);
+      if (eqo != eqoi)
+      {
+        cdp->addStep(eqo, ProofRule::ENCODE_PRED_TRANSFORM, {eqoi}, {eqo});
+      }
+    }
+  }
+  Trace("rpc") << "RewriteDbProofCons::prove: " << eq[0] << " == " << eq[1]
                << std::endl;
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
-  if (d_trrc.prove(cdp, a, b, tid, mid))
+  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     return true;
   }
-  // if there are quantifiers, fail immediately
-  if (a.isClosure())
-  {
-    Trace("rpc") << "...fail (out of scope)" << std::endl;
-    return false;
-  }
+  bool success = false;
   ++d_statTotalInputs;
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   // prove the equality
-  Node eq = a.eqNode(b);
-  bool success = false;
   for (int64_t i = 0; i <= recLimit; i++)
   {
     Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
@@ -110,6 +125,15 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
           break;
         }
       }
+    }
+  }
+  if (!success)
+  {
+    // now try the "post-prove" method as a last resort
+    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid))
+    {
+      Trace("rpc") << "...success (post-prove basic)" << std::endl;
+      return true;
     }
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
