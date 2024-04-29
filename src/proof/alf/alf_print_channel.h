@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALF__ALF_PRINT_CHANNEL_H
-#define CVC4__PROOF__ALF__ALF_PRINT_CHANNEL_H
+#ifndef CVC5__PROOF__ALF__ALF_PRINT_CHANNEL_H
+#define CVC5__PROOF__ALF__ALF_PRINT_CHANNEL_H
 
 #include <iostream>
 #include <map>

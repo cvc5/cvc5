@@ -31,41 +31,47 @@ jobs:
             package-name: cvc5-Linux-arm64
 
           - name: macos:production
-            os: macos-11
-            config: production --auto-download --all-bindings --editline
+            os: macos-13
+            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
             python-bindings: true
             check-examples: true
             package-name: cvc5-macOS
+            macos-target: 10.13
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
  
           - name: macos:production-arm64
             os: macos-14
-            config: production --auto-download --all-bindings --editline
+            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-arm64
             strip-bin: strip
             python-bindings: true
             check-examples: true
+            package-name: cvc5-macOS-arm64
+            macos-target: 11.0
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production-arm64-cross
-            os: macos-11
+            os: macos-13
             config: production --auto-download --all-bindings --editline --arm64
             cache-key: production-arm64-cross
             strip-bin: strip
             python-bindings: true
-            package-name: cvc5-macOS-arm64
 
           - name: win64:production
             os: windows-latest
-            config: production --auto-download --win64-native
+            config: production --auto-download
             cache-key: production-win64-native
             strip-bin: strip
             windows-build: true
             shell: 'msys2 {0}'
+            check-examples: true
+            package-name: cvc5-Win64
+            exclude_regress: 1-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: win64:production-cross
             os: ubuntu-latest
@@ -73,7 +79,6 @@ jobs:
             cache-key: production-win64-cross
             strip-bin: x86_64-w64-mingw32-strip
             windows-build: true
-            package-name: cvc5-Win64
 
           - name: ubuntu:production-clang
             os: ubuntu-20.04
@@ -132,6 +137,7 @@ jobs:
       with:
         configure-env: ${{ matrix.env }}
         configure-config: ${{ matrix.config }}
+        macos-target: ${{ matrix.macos-target }}
         build-shared: ${{ matrix.build-shared }}
         build-static: ${{ matrix.build-static }}
         strip-bin: ${{ matrix.strip-bin }}
@@ -146,6 +152,7 @@ jobs:
         check-python-bindings: ${{ matrix.python-bindings }}
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: ${{ matrix.exclude_regress }}
+        shell: ${{ matrix.shell }}
   
     - name: Run tests
       if: matrix.run_regression_args
@@ -157,6 +164,7 @@ jobs:
         check-python-bindings: false
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: 1-4
+        shell: ${{ matrix.shell }}
 
     - name: Build documentation
       if: matrix.build-documentation
@@ -173,6 +181,7 @@ jobs:
         # when using GITHUB_TOKEN, no further workflows are triggered
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+        shell: ${{ matrix.shell }}
 
     - name: Create and add static package to latest and release
       if: matrix.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
@@ -183,6 +192,7 @@ jobs:
         # when using GITHUB_TOKEN, no further workflows are triggered
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+        shell: ${{ matrix.shell }}
 
   update-pr:
     runs-on: ubuntu-latest
@@ -191,7 +201,7 @@ jobs:
       group: update-pr
     steps:
       - name: Automatically update PR
-        uses: adRise/update-pr-branch@v0.6.0
+        uses: adRise/update-pr-branch@v0.7.2
         with:
           token: ${{ secrets.ACTION_USER_TOKEN }}
           base: 'main'

@@ -1,4 +1,3 @@
-; DISABLE-TESTER: dsl-proof
 (set-logic AUFLIA)
 (set-info :source | 
   Boogie/Spec# benchmarks.

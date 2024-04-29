@@ -22,6 +22,7 @@
 #include "theory/uf/function_const.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -40,7 +41,8 @@ HoExtension::HoExtension(Env& env,
       d_ll(ll),
       d_extensionality(userContext()),
       d_cachedLemmas(userContext()),
-      d_uf_std_skolem(userContext())
+      d_uf_std_skolem(userContext()),
+      d_lamEqProcessed(userContext())
 {
   d_true = nodeManager()->mkConst(true);
   // don't send true lemma
@@ -83,7 +85,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   {
     // Say (lambda ((x Int)) t[x]) occurs in the input. We replace this
     // by k during ppRewrite. In the following, if we see (k s), we replace
-    // it by t[s]. This maintains the invariant that the *only* occurences
+    // it by t[s]. This maintains the invariant that the *only* occurrences
     // of k are as arguments to other functions; k is not applied
     // in any preprocessed constraints.
     if (options().uf.ufHoLazyLambdaLift)
@@ -535,6 +537,20 @@ unsigned HoExtension::checkLazyLambda()
         // two lambda functions are in same equivalence class
         Node f = lamRep < n ? lamRep : n;
         Node g = lamRep < n ? n : lamRep;
+        // swap based on order
+        if (g<f)
+        {
+          Node tmp = f;
+          f = g;
+          g = tmp;
+        }
+        Node fgEq = f.eqNode(g);
+        if (d_lamEqProcessed.find(fgEq)!=d_lamEqProcessed.end())
+        {
+          continue;
+        }
+        d_lamEqProcessed.insert(fgEq);
+
         Trace("uf-ho-debug") << "  found equivalent lambda functions " << f
                              << " and " << g << std::endl;
         Node flam = lamRep < n ? lamRepLam : lam;
@@ -546,12 +562,42 @@ unsigned HoExtension::checkLazyLambda()
         std::vector<Node> args(flam[0].begin(), flam[0].end());
         Node rhs = d_ll.betaReduce(glam, args);
         Node univ = nm->mkNode(Kind::FORALL, flam[0], lhs.eqNode(rhs));
+        // do quantifier elimination if the option is set
+        // For example, say (= f1 f2) where f1 is (lambda ((x Int)) (< x a))
+        // and f2 is (lambda ((x Int)) (< x b)).
+        // By default, we would generate the inference
+        //  (=> (= f1 f2) (forall ((x Int)) (= (< x a) (< x b))),
+        // where quantified reasoning is introduced into the main solving
+        // procedure.
+        // With --uf-lambda-qe, we use a subsolver to compute the quantifier
+        // elimination of:
+        //   (forall ((x Int)) (= (< x a) (< x b)),
+        // which is (and (<= a b) (<= b a)). We instead generate the lemma
+        //   (=> (= f1 f2) (and (<= a b) (<= b a)).
+        // The motivation for this is to reduce the complexity of constraints
+        // in the main solver. This is motivated by usages of set.filter where
+        // the lambdas are over a decidable theory that admits quantifier
+        // elimination, e.g. LIA or BV.
+        if (options().uf.ufHoLambdaQe)
+        {
+          Trace("uf-lambda-qe") << "Given " << flam << " == " << glam << std::endl;
+          Trace("uf-lambda-qe") << "Run QE on " << univ << std::endl;
+          std::unique_ptr<SolverEngine> lqe;
+          // initialize the subsolver using the standard method
+          initializeSubsolver(lqe, d_env);
+          Node univQe = lqe->getQuantifierElimination(univ, true);
+          Trace("uf-lambda-qe") << "QE is " << univQe << std::endl;
+          Assert (!univQe.isNull());
+          // Note that if quantifier elimination failed, then univQe will
+          // be equal to univ, in which case this above code has no effect.
+          univ = univQe;
+        }
         // f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
         //
         // For example, if f -> lambda z. z+1, g -> lambda y. y+3, this
         // will infer: f = g => forall x. x+1 = x+3, which simplifies to
         // f != g.
-        Node lem = nm->mkNode(Kind::IMPLIES, f.eqNode(g), univ);
+        Node lem = nm->mkNode(Kind::IMPLIES, fgEq, univ);
         if (cacheLemma(lem))
         {
           d_im.lemma(lem, InferenceId::UF_HO_LAMBDA_UNIV_EQ);
@@ -699,12 +745,12 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
   for (const std::pair<const Node, Node>& p : d_lambdaEqc)
   {
     Node lam = d_ll.getLambdaFor(p.second);
+    lam = rewrite(lam);
     Assert(!lam.isNull());
     m->assertEquality(p.second, lam, true);
     m->assertSkeleton(lam);
-    Trace("model-builder-debug") << "Assign via lambda: " << lam << std::endl;
-    // assign it as the function definition for all variables in this class
-    m->assignFunctionDefinition(p.second, lam);
+    // we don't assign the function definition here, which is handled internally
+    // in the model builder.
   }
   return addedLemmas == 0;
 }

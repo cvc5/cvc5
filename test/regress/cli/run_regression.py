@@ -21,6 +21,7 @@ import difflib
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -28,6 +29,10 @@ import threading
 
 g_args = None
 
+# For maximum reliability, we get a fully qualified path for the executable.
+bash_bin = shutil.which("bash")
+if bash_bin is None:
+    raise FileNotFoundError("Bash executable is required but not found.")
 
 class Color:
     BLUE = "\033[94m"
@@ -36,18 +41,24 @@ class Color:
     RED = "\033[91m"
     ENDC = "\033[0m"
 
+is_windows = sys.platform.startswith('win')
+
+class BulletSymbol:
+    # On Windows, the special characters cause this error:
+    #   UnicodeEncodeError: 'charmap' codec can't encode character
+    # when ctest runs the Python script
+    INFO = "▶ " if not is_windows else "> "
+    OK = "✓ " if not is_windows else "> "
+    ERROR = "✖ " if not is_windows else "> "
 
 def print_info(msg):
-    print(Color.BLUE + "▶ " + msg + Color.ENDC)
-
+    print(Color.BLUE + BulletSymbol.INFO + msg + Color.ENDC)
 
 def print_ok(msg):
-    print(Color.GREEN + "✓ " + msg + Color.ENDC)
-
+    print(Color.GREEN + BulletSymbol.OK + msg + Color.ENDC)
 
 def print_error(err):
-    print(Color.RED + "✖ " + err + Color.ENDC)
-
+    print(Color.RED + BulletSymbol.ERROR + err + Color.ENDC)
 
 class Tester:
 
@@ -557,7 +568,7 @@ def run_process(args, cwd, timeout, s_input=None):
         # shell=True seems to produce different exit codes on different
         # platforms under certain circumstances.
         res = subprocess.run(
-            ["bash", "-c", cmd],
+            [bash_bin,"-c", cmd],
             cwd=cwd,
             input=s_input,
             timeout=timeout,

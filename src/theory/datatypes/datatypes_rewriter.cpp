@@ -41,13 +41,83 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                                      const Options& opts)
     : TheoryRewriter(nm), d_sygusEval(sygusEval), d_opts(opts)
 {
+  registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_SELECTOR,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
+                           TheoryRewriteCtx::PRE_DSL);
+}
+
+Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
+    {
+      if (n.getKind() != Kind::APPLY_SELECTOR
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      Node selector = n.getOperator();
+      size_t constructorIndex = utils::indexOf(n[0].getOperator());
+      const DType& dt = utils::datatypeOf(selector);
+      const DTypeConstructor& c = dt[constructorIndex];
+      int selectorIndex = c.getSelectorIndexInternal(selector);
+      if (selectorIndex >= 0)
+      {
+        Assert(static_cast<size_t>(selectorIndex) < c.getNumArgs());
+        return n[0][selectorIndex];
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_COLLAPSE_TESTER:
+    {
+      if (n.getKind() != Kind::APPLY_TESTER
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      bool result =
+          utils::indexOf(n.getOperator()) == utils::indexOf(n[0].getOperator());
+      NodeManager* nm = nodeManager();
+      return nm->mkConst(result);
+    }
+    break;
+    case ProofRewriteRule::DT_CONS_EQ:
+    {
+      if (n.getKind() == Kind::EQUAL)
+      {
+        Node nn;
+        std::vector<Node> rew;
+        if (utils::checkClash(n[0], n[1], rew))
+        {
+          nn = nodeManager()->mkConst(false);
+        }
+        else
+        {
+          nn = nodeManager()->mkAnd(rew);
+        }
+        // In the "else" case above will n if this rewrite does not apply. We
+        // do not return the reflexive equality in this case.
+        if (nn != n)
+        {
+          return nn;
+        }
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
 }
 
 RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 {
   Trace("datatypes-rewrite-debug") << "post-rewriting " << in << std::endl;
   Kind kind = in.getKind();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (kind == Kind::APPLY_CONSTRUCTOR)
   {
     return rewriteConstructor(in);
@@ -340,8 +410,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         std::vector<Node> children;
         children.push_back(op_new);
         children.insert(children.end(), in.begin(), in.end());
-        Node inr =
-            NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+        Node inr = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
         Trace("datatypes-rewrite-debug") << "Created " << inr << std::endl;
         return RewriteResponse(REWRITE_DONE, inr);
       }
@@ -379,8 +448,6 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     // Have to be careful not to rewrite well-typed expressions
     // where the selector doesn't match the constructor,
     // e.g. "pred(zero)".
-    TypeNode tn = in.getType();
-    TypeNode argType = in[0].getType();
     Node selector = in.getOperator();
     TNode constructor = in[0].getOperator();
     size_t constructorIndex = utils::indexOf(constructor);
@@ -404,6 +471,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
       if (dt.isCodatatype() && in[0][selectorIndex].isConst())
       {
         // must replace all debruijn indices with self
+        TypeNode argType = in[0].getType();
         Node sub = replaceDebruijn(in[0][selectorIndex], in[0], argType, 0);
         Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                    << "Rewrite trivial codatatype selector "
@@ -434,8 +502,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
     Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                << "Rewrite trivial tester " << in << " "
                                << result << std::endl;
-    return RewriteResponse(REWRITE_DONE,
-                           NodeManager::currentNM()->mkConst(result));
+    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(result));
   }
   const DType& dt = in[0].getType().getDType();
   if (dt.getNumConstructors() == 1 && !dt.isSygus())
@@ -445,8 +512,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
         << "DatatypesRewriter::postRewrite: "
         << "only one ctor for " << dt.getName() << " and that is "
         << dt[0].getName() << std::endl;
-    return RewriteResponse(REWRITE_DONE,
-                           NodeManager::currentNM()->mkConst(true));
+    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
   }
   // could try dt.getNumConstructors()==2 && indexOf(in.getOperator())==1 ?
   return RewriteResponse(REWRITE_DONE, in);
@@ -462,7 +528,7 @@ RewriteResponse DatatypesRewriter::rewriteUpdater(TNode in)
     size_t cuindex = utils::cindexOf(op);
     if (cindex==cuindex)
     {
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       size_t updateIndex = utils::indexOf(op);
       std::vector<Node> children(in[0].begin(), in[0].end());
       children[updateIndex] = in[1];
@@ -478,7 +544,7 @@ RewriteResponse DatatypesRewriter::rewriteUpdater(TNode in)
 RewriteResponse DatatypesRewriter::rewriteNullableLift(TNode n)
 {
   Assert(n.getKind() == Kind::NULLABLE_LIFT);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<Node> someArgs;
   TypeNode type = n.getType();
   const DType& dt = n.getType().getDType();
@@ -830,7 +896,7 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
       {
         children.insert(children.begin(), n.getOperator());
       }
-      return NodeManager::currentNM()->mkNode(n.getKind(), children);
+      return nodeManager()->mkNode(n.getKind(), children);
     }
   }
   return n;
@@ -858,7 +924,7 @@ Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
 
 TrustNode DatatypesRewriter::expandDefinition(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TypeNode tn = n.getType();
   Node ret;
   switch (n.getKind())
@@ -927,7 +993,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
 
 Node DatatypesRewriter::expandNullableLift(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<Node> eqs;
   std::vector<Node> someArgs;
   someArgs.push_back(n[0]);
@@ -959,7 +1025,7 @@ Node DatatypesRewriter::sygusToBuiltinEval(Node n,
   Assert (n.getType().isDatatype());
   Assert (n.getType().getDType().isSygus());
   Assert (n.getType().getDType().getSygusVarList().getNumChildren()==args.size());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // constant arguments?
   bool constArgs = true;
   for (const Node& a : args)

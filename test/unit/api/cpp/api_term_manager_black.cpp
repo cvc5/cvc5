@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of the Solver class of the  C++ API.
+ * Black box testing of the TermManager class of the  C++ API.
  */
 
 #include <gtest/gtest.h>
@@ -1229,4 +1229,12 @@ TEST_F(TestApiBlackTermManager, getStatistics)
     }
   }
 }
+
+TEST_F(TestApiBlackTermManager, printStatisticsSafe)
+{
+  testing::internal::CaptureStdout();
+  d_tm.printStatisticsSafe(STDOUT_FILENO);
+  testing::internal::GetCapturedStdout();
+}
+
 }  // namespace cvc5::internal::test

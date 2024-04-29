@@ -21,6 +21,8 @@
 #include "decision/decision_engine.h"
 #include "decision/justification_strategy.h"
 #include "expr/node_algorithm.h"
+#include "expr/plugin.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/parallel_options.h"
@@ -49,6 +51,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_decisionEngine(nullptr),
       d_trackActiveSkDefs(false),
       d_dmTrackActiveSkDefs(false),
+      d_inSolve(false),
       d_theoryEngine(theoryEngine),
       d_queue(context()),
       d_tpp(env, *theoryEngine),
@@ -110,14 +113,18 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
 
 void TheoryProxy::presolve()
 {
+  Trace("theory-proxy") << "TheoryProxy::presolve: begin" << std::endl;
   d_decisionEngine->presolve();
   d_theoryEngine->presolve();
   d_stopSearch = false;
+  Trace("theory-proxy") << "TheoryProxy::presolve: end" << std::endl;
+  d_inSolve = true;
 }
 
 void TheoryProxy::postsolve(SatValue result)
 {
   d_theoryEngine->postsolve(result);
+  d_inSolve = false;
 }
 
 void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
@@ -321,9 +328,46 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   }
 }
 
+void TheoryProxy::notifySatClause(const SatClause& clause)
+{
+  const std::vector<Plugin*>& plugins = d_env.getPlugins();
+  if (plugins.empty())
+  {
+    // nothing to do if no plugins
+    return;
+  }
+  if (!d_inSolve && options().prop.pluginNotifySatClauseInSolve)
+  {
+    // We are not in solving mode. We do not inform plugins of SAT clauses
+    // if pluginNotifySatClauseInSolve is true (default).
+    return;
+  }
+  // convert to node
+  std::vector<Node> clauseNodes;
+  for (const SatLiteral& l : clause)
+  {
+    clauseNodes.push_back(d_cnfStream->getNode(l));
+  }
+  Node cln = NodeManager::currentNM()->mkOr(clauseNodes);
+  // getSharableFormula is independent of specific plugin, just use first
+  Node clns = plugins[0]->getSharableFormula(cln);
+  if (!clns.isNull())
+  {
+    Trace("theory-proxy")
+        << "TheoryProxy::notifySatClause: Clause from SAT solver: " << clns
+        << std::endl;
+    // notify the plugins
+    for (Plugin* p : plugins)
+    {
+      p->notifySatClause(clns);
+    }
+  }
+}
+
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
-  Trace("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
+  Trace("theory-proxy") << "enqueueing theory literal " << l << " "
+                        << literalNode << std::endl;
   Assert(!literalNode.isNull());
   // Decision level = SAT context level - 1 due to global push().
   d_queue.push(std::make_pair(literalNode, context()->getLevel() - 1));

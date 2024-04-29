@@ -152,7 +152,7 @@ void OptionsHandler::setInputLanguage(const std::string& flag, Language lang)
   }
   if (!d_options->printer.outputLanguageWasSetByUser)
   {
-    d_options->writePrinter().outputLanguage = lang;
+    d_options->write_printer().outputLanguage = lang;
     ioutils::setDefaultOutputLanguage(lang);
   }
 }
@@ -173,13 +173,13 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
 
 void OptionsHandler::decreaseVerbosity(const std::string& flag, bool value)
 {
-  d_options->writeBase().verbosity -= 1;
+  d_options->write_base().verbosity -= 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
 void OptionsHandler::increaseVerbosity(const std::string& flag, bool value)
 {
-  d_options->writeBase().verbosity += 1;
+  d_options->write_base().verbosity += 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
@@ -197,9 +197,9 @@ void OptionsHandler::setStats(const std::string& flag, bool value)
 #endif /* CVC5_STATISTICS_ON */
   if (!value)
   {
-    d_options->writeBase().statisticsAll = false;
-    d_options->writeBase().statisticsEveryQuery = false;
-    d_options->writeBase().statisticsInternal = false;
+    d_options->write_base().statisticsAll = false;
+    d_options->write_base().statisticsEveryQuery = false;
+    d_options->write_base().statisticsInternal = false;
   }
 }
 
@@ -217,7 +217,7 @@ void OptionsHandler::setStatsDetail(const std::string& flag, bool value)
 #endif /* CVC5_STATISTICS_ON */
   if (value)
   {
-    d_options->writeBase().statistics = true;
+    d_options->write_base().statistics = true;
   }
 }
 
@@ -233,7 +233,7 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   {
     if (optarg == "help")
     {
-      d_options->writeDriver().showTraceTags = true;
+      d_options->write_driver().showTraceTags = true;
       showTraceTags("", true);
       return;
     }
@@ -254,13 +254,13 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
   size_t tagid = static_cast<size_t>(optarg);
   Assert(d_options->base.outputTagHolder.size() > tagid)
       << "Output tag is larger than the bitset that holds it.";
-  d_options->writeBase().outputTagHolder.set(tagid);
+  d_options->write_base().outputTagHolder.set(tagid);
 }
 
 void OptionsHandler::setResourceWeight(const std::string& flag,
                                        const std::string& optarg)
 {
-  d_options->writeBase().resourceWeightHolder.emplace_back(optarg);
+  d_options->write_base().resourceWeightHolder.emplace_back(optarg);
 }
 
 void OptionsHandler::checkBvSatSolver(const std::string& flag,
@@ -312,7 +312,7 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag,
     }
     if (!d_options->bv.bitvectorToBoolWasSetByUser)
     {
-      d_options->writeBv().bitvectorToBool = true;
+      d_options->write_bv().bitvectorToBool = true;
     }
   }
 }
@@ -364,6 +364,7 @@ void OptionsHandler::showConfiguration(const std::string& flag, bool value)
   print_config_cond("ubsan", Configuration::isUbsanBuild());
   print_config_cond("tsan", Configuration::isTsanBuild());
   print_config_cond("competition", Configuration::isCompetitionBuild());
+  print_config_cond("portfolio", Configuration::isBuiltWithPortfolio());
 
   std::cout << std::endl;
 

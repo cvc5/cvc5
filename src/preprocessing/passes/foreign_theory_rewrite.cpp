@@ -101,16 +101,38 @@ Node ForeignTheoryRewriter::foreignRewrite(Node n)
   {
     return rewriteStringsGeq(n);
   }
+  else if (n.getKind() == Kind::EQUAL)
+  {
+    if (n[0].getType().isInteger())
+    {
+      return rewriteStringsEq(n);
+    }
+  }
   return n;
 }
 
 Node ForeignTheoryRewriter::rewriteStringsGeq(Node n)
 {
   theory::strings::ArithEntail ae(d_env.getRewriter());
-  // check if the node can be simplified to true
+  // check if the node can be simplified to true or false
   if (ae.check(n[0], n[1], false))
   {
     return nodeManager()->mkConst(true);
+  }
+  else if (ae.check(n[1], n[0], true))
+  {
+    return nodeManager()->mkConst(false);
+  }
+  return n;
+}
+
+Node ForeignTheoryRewriter::rewriteStringsEq(Node n)
+{
+  theory::strings::ArithEntail ae(d_env.getRewriter());
+  // check if the node can be simplified to false
+  if (ae.check(n[0], n[1], true) || ae.check(n[1], n[0], true))
+  {
+    return nodeManager()->mkConst(false);
   }
   return n;
 }

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -23,8 +23,15 @@ const char* toString(cvc5::SkolemId id)
   {
     case cvc5::SkolemId::INTERNAL: return "internal";
     case cvc5::SkolemId::PURIFY: return "purify";
+    case cvc5::SkolemId::GROUND_TERM: return "ground_term";
     case cvc5::SkolemId::ARRAY_DEQ_DIFF: return "array_deq_diff";
+    case cvc5::SkolemId::BV_EMPTY: return "bv_empty";
     case cvc5::SkolemId::DIV_BY_ZERO: return "div_by_zero";
+    case cvc5::SkolemId::FP_MIN_ZERO: return "fp_min_zero";
+    case cvc5::SkolemId::FP_MAX_ZERO: return "fp_max_zero";
+    case cvc5::SkolemId::FP_TO_SBV: return "fp_to_sbv";
+    case cvc5::SkolemId::FP_TO_UBV: return "fp_to_ubv";
+    case cvc5::SkolemId::FP_TO_REAL: return "fp_to_real";
     case cvc5::SkolemId::INT_DIV_BY_ZERO: return "int_div_by_zero";
     case cvc5::SkolemId::MOD_BY_ZERO: return "mod_by_zero";
     case cvc5::SkolemId::TRANSCENDENTAL_PURIFY:

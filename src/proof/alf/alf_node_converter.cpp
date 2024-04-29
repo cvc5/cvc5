@@ -111,13 +111,23 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     // note: we always distinguish variables, to ensure they do not have
     // names that are overloaded with user names
-    std::stringstream ss;
-    ss << n;
-    std::string sname = ss.str();
+    std::string sname;
+    if (n.hasName())
+    {
+      // get its name if it has one
+      sname = n.getName();
+    }
+    else
+    {
+      // otherwise invoke the printer to get its name
+      std::stringstream ss;
+      ss << n;
+      sname = ss.str();
+    }
     size_t index = d_varIndex[sname];
     d_varIndex[sname]++;
     std::stringstream ssn;
-    ssn << "alf." << index << "." << sname;
+    ssn << "@v." << index << "." << sname;
     return NodeManager::currentNM()->mkBoundVar(ssn.str(), tn);
   }
   else if (k == Kind::VARIABLE)
@@ -142,19 +152,14 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (n.isClosure())
   {
-    // e.g. (forall ((x1 T1) ... (xn Tk)) P) is
-    // (forall ((<name_1> T1) ... (<name_n> Tk)) P) for updated (disambiguated)
-    // variable names.
-    std::vector<Node> vars;
-    for (const Node& v : n[0])
-    {
-      vars.push_back(convert(v));
-    }
-    // use a bound variable list with the updated variables.
-    Node vl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
-    // notice that intentionally we drop annotations here
+    Node vl = n[0];
+    // notice that intentionally we drop annotations here.
     std::vector<Node> args;
-    args.push_back(vl);
+    // We take the *original* bound variable list, since variable names are
+    // preserved in the translation; using the updated variable `@v.N.x`
+    // would lead to using a variable named "@v.N.x" instead of "x", where
+    // `@v.N.x` is a macro for the variable "x".
+    args.push_back(n[0]);
     args.insert(args.end(),
                 n.begin() + 1,
                 n.begin() + getNumChildrenToProcessForClosure(k));
@@ -204,19 +209,6 @@ Node AlfNodeConverter::postConvert(Node n)
     Node lam = theory::uf::FunctionConst::toLambda(n);
     Assert(!lam.isNull());
     return convert(lam);
-  }
-  else if (k == Kind::BITVECTOR_BB_TERM)
-  {
-    Node curr = mkInternalSymbol("bvempty", nm->mkBitVectorType(0));
-    for (size_t i = 0, nchildren = n.getNumChildren(); i < nchildren; i++)
-    {
-      size_t ii = (nchildren - 1) - i;
-      std::vector<Node> args;
-      args.push_back(n[ii]);
-      args.push_back(curr);
-      curr = mkInternalApp("bbT", args, nm->mkBitVectorType(i + 1));
-    }
-    return curr;
   }
   else if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER || k == Kind::NEG
            || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
@@ -272,6 +264,18 @@ Node AlfNodeConverter::postConvert(Node n)
     std::vector<Node> args;
     args.insert(args.end(), n.begin(), n.end());
     return mkInternalApp("@list", args, tn);
+  }
+  else if (k == Kind::APPLY_INDEXED_SYMBOLIC)
+  {
+    Kind okind = n.getOperator().getConst<GenericOp>().getKind();
+    if (okind == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
+    {
+      // This does not take a rounding mode, we change the smt2 syntax
+      // to distinguish this case, similar to the case in getOperatorOfTerm
+      // where it is processed as an indexed operator.
+      std::vector<Node> children(n.begin(), n.end());
+      return mkInternalApp("to_fp_bv", children, tn);
+    }
   }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
@@ -351,8 +355,15 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
     }
     if (!app.isNull())
     {
-      // wrap in "skolem" operator
-      return mkInternalApp("skolem", {app}, k.getType());
+      // If it has no children, then we don't wrap in `(skolem ...)`, since it
+      // makes no difference for substitution. Moreover, it is important not
+      // to do this since bitvector concat uses @bv_empty as its nil terminator.
+      if (sfi == SkolemId::PURIFY || app.getNumChildren() > 0)
+      {
+        // wrap in "skolem" operator
+        return mkInternalApp("skolem", {app}, k.getType());
+      }
+      return app;
     }
   }
   return Node::null();
@@ -385,45 +396,6 @@ size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
 Node AlfNodeConverter::mkNil(TypeNode tn)
 {
   return mkInternalSymbol("alf.nil", tn);
-}
-
-Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
-{
-  // note this method should remain in sync with getCongRule in
-  // proof_node_algorithm.cpp.
-  switch (k)
-  {
-    case Kind::APPLY_UF:
-    case Kind::DISTINCT:
-    case Kind::FLOATINGPOINT_LT:
-    case Kind::FLOATINGPOINT_LEQ:
-    case Kind::FLOATINGPOINT_GT:
-    case Kind::FLOATINGPOINT_GEQ:
-      // the above operators may take arbitrary number of arguments but are not
-      // marked as n-ary in ALF
-      return Node::null();
-    case Kind::APPLY_CONSTRUCTOR:
-      // tuple constructor is n-ary with unit tuple as null terminator
-      if (tn.isTuple())
-      {
-        TypeNode tnu = NodeManager::currentNM()->mkTupleType({});
-        return NodeManager::currentNM()->mkGroundValue(tnu);
-      }
-      return Node::null();
-      break;
-    case Kind::OR: return NodeManager::currentNM()->mkConst(false);
-    case Kind::SEP_STAR:
-    case Kind::AND: return NodeManager::currentNM()->mkConst(true);
-    case Kind::ADD: return NodeManager::currentNM()->mkConstInt(Rational(0));
-    case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      return NodeManager::currentNM()->mkConstInt(Rational(1));
-    case Kind::BITVECTOR_CONCAT:
-      return mkInternalSymbol("bvempty",
-                              NodeManager::currentNM()->mkBitVectorType(0));
-    default: break;
-  }
-  return mkNil(tn);
 }
 
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
@@ -600,11 +572,64 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   }
   else
   {
-    opName << printer::smt2::Smt2Printer::smtKindString(k);
-    if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-        || k == Kind::INTS_MODULUS_TOTAL)
+    bool isParameterized = false;
+    if (reqCast)
     {
-      opName << "_total";
+      // If the operator is a parameterized constant and reqCast is true,
+      // then we must apply the parameters of the operator, e.g. such that
+      // bvor becomes (alf._ bvor 32) where 32 is the bitwidth of the first
+      // argument.
+      if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
+          || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND
+          || k == Kind::BITVECTOR_XOR)
+      {
+        TypeNode tna = n[0].getType();
+        indices.push_back(nm->mkConstInt(tna.getBitVectorSize()));
+        isParameterized = true;
+      }
+      else if (k == Kind::FINITE_FIELD_ADD || k == Kind::FINITE_FIELD_BITSUM
+               || k == Kind::FINITE_FIELD_MULT)
+      {
+        TypeNode tna = n[0].getType();
+        indices.push_back(nm->mkConstInt(tna.getFfSize()));
+        isParameterized = true;
+      }
+      else if (k == Kind::STRING_CONCAT)
+      {
+        // String concatenation is parameterized by the character type, which
+        // is the "Char" type in the ALF signature for String (which note does
+        // not exist internally in cvc5). Otherwise it is the sequence element
+        // type.
+        TypeNode tna = n[0].getType();
+        Node cht;
+        if (tna.isString())
+        {
+          cht = mkInternalSymbol("Char", d_sortType);
+        }
+        else
+        {
+          cht = typeAsNode(tna.getSequenceElementType());
+        }
+        indices.push_back(cht);
+        isParameterized = true;
+      }
+    }
+    if (isParameterized)
+    {
+      opName << "alf._";
+      std::stringstream oppName;
+      oppName << printer::smt2::Smt2Printer::smtKindString(k);
+      Node opp = mkInternalSymbol(oppName.str(), n.getType());
+      indices.insert(indices.begin(), opp);
+    }
+    else
+    {
+      opName << printer::smt2::Smt2Printer::smtKindString(k);
+      if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
+          || k == Kind::INTS_MODULUS_TOTAL)
+      {
+        opName << "_total";
+      }
     }
   }
   std::vector<Node> args(n.begin(), n.end());
@@ -617,8 +642,9 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   else if (n.isClosure())
   {
     // The operator of a closure by convention includes its variable list.
-    // This is required for cong over binders.
-    Node vl = convert(n[0]);
+    // This is required for cong over binders. We do not convert the variable
+    // list here, for the same reason as why it is not converted in convert(..).
+    Node vl = n[0];
     // the type of this term is irrelevant, just use vl's type
     ret = mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), {vl}, vl.getType());
@@ -661,6 +687,7 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
   {
     case SkolemId::PURIFY:
     case SkolemId::ARRAY_DEQ_DIFF:
+    case SkolemId::BV_EMPTY:
     case SkolemId::DIV_BY_ZERO:
     case SkolemId::INT_DIV_BY_ZERO:
     case SkolemId::MOD_BY_ZERO:

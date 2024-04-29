@@ -27,17 +27,18 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
-#include "smt/solver_engine_state.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_ensure_closed.h"
 #include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
+#include "smt/solver_engine_state.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/ee_manager_central.h"
 #include "theory/partition_generator.h"
+#include "theory/plugin_module.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
@@ -216,6 +217,17 @@ void TheoryEngine::finishInit()
     d_partitionGen =
         std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
     d_modules.push_back(d_partitionGen.get());
+  }
+
+  // add user-provided plugins
+  const std::vector<Plugin*> plugins = d_env.getPlugins();
+  Trace("theory") << "initialize with " << plugins.size()
+                  << " user-provided plugins" << std::endl;
+  for (Plugin* p : plugins)
+  {
+    d_userPlugins.push_back(
+        std::unique_ptr<PluginModule>(new PluginModule(d_env, this, p)));
+    d_modules.push_back(d_userPlugins.back().get());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
@@ -1503,7 +1515,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
   }
 
   // assert the lemma
-  d_propEngine->assertLemma(tlemma, p);
+  d_propEngine->assertLemma(id, tlemma, p);
 
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
@@ -2050,6 +2062,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         if (val != d_true)
         {
           std::stringstream ss;
+          for (Node child : assertion)
+          {
+            Node value = d_tc->getModel()->getValue(child);
+            ss << "getValue(" << child << "): " << value << std::endl;
+          }
           ss << " " << theoryId << " has an asserted fact that";
           if (val == d_false)
           {

@@ -77,6 +77,15 @@ class QuantifiersRewriter : public TheoryRewriter
   /** Post-rewrite n */
   RewriteResponse postRewrite(TNode in) override;
 
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
   static bool isLiteral( Node n );
   //-------------------------------------variable elimination utilities
   /** is variable elimination
@@ -154,11 +163,11 @@ class QuantifiersRewriter : public TheoryRewriter
    * we remove x from args, add x >= t1, ..., x >= tn to bounds, add false, ...,
    * false to subs, and return true.
    */
-  static bool getVarElimIneq(Node body,
-                             std::vector<Node>& args,
-                             std::vector<Node>& bounds,
-                             std::vector<Node>& subs,
-                             QAttributes& qa);
+  bool getVarElimIneq(Node body,
+                      std::vector<Node>& args,
+                      std::vector<Node>& bounds,
+                      std::vector<Node>& subs,
+                      QAttributes& qa) const;
   //-------------------------------------end variable elimination utilities
   /**
    * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
@@ -198,16 +207,16 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
 
   static bool isPrenexNormalForm(Node n);
-  static Node mkForAll(const std::vector<Node>& args,
-                       Node body,
-                       QAttributes& qa);
-  static Node mkForall(const std::vector<Node>& args,
-                       Node body,
-                       bool marked = false);
-  static Node mkForall(const std::vector<Node>& args,
-                       Node body,
-                       std::vector<Node>& iplc,
-                       bool marked = false);
+  Node mkForAll(const std::vector<Node>& args,
+                Node body,
+                QAttributes& qa) const;
+  Node mkForall(const std::vector<Node>& args,
+                Node body,
+                bool marked = false) const;
+  Node mkForall(const std::vector<Node>& args,
+                Node body,
+                std::vector<Node>& iplc,
+                bool marked = false) const;
   /** Compute if q is a standard quantified formula based on the options */
   static bool isStandard(const Node& q, const Options& opts);
   /**
@@ -269,11 +278,10 @@ class QuantifiersRewriter : public TheoryRewriter
                             std::map<Node, Node>& cache,
                             std::vector<Node>& new_conds,
                             options::IteLiftQuantMode iteLiftMode) const;
-  static void computeDtTesterIteSplit(
-      Node n,
-      std::map<Node, Node>& pcons,
-      std::map<Node, std::map<int, Node> >& ncons,
-      std::vector<Node>& conj);
+  void computeDtTesterIteSplit(Node n,
+                               std::map<Node, Node>& pcons,
+                               std::map<Node, std::map<int, Node> >& ncons,
+                               std::vector<Node>& conj) const;
 
   //-------------------------------------variable elimination
   /** compute variable elimination

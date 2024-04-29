@@ -20,7 +20,6 @@ libcvc5_add_sources(
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
-  api/cpp/cvc5_proof_rule.cpp
   api/cpp/cvc5_skolem_id.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
@@ -147,6 +146,10 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
+  proof/alf/alf_dependent_type_converter.cpp
+  proof/alf/alf_dependent_type_converter.h
+  proof/alf/alf_list_node_converter.cpp
+  proof/alf/alf_list_node_converter.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
   proof/alf/alf_print_channel.cpp
@@ -340,6 +343,8 @@ libcvc5_add_sources(
   smt/proof_final_callback.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
+  smt/proof_post_processor_dsl.cpp
+  smt/proof_post_processor_dsl.h
   smt/set_defaults.cpp
   smt/set_defaults.h
   smt/solver_engine.cpp
@@ -1125,6 +1130,8 @@ libcvc5_add_sources(
   theory/sort_inference.h
   theory/partition_generator.cpp
   theory/partition_generator.h
+  theory/plugin_module.cpp
+  theory/plugin_module.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
   theory/strings/array_core_solver.cpp
@@ -1449,10 +1456,9 @@ target_include_directories(cvc5
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-install(TARGETS cvc5
-  EXPORT cvc5-targets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+# On Windows, CMake's default install action places
+# DLLs into the runtime path (by default "bin")
+install(TARGETS cvc5 EXPORT cvc5-targets)
 
 if(BUILD_SHARED_LIBS)
   set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})

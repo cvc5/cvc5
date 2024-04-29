@@ -381,17 +381,8 @@ TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
                      << endl;
   if (in.getKind() == Kind::EQUAL)
   {
-    Node nn;
-    std::vector< Node > rew;
-    if (utils::checkClash(in[0], in[1], rew))
-    {
-      nn = nodeManager()->mkConst(false);
-    }
-    else
-    {
-      nn = nodeManager()->mkAnd(rew);
-    }
-    if (in != nn)
+    Node nn = d_rewriter.rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, in);
+    if (!nn.isNull() && in != nn)
     {
       return TrustNode::mkTrustRewrite(in, nn, nullptr);
     }
