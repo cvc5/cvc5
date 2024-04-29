@@ -186,6 +186,16 @@ LibPoly >= v0.1.13 (Optional polynomial library)
 nonlinear reasoning. It can be downloaded and built automatically. Configure
 cvc5 with ``configure.sh --poly`` to build with this dependency.
 
+CoCoA (Optional computer algebra library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`CoCoA <https://cocoa.dima.unige.it/cocoa/>`_ is required for some non-linear
+reasoning and for finite field reasoning. We use a patched version of it, so we
+recommend downloading it using the ``--auto-download`` configuration flag,
+which applies our patch automatically. It is included in the build through the
+``--cocoa`` configuration flag.
+
+CoCoA is covered by the GPLv3 license. See below for the ramifications of this.
 
 CLN >= v1.3 (Class Library for Numbers)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

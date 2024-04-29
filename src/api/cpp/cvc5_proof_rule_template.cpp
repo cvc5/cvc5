@@ -126,7 +126,6 @@ const char* toString(ProofRule rule)
     //================================================= Datatype rules
     case ProofRule::DT_UNIF: return "DT_UNIF";
     case ProofRule::DT_INST: return "DT_INST";
-    case ProofRule::DT_COLLAPSE: return "DT_COLLAPSE";
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
@@ -222,8 +221,13 @@ const char* toString(cvc5::ProofRewriteRule rule)
   {
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
-    case ProofRewriteRule::EXISTS_ELIM:
-      return "exists_elim";
+    case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
+    case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
+    case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
+    case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
+    case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::RE_LOOP_ELIM:
+      return "re-loop-elim";
       //================================================= RARE rules
       // clang-format off
       ${printer}$
