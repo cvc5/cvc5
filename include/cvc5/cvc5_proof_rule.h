@@ -1692,13 +1692,18 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in R\mid
-   *   -}{\texttt{RegExpOpr::reduceRegExpNegConcatFixed}(t\not\in R,L,i)}
+   *   \inferrule{t\not\in \mathit{re.++}(r_1,\ldots,r_n)\mid \bot}{
+   *  \mathit{pre}(t,L) \not\in r_1 \vee \mathit{suf}(t,L) \not \in \mathit{re.++}(r_2,\ldots,r_n)}
    *
-   * where :math:`\texttt{RegExpOpr::getRegExpConcatFixed}(t\not\in R, i) = L`,
-   * corresponding to the one-step unfolding of the premise, optimized for fixed
-   * length of component :math:`i` of the regular expression concatenation
-   * :math:`R`.
+   * where :math:`r1` has fixed length :math:`L`.
+   * 
+   * or alternatively for the reverse:
+   * 
+   *   \inferrule{t\not\in \mathit{re.++}(r_1,\ldots,r_n)\mid \bot}{
+   *  \mathit{pre}(t,(str.len t)-L) \not\in \mathit{re.++}(r_2,\ldots,r_{n-1}) \vee \mathit{substr}(t,(str.len t)-L, L) \not \in r_n}
+   * 
+   * where :math:`r_n` has fixed length :math:`L`.
+   * 
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),

@@ -61,12 +61,14 @@
 ; nary.reverse cons nil xs
 ; Reverses the list `xs`.
 (program nary.reverse
-    ((L Type) (cons (-> L L L)) (nil L) (xs L :list))
-    ((-> L L L) L L) L
+    ((L Type) (cons (-> L L L)) (x L) (xs L :list))
+    (L) L
     (
-        ((nary.reverse cons nil xs) (nary.reverseRec cons nil xs nil))
+        ((nary.reverse (cons x xs)) (let ((nil (alf.nil cons x xs))) (nary.reverseRec cons nil (cons x xs) nil)))
+        ((nary.reverse x)           x)
     )
 )
+
 
 ; returns the number of children of the input
 (program nary.nchild
