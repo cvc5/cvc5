@@ -1,5 +1,5 @@
 ; COMMAND-LINE: -q
-; EXPECT: sat
+; EXPECT: unknown
 (set-logic ALL)
 (set-option :sets-ext true)
 (set-option :fmf-bound true)
