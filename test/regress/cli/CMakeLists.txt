@@ -1065,6 +1065,7 @@ set(regress_0_tests
   regress0/nl/nta/issue10541.smt2
   regress0/nl/nta/issue10542-2.smt2
   regress0/nl/nta/issue10543-2.smt2
+  regress0/nl/nta/issue10655-sqrt-semantics.smt2
   regress0/nl/nta/issue4693-inc-purify.smt2
   regress0/nl/nta/issue4693-4-inc-purify-sat.smt2
   regress0/nl/nta/issue4693-5-inc-purify.smt2
@@ -1746,6 +1747,7 @@ set(regress_0_tests
   regress0/strings/distinct-witness-id.smt2
   regress0/strings/escchar_25.smt2
   regress0/strings/escchar.smt2
+  regress0/strings/foreign-theory-rew-simple.smt2
   regress0/strings/from_code.smt2
   regress0/strings/gen-esc-seq.smt2
   regress0/strings/hconst-092618.smt2
