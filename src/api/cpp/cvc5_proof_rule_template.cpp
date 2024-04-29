@@ -221,6 +221,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
   {
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
+    case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
