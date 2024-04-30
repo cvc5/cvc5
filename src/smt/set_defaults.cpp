@@ -1394,7 +1394,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   // enable MBQI if --mbqi-fast-sygus is provided
   if (opts.quantifiers.mbqiFastSygus)
   {
-    SET_AND_NOTIFY_IF_NOT_USER(Quantifiers, mbqi, true, "mbqiFastSygus");
+    SET_AND_NOTIFY_IF_NOT_USER(quantifiers, mbqi, true, "mbqiFastSygus");
   }
   if (opts.quantifiers.mbqi)
   {
