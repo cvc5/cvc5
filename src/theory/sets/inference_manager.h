@@ -19,8 +19,8 @@
 #define CVC5__THEORY__SETS__INFERENCE_MANAGER_H
 
 #include "theory/inference_manager_buffered.h"
-#include "theory/sets/solver_state.h"
 #include "theory/sets/infer_proof_cons.h"
+#include "theory/sets/solver_state.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -108,7 +108,9 @@ class InferenceManager : public InferenceManagerBuffered
   bool assertFactRec(Node fact, InferenceId id, Node exp, int inferType = 0);
   /**
    */
-  void setupAndAddPendingLemma(const Node& exp, const Node& conc, InferenceId id);
+  void setupAndAddPendingLemma(const Node& exp,
+                               const Node& conc,
+                               InferenceId id);
 };
 
 }  // namespace sets

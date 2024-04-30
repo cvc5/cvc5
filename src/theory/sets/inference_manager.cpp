@@ -28,7 +28,8 @@ namespace theory {
 namespace sets {
 
 InferenceManager::InferenceManager(Env& env, Theory& t, SolverState& s)
-    : InferenceManagerBuffered(env, t, s, "theory::sets::"), d_state(s),
+    : InferenceManagerBuffered(env, t, s, "theory::sets::"),
+      d_state(s),
       d_ipc(isProofEnabled() ? new InferProofCons(env, context()) : nullptr)
 {
   d_true = nodeManager()->mkConst(true);
@@ -180,9 +181,11 @@ void InferenceManager::split(Node n, InferenceId id, int reqPol)
   }
 }
 
-void InferenceManager::setupAndAddPendingLemma(const Node& exp, const Node& conc, InferenceId id)
+void InferenceManager::setupAndAddPendingLemma(const Node& exp,
+                                               const Node& conc,
+                                               InferenceId id)
 {
-  if (conc==d_false)
+  if (conc == d_false)
   {
     conflict(exp, id);
     return;

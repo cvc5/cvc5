@@ -19,14 +19,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-InferProofCons::InferProofCons(Env& env, context::Context* c) : EnvObj(env)
-{}
+InferProofCons::InferProofCons(Env& env, context::Context* c) : EnvObj(env) {}
 
-void InferProofCons::notifyFact() 
-{
-  
-}
-
+void InferProofCons::notifyFact() {}
 
 std::shared_ptr<ProofNode> InferProofConsgetProofFor(Node fact)
 {
@@ -38,4 +33,3 @@ std::string InferProofCons::identify() const { return "sets::InferProofCons"; }
 }  // namespace sets
 }  // namespace theory
 }  // namespace cvc5::internal
-
