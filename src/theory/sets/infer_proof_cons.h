@@ -22,7 +22,6 @@
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "smt/env_obj.h"
-#include "theory/sets/inference.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -36,8 +35,9 @@ namespace sets {
 class InferProofCons : protected EnvObj, public ProofGenerator
 {
  public:
-  InferProofCons(Env& env, context::Context* c);
-  s
+   InferProofCons(Env& env, context::Context* c);
+   virtual ~InferProofCons(){}
+  
       /**
        * This is called to notify that di is an inference that may need a proof
        * in the future.

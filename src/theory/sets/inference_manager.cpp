@@ -190,10 +190,10 @@ void InferenceManager::setupAndAddPendingLemma(const Node& exp,
     conflict(exp, id);
     return;
   }
-  Node lem = fact;
+  Node lem = conc;
   if (exp != d_true)
   {
-    lem = nodeManager()->mkNode(Kind::IMPLIES, exp, fact);
+    lem = nodeManager()->mkNode(Kind::IMPLIES, exp, conc);
   }
   addPendingLemma(lem, id);
 }
