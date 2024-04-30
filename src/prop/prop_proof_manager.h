@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Aina Niemetz, Andrew Reynolds
+ *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,17 +22,19 @@
 
 #include "context/cdlist.h"
 #include "context/cdo.h"
-#include "proof/proof.h"
+#include "proof/lazy_proof.h"
 #include "proof/proof_node_manager.h"
+#include "prop/proof_cnf_stream.h"
 #include "prop/proof_post_processor.h"
-#include "prop/sat_proof_manager.h"
 #include "smt/env_obj.h"
+#include "theory/inference_id.h"
 
 namespace cvc5::internal {
-
 namespace prop {
 
 class CDCLTSatSolver;
+class CnfStream;
+class SatProofManager;
 
 /**
  * This class is responsible for managing the proof output of PropEngine, both
@@ -43,12 +45,46 @@ class CDCLTSatSolver;
  */
 class PropPfManager : protected EnvObj
 {
- public:
-  PropPfManager(Env& env,
-                context::UserContext* userContext,
-                CDCLTSatSolver* satSolver,
-                ProofCnfStream* cnfProof);
+  friend class SatProofManager;
 
+ public:
+  /**
+   * @param env The environment
+   * @param satSolver Pointer to the SAT solver
+   * @param cnfProof Pointer to the CNF stream
+   * @param assumptions Reference to assumptions of parent prop engine
+   */
+  PropPfManager(Env& env,
+                CDCLTSatSolver* satSolver,
+                CnfStream& cnfProof,
+                const context::CDList<Node>& assumptions);
+  /**
+   * Ensure that the given node will have a designated SAT literal that is
+   * definitionally equal to it.  The result of this function is that the Node
+   * can be queried via getSatValue(). Essentially, this is like a "convert-but-
+   * don't-assert" version of convertAndAssert().
+   */
+  void ensureLiteral(TNode n);
+
+  /**
+   * Converts a formula into CNF into CNF and asserts the generated clauses into
+   * the underlying SAT solver of d_cnfStream. Every transformation the formula
+   * goes through is saved as a concrete step in d_proof. This method makes a
+   * call to the convertAndAssert method of d_pfCnfStream.
+   *
+   * @param id The inference id indicating the source of the formula.
+   * @param node The formula to convert and assert.
+   * @param negated Whether we are asserting the node negated.
+   * @param removable Whether the SAT solver can choose to remove the clauses.
+   * @param input Whether the node is from the input.
+   * @param pg A proof generator for node.
+   */
+  void convertAndAssert(theory::InferenceId id,
+                        TNode node,
+                        bool negated,
+                        bool removable,
+                        bool input,
+                        ProofGenerator* pg);
   /** Saves assertion for later checking whether refutation proof is closed.
    *
    * The assertions registered via this interface are preprocessed assertions
@@ -95,7 +131,114 @@ class PropPfManager : protected EnvObj
    */
   void checkProof(const context::CDList<Node>& assertions);
 
+  /** Normalizes a clause node and registers it in the SAT proof manager.
+   *
+   * Normalization (factoring, reordering, double negation elimination) is done
+   * via the TheoryProofStepBuffer of this class, which will register the
+   * respective steps, if any. This normalization is necessary so that the
+   * resulting clauses of the clausification process are synchronized with the
+   * clauses used in the underlying SAT solver, which automatically performs the
+   * above normalizations on all added clauses.
+   *
+   * @param clauseNode The clause node to be normalized.
+   * @return The normalized clause node.
+   */
+  Node normalizeAndRegister(TNode clauseNode,
+                            bool input,
+                            bool doNormalize = true);
+  /**
+   * Clausifies the given propagation lemma *without* registering the resulting
+   * clause in the SAT solver, as this is handled internally by the SAT
+   * solver. The clausification steps and the generator within the trust node
+   * are saved in d_proof if we are producing proofs in the theory engine.
+   */
+  void notifyExplainedPropagation(TrustNode ttn);
+  /**
+   * Get the last explained propagation by the above method. This is required
+   * only for Minisat.
+   */
+  Node getLastExplainedPropagation() const;
+  /**
+   * Reset the tracker for the last explained propagation. This is required only
+   * for Minisat.
+   */
+  void resetLastExplainedPropagation();
+  /**
+   * Get the clausification proof of all clauses that have been sent to the SAT
+   * solver.
+   */
+  LazyCDProof* getCnfProof();
+
  private:
+  /** Retrieve the proofs for clauses derived from the input */
+  std::vector<std::shared_ptr<ProofNode>> getInputClausesProofs();
+  /** Retrieve the proofs for clauses derived from lemmas */
+  std::vector<std::shared_ptr<ProofNode>> getLemmaClausesProofs();
+  /** Retrieve the clauses derived from the input */
+  std::vector<Node> getInputClauses();
+  /** Retrieve the clauses derived from lemmas */
+  std::vector<Node> getLemmaClauses();
+  /**
+   * Return theory lemmas used for showing unsat. If the SAT solver has a proof,
+   * we examine its leaves. Otherwise, we recompute the unsat core lemmas
+   * using the method reproveUnsatCore.
+   *
+   * @param outDimacs If provided, we write the DIMACS output of uc to this
+   * stream
+   * @return the unsat core of lemmas.
+   */
+  std::vector<Node> getUnsatCoreClauses(std::ostream* outDimacs = nullptr);
+  /**
+   * Get minimized assumptions. Returns a vector of nodes which is a
+   * subset of the assumptions (d_assumptions) that appear in the unsat
+   * core. This should be called only when the unsat core is available (after
+   * an unsatisfiable check-sat).
+   */
+  std::vector<Node> getMinimizedAssumptions();
+  /**
+   * Calculate a subset of cset that is propositionally unsatisfiable.
+   * If sucessful, return true and store this in uc.
+   *
+   * @param cset The set of formulas to compute an unsat core for
+   * @param uc The set of formulas returned as the unsat core
+   * @param outDimacs If provided, we write a DIMACS representation of uc to
+   * this stream
+   */
+  bool reproveUnsatCore(const std::unordered_set<Node>& cset,
+                        std::vector<Node>& uc,
+                        std::ostream* outDimacs = nullptr);
+  /**
+   * Add a proof of false to cdp whose free assumptions are a subset of the
+   * clauses (after CNF conversion), which is a union of:
+   * (1) assumptions (d_assumptions),
+   * (2) input clauses (d_inputClauses),
+   * (3) lemma clauses (d_lemmaClauses).
+   * The choice of what to add to cdp is dependent on the prop-proof-mode.
+   *
+   * @param cdp The proof object to add the refutation proof to.
+   */
+  void getProofInternal(CDProof* cdp);
+  /**
+   * Get auxilary units. Computes top-level formulas in clauses that
+   * also occur as literals which we call "auxiliary units". In particular,
+   * consider the set of propositionally unsatisfiable clauses:
+   *
+   * (or ~(or A B) ~C)
+   * (or A B)
+   * C
+   *
+   * Here, we return (or A B) as an auxilary unit clause.
+   *
+   * Note that in the above example, it is ambiguous whether to interpret the
+   * second clause (or A B) as a unit clause or as a clause with literals
+   * A and B. To ensure that we generate an unsatisfiable DIMACS, we include
+   * both in a proof output. In particular, Any OR-term that occurs as a literal
+   * of another clause is included in the return vector.
+   *
+   * @param clauses The clauses
+   * @return the auxiliary units for the set of clauses.
+   */
+  std::vector<Node> computeAuxiliaryUnits(const std::vector<Node>& clauses);
   /** The proofs of this proof manager, which are saved once requested (note the
    * cache is for both the request of the full proof (true) or not (false)).
    *
@@ -103,8 +246,12 @@ class PropPfManager : protected EnvObj
    * satisfiability checks we should discard them.
    */
   context::CDHashMap<bool, std::shared_ptr<ProofNode>> d_propProofs;
+  /** The user-context-dependent proof object. */
+  LazyCDProof d_proof;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostprocess> d_pfpp;
+  /** Proof-producing CNF converter */
+  ProofCnfStream d_pfCnfStream;
   /**
    * The SAT solver of this prop engine, which should provide a refutation
    * proof when requested */
@@ -116,7 +263,17 @@ class PropPfManager : protected EnvObj
    */
   context::CDList<Node> d_assertions;
   /** The cnf stream proof generator */
-  ProofCnfStream* d_proofCnfStream;
+  CnfStream& d_cnfStream;
+  /** Reference to the assumptions of the parent prop engine */
+  const context::CDList<Node>& d_assumptions;
+  /** Asserted clauses derived from the input */
+  context::CDHashSet<Node> d_inputClauses;
+  /** Asserted clauses derived from lemmas */
+  context::CDHashSet<Node> d_lemmaClauses;
+  /** The current propagation being processed via this class. */
+  Node d_currPropagationProcessed;
+  /** Temporary, pointer to SAT proof manager */
+  SatProofManager* d_satPm;
 }; /* class PropPfManager */
 
 }  // namespace prop

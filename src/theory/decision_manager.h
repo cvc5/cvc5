@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,6 +70,7 @@ class DecisionManager
     //  other words, if these strategies did not go before other decisions, we
     //  might be non-terminating instead of answering "sat" with a solution
     //  within a given a bound.
+    STRAT_ORACLE_ARG_VALUE,
     STRAT_UF_COMBINED_CARD,
     STRAT_UF_CARD,
     STRAT_DT_SYGUS_ENUM_ACTIVE,

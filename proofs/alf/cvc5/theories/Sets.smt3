@@ -1,0 +1,57 @@
+(include "../programs/Utils.smt3")
+(include "../theories/Builtin.smt3")
+(include "../theories/Arith.smt3")
+(include "../theories/Datatypes.smt3")
+
+; The set type
+(declare-sort Set 1)
+
+; Constants for the theory of sets.
+; NOTE: empty and universe permits non-set types
+(declare-const set.empty (-> (! Type :var T) T))
+(declare-const set.universe (-> (! Type :var T) T))
+
+; Operators for the theory of sets.
+(declare-const set.singleton (-> (! Type :var T :implicit) T (Set T)))
+(declare-const set.union (-> (! Type :var T :implicit) (Set T) (Set T) (Set T)))
+(declare-const set.inter (-> (! Type :var T :implicit) (Set T) (Set T) (Set T)))
+(declare-const set.minus (-> (! Type :var T :implicit) (Set T) (Set T) (Set T)))
+(declare-const set.complement (-> (! Type :var T :implicit) (Set T) (Set T)))
+(declare-const set.member (-> (! Type :var T :implicit) T (Set T) Bool))
+(declare-const set.subset (-> (! Type :var T :implicit) (Set T) (Set T) Bool))
+(declare-const set.card (-> (! Type :var T :implicit) (Set T) Int))
+(declare-const set.choose (-> (! Type :var T :implicit) (Set T) T))
+(declare-const set.is_singleton (-> (! Type :var T :implicit) (Set T) Bool))
+
+; Higher-order sets operators.
+(declare-const set.filter (-> (! Type :var T :implicit) (-> T Bool) (Set T) (Set T)))
+(declare-const set.map (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Set T) (Set U)))
+(declare-const set.fold (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U U) U (Set T) U))
+
+; Experimental sets operators.
+(declare-const set.comprehension (-> (! Type :var T :implicit) @List Bool T (Set T)) :binder @list)
+(declare-const set.insert (-> (! Type :var T :implicit) @List (Set T) (Set T)))
+
+; Relation operators.
+(declare-const rel.tclosure (-> (! Type :var T :implicit) (Set (Tuple T T)) (Set (Tuple T T))))
+(declare-const rel.transpose (-> (! Type :var T :implicit) (Set T) (Set (nary.reverse Tuple UnitTuple T))))
+(declare-const rel.product (-> (! Type :var T :implicit) (! Type :var U :implicit) (Set T) (Set U) (Set (alf.concat Tuple T U))))
+(declare-const rel.join (-> (! Type :var T :implicit) (! Type :var U :implicit) (Set T) (Set U) (Set (nary.join Tuple UnitTuple T U))))
+(declare-const rel.group (-> (! Type :var T :implicit) @List (Set T) (Set (Set T))))
+
+; Experimental relation operators.
+(declare-const rel.iden (-> (! Type :var T :implicit) (Set (Tuple T)) (Set (Tuple T T))))  
+(declare-const rel.join_image (-> (! Type :var T :implicit) (Set (Tuple T T)) Int (Set (Tuple T))))
+
+; Skolems for the theory of sets.
+(declare-const @sets_deq_diff (-> (! Type :var T :implicit) (Set T) (Set T) T))
+(declare-const @relations_group_part (-> (! Type :var T :implicit) (Set (Set T)) T (Set T)))
+(declare-const @relations_group_part_element (-> (! Type :var T :implicit) (Set (Set T)) (Set T) T))
+
+; The following skolems are not yet incorporated into the signature:
+;SETS_CHOOSE
+;SETS_FOLD_CARD
+;SETS_FOLD_COMBINE
+;SETS_FOLD_ELEMENTS
+;SETS_FOLD_UNION
+;SETS_MAP_DOWN_ELEMENT

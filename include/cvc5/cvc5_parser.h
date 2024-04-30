@@ -77,6 +77,24 @@ class CVC5_EXPORT SymbolManager
    */
   const std::string& getLogic() const;
 
+  /**
+   * Get the list of sorts that have been declared via `declare-sort` commands.
+   * These are the sorts that are printed as part of a response to a
+   * `get-model` command.
+   *
+   * @return The declared sorts.
+   */
+  std::vector<Sort> getDeclaredSorts() const;
+
+  /**
+   * Get the list of terms that have been declared via `declare-fun` and
+   * `declare-const`. These are the terms that are printed in response to a
+   * `get-model` command.
+   *
+   * @return The declared terms.
+   */
+  std::vector<Term> getDeclaredTerms() const;
+
  private:
   /** Get the underlying implementation */
   SymManager* toSymManager();
@@ -167,6 +185,8 @@ std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
  */
 class CVC5_EXPORT InputParser
 {
+  friend class internal::InteractiveShell;
+
  public:
   /**
    * Construct an input parser
@@ -257,6 +277,11 @@ class CVC5_EXPORT InputParser
   bool done() const;
 
  private:
+  /**
+   * Set the input to the given concrete input string, without allocating a new parser.
+   */
+  void setStringInputInternal(const std::string& input,
+                              const std::string& name);
   /** Initialize this input parser, called during construction */
   void initialize();
   /**

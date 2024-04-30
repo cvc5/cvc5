@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,15 +15,20 @@
 
 #include "expr/subtype_elim_node_converter.h"
 
+#include "expr/skolem_manager.h"
+
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-SubtypeElimNodeConverter::SubtypeElimNodeConverter() {}
+SubtypeElimNodeConverter::SubtypeElimNodeConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
 
 bool SubtypeElimNodeConverter::isRealTypeStrict(TypeNode tn)
 {
-  return tn.isReal() && !tn.isInteger();
+  return tn.isReal();
 }
 
 Node SubtypeElimNodeConverter::postConvert(Node n)
@@ -65,6 +70,22 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
       }
     }
     return nm->mkNode(k, children);
+  }
+  // convert skolems as well, e.g. the purify skolem for (> 1 0.0) becomes the
+  // purify skolem for (> 1.0 0.0).
+  if (n.isVar())
+  {
+    SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
+    SkolemId id;
+    Node cacheVal;
+    if (skm->isSkolemFunction(n, id, cacheVal))
+    {
+      Node cacheValc = convert(cacheVal);
+      if (cacheValc != cacheVal)
+      {
+        return skm->mkSkolemFunction(id, cacheValc);
+      }
+    }
   }
   return n;
 }

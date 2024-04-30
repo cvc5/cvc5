@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Gereon Kremer, Alex Ozdemir
+#   Mathias Preiner, Alex Ozdemir, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -31,9 +31,10 @@ cvc5_add_unit_test_white(theory_bags_type_rules_white theory)
 cvc5_add_unit_test_black(theory_bv_black theory)
 cvc5_add_unit_test_white(theory_bv_int_blaster_white theory)
 cvc5_add_unit_test_white(theory_engine_white theory)
-cvc5_add_unit_test_black(theory_ff_multi_roots_black theory)
-cvc5_add_unit_test_black(theory_ff_uni_roots_black theory)
 cvc5_add_unit_test_black(theory_ff_core_black theory)
+cvc5_add_unit_test_black(theory_ff_multi_roots_black theory)
+cvc5_add_unit_test_black(theory_ff_split_gb_black theory)
+cvc5_add_unit_test_black(theory_ff_uni_roots_black theory)
 cvc5_add_unit_test_white(theory_ff_parse_white theory)
 cvc5_add_unit_test_white(theory_quantifiers_bv_instantiator_white theory)
 cvc5_add_unit_test_white(theory_quantifiers_bv_inverter_white theory)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,22 +57,25 @@ SkolemCache::SkolemCache(Rewriter* rr) : d_rr(rr)
   d_zero = nm->mkConstInt(Rational(0));
 }
 
-Node SkolemCache::mkSkolemCached(Node a, Node b, SkolemId id, const char* c)
+Node SkolemCache::mkSkolemCached(Node a,
+                                 Node b,
+                                 StringSkolemId id,
+                                 const char* c)
 {
   return mkTypedSkolemCached(d_strType, a, b, id, c);
 }
 
-Node SkolemCache::mkSkolemCached(Node a, SkolemId id, const char* c)
+Node SkolemCache::mkSkolemCached(Node a, StringSkolemId id, const char* c)
 {
   return mkSkolemCached(a, Node::null(), id, c);
 }
 
 Node SkolemCache::mkTypedSkolemCached(
-    TypeNode tn, Node a, Node b, SkolemId id, const char* c)
+    TypeNode tn, Node a, Node b, StringSkolemId id, const char* c)
 {
   Trace("skolem-cache") << "mkTypedSkolemCached start: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
-  SkolemId idOrig = id;
+  StringSkolemId idOrig = id;
   // do not rewrite beforehand if we are not using optimizations, this is so
   // that the proof checker does not depend on the rewriter.
   if (d_rr != nullptr)
@@ -91,7 +94,7 @@ Node SkolemCache::mkTypedSkolemCached(
     return a;
   }
 
-  std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
+  std::map<StringSkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it != d_skolemCache[a][b].end())
   {
     Trace("skolem-cache") << "...return existing " << it->second << std::endl;
@@ -142,7 +145,7 @@ Node SkolemCache::mkTypedSkolemCached(
 }
 Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
                                       Node a,
-                                      SkolemId id,
+                                      StringSkolemId id,
                                       const char* c)
 {
   return mkTypedSkolemCached(tn, a, Node::null(), id, c);
@@ -162,8 +165,8 @@ bool SkolemCache::isSkolem(Node n) const
   return d_allSkolems.find(n) != d_allSkolems.end();
 }
 
-std::tuple<SkolemCache::SkolemId, Node, Node>
-SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
+std::tuple<SkolemCache::StringSkolemId, Node, Node>
+SkolemCache::normalizeStringSkolem(StringSkolemId id, Node a, Node b)
 {
 
   NodeManager* nm = NodeManager::currentNM();
@@ -298,7 +301,17 @@ Node SkolemCache::mkLengthVar(Node t)
   return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
 }
 
-Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b)
+Node SkolemCache::mkSkolemFun(SkolemId id, Node a, Node b)
+{
+  std::vector<Node> cacheVals = getSkolemCacheVals(a, b);
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node k = sm->mkSkolemFunction(id, cacheVals);
+  d_allSkolems.insert(k);
+  return k;
+}
+
+std::vector<Node> SkolemCache::getSkolemCacheVals(const Node& a,
+                                                  const Node& b) const
 {
   std::vector<Node> cacheVals;
   for (size_t i = 0; i < 2; i++)
@@ -310,11 +323,7 @@ Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b)
       cacheVals.push_back(n);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node k = sm->mkSkolemFunction(id, tn, cacheVals);
-  d_allSkolems.insert(k);
-  return k;
+  return cacheVals;
 }
 
 }  // namespace strings

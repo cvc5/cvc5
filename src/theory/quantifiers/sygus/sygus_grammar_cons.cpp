@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,9 +86,39 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
     Assert(!it->second.empty());
     ntSymBool = it->second[0];
   }
+  std::vector<Node> trulesAll = trules;
+
+  // Special case: functions can use a lambda at top-level.
+  // Note we do this only for functions at top-level. This ensures we do not
+  // enumerate any terms with free variables since the only non-terminal
+  // production rule for this grammar will be (lambda X. A) for non-terminal
+  // symbol A, where A may have free variables bound in X.
+  if (range.isFunction())
+  {
+    it = typeToNtSym.find(range);
+    Assert(it != typeToNtSym.end());
+    Node ntsymF = it->second[0];
+    std::vector<Node> vars;
+    std::vector<TypeNode> argTypes = range.getArgTypes();
+    for (const TypeNode& tn : argTypes)
+    {
+      Node v = nm->mkBoundVar(tn);
+      vars.push_back(v);
+      // add variable as a terminal
+      trulesAll.push_back(v);
+    }
+    TypeNode rtn = range.getRangeType();
+    it = typeToNtSym.find(rtn);
+    Assert(it != typeToNtSym.end());
+    Node ntsymR = it->second[0];
+    Node lam = nm->mkNode(
+        Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, vars), ntsymR);
+    // add the lambda
+    g.addRule(ntsymF, lam);
+  }
 
   // add the terminal rules
-  for (const Node& r : trules)
+  for (const Node& r : trulesAll)
   {
     TypeNode rt = r.getType();
     it = typeToNtSym.find(rt);

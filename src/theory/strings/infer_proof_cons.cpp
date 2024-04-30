@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -434,6 +434,7 @@ void InferProofCons::convert(InferenceId infer,
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
         // if it is between sequences, we require the explicit disequality
+        ProofRule r = ProofRule::CONCAT_CONFLICT;
         if (mainEqCeq[0].getType().isSequence())
         {
           Assert(t0.isConst() && s0.isConst());
@@ -442,11 +443,11 @@ void InferProofCons::convert(InferenceId infer,
           psb.addStep(ProofRule::MACRO_SR_PRED_INTRO, {}, {deq}, deq);
           Assert(!deq.isNull());
           childrenC.push_back(deq);
+          r = ProofRule::CONCAT_CONFLICT_DEQ;
         }
         std::vector<Node> argsC;
         argsC.push_back(nodeIsRev);
-        Node conflict =
-            psb.tryStep(ProofRule::CONCAT_CONFLICT, childrenC, argsC);
+        Node conflict = psb.tryStep(r, childrenC, argsC);
         if (conflict == conc)
         {
           useBuffer = true;
@@ -1207,7 +1208,7 @@ bool InferProofCons::purifyCoreSubstitutionAndTarget(
   {
     return false;
   }
-  // no need to purify, e.g. if all LHS of substituion are variables
+  // no need to purify, e.g. if all LHS of substitution are variables
   if (termsToPurify.empty())
   {
     return true;

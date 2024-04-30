@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,6 @@
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
-#include "proof/alf/alf_post_processor.h"
 #include "proof/alf/alf_printer.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
@@ -42,16 +41,25 @@ namespace smt {
 
 PfManager::PfManager(Env& env)
     : EnvObj(env),
-      d_rewriteDb(new rewriter::RewriteDb),
-      d_pchecker(
-          new ProofChecker(statisticsRegistry(),
-                           options().proof.proofCheck,
-                           static_cast<uint32_t>(options().proof.proofPedantic),
-                           d_rewriteDb.get())),
-      d_pnm(new ProofNodeManager(
-          env.getOptions(), env.getRewriter(), d_pchecker.get())),
+      d_rewriteDb(nullptr),
+      d_pchecker(nullptr),
+      d_pnm(nullptr),
       d_pfpp(nullptr)
 {
+  // construct the rewrite db only if DSL rewrites are enabled
+  if (options().proof.proofGranularityMode
+      == options::ProofGranularityMode::DSL_REWRITE)
+  {
+    d_rewriteDb.reset(new rewriter::RewriteDb);
+  }
+  // enable the proof checker and the proof node manager
+  d_pchecker.reset(
+      new ProofChecker(statisticsRegistry(),
+                       options().proof.proofCheck,
+                       static_cast<uint32_t>(options().proof.proofPedantic),
+                       d_rewriteDb.get()));
+  d_pnm.reset(new ProofNodeManager(
+      env.getOptions(), env.getRewriter(), d_pchecker.get()));
   // Now, initialize the proof postprocessor with the environment.
   // By default the post-processor will update all assumptions, which
   // can lead to SCOPE subproofs of the form
@@ -101,7 +109,7 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
     d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
 }
 
 PfManager::~PfManager() {}
@@ -229,12 +237,16 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
 
 void PfManager::printProof(std::ostream& out,
                            std::shared_ptr<ProofNode> fp,
-                           options::ProofFormatMode mode)
+                           options::ProofFormatMode mode,
+                           const std::map<Node, std::string>& assertionNames)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
-  // if we are in incremental mode, we don't want to invalidate the proof
-  // nodes in fp, since these may be reused in further check-sat calls
-  if (options().base.incrementalSolving
+  // We don't want to invalidate the proof nodes in fp, since these may be
+  // reused in further check-sat calls, or they may be used again if the
+  // user asks for the proof again (in non-incremental mode). We don't need to
+  // clone if the printing below does not modify the proof, which is the case
+  // for proof formats ALF and NONE.
+  if (mode != options::ProofFormatMode::ALF
       && mode != options::ProofFormatMode::NONE)
   {
     fp = fp->clone();
@@ -249,25 +261,23 @@ void PfManager::printProof(std::ostream& out,
   else if (mode == options::ProofFormatMode::ALF)
   {
     Assert(fp->getRule() == ProofRule::SCOPE);
-    proof::AlfNodeConverter atp;
-    proof::AlfProofPostprocess alfpp(d_env, atp);
-    alfpp.process(fp);
-    proof::AlfPrinter alfp(d_env, atp);
+    proof::AlfNodeConverter atp(nodeManager());
+    proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
     alfp.print(out, fp);
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
-    proof::AletheNodeConverter anc;
+    proof::AletheNodeConverter anc(nodeManager());
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
     proof::AletheProofPrinter vpp(d_env);
-    vpp.print(out, fp);
+    vpp.print(out, fp, assertionNames);
   }
   else if (mode == options::ProofFormatMode::LFSC)
   {
     Assert(fp->getRule() == ProofRule::SCOPE);
-    proof::LfscNodeConverter ltp;
+    proof::LfscNodeConverter ltp(nodeManager());
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
     proof::LfscPrinter lp(d_env, ltp, d_rewriteDb.get());
@@ -308,7 +318,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
   CDProof cdp(d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
+  Node fnode = nodeManager()->mkConst(false);
   cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   Trace("difficulty-proc") << "Get final proof" << std::endl;

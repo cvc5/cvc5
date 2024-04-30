@@ -1,0 +1,22 @@
+(include "../theories/Builtin.smt3")
+
+(declare-sort Array 2)
+
+; Core operators.
+(declare-const select (-> (! Type :var U :implicit) (! Type :var T :implicit)
+                          (Array U T) U T))
+(declare-const store (-> (! Type :var U :implicit) (! Type :var T :implicit)
+                          (Array U T) U T (Array U T)))
+
+; The store all array constant.
+; NOTE: doesn't check that T is (Array x U) for some x
+(declare-const store_all (-> (! Type :var T) (! Type :var U :implicit) U T))
+
+; The equal-range predicate.
+(declare-const eqrange (-> (! Type :var U :implicit) (! Type :var T :implicit) (! Type :var I :implicit)
+                           (Array U T) (Array U T) I I Bool))
+
+; The array diff skolem.
+; (skolem (@array_deq_diff A B)) denotes an index where A and B differ if A and B are not equal.
+(declare-const @array_deq_diff
+   (-> (! Type :var T :implicit) (! Type :var U :implicit) (Array T U) (Array T U) T))

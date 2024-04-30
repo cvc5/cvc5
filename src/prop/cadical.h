@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz, Gereon Kremer
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 
 #include <cadical.hpp>
 
+#include "context/cdhashset.h"
 #include "prop/sat_solver.h"
 #include "smt/env_obj.h"
 
@@ -70,7 +71,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   void initialize(context::Context* context,
                   prop::TheoryProxy* theoryProxy,
                   context::UserContext* userContext,
-                  ProofNodeManager* pnm) override;
+                  PropPfManager* ppm) override;
   void push() override;
 
   void pop() override;
@@ -87,22 +88,26 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   std::vector<Node> getOrderHeap() const override;
 
+  /** Get proof, unimplemented by this solver. */
   std::shared_ptr<ProofNode> getProof() override;
 
-  SatProofManager* getProofManager() override;
+  /** Get proof sketch. */
+  std::pair<ProofRule, std::vector<Node>> getProofSketch() override;
 
  private:
   /**
    * Constructor.
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
-   * @param env      The associated environment.
-   * @param registry The associated statistics registry.
-   * @param name     The name of the SAT solver.
+   * @param env       The associated environment.
+   * @param registry  The associated statistics registry.
+   * @param name      The name of the SAT solver.
+   * @param logProofs Whether to log proofs
    */
   CadicalSolver(Env& env,
                 StatisticsRegistry& registry,
-                const std::string& name = "");
+                const std::string& name = "",
+                bool logProofs = false);
 
   /**
    * Initialize SAT solver instance.
@@ -137,6 +142,14 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::vector<SatLiteral> d_assumptions;
 
   unsigned d_nextVarIdx;
+  /** Whether we are logging proofs */
+  bool d_logProofs;
+  /** The proof file */
+  std::string d_pfFile;
+  /**
+   * Whether we are in SAT mode. If true, the SAT solver returned satisfiable
+   * and we are allowed to query model values from the solver.
+   */
   bool d_inSatMode;
   /** The variable representing true. */
   SatVariable d_true;

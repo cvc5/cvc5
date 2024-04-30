@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,9 +46,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-LfscNodeConverter::LfscNodeConverter()
+LfscNodeConverter::LfscNodeConverter(NodeManager* nm) : NodeConverter(nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   d_arrow = nm->mkSortConstructor("arrow", 2);
 
   d_sortType = nm->mkSort("sortType");
@@ -122,7 +121,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // ignore internally generated symbols
     return n;
   }
-  else if (k == Kind::SKOLEM)
+  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -671,6 +670,11 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       std::string name = tn.getUninterpretedSortConstructor().getName();
       op = getSymbolInternal(k, ftype, name, false);
     }
+    else if (k == Kind::NULLABLE_TYPE)
+    {
+      TypeNode ftype = nm->mkFunctionType(d_sortType, d_sortType);
+      op = getSymbolInternal(k, ftype, "Nullable", false);
+    }
     else
     {
       std::map<Kind, Node>::iterator it = d_typeKindToNodeCons.find(k);
@@ -789,26 +793,12 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  SkolemFunId sfi = SkolemFunId::NONE;
+  SkolemId sfi = SkolemId::NONE;
   Node cacheVal;
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
-    if (sfi == SkolemFunId::SHARED_SELECTOR)
-    {
-      // a skolem corresponding to shared selector should print in
-      // LFSC as (sel T n) where T is the type and n is the index of the
-      // shared selector.
-      TypeNode fselt = nm->mkFunctionType(tn.getDatatypeSelectorDomainType(),
-                                          tn.getDatatypeSelectorRangeType());
-      TypeNode intType = nm->integerType();
-      TypeNode selt = nm->mkFunctionType({d_sortType, intType}, fselt);
-      Node sel = getSymbolInternal(k.getKind(), selt, "sel");
-      Node kn = typeAsNode(convertType(tn.getDatatypeSelectorRangeType()));
-      Assert(!cacheVal.isNull() && cacheVal.getKind() == Kind::CONST_RATIONAL);
-      return mkApplyUf(sel, {kn, cacheVal});
-    }
-    else if (sfi == SkolemFunId::RE_UNFOLD_POS_COMPONENT)
+    if (sfi == SkolemId::RE_UNFOLD_POS_COMPONENT)
     {
       // a skolem corresponding to a regular expression unfolding component
       // should print as (skolem_re_unfold_pos t R n) where the skolem is the
@@ -1031,6 +1021,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       else if (k == Kind::FLOATINGPOINT_TO_FP_FROM_REAL)
       {
         opName << "to_fp_real";
+      }
+      else if (k == Kind::BITVECTOR_BITOF)
+      {
+        opName << "bitOf";
       }
       else
       {

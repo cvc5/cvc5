@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,10 +23,12 @@
 #include <iostream>
 
 #include "expr/node_algorithm.h"
+#include "proof/alf/alf_list_node_converter.h"
 #include "proof/alf/alf_node_converter.h"
 #include "proof/alf/alf_print_channel.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -36,7 +38,7 @@ namespace proof {
 class AlfPrinter : protected EnvObj
 {
  public:
-  AlfPrinter(Env& env, AlfNodeConverter& atp);
+  AlfPrinter(Env& env, BaseAlfNodeConverter& atp, rewriter::RewriteDb* rdb);
   ~AlfPrinter() {}
 
   /**
@@ -55,9 +57,14 @@ class AlfPrinter : protected EnvObj
    */
   bool canEvaluate(Node n) const;
   /* Returns the normalized name of the proof rule of pfn */
-  static std::string getRuleName(const ProofNode* pfn);
+  std::string getRuleName(const ProofNode* pfn) const;
 
   //-------------
+  /**
+   * Select only those children required by the proof rule.
+   */
+  void getChildrenFromProofRule(
+      const ProofNode* pn, std::vector<std::shared_ptr<ProofNode>>& children);
   /**
    * Add the arguments of proof node pn to args in the order in which they
    * should be printed. This also ensures the nodes have been converted via the
@@ -81,10 +88,9 @@ class AlfPrinter : protected EnvObj
   void printStepPost(AlfPrintChannel* out, const ProofNode* pn);
   /**
    * Allocate (if necessary) the identifier for an assume-push step for pn and
-   * return the identifier. pn should be an application of ProofNode::ALF_RULE
-   * with AlfRule::SCOPE.
+   * return the identifier. pn should be an application of ProofRule::SCOPE.
    */
-  size_t allocateAssumePushId(const ProofNode* pn);
+  size_t allocateAssumePushId(const ProofNode* pn, const Node& a);
   /**
    * Allocate (if necessary) the identifier for an assume step for the
    * assumption for formula n and return the identifier. Note this identifier is
@@ -96,17 +102,16 @@ class AlfPrinter : protected EnvObj
    * Allocate (if necessary) the identifier for step
    */
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
-  /** Mapping from proof identifiers X to nodes named @pX which represent
-   * premises */
-  Node allocatePremise(size_t id);
+  /** Print DSL rule name r to output stream out */
+  void printDslRule(std::ostream& out, ProofRewriteRule r);
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
   /** Reference to the term processor */
-  AlfNodeConverter& d_tproc;
+  BaseAlfNodeConverter& d_tproc;
   /** Assume id counter */
   size_t d_pfIdCounter;
   /** Mapping scope proofs to identifiers */
-  std::map<const ProofNode*, size_t> d_ppushMap;
+  std::map<std::pair<const ProofNode*, Node>, size_t> d_ppushMap;
   /** Mapping proofs to identifiers */
   std::map<const ProofNode*, size_t> d_pletMap;
   /** Mapping assumed formulas to identifiers */
@@ -119,6 +124,12 @@ class AlfPrinter : protected EnvObj
   std::string d_termLetPrefix;
   /** The false node */
   Node d_false;
+  /** List node converter */
+  AlfListNodeConverter d_ltproc;
+  /** Pointer to the rewrite database */
+  rewriter::RewriteDb* d_rdb;
+  /** The DSL rules we have seen */
+  std::unordered_set<ProofRewriteRule> d_dprs;
 };
 
 }  // namespace proof

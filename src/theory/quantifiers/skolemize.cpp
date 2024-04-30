@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -121,10 +121,8 @@ Node Skolemize::getSkolemConstant(const Node& q, size_t i)
   Assert(i < q[0].getNumChildren());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node r = nm->mkConstInt(Rational(i));
-  std::vector<Node> cacheVals{q, r};
-  return sm->mkSkolemFunction(
-      SkolemFunId::QUANTIFIERS_SKOLEMIZE, q[0][i].getType(), cacheVals);
+  std::vector<Node> cacheVals{q, q[0][i]};
+  return sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, cacheVals);
 }
 
 void Skolemize::getSelfSel(const DType& dt,

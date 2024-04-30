@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -422,6 +422,8 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     case Token::DEFINE_FUN_REC_TOK:
     {
       d_state.checkThatLogicIsSet();
+      // outermost scope to handle the definition of the function
+      d_state.pushScope();
       std::string fname = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
       d_state.checkUserSymbol(fname);
       std::vector<std::pair<std::string, Sort>> sortedVarNames =
@@ -430,7 +432,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       std::vector<Term> flattenVars;
       std::vector<Term> bvs;
       Term func =
-          d_state.bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
+          d_state.setupDefineFunRecScope(fname, sortedVarNames, t, flattenVars);
       d_state.pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs);
       Term expr = d_tparser.parseTerm();
       d_state.popScope();
@@ -439,6 +441,8 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         expr = d_state.mkHoApply(expr, flattenVars);
       }
       cmd.reset(new DefineFunctionRecCommand(func, bvs, expr));
+      // pop the scope
+      d_state.popScope();
     }
     break;
     // (define-funs-rec (<function_dec>^{n+1}) (<term>^{n+1}))
@@ -447,6 +451,8 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     case Token::DEFINE_FUNS_REC_TOK:
     {
       d_state.checkThatLogicIsSet();
+      // outermost scope to handle the definition of the functions
+      d_state.pushScope();
       d_lex.eatToken(Token::LPAREN_TOK);
       std::vector<Term> funcs;
       std::vector<std::vector<std::pair<std::string, Sort>>> sortedVarNamesList;
@@ -462,8 +468,8 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
             d_tparser.parseSortedVarList();
         Sort t = d_tparser.parseSort();
         std::vector<Term> flattenVars;
-        Term func =
-            d_state.bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
+        Term func = d_state.setupDefineFunRecScope(
+            fname, sortedVarNames, t, flattenVars);
         funcs.push_back(func);
 
         // add to lists (need to remember for when parsing the bodies)
@@ -490,6 +496,8 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::RPAREN_TOK);
       Assert(funcs.size() == funcDefs.size());
       cmd.reset(new DefineFunctionRecCommand(funcs, formals, funcDefs));
+      // pop the scope
+      d_state.popScope();
     }
     break;
     // (define-sort <symbol> (<symbol>*) <sort>)
@@ -809,10 +817,9 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     {
       std::string key = d_tparser.parseKeyword();
       Term s = d_tparser.parseSymbolicExpr();
-      d_state.checkThatLogicIsSet();
-      // ":grammars" is defined in the SyGuS version 2.1 standard and is by
-      // default supported, all other features are not.
-      if (key != "grammars")
+      // ":grammars" and "fwd-decls" are defined in the SyGuS version 2.1
+      // standard and are supported by default, all other features are not.
+      if (key != "grammars" && key != "fwd-decls")
       {
         std::stringstream ss;
         ss << "SyGuS feature " << key << " not currently supported";
@@ -862,6 +869,11 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         ss = d_state.stripQuotes(ss);
       }
+      else if (key=="use-portfolio")
+      {
+        // we don't allow setting portfolio via the command line
+        d_lex.parseError("Can only enable use-portfolio via the command line");
+      }
       cmd.reset(new SetOptionCommand(key, ss));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
@@ -897,7 +909,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       bool isInv = (tok == Token::SYNTH_INV_TOK);
       if (isInv)
       {
-        range = d_state.getSolver()->getBooleanSort();
+        range = d_state.getSolver()->getTermManager().getBooleanSort();
       }
       else
       {

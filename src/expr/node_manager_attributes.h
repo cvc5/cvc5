@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,6 +35,9 @@ namespace attr {
   struct TupleDatatypeTag
   {
   };
+  struct NullableDatatypeTag
+  {
+  };
   struct DatatypeIndexTag
   {
   };
@@ -55,6 +58,10 @@ using UnresolvedDatatypeAttr =
 /** Mapping tuples to their datatype type encoding */
 using TupleDatatypeAttr =
     expr::Attribute<expr::attr::TupleDatatypeTag, TypeNode>;
+
+/** Mapping nullables to their datatype type encoding */
+using NullableDatatypeAttr =
+    expr::Attribute<expr::attr::NullableDatatypeTag, TypeNode>;
 
 /** Mapping datatype types to the index of their datatype in node manager */
 using DatatypeIndexAttr = Attribute<attr::DatatypeIndexTag, uint64_t>;

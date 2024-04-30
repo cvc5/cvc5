@@ -31,6 +31,7 @@ For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main 
     statistics
     synthresult
     term
+    termmanager
     unknownexplanation
 
 
@@ -53,14 +54,15 @@ Class hierarchy
   * class :ref:`api/cpp/datatypedecl:datatypedecl`
   * class :ref:`api/cpp/datatypeselector:datatypeselector`
   * class :ref:`api/cpp/driveroptions:driveroptions`
-  * class :ref:`api/cpp/grammar:grammar`  
+  * class :ref:`api/cpp/grammar:grammar`
   * class :ref:`api/cpp/op:op`
   * class :ref:`api/cpp/optioninfo:optioninfo`
   * class :ref:`api/cpp/result:result`
+  * class :ref:`api/cpp/termmanager:termmanager`
   * class :ref:`api/cpp/solver:solver`
   * class :ref:`api/cpp/sort:sort`
   * class :cpp:class:`Stat <cvc5::Stat>`
-  * class :cpp:class:`Statistics <cvc5::Statistics>`  
+  * class :cpp:class:`Statistics <cvc5::Statistics>`
   * class :ref:`api/cpp/synthresult:synthresult`
   * class :ref:`api/cpp/term:term`
 
@@ -81,7 +83,7 @@ Class hierarchy
 ``}``
 
 ``namespace parser {``
-  
+
   * class :cpp:class:`Command <cvc5::parser::Command>`
   * class :ref:`api/cpp/inputparser:inputparser`
   * class :cpp:class:`ParserException <cvc5::parser::ParserException>`

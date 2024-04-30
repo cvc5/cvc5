@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "Cython>=3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name="cvc5"
+description="Python bindings for cvc5"
+dynamic = ["version"]
+urls = {Homepage = "https://github.com/cvc5/cvc5"}
+license = {text = "BSD-3-Clause AND LGPL-3.0-or-later AND MIT"}
+# BSD-3-Clause      : cvc5 library and Python API
+# LGPL-3.0-or-later : LibPoly and GMP
+# MIT               : Pythonic API
+
+[tool.setuptools.dynamic]
+version = {attr = "cvc5.__version__"}

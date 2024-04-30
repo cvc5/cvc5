@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -481,8 +481,6 @@ Node ITECompressor::compressTerm(Node toCompress)
 
 Node ITECompressor::compressBoolean(Node toCompress)
 {
-  static int instance = 0;
-  ++instance;
   if (toCompress.isConst() || toCompress.isVar())
   {
     return toCompress;
@@ -1523,13 +1521,8 @@ Node ITESimplifier::simpITE(TNode assertion)
   vector<preprocess_stack_element> toVisit;
   toVisit.push_back(assertion);
 
-  static int call = 0;
-  ++call;
-  int iteration = 0;
-
   while (!toVisit.empty())
   {
-    iteration++;
     // cout << "call  " << call << " : " << iteration << endl;
     // The current node we are processing
     preprocess_stack_element& stackHead = toVisit.back();

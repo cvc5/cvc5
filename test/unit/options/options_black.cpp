@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Alex Ozdemir
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,21 +40,21 @@ class TestBlackOptions : public TestApi
    */
   void testSetOption(const std::string& name)
   {
-    auto info = d_solver.getOptionInfo(name);
+    auto info = d_solver->getOptionInfo(name);
 
     try
     {
       std::visit(
           overloaded{
               [this, &name](const OptionInfo::VoidInfo& v) {
-                d_solver.setOption(name, "");
+                d_solver->setOption(name, "");
               },
               [this, &name](const OptionInfo::ValueInfo<bool>& v) {
-                d_solver.setOption(name, "false");
-                d_solver.setOption(name, "true");
+                d_solver->setOption(name, "false");
+                d_solver->setOption(name, "true");
               },
               [this, &name](const OptionInfo::ValueInfo<std::string>& v) {
-                d_solver.setOption(name, "foo");
+                d_solver->setOption(name, "foo");
               },
               [this, &name](const OptionInfo::NumberInfo<int64_t>& v) {
                 std::pair<int64_t, int64_t> range{
@@ -63,51 +63,54 @@ class TestBlackOptions : public TestApi
                 if (v.minimum)
                 {
                   EXPECT_THROW(
-                      d_solver.setOption(name, std::to_string(*v.minimum - 1)),
+                      d_solver->setOption(name, std::to_string(*v.minimum - 1)),
                       CVC5ApiOptionException);
                   EXPECT_NO_THROW(
-                      d_solver.setOption(name, std::to_string(*v.minimum)));
+                      d_solver->setOption(name, std::to_string(*v.minimum)));
                   range.first = *v.minimum;
                 }
                 if (v.maximum)
                 {
                   EXPECT_THROW(
-                      d_solver.setOption(name, std::to_string(*v.maximum + 1)),
+                      d_solver->setOption(name, std::to_string(*v.maximum + 1)),
                       CVC5ApiOptionException);
                   EXPECT_NO_THROW(
-                      d_solver.setOption(name, std::to_string(*v.maximum)));
+                      d_solver->setOption(name, std::to_string(*v.maximum)));
                   range.second = *v.maximum;
                 }
-                EXPECT_NO_THROW(d_solver.setOption(
+                EXPECT_NO_THROW(d_solver->setOption(
                     name, std::to_string((range.first + range.second) / 2)));
-                EXPECT_THROW(d_solver.setOption(name, "0123abc"), CVC5ApiOptionException);
+                EXPECT_THROW(d_solver->setOption(name, "0123abc"),
+                             CVC5ApiOptionException);
               },
               [this, &name](const OptionInfo::NumberInfo<uint64_t>& v) {
                 std::pair<uint64_t, uint64_t> range{
                     std::numeric_limits<uint64_t>::min(),
                     std::numeric_limits<uint64_t>::max()};
-                EXPECT_THROW(d_solver.setOption(name, "-1"), CVC5ApiOptionException);
+                EXPECT_THROW(d_solver->setOption(name, "-1"),
+                             CVC5ApiOptionException);
                 if (v.minimum)
                 {
                   EXPECT_THROW(
-                      d_solver.setOption(name, std::to_string(*v.minimum - 1)),
+                      d_solver->setOption(name, std::to_string(*v.minimum - 1)),
                       CVC5ApiOptionException);
                   EXPECT_NO_THROW(
-                      d_solver.setOption(name, std::to_string(*v.minimum)));
+                      d_solver->setOption(name, std::to_string(*v.minimum)));
                   range.first = *v.minimum;
                 }
                 if (v.maximum)
                 {
                   EXPECT_THROW(
-                      d_solver.setOption(name, std::to_string(*v.maximum + 1)),
+                      d_solver->setOption(name, std::to_string(*v.maximum + 1)),
                       CVC5ApiOptionException);
                   EXPECT_NO_THROW(
-                      d_solver.setOption(name, std::to_string(*v.maximum)));
+                      d_solver->setOption(name, std::to_string(*v.maximum)));
                   range.second = *v.maximum;
                 }
-                EXPECT_NO_THROW(d_solver.setOption(
+                EXPECT_NO_THROW(d_solver->setOption(
                     name, std::to_string((range.first + range.second) / 2)));
-                EXPECT_THROW(d_solver.setOption(name, "0123abc"), CVC5ApiOptionException);
+                EXPECT_THROW(d_solver->setOption(name, "0123abc"),
+                             CVC5ApiOptionException);
               },
               [this, &name](const OptionInfo::NumberInfo<double>& v) {
                 std::pair<double, double> range{
@@ -116,33 +119,33 @@ class TestBlackOptions : public TestApi
                 if (v.minimum)
                 {
                   EXPECT_THROW(
-                      d_solver.setOption(name, std::to_string(*v.minimum - 1)),
+                      d_solver->setOption(name, std::to_string(*v.minimum - 1)),
                       CVC5ApiOptionException);
                   EXPECT_NO_THROW(
-                      d_solver.setOption(name, std::to_string(*v.minimum)));
+                      d_solver->setOption(name, std::to_string(*v.minimum)));
                   range.first = *v.minimum;
                 }
                 if (v.maximum)
                 {
                   EXPECT_THROW(
-                      d_solver.setOption(name, std::to_string(*v.maximum + 1)),
+                      d_solver->setOption(name, std::to_string(*v.maximum + 1)),
                       CVC5ApiOptionException);
                   EXPECT_NO_THROW(
-                      d_solver.setOption(name, std::to_string(*v.maximum)));
+                      d_solver->setOption(name, std::to_string(*v.maximum)));
                   range.second = *v.maximum;
                 }
-                EXPECT_NO_THROW(d_solver.setOption(
+                EXPECT_NO_THROW(d_solver->setOption(
                     name, std::to_string((range.first + range.second) / 2)));
               },
               [this, &name](const OptionInfo::ModeInfo& v) {
-                EXPECT_THROW(d_solver.setOption(name, "foobarbaz"),
+                EXPECT_THROW(d_solver->setOption(name, "foobarbaz"),
                              CVC5ApiOptionException);
                 for (const auto& m : v.modes)
                 {
-                  d_solver.setOption(name, m);
-                  EXPECT_EQ(d_solver.getOption(name), m);
+                  d_solver->setOption(name, m);
+                  EXPECT_EQ(d_solver->getOption(name), m);
                 }
-                EXPECT_DEATH(d_solver.setOption(name, "help"), "");
+                EXPECT_DEATH(d_solver->setOption(name, "help"), "");
               },
           },
           info.valueInfo);
@@ -190,14 +193,24 @@ TEST_F(TestBlackOptions, setSafe)
                                     "show-trace-tags",
                                     "version"};
   // set safe options to true
-  d_solver.setOption("safe-options", "true");
+  d_solver->setOption("safe-options", "true");
+  bool alreadySetRegular = false;
   for (const auto& name : options::getNames())
   {
-    auto info = d_solver.getOptionInfo(name);
+    auto info = d_solver->getOptionInfo(name);
     // skip if an expert option
     if (info.isExpert)
     {
       continue;
+    }
+    if (info.isRegular)
+    {
+      if (alreadySetRegular)
+      {
+        // skip if already set a regular option
+        continue;
+      }
+      alreadySetRegular = true;
     }
     if (muted.count(name))
     {
@@ -230,7 +243,7 @@ TEST_F(TestBlackOptions, getOptionInfoBenchmark)
   {
     for (const auto& name : names)
     {
-      ct += d_solver.getOption(name).size();
+      ct += d_solver->getOption(name).size();
     }
   }
   std::cout << ct << std::endl;

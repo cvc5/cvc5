@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,6 +31,7 @@ const char* toString(TrustId id)
     case TrustId::THEORY_INFERENCE: return "THEORY_INFERENCE";
     case TrustId::PREPROCESS: return "PREPROCESS";
     case TrustId::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
+    case TrustId::PP_STATIC_REWRITE: return "PP_STATIC_REWRITE";
     case TrustId::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case TrustId::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
     case TrustId::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
@@ -40,7 +41,9 @@ const char* toString(TrustId id)
     case TrustId::SUBS_NO_ELABORATE: return "SUBS_NO_ELABORATE";
     case TrustId::SUBS_MAP: return "SUBS_MAP";
     case TrustId::SUBS_EQ: return "SUBS_EQ";
+    case TrustId::ARITH_PRED_CAST_TYPE: return "ARITH_PRED_CAST_TYPE";
     case TrustId::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
+    case TrustId::SUBTYPE_ELIMINATION: return "SUBTYPE_ELIMINATION";
     default: return "TrustId::Unknown";
   };
 }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
+ *   Andrew Reynolds, Hans-Jörg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,11 +23,16 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
+DatatypesProofRuleChecker::DatatypesProofRuleChecker(NodeManager* nm,
+                                                     bool sharedSel)
+    : ProofRuleChecker(nm), d_sharedSel(sharedSel)
+{
+}
+
 void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::DT_UNIF, this);
   pc->registerChecker(ProofRule::DT_INST, this);
-  pc->registerChecker(ProofRule::DT_COLLAPSE, this);
   pc->registerChecker(ProofRule::DT_SPLIT, this);
   pc->registerChecker(ProofRule::DT_CLASH, this);
 }
@@ -36,7 +41,7 @@ Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
                                               const std::vector<Node>& children,
                                               const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (id == ProofRule::DT_UNIF)
   {
     Assert(children.size() == 1);
@@ -76,25 +81,6 @@ Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
     Node tester = utils::mkTester(t, i, dt);
     Node ticons = utils::getInstCons(t, dt, i, d_sharedSel);
     return tester.eqNode(t.eqNode(ticons));
-  }
-  else if (id == ProofRule::DT_COLLAPSE)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    Node t = args[0];
-    if (t.getKind() != Kind::APPLY_SELECTOR
-        || t[0].getKind() != Kind::APPLY_CONSTRUCTOR)
-    {
-      return Node::null();
-    }
-    Node selector = t.getOperator();
-    size_t constructorIndex = utils::indexOf(t[0].getOperator());
-    const DType& dt = utils::datatypeOf(selector);
-    const DTypeConstructor& dtc = dt[constructorIndex];
-    int selectorIndex = dtc.getSelectorIndexInternal(selector);
-    Node r =
-        selectorIndex < 0 ? nm->mkGroundTerm(t.getType()) : t[0][selectorIndex];
-    return t.eqNode(r);
   }
   else if (id == ProofRule::DT_SPLIT)
   {

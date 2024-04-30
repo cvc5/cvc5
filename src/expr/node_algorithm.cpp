@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -704,7 +704,7 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
     visited.insert(curr);
     if (curr.first.getNumChildren() == 0)
     {
-      if (curr.first.getType() != curr.second.getType())
+      if (!curr.first.getType().isComparableTo(curr.second.getType()))
       {
         // the two subterms have different types
         return false;

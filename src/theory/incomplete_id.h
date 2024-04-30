@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,6 +64,8 @@ enum class IncompleteId
   SETS_HO_CARD,
   // relations were used in combination with set cardinality constraints
   SETS_RELS_CARD,
+  // finite model finding used in combination with set cardinality constraints
+  SETS_FMF_BOUND_CARD,
   // we skipped processing a looping word equation
   STRINGS_LOOP_SKIP,
   // we could not simplify a regular expression membership
@@ -80,7 +82,9 @@ enum class IncompleteId
   // UF+cardinality solver used in an incomplete mode
   UF_CARD_MODE,
 
-  //------------------- other causes external to theory engine
+  //------------------- other causes external to theories
+  // unprocessed theory conflict
+  UNPROCESSED_THEORY_CONFLICT,
   // the prop layer stopped search
   STOP_SEARCH,
   //------------------- unknown

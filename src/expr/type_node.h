@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -471,6 +471,9 @@ class CVC5_EXPORT TypeNode
   /** Is this a Set type? */
   bool isSet() const;
 
+  /** Is this a Relation type (set of tuples)? */
+  bool isRelation() const;
+
   /** Is this a Bag type? */
   bool isBag() const;
 
@@ -624,6 +627,9 @@ class CVC5_EXPORT TypeNode
   /** Is this a tuple type? */
   bool isTuple() const;
 
+  /** Is this a nullable type? */
+  bool isNullable() const;
+
   /** Is this a record type? */
   bool isRecord() const;
 
@@ -632,6 +638,9 @@ class CVC5_EXPORT TypeNode
 
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
+
+  /** Get the element type (for nullable types) */
+  TypeNode getNullableElementType() const;
 
   /** Is this a regexp type */
   bool isRegExp() const;

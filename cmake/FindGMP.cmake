@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner
+#   Gereon Kremer, Andres Noetzli, Vinícius Camillo
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -17,10 +17,12 @@
 
 include(deps-helper)
 
-find_path(GMP_INCLUDE_DIR NAMES gmp.h)
-find_path(GMPXX_INCLUDE_DIR NAMES gmpxx.h)
-find_library(GMP_LIBRARIES NAMES gmp)
-find_library(GMPXX_LIBRARIES NAMES gmpxx)
+if (NOT BUILD_GMP)
+  find_path(GMP_INCLUDE_DIR NAMES gmp.h)
+  find_path(GMPXX_INCLUDE_DIR NAMES gmpxx.h)
+  find_library(GMP_LIBRARIES NAMES gmp)
+  find_library(GMPXX_LIBRARIES NAMES gmpxx)
+endif()
 
 set(GMP_FOUND_SYSTEM FALSE)
 if(GMP_INCLUDE_DIR AND GMPXX_INCLUDE_DIR AND GMP_LIBRARIES AND GMPXX_LIBRARIES)
@@ -57,7 +59,7 @@ if(GMP_INCLUDE_DIR AND GMPXX_INCLUDE_DIR AND GMP_LIBRARIES AND GMPXX_LIBRARIES)
     LINK_LIBRARIES ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
   )
   if(NOT GMP_USABLE)
-    message(VERBOSE "System version for GMP does not work in the selected configuration. Maybe we are cross-compiling?")
+    message(STATUS "System version for GMP does not work in the selected configuration. Maybe we are cross-compiling?")
     set(GMP_FOUND_SYSTEM FALSE)
   endif()
 endif()
@@ -70,7 +72,7 @@ if(NOT GMP_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(GMP_VERSION "6.2.1")
+  set(GMP_VERSION "6.3.0")
 
   set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
   if(BUILD_SHARED_LIBS)
@@ -96,7 +98,7 @@ if(NOT GMP_FOUND_SYSTEM)
   #     https://github.com/microsoft/vcpkg/issues/22671
   # Many solution attempts have been tried, but none worked.
 
-  # Since makeinfo just builds the documentation for GMP, 
+  # Since makeinfo just builds the documentation for GMP,
   # it is possible to get around this issue by just disabling it:
   set(CONFIGURE_ENV env "MAKEINFO=true")
 
@@ -105,7 +107,7 @@ if(NOT GMP_FOUND_SYSTEM)
       --host=${TOOLCHAIN_PREFIX}
       --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
 
-    set(CONFIGURE_ENV ${CMAKE_COMMAND} -E
+    set(CONFIGURE_ENV ${CONFIGURE_ENV} ${CMAKE_COMMAND} -E
       env "CC_FOR_BUILD=cc")
     if (CMAKE_CROSSCOMPILING_MACOS)
       set(CONFIGURE_ENV
@@ -123,7 +125,7 @@ if(NOT GMP_FOUND_SYSTEM)
     GMP-EP
     ${COMMON_EP_CONFIG}
     URL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.bz2
-    URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
+    URL_HASH SHA1=32d21c4fae046de45e8fce37bf4002236d283b71
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
           ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure

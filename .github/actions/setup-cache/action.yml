@@ -3,6 +3,8 @@ description: Setup caches (ccache, contribs and dependencies)
 inputs:
   cache-key:
     default: "none"
+  shell:
+    default: bash
 
 # The GitHub action for caching currently does not support modifying an
 # already existing cache. We thus have a few different possibilities:
@@ -33,16 +35,16 @@ runs:
   using: composite
   steps:
     - name: Setup ccache cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ccache-dir
         key: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-${{ github.sha }}
         restore-keys: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-
 
     - name: Configure ccache
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
-        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
+        ccache --set-config=cache_dir="${{ github.workspace }}/ccache-dir"
         ccache --set-config=compression=true
         ccache --set-config=compression_level=6
         ccache -M 500M
@@ -50,20 +52,18 @@ runs:
 
     - name: Setup contrib dependencies cache
       id: contrib-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
-        path: deps/install
+        path: deps/bin
         key: ${{ inputs.cache-key }}-${{ runner.os }}-contrib-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/**') }}
 
     - name: Install contrib dependencies
-      shell: bash
-      run: |
-        if [[ "${{ steps.contrib-cache.outputs.cache-hit }}" == "true" ]]; then exit 0; fi
-        ./contrib/get-lfsc-checker
-        ./contrib/get-alf-checker
+      if: steps.contrib-cache.outputs.cache-hit != 'true'
+      shell: ${{ inputs.shell }}
+      run: ./contrib/get-alf-checker
 
     - name: Setup dependencies cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           build-shared/deps

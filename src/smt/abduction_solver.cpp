@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,11 +70,11 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
 
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
-  subOptions.writeQuantifiers().sygus = true;
+  subOptions.write_quantifiers().sygus = true;
   // by default, we don't want disjunctive terms (ITE, OR) in abducts
   if (!d_env.getOptions().quantifiers.sygusGrammarUseDisjWasSetByUser)
   {
-    subOptions.writeQuantifiers().sygusGrammarUseDisj = false;
+    subOptions.write_quantifiers().sygusGrammarUseDisj = false;
   }
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
@@ -180,7 +180,7 @@ void AbductionSolver::checkAbduct(Node a)
 
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
-  subOptions.writeSmt().produceAbducts = false;
+  subOptions.write_smt().produceAbducts = false;
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
   // two checks: first, consistent with assertions, second, implies negated goal

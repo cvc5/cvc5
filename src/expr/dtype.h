@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -213,6 +213,9 @@ class DType
   /** set that this datatype is a tuple */
   void setTuple();
 
+  /** set that this datatype is a nullable */
+  void setNullable();
+
   /** set that this datatype is a record */
   void setRecord();
 
@@ -242,6 +245,9 @@ class DType
 
   /** is this a tuple datatype? */
   bool isTuple() const;
+
+  /** is this a nullable datatype? */
+  bool isNullable() const;
 
   /** is this a record datatype? */
   bool isRecord() const;
@@ -570,6 +576,8 @@ class DType
   bool d_isCo;
   /** whether the datatype is a tuple */
   bool d_isTuple;
+  /** whether the datatype is a nullable */
+  bool d_isNullable;
   /** whether the datatype is a record */
   bool d_isRecord;
   /** the constructors of this datatype */
@@ -634,24 +642,19 @@ class DType
   mutable std::map<TypeNode, CardinalityClass> d_cardClass;
 }; /* class DType */
 
-/**
- * A hash function for DTypes.  Needed to store them in hash sets
- * and hash maps.
- */
-struct DTypeHashFunction
-{
-  size_t operator()(const DType& dt) const
-  {
-    return std::hash<std::string>()(dt.getName());
-  }
-  size_t operator()(const DType* dt) const
-  {
-    return std::hash<std::string>()(dt->getName());
-  }
-}; /* struct DTypeHashFunction */
-
 std::ostream& operator<<(std::ostream& os, const DType& dt);
 
 }  // namespace cvc5::internal
+
+namespace std {
+/**
+ * A hash function for DTypes.
+ */
+template <>
+struct hash<cvc5::internal::DType>
+{
+  size_t operator()(const cvc5::internal::DType& dt) const;
+};
+}  // namespace std
 
 #endif

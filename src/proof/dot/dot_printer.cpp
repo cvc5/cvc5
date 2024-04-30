@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -497,7 +497,7 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
   currentArguments << " :args [ ";
 
   // if cong, special process
-  if (r == ProofRule::CONG)
+  if (r == ProofRule::CONG || r == ProofRule::NARY_CONG)
   {
     AlwaysAssert(args.size() == 1 || args.size() == 2);
     // if two arguments, ignore first and print second

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed
+ *   Andrew Reynolds, Abdalrhman Mohamed, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__LFSC__LFSC_POST_PROCESSOR_H
-#define CVC4__PROOF__LFSC__LFSC_POST_PROCESSOR_H
+#ifndef CVC5__PROOF__LFSC__LFSC_POST_PROCESSOR_H
+#define CVC5__PROOF__LFSC__LFSC_POST_PROCESSOR_H
 
 #include <map>
 #include <unordered_set>

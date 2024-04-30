@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/normal_form.h"
@@ -1124,11 +1125,11 @@ TrustNode Constraint::split()
     auto nGeqPf = d_database->d_pnm->mkAssume(geqNode.negate());
     auto ltPf = d_database->d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM, {nGeqPf}, {ltNode});
-    auto sumPf =
-        d_database->d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
-                                  {gtPf, ltPf},
-                                  {nm->mkConstRealOrInt(type, Rational(-1)),
-                                   nm->mkConstRealOrInt(type, Rational(1))});
+    std::vector<Pf> args{gtPf, ltPf};
+    std::vector<Node> coeffs{nm->mkConstReal(-1), nm->mkConstReal(1)};
+    std::vector<Node> coeffsUse = getMacroSumUbCoeff(args, coeffs);
+    auto sumPf = d_database->d_pnm->mkNode(
+        ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffsUse);
     auto botPf = d_database->d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
     std::vector<Node> a = {leqNode.negate(), geqNode.negate()};
@@ -1788,14 +1789,16 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           TypeNode type = plit[0].getType();
           for (Rational r : *getFarkasCoefficients())
           {
-            farkasCoeffs.push_back(nm->mkConstReal(Rational(r)));
+            farkasCoeffs.push_back(nm->mkConstRealOrInt(Rational(r)));
           }
+          std::vector<Node> farkasCoeffsUse =
+              getMacroSumUbCoeff(farkasChildren, farkasCoeffs);
 
           // Apply the scaled-sum rule.
           std::shared_ptr<ProofNode> sumPf =
               pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                           farkasChildren,
-                          farkasCoeffs);
+                          farkasCoeffsUse);
 
           // Provable rewrite the result
           Node falsen = nm->mkConst(false);
@@ -1849,10 +1852,8 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         }
         case ArithProofType::TrichotomyAP:
         {
-          pf = pnm->mkNode(ProofRule::ARITH_TRICHOTOMY,
-                           children,
-                           {getProofLiteral()},
-                           getProofLiteral());
+          pf = pnm->mkNode(
+              ProofRule::ARITH_TRICHOTOMY, children, {}, getProofLiteral());
           break;
         }
         case ArithProofType::InternalAssumeAP:
@@ -2089,12 +2090,13 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
                                    {d_pnm->mkAssume(lb.negate())},
                                    {blit});
     int sndSign = negateSecond ? -1 : 1;
+    std::vector<Pf> args{pf_neg_la, pf_neg_lb};
+    std::vector<Node> coeffs{nm->mkConstReal(Rational(-1 * sndSign)),
+                             nm->mkConstReal(Rational(sndSign))};
+    std::vector<Node> coeffsUse = getMacroSumUbCoeff(args, coeffs);
     auto bot_pf = d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM,
-        {d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
-                       {pf_neg_la, pf_neg_lb},
-                       {nm->mkConstRealOrInt(type, Rational(-1 * sndSign)),
-                        nm->mkConstRealOrInt(type, Rational(sndSign))})},
+        {d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffsUse)},
         {nm->mkConst(false)});
     std::vector<Node> as;
     std::transform(orN.begin(), orN.end(), std::back_inserter(as), [](Node n) {

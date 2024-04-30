@@ -25,6 +25,7 @@
 #include <iosfwd>
 namespace cvc5 {
 #define ENUM(name) class name
+#undef EVALUE
 #define EVALUE(name) name
 #endif
 
@@ -34,7 +35,7 @@ namespace cvc5 {
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef EVALUE
-#define EVALUE(name) CVC5_UNKNOWN_EXP_##name
+#define EVALUE(name) CVC5_UNKNOWN_EXPLANATION_##name
 #endif
 
 /**
@@ -46,7 +47,7 @@ enum ENUM(UnknownExplanation)
    * Full satisfiability check required (e.g., if only preprocessing was
    * performed).
    */
-  EVALUE(REQUIRES_FULL_CHECK),
+  EVALUE(REQUIRES_FULL_CHECK) = 0,
   /** Incomplete theory solver. */
   EVALUE(INCOMPLETE),
   /** Time limit reached. */
@@ -65,6 +66,10 @@ enum ENUM(UnknownExplanation)
   EVALUE(REQUIRES_CHECK_AGAIN),
   /** No specific reason given. */
   EVALUE(UNKNOWN_REASON),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -87,7 +92,14 @@ const char* cvc5_unknown_explanation_to_string(Cvc5UnknownExplanation exp);
  * @param e The explanation to be serialized to the given output stream
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, UnknownExplanation e) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, UnknownExplanation e);
+}  // namespace cvc5
+
+namespace std {
+std::string to_string(cvc5::UnknownExplanation exp);
+}
+
+namespace cvc5 {
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -122,7 +134,7 @@ enum ENUM(RoundingMode)
    * infinitely precise result are equally near, the one with an even least
    * significant digit will be delivered.
    */
-  EVALUE(ROUND_NEAREST_TIES_TO_EVEN),
+  EVALUE(ROUND_NEAREST_TIES_TO_EVEN) = 0,
   /**
    * Round towards positive infinity (SMT-LIB: ``+oo``).
    *
@@ -152,6 +164,10 @@ enum ENUM(RoundingMode)
    * will be selected.
    */
   EVALUE(ROUND_NEAREST_TIES_TO_AWAY),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -160,8 +176,25 @@ typedef enum ENUM(RoundingMode) ENUM(RoundingMode);
 #endif
 #endif
 
-#ifndef CVC5_API_USE_C_ENUMS
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5RoundingMode.
+ * @param rm The rounding mode.
+ * @return The string representation.
+ */
+const char* cvc5_rm_to_string(Cvc5RoundingMode rm);
+#else
+/**
+ * Serialize a RoundingMode to given stream.
+ * @param out The output stream
+ * @param rm The rounding mode to be serialized to the given output stream
+ * @return The output stream
+ */
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, RoundingMode rm);
 }  // namespace cvc5
+namespace std {
+std::string to_string(cvc5::RoundingMode rm);
+}
 #endif
 
 #ifndef CVC5_API_USE_C_ENUMS
@@ -174,7 +207,7 @@ namespace cvc5::modes {
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef EVALUE
-#define EVALUE(name) CVC5_BLOCK_MODELS_##name
+#define EVALUE(name) CVC5_BLOCK_MODELS_MODE_##name
 #endif
 
 /**
@@ -186,9 +219,13 @@ namespace cvc5::modes {
 enum ENUM(BlockModelsMode)
 {
   /** Block models based on the SAT skeleton. */
-  EVALUE(LITERALS),
+  EVALUE(LITERALS) = 0,
   /** Block models based on the concrete model values for the free variables. */
   EVALUE(VALUES),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -203,7 +240,7 @@ typedef enum ENUM(BlockModelsMode) ENUM(BlockModelsMode);
  * @param mode The mode.
  * @return The string representation.
  */
-const char* cvc5_block_models_mode_to_string(Cvc5BlockModelsMode mode);
+const char* cvc5_modes_block_models_mode_to_string(Cvc5BlockModelsMode mode);
 #else
 /**
  * Serialize a BlockModelsMode to given stream.
@@ -211,7 +248,14 @@ const char* cvc5_block_models_mode_to_string(Cvc5BlockModelsMode mode);
  * @param mode The mode.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, BlockModelsMode mode) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, BlockModelsMode mode);
+}
+
+namespace std {
+std::string to_string(cvc5::modes::BlockModelsMode mode);
+}
+
+namespace cvc5::modes {
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -240,7 +284,7 @@ enum ENUM(LearnedLitType)
    * In particular, literals in this category are of the form (= x t) where
    * x does not occur in t.
    */
-  EVALUE(PREPROCESS_SOLVED),
+  EVALUE(PREPROCESS_SOLVED) = 0,
   /**
    * A top-level literal (unit clause) from the preprocessed set of input
    * formulas.
@@ -277,6 +321,10 @@ enum ENUM(LearnedLitType)
   EVALUE(INTERNAL),
   /** Special case for when produce-learned-literals is not set.  */
   EVALUE(UNKNOWN),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -291,7 +339,7 @@ typedef enum ENUM(LearnedLitType) ENUM(LearnedLitType);
  * @param type The learned literal type.
  * @return The string representation.
  */
-const char* cvc5_learned_lit_type_to_string(Cvc5LearnedLitType type);
+const char* cvc5_modes_learned_lit_type_to_string(Cvc5LearnedLitType type);
 #else
 /**
  * Serialize a LearnedLitType to given stream.
@@ -299,7 +347,14 @@ const char* cvc5_learned_lit_type_to_string(Cvc5LearnedLitType type);
  * @param type The learned literal type.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, LearnedLitType type) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, LearnedLitType type);
+}
+
+namespace std {
+std::string to_string(cvc5::modes::LearnedLitType type);
+}
+
+namespace cvc5::modes {
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -324,7 +379,7 @@ enum ENUM(ProofComponent)
    *
    * Note that G1 ... Gn may be arbitrary formulas, not necessarily clauses.
    */
-  EVALUE(RAW_PREPROCESS),
+  EVALUE(RAW_PREPROCESS) = 0,
   /**
    * Proofs of Gu1 ... Gun whose free assumptions are Fu1, ... Fum,
    * where:
@@ -366,6 +421,10 @@ enum ENUM(ProofComponent)
    * Only valid immediately after an unsat response.
    */
   EVALUE(FULL),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -380,7 +439,7 @@ typedef enum ENUM(ProofComponent) ENUM(ProofComponent);
  * @param pc The proof component.
  * @return The string representation.
  */
-const char* cvc5_proof_component_to_string(Cvc5ProofComponent pc);
+const char* cvc5_modes_proof_component_to_string(Cvc5ProofComponent pc);
 #else
 /**
  * Serialize a ProofComponent to given stream.
@@ -388,7 +447,14 @@ const char* cvc5_proof_component_to_string(Cvc5ProofComponent pc);
  * @param pc The proof component.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofComponent pc);
+}
+
+namespace std {
+std::string to_string(cvc5::modes::ProofComponent pc);
+}
+
+namespace cvc5::modes {
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -405,15 +471,21 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
 enum ENUM(ProofFormat)
 {
   /** Do not translate proof output. */
-  EVALUE(NONE),
+  EVALUE(NONE) = 0,
   /** Output DOT proof. */
   EVALUE(DOT),
   /** Output LFSC proof. */
   EVALUE(LFSC),
   /** Output Alethe proof. */
   EVALUE(ALETHE),
+  /** Output AletheLF proof using the cvc5 signatures. */
+  EVALUE(ALF),
   /** Use the proof format mode set in the solver options. */
-  EVALUE(DEFAULT)
+  EVALUE(DEFAULT),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -428,7 +500,7 @@ typedef enum ENUM(ProofFormat) ENUM(ProofFormat);
  * @param format The proof format.
  * @return The string representation.
  */
-const char* cvc5_proof_format_to_string(Cvc5ProofFormat format);
+const char* cvc5_modes_proof_format_to_string(Cvc5ProofFormat format);
 #else
 /**
  * Serialize a FindSynthTarget to given stream.
@@ -436,7 +508,14 @@ const char* cvc5_proof_format_to_string(Cvc5ProofFormat format);
  * @param format The proof format.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, ProofFormat format) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofFormat format);
+}
+
+namespace std {
+std::string to_string(cvc5::modes::ProofFormat format);
+}
+
+namespace cvc5::modes {
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -457,7 +536,7 @@ enum ENUM(FindSynthTarget)
   /**
    * Find the next term in the enumeration of the target grammar.
    */
-  EVALUE(ENUM),
+  EVALUE(ENUM) = 0,
   /**
    * Find a pair of terms (t,s) in the target grammar which are equivalent
    * but do not rewrite to the same term in the given rewriter
@@ -497,6 +576,10 @@ enum ENUM(FindSynthTarget)
    * filtered by the option --sygus-query-gen-filter-solved.
    */
   EVALUE(QUERY),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -511,7 +594,8 @@ typedef enum ENUM(FindSynthTarget) ENUM(FindSynthTarget);
  * @param target The synthesis find target.
  * @return The string representation.
  */
-const char* cvc5_find_synthesis_target_to_string(Cvc5FindSynthTarget target);
+const char* cvc5_modes_find_synthesis_target_to_string(
+    Cvc5FindSynthTarget target);
 #else
 /**
  * Serialize a FindSynthTarget to given stream.
@@ -519,7 +603,14 @@ const char* cvc5_find_synthesis_target_to_string(Cvc5FindSynthTarget target);
  * @param target The synthesis find target.
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, FindSynthTarget target) CVC5_EXPORT;
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, FindSynthTarget target);
+}
+
+namespace std {
+std::string to_string(cvc5::modes::FindSynthTarget target);
+}
+
+namespace cvc5::modes {
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -528,7 +619,7 @@ std::ostream& operator<<(std::ostream& out, FindSynthTarget target) CVC5_EXPORT;
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef EVALUE
-#define EVALUE(name) CVC5_INPUT_LANG_##name
+#define EVALUE(name) CVC5_INPUT_LANGUAGE_##name
 #endif
 
 /**
@@ -537,11 +628,15 @@ std::ostream& operator<<(std::ostream& out, FindSynthTarget target) CVC5_EXPORT;
 enum ENUM(InputLanguage)
 {
   /** The SMT-LIB version 2.6 language */
-  EVALUE(SMT_LIB_2_6),
+  EVALUE(SMT_LIB_2_6) = 0,
   /** The SyGuS version 2.1 language. */
   EVALUE(SYGUS_2_1),
   /** No language given. */
   EVALUE(UNKNOWN),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST),
+#endif
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -556,7 +651,7 @@ typedef enum ENUM(InputLanguage) ENUM(InputLanguage);
  * @param lang The input language.
  * @return The string representation.
  */
-const char* cvc5_input_language_to_string(Cvc5InputLanguage lang);
+const char* cvc5_modes_input_language_to_string(Cvc5InputLanguage lang);
 #else
 /**
  * Serialize an InputLanguage to given stream.
@@ -564,10 +659,13 @@ const char* cvc5_input_language_to_string(Cvc5InputLanguage lang);
  * @param lang The language to be serialized to the given output stream
  * @return The output stream
  */
-std::ostream& operator<<(std::ostream& out, InputLanguage lang) CVC5_EXPORT;
-#endif
-
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, InputLanguage lang);
 }  // namespace cvc5::modes
+
+namespace std {
+std::string to_string(cvc5::modes::InputLanguage lang);
+}
+#endif
 
 #endif
 

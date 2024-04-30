@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,6 +46,14 @@ class BasicRewriteRCons : protected EnvObj
    * of (= a b) was added to cdp.
    */
   bool prove(CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
+  /**
+   * There are theory rewrites which cannot be expressed in RARE rules. In this
+   * case we need to use proof rules which are not written in RARE. It is only
+   * used as a last resort method so this is executed only when other rules
+   * fail.
+   */
+  bool postProve(
+      CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
 
  private:
   /**

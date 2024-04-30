@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1411,7 +1411,7 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
 
 bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode >& subs, TNode rhs ) {
   if( TraceIsOn("sg-cconj-debug") ){
-    Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substituion: " << std::endl;
+    Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substitution: " << std::endl;
     for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
       Assert(getRepresentative(it->second) == it->second);
       Trace("sg-cconj-debug") << "  " << it->first << " -> " << it->second << std::endl;

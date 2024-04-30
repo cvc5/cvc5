@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -209,12 +209,9 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
   {
     std::vector<Node> pfArgs;
     pfArgs.push_back(ret);
-    for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
-    {
-      pfArgs.push_back(vars[i].eqNode(subs[i]));
-      Trace("alpha-eq") << "subs: " << vars[i] << " -> " << subs[i]
-                        << std::endl;
-    }
+    NodeManager* nm = nodeManager();
+    pfArgs.push_back(nm->mkNode(Kind::SEXPR, vars));
+    pfArgs.push_back(nm->mkNode(Kind::SEXPR, subs));
     CDProof cdp(d_env);
     Node sret =
         ret.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());

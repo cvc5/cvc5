@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -252,6 +252,7 @@ NodeManager::~NodeManager()
   TypeNode dummy;
   d_tt_cache.d_children.clear();
   d_tt_cache.d_data = dummy;
+  d_nt_cache.clear();
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
@@ -259,6 +260,7 @@ NodeManager::~NodeManager()
   d_dtypes.clear();
   d_oracles.clear();
   d_nfreshSorts.clear();
+  d_nfreshVars.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -319,6 +321,13 @@ const DType& NodeManager::getDTypeFor(TypeNode tn) const
   {
     // lookup its datatype encoding
     TypeNode dtt = getAttribute(tn, expr::TupleDatatypeAttr());
+    Assert(!dtt.isNull());
+    return getDTypeFor(dtt);
+  }
+  else if (k == Kind::NULLABLE_TYPE)
+  {
+    // lookup its datatype encoding
+    TypeNode dtt = getAttribute(tn, expr::NullableDatatypeAttr());
     Assert(!dtt.isNull());
     return getDTypeFor(dtt);
   }
@@ -687,6 +696,15 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
         typeNode = mkTypeNode(Kind::TUPLE_TYPE, tupleTypes);
         typeNode.setAttribute(expr::TupleDatatypeAttr(), dtt);
       }
+      if (dt.isNullable())
+      {
+        TypeNode dtt = typeNode;
+        const DTypeConstructor& some = dt[1];
+        Assert(some.getNumArgs() == 1);
+        // Set its datatype representation
+        typeNode = mkTypeNode(Kind::NULLABLE_TYPE, some[0].getType());
+        typeNode.setAttribute(expr::NullableDatatypeAttr(), dtt);
+      }
     }
     else
     {
@@ -941,6 +959,35 @@ TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types)
   return d_tt_cache.getTupleType(this, types);
 }
 
+TypeNode NodeManager::mkNullableType(const TypeNode& type)
+{
+  Assert(!type.isNull());
+  auto it = d_nt_cache.find(type);
+  if (it != d_nt_cache.end())
+  {
+    return it->second;
+  }
+  // construct the corresponding datatype with two constructors
+  // null and some.
+  std::stringstream sst;
+  sst << "__cvc5_nullable_" << type;
+  DType dt(sst.str());
+  dt.setNullable();  
+  std::shared_ptr<DTypeConstructor> null =
+      std::make_shared<DTypeConstructor>("nullable.null");
+  dt.addConstructor(null);
+  std::shared_ptr<DTypeConstructor> some =
+      std::make_shared<DTypeConstructor>("nullable.some");  
+  some->addArg("nullable.val", type);
+  dt.addConstructor(some);
+  TypeNode datatype = mkDatatypeType(dt);
+  Assert(datatype.isNullable());
+  d_nt_cache[type] = datatype;
+  Trace("nullable-debug") << "NodeManager::mkNullableType(" << type
+                          << ") = " << datatype << std::endl;
+  return datatype;
+}
+
 TypeNode NodeManager::mkRecordType(const Record& rec)
 {
   return d_rt_cache.getRecordType(this, rec);
@@ -1049,17 +1096,22 @@ Node NodeManager::mkVar(const std::string& name,
     setAttribute(n, expr::VarNameAttr(), name);
     return n;
   }
-  // to construct a variable in a canonical way, we use the skolem
-  // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
-  // variable is unique.
-  std::vector<Node> cnodes;
-  cnodes.push_back(mkConst(String(name, false)));
-  // Since we index only on Node, we must construct use mkGroundValue
-  // to construct a canonical node for the tn.
-  Node gt = mkGroundValue(type);
-  cnodes.push_back(gt);
-  return d_skManager->mkSkolemFunction(
-      SkolemFunId::INPUT_VARIABLE, type, cnodes);
+  // Note that the constructed variable must have kind VARIABLE, not SKOLEM,
+  // which is why this is not implemented as a case inside SkolemManager.
+  std::pair<std::string, TypeNode> key(name, type);
+  std::map<std::pair<std::string, TypeNode>, Node>::iterator it;
+  it = d_nfreshVars.find(key);
+  if (it != d_nfreshVars.end())
+  {
+    return it->second;
+  }
+  Node n = NodeBuilder(this, Kind::VARIABLE);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, TypeCheckedAttr(), true);
+  setAttribute(n, expr::VarNameAttr(), name);
+  Node v = n;
+  d_nfreshVars[key] = v;
+  return v;
 }
 
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)
@@ -1272,6 +1324,8 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
     && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+#if defined(__GNUC__) && (__GNUC__ > 9)
 #pragma GCC diagnostic ignored "-Wzero-length-bounds"
 #endif
 

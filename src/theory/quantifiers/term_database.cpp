@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,30 +43,24 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_qstate(qs),
       d_qim(nullptr),
       d_qreg(qr),
-      d_termsContext(),
-      d_termsContextUse(options().quantifiers.termDbCd ? context()
-                                                       : &d_termsContext),
-      d_processed(d_termsContextUse),
-      d_typeMap(d_termsContextUse),
-      d_ops(d_termsContextUse),
-      d_opMap(d_termsContextUse),
+      d_processed(context()),
+      d_typeMap(context()),
+      d_ops(context()),
+      d_opMap(context()),
       d_inactive_map(context())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
-  if (!options().quantifiers.termDbCd)
-  {
-    // when not maintaining terms in a context-dependent manner, we clear during
-    // each presolve, which requires maintaining a single outermost level
-    d_termsContext.push();
-  }
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 TermDb::~TermDb(){
 
 }
 
-void TermDb::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
+void TermDb::finishInit(QuantifiersInferenceManager* qim)
+{
+  d_qim = qim;
+}
 
 void TermDb::registerQuantifier( Node q ) {
   Assert(q[0].getNumChildren() == d_qreg.getNumInstantiationConstants(q));
@@ -166,7 +160,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   std::unordered_map<TypeNode, Node>::iterator it = d_type_fv.find(tn);
   if (it == d_type_fv.end())
   {
-    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    SkolemManager* sm = nodeManager()->getSkolemManager();
     std::stringstream ss;
     options::ioutils::applyOutputLanguage(ss, options().printer.outputLanguage);
     ss << "e_" << tn;
@@ -231,11 +225,10 @@ void TermDb::addTerm(Node n)
     DbList* dlt = getOrMkDbListForType(n.getType());
     dlt->d_list.push_back(n);
     // if this is an atomic trigger, consider adding it
-    if (inst::TriggerTermInfo::isAtomicTrigger(n))
+    Node op = getMatchOperator(n);
+    if (!op.isNull())
     {
       Trace("term-db") << "register term in db " << n << std::endl;
-
-      Node op = getMatchOperator(n);
       Trace("term-db-debug") << "  match operator is : " << op << std::endl;
       DbList* dlo = getOrMkDbListForOp(op);
       dlo->d_list.push_back(n);
@@ -263,7 +256,7 @@ DbList* TermDb::getOrMkDbListForType(TypeNode tn)
   {
     return it->second.get();
   }
-  std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
+  std::shared_ptr<DbList> dl = std::make_shared<DbList>(context());
   d_typeMap.insert(tn, dl);
   return dl.get();
 }
@@ -275,7 +268,7 @@ DbList* TermDb::getOrMkDbListForOp(TNode op)
   {
     return it->second.get();
   }
-  std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
+  std::shared_ptr<DbList> dl = std::make_shared<DbList>(context());
   d_opMap.insert(op, dl);
   Assert(op.getKind() != Kind::BOUND_VARIABLE);
   d_ops.push_back(op);
@@ -337,7 +330,7 @@ void TermDb::computeUfTerms( TNode f ) {
   unsigned nonCongruentCount = 0;
   unsigned alreadyCongruentCount = 0;
   unsigned relevantCount = 0;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (TNode ff : ops)
   {
     NodeDbListMap::iterator it = d_opMap.find(ff);
@@ -580,13 +573,7 @@ void TermDb::setHasTerm( Node n ) {
   }
 }
 
-void TermDb::presolve() {
-  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
-  {
-    d_termsContext.pop();
-    d_termsContext.push();
-  }
-}
+void TermDb::presolve() {}
 
 bool TermDb::reset( Theory::Effort effort ){
   d_op_nonred_count.clear();

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -182,7 +182,8 @@ Node HoTermDb::getHoTypeMatchPredicate(TypeNode tn)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
-  return sm->mkSkolemFunction(SkolemFunId::HO_TYPE_MATCH_PRED, ptn);
+  return sm->mkInternalSkolemFunction(InternalSkolemId::HO_TYPE_MATCH_PRED,
+                                      ptn);
 }
 
 }  // namespace quantifiers

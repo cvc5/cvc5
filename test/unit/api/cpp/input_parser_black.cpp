@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,23 +48,23 @@ class TestInputParserBlack : public TestParser
 
 TEST_F(TestInputParserBlack, getSolver)
 {
-  InputParser p(&d_solver);
-  ASSERT_EQ(p.getSolver(), &d_solver);
+  InputParser p(d_solver.get());
+  ASSERT_EQ(p.getSolver(), d_solver.get());
 }
 
 TEST_F(TestInputParserBlack, getSymbolManager)
 {
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   // a symbol manager is allocated
   ASSERT_NE(p.getSymbolManager(), nullptr);
 
-  InputParser p2(&d_solver, d_symman.get());
+  InputParser p2(d_solver.get(), d_symman.get());
   ASSERT_EQ(p2.getSymbolManager(), d_symman.get());
 }
 
 TEST_F(TestInputParserBlack, setFileInput)
 {
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   ASSERT_THROW(
       p.setFileInput(modes::InputLanguage::SMT_LIB_2_6, "nonexistent.smt2"),
       CVC5ApiException);
@@ -72,7 +72,7 @@ TEST_F(TestInputParserBlack, setFileInput)
 
 TEST_F(TestInputParserBlack, setStreamInput)
 {
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   std::stringstream ss;
   ss << "(set-logic QF_LIA)" << std::endl;
   ss << "(declare-fun a () Bool)" << std::endl;
@@ -88,7 +88,7 @@ TEST_F(TestInputParserBlack, setStreamInput)
     {
       break;
     }
-    ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+    ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
   }
   ASSERT_EQ(p.done(), true);
 }
@@ -96,7 +96,7 @@ TEST_F(TestInputParserBlack, setStreamInput)
 TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
 {
   std::stringstream out;
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
   Command cmd;
@@ -105,39 +105,39 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
   p.appendIncrementalStringInput("(declare-fun b () Int)");
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
-  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
-  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
-  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
 }
 
 TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInputInterleave)
 {
   std::stringstream out;
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
   Command cmd;
   p.appendIncrementalStringInput("(set-logic ALL)");
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
-  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
   p.appendIncrementalStringInput("(declare-fun a () Bool)");
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
-  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
   p.appendIncrementalStringInput("(declare-fun b () Int)");
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
-  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
 }
 
 TEST_F(TestInputParserBlack, appendIncrementalNoSet)
 {
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   ASSERT_THROW(p.appendIncrementalStringInput("(set-logic ALL)"),
                CVC5ApiException);
 }
@@ -145,21 +145,21 @@ TEST_F(TestInputParserBlack, appendIncrementalNoSet)
 TEST_F(TestInputParserBlack, setStringInput)
 {
   std::stringstream out;
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   Command cmd;
   p.setStringInput(modes::InputLanguage::SMT_LIB_2_6,
                    "(set-logic ALL)",
                    "input_parser_black");
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
-  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
   cmd = p.nextCommand();
   ASSERT_EQ(cmd.isNull(), true);
 }
 
 TEST_F(TestInputParserBlack, nextCommand)
 {
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   ASSERT_THROW(p.nextCommand(), CVC5ApiException);
   std::stringstream ss;
   p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "input_parser_black");
@@ -169,7 +169,7 @@ TEST_F(TestInputParserBlack, nextCommand)
 
 TEST_F(TestInputParserBlack, nextCommandNoInput)
 {
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
   Command cmd = p.nextCommand();
@@ -180,7 +180,7 @@ TEST_F(TestInputParserBlack, nextCommandNoInput)
 
 TEST_F(TestInputParserBlack, nextTerm)
 {
-  InputParser p(&d_solver);
+  InputParser p(d_solver.get());
   ASSERT_THROW(p.nextTerm(), CVC5ApiException);
   std::stringstream ss;
   p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "input_parser_black");
@@ -190,14 +190,14 @@ TEST_F(TestInputParserBlack, nextTerm)
 TEST_F(TestInputParserBlack, nextTerm2)
 {
   std::stringstream out;
-  InputParser p(&d_solver, d_symman.get());
+  InputParser p(d_solver.get(), d_symman.get());
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
   // parse a declaration command
   p.appendIncrementalStringInput("(declare-fun a () Int)\n");
   Command cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
-  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
   // now parse some terms
   Term t;
   p.appendIncrementalStringInput("45\n");
@@ -214,23 +214,23 @@ TEST_F(TestInputParserBlack, nextTerm2)
 TEST_F(TestInputParserBlack, multipleParsers)
 {
   std::stringstream out;
-  InputParser p(&d_solver, d_symman.get());
+  InputParser p(d_solver.get(), d_symman.get());
   // set a logic for the parser
   Command cmd = parseLogicCommand(p, "QF_LIA");
-  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
-  ASSERT_EQ(d_solver.isLogicSet(), true);
-  ASSERT_EQ(d_solver.getLogic(), "QF_LIA");
+  ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
+  ASSERT_EQ(d_solver->isLogicSet(), true);
+  ASSERT_EQ(d_solver->getLogic(), "QF_LIA");
   ASSERT_EQ(d_symman->isLogicSet(), true);
   ASSERT_EQ(d_symman->getLogic(), "QF_LIA");
   // cannot set logic on solver now
-  ASSERT_THROW(d_solver.setLogic("QF_LRA"), CVC5ApiException);
+  ASSERT_THROW(d_solver->setLogic("QF_LRA"), CVC5ApiException);
 
   // possible to construct another parser with the same solver and symbol
   // manager
-  InputParser p2(&d_solver, p.getSymbolManager());
+  InputParser p2(d_solver.get(), p.getSymbolManager());
 
   // possible to construct another parser with a fresh solver
-  Solver s2;
+  Solver s2(d_tm);
   InputParser p3(&s2, d_symman.get());
   p3.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                                "input_parser_black");
@@ -241,14 +241,14 @@ TEST_F(TestInputParserBlack, multipleParsers)
   ASSERT_THROW(parseLogicCommand(p3, "QF_LRA"), ParserException);
 
   // using a solver with the same logic is allowed
-  Solver s3;
+  Solver s3(d_tm);
   s3.setLogic("QF_LIA");
   InputParser p4(&s3, d_symman.get());
   p4.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                                "input_parser_black");
 
   // using a solver with a different logic is not allowed
-  Solver s4;
+  Solver s4(d_tm);
   s4.setLogic("QF_LRA");
   InputParser p5(&s4, d_symman.get());
   ASSERT_THROW(p5.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
@@ -277,6 +277,53 @@ TEST_F(TestInputParserBlack, ParserExceptions)
   ParserEndOfFileException eofString(message);
   ParserEndOfFileException eofCMessage(cMessage);
   ParserEndOfFileException eof(message, filename, 10, 11);
+}
+
+
+TEST_F(TestInputParserBlack, incrementalSetString)
+{
+  InputParser p(d_solver.get(), d_symman.get());
+  Command cmd;
+  std::stringstream out;
+  std::vector<std::string> stringVec;
+  stringVec.push_back("(set-logic ALL)");
+  stringVec.push_back("(push)");
+  stringVec.push_back("(declare-fun x () Int)");
+  stringVec.push_back("(pop)");
+  stringVec.push_back("(declare-fun x () Int)");
+  for (size_t i=0; i<stringVec.size(); i++)
+  {
+    p.setStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                    stringVec[i],
+                    "input_parser_black");
+    cmd = p.nextCommand();
+    ASSERT_NE(cmd.isNull(), true);
+    ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
+  }
+  ASSERT_EQ(out.str().empty(), true);
+}
+
+TEST_F(TestInputParserBlack, getDeclaredTermsAndSorts)
+{
+  InputParser p(d_solver.get(), d_symman.get());
+  Command cmd;
+  std::stringstream out;
+  p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                              "input_parser_black");
+  p.appendIncrementalStringInput("(set-logic ALL)");
+  p.appendIncrementalStringInput("(declare-sort U 0)");
+  p.appendIncrementalStringInput("(declare-fun x () U)");
+  for (size_t i = 0; i < 3; i++)
+  {
+    cmd = p.nextCommand();
+    ASSERT_NE(cmd.isNull(), true);
+    ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
+  }
+  std::vector<Sort> sorts = d_symman->getDeclaredSorts();
+  std::vector<Term> terms = d_symman->getDeclaredTerms();
+  ASSERT_EQ(sorts.size(), 1);
+  ASSERT_EQ(terms.size(), 1);
+  ASSERT_EQ(terms[0].getSort(), sorts[0]);
 }
 
 }  // namespace test

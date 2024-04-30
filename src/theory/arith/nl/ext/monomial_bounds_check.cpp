@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -98,7 +98,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
   const std::map<Node, std::map<Node, ConstraintInfo> >& cim =
       d_cdb.getConstraints();
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // register constraints
   Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
   for (const Node& lit : asserts)
@@ -319,8 +319,9 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           {
             Node exp = nm->mkNode(
                 Kind::AND,
-                nm->mkNode(
-                    mmv_sign == 1 ? Kind::GT : Kind::LT, mult, d_data->d_zero),
+                nm->mkNode(mmv_sign == 1 ? Kind::GT : Kind::LT,
+                           mult,
+                           nm->mkConstRealOrInt(mult.getType(), Rational(0))),
                 d_ci_exp[x][coeff][rhs]);
             Node iblem = nm->mkNode(Kind::IMPLIES, exp, infer);
             Node iblem_rw = rewrite(iblem);
@@ -399,10 +400,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                  {exp[1][0]},
                                  {rb});
                 }
-                proof->addStep(simpleeq,
-                               ProofRule::ARITH_TRICHOTOMY,
-                               {lb, rb},
-                               {simpleeq});
+                proof->addStep(
+                    simpleeq, ProofRule::ARITH_TRICHOTOMY, {lb, rb}, {});
                 proof->addStep(
                     tmplem[0], ProofRule::AND_INTRO, {exp[0], simpleeq}, {});
                 proof->addStep(tmplem[1],
@@ -433,7 +432,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
 
 void MonomialBoundsCheck::checkResBounds()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("nl-ext") << "Get monomial resolution inferred bound lemmas..."
                   << std::endl;
   size_t nmterms = d_data->d_mterms.size();

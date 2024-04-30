@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -69,8 +69,12 @@ class AletheProofPrinter : protected EnvObj
    *
    * @param out The stream to write to
    * @param pfn The proof node to be printed
+   * @param assertionNames Mapping between assertions and names, if they were
+   * given by the user.
    */
-  void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+  void print(std::ostream& out,
+             std::shared_ptr<ProofNode> pfn,
+             const std::map<Node, std::string>& assertionNames);
 
  private:
   /** Used for printing the proof node after the initial Alethe anchor has been
