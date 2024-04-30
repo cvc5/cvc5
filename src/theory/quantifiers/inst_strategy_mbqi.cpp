@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/inst_strategy_mbqi.h"
 
+#include "base/map_util.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
@@ -138,7 +139,7 @@ void InstStrategyMbqi::process(Node q)
   else if (!bquery.getConst<bool>())
   {
     d_quantChecked.insert(q);
-    Trace("mbqi") << "...success, by rewriting" << std::endl;
+    Trace("mbqi") << "...success, by rewriting (no counter-model)" << std::endl;
     return;
   }
   // ensure the entire domain of uninterpreted sorts are converted
@@ -146,12 +147,18 @@ void InstStrategyMbqi::process(Node q)
   for (const Node& k : skolems.d_subs)
   {
     TypeNode tn = k.getType();
-    if (!tn.isUninterpretedSort()
-        || processedUsort.find(tn) != processedUsort.end())
+    if (!tn.isUninterpretedSort())
     {
       continue;
     }
-    processedUsort.insert(tn);
+
+    std::pair<std::unordered_set<TypeNode>::iterator, bool> puin =
+        processedUsort.insert(tn);
+    if (!puin.second)
+    {
+      continue; // already processed
+    }
+
     const std::vector<Node>* treps = rs->getTypeRepsOrNull(tn);
     if (treps != nullptr)
     {
@@ -222,7 +229,7 @@ void InstStrategyMbqi::process(Node q)
   if (r.getStatus() == Result::UNSAT)
   {
     d_quantChecked.insert(q);
-    Trace("mbqi") << "...success, SAT" << std::endl;
+    Trace("mbqi") << "...success, UNSAT" << std::endl;
     return;
   }
 
@@ -241,7 +248,7 @@ void InstStrategyMbqi::process(Node q)
   Assert(skolems.size() == terms.size());
   if (TraceIsOn("mbqi"))
   {
-    Trace("mbqi") << "...model from subsolver is: " << std::endl;
+    Trace("mbqi") << "...counter-model from subsolver is: " << std::endl;
     for (size_t i = 0, nterms = skolems.size(); i < nterms; i++)
     {
       Trace("mbqi") << "  " << skolems.d_subs[i] << " -> " << terms[i]
@@ -255,7 +262,8 @@ void InstStrategyMbqi::process(Node q)
     Node vc = convertFromModel(v, tmpConvertMap, mvToFreshVar);
     if (vc.isNull())
     {
-      Trace("mbqi") << "...failed to convert " << v << " from model" << std::endl;
+      Trace("mbqi") << "...failed to convert " << v << " from model"
+                    << std::endl;
       return;
     }
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
@@ -360,17 +368,15 @@ Node InstStrategyMbqi::convertToQuery(
           if (itm == modelValue.end())
           {
             Node mval;
-            if (ck == Kind::CONST_SEQUENCE)
+            switch (ck)
             {
-              mval = strings::utils::mkConcatForConstSequence(cur);
-            }
-            else if (ck == Kind::FUNCTION_ARRAY_CONST)
-            {
-              mval = uf::FunctionConst::toLambda(cur);
-            }
-            else
-            {
-              mval = fm->getValue(cur);
+              case Kind::CONST_SEQUENCE:
+                mval = strings::utils::mkConcatForConstSequence(cur);
+                break;
+              case Kind::FUNCTION_ARRAY_CONST:
+                mval = uf::FunctionConst::toLambda(cur);
+                break;
+              default: mval = fm->getValue(cur);
             }
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
@@ -387,9 +393,10 @@ Node InstStrategyMbqi::convertToQuery(
           }
           else
           {
-            Assert(cmap.find(itm->second) != cmap.end())
-                << "Missing " << itm->second;
-            cmap[cur] = cmap[itm->second];
+            const Node& mval = itm->second;
+            Assert(ContainsKey(cmap, mval)) << "Missing " << mval;
+            Trace("mbqi-model") << cur << " -> " << cmap[mval] << '\n';
+            cmap[cur] = cmap[mval];
           }
         }
       }
