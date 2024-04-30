@@ -284,7 +284,8 @@ bool FirstOrderModel::isQuantifierActive(TNode q) const
 
 bool FirstOrderModel::isQuantifierAsserted(TNode q) const
 {
-  Node qr = d_qstate.getRepresentative(q);
+  // check if asserted true
+  Node qr = d_qstate.getValuation().getSatValue(q);
   return qr.isConst() && qr.getConst<bool>();
 }
 

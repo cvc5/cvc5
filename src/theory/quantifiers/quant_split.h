@@ -19,6 +19,7 @@
 #define CVC5__THEORY__QUANT_SPLIT_H
 
 #include "context/cdo.h"
+#include "context/cdhashmap.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/quant_module.h"
 
@@ -48,7 +49,8 @@ namespace quantifiers {
  * one variable per quantified formula at a time.
  */
 class QuantDSplit : public QuantifiersModule {
-  typedef context::CDHashSet<Node> NodeSet;
+  using NodeSet = context::CDHashSet<Node>;
+  using NodeIntMap = context::CDHashMap<Node, int>;
 
  public:
   QuantDSplit(Env& env,
@@ -69,7 +71,7 @@ class QuantDSplit : public QuantifiersModule {
 
  private:
   /** list of relevant quantifiers asserted in the current context */
-  std::map<Node, int> d_quant_to_reduce;
+  NodeIntMap d_quant_to_reduce;
   /** whether we have instantiated quantified formulas */
   NodeSet d_added_split;
 };
