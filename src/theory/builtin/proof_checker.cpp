@@ -50,7 +50,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::EVALUATE, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
   pc->registerChecker(ProofRule::ANNOTATION, this);
-  pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  pc->registerChecker(ProofRule::ITE_ELIM, this);
   pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
   pc->registerChecker(ProofRule::THEORY_REWRITE, this);
@@ -393,7 +393,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0];
   }
-  else if (id == ProofRule::REMOVE_TERM_FORMULA_AXIOM)
+  else if (id == ProofRule::ITE_ELIM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);

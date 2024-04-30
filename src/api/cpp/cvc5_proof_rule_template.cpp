@@ -38,8 +38,8 @@ const char* toString(ProofRule rule)
     case ProofRule::ANNOTATION: return "ANNOTATION";
     case ProofRule::DSL_REWRITE: return "DSL_REWRITE";
     case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
-    case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
-      return "REMOVE_TERM_FORMULA_AXIOM";
+    case ProofRule::ITE_ELIM:
+      return "ITE_ELIM";
     //================================================= Trusted rules
     case ProofRule::TRUST: return "TRUST";
     case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
