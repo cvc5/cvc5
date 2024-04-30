@@ -255,6 +255,11 @@ name   = "Base"
   help = "prints the formulas used when block-model is run."
   description = "With ``-o block-model``, cvc5 prints the formulas used when block-model is run."
   example-file = "regress0/printer/block_model_out.smt2"
+[[option.mode.OPTIONS_AUTO]]
+  name = "options-auto"
+  help = "prints the options set during automatic configuration."
+  description = "With ``-o options-auto``, cvc5 prints the options set during automatic configuration."
+  example-file = "regress0/printer/print_options_auto.smt2"
 
 # Stores then enabled output tags.
 [[option]]

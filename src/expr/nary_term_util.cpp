@@ -16,6 +16,7 @@
 #include "expr/nary_term_util.h"
 
 #include "expr/attribute.h"
+#include "expr/skolem_manager.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
@@ -172,6 +173,11 @@ Node getNullTerminator(Kind k, TypeNode tn)
         nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       }
       break;
+    case Kind::BITVECTOR_CONCAT:
+    {
+      nullTerm = nm->getSkolemManager()->mkSkolemFunction(SkolemId::BV_EMPTY);
+    }
+    break;
     case Kind::FINITE_FIELD_ADD:
       if (tn.isFiniteField())
       {

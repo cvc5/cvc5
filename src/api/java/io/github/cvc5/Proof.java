@@ -59,7 +59,8 @@ public class Proof implements IPointer
 
   /**
    * @return The proof rewrite rule used by the root step of the proof.
-   * @throws CVC5ApiException if `getRule()` does not return `DSL_REWRITE`.
+   * @throws CVC5ApiException if `getRule()` does not return `DSL_REWRITE`
+   *         or `THEORY_REWRITE`.
    */
   public ProofRewriteRule getRewriteRule() throws CVC5ApiException
   {

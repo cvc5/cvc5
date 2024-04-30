@@ -33,6 +33,15 @@ class TheoryBuiltinRewriter : public TheoryRewriter
 
   RewriteResponse preRewrite(TNode node) override;
 
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
  public:
   /**
    * The default rewriter for rewrites that occur at both pre and post rewrite.

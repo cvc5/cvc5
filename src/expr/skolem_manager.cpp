@@ -53,6 +53,7 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
+    case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
     default: return "?";
   }
 }
@@ -434,6 +435,10 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     {
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, itype);
+    }
+    case SkolemId::BV_EMPTY:
+    {
+      return nm->mkBitVectorType(0);
     }
     // int -> Type(args[0])
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:

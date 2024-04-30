@@ -997,8 +997,6 @@ Node BagsUtils::evaluateTableProject(TNode n)
 std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
 BagsUtils::splitTableJoinIndices(Node n)
 {
-  Assert(n.getKind() == Kind::TABLE_JOIN && n.hasOperator()
-         && n.getOperator().getKind() == Kind::TABLE_JOIN_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   size_t joinSize = indices.size() / 2;
