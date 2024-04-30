@@ -79,7 +79,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
                     bool& continueUpdate) override;
   /** Should proof pn be updated? */
   bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa) override;
+                        const std::vector<Node>& fa) override;
   /** Update the proof rule application. */
   bool update(Node res,
               ProofRule id,

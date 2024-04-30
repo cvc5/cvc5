@@ -99,7 +99,7 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   return true;
 }
 bool ProofPostprocessCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa)
+                                                const std::vector<Node>& fa)
 {
   ProofRule id = pn->getRule();
   // if we eliminate all trusted rules, remember this for later
