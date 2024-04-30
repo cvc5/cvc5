@@ -54,7 +54,24 @@ std::vector<Node> UnsatCoreManager::getUnsatCoreLemmas(bool isInternal)
 {
   prop::PropEngine* pe = d_slv.getPropEngine();
   Assert(pe != nullptr);
-  return pe->getUnsatCoreLemmas();
+  std::vector<Node> coreLemmas = pe->getUnsatCoreLemmas();
+  // output benchmark if specified
+  if (!isInternal)
+  {
+    if (isOutputOn(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK))
+    {
+      // also must compute the unsat core of input
+      std::vector<Node> core = getUnsatCore(true);
+      core.insert(core.end(), coreLemmas.begin(), coreLemmas.end());
+      std::stringstream ss;
+      smt::PrintBenchmark pb(Printer::getPrinter(ss));
+      pb.printBenchmark(ss, logicInfo().getLogicString(), {}, core);
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; unsat core + lemmas" << std::endl;
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ss.str();
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; end unsat core + lemmas" << std::endl;
+    }
+  }
+  return coreLemmas;
 }
 
 void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,

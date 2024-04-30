@@ -29,6 +29,6 @@ cvc5_set_option(ENABLE_MUZZLE OFF)
 # enable_valgrind=optional
 cvc5_set_option(ENABLE_UNIT_TESTING ON)
 
-# Reset visibility for debug builds (https://github.com/CVC4/CVC4/issues/324)
+# Reset visibility for debug builds (https://github.com/cvc5/cvc5/issues/324)
 set(CMAKE_CXX_VISIBILITY_PRESET default)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 0)
