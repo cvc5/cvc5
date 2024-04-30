@@ -111,14 +111,12 @@ const char* toString(ProofRule rule)
     case ProofRule::FALSE_ELIM: return "FALSE_ELIM";
     case ProofRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
     case ProofRule::HO_CONG: return "HO_CONG";
-    case ProofRule::BETA_REDUCE: return "BETA_REDUCE";
     //================================================= Array rules
     case ProofRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
     case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:
       return "ARRAYS_READ_OVER_WRITE_CONTRA";
     case ProofRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case ProofRule::ARRAYS_EXT: return "ARRAYS_EXT";
-    case ProofRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
     //================================================= Bit-Vector rules
     case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
@@ -222,6 +220,9 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
+    case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
+    case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
+      return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
