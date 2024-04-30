@@ -78,8 +78,8 @@ Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return expandEqRange(n);
       }
-    }
     break;
+    }
     default: break;
   }
   return Node::null();
