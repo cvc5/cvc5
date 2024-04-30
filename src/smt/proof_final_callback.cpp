@@ -44,6 +44,9 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
               "finalProof::annotationRuleId")),
       d_dslRuleCount(statisticsRegistry().registerHistogram<ProofRewriteRule>(
           "finalProof::dslRuleCount")),
+      d_theoryRewriteRuleCount(
+          statisticsRegistry().registerHistogram<ProofRewriteRule>(
+              "finalProof::theoryRewriteRuleCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
       d_trustTheoryIdCount(
@@ -105,7 +108,14 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     ProofRewriteRule di;
     if (rewriter::getRewriteRule(args[0], di))
     {
-      d_dslRuleCount << di;
+      if (r == ProofRule::DSL_REWRITE)
+      {
+        d_dslRuleCount << di;
+      }
+      else
+      {
+        d_theoryRewriteRuleCount << di;
+      }
     }
   }
   // take stats on the instantiations in the proof
