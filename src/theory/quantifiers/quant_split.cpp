@@ -147,8 +147,11 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   {
     Node q = it->first;
     Trace("quant-dsplit") << "- Split quantifier " << q << std::endl;
-    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q)
-        && d_added_split.find(q) == d_added_split.end())
+    if (d_added_split.find(q) == d_added_split.end())
+    {
+      continue;
+    }
+    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q))
     {
       d_added_split.insert(q);
       std::vector<Node> bvs;
