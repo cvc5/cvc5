@@ -205,7 +205,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     getTrustId(args[0], tid);
     // we don't do this for steps that are already extended theory rewrite
     // steps, or we would get an infinite loop in reconstruction.
-    if (tid==TrustId::EXT_THEORY_REWRITE)
+    if (tid == TrustId::EXT_THEORY_REWRITE)
     {
       return Node::null();
     }
