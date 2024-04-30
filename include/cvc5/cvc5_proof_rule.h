@@ -336,14 +336,14 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(ANNOTATION),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Processing rules -- If-then-else elimination**
+   * **Processing rules -- If-then-else equivalence**
    *
    * .. math::
    *   \inferrule{- \mid \ite{C}{t_1}{t_2}}{\ite{C}{\ite{C}{t_1}{t_2} = t_1}{\ite{C}{t_1}{t_2} = t_2}}
    *
    * \endverbatim
    */
-  EVALUE(ITE_ELIM),
+  EVALUE(ITE_EQ),
 
   /**
    * \verbatim embed:rst:leading-asterisk
