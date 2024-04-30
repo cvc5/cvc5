@@ -23,7 +23,7 @@ InferProofCons::InferProofCons(Env& env, context::Context* c) : EnvObj(env) {}
 
 void InferProofCons::notifyFact() {}
 
-std::shared_ptr<ProofNode> InferProofConsgetProofFor(Node fact)
+std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
   return nullptr;
 }
