@@ -338,21 +338,20 @@ Node OperatorElim::eliminateOperators(Node node,
       Node lem;
       if (k == Kind::SQRT)
       {
-        Node nonNeg = nm->mkNode(Kind::MULT, var, var).eqNode(node[0]);
+        Node zero = nm->mkConstReal(Rational(0));
+        Node eq = nm->mkNode(Kind::MULT, var, var).eqNode(node[0]);
+        Node resNonNeg = nm->mkNode(Kind::GEQ, var, zero);
 
         // (sqrt x) reduces to:
-        // (=> (>= x 0.0) (= (* y y) x))
+        // (=> (>= x 0.0) (and (>= y 0.0) (= (* y y) x))
         // where y is (@TRANSCENDENTAL_PURIFY x).
         //
         // This makes sure that the reduction still behaves like a function,
-        // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
-        // satisfiable. On the original formula, this would require that we
-        // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
-        // model.
-        lem = nm->mkNode(
-            Kind::IMPLIES,
-            nm->mkNode(Kind::GEQ, node[0], nm->mkConstReal(Rational(0))),
-            nonNeg);
+        // otherwise the reduction of (x = -1) ^ (sqrt(x) != sqrt(-1)) would be
+        // satisfiable.
+        lem = nm->mkNode(Kind::IMPLIES,
+                         nm->mkNode(Kind::GEQ, node[0], zero),
+                         nm->mkNode(Kind::AND, resNonNeg, eq));
       }
       else
       {
@@ -416,7 +415,8 @@ Node OperatorElim::eliminateOperators(Node node,
             << "Elimination lemma " << lem << " for " << node << std::endl;
       }
       Assert(!lem.isNull());
-      lems.push_back(mkSkolemLemma(lem, var));
+      // the skolem lemma is for the function
+      lems.push_back(mkSkolemLemma(lem, fun));
       return var;
     }
     case Kind::REAL_ALGEBRAIC_NUMBER:

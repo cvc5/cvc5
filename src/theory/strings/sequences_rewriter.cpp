@@ -49,6 +49,19 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_sigmaStar = nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+}
+
+Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::RE_LOOP_ELIM:
+      return rewriteViaReLoopElim(n);
+    default: break;
+  }
+  return Node::null();
 }
 
 ArithEntail& SequencesRewriter::getArithEntail() { return d_arithEntail; }
@@ -1226,16 +1239,35 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   {
     return returnRewrite(node, r, Rewrite::RE_LOOP_STAR);
   }
+  retNode = rewriteViaReLoopElim(node);
+  Assert(!retNode.isNull() && retNode != node);
+  return returnRewrite(node, retNode, Rewrite::RE_LOOP);
+}
 
+Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
+{
+  if (node.getKind() != Kind::REGEXP_LOOP)
+  {
+    return Node::null();
+  }
+  uint32_t l = utils::getLoopMinOccurrences(node);
+  uint32_t u = utils::getLoopMaxOccurrences(node);
+  if (u < l)
+  {
+    return Node::null();
+  }
+  Node r = node[0];
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
   {
     vec_nodes.push_back(r);
   }
+  NodeManager* nm = nodeManager();
   Node n = vec_nodes.size() == 0
                ? nm->mkNode(Kind::STRING_TO_REGEXP, nm->mkConst(String("")))
            : vec_nodes.size() == 1 ? r
                                    : nm->mkNode(Kind::REGEXP_CONCAT, vec_nodes);
+  Node retNode;
   if (u == l)
   {
     retNode = n;
@@ -1255,11 +1287,8 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   }
   Trace("strings-lp") << "Strings::lp " << node << " => " << retNode
                       << std::endl;
-  if (retNode != node)
-  {
-    return returnRewrite(node, retNode, Rewrite::RE_LOOP);
-  }
-  return node;
+  Assert(retNode != node);
+  return retNode;
 }
 
 Node SequencesRewriter::rewriteRepeatRegExp(TNode node)

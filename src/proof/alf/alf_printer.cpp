@@ -135,7 +135,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::STRING_LENGTH_NON_EMPTY:
     case ProofRule::RE_INTER:
     case ProofRule::RE_UNFOLD_POS:
-    case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
+    case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
