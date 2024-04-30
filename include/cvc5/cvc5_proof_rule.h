@@ -337,14 +337,14 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(ANNOTATION),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Processing rules -- Remove Term Formulas Axiom**
+   * **Processing rules -- If-then-else equivalence**
    *
    * .. math::
-   *   \inferrule{- \mid t}{\texttt{RemoveTermFormulas::getAxiomFor}(t)}
+   *   \inferrule{- \mid \ite{C}{t_1}{t_2}}{\ite{C}{((\ite{C}{t_1}{t_2}) = t_1)}{((\ite{C}{t_1}{t_2}) = t_2)}}
    *
    * \endverbatim
    */
-  EVALUE(REMOVE_TERM_FORMULA_AXIOM),
+  EVALUE(ITE_EQ),
 
   /**
    * \verbatim embed:rst:leading-asterisk
