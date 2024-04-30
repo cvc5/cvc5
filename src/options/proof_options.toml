@@ -245,3 +245,11 @@ name   = "Proof"
 [[option.mode.SKETCH]]
   name = "sketch"
   help = "A sketch given by the SAT solver."
+
+[[option]]
+  name       = "alfAllowTrust"
+  category   = "expert"
+  long       = "alf-allow-trust"
+  type       = "bool"
+  default    = "true"
+  help       = "Whether to allow trust in the ALF printer"

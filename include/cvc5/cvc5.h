@@ -3532,7 +3532,7 @@ class CVC5_EXPORT Proof
    * @return The proof rewrite rule used by the root step of the proof.
    *
    * @exception raises an exception if `getRule()` does not return
-   * `DSL_REWRITE`.
+   * `DSL_REWRITE` or `THEORY_REWRITE`.
    */
   ProofRewriteRule getRewriteRule() const;
 

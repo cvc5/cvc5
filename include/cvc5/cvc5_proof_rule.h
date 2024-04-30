@@ -291,7 +291,7 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
    * 
-   * where the DSL rewrite rule with the given identifier is
+   * where `id` is a `ProofRewriteRule` whose definition in the RARE DSL is
    * :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
    * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
    * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
@@ -307,6 +307,23 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(DSL_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Other theory rewrite rules**
+   *
+   * .. math::
+   *   \inferrule{- \mid id, t}{t = t'}
+   *
+   * where `id` is the `ProofRewriteRule` of the theory rewrite rule which
+   * transforms :math:`t` to :math `t'`.
+   * 
+   * In contrast to `DSL_REWRITE`, theory rewrite rules used by this proof
+   * rule are not necessarily expressible in RARE. Each rule that can be used
+   * in this proof rule are documented explicitly in cases within the
+   * `ProofRewriteRule` enum.
+   * \endverbatim
+   */
+  EVALUE(THEORY_REWRITE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Annotation**
    *
    * .. math::
@@ -319,14 +336,14 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(ANNOTATION),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Processing rules -- Remove Term Formulas Axiom**
+   * **Processing rules -- If-then-else equivalence**
    *
    * .. math::
-   *   \inferrule{- \mid t}{\texttt{RemoveTermFormulas::getAxiomFor}(t)}
+   *   \inferrule{- \mid \ite{C}{t_1}{t_2}}{\ite{C}{((\ite{C}{t_1}{t_2}) = t_1)}{((\ite{C}{t_1}{t_2}) = t_2)}}
    *
    * \endverbatim
    */
-  EVALUE(REMOVE_TERM_FORMULA_AXIOM),
+  EVALUE(ITE_EQ),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1127,21 +1144,6 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(HO_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Equality -- Beta reduction**
-   *
-   * .. math::
-   *
-   *   \inferrule{\mid \lambda x_1\dots x_n.\> t, t_1,\dots,t_n}
-   *   {((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
-   *
-   * The right hand side of the equality in the conclusion is computed using
-   * standard substitution via Node::substitute.
-   * \endverbatim
-   */
-  EVALUE(BETA_REDUCE),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Read over write**
    *
    * .. math::
@@ -1187,19 +1189,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ARRAYS_EXT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arrays -- Expansion of array range equality**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid \mathit{eqrange}(a,b,i,j)}
-   *   {\mathit{eqrange}(a,b,i,j)=
-   *   \forall x.\> i \leq x \leq j \rightarrow
-   *   \mathit{select}(a,x)=\mathit{select}(b,x)}
-   * \endverbatim
-   */
-  EVALUE(ARRAYS_EQ_RANGE_EXPAND),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1277,23 +1266,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(DT_INST),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Collapse**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid \mathit{sel}_i(C_j(t_1,\dots,t_n))}{
-   *   \mathit{sel}_i(C_j(t_1,\dots,t_n)) = r}
-   *
-   * where :math:`C_j` is a constructor, :math:`r` is :math:`t_i` if
-   * :math:`\mathit{sel}_i` is a correctly applied selector, or
-   * ``TypeNode::mkGroundTerm()`` of the proper type otherwise. Notice that the
-   * use of ``mkGroundTerm`` differs from the rewriter which uses
-   * ``mkGroundValue`` in this case.
-   * \endverbatim
-   */
-  EVALUE(DT_COLLAPSE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
@@ -2278,11 +2250,118 @@ enum ENUM(ProofRule) : uint32_t
  * This enumeration represents the rewrite rules used in a rewrite proof. Some
  * of the rules are internal ad-hoc rewrites, while others are rewrites
  * specified by the RARE DSL. This enumeration is used as the first argument to
- * the :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::DSL_REWRITE>` proof rule.
+ * the :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::DSL_REWRITE>` proof rule
+ * and the :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::THEORY_REWRITE>` proof
+ * rule.
  */
 enum ENUM(ProofRewriteRule) : uint32_t
 {
   EVALUE(NONE),
+  // Custom theory rewrites.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin -- Distinct elimination**
+   *
+   * .. math::
+   *   \texttt{distinct}(t_1, \ldots tn) = \bigwedge_{i \neq j) t_i \neq t_j
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Beta reduction**
+   *
+   * .. math::
+   *
+   *   ((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto
+   * t_1,\dots,x_n\mapsto t_n\}
+   *
+   * The right hand side of the equality in the conclusion is computed using
+   * standard substitution via Node::substitute.
+   * \endverbatim
+   */
+  EVALUE(BETA_REDUCE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Expansion of array range equality**
+   *
+   * .. math::
+   *   \mathit{eqrange}(a,b,i,j)=
+   *   \forall x.\> i \leq x \leq j \rightarrow
+   *   \mathit{select}(a,x)=\mathit{select}(b,x)
+   * \endverbatim
+   */
+  EVALUE(ARRAYS_EQ_RANGE_EXPAND),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Exists elimination**
+   *
+   * .. math::
+   *   \exists x_1\dots x_n.\> F = \neg \forall x_1\dots x_n.\> \neg F
+   *
+   * \endverbatim
+   */
+  EVALUE(EXISTS_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes - collapse selector**
+   *
+   * .. math::
+   *   s_i(c(t_1, \ldots, t_n)) = t_i
+   *
+   * where `s_i` is the `i^th` selector for constructor `c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_SELECTOR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes - collapse tester**
+   *
+   * .. math::
+   *   is-c(c(t_1, \ldots, t_n)) = true
+   *
+   * or alternatively
+   *
+   * .. math::
+   *   is-c(d(t_1, \ldots, t_n)) = false
+   *
+   * where `c` and `d` are distinct constructors.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_TESTER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes - constructor equality**
+   *
+   * .. math::
+   *   (c(t_1, \ldots, t_n) = c(s_1, \ldots, s_n)) =
+   *   (t_1 = s_1 \wedge \ldots \wedge t_n = s_n)
+   *
+   * or alternatively
+   *
+   * .. math::
+   *   (c(t_1, \ldots, t_n) = d(s_1, \ldots, s_m)) = false
+   *
+   * where `c` and `d` are distinct constructors.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_CONS_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - regular expression loop elimination**
+   *
+   * .. math::
+   *   ((_ re.loop l u) R) = (re.union R^l ... R^u)
+   *
+   * where `u` :math:`\geq` `l`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_LOOP_ELIM),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-plus-zero */
