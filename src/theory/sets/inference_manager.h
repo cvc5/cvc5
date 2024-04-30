@@ -20,6 +20,7 @@
 
 #include "theory/inference_manager_buffered.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/infer_proof_cons.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -95,6 +96,8 @@ class InferenceManager : public InferenceManagerBuffered
    * class.
    */
   SolverState& d_state;
+  /** The inference to proof converter */
+  std::unique_ptr<InferProofCons> d_ipc;
   /** Assert fact recursive
    *
    * This is a helper function for assertInference, which calls assertFact
@@ -103,6 +106,9 @@ class InferenceManager : public InferenceManagerBuffered
    * as a fact or as a lemma (see assertInference above).
    */
   bool assertFactRec(Node fact, InferenceId id, Node exp, int inferType = 0);
+  /**
+   */
+  void setupAndAddPendingLemma(const Node& exp, const Node& conc, InferenceId id);
 };
 
 }  // namespace sets
