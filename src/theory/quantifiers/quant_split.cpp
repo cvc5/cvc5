@@ -33,7 +33,9 @@ QuantDSplit::QuantDSplit(Env& env,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr), d_quant_to_reduce(userContext()), d_added_split(userContext())
+    : QuantifiersModule(env, qs, qim, qr, tr),
+      d_quant_to_reduce(userContext()),
+      d_added_split(userContext())
 {
 }
 

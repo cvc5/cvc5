@@ -18,8 +18,8 @@
 #ifndef CVC5__THEORY__QUANT_SPLIT_H
 #define CVC5__THEORY__QUANT_SPLIT_H
 
-#include "context/cdo.h"
 #include "context/cdhashmap.h"
+#include "context/cdo.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/quant_module.h"
 
