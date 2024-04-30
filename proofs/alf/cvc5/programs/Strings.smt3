@@ -95,6 +95,7 @@
   (($str_eval_str_in_re_rec s 0 re.allchar @re.null)        (alf.is_eq (alf.len s) 1))
   (($str_eval_str_in_re_rec s 0 re.all @re.null)            true)
   (($str_eval_str_in_re_rec s 0 re.none @re.null)           false)
+  (($str_eval_str_in_re_rec s 0 (re.comp r1) @re.null)      (alf.not ($str_eval_str_in_re_rec s 0 r1 @re.null)))
   (($str_eval_str_in_re_rec s n r1 r2)                      (let ((ls (alf.len s)))
                                                             (let ((ss1 (alf.extract s 0 (alf.add n -1))))
                                                             (let ((ss2 (alf.extract s n ls)))

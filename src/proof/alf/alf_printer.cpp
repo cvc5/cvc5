@@ -290,6 +290,7 @@ bool AlfPrinter::canEvaluateRegExp(Node r) const
       {
         case Kind::REGEXP_ALL:
         case Kind::REGEXP_ALLCHAR:
+        case Kind::REGEXP_COMPLEMENT:
         case Kind::REGEXP_NONE:
         case Kind::REGEXP_UNION:
         case Kind::REGEXP_INTER:
