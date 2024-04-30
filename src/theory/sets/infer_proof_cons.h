@@ -35,23 +35,22 @@ namespace sets {
 class InferProofCons : protected EnvObj, public ProofGenerator
 {
  public:
-   InferProofCons(Env& env, context::Context* c);
-   virtual ~InferProofCons(){}
-  
-      /**
-       * This is called to notify that di is an inference that may need a proof
-       * in the future.
-       *
-       * In detail, this class should be prepared to respond to a call to:
-       *   getProofFor(di.d_conc)
-       * in the remainder of the SAT context. This method copies di and stores
-       * it in the context-dependent map d_lazyFactMap below.
-       *
-       * This is used for lazy proof construction, where proofs are constructed
-       * only for facts that are explained.
-       */
-      void
-      notifyFact();
+  InferProofCons(Env& env, context::Context* c);
+  virtual ~InferProofCons() {}
+
+  /**
+   * This is called to notify that di is an inference that may need a proof
+   * in the future.
+   *
+   * In detail, this class should be prepared to respond to a call to:
+   *   getProofFor(di.d_conc)
+   * in the remainder of the SAT context. This method copies di and stores
+   * it in the context-dependent map d_lazyFactMap below.
+   *
+   * This is used for lazy proof construction, where proofs are constructed
+   * only for facts that are explained.
+   */
+  void notifyFact();
 
   /**
    * This returns the proof for fact. This is required for using this class as
