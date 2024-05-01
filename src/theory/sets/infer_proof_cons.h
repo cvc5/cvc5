@@ -21,6 +21,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
+#include "proof/proof.h"
 #include "theory/inference_id.h"
 #include "smt/env_obj.h"
 
@@ -67,8 +68,9 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   virtual std::string identify() const override;
 
  private:
+  void convert(CDProof& cdp, InferenceId id, const std::vector<Node>& assumps, const Node& conc);
   /** Common constants */
-  Node d_tdid;
+  Node d_false;
   /** Inference id */
   NodeInferenceMap d_imap;
 };
