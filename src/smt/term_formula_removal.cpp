@@ -401,30 +401,27 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       d_env.registerBooleanTermSkolem(node);
       return Node::null();
     }
-    else
+    // if a non-variable Boolean term within another term, replace it
+    skolem = getSkolemForNode(node);
+    if (skolem.isNull())
     {
-      // if a non-variable Boolean term within another term, replace it
-      skolem = getSkolemForNode(node);
-      if (skolem.isNull())
-      {
-        Trace("rtf-proof-debug")
-            << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
-        // Make the skolem to represent the Boolean term
-        // Skolems introduced for Boolean formulas appearing in terms are
-        // purified here (SkolemId::PURIFY), which ensures they are handled
-        // properly in theory combination.
-        skolem = sm->mkPurifySkolem(node);
-        d_skolem_cache.insert(node, skolem);
-        d_env.registerBooleanTermSkolem(skolem);
+      Trace("rtf-proof-debug")
+          << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
+      // Make the skolem to represent the Boolean term
+      // Skolems introduced for Boolean formulas appearing in terms are
+      // purified here (SkolemId::PURIFY), which ensures they are handled
+      // properly in theory combination.
+      skolem = sm->mkPurifySkolem(node);
+      d_skolem_cache.insert(node, skolem);
+      d_env.registerBooleanTermSkolem(skolem);
 
-        // The new assertion
-        newAssertion = skolem.eqNode(node);
+      // The new assertion
+      newAssertion = skolem.eqNode(node);
 
-        // Boolean term removal is trivial to justify, hence we don't set a
-        // proof generator here. It is trivial to justify since it is an
-        // instance of purification, which is justified by conversion to witness
-        // forms.
-      }
+      // Boolean term removal is trivial to justify, hence we don't set a
+      // proof generator here. It is trivial to justify since it is an
+      // instance of purification, which is justified by conversion to witness
+      // forms.
     }
   }
 
