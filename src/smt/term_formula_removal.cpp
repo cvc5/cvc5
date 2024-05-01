@@ -367,9 +367,10 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // The new assertion
         newAssertion = skolem.eqNode(node);
 
-        // Boolean term removal is trivial to justify, hence we don't set a proof
-        // generator here. It is trivial to justify since it is an instance of
-        // purification, which is justified by conversion to witness forms.
+        // Boolean term removal is trivial to justify, hence we don't set a
+        // proof generator here. It is trivial to justify since it is an
+        // instance of purification, which is justified by conversion to witness
+        // forms.
       }
     }
   }
@@ -484,7 +485,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
 
 bool RemoveTermFormulas::isBooleanTermSkolem(const Node& k) const
 {
-  return d_boolTermSkolems.find(k)!=d_boolTermSkolems.end();
+  return d_boolTermSkolems.find(k) != d_boolTermSkolems.end();
 }
 
 Node RemoveTermFormulas::getSkolemForNode(Node k) const

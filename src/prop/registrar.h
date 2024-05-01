@@ -39,10 +39,7 @@ public:
    * @param k The term in question.
    * @return true if k is a Boolean term skolem.
    */
-  virtual bool isBooleanTermSkolem(const Node& k)
-  {
-    return false;
-  }
+  virtual bool isBooleanTermSkolem(const Node& k) { return false; }
 };/* class Registrar */
 
 class NullRegistrar : public Registrar {
