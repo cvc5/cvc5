@@ -34,7 +34,7 @@
   (alf.cons str.++ x y)
 )
 
-; Return true if n is a valid code point (0...196607).
+; Return true if n is a valid code point [0, 196607].
 (define $str_is_code_point ((n Int))
   (alf.ite ($is_z_literal n)
   (alf.ite ($compare_geq 196608 n)
