@@ -1363,6 +1363,16 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(ALPHA_EQUIV),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Singleton injectivity**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.singleton}(t) = \mathit{set.singleton}(s)\mid -}{t=s}
+   * \endverbatim
+   */
+  EVALUE(SETS_SINGLETON_INJ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- Sets extensionality**
    *
    * .. math::

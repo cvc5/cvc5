@@ -28,6 +28,7 @@ SetsProofRuleChecker::SetsProofRuleChecker(NodeManager* nm)
 
 void SetsProofRuleChecker::registerTo(ProofChecker* pc)
 {
+  pc->registerChecker(ProofRule::SETS_SINGLETON_INJ, this);
   pc->registerChecker(ProofRule::SETS_EXT, this);
 }
 
@@ -36,7 +37,19 @@ Node SetsProofRuleChecker::checkInternal(ProofRule id,
                                          const std::vector<Node>& args)
 {
   NodeManager* nm = nodeManager();
-  if (id == ProofRule::SETS_EXT)
+  if (id == ProofRule::SETS_SINGLETON_INJ)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    Node eq = children[0];
+    if (eq.getKind() != Kind::EQUAL
+        || eq[0].getKind()!=Kind::SET_SINGLETON || eq[1].getKind()!=Kind::SET_SINGLETON)
+    {
+      return Node::null();
+    }
+    return eq[0][0].eqNode(eq[1][0]);
+  }
+  else if (id == ProofRule::SETS_EXT)
   {
     Assert(children.size() == 1);
     Assert(args.empty());

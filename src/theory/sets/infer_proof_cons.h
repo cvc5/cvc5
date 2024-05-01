@@ -39,11 +39,17 @@ class TheorySetsRewriter;
 class InferProofCons : protected EnvObj, public ProofGenerator
 {
   typedef context::CDHashMap<Node, InferenceId> NodeInferenceMap;
+  typedef context::CDHashMap<Node, Node> NodeExpMap;
 
  public:
   InferProofCons(Env& env, TheorySetsRewriter* tsr);
   virtual ~InferProofCons() {}
 
+  /**
+   * This is called to notify that fact was inferred from exp as a fact with
+   * inference identifier id.
+   */
+  void notifyFact(const Node& conc, const Node& exp, InferenceId id);
   /**
    * This is called to notify that conf was called as a conflict with inference
    * identifier id.
@@ -78,6 +84,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   Node d_false;
   /** Maps formulas to the inference id they were notified with */
   NodeInferenceMap d_imap;
+  /** */
+  NodeExpMap d_expMap;
 };
 
 }  // namespace sets

@@ -109,14 +109,23 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
   return false;
 }
 
+void InferenceManager::assertSetsConflict(const Node& conf, InferenceId id)
+{
+  conflict(conf,id);
+}
+
 bool InferenceManager::assertSetsFact(Node atom,
                                       bool polarity,
                                       InferenceId id,
                                       Node exp)
 {
   Node conc = polarity ? atom : atom.notNode();
+  if (d_ipc)
+  {
+    d_ipc->notifyFact(conc, exp, id);
+  }
   return assertInternalFact(
-      atom, polarity, id, ProofRule::TRUST, {exp}, {d_tid, conc, d_tsid});
+      atom, polarity, id, {exp}, d_ipc.get());
 }
 
 void InferenceManager::assertInference(Node fact,
@@ -194,7 +203,8 @@ void InferenceManager::setupAndAddPendingLemma(const Node& exp,
     {
       d_ipc->notifyConflict(exp, id);
     }
-    conflict(exp, id);
+    TrustNode trn = TrustNode::mkTrustConflict(exp, d_ipc.get());
+    trustedConflict(trn, id);
     return;
   }
   Node lem = conc;

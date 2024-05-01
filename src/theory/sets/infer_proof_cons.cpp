@@ -27,12 +27,19 @@ namespace theory {
 namespace sets {
 
 InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
-    : EnvObj(env), d_tsr(tsr), d_imap(userContext())
+    : EnvObj(env), d_tsr(tsr), d_imap(userContext()), d_expMap(userContext())
 {
   d_false = nodeManager()->mkConst(false);
   d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
+void InferProofCons::notifyFact(const Node& conc, const Node& exp, InferenceId id)
+{
+  Assert (conc.getKind()!=Kind::AND && conc.getKind()!=Kind::IMPLIES);
+  d_imap[conc] = id;
+  d_expMap[conc] = exp;
+}
+  
 void InferProofCons::notifyConflict(const Node& conf, InferenceId id)
 {
   d_imap[conf.notNode()] = id;
@@ -73,6 +80,22 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
       conc = d_false;
     }
     cdp.addStep(fact, ProofRule::SCOPE, {conc}, {assumps});
+  }
+  else
+  {
+    NodeExpMap::iterator itex = d_expMap.find(fact);
+    if (itex!=d_expMap.end())
+    {
+      Node exp = itex->second;
+      if (exp.getKind()==Kind::AND)
+      {
+        assumps.insert(assumps.end(), exp.begin(), exp.end());
+      }
+      else
+      {
+        assumps.push_back(exp);
+      }
+    }
   }
   if (!convert(cdp, id, assumps, conc))
   {
@@ -221,6 +244,22 @@ bool InferProofCons::convert(CDProof& cdp,
       Node res = psb.tryStep(ProofRule::SETS_EXT, {assumps[0]}, {}, conc);
       success = (res == conc);
       Assert(success);
+    }
+    break;
+    case InferenceId::SETS_SINGLETON_EQ:
+    {
+      // SINGLETON_INJ
+      Assert(assumps.size() == 1);
+      Node res = psb.tryStep(ProofRule::SETS_SINGLETON_INJ, {assumps[0]}, {}, conc);
+      success = (res == conc);
+      Assert(success);
+    }
+    break;
+    case InferenceId::SETS_EQ_CONFLICT:
+    case InferenceId::SETS_EQ_MEM_CONFLICT:
+    case InferenceId::SETS_EQ_MEM:
+    {
+      AlwaysAssert(false) << "Unhandled " << id;
     }
     break;
     default: break;

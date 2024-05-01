@@ -73,6 +73,10 @@ class InferenceManager : public InferenceManagerBuffered
                        std::vector<Node>& exp,
                        int inferType = 0);
   /**
+   * Immediately send a conflict.
+   */
+  void assertSetsConflict(const Node& conf, InferenceId id);
+  /**
    * Immediately assert an internal fact with the default handling of proofs.
    */
   bool assertSetsFact(Node atom, bool polarity, InferenceId id, Node exp);

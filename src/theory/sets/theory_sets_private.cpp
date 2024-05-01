@@ -123,7 +123,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             Trace("sets-prop")
                 << "Propagate conflict : " << s1 << " == " << s2 << std::endl;
             Node eqs = s1.eqNode(s2);
-            d_im.conflict(eqs, InferenceId::SETS_EQ_CONFLICT);
+            d_im.assertSetsConflict(eqs, InferenceId::SETS_EQ_CONFLICT);
             return;
           }
         }
@@ -149,7 +149,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(facts.size() == 1);
       Trace("sets-prop") << "Propagate eq-mem conflict : " << facts[0]
                          << std::endl;
-      d_im.conflict(facts[0], InferenceId::SETS_EQ_MEM_CONFLICT);
+      d_im.assertSetsConflict(facts[0], InferenceId::SETS_EQ_MEM_CONFLICT);
       return;
     }
     for (const Node& f : facts)
@@ -157,6 +157,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(f.getKind() == Kind::IMPLIES);
       Trace("sets-prop") << "Propagate eq-mem eq inference : " << f[0] << " => "
                          << f[1] << std::endl;
+      //AlwaysAssert(false);
       d_im.assertSetsFact(f[1], true, InferenceId::SETS_EQ_MEM, f[0]);
     }
   }
