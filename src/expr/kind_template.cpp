@@ -67,12 +67,13 @@ bool isAssociative(cvc5::internal::Kind k)
 /** Return true if k is a closure kind. */
 bool isClosureKind(cvc5::internal::Kind k)
 {
-  switch(k) {
+  switch (k)
+  {
     case Kind::LAMBDA:
     case Kind::FORALL:
     case Kind::WITNESS:
-    case Kind::SET_COMPREHENSION: 
-    case Kind::MATCH_BIND_CASE:return true;
+    case Kind::SET_COMPREHENSION:
+    case Kind::MATCH_BIND_CASE: return true;
 
     default: return false;
   }
