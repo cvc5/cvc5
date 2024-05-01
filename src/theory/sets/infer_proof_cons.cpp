@@ -19,6 +19,8 @@
 #include "proof/proof_node_manager.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/sets/theory_sets_rewriter.h"
+#include "proof/proof_node_algorithm.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -110,10 +112,80 @@ bool InferProofCons::convert(CDProof& cdp,
     break;
     case InferenceId::SETS_UP_CLOSURE:
     {
+      NodeManager * nm = nodeManager();
       Assert(conc.getKind() = Kind::SET_MEMBER);
       Node so = SkolemManager::getUnpurifiedForm(conc[1]);
       Trace("sets-ipc") << "Unpurified form " << so << std::endl;
-      AlwaysAssert(false);
+      Node memo = nm->mkNode(Kind::SET_MEMBER, conc[0], so);
+      Node memor = d_tsr->rewriteMembershipBinaryOp(memo);
+      Trace("sets-ipc") << "Single step rewriting of membership " << memor << std::endl;
+      // collect the memberships in the premise
+      std::vector<Node> assumpMem;
+      std::vector<Node> assumpOther;
+      for (const Node& a : assumps)
+      {
+        Node aa = a.getKind()==Kind::NOT ? a[0] : a;
+        if (aa.getKind()==Kind::SET_MEMBER)
+        {
+          assumpMem.push_back(a);
+        }
+        else
+        {
+          assumpOther.push_back(a);
+        }
+      }
+      Node msrc;
+      if (assumpMem.size()==2)
+      {
+        msrc = nm->mkAnd(assumpMem);
+        psb.addStep(ProofRule::AND_INTRO, {assumpMem}, {}, msrc);
+      }
+      else
+      {
+        msrc = assumpMem[0];
+      }
+      bool isOr = (memor.getKind()==Kind::OR);
+      size_t ntgts = isOr ? 2 : 1;
+      for (size_t i=0; i<ntgts; i++)
+      {
+        Node mtgt = isOr ? memor[i] : memor;
+        Trace("sets-ipc") << "...try target " << mtgt << std::endl;
+        if (psb.applyPredTransform(msrc, mtgt, assumpOther))
+        {
+          if (isOr)
+          {
+            bool ret = psb.applyPredIntro(memor, {mtgt}, MethodId::SB_FORMULA);
+            AlwaysAssert (ret);
+          }
+          success = true;
+          Trace("sets-ipc") << "......success" << std::endl;
+          break;
+        }
+      }
+      if (success)
+      {
+        Trace("sets-ipc") << "[1] Prove transform " << memor << " to " << memo << std::endl;
+        success = psb.applyPredTransform(memor, memo, {});
+        AlwaysAssert (success);
+        if (success)
+        {
+          Trace("sets-ipc") << "[2] Prove transform " << memo << " to " << conc << std::endl;
+          std::vector<Node> ceqs;
+          Node ceq = conc[0].eqNode(conc[0]);
+          psb.addStep(ProofRule::REFL, {}, {conc[0]}, ceq);
+          ceqs.push_back(ceq);
+          ceq = so.eqNode(conc[1]);
+          psb.addStep(ProofRule::MACRO_SR_PRED_INTRO, {}, {ceq}, ceq);
+          ceqs.push_back(ceq);
+          std::vector<Node> cargs;
+          Node cequiv = memo.eqNode(conc);
+          ProofRule cr = expr::getCongRule(memo, cargs);
+          psb.addStep(cr, ceqs, cargs, cequiv);
+          psb.addStep(ProofRule::EQ_RESOLVE, {memo, cequiv}, {}, conc);
+          AlwaysAssert (success);
+        }
+      }
+      AlwaysAssert(success);
     }
     break;
     case InferenceId::SETS_DEQ:
