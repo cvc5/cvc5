@@ -60,7 +60,6 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_rels_enabled(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
-      d_rewriter(nodeManager()),
       d_cpacb(cpacb)
 {
   d_true = nodeManager()->mkConst(true);
@@ -494,15 +493,14 @@ void TheorySetsPrivate::checkDownwardsClosure()
                   nodeManager()->mkNode(Kind::SET_MEMBER, mem[0], eq_set);
               nmem = rewrite(nmem);
               std::vector<Node> exp;
-              if (d_state.areEqual(mem, pmem))
+              exp.push_back(pmem);
+              int inferType = 0;
+              if (!d_state.areEqual(mem, pmem))
               {
-                exp.push_back(pmem);
+                // force sending as a lemma
+                inferType = 1;
               }
-              else
-              {
-                nmem = nodeManager()->mkNode(Kind::OR, pmem.negate(), nmem);
-              }
-              d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
+              d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp, inferType);
             }
           }
         }

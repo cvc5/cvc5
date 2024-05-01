@@ -26,7 +26,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-class TheorySetsPrivate;
+class TheorySetsRewriter;
 
 /** Inference manager
  *
@@ -40,7 +40,7 @@ class InferenceManager : public InferenceManagerBuffered
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  InferenceManager(Env& env, Theory& t, SolverState& s);
+  InferenceManager(Env& env, Theory& t, TheorySetsRewriter* tr, SolverState& s);
   /**
    * Add facts corresponding to ( exp => fact ) via calls to the assertFact
    * method of TheorySetsPrivate.

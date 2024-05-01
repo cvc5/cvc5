@@ -29,6 +29,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
+class TheorySetsRewriter;
+
 /**
  *
  * The main (private) method of this class is convert below, which is
@@ -39,7 +41,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   typedef context::CDHashMap<Node, InferenceId> NodeInferenceMap;
 
  public:
-  InferProofCons(Env& env, context::Context* c);
+  InferProofCons(Env& env, 
+  TheorySetsRewriter* tsr);
   virtual ~InferProofCons() {}
 
   /**
@@ -69,6 +72,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
                InferenceId id,
                const std::vector<Node>& assumps,
                const Node& conc);
+  /** The sets rewriter */
+  TheorySetsRewriter* d_tsr;
   /** Common constants */
   Node d_tid;
   Node d_false;

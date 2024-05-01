@@ -18,13 +18,15 @@
 #include "proof/proof_node_manager.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-InferProofCons::InferProofCons(Env& env, context::Context* c)
-    : EnvObj(env), d_imap(userContext())
+InferProofCons::InferProofCons(Env& env,
+  TheorySetsRewriter* tsr)
+    : EnvObj(env), d_tsr(tsr), d_imap(userContext())
 {
   d_false = nodeManager()->mkConst(false);
   d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
@@ -92,14 +94,27 @@ bool InferProofCons::convert(CDProof& cdp,
   {
     case InferenceId::SETS_DOWN_CLOSURE:
     {
-      Assert(assumps.size() == 2);
+      Assert(assumps.size() >= 1);
       // (and (set.member x S) (= S (op T1 T2))) => (not?) (set.member x Ti)
       // this holds by applying the equality as a substitution to the first
       // assumption and rewriting.
-      if (psb.applyExtendedPredInfer(assumps[0], conc, {assumps[1]}))
+      std::vector<Node> exp(assumps.begin()+1, assumps.end());
+      if (psb.applyPredTransform(assumps[0], conc, exp))
       {
         success = true;
       }
+      else
+      {
+        success = psb.applyExtendedPredInfer(assumps[0], conc, exp);
+      }
+    }
+    break;
+    case InferenceId::SETS_UP_CLOSURE:
+    {
+      Assert (conc.getKind()=Kind::SET_MEMBER);
+      Node so = SkolemManager::getUnpurifiedForm(conc[1]);
+      Trace("sets-ipc")  << "Unpurified form " << so << std::endl;
+      AlwaysAssert(false);
     }
     break;
     case InferenceId::SETS_DEQ:
@@ -115,6 +130,7 @@ bool InferProofCons::convert(CDProof& cdp,
   {
     if (!cdp.addSteps(psb))
     {
+      // should not fail if success was computed correctly above
       Assert(false);
       success = false;
     }
