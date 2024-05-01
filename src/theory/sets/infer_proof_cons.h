@@ -20,10 +20,10 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "proof/proof_generator.h"
 #include "proof/proof.h"
-#include "theory/inference_id.h"
+#include "proof/proof_generator.h"
 #include "smt/env_obj.h"
+#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -36,7 +36,8 @@ namespace sets {
  */
 class InferProofCons : protected EnvObj, public ProofGenerator
 {
-  typedef context::CDHashMap<Node,InferenceId> NodeInferenceMap;
+  typedef context::CDHashMap<Node, InferenceId> NodeInferenceMap;
+
  public:
   InferProofCons(Env& env, context::Context* c);
   virtual ~InferProofCons() {}
@@ -68,7 +69,10 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   virtual std::string identify() const override;
 
  private:
-  void convert(CDProof& cdp, InferenceId id, const std::vector<Node>& assumps, const Node& conc);
+  void convert(CDProof& cdp,
+               InferenceId id,
+               const std::vector<Node>& assumps,
+               const Node& conc);
   /** Common constants */
   Node d_false;
   /** Inference id */
