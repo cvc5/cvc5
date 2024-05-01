@@ -265,7 +265,7 @@ SatLiteral CnfStream::convertAtom(TNode node)
   bool isInternalBoolVar = false;
   if (node.isVar())
   {
-    isInternalBoolVar = d_registrar->isBooleanTermSkolem(node);
+    isInternalBoolVar = !d_registrar->isBooleanTermSkolem(node);
   }
   if (isInternalBoolVar)
   {
