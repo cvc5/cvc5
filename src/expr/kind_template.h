@@ -102,14 +102,12 @@ struct TypeConstantHashFunction
 const char* toString(TypeConstant tc);
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
-
 /** Return true if k is a closure kind. */
 bool isClosureKind(Kind k)
 {
-   return k == Kind::LAMBDA || k == Kind::FORALL
-           || k == Kind::EXISTS || k == Kind::WITNESS
-           || k == Kind::SET_COMPREHENSION
-           || k == Kind::MATCH_BIND_CASE;
+  return k == Kind::LAMBDA || k == Kind::FORALL || k == Kind::EXISTS
+         || k == Kind::WITNESS || k == Kind::SET_COMPREHENSION
+         || k == Kind::MATCH_BIND_CASE;
 }
 
 namespace theory {
