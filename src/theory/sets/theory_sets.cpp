@@ -36,6 +36,7 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
       d_cpacb(*this),
       d_internal(
           new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_cpacb)),
+      d_checker(nodeManager()),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects
@@ -52,7 +53,7 @@ TheoryRewriter* TheorySets::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
-ProofRuleChecker* TheorySets::getProofChecker() { return nullptr; }
+ProofRuleChecker* TheorySets::getProofChecker() { return &d_checker; }
 
 bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 {

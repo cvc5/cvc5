@@ -15,6 +15,8 @@
 
 #include "theory/sets/infer_proof_cons.h"
 
+#include "proof/theory_proof_step_buffer.h"
+#include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5::internal {
@@ -85,7 +87,40 @@ bool InferProofCons::convert(CDProof& cdp,
   Trace("sets-ipc") << "- assumptions: " << assumps << std::endl;
   Trace("sets-ipc") << "- conclusion:  " << conc << std::endl;
   bool success = false;
-  
+  TheoryProofStepBuffer psb(cdp.getManager()->getChecker(), true);
+  switch (id)
+  {
+    case InferenceId::SETS_DOWN_CLOSURE:
+    {
+      Assert (assumps.size()==2);
+      // (and (set.member x S) (= S (op T1 T2))) => (not?) (set.member x Ti)
+      // this holds by applying the equality as a substitution to the first
+      // assumption and rewriting.
+      if (psb.applyExtendedPredInfer(assumps[0], conc, {assumps[1]}))
+      {
+        success = true;
+      }
+    }
+    break;
+    case InferenceId::SETS_DEQ:
+    {
+      Assert (assumps.size()==1);
+      Node res = psb.tryStep(ProofRule::SETS_EXT, {assumps[0]}, {}, conc);
+      success = (res==conc);
+    }
+    break;
+    default:break;
+  }
+  if (success)
+  {
+    if (!cdp.addSteps(psb))
+    {
+      Assert (false);
+      success = false;
+    }
+  }
+  Trace("sets-ipc") << "...success = " << success << std::endl;
+  //AlwaysAssert(success);
   return success;
 }
 

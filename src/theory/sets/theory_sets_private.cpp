@@ -1276,10 +1276,8 @@ void TheorySetsPrivate::checkDisequalities()
     Node x = sm->mkSkolemFunction(SkolemId::SETS_DEQ_DIFF, {deq[0], deq[1]});
     Node mem1 = nm->mkNode(Kind::SET_MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(Kind::SET_MEMBER, x, deq[1]);
-    Node lem =
-        nm->mkNode(Kind::OR, deq, nm->mkNode(Kind::EQUAL, mem1, mem2).negate());
-    lem = rewrite(lem);
-    d_im.assertInference(lem, InferenceId::SETS_DEQ, d_true, 1);
+    Node mdeq = nm->mkNode(Kind::EQUAL, mem1, mem2).negate();
+    d_im.assertInference(mdeq, InferenceId::SETS_DEQ, deq.notNode(), 1);
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {

@@ -15,7 +15,9 @@
 
 #include "proof/theory_proof_step_buffer.h"
 
+#include "expr/skolem_manager.h"
 #include "proof/proof.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -74,7 +76,7 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
                                                bool useExpected)
 {
   // symmetric equalities
-  if (d_autoSym && CDProof::isSame(src, tgt))
+  if (src == tgt || (d_autoSym && CDProof::isSame(src, tgt)))
   {
     return true;
   }
@@ -139,6 +141,73 @@ Node TheoryProofStepBuffer::applyPredElim(Node src,
     popStep();
   }
   return srcRew;
+}
+
+bool TheoryProofStepBuffer::applyExtendedPredInfer(Node src,
+                                                   Node tgt,
+                                                   const std::vector<Node>& exp)
+{
+  if (applyPredTransform(src, tgt, exp))
+  {
+    return true;
+  }
+  bool success = false;
+  // more aggressive
+  Node srco = SkolemManager::getOriginalForm(src);
+  Node psrco = applyPredElim(srco,
+                             exp,
+                             MethodId::SB_DEFAULT,
+                             MethodId::SBA_SEQUENTIAL,
+                             MethodId::RW_EXT_REWRITE);
+  Node tgto = SkolemManager::getOriginalForm(tgt);
+  if (psrco==tgto)
+  {
+    applyPredTransform(src, srco, {});
+    applyPredTransform(tgto, tgt, {});
+    return true;
+  }
+  Node ptgto = applyPredElim(tgto,
+                             exp,
+                             MethodId::SB_DEFAULT,
+                             MethodId::SBA_SEQUENTIAL,
+                             MethodId::RW_EXT_REWRITE);
+  Trace("tpsb-debug") << "applyExtendedPredInfer: " << exp << " => " << src << " == " << tgt << std::endl;
+  Trace("tpsb-debug") << "- " << psrco << " (from " << src << ")" << std::endl;
+  Trace("tpsb-debug") << "- " << ptgto << " (from " << tgt << ")" << std::endl;
+  if (psrco == ptgto)
+  {
+    success = true;
+    Trace("tpsb-debug") << "...equal to target" << std::endl;
+  }
+  else if (psrco.getKind() == Kind::AND)
+  {
+    // see if src rewrites to (and ... tgt ...). In this case, we can
+    // infer tgt via AND_ELIM.
+    for (size_t i = 0, nchild = psrco.getNumChildren(); i < nchild; i++)
+    {
+      if (psrco[i] == ptgto)
+      {
+        success = true;
+        NodeManager* nm = NodeManager::currentNM();
+        Node ni = nm->mkConstInt(Rational(i));
+        addStep(ProofRule::AND_ELIM, {psrco}, {ni}, ptgto);
+        Trace("tpsb-debug") << "...equal to target after AND_ELIM " << i << std::endl;
+        break;
+      }
+    }
+  }
+  if (success)
+  {
+    // If we were successful, now go back and justify the conversion to
+    // original forms, which should be trivial.
+    applyPredTransform(src, srco, {});
+    applyPredTransform(srco, tgto, exp,
+                             MethodId::SB_DEFAULT,
+                             MethodId::SBA_SEQUENTIAL,
+                             MethodId::RW_EXT_REWRITE);
+    applyPredTransform(tgto, tgt, {});
+  }
+  return success;
 }
 
 Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)

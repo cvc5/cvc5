@@ -1184,8 +1184,7 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{a \neq b\mid -}
    *   {\mathit{select}(a,k)\neq\mathit{select}(b,k)}
    *
-   * where :math:`k` is
-   * :math:`\texttt{arrays::SkolemCache::getExtIndexSkolem}(a\neq b)`.
+   * where :math:`k` is the :math:`\texttt{ARRAY_DEQ_DIFF}` skolem for `(a, b)`.
    * \endverbatim
    */
   EVALUE(ARRAYS_EXT),
@@ -1360,6 +1359,19 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALPHA_EQUIV),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets extensionality**
+   *
+   * .. math::
+   *
+   *   \inferrule{a \neq b\mid -}
+   *   {\mathit{set.member}(k,a)\neq\mathit{set.member}(k,b)}
+   *
+   * where :math:`k` is the :math:`\texttt{SETS_DEQ_DIFF}` skolem for `(a, b)`.
+   * \endverbatim
+   */
+  EVALUE(SETS_EXT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation equality**
