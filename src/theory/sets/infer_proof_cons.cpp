@@ -100,25 +100,21 @@ bool InferProofCons::convert(CDProof& cdp,
       // this holds by applying the equality as a substitution to the first
       // assumption and rewriting.
       std::vector<Node> exp(assumps.begin() + 1, assumps.end());
-      if (psb.applyPredTransform(assumps[0], conc, exp))
-      {
-        success = true;
-      }
-      else
-      {
-        success = psb.applyExtendedPredInfer(assumps[0], conc, exp);
-      }
+      Node aelim = psb.applyPredElim(assumps[0], exp);
+      success = (aelim==conc);
+      Assert (success);
     }
     break;
     case InferenceId::SETS_UP_CLOSURE:
     {
       NodeManager * nm = nodeManager();
-      Assert(conc.getKind() = Kind::SET_MEMBER);
+      Assert(conc.getKind() == Kind::SET_MEMBER);
       Node so = SkolemManager::getUnpurifiedForm(conc[1]);
       Trace("sets-ipc") << "Unpurified form " << so << std::endl;
       Node memo = nm->mkNode(Kind::SET_MEMBER, conc[0], so);
       Node memor = d_tsr->rewriteMembershipBinaryOp(memo);
       Trace("sets-ipc") << "Single step rewriting of membership " << memor << std::endl;
+      Assert (memo!=memor);
       // collect the memberships in the premise
       std::vector<Node> assumpMem;
       std::vector<Node> assumpOther;
@@ -152,40 +148,64 @@ bool InferProofCons::convert(CDProof& cdp,
         Trace("sets-ipc") << "...try target " << mtgt << std::endl;
         if (psb.applyPredTransform(msrc, mtgt, assumpOther))
         {
+          success = true;
           if (isOr)
           {
-            bool ret = psb.applyPredIntro(memor, {mtgt}, MethodId::SB_FORMULA);
-            AlwaysAssert (ret);
+            success = psb.applyPredIntro(memor, {mtgt}, MethodId::SB_FORMULA);
+            Assert (success);
           }
-          success = true;
           Trace("sets-ipc") << "......success" << std::endl;
           break;
         }
       }
-      if (success)
+      if (!success)
       {
-        Trace("sets-ipc") << "[1] Prove transform " << memor << " to " << memo << std::endl;
-        success = psb.applyPredTransform(memor, memo, {});
-        AlwaysAssert (success);
-        if (success)
+        Assert (success);
+        break;
+      }
+      Trace("sets-ipc") << "* Prove transform " << memor << " to " << memo << std::endl;
+      if (!psb.applyPredTransform(memor, memo, {}))
+      {
+        success = false;
+        Assert (success);
+        break;
+      }
+      if (so!=conc[1])
+      {
+        std::vector<Node> ceqs;
+        Node ceq = conc[0].eqNode(conc[0]);
+        if (!psb.addStep(ProofRule::REFL, {}, {conc[0]}, ceq))
         {
-          Trace("sets-ipc") << "[2] Prove transform " << memo << " to " << conc << std::endl;
-          std::vector<Node> ceqs;
-          Node ceq = conc[0].eqNode(conc[0]);
-          psb.addStep(ProofRule::REFL, {}, {conc[0]}, ceq);
-          ceqs.push_back(ceq);
-          ceq = so.eqNode(conc[1]);
-          psb.addStep(ProofRule::MACRO_SR_PRED_INTRO, {}, {ceq}, ceq);
-          ceqs.push_back(ceq);
-          std::vector<Node> cargs;
-          Node cequiv = memo.eqNode(conc);
-          ProofRule cr = expr::getCongRule(memo, cargs);
-          psb.addStep(cr, ceqs, cargs, cequiv);
-          psb.addStep(ProofRule::EQ_RESOLVE, {memo, cequiv}, {}, conc);
-          AlwaysAssert (success);
+          success = false;
+          Assert (success);
+          break;
+        }
+        ceqs.push_back(ceq);
+        ceq = so.eqNode(conc[1]);
+        Trace("sets-ipc") << "* Prove equal (by original forms) " << ceq << std::endl;
+        if (!psb.addStep(ProofRule::MACRO_SR_PRED_INTRO, {}, {ceq}, ceq))
+        {
+          success = false;
+          Assert (success);
+          break;
+        }
+        ceqs.push_back(ceq);
+        std::vector<Node> cargs;
+        Node cequiv = memo.eqNode(conc);
+        ProofRule cr = expr::getCongRule(memo, cargs);
+        if (!psb.addStep(cr, ceqs, cargs, cequiv))
+        {
+          success = false;
+          Assert (success);
+          break;
+        }
+        if (!psb.addStep(ProofRule::EQ_RESOLVE, {memo, cequiv}, {}, conc))
+        {
+          success = false;
+          Assert (success);
+          break;
         }
       }
-      AlwaysAssert(success);
     }
     break;
     case InferenceId::SETS_DEQ:
@@ -193,6 +213,7 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(assumps.size() == 1);
       Node res = psb.tryStep(ProofRule::SETS_EXT, {assumps[0]}, {}, conc);
       success = (res == conc);
+      Assert (success);
     }
     break;
     default: break;
