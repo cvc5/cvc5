@@ -20,7 +20,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/node.h"
-#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "printer/printer.h"
 #include "proof/clause_id.h"
@@ -266,8 +265,7 @@ SatLiteral CnfStream::convertAtom(TNode node)
   bool isInternalBoolVar = false;
   if (node.isVar())
   {
-    SkolemManager* sm = nodeManager()->getSkolemManager();
-    isInternalBoolVar = (sm->getId(node) != SkolemId::PURIFY);
+    isInternalBoolVar = d_registrar->isBooleanTermSkolem(node);
   }
   if (isInternalBoolVar)
   {

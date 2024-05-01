@@ -188,6 +188,13 @@ class TheoryProxy : protected EnvObj, public Registrar
                   std::vector<Node>& skAsserts,
                   std::vector<Node>& sks);
   /**
+   * Is k a skolem introduced for purifying a Boolean term? This impacts whether
+   * k is treated as a theory atom.
+   * @param k The term in question.
+   * @return true if k is a Boolean term skolem.
+   */
+  bool isBooleanTermSkolem(const Node& k) override;
+  /**
    * Called when a SAT literal for atom n has been allocated in the SAT solver.
    */
   void notifySatLiteral(Node n) override;

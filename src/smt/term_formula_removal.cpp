@@ -33,6 +33,7 @@ namespace cvc5::internal {
 RemoveTermFormulas::RemoveTermFormulas(Env& env)
     : EnvObj(env),
       d_tfCache(userContext()),
+      d_boolTermSkolems(userContext()),
       d_skolem_cache(userContext()),
       d_tpg(nullptr),
       d_lp(nullptr)
@@ -339,6 +340,39 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
+  else if (nodeType.isBoolean() && inTerm && !isBooleanTermSkolem(node))
+  {
+    // if a purification skolem already, just use itself
+    if (sm->getId(node) == SkolemId::PURIFY)
+    {
+      d_boolTermSkolems.insert(node);
+      return Node::null();
+    }
+    else
+    {
+      // if a non-variable Boolean term within another term, replace it
+      skolem = getSkolemForNode(node);
+      if (skolem.isNull())
+      {
+        Trace("rtf-proof-debug")
+            << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
+        // Make the skolem to represent the Boolean term
+        // Skolems introduced for Boolean formulas appearing in terms are
+        // purified here (SkolemId::PURIFY), which ensures they are handled
+        // properly in theory combination.
+        skolem = sm->mkPurifySkolem(node);
+        d_skolem_cache.insert(node, skolem);
+        d_boolTermSkolems.insert(skolem);
+
+        // The new assertion
+        newAssertion = skolem.eqNode(node);
+
+        // Boolean term removal is trivial to justify, hence we don't set a proof
+        // generator here. It is trivial to justify since it is an instance of
+        // purification, which is justified by conversion to witness forms.
+      }
+    }
+  }
   else if (node.getKind() == Kind::WITNESS)
   {
     // If a witness choice
@@ -386,30 +420,6 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           newAssertionPg = d_lp.get();
         }
       }
-    }
-  }
-  else if (nodeType.isBoolean() && inTerm
-           && sm->getId(node) != SkolemId::PURIFY)
-  {
-    // if a non-variable Boolean term within another term, replace it
-    skolem = getSkolemForNode(node);
-    if (skolem.isNull())
-    {
-      Trace("rtf-proof-debug")
-          << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
-      // Make the skolem to represent the Boolean term
-      // Skolems introduced for Boolean formulas appearing in terms are
-      // purified here (SkolemId::PURIFY), which ensures they are handled
-      // properly in theory combination.
-      skolem = sm->mkPurifySkolem(node);
-      d_skolem_cache.insert(node, skolem);
-
-      // The new assertion
-      newAssertion = skolem.eqNode(node);
-
-      // Boolean term removal is trivial to justify, hence we don't set a proof
-      // generator here. It is trivial to justify since it is an instance of
-      // purification, which is justified by conversion to witness forms.
     }
   }
 
@@ -470,6 +480,11 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
 
   // return null, indicating we will traverse children within runInternal
   return Node::null();
+}
+
+bool RemoveTermFormulas::isBooleanTermSkolem(const Node& k) const
+{
+  return d_boolTermSkolems.find(k)!=d_boolTermSkolems.end();
 }
 
 Node RemoveTermFormulas::getSkolemForNode(Node k) const

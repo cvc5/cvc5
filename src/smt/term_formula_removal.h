@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "context/cdinsert_hashmap.h"
+#include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/term_context.h"
@@ -128,7 +129,14 @@ class RemoveTermFormulas : protected EnvObj
    * returns the null node.
    */
   TrustNode runCurrent(TNode node, bool inTerm, TrustNode& newLem);
-
+  
+  /**
+   * Is k a skolem introduced for purifying a Boolean term? This impacts whether
+   * k is treated as a theory atom.
+   * @param k The term in question.
+   * @return true if k is a Boolean term skolem.
+   */
+  bool isBooleanTermSkolem(const Node& k) const;
  private:
   typedef context::CDInsertHashMap<
       std::pair<Node, uint32_t>,
@@ -142,6 +150,14 @@ class RemoveTermFormulas : protected EnvObj
    * result of cacheVal below.
    */
   TermFormulaCache d_tfCache;
+  /**
+   * The set of skolems introduced for Boolean term elimination. This is a set
+   * of purification skolems of Boolean type. These variables are important
+   * since unlike other Boolean variables, they must be treated as theory
+   * atoms to ensure that theory combination works when argument terms are
+   * Boolean type.
+   */
+  context::CDHashSet<Node> d_boolTermSkolems;
 
   /** skolem cache
    *
