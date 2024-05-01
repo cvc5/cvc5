@@ -42,8 +42,8 @@ Node SetsProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.size() == 1);
     Assert(args.empty());
     Node eq = children[0];
-    if (eq.getKind() != Kind::EQUAL
-        || eq[0].getKind()!=Kind::SET_SINGLETON || eq[1].getKind()!=Kind::SET_SINGLETON)
+    if (eq.getKind() != Kind::EQUAL || eq[0].getKind() != Kind::SET_SINGLETON
+        || eq[1].getKind() != Kind::SET_SINGLETON)
     {
       return Node::null();
     }

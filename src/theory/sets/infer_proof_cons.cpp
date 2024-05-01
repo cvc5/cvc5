@@ -33,13 +33,15 @@ InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
   d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
-void InferProofCons::notifyFact(const Node& conc, const Node& exp, InferenceId id)
+void InferProofCons::notifyFact(const Node& conc,
+                                const Node& exp,
+                                InferenceId id)
 {
-  Assert (conc.getKind()!=Kind::AND && conc.getKind()!=Kind::IMPLIES);
+  Assert(conc.getKind() != Kind::AND && conc.getKind() != Kind::IMPLIES);
   d_imap[conc] = id;
   d_expMap[conc] = exp;
 }
-  
+
 void InferProofCons::notifyConflict(const Node& conf, InferenceId id)
 {
   d_imap[conf.notNode()] = id;
@@ -84,10 +86,10 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   else
   {
     NodeExpMap::iterator itex = d_expMap.find(fact);
-    if (itex!=d_expMap.end())
+    if (itex != d_expMap.end())
     {
       Node exp = itex->second;
-      if (exp.getKind()==Kind::AND)
+      if (exp.getKind() == Kind::AND)
       {
         assumps.insert(assumps.end(), exp.begin(), exp.end());
       }
@@ -110,7 +112,8 @@ bool InferProofCons::convert(CDProof& cdp,
                              const Node& conc)
 {
   // these are handled manually
-  Assert (id!=InferenceId::SETS_PROXY && id!=InferenceId::SETS_PROXY_SINGLETON);
+  Assert(id != InferenceId::SETS_PROXY
+         && id != InferenceId::SETS_PROXY_SINGLETON);
   Trace("sets-ipc") << "InferProofCons::convert " << id << std::endl;
   Trace("sets-ipc") << "- assumptions: " << assumps << std::endl;
   Trace("sets-ipc") << "- conclusion:  " << conc << std::endl;
@@ -121,7 +124,7 @@ bool InferProofCons::convert(CDProof& cdp,
     case InferenceId::SETS_DOWN_CLOSURE:
     {
       Assert(assumps.size() >= 1);
-      // (and (set.member x S) (= S (op T1 T2))) => 
+      // (and (set.member x S) (= S (op T1 T2))) =>
       // rewrite((set.member x (op T1 T2)))
       // this holds by applying the equality as a substitution to the first
       // assumption and rewriting.
@@ -250,7 +253,8 @@ bool InferProofCons::convert(CDProof& cdp,
     {
       // SINGLETON_INJ
       Assert(assumps.size() == 1);
-      Node res = psb.tryStep(ProofRule::SETS_SINGLETON_INJ, {assumps[0]}, {}, conc);
+      Node res =
+          psb.tryStep(ProofRule::SETS_SINGLETON_INJ, {assumps[0]}, {}, conc);
       success = (res == conc);
       Assert(success);
     }

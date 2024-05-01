@@ -111,7 +111,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
 
 void InferenceManager::assertSetsConflict(const Node& conf, InferenceId id)
 {
-  conflict(conf,id);
+  conflict(conf, id);
 }
 
 bool InferenceManager::assertSetsFact(Node atom,
@@ -124,8 +124,7 @@ bool InferenceManager::assertSetsFact(Node atom,
   {
     d_ipc->notifyFact(conc, exp, id);
   }
-  return assertInternalFact(
-      atom, polarity, id, {exp}, d_ipc.get());
+  return assertInternalFact(atom, polarity, id, {exp}, d_ipc.get());
 }
 
 void InferenceManager::assertInference(Node fact,
