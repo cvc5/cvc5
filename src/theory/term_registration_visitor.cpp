@@ -87,10 +87,10 @@ PreRegisterVisitor::PreRegisterVisitor(Env& env, TheoryEngine* engine)
 bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   Trace("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
-
-  if ((parent.isClosure() || parent.getKind() == Kind::SEP_STAR
-       || parent.getKind() == Kind::SEP_WAND
-       || (parent.getKind() == Kind::SEP_LABEL
+  Kind k = parent.getKind();
+  if ((isClosureKind(k) || k == Kind::SEP_STAR
+       || k == Kind::SEP_WAND
+       || (k == Kind::SEP_LABEL
            && current.getType().isBoolean()))
       && current != parent)
   {
@@ -229,10 +229,10 @@ std::string SharedTermsVisitor::toString() const {
 bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
   Trace("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
-
-  if ((parent.isClosure() || parent.getKind() == Kind::SEP_STAR
-       || parent.getKind() == Kind::SEP_WAND
-       || (parent.getKind() == Kind::SEP_LABEL
+  Kind k = parent.getKind();
+  if ((isClosureKind(k) || k == Kind::SEP_STAR
+       || k == Kind::SEP_WAND
+       || (k == Kind::SEP_LABEL
            && current.getType().isBoolean()))
       && current != parent)
   {

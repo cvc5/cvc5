@@ -104,9 +104,18 @@ std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {
 
-cvc5::internal::theory::TheoryId kindToTheoryId(cvc5::internal::Kind k);
+cvc5::internal::theory::TheoryId kindToTheoryId(Kind k);
 cvc5::internal::theory::TheoryId typeConstantToTheoryId(
     cvc5::internal::TypeConstant typeConstant);
+
+/** Return true if k is a closure kind. */
+bool isClosureKind(Kind k)
+{
+   return k == Kind::LAMBDA || k == Kind::FORALL
+           || k == Kind::EXISTS || k == Kind::WITNESS
+           || k == Kind::SET_COMPREHENSION
+           || k == Kind::MATCH_BIND_CASE;
+}
 
 }  // namespace theory
 }  // namespace cvc5::internal
