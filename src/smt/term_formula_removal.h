@@ -151,14 +151,6 @@ class RemoveTermFormulas : protected EnvObj
    * result of cacheVal below.
    */
   TermFormulaCache d_tfCache;
-  /**
-   * The set of skolems introduced for Boolean term elimination. This is a set
-   * of purification skolems of Boolean type. These variables are important
-   * since unlike other Boolean variables, they must be treated as theory
-   * atoms to ensure that theory combination works when argument terms are
-   * Boolean type.
-   */
-  context::CDHashSet<Node> d_boolTermSkolems;
 
   /** skolem cache
    *

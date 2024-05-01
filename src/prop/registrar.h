@@ -31,15 +31,10 @@ public:
   virtual ~Registrar() {}
   /**
    * Called when a SAT literal for atom n has been allocated in the SAT solver.
+   * @param n The SAT literal to be notified.
    */
   virtual void notifySatLiteral(Node n) = 0;
-  /**
-   * Is k a skolem introduced for purifying a Boolean term? This impacts whether
-   * k is treated as a theory atom.
-   * @param k The term in question.
-   * @return true if k is a Boolean term skolem.
-   */
-  virtual bool isBooleanTermSkolem(const Node& k) { return false; }
+
 };/* class Registrar */
 
 class NullRegistrar : public Registrar {

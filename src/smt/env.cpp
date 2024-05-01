@@ -50,7 +50,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_logic(),
       d_options(),
       d_resourceManager(),
-      d_uninterpretedSortOwner(theory::THEORY_UF)
+      d_uninterpretedSortOwner(theory::THEORY_UF),
+      d_boolTermSkolems(d_userContext.get())
 {
   if (opts != nullptr)
   {
@@ -256,7 +257,7 @@ theory::TheoryId Env::theoryOf(TypeNode typeNode) const
 theory::TheoryId Env::theoryOf(TNode node) const
 {
   return theory::Theory::theoryOf(
-      node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
+      node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner, isBooleanTermSkolem(node));
 }
 
 bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
@@ -280,6 +281,21 @@ const std::vector<Plugin*>& Env::getPlugins() const { return d_plugins; }
 theory::quantifiers::OracleChecker* Env::getOracleChecker() const
 {
   return d_ochecker.get();
+}
+
+void Env::registerBooleanTermSkolem(const Node& k)
+{
+  Assert (k.isVar());
+  d_boolTermSkolems.insert(k);
+}
+
+bool Env::isBooleanTermSkolem(const Node& k) const
+{
+  if (!k.isVar())
+  {
+    return false;
+  }
+  return d_boolTermSkolems.find(k)!=d_boolTermSkolems.end();
 }
 
 }  // namespace cvc5::internal

@@ -141,8 +141,10 @@ void Theory::finishInitStandalone()
 
 TheoryId Theory::theoryOf(TNode node,
                           options::TheoryOfMode mode,
-                          TheoryId usortOwner)
+                          TheoryId usortOwner,
+      bool isBoolSkolem)
 {
+  Assert (!isBoolSkolem || !node.isVar());
   TheoryId tid = THEORY_BUILTIN;
   switch(mode) {
     case options::TheoryOfMode::THEORY_OF_TYPE_BASED:
@@ -150,14 +152,13 @@ TheoryId Theory::theoryOf(TNode node,
       if (node.isVar())
       {
         tid = theoryOf(node.getType(), usortOwner);
-        if (theoryOf(node.getType(), usortOwner) == theory::THEORY_BOOL)
+        if (tid == theory::THEORY_BOOL)
         {
-          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
           // Boolean variables belong to UF if they are "purify" variables.
           // Purify variables are considered theory literals and sent to the
           // UF theory to ensure theory combination is run properly on functions
           // having Boolean arguments.
-          if (sm->getId(node) == SkolemId::PURIFY)
+          if (isBoolSkolem)
           {
             tid = THEORY_UF;
           }
@@ -187,8 +188,7 @@ TheoryId Theory::theoryOf(TNode node,
         }
         else
         {
-          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-          if (sm->getId(node) == SkolemId::PURIFY)
+          if (isBoolSkolem)
           {
             // purify vars also go to UF
             tid = THEORY_UF;

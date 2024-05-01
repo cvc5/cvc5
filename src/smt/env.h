@@ -26,6 +26,7 @@
 #include "theory/logic_info.h"
 #include "theory/theory_id.h"
 #include "util/statistics_registry.h"
+#include "context/cdhashset.h"
 
 namespace cvc5::context {
 class Context;
@@ -278,7 +279,11 @@ class Env
 
   /** get oracle checker */
   theory::quantifiers::OracleChecker* getOracleChecker() const;
-
+  
+  /** Register Boolean term skolem */
+  void registerBooleanTermSkolem(const Node& k);
+  /** Is Boolean term skolem */
+  bool isBooleanTermSkolem(const Node& k) const;
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -355,6 +360,14 @@ class Env
   std::vector<Plugin*> d_plugins;
   /** oracle checker */
   std::unique_ptr<theory::quantifiers::OracleChecker> d_ochecker;
+  /**
+   * The set of skolems introduced for Boolean term elimination. This is a set
+   * of purification skolems of Boolean type. These variables are important
+   * since unlike other Boolean variables, they must be treated as theory
+   * atoms to ensure that theory combination works when argument terms are
+   * Boolean type.
+   */
+  context::CDHashSet<Node> d_boolTermSkolems;
 }; /* class Env */
 
 }  // namespace cvc5::internal

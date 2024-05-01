@@ -33,7 +33,6 @@ namespace cvc5::internal {
 RemoveTermFormulas::RemoveTermFormulas(Env& env)
     : EnvObj(env),
       d_tfCache(userContext()),
-      d_boolTermSkolems(userContext()),
       d_skolem_cache(userContext()),
       d_tpg(nullptr),
       d_lp(nullptr)
@@ -360,7 +359,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         if (nodeType.isBoolean() && inTerm)
         {
           // must treat as a Boolean term skolem
-          d_boolTermSkolems.insert(node);
+          d_env.registerBooleanTermSkolem(skolem);
         }
 
         Assert(node[0].getNumChildren() == 1);
@@ -394,12 +393,12 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
-  else if (nodeType.isBoolean() && inTerm && !isBooleanTermSkolem(node))
+  else if (nodeType.isBoolean() && inTerm && !d_env.isBooleanTermSkolem(node))
   {
     // if a purification skolem already, just use itself
     if (sm->getId(node) == SkolemId::PURIFY)
     {
-      d_boolTermSkolems.insert(node);
+      d_env.registerBooleanTermSkolem(node);
       return Node::null();
     }
     else
@@ -416,7 +415,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // properly in theory combination.
         skolem = sm->mkPurifySkolem(node);
         d_skolem_cache.insert(node, skolem);
-        d_boolTermSkolems.insert(skolem);
+        d_env.registerBooleanTermSkolem(skolem);
 
         // The new assertion
         newAssertion = skolem.eqNode(node);
@@ -486,11 +485,6 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
 
   // return null, indicating we will traverse children within runInternal
   return Node::null();
-}
-
-bool RemoveTermFormulas::isBooleanTermSkolem(const Node& k) const
-{
-  return d_boolTermSkolems.find(k) != d_boolTermSkolems.end();
 }
 
 Node RemoveTermFormulas::getSkolemForNode(Node k) const

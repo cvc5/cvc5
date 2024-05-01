@@ -293,7 +293,8 @@ class Theory : protected EnvObj
    * Return the ID of the theory responsible for the given type.
    */
   static inline TheoryId theoryOf(TypeNode typeNode,
-                                  TheoryId usortOwner = theory::THEORY_UF)
+                                  TheoryId usortOwner = theory::THEORY_UF,
+      bool isBoolSkolem = false)
   {
     TheoryId id;
     if (typeNode.getKind() == Kind::TYPE_CONSTANT)
@@ -317,13 +318,15 @@ class Theory : protected EnvObj
   static TheoryId theoryOf(
       TNode node,
       options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED,
-      TheoryId usortOwner = theory::THEORY_UF);
+      TheoryId usortOwner = theory::THEORY_UF,
+      bool isBoolSkolem = false);
 
   /**
    * Checks if the node is a leaf node of this theory.
    */
   inline bool isLeaf(TNode node) const
   {
+    // value of isBoolSkolem does not matter since variables have 0 children
     return node.getNumChildren() == 0
            || theoryOf(node, options().theory.theoryOfMode) != d_id;
   }
@@ -336,6 +339,7 @@ class Theory : protected EnvObj
       TheoryId theoryId,
       options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED)
   {
+    // value of isBoolSkolem does not matter since variables have 0 children
     return node.getNumChildren() == 0 || theoryOf(node, mode) != theoryId;
   }
 

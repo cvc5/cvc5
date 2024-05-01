@@ -510,12 +510,6 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-bool TheoryProxy::isBooleanTermSkolem(const Node& k)
-{
-  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
-  return rtf.isBooleanTermSkolem(k);
-}
-
 void TheoryProxy::notifySatLiteral(Node n)
 {
   // notify the preregister utility, which may trigger new preregistrations
