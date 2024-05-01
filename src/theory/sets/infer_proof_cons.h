@@ -69,11 +69,12 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   virtual std::string identify() const override;
 
  private:
-  void convert(CDProof& cdp,
+  bool convert(CDProof& cdp,
                InferenceId id,
                const std::vector<Node>& assumps,
                const Node& conc);
   /** Common constants */
+  Node d_tdid;
   Node d_false;
   /** Inference id */
   NodeInferenceMap d_imap;

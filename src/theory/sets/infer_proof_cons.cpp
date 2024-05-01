@@ -15,6 +15,8 @@
 
 #include "theory/sets/infer_proof_cons.h"
 
+#include "theory/builtin/proof_checker.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace sets {
@@ -23,6 +25,7 @@ InferProofCons::InferProofCons(Env& env, context::Context* c)
     : EnvObj(env), d_imap(userContext())
 {
   d_false = nodeManager()->mkConst(false);
+  d_tdid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
 void InferProofCons::notifyConflict(const Node& conf, InferenceId id)
@@ -37,11 +40,9 @@ void InferProofCons::notifyLemma(const Node& lem, InferenceId id)
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
-  Trace("sets-ipc") << "Get proof for " << fact << "..." << std::endl;
   NodeInferenceMap::iterator it = d_imap.find(fact);
   Assert(it != d_imap.end());
   InferenceId id = it->second;
-  Trace("sets-ipc") << "...inference identifier was " << id << std::endl;
 
   // temporary proof
   CDProof cdp(d_env);
@@ -68,15 +69,24 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
     }
     cdp.addStep(fact, ProofRule::SCOPE, {conc}, {assumps});
   }
-  convert(cdp, id, assumps, conc);
+  if (!convert(cdp, id, assumps, conc))
+  {
+    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE, assumps, {d_tdid});
+  }
   return cdp.getProofFor(fact);
 }
 
-void InferProofCons::convert(CDProof& cdp,
+bool InferProofCons::convert(CDProof& cdp,
                              InferenceId id,
                              const std::vector<Node>& assumps,
                              const Node& conc)
 {
+  Trace("sets-ipc") << "InferProofCons::convert " << id << std::endl;
+  Trace("sets-ipc") << "- assumptions: " << assumps << std::endl;
+  Trace("sets-ipc") << "- conclusion:  " << conc << std::endl;
+  bool success = false;
+  
+  return success;
 }
 
 std::string InferProofCons::identify() const { return "sets::InferProofCons"; }
