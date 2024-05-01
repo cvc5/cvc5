@@ -102,11 +102,6 @@ struct TypeConstantHashFunction
 const char* toString(TypeConstant tc);
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
-namespace theory {
-
-cvc5::internal::theory::TheoryId kindToTheoryId(Kind k);
-cvc5::internal::theory::TheoryId typeConstantToTheoryId(
-    cvc5::internal::TypeConstant typeConstant);
 
 /** Return true if k is a closure kind. */
 bool isClosureKind(Kind k)
@@ -116,6 +111,12 @@ bool isClosureKind(Kind k)
            || k == Kind::SET_COMPREHENSION
            || k == Kind::MATCH_BIND_CASE;
 }
+
+namespace theory {
+
+cvc5::internal::theory::TheoryId kindToTheoryId(Kind k);
+cvc5::internal::theory::TheoryId typeConstantToTheoryId(
+    cvc5::internal::TypeConstant typeConstant);
 
 }  // namespace theory
 }  // namespace cvc5::internal
