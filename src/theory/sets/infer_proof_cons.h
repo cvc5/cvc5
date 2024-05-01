@@ -21,6 +21,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
+#include "theory/inference_id.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -34,6 +35,7 @@ namespace sets {
  */
 class InferProofCons : protected EnvObj, public ProofGenerator
 {
+  typedef context::CDHashMap<Node,InferenceId> NodeInferenceMap;
  public:
   InferProofCons(Env& env, context::Context* c);
   virtual ~InferProofCons() {}
@@ -50,7 +52,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * This is used for lazy proof construction, where proofs are constructed
    * only for facts that are explained.
    */
-  void notifyFact();
+  void notifyConflict(const Node& conf, InferenceId id);
+  void notifyLemma(const Node& lem, InferenceId id);
 
   /**
    * This returns the proof for fact. This is required for using this class as
@@ -66,6 +69,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
  private:
   /** Common constants */
   Node d_tdid;
+  /** Inference id */
+  NodeInferenceMap d_imap;
 };
 
 }  // namespace sets

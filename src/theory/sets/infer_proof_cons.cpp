@@ -19,12 +19,29 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-InferProofCons::InferProofCons(Env& env, context::Context* c) : EnvObj(env) {}
+InferProofCons::InferProofCons(Env& env, context::Context* c) : EnvObj(env), d_imap(userContext()) {}
 
-void InferProofCons::notifyFact() {}
+void InferProofCons::notifyConflict(const Node& conf, InferenceId id)
+{
+  d_imap[conf.notNode()] = id;
+}
+
+void InferProofCons::notifyLemma(const Node& lem, InferenceId id)
+{
+  d_imap[lem] = id;
+}
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
+  Trace("sets-ipc") << "Get proof for " << fact << "..." << std::endl;
+  NodeInferenceMap::iterator it = d_imap.find(fact);
+  if (it==d_imap.end())
+  {
+    return nullptr;
+  }
+  InferenceId id = it->second;
+  Trace("sets-ipc") << "...inference identifier was " << id << std::endl;
+
   return nullptr;
 }
 

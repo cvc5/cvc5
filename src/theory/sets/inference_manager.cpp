@@ -187,6 +187,10 @@ void InferenceManager::setupAndAddPendingLemma(const Node& exp,
 {
   if (conc == d_false)
   {
+    if (d_ipc)
+    {
+      d_ipc->notifyConflict(exp, id);
+    }
     conflict(exp, id);
     return;
   }
@@ -195,7 +199,11 @@ void InferenceManager::setupAndAddPendingLemma(const Node& exp,
   {
     lem = nodeManager()->mkNode(Kind::IMPLIES, exp, conc);
   }
-  addPendingLemma(lem, id);
+  if (d_ipc)
+  {
+    d_ipc->notifyLemma(lem, id);
+  }
+  addPendingLemma(lem, id, LemmaProperty::NONE, d_ipc.get());
 }
 
 }  // namespace sets
