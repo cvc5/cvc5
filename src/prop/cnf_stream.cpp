@@ -258,7 +258,7 @@ SatLiteral CnfStream::convertAtom(TNode node)
   bool preRegister = false;
 
   // Is this a variable add it to the list. We distinguish whether a Boolean
-  // variable has been marked as a "purification skolem". This is done
+  // variable has been marked as a "Boolean term skolem". This is tracked
   // by the term formula removal pass (term_formula_removal.h/cpp). We treat
   // such variables as theory atoms since they may occur in term positions and
   // thus need to be considered e.g. for theory combination.

@@ -340,6 +340,60 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
+  else if (node.getKind() == Kind::WITNESS)
+  {
+    // If a witness choice
+    //   For details on this operator, see
+    //   http://planetmath.org/hilbertsvarepsilonoperator.
+    if (!expr::hasFreeVar(node))
+    {
+      // NOTE: we can replace by t if body is of the form (and (= z t) ...)
+      skolem = getSkolemForNode(node);
+      if (skolem.isNull())
+      {
+        Trace("rtf-proof-debug")
+            << "RemoveTermFormulas::run: make WITNESS skolem" << std::endl;
+        // Make the skolem to witness the choice, which notice is handled
+        // as a special case within SkolemManager::mkPurifySkolem.
+        skolem = sm->mkPurifySkolem(node);
+        d_skolem_cache.insert(node, skolem);
+        if (nodeType.isBoolean() && inTerm)
+        {
+          // must treat as a Boolean term skolem
+          d_boolTermSkolems.insert(node);
+        }
+
+        Assert(node[0].getNumChildren() == 1);
+
+        // The new assertion is the assumption that the body
+        // of the witness operator holds for the Skolem
+        newAssertion = node[1].substitute(node[0][0], skolem);
+
+        // Get the proof generator, if one exists, which was responsible for
+        // constructing this witness term. This may not exist, in which case
+        // the witness term was trivial to justify. This is the case e.g. for
+        // purification witness terms.
+        if (isProofEnabled())
+        {
+          Node existsAssertion =
+              nodeManager->mkNode(Kind::EXISTS, node[0], node[1]);
+          // -------------------- from skolem manager
+          // (exists x. node[1])
+          // -------------------- SKOLEMIZE
+          // node[1] * { x -> skolem }
+          ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
+          d_lp->addLazyStep(existsAssertion,
+                            expg,
+                            TrustId::WITNESS_AXIOM,
+                            true,
+                            "RemoveTermFormulas::run:skolem_pf");
+          d_lp->addStep(
+              newAssertion, ProofRule::SKOLEMIZE, {existsAssertion}, {});
+          newAssertionPg = d_lp.get();
+        }
+      }
+    }
+  }
   else if (nodeType.isBoolean() && inTerm && !isBooleanTermSkolem(node))
   {
     // if a purification skolem already, just use itself
@@ -371,55 +425,6 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // proof generator here. It is trivial to justify since it is an
         // instance of purification, which is justified by conversion to witness
         // forms.
-      }
-    }
-  }
-  else if (node.getKind() == Kind::WITNESS)
-  {
-    // If a witness choice
-    //   For details on this operator, see
-    //   http://planetmath.org/hilbertsvarepsilonoperator.
-    if (!expr::hasFreeVar(node))
-    {
-      // NOTE: we can replace by t if body is of the form (and (= z t) ...)
-      skolem = getSkolemForNode(node);
-      if (skolem.isNull())
-      {
-        Trace("rtf-proof-debug")
-            << "RemoveTermFormulas::run: make WITNESS skolem" << std::endl;
-        // Make the skolem to witness the choice, which notice is handled
-        // as a special case within SkolemManager::mkPurifySkolem.
-        skolem = sm->mkPurifySkolem(node);
-        d_skolem_cache.insert(node, skolem);
-
-        Assert(node[0].getNumChildren() == 1);
-
-        // The new assertion is the assumption that the body
-        // of the witness operator holds for the Skolem
-        newAssertion = node[1].substitute(node[0][0], skolem);
-
-        // Get the proof generator, if one exists, which was responsible for
-        // constructing this witness term. This may not exist, in which case
-        // the witness term was trivial to justify. This is the case e.g. for
-        // purification witness terms.
-        if (isProofEnabled())
-        {
-          Node existsAssertion =
-              nodeManager->mkNode(Kind::EXISTS, node[0], node[1]);
-          // -------------------- from skolem manager
-          // (exists x. node[1])
-          // -------------------- SKOLEMIZE
-          // node[1] * { x -> skolem }
-          ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
-          d_lp->addLazyStep(existsAssertion,
-                            expg,
-                            TrustId::WITNESS_AXIOM,
-                            true,
-                            "RemoveTermFormulas::run:skolem_pf");
-          d_lp->addStep(
-              newAssertion, ProofRule::SKOLEMIZE, {existsAssertion}, {});
-          newAssertionPg = d_lp.get();
-        }
       }
     }
   }
