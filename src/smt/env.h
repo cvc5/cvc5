@@ -280,9 +280,24 @@ class Env
   /** get oracle checker */
   theory::quantifiers::OracleChecker* getOracleChecker() const;
 
-  /** Register Boolean term skolem */
+  /**
+   * Register Boolean term skolem. This registers that k is a Boolean variable
+   * that should be treated as a theory atom. This impacts theoryOf, where
+   * Boolean term skolems belong to THEORY_UF, not THEORY_BOOL.
+   *
+   * This method is call by the "remove term formula" pass, which recognizes
+   * when Boolean terms occur in term positions, which are relevant for
+   * theory combination.
+   *
+   * @param k The node to register as a Boolean term skolem. This should be
+   * a variable of Boolean type.
+   */
   void registerBooleanTermSkolem(const Node& k);
-  /** Is Boolean term skolem */
+  /**
+   * Is Boolean term skolem?
+   * @param k The node in question.
+   * @return true if k is a Boolean term skolem.
+   */
   bool isBooleanTermSkolem(const Node& k) const;
 
  private:
