@@ -86,6 +86,8 @@ bool InferProofCons::convert(CDProof& cdp,
                              const std::vector<Node>& assumps,
                              const Node& conc)
 {
+  // these are handled manually
+  Assert (id!=InferenceId::SETS_PROXY && id!=InferenceId::SETS_PROXY_SINGLETON);
   Trace("sets-ipc") << "InferProofCons::convert " << id << std::endl;
   Trace("sets-ipc") << "- assumptions: " << assumps << std::endl;
   Trace("sets-ipc") << "- conclusion:  " << conc << std::endl;
@@ -96,7 +98,8 @@ bool InferProofCons::convert(CDProof& cdp,
     case InferenceId::SETS_DOWN_CLOSURE:
     {
       Assert(assumps.size() >= 1);
-      // (and (set.member x S) (= S (op T1 T2))) => (not?) (set.member x Ti)
+      // (and (set.member x S) (= S (op T1 T2))) => 
+      // rewrite((set.member x (op T1 T2)))
       // this holds by applying the equality as a substitution to the first
       // assumption and rewriting.
       std::vector<Node> exp(assumps.begin() + 1, assumps.end());
@@ -106,6 +109,7 @@ bool InferProofCons::convert(CDProof& cdp,
     }
     break;
     case InferenceId::SETS_UP_CLOSURE:
+    case InferenceId::SETS_UP_CLOSURE_2:
     {
       NodeManager* nm = nodeManager();
       Assert(conc.getKind() == Kind::SET_MEMBER);
