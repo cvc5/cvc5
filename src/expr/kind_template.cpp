@@ -65,7 +65,7 @@ bool isAssociative(cvc5::internal::Kind k)
 }
 
 /** Return true if k is a closure kind. */
-bool isClosureKind(Kind k)
+bool isClosureKind(cvc5::internal::Kind k)
 {
   return k == Kind::LAMBDA || k == Kind::FORALL || k == Kind::EXISTS
          || k == Kind::WITNESS || k == Kind::SET_COMPREHENSION
