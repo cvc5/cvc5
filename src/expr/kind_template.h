@@ -71,6 +71,9 @@ std::ostream& operator<<(std::ostream&, cvc5::internal::Kind);
 bool isAssociative(cvc5::internal::Kind k);
 std::string kindToString(cvc5::internal::Kind k);
 
+/** Return true if k is a closure kind. */
+bool isClosureKind(cvc5::internal::Kind k);
+
 struct KindHashFunction
 {
   inline size_t operator()(cvc5::internal::Kind k) const
@@ -101,9 +104,6 @@ struct TypeConstantHashFunction
 
 const char* toString(TypeConstant tc);
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
-
-/** Return true if k is a closure kind. */
-bool isClosureKind(cvc5::internal::Kind k);
 
 namespace theory {
 
