@@ -256,8 +256,10 @@ theory::TheoryId Env::theoryOf(TypeNode typeNode) const
 
 theory::TheoryId Env::theoryOf(TNode node) const
 {
-  return theory::Theory::theoryOf(
-      node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner, isBooleanTermSkolem(node));
+  return theory::Theory::theoryOf(node,
+                                  d_options.theory.theoryOfMode,
+                                  d_uninterpretedSortOwner,
+                                  isBooleanTermSkolem(node));
 }
 
 bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
@@ -285,7 +287,7 @@ theory::quantifiers::OracleChecker* Env::getOracleChecker() const
 
 void Env::registerBooleanTermSkolem(const Node& k)
 {
-  Assert (k.isVar());
+  Assert(k.isVar());
   d_boolTermSkolems.insert(k);
 }
 
@@ -295,7 +297,7 @@ bool Env::isBooleanTermSkolem(const Node& k) const
   {
     return false;
   }
-  return d_boolTermSkolems.find(k)!=d_boolTermSkolems.end();
+  return d_boolTermSkolems.find(k) != d_boolTermSkolems.end();
 }
 
 }  // namespace cvc5::internal

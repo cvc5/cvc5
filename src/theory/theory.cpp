@@ -142,9 +142,9 @@ void Theory::finishInitStandalone()
 TheoryId Theory::theoryOf(TNode node,
                           options::TheoryOfMode mode,
                           TheoryId usortOwner,
-      bool isBoolSkolem)
+                          bool isBoolSkolem)
 {
-  Assert (!isBoolSkolem || !node.isVar());
+  Assert(!isBoolSkolem || !node.isVar());
   TheoryId tid = THEORY_BUILTIN;
   switch(mode) {
     case options::TheoryOfMode::THEORY_OF_TYPE_BASED:

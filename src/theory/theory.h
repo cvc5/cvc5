@@ -294,7 +294,7 @@ class Theory : protected EnvObj
    */
   static inline TheoryId theoryOf(TypeNode typeNode,
                                   TheoryId usortOwner = theory::THEORY_UF,
-      bool isBoolSkolem = false)
+                                  bool isBoolSkolem = false)
   {
     TheoryId id;
     if (typeNode.getKind() == Kind::TYPE_CONSTANT)
