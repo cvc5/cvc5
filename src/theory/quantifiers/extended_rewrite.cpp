@@ -229,7 +229,36 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   {
     new_ret = extendedRewriteEqChain(
         Kind::EQUAL, Kind::AND, Kind::OR, Kind::NOT, ret);
-    debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
+    if (!new_ret.isNull())
+    {
+      debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
+    }
+    else if (ret[0].getType().isInteger())
+    {
+      theory::strings::ArithEntail ae(&d_rew);
+      if (ae.check(ret[0], ret[1], true) || ae.check(ret[1], ret[0], true))
+      {
+        new_ret = d_false;
+        debugExtendedRewrite(ret, new_ret, "String EQUAL len entailment");
+      }
+    }
+  }
+  else if (ret.getKind() == Kind::GEQ)
+  {
+    if (ret[0].getType().isInteger())
+    {
+      theory::strings::ArithEntail ae(&d_rew);
+      if (ae.check(ret[0], ret[1], false))
+      {
+        new_ret = d_true;
+        debugExtendedRewrite(ret, new_ret, "String GEQ len entailment");
+      }
+      else if (ae.check(ret[1], ret[0], true))
+      {
+        new_ret = d_false;
+        debugExtendedRewrite(ret, new_ret, "String GEQ len strict entailment");
+      }
+    }
   }
   Assert(new_ret.isNull() || new_ret != ret);
   if (new_ret.isNull() && ret.getKind() != Kind::ITE)

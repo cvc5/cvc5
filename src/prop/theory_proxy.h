@@ -228,6 +228,12 @@ class TheoryProxy : protected EnvObj, public Registrar
    * local assertions.
    */
   bool d_dmTrackActiveSkDefs;
+  /**
+   * Are we in solve?
+   * This is true if there was a call to presolve() after the last call to
+   * postsolve(), if any.
+   */
+  bool d_inSolve;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
