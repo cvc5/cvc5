@@ -19,6 +19,15 @@
 (define $is_str_literal ((T Type :implicit) (x T))
   (alf.is_eq (alf.to_str x) x))
 
+; Compare arithmetic greater than. Assumes x and y are values.
+; Returns true if x > y.
+(define $compare_gt ((T Type :implicit) (x T) (y T))
+  (alf.is_neg (alf.add (alf.neg x) y)))
+
+; Compare arithmetic greater than. Assumes x and y are values.
+; Returns true if x >= y.
+(define $compare_geq ((T Type :implicit) (x T) (y T))
+  (alf.not (alf.is_neg (alf.add (alf.neg y) x))))
 
 (declare-type @Pair (Type Type))
 (declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))

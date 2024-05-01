@@ -34,6 +34,14 @@
   (alf.cons str.++ x y)
 )
 
+; Return true if n is a valid code point [0, 196607].
+(define $str_is_code_point ((n Int))
+  (alf.ite ($is_z_literal n)
+  (alf.ite ($compare_geq 196608 n)
+    (alf.not (alf.is_neg n))
+    false)
+  false))
+
 ; Return t if it corresponds to the empty string, otherwise evaluates
 ; to an unevaluated alf.requires term.
 (define $str_self_if_empty ((T Type :implicit) (t T))
