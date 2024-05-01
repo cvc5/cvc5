@@ -293,8 +293,7 @@ class Theory : protected EnvObj
    * Return the ID of the theory responsible for the given type.
    */
   static inline TheoryId theoryOf(TypeNode typeNode,
-                                  TheoryId usortOwner = theory::THEORY_UF,
-                                  bool isBoolSkolem = false)
+                                  TheoryId usortOwner = theory::THEORY_UF)
   {
     TheoryId id;
     if (typeNode.getKind() == Kind::TYPE_CONSTANT)
@@ -314,19 +313,29 @@ class Theory : protected EnvObj
 
   /**
    * Returns the ID of the theory responsible for the given node.
+   *
+   * Note this method assumes that node is not a "Boolean term skolem". Boolean
+   * term skolems always belong to THEORY_UF. This case is handled in
+   * Env::theoryOf.
+   * 
+   * @param node The node in question.
+   * @param mdoe The theoryof mode, which impacts which theory owns e.g.
+   * variables.
+   * @param usortOwner The theory that owns uninterpreted sorts.
+   * @return The theory that owns node.
    */
   static TheoryId theoryOf(
       TNode node,
       options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED,
-      TheoryId usortOwner = theory::THEORY_UF,
-      bool isBoolSkolem = false);
+      TheoryId usortOwner = theory::THEORY_UF);
 
   /**
    * Checks if the node is a leaf node of this theory.
    */
   inline bool isLeaf(TNode node) const
   {
-    // value of isBoolSkolem does not matter since variables have 0 children
+    // variables have 0 children thus theoryOf is not impacted by whether
+    // node is a Boolean term skolem.
     return node.getNumChildren() == 0
            || theoryOf(node, options().theory.theoryOfMode) != d_id;
   }
@@ -339,7 +348,8 @@ class Theory : protected EnvObj
       TheoryId theoryId,
       options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED)
   {
-    // value of isBoolSkolem does not matter since variables have 0 children
+    // variables have 0 children thus theoryOf is not impacted by whether
+    // node is a Boolean term skolem.
     return node.getNumChildren() == 0 || theoryOf(node, mode) != theoryId;
   }
 

@@ -256,10 +256,14 @@ theory::TheoryId Env::theoryOf(TypeNode typeNode) const
 
 theory::TheoryId Env::theoryOf(TNode node) const
 {
+  // Boolean term skolems always belong to THEORY_UF
+  if (isBooleanTermSkolem(node))
+  {
+    return theory::TheoryId::THEORY_UF;
+  }
   return theory::Theory::theoryOf(node,
                                   d_options.theory.theoryOfMode,
-                                  d_uninterpretedSortOwner,
-                                  isBooleanTermSkolem(node));
+                                  d_uninterpretedSortOwner);
 }
 
 bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
@@ -293,6 +297,7 @@ void Env::registerBooleanTermSkolem(const Node& k)
 
 bool Env::isBooleanTermSkolem(const Node& k) const
 {
+  // optimization: check whether k is a variable
   if (!k.isVar())
   {
     return false;

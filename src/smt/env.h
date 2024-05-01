@@ -285,7 +285,7 @@ class Env
    * that should be treated as a theory atom. This impacts theoryOf, where
    * Boolean term skolems belong to THEORY_UF, not THEORY_BOOL.
    *
-   * This method is call by the "remove term formula" pass, which recognizes
+   * This method is called by the "remove term formula" pass, which recognizes
    * when Boolean terms occur in term positions, which are relevant for
    * theory combination.
    *
