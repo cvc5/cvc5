@@ -16,11 +16,11 @@
 #include "theory/sets/infer_proof_cons.h"
 
 #include "expr/skolem_manager.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/sets/theory_sets_rewriter.h"
-#include "proof/proof_node_algorithm.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -101,27 +101,28 @@ bool InferProofCons::convert(CDProof& cdp,
       // assumption and rewriting.
       std::vector<Node> exp(assumps.begin() + 1, assumps.end());
       Node aelim = psb.applyPredElim(assumps[0], exp);
-      success = (aelim==conc);
-      Assert (success);
+      success = (aelim == conc);
+      Assert(success);
     }
     break;
     case InferenceId::SETS_UP_CLOSURE:
     {
-      NodeManager * nm = nodeManager();
+      NodeManager* nm = nodeManager();
       Assert(conc.getKind() == Kind::SET_MEMBER);
       Node so = SkolemManager::getUnpurifiedForm(conc[1]);
       Trace("sets-ipc") << "Unpurified form " << so << std::endl;
       Node memo = nm->mkNode(Kind::SET_MEMBER, conc[0], so);
       Node memor = d_tsr->rewriteMembershipBinaryOp(memo);
-      Trace("sets-ipc") << "Single step rewriting of membership " << memor << std::endl;
-      Assert (memo!=memor);
+      Trace("sets-ipc") << "Single step rewriting of membership " << memor
+                        << std::endl;
+      Assert(memo != memor);
       // collect the memberships in the premise
       std::vector<Node> assumpMem;
       std::vector<Node> assumpOther;
       for (const Node& a : assumps)
       {
-        Node aa = a.getKind()==Kind::NOT ? a[0] : a;
-        if (aa.getKind()==Kind::SET_MEMBER)
+        Node aa = a.getKind() == Kind::NOT ? a[0] : a;
+        if (aa.getKind() == Kind::SET_MEMBER)
         {
           assumpMem.push_back(a);
         }
@@ -131,7 +132,7 @@ bool InferProofCons::convert(CDProof& cdp,
         }
       }
       Node msrc;
-      if (assumpMem.size()==2)
+      if (assumpMem.size() == 2)
       {
         msrc = nm->mkAnd(assumpMem);
         psb.addStep(ProofRule::AND_INTRO, {assumpMem}, {}, msrc);
@@ -140,9 +141,9 @@ bool InferProofCons::convert(CDProof& cdp,
       {
         msrc = assumpMem[0];
       }
-      bool isOr = (memor.getKind()==Kind::OR);
+      bool isOr = (memor.getKind() == Kind::OR);
       size_t ntgts = isOr ? 2 : 1;
-      for (size_t i=0; i<ntgts; i++)
+      for (size_t i = 0; i < ntgts; i++)
       {
         Node mtgt = isOr ? memor[i] : memor;
         Trace("sets-ipc") << "...try target " << mtgt << std::endl;
@@ -152,7 +153,7 @@ bool InferProofCons::convert(CDProof& cdp,
           if (isOr)
           {
             success = psb.applyPredIntro(memor, {mtgt}, MethodId::SB_FORMULA);
-            Assert (success);
+            Assert(success);
           }
           Trace("sets-ipc") << "......success" << std::endl;
           break;
@@ -160,33 +161,35 @@ bool InferProofCons::convert(CDProof& cdp,
       }
       if (!success)
       {
-        Assert (success);
+        Assert(success);
         break;
       }
-      Trace("sets-ipc") << "* Prove transform " << memor << " to " << memo << std::endl;
+      Trace("sets-ipc") << "* Prove transform " << memor << " to " << memo
+                        << std::endl;
       if (!psb.applyPredTransform(memor, memo, {}))
       {
         success = false;
-        Assert (success);
+        Assert(success);
         break;
       }
-      if (so!=conc[1])
+      if (so != conc[1])
       {
         std::vector<Node> ceqs;
         Node ceq = conc[0].eqNode(conc[0]);
         if (!psb.addStep(ProofRule::REFL, {}, {conc[0]}, ceq))
         {
           success = false;
-          Assert (success);
+          Assert(success);
           break;
         }
         ceqs.push_back(ceq);
         ceq = so.eqNode(conc[1]);
-        Trace("sets-ipc") << "* Prove equal (by original forms) " << ceq << std::endl;
+        Trace("sets-ipc") << "* Prove equal (by original forms) " << ceq
+                          << std::endl;
         if (!psb.addStep(ProofRule::MACRO_SR_PRED_INTRO, {}, {ceq}, ceq))
         {
           success = false;
-          Assert (success);
+          Assert(success);
           break;
         }
         ceqs.push_back(ceq);
@@ -196,13 +199,13 @@ bool InferProofCons::convert(CDProof& cdp,
         if (!psb.addStep(cr, ceqs, cargs, cequiv))
         {
           success = false;
-          Assert (success);
+          Assert(success);
           break;
         }
         if (!psb.addStep(ProofRule::EQ_RESOLVE, {memo, cequiv}, {}, conc))
         {
           success = false;
-          Assert (success);
+          Assert(success);
           break;
         }
       }
@@ -213,7 +216,7 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(assumps.size() == 1);
       Node res = psb.tryStep(ProofRule::SETS_EXT, {assumps[0]}, {}, conc);
       success = (res == conc);
-      Assert (success);
+      Assert(success);
     }
     break;
     default: break;

@@ -202,17 +202,20 @@ bool TheoryProofStepBuffer::applyExtendedPredInfer(Node src,
   {
     // If we were successful, now go back and justify the conversion to
     // original forms, which should be trivial.
-    bool ret = applyPredTransform(src, srco, {},
-                       MethodId::SB_DEFAULT,
-                       MethodId::SBA_SEQUENTIAL,
-                       MethodId::RW_EXT_REWRITE);
-    AlwaysAssert(ret) << "Failed to show " << src << " transforms to " << srco << std::endl;
-    ret =applyPredTransform(srco,
-                       tgto,
-                       exp,
-                       MethodId::SB_DEFAULT,
-                       MethodId::SBA_SEQUENTIAL,
-                       MethodId::RW_EXT_REWRITE);
+    bool ret = applyPredTransform(src,
+                                  srco,
+                                  {},
+                                  MethodId::SB_DEFAULT,
+                                  MethodId::SBA_SEQUENTIAL,
+                                  MethodId::RW_EXT_REWRITE);
+    AlwaysAssert(ret) << "Failed to show " << src << " transforms to " << srco
+                      << std::endl;
+    ret = applyPredTransform(srco,
+                             tgto,
+                             exp,
+                             MethodId::SB_DEFAULT,
+                             MethodId::SBA_SEQUENTIAL,
+                             MethodId::RW_EXT_REWRITE);
     AlwaysAssert(ret);
     ret = applyPredTransform(tgto, tgt, {});
     AlwaysAssert(ret);
