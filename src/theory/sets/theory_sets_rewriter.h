@@ -75,6 +75,7 @@ class TheorySetsRewriter : public TheoryRewriter
    * Rewrite membership for a binary op.
    */
   Node rewriteMembershipBinaryOp(const Node& mem);
+
  private:
   /**
    * Returns true if elementTerm is in setTerm, where both terms are constants.

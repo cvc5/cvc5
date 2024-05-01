@@ -27,7 +27,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-InferenceManager::InferenceManager(Env& env, Theory& t, TheorySetsRewriter* tr, SolverState& s)
+InferenceManager::InferenceManager(Env& env,
+                                   Theory& t,
+                                   TheorySetsRewriter* tr,
+                                   SolverState& s)
     : InferenceManagerBuffered(env, t, s, "theory::sets::"),
       d_state(s),
       d_ipc(isProofEnabled() ? new InferProofCons(env, tr) : nullptr)

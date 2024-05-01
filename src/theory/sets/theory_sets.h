@@ -26,9 +26,9 @@
 #include "theory/sets/proof_checker.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
-#include "theory/sets/theory_sets_rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {

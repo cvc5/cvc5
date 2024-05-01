@@ -49,10 +49,7 @@ TheorySets::~TheorySets()
 {
 }
 
-TheoryRewriter* TheorySets::getTheoryRewriter()
-{
-  return &d_rewriter;
-}
+TheoryRewriter* TheorySets::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheorySets::getProofChecker() { return &d_checker; }
 

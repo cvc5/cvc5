@@ -500,7 +500,8 @@ void TheorySetsPrivate::checkDownwardsClosure()
                 // force sending as a lemma
                 inferType = 1;
               }
-              d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp, inferType);
+              d_im.assertInference(
+                  nmem, InferenceId::SETS_DOWN_CLOSURE, exp, inferType);
             }
           }
         }

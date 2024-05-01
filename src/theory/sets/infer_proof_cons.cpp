@@ -15,17 +15,16 @@
 
 #include "theory/sets/infer_proof_cons.h"
 
+#include "expr/skolem_manager.h"
 #include "proof/proof_node_manager.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-InferProofCons::InferProofCons(Env& env,
-  TheorySetsRewriter* tsr)
+InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
     : EnvObj(env), d_tsr(tsr), d_imap(userContext())
 {
   d_false = nodeManager()->mkConst(false);
@@ -98,7 +97,7 @@ bool InferProofCons::convert(CDProof& cdp,
       // (and (set.member x S) (= S (op T1 T2))) => (not?) (set.member x Ti)
       // this holds by applying the equality as a substitution to the first
       // assumption and rewriting.
-      std::vector<Node> exp(assumps.begin()+1, assumps.end());
+      std::vector<Node> exp(assumps.begin() + 1, assumps.end());
       if (psb.applyPredTransform(assumps[0], conc, exp))
       {
         success = true;
@@ -111,9 +110,9 @@ bool InferProofCons::convert(CDProof& cdp,
     break;
     case InferenceId::SETS_UP_CLOSURE:
     {
-      Assert (conc.getKind()=Kind::SET_MEMBER);
+      Assert(conc.getKind() = Kind::SET_MEMBER);
       Node so = SkolemManager::getUnpurifiedForm(conc[1]);
-      Trace("sets-ipc")  << "Unpurified form " << so << std::endl;
+      Trace("sets-ipc") << "Unpurified form " << so << std::endl;
       AlwaysAssert(false);
     }
     break;

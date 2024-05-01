@@ -93,9 +93,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                || node[1].getKind() == Kind::SET_MINUS)
       {
         Node ret = rewriteMembershipBinaryOp(node);
-        return RewriteResponse(
-            REWRITE_AGAIN_FULL,
-            ret);
+        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
       break;
     }  // Kind::SET_MEMBER
@@ -612,17 +610,15 @@ Node TheorySetsRewriter::rewriteMembershipBinaryOp(const Node& node)
   std::vector<Node> children;
   for (size_t i = 0, nchild = node[1].getNumChildren(); i < nchild; i++)
   {
-    Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
-    if (node[1].getKind() == Kind::SET_MINUS && i == 1)
-    {
-      nc = nc.negate();
-    }
-    children.push_back(nc);
+  Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
+  if (node[1].getKind() == Kind::SET_MINUS && i == 1)
+  {
+    nc = nc.negate();
   }
-  return 
-      nm->mkNode(
-          node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
-          children);
+  children.push_back(nc);
+  }
+  return nm->mkNode(node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
+                    children);
 }
 
 // static

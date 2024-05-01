@@ -41,8 +41,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   typedef context::CDHashMap<Node, InferenceId> NodeInferenceMap;
 
  public:
-  InferProofCons(Env& env, 
-  TheorySetsRewriter* tsr);
+  InferProofCons(Env& env, TheorySetsRewriter* tsr);
   virtual ~InferProofCons() {}
 
   /**
