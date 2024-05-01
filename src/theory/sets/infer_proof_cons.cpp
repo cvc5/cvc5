@@ -25,7 +25,7 @@ InferProofCons::InferProofCons(Env& env, context::Context* c)
     : EnvObj(env), d_imap(userContext())
 {
   d_false = nodeManager()->mkConst(false);
-  d_tdid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
+  d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
 void InferProofCons::notifyConflict(const Node& conf, InferenceId id)
@@ -71,7 +71,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   }
   if (!convert(cdp, id, assumps, conc))
   {
-    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE, assumps, {d_tdid});
+    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE, assumps, {d_tid});
   }
   return cdp.getProofFor(fact);
 }

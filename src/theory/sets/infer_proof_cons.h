@@ -43,26 +43,22 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   virtual ~InferProofCons() {}
 
   /**
-   * This is called to notify that di is an inference that may need a proof
-   * in the future.
-   *
-   * In detail, this class should be prepared to respond to a call to:
-   *   getProofFor(di.d_conc)
-   * in the remainder of the SAT context. This method copies di and stores
-   * it in the context-dependent map d_lazyFactMap below.
-   *
-   * This is used for lazy proof construction, where proofs are constructed
-   * only for facts that are explained.
+   * This is called to notify that conf was called as a conflict with inference
+   * identifier id.
    */
   void notifyConflict(const Node& conf, InferenceId id);
+  /**
+   * This is called to notify that conf was called as a lemma with inference
+   * identifier id.
+   */
   void notifyLemma(const Node& lem, InferenceId id);
 
   /**
    * This returns the proof for fact. This is required for using this class as
    * a lazy proof generator.
    *
-   * It should be the case that a call was made to notifyFact(di) where
-   * di.d_conc is fact in this SAT context.
+   * It should be the case that a call was made to notifyConflict or
+   * notifyLemma was called on fact.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Identify this generator (for debugging, etc..) */
@@ -74,9 +70,9 @@ class InferProofCons : protected EnvObj, public ProofGenerator
                const std::vector<Node>& assumps,
                const Node& conc);
   /** Common constants */
-  Node d_tdid;
+  Node d_tid;
   Node d_false;
-  /** Inference id */
+  /** Maps formulas to the inference id they were notified with */
   NodeInferenceMap d_imap;
 };
 
