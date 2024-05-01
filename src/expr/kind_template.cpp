@@ -70,6 +70,7 @@ bool isClosureKind(cvc5::internal::Kind k)
   switch (k)
   {
     case Kind::LAMBDA:
+    case Kind::EXISTS:
     case Kind::FORALL:
     case Kind::WITNESS:
     case Kind::SET_COMPREHENSION:
