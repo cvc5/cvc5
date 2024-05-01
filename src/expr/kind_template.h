@@ -103,11 +103,11 @@ const char* toString(TypeConstant tc);
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 /** Return true if k is a closure kind. */
-bool isClosureKind(Kind k);
+bool isClosureKind(cvc5::internal::Kind k);
 
 namespace theory {
 
-cvc5::internal::theory::TheoryId kindToTheoryId(Kind k);
+cvc5::internal::theory::TheoryId kindToTheoryId(cvc5::internal::Kind k);
 cvc5::internal::theory::TheoryId typeConstantToTheoryId(
     cvc5::internal::TypeConstant typeConstant);
 
