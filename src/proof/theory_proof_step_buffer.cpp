@@ -160,7 +160,7 @@ bool TheoryProofStepBuffer::applyExtendedPredInfer(Node src,
                              MethodId::SBA_SEQUENTIAL,
                              MethodId::RW_EXT_REWRITE);
   Node tgto = SkolemManager::getOriginalForm(tgt);
-  if (psrco==tgto)
+  if (psrco == tgto)
   {
     applyPredTransform(src, srco, {});
     applyPredTransform(tgto, tgt, {});
@@ -171,7 +171,8 @@ bool TheoryProofStepBuffer::applyExtendedPredInfer(Node src,
                              MethodId::SB_DEFAULT,
                              MethodId::SBA_SEQUENTIAL,
                              MethodId::RW_EXT_REWRITE);
-  Trace("tpsb-debug") << "applyExtendedPredInfer: " << exp << " => " << src << " == " << tgt << std::endl;
+  Trace("tpsb-debug") << "applyExtendedPredInfer: " << exp << " => " << src
+                      << " == " << tgt << std::endl;
   Trace("tpsb-debug") << "- " << psrco << " (from " << src << ")" << std::endl;
   Trace("tpsb-debug") << "- " << ptgto << " (from " << tgt << ")" << std::endl;
   if (psrco == ptgto)
@@ -191,7 +192,8 @@ bool TheoryProofStepBuffer::applyExtendedPredInfer(Node src,
         NodeManager* nm = NodeManager::currentNM();
         Node ni = nm->mkConstInt(Rational(i));
         addStep(ProofRule::AND_ELIM, {psrco}, {ni}, ptgto);
-        Trace("tpsb-debug") << "...equal to target after AND_ELIM " << i << std::endl;
+        Trace("tpsb-debug")
+            << "...equal to target after AND_ELIM " << i << std::endl;
         break;
       }
     }
@@ -201,10 +203,12 @@ bool TheoryProofStepBuffer::applyExtendedPredInfer(Node src,
     // If we were successful, now go back and justify the conversion to
     // original forms, which should be trivial.
     applyPredTransform(src, srco, {});
-    applyPredTransform(srco, tgto, exp,
-                             MethodId::SB_DEFAULT,
-                             MethodId::SBA_SEQUENTIAL,
-                             MethodId::RW_EXT_REWRITE);
+    applyPredTransform(srco,
+                       tgto,
+                       exp,
+                       MethodId::SB_DEFAULT,
+                       MethodId::SBA_SEQUENTIAL,
+                       MethodId::RW_EXT_REWRITE);
     applyPredTransform(tgto, tgt, {});
   }
   return success;

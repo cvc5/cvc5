@@ -32,8 +32,8 @@ void SetsProofRuleChecker::registerTo(ProofChecker* pc)
 }
 
 Node SetsProofRuleChecker::checkInternal(ProofRule id,
-                                           const std::vector<Node>& children,
-                                           const std::vector<Node>& args)
+                                         const std::vector<Node>& children,
+                                         const std::vector<Node>& args)
 {
   NodeManager* nm = nodeManager();
   if (id == ProofRule::SETS_EXT)
@@ -48,7 +48,7 @@ Node SetsProofRuleChecker::checkInternal(ProofRule id,
     }
     Node a = deq[0][0];
     Node b = deq[0][1];
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     Node k = sm->mkSkolemFunction(SkolemId::SETS_DEQ_DIFF, {a, b});
     Node as = nm->mkNode(Kind::SET_MEMBER, k, a);
     Node bs = nm->mkNode(Kind::SET_MEMBER, k, b);

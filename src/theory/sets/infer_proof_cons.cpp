@@ -15,8 +15,8 @@
 
 #include "theory/sets/infer_proof_cons.h"
 
-#include "proof/theory_proof_step_buffer.h"
 #include "proof/proof_node_manager.h"
+#include "proof/theory_proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5::internal {
@@ -92,7 +92,7 @@ bool InferProofCons::convert(CDProof& cdp,
   {
     case InferenceId::SETS_DOWN_CLOSURE:
     {
-      Assert (assumps.size()==2);
+      Assert(assumps.size() == 2);
       // (and (set.member x S) (= S (op T1 T2))) => (not?) (set.member x Ti)
       // this holds by applying the equality as a substitution to the first
       // assumption and rewriting.
@@ -104,23 +104,23 @@ bool InferProofCons::convert(CDProof& cdp,
     break;
     case InferenceId::SETS_DEQ:
     {
-      Assert (assumps.size()==1);
+      Assert(assumps.size() == 1);
       Node res = psb.tryStep(ProofRule::SETS_EXT, {assumps[0]}, {}, conc);
-      success = (res==conc);
+      success = (res == conc);
     }
     break;
-    default:break;
+    default: break;
   }
   if (success)
   {
     if (!cdp.addSteps(psb))
     {
-      Assert (false);
+      Assert(false);
       success = false;
     }
   }
   Trace("sets-ipc") << "...success = " << success << std::endl;
-  //AlwaysAssert(success);
+  // AlwaysAssert(success);
   return success;
 }
 
