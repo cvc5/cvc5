@@ -2059,10 +2059,17 @@ bool QuantifiersRewriter::doOperation(Node q,
   else if (computeOption == COMPUTE_MINISCOPING
            || computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
   {
+    // in the rare case the body is ground, we always eliminate unless it
+    // is truly a non-standard quantified formula (e.g. one for QE).
+    if (!expr::hasBoundVar(q[1]))
+    {
+      return qa.isStandard();
+    }
     if (!is_std)
     {
       return false;
     }
+    // do not miniscope if we have user patterns unless option is set
     if (!d_opts.quantifiers.miniscopeQuantUser && qa.d_hasPattern)
     {
       return false;
