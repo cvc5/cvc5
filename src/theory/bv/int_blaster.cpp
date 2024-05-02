@@ -975,7 +975,7 @@ void IntBlaster::collectQuantificationData(Node n) {
     }
     if (n.getNumChildren() > 0) {
       for (Node child : n) {
-        Assert(d_quantifiedVariables.find(child) != d_quantifiedVariables.end());
+        Assert(d_quantifiedVariables.find(child) != d_quantifiedVariables.end()) << child;
         std::unordered_set<Node> varsOfChild = d_quantifiedVariables[child];
         qfvarsOfChildren.insert(varsOfChild.begin(), varsOfChild.end());
       }
