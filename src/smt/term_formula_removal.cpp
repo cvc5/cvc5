@@ -318,7 +318,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         Trace("rtf-proof-debug")
             << "RemoveTermFormulas::run: justify " << newAssertion
             << " with ITE axiom" << std::endl;
-        // ---------------------- REMOVE_TERM_FORMULA_AXIOM
+        // ---------------------- ITE_EQ
         // (ite node[0]
         //      (= node node[1])            ------------- MACRO_SR_PRED_INTRO
         //      (= node node[2]))           node = skolem
@@ -328,7 +328,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // Note that the MACRO_SR_PRED_INTRO step holds due to conversion
         // of skolem into its witness form, which is node.
         Node axiom = getAxiomFor(node);
-        d_lp->addStep(axiom, ProofRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
+        d_lp->addStep(axiom, ProofRule::ITE_EQ, {}, {node});
         Node eq = node.eqNode(skolem);
         d_lp->addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
         d_lp->addStep(newAssertion,
