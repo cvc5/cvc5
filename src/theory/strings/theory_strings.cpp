@@ -1195,17 +1195,19 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       Node len = d_zero;
       std::vector<Node> cases;
       std::vector<Node> returns;
+      Node emp = Word::mkEmptyWord(atom.getType());
+      cases.push_back(nm->mkNode(Kind::LT, cstart, d_zero));
+      returns.push_back(emp);
       for (const Node& c : atom[0])
       {
         Node clen = nm->mkNode(Kind::STRING_LENGTH, c);
-        Node ccase = nm->mkNode(Kind::GEQ, start, len);
+        Node ccase = nm->mkNode(Kind::LT, cstart, clen);
         Node cstart = nm->mkNode(Kind::SUB, start, len);
-        ccase = nm->mkNode(Kind::AND, nm->mkNode(Kind::LT, cstart, clen));
         cases.push_back(ccase);
         returns.push_back(nm->mkNode(Kind::STRING_SUBSTR, c, cstart, d_one));
         len = nm->mkNode(Kind::ADD, clen, len);
       }
-      Node ret = Word::mkEmptyWord(atom.getType());
+      Node ret = emp;
       for (size_t i = 0, ncases = cases.size(); i < ncases; i++)
       {
         size_t ii = ncases - (i + 1);
@@ -1213,12 +1215,14 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       }
       Trace("strings-ppr") << "..return " << ret << std::endl;
       // turns (str.substr (str.++ s1 ... sn) x 1) into:
-      // (ite (<= 0 x) (< s (str.len s1))
-      //    (str.substr s1 (- x 0) 1)
-      //    (ite (<= (str.len s1) x) (< s (+ (str.len s1) (str.len s2))
-      //      (str.substr s1 (- x (str.len s1)) 1)
-      //      ...
-      //      "")))
+      // (ite (< x 0)
+      //   ""
+      //   (ite (< x (str.len s1)
+      //     (str.substr s1 (- x 0) 1)
+      //     (ite (< x (+ (str.len s1) (str.len s2)))
+      //       (str.substr s1 (- x (str.len s1)) 1)
+      //       ...
+      //       ""))))
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
   }
