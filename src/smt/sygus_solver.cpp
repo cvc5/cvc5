@@ -251,21 +251,35 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       body = nm->mkNode(Kind::EXISTS, boundVars, body);
       Trace("smt-debug") << "...constructed exists " << body << std::endl;
     }
-    std::unordered_set<TNode> vs;
-    expr::getVariables(body, vs);
-    d_trivialFuns.clear();
-    std::vector<Node> ntrivSynthFuns;
-    for (const Node& f : d_sygusFunSymbols)
+    bool inferTrivial = true;
+    if (options().quantifiers.sygusStream || options().base.incrementalSolving)
     {
-      if (vs.find(f) != vs.end())
+      inferTrivial = false;
+    }
+    std::vector<Node> ntrivSynthFuns;
+    if (inferTrivial)
+    {
+      Node ppBody = d_smtSolver.getPreprocessor()->applySubstitutions(body);
+      ppBody = rewrite(ppBody);
+      std::unordered_set<TNode> vs;
+      expr::getVariables(ppBody, vs);
+      d_trivialFuns.clear();
+      for (const Node& f : d_sygusFunSymbols)
       {
-        ntrivSynthFuns.push_back(f);
+        if (vs.find(f) != vs.end())
+        {
+          ntrivSynthFuns.push_back(f);
+        }
+        else
+        {
+          Trace("smt-debug") << "...trivial function: " << f << std::endl;
+          d_trivialFuns.push_back(f);
+        }
       }
-      else
-      {
-        Trace("smt-debug") << "...trivial function: " << f << std::endl;
-        d_trivialFuns.push_back(f);
-      }
+    }
+    else
+    {
+      ntrivSynthFuns = listToVector(d_sygusFunSymbols);
     }
     if (!ntrivSynthFuns.empty())
     {
@@ -469,8 +483,11 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     initializeSygusSubsolver(solChecker, as);
     solChecker->getOptions().write_smt().checkSynthSol = false;
     solChecker->getOptions().write_quantifiers().sygusRecFun = false;
-    Assert(conj.getKind() == Kind::FORALL);
-    Node conjBody = conj[1];
+    Node conjBody = conj;
+    if (conj.getKind()==Kind::FORALL)
+    {
+      conjBody = conjBody[1];
+    }
     // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
     conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);
