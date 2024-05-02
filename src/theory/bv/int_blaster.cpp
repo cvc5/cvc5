@@ -42,6 +42,19 @@ namespace cvc5::internal {
 
 namespace {
 
+
+template<typename T>
+void printUnorderedSet(const std::string& setName, const std::unordered_set<T>& mySet) {
+    std::cout << "***********************************************" << std::endl;
+    std::cout << "Contents of " << setName << " unordered_set:";
+    for (const T& element : mySet) {
+        std::cout << " " << element;
+    }
+    std::cout << std::endl;
+    std::cout << "***********************************************" << std::endl;
+}
+
+
 // A helper function to compute 2^b as a Rational
 Rational intpow2(uint32_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
@@ -955,6 +968,11 @@ void IntBlaster::collectQuantificationData(Node n) {
     d_quantifiedVariables[n] = std::unordered_set<Node>();
     std::unordered_set<Node> qfvars;
     std::unordered_set<Node> qfvarsOfChildren;
+    if (n.getNumChildren() == 0) {
+      if (n.getKind() == Kind::BOUND_VARIABLE) {
+        qfvars.insert(n);
+      }
+    }
     if (n.getNumChildren() > 0) {
       for (Node child : n) {
         Assert(d_quantifiedVariables.find(child) != d_quantifiedVariables.end());
@@ -964,14 +982,17 @@ void IntBlaster::collectQuantificationData(Node n) {
     }
     qfvars.insert(qfvarsOfChildren.begin(), qfvarsOfChildren.end());
     if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS) {
-      qfvars.insert(n[0].begin(), n[0].end());
+      // deleting the variables that become bound
+      for (Node newvar : n[0]) {
+        qfvars.erase(newvar);
+      }
     }
     d_quantifiedVariables[n] = qfvars;
   }
 
   if (d_quantApplies.find(n) == d_quantApplies.end()) {
     std::unordered_set<Node> childrenApplies;
-    for (Node child : n) { includes
+    for (Node child : n) { 
       Assert(d_quantApplies.find(child) != d_quantApplies.end());
       std::unordered_set<Node> appliesOfChild = d_quantApplies[child];
       childrenApplies.insert(appliesOfChild.begin(), appliesOfChild.end());
@@ -981,35 +1002,15 @@ void IntBlaster::collectQuantificationData(Node n) {
     std::unordered_set<Node> applies;
 
     expr::getKindSubterms(n, Kind::APPLY_UF, true, applies);
-    std::cout << "panda n: " << n << std::endl;
-    for (Node node : applies) {
-      std::cout << "panda applies[n] includes: " << node << std::endl;
-    }
     Assert(d_quantifiedVariables.find(n) != d_quantifiedVariables.end());
     std::unordered_set<Node> qfvars2;
     qfvars2 = d_quantifiedVariables[n];
     Assert(d_quantApplies.find(n) != d_quantApplies.end());
     std::unordered_set<Node> new_applies;
     new_applies.insert(applies.begin(), applies.end());
-    for (const auto& v : qfvars2) {
-      std::cout << "panda v: " << v << std::endl;
-      for (Node app : applies) {
-        std::cout << "panda app: " << app << std::endl;
-        if (expr::hasSubterm(app, v)) {
-          new_applies.erase(app);
-        }
-        d_quantApplies[n] = new_applies;
-      }
-    }
   }
 
-  std::cout << "panda d_quantApplies[n] ..." << std::endl;
   std::unordered_set<Node> temp2 = d_quantApplies[n];
-  for (Node node : temp2) {
-    std::cout << "panda n: " << n <<std::endl;
-    std::cout << "panda temp2[n]: " << node << std::endl;
-  }
-
 
 
 }
@@ -1062,9 +1063,27 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
     TypeNode range = f.getType().getRangeType();
     if (range.isBitVector())
     {
-      unsigned bvsize = range.getBitVectorSize();
-      rangeConstraints.push_back(
-          mkRangeConstraint(d_intblastCache[apply], bvsize));
+      Node originalMatrix = quantifiedNode[1];
+      
+      Assert(d_quantifiedVariables.find(apply) != d_quantifiedVariables.end());
+      Assert(d_quantifiedVariables.find(quantifiedNode) != d_quantifiedVariables.end());
+      Assert(d_quantifiedVariables.find(originalMatrix) != d_quantifiedVariables.end());
+     
+      std::unordered_set<Node> varsApply = d_quantifiedVariables[apply];
+      std::unordered_set<Node> varsNode = d_quantifiedVariables[quantifiedNode];
+      std::unordered_set<Node> varsMatrix = d_quantifiedVariables[originalMatrix];
+
+      printUnorderedSet("varsApply", varsApply);
+      printUnorderedSet("varsNode", varsNode);
+      printUnorderedSet("varsMatrix", varsMatrix);
+
+      if (! std::includes(varsNode.begin(), varsNode.end(), varsApply.begin(), varsApply.end()) && std::includes(varsMatrix.begin(), varsMatrix.end(), varsApply.begin(), varsApply.end())) {
+
+  
+        unsigned bvsize = range.getBitVectorSize();
+        rangeConstraints.push_back(
+            mkRangeConstraint(d_intblastCache[apply], bvsize));
+      }
     }
   }
 
@@ -1191,5 +1210,6 @@ Node IntBlaster::createBVNotNode(Node n, uint32_t bvsize)
 {
   return d_nm->mkNode(Kind::SUB, maxInt(bvsize), n);
 }
+
 
 }  // namespace cvc5::internal
