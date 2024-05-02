@@ -31,9 +31,11 @@ const char* toString(TrustId id)
     case TrustId::THEORY_INFERENCE: return "THEORY_INFERENCE";
     case TrustId::PREPROCESS: return "PREPROCESS";
     case TrustId::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
+    case TrustId::PP_STATIC_REWRITE: return "PP_STATIC_REWRITE";
     case TrustId::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case TrustId::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
     case TrustId::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
+    case TrustId::EXT_THEORY_REWRITE: return "EXT_THEORY_REWRITE";
     case TrustId::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case TrustId::REWRITE_NO_ELABORATE: return "REWRITE_NO_ELABORATE";
     case TrustId::FLATTENING_REWRITE: return "FLATTENING_REWRITE";

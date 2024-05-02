@@ -78,11 +78,7 @@ Node FieldObj::mkMul(const std::vector<NodeTemplate<ref_count>>& factors)
 
 bool isFfLeaf(const Node& n)
 {
-  return n.getType().isFiniteField()
-         && !(n.getKind() == Kind::FINITE_FIELD_ADD
-              || n.getKind() == Kind::FINITE_FIELD_MULT
-              || n.getKind() == Kind::FINITE_FIELD_NEG
-              || n.getKind() == Kind::FINITE_FIELD_BITSUM);
+  return n.getType().isFiniteField() && Theory::isLeafOf(n, THEORY_FF);
 }
 
 bool isFfTerm(const Node& n) { return n.getType().isFiniteField(); }
@@ -100,6 +96,26 @@ FfTimeoutException::FfTimeoutException(const std::string& where)
 }
 
 FfTimeoutException::~FfTimeoutException() {}
+
+bool isFfLeaf(const Node& n, const FfSize& field)
+{
+  return n.getType().isFiniteField() && Theory::isLeafOf(n, THEORY_FF)
+         && n.getType().getFfSize() == field;
+}
+
+bool isFfTerm(const Node& n, const FfSize& field)
+{
+  return n.getType().isFiniteField() && n.getType().getFfSize() == field;
+}
+
+bool isFfFact(const Node& n, const FfSize& field)
+{
+  return (n.getKind() == Kind::EQUAL && n[0].getType().isFiniteField()
+          && n[0].getType().getFfSize() == field)
+         || (n.getKind() == Kind::NOT && n[0].getKind() == Kind::EQUAL
+             && n[0][0].getType().isFiniteField()
+             && n[0][0].getType().getFfSize() == field);
+}
 
 }  // namespace ff
 }  // namespace theory

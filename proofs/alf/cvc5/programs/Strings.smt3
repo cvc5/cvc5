@@ -34,6 +34,14 @@
   (alf.cons str.++ x y)
 )
 
+; Return true if n is a valid code point [0, 196607].
+(define $str_is_code_point ((n Int))
+  (alf.ite ($is_z_literal n)
+  (alf.ite ($compare_geq 196608 n)
+    (alf.not (alf.is_neg n))
+    false)
+  false))
+
 ; Return t if it corresponds to the empty string, otherwise evaluates
 ; to an unevaluated alf.requires term.
 (define $str_self_if_empty ((T Type :implicit) (t T))
@@ -57,6 +65,21 @@
 ; Get the term corresponding to the suffix of term s of fixed length n.
 (define skolem_suffix_rem ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s n (- (str.len s) n))
+)
+
+; The unified splitting term for t and s, which is the term that denotes the
+; prefix (or suffix if rev is true) remainder of t (resp. s) in the case that
+; t (resp. s) is the longer string.
+(program skolem_unify_split ((U Type) (t (Seq U)) (s (Seq U)) (rev Bool))
+  ((Seq U) (Seq U) Bool) (Seq U)
+  (
+    ((skolem_unify_split t s true)  (ite (>= (str.len t) (str.len s))
+                                      (skolem_prefix t (- (str.len t) (str.len s)))
+                                      (skolem_prefix s (- (str.len s) (str.len t)))))
+    ((skolem_unify_split t s false) (ite (>= (str.len t) (str.len s))
+                                      (skolem_suffix_rem t (str.len s))
+                                      (skolem_suffix_rem s (str.len t))))
+  )
 )
 
 ; Get the term corresponding to the prefix of s before the first occurrence of

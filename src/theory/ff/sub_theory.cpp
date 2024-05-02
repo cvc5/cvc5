@@ -132,14 +132,16 @@ Result SubTheory::postCheck(Theory::Effort e)
             Assert(d_conflict.empty());
             for (size_t i = 0, n = d_facts.size(); i < n; ++i)
             {
-              Trace("ff::core") << "In " << i << " : " << d_facts[i] << std::endl;
+              Trace("ff::core")
+                  << "In " << i << " : " << d_facts[i] << std::endl;
             }
             for (size_t i : coreIndices)
             {
               // omit (field polys, bitsum polys, ...) from core
               if (enc.polyHasFact(generators[i]))
               {
-                Trace("ff::core") << "Core: " << i << " : " << d_facts[i] << std::endl;
+                Trace("ff::core")
+                    << "Core: " << i << " : " << d_facts[i] << std::endl;
                 d_conflict.push_back(enc.polyFact(generators[i]));
               }
             }
@@ -166,13 +168,14 @@ Result SubTheory::postCheck(Theory::Effort e)
             // SAT: populate d_model from the root
             Assert(d_model.empty());
             const auto nm = nodeManager();
+            Trace("ff::model") << "Model GF(" << size() << "):" << std::endl;
             for (const auto& [idx, node] : enc.nodeIndets())
             {
               if (isFfLeaf(node))
               {
                 Node value = nm->mkConst(enc.cocoaFfToFfVal(root[idx]));
                 Trace("ff::model")
-                    << "Model: " << node << " = " << value << std::endl;
+                    << " " << node << " = " << value << std::endl;
                 d_model.emplace(node, value);
               }
             }

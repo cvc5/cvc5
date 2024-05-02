@@ -1116,6 +1116,10 @@ class CVC5_EXPORT SolverEngine
   bool d_safeOptsSetRegularOption;
   /** The regular option we set (for --safe-options) */
   std::string d_safeOptsRegularOption;
+  /** The value of the regular option we set (for --safe-options) */
+  std::string d_safeOptsRegularOptionValue;
+  /** Was the option already the default setting */
+  bool d_safeOptsSetRegularOptionToDefault;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
