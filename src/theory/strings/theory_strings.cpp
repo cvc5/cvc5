@@ -1211,8 +1211,6 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
         size_t ii = ncases-(i+1);
         ret = nm->mkNode(Kind::ITE, cases[ii], returns[ii], ret);
       }
-      //ret = SkolemManager::getOriginalForm(ret);
-      //ret = extendedRewrite(ret);
       Trace("ajr-temp") << "..return " << ret << std::endl;
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
