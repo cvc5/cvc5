@@ -117,7 +117,9 @@ class UnsatCoreManager : protected EnvObj
    * Parition core into ordinary assertions and definitions. This method is
    * only used for printing output traces.
    */
-  void partitionUnsatCore(const std::vector<Node>& core, std::vector<Node>& coreDefs, std::vector<Node>& coreAsserts);
+  void partitionUnsatCore(const std::vector<Node>& core,
+                          std::vector<Node>& coreDefs,
+                          std::vector<Node>& coreAsserts);
   /** Reference to the SMT solver */
   SmtSolver& d_slv;
   /** Reference to the proof manager */
