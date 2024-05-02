@@ -1190,7 +1190,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     if (atom[0].getKind()==Kind::STRING_CONCAT && atom[2]==d_one)
     {
       NodeManager* nm = nodeManager();
-      Trace("ajr-temp") << "Rewrite " << atom << std::endl;
+      Trace("strings-ppr") << "Rewrite " << atom << std::endl;
       Node start = atom[1];
       Node len = d_zero;
       std::vector<Node> cases;
@@ -1211,7 +1211,14 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
         size_t ii = ncases-(i+1);
         ret = nm->mkNode(Kind::ITE, cases[ii], returns[ii], ret);
       }
-      Trace("ajr-temp") << "..return " << ret << std::endl;
+      Trace("strings-ppr") << "..return " << ret << std::endl;
+      // turns (str.substr (str.++ s1 ... sn) x 1) into:
+      // (ite (<= 0 x) (< s (str.len s1)) 
+      //    (str.substr s1 (- x 0) 1)
+      //    (ite (<= (str.len s1) x) (< s (+ (str.len s1) (str.len s2)) 
+      //      (str.substr s1 (- x (str.len s1)) 1)
+      //      ...
+      //      "")))
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
   }
