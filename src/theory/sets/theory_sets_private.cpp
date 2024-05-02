@@ -1229,7 +1229,7 @@ Node TheorySetsPrivate::registerAndAssertSkolemLemma(Node& n)
   SkolemManager* sm = nm->getSkolemManager();
   Node skolem = sm->mkPurifySkolem(n);
   Node lemma = n.eqNode(skolem);
-  d_im.addPendingLemma(lemma, InferenceId::SETS_SKOLEM);
+  d_im.assertInference(lemma, InferenceId::SETS_SKOLEM, d_true, 1);
   Trace("sets-skolems") << "sets-skolems:  " << skolem << " = " << n
                         << std::endl;
   return skolem;
@@ -1382,7 +1382,7 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
         {
           Trace("sets-prop")
               << "Propagate mem-eq conflict : " << pexp << std::endl;
-          d_im.conflict(pexp, InferenceId::SETS_MEM_EQ_CONFLICT);
+          d_im.assertSetsConflict(pexp, InferenceId::SETS_MEM_EQ_CONFLICT);
         }
       }
     }

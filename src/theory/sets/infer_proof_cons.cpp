@@ -122,6 +122,8 @@ bool InferProofCons::convert(CDProof& cdp,
   switch (id)
   {
     case InferenceId::SETS_DOWN_CLOSURE:
+    case InferenceId::SETS_MEM_EQ:
+    case InferenceId::SETS_MEM_EQ_CONFLICT:
     {
       Assert(assumps.size() >= 1);
       // (and (set.member x S) (= S (op T1 T2))) =>
@@ -239,6 +241,13 @@ bool InferProofCons::convert(CDProof& cdp,
           break;
         }
       }
+    }
+    break;
+    case InferenceId::SETS_SKOLEM:
+    {
+      Assert (assumps.empty());
+      success = psb.applyPredIntro(conc, {});
+      Assert(success);
     }
     break;
     case InferenceId::SETS_DEQ:
