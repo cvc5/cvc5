@@ -242,7 +242,8 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       body = nm->mkNode(Kind::IMPLIES, bodyAssump, body);
     }
     body = body.notNode();
-    Trace("smt-debug") << "...constructed sygus constraint " << body << std::endl;
+    Trace("smt-debug") << "...constructed sygus constraint " << body
+                       << std::endl;
     if (!d_sygusVars.empty())
     {
       Node boundVars =
@@ -380,8 +381,9 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
   for (const Node& f : d_trivialFuns)
   {
     Node sf = quantifiers::SygusUtils::mkSygusTermFor(f);
-    Trace("smt-debug") << "Got " << sf << " for trivial function " << f << std::endl;
-    Assert (f.getType()==sf.getType());
+    Trace("smt-debug") << "Got " << sf << " for trivial function " << f
+                       << std::endl;
+    Assert(f.getType() == sf.getType());
     solMap[f] = sf;
   }
   return ret;
