@@ -252,10 +252,13 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       Trace("smt-debug") << "...constructed exists " << body << std::endl;
     }
     bool inferTrivial = true;
+    // cannot omit unused functions if in incremental or sygus-stream
     if (options().quantifiers.sygusStream || options().base.incrementalSolving)
     {
       inferTrivial = false;
     }
+    // Make any functions that do not occur in the conjecture as trivial,
+    // and do not solve for them.
     std::vector<Node> ntrivSynthFuns;
     if (inferTrivial)
     {
