@@ -954,61 +954,63 @@ void IntBlaster::collectQuantificationData(Node n) {
   if (d_quantifiedVariables.find(n) == d_quantifiedVariables.end()) {
     d_quantifiedVariables[n] = std::unordered_set<Node>();
     std::unordered_set<Node> qfvars;
+    std::unordered_set<Node> qfvarsOfChildren;
     if (n.getNumChildren() > 0) {
       for (Node child : n) {
         Assert(d_quantifiedVariables.find(child) != d_quantifiedVariables.end());
         std::unordered_set<Node> varsOfChild = d_quantifiedVariables[child];
-        qfvars.insert(varsOfChild.begin(), varsOfChild.end());
+        qfvarsOfChildren.insert(varsOfChild.begin(), varsOfChild.end());
       }
     }
+    qfvars.insert(qfvarsOfChildren.begin(), qfvarsOfChildren.end());
     if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS) {
       qfvars.insert(n[0].begin(), n[0].end());
     }
     d_quantifiedVariables[n] = qfvars;
   }
 
-  // std::unordered_set<Node> qfvars = d_quantifiedVariables[n];
-  // if (d_quantApplies.find(n) == d_quantApplies.end()) {
-  //   std::unordered_set<Node> childrenApplies;
-  //   for (Node child : n) {
-  //     Assert(d_quantApplies.find(child) != d_quantApplies.end());
-  //     std::unordered_set<Node> appliesOfChild = d_quantApplies[child];
-  //     childrenApplies.insert(appliesOfChild.begin(), appliesOfChild.end());
-  //   }
-  //   d_quantApplies[n] = childrenApplies;
+  if (d_quantApplies.find(n) == d_quantApplies.end()) {
+    std::unordered_set<Node> childrenApplies;
+    for (Node child : n) { includes
+      Assert(d_quantApplies.find(child) != d_quantApplies.end());
+      std::unordered_set<Node> appliesOfChild = d_quantApplies[child];
+      childrenApplies.insert(appliesOfChild.begin(), appliesOfChild.end());
+    }
+    d_quantApplies[n] = childrenApplies;
 
-  //   std::unordered_set<Node> applies;
+    std::unordered_set<Node> applies;
 
-  //   expr::getKindSubterms(n, Kind::APPLY_UF, true, applies);
-  //   Assert(d_quantifiedVariables.find(n) != d_quantifiedVariables.end());
-  //   std::unordered_set<Node> qfvars2;
-  //   qfvars2 = d_quantifiedVariables[n];
-  //   Assert(d_quantApplies.find(n) != d_quantApplies.end());
-  //   for (const auto& v : qfvars2) {
-  //     std::unordered_set<Node> new_applies;
-  //     new_applies.insert(applies.begin(), applies.end());
-  //     for (Node app : applies) {
-  //       if (expr::hasSubterm(app, v)) {
-  //         new_applies.erase(app);
-  //       }
-  //       d_quantApplies[n] = new_applies;
-  //     }
-  //   }
-  // }
-
-  std::cout << "panda d_quantifiedVariables[n] ..." << std::endl;
-  std::unordered_set<Node> temp1 = d_quantifiedVariables[n];
-  std::cout << "panda n: " << n <<std::endl;
-  for (Node node : temp1) {
-    std::cout << "panda temp1[n]: " << node << std::endl;
+    expr::getKindSubterms(n, Kind::APPLY_UF, true, applies);
+    std::cout << "panda n: " << n << std::endl;
+    for (Node node : applies) {
+      std::cout << "panda applies[n] includes: " << node << std::endl;
+    }
+    Assert(d_quantifiedVariables.find(n) != d_quantifiedVariables.end());
+    std::unordered_set<Node> qfvars2;
+    qfvars2 = d_quantifiedVariables[n];
+    Assert(d_quantApplies.find(n) != d_quantApplies.end());
+    std::unordered_set<Node> new_applies;
+    new_applies.insert(applies.begin(), applies.end());
+    for (const auto& v : qfvars2) {
+      std::cout << "panda v: " << v << std::endl;
+      for (Node app : applies) {
+        std::cout << "panda app: " << app << std::endl;
+        if (expr::hasSubterm(app, v)) {
+          new_applies.erase(app);
+        }
+        d_quantApplies[n] = new_applies;
+      }
+    }
   }
-  
-//  std::cout << "panda d_quantApplies[n] ..." << std::endl;
-//  std::unordered_set<Node> temp2 = d_quantApplies[n];
-//  for (Node node : temp2) {
-//    std::cout << "panda n: " << n <<std::endl;
-//    std::cout << "panda temp2[n]: " << node << std::endl;
-//  }
+
+  std::cout << "panda d_quantApplies[n] ..." << std::endl;
+  std::unordered_set<Node> temp2 = d_quantApplies[n];
+  for (Node node : temp2) {
+    std::cout << "panda n: " << n <<std::endl;
+    std::cout << "panda temp2[n]: " << node << std::endl;
+  }
+
+
 
 }
 
@@ -1050,8 +1052,6 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // collect range constraints for UF applciations
   // that involve quantified variables
   
-
-  Assert(d_quantApplies.find(quantifiedNode) != d_quantApplies.end());
   std::unordered_set<Node> applies = d_quantApplies[quantifiedNode];
   for (const Node& apply : applies)
   {
