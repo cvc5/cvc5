@@ -262,7 +262,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       // must expand definitions first
       Node ppBody = d_smtSolver.getPreprocessor()->applySubstitutions(body);
       ppBody = rewrite(ppBody);
-      std::unordered_set<TNode> vs;
+      std::unordered_set<Node> vs;
       expr::getVariables(ppBody, vs);
       for (size_t i=0; i<2; i++)
       {
@@ -283,9 +283,20 @@ SynthResult SygusSolver::checkSynth(bool isNext)
         // to trivial functions, account for this as well
         if (i==0 && !d_trivialFuns.empty())
         {
+          size_t prevSize = vs.size();
           for (const Node& f : ntrivSynthFuns)
           {
-            // TODO
+            TypeNode tnp = quantifiers::SygusUtils::getSygusType(f);
+            if (tnp.isNull())
+            {
+              continue;
+            }
+            theory::datatypes::utils::getFreeVariablesSygusType(tnp, vs);
+          }
+          if (vs.size()==prevSize)
+          {
+            // no new symbols found
+            break;
           }
         }
         else

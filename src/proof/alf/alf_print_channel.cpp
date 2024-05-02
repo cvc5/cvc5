@@ -215,7 +215,7 @@ void AlfPrintChannelPre::processInternal(const Node& n)
   expr::getVariables(n, d_vars, d_varsVisited);
 }
 
-const std::unordered_set<TNode>& AlfPrintChannelPre::getVariables() const
+const std::unordered_set<Node>& AlfPrintChannelPre::getVariables() const
 {
   return d_vars;
 }
