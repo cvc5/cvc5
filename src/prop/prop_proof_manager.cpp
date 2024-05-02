@@ -278,6 +278,7 @@ bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
   Trace("cnf-input-min") << "Solve under " << csma.size() << " assumptions..."
                          << std::endl;
   SatValue res = csm->solve(csma);
+  bool success = false;
   if (res == SAT_VALUE_FALSE)
   {
     // we successfully reproved the input
@@ -300,12 +301,13 @@ bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
       // dump using the CNF stream we created above
       csms.dumpDimacs(*outDimacs, aclauses);
     }
-    return true;
+    success = true;
   }
+  delete csm;
   // should never happen, if it does, we revert to the entire input
   Trace("cnf-input-min") << "...got sat" << std::endl;
-  Assert(false) << "Failed to minimize DIMACS";
-  return false;
+  Assert(success) << "Failed to minimize DIMACS";
+  return success;
 }
 
 std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
