@@ -1187,7 +1187,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   }
   else if (ak == Kind::STRING_SUBSTR)
   {
-    if (atom[0].getKind()==Kind::STRING_CONCAT && atom[2]==d_one)
+    if (atom[0].getKind() == Kind::STRING_CONCAT && atom[2] == d_one)
     {
       NodeManager* nm = nodeManager();
       Trace("strings-ppr") << "Rewrite " << atom << std::endl;
@@ -1206,16 +1206,16 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
         len = nm->mkNode(Kind::ADD, clen, len);
       }
       Node ret = Word::mkEmptyWord(atom.getType());
-      for (size_t i=0, ncases=cases.size(); i<ncases; i++)
+      for (size_t i = 0, ncases = cases.size(); i < ncases; i++)
       {
-        size_t ii = ncases-(i+1);
+        size_t ii = ncases - (i + 1);
         ret = nm->mkNode(Kind::ITE, cases[ii], returns[ii], ret);
       }
       Trace("strings-ppr") << "..return " << ret << std::endl;
       // turns (str.substr (str.++ s1 ... sn) x 1) into:
-      // (ite (<= 0 x) (< s (str.len s1)) 
+      // (ite (<= 0 x) (< s (str.len s1))
       //    (str.substr s1 (- x 0) 1)
-      //    (ite (<= (str.len s1) x) (< s (+ (str.len s1) (str.len s2)) 
+      //    (ite (<= (str.len s1) x) (< s (+ (str.len s1) (str.len s2))
       //      (str.substr s1 (- x (str.len s1)) 1)
       //      ...
       //      "")))
