@@ -264,7 +264,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       ppBody = rewrite(ppBody);
       std::unordered_set<Node> vs;
       expr::getVariables(ppBody, vs);
-      for (size_t i=0; i<2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
         d_trivialFuns.clear();
         for (const Node& f : d_sygusFunSymbols)
@@ -279,9 +279,10 @@ SynthResult SygusSolver::checkSynth(bool isNext)
             d_trivialFuns.push_back(f);
           }
         }
-        // we could have dependencies from the grammars of functions-to-synthesize
-        // to trivial functions, account for this as well
-        if (i==0 && !d_trivialFuns.empty())
+        // we could have dependencies from the grammars of
+        // functions-to-synthesize to trivial functions, account for this as
+        // well
+        if (i == 0 && !d_trivialFuns.empty())
         {
           size_t prevSize = vs.size();
           for (const Node& f : ntrivSynthFuns)
@@ -293,7 +294,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
             }
             theory::datatypes::utils::getFreeVariablesSygusType(tnp, vs);
           }
-          if (vs.size()==prevSize)
+          if (vs.size() == prevSize)
           {
             // no new symbols found
             break;

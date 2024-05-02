@@ -354,14 +354,16 @@ Node builtinVarToSygus(Node v)
   return Node::null();
 }
 
-
 /**
  * Get free symbols or variables in a sygus datatype type.
  * @param sdt The sygus datatype.
  * @param sym The symbols to add to.
- * @param isVar If we are looking for variables (if not, we are looking for symbols).
+ * @param isVar If we are looking for variables (if not, we are looking for
+ * symbols).
  */
-void getFreeSymbolsSygusTypeInternal(TypeNode sdt, std::unordered_set<Node>& syms, bool isVar)
+void getFreeSymbolsSygusTypeInternal(TypeNode sdt,
+                                     std::unordered_set<Node>& syms,
+                                     bool isVar)
 {
   // datatype types we need to process
   std::vector<TypeNode> typeToProcess;
