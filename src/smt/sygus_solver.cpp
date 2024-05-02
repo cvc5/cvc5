@@ -259,21 +259,38 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     std::vector<Node> ntrivSynthFuns;
     if (inferTrivial)
     {
+      // must expand definitions first
       Node ppBody = d_smtSolver.getPreprocessor()->applySubstitutions(body);
       ppBody = rewrite(ppBody);
       std::unordered_set<TNode> vs;
       expr::getVariables(ppBody, vs);
-      d_trivialFuns.clear();
-      for (const Node& f : d_sygusFunSymbols)
+      for (size_t i=0; i<2; i++)
       {
-        if (vs.find(f) != vs.end())
+        d_trivialFuns.clear();
+        for (const Node& f : d_sygusFunSymbols)
         {
-          ntrivSynthFuns.push_back(f);
+          if (vs.find(f) != vs.end())
+          {
+            ntrivSynthFuns.push_back(f);
+          }
+          else
+          {
+            Trace("smt-debug") << "...trivial function: " << f << std::endl;
+            d_trivialFuns.push_back(f);
+          }
+        }
+        // we could have dependencies from the grammars of functions-to-synthesize
+        // to trivial functions, account for this as well
+        if (i==0 && !d_trivialFuns.empty())
+        {
+          for (const Node& f : ntrivSynthFuns)
+          {
+            // TODO
+          }
         }
         else
         {
-          Trace("smt-debug") << "...trivial function: " << f << std::endl;
-          d_trivialFuns.push_back(f);
+          break;
         }
       }
     }
