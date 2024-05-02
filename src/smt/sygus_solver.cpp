@@ -256,7 +256,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     std::vector<Node> ntrivSynthFuns;
     for (const Node& f : d_sygusFunSymbols)
     {
-      if (vs.find(f)!=vs.end())
+      if (vs.find(f) != vs.end())
       {
         ntrivSynthFuns.push_back(f);
       }
@@ -267,8 +267,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     }
     if (!ntrivSynthFuns.empty())
     {
-      body = quantifiers::SygusUtils::mkSygusConjecture(
-          ntrivSynthFuns, body);
+      body = quantifiers::SygusUtils::mkSygusConjecture(ntrivSynthFuns, body);
     }
     Trace("smt") << "...constructed forall " << body << std::endl;
 
