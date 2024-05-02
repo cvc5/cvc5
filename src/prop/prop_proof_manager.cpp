@@ -213,11 +213,11 @@ bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
                                      std::vector<Node>& uc,
                                      std::ostream* outDimacs)
 {
-  CDCLTSatSolver* csm = SatSolverFactory::createCadical(
-      d_env, statisticsRegistry(), d_env.getResourceManager(), "");
+  std::unique_ptr<CDCLTSatSolver> csm(SatSolverFactory::createCadical(
+      d_env, statisticsRegistry(), d_env.getResourceManager(), ""));
   NullRegistrar nreg;
   context::Context nctx;
-  CnfStream csms(d_env, csm, &nreg, &nctx);
+  CnfStream csms(d_env, csm.get(), &nreg, &nctx);
   Trace("cnf-input-min") << "Get literals..." << std::endl;
   std::vector<SatLiteral> csma;
   std::map<SatLiteral, Node> litToNode;
@@ -303,7 +303,6 @@ bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
     }
     success = true;
   }
-  delete csm;
   // should never happen, if it does, we revert to the entire input
   Trace("cnf-input-min") << "...got sat" << std::endl;
   Assert(success) << "Failed to minimize DIMACS";
