@@ -219,6 +219,19 @@ TypeNode SygusUtils::getSygusType(const Node& f)
   return TypeNode::null();
 }
 
+Node mkSygusTermFor(const Node& f)
+{
+  TypeNode tn = getSygusType(f);
+  if (tn.isNull())
+  {
+    Node ret = NodeManager::currentNM()->mkGroundValue(f.getType());
+    return ret;
+  }
+  Node ret = NodeManager::currentNM()->mkGroundValue(tn);
+  // use external=true
+  return theory::datatypes::utils::sygusToBuiltin(ret, true);
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

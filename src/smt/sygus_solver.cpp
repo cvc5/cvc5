@@ -250,10 +250,25 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       body = nm->mkNode(Kind::EXISTS, boundVars, body);
       Trace("smt") << "...constructed exists " << body << std::endl;
     }
-    if (!d_sygusFunSymbols.empty())
+    std::unordered_set<TNode> vs;
+    expr::getVariables(body, vs);
+    d_trivialFuns.clear();
+    std::vector<Node> ntrivSynthFuns;
+    for (const Node& f : d_sygusFunSymbols)
+    {
+      if (vs.find(f)!=vs.end())
+      {
+        ntrivSynthFuns.push_back(f);
+      }
+      else
+      {
+        d_trivialFuns.push_back(f);
+      }
+    }
+    if (!ntrivSynthFuns.empty())
     {
       body = quantifiers::SygusUtils::mkSygusConjecture(
-          listToVector(d_sygusFunSymbols), body);
+          ntrivSynthFuns, body);
     }
     Trace("smt") << "...constructed forall " << body << std::endl;
 
@@ -347,14 +362,26 @@ SynthResult SygusSolver::checkSynth(bool isNext)
 
 bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
 {
+  bool ret = false;
   Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
   if (usingSygusSubsolver())
   {
     // use the call to get the synth solutions from the subsolver
-    return d_subsolver ? d_subsolver->getSubsolverSynthSolutions(solMap)
-                       : false;
+    if (d_subsolver)
+    {
+      ret = d_subsolver->getSubsolverSynthSolutions(solMap);
+    }
   }
-  return getSubsolverSynthSolutions(solMap);
+  else
+  {
+    ret = getSubsolverSynthSolutions(solMap);
+  }
+  // also get solutions for trivial functions to synthesize
+  for (const Node& f : d_trivialFuns)
+  {
+    solMap[f] = quantifiers::SygusUtils::mkSygusTermFor(f);
+  }
+  return ret;
 }
 
 bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
