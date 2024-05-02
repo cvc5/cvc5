@@ -1196,13 +1196,13 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       std::vector<Node> cases;
       std::vector<Node> returns;
       Node emp = Word::mkEmptyWord(atom.getType());
-      cases.push_back(nm->mkNode(Kind::LT, cstart, d_zero));
+      cases.push_back(nm->mkNode(Kind::LT, start, d_zero));
       returns.push_back(emp);
       for (const Node& c : atom[0])
       {
         Node clen = nm->mkNode(Kind::STRING_LENGTH, c);
-        Node ccase = nm->mkNode(Kind::LT, cstart, clen);
         Node cstart = nm->mkNode(Kind::SUB, start, len);
+        Node ccase = nm->mkNode(Kind::LT, cstart, clen);
         cases.push_back(ccase);
         returns.push_back(nm->mkNode(Kind::STRING_SUBSTR, c, cstart, d_one));
         len = nm->mkNode(Kind::ADD, clen, len);
