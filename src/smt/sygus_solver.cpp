@@ -242,13 +242,13 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       body = nm->mkNode(Kind::IMPLIES, bodyAssump, body);
     }
     body = body.notNode();
-    Trace("smt") << "...constructed sygus constraint " << body << std::endl;
+    Trace("smt-debug") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
     {
       Node boundVars =
           nm->mkNode(Kind::BOUND_VAR_LIST, listToVector(d_sygusVars));
       body = nm->mkNode(Kind::EXISTS, boundVars, body);
-      Trace("smt") << "...constructed exists " << body << std::endl;
+      Trace("smt-debug") << "...constructed exists " << body << std::endl;
     }
     std::unordered_set<TNode> vs;
     expr::getVariables(body, vs);
@@ -262,7 +262,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       }
       else
       {
-        Trace("smt") << "...trivial function: " << f << std::endl;
+        Trace("smt-debug") << "...trivial function: " << f << std::endl;
         d_trivialFuns.push_back(f);
       }
     }
@@ -270,7 +270,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     {
       body = quantifiers::SygusUtils::mkSygusConjecture(ntrivSynthFuns, body);
     }
-    Trace("smt") << "...constructed forall " << body << std::endl;
+    Trace("smt-debug") << "...constructed forall " << body << std::endl;
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
 
@@ -380,7 +380,7 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
   for (const Node& f : d_trivialFuns)
   {
     Node sf = quantifiers::SygusUtils::mkSygusTermFor(f);
-    Trace("smt") << "Got " << sf << " for trivial function " << f << std::endl;
+    Trace("smt-debug") << "Got " << sf << " for trivial function " << f << std::endl;
     Assert (f.getType()==sf.getType());
     solMap[f] = sf;
   }
