@@ -484,7 +484,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     solChecker->getOptions().write_smt().checkSynthSol = false;
     solChecker->getOptions().write_quantifiers().sygusRecFun = false;
     Node conjBody = conj;
-    if (conj.getKind()==Kind::FORALL)
+    if (conj.getKind() == Kind::FORALL)
     {
       conjBody = conjBody[1];
     }
