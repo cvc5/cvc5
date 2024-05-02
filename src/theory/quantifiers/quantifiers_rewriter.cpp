@@ -2056,7 +2056,8 @@ bool QuantifiersRewriter::doOperation(Node q,
   {
     return true;
   }
-  else if (computeOption == COMPUTE_MINISCOPING || computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
+  else if (computeOption == COMPUTE_MINISCOPING
+           || computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
   {
     if (!is_std)
     {
@@ -2068,7 +2069,8 @@ bool QuantifiersRewriter::doOperation(Node q,
     }
     if (computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
     {
-      return d_opts.quantifiers.miniscopeQuant == options::MiniscopeQuantMode::AGG;
+      return d_opts.quantifiers.miniscopeQuant
+             == options::MiniscopeQuantMode::AGG;
     }
     return true;
   }
