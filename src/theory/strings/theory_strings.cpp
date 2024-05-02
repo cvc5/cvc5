@@ -1185,6 +1185,38 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       }
     }
   }
+  else if (ak == Kind::STRING_SUBSTR)
+  {
+    if (atom[0].getKind()==Kind::STRING_CONCAT && atom[2]==d_one)
+    {
+      NodeManager* nm = nodeManager();
+      Trace("ajr-temp") << "Rewrite " << atom << std::endl;
+      Node start = atom[1];
+      Node len = d_zero;
+      std::vector<Node> cases;
+      std::vector<Node> returns;
+      for (const Node& c : atom[0])
+      {
+        Node clen = nm->mkNode(Kind::STRING_LENGTH, c);
+        Node ccase = nm->mkNode(Kind::GEQ, start, len);
+        Node cstart = nm->mkNode(Kind::SUB, start, len);
+        ccase = nm->mkNode(Kind::AND, nm->mkNode(Kind::LT, cstart, clen));
+        cases.push_back(ccase);
+        returns.push_back(nm->mkNode(Kind::STRING_SUBSTR, c, cstart, d_one));
+        len = nm->mkNode(Kind::ADD, clen, len);
+      }
+      Node ret = Word::mkEmptyWord(atom.getType());
+      for (size_t i=0, ncases=cases.size(); i<ncases; i++)
+      {
+        size_t ii = ncases-(i+1);
+        ret = nm->mkNode(Kind::ITE, cases[ii], returns[ii], ret);
+      }
+      //ret = SkolemManager::getOriginalForm(ret);
+      //ret = extendedRewrite(ret);
+      Trace("ajr-temp") << "..return " << ret << std::endl;
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
+  }
 
   TrustNode ret;
   Node atomRet = atom;
