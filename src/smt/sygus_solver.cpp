@@ -379,10 +379,10 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
   // also get solutions for trivial functions to synthesize
   for (const Node& f : d_trivialFuns)
   {
-    solMap[f] = quantifiers::SygusUtils::mkSygusTermFor(f);
-    Trace("smt") << "Got " << solMap[f] << " for " << f << " "
-                 << solMap[f].getKind() << " " << solMap[f].getType() << " "
-                 << f.getType() << std::endl;
+    Node sf = quantifiers::SygusUtils::mkSygusTermFor(f);
+    Trace("smt") << "Got " << sf << " for trivial function " << f << std::endl;
+    Assert (f.getType()==sf.getType());
+    solMap[f] = sf;
   }
   return ret;
 }
