@@ -21,6 +21,8 @@
 #include <CoCoA/BigIntOps.H>
 #include <CoCoA/SparsePolyIter.H>
 #include <CoCoA/SparsePolyOps-RingElem.H>
+#include <CoCoA/SparsePolyOps-ideal.H>
+#include <CoCoA/TmpGPoly.H>
 
 // std includes
 
@@ -86,6 +88,33 @@ FiniteFieldValue cocoaFfToFfVal(const Scalar& elem, const FfSize& size)
 CoCoA::BigInt intToCocoa(const Integer& i)
 {
   return CoCoA::BigIntFromString(i.toString());
+}
+
+const std::vector<Poly>& GBasisTimeout(const CoCoA::ideal& ideal,
+                                       const ResourceManager* rm)
+{
+  if (rm == nullptr)
+  {
+    return CoCoA::GBasis(ideal);
+  }
+  double sec = static_cast<double>(rm->getRemainingTime()) / 1e3;
+  Trace("ff::gb") << "Computing a GB; limit " << sec << "s" << std::endl;
+  try
+  {
+    if (sec == 0)
+    {
+      return CoCoA::GBasis(ideal);
+    }
+    else
+    {
+      return CoCoA::GBasis(ideal, CoCoA::CpuTimeLimit(sec));
+    }
+  }
+  catch (CoCoA::TimeoutException& t)
+  {
+    CoCoA::handlersEnabled = false;
+    throw FfTimeoutException("GBasis");
+  }
 }
 
 }  // namespace ff
