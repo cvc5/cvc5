@@ -150,7 +150,7 @@ TheoryId Theory::theoryOf(TNode node,
       if (node.isVar())
       {
         tid = theoryOf(node.getType(), usortOwner);
-        if (theoryOf(node.getType(), usortOwner) == theory::THEORY_BOOL)
+        if (tid == theory::THEORY_BOOL)
         {
           SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
           // Boolean variables belong to UF if they are "purify" variables.
