@@ -48,6 +48,7 @@ FirstOrderModel::FirstOrderModel(Env& env,
                                  TermRegistry& tr)
     : EnvObj(env),
       d_model(nullptr),
+      d_qstate(qs),
       d_qreg(qr),
       d_treg(tr),
       d_eq_query(env, qs, this),
@@ -283,7 +284,9 @@ bool FirstOrderModel::isQuantifierActive(TNode q) const
 
 bool FirstOrderModel::isQuantifierAsserted(TNode q) const
 {
-  return std::find( d_forall_asserts.begin(), d_forall_asserts.end(), q )!=d_forall_asserts.end();
+  // check if asserted true
+  Node qr = d_qstate.getValuation().getSatValue(q);
+  return qr.isConst() && qr.getConst<bool>();
 }
 
 Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
