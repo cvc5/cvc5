@@ -127,13 +127,6 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
     return;
   }
 
-  double clSet = 0;
-  if (TraceIsOn("oracle-engine"))
-  {
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("oracle-engine") << "---Oracle Engine Round, effort = " << e << "---"
-                           << std::endl;
-  }
   FirstOrderModel* fm = d_treg.getModel();
   TermDb* termDatabase = d_treg.getTermDatabase();
   NodeManager* nm = NodeManager::currentNM();
@@ -148,6 +141,11 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
     }
     currInterfaces.push_back(q);
   }
+  if (d_oracleFuns.empty() && currInterfaces.empty())
+  {
+    return;
+  }
+  beginCallDebug();
   // Note that we currently ignore oracle interface quantified formulas, and
   // look directly at the oracle functions. Note that:
   // (1) The lemmas with InferenceId QUANTIFIERS_ORACLE_INTERFACE are not
@@ -235,12 +233,7 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
   }
   // general SMTO: call constraint generators and assumption generators here
 
-  if (TraceIsOn("oracle-engine"))
-  {
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("oracle-engine") << "Finished oracle engine, time = "
-                           << (clSet2 - clSet) << std::endl;
-  }
+  endCallDebug();
 }
 
 bool OracleEngine::checkCompleteFor(Node q)

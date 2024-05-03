@@ -64,6 +64,22 @@ bool isAssociative(cvc5::internal::Kind k)
   }
 }
 
+/** Return true if k is a closure kind. */
+bool isClosureKind(cvc5::internal::Kind k)
+{
+  switch (k)
+  {
+    case Kind::LAMBDA:
+    case Kind::EXISTS:
+    case Kind::FORALL:
+    case Kind::WITNESS:
+    case Kind::SET_COMPREHENSION:
+    case Kind::MATCH_BIND_CASE: return true;
+
+    default: return false;
+  }
+}
+
 std::string kindToString(cvc5::internal::Kind k) { return toString(k); }
 
 }  // namespace kind

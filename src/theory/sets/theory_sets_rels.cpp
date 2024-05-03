@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
@@ -100,6 +101,14 @@ void TheorySetsRels::check(Theory::Effort level)
             applyJoinRule( join_terms[j], rel_rep, exp );
           }
         }
+        if (kind_terms.find(Kind::RELATION_TABLE_JOIN) != kind_terms.end())
+        {
+          std::vector<Node>& joinTerms = kind_terms[Kind::RELATION_TABLE_JOIN];
+          for (size_t j = 0; j < joinTerms.size(); j++)
+          {
+            applyTableJoinRule(joinTerms[j], rel_rep, exp);
+          }
+        }
         if (kind_terms.find(Kind::RELATION_PRODUCT) != kind_terms.end())
         {
           std::vector<Node>& product_terms = kind_terms[Kind::RELATION_PRODUCT];
@@ -150,7 +159,8 @@ void TheorySetsRels::check(Theory::Effort level)
                             << " terms of kind " << k_t_it->first << std::endl;
         std::vector<Node>::iterator term_it = k_t_it->second.begin();
         if (k_t_it->first == Kind::RELATION_JOIN
-            || k_t_it->first == Kind::RELATION_PRODUCT)
+            || k_t_it->first == Kind::RELATION_PRODUCT
+            || k_t_it->first == Kind::RELATION_TABLE_JOIN)
         {
           while (term_it != k_t_it->second.end())
           {
@@ -258,6 +268,7 @@ void TheorySetsRels::check(Theory::Effort level)
         {
           if (eqc_node.getKind() == Kind::RELATION_TRANSPOSE
               || eqc_node.getKind() == Kind::RELATION_JOIN
+              || eqc_node.getKind() == Kind::RELATION_TABLE_JOIN
               || eqc_node.getKind() == Kind::RELATION_PRODUCT
               || eqc_node.getKind() == Kind::RELATION_TCLOSURE
               || eqc_node.getKind() == Kind::RELATION_JOIN_IMAGE
@@ -953,6 +964,66 @@ void TheorySetsRels::check(Theory::Effort level)
     makeSharedTerm(shared_x);
   }
 
+  void TheorySetsRels::applyTableJoinRule(Node n, Node nRep, Node exp)
+  {
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                           "RELATION_TABLE_JOIN rule on joined term = "
+                        << n << ", its representative = " << nRep
+                        << " with explanation = " << exp << std::endl;
+    if (d_rel_nodes.find(n) == d_rel_nodes.end())
+    {
+      Trace("rels-debug")
+          << "\n[Theory::Rels] Apply RELATION_TABLE_JOIN-COMPOSE rule on term: "
+          << n << " with explanation: " << exp << std::endl;
+
+      computeMembersForBinOpRel(n);
+      d_rel_nodes.insert(n);
+    }
+    NodeManager* nm = NodeManager::currentNM();
+    Node A = n[0];
+    Node B = n[1];
+    Node e = exp[0];
+
+    Node repA = getRepresentative(A);
+    Node repB = getRepresentative(B);
+
+    TypeNode tupleAType = A.getType().getSetElementType();
+    TypeNode tupleBType = B.getType().getSetElementType();
+    size_t tupleALength = tupleAType.getTupleLength();
+    size_t productTupleLength =
+        n.getType().getSetElementType().getTupleLength();
+
+    std::vector<Node> elements = TupleUtils::getTupleElements(e);
+    Node a = TupleUtils::constructTupleFromElements(
+        tupleAType, elements, 0, tupleALength - 1);
+    Node b = TupleUtils::constructTupleFromElements(
+        tupleBType, elements, tupleALength, productTupleLength - 1);
+
+    computeTupleReps(a);
+    computeTupleReps(b);
+
+    const std::vector<uint32_t>& indices =
+        n.getOperator().getConst<ProjectOp>().getIndices();
+    Node joinConstraints = d_trueNode;
+    for (size_t i = 0; i < indices.size(); i += 2)
+    {
+      Node x = elements[indices[i]];
+      Node y = elements[tupleALength + indices[i + 1]];
+      Node equal = x.eqNode(y);
+      joinConstraints = joinConstraints.andNode(equal);
+    }
+
+    Node fact1 = nm->mkNode(Kind::SET_MEMBER, a, A);
+    Node fact2 = nm->mkNode(Kind::SET_MEMBER, b, B);
+    Node premise = exp;
+    if (n != exp[1])
+    {
+      premise = premise.andNode(n.eqNode(exp[1]));
+    }
+    Node conclusion = fact1.andNode(fact2).andNode(joinConstraints);
+    sendInfer(conclusion, InferenceId::SETS_RELS_TABLE_JOIN_DOWN, premise);
+  }
+
   /*
    * transpose-occur rule:    (a, b) IS_IN X   (RELATION_TRANSPOSE X) in T
    *                         ---------------------------------------
@@ -1035,6 +1106,7 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       case Kind::RELATION_JOIN:
       case Kind::RELATION_PRODUCT:
+      case Kind::RELATION_TABLE_JOIN:
       {
         computeMembersForBinOpRel(rel[0]);
         break;
@@ -1050,6 +1122,7 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       case Kind::RELATION_JOIN:
       case Kind::RELATION_PRODUCT:
+      case Kind::RELATION_TABLE_JOIN:
       {
         computeMembersForBinOpRel(rel[1]);
         break;
@@ -1057,7 +1130,24 @@ void TheorySetsRels::check(Theory::Effort level)
       default:
         break;
     }
-    composeMembersForRels(rel);
+    Kind k = rel.getKind();
+    switch (k)
+    {
+      case Kind::RELATION_JOIN:
+      case Kind::RELATION_PRODUCT:
+      {
+        composeMembersForRels(rel);
+        break;
+      }
+      case Kind::RELATION_TABLE_JOIN:
+      {
+        applyTableJoinUp(rel);
+        break;
+      }
+      default:
+        Assert(false) << "No implementation for up rules for kind " << k
+                      << std::endl;
+    }
   }
 
   // Bottom-up fashion to compute unary relation
@@ -1068,7 +1158,8 @@ void TheorySetsRels::check(Theory::Effort level)
       case Kind::RELATION_TRANSPOSE:
       case Kind::RELATION_TCLOSURE: computeMembersForUnaryOpRel(rel[0]); break;
       case Kind::RELATION_JOIN:
-      case Kind::RELATION_PRODUCT: computeMembersForBinOpRel(rel[0]); break;
+      case Kind::RELATION_PRODUCT:
+      case Kind::RELATION_TABLE_JOIN: computeMembersForBinOpRel(rel[0]); break;
       default:
         break;
     }
@@ -1214,6 +1305,94 @@ void TheorySetsRels::check(Theory::Effort level)
 
   }
 
+  void TheorySetsRels::applyTableJoinUp(Node n)
+  {
+    Assert(n.getKind() == Kind::RELATION_TABLE_JOIN);
+    Trace("rels-debug")
+        << "[Theory::Rels] Start composing members for relation = " << n
+        << std::endl;
+    Node a = n[0];
+    Node b = n[1];
+    Node aRep = getRepresentative(a);
+    Node bRep = getRepresentative(b);
+
+    if (d_rReps_memberReps_cache.find(aRep) == d_rReps_memberReps_cache.end()
+        || d_rReps_memberReps_cache.find(bRep)
+               == d_rReps_memberReps_cache.end())
+    {
+      // no members found for a, b
+      return;
+    }
+
+    NodeManager* nm = NodeManager::currentNM();
+
+    std::vector<Node> aMemberships = d_rReps_memberReps_exp_cache[aRep];
+    std::vector<Node> bMemberships = d_rReps_memberReps_exp_cache[bRep];
+    const std::vector<uint32_t>& indices =
+        n.getOperator().getConst<ProjectOp>().getIndices();
+    for (unsigned int i = 0; i < aMemberships.size(); i++)
+    {
+      for (unsigned int j = 0; j < bMemberships.size(); j++)
+      {
+        Node aConstraint = aMemberships[i];
+        Node bConstraint = bMemberships[j];
+        Node e1 = aConstraint[0];
+        Node e2 = bConstraint[0];
+        TypeNode elementType = n.getType().getSetElementType();
+        Node tuple = TupleUtils::concatTuples(elementType, e1, e2);
+        std::vector<Node> reasons;
+
+        std::vector<Node> aElements = TupleUtils::getTupleElements(e1);
+        std::vector<Node> bElements = TupleUtils::getTupleElements(e2);
+
+        // whether e1, e2 have matching join elements
+        bool notMatched = false;
+        for (size_t k = 0; k < indices.size(); k += 2)
+        {
+          Node x = aElements[indices[k]];
+          Node y = bElements[indices[k + 1]];
+
+          // Since we require notification x and y are equal,
+          // they must be shared terms of theory of sets. Hence, we make the
+          // following calls to makeSharedTerm to ensure this is the case.
+          makeSharedTerm(x);
+          makeSharedTerm(y);
+
+          if (!areEqual(x, y))
+          {
+            notMatched = true;
+            break;
+          }
+          else if (x != y)
+          {
+            Trace("rels-debug") << "...equal" << std::endl;
+            reasons.push_back(nm->mkNode(Kind::EQUAL, x, y));
+          }
+        }
+
+        if (notMatched)
+        {
+          continue;
+        }
+
+        Node fact = nm->mkNode(Kind::SET_MEMBER, tuple, n);
+        reasons.push_back(aConstraint);
+        reasons.push_back(bConstraint);
+        if (a != aConstraint[1])
+        {
+          reasons.push_back(nm->mkNode(Kind::EQUAL, a, aConstraint[1]));
+        }
+        if (b != bConstraint[1])
+        {
+          reasons.push_back(nm->mkNode(Kind::EQUAL, b, bConstraint[1]));
+        }
+        sendInfer(fact,
+                  InferenceId::SETS_RELS_TABLE_JOIN_UP,
+                  nm->mkNode(Kind::AND, reasons));
+      }
+    }
+  }
+
   void TheorySetsRels::processInference(Node conc, InferenceId id, Node exp)
   {
     Trace("sets-pinfer") << "Process inference: " << exp << " => " << conc
@@ -1232,8 +1411,9 @@ void TheorySetsRels::check(Theory::Effort level)
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
     return k == Kind::RELATION_TRANSPOSE || k == Kind::RELATION_PRODUCT
-           || k == Kind::RELATION_JOIN || k == Kind::RELATION_TCLOSURE
-           || k == Kind::RELATION_IDEN || k == Kind::RELATION_JOIN_IMAGE;
+           || k == Kind::RELATION_JOIN || k == Kind::RELATION_TABLE_JOIN
+           || k == Kind::RELATION_TCLOSURE || k == Kind::RELATION_IDEN
+           || k == Kind::RELATION_JOIN_IMAGE;
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {
@@ -1414,7 +1594,7 @@ void TheorySetsRels::check(Theory::Effort level)
   bool TupleTrie::addTerm( Node n, std::vector< Node >& reps, int argIndex ){
     if( argIndex==(int)reps.size() ){
       if( d_data.empty() ){
-        //store n in d_data (this should be interpretted as the "data" and not as a reference to a child)
+        //store n in d_data (this should be interpreted as the "data" and not as a reference to a child)
         d_data[n].clear();
         return true;
       }else{
