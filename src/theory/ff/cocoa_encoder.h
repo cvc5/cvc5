@@ -33,6 +33,7 @@
 // internal includes
 #include "expr/node.h"
 #include "theory/ff/cocoa_util.h"
+#include "theory/ff/core.h"
 #include "theory/ff/util.h"
 
 namespace cvc5::internal {
@@ -103,6 +104,14 @@ class CocoaEncoder : public FieldObj
    * Convert a (coefficient) Scalar to a FiniteFieldValue.
    */
   FiniteFieldValue cocoaFfToFfVal(const Scalar& elem);
+  /**
+   * Does some fact that imply this poly?
+   */
+  bool polyHasFact(const Poly& poly) const;
+  /**
+   * Get the fact that implies this poly.
+   */
+  const Node& polyFact(const Poly& poly) const;
 
  private:
   /**
@@ -168,6 +177,8 @@ class CocoaEncoder : public FieldObj
   std::vector<Poly> d_polys{};
   /** bitsum polynomials that must be zero */
   std::vector<Poly> d_bitsumPolys{};
+  /** polys to the facts that imply them */
+  std::unordered_map<std::string, Node> d_polyFacts{};
 };
 
 }  // namespace ff
