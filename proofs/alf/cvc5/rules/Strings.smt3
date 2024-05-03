@@ -195,5 +195,5 @@
   :args ((re.loop l u r))
   :conclusion (let ((diff (alf.add (alf.neg l) u)))
               (alf.requires (alf.is_neg diff) false
-                 (= (re.loop l u r) ($str.mk_re_loop_elim l diff r))))
+                 (= (re.loop l u r) ($str_mk_re_loop_elim l diff r))))
 )
