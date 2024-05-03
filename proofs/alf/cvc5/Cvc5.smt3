@@ -117,10 +117,19 @@
                                                 (alf.extract ex (alf.add r (alf.len ey)) (alf.len ex)))
                                             )
                                           ))))
-      ((run_evaluate (str.indexof x y n)) (let ((ex (run_evaluate (str.substr x n (str.len x)))))
-                                          (let ((ey (run_evaluate y)))
-                                          (let ((r (alf.find (alf.to_str ex) (alf.to_str ey))))
-                                              (alf.ite (alf.is_neg r) r (alf.add n r))))))
+      ((run_evaluate (str.indexof x y n)) (let ((en (run_evaluate n)))
+                                          (alf.ite (alf.is_neg en) -1
+                                            (let ((ex (run_evaluate x)))
+                                            (let ((exl (alf.len ex)))
+                                            (alf.ite ($compare_gt en exl) -1
+                                              (let ((exs (alf.extract ex n exl)))
+                                              (let ((ey (run_evaluate y)))
+                                              (let ((r (alf.find (alf.to_str exs) (alf.to_str ey))))
+                                              (alf.ite (alf.is_neg r) r (alf.add n r)))))))))))
+      ((run_evaluate (str.to_code x))     (let ((ex (run_evaluate x)))
+                                          (alf.ite (alf.is_eq (alf.len ex) 1) (alf.to_z ex) -1)))
+      ((run_evaluate (str.from_code x))   (let ((ex (run_evaluate x)))
+                                          (alf.ite ($str_is_code_point ex) (alf.to_str x) "")))
 
       ; bitvectors
       ((run_evaluate (bvnot xb))          (alf.not (run_evaluate xb)))

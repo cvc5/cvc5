@@ -24,6 +24,7 @@
 #endif /* CVC5_USE_COCOA */
 
 // std includes
+#include <exception>
 #include <unordered_map>
 
 // internal includes
@@ -83,6 +84,13 @@ bool isFfTerm(const Node& n);
 /** Is this a field fact (equality of disequality)? */
 bool isFfFact(const Node& n);
 
+/** Used to signal check timeouts */
+class FfTimeoutException : public Exception
+{
+ public:
+  FfTimeoutException(const std::string& where);
+  ~FfTimeoutException() override;
+};
 /** Testing whether something is related to (this specific) FF */
 
 /** Is this a (this) field term with non-field kind? */
