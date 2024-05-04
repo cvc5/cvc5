@@ -445,6 +445,10 @@ bool LfscProofPostprocessCallback::update(Node res,
         Node termToReduce = nm->mkNode(Kind::APPLY_UF, args[1]);
         addLfscRule(cdp, res, {}, LfscRule::BETA_REDUCE, {termToReduce});
       }
+      else
+      {
+        return false;
+      }
     }
     break;
     default: return false; break;

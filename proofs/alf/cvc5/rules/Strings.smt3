@@ -183,3 +183,17 @@
   :args (s)
   :conclusion (mk_string_eager_reduction s)
 )
+
+;;-------------------- Instances of THEORY_REWRITE
+
+(declare-rule str-in-re-eval ((s String) (r RegLan))
+  :args ((str.in_re s r))
+  :conclusion (= (str.in_re s r) ($str_eval_str_in_re s r))
+)
+
+(declare-rule re-loop-elim ((l Int) (u Int) (r RegLan))
+  :args ((re.loop l u r))
+  :conclusion (let ((diff (alf.add (alf.neg l) u)))
+              (alf.requires (alf.is_neg diff) false
+                 (= (re.loop l u r) ($str_mk_re_loop_elim l diff r))))
+)
