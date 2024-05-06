@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -156,8 +156,8 @@ MVarInfo& MQuantInfo::getVarInfo(size_t index)
   return d_vinfo[index];
 }
 
-std::vector<size_t> MQuantInfo::getInstIndicies() { return d_indices; }
-std::vector<size_t> MQuantInfo::getNoInstIndicies() { return d_nindices; }
+std::vector<size_t> MQuantInfo::getInstIndices() { return d_indices; }
+std::vector<size_t> MQuantInfo::getNoInstIndices() { return d_nindices; }
 
 bool MQuantInfo::shouldEnumerate(const TypeNode& tn)
 {
@@ -175,12 +175,10 @@ MbqiFastSygus::MbqiFastSygus(Env& env, InstStrategyMbqi& parent)
 
 MQuantInfo& MbqiFastSygus::getOrMkQuantInfo(const Node& q)
 {
-  std::map<Node, MQuantInfo>::iterator it = d_qinfo.find(q);
-  if (it == d_qinfo.end())
+  auto [it, inserted] = d_qinfo.try_emplace(q);
+  if (inserted)
   {
-    MQuantInfo& qi = d_qinfo[q];
-    qi.initialize(d_env, d_parent, q);
-    return qi;
+    it->second.initialize(d_env, d_parent, q);
   }
   return it->second;
 }

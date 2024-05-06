@@ -87,10 +87,10 @@ class MQuantInfo
    * @param q The quantified formula.
    */
   void initialize(Env& env, InstStrategyMbqi& parent, const Node& q);
-  /** Get indicies of variables to instantiate */
-  std::vector<size_t> getInstIndicies();
-  /** Get indicies of variables not to instantiate */
-  std::vector<size_t> getNoInstIndicies();
+  /** Get indices of variables to instantiate */
+  std::vector<size_t> getInstIndices();
+  /** Get indices of variables not to instantiate */
+  std::vector<size_t> getNoInstIndices();
   /** Get variable info for the index^th variable of the quantified formula */
   MVarInfo& getVarInfo(size_t index);
   /** Should we enumerate terms for type tn? */
