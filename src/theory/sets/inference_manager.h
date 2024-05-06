@@ -19,7 +19,6 @@
 #define CVC5__THEORY__SETS__INFERENCE_MANAGER_H
 
 #include "theory/inference_manager_buffered.h"
-#include "theory/sets/infer_proof_cons.h"
 #include "theory/sets/solver_state.h"
 
 namespace cvc5::internal {
@@ -100,8 +99,6 @@ class InferenceManager : public InferenceManagerBuffered
    * class.
    */
   SolverState& d_state;
-  /** The inference to proof converter */
-  std::unique_ptr<InferProofCons> d_ipc;
   /** Assert fact recursive
    *
    * This is a helper function for assertInference, which calls assertFact

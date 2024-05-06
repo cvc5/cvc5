@@ -52,8 +52,6 @@ TheoryRewriter* TheorySets::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
-ProofRuleChecker* TheorySets::getProofChecker() { return nullptr; }
-
 bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
