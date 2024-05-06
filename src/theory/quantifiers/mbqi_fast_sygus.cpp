@@ -202,8 +202,8 @@ bool MbqiFastSygus::constructInstantiation(
     }
   }
   MQuantInfo& qi = getOrMkQuantInfo(q);
-  std::vector<size_t> indices = qi.getInstIndicies();
-  std::vector<size_t> nindices = qi.getNoInstIndicies();
+  std::vector<size_t> indices = qi.getInstIndices();
+  std::vector<size_t> nindices = qi.getNoInstIndices();
   Subs inst;
   Subs vinst;
   std::unordered_map<Node, Node> tmpCMap;
