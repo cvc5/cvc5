@@ -495,24 +495,39 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
 
 RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
 {
+  size_t i = utils::indexOf(in.getOperator());
   if (in[0].getKind() == Kind::APPLY_CONSTRUCTOR)
   {
-    bool result =
-        utils::indexOf(in.getOperator()) == utils::indexOf(in[0].getOperator());
+    bool result = (i == utils::indexOf(in[0].getOperator()));
     Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                << "Rewrite trivial tester " << in << " "
                                << result << std::endl;
     return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(result));
   }
-  const DType& dt = in[0].getType().getDType();
-  if (dt.getNumConstructors() == 1 && !dt.isSygus())
+  TypeNode tn = in[0].getType();
+  const DType& dt = tn.getDType();
+  // the rewrites below aren't applied to sygus datatypes, which rely on
+  // always getting testers asserted.
+  if (!dt.isSygus())
   {
-    // only one constructor, so it must be
-    Trace("datatypes-rewrite")
-        << "DatatypesRewriter::postRewrite: "
-        << "only one ctor for " << dt.getName() << " and that is "
-        << dt[0].getName() << std::endl;
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
+    if (dt[i].getNumArgs()==0)
+    {
+      // If a constant, then e.g. ((_ is nil) x) ---> (= x nil).
+      // This is only done for constant constructors since it does not
+      // introduce any new (selector) terms.
+      Node cc = utils::mkApplyCons(tn, dt, i, {});
+      Node eq = nodeManager()->mkNode(Kind::EQUAL, in[0], cc);
+      return RewriteResponse(REWRITE_AGAIN_FULL, eq);
+    }
+    if (dt.getNumConstructors() == 1)
+    {
+      // only one constructor, so it must be
+      Trace("datatypes-rewrite")
+          << "DatatypesRewriter::postRewrite: "
+          << "only one ctor for " << dt.getName() << " and that is "
+          << dt[0].getName() << std::endl;
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
+    }
   }
   // could try dt.getNumConstructors()==2 && indexOf(in.getOperator())==1 ?
   return RewriteResponse(REWRITE_DONE, in);
