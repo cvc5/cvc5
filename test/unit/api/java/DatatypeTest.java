@@ -102,6 +102,47 @@ class DatatypeTest
   }
 
   @Test
+  void equalHash() throws CVC5ApiException
+  {
+    DatatypeDecl decl1 = d_tm.mkDatatypeDecl("list");
+    DatatypeConstructorDecl cons1 = d_tm.mkDatatypeConstructorDecl("cons");
+    cons1.addSelector("head", d_tm.getIntegerSort());
+    decl1.addConstructor(cons1);
+    DatatypeConstructorDecl nil1 = d_tm.mkDatatypeConstructorDecl("nil");
+    decl1.addConstructor(nil1);
+    Sort list1 = d_tm.mkDatatypeSort(decl1);
+    Datatype dt1 = list1.getDatatype();
+    DatatypeConstructor consConstr1 = dt1.getConstructor(0);
+    DatatypeConstructor nilConstr1 = dt1.getConstructor(1);
+    DatatypeSelector head1 = consConstr1.getSelector("head");
+
+    DatatypeDecl decl2 = d_tm.mkDatatypeDecl("list");
+    DatatypeConstructorDecl cons2 = d_tm.mkDatatypeConstructorDecl("cons");
+    cons2.addSelector("head", d_tm.getIntegerSort());
+    decl2.addConstructor(cons2);
+    DatatypeConstructorDecl nil2 = d_tm.mkDatatypeConstructorDecl("nil");
+    decl2.addConstructor(nil2);
+    Sort list2 = d_tm.mkDatatypeSort(decl2);
+    Datatype dt2 = list2.getDatatype();
+    DatatypeConstructor consConstr2 = dt2.getConstructor(0);
+    DatatypeConstructor nilConstr2 = dt2.getConstructor(1);
+    DatatypeSelector head2 = consConstr2.getSelector("head");
+
+    assertEquals(decl1, decl1);
+    assertFalse(decl1 == decl2);
+    assertEquals(cons1, cons1);
+    assertFalse(cons1 == cons2);
+    assertEquals(nil1, nil1);
+    assertFalse(nil1 == nil2);
+    assertEquals(consConstr1, consConstr1);
+    assertFalse(consConstr1 == consConstr2);
+    assertEquals(head1, head1);
+    assertFalse(head1 == head2);
+    assertEquals(dt1, dt1);
+    assertFalse(dt1 == dt2);
+  }
+
+  @Test
   void mkDatatypeSorts() throws CVC5ApiException
   {
     /* Create two mutual datatypes corresponding to this definition
