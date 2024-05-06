@@ -5461,7 +5461,7 @@ class CVC5_EXPORT Solver
   /**
    * Simplify a term or formula based on rewriting and (optionally) applying
    * substitutions for solved variables.
-   * 
+   *
    * If applySubs is true, then for example, if `(= x 0)` was asserted to this
    * solver, this method may replace occurrences of `x` with `0`.
    *
