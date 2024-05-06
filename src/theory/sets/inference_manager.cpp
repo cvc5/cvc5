@@ -119,7 +119,8 @@ bool InferenceManager::assertSetsFact(Node atom,
                                       Node exp)
 {
   Node conc = polarity ? atom : atom.notNode();
-  return assertInternalFact(atom, polarity, id, {exp});
+  return assertInternalFact(
+      atom, polarity, id, ProofRule::TRUST, {exp}, {d_tid, conc, d_tsid});
 }
 
 void InferenceManager::assertInference(Node fact,
