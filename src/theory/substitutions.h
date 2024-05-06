@@ -125,8 +125,10 @@ class SubstitutionMap
 
   /**
    * Erase substitution. This erases x from the domain of this substitution.
-   * This method should only be called if compression is disabled. Otherwise,
-   * x may be substituted into the range of the substitution in this class.
+   * This method should only be called if compression is disabled, since
+   * if compression is enabled, then the substituion of x may have been
+   * applied to the range of other substitutions in this class, and erasing
+   * the entry for x would not undo those changes.
    * @param x The variable to erase.
    * @param invalidateCache If true, we clear the cache.
    */

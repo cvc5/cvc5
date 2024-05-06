@@ -83,6 +83,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
     NodeMap::iterator find2 = d_substitutions.find(current);
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
+      // if the substitution changes the current term
       if (rhs != current)
       {
         find = cache.find(rhs);
@@ -205,8 +206,11 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
   // don't check type equal here, since this utility may be used in conversions
   // that change the types of terms
   Trace("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
-  // shouldn't use compression if replacing a current substitution, or otherwise
-  // the range of other d_substitutions can be out of sync
+  // Shouldn't use compression if replacing a current substitution, or otherwise
+  // the range of other d_substitutions can be out of sync.
+  // For example, if we have substitution { y -> f(x) } and then later add
+  // { x -> a } the substitution may be updated to { y -> f(a), x -> a }. If
+  // we later erase x, then we'd have { y -> f(a) }, but x no longer maps to a.
   Assert(d_substitutions.find(x) == d_substitutions.end() || !d_compress);
 
   // this causes a later assert-fail (the rhs != current one, above) anyway
