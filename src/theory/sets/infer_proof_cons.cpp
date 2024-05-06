@@ -245,7 +245,7 @@ bool InferProofCons::convert(CDProof& cdp,
     break;
     case InferenceId::SETS_SKOLEM:
     {
-      Assert (assumps.empty());
+      Assert(assumps.empty());
       success = psb.applyPredIntro(conc, {});
       Assert(success);
     }

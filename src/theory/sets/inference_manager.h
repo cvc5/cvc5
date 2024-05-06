@@ -113,7 +113,7 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Add (=> exp conc) to the list of pending lemmas, and setup proof
    * production for this lemma.
-   * 
+   *
    * @param exp The explanation.
    * @param conc The conclusion.
    * @param id The associated inference identifier.
