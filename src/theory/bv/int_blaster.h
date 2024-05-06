@@ -244,9 +244,14 @@ class IntBlaster : protected EnvObj
    * and with "IMPLIES" in case of forall.
    */
   Node translateQuantifiedFormula(Node quantifiedNode);
-  
 
-
+  /**
+   * @parm node a node for which quantification data should be collected.
+   * This function populates the two dictionaries
+   * d_quantApplies and d_quantifiedVariables for n.
+   * It does so by iterating also the children of n,
+   * but using a cache.
+   */
   void collectQuantificationData(Node n);
 
   /**
@@ -342,7 +347,19 @@ class IntBlaster : protected EnvObj
   CDNodeMap d_binarizeCache;
   CDNodeMap d_intblastCache;
 
+  /** 
+   * Cache for applications of functions in which at least
+   * one of the parameters is a quantified variables.
+   * This is needed in order to correctly translate
+   * such nodes.
+   */
   context::CDHashMap<Node, std::unordered_set<Node>> d_quantApplies;
+ 
+  /** 
+   * Cache for quantified variables of each node.  
+   * This is needed in order to correctly translate
+   * quantified formulas.
+   */
   context::CDHashMap<Node, std::unordered_set<Node>> d_quantifiedVariables;
 
   /** Node manager that is used throughout the pass */

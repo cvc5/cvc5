@@ -44,16 +44,6 @@ namespace {
 
 
 template<typename T>
-void printUnorderedSet(const std::string& setName, const std::unordered_set<T>& mySet) {
-    std::cout << "***********************************************" << std::endl;
-    std::cout << "Contents of " << setName << " unordered_set:";
-    for (const T& element : mySet) {
-        std::cout << " " << element;
-    }
-    std::cout << std::endl;
-    std::cout << "***********************************************" << std::endl;
-}
-
 
 // A helper function to compute 2^b as a Rational
 Rational intpow2(uint32_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
@@ -176,7 +166,6 @@ Node IntBlaster::intBlast(Node n,
   // helper vector for traversal.
   std::vector<Node> toVisit;
   toVisit.push_back(makeBinary(n));
-
 
   while (!toVisit.empty())
   {
@@ -998,7 +987,7 @@ void IntBlaster::collectQuantificationData(Node n) {
 
     if (d_quantApplies.find(n) == d_quantApplies.end()) {
       std::unordered_set<Node> childrenApplies;
-      for (Node child : n) { 
+      for (Node child : n) {
         Assert(d_quantApplies.find(child) != d_quantApplies.end());
         std::unordered_set<Node> appliesOfChild = d_quantApplies[child];
         childrenApplies.insert(appliesOfChild.begin(), appliesOfChild.end());
@@ -1025,7 +1014,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   Kind k = quantifiedNode.getKind();
   Node boundVarList = quantifiedNode[0];
   Assert(boundVarList.getKind() == Kind::BOUND_VAR_LIST);
-  // Since; bit-vector variables are being translated to
+  // Since bit-vector variables are being translated to
   // integer variables, we need to substitute the new ones
   // for the old ones.
   std::vector<Node> oldBoundVars;
@@ -1057,7 +1046,6 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 
   // collect range constraints for UF applciations
   // that involve quantified variables
-  
   std::unordered_set<Node> applies = d_quantApplies[quantifiedNode];
   for (const Node& apply : applies)
   {
@@ -1069,11 +1057,9 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
     if (range.isBitVector())
     {
       Node originalMatrix = quantifiedNode[1];
-      
       Assert(d_quantifiedVariables.find(apply) != d_quantifiedVariables.end());
       Assert(d_quantifiedVariables.find(quantifiedNode) != d_quantifiedVariables.end());
       Assert(d_quantifiedVariables.find(originalMatrix) != d_quantifiedVariables.end());
-     
       std::unordered_set<Node> varsApply = d_quantifiedVariables[apply];
       std::unordered_set<Node> varsNode = d_quantifiedVariables[quantifiedNode];
       std::unordered_set<Node> varsMatrix = d_quantifiedVariables[originalMatrix];
@@ -1084,7 +1070,6 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 
       if (! std::includes(varsNode.begin(), varsNode.end(), varsApply.begin(), varsApply.end()) && std::includes(varsMatrix.begin(), varsMatrix.end(), varsApply.begin(), varsApply.end())) {
 
-  
         unsigned bvsize = range.getBitVectorSize();
         rangeConstraints.push_back(
             mkRangeConstraint(d_intblastCache[apply], bvsize));
@@ -1215,6 +1200,5 @@ Node IntBlaster::createBVNotNode(Node n, uint32_t bvsize)
 {
   return d_nm->mkNode(Kind::SUB, maxInt(bvsize), n);
 }
-
 
 }  // namespace cvc5::internal
