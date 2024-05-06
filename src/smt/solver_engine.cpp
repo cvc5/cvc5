@@ -1119,7 +1119,7 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
     tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
   }
   // now rewrite
-  ret = d_env->getRewriter()->rewrite(tt);
+  Node ret = d_env->getRewriter()->rewrite(tt);
   // make so that the returned term does not involve arithmetic subtyping
   SubtypeElimNodeConverter senc(d_env->getNodeManager());
   ret = senc.convert(ret);
