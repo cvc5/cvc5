@@ -71,6 +71,15 @@ class TheorySetsRewriter : public TheoryRewriter
     return postRewrite(equality).d_node;
   }
 
+  /**
+   * Rewrite membership for a binary op.
+   * For example, if mem is (set.member x (set.inter A B)), the returns the
+   * formula (and (set.member x A) (set.member x B)).
+   * @param mem The membership.
+   * @return The rewritten form of the membership.
+   */
+  Node rewriteMembershipBinaryOp(const Node& mem);
+
  private:
   /**
    * Returns true if elementTerm is in setTerm, where both terms are constants.
