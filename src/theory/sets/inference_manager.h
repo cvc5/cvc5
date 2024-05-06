@@ -73,7 +73,7 @@ class InferenceManager : public InferenceManagerBuffered
                        std::vector<Node>& exp,
                        int inferType = 0);
   /**
-   * Immediately send a conflict.
+   * Immediately send a conflict with inference identifier id.
    */
   void assertSetsConflict(const Node& conf, InferenceId id);
   /**
@@ -111,6 +111,12 @@ class InferenceManager : public InferenceManagerBuffered
    */
   bool assertFactRec(Node fact, InferenceId id, Node exp, int inferType = 0);
   /**
+   * Add (=> exp conc) to the list of pending lemmas, and setup proof
+   * production for this lemma.
+   * 
+   * @param exp The explanation.
+   * @param conc The conclusion.
+   * @param id The associated inference identifier.
    */
   void setupAndAddPendingLemma(const Node& exp,
                                const Node& conc,
