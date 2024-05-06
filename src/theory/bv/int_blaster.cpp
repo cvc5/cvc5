@@ -964,55 +964,60 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
 }
 
 void IntBlaster::collectQuantificationData(Node n) {
-  if (d_quantifiedVariables.find(n) == d_quantifiedVariables.end()) {
-    d_quantifiedVariables[n] = std::unordered_set<Node>();
-    std::unordered_set<Node> qfvars;
-    std::unordered_set<Node> qfvarsOfChildren;
-    if (n.getNumChildren() == 0) {
-      if (n.getKind() == Kind::BOUND_VARIABLE) {
-        qfvars.insert(n);
+  for (TNode current : NodeDfsIterable(n, VisitOrder::POSTORDER,
+           [this](TNode nn) { return d_quantifiedVariables.find(nn) != d_quantifiedVariables.end() && d_quantApplies.find(nn) != d_quantApplies.end(); }))
+  {
+    Trace("int-blaster-debug") << "collectQuantificationData for: " << n << std::endl;
+    if (d_quantifiedVariables.find(n) == d_quantifiedVariables.end()) {
+      d_quantifiedVariables[n] = std::unordered_set<Node>();
+      std::unordered_set<Node> qfvars;
+      std::unordered_set<Node> qfvarsOfChildren;
+      if (n.getNumChildren() == 0) {
+        if (n.getKind() == Kind::BOUND_VARIABLE) {
+          qfvars.insert(n);
+        }
       }
-    }
-    if (n.getNumChildren() > 0) {
-      for (Node child : n) {
-        Assert(d_quantifiedVariables.find(child) != d_quantifiedVariables.end()) << child;
-        std::unordered_set<Node> varsOfChild = d_quantifiedVariables[child];
-        qfvarsOfChildren.insert(varsOfChild.begin(), varsOfChild.end());
+      if (n.getNumChildren() > 0) {
+        for (Node child : n) {
+          if (d_quantifiedVariables.find(child) == d_quantifiedVariables.end()) {
+            collectQuantificationData(child);
+          }
+          std::unordered_set<Node> varsOfChild = d_quantifiedVariables[child];
+          qfvarsOfChildren.insert(varsOfChild.begin(), varsOfChild.end());
+        }
       }
-    }
-    qfvars.insert(qfvarsOfChildren.begin(), qfvarsOfChildren.end());
-    if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS) {
-      // deleting the variables that become bound
-      for (Node newvar : n[0]) {
-        qfvars.erase(newvar);
+      qfvars.insert(qfvarsOfChildren.begin(), qfvarsOfChildren.end());
+      if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS) {
+        // deleting the variables that become bound
+        for (Node newvar : n[0]) {
+          qfvars.erase(newvar);
+        }
       }
+      d_quantifiedVariables[n] = qfvars;
     }
-    d_quantifiedVariables[n] = qfvars;
+
+    if (d_quantApplies.find(n) == d_quantApplies.end()) {
+      std::unordered_set<Node> childrenApplies;
+      for (Node child : n) { 
+        Assert(d_quantApplies.find(child) != d_quantApplies.end());
+        std::unordered_set<Node> appliesOfChild = d_quantApplies[child];
+        childrenApplies.insert(appliesOfChild.begin(), appliesOfChild.end());
+      }
+      d_quantApplies[n] = childrenApplies;
+
+      std::unordered_set<Node> applies;
+
+      expr::getKindSubterms(n, Kind::APPLY_UF, true, applies);
+      Assert(d_quantifiedVariables.find(n) != d_quantifiedVariables.end());
+      std::unordered_set<Node> qfvars2;
+      qfvars2 = d_quantifiedVariables[n];
+      Assert(d_quantApplies.find(n) != d_quantApplies.end());
+      std::unordered_set<Node> new_applies;
+      new_applies.insert(applies.begin(), applies.end());
+    }
+
+    std::unordered_set<Node> temp2 = d_quantApplies[n];
   }
-
-  if (d_quantApplies.find(n) == d_quantApplies.end()) {
-    std::unordered_set<Node> childrenApplies;
-    for (Node child : n) { 
-      Assert(d_quantApplies.find(child) != d_quantApplies.end());
-      std::unordered_set<Node> appliesOfChild = d_quantApplies[child];
-      childrenApplies.insert(appliesOfChild.begin(), appliesOfChild.end());
-    }
-    d_quantApplies[n] = childrenApplies;
-
-    std::unordered_set<Node> applies;
-
-    expr::getKindSubterms(n, Kind::APPLY_UF, true, applies);
-    Assert(d_quantifiedVariables.find(n) != d_quantifiedVariables.end());
-    std::unordered_set<Node> qfvars2;
-    qfvars2 = d_quantifiedVariables[n];
-    Assert(d_quantApplies.find(n) != d_quantApplies.end());
-    std::unordered_set<Node> new_applies;
-    new_applies.insert(applies.begin(), applies.end());
-  }
-
-  std::unordered_set<Node> temp2 = d_quantApplies[n];
-
-
 }
 
 Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
