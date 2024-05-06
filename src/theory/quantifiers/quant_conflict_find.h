@@ -240,7 +240,7 @@ class QuantConflictFind : public QuantifiersModule
   };
   Statistics d_statistics;
   /** Identify this module */
-  std::string identify() const override { return "QcfEngine"; }
+  std::string identify() const override;
   /** is n a propagating instance?
    *
    * A propagating instance is any formula that consists of Boolean connectives,
