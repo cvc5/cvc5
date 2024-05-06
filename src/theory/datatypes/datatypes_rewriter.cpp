@@ -510,7 +510,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
   // always getting testers asserted.
   if (!dt.isSygus())
   {
-    if (dt[i].getNumArgs()==0)
+    if (dt[i].getNumArgs() == 0)
     {
       // If a constant, then e.g. ((_ is nil) x) ---> (= x nil).
       // This is only done for constant constructors since it does not
