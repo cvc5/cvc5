@@ -64,19 +64,6 @@ bool BasicRewriteRCons::prove(
       return true;
     }
   }
-
-  if (eq[0].getKind() == Kind::APPLY_UF
-      && eq[0].getOperator().getKind() == Kind::LAMBDA)
-  {
-    std::vector<Node> args;
-    args.push_back(eq[0].getOperator());
-    args.insert(args.end(), eq[0].begin(), eq[0].end());
-    if (tryRule(cdp, eq, ProofRule::BETA_REDUCE, args))
-    {
-      Trace("trewrite-rcons") << "...BETA_REDUCE" << std::endl;
-      return true;
-    }
-  }
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
 }

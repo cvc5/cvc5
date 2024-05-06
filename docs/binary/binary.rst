@@ -7,7 +7,7 @@ interface.
 
 The cvc5 binary supports the following input languages:
 
-* `SMT-LIB v2 <http://smtlib.cs.uiowa.edu/language.shtml>`_
+* `SMT-LIB v2 <http://smt-lib.org/language.shtml>`_
 * `SyGuS-IF <https://sygus-org.github.io/language/>`_
 
 

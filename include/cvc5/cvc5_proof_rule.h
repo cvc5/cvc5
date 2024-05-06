@@ -116,11 +116,12 @@ enum ENUM(ProofRule) : uint32_t
    *   \Rightarrow F}{if $F\neq\bot$} \textrm{ or } \inferruleSC{F \mid F_1
    *   \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
    *
-   * This rule has a dual purpose with :cpp:enumerator:`ASSUME
-   * <cvc5::ProofRule::ASSUME>`. It is a way to close assumptions in a proof. We
-   * require that :math:`F_1 \dots F_n` are free assumptions in P and say that
-   * :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
-   * are bound by this application. For example, the proof node:
+   * This rule has a dual purpose with
+   * :cpp:enumerator:`ASSUME <cvc5::ProofRule::ASSUME>`. It is a way to close
+   * assumptions in a proof. We require that :math:`F_1 \dots F_n` are free
+   * assumptions in P and say that :math:`F_1 \dots F_n` are not free in
+   * ``(SCOPE P)``. In other words, they are bound by this application. For
+   * example, the proof node:
    * ``(SCOPE (ASSUME F) :args F)``
    * has the conclusion :math:`F \Rightarrow F` and has no free assumptions.
    * More generally, a proof with no free assumptions always concludes a valid
@@ -262,10 +263,9 @@ enum ENUM(ProofRule) : uint32_t
    * \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))`.
    *
    * More generally, this rule also holds when:
-   * :math:`\texttt{Rewriter::rewrite}(\texttt{toOriginal}(F')) =
-   * \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))` where :math:`F'` and
-   * :math:`G'` are the result of each side of the equation above. Here,
-   * original forms are used in a similar manner to
+   * :math:`\texttt{Rewriter::rewrite}(\texttt{toOriginal}(F')) = \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))`
+   * where :math:`F'` and :math:`G'` are the result of each side of the equation
+   * above. Here, original forms are used in a similar manner to
    * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::ProofRule::MACRO_SR_PRED_INTRO>`
    * above. \endverbatim
    */
@@ -273,13 +273,13 @@ enum ENUM(ProofRule) : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Encode predicate transformation**
+   *
    * .. math::
    *   \inferrule{F \mid G}{G}
    * 
    * where :math:`F` and :math:`G` are equivalent up to their encoding in an
    * external proof format. This is currently verified by
-   *   :math:`\texttt{RewriteDbNodeConverter::convert}(F) = 
-   * \texttt{RewriteDbNodeConverter::convert}(G)`.
+   * :math:`\texttt{RewriteDbNodeConverter::convert}(F) = \texttt{RewriteDbNodeConverter::convert}(G)`.
    * This rule can be treated as a no-op when appropriate in external proof
    * formats.
    * \endverbatim
@@ -288,11 +288,12 @@ enum ENUM(ProofRule) : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- DSL rewrite**
+   *
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
    * 
-   * where `id` is a `ProofRewriteRule` whose definition in the RARE DSL is
-   * :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
+   * where `id` is a :cpp:enum:`ProofRewriteRule` whose definition in the
+   * RARE DSL is :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
    * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
    * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
    * :math:`\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}`.
@@ -300,7 +301,7 @@ enum ENUM(ProofRule) : uint32_t
    * Notice that the application of the substitution takes into account the
    * possible list semantics of variables :math:`x_1 \ldots x_n`. If
    * :math:`x_i` is a variable with list semantics, then :math:`t_i` denotes a
-   * list of terms. The substitution implemented by expr::narySubstitute
+   * list of terms. The substitution implemented by `expr::narySubstitute`
    * replaces each :math:`x_i` with the list :math:`t_i` in its place.
    * \endverbatim
    */
@@ -312,13 +313,13 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{- \mid id, t}{t = t'}
    *
-   * where `id` is the `ProofRewriteRule` of the theory rewrite rule which
-   * transforms :math:`t` to :math `t'`.
+   * where `id` is the :cpp:enum:`ProofRewriteRule` of the theory rewrite
+   * rule which transforms :math:`t` to :math:`t'`.
    * 
-   * In contrast to `DSL_REWRITE`, theory rewrite rules used by this proof
-   * rule are not necessarily expressible in RARE. Each rule that can be used
-   * in this proof rule are documented explicitly in cases within the
-   * `ProofRewriteRule` enum.
+   * In contrast to :cpp:enumerator:`DSL_REWRITE`, theory rewrite rules used by
+   * this proof rule are not necessarily expressible in RARE. Each rule that can
+   * be used in this proof rule are documented explicitly in cases within the
+   * :cpp:enum:`ProofRewriteRule` enum.
    * \endverbatim
    */
   EVALUE(THEORY_REWRITE),
@@ -336,14 +337,14 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(ANNOTATION),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Processing rules -- Remove Term Formulas Axiom**
+   * **Processing rules -- If-then-else equivalence**
    *
    * .. math::
-   *   \inferrule{- \mid t}{\texttt{RemoveTermFormulas::getAxiomFor}(t)}
+   *   \inferrule{- \mid \ite{C}{t_1}{t_2}}{\ite{C}{((\ite{C}{t_1}{t_2}) = t_1)}{((\ite{C}{t_1}{t_2}) = t_2)}}
    *
    * \endverbatim
    */
-  EVALUE(REMOVE_TERM_FORMULA_AXIOM),
+  EVALUE(ITE_EQ),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -520,9 +521,10 @@ enum ENUM(ProofRule) : uint32_t
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
    *
-   * Same as :cpp:enumerator:`MACRO_RESOLUTION
-   * <cvc5::ProofRule::MACRO_RESOLUTION>`, but not checked by the internal proof
-   * checker. \endverbatim
+   * Same as
+   * :cpp:enumerator:`MACRO_RESOLUTION <cvc5::ProofRule::MACRO_RESOLUTION>`, but
+   * not checked by the internal proof checker.
+   * \endverbatim
    */
   EVALUE(MACRO_RESOLUTION_TRUST),
 
@@ -1144,21 +1146,6 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(HO_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Equality -- Beta reduction**
-   *
-   * .. math::
-   *
-   *   \inferrule{\mid \lambda x_1\dots x_n.\> t, t_1,\dots,t_n}
-   *   {((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
-   *
-   * The right hand side of the equality in the conclusion is computed using
-   * standard substitution via Node::substitute.
-   * \endverbatim
-   */
-  EVALUE(BETA_REDUCE),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Read over write**
    *
    * .. math::
@@ -1204,19 +1191,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ARRAYS_EXT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arrays -- Expansion of array range equality**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid \mathit{eqrange}(a,b,i,j)}
-   *   {\mathit{eqrange}(a,b,i,j)=
-   *   \forall x.\> i \leq x \leq j \rightarrow
-   *   \mathit{select}(a,x)=\mathit{select}(b,x)}
-   * \endverbatim
-   */
-  EVALUE(ARRAYS_EQ_RANGE_EXPAND),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -2275,12 +2249,14 @@ enum ENUM(ProofRule) : uint32_t
 #endif
 
 /**
+ * \verbatim embed:rst:leading-asterisk
  * This enumeration represents the rewrite rules used in a rewrite proof. Some
  * of the rules are internal ad-hoc rewrites, while others are rewrites
  * specified by the RARE DSL. This enumeration is used as the first argument to
  * the :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::DSL_REWRITE>` proof rule
- * and the :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::THEORY_REWRITE>` proof
- * rule.
+ * and the :cpp:enumerator:`THEORY_REWRITE <cvc5::ProofRule::THEORY_REWRITE>`
+ * proof rule.
+ * \endverbatim
  */
 enum ENUM(ProofRewriteRule) : uint32_t
 {
@@ -2291,11 +2267,34 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Builtin -- Distinct elimination**
    *
    * .. math::
-   *   \texttt{distinct}(t_1, \ldots tn) = \bigwedge_{i \neq j) t_i \neq t_j
+   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i \neq j} t_i \neq t_j
    *
    * \endverbatim
    */
   EVALUE(DISTINCT_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Beta reduction**
+   *
+   * .. math::
+   *   ((\lambda x_1 \dots x_n.\> t) t_1 \ldots t_n) = t\{x_1 \mapsto t_1, \dots, x_n \mapsto t_n\}
+   *
+   * The right hand side of the equality in the conclusion is computed using
+   * standard substitution via ``Node::substitute``.
+   * \endverbatim
+   */
+  EVALUE(BETA_REDUCE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Expansion of array range equality**
+   *
+   * .. math::
+   *   \mathit{eqrange}(a,b,i,j)=
+   *   \forall x.\> i \leq x \leq j \rightarrow
+   *   \mathit{select}(a,x)=\mathit{select}(b,x)
+   * \endverbatim
+   */
+  EVALUE(ARRAYS_EQ_RANGE_EXPAND),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Exists elimination**
@@ -2313,7 +2312,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * .. math::
    *   s_i(c(t_1, \ldots, t_n)) = t_i
    *
-   * where `s_i` is the `i^th` selector for constructor `c`.
+   * where :math:`s_i` is the :math:`i^{th}` selector for constructor :math:`c`.
    *
    * \endverbatim
    */
@@ -2323,14 +2322,14 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Datatypes - collapse tester**
    *
    * .. math::
-   *   is-c(c(t_1, \ldots, t_n)) = true
+   *   is\text{-}c(c(t_1, \ldots, t_n)) = true
    *
    * or alternatively
    *
    * .. math::
-   *   is-c(d(t_1, \ldots, t_n)) = false
+   *   is\text{-}c(d(t_1, \ldots, t_n)) = false
    *
-   * where `c` and `d` are distinct constructors.
+   * where :math:`c` and :math:`d` are distinct constructors.
    *
    * \endverbatim
    */
@@ -2348,7 +2347,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * .. math::
    *   (c(t_1, \ldots, t_n) = d(s_1, \ldots, s_m)) = false
    *
-   * where `c` and `d` are distinct constructors.
+   * where :math:`c` and :math:`d` are distinct constructors.
    *
    * \endverbatim
    */
@@ -2358,9 +2357,9 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Strings - regular expression loop elimination**
    *
    * .. math::
-   *   ((_ re.loop l u) R) = (re.union R^l ... R^u)
+   *   ((\_\ re.loop\ l\ u)\ R) = (re.union\ R^l \ldots R^u)
    *
-   * where `u` :math:`\geq` `l`.
+   * where :math:`u \geq l`.
    *
    * \endverbatim
    */
