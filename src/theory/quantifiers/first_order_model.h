@@ -160,6 +160,8 @@ class FirstOrderModel : protected EnvObj
  protected:
   /** Pointer to the underyling theory model */
   TheoryModel* d_model;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
