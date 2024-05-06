@@ -26,11 +26,9 @@
 
 namespace cvc5::internal {
 namespace theory {
-
-class QuantifiersModule;
-
 namespace quantifiers {
 
+class QuantifiersModule;
 class Instantiate;
 
 /**

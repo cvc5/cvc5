@@ -58,7 +58,7 @@ class InstStrategyMbqi : public QuantifiersModule
   /** Check was complete for quantified formula q */
   bool checkCompleteFor(Node q) override;
   /** identify */
-  std::string identify() const override { return "InstStrategyMbqi"; }
+  std::string identify() const override { return "mbqi"; }
 
  private:
   /**

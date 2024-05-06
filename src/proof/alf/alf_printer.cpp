@@ -167,7 +167,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       Assert(!pargs.empty());
       Kind k = pargs[0].getKind();
       return k == Kind::STRING_CONTAINS || k == Kind::STRING_TO_CODE
-             || k == Kind::STRING_INDEXOF;
+             || k == Kind::STRING_INDEXOF || k == Kind::STRING_IN_REGEXP;
     }
     break;
     //
@@ -257,9 +257,65 @@ bool AlfPrinter::canEvaluate(Node n) const
         case Kind::BITVECTOR_SIZE:
           // special case, evaluates no matter what is inside
           continue;
+        case Kind::STRING_IN_REGEXP:
+          if (!canEvaluateRegExp(cur[1]))
+          {
+            return false;
+          }
+          visit.push_back(cur[0]);
+          continue;
         default:
           Trace("alf-printer-debug")
               << "Cannot evaluate " << cur.getKind() << std::endl;
+          return false;
+      }
+      for (const Node& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+  return true;
+}
+
+bool AlfPrinter::canEvaluateRegExp(Node r) const
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(r);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      switch (cur.getKind())
+      {
+        case Kind::REGEXP_ALL:
+        case Kind::REGEXP_ALLCHAR:
+        case Kind::REGEXP_COMPLEMENT:
+        case Kind::REGEXP_NONE:
+        case Kind::REGEXP_UNION:
+        case Kind::REGEXP_INTER:
+        case Kind::REGEXP_CONCAT:
+        case Kind::REGEXP_STAR: break;
+        case Kind::REGEXP_RANGE:
+          if (!theory::strings::utils::isCharacterRange(cur))
+          {
+            return false;
+          }
+          continue;
+        case Kind::STRING_TO_REGEXP:
+          if (!canEvaluate(cur[0]))
+          {
+            return false;
+          }
+          continue;
+        default:
+          Trace("alf-printer-debug") << "Cannot evaluate " << cur.getKind()
+                                     << " in regular expressions" << std::endl;
           return false;
       }
       for (const Node& cn : cur)
