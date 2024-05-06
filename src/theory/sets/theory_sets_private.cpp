@@ -60,7 +60,6 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_rels_enabled(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
-      d_rewriter(nodeManager()),
       d_cpacb(cpacb)
 {
   d_true = nodeManager()->mkConst(true);
@@ -124,7 +123,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             Trace("sets-prop")
                 << "Propagate conflict : " << s1 << " == " << s2 << std::endl;
             Node eqs = s1.eqNode(s2);
-            d_im.conflict(eqs, InferenceId::SETS_EQ_CONFLICT);
+            d_im.assertSetsConflict(eqs, InferenceId::SETS_EQ_CONFLICT);
             return;
           }
         }
@@ -150,7 +149,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(facts.size() == 1);
       Trace("sets-prop") << "Propagate eq-mem conflict : " << facts[0]
                          << std::endl;
-      d_im.conflict(facts[0], InferenceId::SETS_EQ_MEM_CONFLICT);
+      d_im.assertSetsConflict(facts[0], InferenceId::SETS_EQ_MEM_CONFLICT);
       return;
     }
     for (const Node& f : facts)
@@ -158,6 +157,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(f.getKind() == Kind::IMPLIES);
       Trace("sets-prop") << "Propagate eq-mem eq inference : " << f[0] << " => "
                          << f[1] << std::endl;
+      // AlwaysAssert(false);
       d_im.assertSetsFact(f[1], true, InferenceId::SETS_EQ_MEM, f[0]);
     }
   }
@@ -494,15 +494,15 @@ void TheorySetsPrivate::checkDownwardsClosure()
                   nodeManager()->mkNode(Kind::SET_MEMBER, mem[0], eq_set);
               nmem = rewrite(nmem);
               std::vector<Node> exp;
-              if (d_state.areEqual(mem, pmem))
+              exp.push_back(pmem);
+              int inferType = 0;
+              if (!d_state.areEqual(mem, pmem))
               {
-                exp.push_back(pmem);
+                // force sending as a lemma
+                inferType = 1;
               }
-              else
-              {
-                nmem = nodeManager()->mkNode(Kind::OR, pmem.negate(), nmem);
-              }
-              d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
+              d_im.assertInference(
+                  nmem, InferenceId::SETS_DOWN_CLOSURE, exp, inferType);
             }
           }
         }
@@ -1229,7 +1229,7 @@ Node TheorySetsPrivate::registerAndAssertSkolemLemma(Node& n)
   SkolemManager* sm = nm->getSkolemManager();
   Node skolem = sm->mkPurifySkolem(n);
   Node lemma = n.eqNode(skolem);
-  d_im.addPendingLemma(lemma, InferenceId::SETS_SKOLEM);
+  d_im.assertInference(lemma, InferenceId::SETS_SKOLEM, d_true, 1);
   Trace("sets-skolems") << "sets-skolems:  " << skolem << " = " << n
                         << std::endl;
   return skolem;
@@ -1276,10 +1276,8 @@ void TheorySetsPrivate::checkDisequalities()
     Node x = sm->mkSkolemFunction(SkolemId::SETS_DEQ_DIFF, {deq[0], deq[1]});
     Node mem1 = nm->mkNode(Kind::SET_MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(Kind::SET_MEMBER, x, deq[1]);
-    Node lem =
-        nm->mkNode(Kind::OR, deq, nm->mkNode(Kind::EQUAL, mem1, mem2).negate());
-    lem = rewrite(lem);
-    d_im.assertInference(lem, InferenceId::SETS_DEQ, d_true, 1);
+    Node mdeq = nm->mkNode(Kind::EQUAL, mem1, mem2).negate();
+    d_im.assertInference(mdeq, InferenceId::SETS_DEQ, deq.notNode(), 1);
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -1384,7 +1382,7 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
         {
           Trace("sets-prop")
               << "Propagate mem-eq conflict : " << pexp << std::endl;
-          d_im.conflict(pexp, InferenceId::SETS_MEM_EQ_CONFLICT);
+          d_im.assertSetsConflict(pexp, InferenceId::SETS_MEM_EQ_CONFLICT);
         }
       }
     }
