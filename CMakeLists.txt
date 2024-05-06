@@ -384,10 +384,10 @@ if(NOT EXISTS ${VENV_PATH})
 endif()
 
 # Find (and set up) the Python interpreter within the virtual environment
-set (ENV{VIRTUAL_ENV} "${VENV_PATH}")
-set (Python_FIND_VIRTUALENV FIRST)
-unset (Python_EXECUTABLE)
-unset (Python_EXECUTABLE CACHE)
+set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+set(Python_FIND_VIRTUALENV FIRST)
+unset(Python_EXECUTABLE)
+unset(Python_EXECUTABLE CACHE)
 
 if(BUILD_BINDINGS_PYTHON)
   # If the component Development is requested, CMake strongly recommends to
