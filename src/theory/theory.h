@@ -314,7 +314,7 @@ class Theory : protected EnvObj
   /**
    * Returns the ID of the theory responsible for the given node.
    *
-   * Note this method assumes that node is not a "Boolean term skolem". Boolean
+   * Note this method does not take into account "Boolean term skolem". Boolean
    * term skolems always belong to THEORY_UF. This case is handled in
    * Env::theoryOf.
    * 

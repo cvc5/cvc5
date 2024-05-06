@@ -256,14 +256,15 @@ theory::TheoryId Env::theoryOf(TypeNode typeNode) const
 
 theory::TheoryId Env::theoryOf(TNode node) const
 {
-  // Boolean term skolems always belong to THEORY_UF
-  if (isBooleanTermSkolem(node))
+  theory::TheoryId tid = theory::Theory::theoryOf(node,
+                                  d_options.theory.theoryOfMode,
+                                  d_uninterpretedSortOwner);
+  // Special case: Boolean term skolems belong to THEORY_UF.
+  if (tid==theory::TheoryId::THEORY_BOOL && isBooleanTermSkolem(node))
   {
     return theory::TheoryId::THEORY_UF;
   }
-  return theory::Theory::theoryOf(node,
-                                  d_options.theory.theoryOfMode,
-                                  d_uninterpretedSortOwner);
+  return tid;
 }
 
 bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
