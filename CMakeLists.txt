@@ -392,9 +392,9 @@ unset(Python_EXECUTABLE CACHE)
 if(BUILD_BINDINGS_PYTHON)
   # If the component Development is requested, CMake strongly recommends to
   # also include the component Interpreter to get expected result.
-  find_package (Python COMPONENTS Interpreter Development REQUIRED)
+  find_package(Python COMPONENTS Interpreter Development REQUIRED)
 else()
-  find_package (Python COMPONENTS Interpreter REQUIRED)
+  find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 
 find_package(GMP 6.3 REQUIRED)
