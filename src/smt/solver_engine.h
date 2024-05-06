@@ -491,17 +491,17 @@ class CVC5_EXPORT SolverEngine
    */
   void addPlugin(Plugin* p);
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
+   * Simplify a term or formula based on rewriting and (optionally) applying
+   * substitutions for solved variables.
+   * 
+   * If applySubs is true, then for example, if `(= x 0)` was asserted to this
+   * solver, this method may replace occurrences of `x` with `0`.
    *
-   * @throw TypeCheckingException, LogicException
-   *
-   * @todo (design) is this meant to give an equivalent or an
-   * equisatisfiable formula?
+   * @param t The term to simplify.
+   * @param applySubs Whether to apply substitutions for solved variables.
+   * @return The simplified term.
    */
-  Node simplify(const Node& e);
+  Node simplify(const Node& e, bool applySubs);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
