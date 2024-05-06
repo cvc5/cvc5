@@ -809,7 +809,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   // refresh the assertions, to ensure we have applied preprocessing to
   // all current assertions
   d_smtDriver->refreshAssertions();
-  TimeoutCoreManager tcm(*d_env.get());
+  TimeoutCoreManager tcm(*d_env.get(), d_smtSolver->getTheoryEngine());
   // get the preprocessed assertions
   const context::CDList<Node>& assertions =
       d_smtSolver->getPreprocessedAssertions();
