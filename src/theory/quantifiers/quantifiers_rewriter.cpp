@@ -2063,6 +2063,9 @@ bool QuantifiersRewriter::doOperation(Node q,
     // is truly a non-standard quantified formula (e.g. one for QE).
     if (!expr::hasBoundVar(q[1]))
     {
+      // This returns true if q is a non-standard quantified formula. Note that
+      // is_std is additionally true if user-pat is strict and q has user
+      // patterns.
       return qa.isStandard();
     }
     if (!is_std)
