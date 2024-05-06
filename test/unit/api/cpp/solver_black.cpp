@@ -1829,7 +1829,7 @@ TEST_F(TestApiBlackSolver, simplifyApplySubs)
   Term eq = d_tm.mkTerm(Kind::EQUAL, x, zero);
   d_solver->assertFormula(eq);
   ASSERT_NO_THROW(d_solver->checkSat());
-  
+
   ASSERT_EQ(d_solver->simplify(x, false), x);
   ASSERT_EQ(d_solver->simplify(x, true), zero);
 }
