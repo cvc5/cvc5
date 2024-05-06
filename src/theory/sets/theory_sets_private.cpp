@@ -157,7 +157,6 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(f.getKind() == Kind::IMPLIES);
       Trace("sets-prop") << "Propagate eq-mem eq inference : " << f[0] << " => "
                          << f[1] << std::endl;
-      // AlwaysAssert(false);
       d_im.assertSetsFact(f[1], true, InferenceId::SETS_EQ_MEM, f[0]);
     }
   }
