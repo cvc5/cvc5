@@ -491,7 +491,8 @@ bool ArithIteUtils::solveBinOr(TNode binor){
         Node ite = sk.iteNode(otherL, otherR);
         d_skolems.insert(sk, cnd);
         // Given (or (= x c) (= x d)), we replace x by (ite @purifyX c d),
-        // where @purifyX is the purification skolem for (= x c).
+        // where @purifyX is the purification skolem for (= x c), where c and
+        // d are known to be distinct.
         addSubstitution(sel, ite);
         return true;
       }
