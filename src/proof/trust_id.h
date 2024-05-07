@@ -45,6 +45,8 @@ enum class TrustId : uint32_t
   THEORY_PREPROCESS_LEMMA,
   /** A expanding of definitions of the input formula made without a proof */
   THEORY_EXPAND_DEF,
+  /** An extended theory rewrite */
+  EXT_THEORY_REWRITE,
   /** An axiom for an introduced witness term without a corresponding proof */
   WITNESS_AXIOM,
   /** A rewrite whose proof could not be elaborated */

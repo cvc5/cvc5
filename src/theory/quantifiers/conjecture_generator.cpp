@@ -373,11 +373,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
     if( d_fullEffortCount%optFullCheckFrequency()==0 ){
       d_hasAddedLemma = false;
       d_tge.d_cg = this;
-      double clSet = 0;
-      if( TraceIsOn("sg-engine") ){
-        clSet = double(clock())/double(CLOCKS_PER_SEC);
-        Trace("sg-engine") << "---Conjecture Engine Round, effort = " << e << "---" << std::endl;
-      }
+      beginCallDebug();
       eq::EqualityEngine * ee = getEqualityEngine();
       d_conj_count = 0;
 
@@ -886,13 +882,12 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         }
         Trace("thm-ee") << std::endl;
       }
-      if( TraceIsOn("sg-engine") ){
-        double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-        Trace("sg-engine") << "Finished conjecture generator, time = " << (clSet2-clSet) << std::endl;
-      }
+      endCallDebug();
     }
   }
 }
+
+std::string ConjectureGenerator::identify() const { return "induction-cg"; }
 
 unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth ) {
   if( !d_waiting_conjectures_lhs.empty() ){

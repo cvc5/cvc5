@@ -29,7 +29,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
+{
+  registerProofRewriteRule(ProofRewriteRule::BETA_REDUCE,
+                           TheoryRewriteCtx::PRE_DSL);
+}
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {
@@ -151,6 +155,34 @@ RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
     }
   }
   return RewriteResponse(REWRITE_DONE, node);
+}
+
+Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::BETA_REDUCE:
+    {
+      if (n.getKind() != Kind::APPLY_UF
+          || n.getOperator().getKind() != Kind::LAMBDA)
+      {
+        return Node::null();
+      }
+      Node lambda = n.getOperator();
+      std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
+      std::vector<TNode> subs(n.begin(), n.end());
+      if (vars.size() != subs.size())
+      {
+        return Node::null();
+      }
+      Node ret = lambda[1].substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
+      return ret;
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
 }
 
 Node TheoryUfRewriter::getHoApplyForApplyUf(TNode n)

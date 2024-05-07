@@ -624,8 +624,6 @@ libcvc5_add_sources(
   theory/builtin/theory_builtin_rewriter.h
   theory/builtin/theory_builtin_type_rules.cpp
   theory/builtin/theory_builtin_type_rules.h
-  theory/builtin/theory_rewrite_proof_checker.cpp
-  theory/builtin/theory_rewrite_proof_checker.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
   theory/bv/bitblast/bitblast_proof_generator.cpp

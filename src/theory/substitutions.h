@@ -106,8 +106,8 @@ class SubstitutionMap
   /**
    * @param context The context this substitution depends on.
    * @param compress If true, we may update the range of substitutions based
-   * on further substitutions. For example, if we add { y -> f(x) } and later
-   * add { x -> a }, then we may update the entry for y to { y -> f(a) }.
+   * on further substitutions. For example, if we add {y -> f(x)} and later
+   * add {x -> a}, then we may update the substitution to {y -> f(a), x -> a}.
    */
   SubstitutionMap(context::Context* context = nullptr, bool compress = true);
 
@@ -123,10 +123,12 @@ class SubstitutionMap
    */
   void addSubstitutions(SubstitutionMap& subMap, bool invalidateCache = true);
 
-  /** 
+  /**
    * Erase substitution. This erases x from the domain of this substitution.
-   * This method should only be called if compression is disabled. Otherwise,
-   * x may be substituted into the range of the substitution in this class.
+   * This method should only be called if compression is disabled, since
+   * if compression is enabled, then the substituion of x may have been
+   * applied to the range of other substitutions in this class, and erasing
+   * the entry for x would not undo those changes.
    * @param x The variable to erase.
    * @param invalidateCache If true, we clear the cache.
    */

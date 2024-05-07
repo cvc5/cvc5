@@ -764,7 +764,9 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
     // need to connect the SAT proof to the CNF proof becuase we need the
     // preprocessed input as leaves, not the clauses derived from them.
     std::shared_ptr<ProofNode> pfn = getProof();
+    Trace("unsat-core") << "Proof is " << *pfn.get() << std::endl;
     expr::getFreeAssumptions(pfn.get(), core);
+    Trace("unsat-core") << "Core is " << core << std::endl;
   }
 }
 
