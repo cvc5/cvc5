@@ -98,7 +98,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify_JJZ(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* term = reinterpret_cast<Term*>(termPointer);
-  Term* retPointer = new Term(solver->simplify(*term, (bool)applySubs)));
+  Term* retPointer = new Term(solver->simplify(*term, (bool)applySubs));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
