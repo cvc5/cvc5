@@ -955,7 +955,6 @@ void IntBlaster::collectQuantificationData(Node n) {
     if (d_quantifiedVariables.find(n) == d_quantifiedVariables.end()) {
       d_quantifiedVariables[n] = std::unordered_set<Node>();
       std::unordered_set<Node> qfvars;
-      std::unordered_set<Node> qfvarsOfChildren;
       if (n.getNumChildren() == 0) {
         if (n.getKind() == Kind::BOUND_VARIABLE) {
           qfvars.insert(n);
@@ -966,11 +965,11 @@ void IntBlaster::collectQuantificationData(Node n) {
           if (d_quantifiedVariables.find(child) == d_quantifiedVariables.end()) {
             collectQuantificationData(child);
           }
-          std::unordered_set<Node> varsOfChild = d_quantifiedVariables[child];
-          qfvarsOfChildren.insert(varsOfChild.begin(), varsOfChild.end());
+          for (Node varOfChild : d_quantifiedVariables[child].get()) {
+            qfvars.insert(varOfChild);
+          }
         }
       }
-      qfvars.insert(qfvarsOfChildren.begin(), qfvarsOfChildren.end());
       if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS) {
         // deleting the variables that become bound
         for (Node newvar : n[0]) {
