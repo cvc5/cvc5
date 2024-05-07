@@ -14,13 +14,17 @@
 # Cython_FOUND - found Cython Python module
 ##
 
-execute_process(
-    COMMAND "${Python_EXECUTABLE}" -c "import Cython; print(Cython.__version__)"
-    RESULT_VARIABLE Cython_VERSION_CHECK_RESULT
-    OUTPUT_VARIABLE Cython_VERSION
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+macro(get_cython_version)
+  execute_process(
+      COMMAND "${Python_EXECUTABLE}" -c "import Cython; print(Cython.__version__)"
+      RESULT_VARIABLE Cython_VERSION_CHECK_RESULT
+      OUTPUT_VARIABLE Cython_VERSION
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+endmacro()
+
+get_cython_version()
 
 if (Cython_FIND_REQUIRED)
   set(Cython_FIND_MODE FATAL_ERROR)
@@ -28,9 +32,8 @@ else()
   set(Cython_FIND_MODE STATUS)
 endif()
 
-set(Cython_FOUND FALSE)
-
 if (Cython_VERSION_CHECK_RESULT EQUAL 0)
+    set(Cython_FOUND TRUE)
     message(STATUS "Found Cython version: ${Cython_VERSION}")
     if (DEFINED Cython_FIND_VERSION)
         if(Cython_FIND_VERSION_EXACT)
@@ -42,7 +45,13 @@ if (Cython_VERSION_CHECK_RESULT EQUAL 0)
                 execute_process(
                   COMMAND
                   ${Python_EXECUTABLE} -m pip install Cython==${Cython_FIND_VERSION}
+                  RESULT_VARIABLE CYTHON_INSTALL_CMD_EXIT_CODE
                 )
+                if(CYTHON_INSTALL_CMD_EXIT_CODE)
+                  message(FATAL_ERROR "Could not install Cython==${Cython_FIND_VERSION}")
+                else()
+                  get_cython_version()
+                endif()
               else()
                 message(${Cython_FIND_MODE}
                   "Cython version == ${Cython_FIND_VERSION} is required, "
@@ -55,7 +64,13 @@ if (Cython_VERSION_CHECK_RESULT EQUAL 0)
                 message(STATUS "Upgrading module Cython in Python venv")
                 execute_process(COMMAND
                   ${Python_EXECUTABLE} -m pip install Cython -U
+                  RESULT_VARIABLE CYTHON_INSTALL_CMD_EXIT_CODE
                 )
+                if(CYTHON_INSTALL_CMD_EXIT_CODE)
+                  message(FATAL_ERROR "Could not install Cython >= ${Cython_FIND_VERSION}")
+                else()
+                  get_cython_version()
+                endif()
               else()
                 message(${Cython_FIND_MODE}
                   "Cython version >= ${Cython_FIND_VERSION} is required, "
@@ -65,9 +80,16 @@ if (Cython_VERSION_CHECK_RESULT EQUAL 0)
         endif()
     endif()
 else()
+  set(Cython_FOUND FALSE)
   if(ENABLE_AUTO_DOWNLOAD)
     message(STATUS "Installing module Cython in Python venv")
-    execute_process(COMMAND ${Python_EXECUTABLE} -m pip install Cython)
+    execute_process(
+      COMMAND ${Python_EXECUTABLE} -m pip install Cython
+      RESULT_VARIABLE CYTHON_INSTALL_CMD_EXIT_CODE)
+    if(NOT CYTHON_INSTALL_CMD_EXIT_CODE)
+      set(Cython_FOUND TRUE)
+      get_cython_version()
+    endif()
   else()
     message(${Cython_FIND_MODE}
         "Could not find module Cython for Python "
@@ -77,5 +99,3 @@ else()
         "Note: You need to have pip installed for this Python version.")
   endif()
 endif()
-
-set(Cython_FOUND TRUE)
