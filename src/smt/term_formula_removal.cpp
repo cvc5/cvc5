@@ -356,6 +356,11 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // as a special case within SkolemManager::mkPurifySkolem.
         skolem = sm->mkPurifySkolem(node);
         d_skolem_cache.insert(node, skolem);
+        if (nodeType.isBoolean() && inTerm)
+        {
+          // must treat as a Boolean term skolem
+          d_env.registerBooleanTermSkolem(skolem);
+        }
 
         Assert(node[0].getNumChildren() == 1);
 
@@ -388,9 +393,14 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
-  else if (nodeType.isBoolean() && inTerm
-           && sm->getId(node) != SkolemId::PURIFY)
+  else if (nodeType.isBoolean() && inTerm && !d_env.isBooleanTermSkolem(node))
   {
+    // if a purification skolem already, just use itself
+    if (sm->getId(node) == SkolemId::PURIFY)
+    {
+      d_env.registerBooleanTermSkolem(node);
+      return Node::null();
+    }
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
     if (skolem.isNull())
@@ -403,13 +413,15 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       // properly in theory combination.
       skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
+      d_env.registerBooleanTermSkolem(skolem);
 
       // The new assertion
       newAssertion = skolem.eqNode(node);
 
-      // Boolean term removal is trivial to justify, hence we don't set a proof
-      // generator here. It is trivial to justify since it is an instance of
-      // purification, which is justified by conversion to witness forms.
+      // Boolean term removal is trivial to justify, hence we don't set a
+      // proof generator here. It is trivial to justify since it is an
+      // instance of purification, which is justified by conversion to witness
+      // forms.
     }
   }
 

@@ -30,8 +30,10 @@
 #include <vector>
 
 // internal includes
+#include "theory/ff/util.h"
 #include "util/finite_field_value.h"
 #include "util/integer.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -75,6 +77,13 @@ std::string extractStr(const T& t)
   o << t;
   return o.str();
 }
+
+/**
+ * Compute a GB, with timeout given by `rm`.
+ * Throws an FfTimeoutException if the timeout is exceeded.
+ */
+const std::vector<Poly>& GBasisTimeout(const CoCoA::ideal& ideal,
+                                       const ResourceManager* rm);
 
 }  // namespace ff
 }  // namespace theory
