@@ -1824,6 +1824,7 @@ TEST_F(TestApiBlackSolver, simplify)
 TEST_F(TestApiBlackSolver, simplifyApplySubs)
 {
   d_solver->setOption("incremental", "true");
+  Sort intSort = d_tm.getIntegerSort();
   Term x = d_tm.mkConst(intSort, "x");
   Term zero = d_tm.mkInteger(0);
   Term eq = d_tm.mkTerm(Kind::EQUAL, {x, zero});

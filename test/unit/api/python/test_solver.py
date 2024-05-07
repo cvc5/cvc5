@@ -1160,15 +1160,16 @@ def test_simplify(tm, solver):
     slv.simplify(x)
 
 def test_simplify_apply_subs(tm, solver):
-  solver.setOption("incremental", "true")
-  x = tm.mkConst(intSort, "x")
-  zero = tm.mkInteger(0)
-  eq = tm.mkTerm(Kind.EQUAL, x, zero)
-  solver.assertFormula(eq)
-  solver.checkSat()
+    solver.setOption("incremental", "true")
+    intSort = d_tm.getIntegerSort()
+    x = tm.mkConst(intSort, "x")
+    zero = tm.mkInteger(0)
+    eq = tm.mkTerm(Kind.EQUAL, x, zero)
+    solver.assertFormula(eq)
+    solver.checkSat()
 
-  assert solver.simplify(x, False) == x
-  assert solver.simplify(x, True) == zero
+    assert solver.simplify(x, False) == x
+    assert solver.simplify(x, True) == zero
 
 def test_assert_formula(tm, solver):
     solver.assertFormula(tm.mkTrue())

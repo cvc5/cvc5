@@ -1598,6 +1598,7 @@ class SolverTest
   void simplifysimplifyApplySubs() throws CVC5ApiException
   {
     d_solver.setOption("incremental", "true");
+    Sort intSort = d_tm.getIntegerSort();
     Term x = d_solver.mkConst(intSort, "x");
     Term zero = d_solver.mkInteger(0);
     Term eq = d_solver.mkTerm(Kind::EQUAL, x, zero);
