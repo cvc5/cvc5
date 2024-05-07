@@ -951,6 +951,7 @@ void IntBlaster::collectQuantificationData(Node n) {
            [this](TNode nn) { return d_quantifiedVariables.find(nn) != d_quantifiedVariables.end() && d_quantApplies.find(nn) != d_quantApplies.end(); }))
   {
     Trace("int-blaster-debug") << "collectQuantificationData for: " << n << std::endl;
+    // populating d_quantifiedVariables
     if (d_quantifiedVariables.find(n) == d_quantifiedVariables.end()) {
       d_quantifiedVariables[n] = std::unordered_set<Node>();
       std::unordered_set<Node> qfvars;
@@ -979,6 +980,7 @@ void IntBlaster::collectQuantificationData(Node n) {
       d_quantifiedVariables[n] = qfvars;
     }
 
+    // populating d_quantApplies
     if (d_quantApplies.find(n) == d_quantApplies.end()) {
       std::unordered_set<Node> childrenApplies;
       for (Node child : n) {
