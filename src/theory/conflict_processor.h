@@ -73,7 +73,22 @@ class ConflictProcessor : protected EnvObj
   };
   Statistics d_stats;
   /**
-   * Decompose lemma.
+   * Decompose lemma into a substitution and a remainder. For example, the
+   * lemma (or (not (= 0 x)) (= (* x y) 0)) is decomposed as follows:
+   * s = {x->0}
+   * varToExp = {x -> (= 0 x)}
+   * tgtLits = {(= (* x y) 0)}
+   *
+   * More generally, note that the lem is equivalent to
+   *   (=> (and (= x_1 c_1) .... (= x_n c_n)) (and tgtLits[1] ... tgtLits[n]))
+   * where s = { x_1 -> c_1, ..., x_n -> c_n }.
+   *
+   * @param lem The lemma.
+   * @param s The substitution that can be derived from lem.
+   * @param varToExp Maps variables in the domain of s to the literal that
+   * explains why they are equal to the range.
+   * @param tgtLits The literals that were not accounted for in the
+   * substitution.
    */
   void decomposeLemma(const Node& lem,
                       SubstitutionMap& s,
