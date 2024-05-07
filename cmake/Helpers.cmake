@@ -252,7 +252,11 @@ function(check_python_module module)
       execute_process(
         COMMAND
         ${Python_EXECUTABLE} -m pip install ${module_name}
+        RESULT_VARIABLE PYTHON_MODULE_INSTALL_CMD_EXIT_CODE
       )
+      if(PYTHON_MODULE_INSTALL_CMD_EXIT_CODE)
+        message(FATAL_ERROR "Could not install ${module_name} in venv")
+      endif()
     else()
       message(FATAL_ERROR
         "Could not find module ${module_name} for Python "

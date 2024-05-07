@@ -48,7 +48,8 @@ if (Cython_VERSION_CHECK_RESULT EQUAL 0)
                   RESULT_VARIABLE CYTHON_INSTALL_CMD_EXIT_CODE
                 )
                 if(CYTHON_INSTALL_CMD_EXIT_CODE)
-                  message(FATAL_ERROR "Could not install Cython==${Cython_FIND_VERSION}")
+                  message(FATAL_ERROR
+                    "Could not install Cython==${Cython_FIND_VERSION} in venv")
                 else()
                   get_cython_version()
                 endif()
@@ -67,7 +68,8 @@ if (Cython_VERSION_CHECK_RESULT EQUAL 0)
                   RESULT_VARIABLE CYTHON_INSTALL_CMD_EXIT_CODE
                 )
                 if(CYTHON_INSTALL_CMD_EXIT_CODE)
-                  message(FATAL_ERROR "Could not install Cython >= ${Cython_FIND_VERSION}")
+                  message(FATAL_ERROR
+                    "Could not install Cython >= ${Cython_FIND_VERSION} in venv")
                 else()
                   get_cython_version()
                 endif()
@@ -86,7 +88,9 @@ else()
     execute_process(
       COMMAND ${Python_EXECUTABLE} -m pip install Cython
       RESULT_VARIABLE CYTHON_INSTALL_CMD_EXIT_CODE)
-    if(NOT CYTHON_INSTALL_CMD_EXIT_CODE)
+    if(CYTHON_INSTALL_CMD_EXIT_CODE)
+      message(FATAL_ERROR "Could not install Cython in venv")
+    else()
       set(Cython_FOUND TRUE)
       get_cython_version()
     endif()
