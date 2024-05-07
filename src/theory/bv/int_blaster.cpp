@@ -953,15 +953,20 @@ void IntBlaster::collectQuantificationData(Node n) {
     Trace("int-blaster-debug") << "collectQuantificationData for: " << n << std::endl;
     // populating d_quantifiedVariables
     if (d_quantifiedVariables.find(n) == d_quantifiedVariables.end()) {
-      d_quantifiedVariables[n] = std::unordered_set<Node>();
+      // the set to assign to n
       std::unordered_set<Node> qfvars;
+      // for bound variables, simply add them
       if (n.getNumChildren() == 0) {
         if (n.getKind() == Kind::BOUND_VARIABLE) {
           qfvars.insert(n);
         }
       }
+      // for compound terms, add variables
+      // according to their children.
       if (n.getNumChildren() > 0) {
         for (Node child : n) {
+          // make sure d_quantifiedVariabls
+          // is populated for child
           if (d_quantifiedVariables.find(child) == d_quantifiedVariables.end()) {
             collectQuantificationData(child);
           }
