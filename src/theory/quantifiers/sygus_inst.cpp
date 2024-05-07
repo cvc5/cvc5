@@ -266,6 +266,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 
   if (quant_e != QEFFORT_STANDARD) return;
 
+  beginCallDebug();
   FirstOrderModel* model = d_treg.getModel();
   Instantiate* inst = d_qim.getInstantiate();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
@@ -336,6 +337,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       sendEvalUnfoldLemmas(eval_unfold_lemmas);
     }
   }
+  endCallDebug();
 }
 
 bool SygusInst::sendEvalUnfoldLemmas(const std::vector<Node>& lemmas)
@@ -485,6 +487,8 @@ void SygusInst::ppNotifyAssertions(const std::vector<Node>& assertions)
     d_notified_assertions.insert(a);
   }
 }
+
+std::string SygusInst::identify() const { return "sygus-inst"; }
 
 /*****************************************************************************/
 /* private methods                                                           */

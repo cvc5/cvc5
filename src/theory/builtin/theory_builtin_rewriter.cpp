@@ -31,18 +31,34 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
+TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
+    : TheoryRewriter(nm)
+{
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+}
+
+Node TheoryBuiltinRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::DISTINCT_ELIM:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        return blastDistinct(n);
+      }
+      break;
+    default: break;
+  }
+  return Node::null();
+}
+
 Node TheoryBuiltinRewriter::blastDistinct(TNode in)
 {
   Assert(in.getKind() == Kind::DISTINCT);
 
   NodeManager* nm = nodeManager();
 
-  if (in[0].getType().isCardinalityLessThan(in.getNumChildren()))
-  {
-    // Cardinality of type does not allow to find distinct values for all
-    // children of this node.
-    return nm->mkConst<bool>(false);
-  }
 
   if (in.getNumChildren() == 2)
   {
@@ -62,11 +78,6 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
     }
   }
   return nm->mkNode(Kind::AND, diseqs);
-}
-
-TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
-    : TheoryRewriter(nm)
-{
 }
 
 RewriteResponse TheoryBuiltinRewriter::preRewrite(TNode node)
@@ -93,6 +104,12 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
       return RewriteResponse(REWRITE_DONE, rnode);
     }
     case Kind::DISTINCT:
+      if (node[0].getType().isCardinalityLessThan(node.getNumChildren()))
+      {
+        // Cardinality of type does not allow to find distinct values for all
+        // children of this node.
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
+      }
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
     case Kind::APPLY_INDEXED_SYMBOLIC:
     {

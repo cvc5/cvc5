@@ -38,11 +38,7 @@ namespace builtin {
 BuiltinProofRuleChecker::BuiltinProofRuleChecker(NodeManager* nm,
                                                  Rewriter* r,
                                                  Env& env)
-    : ProofRuleChecker(nm),
-      d_rewriter(r),
-      d_env(env),
-      d_rdb(nullptr),
-      d_trpc(nm)
+    : ProofRuleChecker(nm), d_rewriter(r), d_env(env), d_rdb(nullptr)
 {
 }
 
@@ -54,7 +50,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::EVALUATE, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
   pc->registerChecker(ProofRule::ANNOTATION, this);
-  pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  pc->registerChecker(ProofRule::ITE_EQ, this);
   pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
   pc->registerChecker(ProofRule::THEORY_REWRITE, this);
@@ -397,7 +393,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0];
   }
-  else if (id == ProofRule::REMOVE_TERM_FORMULA_AXIOM)
+  else if (id == ProofRule::ITE_EQ)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -481,7 +477,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    Node rhs = d_trpc.checkRewrite(di, args[1]);
+    Node rhs = d_rewriter->rewriteViaRule(di, args[1]);
     if (rhs.isNull())
     {
       return Node::null();

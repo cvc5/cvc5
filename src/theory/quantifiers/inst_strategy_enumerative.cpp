@@ -92,13 +92,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   Assert(!d_qstate.isInConflict());
-  double clSet = 0;
-  if (TraceIsOn("enum-engine"))
-  {
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("enum-engine") << "---Full Saturation Round, effort = " << e << "---"
-                         << std::endl;
-  }
+  beginCallDebug();
   unsigned rstart = options().quantifiers.enumInstRd ? 0 : 1;
   unsigned rend = fullEffort ? 1 : rstart;
   unsigned addedLemmas = 0;
@@ -160,18 +154,14 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       }
     }
   }
-  if (TraceIsOn("enum-engine"))
-  {
-    Trace("enum-engine") << "Added lemmas = " << addedLemmas << std::endl;
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("enum-engine") << "Finished full saturation engine, time = "
-                         << (clSet2 - clSet) << std::endl;
-  }
+  endCallDebug();
   if (d_enumInstLimit > 0)
   {
     d_enumInstLimit--;
   }
 }
+
+std::string InstStrategyEnum::identify() const { return "enum-inst"; }
 
 bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
 {
