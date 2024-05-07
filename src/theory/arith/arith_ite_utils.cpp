@@ -486,9 +486,12 @@ bool ArithIteUtils::solveBinOr(TNode binor){
 
         Node cnd = findIteCnd(binor[0], binor[1]);
 
-        Node sk = sm->mkDummySkolem("deor", nm->booleanType());
+        Node eq = sel.eqNode(otherL);
+        Node sk = sm->mkPurifySkolem(eq);
         Node ite = sk.iteNode(otherL, otherR);
         d_skolems.insert(sk, cnd);
+        // Given (or (= x c) (= x d)), we replace x by (ite @purifyX c d),
+        // where @purifyX is the purification skolem for (= x c).
         addSubstitution(sel, ite);
         return true;
       }
