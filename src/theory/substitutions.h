@@ -106,8 +106,8 @@ class SubstitutionMap
   /**
    * @param context The context this substitution depends on.
    * @param compress If true, we may update the range of substitutions based
-   * on further substitutions. For example, if we add { y -> f(x) } and later
-   * add { x -> a }, then we may update the entry for y to { y -> f(a) }.
+   * on further substitutions. For example, if we add {y -> f(x)} and later
+   * add {x -> a}, then we may update the substitution to {y -> f(a), x -> a}.
    */
   SubstitutionMap(context::Context* context = nullptr, bool compress = true);
 
