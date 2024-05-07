@@ -2945,7 +2945,7 @@ cdef class Solver:
                               variables.
             :return: The simplified term.
         """
-        return _term(self.tm, self.csolver.simplify(t.cterm), <bint> applySubs)
+        return _term(self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
 
     def assertFormula(self, Term term):
         """
