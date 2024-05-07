@@ -121,15 +121,14 @@ versions; more recent versions should be compatible.
 - `GNU Make <https://www.gnu.org/software/make/>`_
   or `Ninja <https://ninja-build.org/>`_
 - `Python >= 3.6 <https://www.python.org>`_
-  + module `tomli <https://pypi.org/project/tomli/>`_
+  + module `tomli <https://pypi.org/project/tomli/>`_ (Python < 3.11)
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `CaDiCaL >= 1.6.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
-For Python, to install these dependencies automatically, please use:
-
-  - `pip install -r contrib/requirements_build.txt`
+The Python modules will be installed automatically in
+a virtual environment if they are missing.
 
 CaDiCaL (SAT solver)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -272,9 +271,8 @@ Dependencies for Language Bindings
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
   - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
 
-For Python, to install these depedencies automatically, please use:
-
-  - `pip install -r contrib/requirements_python_dev.txt`
+The Python modules will be installed automatically in
+a virtual environment if they are missing.
 
 If configured with ``--pythonic-path=PATH``, the build system will expect the Pythonic API's source to be at ``PATH``.
 Otherwise, if configured with ``--auto-download``, the build system will download it.
