@@ -40,15 +40,9 @@ using namespace cvc5::internal::theory::bv;
 
 namespace cvc5::internal {
 
-namespace {
-
-
-template<typename T>
-
 // A helper function to compute 2^b as a Rational
 Rational intpow2(uint32_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
-}  // namespace
 
 IntBlaster::IntBlaster(Env& env,
                        options::SolveBVAsIntMode mode,
@@ -1064,9 +1058,6 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
       std::unordered_set<Node> varsNode = d_quantifiedVariables[quantifiedNode];
       std::unordered_set<Node> varsMatrix = d_quantifiedVariables[originalMatrix];
 
-      printUnorderedSet("varsApply", varsApply);
-      printUnorderedSet("varsNode", varsNode);
-      printUnorderedSet("varsMatrix", varsMatrix);
 
       if (! std::includes(varsNode.begin(), varsNode.end(), varsApply.begin(), varsApply.end()) && std::includes(varsMatrix.begin(), varsMatrix.end(), varsApply.begin(), varsApply.end())) {
 
