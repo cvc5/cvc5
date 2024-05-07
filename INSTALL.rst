@@ -127,7 +127,7 @@ versions; more recent versions should be compatible.
 - `CaDiCaL >= 1.6.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
-The Python modules will be installed automatically in
+If ``--auto-download`` is given, the Python modules will be installed automatically in
 a virtual environment if they are missing.
 
 CaDiCaL (SAT solver)
@@ -271,7 +271,7 @@ Dependencies for Language Bindings
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
   - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
 
-The Python modules will be installed automatically in
+If ``--auto-download`` is given, the Python modules will be installed automatically in
 a virtual environment if they are missing.
 
 If configured with ``--pythonic-path=PATH``, the build system will expect the Pythonic API's source to be at ``PATH``.

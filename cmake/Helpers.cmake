@@ -247,11 +247,20 @@ function(check_python_module module)
   endif()
 
   if(RET_MODULE_TEST)
-    message(STATUS "Installing module ${module} in Python venv")
-    execute_process(
-      COMMAND
-      ${Python_EXECUTABLE} -m pip install ${module}
-    )
+    if(ENABLE_AUTO_DOWNLOAD)
+      message(STATUS "Installing module ${module_name} in Python venv")
+      execute_process(
+        COMMAND
+        ${Python_EXECUTABLE} -m pip install ${module_name}
+      )
+    else()
+      message(FATAL_ERROR
+        "Could not find module ${module_name} for Python "
+        "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
+        "Make sure to install ${module_name} for this Python version "
+        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "Note: You need to have pip installed for this Python version.")
+    endif()
   endif()
 endfunction()
 
