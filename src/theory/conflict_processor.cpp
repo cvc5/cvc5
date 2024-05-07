@@ -27,8 +27,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-ConflictProcessor::ConflictProcessor(Env& env, TheoryEngine* te)
-    : EnvObj(env), d_engine(te), d_stats(statisticsRegistry())
+ConflictProcessor::ConflictProcessor(Env& env)
+    : EnvObj(env), d_stats(statisticsRegistry())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -154,7 +154,8 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
         Node v = ss.first;
         s.eraseSubstitution(v);
         Trace("confp") << "--- try substitution without " << v << std::endl;
-        if (checkSubstitution(s, tgtLit))
+        Node ev = evaluateSubstitution(s, tgtLit);
+        if (ev==d_true)
         {
           toErase.push_back(v);
         }
@@ -323,16 +324,16 @@ Node ConflictProcessor::evaluateSubstitutionLit(const SubstitutionMap& s,
 }
 
 Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
-                                             const Node& tgtLit) const
+                                             const Node& tgt) const
 {
   bool polarity = true;
-  Node tgtAtom = tgtLit;
+  Node tgtAtom = tgt;
   if (tgtAtom.getKind() == Kind::NOT)
   {
     tgtAtom = tgtAtom[0];
     polarity = !polarity;
   }
-  // optimize for OR, since we may have generalized a target
+  // Optimize for OR and AND.
   Kind k = tgtAtom.getKind();
   if (k == Kind::OR || k == Kind::AND)
   {
@@ -367,13 +368,6 @@ Node ConflictProcessor::evaluateSubstitution(const SubstitutionMap& s,
                          : ret.negate();
   }
   return ret;
-}
-
-bool ConflictProcessor::checkSubstitution(const SubstitutionMap& s,
-                                          const Node& tgtLit) const
-{
-  Node ev = evaluateSubstitution(s, tgtLit);
-  return ev == d_true;
 }
 
 ConflictProcessor::Statistics::Statistics(StatisticsRegistry& sr)

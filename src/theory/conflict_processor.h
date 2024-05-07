@@ -40,14 +40,21 @@ namespace theory {
 class ConflictProcessor : protected EnvObj
 {
  public:
-  ConflictProcessor(Env& env, TheoryEngine* te);
+  ConflictProcessor(Env& env);
   ~ConflictProcessor() {}
 
+  /**
+   * Attempt to rewrite a lemma to a stronger one. For example, the lemma
+   * (=> (= x a) (or B C)) may be replaced by (=> (= x a) B) if B[a/x] rewrites
+   * to true.
+   * 
+   * @param lem The lemma.
+   * @return A trust node for a lemma that implies lem.
+   */
   TrustNode processLemma(const TrustNode& lem);
 
  private:
-  /** The parent engine */
-  TheoryEngine* d_engine;
+  /** Common constants */
   Node d_true;
   Node d_false;
   Node d_nullNode;
@@ -65,14 +72,44 @@ class ConflictProcessor : protected EnvObj
     IntStat d_minLemmas;
   };
   Statistics d_stats;
+  /**
+   * Decompose lemma.
+   */
   void decomposeLemma(const Node& lem,
                       SubstitutionMap& s,
                       std::map<Node, Node>& varToExp,
                       std::vector<Node>& tgtLits) const;
+  /**
+   * Evaluate substitution.
+   * @param s The current substitution.
+   * @param tgt The target formula.
+   * @return The result of evaluating tgt under the substitution s.
+   */
+  Node evaluateSubstitution(const SubstitutionMap& s, const Node& tgt) const;
+  /**
+   * Evaluate substitution for a literal.
+   * @param s The current substitution.
+   * @param tgtLit The target literal.
+   * @return The result of evaluating tgtLit under the substitution s.
+   */
   Node evaluateSubstitutionLit(const SubstitutionMap& s,
                                const Node& tgtLit) const;
-  Node evaluateSubstitution(const SubstitutionMap& s, const Node& tgtLit) const;
-  bool checkSubstitution(const SubstitutionMap& s, const Node& tgtLit) const;
+  /**
+   * Is assignment equality? Returns true if n is an equality from which
+   * a substitution can be inferred and added to s. It does not consider
+   * substitutions that induce cycles or are for variables that already have
+   * substitutions. For example, given current substitution s = {y->z},
+   *    (= x y) returns true with x -> y.
+   *    (= x (f x)) return false.
+   *    (= y c) returns false.
+   *    (= z (f y)) returns false.
+   * @param s The current substitution.
+   * @param n The literal in question.
+   * @param v If this method returns true, this updates v to the variable of
+   * the new substitution.
+   * @param c If this method returns true, this updates c to the substitution
+   * for v.
+   */
   bool isAssignEq(const SubstitutionMap& s,
                   const Node& n,
                   Node& v,
