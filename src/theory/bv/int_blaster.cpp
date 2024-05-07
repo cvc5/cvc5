@@ -986,26 +986,11 @@ void IntBlaster::collectQuantificationData(Node n) {
 
     // populating d_quantApplies
     if (d_quantApplies.find(n) == d_quantApplies.end()) {
-      std::unordered_set<Node> childrenApplies;
-      for (Node child : n) {
-        Assert(d_quantApplies.find(child) != d_quantApplies.end());
-        std::unordered_set<Node> appliesOfChild = d_quantApplies[child];
-        childrenApplies.insert(appliesOfChild.begin(), appliesOfChild.end());
-      }
-      d_quantApplies[n] = childrenApplies;
 
       std::unordered_set<Node> applies;
-
       expr::getKindSubterms(n, Kind::APPLY_UF, true, applies);
-      Assert(d_quantifiedVariables.find(n) != d_quantifiedVariables.end());
-      std::unordered_set<Node> qfvars2;
-      qfvars2 = d_quantifiedVariables[n];
-      Assert(d_quantApplies.find(n) != d_quantApplies.end());
-      std::unordered_set<Node> new_applies;
-      new_applies.insert(applies.begin(), applies.end());
+      d_quantApplies[n] = applies;
     }
-
-    std::unordered_set<Node> temp2 = d_quantApplies[n];
   }
 }
 
