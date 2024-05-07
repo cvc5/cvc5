@@ -99,6 +99,15 @@ Examples
   (check-sat)
   ; unsat
 
+
+Experimental Extensions
+^^^^^^^^^^^^^^^^^^^^^^^
+
+These features of the theory are experimental; they may be removed in the
+future:
+
+* ``ff.bitsum``: an n-ary operator for bitsums: ``(ff.bitsum x0 x1 x2)`` is equivalent to :math:`x_0 + 2x_1 + 4x_2`.
+
 Solvers
 ^^^^^^^
 
