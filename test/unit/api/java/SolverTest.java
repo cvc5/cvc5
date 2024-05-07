@@ -1601,7 +1601,7 @@ class SolverTest
     Sort intSort = d_tm.getIntegerSort();
     Term x = d_solver.mkConst(intSort, "x");
     Term zero = d_solver.mkInteger(0);
-    Term eq = d_solver.mkTerm(Kind::EQUAL, x, zero);
+    Term eq = d_solver.mkTerm(EQUAL, x, zero);
     d_solver.assertFormula(eq);
     assertDoesNotThrow(() -> d_solver.checkSat());
 
