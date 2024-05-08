@@ -2562,6 +2562,7 @@ TEST_F(TestApiBlackSolver, pluginListen)
 {
   PluginListen pl(d_tm);
   d_solver->addPlugin(pl);
+  Sort stringSort = d_tm.getStringSort();
   Term x = d_tm.mkConst(stringSort, "x");
   Term y = d_tm.mkConst(stringSort, "y");
   Term ctn = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
