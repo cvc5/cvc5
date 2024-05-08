@@ -2565,11 +2565,13 @@ TEST_F(TestApiBlackSolver, pluginListen)
   Sort stringSort = d_tm.getStringSort();
   Term x = d_tm.mkConst(stringSort, "x");
   Term y = d_tm.mkConst(stringSort, "y");
-  Term ctn = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
-  d_solver->assertFormula(ctn);
-  Term eq = d_tm.mkTerm(Kind::EQUAL, {x, y});
-  Term deq = d_tm.mkTerm(Kind::NOT, {eq});
-  d_solver->assertFormula(deq);
+  Term ctn1 = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
+  Term ctn2 = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
+  d_solver->assertFormula(d_tm.mkTerm(Kind::OR, ctn1, ctn2));
+  Term lx = d_tm.mkTerm(Kind::STRING_LENGTH, {x});
+  Term ly = d_tm.mkTerm(Kind::STRING_LENGTH, {y});
+  Term lc = d_tm.mkTerm(Kind::GT, {lx, ly});
+  d_solver->assertFormula(lc);
   ASSERT_TRUE(d_solver->checkSat().isSat());
   // above input formulas should induce a theory lemma and SAT clause learning
   ASSERT_TRUE(pl.hasSeenTheoryLemma());
