@@ -57,9 +57,11 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   Trace("confp") << "Decomposed " << lemma << std::endl;
   Trace("confp") << "- Substitution: " << s.toString() << std::endl;
   Trace("confp") << "- Target: " << tgtLits << std::endl;
-  // check if the substitution implies one of the tgtLit, if not, we are done
+  // Check if the substitution implies one of the tgtLit. If so, store in
+  // tgtLit.
   Node tgtLit;
   std::vector<Node> tgtLitsNc;
+  // Maps evaluated literals to their source.
   std::map<Node, Node> evMap;
   std::map<Node, Node>::iterator itm;
   for (const Node& tlit : tgtLits)
@@ -76,11 +78,16 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       Trace("confp-debug") << "...filter implied " << tlit << std::endl;
       continue;
     }
+    // If we evaluated the literal.
     if (!ev.isNull())
     {
       itm = evMap.find(ev);
       if (itm != evMap.end())
       {
+        // The literal evaluated to the same thing as something else.
+        // For example, for lemma (=> (= x 0) (or (= y x) (= y 0)))
+        // (= y x) and (= y 0) both evaluate to (= y 0), hence one of these
+        // literals can be droped.
         Trace("confp-debug") << "...filter duplicate " << tlit << std::endl;
         continue;
       }
@@ -90,6 +97,12 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       if (itm != evMap.end())
       {
         tgtLitsNc.clear();
+        // The literal evaluated to the negation of something else.
+        // For example, for lemma
+        // (=> (= x 0) (or (not (= y x)) (= y 0) (= z 0)))
+        // (not (= y x)) and (= y 0) evaluate to the negation of one another,
+        // hence, only these two literals are required to be in the lemma and
+        // all others (e.g. (= z 0)) can be dropped.
         Trace("confp-debug") << "...contradiction " << itm->second << " and "
                              << tlit << std::endl;
         tgtLitsNc.push_back(itm->second);
@@ -102,10 +115,12 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   }
   bool minimized = false;
   std::vector<Node> auxExplain;
+  // If we did not find a target literal.
   if (tgtLit.isNull())
   {
     Trace("confp-debug") << "No target for " << lemma << std::endl;
-    // remove redundant
+    // If we filtered any literals (either by redundancy checking or by
+    // inferring a conflict).
     if (tgtLitsNc.size() < tgtLits.size())
     {
       minimized = true;
@@ -120,7 +135,6 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
     }
     // just take the OR as target
     tgtLit = NodeManager::currentNM()->mkOr(tgtLitsNc);
-    // now try more aggressive substitutions?
   }
   else
   {
@@ -134,12 +148,14 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       Trace("confp") << "Target suffices " << tgtLit
                      << " for more than one disjunct" << std::endl;
     }
-    // NOTE: this substitution only applies when we found a literal, so it is
-    // not done above minimize the substitution here
+    // The substitution s only applies when we found a target literal, so we
+    // only minimize in the case where tgtLit is not null.
     std::unordered_map<Node, Node> smap = s.getSubstitutions();
     if (smap.size() > 1)
     {
       std::vector<Node> toErase;
+      // For each substitution, see if we can drop it while maintaining the
+      // invariant that the target literal still evaluates to true.
       for (std::pair<const Node, Node>& ss : smap)
       {
         // try eliminating the substitution
@@ -168,9 +184,12 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
                            << smap.size() << ")" << std::endl;
           }
         }
+        // If we erased any literals from the substitution, we have minimized
+        // the lemma.
         minimized = true;
         for (const Node& v : toErase)
         {
+          // Erase the literal for the explanation of the substitution.
           varToExp.erase(v);
           Trace("confp") << "Substitution is unnecessary for " << v
                          << std::endl;
@@ -179,7 +198,8 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
     }
   }
 
-  // bool isConflict = lem.getKind() == TrustNodeKind::CONFLICT;
+  // If we minimized at all, we replace the the lemma with a stronger
+  // version.
   if (minimized)
   {
     ++d_stats.d_minLemmas;
@@ -210,7 +230,6 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
     }
     Node genLem = nm->mkOr(clause);
     Trace("confp") << "...processed lemma is " << genLem << std::endl;
-    // AlwaysAssert(false) << genLem << " for " << lem << std::endl;
     return TrustNode::mkTrustLemma(genLem);
   }
 
