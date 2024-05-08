@@ -2524,7 +2524,7 @@ TEST_F(TestApiBlackSolver, pluginUnsat)
 {
   PluginUnsat pu(d_tm);
   d_solver->addPlugin(pu);
-  ASSERT_TRUE (pu.getName()=="PluginUnsat");
+  ASSERT_TRUE(pu.getName() == "PluginUnsat");
   // should be unsat since the plugin above asserts "false" as a lemma
   ASSERT_TRUE(d_solver->checkSat().isUnsat());
 }
@@ -2532,12 +2532,15 @@ TEST_F(TestApiBlackSolver, pluginUnsat)
 class PluginListen : public Plugin
 {
  public:
-  PluginListen(TermManager& tm) : Plugin(tm), d_tm(tm), d_hasSeenTheoryLemma(false), d_hasSeenSatClause(false) {}
-  virtual ~PluginListen() {}
-  void notifySatClause(const Term& cl) override
+  PluginListen(TermManager& tm)
+      : Plugin(tm),
+        d_tm(tm),
+        d_hasSeenTheoryLemma(false),
+        d_hasSeenSatClause(false)
   {
-    d_hasSeenSatClause = true;
   }
+  virtual ~PluginListen() {}
+  void notifySatClause(const Term& cl) override { d_hasSeenSatClause = true; }
   bool hasSeenSatClause() const { return d_hasSeenSatClause; }
   void notifyTheoryLemma(const Term& lem) override
   {
@@ -2545,6 +2548,7 @@ class PluginListen : public Plugin
   }
   bool hasSeenTheoryLemma() const { return d_hasSeenTheoryLemma; }
   std::string getName() override { return "PluginListen"; }
+
  private:
   /** Reference to the term manager */
   TermManager& d_tm;
@@ -2560,7 +2564,7 @@ TEST_F(TestApiBlackSolver, pluginListen)
   d_solver->addPlugin(pl);
   Term x = d_tm.mkConst(stringSort, "x");
   Term y = d_tm.mkConst(stringSort, "y");
-  Term ctn = d_tm.mkTerm(Kind::STRING_CONTAINS, {x,y});
+  Term ctn = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
   d_solver->assertFormula(ctn);
   Term eq = d_tm.mkTerm(Kind::EQUAL, {x, y});
   Term deq = d_tm.mkTerm(Kind::NOT, {eq});
