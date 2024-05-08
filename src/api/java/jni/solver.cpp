@@ -76,7 +76,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getTermManager(JNIEnv* env,
  * Method:    simplify
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify_JJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify__JJ(
     JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -92,7 +92,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify_JJ(
  * Method:    simplify
  * Signature: (JJZ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify_JJZ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify__JJZ(
     JNIEnv* env, jobject, jlong pointer, jlong termPointer, jboolean applySubs)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
