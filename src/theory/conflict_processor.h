@@ -80,7 +80,7 @@ class ConflictProcessor : protected EnvObj
    * tgtLits = {(= (* x y) 0)}
    *
    * More generally, note that the lem is equivalent to
-   *   (=> (and (= x_1 c_1) .... (= x_n c_n)) (and tgtLits[1] ... tgtLits[n]))
+   *   (=> (and (= x_1 c_1) .... (= x_n c_n)) (or tgtLits[1] ... tgtLits[n]))
    * where s = { x_1 -> c_1, ..., x_n -> c_n }.
    *
    * @param lem The lemma.
