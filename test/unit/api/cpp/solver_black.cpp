@@ -2528,6 +2528,48 @@ TEST_F(TestApiBlackSolver, pluginUnsat)
   ASSERT_TRUE(d_solver->checkSat().isUnsat());
 }
 
+class PluginListen : public Plugin
+{
+ public:
+  PluginListen(TermManager& tm) : Plugin(tm), d_tm(tm), d_hasSeenTheoryLemma(false), d_hasSeenSatClause(false) {}
+  virtual ~PluginListen() {}
+  void notifySatClause(const Term& cl) override
+  {
+    d_hasSeenSatClause = true;
+  }
+  bool hasSeenSatClause() const { return d_hasSeenSatClause; }
+  void notifyTheoryLemma(const Term& lem) override
+  {
+    d_hasSeenTheoryLemma = true;
+  }
+  bool hasSeenTheoryLemma() const { return d_hasSeenTheoryLemma; }
+  std::string getName() override { return "PluginListen"; }
+ private:
+  /** Reference to the term manager */
+  TermManager& d_tm;
+  /** have we seen a theory lemma? */
+  bool d_hasSeenTheoryLemma;
+  /** have we seen a SAT clause? */
+  bool d_hasSeenSatClause;
+};
+
+TEST_F(TestApiBlackSolver, pluginListen)
+{
+  PluginListen pl(d_tm);
+  d_solver->addPlugin(pl);
+  Term x = d_tm.mkConst(stringSort, "x");
+  Term y = d_tm.mkConst(stringSort, "y");
+  Term ctn = d_tm.mkTerm(Kind::STRING_CONTAINS, {x,y});
+  d_solver->assertFormula(ctn);
+  Term eq = d_tm.mkTerm(Kind::EQUAL, {x, y});
+  Term deq = d_tm.mkTerm(Kind::NOT, {eq});
+  d_solver->assertFormula(deq);
+  // should be unsat since the plugin above asserts "false" as a lemma
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+  ASSERT_TRUE(pl.hasSeenTheoryLemma());
+  ASSERT_TRUE(pl.hasSeenSatClause());
+}
+
 TEST_F(TestApiBlackSolver, verticalBars)
 {
   Term a = d_solver->declareFun("|a |", {}, d_tm.getRealSort());
