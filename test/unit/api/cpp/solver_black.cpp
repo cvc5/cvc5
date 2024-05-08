@@ -50,7 +50,7 @@ TEST_F(TestApiBlackSolver, pow2Large1)
   Term t180 = d_tm.mkTerm(Kind::POW2, {t10});
   Term t258 = d_tm.mkTerm(Kind::GEQ, {t74, t180});
   d_solver->assertFormula(t258);
-  ASSERT_THROW(d_solver->simplify(t82), CVC5ApiException);
+  ASSERT_THROW(d_solver->simplify(t82, true), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, pow2Large2)
