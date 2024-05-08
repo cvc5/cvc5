@@ -100,6 +100,7 @@ else()
         "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
         "Make sure to install Cython for this Python version "
         "via \n`${Python_EXECUTABLE} -m pip install Cython'.\n"
+        "or use --auto-download to let us install it for you.\n"
         "Note: You need to have pip installed for this Python version.")
   endif()
 endif()
