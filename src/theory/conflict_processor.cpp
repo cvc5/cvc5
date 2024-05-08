@@ -95,7 +95,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
         Trace("confp-debug") << "...filter duplicate " << tlit << std::endl;
         continue;
       }
-      // look for negation??
+      // look for negation
       Node evn = ev.negate();
       itm = evMap.find(evn);
       if (itm != evMap.end())
