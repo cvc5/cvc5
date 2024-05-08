@@ -118,7 +118,7 @@ if(NOT CLN_FOUND_SYSTEM)
     ${COMMON_EP_CONFIG}
     URL "https://www.ginac.de/CLN/cln-1.3.7.tar.bz2"
     URL_HASH SHA1=17cf2c60e262e30f57caae39692fce7917e11d95
-    DOWNLOAD_NAME cln.tgz
+    DOWNLOAD_NAME cln.tar.bz2
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV} ${SHELL} <SOURCE_DIR>/configure
         --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic
