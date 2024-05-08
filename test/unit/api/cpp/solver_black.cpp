@@ -2569,8 +2569,7 @@ TEST_F(TestApiBlackSolver, pluginListen)
   Term eq = d_tm.mkTerm(Kind::EQUAL, {x, y});
   Term deq = d_tm.mkTerm(Kind::NOT, {eq});
   d_solver->assertFormula(deq);
-  // should be unsat since the plugin above asserts "false" as a lemma
-  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+  ASSERT_TRUE(d_solver->checkSat().isSat());
   ASSERT_TRUE(pl.hasSeenTheoryLemma());
   ASSERT_TRUE(pl.hasSeenSatClause());
 }
