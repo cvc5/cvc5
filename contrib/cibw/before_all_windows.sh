@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-python3 -m pip install --user -r contrib/requirements_build.txt
-
 ./configure.sh production --auto-download --python-bindings --python-only-src --prefix=./install
 
 SETUP_CFG=./build/src/api/python/setup.cfg
