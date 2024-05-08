@@ -115,7 +115,7 @@ class ConflictProcessor : protected EnvObj
    * substitutions. For example, given current substitution s = {y->z},
    *    (= x y) returns true with x -> y.
    *    (= x (f x)) return false.
-   *    (= y c) returns false.
+   *    (= y 0) returns false.
    *    (= z (f y)) returns false.
    * @param s The current substitution.
    * @param n The literal in question.
