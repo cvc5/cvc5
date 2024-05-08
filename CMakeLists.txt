@@ -363,6 +363,10 @@ else()
   endif()
 endif()
 
+# Find a Python interpreter on the system. It serves two exclusive purposes:
+# either to be used when the '--auto-download' option is not specified, or
+# to create a virtual environment when the '--auto-download' option is given.
+# In the latter case, it is also used to install the Python bindings (if built).
 if(BUILD_BINDINGS_PYTHON)
   # If the component Development is requested, CMake strongly recommends to
   # also include the component Interpreter to get expected result.
@@ -397,12 +401,15 @@ if(ENABLE_AUTO_DOWNLOAD)
     endif()
   endif()
 
-  # Find (and set up) the Python interpreter within the virtual environment
-  set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
-  set(Python_FIND_VIRTUALENV FIRST)
+  # Forget current Python interpreter
   unset(Python_EXECUTABLE)
   unset(Python_EXECUTABLE CACHE)
 
+  # Set up variables to find Python within the virtual environment
+  set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+  set(Python_FIND_VIRTUALENV FIRST)
+
+  # Find the Python interpreter within the virtual environment
   if(BUILD_BINDINGS_PYTHON)
     find_package(Python COMPONENTS Interpreter Development REQUIRED)
   else()

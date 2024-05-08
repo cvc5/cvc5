@@ -262,7 +262,8 @@ function(check_python_module module)
         "Could not find module ${module_name} for Python "
         "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
         "Make sure to install ${module_name} for this Python version "
-        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}',\n"
+        "or use --auto-download to let us install it for you.\n"
         "Note: You need to have pip installed for this Python version.")
     endif()
   endif()
