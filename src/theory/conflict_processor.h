@@ -33,9 +33,8 @@ class Assigner;
 namespace theory {
 
 /**
- * IDEAS: Use top-level substitutions? combine with inprocess?
- * duplication under substitution?
- * infer substitutions for terms? f(t) where FV(t) not in sigma
+ * A utility for inferring when a theory lemma or conflict can be strengthened
+ * based on substitution + rewriting.
  */
 class ConflictProcessor : protected EnvObj
 {
