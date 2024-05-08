@@ -2566,7 +2566,7 @@ TEST_F(TestApiBlackSolver, pluginListen)
   Term x = d_tm.mkConst(stringSort, "x");
   Term y = d_tm.mkConst(stringSort, "y");
   Term ctn1 = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
-  Term ctn2 = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
+  Term ctn2 = d_tm.mkTerm(Kind::STRING_CONTAINS, {y, x});
   d_solver->assertFormula(d_tm.mkTerm(Kind::OR, ctn1, ctn2));
   Term lx = d_tm.mkTerm(Kind::STRING_LENGTH, {x});
   Term ly = d_tm.mkTerm(Kind::STRING_LENGTH, {y});
