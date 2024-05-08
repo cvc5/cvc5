@@ -2570,6 +2570,7 @@ TEST_F(TestApiBlackSolver, pluginListen)
   Term deq = d_tm.mkTerm(Kind::NOT, {eq});
   d_solver->assertFormula(deq);
   ASSERT_TRUE(d_solver->checkSat().isSat());
+  // above input formulas should induce a theory lemma and SAT clause learning
   ASSERT_TRUE(pl.hasSeenTheoryLemma());
   ASSERT_TRUE(pl.hasSeenSatClause());
 }
