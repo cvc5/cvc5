@@ -70,6 +70,10 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
     Trace("confp-debug") << "eval " << tlit << " is " << ev << std::endl;
     if (ev == d_true)
     {
+      // For example, for lemma (=> (= x 0) (or (= (* x y) 0) (= z 0))), we have
+      // that (= (* x y) 0) evaluates to true under substitution {x->0}, hence
+      // only this literal needs to be included amongst the target literals,
+      // e.g. (= z 0) can be dropped.
       tgtLit = tlit;
       break;
     }
