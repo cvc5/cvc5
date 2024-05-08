@@ -1161,7 +1161,7 @@ def test_simplify(tm, solver):
 
 def test_simplify_apply_subs(tm, solver):
     solver.setOption("incremental", "true")
-    intSort = d_tm.getIntegerSort()
+    intSort = tm.getIntegerSort()
     x = tm.mkConst(intSort, "x")
     zero = tm.mkInteger(0)
     eq = tm.mkTerm(Kind.EQUAL, x, zero)
