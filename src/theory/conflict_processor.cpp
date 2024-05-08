@@ -33,9 +33,7 @@ ConflictProcessor::ConflictProcessor(Env& env)
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  options::ConflictProcessMode mode = options().theory.conflictProcessMode;
-  d_useExtRewriter = (mode == options::ConflictProcessMode::MINIMIZE_EXT);
-  Assert(mode != options::ConflictProcessMode::NONE);
+  d_useExtRewriter = false;
 }
 
 TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
@@ -59,12 +57,6 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   Trace("confp") << "Decomposed " << lemma << std::endl;
   Trace("confp") << "- Substitution: " << s.toString() << std::endl;
   Trace("confp") << "- Target: " << tgtLits << std::endl;
-  if (options().theory.conflictProcessMode
-      == options::ConflictProcessMode::TEST)
-  {
-    Trace("confp") << "...FAIL (test)" << std::endl;
-    return TrustNode::null();
-  }
   // check if the substitution implies one of the tgtLit, if not, we are done
   Node tgtLit;
   std::vector<Node> tgtLitsNc;
