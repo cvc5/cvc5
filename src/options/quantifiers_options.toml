@@ -206,7 +206,7 @@ name   = "Quantifiers"
   category   = "expert"
   long       = "mbqi-fast-sygus-ext-vars-grammar"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "include variables defined in terms of others in grammars for fast enumerative mbqi"
 
 [[option]]
@@ -214,7 +214,7 @@ name   = "Quantifiers"
   category   = "expert"
   long       = "mbqi-fast-sygus-free-syms-grammar"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "include free symbols from the body of the quantified formula in grammars for fast enumerative mbqi"
 
 [[option]]
