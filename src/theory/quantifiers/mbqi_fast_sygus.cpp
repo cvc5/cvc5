@@ -53,9 +53,13 @@ void MVarInfo::initialize(Env& env,
     trules.insert(trules.end(), vs.begin(), vs.end());
   }
   // NOTE: get free symbols from body of quantified formula here??
-  std::unordered_set<Node> syms;
-  expr::getSymbols(q[1], syms);
-  trules.insert(trules.end(), syms.begin(), syms.end());
+  // include free symbols from body of quantified formula if applicable
+  if (env.getOptions().quantifiers.mbqiFastSygusFreeSymsGrammar)
+  {
+    std::unordered_set<Node> syms;
+    expr::getSymbols(q[1], syms);
+    trules.insert(trules.end(), syms.begin(), syms.end());
+  }
   // include the external terminal rules
   for (const Node& symbol : etrules)
   {
@@ -140,8 +144,11 @@ void MQuantInfo::initialize(Env& env, InstStrategyMbqi& parent, const Node& q)
     else
     {
       d_nindices.push_back(index);
-      // variables defined in terms of others
-      etrules.push_back(v);
+      // include variables defined in terms of others if applicable
+      if (env.getOptions().quantifiers.mbqiFastSygusExtVarsGrammar)
+      {
+        etrules.push_back(v);
+      }
     }
   }
   // include the global symbols if applicable

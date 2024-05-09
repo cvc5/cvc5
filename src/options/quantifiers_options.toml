@@ -200,6 +200,23 @@ name   = "Quantifiers"
   default    = "false"
   help       = "use fast enumeration to augment instantiations from MBQI"
 
+
+[[option]]
+  name       = "mbqiFastSygusExtVarsGrammar"
+  category   = "expert"
+  long       = "mbqi-fast-sygus-ext-vars-grammar"
+  type       = "bool"
+  default    = "true"
+  help       = "include variables defined in terms of others in grammars for fast enumerative mbqi"
+
+[[option]]
+  name       = "mbqiFastSygusFreeSymsGrammar"
+  category   = "expert"
+  long       = "mbqi-fast-sygus-free-syms-grammar"
+  type       = "bool"
+  default    = "true"
+  help       = "include free symbols from the body of the quantified formula in grammars for fast enumerative mbqi"
+
 [[option]]
   name       = "mbqiFastSygusGlobalSymGrammar"
   category   = "expert"
