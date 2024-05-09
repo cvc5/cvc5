@@ -31,8 +31,7 @@ InferenceManager::InferenceManager(Env& env,
                                    Theory& t,
                                    TheorySetsRewriter* tr,
                                    SolverState& s)
-    : InferenceManagerBuffered(env, t, s, "theory::sets::"),
-      d_state(s)
+    : InferenceManagerBuffered(env, t, s, "theory::sets::"), d_state(s)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
