@@ -404,8 +404,13 @@ if(ENABLE_AUTO_DOWNLOAD)
   # Set up variables to find Python within the virtual environment
   set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
   unset(Python_EXECUTABLE CACHE)
-  set(Python_EXECUTABLE
-    "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}/bin/python3")
+  if(EXISTS ${VENV_PATH}/bin/python3)
+    set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
+  elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
+    set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
+  else()
+    message(FATAL_ERROR "Could not find Python interpreter in venv")
+  endif()
 
   # Find the Python interpreter within the virtual environment
   if(BUILD_BINDINGS_PYTHON)
