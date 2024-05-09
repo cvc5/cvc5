@@ -21,7 +21,6 @@
 #include <algorithm>
 #include <unordered_set>
 
-#include "expr/algorithm/flatten.h"
 #include "expr/node_value.h"
 #include "util/cardinality.h"
 
@@ -56,47 +55,61 @@ RewriteResponse TheoryBoolRewriter::flattenNode(TNode n,
                                                 TNode trivialNode,
                                                 TNode skipNode)
 {
-  // first flatten
-  Node nf = expr::algorithm::flatten(n);
-  if (nf != n)
-  {
-    return RewriteResponse(REWRITE_AGAIN, nf);
-  }
-  // then do duplicate elimination and trivial node finding
-  std::vector<TNode> childList;
-  std::unordered_set<TNode> visited;
-  visited.insert(skipNode);
-  bool hadDups = false;
-  for (TNode nn : n)
-  {
-    if (nn == trivialNode)
-    {
-      return RewriteResponse(REWRITE_DONE, trivialNode);
-    }
-    if (visited.find(nn) != visited.end())
-    {
-      hadDups = true;
-      continue;
-    }
-    visited.insert(nn);
-    childList.push_back(nn);
-  }
-  if (hadDups)
-  {
-    if (childList.empty())
-    {
-      return RewriteResponse(REWRITE_DONE, skipNode);
-    }
-    if (childList.size() == 1)
-    {
-      return RewriteResponse(REWRITE_AGAIN, childList[0]);
-    }
-    Node nn = NodeManager::currentNM()->mkNode(n.getKind(), childList);
-    return RewriteResponse(REWRITE_AGAIN, nn);
-  }
-  return RewriteResponse(REWRITE_DONE, n);
-}
+  typedef std::unordered_set<TNode> node_set;
 
+  node_set visited;
+  visited.insert(skipNode);
+
+  std::vector<TNode> toProcess;
+  toProcess.push_back(n);
+
+  Kind k = n.getKind();
+  typedef std::vector<TNode> ChildList;
+  ChildList childList;   //TNode should be fine, since 'n' is still there
+
+  for (unsigned i = 0; i < toProcess.size(); ++ i) {
+    TNode current = toProcess[i];
+    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
+      TNode child = current[j];
+      if(visited.find(child) != visited.end()) {
+        continue;
+      } else if(child == trivialNode) {
+        return RewriteResponse(REWRITE_DONE, trivialNode);
+      } else {
+        visited.insert(child);
+        if(child.getKind() == k)
+          toProcess.push_back(child);
+        else
+          childList.push_back(child);
+      }
+    }
+  }
+  if (childList.size() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
+  if (childList.size() == 1) return RewriteResponse(REWRITE_AGAIN, childList[0]);
+
+  /* Trickery to stay under number of children possible in a node */
+  NodeManager* nm = nodeManager();
+  if (childList.size() < expr::NodeValue::MAX_CHILDREN)
+  {
+    Node retNode = nm->mkNode(k, childList);
+    return RewriteResponse(REWRITE_DONE, retNode);
+  }
+  else
+  {
+    Assert(childList.size()
+           < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
+                 * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
+    NodeBuilder nb(k);
+    ChildList::iterator cur = childList.begin(), next, en = childList.end();
+    while (cur != en)
+    {
+      next = min(cur + expr::NodeValue::MAX_CHILDREN, en);
+      nb << (nm->mkNode(k, ChildList(cur, next)));
+      cur = next;
+    }
+    return RewriteResponse(REWRITE_DONE, nb.constructNode());
+  }
+}
 
 // Equality parity returns
 // * 0 if no relation between a and b is found

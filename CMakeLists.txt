@@ -369,6 +369,34 @@ else()
   find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 
+# Keep the PATH to the Python binary before setting venv.
+# We use this path in the installation step of the Python bindings.
+set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}")
+
+# Set up Python venv if one doesn't exist already
+set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+if(NOT EXISTS ${VENV_PATH})
+  message(STATUS "Creating Python virtual environment")
+  # Use packages installed in the base installation if they're already present
+  execute_process (COMMAND
+    "${Python_EXECUTABLE}" -m venv --system-site-packages "${VENV_PATH}"
+  )
+endif()
+
+# Find (and set up) the Python interpreter within the virtual environment
+set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+set(Python_FIND_VIRTUALENV FIRST)
+unset(Python_EXECUTABLE)
+unset(Python_EXECUTABLE CACHE)
+
+if(BUILD_BINDINGS_PYTHON)
+  # If the component Development is requested, CMake strongly recommends to
+  # also include the component Interpreter to get expected result.
+  find_package(Python COMPONENTS Interpreter Development REQUIRED)
+else()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
+endif()
+
 find_package(GMP 6.3 REQUIRED)
 
 if(ENABLE_ASAN)

@@ -20,7 +20,6 @@ libcvc5_add_sources(
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
-  api/cpp/cvc5_proof_rule.cpp
   api/cpp/cvc5_skolem_id.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
@@ -149,6 +148,8 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   proof/alf/alf_dependent_type_converter.cpp
   proof/alf/alf_dependent_type_converter.h
+  proof/alf/alf_list_node_converter.cpp
+  proof/alf/alf_list_node_converter.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
   proof/alf/alf_print_channel.cpp
@@ -176,10 +177,6 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
-  proof/lean/lean_post_processor.cpp
-  proof/lean/lean_post_processor.h
-  proof/lean/lean_printer.cpp
-  proof/lean/lean_printer.h
   proof/lfsc/lfsc_list_sc_node_converter.cpp
   proof/lfsc/lfsc_list_sc_node_converter.h
   proof/lfsc/lfsc_node_converter.cpp
@@ -233,8 +230,6 @@ libcvc5_add_sources(
   proof/trust_node.h
   proof/theory_proof_step_buffer.cpp
   proof/theory_proof_step_buffer.h
-  proof/theory_rewrite_id.cpp
-  proof/theory_rewrite_id.h
   proof/unsat_core.cpp
   proof/unsat_core.h
   proof/alethe/alethe_let_binding.cpp
@@ -1431,8 +1426,8 @@ set(REWRITES_FILES
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)
-add_subdirectory(rewriter)
 add_subdirectory(parser)
+add_subdirectory(rewriter)
 add_subdirectory(theory)
 add_subdirectory(util)
 
@@ -1461,10 +1456,9 @@ target_include_directories(cvc5
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-install(TARGETS cvc5
-  EXPORT cvc5-targets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+# On Windows, CMake's default install action places
+# DLLs into the runtime path (by default "bin")
+install(TARGETS cvc5 EXPORT cvc5-targets)
 
 if(BUILD_SHARED_LIBS)
   set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
@@ -1535,8 +1529,8 @@ endif()
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
 
-# GMP has to be included at the end because of linker ordering issues when
-# generating a static library.
+# GMP has to be included at the end because of linker ordering issues when 
+# generating a static library. 
 add_dependencies(cvc5-obj GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 if(BUILD_SHARED_LIBS)

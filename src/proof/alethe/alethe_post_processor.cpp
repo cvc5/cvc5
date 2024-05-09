@@ -402,9 +402,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::DSL_REWRITE:
     {
       // get the name
-      rewriter::DslProofRule di;
+      ProofRewriteRule di;
       Node rule;
-      if (rewriter::getDslProofRule(args[0], di))
+      if (rewriter::getRewriteRule(args[0], di))
       {
         std::stringstream ss;
         ss << "\"" << di << "\"";
@@ -1331,7 +1331,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // For now this introduces a hole. The processing in the future should
     // generate corresponding Alethe steps for each particular axiom for term
     // removal (for example for the ITE case).
-    case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
+    case ProofRule::ITE_EQ:
     {
       return addAletheStep(AletheRule::HOLE,
                            res,

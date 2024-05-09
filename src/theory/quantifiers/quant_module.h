@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANT_MODULE_H
-#define CVC5__THEORY__QUANT_MODULE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANT_MODULE_H
+#define CVC5__THEORY__QUANTIFIERS__QUANT_MODULE_H
 
 #include <iostream>
 #include <map>
@@ -34,7 +34,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 class TermDb;
-}  // namespace quantifiers
 
 /** QuantifiersModule class
  *
@@ -148,7 +147,10 @@ class QuantifiersModule : protected EnvObj
    * Called when a quantified formula q is asserted to the quantifiers theory
    */
   virtual void assertNode(Node q) {}
-  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  /**
+   * Identify this module (for debugging, dynamic configuration, etc..).
+   * This name is printed in -o inst-strategy.
+   */
   virtual std::string identify() const = 0;
   //----------------------------general queries
   /** get currently used the equality engine */
@@ -171,6 +173,10 @@ class QuantifiersModule : protected EnvObj
   quantifiers::TermRegistry& getTermRegistry();
   //----------------------------end general queries
  protected:
+  /** Begin debug call for -t inst-strategy and -o inst-strategy */
+  void beginCallDebug();
+  /** End debug call for -t inst-strategy and -o inst-strategy */
+  void endCallDebug();
   /** Reference to the state of the quantifiers engine */
   quantifiers::QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
@@ -181,7 +187,8 @@ class QuantifiersModule : protected EnvObj
   quantifiers::TermRegistry& d_treg;
 }; /* class QuantifiersModule */
 
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__QUANT_UTIL_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANT_MODULE_H */

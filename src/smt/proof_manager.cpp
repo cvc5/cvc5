@@ -17,15 +17,12 @@
 
 #include "options/base_options.h"
 #include "options/main_options.h"
-#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
 #include "proof/alf/alf_printer.h"
 #include "proof/dot/dot_printer.h"
-#include "proof/lean/lean_post_processor.h"
-#include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
@@ -112,6 +109,8 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
     d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
+  // always try to eliminate TRUST
+  d_pfpp->setEliminateRule(ProofRule::TRUST);
   d_false = nodeManager()->mkConst(false);
 }
 
@@ -261,19 +260,11 @@ void PfManager::printProof(std::ostream& out,
     proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
-  else if (mode == options::ProofFormatMode::LEAN)
-  {
-    Assert(fp->getRule() == ProofRule::SCOPE);
-    std::vector<Node> assertions = fp->getArguments();
-    proof::LeanProofPostprocess lpfpp(d_env);
-    lpfpp.process(fp);
-    proof::LeanPrinter::print(out, assertions, fp);
-  }
   else if (mode == options::ProofFormatMode::ALF)
   {
     Assert(fp->getRule() == ProofRule::SCOPE);
     proof::AlfNodeConverter atp(nodeManager());
-    proof::AlfPrinter alfp(d_env, atp);
+    proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
     alfp.print(out, fp);
   }
   else if (mode == options::ProofFormatMode::ALETHE_ALF)
@@ -287,7 +278,7 @@ void PfManager::printProof(std::ostream& out,
     if (vpfpp.process(fp, reasonForConversionFailure))
     {
       // print using ALF printer
-      proof::AlfPrinter alfp(d_env, anc);
+      proof::AlfPrinter alfp(d_env, anc, d_rewriteDb.get());
       alfp.print(out, fp);
     }
     else

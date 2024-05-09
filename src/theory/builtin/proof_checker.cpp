@@ -17,7 +17,6 @@
 
 #include "expr/nary_term_util.h"
 #include "expr/skolem_manager.h"
-#include "proof/theory_rewrite_id.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrite_proof_rule.h"
@@ -29,11 +28,6 @@
 #include "theory/substitutions.h"
 #include "theory/theory.h"
 #include "util/rational.h"
-
-// For `THEORY_REWRITE`
-#include "theory/bv/theory_bv_rewrite_rules.h"
-#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
-#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 
 using namespace cvc5::internal::kind;
 
@@ -56,9 +50,10 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::EVALUATE, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
   pc->registerChecker(ProofRule::ANNOTATION, this);
-  pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  pc->registerChecker(ProofRule::ITE_EQ, this);
   pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
+  pc->registerChecker(ProofRule::THEORY_REWRITE, this);
   // rules depending on the rewriter
   pc->registerTrustedChecker(ProofRule::MACRO_REWRITE, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_EQ_INTRO, this, 4);
@@ -71,9 +66,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   // external proof rules
   pc->registerChecker(ProofRule::LFSC_RULE, this);
   pc->registerChecker(ProofRule::ALETHE_RULE, this);
-  pc->registerChecker(ProofRule::LEAN_RULE, this);
-
-  pc->registerChecker(ProofRule::THEORY_REWRITE, this);
 
   d_rdb = pc->getRewriteDatabase();
 }
@@ -401,7 +393,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0];
   }
-  else if (id == ProofRule::REMOVE_TERM_FORMULA_AXIOM)
+  else if (id == ProofRule::ITE_EQ)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -419,8 +411,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-  else if (id == ProofRule::LFSC_RULE || id == ProofRule::ALETHE_RULE
-           || id == ProofRule::LEAN_RULE)
+  else if (id == ProofRule::LFSC_RULE || id == ProofRule::ALETHE_RULE)
   {
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());
@@ -450,8 +441,8 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     // consult rewrite db, apply args[1]...args[n] as a substitution
     // to variable list and prove equality between LHS and RHS.
     Assert(d_rdb != nullptr);
-    rewriter::DslProofRule di;
-    if (!getDslProofRule(args[0], di))
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
     {
       return Node::null();
     }
@@ -480,37 +471,19 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::THEORY_REWRITE)
   {
-    Assert(children.empty());
     Assert(args.size() == 2);
-    TheoryRewriteId trid;
-    if (!getTheoryRewriteId(args[0], trid)) {
-      Unreachable();
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
+    {
+      return Node::null();
     }
-
-    auto const& node = args[1];
-#define BV_PROOF_CASE(rule, name) \
-    case TheoryRewriteId::rule: { \
-      if (bv::RewriteRule<bv::name>::applies(node)) {                    \
-      	return node.eqNode(bv::RewriteRule<bv::name>::run<false>(node)); \
-      }                                                          \
-      break;                                                     \
-    }                                                            \
-    /* end of macro */
-    switch (trid) {
-      BV_PROOF_CASE(BV_UMULO_ELIMINATE, UmuloEliminate)
-      BV_PROOF_CASE(BV_SMULO_ELIMINATE, SmuloEliminate)
-      BV_PROOF_CASE(BV_FLATTEN_ASSOC_COMMUTE, FlattenAssocCommut)
-      BV_PROOF_CASE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES, FlattenAssocCommutNoDuplicates)
-      BV_PROOF_CASE(BV_ADD_COMBINE_LIKE_TERMS, AddCombineLikeTerms)
-      BV_PROOF_CASE(BV_MULT_SIMPLIFY, MultSimplify)
-      BV_PROOF_CASE(BV_SOLVE_EQ, SolveEq)
-      BV_PROOF_CASE(BV_BITWISE_EQ, BitwiseEq)
-      BV_PROOF_CASE(BV_BITWISE_SLICING, BitwiseSlicing)
-      default:
-        Unreachable();
+    Node rhs = d_rewriter->rewriteViaRule(di, args[1]);
+    if (rhs.isNull())
+    {
+      return Node::null();
     }
+    return args[1].eqNode(rhs);
   }
-
   // no rule
   return Node::null();
 }

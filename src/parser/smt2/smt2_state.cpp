@@ -867,6 +867,7 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::SET_FILTER, "set.filter");
     addOperator(Kind::SET_FOLD, "set.fold");
     addOperator(Kind::RELATION_JOIN, "rel.join");
+    addOperator(Kind::RELATION_TABLE_JOIN, "rel.table_join");
     addOperator(Kind::RELATION_PRODUCT, "rel.product");
     addOperator(Kind::RELATION_TRANSPOSE, "rel.transpose");
     addOperator(Kind::RELATION_TCLOSURE, "rel.tclosure");
@@ -877,6 +878,7 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::RELATION_AGGREGATE, "rel.aggr");
     addOperator(Kind::RELATION_PROJECT, "rel.project");
     addIndexedOperator(Kind::RELATION_GROUP, "rel.group");
+    addIndexedOperator(Kind::RELATION_TABLE_JOIN, "rel.table_join");
     addIndexedOperator(Kind::RELATION_AGGREGATE, "rel.aggr");
     addIndexedOperator(Kind::RELATION_PROJECT, "rel.project");
     // set.comprehension is a closure kind
@@ -1349,7 +1351,8 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       if (kind == Kind::TUPLE_PROJECT || kind == Kind::TABLE_PROJECT
           || kind == Kind::TABLE_AGGREGATE || kind == Kind::TABLE_JOIN
           || kind == Kind::TABLE_GROUP || kind == Kind::RELATION_GROUP
-          || kind == Kind::RELATION_AGGREGATE || kind == Kind::RELATION_PROJECT)
+          || kind == Kind::RELATION_AGGREGATE || kind == Kind::RELATION_PROJECT
+          || kind == Kind::RELATION_TABLE_JOIN)
       {
         std::vector<uint32_t> indices;
         Op op = d_tm.mkOp(kind, indices);

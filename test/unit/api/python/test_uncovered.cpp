@@ -162,6 +162,66 @@ TEST_F(TestApiBlackUncovered, exception_getmessage)
   }
 }
 
+TEST_F(TestApiBlackUncovered, equalHash)
+{
+  DatatypeDecl decl1 = d_tm.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons1 = d_tm.mkDatatypeConstructorDecl("cons");
+  cons1.addSelector("head", d_tm.getIntegerSort());
+  decl1.addConstructor(cons1);
+  DatatypeConstructorDecl nil1 = d_tm.mkDatatypeConstructorDecl("nil");
+  decl1.addConstructor(nil1);
+  Sort list1 = d_tm.mkDatatypeSort(decl1);
+  Datatype dt1 = list1.getDatatype();
+  DatatypeConstructor consConstr1 = dt1[0];
+  DatatypeConstructor nilConstr1 = dt1[1];
+  DatatypeSelector head1 = consConstr1.getSelector("head");
+
+  DatatypeDecl decl2 = d_tm.mkDatatypeDecl("list");
+  DatatypeConstructorDecl cons2 = d_tm.mkDatatypeConstructorDecl("cons");
+  cons2.addSelector("head", d_tm.getIntegerSort());
+  decl2.addConstructor(cons2);
+  DatatypeConstructorDecl nil2 = d_tm.mkDatatypeConstructorDecl("nil");
+  decl2.addConstructor(nil2);
+  Sort list2 = d_tm.mkDatatypeSort(decl2);
+  Datatype dt2 = list2.getDatatype();
+  DatatypeConstructor consConstr2 = dt2[0];
+  DatatypeConstructor nilConstr2 = dt2[1];
+  DatatypeSelector head2 = consConstr2.getSelector("head");
+
+  ASSERT_EQ(decl1, decl1);
+  ASSERT_FALSE(decl1 == decl2);
+  ASSERT_EQ(cons1, cons1);
+  ASSERT_FALSE(cons1 == cons2);
+  ASSERT_EQ(nil1, nil1);
+  ASSERT_FALSE(nil1 == nil2);
+  ASSERT_EQ(consConstr1, consConstr1);
+  ASSERT_FALSE(consConstr1 == consConstr2);
+  ASSERT_EQ(head1, head1);
+  ASSERT_FALSE(head1 == head2);
+  ASSERT_EQ(dt1, dt1);
+  ASSERT_FALSE(dt1 == dt2);
+
+  ASSERT_EQ(std::hash<DatatypeDecl>{}(decl1), std::hash<DatatypeDecl>{}(decl1));
+  ASSERT_EQ(std::hash<DatatypeDecl>{}(decl1), std::hash<DatatypeDecl>{}(decl2));
+  ASSERT_EQ(std::hash<DatatypeConstructorDecl>{}(cons1),
+            std::hash<DatatypeConstructorDecl>{}(cons1));
+  ASSERT_EQ(std::hash<DatatypeConstructorDecl>{}(cons1),
+            std::hash<DatatypeConstructorDecl>{}(cons2));
+  ASSERT_EQ(std::hash<DatatypeConstructorDecl>{}(nil1),
+            std::hash<DatatypeConstructorDecl>{}(nil1));
+  ASSERT_EQ(std::hash<DatatypeConstructorDecl>{}(nil1),
+            std::hash<DatatypeConstructorDecl>{}(nil2));
+  ASSERT_EQ(std::hash<DatatypeConstructor>{}(consConstr1),
+            std::hash<DatatypeConstructor>{}(consConstr1));
+  ASSERT_EQ(std::hash<DatatypeConstructor>{}(consConstr1),
+            std::hash<DatatypeConstructor>{}(consConstr2));
+  ASSERT_EQ(std::hash<DatatypeSelector>{}(head1),
+            std::hash<DatatypeSelector>{}(head1));
+  ASSERT_EQ(std::hash<DatatypeSelector>{}(head1),
+            std::hash<DatatypeSelector>{}(head2));
+  ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt1));
+  ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt2));
+}
 TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
 {
   std::stringstream ss;
@@ -184,7 +244,9 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
   ss << cvc5::modes::ProofFormat::LFSC
      << std::to_string(cvc5::modes::ProofFormat::LFSC);
-  ss << cvc5::ProofRule::ASSUME;
+  ss << cvc5::ProofRule::ASSUME << std::to_string(cvc5::ProofRule::ASSUME);
+  ss << cvc5::ProofRewriteRule::NONE
+     << std::to_string(cvc5::ProofRewriteRule::NONE);
   ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
   ss << cvc5::Result();
   ss << cvc5::Op();
@@ -399,6 +461,12 @@ TEST_F(TestApiBlackUncovered, Proof)
   ASSERT_TRUE(proof.getResult().isNull());
   ASSERT_TRUE(proof.getChildren().empty());
   ASSERT_TRUE(proof.getArguments().empty());
+}
+
+TEST_F(TestApiBlackUncovered, ProofRewriteRule)
+{
+  ASSERT_EQ(std::hash<cvc5::ProofRewriteRule>()(ProofRewriteRule::NONE),
+            static_cast<size_t>(ProofRewriteRule::NONE));
 }
 
 TEST_F(TestApiBlackUncovered, SkolemId)

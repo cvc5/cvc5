@@ -17,9 +17,10 @@
 #include "rewriter/basic_rewrite_rcons.h"
 
 #include "proof/proof_checker.h"
-#include "proof/theory_rewrite_id.h"
+#include "rewriter/rewrites.h"
 #include "smt/env.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
+#include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
 
@@ -49,55 +50,41 @@ bool BasicRewriteRCons::prove(
     Trace("trewrite-rcons") << "...EVALUATE" << std::endl;
     return true;
   }
-  if (eq[0].getKind() == Kind::APPLY_UF
-      && eq[0].getOperator().getKind() == Kind::LAMBDA)
+
+  // try theory rewrite (pre-rare)
+  ProofRewriteRule prid =
+      d_env.getRewriter()->findRule(a, b, theory::TheoryRewriteCtx::PRE_DSL);
+  if (prid != ProofRewriteRule::NONE)
   {
-    std::vector<Node> args;
-    args.push_back(eq[0].getOperator());
-    args.insert(args.end(), eq[0].begin(), eq[0].end());
-    if (tryRule(cdp, eq, ProofRule::BETA_REDUCE, args))
+    if (tryRule(
+            cdp, eq, ProofRule::THEORY_REWRITE, {mkRewriteRuleNode(prid), a}))
     {
-      Trace("trewrite-rcons") << "...BETA_REDUCE" << std::endl;
+      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << prid
+                              << ", " << mid << ")" << std::endl;
       return true;
     }
-  }
-  if (tryRule(cdp, eq, ProofRule::EXISTS_ELIM, {eq[0]}))
-  {
-    Trace("trewrite-rcons") << "...EXISTS_ELIM" << std::endl;
-    return true;
   }
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
 }
+
 bool BasicRewriteRCons::postProve(
     CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
 {
   Node eq = a.eqNode(b);
 
-  if (theory::TheoryId::THEORY_BV == tid)
+  // try theory rewrite (post-rare)
+  ProofRewriteRule prid =
+      d_env.getRewriter()->findRule(a, b, theory::TheoryRewriteCtx::POST_DSL);
+  if (prid != ProofRewriteRule::NONE)
   {
-#define TRY_THEORY_REWRITE(id) \
-    if (tryRule( \
-            cdp, \
-            eq, \
-            ProofRule::THEORY_REWRITE, \
-            {mkTheoryRewriteId(TheoryRewriteId::id), eq[0]})) \
-    { \
-      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid \
-                              << ", " << mid << ")" << std::endl; \
-      return true; \
-    } \
-    /* end of macro */
-
-    TRY_THEORY_REWRITE(BV_UMULO_ELIMINATE)
-    TRY_THEORY_REWRITE(BV_SMULO_ELIMINATE)
-    TRY_THEORY_REWRITE(BV_FLATTEN_ASSOC_COMMUTE)
-    TRY_THEORY_REWRITE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES)
-    TRY_THEORY_REWRITE(BV_ADD_COMBINE_LIKE_TERMS)
-    TRY_THEORY_REWRITE(BV_MULT_SIMPLIFY)
-    TRY_THEORY_REWRITE(BV_SOLVE_EQ)
-    TRY_THEORY_REWRITE(BV_BITWISE_EQ)
-    TRY_THEORY_REWRITE(BV_BITWISE_SLICING)
+    if (tryRule(
+            cdp, eq, ProofRule::THEORY_REWRITE, {mkRewriteRuleNode(prid), a}))
+    {
+      Trace("trewrite-rcons") << "Reconstruct (post) " << eq << " (from "
+                              << prid << ", " << mid << ")" << std::endl;
+      return true;
+    }
   }
 
   Trace("trewrite-rcons") << "...(fail)" << std::endl;

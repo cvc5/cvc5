@@ -51,11 +51,11 @@
   :premises ((= t s) (not (= (str.len u) 0)))
   :args (rev)
   :conclusion
-    (alf.match ((V Type) (t1 (Seq V)) (t2 (Seq V) :list))
+    (alf.match ((t1 (Seq U)) (t2 (Seq U) :list))
       (string_to_flat_form t rev)
       (((str.++ t1 t2)
         (alf.requires t1 u
-          (alf.match ((W Type) (s1 (Seq W)) (s2 (Seq W) :list))
+          (alf.match ((s1 (Seq U)) (s2 (Seq U) :list))
             (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires (string_check_length_one s1) true    ; checks if char
@@ -63,6 +63,35 @@
                   (alf.ite rev
                     (str.++ (skolem (skolem_prefix u (- (str.len u) 1))) s1)
                     (str.++ s1 (skolem (skolem_suffix_rem u 1)))))))))))))
+)
+
+; ProofRule::CONCAT_SPLIT
+(declare-rule concat_split ((U Type) (t (Seq U)) (s (Seq U)) (tc (Seq U)) (sc (Seq U)) (rev Bool))
+  :premises ((= t s) (not (= (str.len tc) (str.len sc))))
+  :args (rev)
+  :conclusion
+    (alf.match ((t1 (Seq U)) (t2 (Seq U) :list))
+      (string_to_flat_form t rev)
+      (((str.++ t1 t2)
+        (alf.requires t1 tc
+          (alf.match ((s1 (Seq U)) (s2 (Seq U) :list))
+            (string_to_flat_form s rev)
+            (((str.++ s1 s2)
+              (alf.requires s1 sc
+                (let ((k (skolem (skolem_unify_split t1 s1 rev))))
+                (and 
+                  (or 
+                    (= t1
+                      (alf.ite rev
+                        (str.++ k s1)
+                        (str.++ s1 k)))
+                    (= s1
+                      (alf.ite rev
+                        (str.++ k t1)
+                        (str.++ t1 k))))
+                    (not (= k (mk_emptystr (alf.typeof k))))
+                    (> (str.len k) 0)
+                ))))))))))
 )
 
 ; ProofRule::CONCAT_CONFLICT, for strings only
@@ -153,4 +182,18 @@
 (declare-rule string_eager_reduction ((U Type) (s U))
   :args (s)
   :conclusion (mk_string_eager_reduction s)
+)
+
+;;-------------------- Instances of THEORY_REWRITE
+
+(declare-rule str-in-re-eval ((s String) (r RegLan))
+  :args ((str.in_re s r))
+  :conclusion (= (str.in_re s r) ($str_eval_str_in_re s r))
+)
+
+(declare-rule re-loop-elim ((l Int) (u Int) (r RegLan))
+  :args ((re.loop l u r))
+  :conclusion (let ((diff (alf.add (alf.neg l) u)))
+              (alf.requires (alf.is_neg diff) false
+                 (= (re.loop l u r) ($str_mk_re_loop_elim l diff r))))
 )

@@ -54,10 +54,6 @@ ArithRewriter::ArithRewriter(NodeManager* nm, OperatorElim& oe)
 RewriteResponse ArithRewriter::preRewrite(TNode t)
 {
   Trace("arith-rewriter") << "preRewrite(" << t << ")" << std::endl;
-  if (expr::hasAbstractSubterm(t))
-  {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
   if (rewriter::isAtom(t))
   {
     auto res = preRewriteAtom(t);
@@ -73,10 +69,6 @@ RewriteResponse ArithRewriter::preRewrite(TNode t)
 RewriteResponse ArithRewriter::postRewrite(TNode t)
 {
   Trace("arith-rewriter") << "postRewrite(" << t << ")" << std::endl;
-  if (expr::hasAbstractSubterm(t))
-  {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
   if (rewriter::isAtom(t))
   {
     auto res = postRewriteAtom(t);
@@ -348,19 +340,6 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
               return RewriteResponse(REWRITE_AGAIN_FULL, ret);
             }
           }
-        }
-        else if (t[0].isConst()
-                 && t[0].getConst<Rational>().getNumerator().toUnsignedInt()
-                        == 2
-                 && t[1].getType().isInteger())
-        {
-          Node ret = nodeManager()->mkNode(Kind::POW2, t[1]);
-          // ensure type is preserved
-          if (t.getType().isReal())
-          {
-            ret = rewriter::ensureReal(ret);
-          }
-          return RewriteResponse(REWRITE_AGAIN, ret);
         }
         return RewriteResponse(REWRITE_DONE, t);
       }
@@ -1066,6 +1045,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             {
               new_arg = nm->mkNode(Kind::ADD, new_arg, rem);
             }
+            new_arg = rewriter::ensureReal(new_arg);
             // sin( 2*n*PI + x ) = sin( x )
             return RewriteResponse(REWRITE_AGAIN_FULL,
                                    nm->mkNode(Kind::SINE, new_arg));
@@ -1080,6 +1060,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             }
             else
             {
+              rem = rewriter::ensureReal(rem);
               return RewriteResponse(
                   REWRITE_AGAIN_FULL,
                   nm->mkNode(Kind::NEG, nm->mkNode(Kind::SINE, rem)));

@@ -426,10 +426,7 @@ public:
    */
   inline bool isClosure() const {
     assertTNodeNotExpired();
-    return getKind() == Kind::LAMBDA || getKind() == Kind::FORALL
-           || getKind() == Kind::EXISTS || getKind() == Kind::WITNESS
-           || getKind() == Kind::SET_COMPREHENSION
-           || getKind() == Kind::MATCH_BIND_CASE;
+    return isClosureKind(getKind());
   }
 
   /**

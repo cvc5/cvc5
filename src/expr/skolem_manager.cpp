@@ -21,7 +21,6 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
-#include "proof/proof_rule_checker.h"
 #include "expr/sort_to_term.h"
 #include "util/rational.h"
 #include "util/string.h"
@@ -54,6 +53,7 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
+    case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
     default: return "?";
   }
 }
@@ -177,9 +177,6 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
     d_skolemFunMap[k] = key;
     Trace("sk-manager-skolem") << "mkSkolemFunction(" << id << ", " << cacheVal
                                << ") returns " << k << std::endl;
-    Assert(id != SkolemId::QUANTIFIERS_SKOLEMIZE
-           || (cacheVal.getNumChildren() == 2
-               && cacheVal[0].getKind() == Kind::EXISTS));
     return k;
   }
   return it->second;
@@ -438,6 +435,10 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     {
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, itype);
+    }
+    case SkolemId::BV_EMPTY:
+    {
+      return nm->mkBitVectorType(0);
     }
     // int -> Type(args[0])
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:
