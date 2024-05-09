@@ -248,14 +248,14 @@ function(check_python_module module)
 
   if(RET_MODULE_TEST)
     if(ENABLE_AUTO_DOWNLOAD)
-      message(STATUS "Installing module ${module_name} in Python venv")
+      message(STATUS "Installing Python module ${module_name}")
       execute_process(
         COMMAND
         ${Python_EXECUTABLE} -m pip install ${module_name}
         RESULT_VARIABLE PYTHON_MODULE_INSTALL_CMD_EXIT_CODE
       )
       if(PYTHON_MODULE_INSTALL_CMD_EXIT_CODE)
-        message(FATAL_ERROR "Could not install ${module_name} in venv")
+        message(FATAL_ERROR "Could not install Python module ${module_name}")
       endif()
     else()
       message(FATAL_ERROR

@@ -99,7 +99,11 @@ cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
 cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
+cvc5_option(USE_PYTHON_VENV       "Install Python dependencies in virtual environment")
 cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
+
+cvc5_set_option(USE_PYTHON_VENV ON)
+
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
@@ -385,7 +389,7 @@ endif()
 # We use this path in the installation step of the Python bindings.
 set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}")
 
-if(ENABLE_AUTO_DOWNLOAD)
+if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
   # Set up Python venv if one doesn't exist already
   set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
   if(NOT EXISTS ${VENV_PATH})
