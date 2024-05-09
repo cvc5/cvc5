@@ -63,7 +63,7 @@ jobs:
 
           - name: win64:production
             os: windows-latest
-            config: production --auto-download
+            config: production --auto-download --java-bindings
             cache-key: production-win64-native
             strip-bin: strip
             windows-build: true
