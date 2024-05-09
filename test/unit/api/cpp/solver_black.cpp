@@ -2501,6 +2501,33 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   ASSERT_TRUE(xval != yval);
 }
 
+class PluginUnsat : public Plugin
+{
+ public:
+  PluginUnsat(TermManager& tm) : Plugin(tm), d_tm(tm) {}
+  virtual ~PluginUnsat() {}
+  std::vector<Term> check() override
+  {
+    std::vector<Term> lemmas;
+    // add the "false" lemma.
+    Term flem = d_tm.mkBoolean(false);
+    lemmas.push_back(flem);
+    return lemmas;
+  }
+  std::string getName() override { return "PluginUnsat"; }
+ private:
+  /** Reference to the term manager */
+  TermManager& d_tm;
+};
+
+TEST_F(TestApiBlackSolver, pluginUnsat)
+{
+  PluginUnsat pu(d_tm);
+  d_solver->addPlugin(pu);
+  // should be unsat since the plugin above asserts "false" as a lemma
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+}
+
 TEST_F(TestApiBlackSolver, verticalBars)
 {
   Term a = d_solver->declareFun("|a |", {}, d_tm.getRealSort());
