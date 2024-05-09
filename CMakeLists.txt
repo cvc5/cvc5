@@ -401,13 +401,11 @@ if(ENABLE_AUTO_DOWNLOAD)
     endif()
   endif()
 
-  # Forget current Python interpreter
-  unset(Python_EXECUTABLE)
-  unset(Python_EXECUTABLE CACHE)
-
   # Set up variables to find Python within the virtual environment
   set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
-  set(Python_FIND_VIRTUALENV FIRST)
+  unset(Python_EXECUTABLE CACHE)
+  set(Python_EXECUTABLE
+    "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}/bin/python3")
 
   # Find the Python interpreter within the virtual environment
   if(BUILD_BINDINGS_PYTHON)
