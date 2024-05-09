@@ -128,7 +128,8 @@ versions; more recent versions should be compatible.
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
-a virtual environment if they are missing.
+a virtual environment if they are missing. To install the modules globally and skip
+the creation of the virtual environment, configure cvc5 with ``./configure.sh --no-pyvenv``.
 
 CaDiCaL (SAT solver)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -272,7 +273,8 @@ Dependencies for Language Bindings
   - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
-a virtual environment if they are missing.
+a virtual environment if they are missing. To install the modules globally and skip
+the creation of the virtual environment, configure cvc5 with ``./configure.sh --no-pyvenv``.
 
 If configured with ``--pythonic-path=PATH``, the build system will expect the Pythonic API's source to be at ``PATH``.
 Otherwise, if configured with ``--auto-download``, the build system will download it.
