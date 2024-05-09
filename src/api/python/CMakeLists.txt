@@ -13,8 +13,6 @@
 # The build system configuration.
 ##
 
-find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
-
 if(NOT ONLY_PYTHON_EXT_SRC)
   # Python modules for building and installing
   check_python_module("setuptools")
@@ -227,7 +225,7 @@ else()
   )
 
   set(INSTALL_CMD
-      "${Python_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}")
+      "${Python_BASE_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}")
 
   # If the user does not set a prefix, install the Python bindings in
   # the default location designated by the Python interpreter used to
