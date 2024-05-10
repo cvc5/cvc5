@@ -317,6 +317,15 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     break;
   }  // Kind::SET_CHOOSE
+  case Kind::SET_IS_EMPTY:
+  {
+    if (node[0].isConst())
+    {
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(node[0].getKind() == Kind::SET_EMPTY));
+    }
+    Node eq = nodeManager()->mkNode(Kind::EQUAL, node[0], nodeManager()->mkConst(EmptySet(node[0].getType())));
+    return RewriteResponse(REWRITE_AGAIN, eq);
+  }
   case Kind::SET_IS_SINGLETON:
   {
     Kind nk = node[0].getKind();
