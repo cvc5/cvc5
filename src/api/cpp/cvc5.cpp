@@ -5903,6 +5903,7 @@ Op TermManager::mkOp(Kind kind, const std::vector<uint32_t>& args)
       break;
     case Kind::DIVISIBLE:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] != 0, args, 0) << "a value != 0";
       res = mkOpHelper(kind, internal::Divisible(args[0]));
       break;
     case Kind::FLOATINGPOINT_TO_SBV:
