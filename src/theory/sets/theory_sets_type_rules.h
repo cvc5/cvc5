@@ -165,7 +165,8 @@ struct ChooseTypeRule
 };
 
 /**
- * Type rule for (set.is_empty A) and (set.is_singleton A) to check the argument A is a set.
+ * Type rule for (set.is_empty A) and (set.is_singleton A) to check the argument
+ * A is a set.
  */
 struct IsSetTypeRule
 {
