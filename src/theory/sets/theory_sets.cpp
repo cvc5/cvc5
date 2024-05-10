@@ -32,7 +32,8 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
       d_skCache(env.getRewriter()),
       d_state(env, valuation, d_skCache),
-      d_im(env, *this, d_state),
+      d_rewriter(nodeManager()),
+      d_im(env, *this, &d_rewriter, d_state),
       d_cpacb(*this),
       d_internal(
           new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_cpacb)),
@@ -47,10 +48,7 @@ TheorySets::~TheorySets()
 {
 }
 
-TheoryRewriter* TheorySets::getTheoryRewriter()
-{
-  return d_internal->getTheoryRewriter();
-}
+TheoryRewriter* TheorySets::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheorySets::getProofChecker() { return nullptr; }
 
