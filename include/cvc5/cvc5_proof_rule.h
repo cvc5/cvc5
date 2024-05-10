@@ -1551,9 +1551,9 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (w_2 \cdot s),\,
-   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = w_3\cdot r)}
+   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = t_3\cdot r)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
    * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
    * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(w_3)))`.  Note that
@@ -1567,9 +1567,9 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (s \cdot w_2),\,
-   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot w_3)}
+   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot t_3)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
    * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
    * w_1)`, and :math:`r` is :math:`\mathit{skolem}(\mathit{pre}(t_2,
