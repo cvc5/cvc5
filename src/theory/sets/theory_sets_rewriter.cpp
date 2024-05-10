@@ -92,21 +92,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                || node[1].getKind() == Kind::SET_INTER
                || node[1].getKind() == Kind::SET_MINUS)
       {
-        std::vector<Node> children;
-        for (unsigned i = 0; i < node[1].getNumChildren(); i++)
-        {
-          Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
-          if (node[1].getKind() == Kind::SET_MINUS && i == 1)
-          {
-            nc = nc.negate();
-          }
-          children.push_back(nc);
-        }
-        return RewriteResponse(
-            REWRITE_AGAIN_FULL,
-            nm->mkNode(
-                node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
-                children));
+        Node ret = rewriteMembershipBinaryOp(node);
+        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
       break;
     }  // Kind::SET_MEMBER
@@ -617,6 +604,22 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   return RewriteResponse(REWRITE_DONE, node);
 }
 
+Node TheorySetsRewriter::rewriteMembershipBinaryOp(const Node& node)
+{
+  NodeManager* nm = nodeManager();
+  std::vector<Node> children;
+  for (size_t i = 0, nchild = node[1].getNumChildren(); i < nchild; i++)
+  {
+    Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
+    if (node[1].getKind() == Kind::SET_MINUS && i == 1)
+    {
+      nc = nc.negate();
+    }
+    children.push_back(nc);
+  }
+  return nm->mkNode(node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
+                    children);
+}
 
 // static
 RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {

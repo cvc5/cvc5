@@ -741,11 +741,8 @@ Node CoreSolver::getConclusion(Node x,
   Node conc;
   if (rule == ProofRule::CONCAT_SPLIT || rule == ProofRule::CONCAT_LPROP)
   {
-    // must compare so that we are agnostic to order of x/y
-    Node ux = x < y ? x : y;
-    Node uy = x < y ? y : x;
-    Node sk = skc->mkSkolemCached(ux,
-                                  uy,
+    Node sk = skc->mkSkolemCached(x,
+                                  y,
                                   isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
                                         : SkolemCache::SK_ID_V_UNIFIED_SPT,
                                   "v_spt");
@@ -761,9 +758,7 @@ Node CoreSolver::getConclusion(Node x,
     {
       Node eq2 = y.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, x)
                                 : nm->mkNode(Kind::STRING_CONCAT, x, sk));
-      // make agnostic to x/y
-      conc = x < y ? nm->mkNode(Kind::OR, eq1, eq2)
-                   : nm->mkNode(Kind::OR, eq2, eq1);
+      conc = nm->mkNode(Kind::OR, eq1, eq2);
     }
     // we can assume its length is greater than zero
     Node emp = Word::mkEmptyWord(sk.getType());
