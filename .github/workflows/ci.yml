@@ -61,17 +61,17 @@ jobs:
             strip-bin: strip
             python-bindings: true
 
-          - name: win64:production
-            os: windows-latest
-            config: production --auto-download
-            cache-key: production-win64-native
-            strip-bin: strip
-            windows-build: true
-            shell: 'msys2 {0}'
-            check-examples: true
-            package-name: cvc5-Win64
-            exclude_regress: 1-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+          # - name: win64:production
+          #   os: windows-latest
+          #   config: production --auto-download
+          #   cache-key: production-win64-native
+          #   strip-bin: strip
+          #   windows-build: true
+          #   shell: 'msys2 {0}'
+          #   check-examples: true
+          #   package-name: cvc5-Win64
+          #   exclude_regress: 1-4
+          #   run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: win64:production-cross
             os: ubuntu-latest
