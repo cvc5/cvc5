@@ -321,10 +321,13 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   {
     if (node[0].isConst())
     {
+      // (set.is_empty c) ---> true if c is emptyset
+      // (set.is_empty c) ---> false if c is a constant that is not the emptyset
       return RewriteResponse(
           REWRITE_DONE,
           nodeManager()->mkConst(node[0].getKind() == Kind::SET_EMPTY));
     }
+    // (set.is_empty x) ----> (= x (as set.empty (Set T))).
     Node eq = nodeManager()->mkNode(
         Kind::EQUAL,
         node[0],
