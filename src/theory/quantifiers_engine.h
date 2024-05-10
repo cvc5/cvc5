@@ -33,11 +33,11 @@ class TheoryEngine;
 
 namespace theory {
 
-class QuantifiersModule;
 class RepSetIterator;
 
 namespace quantifiers {
 
+class QuantifiersModule;
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;
@@ -185,7 +185,7 @@ class QuantifiersEngine : protected EnvObj
   /** vector of utilities for quantifiers */
   std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */
-  std::vector<QuantifiersModule*> d_modules;
+  std::vector<quantifiers::QuantifiersModule*> d_modules;
   //------------- quantifiers utilities
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& d_qreg;

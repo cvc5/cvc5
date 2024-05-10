@@ -237,8 +237,9 @@ else()
 
   ExternalProject_Get_Property(Poly-EP BUILD_BYPRODUCTS INSTALL_DIR)
   string(REPLACE "<INSTALL_DIR>" "${INSTALL_DIR}" BUILD_BYPRODUCTS "${BUILD_BYPRODUCTS}")
-  install(FILES
-    ${BUILD_BYPRODUCTS}
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+
+  # Static builds install the Poly static libraries.
+  # These libraries are required to compile a program that
+  # uses the cvc5 static library.
+  install(FILES ${BUILD_BYPRODUCTS} TYPE ${LIB_BUILD_TYPE})
 endif()

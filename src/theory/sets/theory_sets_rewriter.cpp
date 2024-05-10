@@ -20,6 +20,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/elim_shadow_converter.h"
 #include "options/sets_options.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
@@ -91,21 +92,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                || node[1].getKind() == Kind::SET_INTER
                || node[1].getKind() == Kind::SET_MINUS)
       {
-        std::vector<Node> children;
-        for (unsigned i = 0; i < node[1].getNumChildren(); i++)
-        {
-          Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
-          if (node[1].getKind() == Kind::SET_MINUS && i == 1)
-          {
-            nc = nc.negate();
-          }
-          children.push_back(nc);
-        }
-        return RewriteResponse(
-            REWRITE_AGAIN_FULL,
-            nm->mkNode(
-                node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
-                children));
+        Node ret = rewriteMembershipBinaryOp(node);
+        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
       break;
     }  // Kind::SET_MEMBER
@@ -347,6 +335,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
   case Kind::SET_COMPREHENSION: return postRewriteComprehension(node); break;
 
+  case Kind::RELATION_TABLE_JOIN: return postRewriteTableJoin(node); break;
   case Kind::SET_MAP: return postRewriteMap(node);
   case Kind::SET_FILTER: return postRewriteFilter(node);
   case Kind::SET_FOLD: return postRewriteFold(node);
@@ -615,6 +604,22 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   return RewriteResponse(REWRITE_DONE, node);
 }
 
+Node TheorySetsRewriter::rewriteMembershipBinaryOp(const Node& node)
+{
+  NodeManager* nm = nodeManager();
+  std::vector<Node> children;
+  for (size_t i = 0, nchild = node[1].getNumChildren(); i < nchild; i++)
+  {
+    Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
+    if (node[1].getKind() == Kind::SET_MINUS && i == 1)
+    {
+      nc = nc.negate();
+    }
+    children.push_back(nc);
+  }
+  return nm->mkNode(node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
+                    children);
+}
 
 // static
 RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
@@ -662,6 +667,51 @@ RewriteResponse TheorySetsRewriter::postRewriteComprehension(TNode n)
   if (ne != n)
   {
     return RewriteResponse(REWRITE_AGAIN_FULL, ne);
+  }
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteTableJoin(TNode n)
+{
+  Assert(n.getKind() == Kind::RELATION_TABLE_JOIN);
+
+  Node A = n[0];
+  Node B = n[1];
+  TypeNode tupleType = n.getType().getSetElementType();
+  if (A.isConst() && B.isConst())
+  {
+    auto [aIndices, bIndices] = bags::BagsUtils::splitTableJoinIndices(n);
+
+    std::set<Node> elementsA = NormalForm::getElementsFromNormalConstant(A);
+    std::set<Node> elementsB = NormalForm::getElementsFromNormalConstant(B);
+    std::set<Node> newSet;
+
+    for (const auto& a : elementsA)
+    {
+      for (const auto& b : elementsB)
+      {
+        bool notMatched = false;
+        for (size_t i = 0; i < aIndices.size(); i++)
+        {
+          Node aElement = TupleUtils::nthElementOfTuple(a, aIndices[i]);
+          Node bElement = TupleUtils::nthElementOfTuple(b, bIndices[i]);
+          if (aElement != bElement)
+          {
+            notMatched = true;
+          }
+        }
+        if (notMatched)
+        {
+          continue;
+        }
+        Node element = TupleUtils::concatTuples(tupleType, a, b);
+        newSet.insert(element);
+      }
+    }
+
+    Node ret = NormalForm::elementsToSet(newSet, n.getType());
+
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }

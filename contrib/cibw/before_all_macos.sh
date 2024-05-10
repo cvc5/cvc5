@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-python3 -m pip install -r contrib/requirements_build.txt
-
 ./configure.sh production --auto-download \
   --python-bindings --python-only-src --prefix=./install -DBUILD_GMP=1
 

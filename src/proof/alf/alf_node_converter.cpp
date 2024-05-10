@@ -265,6 +265,18 @@ Node AlfNodeConverter::postConvert(Node n)
     args.insert(args.end(), n.begin(), n.end());
     return mkInternalApp("@list", args, tn);
   }
+  else if (k == Kind::APPLY_INDEXED_SYMBOLIC)
+  {
+    Kind okind = n.getOperator().getConst<GenericOp>().getKind();
+    if (okind == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
+    {
+      // This does not take a rounding mode, we change the smt2 syntax
+      // to distinguish this case, similar to the case in getOperatorOfTerm
+      // where it is processed as an indexed operator.
+      std::vector<Node> children(n.begin(), n.end());
+      return mkInternalApp("to_fp_bv", children, tn);
+    }
+  }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
     // return app of?
@@ -343,8 +355,15 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
     }
     if (!app.isNull())
     {
-      // wrap in "skolem" operator
-      return mkInternalApp("skolem", {app}, k.getType());
+      // If it has no children, then we don't wrap in `(skolem ...)`, since it
+      // makes no difference for substitution. Moreover, it is important not
+      // to do this since bitvector concat uses @bv_empty as its nil terminator.
+      if (sfi == SkolemId::PURIFY || app.getNumChildren() > 0)
+      {
+        // wrap in "skolem" operator
+        return mkInternalApp("skolem", {app}, k.getType());
+      }
+      return app;
     }
   }
   return Node::null();
@@ -377,45 +396,6 @@ size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
 Node AlfNodeConverter::mkNil(TypeNode tn)
 {
   return mkInternalSymbol("alf.nil", tn);
-}
-
-Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
-{
-  // note this method should remain in sync with getCongRule in
-  // proof_node_algorithm.cpp.
-  switch (k)
-  {
-    case Kind::APPLY_UF:
-    case Kind::DISTINCT:
-    case Kind::FLOATINGPOINT_LT:
-    case Kind::FLOATINGPOINT_LEQ:
-    case Kind::FLOATINGPOINT_GT:
-    case Kind::FLOATINGPOINT_GEQ:
-      // the above operators may take arbitrary number of arguments but are not
-      // marked as n-ary in ALF
-      return Node::null();
-    case Kind::APPLY_CONSTRUCTOR:
-      // tuple constructor is n-ary with unit tuple as null terminator
-      if (tn.isTuple())
-      {
-        TypeNode tnu = NodeManager::currentNM()->mkTupleType({});
-        return NodeManager::currentNM()->mkGroundValue(tnu);
-      }
-      return Node::null();
-      break;
-    case Kind::OR: return NodeManager::currentNM()->mkConst(false);
-    case Kind::SEP_STAR:
-    case Kind::AND: return NodeManager::currentNM()->mkConst(true);
-    case Kind::ADD: return NodeManager::currentNM()->mkConstInt(Rational(0));
-    case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      return NodeManager::currentNM()->mkConstInt(Rational(1));
-    case Kind::BITVECTOR_CONCAT:
-      return mkInternalSymbol("@bvempty",
-                              NodeManager::currentNM()->mkBitVectorType(0));
-    default: break;
-  }
-  return mkNil(tn);
 }
 
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
@@ -707,6 +687,7 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
   {
     case SkolemId::PURIFY:
     case SkolemId::ARRAY_DEQ_DIFF:
+    case SkolemId::BV_EMPTY:
     case SkolemId::DIV_BY_ZERO:
     case SkolemId::INT_DIV_BY_ZERO:
     case SkolemId::MOD_BY_ZERO:

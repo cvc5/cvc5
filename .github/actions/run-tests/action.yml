@@ -56,7 +56,7 @@ runs:
         cd examples
         mkdir -p build && cd build
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          export PATH="${{ inputs.build-dir }}/install/lib:$PATH"
+          export PATH="${{ inputs.build-dir }}/install/bin:$PATH"
           export CMAKE_GENERATOR="MSYS Makefiles"
         fi
         cmake .. -DCMAKE_PREFIX_PATH=${{ inputs.build-dir }}/install/lib/cmake \

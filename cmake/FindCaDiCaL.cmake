@@ -172,4 +172,11 @@ if(CaDiCaL_FOUND_SYSTEM)
 else()
   message(STATUS "Building CaDiCaL ${CaDiCaL_VERSION}: ${CaDiCaL_LIBRARIES}")
   add_dependencies(CaDiCaL CaDiCaL-EP)
+
+  # Install CaDiCaL static library only if it is a static build.
+  # The CaDiCaL static library is required to compile a program that
+  # uses the cvc5 static library.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${CaDiCaL_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()
