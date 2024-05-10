@@ -399,16 +399,17 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
   return setType.getSetElementType();
 }
 
-TypeNode IsSingletonTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IsSetTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->booleanType();
 }
-TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
-                                          TNode n,
-                                          bool check,
-                                          std::ostream* errOut)
+TypeNode IsSetTypeRule::computeType(NodeManager* nodeManager,
+                                    TNode n,
+                                    bool check,
+                                    std::ostream* errOut)
 {
-  Assert(n.getKind() == Kind::SET_IS_SINGLETON);
+  Assert(n.getKind() == Kind::SET_IS_EMPTY
+         || n.getKind() == Kind::SET_IS_SINGLETON);
   TypeNode setType = n[0].getTypeOrNull();
   if (check)
   {
@@ -416,8 +417,8 @@ TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut)
-            << "SET_IS_SINGLETON operator expects a set, a non-set is found";
+        (*errOut) << n.getKind()
+                  << " operator expects a set, a non-set is found";
       }
       return TypeNode::null();
     }

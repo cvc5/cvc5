@@ -69,13 +69,17 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   void setCollectAllTrustedRules();
   /**
    * Get trusted proofs, which is the set of all trusted proofs
-   * that were encountered in the last call to process.
+   * that were encountered in the last call to process, collected at
+   * post-order traversal.
    */
   std::unordered_set<std::shared_ptr<ProofNode>>& getTrustedProofs();
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
+  /** Should proof pn be updated? */
+  bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                        const std::vector<Node>& fa) override;
   /** Update the proof rule application. */
   bool update(Node res,
               ProofRule id,

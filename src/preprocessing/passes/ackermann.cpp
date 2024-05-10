@@ -106,13 +106,8 @@ void storeFunctionAndAddLemmas(TNode func,
   TNodeSet& set = fun_to_args[func];
   if (set.find(term) == set.end())
   {
-    TypeNode tn = term.getType();
     SkolemManager* sm = nm->getSkolemManager();
-    Node skolem =
-        sm->mkDummySkolem("SKOLEM$$",
-                          tn,
-                          "is a variable created by the ackermannization "
-                          "preprocessing pass");
+    Node skolem = sm->mkPurifySkolem(term);
     for (const auto& t : set)
     {
       addLemmaForPair(t, term, func, assertions, nm);
@@ -220,7 +215,7 @@ void collectUSortsToBV(const std::unordered_set<TNode>& vars,
     TypeNode type = var.getType();
     size_t size = getBVSkolemSize(usortCardinality.at(type));
     Node skolem = sm->mkDummySkolem(
-        "BVSKOLEM$$",
+        "ackermann.bv",
         nm->mkBitVectorType(size),
         "a variable created by the ackermannization "
         "preprocessing pass, representing a variable with uninterpreted sort "
