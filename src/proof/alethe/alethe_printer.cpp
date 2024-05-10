@@ -273,7 +273,8 @@ void AletheProofPrinter::printInternal(
       {
         if (args[i].getKind() == Kind::EQUAL)
         {
-          out << "(:= " << args[i][0] << " ";
+          Assert(args[i][0].getKind() == Kind::BOUND_VARIABLE);
+          out << "(:= (" << args[i][0] << " " << args[i].getType() << ") ";
           printTerm(out, args[i][1]);
           out << ")" << (i != args.size() - 1 ? " " : "");
           continue;
