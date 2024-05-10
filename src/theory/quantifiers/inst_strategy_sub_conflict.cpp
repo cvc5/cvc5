@@ -67,12 +67,7 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
-  double clSet = 0;
-  if (TraceIsOn("qscf-engine"))
-  {
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("qscf-engine") << "---Subconflict Find Engine Round---" << std::endl;
-  }
+  beginCallDebug();
   std::vector<Node> assertions;
   std::unordered_set<Node> quants;
   const LogicInfo& logicInfo = d_qstate.getLogicInfo();
@@ -167,19 +162,10 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
     d_qstate.notifyConflictingInst();
   }
 
-  if (TraceIsOn("qscf-engine"))
-  {
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("qscf-engine") << "Finished subconflict find engine, time = "
-                         << (clSet2 - clSet);
-    Trace("qscf-engine") << ", result = " << r;
-    if (addedLemmas > 0)
-    {
-      Trace("qscf-engine") << ", addedLemmas = " << addedLemmas;
-    }
-    Trace("qscf-engine") << std::endl;
-  }
+  endCallDebug();
 }
+
+std::string InstStrategySubConflict::identify() const { return "sub-cbqi"; }
 
 }  // namespace quantifiers
 }  // namespace theory

@@ -147,10 +147,11 @@ bool hasSubtermKind(Kind k, Node n)
       {
         return true;
       }
-      for (const Node& cn : cur)
+      if (cur.hasOperator())
       {
-        visit.push_back(cn);
+        visit.push_back(cur.getOperator());
       }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
   return false;
@@ -173,11 +174,15 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
     visit.pop_back();
     if (visited.find(cur) == visited.end())
     {
+      visited.insert(cur);
       if (ks.find(cur.getKind()) != ks.end())
       {
         return true;
       }
-      visited.insert(cur);
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());

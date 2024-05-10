@@ -309,11 +309,14 @@ EvalResult Evaluator::evalInternal(
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
-        if (currNodeVal.getNumChildren() > 0)
+        if (currNodeVal.getNumChildren() > 0
+            && currNodeVal.getKind() != Kind::BITVECTOR_SIZE)
         {
           // We may continue with a valid EvalResult at this point only if
           // we have no children. We must otherwise fail here since some of
           // our children may not have successful evaluations.
+          // bvsize is a rare exception to this, where the evaluation does
+          // not depend on the value of the argument.
           results[currNode] = EvalResult();
           evalAsNode[currNode] = currNodeVal;
           continue;
