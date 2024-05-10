@@ -70,7 +70,7 @@ operator SET_COMPREHENSION 3 "set comprehension specified by a bound variable li
 # If the set has cardinality > 1, then (choose A) will deterministically return an element in A.
 operator SET_CHOOSE        1  "return an element in the set given as a parameter"
 
-# The operator is_singleton returns whether the given set is empty
+# The operator set.is_empty returns whether the given set is empty
 operator SET_IS_EMPTY  1  "return whether the given set is empty"
 # The operator is_singleton returns whether the given set is a singleton
 operator SET_IS_SINGLETON  1  "return whether the given set is a singleton"
