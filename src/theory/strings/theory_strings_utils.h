@@ -71,7 +71,7 @@ Node mkPrefix(Node t, Node n);
 Node mkSuffix(Node t, Node n);
 
 /**
- * Returns (suf t n), which is (str.substr t (- (str.len t) n) (str.len t)).
+ * Returns (suf t n), which is (str.substr t (- (str.len t) n) n).
  */
 Node mkSuffixOfLen(Node t, Node n);
 
