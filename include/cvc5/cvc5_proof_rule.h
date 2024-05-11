@@ -1448,8 +1448,9 @@ enum ENUM(ProofRule) : uint32_t
    * where :math:`r` is
    * :math:`\mathit{skolem}(\mathit{ite}(
    * \mathit{len}(t_1) >= \mathit{len}(s_1),
-   * \mathit{suf}(t_1,\mathit{len}(s_1)), 
-   * \mathit{suf}(s_1,\mathit{len}(t_1))))`.
+   * \mathit{suf}(t_1,\mathit{len}(s_1)),
+   * \mathit{suf}(s_1,\mathit{len}(t_1))))`
+   * and `\epsilon` is the empty string (or sequence).
    *
    * .. math::
    *
@@ -1457,11 +1458,11 @@ enum ENUM(ProofRule) : uint32_t
    *   \mathit{len}(t_2) \neq \mathit{len}(s_2)\mid b}{((t_2 = r \cdot s_2)
    *   \vee (s_2 = r \cdot t_2)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}{if $b=\top$}
    *
-   * where :math:`r` is
-   * :math:`\mathit{skolem}(\mathit{ite}(
+   * where :math:`r` is the purification Skolem for
+   * :math:`\mathit{ite}(
    * \mathit{len}(t_2) >= \mathit{len}(s_2),
    * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
-   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2))))`
+   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))`
    * and `\epsilon` is the empty string (or sequence).
    *
    * Above, :math:`\mathit{suf}(x,n)` is shorthand for
@@ -1500,21 +1501,26 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) > \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r_t)}
+   *   \mathit{len}(t_1) > \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r)}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))`.
+   * where :math:`r` is the purification Skolem for
+   * :math:`\mathit{skolem}(\mathit{ite}(
+   * \mathit{len}(t_1) >= \mathit{len}(s_1),
+   * \mathit{suf}(t_1,\mathit{len}(s_1)),
+   * \mathit{suf}(s_1,\mathit{len}(t_1))))`.
    *
    * Alternatively for the reverse:
    *
    * .. math::
    *
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_2) > \mathit{len}(s_2)\mid \top}{(t_2 = r_t\cdot s_2)}
+   *   \mathit{len}(t_2) > \mathit{len}(s_2)\mid \top}{(t_2 = r \cdot s_2)}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) -
-   * \mathit{len}(s_2)))`.
+   * where :math:`r` is the purification Skolem for
+   * :math:`\mathit{ite}(
+   * \mathit{len}(t_2) >= \mathit{len}(s_2),
+   * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
+   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))`
    * \endverbatim
    */
   EVALUE(CONCAT_LPROP),
@@ -1525,9 +1531,9 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (w_2 \cdot s),\,
-   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = w_3\cdot r)}
+   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = t_3\cdot r)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
    * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
    * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(w_3)))`.  Note that
@@ -1541,10 +1547,10 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (s \cdot w_2),\,
-   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot w_3)}
+   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot t_3)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
-   * :math:`\mathit{suf}(w_2, \mathit{len}(w_2) - p)`, :math:`p` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
+   * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
    * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
    * w_1)`, and :math:`r` is :math:`\mathit{skolem}(\mathit{pre}(t_2,
    * \mathit{len}(t_2) - \mathit{len}(w_3)))`.  Note that
