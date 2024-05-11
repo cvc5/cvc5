@@ -792,10 +792,9 @@ Node CoreSolver::getConclusion(Node x,
     Assert(d.isConst());
     Node c = y;
     Assert(c.isConst());
-    size_t cLen = Word::getLength(c);
     size_t p = getSufficientNonEmptyOverlap(c, d, isRev);
-    Node preC =
-        p == cLen ? c : (isRev ? Word::suffix(c, p) : Word::prefix(c, p));
+    Node rp = nm->mkConstInt(p);
+    Node preC = (isRev ? utils::mkSuffixOfLen(c, rp) : utils::mkPrefix(c, rp));
     Node sk = skc->mkSkolemCached(
         z,
         preC,
