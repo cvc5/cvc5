@@ -43,7 +43,6 @@ namespace cvc5::internal {
 // A helper function to compute 2^b as a Rational
 Rational intpow2(uint32_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
-
 IntBlaster::IntBlaster(Env& env,
                        options::SolveBVAsIntMode mode,
                        uint64_t granularity)
@@ -970,7 +969,8 @@ void IntBlaster::collectQuantificationData(Node n) {
           if (d_quantifiedVariables.find(child) == d_quantifiedVariables.end()) {
             collectQuantificationData(child);
           }
-          for (Node varOfChild : d_quantifiedVariables[child].get()) {
+          for (Node varOfChild : d_quantifiedVariables[child].get())
+          {
             qfvars.insert(varOfChild);
           }
         }
@@ -985,8 +985,8 @@ void IntBlaster::collectQuantificationData(Node n) {
     }
 
     // populating d_quantApplies
-    if (d_quantApplies.find(n) == d_quantApplies.end()) {
-
+    if (d_quantApplies.find(n) == d_quantApplies.end())
+    {
       std::unordered_set<Node> applies;
       expr::getKindSubterms(n, Kind::APPLY_UF, true, applies);
       d_quantApplies[n] = applies;
@@ -1030,16 +1030,16 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   }
 
   /* collect range constraints for UF applciations
-  * that involve quantified variables.
-  * Unlike quantified variables, whose constraints
-  * are saved in rangeConstraints, we save the range
-  * constraints for quantified uf applications in
-  * ufRangeConstraints.
-  * They are used differently in FORALL nodes.
-  * rangeConstraints is added as the left side
-  * of an implication, while ufRangeConstraints is added
-  * as a conjunction.
-  */
+   * that involve quantified variables.
+   * Unlike quantified variables, whose constraints
+   * are saved in rangeConstraints, we save the range
+   * constraints for quantified uf applications in
+   * ufRangeConstraints.
+   * They are used differently in FORALL nodes.
+   * rangeConstraints is added as the left side
+   * of an implication, while ufRangeConstraints is added
+   * as a conjunction.
+   */
   std::vector<Node> ufRangeConstraints;
   std::unordered_set<Node> applies = d_quantApplies[quantifiedNode];
   for (const Node& apply : applies)
@@ -1056,18 +1056,18 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
       Assert(d_quantifiedVariables.find(quantifiedNode) != d_quantifiedVariables.end());
       Assert(d_quantifiedVariables.find(originalMatrix) != d_quantifiedVariables.end());
       /** only add the constraints for the quantified uf application
-      * if the variables all belong to the quantified formula,
-      * but include at least one variables that is new. 
-      * For example, in forall x exists y. f(x,y) /\ g(y),
-      * when we reach the forall node, we only add the constraint
-      * for f(x,y), but not for g(y), for which the constraint
-      * was already added.
-      */
+       * if the variables all belong to the quantified formula,
+       * but include at least one variables that is new.
+       * For example, in forall x exists y. f(x,y) /\ g(y),
+       * when we reach the forall node, we only add the constraint
+       * for f(x,y), but not for g(y), for which the constraint
+       * was already added.
+       */
       std::unordered_set<Node> varsApply = d_quantifiedVariables[apply];
       std::unordered_set<Node> varsNode = d_quantifiedVariables[quantifiedNode];
-      std::unordered_set<Node> varsMatrix = d_quantifiedVariables[originalMatrix];
+      std::unordered_set<Node> varsMatrix =
+          d_quantifiedVariables[originalMatrix];
       if (! std::includes(varsNode.begin(), varsNode.end(), varsApply.begin(), varsApply.end()) && std::includes(varsMatrix.begin(), varsMatrix.end(), varsApply.begin(), varsApply.end())) {
-
         unsigned bvsize = range.getBitVectorSize();
         ufRangeConstraints.push_back(
             mkRangeConstraint(d_intblastCache[apply], bvsize));

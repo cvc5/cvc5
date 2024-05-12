@@ -115,7 +115,6 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
   ASSERT_TRUE(resultRange.isBoolean());
 }
 
-
 TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf_quant)
 {
   Env& env = d_slvEngine->getEnv();
@@ -136,7 +135,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf_quant)
   Node xeqfx = d_nodeManager->mkNode(Kind::EQUAL, x, fx);
   Node bvl = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, {x});
   Node formula = d_nodeManager->mkNode(Kind::FORALL, bvl, xeqfx);
-  
+
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.intBlast(formula, lemmas, skolems);
   Kind kind = result.getKind();
@@ -170,13 +169,12 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_collect_quant)
   Node xeqfx = d_nodeManager->mkNode(Kind::EQUAL, x, fx);
   Node bvl = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, {x});
   Node formula = d_nodeManager->mkNode(Kind::FORALL, bvl, xeqfx);
-  
+
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   intBlaster.collectQuantificationData(formula);
   ASSERT_TRUE(intBlaster.d_quantifiedVariables.size() > 0);
   ASSERT_TRUE(intBlaster.d_quantApplies.size() > 0);
 }
-
 
 /** Check all cases of the translation.
  * This is a sanity check, that only verifies

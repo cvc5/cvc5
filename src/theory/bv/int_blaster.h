@@ -347,16 +347,16 @@ class IntBlaster : protected EnvObj
   CDNodeMap d_binarizeCache;
   CDNodeMap d_intblastCache;
 
-  /** 
+  /**
    * Cache for applications of functions in which at least
    * one of the parameters is a quantified variables.
    * This is needed in order to correctly translate
    * such nodes.
    */
   context::CDHashMap<Node, std::unordered_set<Node>> d_quantApplies;
- 
-  /** 
-   * Cache for quantified variables of each node.  
+
+  /**
+   * Cache for quantified variables of each node.
    * This is needed in order to correctly translate
    * quantified formulas.
    */
