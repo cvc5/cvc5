@@ -1,4 +1,4 @@
-; EXPECT: sat
+; EXPECT: unsat
 (set-logic ALL)
 (set-option :mbqi true)
 (set-option :solve-bv-as-int iand)
