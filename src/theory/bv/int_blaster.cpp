@@ -1029,9 +1029,17 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
     }
   }
 
-  // collect range constraints for UF applciations
-  // that involve quantified variables
-  
+  /* collect range constraints for UF applciations
+  * that involve quantified variables.
+  * Unlike quantified variables, whose constraints
+  * are saved in rangeConstraints, we save the range
+  * constraints for quantified uf applications in
+  * ufRangeConstraints.
+  * They are used differently in FORALL nodes.
+  * rangeConstraints is added as the left side
+  * of an implication, while ufRangeConstraints is added
+  * as a conjunction.
+  */
   std::vector<Node> ufRangeConstraints;
   std::unordered_set<Node> applies = d_quantApplies[quantifiedNode];
   for (const Node& apply : applies)
@@ -1047,11 +1055,17 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
       Assert(d_quantifiedVariables.find(apply) != d_quantifiedVariables.end());
       Assert(d_quantifiedVariables.find(quantifiedNode) != d_quantifiedVariables.end());
       Assert(d_quantifiedVariables.find(originalMatrix) != d_quantifiedVariables.end());
+      /** only add the constraints for the quantified uf application
+      * if the variables all belong to the quantified formula,
+      * but include at least one variables that is new. 
+      * For example, in forall x exists y. f(x,y) /\ g(y),
+      * when we reach the forall node, we only add the constraint
+      * for f(x,y), but not for g(y), for which the constraint
+      * was already added.
+      */
       std::unordered_set<Node> varsApply = d_quantifiedVariables[apply];
       std::unordered_set<Node> varsNode = d_quantifiedVariables[quantifiedNode];
       std::unordered_set<Node> varsMatrix = d_quantifiedVariables[originalMatrix];
-
-
       if (! std::includes(varsNode.begin(), varsNode.end(), varsApply.begin(), varsApply.end()) && std::includes(varsMatrix.begin(), varsMatrix.end(), varsApply.begin(), varsApply.end())) {
 
         unsigned bvsize = range.getBitVectorSize();
