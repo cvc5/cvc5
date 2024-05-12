@@ -25,7 +25,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-/** A checker for array reasoning in proofs */
+/** A checker for sets reasoning in proofs */
 class SetsProofRuleChecker : public ProofRuleChecker
 {
  public:
