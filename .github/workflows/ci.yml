@@ -121,7 +121,6 @@ jobs:
       uses: ./.github/actions/install-dependencies
       with:
         with-documentation: ${{ matrix.build-documentation }}
-        with-python-bindings: ${{ matrix.python-bindings }}
         windows-build: ${{ matrix.windows-build }}
         shell: ${{ matrix.shell }}
 

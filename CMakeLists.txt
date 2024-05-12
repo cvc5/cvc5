@@ -222,6 +222,7 @@ include(Config${CMAKE_BUILD_TYPE})
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
 add_check_c_cxx_supression_flag("-Wno-unused-private-field")
+add_check_c_cxx_supression_flag("-Wno-dangling-reference")
 add_check_c_flag("-fexceptions")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
@@ -365,6 +366,34 @@ endif()
 
 if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
   find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
+else()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
+endif()
+
+# Keep the PATH to the Python binary before setting venv.
+# We use this path in the installation step of the Python bindings.
+set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}")
+
+# Set up Python venv if one doesn't exist already
+set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+if(NOT EXISTS ${VENV_PATH})
+  message(STATUS "Creating Python virtual environment")
+  # Use packages installed in the base installation if they're already present
+  execute_process (COMMAND
+    "${Python_EXECUTABLE}" -m venv --system-site-packages "${VENV_PATH}"
+  )
+endif()
+
+# Find (and set up) the Python interpreter within the virtual environment
+set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+set(Python_FIND_VIRTUALENV FIRST)
+unset(Python_EXECUTABLE)
+unset(Python_EXECUTABLE CACHE)
+
+if(BUILD_BINDINGS_PYTHON)
+  # If the component Development is requested, CMake strongly recommends to
+  # also include the component Interpreter to get expected result.
+  find_package(Python COMPONENTS Interpreter Development REQUIRED)
 else()
   find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()

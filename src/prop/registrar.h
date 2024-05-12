@@ -29,6 +29,10 @@ namespace prop {
 class Registrar {
 public:
   virtual ~Registrar() {}
+  /**
+   * Called when a SAT literal for atom n has been allocated in the SAT solver.
+   * @param n The SAT literal to be notified.
+   */
   virtual void notifySatLiteral(Node n) = 0;
 
 };/* class Registrar */

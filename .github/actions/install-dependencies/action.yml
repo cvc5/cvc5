@@ -3,10 +3,6 @@ description: Install necessary dependencies on the target system
 inputs:
   with-documentation:
     default: false
-  with-python-bindings:
-    default: false
-  with-python-packaging:
-    default: false
   windows-build:
     default: false
     type: boolean
@@ -111,33 +107,6 @@ runs:
         echo "::group::Set up Python virtual environment"
         python3 -m venv ~/.venv
         echo "$HOME/.venv/bin" >> $GITHUB_PATH
-        echo "::endgroup::"
-
-    - name: Install Python modules for building and testing
-      shell: ${{ inputs.shell }}
-      run: |
-        echo "::group::Install Python modules for building and testing"
-        python3 -m pip install -r contrib/requirements_build.txt
-        python3 -m pip install pexpect # For interactive shell tests
-        echo "::endgroup::"
-
-    - name: Install software for Python bindings
-      if: inputs.with-python-bindings == 'true'
-      shell: ${{ inputs.shell }}
-      run: |
-        echo "::group::Install software for Python bindings"
-        python3 -m pip install -q --upgrade pip
-        python3 -m pip install -r contrib/requirements_python_dev.txt
-        echo "::endgroup::"
-
-    - name: Install software for Python packaging
-      if: inputs.with-python-packaging == 'true'
-      shell: ${{ inputs.shell }}
-      run: |
-        echo "::group::Install software for Python packaging"
-        python3 -m pip install -q --upgrade pip
-        python3 -m pip install twine
-        python3 -m pip install -U urllib3 requests
         echo "::endgroup::"
     
     - name: Install software for documentation
