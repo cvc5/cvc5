@@ -40,12 +40,11 @@ using namespace cvc5::internal::theory::bv;
 
 namespace cvc5::internal {
 
-
 namespace {
 // A helper function to compute 2^b as a Rational
 Rational intpow2(uint32_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
-} // namespace
+}  // namespace
 
 IntBlaster::IntBlaster(Env& env,
                        options::SolveBVAsIntMode mode,
@@ -1089,12 +1088,12 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
                              oldBoundVars.end(),
                              newBoundVars.begin(),
                              newBoundVars.end());
-  
+
   // Nodes to represent all the range constraints.
   Node ranges = d_nm->mkAnd(rangeConstraints);
   Node ufRanges = d_nm->mkAnd(ufRangeConstraints);
   matrix = d_nm->mkNode(Kind::AND, ufRanges, matrix);
-  
+
   // Add the range constraints to the body of the quantifier.
   // For "exists", this is added conjunctively
   // For "forall", this is added to the left side of an implication.
