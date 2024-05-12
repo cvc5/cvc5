@@ -1031,6 +1031,8 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 
   // collect range constraints for UF applciations
   // that involve quantified variables
+  
+  std::vector<Node> ufRangeConstraints;
   std::unordered_set<Node> applies = d_quantApplies[quantifiedNode];
   for (const Node& apply : applies)
   {
@@ -1053,7 +1055,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
       if (! std::includes(varsNode.begin(), varsNode.end(), varsApply.begin(), varsApply.end()) && std::includes(varsMatrix.begin(), varsMatrix.end(), varsApply.begin(), varsApply.end())) {
 
         unsigned bvsize = range.getBitVectorSize();
-        rangeConstraints.push_back(
+        ufRangeConstraints.push_back(
             mkRangeConstraint(d_intblastCache[apply], bvsize));
       }
     }
@@ -1068,6 +1070,8 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
                              newBoundVars.end());
   // A node to represent all the range constraints.
   Node ranges = d_nm->mkAnd(rangeConstraints);
+  Node ufRanges = d_nm->mkAnd(ufRangeConstraints);
+  matrix = d_nm->mkNode(Kind::AND, ufRanges, matrix);
   // Add the range constraints to the body of the quantifier.
   // For "exists", this is added conjunctively
   // For "forall", this is added to the left side of an implication.

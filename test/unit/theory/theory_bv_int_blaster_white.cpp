@@ -139,8 +139,44 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf_quant)
   
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.intBlast(formula, lemmas, skolems);
-  ASSERT_TRUE(lemmas.size() > 0);
+  Kind kind = result.getKind();
+  Assert(kind == Kind::FORALL);
+  Node matrix = result[1];
+  Kind matrixKind = matrix.getKind();
+  Assert(matrixKind == Kind::IMPLIES);
+  Node left = matrix[0];
+  Kind leftKind = left.getKind();
+  Assert(leftKind == Kind::AND);
+  std::cout << "matrix is: " << matrix << std::endl;
 }
+
+TEST_F(TestTheoryWhiteBvIntblaster, intblaster_collect_quant)
+{
+  Env& env = d_slvEngine->getEnv();
+  // place holders for lemmas and skolem
+  std::vector<Node> lemmas;
+  std::map<Node, Node> skolems;
+
+  // uf from integers and bit-vectors to Bools
+  std::vector<TypeNode> domain;
+  TypeNode bvType = d_nodeManager->mkBitVectorType(4);
+  domain.push_back(bvType);
+  TypeNode range = bvType;
+  TypeNode funType = d_nodeManager->mkFunctionType(domain, range);
+  Node f = d_nodeManager->mkVar("f", funType);
+
+  Node x = d_nodeManager->mkBoundVar("x", bvType);
+  Node fx = d_nodeManager->mkNode(Kind::APPLY_UF, f, x);
+  Node xeqfx = d_nodeManager->mkNode(Kind::EQUAL, x, fx);
+  Node bvl = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, {x});
+  Node formula = d_nodeManager->mkNode(Kind::FORALL, bvl, xeqfx);
+  
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
+  intBlaster.collectQuantificationData(formula);
+  ASSERT_TRUE(intBlaster.d_quantifiedVariables.size() > 0);
+  ASSERT_TRUE(intBlaster.d_quantApplies.size() > 0);
+}
+
 
 /** Check all cases of the translation.
  * This is a sanity check, that only verifies

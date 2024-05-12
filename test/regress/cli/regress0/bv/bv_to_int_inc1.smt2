@@ -11,8 +11,8 @@
 
 (assert (forall ((x (_ BitVec 4))) (= (f x) (_ bv0 4))))
 (check-sat)
-(push 1)
+(push)
 (assert (forall ((y (_ BitVec 4))) (= (f y) (_ bv1 4))))
 (check-sat)
-(pop 1)
+(pop)
 
