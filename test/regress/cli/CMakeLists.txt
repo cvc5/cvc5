@@ -1149,6 +1149,7 @@ set(regress_0_tests
   regress0/parser/get-model-sort-constructor.smt2
   regress0/parser/get-value-empty-err.smt2
   regress0/parser/global-dec-cli.smt2
+  regress0/parser/issue10723-divisible0.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
@@ -1687,6 +1688,7 @@ set(regress_0_tests
   regress0/sets/proj-issue501-choose-bool-term-var.smt2
   regress0/sets/proj-issue583.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
+  regress0/sets/set_is_empty.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
   regress0/sets/sets-equal.smt2
@@ -2683,6 +2685,7 @@ set(regress_1_tests
   regress1/quantifiers/dump-inst-proof.smt2
   regress1/quantifiers/dump-inst.smt2
   regress1/quantifiers/eqrange_ex_1.smt2
+  regress1/quantifiers/example10714-core-no-miniscope-user.smt2
   regress1/quantifiers/ext-ex-deq-trigger.smt2
   regress1/quantifiers/extract-nproc.smt2
   regress1/quantifiers/f993-loss-easy.smt2

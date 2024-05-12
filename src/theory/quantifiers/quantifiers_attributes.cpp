@@ -35,7 +35,7 @@ namespace quantifiers {
 bool QAttributes::isStandard() const
 {
   return !d_sygus && !d_quant_elim && !isFunDef() && !isOracleInterface()
-         && !d_isQuantBounded;
+         && !d_isQuantBounded && !d_hasPool;
 }
 
 QuantAttributes::QuantAttributes() {}
