@@ -41,9 +41,13 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                                      const Options& opts)
     : TheoryRewriter(nm), d_sygusEval(sygusEval), d_opts(opts)
 {
+  registerProofRewriteRule(ProofRewriteRule::DT_INST,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_SELECTOR,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
                            TheoryRewriteCtx::PRE_DSL);
@@ -53,6 +57,21 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::DT_INST:
+    {
+      if (n.getKind() != Kind::APPLY_TESTER)
+      {
+        return Node::null();
+      }
+      Node t = n[0];
+      TypeNode tn = t.getType();
+      Assert(tn.isDatatype());
+      const DType& dt = tn.getDType();
+      size_t i = utils::indexOf(n.getOperator());
+      bool sharedSel = d_opts.datatypes.dtSharedSelectors;
+      Node ticons = utils::getInstCons(t, dt, i, sharedSel);
+      return t.eqNode(ticons);
+    }
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
     {
       if (n.getKind() != Kind::APPLY_SELECTOR
@@ -85,6 +104,21 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       return nm->mkConst(result);
     }
     break;
+    case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
+    {
+      if (n.getKind() != Kind::APPLY_TESTER)
+      {
+        return Node::null();
+      }
+      const DType& dt = n[0].getType().getDType();
+      if (dt.getNumConstructors() == 1)
+      {
+        NodeManager* nm = nodeManager();
+        return nm->mkConst(true);
+      }
+    }
+    break;
+
     case ProofRewriteRule::DT_CONS_EQ:
     {
       if (n.getKind() == Kind::EQUAL)

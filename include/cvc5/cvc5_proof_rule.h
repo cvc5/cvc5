@@ -1255,20 +1255,6 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(DT_UNIF),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Instantiation**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid t,n}{\mathit{is}_C(t) =
-   *   (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))}
-   *
-   * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
-   * t, and :math:`\mathit{is}_C` is the discriminator (tester) for :math:`C`.
-   * \endverbatim
-   */
-  EVALUE(DT_INST),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
    *
    * .. math::
@@ -2333,6 +2319,18 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(EXISTS_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Instantiation**
+   *
+   * .. math::
+   *    \mathit{is}_C(t) = (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))
+   *
+   * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
+   * t, and :math:`\mathit{is}_C` is the discriminator (tester) for :math:`C`.
+   * \endverbatim
+   */
+  EVALUE(DT_INST),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes - collapse selector**
