@@ -201,12 +201,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   switch (id)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
-    case ProofRewriteRule::RE_LOOP_ELIM:
-    case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR: 
-    case ProofRewriteRule::STR_IN_RE_SIGMA: return true;
-    case ProofRewriteRule::STR_IN_RE_EVAL:
-      Assert(n.getKind() == Kind::STRING_IN_REGEXP && n[0].isConst());
-      return canEvaluateRegExp(n[1]);
+    case ProofRewriteRule::RE_LOOP_ELIM:return true;
     default: break;
   }
   return false;
