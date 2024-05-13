@@ -335,6 +335,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::SET_UNIVERSE, internal::Kind::SET_UNIVERSE),
         KIND_ENUM(Kind::SET_COMPREHENSION, internal::Kind::SET_COMPREHENSION),
         KIND_ENUM(Kind::SET_CHOOSE, internal::Kind::SET_CHOOSE),
+        KIND_ENUM(Kind::SET_IS_EMPTY, internal::Kind::SET_IS_EMPTY),
         KIND_ENUM(Kind::SET_IS_SINGLETON, internal::Kind::SET_IS_SINGLETON),
         KIND_ENUM(Kind::SET_MAP, internal::Kind::SET_MAP),
         KIND_ENUM(Kind::SET_FILTER, internal::Kind::SET_FILTER),
@@ -732,6 +733,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SET_UNIVERSE, Kind::SET_UNIVERSE},
         {internal::Kind::SET_COMPREHENSION, Kind::SET_COMPREHENSION},
         {internal::Kind::SET_CHOOSE, Kind::SET_CHOOSE},
+        {internal::Kind::SET_IS_EMPTY, Kind::SET_IS_EMPTY},
         {internal::Kind::SET_IS_SINGLETON, Kind::SET_IS_SINGLETON},
         {internal::Kind::SET_MAP, Kind::SET_MAP},
         {internal::Kind::SET_FILTER, Kind::SET_FILTER},
@@ -5903,6 +5905,7 @@ Op TermManager::mkOp(Kind kind, const std::vector<uint32_t>& args)
       break;
     case Kind::DIVISIBLE:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] != 0, args, 0) << "a value != 0";
       res = mkOpHelper(kind, internal::Divisible(args[0]));
       break;
     case Kind::FLOATINGPOINT_TO_SBV:
