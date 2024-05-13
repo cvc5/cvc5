@@ -223,8 +223,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
     {
       if (argTypes.empty())
       {
-        s = sm->mkDummySkolem(
-            "skv", f[0][i].getType(), "created during skolemization");
+        s = getSkolemConstant(f, i);
       }
       else
       {
