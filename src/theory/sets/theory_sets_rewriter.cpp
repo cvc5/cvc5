@@ -48,13 +48,12 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
     {
-      if (n.getKind()==Kind::SET_IS_EMPTY && n[0].isConst())
+      if (n.getKind() == Kind::SET_IS_EMPTY && n[0].isConst())
       {
-        return nodeManager()->mkConst(n[0].getKind()==Kind::SET_EMPTY);
+        return nodeManager()->mkConst(n[0].getKind() == Kind::SET_EMPTY);
       }
     }
-    default:
-      break;
+    default: break;
   }
   return Node::null();
 }

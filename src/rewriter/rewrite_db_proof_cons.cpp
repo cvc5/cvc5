@@ -980,7 +980,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         else
         {
           Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
-          Assert (args.size()==2);
+          Assert(args.size() == 2);
           Node lhs = args[1];
           Node rhs = d_env.getRewriter()->rewriteViaRule(pcur.d_dslId, lhs);
           conc = lhs.eqNode(rhs);
