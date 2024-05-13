@@ -134,6 +134,7 @@ bool InferProofCons::convert(CDProof& cdp,
       std::vector<Node> exp(assumps.begin() + 1, assumps.end());
       Node aelim = psb.applyPredElim(assumps[0], exp);
       success = (aelim == conc);
+      // should never fail
       Assert(success);
     }
     break;
@@ -200,6 +201,7 @@ bool InferProofCons::convert(CDProof& cdp,
           {
             // if union or minus, we get the desired (left or right) conclusion
             success = psb.applyPredIntro(memor, {mtgt}, MethodId::SB_FORMULA);
+            // should never fail
             Assert(success);
           }
           Trace("sets-ipc") << "......success" << std::endl;
@@ -223,6 +225,7 @@ bool InferProofCons::convert(CDProof& cdp,
                         << std::endl;
       if (!psb.applyPredTransform(memor, memo, {}))
       {
+        // should never fail
         success = false;
         Assert(success);
         break;
@@ -238,6 +241,7 @@ bool InferProofCons::convert(CDProof& cdp,
                           << std::endl;
         if (!psb.addStep(ProofRule::MACRO_SR_PRED_INTRO, {}, {ceq}, ceq))
         {
+          // should never fail
           success = false;
           Assert(success);
           break;
@@ -248,12 +252,14 @@ bool InferProofCons::convert(CDProof& cdp,
         ProofRule cr = expr::getCongRule(memo, cargs);
         if (!psb.addStep(cr, ceqs, cargs, cequiv))
         {
+          // should never fail
           success = false;
           Assert(success);
           break;
         }
         if (!psb.addStep(ProofRule::EQ_RESOLVE, {memo, cequiv}, {}, conc))
         {
+          // should never fail
           success = false;
           Assert(success);
           break;
