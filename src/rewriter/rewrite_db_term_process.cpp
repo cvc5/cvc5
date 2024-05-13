@@ -80,7 +80,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     }
   }
   // convert indexed operators to symbolic
-  if (GenericOp::isIndexedOperatorKind(k))
+  if (GenericOp::isNumeralIndexedOperatorKind(k))
   {
     NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> indices =
