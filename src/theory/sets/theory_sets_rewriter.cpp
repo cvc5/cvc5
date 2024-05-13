@@ -53,6 +53,7 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         return nodeManager()->mkConst(n[0].getKind() == Kind::SET_EMPTY);
       }
     }
+    break;
     default: break;
   }
   return Node::null();
