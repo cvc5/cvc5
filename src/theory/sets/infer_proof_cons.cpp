@@ -62,7 +62,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   CDProof cdp(d_env);
   std::vector<Node> assumps;
   Node conc = fact;
-  // run the conversion
+  // First split into conclusion and assumptions.
   if (fact.getKind() == Kind::IMPLIES || fact.getKind() == Kind::NOT)
   {
     if (fact[0].getKind() == Kind::AND)
@@ -99,6 +99,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
       }
     }
   }
+  // Try to convert.
   if (!convert(cdp, id, assumps, conc))
   {
     cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE, assumps, {d_tid});
@@ -140,9 +141,15 @@ bool InferProofCons::convert(CDProof& cdp,
     case InferenceId::SETS_UP_CLOSURE_2:
     {
       NodeManager* nm = nodeManager();
+      // An example inference is:
+      // (set.member x A) ^ (set.member y B) ^ (= x y) => (set.member x k)
+      // where k is the purification skolem for (set.inter A B). 
       Assert(conc.getKind() == Kind::SET_MEMBER);
       Node so = SkolemManager::getUnpurifiedForm(conc[1]);
       Trace("sets-ipc") << "Unpurified form " << so << std::endl;
+      // We first compute the single step rewriting of the conclusion.
+      // For the above example, memor would be:
+      // (and (set.member x A) (set.member x B)).
       Node memo = nm->mkNode(Kind::SET_MEMBER, conc[0], so);
       Node memor = d_tsr->rewriteMembershipBinaryOp(memo);
       Trace("sets-ipc") << "Single step rewriting of membership " << memor
@@ -151,6 +158,9 @@ bool InferProofCons::convert(CDProof& cdp,
       // collect the memberships in the premise
       std::vector<Node> assumpMem;
       std::vector<Node> assumpOther;
+      // We now partition the antecedant to the membership
+      // part (assumpMem) and the substitution part (assumpOther). The
+      // membership part will be equivalent via rewriting to the conclusion.
       for (const Node& a : assumps)
       {
         Node aa = a.getKind() == Kind::NOT ? a[0] : a;
@@ -163,7 +173,9 @@ bool InferProofCons::convert(CDProof& cdp,
           assumpOther.push_back(a);
         }
       }
+      Assert (assumpMem.size()==1 || assumpMem.size()==2);
       Node msrc;
+      // Use AND_INTRO to put the memberships together if necessary.
       if (assumpMem.size() == 2)
       {
         msrc = nm->mkAnd(assumpMem);
@@ -173,6 +185,8 @@ bool InferProofCons::convert(CDProof& cdp,
       {
         msrc = assumpMem[0];
       }
+      // Now, prove the equivalence between the memberships and the
+      // conclusion, possibly using the substituion in assumpOther.
       bool isOr = (memor.getKind() == Kind::OR);
       size_t ntgts = isOr ? 2 : 1;
       for (size_t i = 0; i < ntgts; i++)
@@ -184,6 +198,7 @@ bool InferProofCons::convert(CDProof& cdp,
           success = true;
           if (isOr)
           {
+            // if union or minus, we get the desired (left or right) conclusion
             success = psb.applyPredIntro(memor, {mtgt}, MethodId::SB_FORMULA);
             Assert(success);
           }
@@ -191,11 +206,19 @@ bool InferProofCons::convert(CDProof& cdp,
           break;
         }
       }
+      // If successful, we have proven:
+      //
+      // (set.member x A)   (set.member y B)
+      // --------------------------------------- AND_INTRO
+      // (and (set.member x A) (set.member y B))    (= x y)
+      // ------------------------------------------------- MACRO_SR_PRED_TRANS
+      // (set.member x (set.inter A B))
       if (!success)
       {
         Assert(success);
         break;
       }
+      // If successful, go back and show memor holds.
       Trace("sets-ipc") << "* Prove transform " << memor << " to " << memo
                         << std::endl;
       if (!psb.applyPredTransform(memor, memo, {}))
@@ -208,12 +231,7 @@ bool InferProofCons::convert(CDProof& cdp,
       {
         std::vector<Node> ceqs;
         Node ceq = conc[0].eqNode(conc[0]);
-        if (!psb.addStep(ProofRule::REFL, {}, {conc[0]}, ceq))
-        {
-          success = false;
-          Assert(success);
-          break;
-        }
+        psb.addStep(ProofRule::REFL, {}, {conc[0]}, ceq);
         ceqs.push_back(ceq);
         ceq = so.eqNode(conc[1]);
         Trace("sets-ipc") << "* Prove equal (by original forms) " << ceq
@@ -241,6 +259,16 @@ bool InferProofCons::convert(CDProof& cdp,
           break;
         }
       }
+      // Final proof now is,using A^B as shorthand for (set.inter A B):
+      //
+      //                    ----- REFL  ---------- MACRO_SR_PRED_INTRO
+      // ...                x = x       A^B = k
+      // ------------------ -------------------------------------- CONG
+      // (set.member x A^B) (set.member x A^B) = (set.member x k)
+      // --------------------------------------------------------- EQ_RESOLVE
+      // (set.member x k)
+      //
+      // where ... is the proof from above.
     }
     break;
     case InferenceId::SETS_SKOLEM:
@@ -271,11 +299,9 @@ bool InferProofCons::convert(CDProof& cdp,
     case InferenceId::SETS_EQ_CONFLICT:
     case InferenceId::SETS_EQ_MEM_CONFLICT:
     case InferenceId::SETS_EQ_MEM:
-    {
-      AlwaysAssert(false) << "Unhandled " << id;
-    }
-    break;
-    default: break;
+    default: 
+      Trace("sets-ipc") << "Unhandled " << id;
+      break;
   }
   if (success)
   {
@@ -287,7 +313,6 @@ bool InferProofCons::convert(CDProof& cdp,
     }
   }
   Trace("sets-ipc") << "...success = " << success << std::endl;
-  // AlwaysAssert(success);
   return success;
 }
 

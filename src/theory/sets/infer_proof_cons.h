@@ -73,6 +73,16 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   virtual std::string identify() const override;
 
  private:
+  /**
+   * Main conversion routine. Ensures there is a proof of conc with free
+   * assumptions assumps stored in cdp. 
+   * 
+   * @param cdp The proof to add to.
+   * @param id The inference id of the original lemma or conflict.
+   * @param assumps The free assumptions (antecendant) of the inference.
+   * @param conc The conclusion of the inference
+   * @return true if we successfully added a proof to cdp.
+   */
   bool convert(CDProof& cdp,
                InferenceId id,
                const std::vector<Node>& assumps,
