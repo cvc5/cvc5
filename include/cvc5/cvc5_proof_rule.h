@@ -2362,6 +2362,18 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(DT_COLLAPSE_TESTER),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Datatypes - collapse tester**
+   *
+   * .. math::
+   *   is\text{-}c(t) = true
+   *
+   * where :math:`c` is the only constructor of its associated datatype.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_TESTER_SINGLETON),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes - constructor equality**
    *
    * .. math::
