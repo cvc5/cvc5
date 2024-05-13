@@ -143,7 +143,7 @@ bool InferProofCons::convert(CDProof& cdp,
       NodeManager* nm = nodeManager();
       // An example inference is:
       // (set.member x A) ^ (set.member y B) ^ (= x y) => (set.member x k)
-      // where k is the purification skolem for (set.inter A B). 
+      // where k is the purification skolem for (set.inter A B).
       Assert(conc.getKind() == Kind::SET_MEMBER);
       Node so = SkolemManager::getUnpurifiedForm(conc[1]);
       Trace("sets-ipc") << "Unpurified form " << so << std::endl;
@@ -173,7 +173,7 @@ bool InferProofCons::convert(CDProof& cdp,
           assumpOther.push_back(a);
         }
       }
-      Assert (assumpMem.size()==1 || assumpMem.size()==2);
+      Assert(assumpMem.size() == 1 || assumpMem.size() == 2);
       Node msrc;
       // Use AND_INTRO to put the memberships together if necessary.
       if (assumpMem.size() == 2)
@@ -299,9 +299,7 @@ bool InferProofCons::convert(CDProof& cdp,
     case InferenceId::SETS_EQ_CONFLICT:
     case InferenceId::SETS_EQ_MEM_CONFLICT:
     case InferenceId::SETS_EQ_MEM:
-    default: 
-      Trace("sets-ipc") << "Unhandled " << id;
-      break;
+    default: Trace("sets-ipc") << "Unhandled " << id; break;
   }
   if (success)
   {
