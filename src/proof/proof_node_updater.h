@@ -197,7 +197,6 @@ class ProofNodeUpdater : protected EnvObj
                    std::map<Node, std::shared_ptr<ProofNode>>& resCache,
                    std::map<Node, std::vector<std::shared_ptr<ProofNode>>>&
                        resCacheNcWaiting,
-                   std::map<Node, std::shared_ptr<ProofNode>>& resCachec,
                    std::unordered_map<const ProofNode*, bool>& cfaMap,
                    const std::unordered_set<Node>& cfaAllowed);
   /**
