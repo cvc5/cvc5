@@ -32,6 +32,10 @@ namespace sets {
 class TheorySetsRewriter;
 
 /**
+ * A class that is responsible for proofs for sets theory lemmas. Proofs are
+ * constructed lazily when asked for via getProofFor. This class maintains
+ * a (user-context-dependent) mapping from formulas that we are responsible
+ * for proving and the inference identifier that they correspond to.
  *
  * The main (private) method of this class is convert below, which is
  * called when we need to construct a proof node from an InferInfo.
