@@ -229,18 +229,12 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
     return RewriteProofStatus::THEORY_REWRITE;
   }
   Trace("rpc-debug2") << "...not proved via builtin tactic" << std::endl;
-  if (d_currFixedPointId == ProofRewriteRule::NONE)
-  {
-    d_currRecLimit--;
-  }
+  d_currRecLimit--;
   Node prevTarget = d_target;
   d_target = eqi;
   d_db->getMatches(eqi[0], &d_notify);
   d_target = prevTarget;
-  if (d_currFixedPointId == ProofRewriteRule::NONE)
-  {
-    d_currRecLimit++;
-  }
+  d_currRecLimit++;
   // check if we determined the proof in the above call, which is the case
   // if we succeeded, or we are already marked as a failure at a lower depth.
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
