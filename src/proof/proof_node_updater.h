@@ -87,8 +87,7 @@ class ProofNodeUpdaterCallback
    * Can we merge pn into other proofs? This method is only called if we are
    * merging subproofs with a proof node updater (mergeSubproofs=true).
    * If we return false for pn, then its contents will never be copied into
-   * another proof, although its contents may be replaced by another proof
-   * node of the same conclusion.
+   * another proof, nor will its contents be replaced.
    */
   virtual bool canMerge(std::shared_ptr<ProofNode> pn);
 };
