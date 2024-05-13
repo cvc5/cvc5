@@ -2392,6 +2392,23 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(RE_LOOP_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets - empty tester evaluation**
+   *
+   * .. math::
+   *   (sets.is_empty (as set.empty (Set T))) = true
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   (sets.is_empty c) = false
+   *
+   * where `c` is a constant set that is not the empty set.
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_IS_EMPTY_EVAL),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-plus-zero */
