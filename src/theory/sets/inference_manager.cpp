@@ -27,7 +27,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-InferenceManager::InferenceManager(Env& env, Theory& t, SolverState& s)
+InferenceManager::InferenceManager(Env& env,
+                                   Theory& t,
+                                   TheorySetsRewriter* tr,
+                                   SolverState& s)
     : InferenceManagerBuffered(env, t, s, "theory::sets::"), d_state(s)
 {
   d_true = nodeManager()->mkConst(true);
@@ -45,12 +48,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     {
       return false;
     }
-    Node lem = fact;
-    if (exp != d_true)
-    {
-      lem = nodeManager()->mkNode(Kind::IMPLIES, exp, fact);
-    }
-    addPendingLemma(lem, id);
+    setupAndAddPendingLemma(exp, fact, id);
     return true;
   }
   Trace("sets-fact") << "Assert fact rec : " << fact << ", exp = " << exp
@@ -61,7 +59,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     if (fact == d_false)
     {
       Trace("sets-lemma") << "Conflict : " << exp << std::endl;
-      conflict(exp, id);
+      setupAndAddPendingLemma(exp, fact, id);
       return true;
     }
     return false;
@@ -103,15 +101,15 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
   else
   {
     // must send as lemma
-    Node lem = fact;
-    if (exp != d_true)
-    {
-      lem = nodeManager()->mkNode(Kind::IMPLIES, exp, fact);
-    }
-    addPendingLemma(lem, id);
+    setupAndAddPendingLemma(exp, fact, id);
     return true;
   }
   return false;
+}
+
+void InferenceManager::assertSetsConflict(const Node& conf, InferenceId id)
+{
+  conflict(conf, id);
 }
 
 bool InferenceManager::assertSetsFact(Node atom,
@@ -187,6 +185,24 @@ void InferenceManager::split(Node n, InferenceId id, int reqPol)
                         << std::endl;
     preferPhase(n, reqPol > 0);
   }
+}
+
+void InferenceManager::setupAndAddPendingLemma(const Node& exp,
+                                               const Node& conc,
+                                               InferenceId id)
+{
+  if (conc == d_false)
+  {
+    TrustNode trn = TrustNode::mkTrustConflict(exp);
+    trustedConflict(trn, id);
+    return;
+  }
+  Node lem = conc;
+  if (exp != d_true)
+  {
+    lem = nodeManager()->mkNode(Kind::IMPLIES, exp, conc);
+  }
+  addPendingLemma(lem, id, LemmaProperty::NONE);
 }
 
 }  // namespace sets
