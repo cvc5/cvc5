@@ -201,7 +201,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   switch (id)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
-    case ProofRewriteRule::RE_LOOP_ELIM:return true;
+    case ProofRewriteRule::RE_LOOP_ELIM: return true;
     default: break;
   }
   return false;

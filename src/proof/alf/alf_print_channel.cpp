@@ -137,7 +137,7 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
     {
       d_out << " " << di;
     }
-  }  
+  }
   else if (r == ProofRule::THEORY_REWRITE)
   {
     ProofRewriteRule di;
