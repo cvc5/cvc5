@@ -83,6 +83,14 @@ class ProofNodeUpdaterCallback
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof* cdp);
+  /**
+   * Can we merge pn into other proofs? This method is only called if we are
+   * merging subproofs with a proof node updater (mergeSubproofs=true).
+   * If we return false for pn, then its contents will never be copied into
+   * another proof, although its contents may be replaced by another proof
+   * node of the same conclusion.
+   */
+  virtual bool canMerge(std::shared_ptr<ProofNode> pn);
 };
 
 /**
@@ -189,6 +197,7 @@ class ProofNodeUpdater : protected EnvObj
                    std::map<Node, std::shared_ptr<ProofNode>>& resCache,
                    std::map<Node, std::vector<std::shared_ptr<ProofNode>>>&
                        resCacheNcWaiting,
+                   std::map<Node, std::shared_ptr<ProofNode>>& resCachec,
                    std::unordered_map<const ProofNode*, bool>& cfaMap,
                    const std::unordered_set<Node>& cfaAllowed);
   /**
