@@ -28,7 +28,6 @@
 #include "theory/sets/solver_state.h"
 #include "theory/sets/term_registry.h"
 #include "theory/sets/theory_sets_rels.h"
-#include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -326,8 +325,6 @@ class TheorySetsPrivate : protected EnvObj
 
   ~TheorySetsPrivate();
 
-  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
-
   /** Get the solver state */
   SolverState* getSolverState() { return &d_state; }
 
@@ -417,9 +414,6 @@ class TheorySetsPrivate : protected EnvObj
    * higher order constraints is asserted to this theory.
    */
   bool d_higher_order_kinds_enabled;
-
-  /** The theory rewriter for this theory. */
-  TheorySetsRewriter d_rewriter;
 
   /** a map that maps each set to an existential quantifier generated for
    * operator is_singleton */

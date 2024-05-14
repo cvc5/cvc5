@@ -129,8 +129,10 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::CONCAT_EQ:
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
+    case ProofRule::CONCAT_CPROP:
     case ProofRule::CONCAT_CONFLICT:
-    case ProofRule::CONCAT_SPLIT: 
+    case ProofRule::CONCAT_SPLIT:
+    case ProofRule::CONCAT_LPROP:
     case ProofRule::STRING_LENGTH_POS:
     case ProofRule::STRING_LENGTH_NON_EMPTY:
     case ProofRule::RE_INTER:
