@@ -76,15 +76,29 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getTermManager(JNIEnv* env,
  * Method:    simplify
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer,
-                                                            jlong termPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify__JJ(
+    JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* term = reinterpret_cast<Term*>(termPointer);
   Term* retPointer = new Term(solver->simplify(*term));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    simplify
+ * Signature: (JJZ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify__JJZ(
+    JNIEnv* env, jobject, jlong pointer, jlong termPointer, jboolean applySubs)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
+  Term* retPointer = new Term(solver->simplify(*term, (bool)applySubs));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
