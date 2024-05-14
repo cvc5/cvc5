@@ -1277,6 +1277,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SET_CARD: return "set.card";
     case Kind::SET_COMPREHENSION: return "set.comprehension";
     case Kind::SET_CHOOSE: return "set.choose";
+    case Kind::SET_IS_EMPTY: return "set.is_empty";
     case Kind::SET_IS_SINGLETON: return "set.is_singleton";
     case Kind::SET_MAP: return "set.map";
     case Kind::SET_FILTER: return "set.filter";
