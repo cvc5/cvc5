@@ -111,7 +111,6 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       }
     }
   }
-  Node eq = node.eqNode(skolem);
   if (shouldLift)
   {
     TrustNode trn = lift(lam);
@@ -120,16 +119,12 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       lems.push_back(SkolemLemma(trn, skolem));
     }
   }
-  else
-  {
-    // this would make things simpler and fixes no-progress issues in MBQI
-    // return TrustNode::null();
-  }
   // if no proofs, return lemma with no generator
   if (d_epg == nullptr)
   {
     return TrustNode::mkTrustRewrite(node, skolem);
   }
+  Node eq = node.eqNode(skolem);
   return d_epg->mkTrustedRewrite(
       node, skolem, ProofRule::MACRO_SR_PRED_INTRO, {eq});
 }
