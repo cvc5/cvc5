@@ -29,7 +29,6 @@ jobs:
       uses: ./.github/actions/install-dependencies
       with:
         with-documentation: true
-        with-python-bindings: true
   
     - name: Setup caches
       uses: ./.github/actions/setup-cache

@@ -83,16 +83,19 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
 
-  if (options().prop.satSolver == options::SatSolverMode::MINISAT
-      || d_env.isSatProofProducing())
+  if (options().prop.satSolver == options::SatSolverMode::MINISAT)
   {
     d_satSolver =
         SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
   }
   else
   {
+    // log DRAT proofs if the mode is SKETCH.
+    bool logProofs =
+        (env.isSatProofProducing()
+         && options().proof.propProofMode == options::PropProofMode::SKETCH);
     d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager());
+        d_env, statisticsRegistry(), env.getResourceManager(), "", logProofs);
   }
 
   // CNF stream and theory proxy required pointers to each other, make the
@@ -110,7 +113,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   bool satProofs = d_env.isSatProofProducing();
   if (satProofs)
   {
-    d_ppm.reset(new PropPfManager(env, d_satSolver, *d_cnfStream));
+    d_ppm.reset(
+        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
   }
   // connect SAT solver
   d_satSolver->initialize(
@@ -165,14 +169,16 @@ void PropEngine::assertInputFormulas(
   for (const Node& node : assertions)
   {
     Trace("prop") << "assertFormula(" << node << ")" << std::endl;
-    assertInternal(node, false, false, true);
+    assertInternal(theory::InferenceId::INPUT, node, false, false, true);
   }
   int64_t natomsPost = d_cnfStream->d_stats.d_numAtoms.get();
   Assert(natomsPost >= natomsPre);
   d_stats.d_numInputAtoms += (natomsPost - natomsPre);
 }
 
-void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
+void PropEngine::assertLemma(theory::InferenceId id,
+                             TrustNode tlemma,
+                             theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
   bool local = isLemmaPropertyLocal(p);
@@ -210,10 +216,12 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(tplemma, ppLemmas, removable, inprocess, local);
+  assertLemmasInternal(id, tplemma, ppLemmas, removable, inprocess, local);
 }
 
-void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
+void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
+                                            TrustNode trn,
+                                            bool removable)
 {
   Node node = trn.getNode();
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
@@ -222,6 +230,7 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
     output(OutputTag::LEMMAS) << "(lemma ";
     // use original form of the lemma here
     output(OutputTag::LEMMAS) << SkolemManager::getOriginalForm(node);
+    output(OutputTag::LEMMAS) << " :source " << id;
     output(OutputTag::LEMMAS) << ")" << std::endl;
   }
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
@@ -237,43 +246,57 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
     d_theoryLemmaPg.addTrustedStep(actualNode, TrustId::THEORY_LEMMA, {}, {});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
-  assertInternal(node, negated, removable, false, trn.getGenerator());
+  assertInternal(id, node, negated, removable, false, trn.getGenerator());
 }
 
-void PropEngine::assertInternal(
-    TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
+void PropEngine::assertInternal(theory::InferenceId id,
+                                TNode node,
+                                bool negated,
+                                bool removable,
+                                bool input,
+                                ProofGenerator* pg)
 {
-  // Assert as (possibly) removable
-  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
+  bool addAssumption = false;
+  if (isProofEnabled())
   {
-    if (input)
+    if (input
+        && options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
     {
-      d_cnfStream->ensureLiteral(node);
-      if (negated)
-      {
-        d_assumptions.push_back(node.notNode());
-      }
-      else
-      {
-        d_assumptions.push_back(node);
-      }
+      // use the proof CNF stream to ensure the literal
+      d_ppm->ensureLiteral(node);
+      addAssumption = true;
     }
     else
     {
-      d_cnfStream->convertAndAssert(node, removable, negated);
+      d_ppm->convertAndAssert(id, node, negated, removable, input, pg);
     }
   }
-  else if (isProofEnabled())
+  else if (input
+           && options().smt.unsatCoresMode
+                  == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    d_ppm->convertAndAssert(node, negated, removable, input, pg);
+    d_cnfStream->ensureLiteral(node);
+    addAssumption = true;
   }
   else
   {
     d_cnfStream->convertAndAssert(node, removable, negated);
   }
+  if (addAssumption)
+  {
+    if (negated)
+    {
+      d_assumptions.push_back(node.notNode());
+    }
+    else
+    {
+      d_assumptions.push_back(node);
+    }
+  }
 }
 
 void PropEngine::assertLemmasInternal(
+    theory::InferenceId id,
     TrustNode trn,
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable,
@@ -297,11 +320,12 @@ void PropEngine::assertLemmasInternal(
     {
       trn = d_theoryProxy->inprocessLemma(trn);
     }
-    assertTrustedLemmaInternal(trn, removable);
+    assertTrustedLemmaInternal(id, trn, removable);
   }
   for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
+    assertTrustedLemmaInternal(
+        theory::InferenceId::THEORY_PP_SKOLEM_LEM, lem.d_lemma, removable);
   }
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
@@ -562,7 +586,12 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   TrustNode trnNull;
-  assertLemmasInternal(trnNull, newLemmas, false, false, false);
+  assertLemmasInternal(theory::InferenceId::THEORY_PP_SKOLEM_LEM,
+                       trnNull,
+                       newLemmas,
+                       false,
+                       false,
+                       false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 
@@ -735,7 +764,9 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
     // need to connect the SAT proof to the CNF proof becuase we need the
     // preprocessed input as leaves, not the clauses derived from them.
     std::shared_ptr<ProofNode> pfn = getProof();
+    Trace("unsat-core") << "Proof is " << *pfn.get() << std::endl;
     expr::getFreeAssumptions(pfn.get(), core);
+    Trace("unsat-core") << "Core is " << core << std::endl;
   }
 }
 

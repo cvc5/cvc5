@@ -31,13 +31,14 @@
 // internal includes
 #include "base/output.h"
 #include "theory/ff/parse.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
 std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
-    const std::vector<Node>& facts, const FfSize& size)
+    const std::vector<Node>& facts, const FfSize& size, const Env& env)
 {
   std::unordered_set<Node> bits{};
   CocoaEncoder enc(size);
@@ -64,7 +65,7 @@ std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
   BitProp bitProp(facts, enc);
 
   std::vector<Polys> splitGens = {lGens, nlGens};
-  SplitGb splitBasis = splitGb(splitGens, bitProp);
+  SplitGb splitBasis = splitGb(splitGens, bitProp, env);
   if (std::any_of(splitBasis.begin(), splitBasis.end(), [](const auto& b) {
         return b.isWholeRing();
       }))
@@ -73,7 +74,7 @@ std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
   }
 
   std::optional<Point> root =
-      splitFindZero(std::move(splitBasis), enc.polyRing(), bitProp);
+      splitFindZero(std::move(splitBasis), enc.polyRing(), bitProp, env);
   if (root.has_value())
   {
     std::unordered_map<Node, FiniteFieldValue> model;
@@ -89,7 +90,9 @@ std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
   return {};
 }
 
-SplitGb splitGb(const std::vector<Polys>& generatorSets, BitProp& bitProp)
+SplitGb splitGb(const std::vector<Polys>& generatorSets,
+                BitProp& bitProp,
+                const Env& env)
 {
   size_t k = generatorSets.size();
   std::vector<Polys> newPolys(generatorSets);
@@ -108,7 +111,7 @@ SplitGb splitGb(const std::vector<Polys>& generatorSets, BitProp& bitProp)
         std::copy(newPolys[i].begin(),
                   newPolys[i].end(),
                   std::back_inserter(newGens));
-        splitBasis[i] = Gb(newGens);
+        splitBasis[i] = Gb(newGens, env.getResourceManager());
         newPolys[i].clear();
       }
     }
@@ -146,7 +149,8 @@ bool admit(size_t i, const Poly& p)
 
 std::optional<Point> splitFindZero(SplitGb&& splitBasisIn,
                                    CoCoA::ring polyRing,
-                                   BitProp& bitProp)
+                                   BitProp& bitProp,
+                                   const Env& env)
 {
   SplitGb splitBasis = std::move(splitBasisIn);
   while (true)
@@ -159,7 +163,7 @@ std::optional<Point> splitFindZero(SplitGb&& splitBasisIn,
     }
     PartialPoint nullPartialRoot(CoCoA::NumIndets(polyRing));
     auto result = splitZeroExtend(
-        allGens, SplitGb(splitBasis), std::move(nullPartialRoot), bitProp);
+        allGens, SplitGb(splitBasis), std::move(nullPartialRoot), bitProp, env);
     if (std::holds_alternative<Poly>(result))
     {
       auto conflict = std::get<Poly>(result);
@@ -172,7 +176,7 @@ std::optional<Point> splitFindZero(SplitGb&& splitBasisIn,
                   std::back_inserter(gens.back()));
         gens.back().push_back(conflict);
       }
-      splitBasis = splitGb(gens, bitProp);
+      splitBasis = splitGb(gens, bitProp, env);
     }
     else if (std::holds_alternative<bool>(result))
     {
@@ -188,7 +192,8 @@ std::optional<Point> splitFindZero(SplitGb&& splitBasisIn,
 std::variant<Point, Poly, bool> splitZeroExtend(const Polys& origPolys,
                                                 const SplitGb&& curBases,
                                                 const PartialPoint&& curR,
-                                                const BitProp& bitProp)
+                                                const BitProp& bitProp,
+                                                const Env& env)
 {
   Assert(origPolys.size());
   CoCoA::ring polyRing = CoCoA::owner(origPolys[0]);
@@ -209,6 +214,11 @@ std::variant<Point, Poly, bool> splitZeroExtend(const Polys& origPolys,
       }
     }
     return false;
+  }
+
+  if (env.getResourceManager()->outOfTime())
+  {
+    throw FfTimeoutException("splitZeroExtend");
   }
 
   if (nAssigned == CoCoA::NumIndets(CoCoA::owner(origPolys[0])))
@@ -242,9 +252,9 @@ std::variant<Point, Poly, bool> splitZeroExtend(const Polys& origPolys,
       newSplitGens.back().push_back(*next);
     }
     BitProp bitPropCopy = bitProp;
-    SplitGb newBases = splitGb(newSplitGens, bitPropCopy);
+    SplitGb newBases = splitGb(newSplitGens, bitPropCopy, env);
     auto result = splitZeroExtend(
-        origPolys, std::move(newBases), std::move(newR), bitPropCopy);
+        origPolys, std::move(newBases), std::move(newR), bitPropCopy, env);
     if (!std::holds_alternative<bool>(result))
     {
       return result;
@@ -333,12 +343,13 @@ void checkZero(const SplitGb& origBases, const Point& zero)
 }
 
 Gb::Gb() : d_ideal(), d_basis(){};
-Gb::Gb(const Polys& generators) : d_ideal(), d_basis()
+Gb::Gb(const std::vector<Poly>& generators, const ResourceManager* rm)
+    : d_ideal(), d_basis()
 {
   if (generators.size())
   {
     d_ideal.emplace(CoCoA::ideal(generators));
-    d_basis = CoCoA::GBasis(d_ideal.value());
+    d_basis = GBasisTimeout(d_ideal.value(), rm);
   }
 }
 

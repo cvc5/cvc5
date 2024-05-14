@@ -384,8 +384,8 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
 {
   Options opts;
   // enable proofs
-  opts.writeSmt().proofMode = options::ProofMode::FULL;
-  opts.writeSmt().produceProofs = true;
+  opts.write_smt().proofMode = options::ProofMode::FULL;
+  opts.write_smt().produceProofs = true;
   Env env(d_nodeManager, &opts);
   smt::PfManager pfm(env);
   env.finishInit(pfm.getProofNodeManager());

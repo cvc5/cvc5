@@ -14,8 +14,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
-#define CVC4__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
+#ifndef CVC5__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
+#define CVC5__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
 
 #include <unordered_set>
 
