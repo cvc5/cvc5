@@ -537,16 +537,14 @@ void InstStrategyMbqi::modelValueFromQuery(
     std::vector<Node>& mvs,
     const std::map<Node, Node>& mvToFreshVar)
 {
-  if (!options().quantifiers.mbqiFastSygus)
-  {
-    getModelFromSubsolver(smt, vars, mvs);
-    return;
-  }
   getModelFromSubsolver(smt, vars, mvs);
-  std::vector<Node> smvs(mvs);
-  if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))
+  if (options().quantifiers.mbqiFastSygus)
   {
-    mvs = smvs;
+    std::vector<Node> smvs(mvs);
+    if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))
+    {
+      mvs = smvs;
+    }
   }
 }
 
