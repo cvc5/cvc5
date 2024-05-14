@@ -48,7 +48,6 @@ class MbqiFastSygus;
 class InstStrategyMbqi : public QuantifiersModule
 {
   friend class MbqiFastSygus;
-
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,
@@ -66,12 +65,12 @@ class InstStrategyMbqi : public QuantifiersModule
   void check(Theory::Effort e, QEffort quant_e) override;
   /** Check was complete for quantified formula q */
   bool checkCompleteFor(Node q) override;
-  /** identify */
-  std::string identify() const override { return "InstStrategyMbqi"; }
   /** For collecting global terms from all available assertions. */
   void ppNotifyAssertions(const std::vector<Node>& assertions);
   /** Get the symbols appearing in assertions */
   const context::CDHashSet<Node>& getGlobalSyms() const;
+  /** identify */
+  std::string identify() const override { return "mbqi"; }
 
  private:
   /**

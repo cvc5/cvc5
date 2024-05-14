@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,6 @@ void MVarInfo::initialize(Env& env,
     d_lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
     trules.insert(trules.end(), vs.begin(), vs.end());
   }
-  // NOTE: get free symbols from body of quantified formula here??
   // include free symbols from body of quantified formula if applicable
   if (env.getOptions().quantifiers.mbqiFastSygusFreeSymsGrammar)
   {
@@ -69,7 +68,6 @@ void MVarInfo::initialize(Env& env,
     }
   }
   Trace("mbqi-fast-enum") << "Symbols: " << trules << std::endl;
-  // TODO: could add more symbols to trules to improve the enumerated terms
   SygusGrammarCons sgc;
   Node bvl;
   TypeNode tng = sgc.mkDefaultSygusType(env, retType, bvl, trules);
@@ -129,7 +127,8 @@ Node MVarInfo::getEnumeratedTerm(size_t i)
 
 void MQuantInfo::initialize(Env& env, InstStrategyMbqi& parent, const Node& q)
 {
-  // TODO: external terminal rules? maybe pass all symbols to this?
+  // The externally provided terminal rules. This set is shared between
+  // all variables we instantiate.
   std::vector<Node> etrules;
   for (const Node& v : q[0])
   {
@@ -173,8 +172,8 @@ MVarInfo& MQuantInfo::getVarInfo(size_t index)
   return d_vinfo[index];
 }
 
-std::vector<size_t> MQuantInfo::getInstIndicies() { return d_indices; }
-std::vector<size_t> MQuantInfo::getNoInstIndicies() { return d_nindices; }
+std::vector<size_t> MQuantInfo::getInstIndices() { return d_indices; }
+std::vector<size_t> MQuantInfo::getNoInstIndices() { return d_nindices; }
 
 bool MQuantInfo::shouldEnumerate(const TypeNode& tn)
 {
@@ -192,12 +191,10 @@ MbqiFastSygus::MbqiFastSygus(Env& env, InstStrategyMbqi& parent)
 
 MQuantInfo& MbqiFastSygus::getOrMkQuantInfo(const Node& q)
 {
-  std::map<Node, MQuantInfo>::iterator it = d_qinfo.find(q);
-  if (it == d_qinfo.end())
+  auto [it, inserted] = d_qinfo.try_emplace(q);
+  if (inserted)
   {
-    MQuantInfo& qi = d_qinfo[q];
-    qi.initialize(d_env, d_parent, q);
-    return qi;
+    it->second.initialize(d_env, d_parent, q);
   }
   return it->second;
 }
@@ -216,18 +213,18 @@ bool MbqiFastSygus::constructInstantiation(
   // from the main solver. This is likely a better notion of filtering.
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());
-  if (TraceIsOn("mbqi-fast-enum"))
+  if (TraceIsOn("mbqi-model-enum"))
   {
-    Trace("mbqi-fast-enum") << "Instantiate " << q << std::endl;
+    Trace("mbqi-model-enum") << "Instantiate " << q << std::endl;
     for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
     {
-      Trace("mbqi-fast-enum")
+      Trace("mbqi-model-enum")
           << "  " << q[0][i] << " -> " << mvs[i] << std::endl;
     }
   }
   MQuantInfo& qi = getOrMkQuantInfo(q);
-  std::vector<size_t> indices = qi.getInstIndicies();
-  std::vector<size_t> nindices = qi.getNoInstIndicies();
+  std::vector<size_t> indices = qi.getInstIndices();
+  std::vector<size_t> nindices = qi.getNoInstIndices();
   Subs inst;
   Subs vinst;
   std::unordered_map<Node, Node> tmpCMap;
@@ -239,16 +236,17 @@ bool MbqiFastSygus::constructInstantiation(
     {
       return false;
     }
-    Trace("mbqi-fast-enum")
+    Trace("mbqi-model-enum")
         << "* Assume: " << q[0][i] << " -> " << v << std::endl;
     // if we don't enumerate it, we are already considering this instantiation
     inst.add(vars[i], v);
     vinst.add(q[0][i], v);
   }
   Node queryCurr = query;
-  Trace("mbqi-fast-enum") << "...query is " << queryCurr << std::endl;
+  Trace("mbqi-model-enum") << "...query is " << queryCurr << std::endl;
   queryCurr = rewrite(inst.apply(queryCurr));
-  Trace("mbqi-fast-enum") << "...processed is " << queryCurr << std::endl;
+  Trace("mbqi-model-enum") << "...processed is " << queryCurr << std::endl;
+  // consider variables in random order, for diversity of instantiations
   std::shuffle(indices.begin(), indices.end(), Random::getRandom());
   for (size_t i = 0, isize = indices.size(); i < isize; i++)
   {
@@ -265,7 +263,7 @@ bool MbqiFastSygus::constructInstantiation(
       Node retc;
       if (!ret.isNull())
       {
-        Trace("mbqi-fast-enum") << "- Try candidate: " << ret << std::endl;
+        Trace("mbqi-model-enum") << "- Try candidate: " << ret << std::endl;
         // apply current substitution (to account for cases where ret has
         // other variables in its grammar).
         ret = vinst.apply(ret);
@@ -278,7 +276,7 @@ bool MbqiFastSygus::constructInstantiation(
       }
       else
       {
-        Trace("mbqi-fast-enum")
+        Trace("mbqi-model-enum")
             << "- Failed to enumerate candidate" << std::endl;
         // if we failed to enumerate, just try the original
         Node mc = d_parent.convertFromModel(mvs[ii], tmpCMap, mvFreshVar);
@@ -291,23 +289,20 @@ bool MbqiFastSygus::constructInstantiation(
         retc = mc;
         successEnum = false;
       }
-      Trace("mbqi-fast-enum")
+      Trace("mbqi-model-enum")
           << "- Converted candidate: " << v << " -> " << retc << std::endl;
       // see if it is still satisfiable, if still SAT, we replace
       Node queryCheck = queryCurr.substitute(v, TNode(retc));
       queryCheck = rewrite(queryCheck);
-      Trace("mbqi-fast-enum") << "...check " << queryCheck << std::endl;
-      // since we may have free constants from the grammar, we must ensure
-      // their model value is considered.
-      Trace("mbqi-fast-enum") << "...converted " << queryCheck << std::endl;
+      Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
       SubsolverSetupInfo ssi(d_env);
       Result r = checkWithSubsolver(queryCheck, ssi);
       if (r == Result::SAT)
       {
         // remember the updated query
         queryCurr = queryCheck;
-        Trace("mbqi-fast-enum") << "...success" << std::endl;
-        Trace("mbqi-fast-enum")
+        Trace("mbqi-model-enum") << "...success" << std::endl;
+        Trace("mbqi-model-enum")
             << "* Enumerated " << q[0][ii] << " -> " << ret << std::endl;
         mvs[ii] = ret;
         vinst.add(q[0][ii], ret);

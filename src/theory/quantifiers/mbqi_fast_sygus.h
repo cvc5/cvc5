@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,10 +87,10 @@ class MQuantInfo
    * @param q The quantified formula.
    */
   void initialize(Env& env, InstStrategyMbqi& parent, const Node& q);
-  /** Get indicies of variables to instantiate */
-  std::vector<size_t> getInstIndicies();
-  /** Get indicies of variables not to instantiate */
-  std::vector<size_t> getNoInstIndicies();
+  /** Get indices of variables to instantiate */
+  std::vector<size_t> getInstIndices();
+  /** Get indices of variables not to instantiate */
+  std::vector<size_t> getNoInstIndices();
   /** Get variable info for the index^th variable of the quantified formula */
   MVarInfo& getVarInfo(size_t index);
   /** Should we enumerate terms for type tn? */
@@ -118,8 +118,15 @@ class MbqiFastSygus : protected EnvObj
   ~MbqiFastSygus() {}
 
   /**
-   * Updates mvs to the desired instantiation of q.
-   * Returns true if successful.
+   * Updates mvs to the desired instantiation of q. Returns true if successful.
+   *
+   * In detail, this method maintains the invariant that
+   *   query[ mvs / vars ] is satisfiable.
+   * This is initially guaranteed since mvs is a model for vars in query
+   * due to MBQI. This method iterates over the variables vars[i] and replaces
+   * mvs[i] with the first term in the SyGuS enumeration such that the updated
+   * mvs still satisfies the query. Checking whether the invariant holds is
+   * confirmed via a subsolver call for each replacement.
    *
    * @param q The quantified formula to instantiate.
    * @param query The query that was made to a subsolver for MBQI.

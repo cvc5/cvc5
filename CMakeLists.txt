@@ -99,7 +99,11 @@ cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
 cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
+cvc5_option(USE_PYTHON_VENV       "Install Python dependencies in virtual environment")
 cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
+
+cvc5_set_option(USE_PYTHON_VENV ON)
+
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
@@ -222,6 +226,7 @@ include(Config${CMAKE_BUILD_TYPE})
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
 add_check_c_cxx_supression_flag("-Wno-unused-private-field")
+add_check_c_cxx_supression_flag("-Wno-dangling-reference")
 add_check_c_flag("-fexceptions")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
@@ -363,9 +368,50 @@ else()
   endif()
 endif()
 
-if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
-  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
+# Find a Python interpreter on the system. It serves two exclusive purposes:
+# either to be used when the '--auto-download' option is not specified, or
+# to create a virtual environment when the '--auto-download' option is given.
+# In the latter case, it is also used to install the Python bindings (if built).
+if(DEFINED BUILD_BINDINGS_PYTHON_VERSION)
+  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION}
+    EXACT COMPONENTS Interpreter REQUIRED
+  )
 else()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
+endif()
+
+# Keep the PATH to the Python binary before setting venv.
+# We use this path in the installation step of the Python bindings.
+set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}")
+
+if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
+  # Set up Python venv if one doesn't exist already
+  set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
+  if(NOT EXISTS ${VENV_PATH})
+    message(STATUS "Creating Python virtual environment")
+    # Use packages installed in the base installation if they're already present
+    execute_process (
+      COMMAND
+        "${Python_EXECUTABLE}" -m venv --system-site-packages "${VENV_PATH}"
+      RESULT_VARIABLE VENV_CMD_EXIT_CODE
+    )
+    if(VENV_CMD_EXIT_CODE)
+      message(FATAL_ERROR "Could not create Python virtual environment")
+    endif()
+  endif()
+
+  # Set up variables to find Python within the virtual environment
+  set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+  unset(Python_EXECUTABLE CACHE)
+  if(EXISTS ${VENV_PATH}/bin/python3)
+    set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
+  elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
+    set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
+  else()
+    message(FATAL_ERROR "Could not find Python interpreter in venv")
+  endif()
+
+  # Find the Python interpreter within the virtual environment
   find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 

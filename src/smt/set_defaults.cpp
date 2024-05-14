@@ -1335,7 +1335,7 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
       || (logic.isTheoryEnabled(THEORY_ARITH)
           && logic.isTheoryEnabled(THEORY_BV))
       // FP requires UF since there are multiple operators that are partially
-      // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
+      // defined (see http://smt-lib.org/papers/BTRW15.pdf for more
       // details).
       || logic.isTheoryEnabled(THEORY_FP))
   {

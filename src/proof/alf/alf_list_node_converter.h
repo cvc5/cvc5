@@ -37,23 +37,23 @@ namespace proof {
  *
  * (declare-rule dsl.bool-or-false ((xs Bool :list) (ys Bool :list))
  *   :args (xs ys)
- *   :conclusion (= (or xs false ys)) ($dsl.singleton_elim (or xs ys)))
+ *   :conclusion (= (or xs false ys)) ($singleton_elim (or xs ys)))
  * )
  *
- * Where note that $dsl.singleton_elim is defined in our ALF signature:
+ * Where note that $singleton_elim is defined in our ALF signature:
  *
- * (program $dsl.singleton_elim
+ * (program $singleton_elim
  *   ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
  *   (S) S
  *   (
- *     (($dsl.singleton_elim (f x1 x2))
+ *     (($singleton_elim (f x1 x2))
  *        (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
- *     (($dsl.singleton_elim x)
+ *     (($singleton_elim x)
  *        x)
  *   )
  * )
  *
- * In the above rule, notice that $dsl.singleton_elim is applied to (or xs ys).
+ * In the above rule, notice that $singleton_elim is applied to (or xs ys).
  * The reason is that (or xs ys) *may* become a singleton list when xs and ys
  * are instantiated. Say xs -> [A] and ys -> []. In RARE, the conclusion is
  *   (= (or A false) A)
@@ -61,7 +61,7 @@ namespace proof {
  *   (= (or A false) (or A))
  *
  * The above transformation takes into account the difference in semantics.
- * More generally, we apply $dsl.singleton_elim to any subterm of the input
+ * More generally, we apply $singleton_elim to any subterm of the input
  * term that has fewer than 2 children that are not marked with :list.
  */
 class AlfListNodeConverter : public NodeConverter

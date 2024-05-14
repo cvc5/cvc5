@@ -109,6 +109,8 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
     d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
+  // always try to eliminate TRUST
+  d_pfpp->setEliminateRule(ProofRule::TRUST);
   d_false = nodeManager()->mkConst(false);
 }
 
