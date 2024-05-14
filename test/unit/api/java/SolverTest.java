@@ -1595,7 +1595,7 @@ class SolverTest
   }
 
   @Test
-  void simplifysimplifyApplySubs() throws CVC5ApiException
+  void simplifyApplySubs() throws CVC5ApiException
   {
     d_solver.setOption("incremental", "true");
     Sort intSort = d_tm.getIntegerSort();
