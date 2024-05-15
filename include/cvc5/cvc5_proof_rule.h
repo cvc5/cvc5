@@ -2305,8 +2305,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Equality -- Beta reduction**
    *
    * .. math::
-   *   ((\lambda x_1 \dots x_n.\> t) t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
-   * \dots, x_n \mapsto t_n\}
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
+   *   \ldots, x_n \mapsto t_n\}
    *
    * The right hand side of the equality in the conclusion is computed using
    * standard substitution via ``Node::substitute``.
@@ -2398,14 +2398,14 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Sets - empty tester evaluation**
    *
    * .. math::
-   *   (sets.is_empty (as set.empty (Set T))) = true
+   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) = \top
    *
    * or alternatively:
    *
    * .. math::
-   *   (sets.is_empty c) = false
+   *   \mathit{sets.is\_empty}(c) = \bot
    *
-   * where `c` is a constant set that is not the empty set.
+   * where :math:`c` is a constant set that is not the empty set.
    *
    * \endverbatim
    */
