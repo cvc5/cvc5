@@ -218,15 +218,18 @@ Node PolyNorm::toNode(const TypeNode& tn) const
   bool isArith = (tn.isInteger() || tn.isReal());
   bool isBv = tn.isBitVector();
   Kind multKind;
+  Kind addKind;
   Node one;
   if (isArith)
   {
     multKind = Kind::MULT;
+    addKind = Kind::ADD;
     one = nm->mkConstRealOrInt(tn, Rational(1));
   }
   else if (isBv)
   {
     multKind = Kind::BITVECTOR_MULT;
+    addKind = Kind::BITVECTOR_ADD;
     one = bv::utils::mkOne(tn.getBitVectorSize());
   }
   else
@@ -239,6 +242,11 @@ Node PolyNorm::toNode(const TypeNode& tn) const
     if (isArith)
     {
       coeff = nm->mkConstRealOrInt(tn, m.second);
+    }
+    else
+    {
+      Assert (isBv);
+      coeff = nm->mkConst(BitVector(tn.getBitVectorSize(), m.second.getNumerator());
     }
     if (m.first.isNull())
     {
@@ -264,20 +272,13 @@ Node PolyNorm::toNode(const TypeNode& tn) const
     {
       return nm->mkConstRealOrInt(tn, Rational(0));
     }
-    else if (isBv)
+    else
     {
+      Assert (isBv);
       return bv::utils::mkZero(tn.getBitVectorSize());
     }
   }
-  if (isArith)
-  {
-    return nm->mkNode(Kind::ADD, sum);
-  }
-  else if (isBv)
-  {
-    return nm->mkNode(Kind::BITVECTOR_ADD, sum);
-  }
-  return Node::null();
+  return nm->mkNode(addKind, sum);
 }
 
 Node PolyNorm::multMonoVar(TNode m1, TNode m2)
