@@ -893,6 +893,7 @@ set(regress_0_tests
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
   regress0/ho/datatype-field-ho.smt2
+  regress0/ho/dd.lcl720.smt2
   regress0/ho/dd.shadowing-defs.smt2
   regress0/ho/dd.syo009.smt2
   regress0/ho/dd.syo372-finite-ho-ext.smt2
@@ -930,6 +931,9 @@ set(regress_0_tests
   regress0/ho/lambda-test-deps.smt2
   regress0/ho/lambda-test-deps-simple.smt2
   regress0/ho/lazy-lambda-model.smt2
+  regress0/ho/m-enum-bug1.smt2 
+  regress0/ho/m-enum-bug2.smt2 
+  regress0/ho/m-enum-bug3.smt2 
   regress0/ho/match-middle.smt2
   regress0/ho/model-lam-simple.smt2
   regress0/ho/modulo-func-equality.smt2
@@ -1415,6 +1419,7 @@ set(regress_0_tests
   regress0/quantifiers/ex6.smt2
   regress0/quantifiers/floor.smt2
   regress0/quantifiers/global_negate.smt2
+  regress1/quantifiers/ho-grammar.smt2
   regress0/quantifiers/horn-ground-pre-post.smt2
   regress0/quantifiers/is-even-pred.smt2
   regress0/quantifiers/is-int.smt2
@@ -1444,6 +1449,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8923-qe-push-pop.smt2
   regress0/quantifiers/issue9602-rewrite-pow-type.smt2
   regress0/quantifiers/issue9640-vts-iff.smt2
+  regress1/quantifiers/lcl579-2-ho-mbqi.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -2768,6 +2774,7 @@ set(regress_1_tests
   regress1/quantifiers/lia-witness-div-pp.smt2
   regress1/quantifiers/lra-vts-inf.smt2
   regress1/quantifiers/macro-geo-small-3.smt2
+  regress1/quantifiers/mbqi_fast_sy_check_ic.smt2
   regress1/quantifiers/min-ppgt-em-incomplete.smt2
   regress1/quantifiers/min-ppgt-em-incomplete2.smt2
   regress1/quantifiers/mix-coeff.smt2
