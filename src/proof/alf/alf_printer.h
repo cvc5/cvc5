@@ -49,6 +49,8 @@ class AlfPrinter : protected EnvObj
  private:
   /** Return true if it is possible to trust the topmost application in pfn */
   bool isHandled(const ProofNode* pfn) const;
+  /** Return true if id is handled as a theory rewrite for term n */
+  bool isHandledTheoryRewrite(ProofRewriteRule id, const Node& n) const;
   /**
    * Return true if it is possible to evaluate n using the evaluation side
    * condition in the ALF signature. Notice this requires that all subterms of n

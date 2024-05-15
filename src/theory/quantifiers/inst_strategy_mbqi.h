@@ -26,7 +26,7 @@
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
-
+    
 class SolverEngine;
 
 namespace theory {

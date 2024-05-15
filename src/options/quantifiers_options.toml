@@ -208,7 +208,6 @@ name   = "Quantifiers"
   default    = "false"
   help       = "use fast enumeration to augment instantiations from MBQI"
 
-
 [[option]]
   name       = "mbqiFastSygusExtVarsGrammar"
   category   = "expert"
