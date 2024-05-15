@@ -257,7 +257,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     {
       inferTrivial = false;
     }
-    // Make any functions that do not occur in the conjecture as trivial,
+    // Mark functions that do not occur in the conjecture as trivial,
     // and do not solve for them.
     std::vector<Node> ntrivSynthFuns;
     if (inferTrivial)
