@@ -27,6 +27,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+class MbqiFastSygus;
+
 /**
  * InstStrategyMbqi
  *
@@ -40,6 +42,7 @@ namespace quantifiers {
  */
 class InstStrategyMbqi : public QuantifiersModule
 {
+  friend class MbqiFastSygus;
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,
