@@ -2348,12 +2348,12 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Datatypes - collapse tester**
    *
    * .. math::
-   *   is\text{-}c(c(t_1, \ldots, t_n)) = true
+   *   \mathit{is}_c(c(t_1, \ldots, t_n)) = true
    *
    * or alternatively
    *
    * .. math::
-   *   is\text{-}c(d(t_1, \ldots, t_n)) = false
+   *   \mathit{is}_c(d(t_1, \ldots, t_n)) = false
    *
    * where :math:`c` and :math:`d` are distinct constructors.
    *
@@ -2365,7 +2365,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Datatypes - collapse tester**
    *
    * .. math::
-   *   is\text{-}c(t) = true
+   *   \mathit{is}_c(t) = true
    *
    * where :math:`c` is the only constructor of its associated datatype.
    *
