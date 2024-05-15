@@ -1634,16 +1634,21 @@ void TheoryEngine::conflict(TrustNode tconflict,
       {
         if (!CDProof::isSame(fullConflict, conflict))
         {
-          // ------------------------- explained  ---------- from theory
-          // fullConflict => conflict              ~conflict
-          // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+          // ------------------------- explained  
+          // fullConflict => conflict             
+          // ------------------------- IMPLIES_ELIM  ---------- from theory
+          // ~fullConflict V conflict                ~conflict
+          // -------------------------------------------------- RESOLUTION
           // ~fullConflict
-          children.push_back(conflict.notNode());
-          args.push_back(mkMethodId(MethodId::SB_LITERAL));
+          Node provenOr = nodeManager()->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
+          d_lazyProof->addStep(provenOr,
+                               ProofRule::IMPLIES_ELIM,
+                               {proven},
+                               {});
           d_lazyProof->addStep(fullConflictNeg,
-                               ProofRule::MACRO_SR_PRED_TRANSFORM,
-                               children,
-                               args);
+                               ProofRule::RESOLUTION,
+                               {provenOr, conflict.notNode()},
+                               {d_true, conflict});
         }
       }
     }

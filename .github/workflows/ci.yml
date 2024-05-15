@@ -63,7 +63,7 @@ jobs:
 
           - name: win64:production
             os: windows-latest
-            config: production --auto-download
+            config: production --auto-download --java-bindings
             cache-key: production-win64-native
             strip-bin: strip
             windows-build: true
@@ -121,7 +121,6 @@ jobs:
       uses: ./.github/actions/install-dependencies
       with:
         with-documentation: ${{ matrix.build-documentation }}
-        with-python-bindings: ${{ matrix.python-bindings }}
         windows-build: ${{ matrix.windows-build }}
         shell: ${{ matrix.shell }}
 

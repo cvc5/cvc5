@@ -29,6 +29,17 @@
 (define $compare_geq ((T Type :implicit) (x T) (y T))
   (alf.not (alf.is_neg (alf.add (alf.neg y) x))))
 
+; Compare arithmetic greater than. Assumes x and y are values.
+; Returns true if x > y.
+(define $compare_gt ((T Type :implicit) (x T) (y T))
+  (alf.is_neg (alf.add (alf.neg x) y)))
+
+; Compare arithmetic greater than. Assumes x and y are values.
+; Returns true if x >= y.
+(define $compare_geq ((T Type :implicit) (x T) (y T))
+  (alf.not (alf.is_neg (alf.add (alf.neg y) x))))
+
+
 (declare-type @Pair (Type Type))
 (declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
 
@@ -42,14 +53,21 @@
 (define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (alf.is_neg (alf.add (alf.hash a) (alf.neg (alf.hash b)))))
 
+; Returns the tail of x, where x is expected to be a function application.
+(define $tail ((S Type :implicit) (x S))
+  (alf.match ((T Type) (U Type) (S Type) (f (-> T U S)) (x1 T) (x2 T :list))
+    x
+    (((f x1 x2) x2)))
+)
+
 ; Eliminate singleton list.
 ; If the input term is of the form (f x1 x2) where x2 is the nil terminator of
 ; f, then we return x1. Otherwise, we return the input term unchanged.
-(program $dsl.singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
+(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
   (S) S
   (
-    (($dsl.singleton_elim (f x1 x2))  (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
-    (($dsl.singleton_elim x)          x)
+    (($singleton_elim (f x1 x2))  (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
+    (($singleton_elim x)          x)
   )
 )
 
