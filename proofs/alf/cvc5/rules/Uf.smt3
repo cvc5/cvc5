@@ -129,3 +129,21 @@
 ; HO_APP_ENCODE
 
 ; BETA_REDUCE
+
+;;-------------------- Instances of THEORY_REWRITE
+
+; Note that distinct is already treated as pairwise, thus we only need to convert from
+; binary distinct to disequalities.
+(program $mk_distinct-elim ((T Type) (x T) (y T) (b Bool :list))
+  (Bool) Bool
+  (
+  (($mk_distinct-elim (and (distinct x y) b))   (alf.cons and (not (= x y)) ($mk_distinct-elim b)))
+  (($mk_distinct-elim true)                     true)
+  (($mk_distinct-elim (distinct x y))           (alf.cons and (not (= x y)) true))
+  )
+)
+
+(declare-rule distinct-elim ((b Bool))
+  :args (b)
+  :conclusion (= b ($singleton_elim ($mk_distinct-elim b)))
+)

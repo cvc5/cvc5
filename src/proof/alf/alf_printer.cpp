@@ -144,6 +144,13 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ENCODE_PRED_TRANSFORM:
     case ProofRule::ACI_NORM:
     case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::THEORY_REWRITE:
+    {
+      ProofRewriteRule id;
+      rewriter::getRewriteRule(pfn->getArguments()[0], id);
+      return isHandledTheoryRewrite(id, pfn->getArguments()[1]);
+    }
+    break;
     case ProofRule::ARITH_POLY_NORM:
     {
       // we don't support bitvectors yet
@@ -183,6 +190,18 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     }
     break;
     // otherwise not handled
+    default: break;
+  }
+  return false;
+}
+
+bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
+                                        const Node& n) const
+{
+  switch (id)
+  {
+    case ProofRewriteRule::DISTINCT_ELIM:
+    case ProofRewriteRule::RE_LOOP_ELIM: return true;
     default: break;
   }
   return false;
@@ -338,6 +357,14 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     rewriter::getRewriteRule(pfn->getArguments()[0], dr);
     std::stringstream ss;
     ss << "dsl." << dr;
+    return ss.str();
+  }
+  else if (r == ProofRule::THEORY_REWRITE)
+  {
+    ProofRewriteRule id;
+    rewriter::getRewriteRule(pfn->getArguments()[0], id);
+    std::stringstream ss;
+    ss << id;
     return ss.str();
   }
   std::string name = toString(r);
@@ -720,6 +747,14 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       }
       return;
     }
+    case ProofRule::THEORY_REWRITE:
+    {
+      // ignore the identifier
+      Assert(pargs.size() == 2);
+      args.push_back(d_tproc.convert(pargs[1]));
+      return;
+    }
+    break;
     default: break;
   }
   for (size_t i = 0, nargs = pargs.size(); i < nargs; i++)
