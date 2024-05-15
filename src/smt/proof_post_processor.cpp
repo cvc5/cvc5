@@ -175,6 +175,17 @@ bool ProofPostprocessCallback::update(Node res,
   return !ret.isNull();
 }
 
+bool ProofPostprocessCallback::canMerge(std::shared_ptr<ProofNode> pn)
+{
+  if (d_collectAllTrusted)
+  {
+    ProofRule id = pn->getRule();
+    return (id != ProofRule::TRUST_THEORY_REWRITE && id != ProofRule::TRUST);
+  }
+  // otherwise we can merge
+  return true;
+}
+
 bool ProofPostprocessCallback::updateInternal(Node res,
                                               ProofRule id,
                                               const std::vector<Node>& children,
