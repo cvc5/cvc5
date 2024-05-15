@@ -118,7 +118,6 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-
     case ProofRewriteRule::DT_CONS_EQ:
     {
       if (n.getKind() == Kind::EQUAL)

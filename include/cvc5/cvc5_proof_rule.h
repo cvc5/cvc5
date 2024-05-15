@@ -2327,7 +2327,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    *    \mathit{is}_C(t) = (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))
    *
    * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
-   * t, and :math:`\mathit{is}_C` is the discriminator (tester) for :math:`C`.
+   * :math:`t`, and :math:`\mathit{is}_C` is the discriminator (tester) for
+   * :math:`C`.
    * \endverbatim
    */
   EVALUE(DT_INST),
