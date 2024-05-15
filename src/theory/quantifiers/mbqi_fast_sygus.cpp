@@ -52,7 +52,18 @@ void MVarInfo::initialize(Env& env,
     d_lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
     trules.insert(trules.end(), vs.begin(), vs.end());
   }
-  trules.insert(trules.end(), etrules.begin(), etrules.end());
+  // include free symbols from body of quantified formula if applicable
+  std::unordered_set<Node> syms;
+  expr::getSymbols(q[1], syms);
+  trules.insert(trules.end(), syms.begin(), syms.end());
+  // include the external terminal rules
+  for (const Node& symbol : etrules)
+  {
+    if (std::find(trules.begin(), trules.end(), symbol) == trules.end())
+    {
+      trules.push_back(symbol);
+    }
+  }
   SygusGrammarCons sgc;
   Node bvl;
   TypeNode tng = sgc.mkDefaultSygusType(env, retType, bvl, trules);
