@@ -931,7 +931,7 @@ Node RegExpOpr::simplify(Node t, bool polarity)
       // As an optimization to the reduction, if we can determine that
       // all strings in the language of R1 have the same length, say n,
       // then the conclusion of the reduction is quantifier-free:
-      //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
+      //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,len(s)-n,n) in R2)
       Node reLen = getRegExpConcatFixed(r, isRev);
       if (!reLen.isNull())
       {

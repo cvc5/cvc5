@@ -1672,15 +1672,19 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in \mathit{re.++}(r_1,\ldots,r_n)\mid \bot}{
-   *  \mathit{pre}(t,L) \not\in r_1 \vee \mathit{suf}(t,L) \not \in \mathit{re.++}(r_2,\ldots,r_n)}
+   *   \inferrule{t\not\in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \bot}{
+   *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(r_2, \ldots, r_n)}
    *
-   * where :math:`r1` has fixed length :math:`L`.
+   * where :math:`r_1` has fixed length :math:`L`.
    * 
    * or alternatively for the reverse:
    * 
-   *   \inferrule{t\not\in \mathit{re.++}(r_1,\ldots,r_n)\mid \bot}{
-   *  \mathit{pre}(t,(str.len t)-L) \not\in \mathit{re.++}(r_2,\ldots,r_{n-1}) \vee \mathit{substr}(t,(str.len t)-L, L) \not \in r_n}
+   *
+   * .. math::
+   *
+   *   \inferrule{t \not \in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \top}{
+   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{++}(r_1, \ldots, r_{n-1}) \vee
+   *   \mathit{suf}(t, str.len(t) - L) \not \in r_n}
    * 
    * where :math:`r_n` has fixed length :math:`L`.
    * 

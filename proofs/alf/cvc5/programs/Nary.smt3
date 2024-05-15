@@ -69,7 +69,6 @@
     )
 )
 
-
 ; returns the number of children of the input
 (program nary.nchild
     ((L Type) (I Type) (cons (-> L L L)) (nil L) (i I) (x L) (xs L :list))
