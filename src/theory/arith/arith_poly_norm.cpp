@@ -245,8 +245,9 @@ Node PolyNorm::toNode(const TypeNode& tn) const
     }
     else
     {
-      Assert (isBv);
-      coeff = nm->mkConst(BitVector(tn.getBitVectorSize(), m.second.getNumerator()));
+      Assert(isBv);
+      coeff = nm->mkConst(
+          BitVector(tn.getBitVectorSize(), m.second.getNumerator()));
     }
     if (m.first.isNull())
     {
@@ -274,7 +275,7 @@ Node PolyNorm::toNode(const TypeNode& tn) const
     }
     else
     {
-      Assert (isBv);
+      Assert(isBv);
       return bv::utils::mkZero(tn.getBitVectorSize());
     }
   }
