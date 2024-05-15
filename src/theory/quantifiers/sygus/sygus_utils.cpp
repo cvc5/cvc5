@@ -19,6 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 
 using namespace cvc5::internal::kind;
@@ -217,6 +218,37 @@ TypeNode SygusUtils::getSygusType(const Node& f)
     return gv.getType();
   }
   return TypeNode::null();
+}
+
+Node SygusUtils::mkSygusTermFor(const Node& f)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode tn = getSygusType(f);
+  Node bvl = getOrMkSygusArgumentList(f);
+  if (tn.isNull())
+  {
+    Node ret;
+    if (f.getType().isFunction())
+    {
+      Assert(!bvl.isNull());
+      ret = nm->mkGroundValue(f.getType().getRangeType());
+      // give the appropriate variable list
+      ret = nm->mkNode(Kind::LAMBDA, bvl, ret);
+    }
+    else
+    {
+      ret = nm->mkGroundValue(f.getType());
+    }
+    return ret;
+  }
+  Node ret = nm->mkGroundValue(tn);
+  // use external=true
+  ret = datatypes::utils::sygusToBuiltin(ret, true);
+  if (!bvl.isNull())
+  {
+    ret = nm->mkNode(Kind::LAMBDA, bvl, ret);
+  }
+  return ret;
 }
 
 }  // namespace quantifiers
