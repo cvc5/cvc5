@@ -219,6 +219,22 @@
     ))
 )
 
+(declare-rule re_unfold_neg_concat_fixed ((s String) (r RegLan) (rev Bool))
+  :premises ((not (str.in_re s r)))
+  :args (rev)
+  :conclusion
+    (alf.match ((r1 RegLan) (r2 RegLan :list))
+      ($str_rev rev r)
+      (
+        ((re.++ r1 r2) (let ((n ($str_fixed_len_re r1)))
+                       (alf.ite rev
+                       (or (not (str.in_re ($str_suffix_len s n) r1)) 
+                           (not (str.in_re (skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
+                       (or (not (str.in_re (skolem_prefix s n) r1)) 
+                           (not (str.in_re (skolem_suffix_rem s n) ($singleton_elim r2)))))))
+    ))
+)
+
 ;;-------------------- Extended functions 
 
 (declare-rule string_reduction ((U Type) (s U))
@@ -233,14 +249,15 @@
 
 ;;-------------------- Instances of THEORY_REWRITE
 
-(declare-rule str-in-re-eval ((s String) (r RegLan))
-  :args ((str.in_re s r))
-  :conclusion (= (str.in_re s r) ($str_eval_str_in_re s r))
+(declare-rule str-in-re-eval ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_eval_str_in_re s r) b))
+  :conclusion (= (str.in_re s r) b)
 )
 
-(declare-rule re-loop-elim ((l Int) (u Int) (r RegLan))
-  :args ((re.loop l u r))
-  :conclusion (let ((diff (alf.add (alf.neg l) u)))
-              (alf.requires (alf.is_neg diff) false
-                 (= (re.loop l u r) ($str_mk_re_loop_elim l diff r))))
+(declare-rule re-loop-elim ((l Int) (u Int) (r1 RegLan) (r2 RegLan))
+  :args ((= (re.loop l u r1) r2))
+  :requires (((alf.is_neg (alf.add (alf.neg l) u)) false)
+             (($str_mk_re_loop_elim l (alf.add (alf.neg l) u) r1) r2))
+  :conclusion (= (re.loop l u r1) r2)
 )

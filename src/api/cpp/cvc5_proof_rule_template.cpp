@@ -233,6 +233,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
     case ProofRewriteRule::RE_LOOP_ELIM:
       return "re-loop-elim";
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+      return "sets-is-empty-eval";
       //================================================= RARE rules
       // clang-format off
       ${printer}$

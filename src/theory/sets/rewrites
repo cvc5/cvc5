@@ -1,8 +1,18 @@
 ; Equality
 
+(define-cond-rule sets-eq-singleton-emp ((x ?Set) (y ?))
+  (set.is_empty x)
+  (= x (set.singleton y))
+  false)
+
 (define-rule sets-member-singleton ((x ?) (y ?))
   (set.member x (set.singleton y))
   (= x y))
+
+(define-cond-rule sets-member-emp ((x ?) (y ?Set))
+  (set.is_empty y)
+  (set.member x y)
+  false)
   
 (define-rule sets-subset-elim ((x ?Set) (y ?Set))
   (set.subset x y)
@@ -15,6 +25,30 @@
   (set.inter x y)
   (set.inter y x))
 
+(define-cond-rule sets-inter-emp1 ((x ?Set) (y ?Set))
+  (set.is_empty x)
+  (set.inter x y)
+  x)
+(define-cond-rule sets-inter-emp2 ((x ?Set) (y ?Set))
+  (set.is_empty y)
+  (set.inter x y)
+  y)
+(define-cond-rule sets-minus-emp1 ((x ?Set) (y ?Set))
+  (set.is_empty x)
+  (set.minus x y)
+  x)
+(define-cond-rule sets-minus-emp2 ((x ?Set) (y ?Set))
+  (set.is_empty y)
+  (set.minus x y)
+  x)
+(define-cond-rule sets-union-emp1 ((x ?Set) (y ?Set))
+  (set.is_empty x)
+  (set.union x y)
+  y)
+(define-cond-rule sets-union-emp2 ((x ?Set) (y ?Set))
+  (set.is_empty y)
+  (set.union x y)
+  x)
 
 (define-rule sets-inter-member ((x ?) (y ?Set) (z ?Set))
   (set.member x (set.inter y z))
@@ -26,5 +60,25 @@
   (set.member x (set.union y z))
   (or (set.member x y) (set.member x z)))
 
-; (set.card (set.union s t)) ---> (- (+ (set.card s) (set.card t)) (set.card (set.inter s t)))
+(define-rule sets-choose-singleton ((x ?))
+  (set.choose (set.singleton x))
+  x)
+
+(define-rule sets-card-singleton ((x ?))
+  (set.card (set.singleton x))
+  1)
+
+(define-rule sets-card-union ((s ?Set) (t ?Set))
+  (set.card (set.union s t))
+  (- (+ (set.card s) (set.card t)) (set.card (set.inter s t))))
+
+(define-rule sets-card-minus ((s ?Set) (t ?Set))
+  (set.card (set.minus s t))
+  (- (set.card s) (set.card (set.inter s t))))
+
+(define-cond-rule sets-card-emp ((x ?Set))
+  (set.is_empty x)
+  (set.card x)
+  0)
+
 ; (set.complement S) ---> (set.minus (as set.universe (Set Int)) S)
