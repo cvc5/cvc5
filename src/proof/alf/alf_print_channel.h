@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALF__ALF_PRINT_CHANNEL_H
-#define CVC4__PROOF__ALF__ALF_PRINT_CHANNEL_H
+#ifndef CVC5__PROOF__ALF__ALF_PRINT_CHANNEL_H
+#define CVC5__PROOF__ALF__ALF_PRINT_CHANNEL_H
 
 #include <iostream>
 #include <map>
@@ -155,7 +155,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
                       TNode conc) override;
 
   /** Get variables we encountered in printing */
-  const std::unordered_set<TNode>& getVariables() const;
+  const std::unordered_set<Node>& getVariables() const;
 
  private:
   /** The let binding */
@@ -163,7 +163,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
   /** For computing free variables */
   std::unordered_set<Node> d_keep;
   /** The set of variables we have encountered */
-  std::unordered_set<TNode> d_vars;
+  std::unordered_set<Node> d_vars;
   /** The visited cache for computing variables */
   std::unordered_set<TNode> d_varsVisited;
   /** Process that we will print node n in the final proof */

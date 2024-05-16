@@ -50,9 +50,10 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::EVALUATE, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
   pc->registerChecker(ProofRule::ANNOTATION, this);
-  pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  pc->registerChecker(ProofRule::ITE_EQ, this);
   pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
+  pc->registerChecker(ProofRule::THEORY_REWRITE, this);
   // rules depending on the rewriter
   pc->registerTrustedChecker(ProofRule::MACRO_REWRITE, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_EQ_INTRO, this, 4);
@@ -392,7 +393,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0];
   }
-  else if (id == ProofRule::REMOVE_TERM_FORMULA_AXIOM)
+  else if (id == ProofRule::ITE_EQ)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -440,8 +441,8 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     // consult rewrite db, apply args[1]...args[n] as a substitution
     // to variable list and prove equality between LHS and RHS.
     Assert(d_rdb != nullptr);
-    rewriter::DslProofRule di;
-    if (!getDslProofRule(args[0], di))
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
     {
       return Node::null();
     }
@@ -468,7 +469,21 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return rpr.getConclusionFor(subs);
   }
-
+  else if (id == ProofRule::THEORY_REWRITE)
+  {
+    Assert(args.size() == 2);
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
+    {
+      return Node::null();
+    }
+    Node rhs = d_rewriter->rewriteViaRule(di, args[1]);
+    if (rhs.isNull())
+    {
+      return Node::null();
+    }
+    return args[1].eqNode(rhs);
+  }
   // no rule
   return Node::null();
 }

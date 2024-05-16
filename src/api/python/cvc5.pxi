@@ -48,6 +48,7 @@ from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
+from cvc5proofrules cimport ProofRewriteRule as c_ProofRewriteRule
 from cvc5proofrules cimport ProofRule as c_ProofRule
 from cvc5skolemids cimport SkolemId as c_SkolemId
 
@@ -2928,20 +2929,23 @@ cdef class Solver:
         """
         return self.tm.mkDatatypeDecl(name, sorts_or_bool, isCoDatatype)
 
-    def simplify(self, Term t):
+    def simplify(self, Term t, applySubs=False):
         """
-            Simplify a formula without doing "much" work.  Does not involve the
-            SAT Engine in the simplification, but uses the current definitions,
-            assertions, and the current partial model, if one has been
-            constructed. It also involves theory normalization.
+            Simplify a term or formula based on rewriting and (optionally)
+            applying substitutions for solved variables.
+            
+            If applySubs is true, then for example, if `(= x 0)` was asserted to
+            this solver, this method may replace occurrences of `x` with `0`.
 
             .. warning:: This function is experimental and may change in future
                          versions.
 
-            :param t: The formula to simplify.
-            :return: The simplified formula.
+            :param t: The term to simplify.
+            :param applySubs: Whether to apply substitutions for solved
+                              variables.
+            :return: The simplified term.
         """
-        return _term(self.tm, self.csolver.simplify(t.cterm))
+        return _term(self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
 
     def assertFormula(self, Term term):
         """
@@ -5672,6 +5676,14 @@ cdef class Proof:
             :return: The proof rule used by the root step of the proof.
         """
         return ProofRule(<int> self.cproof.getRule())
+
+    def getRewriteRule(self):
+        """
+            :return: The proof rewrite rule used by the root step of the proof.
+                     Raises an exception if `getRule()` does not return
+                     `DSL_REWRITE` or `THEORY_REWRITE`.
+        """
+        return ProofRewriteRule(<int> self.cproof.getRewriteRule())
 
     def getResult(self):
         """

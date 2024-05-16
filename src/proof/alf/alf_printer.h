@@ -23,10 +23,12 @@
 #include <iostream>
 
 #include "expr/node_algorithm.h"
+#include "proof/alf/alf_list_node_converter.h"
 #include "proof/alf/alf_node_converter.h"
 #include "proof/alf/alf_print_channel.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -36,7 +38,7 @@ namespace proof {
 class AlfPrinter : protected EnvObj
 {
  public:
-  AlfPrinter(Env& env, BaseAlfNodeConverter& atp);
+  AlfPrinter(Env& env, BaseAlfNodeConverter& atp, rewriter::RewriteDb* rdb);
   ~AlfPrinter() {}
 
   /**
@@ -47,6 +49,8 @@ class AlfPrinter : protected EnvObj
  private:
   /** Return true if it is possible to trust the topmost application in pfn */
   bool isHandled(const ProofNode* pfn) const;
+  /** Return true if id is handled as a theory rewrite for term n */
+  bool isHandledTheoryRewrite(ProofRewriteRule id, const Node& n) const;
   /**
    * Return true if it is possible to evaluate n using the evaluation side
    * condition in the ALF signature. Notice this requires that all subterms of n
@@ -54,8 +58,12 @@ class AlfPrinter : protected EnvObj
    * ProofRule::EVALUATE can be applied.
    */
   bool canEvaluate(Node n) const;
+  /**
+   * Whether we support evaluating (str.in_re s r) for any constant string s.
+   */
+  bool canEvaluateRegExp(Node r) const;
   /* Returns the normalized name of the proof rule of pfn */
-  static std::string getRuleName(const ProofNode* pfn);
+  std::string getRuleName(const ProofNode* pfn) const;
 
   //-------------
   /**
@@ -100,6 +108,8 @@ class AlfPrinter : protected EnvObj
    * Allocate (if necessary) the identifier for step
    */
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
+  /** Print DSL rule name r to output stream out */
+  void printDslRule(std::ostream& out, ProofRewriteRule r);
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
   /** Reference to the term processor */
@@ -120,6 +130,12 @@ class AlfPrinter : protected EnvObj
   std::string d_termLetPrefix;
   /** The false node */
   Node d_false;
+  /** List node converter */
+  AlfListNodeConverter d_ltproc;
+  /** Pointer to the rewrite database */
+  rewriter::RewriteDb* d_rdb;
+  /** The DSL rules we have seen */
+  std::unordered_set<ProofRewriteRule> d_dprs;
 };
 
 }  // namespace proof

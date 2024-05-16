@@ -341,19 +341,6 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
             }
           }
         }
-        else if (t[0].isConst()
-                 && t[0].getConst<Rational>().getNumerator().toUnsignedInt()
-                        == 2
-                 && t[1].getType().isInteger())
-        {
-          Node ret = nodeManager()->mkNode(Kind::POW2, t[1]);
-          // ensure type is preserved
-          if (t.getType().isReal())
-          {
-            ret = rewriter::ensureReal(ret);
-          }
-          return RewriteResponse(REWRITE_AGAIN, ret);
-        }
         return RewriteResponse(REWRITE_DONE, t);
       }
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);
@@ -1058,6 +1045,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             {
               new_arg = nm->mkNode(Kind::ADD, new_arg, rem);
             }
+            new_arg = rewriter::ensureReal(new_arg);
             // sin( 2*n*PI + x ) = sin( x )
             return RewriteResponse(REWRITE_AGAIN_FULL,
                                    nm->mkNode(Kind::SINE, new_arg));
@@ -1072,6 +1060,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
             }
             else
             {
+              rem = rewriter::ensureReal(rem);
               return RewriteResponse(
                   REWRITE_AGAIN_FULL,
                   nm->mkNode(Kind::NEG, nm->mkNode(Kind::SINE, rem)));

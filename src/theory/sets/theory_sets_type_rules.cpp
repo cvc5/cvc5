@@ -19,10 +19,11 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "theory/sets/normal_form.h"
-#include "util/cardinality.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
+#include "theory/sets/normal_form.h"
+#include "util/cardinality.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -398,16 +399,17 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
   return setType.getSetElementType();
 }
 
-TypeNode IsSingletonTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IsSetTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->booleanType();
 }
-TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
-                                          TNode n,
-                                          bool check,
-                                          std::ostream* errOut)
+TypeNode IsSetTypeRule::computeType(NodeManager* nodeManager,
+                                    TNode n,
+                                    bool check,
+                                    std::ostream* errOut)
 {
-  Assert(n.getKind() == Kind::SET_IS_SINGLETON);
+  Assert(n.getKind() == Kind::SET_IS_EMPTY
+         || n.getKind() == Kind::SET_IS_SINGLETON);
   TypeNode setType = n[0].getTypeOrNull();
   if (check)
   {
@@ -415,8 +417,8 @@ TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut)
-            << "SET_IS_SINGLETON operator expects a set, a non-set is found";
+        (*errOut) << n.getKind()
+                  << " operator expects a set, a non-set is found";
       }
       return TypeNode::null();
     }
@@ -708,6 +710,97 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
         nodeManager->mkSetType(nodeManager->mkAbstractType(Kind::TUPLE_TYPE));
   }
   return resultType;
+}
+
+TypeNode RelationTableJoinTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode RelationTableJoinTypeRule::computeType(NodeManager* nm,
+                                                TNode n,
+                                                bool check,
+                                                std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::RELATION_TABLE_JOIN && n.hasOperator()
+         && n.getOperator().getKind() == Kind::RELATION_TABLE_JOIN_OP);
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+  Node A = n[0];
+  Node B = n[1];
+  TypeNode aType = A.getType();
+  TypeNode bType = B.getType();
+
+  if (check)
+  {
+    if (!(aType.isSet() && bType.isSet()))
+    {
+      std::stringstream ss;
+      ss << "RELATION_TABLE_JOIN operator expects two relations. Found '"
+         << n[0] << "', '" << n[1] << "' of types '" << aType << "', '" << bType
+         << "' respectively. ";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode aTupleType = aType.getSetElementType();
+    TypeNode bTupleType = bType.getSetElementType();
+    if (!(aTupleType.isTuple() && bTupleType.isTuple()))
+    {
+      std::stringstream ss;
+      ss << "RELATION_TABLE_JOIN operator expects two relations. Found '"
+         << n[0] << "', '" << n[1] << "' of types '" << aType << "', '" << bType
+         << "' respectively. ";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    if (indices.size() % 2 != 0)
+    {
+      std::stringstream ss;
+      ss << "RELATION_TABLE_JOIN operator expects even number of indices. "
+            "Found "
+         << indices.size() << " in term " << n;
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    auto [aIndices, bIndices] = bags::BagsUtils::splitTableJoinIndices(n);
+    if (!TupleUtils::checkTypeIndices(aTupleType, aIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its first argument";
+      }
+      return TypeNode::null();
+    }
+    if (!TupleUtils::checkTypeIndices(bTupleType, bIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its second argument";
+      }
+      return TypeNode::null();
+    }
+
+    // check the types of columns
+    std::vector<TypeNode> aTypes = aTupleType.getTupleTypes();
+    std::vector<TypeNode> bTypes = bTupleType.getTupleTypes();
+    for (uint32_t i = 0; i < aIndices.size(); i++)
+    {
+      if (aTypes[aIndices[i]] != bTypes[bIndices[i]])
+      {
+        std::stringstream ss;
+        ss << "RELATION_TABLE_JOIN operator expects column " << aIndices[i]
+           << " in relation " << n[0] << " to match column " << bIndices[i]
+           << " in relation " << n[1] << ". But their types are "
+           << aTypes[aIndices[i]] << " and " << bTypes[bIndices[i]]
+           << "' respectively. ";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+  }
+  TypeNode aTupleType = aType.getSetElementType();
+  TypeNode bTupleType = bType.getSetElementType();
+  TypeNode retTupleType = TupleUtils::concatTupleTypes(aTupleType, bTupleType);
+  return nm->mkSetType(retTupleType);
 }
 
 TypeNode RelTransposeTypeRule::preComputeType(NodeManager* nm, TNode n)

@@ -78,6 +78,37 @@ TrustNode TheoryRewriter::expandDefinition(Node node)
   return TrustNode::null();
 }
 
+Node TheoryRewriter::rewriteViaRule(ProofRewriteRule pr, const Node& n)
+{
+  return n;
+}
+
+ProofRewriteRule TheoryRewriter::findRule(const Node& a,
+                                          const Node& b,
+                                          TheoryRewriteCtx ctx)
+{
+  std::unordered_set<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
+  for (ProofRewriteRule r : rules)
+  {
+    if (rewriteViaRule(r, a) == b)
+    {
+      return r;
+    }
+  }
+  return ProofRewriteRule::NONE;
+}
+
+void TheoryRewriter::registerProofRewriteRule(ProofRewriteRule id,
+                                              TheoryRewriteCtx ctx)
+{
+  std::unordered_set<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
+  rules.insert(id);
+  if (ctx == TheoryRewriteCtx::DSL_SUBCALL)
+  {
+    d_pfTheoryRewrites[TheoryRewriteCtx::PRE_DSL].insert(id);
+  }
+}
+
 NodeManager* TheoryRewriter::nodeManager() const { return d_nm; }
 
 }  // namespace theory

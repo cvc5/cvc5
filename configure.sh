@@ -93,7 +93,7 @@ msg () {
 
 #--------------------------------------------------------------------------#
 
-[ ! -e src/theory ] && die "$0 not called from CVC4 base directory"
+[ ! -e src/theory ] && die "$0 not called from cvc5 base directory"
 
 #--------------------------------------------------------------------------#
 
@@ -125,6 +125,7 @@ ninja=default
 profiling=default
 python_bindings=default
 python_only_src=default
+pyvenv=default
 java_bindings=default
 editline=default
 build_shared=ON
@@ -147,6 +148,12 @@ wasm=default
 wasm_flags=""
 
 #--------------------------------------------------------------------------#
+
+uname_output=$(uname)
+
+if [[ $uname_output =~ ^MSYS || $uname_output =~ ^MINGW ]]; then
+  win64_native=ON
+fi
 
 cmake_opts=""
 
@@ -258,6 +265,9 @@ do
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
 
+    --pyvenv) pyvenv=ON;;
+    --no-pyvenv) pyvenv=OFF;;
+
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
 
@@ -342,6 +352,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
 [ $auto_download != default ] \
   && cmake_opts="$cmake_opts -DENABLE_AUTO_DOWNLOAD=$auto_download"
+[ $pyvenv != default ] \
+  && cmake_opts="$cmake_opts -DUSE_PYTHON_VENV=$pyvenv"
 [ $ubsan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
 [ $tsan != default ] \

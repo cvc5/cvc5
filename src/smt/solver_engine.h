@@ -491,17 +491,17 @@ class CVC5_EXPORT SolverEngine
    */
   void addPlugin(Plugin* p);
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
+   * Simplify a term or formula based on rewriting and (optionally) applying
+   * substitutions for solved variables.
    *
-   * @throw TypeCheckingException, LogicException
+   * If applySubs is true, then for example, if `(= x 0)` was asserted to this
+   * solver, this method may replace occurrences of `x` with `0`.
    *
-   * @todo (design) is this meant to give an equivalent or an
-   * equisatisfiable formula?
+   * @param t The term to simplify.
+   * @param applySubs Whether to apply substitutions for solved variables.
+   * @return The simplified term.
    */
-  Node simplify(const Node& e);
+  Node simplify(const Node& e, bool applySubs);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -1116,6 +1116,10 @@ class CVC5_EXPORT SolverEngine
   bool d_safeOptsSetRegularOption;
   /** The regular option we set (for --safe-options) */
   std::string d_safeOptsRegularOption;
+  /** The value of the regular option we set (for --safe-options) */
+  std::string d_safeOptsRegularOptionValue;
+  /** Was the option already the default setting */
+  bool d_safeOptsSetRegularOptionToDefault;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

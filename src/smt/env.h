@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "context/cdhashset.h"
 #include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
@@ -279,6 +280,26 @@ class Env
   /** get oracle checker */
   theory::quantifiers::OracleChecker* getOracleChecker() const;
 
+  /**
+   * Register Boolean term skolem. This registers that k is a Boolean variable
+   * that should be treated as a theory atom. This impacts theoryOf, where
+   * Boolean term skolems belong to THEORY_UF, not THEORY_BOOL.
+   *
+   * This method is called by the "remove term formula" pass, which recognizes
+   * when Boolean terms occur in term positions, which are relevant for
+   * theory combination.
+   *
+   * @param k The node to register as a Boolean term skolem. This should be
+   * a variable of Boolean type.
+   */
+  void registerBooleanTermSkolem(const Node& k);
+  /**
+   * Is Boolean term skolem?
+   * @param k The node in question.
+   * @return true if k is a Boolean term skolem.
+   */
+  bool isBooleanTermSkolem(const Node& k) const;
+
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -355,6 +376,14 @@ class Env
   std::vector<Plugin*> d_plugins;
   /** oracle checker */
   std::unique_ptr<theory::quantifiers::OracleChecker> d_ochecker;
+  /**
+   * The set of skolems introduced for Boolean term elimination. This is a set
+   * of purification skolems of Boolean type. These variables are important
+   * since unlike other Boolean variables, they must be treated as theory
+   * atoms to ensure that theory combination works when argument terms are
+   * Boolean type.
+   */
+  context::CDHashSet<Node> d_boolTermSkolems;
 }; /* class Env */
 
 }  // namespace cvc5::internal

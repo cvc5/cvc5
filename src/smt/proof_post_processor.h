@@ -25,10 +25,10 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
-#include "rewriter/rewrite_db_proof_cons.h"
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
 #include "smt/proof_final_callback.h"
+#include "smt/proof_post_processor_dsl.h"
 #include "smt/witness_form.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
@@ -45,7 +45,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
 {
  public:
   ProofPostprocessCallback(Env& env,
-                           rewriter::RewriteDb* rdb,
                            bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
@@ -63,12 +62,24 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * has no effect.
    */
   void setEliminateRule(ProofRule rule);
-  /** set eliminate all trusted rules via DSL */
-  void setEliminateAllTrustedRules();
+  /**
+   * Set collecting all trusted rules. All proofs of trusted rules can be
+   * obtained by getTrustedProofs below.
+   */
+  void setCollectAllTrustedRules();
+  /**
+   * Get trusted proofs, which is the set of all trusted proofs
+   * that were encountered in the last call to process, collected at
+   * post-order traversal.
+   */
+  std::unordered_set<std::shared_ptr<ProofNode>>& getTrustedProofs();
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
+  /** Should proof pn be updated? */
+  bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                        const std::vector<Node>& fa) override;
   /** Update the proof rule application. */
   bool update(Node res,
               ProofRule id,
@@ -76,6 +87,13 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate) override;
+  /**
+   * Can merge. This returns false if pn is a trusted proof, since we do not
+   * want the proof node updater to merge its contents into another proof,
+   * which we otherwise would not be informed of and would lead to trusted
+   * proofs that are not recorded in d_trustedPfs.
+   */
+  bool canMerge(std::shared_ptr<ProofNode> pn) override;
 
  private:
   /** Common constants */
@@ -84,16 +102,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   ProofChecker* d_pc;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
-  /** The rewrite database proof generator */
-  rewriter::RewriteDbProofCons d_rdbPc;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
   /** The witness form assumptions used in the proof */
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<ProofRule, std::hash<ProofRule>> d_elimRules;
-  /** Whether we are trying to eliminate any trusted rule via the DSL */
-  bool d_elimAllTrusted;
+  /** Whether we are collecting all trusted rules */
+  bool d_collectAllTrusted;
+  /** Set of all proofs to attempt to reconstruct */
+  std::unordered_set<std::shared_ptr<ProofNode>> d_trustedPfs;
   /** Whether we post-process assumptions in scope. */
   bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update
@@ -216,6 +234,8 @@ class ProofPostprocess : protected EnvObj
  private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;
+  /** The DSL post processor */
+  std::unique_ptr<ProofPostprocessDsl> d_ppdsl;
   /**
    * The updater, which is responsible for expanding macros in the final proof
    * and connecting preprocessed assumptions to input assumptions.

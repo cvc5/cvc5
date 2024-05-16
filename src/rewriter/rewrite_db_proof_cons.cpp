@@ -41,7 +41,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_eval(nullptr),
       d_currRecLimit(0),
       d_currStepLimit(0),
-      d_currFixedPointId(DslProofRule::NONE),
+      d_currFixedPointId(ProofRewriteRule::NONE),
       d_statTotalInputs(
           statisticsRegistry().registerInt("RewriteDbProofCons::totalInputs")),
       d_statTotalAttempts(statisticsRegistry().registerInt(
@@ -66,26 +66,41 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   d_pcache.clear();
   // clear the evaluate cache
   d_evalCache.clear();
-  Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
+  Node eq = a.eqNode(b);
+  // As a heuristic, always apply CONG if we are an equality between two
+  // binder terms with the same quantifier prefix.
+  if (a.isClosure() && a.getKind() == b.getKind() && a[0] == b[0])
+  {
+    Node eqo = eq;
+    // Ensure the equality is converted, which resolves complications with
+    // patterns.
+    Node eqoi = d_rdnc.convert(eqo);
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(eqoi[0], cargs);
+    // only apply this to standard binders (those with 2 children)
+    if (eqoi[0].getNumChildren() == 2)
+    {
+      eq = eqoi[0][1].eqNode(eqoi[1][1]);
+      cdp->addStep(eqoi, cr, {eq}, cargs);
+      if (eqo != eqoi)
+      {
+        cdp->addStep(eqo, ProofRule::ENCODE_PRED_TRANSFORM, {eqoi}, {eqo});
+      }
+    }
+  }
+  Trace("rpc") << "RewriteDbProofCons::prove: " << eq[0] << " == " << eq[1]
                << std::endl;
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
-  if (d_trrc.prove(cdp, a, b, tid, mid))
+  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     return true;
   }
-  // if there are quantifiers, fail immediately
-  if (a.isClosure())
-  {
-    Trace("rpc") << "...fail (out of scope)" << std::endl;
-    return false;
-  }
+  bool success = false;
   ++d_statTotalInputs;
   Trace("rpc-debug") << "- convert to internal" << std::endl;
   // prove the equality
-  Node eq = a.eqNode(b);
-  bool success = false;
   for (int64_t i = 0; i <= recLimit; i++)
   {
     Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
@@ -110,6 +125,15 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
           break;
         }
       }
+    }
+  }
+  if (!success)
+  {
+    // now try the "post-prove" method as a last resort
+    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid))
+    {
+      Trace("rpc") << "...success (post-prove basic)" << std::endl;
+      return true;
     }
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
@@ -197,6 +221,13 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   {
     return RewriteProofStatus::ARITH_POLY_NORM;
   }
+  // Maybe holds via a THEORY_REWRITE that has been marked with
+  // TheoryRewriteCtx::DSL_SUBCALL.
+  if (proveWithRule(
+          RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+  {
+    return RewriteProofStatus::THEORY_REWRITE;
+  }
   Trace("rpc-debug2") << "...not proved via builtin tactic" << std::endl;
   d_currRecLimit--;
   Node prevTarget = d_target;
@@ -252,13 +283,13 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
   Assert(d_target.getKind() == Kind::EQUAL);
   Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
-  if (d_currFixedPointId != DslProofRule::NONE)
+  if (d_currFixedPointId != ProofRewriteRule::NONE)
   {
     Trace("rpc-debug2") << "Part of fixed point for rule " << d_currFixedPointId
                         << std::endl;
     const RewriteProofRule& rpr = d_db->getRule(d_currFixedPointId);
     // get the conclusion
-    Node target = rpr.getConclusion();
+    Node target = rpr.getConclusion(true);
     // apply substitution, which may notice vars may be out of order wrt rule
     // var list
     target = expr::narySubstitute(target, vars, subs);
@@ -286,10 +317,10 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
   Assert(d_target[0] == s);
   bool recurse = d_currRecLimit > 0;
   // get the rule identifiers for the conclusion
-  const std::vector<DslProofRule>& ids = d_db->getRuleIdsForHead(n);
+  const std::vector<ProofRewriteRule>& ids = d_db->getRuleIdsForHead(n);
   Assert(!ids.empty());
   // check each rule instance, succeed if one proves
-  for (DslProofRule id : ids)
+  for (ProofRewriteRule id : ids)
   {
     // try to prove target with the current rule, using inflection matching
     // and fixed point semantics
@@ -320,10 +351,13 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
                                        bool doInflectMatch,
                                        bool doFixedPoint,
                                        bool doRecurse,
-                                       DslProofRule r)
+                                       ProofRewriteRule r)
 {
   Assert(!target.isNull() && target.getKind() == Kind::EQUAL);
-  Trace("rpc-debug2") << "Check rule " << id << std::endl;
+  Trace("rpc-debug2") << "Check rule "
+                      << (id == RewriteProofStatus::DSL ? toString(r)
+                                                        : toString(id))
+                      << std::endl;
   std::vector<Node> vcs;
   Node transEq;
   ProvenInfo pic;
@@ -339,6 +373,16 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     pic.d_id = id;
     for (size_t i = 0; i < nchild; i++)
     {
+      // for closures, their first argument (the bound variable list) must be
+      // equivalent, and should not be given as a child proof.
+      if (i == 0 && target[0].isClosure())
+      {
+        if (target[0][0] != target[1][0])
+        {
+          return false;
+        }
+        continue;
+      }
       if (!target[0][i].getType().isComparableTo(target[1][i].getType()))
       {
         // type error on children (required for certain polymorphic operators)
@@ -434,8 +478,20 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     }
     pic.d_id = id;
   }
+  else if (id == RewriteProofStatus::THEORY_REWRITE)
+  {
+    ProofRewriteRule prid = d_env.getRewriter()->findRule(
+        target[0], target[1], theory::TheoryRewriteCtx::DSL_SUBCALL);
+    if (prid == ProofRewriteRule::NONE)
+    {
+      return false;
+    }
+    pic.d_id = id;
+    pic.d_dslId = prid;
+  }
   else
   {
+    Assert(id == RewriteProofStatus::DSL);
     const RewriteProofRule& rpr = d_db->getRule(r);
     // does it conclusion match what we are trying to show?
     Node conc = rpr.getConclusion();
@@ -784,43 +840,43 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           {
             // premises are the steps, stored in d_vars
             ps.insert(ps.end(), pcur.d_vars.begin(), pcur.d_vars.end());
-            if (pcur.d_id == RewriteProofStatus::CONG
-                || pcur.d_id == RewriteProofStatus::CONG_EVAL)
-            {
-              pfac.push_back(ProofRuleChecker::mkKindNode(cur[0].getKind()));
-              if (cur[0].getMetaKind() == kind::metakind::PARAMETERIZED)
-              {
-                pfac.push_back(cur[0].getOperator());
-              }
-            }
           }
           else
           {
-            Assert(pcur.d_dslId != DslProofRule::NONE);
-            const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
+            Assert(cur.getKind() == Kind::EQUAL);
+            Assert(pcur.d_dslId != ProofRewriteRule::NONE);
             // add the DSL proof rule we used
             pfac.push_back(
                 nm->mkConstInt(Rational(static_cast<uint32_t>(pcur.d_dslId))));
-            // compute premises based on the used substitution
-            // build the substitution context
-            const std::vector<Node>& vs = rpr.getVarList();
-            Assert(pcur.d_vars.size() == vs.size());
-            std::vector<Node> rsubs;
-            // must order the variables to match order of rewrite rule
-            for (const Node& v : vs)
+            if (pcur.d_id == RewriteProofStatus::DSL)
             {
-              itv = std::find(pcur.d_vars.begin(), pcur.d_vars.end(), v);
-              size_t d = std::distance(pcur.d_vars.begin(), itv);
-              Assert(d < pcur.d_subs.size());
-              rsubs.push_back(pcur.d_subs[d]);
+              const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
+              // compute premises based on the used substitution
+              // build the substitution context
+              const std::vector<Node>& vs = rpr.getVarList();
+              Assert(pcur.d_vars.size() == vs.size());
+              std::vector<Node> rsubs;
+              // must order the variables to match order of rewrite rule
+              for (const Node& v : vs)
+              {
+                itv = std::find(pcur.d_vars.begin(), pcur.d_vars.end(), v);
+                size_t d = std::distance(pcur.d_vars.begin(), itv);
+                Assert(d < pcur.d_subs.size());
+                rsubs.push_back(pcur.d_subs[d]);
+              }
+              // get the conditions, store into premises of cur.
+              if (!rpr.getObligations(vs, rsubs, ps))
+              {
+                Assert(false) << "failed a side condition?";
+                return false;
+              }
+              pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
             }
-            // get the conditions, store into premises of cur.
-            if (!rpr.getObligations(vs, rsubs, ps))
+            else
             {
-              Assert(false) << "failed a side condition?";
-              return false;
+              Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
+              pfac.push_back(cur[0]);
             }
-            pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
           }
           // recurse on premises
           visit.insert(visit.end(), ps.begin(), ps.end());
@@ -904,18 +960,34 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       {
         cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
       }
-      else
+      else if (pcur.d_id == RewriteProofStatus::DSL
+               || pcur.d_id == RewriteProofStatus::THEORY_REWRITE)
       {
         Assert(pfArgs.find(cur) != pfArgs.end());
-        Assert(pcur.d_dslId != DslProofRule::NONE);
-        const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
+        Assert(pcur.d_dslId != ProofRewriteRule::NONE);
         const std::vector<Node>& args = pfArgs[cur];
-        std::vector<Node> subs(args.begin() + 1, args.end());
-        conc = rpr.getConclusionFor(subs);
-        Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
-        Trace("rpc-debug") << "Proved: " << cur << std::endl;
-        Trace("rpc-debug") << "From: " << conc << std::endl;
-        cdp->addStep(conc, ProofRule::DSL_REWRITE, ps, args);
+        ProofRule pfr;
+        if (pcur.d_id == RewriteProofStatus::DSL)
+        {
+          std::vector<Node> subs(args.begin() + 1, args.end());
+          const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
+          conc = rpr.getConclusionFor(subs);
+          Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
+          Trace("rpc-debug") << "Proved: " << cur << std::endl;
+          Trace("rpc-debug") << "From: " << conc << std::endl;
+          pfr = ProofRule::DSL_REWRITE;
+        }
+        else
+        {
+          Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
+          Assert(args.size() == 2);
+          Node lhs = args[1];
+          Node rhs = d_env.getRewriter()->rewriteViaRule(pcur.d_dslId, lhs);
+          conc = lhs.eqNode(rhs);
+          Assert(ps.empty());
+          pfr = ProofRule::THEORY_REWRITE;
+        }
+        cdp->addStep(conc, pfr, ps, args);
       }
     }
   } while (!visit.empty());
@@ -940,13 +1012,19 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
 {
   pi.d_id = RewriteProofStatus::DSL;
   pi.d_dslId = rpr.getId();
-  Node conc = rpr.getConclusion();
+  Node conc = rpr.getConclusion(true);
+  Node concRhs = conc[1];
+  Trace("rpc-ctx") << "***GET CONCLUSION " << pi.d_dslId << " for " << vars
+                   << " -> " << subs << std::endl;
   // if fixed point, we continue applying
   if (doFixedPoint && rpr.isFixedPoint())
   {
-    Assert(d_currFixedPointId == DslProofRule::NONE);
+    Assert(d_currFixedPointId == ProofRewriteRule::NONE);
     Assert(d_currFixedPointConc.isNull());
     d_currFixedPointId = rpr.getId();
+    Node context = rpr.getContext();
+    Assert(!context.isNull());
+    Trace("rpc-ctx") << "Context is " << context << std::endl;
     // check if stgt also rewrites with the same rule?
     bool continueFixedPoint;
     std::vector<Node> steps;
@@ -958,24 +1036,42 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     Node stgt = ssrc;
     do
     {
+      Trace("rpc-ctx") << "Get matches " << stgt << std::endl;
+      Trace("rpc-ctx") << "Conclusion is " << concRhs << std::endl;
       continueFixedPoint = false;
       rpr.getMatches(stgt, &d_notify);
+      Trace("rpc-ctx") << "...conclusion is " << d_currFixedPointConc
+                       << std::endl;
       if (!d_currFixedPointConc.isNull())
       {
         // currently avoid accidental loops: arbitrarily bound to 1000
         continueFixedPoint = steps.size() <= s_fixedPointLimit;
         Assert(d_currFixedPointConc.getKind() == Kind::EQUAL);
-        steps.push_back(d_currFixedPointConc[1]);
         stepsSubs.emplace_back(d_currFixedPointSubs.begin(),
                                d_currFixedPointSubs.end());
         stgt = d_currFixedPointConc[1];
+        // For example, we have now computed
+        //   (str.len (str.++ x y z)) --> (+ (str.len x) (str.len (str.++ y z)))
+        // where stgt is the RHS. We now want to continue to rewrite the right
+        // hand side, where to find the next target term to rewrite, we match
+        // the context of the rule to the RHS.
+        // In particular, given a context (+ (str.len S0) ?0), we would match
+        // ?0 to (str.len (str.++ y z)). This indicates that the user suggests
+        // that (str.len (str.++ y z)) is the term to continue to rewrite.
+        // We update stgt to this term to proceed with the loop.
+        std::unordered_map<Node, Node> msubs;
+        expr::match(context[1], stgt, msubs);
+        Trace("rpc-ctx") << "Matching context " << context << " with " << stgt
+                         << " gives " << msubs[context[0][0]] << std::endl;
+        stgt = msubs[context[0][0]];
+        Assert(!stgt.isNull());
+        steps.push_back(stgt);
       }
       d_currFixedPointConc = Node::null();
     } while (continueFixedPoint);
 
     std::vector<Node> transEq;
     Node prev = ssrc;
-    Node context = rpr.getContext();
     Node placeholder = context[0][0];
     Node body = context[1];
     Node currConc = body;
@@ -988,6 +1084,9 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       Node target = expr::narySubstitute(body, vars, stepSubs);
       target = target.substitute(TNode(placeholder), TNode(step));
       cacheProofSubPlaceholder(currContext, placeholder, source, target);
+      Trace("rpc-ctx") << "Step " << source << " == " << target << " from "
+                       << body << " " << vars << " -> " << stepSubs << ", "
+                       << placeholder << " -> " << step << std::endl;
 
       ProvenInfo& dpi = d_pcache[source.eqNode(target)];
       dpi.d_id = pi.d_id;
@@ -1006,26 +1105,23 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       prev = stepConc;
     }
 
-    d_currFixedPointId = DslProofRule::NONE;
+    d_currFixedPointId = ProofRewriteRule::NONE;
     // add the transistivity rule here if needed
     if (transEq.size() >= 2)
     {
       pi.d_id = RewriteProofStatus::TRANS;
       // store transEq in d_vars
       pi.d_vars = transEq;
+      Trace("rpc-ctx") << "***RETURN trans " << transEq.back()[1] << std::endl;
       // return the end of the chain, which will be used for constrained
       // matching
       return transEq.back()[1];
     }
   }
 
-  Node res = conc[1];
-  if (rpr.isFixedPoint())
-  {
-    Node context = rpr.getContext();
-    res = context[1].substitute(TNode(context[0][0]), TNode(conc[1]));
-  }
-  return expr::narySubstitute(res, vars, subs);
+  Node ret = expr::narySubstitute(concRhs, vars, subs);
+  Trace("rpc-ctx") << "***RETURN " << ret << std::endl;
+  return ret;
 }
 
 void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
@@ -1069,6 +1165,7 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
   {
     ProvenInfo& cpi = d_pcache[cong];
     cpi.d_id = RewriteProofStatus::CONG;
+    cpi.d_vars.clear();
     for (size_t i = 0, size = cong[0].getNumChildren(); i < size; i++)
     {
       TNode lhs = cong[0][i];

@@ -82,11 +82,11 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
     case COMPUTE_AGGRESSIVE_MINISCOPING:
       out << "COMPUTE_AGGRESSIVE_MINISCOPING";
       break;
-    case COMPUTE_EXT_REWRITE: out << "COMPUTE_EXT_REWRITE"; break;
     case COMPUTE_PROCESS_TERMS: out << "COMPUTE_PROCESS_TERMS"; break;
     case COMPUTE_PRENEX: out << "COMPUTE_PRENEX"; break;
     case COMPUTE_VAR_ELIMINATION: out << "COMPUTE_VAR_ELIMINATION"; break;
     case COMPUTE_COND_SPLIT: out << "COMPUTE_COND_SPLIT"; break;
+    case COMPUTE_EXT_REWRITE: out << "COMPUTE_EXT_REWRITE"; break;
     default: out << "UnknownRewriteStep"; break;
   }
   return out;
@@ -97,6 +97,33 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                                          const Options& opts)
     : TheoryRewriter(nm), d_rewriter(r), d_opts(opts)
 {
+  registerProofRewriteRule(ProofRewriteRule::EXISTS_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+}
+
+Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::EXISTS_ELIM:
+    {
+      if (n.getKind() != Kind::EXISTS)
+      {
+        return Node::null();
+      }
+      std::vector<Node> fchildren;
+      fchildren.push_back(n[0]);
+      fchildren.push_back(n[1].negate());
+      if (n.getNumChildren() == 3)
+      {
+        fchildren.push_back(n[2]);
+      }
+      return d_nm->mkNode(Kind::NOT, d_nm->mkNode(Kind::FORALL, fchildren));
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
 }
 
 bool QuantifiersRewriter::isLiteral( Node n ){
@@ -298,6 +325,11 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
       if (std::find(boundVars.begin(), boundVars.end(), v) == boundVars.end())
       {
         boundVars.push_back(v);
+      }
+      else
+      {
+        // if duplicate variable due to shadowing, we must rewrite
+        combineQuantifiers = true;
       }
     }
     continueCombine = false;
@@ -2024,14 +2056,33 @@ bool QuantifiersRewriter::doOperation(Node q,
   {
     return true;
   }
-  else if (computeOption == COMPUTE_MINISCOPING)
+  else if (computeOption == COMPUTE_MINISCOPING
+           || computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
   {
-    return is_std;
-  }
-  else if (computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
-  {
-    return d_opts.quantifiers.miniscopeQuant == options::MiniscopeQuantMode::AGG
-           && is_std;
+    // in the rare case the body is ground, we always eliminate unless it
+    // is truly a non-standard quantified formula (e.g. one for QE).
+    if (!expr::hasBoundVar(q[1]))
+    {
+      // This returns true if q is a non-standard quantified formula. Note that
+      // is_std is additionally true if user-pat is strict and q has user
+      // patterns.
+      return qa.isStandard();
+    }
+    if (!is_std)
+    {
+      return false;
+    }
+    // do not miniscope if we have user patterns unless option is set
+    if (!d_opts.quantifiers.miniscopeQuantUser && qa.d_hasPattern)
+    {
+      return false;
+    }
+    if (computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
+    {
+      return d_opts.quantifiers.miniscopeQuant
+             == options::MiniscopeQuantMode::AGG;
+    }
+    return true;
   }
   else if (computeOption == COMPUTE_EXT_REWRITE)
   {

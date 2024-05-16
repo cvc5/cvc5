@@ -35,6 +35,14 @@ name   = "Quantifiers"
   help = "Enable aggressive miniscope, which further may rewrite quantified formulas into a form where miniscoping is possible."
 
 [[option]]
+  name       = "miniscopeQuantUser"
+  category   = "regular"
+  long       = "miniscope-quant-user"
+  type       = "bool"
+  default    = "false"
+  help       = "miniscope quantified formulas with user patterns"
+
+[[option]]
   name       = "prenexQuant"
   category   = "regular"
   long       = "prenex-quant=MODE"
@@ -191,6 +199,14 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "use model-based quantifier instantiation"
+
+[[option]]
+  name       = "mbqiFastSygus"
+  category   = "expert"
+  long       = "mbqi-fast-sygus"
+  type       = "bool"
+  default    = "false"
+  help       = "use fast enumeration to augment instantiations from MBQI"
 
 #### E-matching options
 
