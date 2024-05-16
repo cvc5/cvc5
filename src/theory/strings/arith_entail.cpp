@@ -628,7 +628,6 @@ void ArithEntail::getArithApproximations(Node a,
 bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
 {
   Assert(assumption.getKind() == Kind::EQUAL);
-  Assert(rewriteArith(assumption) == assumption);
   Trace("strings-entail") << "checkWithEqAssumption: " << assumption << " " << a
                           << ", strict=" << strict << std::endl;
 
