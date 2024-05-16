@@ -1668,9 +1668,14 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in R\mid -}{\texttt{RegExpOpr::reduceRegExpNeg}(t\not\in R)}
+   *   \inferrule{t\not\in \text{re.*}(R)\mid -}{\forall L.\> L < 0 \vee (str.len t) < L \vee \mathit{pre}(t, L)\not\in R \vee \mathit{suf}(t, L) \not\in \text{re.*}(R)}
+   * 
+   * Or alternatively for regular expression concatenation:
+   * 
+   * .. math::
    *
-   * corresponding to the one-step unfolding of the premise.
+   *   \inferrule{t\not\in \text{re.++}(R1, \ldots Rn)\mid -}{\forall L.\> L < 0 \vee (str.len t) < L \vee \mathit{pre}(t, L)\not\in R1 \vee \mathit{suf}(t, L) \not\in \text{re.++}(R2, \ldots Rn)}
+   *
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG),
@@ -1680,8 +1685,8 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \bot}{
-   *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(r_2, \ldots, r_n)}
+   *   \inferrule{t\not\in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \bot}{
+   *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{re.++}(r_2, \ldots, r_n)}
    *
    * where :math:`r_1` has fixed length :math:`L`.
    * 
@@ -1690,9 +1695,9 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t \not \in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \top}{
+   *   \inferrule{t \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \top}{
    *   \mathit{suf}(t, str.len(t) - L) \not \in r_n \vee
-   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{++}(r_1, \ldots, r_{n-1})}
+   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_{n-1})}
    * 
    * where :math:`r_n` has fixed length :math:`L`.
    * 
