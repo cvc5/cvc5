@@ -2300,7 +2300,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Equality -- Beta reduction**
    *
    * .. math::
-   *   ((\lambda x_1 \dots x_n.\> t) t_1 \ldots t_n) = t\{x_1 \mapsto t_1, \dots, x_n \mapsto t_n\}
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
+   *   \ldots, x_n \mapsto t_n\}
    *
    * The right hand side of the equality in the conclusion is computed using
    * standard substitution via ``Node::substitute``.
@@ -2412,6 +2413,23 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(RE_LOOP_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets - empty tester evaluation**
+   *
+   * .. math::
+   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) = \top
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   \mathit{sets.is\_empty}(c) = \bot
+   *
+   * where :math:`c` is a constant set that is not the empty set.
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_IS_EMPTY_EVAL),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-plus-zero */
@@ -2872,20 +2890,46 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_3),
   /** Auto-generated from RARE rule bv-sign-extend-ult-const-4 */
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_4),
+  /** Auto-generated from RARE rule sets-eq-singleton-emp */
+  EVALUE(SETS_EQ_SINGLETON_EMP),
   /** Auto-generated from RARE rule sets-member-singleton */
   EVALUE(SETS_MEMBER_SINGLETON),
+  /** Auto-generated from RARE rule sets-member-emp */
+  EVALUE(SETS_MEMBER_EMP),
   /** Auto-generated from RARE rule sets-subset-elim */
   EVALUE(SETS_SUBSET_ELIM),
   /** Auto-generated from RARE rule sets-union-comm */
   EVALUE(SETS_UNION_COMM),
   /** Auto-generated from RARE rule sets-inter-comm */
   EVALUE(SETS_INTER_COMM),
+  /** Auto-generated from RARE rule sets-inter-emp1 */
+  EVALUE(SETS_INTER_EMP1),
+  /** Auto-generated from RARE rule sets-inter-emp2 */
+  EVALUE(SETS_INTER_EMP2),
+  /** Auto-generated from RARE rule sets-minus-emp1 */
+  EVALUE(SETS_MINUS_EMP1),
+  /** Auto-generated from RARE rule sets-minus-emp2 */
+  EVALUE(SETS_MINUS_EMP2),
+  /** Auto-generated from RARE rule sets-union-emp1 */
+  EVALUE(SETS_UNION_EMP1),
+  /** Auto-generated from RARE rule sets-union-emp2 */
+  EVALUE(SETS_UNION_EMP2),
   /** Auto-generated from RARE rule sets-inter-member */
   EVALUE(SETS_INTER_MEMBER),
   /** Auto-generated from RARE rule sets-minus-member */
   EVALUE(SETS_MINUS_MEMBER),
   /** Auto-generated from RARE rule sets-union-member */
   EVALUE(SETS_UNION_MEMBER),
+  /** Auto-generated from RARE rule sets-choose-singleton */
+  EVALUE(SETS_CHOOSE_SINGLETON),
+  /** Auto-generated from RARE rule sets-card-singleton */
+  EVALUE(SETS_CARD_SINGLETON),
+  /** Auto-generated from RARE rule sets-card-union */
+  EVALUE(SETS_CARD_UNION),
+  /** Auto-generated from RARE rule sets-card-minus */
+  EVALUE(SETS_CARD_MINUS),
+  /** Auto-generated from RARE rule sets-card-emp */
+  EVALUE(SETS_CARD_EMP),
   /** Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
   /** Auto-generated from RARE rule str-concat-flatten */
