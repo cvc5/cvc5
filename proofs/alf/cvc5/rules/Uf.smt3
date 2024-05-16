@@ -143,8 +143,8 @@
   )
 )
 
-(declare-rule distinct-elim ((b Bool) (b2 Bool))
-  :args ((= b b2))
-  :requires ((($singleton_elim ($mk_distinct-elim b)) b2))
-  :conclusion (= b b2)
+(declare-rule distinct-elim ((b1 Bool) (b2 Bool))
+  :args ((= b1 b2))
+  :requires ((($singleton_elim ($mk_distinct-elim b1)) b2))
+  :conclusion (= b1 b2)
 )

@@ -239,9 +239,9 @@
   :conclusion (= (str.in_re s r) b)
 )
 
-(declare-rule re-loop-elim ((l Int) (u Int) (r RegLan) (r2 RegLan))
-  :args ((= (re.loop l u r) r2))
+(declare-rule re-loop-elim ((l Int) (u Int) (r1 RegLan) (r2 RegLan))
+  :args ((= (re.loop l u r1) r2))
   :requires (((alf.is_neg (alf.add (alf.neg l) u)) false)
-             (($str_mk_re_loop_elim l (alf.add (alf.neg l) u) r) r2))
-  :conclusion (= (re.loop l u r) r2)
+             (($str_mk_re_loop_elim l (alf.add (alf.neg l) u) r1) r2))
+  :conclusion (= (re.loop l u r1) r2)
 )
