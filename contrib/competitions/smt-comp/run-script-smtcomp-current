@@ -96,13 +96,13 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFBVFP|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTL
   trywith 30 --term-db-mode=relevant --enum-inst
   trywith 30 --enum-inst-interleave --enum-inst
   trywith 30 --preregister-mode=lazy --enum-inst
-  # finite model find and mbqi 4 min
+  # finite model find and mbqi 3 min 30 sec
   trywith 30 --finite-model-find --fmf-mbqi=none
   trywith 30 --finite-model-find --decision=internal
   trywith 30 --finite-model-find --macros-quant --macros-quant-mode=all
   trywith 60 --finite-model-find --e-matching
   trywith 60 --mbqi
-  # long runs 4 min
+  # long runs 3 min
   trywith 180 --finite-model-find --decision=internal
   finishwith --enum-inst
   ;;
