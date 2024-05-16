@@ -219,6 +219,22 @@
     ))
 )
 
+(declare-rule re_unfold_neg_concat_fixed ((s String) (r RegLan) (rev Bool))
+  :premises ((not (str.in_re s r)))
+  :args (rev)
+  :conclusion
+    (alf.match ((r1 RegLan) (r2 RegLan :list))
+      ($str_rev rev r)
+      (
+        ((re.++ r1 r2) (let ((n ($str_fixed_len_re r1)))
+                       (alf.ite rev
+                       (or (not (str.in_re ($str_suffix_len s n) r1)) 
+                           (not (str.in_re (skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
+                       (or (not (str.in_re (skolem_prefix s n) r1)) 
+                           (not (str.in_re (skolem_suffix_rem s n) ($singleton_elim r2)))))))
+    ))
+)
+
 ;;-------------------- Extended functions 
 
 (declare-rule string_reduction ((U Type) (s U))
