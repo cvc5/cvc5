@@ -293,6 +293,12 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
     // apply substitution, which may notice vars may be out of order wrt rule
     // var list
     target = expr::narySubstitute(target, vars, subs);
+    // it may be impossible to construct the conclusion due to null terminators
+    // for approximate types, return false in this case
+    if (target.isNull())
+    {
+      return false;
+    }
     // We now prove with the given rule. this should only fail if there are
     // conditions on the rule which fail. Notice we never allow recursion here.
     // We also don't permit inflection matching (which regardless should not
@@ -353,7 +359,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
                                        bool doRecurse,
                                        ProofRewriteRule r)
 {
-  Assert(!target.isNull() && target.getKind() == Kind::EQUAL);
+  Assert(!target.isNull() && target.getKind() == Kind::EQUAL)
+      << "Unknown " << target << " with rule " << id << " " << r << std::endl;
   Trace("rpc-debug2") << "Check rule "
                       << (id == RewriteProofStatus::DSL ? toString(r)
                                                         : toString(id))
