@@ -442,7 +442,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       if (idr == ProofRewriteRule::BETA_REDUCE)
       {
         // get the term to beta-reduce
-        Node termToReduce = nm->mkNode(Kind::APPLY_UF, args[1]);
+        Node termToReduce = nm->mkNode(Kind::APPLY_UF, args[1][0]);
         addLfscRule(cdp, res, {}, LfscRule::BETA_REDUCE, {termToReduce});
       }
       else
