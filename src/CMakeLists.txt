@@ -901,6 +901,8 @@ libcvc5_add_sources(
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/master_eq_notify.cpp
   theory/quantifiers/master_eq_notify.h
+  theory/quantifiers/mbqi_fast_sygus.cpp
+  theory/quantifiers/mbqi_fast_sygus.h
   theory/quantifiers/oracle_checker.cpp
   theory/quantifiers/oracle_checker.h
   theory/quantifiers/oracle_engine.cpp
@@ -1094,6 +1096,8 @@ libcvc5_add_sources(
   theory/sets/inference_manager.cpp
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
+  theory/sets/proof_checker.cpp
+  theory/sets/proof_checker.h
   theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
   theory/sets/set_reduction.cpp

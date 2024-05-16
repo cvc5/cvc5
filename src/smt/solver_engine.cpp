@@ -1106,13 +1106,18 @@ void SolverEngine::addPlugin(Plugin* p)
   d_env->addPlugin(p);
 }
 
-Node SolverEngine::simplify(const Node& t)
+Node SolverEngine::simplify(const Node& t, bool applySubs)
 {
   beginCall(true);
-  // ensure we've processed assertions
-  d_smtDriver->refreshAssertions();
-  // apply substitutions
-  Node tt = d_smtSolver->getPreprocessor()->applySubstitutions(t);
+  Node tt = t;
+  // if we are applying substitutions
+  if (applySubs)
+  {
+    // ensure we've processed assertions
+    d_smtDriver->refreshAssertions();
+    // apply substitutions
+    tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
+  }
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
   // make so that the returned term does not involve arithmetic subtyping

@@ -521,6 +521,28 @@
   )
 )
 
+; Helper for $str_overlap.
+(program $str_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
+  ((Seq U) (Seq U) (Seq U)) Int
+  (
+  (($str_overlap_rec nil (str.++ s s1) t) (alf.ite (nary.is_compatible str.++ nil (str.++ s s1) t)
+                                            0
+                                            (alf.add 1 ($str_overlap_rec nil s1 t))))
+  (($str_overlap_rec nil s t)             0)
+  )
+)
+
+; Returns the minimum number of characters that must be skipped in s before
+; string t can be compatible with it. For example:
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "C" "D" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "E" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
+; Expects s and t to be in nary (flattened) form.
+(define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)))
+  ($str_overlap_rec (mk_emptystr (alf.typeof s)) s t))
+
 ; Helper for $str_mk_re_loop_elim.
 ; When we call `$str_mk_re_loop_elim n d r rr`, we first decrement n until it
 ; is zero, while accumulating rr. When it is zero, then rr is r^n.

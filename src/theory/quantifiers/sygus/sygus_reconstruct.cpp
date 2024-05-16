@@ -553,14 +553,14 @@ void SygusReconstruct::removeReconstructedTerms(
 Node SygusReconstruct::mkGround(Node n) const
 {
   // get the set of bound variables in n
-  std::unordered_set<TNode> vars;
+  std::unordered_set<Node> vars;
   expr::getVariables(n, vars);
 
   std::unordered_map<TNode, TNode> subs;
 
   // generate a ground value for each one of those variables
   NodeManager* nm = nodeManager();
-  for (const TNode& var : vars)
+  for (const Node& var : vars)
   {
     subs.emplace(var, nm->mkGroundValue(var.getType()));
   }

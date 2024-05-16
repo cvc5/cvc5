@@ -1186,8 +1186,7 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{a \neq b\mid -}
    *   {\mathit{select}(a,k)\neq\mathit{select}(b,k)}
    *
-   * where :math:`k` is
-   * :math:`\texttt{arrays::SkolemCache::getExtIndexSkolem}(a\neq b)`.
+   * where :math:`k` is the :math:`\texttt{ARRAY_DEQ_DIFF}` skolem for `(a, b)`.
    * \endverbatim
    */
   EVALUE(ARRAYS_EXT),
@@ -1254,20 +1253,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(DT_UNIF),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Instantiation**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid t,n}{\mathit{is}_C(t) =
-   *   (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))}
-   *
-   * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
-   * t, and :math:`\mathit{is}_C` is the discriminator (tester) for :math:`C`.
-   * \endverbatim
-   */
-  EVALUE(DT_INST),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
@@ -1362,6 +1347,29 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALPHA_EQUIV),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Singleton injectivity**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.singleton}(t) = \mathit{set.singleton}(s)\mid -}{t=s}
+   * \endverbatim
+   */
+  EVALUE(SETS_SINGLETON_INJ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets extensionality**
+   *
+   * .. math::
+   *
+   *   \inferrule{a \neq b\mid -}
+   *   {\mathit{set.member}(k,a)\neq\mathit{set.member}(k,b)}
+   *
+   * where :math:`k` is the :math:`\texttt{SETS_DEQ_DIFF}` skolem for `(a, b)`.
+   * \endverbatim
+   */
+  EVALUE(SETS_EXT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation equality**
@@ -1531,9 +1539,9 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (w_2 \cdot s),\,
-   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = w_3\cdot r)}
+   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = t_3\cdot r)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
    * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
    * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(w_3)))`.  Note that
@@ -1547,10 +1555,10 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (s \cdot w_2),\,
-   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot w_3)}
+   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot t_3)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
-   * :math:`\mathit{suf}(w_2, \mathit{len}(w_2) - p)`, :math:`p` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
+   * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
    * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
    * w_1)`, and :math:`r` is :math:`\mathit{skolem}(\mathit{pre}(t_2,
    * \mathit{len}(t_2) - \mathit{len}(w_3)))`.  Note that
@@ -2322,6 +2330,19 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(EXISTS_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Instantiation**
+   *
+   * .. math::
+   *    \mathit{is}_C(t) = (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))
+   *
+   * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
+   * :math:`t`, and :math:`\mathit{is}_C` is the discriminator (tester) for
+   * :math:`C`.
+   * \endverbatim
+   */
+  EVALUE(DT_INST),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes - collapse selector**
    *
    * .. math::
@@ -2337,18 +2358,30 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Datatypes - collapse tester**
    *
    * .. math::
-   *   is\text{-}c(c(t_1, \ldots, t_n)) = true
+   *   \mathit{is}_c(c(t_1, \ldots, t_n)) = true
    *
    * or alternatively
    *
    * .. math::
-   *   is\text{-}c(d(t_1, \ldots, t_n)) = false
+   *   \mathit{is}_c(d(t_1, \ldots, t_n)) = false
    *
    * where :math:`c` and :math:`d` are distinct constructors.
    *
    * \endverbatim
    */
   EVALUE(DT_COLLAPSE_TESTER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes - collapse tester**
+   *
+   * .. math::
+   *   \mathit{is}_c(t) = true
+   *
+   * where :math:`c` is the only constructor of its associated datatype.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_TESTER_SINGLETON),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes - constructor equality**
