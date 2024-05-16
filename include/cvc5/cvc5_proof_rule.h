@@ -1691,8 +1691,8 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{t \not \in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \top}{
-   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{++}(r_1, \ldots, r_{n-1}) \vee
-   *   \mathit{suf}(t, str.len(t) - L) \not \in r_n}
+   *   \mathit{suf}(t, str.len(t) - L) \not \in r_n \vee
+   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{++}(r_1, \ldots, r_{n-1})}
    * 
    * where :math:`r_n` has fixed length :math:`L`.
    * 
