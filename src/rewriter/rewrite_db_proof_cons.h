@@ -117,7 +117,11 @@ class RewriteDbProofCons : protected EnvObj
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
-    bool isInternalRule() const { return d_id != RewriteProofStatus::DSL; }
+    bool isInternalRule() const
+    {
+      return d_id != RewriteProofStatus::DSL
+             && d_id != RewriteProofStatus::THEORY_REWRITE;
+    }
   };
   /**
    * Prove and store the proof of eq with internal form eqi in cdp if possible,
