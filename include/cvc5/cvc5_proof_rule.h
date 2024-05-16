@@ -311,7 +311,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Other theory rewrite rules**
    *
    * .. math::
-   *   \inferrule{- \mid id, t}{t = t'}
+   *   \inferrule{- \mid id, t = t'}{t = t'}
    *
    * where `id` is the :cpp:enum:`ProofRewriteRule` of the theory rewrite
    * rule which transforms :math:`t` to :math:`t'`.
