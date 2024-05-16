@@ -1676,6 +1676,9 @@ enum ENUM(ProofRule) : uint32_t
    *
    *   \inferrule{t\not\in \text{re.++}(R1, \ldots Rn)\mid -}{\forall L.\> L < 0 \vee (str.len t) < L \vee \mathit{pre}(t, L)\not\in R1 \vee \mathit{suf}(t, L) \not\in \text{re.++}(R2, \ldots Rn)}
    *
+   * Note that in either case the varaible :math:`L` has type :math:`Int` and
+   * name `"@var.str_index"`.
+   *
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG),
