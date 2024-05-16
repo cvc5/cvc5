@@ -206,7 +206,8 @@ class ArithEntail
    *
    * @param n The arithmetic predicate (EQUAL or GEQ) to rewrite.
    * @param exp The explanation term, if we return non-null.
-   * @return the Boolean constant that n can be rewritten to, or null if none exists.
+   * @return the Boolean constant that n can be rewritten to, or null if none
+   * exists.
    */
   Node rewritePredViaEntailment(const Node& n, Node& exp);
   /**
