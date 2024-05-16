@@ -17,7 +17,9 @@
 
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
+#include "expr/subs.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
@@ -32,10 +34,62 @@ namespace strings {
 
 ArithEntail::ArithEntail(Rewriter* r) : d_rr(r)
 {
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
 }
 
-Node ArithEntail::rewrite(Node a) { return d_rr->rewrite(a); }
+Node ArithEntail::rewritePredViaEntailment(const Node& n)
+{
+  Node exp;
+  return rewritePredViaEntailment(n, exp);
+}
+
+Node ArithEntail::rewritePredViaEntailment(const Node& n, Node& exp)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (n.getKind() == Kind::EQUAL && n[0].getType().isInteger())
+  {
+    exp = nm->mkNode(Kind::SUB, nm->mkNode(Kind::SUB, n[0], n[1]), d_one);
+    if (check(exp))
+    {
+      return nm->mkConst(false);
+    }
+    exp = nm->mkNode(Kind::SUB, nm->mkNode(Kind::SUB, n[1], n[0]), d_one);
+    if (check(exp))
+    {
+      return nm->mkConst(false);
+    }
+    exp = Node::null();
+  }
+  else if (n.getKind() == Kind::GEQ)
+  {
+    exp = nm->mkNode(Kind::SUB, n[0], n[1]);
+    if (check(exp))
+    {
+      return nm->mkConst(true);
+    }
+    exp = nm->mkNode(Kind::SUB, nm->mkNode(Kind::SUB, n[1], n[0]), d_one);
+    if (check(exp))
+    {
+      return nm->mkConst(false);
+    }
+    exp = Node::null();
+  }
+  return Node::null();
+}
+
+Node ArithEntail::rewriteArith(Node a)
+{
+  AlwaysAssert(a.getType().isInteger()) << "Bad term: " << a << " " << a.getType();
+  if (d_rr != nullptr)
+  {
+    return d_rr->rewrite(a);
+  }
+  // Otherwise, use the poly norm utility. This is important since the rewrite
+  // must be justified by ARITH_POLY_NORM when in proof mode (when d_rr is
+  // null).
+  return arith::PolyNorm::getPolyNorm(a);
+}
 
 bool ArithEntail::checkEq(Node a, Node b)
 {
@@ -43,8 +97,8 @@ bool ArithEntail::checkEq(Node a, Node b)
   {
     return true;
   }
-  Node ar = d_rr->rewrite(a);
-  Node br = d_rr->rewrite(b);
+  Node ar = rewriteArith(a);
+  Node br = rewriteArith(b);
   return ar == br;
 }
 
@@ -58,16 +112,6 @@ bool ArithEntail::check(Node a, Node b, bool strict)
   return check(diff, strict);
 }
 
-struct StrCheckEntailArithTag
-{
-};
-struct StrCheckEntailArithComputedTag
-{
-};
-/** Attribute true for expressions for which check returned true */
-typedef expr::Attribute<StrCheckEntailArithTag, bool> StrCheckEntailArithAttr;
-typedef expr::Attribute<StrCheckEntailArithComputedTag, bool>
-    StrCheckEntailArithComputedAttr;
 
 bool ArithEntail::check(Node a, bool strict)
 {
@@ -76,31 +120,36 @@ bool ArithEntail::check(Node a, bool strict)
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
 
-  Node ar = strict ? NodeManager::currentNM()->mkNode(
-                Kind::SUB, a, NodeManager::currentNM()->mkConstInt(Rational(1)))
-                   : a;
-  ar = d_rr->rewrite(ar);
+  Node ar = strict ? NodeManager::currentNM()->mkNode(Kind::SUB, a, d_one) : a;
+  Node ara = findApprox(ar);
+  return !ara.isNull();
+}
 
-  if (ar.getAttribute(StrCheckEntailArithComputedAttr()))
+Node ArithEntail::findApprox(Node ar)
+{
+  ar = rewriteArith(ar);
+  std::map<Node, Node>::iterator it = d_approxCache.find(ar);
+  if (it != d_approxCache.end())
   {
-    return ar.getAttribute(StrCheckEntailArithAttr());
+    return it->second;
   }
-
-  bool ret = checkInternal(ar);
-  if (!ret)
+  Node ret;
+  if (checkSimple(ar))
   {
-    // try with approximations
-    ret = checkApprox(ar);
+    // didn't need approximation
+    ret = ar;
   }
-  // cache the result
-  ar.setAttribute(StrCheckEntailArithAttr(), ret);
-  ar.setAttribute(StrCheckEntailArithComputedAttr(), true);
+  else
+  {
+    ret = findApproxInternal(ar);
+  }
+  d_approxCache[ar] = ret;
   return ret;
 }
 
-bool ArithEntail::checkApprox(Node ar)
+Node ArithEntail::findApproxInternal(Node ar)
 {
-  Assert(d_rr->rewrite(ar) == ar);
+  Assert(rewriteArith(ar) == ar);
   NodeManager* nm = NodeManager::currentNM();
   std::map<Node, Node> msum;
   Trace("strings-ent-approx-debug")
@@ -109,7 +158,7 @@ bool ArithEntail::checkApprox(Node ar)
   {
     Trace("strings-ent-approx-debug")
         << "...failed to get monomial sum!" << std::endl;
-    return false;
+    return Node::null();
   }
   // for each monomial v*c, mApprox[v] a list of
   // possibilities for how the term can be soundly approximated, that is,
@@ -123,6 +172,8 @@ bool ArithEntail::checkApprox(Node ar)
   std::map<Node, std::map<Node, Node> > approxMsums;
   // aarSum stores each monomial that does not have multiple approximations
   std::vector<Node> aarSum;
+  // stores the witness
+  Subs approxMap;
   for (std::pair<const Node, Node>& m : msum)
   {
     Node v = m.first;
@@ -146,7 +197,7 @@ bool ArithEntail::checkApprox(Node ar)
       {
         Node curr = toProcess.back();
         Trace("strings-ent-approx-debug") << "  process " << curr << std::endl;
-        curr = d_rr->rewrite(curr);
+        curr = rewriteArith(curr);
         toProcess.pop_back();
         if (visited.find(curr) == visited.end())
         {
@@ -171,7 +222,13 @@ bool ArithEntail::checkApprox(Node ar)
       // if we have only one approximation, move it to final
       if (approx.size() == 1)
       {
-        changed = v != approx[0];
+        if (v != approx[0])
+        {
+          changed = true;
+          Trace("strings-ent-approx")
+              << "- Propagate " << v << " = " << approx[0] << std::endl;
+          approxMap.add(v, approx[0]);
+        }
         Node mn = ArithMSum::mkCoeffTerm(c, approx[0]);
         aarSum.push_back(mn);
         mApprox.erase(v);
@@ -196,14 +253,14 @@ bool ArithEntail::checkApprox(Node ar)
   {
     // approximations had no effect, return
     Trace("strings-ent-approx-debug") << "...no approximations" << std::endl;
-    return false;
+    return Node::null();
   }
   // get the current "fixed" sum for the abstraction of ar
   Node aar =
       aarSum.empty()
           ? d_zero
           : (aarSum.size() == 1 ? aarSum[0] : nm->mkNode(Kind::ADD, aarSum));
-  aar = d_rr->rewrite(aar);
+  aar = rewriteArith(aar);
   Trace("strings-ent-approx-debug")
       << "...processed fixed sum " << aar << " with " << mApprox.size()
       << " approximated monomials." << std::endl;
@@ -214,7 +271,7 @@ bool ArithEntail::checkApprox(Node ar)
     std::map<Node, Node> msumAar;
     if (!ArithMSum::getMonomialSum(aar, msumAar))
     {
-      return false;
+      return Node::null();
     }
     if (TraceIsOn("strings-ent-approx"))
     {
@@ -275,7 +332,7 @@ bool ArithEntail::checkApprox(Node ar)
             if (!cr.isNull())
             {
               ci = ci.isNull() ? cr
-                               : d_rr->rewrite(nm->mkNode(Kind::MULT, ci, cr));
+                               : rewriteArith(nm->mkNode(Kind::MULT, ci, cr));
             }
             Trace("strings-ent-approx-debug") << ci << "*" << ti << " ";
             int ciSgn = ci.isNull() ? 1 : ci.getConst<Rational>().sgn();
@@ -331,15 +388,16 @@ bool ArithEntail::checkApprox(Node ar)
       Assert(msum.find(v) != msum.end());
       Node mn = ArithMSum::mkCoeffTerm(msum[v], vapprox);
       aar = nm->mkNode(Kind::ADD, aar, mn);
+      approxMap.add(v, vapprox);
       // update the msumAar map
-      aar = d_rr->rewrite(aar);
+      aar = rewriteArith(aar);
       msumAar.clear();
       if (!ArithMSum::getMonomialSum(aar, msumAar))
       {
         Assert(false);
         Trace("strings-ent-approx")
             << "...failed to get monomial sum!" << std::endl;
-        return false;
+        return Node::null();
       }
       // we have processed the approximation for v
       mApprox.erase(v);
@@ -352,7 +410,7 @@ bool ArithEntail::checkApprox(Node ar)
         << "...approximation had no effect" << std::endl;
     // this should never happen, but we avoid the infinite loop for sanity here
     Assert(false);
-    return false;
+    return Node::null();
   }
   // Check entailment on the approximation of ar.
   // Notice that this may trigger further reasoning by approximation. For
@@ -368,10 +426,14 @@ bool ArithEntail::checkApprox(Node ar)
         << "*** StrArithApprox: showed " << ar
         << " >= 0 using under-approximation!" << std::endl;
     Trace("strings-ent-approx")
-        << "*** StrArithApprox: under-approximation was " << aar << std::endl;
-    return true;
+        << "*** StrArithApprox: rewritten was " << aar << std::endl;
+    Node approx = approxMap.apply(ar);
+    Trace("strings-ent-approx")
+        << "*** StrArithApprox: under-approximation was " << approx
+        << std::endl;
+    return approx;
   }
-  return false;
+  return Node::null();
 }
 
 void ArithEntail::getArithApproximations(Node a,
@@ -559,13 +621,14 @@ void ArithEntail::getArithApproximations(Node a,
       approx.push_back(nm->mkConstInt(Rational(-1)));
     }
   }
-  Trace("strings-ent-approx-debug") << "Return " << approx.size() << std::endl;
+  Trace("strings-ent-approx-debug")
+      << "Return " << approx.size() << " approximations" << std::endl;
 }
 
 bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
 {
   Assert(assumption.getKind() == Kind::EQUAL);
-  Assert(d_rr->rewrite(assumption) == assumption);
+  Assert(rewriteArith(assumption) == assumption);
   Trace("strings-entail") << "checkWithEqAssumption: " << assumption << " " << a
                           << ", strict=" << strict << std::endl;
 
@@ -642,8 +705,6 @@ bool ArithEntail::checkWithAssumption(Node assumption,
                                       Node b,
                                       bool strict)
 {
-  Assert(d_rr->rewrite(assumption) == assumption);
-
   NodeManager* nm = NodeManager::currentNM();
 
   if (!assumption.isConst() && assumption.getKind() != Kind::EQUAL)
@@ -668,8 +729,16 @@ bool ArithEntail::checkWithAssumption(Node assumption,
 
     Node s = nm->mkBoundVar("slackVal", nm->stringType());
     Node slen = nm->mkNode(Kind::STRING_LENGTH, s);
-    assumption = d_rr->rewrite(
-        nm->mkNode(Kind::EQUAL, x, nm->mkNode(Kind::ADD, y, slen)));
+    Node sleny = nm->mkNode(Kind::ADD, y, slen);
+    Node rr = rewriteArith(nm->mkNode(Kind::SUB, x, sleny));
+    if (rr.isConst())
+    {
+      assumption = nm->mkConst(rr.getConst<Rational>().sgn() == 0);
+    }
+    else
+    {
+      assumption = nm->mkNode(Kind::EQUAL, x, sleny);
+    }
   }
 
   Node diff = nm->mkNode(Kind::SUB, a, b);
@@ -704,8 +773,6 @@ bool ArithEntail::checkWithAssumptions(std::vector<Node> assumptions,
   bool res = false;
   for (const auto& assumption : assumptions)
   {
-    Assert(d_rr->rewrite(assumption) == assumption);
-
     if (checkWithAssumption(assumption, a, b, strict))
     {
       res = true;
@@ -766,7 +833,7 @@ bool ArithEntail::getConstantBoundCache(TNode n, bool isLower, Node& c)
 
 Node ArithEntail::getConstantBound(TNode a, bool isLower)
 {
-  Assert(d_rr->rewrite(a) == a);
+  Assert(rewriteArith(a) == a);
   Node ret;
   if (getConstantBoundCache(a, isLower, ret))
   {
@@ -835,7 +902,7 @@ Node ArithEntail::getConstantBound(TNode a, bool isLower)
       else
       {
         ret = NodeManager::currentNM()->mkNode(a.getKind(), children);
-        ret = d_rr->rewrite(ret);
+        ret = rewriteArith(ret);
       }
     }
   }
@@ -906,9 +973,8 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
   return ret;
 }
 
-bool ArithEntail::checkInternal(Node a)
+bool ArithEntail::checkSimple(Node a)
 {
-  Assert(d_rr->rewrite(a) == a);
   // check whether a >= 0
   if (a.isConst())
   {
@@ -923,7 +989,7 @@ bool ArithEntail::checkInternal(Node a)
   {
     for (unsigned i = 0; i < a.getNumChildren(); i++)
     {
-      if (!checkInternal(a[i]))
+      if (!checkSimple(a[i]))
       {
         return false;
       }
