@@ -80,8 +80,7 @@ Node ArithEntail::rewritePredViaEntailment(const Node& n, Node& exp)
 
 Node ArithEntail::rewriteArith(Node a)
 {
-  AlwaysAssert(a.getType().isInteger())
-      << "Bad term: " << a << " " << a.getType();
+  Assert(a.getType().isInteger()) << "non-int: " << a << " " << a.getType();
   if (d_rr != nullptr)
   {
     return d_rr->rewrite(a);
