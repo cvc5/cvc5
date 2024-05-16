@@ -138,6 +138,14 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
       d_out << " " << di;
     }
   }
+  else if (r == ProofRule::THEORY_REWRITE)
+  {
+    ProofRewriteRule di;
+    if (rewriter::getRewriteRule(args[0], di))
+    {
+      d_out << " " << di;
+    }
+  }
   d_out << std::endl;
   // trust takes a premise-list which must be specified even if empty
   printStepInternal("trust", n, i, premises, {nc}, false, true);
