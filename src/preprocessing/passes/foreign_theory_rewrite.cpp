@@ -97,8 +97,8 @@ Node ForeignTheoryRewriter::foreignRewrite(Node n)
   Assert(n.getKind() != Kind::LT);
   Assert(n.getKind() != Kind::LEQ);
   // apply rewrites according to the structure of n.
-  if ((n.getKind() == Kind::GEQ
-      || n.getKind() == Kind::EQUAL) && n[0].getType().isInteger())
+  if ((n.getKind() == Kind::GEQ || n.getKind() == Kind::EQUAL)
+      && n[0].getType().isInteger())
   {
     theory::strings::ArithEntail ae(d_env.getRewriter());
     Node r = ae.rewritePredViaEntailment(n);

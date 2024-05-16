@@ -2068,7 +2068,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
         else
         {
           // strip up to ( str.len(node[0]) - end_pt ) off the end of the string
-          curr = d_arithEntail.rewriteArith(nm->mkNode(Kind::SUB, tot_len, end_pt));
+          curr = d_arithEntail.rewriteArith(
+              nm->mkNode(Kind::SUB, tot_len, end_pt));
         }
       }
     }
@@ -2109,8 +2110,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
 
       // the length of a string from the inner substr subtracts the start point
       // of the outer substr
-      Node len_from_inner =
-          d_arithEntail.rewriteArith(nm->mkNode(Kind::SUB, node[0][2], start_outer));
+      Node len_from_inner = d_arithEntail.rewriteArith(
+          nm->mkNode(Kind::SUB, node[0][2], start_outer));
       Node len_from_outer = node[2];
       Node new_len;
       // take quantity that is for sure smaller than the other
