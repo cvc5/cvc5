@@ -135,7 +135,7 @@ ABVFP|ABVFPLRA|BVFP|FP|NIA|NRA|BVFPLRA)
 LIA|LRA)
   trywith 30 --enum-inst
   trywith 300 --enum-inst --cegqi-nested-qe
-  trywith 60 --mbqi --no-cegqi --no-sygus-inst
+  trywith 30 --mbqi --no-cegqi --no-sygus-inst
   trywith 30 --mbqi-fast-sygus --no-cegqi --no-sygus-inst
   finishwith --enum-inst --cegqi-nested-qe --decision=internal
   ;;
