@@ -178,7 +178,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
     else
     {
       TypeNode tn = n.getType();
-      if (tn.isReal() && !tn.isInteger())
+      if (tn.isReal())
       {
         if (n.getKind() == Kind::BOUND_VARIABLE)
         {
@@ -193,15 +193,15 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         {
           Node toIntN = nm->mkNode(Kind::TO_INTEGER, n);
           ret = sm->mkPurifySkolem(toIntN);
-          Node retToReal = nm->mkNode(Kind::TO_REAL, ret);
-          var_eq.push_back(n.eqNode(retToReal));
+          ret = nm->mkNode(Kind::TO_REAL, ret);
+          var_eq.push_back(n.eqNode(ret));
           // add the substitution to the preprocessing context, which ensures
           // the model for n is correct, as well as substituting it in the input
           // assertions when necessary.
           // The model value for the Real variable n we are eliminating is
           // (to_real k), where k is the Int skolem whose unpurified form is
           // (to_int n).
-          d_preprocContext->addSubstitution(n, retToReal);
+          d_preprocContext->addSubstitution(n, ret);
         }
       }
     }
@@ -218,10 +218,13 @@ PreprocessingPassResult RealToInt::applyInternal(
   std::vector<Node> var_eq;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
+    Node a = (*assertionsToPreprocess)[i];
+    Node ac = realToIntInternal(a, d_cache, var_eq);
+    Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
     assertionsToPreprocess->replace(
         i,
         rewrite(
-            realToIntInternal((*assertionsToPreprocess)[i], d_cache, var_eq)));
+            ac));
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;
