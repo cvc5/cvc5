@@ -245,6 +245,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
   modes::LearnedLitType ltype =
       internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
+  Trace("lemma-inprocess-subs") << "computeLearnedLiteralType " << lit << " from " << input << std::endl;
   // compute if solvable
   if (internal || d_trackSimplifications)
   {
