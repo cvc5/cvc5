@@ -27,7 +27,6 @@
 #include "theory/type_enumerator.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
-#include "util/cardinality.h"
 
 namespace cvc5::internal {
 
