@@ -124,7 +124,7 @@ Node SkolemManager::mkSkolemFunction(SkolemId id,
     // sort arguments if commutative, which should not impact its type
     std::vector<Node> cvs = cacheVals;
     std::sort(cvs.begin(), cvs.end());
-    Assert (getTypeFor(id, cvs)==ctn);
+    Assert(getTypeFor(id, cvs) == ctn);
     return mkSkolemFunctionTyped(id, ctn, cvs);
   }
   return mkSkolemFunctionTyped(id, ctn, cacheVals);
@@ -149,8 +149,7 @@ bool SkolemManager::isCommutativeSkolemId(SkolemId id)
     case cvc5::SkolemId::BAGS_DEQ_DIFF:
     case cvc5::SkolemId::SETS_DEQ_DIFF:
     case cvc5::SkolemId::STRINGS_DEQ_DIFF: return true;
-    default:
-      break;
+    default: break;
   }
   return false;
 }
