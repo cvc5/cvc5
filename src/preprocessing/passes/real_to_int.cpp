@@ -221,10 +221,7 @@ PreprocessingPassResult RealToInt::applyInternal(
     Node a = (*assertionsToPreprocess)[i];
     Node ac = realToIntInternal(a, d_cache, var_eq);
     Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
-    assertionsToPreprocess->replace(
-        i,
-        rewrite(
-            ac));
+    assertionsToPreprocess->replace(i, rewrite(ac));
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;
