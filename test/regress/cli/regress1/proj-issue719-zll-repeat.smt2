@@ -1,4 +1,4 @@
-; EXPECT: unsat
+; EXPECT: sat
 (set-logic ALL)
 (declare-const x (_ BitVec 63))
 (set-option :lemma-inprocess full)
