@@ -22,6 +22,16 @@ import java.math.BigInteger;
  */
 public class Proof implements IPointer
 {
+  /**
+   * Null proof
+   */
+  public Proof()
+  {
+    this(getNullProof());
+  }
+
+  private static native long getNullProof();
+
   Proof(long pointer)
   {
     this.pointer = pointer;
@@ -99,4 +109,37 @@ public class Proof implements IPointer
   }
 
   private native long[] getArguments(long pointer);
+
+  /**
+   * Referential equality operator.
+   * Return `true` if both proofs point to the same internal proof object.
+   *
+   * @param p The proof to compare to for equality.
+   * @return `true` if the proofs are equal.
+   */
+  @Override
+  public boolean equals(Object p)
+  {
+    if (this == p)
+      return true;
+    if (p == null || getClass() != p.getClass())
+      return false;
+    Proof proof = (Proof) p;
+    if (pointer == proof.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, proof.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /** @return The hash value of the proof. */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }
