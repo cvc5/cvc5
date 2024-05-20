@@ -44,7 +44,8 @@
 (define-rule bool-xor-false ((x Bool)) (xor x false) x)
 (define-rule bool-xor-true ((x Bool)) (xor x true) (not x))
 (define-rule bool-xor-comm ((x Bool) (y Bool)) (xor x y) (xor y x))
-(define-rule bool-xor-elim ((x Bool) (y Bool)) (xor x y) (not (= x y)))
+(define-rule bool-xor-elim ((x Bool) (y Bool)) (xor x y) (= (not x) y))
+(define-rule bool-not-xor-elim ((x Bool) (y Bool)) (not (xor x y)) (= x y))
 
 (define-cond-rule ite-neg-branch ((c Bool) (x Bool) (y Bool)) (= (not y) x) (ite c x y) (= c x))
 
