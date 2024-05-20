@@ -56,11 +56,11 @@ class ArithEntail
    * Returns true if it is always the case that a >= b,
    * and a>b if strict is true.
    */
-  bool check(Node a, Node b, bool strict = false);
+  bool check(Node a, Node b, bool strict = false, bool isSimple = false);
   /** check arithmetic entailment
    * Returns true if it is always the case that a >= 0.
    */
-  bool check(Node a, bool strict = false);
+  bool check(Node a, bool strict = false, bool isSimple = false);
 
   /**
    * Checks whether assumption |= a >= 0 (if strict is false) or
@@ -175,11 +175,13 @@ class ArithEntail
    * holds.
    *
    * @param a The node to find approximations for.
+   * @param isSimple If true, then we are only making recursive calls to check
+   * without approximations to determine the set of possible approximations.
    * @return The approximated form of a, call it aa, such that a >= aa is
    * entailed by the theory, and aa can be shown to be greater than zero (using
    * checkSimple).
    */
-  Node findApprox(Node a);
+  Node findApprox(Node a, bool isSimple = false);
 
   /**
    * Check entail arithmetic simple.
@@ -220,7 +222,7 @@ class ArithEntail
    * Helper for findApprox, called when the approximation for a is not in the
    * cache.
    */
-  Node findApproxInternal(Node a);
+  Node findApproxInternal(Node a, bool isSimple);
   /** Get arithmetic approximations
    *
    * This gets the (set of) arithmetic approximations for term a and stores
@@ -238,7 +240,8 @@ class ArithEntail
    */
   void getArithApproximations(Node a,
                               std::vector<Node>& approx,
-                              bool isOverApprox = false);
+                              bool isOverApprox = false,
+                              bool isSimple = false);
   /** Set bound cache */
   static void setConstantBoundCache(TNode n, Node ret, bool isLower);
   /**
@@ -253,6 +256,8 @@ class ArithEntail
   Node d_one;
   /** A cache for findApprox above */
   std::map<Node, Node> d_approxCache;
+  /** A cache for findApprox above when isSimple is true */
+  std::map<Node, Node> d_approxCacheSimple;
 };
 
 }  // namespace strings
