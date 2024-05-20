@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-real-as-int
+; COMMAND-LINE: --solve-real-as-int -q
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun v () Real)

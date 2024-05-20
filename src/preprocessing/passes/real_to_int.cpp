@@ -148,9 +148,14 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         bool childChanged = false;
         std::vector<Node> children;
         Kind k = n.getKind();
-        // we change Real equalities to Int equalities
-        bool preserveTypes =
-            k != Kind::EQUAL && (kindToTheoryId(k) != THEORY_ARITH);
+        bool preserveTypes = true;
+        // We change Real equalities to Int equalities, we handle other kinds
+        // here as well.
+        if (k==Kind::EQUAL || k==Kind::MULT || k==Kind::NONLINEAR_MULT ||
+          k==Kind::ADD || k==Kind::SUB || k==Kind::NEG)
+        {
+          preserveTypes = false;
+        }
         for (size_t i = 0; i < n.getNumChildren(); i++)
         {
           Node nc = realToIntInternal(n[i], cache, var_eq);
@@ -193,15 +198,15 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         {
           Node toIntN = nm->mkNode(Kind::TO_INTEGER, n);
           ret = sm->mkPurifySkolem(toIntN);
-          ret = nm->mkNode(Kind::TO_REAL, ret);
-          var_eq.push_back(n.eqNode(ret));
+          Node retToReal = nm->mkNode(Kind::TO_REAL, ret);
+          var_eq.push_back(n.eqNode(retToReal));
           // add the substitution to the preprocessing context, which ensures
           // the model for n is correct, as well as substituting it in the input
           // assertions when necessary.
           // The model value for the Real variable n we are eliminating is
           // (to_real k), where k is the Int skolem whose unpurified form is
           // (to_int n).
-          d_preprocContext->addSubstitution(n, ret);
+          d_preprocContext->addSubstitution(n, retToReal);
         }
       }
     }
