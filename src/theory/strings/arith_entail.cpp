@@ -38,24 +38,26 @@ ArithEntail::ArithEntail(Rewriter* r) : d_rr(r)
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
 }
 
-Node ArithEntail::rewritePredViaEntailment(const Node& n)
+Node ArithEntail::rewritePredViaEntailment(const Node& n, bool isSimple)
 {
   Node exp;
-  return rewritePredViaEntailment(n, exp);
+  return rewritePredViaEntailment(n, exp, isSimple);
 }
 
-Node ArithEntail::rewritePredViaEntailment(const Node& n, Node& exp)
+Node ArithEntail::rewritePredViaEntailment(const Node& n,
+                                           Node& exp,
+                                           bool isSimple)
 {
   NodeManager* nm = NodeManager::currentNM();
   if (n.getKind() == Kind::EQUAL && n[0].getType().isInteger())
   {
     exp = nm->mkNode(Kind::SUB, nm->mkNode(Kind::SUB, n[0], n[1]), d_one);
-    if (check(exp))
+    if (!findApprox(rewriteArith(exp), isSimple).isNull())
     {
       return nm->mkConst(false);
     }
     exp = nm->mkNode(Kind::SUB, nm->mkNode(Kind::SUB, n[1], n[0]), d_one);
-    if (check(exp))
+    if (!findApprox(rewriteArith(exp), isSimple).isNull())
     {
       return nm->mkConst(false);
     }
@@ -64,12 +66,12 @@ Node ArithEntail::rewritePredViaEntailment(const Node& n, Node& exp)
   else if (n.getKind() == Kind::GEQ)
   {
     exp = nm->mkNode(Kind::SUB, n[0], n[1]);
-    if (check(exp))
+    if (!findApprox(rewriteArith(exp), isSimple).isNull())
     {
       return nm->mkConst(true);
     }
     exp = nm->mkNode(Kind::SUB, nm->mkNode(Kind::SUB, n[1], n[0]), d_one);
-    if (check(exp))
+    if (!findApprox(rewriteArith(exp), isSimple).isNull())
     {
       return nm->mkConst(false);
     }
@@ -89,7 +91,9 @@ Node ArithEntail::rewriteArith(Node a)
   // Otherwise, use the poly norm utility. This is important since the rewrite
   // must be justified by ARITH_POLY_NORM when in proof mode (when d_rr is
   // null).
-  return arith::PolyNorm::getPolyNorm(a);
+  Node an = arith::PolyNorm::getPolyNorm(a);
+  Trace("ajr-temp") << "Poly norm " << an << " for " << a << std::endl;
+  return an;
 }
 
 bool ArithEntail::checkEq(Node a, Node b)
@@ -126,13 +130,13 @@ bool ArithEntail::check(Node a, bool strict, bool isSimple)
     ar = rewriteArith(ar);
     return checkSimple(ar);
   }
-  Node ara = findApprox(ar, false);
+  ar = rewriteArith(ar);
+  Node ara = findApprox(ar, isSimple);
   return !ara.isNull();
 }
 
 Node ArithEntail::findApprox(Node ar, bool isSimple)
 {
-  ar = rewriteArith(ar);
   std::map<Node, Node>& cache = isSimple ? d_approxCacheSimple : d_approxCache;
   std::map<Node, Node>::iterator it = cache.find(ar);
   if (it != cache.end())
@@ -218,6 +222,11 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
             // no approximations, thus curr is a possibility
             approx.push_back(curr);
           }
+          else if (isSimple)
+          {
+            // don't rewrite or re-approximate
+            approx = currApprox;
+          }
           else
           {
             toProcess.insert(
@@ -233,7 +242,8 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
         {
           changed = true;
           Trace("strings-ent-approx")
-              << "- Propagate " << v << " = " << approx[0] << std::endl;
+              << "- Propagate (" << (d_rr == nullptr) << ", " << isSimple
+              << ") " << v << " = " << approx[0] << std::endl;
           approxMap.add(v, approx[0]);
         }
         Node mn = ArithMSum::mkCoeffTerm(c, approx[0]);
@@ -387,8 +397,8 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
           break;
         }
       }
-      Trace("strings-ent-approx")
-          << "- Decide " << v << " = " << vapprox << std::endl;
+      Trace("strings-ent-approx") << "- Decide (" << (d_rr == nullptr) << ") "
+                                  << v << " = " << vapprox << std::endl;
       // we incorporate v approximated by vapprox into the overall approximation
       // for ar
       Assert(!v.isNull() && !vapprox.isNull());
@@ -427,7 +437,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
   // len( substr( x, 0, n ) ) as len( x ). In this example, we can infer
   // that len( replace( x ++ y, substr( x, 0, n ), z ) ) >= len( y ) in two
   // steps.
-  if (check(aar))
+  if (check(aar, false, isSimple))
   {
     Trace("strings-ent-approx")
         << "*** StrArithApprox: showed " << ar
