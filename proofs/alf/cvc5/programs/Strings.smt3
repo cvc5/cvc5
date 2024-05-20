@@ -567,6 +567,33 @@
   ($singleton_elim ($str_mk_re_loop_elim_rec n d r (str.to_re "")))
 )
 
+; Helper for ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR.
+; Note that we do not require a singleton elimination step since the original input should be a concatenation term.
+(program $str_mk_str_in_re_concat_star_char ((s1 String) (s2 String :list) (r RegLan))
+  (String RegLan) Bool
+  (
+    (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) r) (alf.cons and (str.in_re s1 r) ($str_mk_str_in_re_concat_star_char s2 r)))
+    (($str_mk_str_in_re_concat_star_char "" r)             true)
+  )
+)
+
+; Helper for $str_mk_str_in_re_sigma.
+; Calling `$str_mk_re_loop_elim s r n b` means we have s in r, we have stripped
+; off n re.allchar from r so far. If `b` is false, then we have stripped off
+; a (re.* re.allchar).
+(program $str_mk_str_in_re_sigma_rec ((s String) (r RegLan :list) (n Int) (b Bool))
+  (String RegLan Int Bool) Bool
+  (
+    (($str_mk_str_in_re_sigma_rec s (str.to_re "") n b)              (alf.ite b (= (str.len s) n) (>= (str.len s) n)))
+    (($str_mk_str_in_re_sigma_rec s (re.++ re.allchar r) n b)        ($str_mk_str_in_re_sigma_rec s r (alf.add n 1) b))
+    (($str_mk_str_in_re_sigma_rec s (re.++ (re.* re.allchar) r) n b) ($str_mk_str_in_re_sigma_rec s r n false))
+  )
+)
+
+; Helper for ProofRewriteRule::STR_IN_RE_SIGMA.
+(define $str_mk_str_in_re_sigma ((s String) (r RegLan))
+  ($str_mk_str_in_re_sigma_rec s r 0 true))
+
 ; Converts a str.++ application into "flat form" so that we are ready to
 ; process its prefix. This consists of the following steps:
 ; (1) convert s to n-ary form if it is not already a str.++ application,
@@ -587,3 +614,109 @@
   ; reverse, collect, elim
   ($str_nary_elim (string_collect ($str_rev rev s)))
 )
+
+; $str_arith_entail_simple n returns true if we can show n >= 0
+(program $str_arith_entail_simple ((s String) (n1 Int) (n2 Int :list))
+  (Int) Bool
+  (
+    (($str_arith_entail_simple (str.len s)) true)
+    (($str_arith_entail_simple (+ n1 n2))   (alf.ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
+    (($str_arith_entail_simple (* n1 n2))   (alf.ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
+    (($str_arith_entail_simple n1)          (alf.not (alf.is_neg n1)))
+  )
+)
+
+; $str_arith_entail_simple_pred b returns true if we can the inequality b using
+; arithmetic normalization and the method above.
+(program $str_arith_entail_simple_pred ((n Int) (m Int))
+  (Bool) Bool
+  (
+    (($str_arith_entail_simple_pred (>= n m))  ($str_arith_entail_simple ($arith_poly_to_term (- n m))))
+    (($str_arith_entail_simple_pred (> n m))   ($str_arith_entail_simple ($arith_poly_to_term (- n (+ m 1)))))
+  )
+)
+
+; `$str_arith_entail_is_approx_len s n isUnder` returns true
+; if n is a sound under-approximation for (str.len s) if isUnder is true, or
+; a sound over-approximation if isUnder is false.
+(program $str_arith_entail_is_approx_len ((s String) (t String) (r String) (n1 Int) (n2 Int) (n Int) (isUnder Bool))
+  (String Int Bool) Bool
+  (
+    (($str_arith_entail_is_approx_len (str.substr s n1 n2) n isUnder)
+        (let ((npm (+ n1 n2)))
+        (let ((lx (str.len s)))
+        (alf.ite (alf.is_eq n n2)
+          (alf.ite isUnder
+            (alf.and ($str_arith_entail_simple n1) ($str_arith_entail_simple_pred (>= lx npm)))
+            ($str_arith_entail_simple n2))
+        (alf.ite (alf.is_eq n (str.len s))
+          (alf.not isUnder)
+        (alf.ite (alf.is_eq n (- (str.len s) n1))
+          (alf.ite isUnder
+            (alf.and ($str_arith_entail_simple n1) ($str_arith_entail_simple_pred (>= npm lx)))
+            ($str_arith_entail_simple_pred (>= lx n1)))
+          false))))))
+    (($str_arith_entail_is_approx_len (str.replace s t r) n isUnder)
+        (let ((ls (str.len s)))
+        (let ((lt (str.len t)))
+        (let ((lr (str.len r)))
+        (alf.ite (alf.is_eq n ls)
+          (alf.ite isUnder
+            ($str_arith_entail_simple_pred (>= lt lr))
+            (alf.or ($str_arith_entail_simple_pred (>= lr lt)) ($str_arith_entail_simple_pred (>= lr ls))))
+        (alf.ite (alf.is_eq n (+ ls lr))
+          (alf.not isUnder)
+        (alf.ite (alf.is_eq n (- ls lt))
+          isUnder
+          false)))))))
+    (($str_arith_entail_is_approx_len (str.from_int n1) n isUnder)
+        (alf.ite (alf.is_eq n n1)
+          (alf.and (alf.not isUnder) ($str_arith_entail_simple n1))
+        (alf.ite (alf.is_eq n (+ n1 1))
+          (alf.and (alf.not isUnder) ($str_arith_entail_simple_pred (> n1 0)))
+        (alf.ite (alf.is_eq n 1)
+          (alf.and isUnder ($str_arith_entail_simple n1))
+          false))))
+  )
+)
+
+; `$str_arith_entail_is_approx_indexof s t n m isUnder` returns true
+; if m is a sound under-approximation for (str.indexof s t n) if isUnder is true, or
+; a sound over-approximation if isUnder is false.
+(define $str_arith_entail_is_approx_indexof ((s String) (t String) (n Int) (m Int) (isUnder Bool))
+  (let ((ls (str.len s)))
+  (let ((lt (str.len t)))
+  (alf.ite (alf.is_eq m -1)
+    isUnder
+  (alf.ite (alf.is_eq m ls)
+    (alf.not isUnder)
+  (alf.ite (alf.is_eq m (- ls lt))
+    (alf.and (alf.not isUnder) ($str_arith_entail_simple_pred (>= ls lt)))
+    false))))))
+
+; `$str_arith_entail_is_approx_to_int s n isUnder` returns true
+; if n is a sound under-approximation for (str.to_int s) if isUnder is true, or
+; a sound over-approximation if isUnder is false.
+(define $str_arith_entail_is_approx_to_int ((s String) (n Int) (isUnder Bool))
+  (alf.ite (alf.is_eq n -1) isUnder false)
+)
+
+; `$str_arith_entail_is_approx n m isUnder` returns true if m is a sound
+; under-approximation for n if isUnder is true, or a sound over-approximation if
+; isUnder is false.
+(program $str_arith_entail_is_approx ((s String) (t String) (n1 Int) (n2 Int :list) (n3 Int) (n4 Int :list) (n5 Int) (isUnder Bool))
+  (Int Int Bool) Bool
+  (
+    (($str_arith_entail_is_approx n1 n1 isUnder)                    true)
+    (($str_arith_entail_is_approx (str.len s) n1 isUnder)           ($str_arith_entail_is_approx_len s n1 isUnder))
+    (($str_arith_entail_is_approx (str.indexof s t n3) n1 isUnder)  ($str_arith_entail_is_approx_indexof s t n3 n1 isUnder))
+    (($str_arith_entail_is_approx (str.to_int s) n1 isUnder)        ($str_arith_entail_is_approx_to_int s n1 isUnder))
+    (($str_arith_entail_is_approx (+ n1 n2) (+ n3 n4) isUnder)      (alf.and
+                                                                      ($str_arith_entail_is_approx n1 n3 isUnder)
+                                                                      ($str_arith_entail_is_approx n2 n4 isUnder)))
+    (($str_arith_entail_is_approx (* n1 n3) (* n1 n5) isUnder)      (alf.ite (alf.is_neg n1)
+                                                                      ($str_arith_entail_is_approx n3 n5 (alf.not isUnder))
+                                                                      ($str_arith_entail_is_approx n3 n5 isUnder)))
+  )
+)
+

@@ -189,11 +189,13 @@
 
 ;;-------------------- Regular expressions
 
+; ProofRule::RE_INTER
 (declare-rule re_inter ((x String) (s RegLan) (t RegLan))
   :premises ((str.in_re x s) (str.in_re x t))
   :conclusion (str.in_re x (re.inter s t))
 )
 
+; ProofRule::RE_UNFOLD_POS
 (declare-rule re_unfold_pos ((t String) (r RegLan))
   :premises ((str.in_re t r))
   :conclusion
@@ -219,6 +221,7 @@
     ))
 )
 
+; ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
 (declare-rule re_unfold_neg_concat_fixed ((s String) (r RegLan) (rev Bool))
   :premises ((not (str.in_re s r)))
   :args (rev)
@@ -249,6 +252,18 @@
 
 ;;-------------------- Instances of THEORY_REWRITE
 
+(declare-rule arith-string-pred-entail ((n Int))
+  :args ((= (>= n 0) true))
+  :requires ((($str_arith_entail_simple n) true))
+  :conclusion (= (>= n 0) true)
+)
+
+(declare-rule arith-string-pred-safe-approx ((n Int) (m Int))
+  :args ((= (>= n 0) (>= m 0)))
+  :requires ((($str_arith_entail_is_approx n m true) true))
+  :conclusion (= (>= n 0) (>= m 0))
+)
+
 (declare-rule str-in-re-eval ((s String) (r RegLan) (b Bool))
   :args ((= (str.in_re s r) b))
   :requires ((($str_eval_str_in_re s r) b))
@@ -261,3 +276,17 @@
              (($str_mk_re_loop_elim l (alf.add (alf.neg l) u) r1) r2))
   :conclusion (= (re.loop l u r1) r2)
 )
+
+(declare-rule str-in-re-concat-star-char ((s1 String) (s2 String :list) (r RegLan) (b Bool))
+  :args ((= (str.in_re (str.++ s1 s2) (re.* r)) b))
+  :requires ((($str_fixed_len_re r) 1) 
+             (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) (re.* r)) b))
+  :conclusion (= (str.in_re (str.++ s1 s2) (re.* r)) b)
+)
+
+(declare-rule str-in-re-sigma ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_mk_str_in_re_sigma s r) b))
+  :conclusion (= (str.in_re s r) b)
+)
+
