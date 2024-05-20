@@ -53,12 +53,21 @@ class ArithEntail
    */
   bool checkEq(Node a, Node b);
   /** check arithmetic entailment
-   * Returns true if it is always the case that a >= b,
-   * and a>b if strict is true.
+   * @param a The first term.
+   * @param b The second term
+   * @param strict Whether we are testing strict inequality.
+   * @param isSimple If true, then we do not use approximations for recursive
+   * calls when computing approximations.
+   * @return true if it is always the case a >= b, or a>b if strict is true.
    */
   bool check(Node a, Node b, bool strict = false, bool isSimple = false);
   /** check arithmetic entailment
    * Returns true if it is always the case that a >= 0.
+   * @param a The term.
+   * @param strict Whether we are testing strict inequality.
+   * @param isSimple If true, then we do not use approximations for recursive
+   * calls when computing approximations.
+   * @return true if it is always the case a >= 0, or a>0 if strict is true.
    */
   bool check(Node a, bool strict = false, bool isSimple = false);
 
