@@ -333,7 +333,7 @@ class TheoryModel : protected EnvObj
   bool isValue(TNode node) const;
 
  protected:
-  /** 
+  /**
    * Get cardinality for sort, where t is an uninterpreted sort.
    * @param t The sort.
    * @return the cardinality of the sort, which is the number of representatives

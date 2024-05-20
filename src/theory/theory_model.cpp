@@ -177,7 +177,7 @@ bool TheoryModel::isModelCoreSymbol(Node s) const
 size_t TheoryModel::getCardinality(const TypeNode& tn) const
 {
   //for now, we only handle cardinalities for uninterpreted sorts
-  Assert (tn.isUninterpretedSort());
+  Assert(tn.isUninterpretedSort());
   if (d_rep_set.hasType(tn))
   {
     Trace("model-getvalue-debug")
@@ -257,7 +257,7 @@ Node TheoryModel::getModelValue(TNode n) const
       Trace("model-getvalue-debug")
           << "get cardinality constraint " << cc.getType() << std::endl;
       size_t cval = getCardinality(cc.getType());
-      Assert (cval>0);
+      Assert(cval > 0);
       ret = nm->mkConst(Integer(cval) <= cc.getUpperBound());
     }
     // if the value was constant, we return it. If it was non-constant,

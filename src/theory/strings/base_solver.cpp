@@ -22,9 +22,9 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/cardinality.h"
 #include "util/rational.h"
 #include "util/string.h"
-#include "util/cardinality.h"
 
 using namespace std;
 using namespace cvc5::context;
