@@ -2297,6 +2297,20 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(DISTINCT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Booleans -- Negation Normal Form with normalization**
+   *
+   * .. math::
+   *   F = G
+   *
+   * where :math:`G` is the result of applying negation normal form to
+   * :math:`F` with additional normalizations, see
+   * TheoryBoolRewriter::computeNnfNorm.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BOOL_NNF_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**
    *
    * .. math::
