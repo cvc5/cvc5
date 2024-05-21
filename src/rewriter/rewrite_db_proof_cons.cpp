@@ -297,6 +297,8 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
     // for approximate types, return false in this case
     if (target.isNull())
     {
+      // note that we return false here, indicating that we don't want any
+      // more matches, since we have failed for the current fixed point rule.
       return false;
     }
     // We now prove with the given rule. this should only fail if there are
@@ -1097,6 +1099,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
 
       ProvenInfo& dpi = d_pcache[source.eqNode(target)];
       dpi.d_id = pi.d_id;
+      dpi.d_dslId = pi.d_dslId;
       dpi.d_vars = vars;
       dpi.d_subs = stepSubs;
 
