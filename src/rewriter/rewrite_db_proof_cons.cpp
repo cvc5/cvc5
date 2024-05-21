@@ -884,7 +884,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
             else
             {
               Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
-              pfac.push_back(cur[0]);
+              pfac.push_back(cur);
             }
           }
           // recurse on premises
