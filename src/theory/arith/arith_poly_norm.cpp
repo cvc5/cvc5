@@ -534,7 +534,7 @@ Node PolyNorm::getPolyNorm(Node a)
     an = pa.toNode(a.getType());
     a.setAttribute(apna, an);
     // as an optimization, assume idempotent
-    if (a!=an)
+    if (a != an)
     {
       an.setAttribute(apna, an);
     }
