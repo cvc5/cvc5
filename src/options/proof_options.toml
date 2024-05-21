@@ -129,7 +129,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-rewrite-rcons-step-limit=N"
   type       = "uint64_t"
-  default    = "200"
+  default    = "1000"
   help       = "the limit of steps considered for reconstructing proofs of theory rewrites"
 
 [[option]]
