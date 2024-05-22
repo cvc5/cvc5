@@ -194,10 +194,12 @@ void SolverEngine::finishInit()
   }
   if (d_env->isOutputOn(OutputTag::RARE_DB))
   {
-    if (!d_env->getOptions().smt.produceProofs || options().proof.proofGranularityMode
-      != options::ProofGranularityMode::DSL_REWRITE)
+    if (!d_env->getOptions().smt.produceProofs
+        || options().proof.proofGranularityMode
+               != options::ProofGranularityMode::DSL_REWRITE)
     {
-      Warning() << "WARNING: -o rare-db requires --produce-proofs and --proof-granularity=dsl-rewrite";
+      Warning() << "WARNING: -o rare-db requires --produce-proofs and "
+                   "--proof-granularity=dsl-rewrite";
     }
   }
   // enable proof support in the environment/rewriter

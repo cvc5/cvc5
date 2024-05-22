@@ -56,9 +56,10 @@ PfManager::PfManager(Env& env)
     {
       if (options().proof.proofFormatMode != options::ProofFormatMode::ALF)
       {
-        Warning() << "WARNING: Assuming --proof-format=alf when printing the RARE "
-                     "database with -o rare-db"
-                  << std::endl;
+        Warning()
+            << "WARNING: Assuming --proof-format=alf when printing the RARE "
+               "database with -o rare-db"
+            << std::endl;
       }
       proof::AlfNodeConverter atp(nodeManager());
       proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());

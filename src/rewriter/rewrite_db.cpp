@@ -197,7 +197,8 @@ const std::unordered_set<Node>& RewriteDb::getAllFreeVariables() const
   return d_allFv;
 }
 
-const std::map<ProofRewriteRule, RewriteProofRule>& RewriteDb::getAllRules() const
+const std::map<ProofRewriteRule, RewriteProofRule>& RewriteDb::getAllRules()
+    const
 {
   return d_rewDbRule;
 }
