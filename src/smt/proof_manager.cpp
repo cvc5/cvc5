@@ -48,9 +48,9 @@ PfManager::PfManager(Env& env)
 {
   // construct the rewrite db only if DSL rewrites are enabled
   if (options().proof.proofGranularityMode
-      == options::ProofGranularityMode::DSL_REWRITE ||
-      options().proof.proofGranularityMode
-      == options::ProofGranularityMode::DSL_REWRITE_STRICT)
+          == options::ProofGranularityMode::DSL_REWRITE
+      || options().proof.proofGranularityMode
+             == options::ProofGranularityMode::DSL_REWRITE_STRICT)
   {
     d_rewriteDb.reset(new rewriter::RewriteDb);
   }

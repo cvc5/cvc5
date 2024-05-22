@@ -27,9 +27,10 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env) {
+BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env)
+{
   d_isDslStrict = (options().proof.proofGranularityMode
-      == options::ProofGranularityMode::DSL_REWRITE_STRICT);
+                   == options::ProofGranularityMode::DSL_REWRITE_STRICT);
 }
 
 bool BasicRewriteRCons::prove(
@@ -106,18 +107,18 @@ bool BasicRewriteRCons::tryRule(CDProof* cdp,
 }
 
 bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
-               const Node& eq,
-               theory::TheoryRewriteCtx ctx)
+                                         const Node& eq,
+                                         theory::TheoryRewriteCtx ctx)
 {
-  Assert (eq.getKind()==Kind::EQUAL);
-  ProofRewriteRule prid =
-      d_env.getRewriter()->findRule(eq[0], eq[1], ctx);
+  Assert(eq.getKind() == Kind::EQUAL);
+  ProofRewriteRule prid = d_env.getRewriter()->findRule(eq[0], eq[1], ctx);
   if (prid != ProofRewriteRule::NONE)
   {
     if (tryRule(
             cdp, eq, ProofRule::THEORY_REWRITE, {mkRewriteRuleNode(prid), eq}))
     {
-      Trace("trewrite-rcons") << "Reconstruct (" << ctx << ") " << eq << " via theory rewrite " << prid << std::endl;
+      Trace("trewrite-rcons") << "Reconstruct (" << ctx << ") " << eq
+                              << " via theory rewrite " << prid << std::endl;
       return true;
     }
   }

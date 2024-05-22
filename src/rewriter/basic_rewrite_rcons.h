@@ -56,7 +56,7 @@ class BasicRewriteRCons : protected EnvObj
       CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
 
  private:
-  /** 
+  /**
    * Is proof-granularity set to dsl-rewrite-strict? This impacts when
    * THEORY_REWRITE are tried.
    */
@@ -73,8 +73,8 @@ class BasicRewriteRCons : protected EnvObj
    * Try THEORY_REWRITE with theory::TheoryRewriteCtx ctx.
    */
   bool tryTheoryRewrite(CDProof* cdp,
-               const Node& eq,
-               theory::TheoryRewriteCtx ctx);
+                        const Node& eq,
+                        theory::TheoryRewriteCtx ctx);
 };
 
 }  // namespace rewriter
