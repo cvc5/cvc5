@@ -20,7 +20,6 @@
 #include "rewriter/rewrites.h"
 #include "smt/env.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
-#include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
 
@@ -60,6 +59,8 @@ bool BasicRewriteRCons::prove(
   {
     if (tryTheoryRewrite(cdp, eq, theory::TheoryRewriteCtx::PRE_DSL))
     {
+      Trace("trewrite-rcons") << "Reconstruct (pre) " << eq
+                              << " via theory rewrite"<< std::endl;
       return true;
     }
   }
@@ -73,19 +74,29 @@ bool BasicRewriteRCons::postProve(
   Node eq = a.eqNode(b);
   // try theory rewrite (post-rare), which may try both pre and post if
   // the proof-granularity mode is dsl-rewrite-strict.
+  bool success = false;
   if (d_isDslStrict)
   {
     if (tryTheoryRewrite(cdp, eq, theory::TheoryRewriteCtx::PRE_DSL))
     {
-      return true;
+      success = true;
     }
   }
-  if (tryTheoryRewrite(cdp, eq, theory::TheoryRewriteCtx::POST_DSL))
+  if (!success && tryTheoryRewrite(cdp, eq, theory::TheoryRewriteCtx::POST_DSL))
   {
-    return true;
+    success = true;
   }
-  Trace("trewrite-rcons") << "...(fail)" << std::endl;
-  return false;
+  if (success)
+  {
+    
+      Trace("trewrite-rcons") << "Reconstruct (post) " << eq
+                              << " via theory rewrite" << std::endl;
+  }
+  else
+  {
+    Trace("trewrite-rcons") << "...(fail)" << std::endl;
+  }
+  return success;
 }
 
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
@@ -117,8 +128,6 @@ bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
     if (tryRule(
             cdp, eq, ProofRule::THEORY_REWRITE, {mkRewriteRuleNode(prid), eq}))
     {
-      Trace("trewrite-rcons") << "Reconstruct (" << ctx << ") " << eq
-                              << " via theory rewrite " << prid << std::endl;
       return true;
     }
   }
