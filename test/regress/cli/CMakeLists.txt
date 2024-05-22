@@ -1826,6 +1826,8 @@ set(regress_0_tests
   regress0/strings/proj-issue595-max-model-option.smt2
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
+  regress0/strings/re-consume-bi-dir.smt2
+  regress0/strings/re-consume-sym.smt2
   regress0/strings/re-include-union.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
