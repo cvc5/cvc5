@@ -316,7 +316,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   Trace("smt") << " assertions     : " << ap.size() << endl;
 
   // ff
-  if (!options().ff.ffDisjunctiveBit)
+  if (options().ff.ffElimDisjunctiveBit)
   {
     applyPass("ff-disjunctive-bit", ap);
   }
