@@ -121,8 +121,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             if (remStr.isNull())
             {
               // we have fully processed the component
-              childrenc.erase(childrenc.begin() + cindex,
-                              childrenc.begin() + cindex + 1);
+              childrenc.erase(childrenc.begin() + cindex);
             }
             else
             {
