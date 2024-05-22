@@ -199,7 +199,7 @@ void SolverEngine::finishInit()
                != options::ProofGranularityMode::DSL_REWRITE)
     {
       Warning() << "WARNING: -o rare-db requires --produce-proofs and "
-                   "--proof-granularity=dsl-rewrite";
+                   "--proof-granularity=dsl-rewrite" << std::endl;
     }
   }
   // enable proof support in the environment/rewriter
