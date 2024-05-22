@@ -1503,6 +1503,7 @@ if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CryptoMiniSat> $<INSTALL_INTERFACE:cryptominisat5>)
+  target_link_libraries(cvc5 PRIVATE Threads::Threads) # Required by CryptoMiniSat
 endif()
 if(USE_KISSAT)
   add_dependencies(cvc5-obj Kissat)
