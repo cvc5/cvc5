@@ -255,6 +255,12 @@
   :conclusion (= (str.in_re s r) b)
 )
 
+(declare-rule str-in-re-consume ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_re_consume s r) b))
+  :conclusion (= (str.in_re s r) b)
+)
+
 (declare-rule re-loop-elim ((l Int) (u Int) (r1 RegLan) (r2 RegLan))
   :args ((= (re.loop l u r1) r2))
   :requires (((alf.is_neg (alf.add (alf.neg l) u)) false)
