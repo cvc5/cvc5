@@ -92,8 +92,7 @@ class RewriteDb
   /** Return the union of free variables in all rules */
   const std::unordered_set<Node>& getAllFreeVariables() const;
   /** Return the all rewrite rules */
-  std::map<ProofRewriteRule, RewriteProofRule>& getAllRules() const;
-
+  const std::map<ProofRewriteRule, RewriteProofRule>& getAllRules() const;
  private:
   /** common constants */
   Node d_true;
