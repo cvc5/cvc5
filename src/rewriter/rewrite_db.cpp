@@ -197,5 +197,10 @@ const std::unordered_set<Node>& RewriteDb::getAllFreeVariables() const
   return d_allFv;
 }
 
+std::map<ProofRewriteRule, RewriteProofRule>& RewriteDb::getAllRules() const
+{
+  return d_rewDbRule;
+}
+
 }  // namespace rewriter
 }  // namespace cvc5::internal

@@ -51,6 +51,22 @@ PfManager::PfManager(Env& env)
       == options::ProofGranularityMode::DSL_REWRITE)
   {
     d_rewriteDb.reset(new rewriter::RewriteDb);
+    if (isOutputOn(OutputTag::RARE_DB))
+    {
+      if (options().proof.proofFormat!=options::ProofFormatMode::ALF)
+      {
+        Warning() << "Assuming --proof-format=alf when printing the RARE database with -o rare-db" << std::endl;
+      }
+      proof::AlfNodeConverter atp(nodeManager());
+      proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
+      std::map<ProofRewriteRule, RewriteProofRule>& rules = d_rewriteDb->getAllRules();
+      std::stringstream ss;
+      for (const std::pair<const ProofRewriteRule, RewriteProofRule> r : rules)
+      {
+        alfp.printDslRule(ss, r.first);
+      }
+      output(OutputTag::RARE_DB) << ss.str();
+    }
   }
   // enable the proof checker and the proof node manager
   d_pchecker.reset(

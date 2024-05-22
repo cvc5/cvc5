@@ -43,9 +43,18 @@ class AlfPrinter : protected EnvObj
 
   /**
    * Print the full proof of assertions => false by pfn.
+   * @param out The output stream.
+   * @param pfn The proof node.
    */
   void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
+  /** 
+   * Print proof rewrite rule name r to output stream out
+   * @param out The output stream.
+   * @param r The proof rewrite rule. This should be one of the proof rewrite
+   * rules that corresponds to a RARE rewrite.
+   */
+  void printDslRule(std::ostream& out, ProofRewriteRule r);
  private:
   /** Return true if it is possible to trust the topmost application in pfn */
   bool isHandled(const ProofNode* pfn) const;
@@ -108,8 +117,6 @@ class AlfPrinter : protected EnvObj
    * Allocate (if necessary) the identifier for step
    */
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
-  /** Print DSL rule name r to output stream out */
-  void printDslRule(std::ostream& out, ProofRewriteRule r);
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
   /** Reference to the term processor */
