@@ -452,7 +452,7 @@ TEST_F(TestApiBlackSort, getFunctionArity)
 {
   Sort funSort = d_tm.mkFunctionSort({d_tm.mkUninterpretedSort("u")},
                                      d_tm.getIntegerSort());
-  ASSERT_EQ(funSort.getFunctionArity(), 2);
+  ASSERT_EQ(funSort.getFunctionArity(), 1);
   Sort bvSort = d_tm.mkBitVectorSort(32);
   ASSERT_THROW(bvSort.getFunctionArity(), CVC5ApiException);
 }
