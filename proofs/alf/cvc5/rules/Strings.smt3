@@ -261,3 +261,9 @@
              (($str_mk_re_loop_elim l (alf.add (alf.neg l) u) r1) r2))
   :conclusion (= (re.loop l u r1) r2)
 )
+
+(declare-rule re-inter-union-inclusion ((r1 RegLan) (r2 RegLan))
+  :args ((= r1 r2))
+  :requires ((($str_decompose_and_check_re_inter_union_inclusion r1 r2) true))
+  :conclusion (= r1 r2)
+)

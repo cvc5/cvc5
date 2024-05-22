@@ -67,6 +67,12 @@
   )
 )
 
+; `$str_is_char_range s1 s2` returns true if (re.range s1 s2) is a character
+; range (i.e. s1 and s2 are strings of length 1).
+(define $str_is_char_range ((s1 String) (s2 String))
+  (alf.and (alf.is_eq (alf.len s1) 1) (alf.is_eq (alf.len s2) 1))
+)
+
 ;;-------------------- RE evaluation
 
 (declare-const @re.null RegLan)
@@ -179,7 +185,7 @@
 (define $str_rev ((U Type :implicit) (rev Bool) (t U)) 
   (alf.ite rev (nary.reverse t) t))
 
-; Nary-intro, which ensures that the input t is a str.++ application.
+; String nary-intro, which ensures that the input t is a str.++ application.
 ; In particular, if it is not a str.++ and not the empty string, then we return
 ; (str.++ t empty) where empty is the empty string for the type of t.
 (program $str_nary_intro
@@ -192,9 +198,21 @@
     )
 )
 
-; Nary-elimination, which ensures that the input t is not a str.++ application.
-; In particular, if t is of the form (str.++ t empty) where empty is the empty
-; string for the type of t, we return t.
+; Regular expression nary-intro, which ensures that the input t is a re.++
+; application. In particular, if it is not a re.++ and not the empty regular
+; expression, then we return (re.++ t @re.empty).
+(program $re_nary_intro ((t RegLan) (ss RegLan :list))
+    (RegLan) RegLan
+    (
+        (($re_nary_intro (re.++ t ss))    (re.++ t ss))
+        (($re_nary_intro @re.empty)       @re.empty)
+        (($re_nary_intro t)               (alf.cons re.++ t @re.empty))
+    )
+)
+
+; String nary-elimination, which ensures that the input t is not a str.++
+; application. In particular, if t is of the form (str.++ t1 empty) where empty
+; is the empty string for the type of t, we return t1.
 (program $str_nary_elim
     ((T Type) (t (Seq T)) (ss (Seq T) :list))
     ((Seq T)) (Seq T)
@@ -202,6 +220,17 @@
         (($str_nary_elim (str.++ t ss)) (let ((nil (mk_emptystr (alf.typeof t))))
                                            (alf.ite (alf.is_eq ss nil) t (str.++ t ss))))
         (($str_nary_elim t)             ($str_self_if_empty t))
+    )
+)
+
+; Regular expression nary-elimination, which ensures that the input t is not a
+; re.++ application. In particular, if t is of the form (re.++ t1 @re.empty),
+; we return t1.
+(program $re_nary_elim ((t RegLan) (ss RegLan :list))
+    (RegLan) RegLan
+    (
+        (($re_nary_elim (re.++ t ss)) (alf.ite (alf.is_eq ss @re.empty) t (re.++ t ss)))
+        (($re_nary_elim t)            t)
     )
 )
 
@@ -345,7 +374,7 @@
 (program re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
   (String RegLan RegLan Int) (@Pair String Bool)
   (
-    ((re_unfold_pos_concat_rec t (str.to_re "") ro i)       (@pair "" true))
+    ((re_unfold_pos_concat_rec t @re.empty ro i)       (@pair "" true))
     ((re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
       ; match recursive call
       (alf.match ((c String :list) (M Bool :list))
@@ -562,9 +591,9 @@
 ; where d>0. This is the regular expression:
 ;   (re.union r^n ... r^{n+d})
 ; where r^k is (re.++ r ... r), where r is repeated k times when k>1, or
-; r if k=1 or (str.to_re "") if k=0.
+; r if k=1 or @re.empty if k=0.
 (define $str_mk_re_loop_elim ((n Int) (d Int) (r RegLan))
-  ($singleton_elim ($str_mk_re_loop_elim_rec n d r (str.to_re "")))
+  ($singleton_elim ($str_mk_re_loop_elim_rec n d r @re.empty))
 )
 
 ; Converts a str.++ application into "flat form" so that we are ready to
@@ -577,6 +606,29 @@
   ($str_rev rev ($str_flatten ($str_nary_intro s)))
 )
 
+; `$re_str_to_flat_form rev r` convert the strings s occurring as direct
+; children (str.to_re s) of regular expression concatenation r to their flat
+; form, reversing if rev is true.
+(program $re_str_to_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
+  (Bool RegLan) RegLan
+  (
+    (($re_str_to_flat_form rev (re.++ (str.to_re s) r2))  (alf.cons re.++ (str.to_re (string_to_flat_form s rev)) ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev (re.++ r1 r2))             (alf.cons re.++ r1 ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev r1)                        r1)
+  )
+)
+
+; Converts a regular expression term to "flat form". This consists of the
+; following steps:
+; (1) convert r to n-ary form if it not already a re.++ application,
+; (2) (optionally) reverse,
+; (3) convert the strings s occurring as direct children (str.to_re s) of the
+; result to their flat form. Note that other strings in r, i.e. those that
+; occur benath other children remain unchanged.
+(define $re_to_flat_form ((r RegLan) (rev Bool))
+  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
+)
+
 ; Converts a term in "flat form" to a term that is in a form that corresponds
 ; to one in cvc5 rewritten form. This is the dual method to
 ; string_to_flat_form. This consists of the following steps:
@@ -586,4 +638,182 @@
 (define string_from_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; reverse, collect, elim
   ($str_nary_elim (string_collect ($str_rev rev s)))
+)
+
+; `$re_str_to_flat_form rev r` convert the strings s occurring as direct
+; children (str.to_re s) of regular expression concatenation r from their flat
+; form, reversing if rev is true.
+(program $re_str_from_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
+  (Bool RegLan) RegLan
+  (
+    (($re_str_from_flat_form rev (re.++ (str.to_re s) r2))  (alf.cons re.++ (str.to_re (string_from_flat_form s rev)) ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev (re.++ r1 r2))             (alf.cons re.++ r1 ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev r1)                        r1)
+  )
+)
+
+; Converts a regular expression term in "flat form" to a term that is in a form
+; that corresponds to one in cvc5 rewritten form. This is the dual method to
+; $re_to_flat_form. This consists of the following steps:
+; (1) convert the strings s occurring as direct children (str.to_re s) from their flat form,
+; (2) (optionally) reverse,
+; (3) eliminate n-ary form to its element if the term is a singleton list.
+(define $re_from_flat_form ((r RegLan) (rev Bool))
+  ; intro, flatten, reverse
+  ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
+)
+
+; Helper for `$str_re_includes_base`.
+; `$str_re_includes_simple r1 r2` returns true if we can infer all strings in r1
+; are also in r2 using basic techniques.
+(program $str_re_includes_simple ((s1 String) (s2 String) (s3 String) (s4 String) (r1 RegLan) (r2 RegLan :list) (r3 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_simple r1 r1)                              true)
+  (($str_re_includes_simple r1 (str.to_re s1))                  ($str_eval_str_in_re s1 r1))
+  (($str_re_includes_simple (re.range s1 s2) (re.range s3 s4))  (let ((z1 (alf.to_z s1)))
+                                                                (let ((z2 (alf.to_z s2)))
+                                                                (let ((z3 (alf.to_z s3)))
+                                                                (let ((z4 (alf.to_z s4)))
+                                                                (alf.requires (alf.is_neg z1) false
+                                                                (alf.requires (alf.is_neg z2) false
+                                                                (alf.requires (alf.is_neg z3) false
+                                                                (alf.requires (alf.is_neg z4) false
+                                                                  (alf.and ($compare_geq z2 z3) ($compare_geq z3 z1)
+                                                                        ($compare_geq z2 z4) ($compare_geq z4 z1)))))))))))
+  (($str_re_includes_simple r1 r3)                              false)
+  )
+)
+
+; Helper for `$str_re_includes_base`.
+; If `$str_re_includes_lhs_union (re.union r1 ... rn) r` returns true if
+; we can infer that r is contained in some ri.
+(program $str_re_includes_lhs_union ((r1 RegLan) (r2 RegLan :list) (r3 RegLan)) 
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_lhs_union (re.union r1 r2) r3) (alf.ite ($str_re_includes_simple r1 r3) true ($str_re_includes_lhs_union r2 r3)))
+  (($str_re_includes_lhs_union r1 r3)               false)
+  )
+)
+
+; Helper for `$str_re_includes_base`.
+; If `$str_re_includes_rhs_inter r (re.inter r1 ... rn)` returns true if
+; we can infer that some ri is contained in r.
+(program $str_re_includes_rhs_inter ((r1 RegLan) (r2 RegLan :list) (r3 RegLan)) 
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_rhs_inter r1 (re.inter r3 r2)) (alf.ite ($str_re_includes_simple r1 r3) true ($str_re_includes_rhs_inter r1 r2)))
+  (($str_re_includes_rhs_inter r1 r3)               false)
+  )
+)
+
+; Helper for `$str_re_includes`.
+; `$str_re_includes_base r1 r2` returns true if we can infer that all strings in
+; r2 are also in r1. It uses techniques that do not involve reasoning about
+; regular expression concatenation.
+(program $str_re_includes_base ((r1 RegLan) (r2 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_base r1 r2)  (alf.ite ($str_re_includes_simple r1 r2) true
+                                  (alf.ite ($str_re_includes_lhs_union r1 r2) true
+                                  (alf.ite ($str_re_includes_rhs_inter r1 r2) true
+                                  (alf.match ((r3 RegLan))
+                                    r1
+                                    (
+                                    ((re.* r3) (alf.ite (alf.is_eq r3 re.allchar)
+                                                 true 
+                                                 ($str_re_includes_base r3
+                                                     (alf.match ((r4 RegLan))
+                                                       r2
+                                                       (((re.* r4) r4) (r4 r4))))))
+                                    (r3        false)
+                                  ))))))
+  )
+)
+
+; `$str_is_unbound_wildcard r` returns true if `r` is of the form
+; (re.++ re.allchar ... re.allchar (re.* re.allchar) ...).
+(program $str_is_unbound_wildcard ((r1 RegLan) (r2 RegLan :list))
+  (RegLan) Bool
+  (
+  (($str_is_unbound_wildcard (re.++ (re.* re.allchar) r2))  true)
+  (($str_is_unbound_wildcard (re.++ re.allchar r2))         ($str_is_unbound_wildcard r2))
+  (($str_is_unbound_wildcard r1)                            false)
+  )
+)
+
+; Helper for `$str_re_includes`
+(program $str_re_includes_rec ((s1 String) (s2 String :list) (r1 RegLan) (r2 RegLan :list) (r3 RegLan) (r4 RegLan :list))
+  (RegLan RegLan) Bool
+  (
+  ; true if equal, which includes if r1 is @re.empty
+  (($str_re_includes_rec r1 r1)                                     true)
+  ; consider components one at a time
+  (($str_re_includes_rec (re.++ (str.to_re (str.++ s1 s2)) r2) r3)  ($str_re_includes_rec (re.++ (str.to_re s1) (str.to_re s2) r2) r3))
+  (($str_re_includes_rec (re.++ (str.to_re "") r2) r3)              ($str_re_includes_rec r2 r3))
+  (($str_re_includes_rec r1 (re.++ (str.to_re (str.++ s1 s2)) r4))  ($str_re_includes_rec r1 (re.++ (str.to_re s1) (str.to_re s2) r4)))
+  (($str_re_includes_rec r1 (re.++ (str.to_re "") r4))              ($str_re_includes_rec r1 r4))
+  ; otherwise we recurse for three possible cases
+  (($str_re_includes_rec (re.++ r1 r2) (re.++ r3 r4)) 
+    (alf.ite (alf.ite ($str_re_includes_base r1 r3)            ; can skip both if we have a base inclusion
+              ($str_re_includes_rec r2 r4)
+              false)
+      true
+    (alf.ite (alf.ite ($str_is_unbound_wildcard (re.++ r1 r2)) ; can skip LHS if unbounded wildcard
+              ($str_re_includes_rec r2 (re.++ r3 r4))
+              false)
+      true
+    (alf.ite (alf.ite (alf.is_eq r1 (re.* re.allchar))         ; can skip RHS if it is sigma star
+              ($str_re_includes_rec (re.++ r1 r2) r4)
+              false)
+      true
+      false))))
+  ; handles the case where there is a leftover (re.* re.allchar) on the LHS
+  (($str_re_includes_rec (re.++ r1 r2) @re.empty)      (alf.and (alf.is_eq r1 (re.* re.allchar)) (alf.is_eq r2 @re.empty)))
+  (($str_re_includes_rec r1 r3)                        false)
+  )
+)
+
+; `$str_re_includes r1 r2` returns true if we can infer that all strings in
+; r2 are also in r1.
+(define $str_re_includes ((r1 RegLan) (r2 RegLan))
+  (alf.ite ($str_re_includes_base r1 r2) true
+    ($str_re_includes_rec ($re_to_flat_form r1 false) ($re_to_flat_form r2 false))))
+
+; Checks whether r is an application of re.union with 2 children for which
+; regular expression inclusion shows r is equivalent to (re.* re.allchar).
+(define $str_check_re_union_inclusion ((r RegLan))
+  (alf.match ((r1 RegLan) (r2 RegLan))
+  r
+  (
+    ((re.union (re.comp r1) r2) ($str_re_includes r2 r1))
+    ((re.union r1 (re.comp r2)) ($str_re_includes r1 r2))
+  ))
+)
+
+; Checks whether r is an application of re.inter with 2 children for which
+; regular expression inclusion shows r is equivalent to re.none.
+(define $str_check_re_inter_inclusion ((r RegLan))
+  (alf.match ((r1 RegLan) (r2 RegLan))
+  r
+  (
+    ((re.inter (re.comp r1) r2) ($str_re_includes r1 r2))
+    ((re.inter r1 (re.comp r2)) ($str_re_includes r2 r1))
+  ))
+)
+
+; Checks whether r can be written to rr via the rule
+; ProofRewriteRule::RE_INTER_UNION_INCLUSION. In particular, we first verify
+; that rr has the result of the inclusion as the first child. We then subtract
+; the remainder (rr1) to find the regular expressions that are relevant for this
+; inference.
+(define $str_decompose_and_check_re_inter_union_inclusion ((r RegLan) (rr RegLan))
+  (alf.match ((rr1 RegLan :list))
+  rr
+  (
+  ((re.union (re.* re.allchar) rr1) ($str_check_re_union_inclusion (nary.diff re.union re.none r rr1)))
+  ((re.* re.allchar)                ($str_check_re_union_inclusion r))
+  ((re.inter re.none rr1)           ($str_check_re_inter_inclusion (nary.diff re.inter re.all r rr1)))
+  (re.none                          ($str_check_re_inter_inclusion r))
+  ))
 )
