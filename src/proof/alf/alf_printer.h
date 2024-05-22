@@ -48,13 +48,14 @@ class AlfPrinter : protected EnvObj
    */
   void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
-  /** 
+  /**
    * Print proof rewrite rule name r to output stream out
    * @param out The output stream.
    * @param r The proof rewrite rule. This should be one of the proof rewrite
    * rules that corresponds to a RARE rewrite.
    */
   void printDslRule(std::ostream& out, ProofRewriteRule r);
+
  private:
   /** Return true if it is possible to trust the topmost application in pfn */
   bool isHandled(const ProofNode* pfn) const;

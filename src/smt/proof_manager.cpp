@@ -53,13 +53,16 @@ PfManager::PfManager(Env& env)
     d_rewriteDb.reset(new rewriter::RewriteDb);
     if (isOutputOn(OutputTag::RARE_DB))
     {
-      if (options().proof.proofFormat!=options::ProofFormatMode::ALF)
+      if (options().proof.proofFormat != options::ProofFormatMode::ALF)
       {
-        Warning() << "Assuming --proof-format=alf when printing the RARE database with -o rare-db" << std::endl;
+        Warning() << "Assuming --proof-format=alf when printing the RARE "
+                     "database with -o rare-db"
+                  << std::endl;
       }
       proof::AlfNodeConverter atp(nodeManager());
       proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
-      std::map<ProofRewriteRule, RewriteProofRule>& rules = d_rewriteDb->getAllRules();
+      std::map<ProofRewriteRule, RewriteProofRule>& rules =
+          d_rewriteDb->getAllRules();
       std::stringstream ss;
       for (const std::pair<const ProofRewriteRule, RewriteProofRule> r : rules)
       {
