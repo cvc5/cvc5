@@ -56,7 +56,7 @@ PfManager::PfManager(Env& env)
     {
       if (options().proof.proofFormatMode != options::ProofFormatMode::ALF)
       {
-        Warning() << "Assuming --proof-format=alf when printing the RARE "
+        Warning() << "WARNING: Assuming --proof-format=alf when printing the RARE "
                      "database with -o rare-db"
                   << std::endl;
       }

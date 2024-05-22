@@ -192,6 +192,14 @@ void SolverEngine::finishInit()
         *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
+  if (d_env->isOutputOn(OutputTag::RARE_DB))
+  {
+    if (!d_env->getOptions().smt.produceProofs || options().proof.proofGranularityMode
+      != options::ProofGranularityMode::DSL_REWRITE)
+    {
+      Warning() << "WARNING: -o rare-db requires --produce-proofs and --proof-granularity=dsl-rewrite";
+    }
+  }
   // enable proof support in the environment/rewriter
   d_env->finishInit(pnm);
 
