@@ -1827,6 +1827,7 @@ set(regress_0_tests
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/re-consume-bi-dir.smt2
+  regress0/strings/re-consume-inter.smt2
   regress0/strings/re-consume-sym.smt2
   regress0/strings/re-consume-sym-sigma.smt2
   regress0/strings/re-include-union.smt2
