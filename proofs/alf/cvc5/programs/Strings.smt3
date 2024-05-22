@@ -67,6 +67,12 @@
   )
 )
 
+; `$str_is_char_range s1 s2` returns true if (re.range s1 s2) is a character
+; range (i.e. s1 and s2 are strings of length 1).
+(define $str_is_char_range ((s1 String) (s2 String))
+  (alf.and (alf.is_eq (alf.len s1) 1) (alf.is_eq (alf.len s2) 1))
+)
+
 ;;-------------------- RE evaluation
 
 (declare-const @re.null RegLan)

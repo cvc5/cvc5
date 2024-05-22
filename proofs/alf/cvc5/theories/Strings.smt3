@@ -70,14 +70,12 @@
 (declare-const str.replace_re_all (-> String RegLan String String))
 (declare-const str.indexof_re (-> String RegLan Int Int))
 
-; Helper macro
-(define @re.empty () (str.to_re ""))
-
 ; Regular expression operators.
 (declare-const re.allchar RegLan)
 (declare-const re.none RegLan)
 (declare-const re.all RegLan)
 (declare-const str.to_re (-> String RegLan))
+(define @re.empty () (str.to_re ""))
 (declare-const re.* (-> RegLan RegLan))
 (declare-const re.+ (-> RegLan RegLan))
 (declare-const re.opt (-> RegLan RegLan))

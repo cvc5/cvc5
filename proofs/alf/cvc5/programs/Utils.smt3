@@ -148,3 +148,20 @@
     (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_a_norm_rec f id t))))))
 )
 
+
+;; =============== for results
+
+; Used for representing a "maybe" Bool.
+(declare-const @result.null Bool)
+(declare-const @result.invalid Bool)
+
+; ($result_combine b1 ... ($result_combine bn @result.null)) returns b1 if
+; b1...bn are the same or @result.invalid otherwise.
+(program $result_combine ((b1 Bool) (b2 Bool))
+  (Bool Bool) Bool
+  (
+    (($result_combine b1 @result.null) b1)
+    (($result_combine b1 b1)           b1)
+    (($result_combine b1 b2)           @result.invalid)
+  )
+)
