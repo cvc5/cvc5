@@ -311,7 +311,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Other theory rewrite rules**
    *
    * .. math::
-   *   \inferrule{- \mid id, t}{t = t'}
+   *   \inferrule{- \mid id, t = t'}{t = t'}
    *
    * where `id` is the :cpp:enum:`ProofRewriteRule` of the theory rewrite
    * rule which transforms :math:`t` to :math:`t'`.
@@ -1186,8 +1186,7 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{a \neq b\mid -}
    *   {\mathit{select}(a,k)\neq\mathit{select}(b,k)}
    *
-   * where :math:`k` is
-   * :math:`\texttt{arrays::SkolemCache::getExtIndexSkolem}(a\neq b)`.
+   * where :math:`k` is the :math:`\texttt{ARRAY_DEQ_DIFF}` skolem for `(a, b)`.
    * \endverbatim
    */
   EVALUE(ARRAYS_EXT),
@@ -1254,20 +1253,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(DT_UNIF),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Instantiation**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid t,n}{\mathit{is}_C(t) =
-   *   (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))}
-   *
-   * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
-   * t, and :math:`\mathit{is}_C` is the discriminator (tester) for :math:`C`.
-   * \endverbatim
-   */
-  EVALUE(DT_INST),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
@@ -1364,6 +1349,29 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(ALPHA_EQUIV),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Singleton injectivity**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.singleton}(t) = \mathit{set.singleton}(s)\mid -}{t=s}
+   * \endverbatim
+   */
+  EVALUE(SETS_SINGLETON_INJ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets extensionality**
+   *
+   * .. math::
+   *
+   *   \inferrule{a \neq b\mid -}
+   *   {\mathit{set.member}(k,a)\neq\mathit{set.member}(k,b)}
+   *
+   * where :math:`k` is the :math:`\texttt{SETS_DEQ_DIFF}` skolem for `(a, b)`.
+   * \endverbatim
+   */
+  EVALUE(SETS_EXT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation equality**
    *
    * .. math::
@@ -1448,8 +1456,9 @@ enum ENUM(ProofRule) : uint32_t
    * where :math:`r` is
    * :math:`\mathit{skolem}(\mathit{ite}(
    * \mathit{len}(t_1) >= \mathit{len}(s_1),
-   * \mathit{suf}(t_1,\mathit{len}(s_1)), 
-   * \mathit{suf}(s_1,\mathit{len}(t_1))))`.
+   * \mathit{suf}(t_1,\mathit{len}(s_1)),
+   * \mathit{suf}(s_1,\mathit{len}(t_1))))`
+   * and `\epsilon` is the empty string (or sequence).
    *
    * .. math::
    *
@@ -1457,11 +1466,11 @@ enum ENUM(ProofRule) : uint32_t
    *   \mathit{len}(t_2) \neq \mathit{len}(s_2)\mid b}{((t_2 = r \cdot s_2)
    *   \vee (s_2 = r \cdot t_2)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}{if $b=\top$}
    *
-   * where :math:`r` is
-   * :math:`\mathit{skolem}(\mathit{ite}(
+   * where :math:`r` is the purification Skolem for
+   * :math:`\mathit{ite}(
    * \mathit{len}(t_2) >= \mathit{len}(s_2),
    * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
-   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2))))`
+   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))`
    * and `\epsilon` is the empty string (or sequence).
    *
    * Above, :math:`\mathit{suf}(x,n)` is shorthand for
@@ -1500,21 +1509,26 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) > \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r_t)}
+   *   \mathit{len}(t_1) > \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r)}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))`.
+   * where :math:`r` is the purification Skolem for
+   * :math:`\mathit{skolem}(\mathit{ite}(
+   * \mathit{len}(t_1) >= \mathit{len}(s_1),
+   * \mathit{suf}(t_1,\mathit{len}(s_1)),
+   * \mathit{suf}(s_1,\mathit{len}(t_1))))`.
    *
    * Alternatively for the reverse:
    *
    * .. math::
    *
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_2) > \mathit{len}(s_2)\mid \top}{(t_2 = r_t\cdot s_2)}
+   *   \mathit{len}(t_2) > \mathit{len}(s_2)\mid \top}{(t_2 = r \cdot s_2)}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) -
-   * \mathit{len}(s_2)))`.
+   * where :math:`r` is the purification Skolem for
+   * :math:`\mathit{ite}(
+   * \mathit{len}(t_2) >= \mathit{len}(s_2),
+   * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
+   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))`
    * \endverbatim
    */
   EVALUE(CONCAT_LPROP),
@@ -1525,9 +1539,9 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (w_2 \cdot s),\,
-   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = w_3\cdot r)}
+   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = t_3\cdot r)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
    * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
    * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(w_3)))`.  Note that
@@ -1541,10 +1555,10 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (s \cdot w_2),\,
-   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot w_3)}
+   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot t_3)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
-   * :math:`\mathit{suf}(w_2, \mathit{len}(w_2) - p)`, :math:`p` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
+   * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
    * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
    * w_1)`, and :math:`r` is :math:`\mathit{skolem}(\mathit{pre}(t_2,
    * \mathit{len}(t_2) - \mathit{len}(w_3)))`.  Note that
@@ -1666,13 +1680,22 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in R\mid
-   *   -}{\texttt{RegExpOpr::reduceRegExpNegConcatFixed}(t\not\in R,L,i)}
+   *   \inferrule{t\not\in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \bot}{
+   *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(r_2, \ldots, r_n)}
    *
-   * where :math:`\texttt{RegExpOpr::getRegExpConcatFixed}(t\not\in R, i) = L`,
-   * corresponding to the one-step unfolding of the premise, optimized for fixed
-   * length of component :math:`i` of the regular expression concatenation
-   * :math:`R`.
+   * where :math:`r_1` has fixed length :math:`L`.
+   * 
+   * or alternatively for the reverse:
+   * 
+   *
+   * .. math::
+   *
+   *   \inferrule{t \not \in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \top}{
+   *   \mathit{suf}(t, str.len(t) - L) \not \in r_n \vee
+   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{++}(r_1, \ldots, r_{n-1})}
+   * 
+   * where :math:`r_n` has fixed length :math:`L`.
+   * 
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
@@ -2277,7 +2300,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Equality -- Beta reduction**
    *
    * .. math::
-   *   ((\lambda x_1 \dots x_n.\> t) t_1 \ldots t_n) = t\{x_1 \mapsto t_1, \dots, x_n \mapsto t_n\}
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
+   *   \ldots, x_n \mapsto t_n\}
    *
    * The right hand side of the equality in the conclusion is computed using
    * standard substitution via ``Node::substitute``.
@@ -2307,6 +2331,19 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(EXISTS_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Instantiation**
+   *
+   * .. math::
+   *    \mathit{is}_C(t) = (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))
+   *
+   * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
+   * :math:`t`, and :math:`\mathit{is}_C` is the discriminator (tester) for
+   * :math:`C`.
+   * \endverbatim
+   */
+  EVALUE(DT_INST),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes - collapse selector**
    *
    * .. math::
@@ -2322,18 +2359,30 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Datatypes - collapse tester**
    *
    * .. math::
-   *   is\text{-}c(c(t_1, \ldots, t_n)) = true
+   *   \mathit{is}_c(c(t_1, \ldots, t_n)) = true
    *
    * or alternatively
    *
    * .. math::
-   *   is\text{-}c(d(t_1, \ldots, t_n)) = false
+   *   \mathit{is}_c(d(t_1, \ldots, t_n)) = false
    *
    * where :math:`c` and :math:`d` are distinct constructors.
    *
    * \endverbatim
    */
   EVALUE(DT_COLLAPSE_TESTER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes - collapse tester**
+   *
+   * .. math::
+   *   \mathit{is}_c(t) = true
+   *
+   * where :math:`c` is the only constructor of its associated datatype.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_TESTER_SINGLETON),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes - constructor equality**
@@ -2364,6 +2413,23 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(RE_LOOP_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets - empty tester evaluation**
+   *
+   * .. math::
+   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) = \top
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   \mathit{sets.is\_empty}(c) = \bot
+   *
+   * where :math:`c` is a constant set that is not the empty set.
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_IS_EMPTY_EVAL),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-plus-zero */
@@ -2824,20 +2890,46 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_3),
   /** Auto-generated from RARE rule bv-sign-extend-ult-const-4 */
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_4),
+  /** Auto-generated from RARE rule sets-eq-singleton-emp */
+  EVALUE(SETS_EQ_SINGLETON_EMP),
   /** Auto-generated from RARE rule sets-member-singleton */
   EVALUE(SETS_MEMBER_SINGLETON),
+  /** Auto-generated from RARE rule sets-member-emp */
+  EVALUE(SETS_MEMBER_EMP),
   /** Auto-generated from RARE rule sets-subset-elim */
   EVALUE(SETS_SUBSET_ELIM),
   /** Auto-generated from RARE rule sets-union-comm */
   EVALUE(SETS_UNION_COMM),
   /** Auto-generated from RARE rule sets-inter-comm */
   EVALUE(SETS_INTER_COMM),
+  /** Auto-generated from RARE rule sets-inter-emp1 */
+  EVALUE(SETS_INTER_EMP1),
+  /** Auto-generated from RARE rule sets-inter-emp2 */
+  EVALUE(SETS_INTER_EMP2),
+  /** Auto-generated from RARE rule sets-minus-emp1 */
+  EVALUE(SETS_MINUS_EMP1),
+  /** Auto-generated from RARE rule sets-minus-emp2 */
+  EVALUE(SETS_MINUS_EMP2),
+  /** Auto-generated from RARE rule sets-union-emp1 */
+  EVALUE(SETS_UNION_EMP1),
+  /** Auto-generated from RARE rule sets-union-emp2 */
+  EVALUE(SETS_UNION_EMP2),
   /** Auto-generated from RARE rule sets-inter-member */
   EVALUE(SETS_INTER_MEMBER),
   /** Auto-generated from RARE rule sets-minus-member */
   EVALUE(SETS_MINUS_MEMBER),
   /** Auto-generated from RARE rule sets-union-member */
   EVALUE(SETS_UNION_MEMBER),
+  /** Auto-generated from RARE rule sets-choose-singleton */
+  EVALUE(SETS_CHOOSE_SINGLETON),
+  /** Auto-generated from RARE rule sets-card-singleton */
+  EVALUE(SETS_CARD_SINGLETON),
+  /** Auto-generated from RARE rule sets-card-union */
+  EVALUE(SETS_CARD_UNION),
+  /** Auto-generated from RARE rule sets-card-minus */
+  EVALUE(SETS_CARD_MINUS),
+  /** Auto-generated from RARE rule sets-card-emp */
+  EVALUE(SETS_CARD_EMP),
   /** Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
   /** Auto-generated from RARE rule str-concat-flatten */

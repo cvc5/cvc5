@@ -115,6 +115,11 @@ class SygusUtils
    * function-to-synthesize f.
    */
   static TypeNode getSygusType(const Node& f);
+  /**
+   * Makes an arbitrary term as a solution for f, possibly using its sygus
+   * type if it has one.
+   */
+  static Node mkSygusTermFor(const Node& f);
 };
 
 }  // namespace quantifiers

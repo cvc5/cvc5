@@ -122,7 +122,6 @@ const char* toString(ProofRule rule)
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
     case ProofRule::DT_UNIF: return "DT_UNIF";
-    case ProofRule::DT_INST: return "DT_INST";
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
@@ -130,6 +129,9 @@ const char* toString(ProofRule rule)
     case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
+    //================================================= Sets rules
+    case ProofRule::SETS_SINGLETON_INJ: return "SETS_SINGLETON_INJ";
+    case ProofRule::SETS_EXT: return "SETS_EXT";
     //================================================= String rules
     case ProofRule::CONCAT_EQ: return "CONCAT_EQ";
     case ProofRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
@@ -223,11 +225,16 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
+    case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
+    case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
+      return "dt-collapse-tester-singleton";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
     case ProofRewriteRule::RE_LOOP_ELIM:
       return "re-loop-elim";
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+      return "sets-is-empty-eval";
       //================================================= RARE rules
       // clang-format off
       ${printer}$

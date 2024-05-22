@@ -333,6 +333,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
       break;
     case ProofRule::DSL_REWRITE:
+    case ProofRule::THEORY_REWRITE:
       if (i == 0)
       {
         return ArgFormat::DSL_REWRITE_ID;

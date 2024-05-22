@@ -103,6 +103,10 @@ void TheoryRewriter::registerProofRewriteRule(ProofRewriteRule id,
 {
   std::unordered_set<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
   rules.insert(id);
+  if (ctx == TheoryRewriteCtx::DSL_SUBCALL)
+  {
+    d_pfTheoryRewrites[TheoryRewriteCtx::PRE_DSL].insert(id);
+  }
 }
 
 NodeManager* TheoryRewriter::nodeManager() const { return d_nm; }
