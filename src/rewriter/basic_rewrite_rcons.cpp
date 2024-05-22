@@ -59,8 +59,8 @@ bool BasicRewriteRCons::prove(
   {
     if (tryTheoryRewrite(cdp, eq, theory::TheoryRewriteCtx::PRE_DSL))
     {
-      Trace("trewrite-rcons") << "Reconstruct (pre) " << eq
-                              << " via theory rewrite"<< std::endl;
+      Trace("trewrite-rcons")
+          << "Reconstruct (pre) " << eq << " via theory rewrite" << std::endl;
       return true;
     }
   }
@@ -88,9 +88,8 @@ bool BasicRewriteRCons::postProve(
   }
   if (success)
   {
-    
-      Trace("trewrite-rcons") << "Reconstruct (post) " << eq
-                              << " via theory rewrite" << std::endl;
+    Trace("trewrite-rcons")
+        << "Reconstruct (post) " << eq << " via theory rewrite" << std::endl;
   }
   else
   {
