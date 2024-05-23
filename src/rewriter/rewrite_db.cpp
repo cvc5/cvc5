@@ -58,16 +58,26 @@ void RewriteDb::addRule(ProofRewriteRule id,
   Node eq = a.eqNode(b);
   // we canonize left-to-right, hence we should traverse in the opposite
   // order, since we index based on conclusion, we make a dummy node here
-  Node tmp = nm->mkNode(Kind::IMPLIES, eq, cond);
+  std::vector<Node> tmpArgs;
+  tmpArgs.push_back(eq);
+  tmpArgs.push_back(cond);
+  if (!context.isNull())
+  {
+    tmpArgs.push_back(context);
+  }
+  Node tmp = nm->mkNode(Kind::SEXPR, tmpArgs);
 
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a
                       << " == " << b << std::endl;
   Assert(a.getType().isComparableTo(b.getType()));
-  Node cr = d_canon.getCanonicalTerm(tmp, false, false);
-  context = d_canon.getCanonicalTerm(context, false, false);
+  Node ctmp = d_canon.getCanonicalTerm(tmp, false, false);
+  if (!context.isNull())
+  {
+    context = ctmp[2];
+  }
 
-  Node condC = cr[1];
+  Node condC = ctmp[1];
   std::vector<Node> conds;
   if (condC.getKind() == Kind::AND)
   {
@@ -102,7 +112,7 @@ void RewriteDb::addRule(ProofRewriteRule id,
   }
   // register side conditions?
 
-  Node eqC = cr[0];
+  Node eqC = ctmp[0];
   Assert(eqC.getKind() == Kind::EQUAL);
 
   // add to discrimination tree
