@@ -57,6 +57,9 @@ class RewriteDbProofCons : protected EnvObj
    * @param mid The method id (the kind of rewrite)
    * @param recLimit The recursion limit for this call
    * @param stepLimit The step limit for this call.
+   * @param subgoals The list of proofs introduced when proving (= a b) that
+   * are trusted steps, and thus would require further elaboration from the
+   * caller of this method.
    * @return true if we successfully added a proof of (= a b) to cdp
    */
   bool prove(CDProof* cdp,
@@ -65,7 +68,8 @@ class RewriteDbProofCons : protected EnvObj
              theory::TheoryId tid,
              MethodId mid,
              int64_t recLimit,
-             int64_t stepLimit);
+             int64_t stepLimit,
+             std::vector<std::shared_ptr<ProofNode>>& subgoals);
 
  private:
   /**

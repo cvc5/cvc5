@@ -54,13 +54,15 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
   d_false = nm->mkConst(false);
 }
 
-bool RewriteDbProofCons::prove(CDProof* cdp,
-                               const Node& a,
-                               const Node& b,
-                               theory::TheoryId tid,
-                               MethodId mid,
-                               int64_t recLimit,
-                               int64_t stepLimit)
+bool RewriteDbProofCons::prove(
+    CDProof* cdp,
+    const Node& a,
+    const Node& b,
+    theory::TheoryId tid,
+    MethodId mid,
+    int64_t recLimit,
+    int64_t stepLimit,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   // clear the proof caches
   d_pcache.clear();
@@ -84,7 +86,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
       cdp->addStep(eqoi, cr, {eq}, cargs);
       if (eqo != eqoi)
       {
-        cdp->addStep(eqo, ProofRule::ENCODE_PRED_TRANSFORM, {eqoi}, {eqo});
+        d_trrc.ensureProofForEncodeTransform(cdp, eqo, eqoi);
       }
     }
   }
@@ -92,37 +94,40 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                << std::endl;
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
+  bool success = false;
   if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
-    return true;
+    success = true;
   }
-  bool success = false;
-  ++d_statTotalInputs;
-  Trace("rpc-debug") << "- convert to internal" << std::endl;
-  // prove the equality
-  for (int64_t i = 0; i <= recLimit; i++)
+  else
   {
-    Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-    if (proveEq(cdp, eq, eq, i, stepLimit))
+    ++d_statTotalInputs;
+    Trace("rpc-debug") << "- convert to internal" << std::endl;
+    // prove the equality
+    for (int64_t i = 0; i <= recLimit; i++)
     {
-      success = true;
-      break;
-    }
-  }
-  if (!success)
-  {
-    Node eqi = d_rdnc.convert(eq);
-    // if converter didn't make a difference, don't try to prove again
-    if (eqi != eq)
-    {
-      for (int64_t i = 0; i <= recLimit; i++)
+      Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+      if (proveEq(cdp, eq, eq, i, stepLimit))
       {
-        Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-        if (proveEq(cdp, eq, eqi, i, stepLimit))
+        success = true;
+        break;
+      }
+    }
+    if (!success)
+    {
+      Node eqi = d_rdnc.convert(eq);
+      // if converter didn't make a difference, don't try to prove again
+      if (eqi != eq)
+      {
+        for (int64_t i = 0; i <= recLimit; i++)
         {
-          success = true;
-          break;
+          Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+          if (proveEq(cdp, eq, eqi, i, stepLimit))
+          {
+            success = true;
+            break;
+          }
         }
       }
     }
@@ -133,10 +138,19 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
-      return true;
+      success = true;
+    }
+    else
+    {
+      Trace("rpc") << "...fail" << std::endl;
     }
   }
-  Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
+  else
+  {
+    Trace("rpc") << "...success" << std::endl;
+  }
+  std::vector<std::shared_ptr<ProofNode>>& sg = d_trrc.getSubgoals();
+  subgoals.insert(subgoals.end(), sg.begin(), sg.end());
   return success;
 }
 
