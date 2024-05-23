@@ -662,8 +662,8 @@
         (let ((lr (str.len r)))
         (alf.ite (alf.is_eq n ls)
           (alf.ite isUnder
-            ($str_arith_entail_simple_pred (>= lt lr))
-            (alf.or ($str_arith_entail_simple_pred (>= lr lt)) ($str_arith_entail_simple_pred (>= lr ls))))
+            (alf.or ($str_arith_entail_simple_pred (>= lr lt)) ($str_arith_entail_simple_pred (>= lr ls)))
+            ($str_arith_entail_simple_pred (>= lt lr)))
         (alf.ite (alf.is_eq n (+ ls lr))
           (alf.not isUnder)
         (alf.ite (alf.is_eq n (- ls lt))
