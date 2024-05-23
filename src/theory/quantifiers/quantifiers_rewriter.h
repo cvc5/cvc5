@@ -170,11 +170,6 @@ class QuantifiersRewriter : public TheoryRewriter
                       QAttributes& qa) const;
   //-------------------------------------end variable elimination utilities
   /**
-   * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
-   * and computes NNF.
-   */
-  Node computeElimSymbols(Node body) const;
-  /**
    * Compute miniscoping in quantified formula q with attributes in qa.
    */
   Node computeMiniscoping(Node q,
@@ -242,11 +237,6 @@ class QuantifiersRewriter : public TheoryRewriter
                           std::vector<Node>& args,
                           std::vector<Node>& vars,
                           std::vector<Node>& subs) const;
-  bool addCheckElimChild(std::vector<Node>& children,
-                         Node c,
-                         Kind k,
-                         std::map<Node, bool>& lit_pol,
-                         bool& childrenChanged) const;
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,
