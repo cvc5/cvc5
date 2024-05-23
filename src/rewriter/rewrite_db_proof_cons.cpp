@@ -84,7 +84,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
       cdp->addStep(eqoi, cr, {eq}, cargs);
       if (eqo != eqoi)
       {
-        cdp->addStep(eqo, ProofRule::ENCODE_PRED_TRANSFORM, {eqoi}, {eqo});
+        d_trrc.ensureProofForEncodeTransform(cdp, eqo, eqoi);
       }
     }
   }
@@ -167,7 +167,7 @@ bool RewriteDbProofCons::proveEq(CDProof* cdp,
     // if it changed encoding, account for this
     if (eq != eqi)
     {
-      cdp->addStep(eq, ProofRule::ENCODE_PRED_TRANSFORM, {eqi}, {eq});
+      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
     }
     ensureProofInternal(cdp, eqi);
     AlwaysAssert(cdp->hasStep(eqi)) << eqi;
