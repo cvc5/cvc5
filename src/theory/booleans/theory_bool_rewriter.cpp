@@ -143,7 +143,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
                      && cur[0][0].getType().isBoolean()))
         {
           k = Kind::EQUAL;
-          negCh1 = (cur[0].getKind() == Kind::EQUAL);
+          negCh1 = cur[0].getKind() == Kind::EQUAL;
         }
         else if (cur[0].getKind() == Kind::ITE)
         {
