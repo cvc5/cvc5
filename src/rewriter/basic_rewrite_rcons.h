@@ -66,6 +66,7 @@ class BasicRewriteRCons : protected EnvObj
   void ensureProofForEncodeTransform(CDProof* cdp,
                                      const Node& eq,
                                      const Node& eqi);
+
  private:
   /**
    * Is proof-granularity set to dsl-rewrite-strict? This impacts when

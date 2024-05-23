@@ -120,7 +120,7 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
   {
     return;
   }
-  Assert (d_proof!=nullptr);
+  Assert(d_proof != nullptr);
   switch (r)
   {
     case ProofRule::ACI_NORM:
@@ -133,7 +133,7 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
       d_proof->addStep(eq, ProofRule::EVALUATE, {}, {ret});
       d_tpg->addRewriteStep(n, ret, d_proof);
     }
-      break;
+    break;
     case ProofRule::ENCODE_PRED_TRANSFORM:
       d_tpg->addRewriteStep(n, ret, r, {}, {n});
       break;
@@ -141,10 +141,9 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
   }
 }
 
-ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env) : EnvObj(env), d_tpg(env, nullptr),
-  d_proof(env)
+ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
+    : EnvObj(env), d_tpg(env, nullptr), d_proof(env)
 {
-  
 }
 
 std::shared_ptr<ProofNode> ProofRewriteDbNodeConverter::convert(const Node& n)
@@ -154,6 +153,6 @@ std::shared_ptr<ProofNode> ProofRewriteDbNodeConverter::convert(const Node& n)
   Node equiv = n.eqNode(nr);
   return d_tpg.getProofFor(equiv);
 }
-  
+
 }  // namespace rewriter
 }  // namespace cvc5::internal

@@ -22,8 +22,8 @@
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
-#include "proof/proof.h"
 #include "proof/conv_proof_generator.h"
+#include "proof/proof.h"
 
 namespace cvc5::internal {
 namespace rewriter {
@@ -50,7 +50,9 @@ class RewriteDbNodeConverter : public NodeConverter
    * The latter two arguments are used internally if we are proof producing
    * via ProofRewriteDbNodeConverter.
    */
-  RewriteDbNodeConverter(NodeManager* nm, TConvProofGenerator* tpg = nullptr, CDProof* p = nullptr);
+  RewriteDbNodeConverter(NodeManager* nm,
+                         TConvProofGenerator* tpg = nullptr,
+                         CDProof* p = nullptr);
   /**
    * This converts the node n to the internal shape that it should be in
    * for the DSL proof reconstruction algorithm.
@@ -81,6 +83,7 @@ class ProofRewriteDbNodeConverter : protected EnvObj
    * EVALUATE, ACI_NORM and ENCODE_PRED_TRANSFORM.
    */
   std::shared_ptr<ProofNode> convert(const Node& n);
+
  private:
   /** A pointer to a TConvProofGenerator, if proof producing */
   TConvProofGenerator d_tpg;

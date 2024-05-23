@@ -17,10 +17,10 @@
 #include "rewriter/basic_rewrite_rcons.h"
 
 #include "proof/proof_checker.h"
+#include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrites.h"
 #include "smt/env.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
-#include "rewriter/rewrite_db_term_process.h"
 
 using namespace cvc5::internal::kind;
 
@@ -106,7 +106,7 @@ void BasicRewriteRCons::ensureProofForEncodeTransform(CDProof* cdp,
   ProofRewriteDbNodeConverter rdnc(d_env);
   std::shared_ptr<ProofNode> pfn = rdnc.convert(eq);
   Node equiv = eq.eqNode(eqi);
-  Assert (pfn->getResult()==equiv);
+  Assert(pfn->getResult() == equiv);
   cdp->addProof(pfn);
   Node equivs = eqi.eqNode(eq);
   cdp->addStep(equivs, ProofRule::SYMM, {equiv}, {});
