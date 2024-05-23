@@ -382,7 +382,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     if (logic.isTheoryEnabled(THEORY_BV))
     {
       logic = logic.getUnlockedCopy();
-      logic.enableTheory(THEORY_ARITH);
+      logic.enableIntegers();
       logic.arithNonLinear();
       logic.lock();
     }
