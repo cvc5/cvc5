@@ -2394,7 +2394,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
    *   \forall X.\> F_1 \vee \ldots \vee F_n =
    *   (\forall X_1.\> F_{1,1} \vee \ldots \vee F_{1,k_1}) \vee \ldots \vee
    *   (\forall X_m.\> F_{m,1} \vee \ldots \vee F_{m,k_m})
-   * 
+   *
    * where :math:`X_1, \ldots, X_m` is a partition of :math:`X`. This is
    * determined by computing the connected components when considering two
    * variables in :math:`X` to be connected if they occur in the same
@@ -2491,7 +2491,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Sets - empty tester evaluation**
    *
    * .. math::
-   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) = \top
+   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) =
+   * \top
    *
    * or alternatively:
    *
