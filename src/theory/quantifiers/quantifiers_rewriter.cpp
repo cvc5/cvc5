@@ -24,6 +24,7 @@
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
@@ -366,183 +367,6 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
     return nm->mkNode(k, children);
   }
   return q;
-}
-
-bool QuantifiersRewriter::addCheckElimChild(std::vector<Node>& children,
-                                            Node c,
-                                            Kind k,
-                                            std::map<Node, bool>& lit_pol,
-                                            bool& childrenChanged) const
-{
-  if ((k == Kind::OR || k == Kind::AND) && d_opts.quantifiers.elimTautQuant)
-  {
-    Node lit = c.getKind() == Kind::NOT ? c[0] : c;
-    bool pol = c.getKind() != Kind::NOT;
-    std::map< Node, bool >::iterator it = lit_pol.find( lit );
-    if( it==lit_pol.end() ){
-      lit_pol[lit] = pol;
-      children.push_back( c );
-    }else{
-      childrenChanged = true;
-      if( it->second!=pol ){
-        return false;
-      }
-    }
-  }
-  else
-  {
-    children.push_back( c );
-  }
-  return true;
-}
-
-Node QuantifiersRewriter::computeElimSymbols(Node body) const
-{
-  // at pre-order traversal, we store preKind and preChildren, which
-  // determine the Kind and the children for the node to reconstruct.
-  std::unordered_map<TNode, Kind> preKind;
-  std::unordered_map<TNode, std::vector<Node>> preChildren;
-  NodeManager* nm = nodeManager();
-  std::unordered_map<TNode, Node> visited;
-  std::unordered_map<TNode, Node>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(body);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-    if (it == visited.end())
-    {
-      Kind k = cur.getKind();
-      bool negAllCh = false;
-      bool negCh1 = false;
-      // the new formula we should traverse
-      TNode ncur = cur;
-      if (k == Kind::IMPLIES)
-      {
-        k = Kind::OR;
-        negCh1 = true;
-      }
-      else if (k == Kind::XOR)
-      {
-        k = Kind::EQUAL;
-        negCh1 = true;
-      }
-      else if (k == Kind::NOT)
-      {
-        // double negation should already be eliminated
-        Assert(cur[0].getKind() != Kind::NOT);
-        if (cur[0].getKind() == Kind::OR || cur[0].getKind() == Kind::IMPLIES)
-        {
-          k = Kind::AND;
-          negAllCh = true;
-          negCh1 = cur[0].getKind() == Kind::IMPLIES;
-        }
-        else if (cur[0].getKind() == Kind::AND)
-        {
-          k = Kind::OR;
-          negAllCh = true;
-        }
-        else if (cur[0].getKind() == Kind::XOR
-                 || (cur[0].getKind() == Kind::EQUAL
-                     && cur[0][0].getType().isBoolean()))
-        {
-          k = Kind::EQUAL;
-          negCh1 = (cur[0].getKind() == Kind::EQUAL);
-        }
-        else if (cur[0].getKind() == Kind::ITE)
-        {
-          k = cur[0].getKind();
-          negAllCh = true;
-          negCh1 = true;
-        }
-        else
-        {
-          visited[cur] = cur;
-          continue;
-        }
-        ncur = cur[0];
-      }
-      else if ((k != Kind::EQUAL || !body[0].getType().isBoolean())
-               && k != Kind::ITE && k != Kind::AND && k != Kind::OR)
-      {
-        // a literal
-        visited[cur] = cur;
-        continue;
-      }
-      preKind[cur] = k;
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      std::vector<Node>& pc = preChildren[cur];
-      for (size_t i = 0, nchild = ncur.getNumChildren(); i < nchild; ++i)
-      {
-        Node c =
-            (i == 0 && negCh1) != negAllCh ? ncur[i].negate() : Node(ncur[i]);
-        pc.push_back(c);
-        visit.push_back(c);
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Kind ok = cur.getKind();
-      Assert(preKind.find(cur) != preKind.end());
-      Kind k = preKind[cur];
-      Assert(cur.getMetaKind() != kind::metakind::PARAMETERIZED);
-      bool childChanged = false;
-      std::vector<Node> children;
-      std::vector<Node>& pc = preChildren[cur];
-      std::map<Node, bool> lit_pol;
-      bool success = true;
-      for (const Node& cn : pc)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        Node c = it->second;
-        if (c.getKind() == k && (k == Kind::OR || k == Kind::AND))
-        {
-          // flatten
-          childChanged = true;
-          for (const Node& cc : c)
-          {
-            if (!addCheckElimChild(children, cc, k, lit_pol, childChanged))
-            {
-              success = false;
-              break;
-            }
-          }
-        }
-        else
-        {
-          success = addCheckElimChild(children, c, k, lit_pol, childChanged);
-        }
-        if (!success)
-        {
-          // tautology
-          break;
-        }
-        childChanged = childChanged || c != cn;
-      }
-      Node ret = cur;
-      if (!success)
-      {
-        Assert(k == Kind::OR || k == Kind::AND);
-        ret = nm->mkConst(k == Kind::OR);
-      }
-      else if (childChanged || k != ok)
-      {
-        ret = (children.size() == 1 && k != Kind::NOT)
-                  ? children[0]
-                  : nm->mkNode(k, children);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(body) != visited.end());
-  Assert(!visited.find(body)->second.isNull());
-  return visited[body];
 }
 
 void QuantifiersRewriter::computeDtTesterIteSplit(
@@ -2151,8 +1975,11 @@ Node QuantifiersRewriter::computeOperation(Node f,
   Node n = f[1];
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {
-    n = computeElimSymbols(n);
-  }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
+    // relies on external utility
+    n = booleans::TheoryBoolRewriter::computeNnfNorm(nodeManager(), n);
+  }
+  else if (computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
+  {
     return computeAggressiveMiniscoping( args, n );
   }
   else if (computeOption == COMPUTE_EXT_REWRITE)

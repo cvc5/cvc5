@@ -221,6 +221,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
+    case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";

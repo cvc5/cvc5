@@ -49,7 +49,9 @@ PfManager::PfManager(Env& env)
 {
   // construct the rewrite db only if DSL rewrites are enabled
   if (options().proof.proofGranularityMode
-      == options::ProofGranularityMode::DSL_REWRITE)
+          == options::ProofGranularityMode::DSL_REWRITE
+      || options().proof.proofGranularityMode
+             == options::ProofGranularityMode::DSL_REWRITE_STRICT)
   {
     d_rewriteDb.reset(new RewriteDb);
     if (isOutputOn(OutputTag::RARE_DB))
@@ -119,6 +121,7 @@ PfManager::PfManager(Env& env)
     {
       d_pfpp->setEliminateRule(ProofRule::SUBS);
       d_pfpp->setEliminateRule(ProofRule::MACRO_REWRITE);
+      // if in a DSL rewrite mode
       if (options().proof.proofGranularityMode
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
