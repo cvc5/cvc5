@@ -992,7 +992,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
     Node sne = s.eqNode(emp).negate();
     Node b1 = SkolemCache::mkIndexVar(mem);
     Node b1v = nm->mkNode(Kind::BOUND_VAR_LIST, b1);
-    Node g11n = nm->mkNode(Kind::GEQ, zero, b1);
+    Node g11n = nm->mkNode(Kind::LEQ, b1, zero);
     Node g12n = nm->mkNode(Kind::LT, lens, b1);
     // internal
     Node s1 = utils::mkPrefix(s, b1);
