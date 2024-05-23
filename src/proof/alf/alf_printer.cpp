@@ -368,6 +368,12 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     ss << id;
     return ss.str();
   }
+  else if (r == ProofRule::ENCODE_PRED_TRANSFORM)
+  {
+    // ENCODE_PRED_TRANSFORM proves (= t (convert t)) from argument t,
+    // where (convert t) is indistinguishable from t according to the proof.
+    return "refl";
+  }
   std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
     return std::tolower(c);
