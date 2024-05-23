@@ -34,6 +34,9 @@ namespace rewriter {
  * differences include:
  * (1) cvc5 has (word) string literals; the DSL assumes these are
  * concatenations of constants, e.g. "ABC" is the term (str.++ "A" "B" "C").
+ * (2) Constant bitvectors are lifted to CONST_BITVECTOR_SYMBOLIC.
+ * (3) Indexed operators are lifted to APPLY_INDEXED_SYMBOLIC.
+ * (4) Quantifier patterns are dropped.
  *
  * This node converter converts from the default representation of cvc5 terms
  * to the representation of terms required by the DSL proof reconstruction
