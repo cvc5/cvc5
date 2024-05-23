@@ -35,6 +35,8 @@ BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env)
 bool BasicRewriteRCons::prove(
     CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
 {
+  // clear the current subgoals
+  d_subgoals.clear();
   Node eq = a.eqNode(b);
   Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "
                           << mid << ")" << std::endl;
@@ -114,6 +116,51 @@ bool BasicRewriteRCons::tryRule(CDProof* cdp,
     return true;
   }
   return false;
+}
+
+void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
+                                                    ProofRewriteRule id,
+                                                    const Node& eq)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::MACRO_BOOL_NNF_NORM:
+      if (ensureProofMacroBoolNnfNorm(cdp, eq))
+      {
+        return;
+      }
+      break;
+    default: break;
+  }
+  // default, just add the rewrite
+  std::vector<Node> args;
+  args.push_back(
+      nodeManager()->mkConstInt(Rational(static_cast<uint32_t>(id))));
+  args.push_back(eq);
+  cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, args);
+}
+
+bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
+                                                    const Node& eq)
+{
+  Trace("brc-macro") << "Expand Bool NNF norm " << eq[0] << " == " << eq[1]
+                     << std::endl;
+  // Call the utility again with proof tracking and construct the term
+  // conversion proof. This proof itself may have trust steps in it.
+  TConvProofGenerator tcpg(d_env, nullptr);
+  Node nr = theory::booleans::TheoryBoolRewriter::computeNnfNorm(
+      nodeManager(), eq[0], &tcpg);
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
+  Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
+  cdp->addProof(pfn);
+  // the small steps are trust steps, record them here
+  expr::getSubproofRule(pfn, ProofRule::TRUST, d_subgoals);
+  return true;
+}
+
+std::vector<std::shared_ptr<ProofNode>>& BasicRewriteRCons::getSubgoals()
+{
+  return d_subgoals;
 }
 
 bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,

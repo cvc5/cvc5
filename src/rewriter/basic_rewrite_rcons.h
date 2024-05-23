@@ -56,12 +56,31 @@ class BasicRewriteRCons : protected EnvObj
   bool postProve(
       CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
 
+  /**
+   * Ensure we have a proof for theory rewrite id of eq in cdp. This typically
+   * adds a single THEORY_REWRITE step to cdp. However, for rules with prefix
+   * MACRO_, we perform elaboration.
+   * @param cdp The proof to add to.
+   * @param id The theory rewrite that proves eq.
+   * @param eq The conclusion of the theory rewrite.
+   */
+  void ensureProofForTheoryRewrite(CDProof* cdp,
+                                   ProofRewriteRule id,
+                                   const Node& eq);
+  /**
+   * Get subgoals. These are the proofs that were used to fill in macro
+   * steps that did not have a justification. The caller should run proof
+   * elaboration on these proofs.
+   */
+  std::vector<std::shared_ptr<ProofNode>>& getSubgoals();
  private:
   /**
    * Is proof-granularity set to dsl-rewrite-strict? This impacts when
    * THEORY_REWRITE are tried.
    */
   bool d_isDslStrict;
+  /** The list of subgoals, which are returned via getSubgoals. */
+  std::vector<std::shared_ptr<ProofNode>> d_subgoals;
   /**
    * Try rule r, return true if eq could be proven by r with arguments args.
    * If this method returns true, a proof of eq was added to cdp.
