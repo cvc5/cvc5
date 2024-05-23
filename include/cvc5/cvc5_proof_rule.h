@@ -2353,6 +2353,57 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(EXISTS_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Unused variables**
+   *
+   * .. math::
+   *   \forall X.\> F = \forall X_1.\> F
+   *
+   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_UNUSED_VARS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Merge prenex**
+   *
+   * .. math::
+   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X_1 \ldots X_n.\> F
+   *
+   * where :math:`X_1 \ldots X_n` are lists of variables.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MERGE_PRENEX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Miniscoping**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \wedge \ldots \wedge F_n =
+   *   (\forall X.\> F_1) \wedge \ldots \wedge (\forall X.\> F_n)
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MINISCOPE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Connected free variable partitioning**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \vee \ldots \vee F_n =
+   *   (\forall X_1.\> F_{1,1} \vee \ldots \vee F_{1,k_1}) \vee \ldots \vee
+   *   (\forall X_m.\> F_{m,1} \vee \ldots \vee F_{m,k_m})
+   * 
+   * where :math:`X_1, \ldots, X_m` is a partition of :math:`X`. This is
+   * determined by computing the connected components when considering two
+   * variables in :math:`X` to be connected if they occur in the same
+   * :math:`F_i`.
+   * \endverbatim
+   */
+  EVALUE(QUANT_PARTITION_CONNECTED_FV),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Instantiation**
    *
    * .. math::
