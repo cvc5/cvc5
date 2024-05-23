@@ -55,7 +55,17 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool postProve(
       CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
-
+  /**
+   * Add to cdp a proof of eq from free asumption eqi, where eqi is the result
+   * of term conversion via RewriteDbNodeConverter.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The original equality.
+   * @param eqi The equality after conversion.
+   */
+  void ensureProofForEncodeTransform(CDProof* cdp,
+                                     const Node& eq,
+                                     const Node& eqi);
  private:
   /**
    * Is proof-granularity set to dsl-rewrite-strict? This impacts when

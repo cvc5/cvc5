@@ -98,6 +98,20 @@ bool BasicRewriteRCons::postProve(
   return success;
 }
 
+void BasicRewriteRCons::ensureProofForEncodeTransform(CDProof* cdp,
+                                                      const Node& eq,
+                                                      const Node& eqi)
+{
+  ProofRewriteDbNodeConverter rdnc(d_env);
+  std::shared_ptr<ProofNode> pfn = rdnc.convert(eq);
+  Node equiv = eq.eqNode(eqi);
+  Assert (pfn->getResult()==equiv);
+  cdp->addProof(pfn);
+  Node equivs = eqi.eqNode(eq);
+  cdp->addStep(equivs, ProofRule::SYMM, {equiv}, {});
+  cdp->addStep(eq, ProofRule::EQ_RESOLVE, {eqi, equivs}, {});
+}
+
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                 Node eq,
                                 ProofRule r,

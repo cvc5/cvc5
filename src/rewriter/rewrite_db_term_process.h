@@ -18,11 +18,12 @@
 #ifndef CVC5__REWRITER__REWRITE_DB_TERM_PROCESS__H
 #define CVC5__REWRITER__REWRITE_DB_TERM_PROCESS__H
 
-#include <map>
-#include <unordered_map>
+#include <cvc5/cvc5_proof_rule.h>
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
+#include "proof/proof.h"
+#include "proof/conv_proof_generator.h"
 
 namespace cvc5::internal {
 namespace rewriter {
@@ -45,7 +46,11 @@ namespace rewriter {
 class RewriteDbNodeConverter : public NodeConverter
 {
  public:
-  RewriteDbNodeConverter(NodeManager* nm);
+  /**
+   * The latter two arguments are used internally if we are proof producing
+   * via ProofRewriteDbNodeConverter.
+   */
+  RewriteDbNodeConverter(NodeManager* nm, TConvProofGenerator* tpg = nullptr, CDProof* p = nullptr);
   /**
    * This converts the node n to the internal shape that it should be in
    * for the DSL proof reconstruction algorithm.
@@ -53,8 +58,34 @@ class RewriteDbNodeConverter : public NodeConverter
   Node postConvert(Node n) override;
 
  protected:
+  /** A pointer to a TConvProofGenerator, if proof producing */
+  TConvProofGenerator* d_tpg;
+  /** A CDProof, if proof producing */
+  CDProof* d_proof;
+  /** Record trivial step */
+  void recordProofStep(const Node& n, const Node& ret, ProofRule r);
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
+};
+
+/** A proof producing version of the above class */
+class ProofRewriteDbNodeConverter : protected EnvObj
+{
+ public:
+  ProofRewriteDbNodeConverter(Env& env);
+  /**
+   * Return the proof of the conversion of n based on the above class.
+   * Specifically, this returns a proof of
+   *   n = RewriteDbNodeConverter::convert(n).
+   * The returned proof is a term conversion proof whose small steps are
+   * EVALUATE, ACI_NORM and ENCODE_PRED_TRANSFORM.
+   */
+  std::shared_ptr<ProofNode> convert(const Node& n);
+ private:
+  /** A pointer to a TConvProofGenerator, if proof producing */
+  TConvProofGenerator d_tpg;
+  /** A CDProof */
+  CDProof d_proof;
 };
 
 }  // namespace rewriter
