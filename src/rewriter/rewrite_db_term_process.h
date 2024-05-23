@@ -64,7 +64,7 @@ class RewriteDbNodeConverter : public NodeConverter
   TConvProofGenerator* d_tpg;
   /** A CDProof, if proof producing */
   CDProof* d_proof;
-  /** Record trivial step */
+  /** Record that n ---> ret, justifiable by proof rule r. */
   void recordProofStep(const Node& n, const Node& ret, ProofRule r);
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
