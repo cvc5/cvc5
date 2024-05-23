@@ -93,7 +93,7 @@ class BasicRewriteRCons : protected EnvObj
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_BOOL_NNF_NORM.
-   * 
+   *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by ProofRewriteRule::MACRO_BOOL_NNF_NORM.
    * @return true if added a closed proof of eq to cdp.
