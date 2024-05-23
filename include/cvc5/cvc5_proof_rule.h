@@ -1668,13 +1668,13 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in \text{re.*}(R)\mid -}{t \neq '' \wedge \forall L.\> L \leq 0 \vee (str.len t) < L \vee \mathit{pre}(t, L)\not\in R \vee \mathit{suf}(t, L) \not\in \text{re.*}(R)}
+   *   \inferrule{t \not \in \mathit{re}.\text{*}(R) \mid -}{t \neq \ '' \ \wedge \forall L. L \leq 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{*}(R)}
    * 
    * Or alternatively for regular expression concatenation:
    * 
    * .. math::
    *
-   *   \inferrule{t\not\in \text{re.++}(R1, \ldots Rn)\mid -}{\forall L.\> L < 0 \vee (str.len t) < L \vee \mathit{pre}(t, L)\not\in R1 \vee \mathit{suf}(t, L) \not\in \text{re.++}(R2, \ldots Rn)}
+   *   \inferrule{t \not \in \mathit{re}.\text{++}(R_1, \ldots, R_n)\mid -}{\forall L. L < 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(R_2, \ldots, R_n)}
    *
    * Note that in either case the varaible :math:`L` has type :math:`Int` and
    * name `"@var.str_index"`.
