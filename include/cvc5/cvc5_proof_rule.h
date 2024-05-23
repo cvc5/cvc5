@@ -1668,7 +1668,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in \text{re.*}(R)\mid -}{\forall L.\> L < 0 \vee (str.len t) < L \vee \mathit{pre}(t, L)\not\in R \vee \mathit{suf}(t, L) \not\in \text{re.*}(R)}
+   *   \inferrule{t\not\in \text{re.*}(R)\mid -}{t \neq '' \wedge \forall L.\> L \leq 0 \vee (str.len t) < L \vee \mathit{pre}(t, L)\not\in R \vee \mathit{suf}(t, L) \not\in \text{re.*}(R)}
    * 
    * Or alternatively for regular expression concatenation:
    * 
