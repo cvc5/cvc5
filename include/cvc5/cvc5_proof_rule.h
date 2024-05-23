@@ -275,7 +275,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Builtin theory -- Encode predicate transformation**
    *
    * .. math::
-   *   \inferrule{- \mid t}{(= t t')}
+   *   \inferrule{- \mid t}{t=t'}
    * 
    * where :math:`t` and :math:`t'` are equivalent up to their encoding in an
    * external proof format.
