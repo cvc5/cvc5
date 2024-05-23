@@ -20,6 +20,7 @@
 #include "rewriter/rewrites.h"
 #include "smt/env.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
+#include "rewriter/rewrite_db_term_process.h"
 
 using namespace cvc5::internal::kind;
 
