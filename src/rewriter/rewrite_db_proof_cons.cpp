@@ -86,7 +86,7 @@ bool RewriteDbProofCons::prove(
       cdp->addStep(eqoi, cr, {eq}, cargs);
       if (eqo != eqoi)
       {
-        d_trrc.ensureProofForEncodeTransform(cdp, eqo, eqoi);
+        cdp->addStep(eqo, ProofRule::ENCODE_PRED_TRANSFORM, {eqoi}, {eqo});
       }
     }
   }

@@ -16,10 +16,15 @@
 
 #include "rewriter/basic_rewrite_rcons.h"
 
+#include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
 #include "rewriter/rewrites.h"
+#include "rewriter/rewrite_db_term_process.h"
 #include "smt/env.h"
+#include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
