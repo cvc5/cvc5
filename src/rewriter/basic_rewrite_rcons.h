@@ -73,6 +73,7 @@ class BasicRewriteRCons : protected EnvObj
    * elaboration on these proofs.
    */
   std::vector<std::shared_ptr<ProofNode>>& getSubgoals();
+
  private:
   /**
    * Is proof-granularity set to dsl-rewrite-strict? This impacts when
