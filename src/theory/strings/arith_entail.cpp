@@ -17,7 +17,7 @@
 
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
-#include "expr/subs.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/rewriter.h"
@@ -184,7 +184,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
   // aarSum stores each monomial that does not have multiple approximations
   std::vector<Node> aarSum;
   // stores the witness
-  Subs approxMap;
+  arith::ArithSubs approxMap;
   for (std::pair<const Node, Node>& m : msum)
   {
     Node v = m.first;
@@ -444,7 +444,9 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
         << " >= 0 using under-approximation!" << std::endl;
     Trace("strings-ent-approx")
         << "*** StrArithApprox: rewritten was " << aar << std::endl;
-    Node approx = approxMap.apply(ar);
+    // Apply arithmetic substitution, which ensures we only replace terms
+    // in the top-level arithmetic skeleton of ar.
+    Node approx = approxMap.applyArith(ar);
     Trace("strings-ent-approx")
         << "*** StrArithApprox: under-approximation was " << approx
         << std::endl;
