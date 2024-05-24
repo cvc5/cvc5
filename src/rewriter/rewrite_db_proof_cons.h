@@ -145,7 +145,7 @@ class RewriteDbProofCons : protected EnvObj
                const Node& eqi,
                int64_t recLimit,
                int64_t stepLimit,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals);
+               std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /**
    * Prove internal, which is the main entry point for proven an equality eqi.
    * Returns the proof rule that was used to prove eqi, or
@@ -187,8 +187,9 @@ class RewriteDbProofCons : protected EnvObj
    * @param subgoals The list of proofs introduced when proving eq that
    * are trusted steps.
    */
-  bool ensureProofInternal(CDProof* cdp, const Node& eqi,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  bool ensureProofInternal(CDProof* cdp,
+                           const Node& eqi,
+                           std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**

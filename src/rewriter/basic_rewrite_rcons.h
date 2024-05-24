@@ -66,10 +66,11 @@ class BasicRewriteRCons : protected EnvObj
    * @param subgoals The list of proofs introduced when proving eq that
    * are trusted steps.
    */
-  void ensureProofForTheoryRewrite(CDProof* cdp,
-                                   ProofRewriteRule id,
-                                   const Node& eq,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  void ensureProofForTheoryRewrite(
+      CDProof* cdp,
+      ProofRewriteRule id,
+      const Node& eq,
+      std::vector<std::shared_ptr<ProofNode>>& subgoals);
 
  private:
   /**
@@ -96,8 +97,10 @@ class BasicRewriteRCons : protected EnvObj
    * flattening of operators, and other simple inferences.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  bool ensureProofMacroBoolNnfNorm(
+      CDProof* cdp,
+      const Node& eq,
+      std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /**
    * Try THEORY_REWRITE with theory::TheoryRewriteCtx ctx.
    */

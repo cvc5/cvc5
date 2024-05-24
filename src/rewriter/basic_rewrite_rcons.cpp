@@ -121,10 +121,11 @@ bool BasicRewriteRCons::tryRule(CDProof* cdp,
   return false;
 }
 
-void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
-                                                    ProofRewriteRule id,
-                                                    const Node& eq,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals)
+void BasicRewriteRCons::ensureProofForTheoryRewrite(
+    CDProof* cdp,
+    ProofRewriteRule id,
+    const Node& eq,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   switch (id)
   {
@@ -144,9 +145,10 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
   cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, args);
 }
 
-bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
-                                                    const Node& eq,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals)
+bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(
+    CDProof* cdp,
+    const Node& eq,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   Trace("brc-macro") << "Expand Bool NNF norm " << eq[0] << " == " << eq[1]
                      << std::endl;
