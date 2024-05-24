@@ -13,10 +13,10 @@
  * Proof rule enumeration.
  */
 
-#if (!defined(CVC5_API_USE_C_ENUMS)                 \
-     && !defined(CVC5__API__CVC5_CPP_PROOF_RULE_H)) \
-    || (defined(CVC5_API_USE_C_ENUMS)               \
-        && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
+#if (!defined(CVC5_API_USE_C_ENUMS) &&                                         \
+     !defined(CVC5__API__CVC5_CPP_PROOF_RULE_H)) ||                            \
+    (defined(CVC5_API_USE_C_ENUMS) &&                                          \
+     !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
 #include <cstdint>
 
@@ -2289,8 +2289,7 @@ enum ENUM(ProofRule) : uint32_t
  * proof rule.
  * \endverbatim
  */
-enum ENUM(ProofRewriteRule) : uint32_t
-{
+enum ENUM(ProofRewriteRule) : uint32_t {
   EVALUE(NONE),
   // Custom theory rewrites.
   /**
@@ -2440,7 +2439,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Sets - empty tester evaluation**
    *
    * .. math::
-   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) = \top
+   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) =
+   * \top
    *
    * or alternatively:
    *
@@ -2460,8 +2460,20 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARITH_MUL_ONE),
   /** Auto-generated from RARE rule arith-mul-zero */
   EVALUE(ARITH_MUL_ZERO),
-  /** Auto-generated from RARE rule arith-int-div-one */
-  EVALUE(ARITH_INT_DIV_ONE),
+  /** Auto-generated from RARE rule arith-div-total */
+  EVALUE(ARITH_DIV_TOTAL),
+  /** Auto-generated from RARE rule arith-int-div-total */
+  EVALUE(ARITH_INT_DIV_TOTAL),
+  /** Auto-generated from RARE rule arith-int-div-total-one */
+  EVALUE(ARITH_INT_DIV_TOTAL_ONE),
+  /** Auto-generated from RARE rule arith-int-div-total-zero */
+  EVALUE(ARITH_INT_DIV_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-int-mod-total */
+  EVALUE(ARITH_INT_MOD_TOTAL),
+  /** Auto-generated from RARE rule arith-int-mod-total-one */
+  EVALUE(ARITH_INT_MOD_TOTAL_ONE),
+  /** Auto-generated from RARE rule arith-int-mod-total-zero */
+  EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
   /** Auto-generated from RARE rule arith-neg-neg-one */
   EVALUE(ARITH_NEG_NEG_ONE),
   /** Auto-generated from RARE rule arith-elim-uminus */
@@ -2480,6 +2492,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARITH_GEQ_TIGHTEN),
   /** Auto-generated from RARE rule arith-geq-norm */
   EVALUE(ARITH_GEQ_NORM),
+  /** Auto-generated from RARE rule arith-geq-norm2 */
+  EVALUE(ARITH_GEQ_NORM2),
   /** Auto-generated from RARE rule arith-refl-leq */
   EVALUE(ARITH_REFL_LEQ),
   /** Auto-generated from RARE rule arith-refl-lt */
@@ -2488,6 +2502,10 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARITH_REFL_GEQ),
   /** Auto-generated from RARE rule arith-refl-gt */
   EVALUE(ARITH_REFL_GT),
+  /** Auto-generated from RARE rule arith-real-eq-elim */
+  EVALUE(ARITH_REAL_EQ_ELIM),
+  /** Auto-generated from RARE rule arith-int-eq-elim */
+  EVALUE(ARITH_INT_EQ_ELIM),
   /** Auto-generated from RARE rule arith-plus-flatten */
   EVALUE(ARITH_PLUS_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-flatten */
@@ -2498,6 +2516,16 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARITH_PLUS_CANCEL1),
   /** Auto-generated from RARE rule arith-plus-cancel2 */
   EVALUE(ARITH_PLUS_CANCEL2),
+  /** Auto-generated from RARE rule arith-abs-elim */
+  EVALUE(ARITH_ABS_ELIM),
+  /** Auto-generated from RARE rule arith-to-real-elim */
+  EVALUE(ARITH_TO_REAL_ELIM),
+  /** Auto-generated from RARE rule arith-to-int-elim-to-real */
+  EVALUE(ARITH_TO_INT_ELIM_TO_REAL),
+  /** Auto-generated from RARE rule arith-div-elim-to-real1 */
+  EVALUE(ARITH_DIV_ELIM_TO_REAL1),
+  /** Auto-generated from RARE rule arith-div-elim-to-real2 */
+  EVALUE(ARITH_DIV_ELIM_TO_REAL2),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
@@ -3099,7 +3127,7 @@ typedef enum ENUM(ProofRewriteRule) ENUM(ProofRewriteRule);
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_proof_rule_to_string(Cvc5ProofRule rule);
+const char *cvc5_proof_rule_to_string(Cvc5ProofRule rule);
 
 /**
  * Hash function for Cvc5ProofRule.
@@ -3113,7 +3141,7 @@ size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
  * @param rule The proof rewrite rule.
  * @return The string representation.
  */
-const char* cvc5_proof_rewrite_rule_to_string(Cvc5ProofRewriteRule rule);
+const char *cvc5_proof_rewrite_rule_to_string(Cvc5ProofRewriteRule rule);
 
 /**
  * Hash function for Cvc5ProofRewriteRule.
@@ -3133,7 +3161,7 @@ size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
  * @param rule The proof rule
  * @return The name of the proof rule
  */
-const char* toString(ProofRule rule);
+const char *toString(ProofRule rule);
 
 /**
  * Writes a proof rule name to a stream.
@@ -3142,7 +3170,7 @@ const char* toString(ProofRule rule);
  * @param rule The proof rule to write to the stream
  * @return The stream
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRule rule);
+CVC5_EXPORT std::ostream &operator<<(std::ostream &out, ProofRule rule);
 
 /**
  * Converts a proof rewrite rule to a string. Note: This function is also
@@ -3153,7 +3181,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRule rule);
  * @param rule The proof rewrite rule
  * @return The name of the proof rewrite rule
  */
-const char* toString(ProofRewriteRule rule);
+const char *toString(ProofRewriteRule rule);
 
 /**
  * Writes a proof rewrite rule name to a stream.
@@ -3162,18 +3190,16 @@ const char* toString(ProofRewriteRule rule);
  * @param rule The proof rewrite rule to write to the stream
  * @return The stream
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule);
+CVC5_EXPORT std::ostream &operator<<(std::ostream &out, ProofRewriteRule rule);
 
-}  // namespace cvc5
+} // namespace cvc5
 
 namespace std {
 
 /**
  * Hash function for ProofRules.
  */
-template <>
-struct CVC5_EXPORT hash<cvc5::ProofRule>
-{
+template <> struct CVC5_EXPORT hash<cvc5::ProofRule> {
   /**
    * Hashes a ProofRule to a size_t.
    * @param rule The proof rule.
@@ -3193,9 +3219,7 @@ std::string to_string(cvc5::ProofRule rule);
 /**
  * Hash function for ProofRewriteRules.
  */
-template <>
-struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
-{
+template <> struct CVC5_EXPORT hash<cvc5::ProofRewriteRule> {
   /**
    * Hashes a ProofRewriteRule to a size_t.
    * @param rule The proof rewrite rule.
@@ -3212,7 +3236,7 @@ struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
  */
 std::string to_string(cvc5::ProofRewriteRule rule);
 
-}  // namespace std
+} // namespace std
 
 #endif
 #endif
