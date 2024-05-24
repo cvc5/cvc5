@@ -43,8 +43,6 @@
   a
   (
   ((= a1 a2)        ($singleton_elim ($bv_mk_bitblast_step_eq a1 a2)))
-  ;((bvand a1 a2)    ($bv_mk_bitblast_step_bw and a1 a2))
-  ;((bvor a1 a2)     ($bv_mk_bitblast_step_bw or a1 a2))
   ((extract u l a1) ($bv_mk_bitblast_step_extract u l a1))
   ((concat a1 a3)   ($bv_mk_bitblast_step_concat a))
   (a1               (alf.ite ($is_bin_literal a) 
@@ -53,6 +51,7 @@
   ))
 )
 
+; ProofRule::BV_BITBLAST_STEP
 (declare-rule bv_bitblast_step
   ((n Int) (a (BitVec n)) (b (BitVec n)))
   :args ((= a b))
