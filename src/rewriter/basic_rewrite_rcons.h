@@ -70,12 +70,6 @@ class BasicRewriteRCons : protected EnvObj
                                    ProofRewriteRule id,
                                    const Node& eq,
              std::vector<std::shared_ptr<ProofNode>>& subgoals);
-  /**
-   * Get subgoals. These are the proofs that were used to fill in macro
-   * steps that did not have a justification. The caller should run proof
-   * elaboration on these proofs.
-   */
-  std::vector<std::shared_ptr<ProofNode>>& getSubgoals();
 
  private:
   /**

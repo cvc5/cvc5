@@ -163,11 +163,6 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   return true;
 }
 
-std::vector<std::shared_ptr<ProofNode>>& BasicRewriteRCons::getSubgoals()
-{
-  return d_subgoals;
-}
-
 bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
                                          const Node& eq,
                                          theory::TheoryRewriteCtx ctx)
