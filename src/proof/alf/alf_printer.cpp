@@ -227,8 +227,6 @@ bool AlfPrinter::isHandledBitblastStep(const Node& eq) const
     case Kind::BITVECTOR_EXTRACT:
     case Kind::BITVECTOR_CONCAT:
     case Kind::EQUAL:
-      // case Kind::BITVECTOR_AND:
-      // case Kind::BITVECTOR_OR:
       return true;
     default:
       Trace("alf-printer-debug") << "Cannot bitblast  " << eq[0] << std::endl;
@@ -334,7 +332,6 @@ bool AlfPrinter::canEvaluate(Node n) const
 bool AlfPrinter::canEvaluateRegExp(Node r) const
 {
   Assert(r.getType().isRegExp());
-  Trace("alf-printer-debug") << "canEvaluateRegExp? " << r << std::endl;
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
@@ -359,14 +356,12 @@ bool AlfPrinter::canEvaluateRegExp(Node r) const
         case Kind::REGEXP_RANGE:
           if (!theory::strings::utils::isCharacterRange(cur))
           {
-            Trace("alf-printer-debug") << "Non-char range" << std::endl;
             return false;
           }
           continue;
         case Kind::STRING_TO_REGEXP:
           if (!canEvaluate(cur[0]))
           {
-            Trace("alf-printer-debug") << "Non-evaluatable string" << std::endl;
             return false;
           }
           continue;

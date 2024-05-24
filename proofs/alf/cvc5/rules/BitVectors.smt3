@@ -51,7 +51,6 @@
   ))
 )
 
-; ProofRule::BV_BITBLAST_STEP
 (declare-rule bv_bitblast_step
   ((n Int) (a (BitVec n)) (b (BitVec n)))
   :args ((= a b))
