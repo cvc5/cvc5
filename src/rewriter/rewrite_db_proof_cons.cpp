@@ -95,7 +95,7 @@ bool RewriteDbProofCons::prove(
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
   bool success = false;
-  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid))
+  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid, subgoals))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
@@ -135,7 +135,7 @@ bool RewriteDbProofCons::prove(
   if (!success)
   {
     // now try the "post-prove" method as a last resort
-    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid))
+    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid, subgoals))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
