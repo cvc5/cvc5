@@ -40,8 +40,6 @@ BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env)
 bool BasicRewriteRCons::prove(
     CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
 {
-  // clear the current subgoals
-  d_subgoals.clear();
   Node eq = a.eqNode(b);
   Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "
                           << mid << ")" << std::endl;
@@ -125,12 +123,13 @@ bool BasicRewriteRCons::tryRule(CDProof* cdp,
 
 void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
                                                     ProofRewriteRule id,
-                                                    const Node& eq)
+                                                    const Node& eq,
+             std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   switch (id)
   {
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM:
-      if (ensureProofMacroBoolNnfNorm(cdp, eq))
+      if (ensureProofMacroBoolNnfNorm(cdp, eq, subgoals))
       {
         return;
       }
@@ -146,7 +145,8 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
 }
 
 bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
-                                                    const Node& eq)
+                                                    const Node& eq,
+             std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   Trace("brc-macro") << "Expand Bool NNF norm " << eq[0] << " == " << eq[1]
                      << std::endl;
@@ -159,7 +159,7 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
   cdp->addProof(pfn);
   // the small steps are trust steps, record them here
-  expr::getSubproofRule(pfn, ProofRule::TRUST, d_subgoals);
+  expr::getSubproofRule(pfn, ProofRule::TRUST, subgoals);
   return true;
 }
 

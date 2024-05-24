@@ -63,10 +63,13 @@ class BasicRewriteRCons : protected EnvObj
    * @param cdp The proof to add to.
    * @param id The theory rewrite that proves eq.
    * @param eq The conclusion of the theory rewrite.
+   * @param subgoals The list of proofs introduced when proving eq that
+   * are trusted steps.
    */
   void ensureProofForTheoryRewrite(CDProof* cdp,
                                    ProofRewriteRule id,
-                                   const Node& eq);
+                                   const Node& eq,
+             std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /**
    * Get subgoals. These are the proofs that were used to fill in macro
    * steps that did not have a justification. The caller should run proof
@@ -80,8 +83,6 @@ class BasicRewriteRCons : protected EnvObj
    * THEORY_REWRITE are tried.
    */
   bool d_isDslStrict;
-  /** The list of subgoals, which are returned via getSubgoals. */
-  std::vector<std::shared_ptr<ProofNode>> d_subgoals;
   /**
    * Try rule r, return true if eq could be proven by r with arguments args.
    * If this method returns true, a proof of eq was added to cdp.
@@ -96,9 +97,13 @@ class BasicRewriteRCons : protected EnvObj
    *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by ProofRewriteRule::MACRO_BOOL_NNF_NORM.
+   * @param subgoals The list of proofs introduced when proving eq that
+   * are trusted steps. These are small step rewrites corresponding to NNF
+   * flattening of operators, and other simple inferences.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
+  bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq,
+             std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /**
    * Try THEORY_REWRITE with theory::TheoryRewriteCtx ctx.
    */
