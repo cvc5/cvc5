@@ -1247,7 +1247,7 @@ bool cvc5_term_is_boolean_value(Cvc5Term term);
  * @param term The term.
  * @return The representation of a Boolean value as a native Boolean value.
  */
-bool cvc5_get_boolean_value(Cvc5Term term);
+bool cvc5_term_get_boolean_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a bit-vector value.
@@ -2317,6 +2317,7 @@ Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm,
 
 /**
  * Create a nullable some term.
+ * @param tm The term manager instance.
  * @param term The element value.
  * @return the Element value wrapped in some constructor.
  */
@@ -2324,29 +2325,33 @@ Cvc5Term cvc5_mk_nullable_some(Cvc5TermManager* tm, Cvc5Term term);
 
 /**
  * Create a selector for nullable term.
+ * @param tm The term manager instance.
  * @param term A nullable term.
  * @return The element value of the nullable term.
  */
-Cvc5Term cvc5_mk_nullable_val(Cvc5Term term);
+Cvc5Term cvc5_mk_nullable_val(Cvc5TermManager* tm, Cvc5Term term);
 /**
  * Create a null tester for a nullable term.
+ * @param tm The term manager instance.
  * @param term A nullable term.
  * @return A tester whether term is null.
  */
-Cvc5Term cvc5_mk_nullable_is_null(Cvc5Term term);
+Cvc5Term cvc5_mk_nullable_is_null(Cvc5TermManager* tm, Cvc5Term term);
 /**
  * Create a some tester for a nullable term.
+ * @param tm The term manager instance.
  * @param term A nullable term.
  * @return A tester whether term is some.
  */
-Cvc5Term cvc5_mk_nullable_is_some(Cvc5Term term);
+Cvc5Term cvc5_mk_nullable_is_some(Cvc5TermManager* tm, Cvc5Term term);
 
 /**
  * Create a constant representing an null of the given sort.
+ * @param tm The term manager instance.
  * @param sort The sort of the Nullable element.
  * @return The null constant.
  */
-Cvc5Term cvc5_mk_nullable_null(Cvc5Sort sort);
+Cvc5Term cvc5_mk_nullable_null(Cvc5TermManager* tm, Cvc5Sort sort);
 /**
  * Create a term that lifts kind to nullable terms.
  *
@@ -2357,15 +2362,17 @@ Cvc5Term cvc5_mk_nullable_null(Cvc5Sort sort);
  * This function would return
  * (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
  *
+ * @param tm The term manager instance.
  * @param kind The lifted operator.
- * @param nargs The number of arguments of the lifted operator.
+ * @param size The number of arguments of the lifted operator.
  * @param args The arguments of the lifted operator.
  * @return A term of kind #CVC5_KIND_NULLABLE_LIFT where the first child
  *         is a lambda expression, and the remaining children are
  *         the original arguments.
  */
-Cvc5Term cvc5_mk_nullable_lift(Cvc5Kind kind,
-                               size_t nargs,
+Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
+                               Cvc5Kind kind,
+                               size_t size,
                                const Cvc5Term args[]);
 
 /* .................................................................... */
@@ -2491,7 +2498,7 @@ Cvc5Term cvc5_mk_real_int64(Cvc5TermManager* tm, int64_t val);
  * @param den The value of the denominator.
  * @return A constant of sort Real.
  */
-Cvc5Term cvc5_mk_real_num_den(int64_t num, int64_t den);
+Cvc5Term cvc5_mk_real_num_den(Cvc5TermManager* tm, int64_t num, int64_t den);
 
 /**
  * Create a regular expression all (re.all) term.
@@ -2505,7 +2512,7 @@ Cvc5Term cvc5_mk_regexp_all(Cvc5TermManager* tm);
  * @param tm The term manager instance.
  * @return The allchar term.
  */
-Cvc5Term cvc5_mk_regexp_all_char(Cvc5TermManager* tm);
+Cvc5Term cvc5_mk_regexp_allchar(Cvc5TermManager* tm);
 
 /**
  * Create a regular expression none (re.none) term.

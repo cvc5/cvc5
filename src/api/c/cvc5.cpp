@@ -198,6 +198,23 @@ struct cvc5_term_t
   Cvc5TermManager* d_tm = nullptr;
 };
 
+/** Wrapper for cvc5 C++ operators. */
+struct cvc5_op_t
+{
+  /**
+   * Constructor.
+   * @param op The wrapped C++ operator.
+   * @param tm The associated term manager.
+   */
+  cvc5_op_t(Cvc5TermManager* tm, const cvc5::Op& op) : d_op(op), d_tm(tm) {}
+  /** The wrapped C++ op. */
+  cvc5::Op d_op;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated term manager. */
+  Cvc5TermManager* d_tm = nullptr;
+};
+
 /** Wrapper for cvc5 C++ sorts. */
 struct cvc5_sort_t
 {
@@ -336,6 +353,11 @@ struct Cvc5TermManager
    */
   Cvc5Term export_term(const cvc5::Term& term);
   /**
+   * Export C++ operator to C API.
+   * @param op The operator to export.
+   */
+  Cvc5Op export_op(const cvc5::Op& op);
+  /**
    * Export C++ datatype to C API.
    * @param dt The datatype to export.
    */
@@ -376,6 +398,18 @@ struct Cvc5TermManager
    * @return The copied term.
    */
   cvc5_term_t* copy(cvc5_term_t* term);
+  /**
+   * Decrement the external ref count of an operator. If the ref count reaches
+   * zero, the operator is release (freed).
+   * @param op The operator to release.
+   */
+  void release(cvc5_op_t* op);
+  /**
+   * Increment the external ref count of a operator.
+   * @param op The operator to copy.
+   * @return The copied operator.
+   */
+  cvc5_op_t* copy(cvc5_op_t* term);
   /**
    * Decrement the external ref count of a sort. If the ref count reaches zero,
    * the sort is release (freed).
@@ -461,6 +495,7 @@ struct Cvc5TermManager
  private:
   std::unordered_map<cvc5::Sort, cvc5_sort_t> d_alloc_sorts;
   std::unordered_map<cvc5::Term, cvc5_term_t> d_alloc_terms;
+  std::unordered_map<cvc5::Op, cvc5_op_t> d_alloc_ops;
   std::unordered_map<cvc5::Datatype, cvc5_dt_t> d_alloc_dts;
   std::unordered_map<cvc5::DatatypeConstructor, cvc5_dt_cons_t>
       d_alloc_dt_conss;
@@ -485,6 +520,17 @@ Cvc5Term Cvc5TermManager::export_term(const cvc5::Term& term)
 {
   Assert(!term.isNull());
   auto [it, inserted] = d_alloc_terms.try_emplace(term, this, term);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+Cvc5Op Cvc5TermManager::export_op(const cvc5::Op& op)
+{
+  Assert(!op.isNull());
+  auto [it, inserted] = d_alloc_ops.try_emplace(op, this, op);
   if (!inserted)
   {
     copy(&it->second);
@@ -564,6 +610,22 @@ cvc5_term_t* Cvc5TermManager::copy(cvc5_term_t* term)
 {
   term->d_refs += 1;
   return term;
+}
+
+void Cvc5TermManager::release(cvc5_op_t* op)
+{
+  op->d_refs -= 1;
+  if (op->d_refs == 0)
+  {
+    Assert(d_alloc_ops.find(op->d_op) != d_alloc_ops.end());
+    d_alloc_ops.erase(op->d_op);
+  }
+}
+
+cvc5_op_t* Cvc5TermManager::copy(cvc5_op_t* op)
+{
+  op->d_refs += 1;
+  return op;
 }
 
 void Cvc5TermManager::release(cvc5_sort_t* sort)
@@ -1916,6 +1978,16 @@ Cvc5Sort cvc5_term_get_sort(Cvc5Term term)
   return res;
 }
 
+const char* cvc5_term_to_string(Cvc5Term term)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  str = term->d_term.toString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5TermManager                                                            */
 /* -------------------------------------------------------------------------- */
@@ -2333,4 +2405,595 @@ Cvc5DatatypeDecl cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
   res = tm->export_dt_decl(tm->d_tm.mkDatatypeDecl(name, cparams, is_codt));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
+}
+
+/* Create Terms --------------------------------------------------------- */
+
+Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
+                      Cvc5Kind kind,
+                      size_t size,
+                      const Cvc5Term children[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_KIND(kind);
+  CVC5_API_CHECK(children || size == 0)
+      << "unexpected NULL argument for 'children'";
+  std::vector<cvc5::Term> cchildren;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(children, i);
+    cchildren.push_back(children[i]->d_term);
+  }
+  res = tm->export_term(
+      tm->d_tm.mkTerm(static_cast<cvc5::Kind>(kind), cchildren));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_term_from_op(Cvc5TermManager* tm,
+                              Cvc5Op op,
+                              size_t size,
+                              const Cvc5Term children[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(op);
+  CVC5_API_CHECK(children || size == 0)
+      << "unexpected NULL argument for 'children'";
+  std::vector<cvc5::Term> cchildren;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(children, i);
+    cchildren.push_back(children[i]->d_term);
+  }
+  res = tm->export_term(tm->d_tm.mkTerm(op->d_op, cchildren));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm, size_t size, const Cvc5Term terms[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(terms);
+  std::vector<cvc5::Term> cterms;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(terms, i);
+    cterms.push_back(terms[i]->d_term);
+  }
+  res = tm->export_term(tm->d_tm.mkTuple(cterms));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_some(Cvc5TermManager* tm, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = tm->export_term(tm->d_tm.mkNullableSome(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_val(Cvc5TermManager* tm, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = tm->export_term(tm->d_tm.mkNullableVal(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_is_null(Cvc5TermManager* tm, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = tm->export_term(tm->d_tm.mkNullableIsNull(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_is_some(Cvc5TermManager* tm, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = tm->export_term(tm->d_tm.mkNullableIsSome(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_null(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkNullableNull(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
+                               Cvc5Kind kind,
+                               size_t size,
+                               const Cvc5Term args[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_KIND(kind);
+  CVC5_CAPI_CHECK_NOT_NULL(args);
+  std::vector<cvc5::Term> cargs;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(args, i);
+    cargs.push_back(args[i]->d_term);
+  }
+  res = tm->export_term(
+      tm->d_tm.mkNullableLift(static_cast<cvc5::Kind>(kind), cargs));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Create Operators ---------------------------------------------------- */
+
+Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
+                  Cvc5Kind kind,
+                  size_t size,
+                  const uint32_t idxs[])
+{
+  Cvc5Op res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_KIND(kind);
+  CVC5_API_CHECK(idxs || size == 0) << "unexpected NULL argument for 'idxs'";
+  std::vector<uint32_t> cidxs;
+  for (size_t i = 0; i < size; ++i)
+  {
+    cidxs.push_back(idxs[i]);
+  }
+  res = tm->export_op(tm->d_tm.mkOp(static_cast<cvc5::Kind>(kind), cidxs));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Op cvc5_mk_op_from_str(Cvc5TermManager* tm, Cvc5Kind kind, const char* arg)
+{
+  Cvc5Op res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_KIND(kind);
+  CVC5_CAPI_CHECK_NOT_NULL(arg);
+  res = tm->export_op(tm->d_tm.mkOp(static_cast<cvc5::Kind>(kind), arg));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Create Constants ---------------------------------------------------- */
+
+Cvc5Term cvc5_mk_true(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkTrue());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_false(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFalse());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_boolean(Cvc5TermManager* tm, bool val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkBoolean(val));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_pi(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkPi());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_integer(Cvc5TermManager* tm, const char* s)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkInteger(s));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_integer_int64(Cvc5TermManager* tm, int64_t val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkInteger(val));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_real(Cvc5TermManager* tm, const char* s)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkReal(s));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_real_int64(Cvc5TermManager* tm, int64_t val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkReal(val));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_real_num_den(Cvc5TermManager* tm, int64_t num, int64_t den)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkReal(num, den));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_regexp_all(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkRegexpAll());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_regexp_allchar(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkRegexpAllchar());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_regexp_none(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkRegexpNone());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_empty_set(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkEmptySet(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_empty_bag(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkEmptyBag(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_sep_emp(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkSepEmp());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_sep_nil(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkSepNil(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkString(s, use_esc_seq));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkString(s));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_empty_sequence(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkEmptySequence(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_universe_set(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkUniverseSet(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_bv_uint64(Cvc5TermManager* tm, uint32_t size, uint64_t val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkBitVector(size, val));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_bv(Cvc5TermManager* tm,
+                    uint32_t size,
+                    const char* s,
+                    uint32_t base)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkBitVector(size, s, base));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_ff_elem(Cvc5TermManager* tm,
+                         const char* value,
+                         Cvc5Sort sort,
+                         uint32_t base)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(value);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkFiniteFieldElem(value, sort->d_sort, base));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_const_array(Cvc5TermManager* tm, Cvc5Sort sort, Cvc5Term val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_TERM(val);
+  res = tm->export_term(tm->d_tm.mkConstArray(sort->d_sort, val->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_pos_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointPosInf(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_neg_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointNegInf(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_nan(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointNaN(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_pos_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointPosZero(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_neg_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointNegZero(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_rm(Cvc5TermManager* tm, Cvc5RoundingMode rm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(
+      tm->d_tm.mkRoundingMode(static_cast<cvc5::RoundingMode>(rm)));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp(Cvc5TermManager* tm,
+                    uint32_t exp,
+                    uint32_t sig,
+                    Cvc5Term val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(val);
+  res = tm->export_term(tm->d_tm.mkFloatingPoint(exp, sig, val->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_from_ieee(Cvc5TermManager* tm,
+                              Cvc5Term sign,
+                              Cvc5Term exp,
+                              Cvc5Term sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(sign);
+  CVC5_CAPI_CHECK_TERM(exp);
+  CVC5_CAPI_CHECK_TERM(sig);
+  res = tm->export_term(
+      tm->d_tm.mkFloatingPoint(sign->d_term, exp->d_term, sig->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_cardinality_constraint(Cvc5TermManager* tm,
+                                        Cvc5Sort sort,
+                                        uint32_t upperBound)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(
+      tm->d_tm.mkCardinalityConstraint(sort->d_sort, upperBound));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Create Variables ----------------------------------------------------- */
+
+Cvc5Term cvc5_mk_const(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  if (symbol)
+  {
+    res = tm->export_term(tm->d_tm.mkConst(sort->d_sort, symbol));
+  }
+  else
+  {
+    res = tm->export_term(tm->d_tm.mkConst(sort->d_sort));
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_var(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  if (symbol)
+  {
+    res = tm->export_term(tm->d_tm.mkVar(sort->d_sort, symbol));
+  }
+  else
+  {
+    res = tm->export_term(tm->d_tm.mkVar(sort->d_sort));
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const wchar_t* cvc5_term_get_string_value(Cvc5Term term)
+{
+  static thread_local std::wstring res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getStringValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.c_str();
 }

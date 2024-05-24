@@ -156,5 +156,8 @@ class Cvc5CApiAbortStream
 #define CVC5_CAPI_CHECK_TERM(term) \
   CVC5_API_CHECK(term != nullptr) << "invalid term"
 
+#define CVC5_CAPI_CHECK_TERM_AT_IDX(terms, i) \
+  CVC5_API_CHECK(terms[i] != nullptr) << "invalid term at index " << i
+
 /* -------------------------------------------------------------------------- */
 }
