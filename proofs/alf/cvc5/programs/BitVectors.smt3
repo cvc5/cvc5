@@ -1,14 +1,5 @@
 (include "../theories/BitVectors.smt3")
 
-
-(program $bv_get_const_child ((n Int) (m Int) (k Int) (f (-> (BitVec n) (BitVec m) (BitVec k))) (a (BitVec n)) (b (BitVec m) :list))
-  ((BitVec n)) (BitVec n)
-  (
-    (($bv_get_const_child (f a b))  (alf.ite ($is_bin_literal a) a ($bv_get_const_child b)))
-    (($bv_get_const_child a)        @bv_empty)    ; indicates no child
-  )
-)
-
 (define $bv_bit_set ((n Int :implicit) (a (BitVec n)) (i Int))
   (alf.is_eq (alf.extract a i i) #b1))
 
@@ -22,7 +13,6 @@
 
 (define $bv_const_to_bitlist ((n Int :implicit) (c (BitVec n)))
   ($bv_const_to_bitlist_rec c (alf.add (alf.len c) -1)))
-  
 
 (define $nary_app ((T Type :implicit) (U Type :implicit) (V Type :implicit) (f (-> T U V)) (a T) (b U))
   (f a (f b (alf.nil f a b))))

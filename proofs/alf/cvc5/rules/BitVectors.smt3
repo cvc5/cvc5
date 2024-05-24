@@ -1,55 +1,5 @@
 (include "../programs/BitVectors.smt3")
 
-; ---------------- ProofRewriteRule::BV_BITWISE_SLICING
-
-(program $bv_mk_bitwise_slicing_rec
-  ((n Int) (m Int)
-   (f (-> (BitVec n) (BitVec n) (BitVec n))) (a (BitVec n)) (c (BitVec n))
-   (b Bool) (bn Bool) (b2 (BitVec m) :list) (start Int) (end Int))
-  ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec n) (BitVec n) (BitVec m) Bool Int Int) (BitVec n)
-  (
-  (($bv_mk_bitwise_slicing_rec f c a b2 bn start -1)
-      (alf.cons concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
-  (($bv_mk_bitwise_slicing_rec f c a (@bbT b b2) bn start end)
-        (let ((em1 (alf.add end -1)) (ep1 (alf.add end 1)))
-        (alf.ite (alf.is_eq b bn)
-          ($bv_mk_bitwise_slicing_rec f c a b2 b start em1)
-          (alf.cons concat
-            ($nary_app f (extract start ep1 c) (extract start ep1 a))
-            ($bv_mk_bitwise_slicing_rec f c a b2 b end em1)))))
-  )
-)
-
-(define $bv_is_bitwise_slicing_op ((n Int :implicit) (f (-> (BitVec n) (BitVec n) (BitVec n))))
-  (alf.or (alf.is_eq f bvand) (alf.is_eq f bvor) (alf.is_eq f bvxor)))
-
-(define $bv_mk_bitwise_slicing ((n Int :implicit) (a (BitVec n)))
-  (alf.match ((m Int) (f (-> (BitVec m) (BitVec m) (BitVec m))) (a1 (BitVec m)) (a2 (BitVec m) :list))
-    a
-    (
-    ((f a1 a2)    ($singleton_elim
-                  (let ((c ($bv_get_const_child a)))
-                  (alf.requires ($bv_is_bitwise_slicing_op f) true
-                  (alf.requires (alf.is_eq c @bv_empty) false
-                  (let ((wm1 (alf.add (alf.len c) -1)))
-                  ($bv_mk_bitwise_slicing_rec
-                    f
-                    c
-                    (let ((nil (alf.nil f a1 a2)))
-                      ($singleton_elim (nary.diff f nil a (alf.cons f c nil))))  ; remove the constant and recollect
-                    ($bv_const_to_bitlist c)               ; convert the constant to a bitlist
-                    ($bv_bit_set c wm1) wm1 wm1)))))))
-    )
-  )
-)
-
-(declare-rule bv-bitwise-slicing
-  ((n Int) (a (BitVec n)) (b (BitVec n)))
-  :args ((= a b))
-  :requires ((($bv_mk_bitwise_slicing a) b))
-  :conclusion (= a b)
-)
-
 ; ---------------- ProofRewriteRule::BV_BITBLAST_STEP
 
 (program $bv_mk_bitblast_step_eq ((T Type) (U Type) (W Type) (b1 Bool) (b2 Bool) (a1 W :list) (a2 W :list))

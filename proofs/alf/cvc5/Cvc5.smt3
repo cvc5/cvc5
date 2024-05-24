@@ -7,7 +7,7 @@
 (include "./rules/Arith.smt3")
 (include "./theories/FloatingPoints.smt3")
 (include "./theories/Transcendentals.smt3")
-(include "./theories/BitVectors.smt3")
+(include "./rules/BitVectors.smt3")
 (include "./rules/Strings.smt3")
 (include "./theories/Sets.smt3")
 (include "./theories/Bags.smt3")
