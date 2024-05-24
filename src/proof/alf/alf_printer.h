@@ -61,6 +61,8 @@ class AlfPrinter : protected EnvObj
   bool isHandled(const ProofNode* pfn) const;
   /** Return true if id is handled as a theory rewrite for term n */
   bool isHandledTheoryRewrite(ProofRewriteRule id, const Node& n) const;
+  /** Return if the equality is handled as a bitblast step */
+  bool isHandledBitblastStep(const Node& eq) const;
   /**
    * Return true if it is possible to evaluate n using the evaluation side
    * condition in the ALF signature. Notice this requires that all subterms of n

@@ -1,0 +1,112 @@
+(include "../programs/BitVectors.smt3")
+
+; ---------------- ProofRewriteRule::BV_BITWISE_SLICING
+
+(program $bv_mk_bitwise_slicing_rec
+  ((n Int) (m Int)
+   (f (-> (BitVec n) (BitVec n) (BitVec n))) (a (BitVec n)) (c (BitVec n))
+   (b Bool) (bn Bool) (b2 (BitVec m) :list) (start Int) (end Int))
+  ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec n) (BitVec n) (BitVec m) Bool Int Int) (BitVec n)
+  (
+  (($bv_mk_bitwise_slicing_rec f c a b2 bn start -1)
+      (alf.cons concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
+  (($bv_mk_bitwise_slicing_rec f c a (@bbT b b2) bn start end)
+        (let ((em1 (alf.add end -1)) (ep1 (alf.add end 1)))
+        (alf.ite (alf.is_eq b bn)
+          ($bv_mk_bitwise_slicing_rec f c a b2 b start em1)
+          (alf.cons concat
+            ($nary_app f (extract start ep1 c) (extract start ep1 a))
+            ($bv_mk_bitwise_slicing_rec f c a b2 b end em1)))))
+  )
+)
+
+(define $bv_is_bitwise_slicing_op ((n Int :implicit) (f (-> (BitVec n) (BitVec n) (BitVec n))))
+  (alf.or (alf.is_eq f bvand) (alf.is_eq f bvor) (alf.is_eq f bvxor)))
+
+(define $bv_mk_bitwise_slicing ((n Int :implicit) (a (BitVec n)))
+  (alf.match ((m Int) (f (-> (BitVec m) (BitVec m) (BitVec m))) (a1 (BitVec m)) (a2 (BitVec m) :list))
+    a
+    (
+    ((f a1 a2)    ($singleton_elim
+                  (let ((c ($bv_get_const_child a)))
+                  (alf.requires ($bv_is_bitwise_slicing_op f) true
+                  (alf.requires (alf.is_eq c @bv_empty) false
+                  (let ((wm1 (alf.add (alf.len c) -1)))
+                  ($bv_mk_bitwise_slicing_rec
+                    f
+                    c
+                    (let ((nil (alf.nil f a1 a2)))
+                      ($singleton_elim (nary.diff f nil a (alf.cons f c nil))))  ; remove the constant and recollect
+                    ($bv_const_to_bitlist c)               ; convert the constant to a bitlist
+                    ($bv_bit_set c wm1) wm1 wm1)))))))
+    )
+  )
+)
+
+(declare-rule bv-bitwise-slicing
+  ((n Int) (a (BitVec n)) (b (BitVec n)))
+  :args ((= a b))
+  :requires ((($bv_mk_bitwise_slicing a) b))
+  :conclusion (= a b)
+)
+
+; ---------------- ProofRewriteRule::BV_BITBLAST_STEP
+
+(program $bv_mk_bitblast_step_eq ((T Type) (U Type) (W Type) (b1 Bool) (b2 Bool) (a1 W :list) (a2 W :list))
+  (T T) Bool
+  (
+  (($bv_mk_bitblast_step_eq @bv_empty @bv_empty)        true)
+  (($bv_mk_bitblast_step_eq (@bbT b1 a1) (@bbT b2 a2))  (alf.cons and (= b1 b2) ($bv_mk_bitblast_step_eq a1 a2)))
+  )
+)
+
+(define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a1 (BitVec n)))
+  (nary.subsequence @bbT @bv_empty l u a1))
+
+(program $bv_mk_bitblast_step_concat_rec ((n Int) (a1 (BitVec n)) (m Int) (a2 (BitVec m) :list))
+  ((BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_concat_rec @bv_empty)      @bv_empty)
+  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (alf.concat @bbT a1 ($bv_mk_bitblast_step_concat_rec a2)))
+  )
+)
+
+(define $bv_mk_bitblast_step_concat ((n Int :implicit) (a (BitVec n)))
+  ($bv_mk_bitblast_step_concat_rec (nary.reverse a)))
+
+(define $bv_mk_bitblast_step_const ((n Int :implicit) (a (BitVec n)))
+  (nary.reverse ($bv_const_to_bitlist a)))
+
+(program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int))
+  ((BitVec n) Int) (BitVec n)
+  (
+    (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
+    (($bv_mk_bitblast_step_var_rec a i)   (alf.cons @bbT (@bitOf i a) ($bv_mk_bitblast_step_var_rec a (alf.add i -1))))
+  )
+)
+
+(define $bv_mk_bitblast_step_var ((n Int :implicit) (a (BitVec n)))
+  (nary.reverse ($bv_mk_bitblast_step_var_rec a (alf.add ($bv_bitwidth (alf.typeof a)) -1))))
+
+(define $bv_mk_bitblast_step ((T Type :implicit) (a T))
+  (alf.match ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list))
+  a
+  (
+  ((= a1 a2)        ($singleton_elim ($bv_mk_bitblast_step_eq a1 a2)))
+  ;((bvand a1 a2)    ($bv_mk_bitblast_step_bw and a1 a2))
+  ;((bvor a1 a2)     ($bv_mk_bitblast_step_bw or a1 a2))
+  ((extract u l a1) ($bv_mk_bitblast_step_extract u l a1))
+  ((concat a1 a3)   ($bv_mk_bitblast_step_concat a))
+  (a1               (alf.ite ($is_bin_literal a) 
+                      ($bv_mk_bitblast_step_const a)
+                      ($bv_mk_bitblast_step_var a)))    ; otherwise assume a variable
+  ))
+)
+
+(declare-rule bv_bitblast_step
+  ((n Int) (a (BitVec n)) (b (BitVec n)))
+  :args ((= a b))
+  :requires ((($bv_mk_bitblast_step a) b))
+  :conclusion (= a b)
+)
+
