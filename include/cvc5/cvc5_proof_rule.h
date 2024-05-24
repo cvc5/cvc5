@@ -2388,7 +2388,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(QUANT_MINISCOPE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Connected free variable partitioning**
+   * **Quantifiers -- Macro connected free variable partitioning**
    *
    * .. math::
    *   \forall X.\> F_1 \vee \ldots \vee F_n =
@@ -2401,7 +2401,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * :math:`F_i`.
    * \endverbatim
    */
-  EVALUE(QUANT_PARTITION_CONNECTED_FV),
+  EVALUE(MACRO_QUANT_PARTITION_CONNECTED_FV),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Instantiation**

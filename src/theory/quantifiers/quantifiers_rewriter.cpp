@@ -106,7 +106,7 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_MINISCOPE,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::QUANT_PARTITION_CONNECTED_FV,
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
 }
 
@@ -179,7 +179,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       return nret;
     }
     break;
-    case ProofRewriteRule::QUANT_PARTITION_CONNECTED_FV:
+    case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
     {
       if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::OR)
       {
