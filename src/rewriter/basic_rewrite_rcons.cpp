@@ -16,10 +16,15 @@
 
 #include "rewriter/basic_rewrite_rcons.h"
 
+#include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrites.h"
 #include "smt/env.h"
+#include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -114,6 +119,50 @@ bool BasicRewriteRCons::tryRule(CDProof* cdp,
     return true;
   }
   return false;
+}
+
+void BasicRewriteRCons::ensureProofForTheoryRewrite(
+    CDProof* cdp,
+    ProofRewriteRule id,
+    const Node& eq,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::MACRO_BOOL_NNF_NORM:
+      if (ensureProofMacroBoolNnfNorm(cdp, eq, subgoals))
+      {
+        return;
+      }
+      break;
+    default: break;
+  }
+  // default, just add the rewrite
+  std::vector<Node> args;
+  args.push_back(
+      nodeManager()->mkConstInt(Rational(static_cast<uint32_t>(id))));
+  args.push_back(eq);
+  cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, args);
+}
+
+bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(
+    CDProof* cdp,
+    const Node& eq,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+{
+  Trace("brc-macro") << "Expand Bool NNF norm " << eq[0] << " == " << eq[1]
+                     << std::endl;
+  // Call the utility again with proof tracking and construct the term
+  // conversion proof. This proof itself may have trust steps in it.
+  TConvProofGenerator tcpg(d_env, nullptr);
+  Node nr = theory::booleans::TheoryBoolRewriter::computeNnfNorm(
+      nodeManager(), eq[0], &tcpg);
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
+  Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
+  cdp->addProof(pfn);
+  // the small steps are trust steps, record them here
+  expr::getSubproofRule(pfn, ProofRule::TRUST, subgoals);
+  return true;
 }
 
 bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,

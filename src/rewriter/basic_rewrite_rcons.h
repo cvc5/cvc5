@@ -56,6 +56,22 @@ class BasicRewriteRCons : protected EnvObj
   bool postProve(
       CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
 
+  /**
+   * Ensure we have a proof for theory rewrite id of eq in cdp. This typically
+   * adds a single THEORY_REWRITE step to cdp. However, for rules with prefix
+   * MACRO_, we perform elaboration.
+   * @param cdp The proof to add to.
+   * @param id The theory rewrite that proves eq.
+   * @param eq The conclusion of the theory rewrite.
+   * @param subgoals The list of proofs introduced when proving eq that
+   * are trusted steps.
+   */
+  void ensureProofForTheoryRewrite(
+      CDProof* cdp,
+      ProofRewriteRule id,
+      const Node& eq,
+      std::vector<std::shared_ptr<ProofNode>>& subgoals);
+
  private:
   /**
    * Is proof-granularity set to dsl-rewrite-strict? This impacts when
@@ -70,6 +86,21 @@ class BasicRewriteRCons : protected EnvObj
                Node eq,
                ProofRule r,
                const std::vector<Node>& args);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_BOOL_NNF_NORM.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by ProofRewriteRule::MACRO_BOOL_NNF_NORM.
+   * @param subgoals The list of proofs introduced when proving eq that
+   * are trusted steps. These are small step rewrites corresponding to NNF
+   * flattening of operators, and other simple inferences.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroBoolNnfNorm(
+      CDProof* cdp,
+      const Node& eq,
+      std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /**
    * Try THEORY_REWRITE with theory::TheoryRewriteCtx ctx.
    */
