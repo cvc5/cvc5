@@ -15,7 +15,6 @@
 (define-rule arith-int-div-total-one ((t Int)) (div_total t 1) t)
 (define-rule arith-int-div-total-zero ((t Int)) (div_total t 0) 0)
 
-;(define-rule arith-int-mod-one ((t Int)) (mod t 1) 0)
 (define-cond-rule arith-int-mod-total ((t Int) (s Int)) (not (= s 0)) (mod t s) (mod_total t s))
 (define-rule arith-int-mod-total-one ((t Int)) (mod_total t 1) 0)
 (define-rule arith-int-mod-total-zero ((t Int)) (mod_total t 0) 0)
