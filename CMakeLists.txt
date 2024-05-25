@@ -381,8 +381,10 @@ else()
 endif()
 
 # Keep the PATH to the Python binary before setting venv.
+# Use a CACHE variable to remember the original value.
 # We use this path in the installation step of the Python bindings.
-set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}")
+set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
+    CACHE STRING "Base Python executable")
 
 if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
   # Set up Python venv if one doesn't exist already
