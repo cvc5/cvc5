@@ -2560,6 +2560,10 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARRAY_STORE_SELF),
   /** Auto-generated from RARE rule bool-double-not-elim */
   EVALUE(BOOL_DOUBLE_NOT_ELIM),
+  /** Auto-generated from RARE rule bool-not-true */
+  EVALUE(BOOL_NOT_TRUE),
+  /** Auto-generated from RARE rule bool-not-false */
+  EVALUE(BOOL_NOT_FALSE),
   /** Auto-generated from RARE rule bool-eq-true */
   EVALUE(BOOL_EQ_TRUE),
   /** Auto-generated from RARE rule bool-eq-false */
@@ -2596,6 +2600,12 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(BOOL_AND_CONF),
   /** Auto-generated from RARE rule bool-or-taut */
   EVALUE(BOOL_OR_TAUT),
+  /** Auto-generated from RARE rule bool-or-de-morgan */
+  EVALUE(BOOL_OR_DE_MORGAN),
+  /** Auto-generated from RARE rule bool-implies-de-morgan */
+  EVALUE(BOOL_IMPLIES_DE_MORGAN),
+  /** Auto-generated from RARE rule bool-and-de-morgan */
+  EVALUE(BOOL_AND_DE_MORGAN),
   /** Auto-generated from RARE rule bool-xor-refl */
   EVALUE(BOOL_XOR_REFL),
   /** Auto-generated from RARE rule bool-xor-nrefl */
@@ -2608,6 +2618,10 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(BOOL_XOR_COMM),
   /** Auto-generated from RARE rule bool-xor-elim */
   EVALUE(BOOL_XOR_ELIM),
+  /** Auto-generated from RARE rule bool-not-xor-elim */
+  EVALUE(BOOL_NOT_XOR_ELIM),
+  /** Auto-generated from RARE rule bool-not-eq-elim */
+  EVALUE(BOOL_NOT_EQ_ELIM),
   /** Auto-generated from RARE rule ite-neg-branch */
   EVALUE(ITE_NEG_BRANCH),
   /** Auto-generated from RARE rule ite-then-true */
