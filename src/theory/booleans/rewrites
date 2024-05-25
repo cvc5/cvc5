@@ -47,7 +47,7 @@
 (define-rule bool-xor-elim ((x Bool) (y Bool)) (xor x y) (= (not x) y))
 (define-rule bool-not-xor-elim ((x Bool) (y Bool)) (not (xor x y)) (= x y))
 
-(define-rule bool-not-iff-elim ((x Bool) (y Bool)) (not (= x y)) (= (not x) y))
+(define-rule bool-not-eq-elim ((x Bool) (y Bool)) (not (= x y)) (= (not x) y))
 
 (define-cond-rule ite-neg-branch ((c Bool) (x Bool) (y Bool)) (= (not y) x) (ite c x y) (= c x))
 
