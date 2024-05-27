@@ -100,6 +100,14 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
 {
   registerProofRewriteRule(ProofRewriteRule::EXISTS_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::QUANT_UNUSED_VARS,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::QUANT_MERGE_PRENEX,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::QUANT_MINISCOPE,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -120,6 +128,74 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         fchildren.push_back(n[2]);
       }
       return d_nm->mkNode(Kind::NOT, d_nm->mkNode(Kind::FORALL, fchildren));
+    }
+    case ProofRewriteRule::QUANT_UNUSED_VARS:
+    {
+      if (!n.isClosure())
+      {
+        return Node::null();
+      }
+      std::vector<Node> vars(n[0].begin(), n[0].end());
+      std::vector<Node> activeVars;
+      computeArgVec(vars, activeVars, n[1]);
+      if (activeVars.size() < vars.size())
+      {
+        if (activeVars.empty())
+        {
+          return n[1];
+        }
+        return d_nm->mkNode(
+            n.getKind(), d_nm->mkNode(Kind::BOUND_VAR_LIST, activeVars), n[1]);
+      }
+    }
+    break;
+    case ProofRewriteRule::QUANT_MERGE_PRENEX:
+    {
+      if (!n.isClosure())
+      {
+        return Node::null();
+      }
+      // Don't check standard here, which can't be replicated in a proof checker
+      // without modelling the patterns.
+      Node q = mergePrenex(n, false);
+      if (q != n)
+      {
+        return q;
+      }
+    }
+    break;
+    case ProofRewriteRule::QUANT_MINISCOPE:
+    {
+      if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::AND)
+      {
+        return Node::null();
+      }
+      // note that qa is not needed; moreover external proofs should be agnostic
+      // to it
+      QAttributes qa;
+      QuantAttributes::computeQuantAttributes(n, qa);
+      Node nret = computeMiniscoping(n, qa, true, false);
+      Assert(nret != n);
+      return nret;
+    }
+    break;
+    case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
+    {
+      if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::OR)
+      {
+        return Node::null();
+      }
+      // note that qa is not needed; moreover external proofs should be agnostic
+      // to it
+      QAttributes qa;
+      QuantAttributes::computeQuantAttributes(n, qa);
+      std::vector<Node> vars(n[0].begin(), n[0].end());
+      Node body = n[1];
+      Node nret = computeSplit(vars, body, qa);
+      if (nret != n)
+      {
+        return nret;
+      }
     }
     break;
     default: break;
@@ -242,7 +318,7 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
     // eagerly here, where after we would drop y to obtain:
     //   (forall ((x Int)) (! (P x) :pattern ((f x))))
     // See issue #10303.
-    Node qm = mergePrenex(q);
+    Node qm = mergePrenex(q, true);
     if (q != qm)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qm);
@@ -274,7 +350,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   else if (in.getKind() == Kind::FORALL)
   {
     // do prenex merging
-    ret = mergePrenex(in);
+    ret = mergePrenex(in, true);
     if (ret != in)
     {
       status = REWRITE_AGAIN_FULL;
@@ -311,7 +387,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   return RewriteResponse( status, ret );
 }
 
-Node QuantifiersRewriter::mergePrenex(const Node& q)
+Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd)
 {
   Assert(q.getKind() == Kind::FORALL || q.getKind() == Kind::EXISTS);
   Kind k = q.getKind();
@@ -336,17 +412,22 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
     continueCombine = false;
     if (body.getNumChildren() == 2 && body[1].getKind() == k)
     {
-      QAttributes qa;
-      QuantAttributes::computeQuantAttributes(body[1], qa);
-      // Should never combine a quantified formula with a pool or
-      // non-standard quantified formula here.
-      // Note that we technically should check
-      // doOperation(body[1], COMPUTE_PRENEX, qa) here, although this
-      // is too restrictive, as sometimes nested patterns should just be
-      // applied to the top level, for example:
-      // (forall ((x Int)) (forall ((y Int)) (! P :pattern ((f x y)))))
-      // should be a pattern for the top-level quantifier here.
-      if (qa.isStandard() && !qa.d_hasPool)
+      bool process = true;
+      if (checkStd)
+      {
+        // Should never combine a quantified formula with a pool or
+        // non-standard quantified formula here.
+        // Note that we technically should check
+        // doOperation(body[1], COMPUTE_PRENEX, qa) here, although this
+        // is too restrictive, as sometimes nested patterns should just be
+        // applied to the top level, for example:
+        // (forall ((x Int)) (forall ((y Int)) (! P :pattern ((f x y)))))
+        // should be a pattern for the top-level quantifier here.
+        QAttributes qa;
+        QuantAttributes::computeQuantAttributes(body[1], qa);
+        process = qa.isStandard();
+      }
+      if (process)
       {
         body = body[1];
         continueCombine = true;
@@ -1575,24 +1656,35 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
   }
   if ( eqc_active>1 || !lits.empty() || var_to_eqc.size()!=args.size() ){
     NodeManager* nm = nodeManager();
-    Trace("clause-split-debug") << "Split quantified formula with body " << body << std::endl;
-    Trace("clause-split-debug") << "   Ground literals: " << std::endl;
-    for( size_t i=0; i<lits.size(); i++) {
-      Trace("clause-split-debug") << "      " << lits[i] << std::endl;
-    }
-    Trace("clause-split-debug") << std::endl;
-    Trace("clause-split-debug") << "Equivalence classes: " << std::endl;
-    for (std::map< int, std::vector< Node > >::iterator it = eqc_to_lit.begin(); it != eqc_to_lit.end(); ++it ){
-      Trace("clause-split-debug") << "   Literals: " << std::endl;
-      for (size_t i=0; i<it->second.size(); i++) {
-        Trace("clause-split-debug") << "      " << it->second[i] << std::endl;
-      }
-      int eqc = it->first;
-      Trace("clause-split-debug") << "   Variables: " << std::endl;
-      for (size_t i=0; i<eqc_to_var[eqc].size(); i++) {
-        Trace("clause-split-debug") << "      " << eqc_to_var[eqc][i] << std::endl;
+    if (TraceIsOn("clause-split-debug"))
+    {
+      Trace("clause-split-debug")
+          << "Split quantified formula with body " << body << std::endl;
+      Trace("clause-split-debug") << "   Ground literals: " << std::endl;
+      for (size_t i = 0; i < lits.size(); i++)
+      {
+        Trace("clause-split-debug") << "      " << lits[i] << std::endl;
       }
       Trace("clause-split-debug") << std::endl;
+      Trace("clause-split-debug") << "Equivalence classes: " << std::endl;
+    }
+    for (std::map< int, std::vector< Node > >::iterator it = eqc_to_lit.begin(); it != eqc_to_lit.end(); ++it ){
+      int eqc = it->first;
+      if (TraceIsOn("clause-split-debug"))
+      {
+        Trace("clause-split-debug") << "   Literals: " << std::endl;
+        for (size_t i = 0; i < it->second.size(); i++)
+        {
+          Trace("clause-split-debug") << "      " << it->second[i] << std::endl;
+        }
+        Trace("clause-split-debug") << "   Variables: " << std::endl;
+        for (size_t i = 0; i < eqc_to_var[eqc].size(); i++)
+        {
+          Trace("clause-split-debug")
+              << "      " << eqc_to_var[eqc][i] << std::endl;
+        }
+        Trace("clause-split-debug") << std::endl;
+      }
       Node bvl = nodeManager()->mkNode(Kind::BOUND_VAR_LIST, eqc_to_var[eqc]);
       Node bd = it->second.size() == 1 ? it->second[0]
                                        : nm->mkNode(Kind::OR, it->second);
@@ -1604,9 +1696,8 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
         lits.size() == 1 ? lits[0] : nodeManager()->mkNode(Kind::OR, lits);
     Trace("clause-split-debug") << "Made node : " << nf << std::endl;
     return nf;
-  }else{
-    return mkForAll( args, body, qa );
   }
+  return mkForAll(args, body, qa);
 }
 
 Node QuantifiersRewriter::mkForAll(const std::vector<Node>& args,
