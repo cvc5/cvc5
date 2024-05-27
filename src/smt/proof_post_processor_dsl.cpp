@@ -53,6 +53,14 @@ void ProofPostprocessDsl::reconstruct(
     }
   }
   // should never construct a subgoal for a step from a subgoal
+  if (!d_subgoals.empty())
+  {
+    Trace("pp-dsl") << "REM SUBGOALS: " << std::endl;
+    for (std::shared_ptr<ProofNode> p : d_subgoals)
+    {
+      Trace("pp-dsl") << "  " << p->getResult() << std::endl;
+    }
+  }
   Assert(d_subgoals.empty());
 }
 

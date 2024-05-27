@@ -58,3 +58,5 @@
 
 (define-rule ite-then-lookahead-self ((c Bool) (x Bool)) (ite c c x) (ite c true x))
 (define-rule ite-else-lookahead-self ((c Bool) (x Bool)) (ite c x c) (ite c x false))
+
+(define-rule bool-not-ite-elim ((c Bool) (x Bool) (y Bool)) (not (ite c x y)) (ite c (not x) (not y)))
