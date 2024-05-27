@@ -88,16 +88,8 @@ bool RewriteDbProofCons::prove(
       transEq.push_back(aeq);
     }
     Node bi = d_rdnc.postConvert(b);
-    if (bi!=b)
-    {
-      Node beq = b.eqNode(bi);
-      cdp->addStep(beq, ProofRule::ENCODE_PRED_TRANSFORM, {}, {a});
-      Node beqs = bi.eqNode(b);
-      cdp->addStep(beqs, ProofRule::SYMM, {beq}, {});
-      transEq.push_back(beqs);
-    }
     std::vector<Node> cargs;
-    ProofRule cr = expr::getCongRule(eqo[0], cargs);
+    ProofRule cr = expr::getCongRule(ai, cargs);
     // only apply this to standard binders (those with 2 children)
     if (ai.getNumChildren() == 2 && bi.getNumChildren()==2)
     {
@@ -105,6 +97,14 @@ bool RewriteDbProofCons::prove(
       Node eqConv = ai.eqNode(bi);
       cdp->addStep(eqConv, cr, {eq}, cargs);
       transEq.push_back(eqConv);
+    }
+    if (bi!=b)
+    {
+      Node beq = b.eqNode(bi);
+      cdp->addStep(beq, ProofRule::ENCODE_PRED_TRANSFORM, {}, {a});
+      Node beqs = bi.eqNode(b);
+      cdp->addStep(beqs, ProofRule::SYMM, {beq}, {});
+      transEq.push_back(beqs);
     }
     if (transEq.size()>1)
     {
