@@ -2636,6 +2636,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ITE_THEN_LOOKAHEAD_SELF),
   /** Auto-generated from RARE rule ite-else-lookahead-self */
   EVALUE(ITE_ELSE_LOOKAHEAD_SELF),
+  /** Auto-generated from RARE rule bool-not-ite-elim */
+  EVALUE(BOOL_NOT_ITE_ELIM),
   /** Auto-generated from RARE rule ite-true-cond */
   EVALUE(ITE_TRUE_COND),
   /** Auto-generated from RARE rule ite-false-cond */
