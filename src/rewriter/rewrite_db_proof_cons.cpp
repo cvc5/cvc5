@@ -67,29 +67,49 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   // clear the evaluate cache
   d_evalCache.clear();
   Node eq = a.eqNode(b);
+  Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
+               << std::endl;
   // As a heuristic, always apply CONG if we are an equality between two
   // binder terms with the same quantifier prefix.
   if (a.isClosure() && a.getKind() == b.getKind() && a[0] == b[0])
   {
     Node eqo = eq;
-    // Ensure the equality is converted, which resolves complications with
-    // patterns.
-    Node eqoi = d_rdnc.convert(eqo);
-    std::vector<Node> cargs;
-    ProofRule cr = expr::getCongRule(eqoi[0], cargs);
-    // only apply this to standard binders (those with 2 children)
-    if (eqoi[0].getNumChildren() == 2)
+    // Ensure patterns are removed by calling d_rdnc postConvert (single step).
+    // We do not apply convert recursively here or else it would e.g. convert
+    // the entire quantifier body to ACI normal form.
+    Node ai = d_rdnc.postConvert(a);
+    std::vector<Node> transEq;
+    if (ai!=a)
     {
-      eq = eqoi[0][1].eqNode(eqoi[1][1]);
-      cdp->addStep(eqoi, cr, {eq}, cargs);
-      if (eqo != eqoi)
-      {
-        d_trrc.ensureProofForEncodeTransform(cdp, eqo, eqoi);
-      }
+      Node aeq = a.eqNode(ai);
+      cdp->addStep(aeq, ProofRule::ENCODE_PRED_TRANSFORM, {}, {a});
+      transEq.push_back(aeq);
     }
+    Node bi = d_rdnc.postConvert(b);
+    if (bi!=b)
+    {
+      Node beq = b.eqNode(bi);
+      cdp->addStep(beq, ProofRule::ENCODE_PRED_TRANSFORM, {}, {a});
+      Node beqs = bi.eqNode(b);
+      cdp->addStep(beqs, ProofRule::SYMM, {beq}, {});
+      transEq.push_back(beqs);
+    }
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(eqo[0], cargs);
+    // only apply this to standard binders (those with 2 children)
+    if (ai.getNumChildren() == 2 && bi.getNumChildren()==2)
+    {
+      eq = ai[1].eqNode(bi[1]);
+      Node eqConv = ai.eqNode(bi);
+      cdp->addStep(eqConv, cr, {eq}, cargs);
+      transEq.push_back(eqConv);
+    }
+    if (transEq.size()>1)
+    {
+      cdp->addStep(eqo, ProofRule::TRANS, transEq, {});
+    }
+    Trace("rpc") << "- process to " << eq[0] << " == " << eq[1] << std::endl;
   }
-  Trace("rpc") << "RewriteDbProofCons::prove: " << eq[0] << " == " << eq[1]
-               << std::endl;
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
   if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid))
