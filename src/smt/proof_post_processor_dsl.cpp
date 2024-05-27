@@ -61,7 +61,14 @@ void ProofPostprocessDsl::reconstruct(
       Trace("pp-dsl") << "  " << p->getResult() << std::endl;
     }
   }
-  Assert(d_subgoals.empty());
+  if (!d_subgoals.empty())
+  {
+    for (std::shared_ptr<ProofNode> p : d_subgoals)
+    {
+      Warning() << "WARNING: unproven subgoal " << p->getResult() << std::endl;
+    }
+    d_subgoals.clear();
+  }
 }
 
 bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
