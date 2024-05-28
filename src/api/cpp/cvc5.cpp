@@ -5396,7 +5396,8 @@ Term TermManager::mkRealOrIntegerFromStrHelper(const std::string& s, bool isInt)
     /* Catch to throw with a more meaningful error message. To be caught in
      * enclosing CVC5_API_TRY_CATCH_* block to throw CVC5ApiException. */
     std::stringstream message;
-    message << "Cannot construct Real or Int from string argument '" << s << "'";
+    message << "Cannot construct Real or Int from string argument '" << s
+            << "'";
     throw std::invalid_argument(message.str());
   }
 }
