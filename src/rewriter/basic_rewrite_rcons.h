@@ -81,6 +81,17 @@ class BasicRewriteRCons : protected EnvObj
                  MethodId mid,
                  std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /**
+   * Add to cdp a proof of eq from free asumption eqi, where eqi is the result
+   * of term conversion via RewriteDbNodeConverter.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The original equality.
+   * @param eqi The equality after conversion.
+   */
+  void ensureProofForEncodeTransform(CDProof* cdp,
+                                     const Node& eq,
+                                     const Node& eqi);
+  /**
    * Ensure we have a proof for theory rewrite id of eq in cdp. This typically
    * adds a single THEORY_REWRITE step to cdp. However, for rules with prefix
    * MACRO_, we perform elaboration.
