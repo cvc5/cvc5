@@ -49,8 +49,8 @@ public class Combination
       // Construct the assertions
       Term assertions = slv.mkTerm(Kind.AND,
           new Term[] {
-              slv.mkTerm(Kind.LEQ, zero, f_x),
-              slv.mkTerm(Kind.LEQ, zero, f_y),
+              slv.mkTerm(Kind.EQUAL, x, f_x),
+              slv.mkTerm(Kind.EQUAL, y, f_y),
               p_f_x.notTerm(), 
               p_f_y 
           });
