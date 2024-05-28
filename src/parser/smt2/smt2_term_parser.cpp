@@ -1002,17 +1002,21 @@ uint32_t Smt2TermParser::parseIntegerNumeral()
 uint32_t Smt2TermParser::tokenStrToUnsigned()
 {
   // forbid leading zeroes if in strict mode
+  std::string token = d_lex.tokenStr();
   if (d_lex.isStrict())
   {
-    std::string token = d_lex.tokenStr();
     if (token.size() > 1 && token[0] == '0')
     {
-      d_lex.parseError("Numeral with leading zeroes are forbidden");
+      d_lex.parseError("Numerals with leading zeroes are forbidden");
     }
+  }
+  if (token.size() > 1 && token[0] == '-')
+  {
+    d_lex.parseError("Negative numerals are forbidden in indices");
   }
   uint32_t result;
   std::stringstream ss;
-  ss << d_lex.tokenStr();
+  ss << token;
   ss >> result;
   return result;
 }
