@@ -60,5 +60,6 @@ public class Combination
           + "cvc5: " + slv.checkSat() + ".\n");
     
       Context.deletePointers();
+    }
   }
 }
