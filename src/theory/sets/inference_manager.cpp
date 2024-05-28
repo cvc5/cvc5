@@ -42,7 +42,7 @@ InferenceManager::InferenceManager(Env& env,
 bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int inferType)
 {
   // should we send this fact out as a lemma?
-  if ((options().sets.setsInferAsLemmas && inferType != -1) || inferType == 1)
+  if (inferType != -1)
   {
     if (d_state.isEntailed(fact, true))
     {
