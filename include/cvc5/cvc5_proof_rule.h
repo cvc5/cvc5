@@ -283,10 +283,10 @@ enum ENUM(ProofRule) : uint32_t
    * More specifically, it is the case that
    * :math:`\texttt{RewriteDbNodeConverter::postConvert}(t) = t;`.
    * This conversion method for instance may drop user patterns from quantified
-   * formulas or change the representation of :math:`t` in a way that is not
-   * captured in external proofs.
+   * formulas or change the representation of :math:`t` in a way that is a
+   * no-op in external proof formats.
    *
-   * Note this rule can be treated as a 
+   * Note this rule can be treated as a
    * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
    * external proof formats.
    * \endverbatim

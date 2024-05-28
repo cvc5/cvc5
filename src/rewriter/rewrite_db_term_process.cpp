@@ -128,7 +128,13 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
       break;
     case ProofRule::EVALUATE:
     {
-      // evaluate step in reverse, using d_proof as an intermediate step
+      // Evaluate step in reverse, using d_proof as an intermediate step.
+      // For instance, we require proving "ABC" = (str.++ "A" "B" "C").
+      // We prove this by
+      // ---------------------------- EVALUATE
+      // (str.++ "A" "B" "C") = "ABC"
+      // ----------------------------- SYMM
+      // "ABC" = (str.++ "A" "B" "C")
       Node eq = ret.eqNode(n);
       d_proof->addStep(eq, ProofRule::EVALUATE, {}, {ret});
       d_tpg->addRewriteStep(n, ret, d_proof);
