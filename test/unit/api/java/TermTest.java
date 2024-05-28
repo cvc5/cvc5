@@ -814,6 +814,9 @@ class TermTest
     assertEquals("1/18446744073709551617", Utils.getRational(real8.getRealValue()));
     assertEquals("18446744073709551617/1", Utils.getRational(real9.getRealValue()));
     assertEquals("23432343/10000", Utils.getRational(real10.getRealValue()));
+
+    assertThrows(CVC5ApiException.class, () -> d_tm.mkReal("1/0");
+    assertThrows(CVC5ApiException.class, () -> d_tm.mkReal("2/0000");
   }
 
   @Test
