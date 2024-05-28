@@ -5374,12 +5374,13 @@ Term TermManager::mkRealOrIntegerFromStrHelper(const std::string& s, bool isInt)
   {
     internal::Rational r;
     size_t spos = s.find('/');
-    if (spos != std::string::npos) 
+    if (spos != std::string::npos)
     {
       // Ensure the denominator contains a non-zero digit. We catch this here to
       // avoid a floating point exception in GMP. This exception will be caught
       // and given the standard error message below.
-      if (s.find_first_not_of('0', spos+1) == std::string::npos) {
+      if (s.find_first_not_of('0', spos + 1) == std::string::npos)
+      {
         throw std::invalid_argument("Zero denominator encountered");
       }
       r = internal::Rational(s);
