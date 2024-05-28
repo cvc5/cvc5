@@ -16,21 +16,37 @@
 
 #include "rewriter/basic_rewrite_rcons.h"
 
+#include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrites.h"
 #include "smt/env.h"
+#include "theory/arith/arith_poly_norm.h"
+#include "theory/arith/arith_proof_utilities.h"
+#include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/rewriter.h"
+#include "theory/strings/arith_entail.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace rewriter {
 
-BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env) {}
+BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env)
+{
+  d_isDslStrict = (options().proof.proofGranularityMode
+                   == options::ProofGranularityMode::DSL_REWRITE_STRICT);
+}
 
-bool BasicRewriteRCons::prove(
-    CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
+bool BasicRewriteRCons::prove(CDProof* cdp,
+                              Node a,
+                              Node b,
+                              theory::TheoryId tid,
+                              MethodId mid,
+                              std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   Node eq = a.eqNode(b);
   Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "
@@ -52,15 +68,12 @@ bool BasicRewriteRCons::prove(
   }
 
   // try theory rewrite (pre-rare)
-  ProofRewriteRule prid =
-      d_env.getRewriter()->findRule(a, b, theory::TheoryRewriteCtx::PRE_DSL);
-  if (prid != ProofRewriteRule::NONE)
+  if (!d_isDslStrict)
   {
-    if (tryRule(
-            cdp, eq, ProofRule::THEORY_REWRITE, {mkRewriteRuleNode(prid), eq}))
+    if (tryTheoryRewrite(cdp, eq, theory::TheoryRewriteCtx::PRE_DSL, subgoals))
     {
-      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << prid
-                              << ", " << mid << ")" << std::endl;
+      Trace("trewrite-rcons")
+          << "Reconstruct (pre) " << eq << " via theory rewrite" << std::endl;
       return true;
     }
   }
@@ -69,32 +82,47 @@ bool BasicRewriteRCons::prove(
 }
 
 bool BasicRewriteRCons::postProve(
-    CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
+    CDProof* cdp,
+    Node a,
+    Node b,
+    theory::TheoryId tid,
+    MethodId mid,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   Node eq = a.eqNode(b);
-
-  // try theory rewrite (post-rare)
-  ProofRewriteRule prid =
-      d_env.getRewriter()->findRule(a, b, theory::TheoryRewriteCtx::POST_DSL);
-  if (prid != ProofRewriteRule::NONE)
+  // try theory rewrite (post-rare), which may try both pre and post if
+  // the proof-granularity mode is dsl-rewrite-strict.
+  bool success = false;
+  if (d_isDslStrict)
   {
-    if (tryRule(
-            cdp, eq, ProofRule::THEORY_REWRITE, {mkRewriteRuleNode(prid), eq}))
+    if (tryTheoryRewrite(cdp, eq, theory::TheoryRewriteCtx::PRE_DSL, subgoals))
     {
-      Trace("trewrite-rcons") << "Reconstruct (post) " << eq << " (from "
-                              << prid << ", " << mid << ")" << std::endl;
-      return true;
+      success = true;
     }
   }
-
-  Trace("trewrite-rcons") << "...(fail)" << std::endl;
-  return false;
+  if (!success
+      && tryTheoryRewrite(
+          cdp, eq, theory::TheoryRewriteCtx::POST_DSL, subgoals))
+  {
+    success = true;
+  }
+  if (success)
+  {
+    Trace("trewrite-rcons")
+        << "Reconstruct (post) " << eq << " via theory rewrite" << std::endl;
+  }
+  else
+  {
+    Trace("trewrite-rcons") << "...(fail)" << std::endl;
+  }
+  return success;
 }
 
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                 Node eq,
                                 ProofRule r,
-                                const std::vector<Node>& args)
+                                const std::vector<Node>& args,
+                                bool addStep)
 {
   Trace("trewrite-rcons-debug") << "Try " << r << std::endl;
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
@@ -103,8 +131,81 @@ bool BasicRewriteRCons::tryRule(CDProof* cdp,
   Node res = pc->checkDebug(r, {}, args, Node::null(), "trewrite-rcons");
   if (!res.isNull() && res == eq)
   {
-    cdp->addStep(eq, r, {}, args);
+    if (addStep)
+    {
+      cdp->addStep(eq, r, {}, args);
+    }
     return true;
+  }
+  return false;
+}
+
+void BasicRewriteRCons::ensureProofForTheoryRewrite(
+    CDProof* cdp,
+    ProofRewriteRule id,
+    const Node& eq,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::MACRO_BOOL_NNF_NORM:
+      if (ensureProofMacroBoolNnfNorm(cdp, eq, subgoals))
+      {
+        return;
+      }
+      break;
+    default: break;
+  }
+  // default, just add the rewrite
+  std::vector<Node> args;
+  args.push_back(
+      nodeManager()->mkConstInt(Rational(static_cast<uint32_t>(id))));
+  args.push_back(eq);
+  cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, args);
+}
+
+bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(
+    CDProof* cdp,
+    const Node& eq,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+{
+  Trace("brc-macro") << "Expand Bool NNF norm " << eq[0] << " == " << eq[1]
+                     << std::endl;
+  // Call the utility again with proof tracking and construct the term
+  // conversion proof. This proof itself may have trust steps in it.
+  TConvProofGenerator tcpg(d_env, nullptr);
+  Node nr = theory::booleans::TheoryBoolRewriter::computeNnfNorm(
+      nodeManager(), eq[0], &tcpg);
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
+  Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
+  cdp->addProof(pfn);
+  // the small steps are trust steps, record them here
+  expr::getSubproofRule(pfn, ProofRule::TRUST, subgoals);
+  return true;
+}
+
+bool BasicRewriteRCons::tryTheoryRewrite(
+    CDProof* cdp,
+    const Node& eq,
+    theory::TheoryRewriteCtx ctx,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  ProofRewriteRule prid = d_env.getRewriter()->findRule(eq[0], eq[1], ctx);
+  if (prid != ProofRewriteRule::NONE)
+  {
+    // Do not add the step in the call to tryStep, instead we add it via
+    // ensureProofForTheoryRewrite.
+    if (tryRule(cdp,
+                eq,
+                ProofRule::THEORY_REWRITE,
+                {mkRewriteRuleNode(prid), eq},
+                false))
+    {
+      // Theory rewrites may require macro expansion
+      ensureProofForTheoryRewrite(cdp, prid, eq, subgoals);
+      return true;
+    }
   }
   return false;
 }

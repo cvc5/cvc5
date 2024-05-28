@@ -1,4 +1,5 @@
 (include "../theories/Strings.smt3")
+(include "../theories/Quantifiers.smt3")
 (include "../programs/Strings.smt3")
 
 ;;-------------------- Core
@@ -235,6 +236,30 @@
                            (not (str.in_re (skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
                        (or (not (str.in_re (skolem_prefix s n) r1)) 
                            (not (str.in_re (skolem_suffix_rem s n) ($singleton_elim r2)))))))
+    ))
+)
+
+; ProofRule::RE_UNFOLD_NEG
+(declare-rule re_unfold_neg ((t String) (r RegLan))
+  :premises ((not (str.in_re t r)))
+  :conclusion
+    (alf.match ((r1 RegLan) (r2 RegLan :list))
+      r
+      (
+        ((re.* r1)
+          (and
+            (not (= t ""))
+            (forall ((@var.str_index Int))
+              (or (<= @var.str_index 0)
+                  (< (str.len t) @var.str_index)
+                  (not (str.in_re (skolem_prefix t @var.str_index) r1))
+                  (not (str.in_re (skolem_suffix_rem t @var.str_index) r))))))
+        ((re.++ r1 r2)
+          (forall ((@var.str_index Int))
+            (or (< @var.str_index 0)
+                (< (str.len t) @var.str_index)
+                (not (str.in_re (skolem_prefix t @var.str_index) r1))
+                (not (str.in_re (skolem_suffix_rem t @var.str_index) ($singleton_elim r2))))))
     ))
 )
 
