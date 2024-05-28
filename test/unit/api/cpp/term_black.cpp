@@ -845,8 +845,8 @@ TEST_F(TestApiBlackTerm, getReal)
 
   ASSERT_EQ("23432343/10000", real10.getRealValue());
   
-  ASSERT_THROW(d_tm.mkReal("1/0", CVC5ApiException);
-  ASSERT_THROW(d_tm.mkReal("2/0000", CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal("1/0"), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal("2/0000"), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTerm, getConstArrayBase)
