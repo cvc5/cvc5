@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli, Yoni Zohar, Mudathir Mohamed
+#   Andres Noetzli, Alex Ozdemir, Vinícius Camillo
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -39,15 +39,24 @@ set(EXAMPLES_API_PYTHON
 
 find_package(Python ${CVC5_BINDINGS_PYTHON_VERSION} EXACT REQUIRED)
 
-# Find Python bindings in the corresponding python-*/site-packages directory.
-# Lookup Python module directory and store path in PYTHON_MODULE_PATH.
-execute_process(COMMAND
-                  ${Python_EXECUTABLE} -c
-                    "from distutils.sysconfig import get_python_lib;\
-                     print(get_python_lib(plat_specific=True,\
-                             prefix='${CMAKE_PREFIX_PATH}/../..'))"
-                OUTPUT_VARIABLE PYTHON_MODULE_PATH
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+# Check whether the cvc5 module is already installed
+execute_process(
+  COMMAND ${Python_EXECUTABLE} -c "import cvc5"
+  RESULT_VARIABLE PYTHON_CVC5_RC
+  ERROR_QUIET
+)
+
+if(NOT (PYTHON_CVC5_RC EQUAL 0))
+  # Find Python bindings in the corresponding python-*/site-packages directory.
+  # Lookup Python module directory and store path in PYTHON_MODULE_PATH.
+  execute_process(COMMAND
+  ${Python_EXECUTABLE} -c
+    "import sysconfig;\
+     print('${CMAKE_PREFIX_PATH}/../..'+\
+     sysconfig.get_paths()['platlib'].split(sysconfig.get_config_var('platbase'))[1])"
+  OUTPUT_VARIABLE PYTHON_MODULE_PATH
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 
 function(create_python_example example)
   set(example_test example/api/python/${example})

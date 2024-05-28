@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,7 @@
 #include "proof/conv_proof_generator.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
+#include "theory/quantifiers/oracle_checker.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/trust_substitutions.h"
@@ -37,24 +38,27 @@ using namespace cvc5::internal::smt;
 
 namespace cvc5::internal {
 
-Env::Env(const Options* opts)
-    : d_context(new context::Context()),
+Env::Env(NodeManager* nm, const Options* opts)
+    : d_nm(nm),
+      d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_proofNodeManager(nullptr),
-      d_rewriter(new theory::Rewriter()),
+      d_rewriter(new theory::Rewriter(nm)),
       d_evalRew(nullptr),
       d_eval(nullptr),
       d_topLevelSubs(nullptr),
       d_logic(),
-      d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
       d_resourceManager(),
-      d_uninterpretedSortOwner(theory::THEORY_UF)
+      d_uninterpretedSortOwner(theory::THEORY_UF),
+      d_boolTermSkolems(d_userContext.get())
 {
   if (opts != nullptr)
   {
     d_options.copyValues(*opts);
   }
+  d_statisticsRegistry.reset(new StatisticsRegistry(
+      d_options.base.statisticsInternal, d_options.base.statisticsAll));
   // make the evaluators, which depend on the alphabet of strings
   d_evalRew.reset(new theory::Evaluator(d_rewriter.get(),
                                         d_options.strings.stringsAlphaCard));
@@ -67,6 +71,8 @@ Env::Env(const Options* opts)
 
 Env::~Env() {}
 
+NodeManager* Env::getNodeManager() { return d_nm; }
+
 void Env::finishInit(ProofNodeManager* pnm)
 {
   if (pnm != nullptr)
@@ -77,6 +83,11 @@ void Env::finishInit(ProofNodeManager* pnm)
   }
   d_topLevelSubs.reset(
       new theory::TrustSubstitutionMap(*this, d_userContext.get()));
+
+  if (d_options.quantifiers.oracles)
+  {
+    d_ochecker.reset(new theory::quantifiers::OracleChecker(*this));
+  }
 }
 
 void Env::shutdown()
@@ -245,8 +256,15 @@ theory::TheoryId Env::theoryOf(TypeNode typeNode) const
 
 theory::TheoryId Env::theoryOf(TNode node) const
 {
-  return theory::Theory::theoryOf(
-      node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
+  theory::TheoryId tid = theory::Theory::theoryOf(node,
+                                  d_options.theory.theoryOfMode,
+                                  d_uninterpretedSortOwner);
+  // Special case: Boolean term skolems belong to THEORY_UF.
+  if (tid==theory::TheoryId::THEORY_BOOL && isBooleanTermSkolem(node))
+  {
+    return theory::TheoryId::THEORY_UF;
+  }
+  return tid;
 }
 
 bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
@@ -262,6 +280,30 @@ void Env::declareSepHeap(TypeNode locT, TypeNode dataT)
   // remember the types we have set
   d_sepLocType = locT;
   d_sepDataType = dataT;
+}
+
+void Env::addPlugin(Plugin* p) { d_plugins.push_back(p); }
+const std::vector<Plugin*>& Env::getPlugins() const { return d_plugins; }
+
+theory::quantifiers::OracleChecker* Env::getOracleChecker() const
+{
+  return d_ochecker.get();
+}
+
+void Env::registerBooleanTermSkolem(const Node& k)
+{
+  Assert(k.isVar());
+  d_boolTermSkolems.insert(k);
+}
+
+bool Env::isBooleanTermSkolem(const Node& k) const
+{
+  // optimization: check whether k is a variable
+  if (!k.isVar())
+  {
+    return false;
+  }
+  return d_boolTermSkolems.find(k) != d_boolTermSkolems.end();
 }
 
 }  // namespace cvc5::internal

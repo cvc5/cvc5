@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Ying Sheng, Yoni Zohar, Aina Niemetz
+ *   Yoni Zohar, Ying Sheng, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -106,13 +106,8 @@ void storeFunctionAndAddLemmas(TNode func,
   TNodeSet& set = fun_to_args[func];
   if (set.find(term) == set.end())
   {
-    TypeNode tn = term.getType();
     SkolemManager* sm = nm->getSkolemManager();
-    Node skolem =
-        sm->mkDummySkolem("SKOLEM$$",
-                          tn,
-                          "is a variable created by the ackermannization "
-                          "preprocessing pass");
+    Node skolem = sm->mkPurifySkolem(term);
     for (const auto& t : set)
     {
       addLemmaForPair(t, term, func, assertions, nm);
@@ -220,7 +215,7 @@ void collectUSortsToBV(const std::unordered_set<TNode>& vars,
     TypeNode type = var.getType();
     size_t size = getBVSkolemSize(usortCardinality.at(type));
     Node skolem = sm->mkDummySkolem(
-        "BVSKOLEM$$",
+        "ackermann.bv",
         nm->mkBitVectorType(size),
         "a variable created by the ackermannization "
         "preprocessing pass, representing a variable with uninterpreted sort "
@@ -237,10 +232,10 @@ std::unordered_set<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 
   for (const Node& assertion : assertions->ref())
   {
-    std::unordered_set<TNode> vars;
+    std::unordered_set<Node> vars;
     expr::getVariables(assertion, vars);
 
-    for (const TNode& var : vars)
+    for (const Node& var : vars)
     {
       if (var.getType().isUninterpretedSort())
       {

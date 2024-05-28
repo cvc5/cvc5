@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -136,8 +136,8 @@ struct CutScratchPad {
   }
 };
 
-class GmiInfo;
-class MirInfo;
+struct GmiInfo;
+struct MirInfo;
 class BranchCutInfo;
 
 class ApproxGLPK : public ApproximateSimplex
@@ -257,10 +257,6 @@ class ApproxGLPK : public ApproximateSimplex
   bool replaceSlacksOnCuts();
   bool loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound& tmp);
 
-  double sumInfeasibilities(bool mip) const
-  {
-    return sumInfeasibilities(mip? d_mipProb : d_realProb);
-  }
   double sumInfeasibilities(glp_prob* prob, bool mip) const;
 
   /** UTILITIES FOR DEALING WITH ESTIMATES */

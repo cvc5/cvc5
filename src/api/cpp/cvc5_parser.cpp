@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,6 +82,24 @@ const std::string& SymbolManager::getLogic() const
       << "Invalid call to 'getLogic', logic has not yet been set";
   //////// all checks before this line
   return d_sm->getLogic();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Sort> SymbolManager::getDeclaredSorts() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_sm->getDeclaredSorts();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> SymbolManager::getDeclaredTerms() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_sm->getDeclaredTerms();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -309,10 +327,17 @@ void InputParser::setStringInput(modes::InputLanguage lang,
   // initialize the parser
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
-  d_parser->setStringInput(input, name);
+  setStringInputInternal(input, name);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
+
+void InputParser::setStringInputInternal(const std::string& input,
+                                         const std::string& name)
+{
+  d_parser->setStringInput(input, name);
+}
+
 void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
                                             const std::string& name)
 {

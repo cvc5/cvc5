@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
@@ -55,6 +56,16 @@ void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump);
 void getFreeAssumptionsMap(
     std::shared_ptr<ProofNode> pn,
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap);
+
+/**
+ * Get the subproofs of pn that have rule r.
+ * @param pn The proof node.
+ * @param r The rule to find.
+ * @param pfs The list of subproofs of pn that have rule r.
+ */
+void getSubproofRule(std::shared_ptr<ProofNode> pn,
+                     ProofRule r,
+                     std::vector<std::shared_ptr<ProofNode>>& pfs);
 
 /**
  * Return true if pn contains a subproof whose rule is ASSUME. Notice that we
@@ -98,6 +109,16 @@ bool containsSubproof(ProofNode* pn, ProofNode* pnc);
 bool containsSubproof(ProofNode* pn,
                       ProofNode* pnc,
                       std::unordered_set<const ProofNode*>& visited);
+
+/**
+ * Returns the ProofRule that handles congruence for the given term.
+ *
+ * @param n The term, i.e. the lhs or rhs of the conclusion of the cong step.
+ * @param args The arguments to the application of cong for the given term
+ * @return the proof rule for congruence over the given term, which is one
+ * of CONG, NARY_CONG or HO_CONG.
+ */
+ProofRule getCongRule(const Node& n, std::vector<Node>& args);
 
 }  // namespace expr
 }  // namespace cvc5::internal

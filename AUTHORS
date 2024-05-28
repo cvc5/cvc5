@@ -10,18 +10,15 @@ Current:
   Leni Aniva, Stanford University
   Haniel Barbosa, The University of Iowa, Universidade Federal de Minas Gerais
   Clark Barrett, New York University, Google, Stanford University
-  Martin Brain, University of Oxford
-  Vinicius Camillo, Universidade Federal de Minas Gerais
-  Gereon Kremer, Stanford University
   Hanna Lachnitt, Stanford University
+  Daniel Larraz, The University of Iowa
   Abdalrhman Mohamed, The University of Iowa
   Mudathir Mohamed, The University of Iowa
   Aina Niemetz, Stanford University
-  Andres Noetzli, Stanford University
   Alex Ozdemir, Stanford University
   Mathias Preiner, Stanford University
   Andrew Reynolds, The University of Iowa, EPFL
-  Ying Sheng, Stanford University
+  Hans-Jörg Schurr, The University of Iowa
   Cesare Tinelli, The University of Iowa
   Amalee Wilson, Stanford University
   Yoni Zohar, Stanford University
@@ -29,16 +26,21 @@ Current:
 Alumni:
   Kshitij Bansal, New York University, Google
   Francois Bobot, The University of Iowa, Commissariat a l'Energie Atomique
+  Martin Brain, University of Oxford
+  Vinicius Camillo, Universidade Federal de Minas Gerais
   Christopher Conway, New York University, Google
   Morgan Deters, New York University
   Liana Hadarean, New York University, Mentor Graphics Corporation
   Ahmed Irfan, Stanford University
   Dejan Jovanovic, New York University, SRI International
   Guy Katz, New York University, Stanford University
-  Makai Mann, Stanford University
   Tim King, New York University, Universite Joseph Fourier, Google
+  Gereon Kremer, Stanford University
   Tianyi Liang, The University of Iowa
+  Makai Mann, Stanford University
   Paul Meng, The University of Iowa
+  Andres Noetzli, Stanford University
+  Ying Sheng, Stanford University
 
 Other contributors to the cvc5 codebase are listed in the THANKS file.
 

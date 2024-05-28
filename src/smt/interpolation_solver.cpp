@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -93,7 +93,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
 
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
-  subOptions.writeSmt().produceInterpolants = false;
+  subOptions.write_smt().produceInterpolants = false;
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
   // two checks: first, axioms imply interpol, second, interpol implies conj.

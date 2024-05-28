@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -74,8 +74,8 @@ class Integer
   Integer(unsigned long int z) : d_value(z) {}
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-  Integer(int64_t z) : d_value(static_cast<long>(z)) {}
-  Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
+  Integer(int64_t z) : d_value(z) {}
+  Integer(uint64_t z) : d_value(z) {}
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /** Destructor. */

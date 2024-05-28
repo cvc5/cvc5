@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -37,6 +37,8 @@ libcvc5_add_sources(
   emptyset.h
   emptybag.cpp
   emptybag.h
+  free_var_cache.cpp
+  free_var_cache.h
   function_array_const.cpp
   function_array_const.h
   kind_map.h
@@ -67,6 +69,8 @@ libcvc5_add_sources(
   oracle.h
   oracle_caller.cpp
   oracle_caller.h
+  plugin.cpp
+  plugin.h
   sequence.cpp
   sequence.h
   node_visitor.h
@@ -97,12 +101,16 @@ libcvc5_add_sources(
   dtype_selector.cpp
   sequence.cpp
   sequence.h
+  sort_to_term.cpp
+  sort_to_term.h
   subs.cpp
   subs.h
   sygus_datatype.cpp
   sygus_datatype.h
   sygus_grammar.cpp
   sygus_grammar.h
+  sygus_term_enumerator.cpp
+  sygus_term_enumerator.h
   variadic_trie.cpp
   variadic_trie.h
 )

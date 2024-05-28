@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,8 +24,13 @@
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
+    
+class SolverEngine;
+
 namespace theory {
 namespace quantifiers {
+
+class MbqiFastSygus;
 
 /**
  * InstStrategyMbqi
@@ -40,6 +45,7 @@ namespace quantifiers {
  */
 class InstStrategyMbqi : public QuantifiersModule
 {
+  friend class MbqiFastSygus;
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,
@@ -58,7 +64,7 @@ class InstStrategyMbqi : public QuantifiersModule
   /** Check was complete for quantified formula q */
   bool checkCompleteFor(Node q) override;
   /** identify */
-  std::string identify() const override { return "InstStrategyMbqi"; }
+  std::string identify() const override { return "mbqi"; }
 
  private:
   /**
@@ -95,10 +101,37 @@ class InstStrategyMbqi : public QuantifiersModule
   Node convertFromModel(Node t,
                         std::unordered_map<Node, Node>& cmap,
                         const std::map<Node, Node>& mvToFreshVar);
+  /**
+   * Make skolem for term. We use a separate skolem identifier MBQI_INPUT
+   * to refer to the variables of a quantified formula. While purification
+   * skolems could also suffice, this avoids further complications due to
+   * purification skolems for Boolean variables being treated as UF atoms,
+   * which can lead to logic exceptions in subsolvers.
+   */
+  Node mkMbqiSkolem(const Node& t);
+  /**
+   * Return the model value for term t from the solver, possibly post-processing
+   * it with modules maintained by this class (e.g. d_msenum).
+   * @param q The quantified formula we are instantiating.
+   * @param query The query used to find the model-based instantiation.
+   * @param smt The subsolver the query was made on.
+   * @param vars The variables we are instantiating.
+   * @param mvs The model values found for vars by the subsolver. This vector
+   * may be modified based on modules maintained by this class.
+   * @param mvToFreshVar Used for representing values for uninterpreted sorts.
+   */
+  void modelValueFromQuery(const Node& q,
+                           const Node& query,
+                           SolverEngine& smt,
+                           const std::vector<Node>& vars,
+                           std::vector<Node>& mvs,
+                           const std::map<Node, Node>& mvToFreshVar);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
+  /** Submodule for sygus enum */
+  std::unique_ptr<MbqiFastSygus> d_msenum;
 };
 
 }  // namespace quantifiers

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,7 +70,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       expv.push_back(exp);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   bool success = false;
   switch (infer)
   {
@@ -146,7 +146,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           Node t = exp[0];
           Node nn = nm->mkConstInt(Rational(n));
           Node eq = exp.eqNode(conc);
-          cdp->addStep(eq, ProofRule::DT_INST, {}, {t, nn});
+          cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_INST);
           cdp->addStep(conc, ProofRule::EQ_RESOLVE, {exp, eq}, {});
           success = true;
         }
@@ -193,7 +193,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         Node seq = sl.eqNode(sr);
         cdp->addStep(seq, ProofRule::CONG, {exp}, {asn, sop});
         Node sceq = sr.eqNode(concEq[1]);
-        cdp->addStep(sceq, ProofRule::DT_COLLAPSE, {}, {sr});
+        cdp->addTheoryRewriteStep(sceq, ProofRewriteRule::DT_COLLAPSE_SELECTOR);
         cdp->addStep(sl.eqNode(concEq[1]), ProofRule::TRANS, {seq, sceq}, {});
         if (conc.getKind() != Kind::EQUAL)
         {

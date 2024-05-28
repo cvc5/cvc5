@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,9 +70,9 @@ class SymManager::Implementation
   std::map<cvc5::Term, std::string> getExpressionNames(
       bool areAssertions) const;
   /** get model declare sorts */
-  std::vector<cvc5::Sort> getModelDeclareSorts() const;
+  std::vector<cvc5::Sort> getDeclaredSorts() const;
   /** get model declare terms */
-  std::vector<cvc5::Term> getModelDeclareTerms() const;
+  std::vector<cvc5::Term> getDeclaredTerms() const;
   /** get functions to synthesize */
   std::vector<cvc5::Term> getFunctionsToSynthesize() const;
   /** Add declared sort to the list of model declarations. */
@@ -200,14 +200,14 @@ SymManager::Implementation::getExpressionNames(bool areAssertions) const
   return emap;
 }
 
-std::vector<cvc5::Sort> SymManager::Implementation::getModelDeclareSorts() const
+std::vector<cvc5::Sort> SymManager::Implementation::getDeclaredSorts() const
 {
   std::vector<cvc5::Sort> declareSorts(d_declareSorts.begin(),
                                        d_declareSorts.end());
   return declareSorts;
 }
 
-std::vector<cvc5::Term> SymManager::Implementation::getModelDeclareTerms() const
+std::vector<cvc5::Term> SymManager::Implementation::getDeclaredTerms() const
 {
   std::vector<cvc5::Term> declareTerms(d_declareTerms.begin(),
                                        d_declareTerms.end());
@@ -340,6 +340,7 @@ void SymManager::bindType(const std::string& name, cvc5::Sort t)
 bool SymManager::bindMutualDatatypeTypes(
     const std::vector<cvc5::Sort>& datatypes, bool bindTesters)
 {
+  TermManager& tm = d_solver->getTermManager();
   for (size_t i = 0, ntypes = datatypes.size(); i < ntypes; ++i)
   {
     Sort t = datatypes[i];
@@ -365,7 +366,7 @@ bool SymManager::bindMutualDatatypeTypes(
       // constructor.
       if (ctor.getNumSelectors() == 0)
       {
-        constructor = d_solver->mkTerm(Kind::APPLY_CONSTRUCTOR, {constructor});
+        constructor = tm.mkTerm(Kind::APPLY_CONSTRUCTOR, {constructor});
       }
       // always do overloading
       if (!bind(constructorName, constructor, true))
@@ -434,13 +435,13 @@ std::map<cvc5::Term, std::string> SymManager::getExpressionNames(
 {
   return d_implementation->getExpressionNames(areAssertions);
 }
-std::vector<cvc5::Sort> SymManager::getModelDeclareSorts() const
+std::vector<cvc5::Sort> SymManager::getDeclaredSorts() const
 {
-  return d_implementation->getModelDeclareSorts();
+  return d_implementation->getDeclaredSorts();
 }
-std::vector<cvc5::Term> SymManager::getModelDeclareTerms() const
+std::vector<cvc5::Term> SymManager::getDeclaredTerms() const
 {
-  return d_implementation->getModelDeclareTerms();
+  return d_implementation->getDeclaredTerms();
 }
 
 std::vector<cvc5::Term> SymManager::getFunctionsToSynthesize() const

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *   Andrew Reynolds, Haniel Barbosa, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,7 @@
 #include "proof/proof_node_algorithm.h"
 
 #include "proof/proof_node.h"
+#include "proof/proof_rule_checker.h"
 
 namespace cvc5::internal {
 namespace expr {
@@ -38,30 +39,9 @@ void getFreeAssumptionsMap(
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap)
 {
   // proof should not be cyclic
-  // visited set false after preorder traversal, true after postorder traversal
-  std::unordered_map<ProofNode*, bool> visited;
-  std::unordered_map<ProofNode*, bool>::iterator it;
+  std::unordered_set<ProofNode*> visited;
+  std::unordered_set<ProofNode*>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
-  std::vector<std::shared_ptr<ProofNode>> traversing;
-  // Maps a bound assumption to the number of bindings it is under
-  // e.g. in (SCOPE (SCOPE (ASSUME x) (x y)) (y)), y would be mapped to 2 at
-  // (ASSUME x), and x would be mapped to 1.
-  //
-  // This map is used to track which nodes are in scope while traversing the
-  // DAG. The in-scope assumptions are keys in the map. They're removed when
-  // their binding count drops to zero. Let's annotate the above example to
-  // serve as an illustration:
-  //
-  //   (SCOPE0 (SCOPE1 (ASSUME x) (x y)) (y))
-  //
-  // This is how the map changes during the traversal:
-  //   after  previsiting SCOPE0: { y: 1 }
-  //   after  previsiting SCOPE1: { y: 2, x: 1 }
-  //   at                 ASSUME: { y: 2, x: 1 } (so x is in scope!)
-  //   after postvisiting SCOPE1: { y: 1 }
-  //   after postvisiting SCOPE2: {}
-  //
-  std::unordered_map<Node, uint32_t> scopeDepth;
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pn);
   do
@@ -72,65 +52,68 @@ void getFreeAssumptionsMap(
     const std::vector<Node>& cargs = cur->getArguments();
     if (it == visited.end())
     {
+      visited.insert(cur.get());
       ProofRule id = cur->getRule();
       if (id == ProofRule::ASSUME)
       {
-        visited[cur.get()] = true;
         Assert(cargs.size() == 1);
         Node f = cargs[0];
-        if (!scopeDepth.count(f))
-        {
-          amap[f].push_back(cur);
-        }
+        amap[f].push_back(cur);
       }
       else
       {
+        const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
         if (id == ProofRule::SCOPE)
         {
-          // mark that its arguments are bound in the current scope
-          for (const Node& a : cargs)
+          // make a recursive call, which is bound in depth by the number of
+          // nested SCOPE (never expected to be more than 1 or 2).
+          std::map<Node, std::vector<std::shared_ptr<ProofNode>>> amapTmp;
+          expr::getFreeAssumptionsMap(cs[0], amapTmp);
+          for (std::pair<const Node, std::vector<std::shared_ptr<ProofNode>>>&
+                   a : amapTmp)
           {
-            scopeDepth[a] += 1;
+            if (std::find(cargs.begin(), cargs.end(), a.first) == cargs.end())
+            {
+              std::vector<std::shared_ptr<ProofNode>>& pfs = amap[a.first];
+              pfs.insert(pfs.end(), a.second.begin(), a.second.end());
+            }
           }
-          // will need to unbind the variables below
+          continue;
         }
-        // The following loop cannot be merged with the loop above because the
-        // same subproof
-        visited[cur.get()] = false;
-        visit.push_back(cur);
-        traversing.push_back(cur);
-        const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
-        for (const std::shared_ptr<ProofNode>& cp : cs)
-        {
-          if (std::find(traversing.begin(), traversing.end(), cp)
-              != traversing.end())
-          {
-            Unhandled() << "getFreeAssumptionsMap: cyclic proof! (use "
-                           "--proof-check=eager)"
-                        << std::endl;
-          }
-          visit.push_back(cp);
-        }
+        // traverse on children
+        visit.insert(visit.end(), cs.begin(), cs.end());
       }
     }
-    else if (!it->second)
+  } while (!visit.empty());
+}
+
+void getSubproofRule(std::shared_ptr<ProofNode> pn,
+                     ProofRule r,
+                     std::vector<std::shared_ptr<ProofNode>>& pfs)
+{
+  // proof should not be cyclic
+  std::unordered_set<ProofNode*> visited;
+  std::unordered_set<ProofNode*>::iterator it;
+  std::vector<std::shared_ptr<ProofNode>> visit;
+  std::shared_ptr<ProofNode> cur;
+  visit.push_back(pn);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur.get());
+    if (it == visited.end())
     {
-      Assert(!traversing.empty());
-      traversing.pop_back();
-      visited[cur.get()] = true;
-      if (cur->getRule() == ProofRule::SCOPE)
+      visited.insert(cur.get());
+      if (cur->getRule() == r)
       {
-        // unbind its assumptions
-        for (const Node& a : cargs)
-        {
-          auto scopeCt = scopeDepth.find(a);
-          Assert(scopeCt != scopeDepth.end());
-          scopeCt->second -= 1;
-          if (scopeCt->second == 0)
-          {
-            scopeDepth.erase(scopeCt);
-          }
-        }
+        pfs.push_back(cur);
+      }
+      else
+      {
+        const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
+        // traverse on children
+        visit.insert(visit.end(), cs.begin(), cs.end());
       }
     }
   } while (!visit.empty());
@@ -244,6 +227,54 @@ bool containsSubproof(ProofNode* pn,
     }
   }
   return false;
+}
+
+ProofRule getCongRule(const Node& n, std::vector<Node>& args)
+{
+  Kind k = n.getKind();
+  ProofRule r = ProofRule::CONG;
+  switch (k)
+  {
+    case Kind::APPLY_UF:
+    case Kind::DISTINCT:
+    case Kind::FLOATINGPOINT_LT:
+    case Kind::FLOATINGPOINT_LEQ:
+    case Kind::FLOATINGPOINT_GT:
+    case Kind::FLOATINGPOINT_GEQ:
+    case Kind::NULLABLE_LIFT:
+    case Kind::APPLY_INDEXED_SYMBOLIC:
+      // takes arbitrary but we use CONG
+      break;
+    case Kind::HO_APPLY:
+      // Use HO_CONG, since HO_APPLY is encoded as native function application.
+      // This requires no arguments so we return.
+      r = ProofRule::HO_CONG;
+      break;
+    case Kind::APPLY_CONSTRUCTOR:
+      // tuples are n-ary, others are fixed
+      r = n.getType().isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;
+      break;
+    default:
+      if (NodeManager::isNAryKind(k))
+      {
+        // n-ary operators that are not handled as exceptions above use
+        // NARY_CONG
+        r = ProofRule::NARY_CONG;
+      }
+      break;
+  }
+  // Add the arguments
+  args.push_back(ProofRuleChecker::mkKindNode(k));
+  if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+  {
+    args.push_back(n.getOperator());
+  }
+  else if (n.isClosure())
+  {
+    // bound variable list is an argument for closure over congruence
+    args.push_back(n[0]);
+  }
+  return r;
 }
 
 }  // namespace expr

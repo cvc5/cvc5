@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,9 @@ QuantDSplit::QuantDSplit(Env& env,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr), d_added_split(userContext())
+    : QuantifiersModule(env, qs, qim, qr, tr),
+      d_quant_to_reduce(userContext()),
+      d_added_split(userContext())
 {
 }
 
@@ -136,17 +138,20 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   Trace("quant-dsplit") << "QuantDSplit::check" << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   FirstOrderModel* m = d_treg.getModel();
   std::vector<Node> lemmas;
-  for (std::map<Node, int>::iterator it = d_quant_to_reduce.begin();
+  for (NodeIntMap::iterator it = d_quant_to_reduce.begin();
        it != d_quant_to_reduce.end();
        ++it)
   {
     Node q = it->first;
     Trace("quant-dsplit") << "- Split quantifier " << q << std::endl;
-    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q)
-        && d_added_split.find(q) == d_added_split.end())
+    if (d_added_split.find(q) != d_added_split.end())
+    {
+      continue;
+    }
+    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q))
     {
       d_added_split.insert(q);
       std::vector<Node> bvs;

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --proof-prune-input --dump-proof --proof-format=lfsc
+; COMMAND-LINE: --proof-prune-input
 ; SCRUBBER: grep -E "define|unsat"
 ; EXPECT: unsat
 

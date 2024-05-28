@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -158,8 +158,9 @@ void Cmd::resetSolver(cvc5::Solver* solver)
   // It may be safer to instead make the ResetCommand a special case in the
   // CommandExecutor such that this reconstruction can be done within the
   // CommandExecutor, who actually owns the solver.
+  TermManager& tm = solver->getTermManager();
   solver->~Solver();
-  new (solver) cvc5::Solver(std::move(opts));
+  new (solver) cvc5::Solver(tm, std::move(opts));
 }
 
 internal::Node Cmd::termToNode(const cvc5::Term& term)
@@ -238,19 +239,14 @@ std::string EchoCommand::getOutput() const { return d_output; }
 
 void EchoCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
-  /* we don't have an output stream here, nothing to do */
   d_commandStatus = CommandSuccess::instance();
 }
 
-void EchoCommand::invoke(cvc5::Solver* solver,
-                         SymManager* sm,
-                         std::ostream& out)
+void EchoCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
 {
-  out << cvc5::internal::quoteString(d_output) << std::endl;
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
                            << std::endl;
-  d_commandStatus = CommandSuccess::instance();
-  printResult(solver, out);
+  out << cvc5::internal::quoteString(d_output) << std::endl;
 }
 
 std::string EchoCommand::getCommandName() const { return "echo"; }
@@ -887,15 +883,32 @@ DeclarationDefinitionCommand::DeclarationDefinitionCommand(
 
 std::string DeclarationDefinitionCommand::getSymbol() const { return d_symbol; }
 
+bool tryBindToTerm(SymManager* sm,
+                   const std::string& sym,
+                   Term t,
+                   bool doOverload,
+                   std::ostream* out = nullptr)
+{
+  if (!sm->bind(sym, t, true))
+  {
+    if (out)
+    {
+      (*out) << "Cannot bind " << sym << " to symbol of type " << t.getSort();
+      (*out) << ", maybe the symbol has already been defined?";
+    }
+    return false;
+  }
+  return true;
+}
+
 bool DeclarationDefinitionCommand::bindToTerm(SymManager* sm,
-                                              cvc5::Term t,
+                                              Term t,
                                               bool doOverload)
 {
-  if (!sm->bind(d_symbol, t, true))
+  if (!tryBindToTerm(sm, d_symbol, t, doOverload))
   {
     std::stringstream ss;
-    ss << "Cannot bind " << d_symbol << " to symbol of type " << t.getSort();
-    ss << ", maybe the symbol has already been defined?";
+    tryBindToTerm(sm, d_symbol, t, doOverload, &ss);
     d_commandStatus = new CommandFailure(ss.str());
     return false;
   }
@@ -1232,6 +1245,19 @@ void DefineFunctionRecCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
+    // bind each, returning if failure if we fail to bind
+    for (const Term& f : d_funcs)
+    {
+      Assert(f.hasSymbol());
+      const std::string s = f.getSymbol();
+      if (!tryBindToTerm(sm, s, f, true))
+      {
+        std::stringstream ss;
+        tryBindToTerm(sm, s, f, true, &ss);
+        d_commandStatus = new CommandFailure(ss.str());
+        return;
+      }
+    }
     bool global = sm->getGlobalDeclarations();
     solver->defineFunsRec(d_funcs, d_formals, d_formulas, global);
     d_commandStatus = CommandSuccess::instance();
@@ -1399,6 +1425,7 @@ void GetAssignmentCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
+    TermManager& tm = solver->getTermManager();
     std::map<cvc5::Term, std::string> enames = sm->getExpressionNames();
     std::vector<cvc5::Term> terms;
     std::vector<std::string> names;
@@ -1416,10 +1443,10 @@ void GetAssignmentCommand::invoke(cvc5::Solver* solver, SymManager* sm)
     {
       // Treat the expression name as a variable name as opposed to a string
       // constant to avoid printing double quotes around the name.
-      cvc5::Term name = solver->mkVar(solver->getBooleanSort(), names[i]);
-      sexprs.push_back(solver->mkTerm(cvc5::Kind::SEXPR, {name, values[i]}));
+      cvc5::Term name = tm.mkVar(tm.getBooleanSort(), names[i]);
+      sexprs.push_back(tm.mkTerm(cvc5::Kind::SEXPR, {name, values[i]}));
     }
-    d_result = solver->mkTerm(cvc5::Kind::SEXPR, sexprs);
+    d_result = tm.mkTerm(cvc5::Kind::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -1458,8 +1485,8 @@ void GetModelCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
-    std::vector<cvc5::Sort> declareSorts = sm->getModelDeclareSorts();
-    std::vector<cvc5::Term> declareTerms = sm->getModelDeclareTerms();
+    std::vector<cvc5::Sort> declareSorts = sm->getDeclaredSorts();
+    std::vector<cvc5::Term> declareTerms = sm->getDeclaredTerms();
     d_result = solver->getModel(declareSorts, declareTerms);
     d_commandStatus = CommandSuccess::instance();
   }
@@ -1591,7 +1618,10 @@ void GetProofCommand::invoke(cvc5::Solver* solver, SymManager* sm)
       {
         ss << "(!" << std::endl;
       }
-      ss << solver->proofToString(p, format);
+      // get assertions, and build a map between them and their names
+      std::map<cvc5::Term, std::string> assertionNames =
+          sm->getExpressionNames(true);
+      ss << solver->proofToString(p, format, assertionNames);
       if (commentProves)
       {
         ss << ":proves " << p.getResult() << ")" << std::endl;
@@ -2444,11 +2474,12 @@ void GetInfoCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
+    TermManager& tm = solver->getTermManager();
     std::vector<cvc5::Term> v;
-    Sort bt = solver->getBooleanSort();
-    v.push_back(solver->mkVar(bt, ":" + d_flag));
-    v.push_back(solver->mkVar(bt, solver->getInfo(d_flag)));
-    d_result = sexprToString(solver->mkTerm(cvc5::Kind::SEXPR, {v}));
+    Sort bt = tm.getBooleanSort();
+    v.push_back(tm.mkVar(bt, ":" + d_flag));
+    v.push_back(tm.mkVar(bt, solver->getInfo(d_flag)));
+    d_result = sexprToString(tm.mkTerm(cvc5::Kind::SEXPR, {v}));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiUnsupportedException&)

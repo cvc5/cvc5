@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/sort_to_term.h"
 #include "util/rational.h"
 #include "util/string.h"
 
@@ -38,78 +39,26 @@ struct UnpurifiedFormAttributeId
 };
 typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
 
-const char* toString(SkolemFunId id)
+const char* toString(InternalSkolemId id)
 {
   switch (id)
   {
-    case SkolemFunId::INPUT_VARIABLE: return "INPUT_VARIABLE";
-    case SkolemFunId::PURIFY: return "PURIFY";
-    case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
-    case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
-    case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
-    case SkolemFunId::MOD_BY_ZERO: return "MOD_BY_ZERO";
-    case SkolemFunId::SQRT: return "SQRT";
-    case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
-      return "TRANSCENDENTAL_PURIFY_ARG";
-    case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
-    case SkolemFunId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
-    case SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
+    case InternalSkolemId::SEQ_MODEL_BASE_ELEMENT:
+      return "SEQ_MODEL_BASE_ELEMENT";
+    case InternalSkolemId::IEVAL_NONE: return "IEVAL_NONE";
+    case InternalSkolemId::IEVAL_SOME: return "IEVAL_SOME";
+    case InternalSkolemId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
+    case InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED:
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
-    case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
-    case SkolemFunId::STRINGS_NUM_OCCUR_RE: return "STRINGS_NUM_OCCUR_RE";
-    case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
-    case SkolemFunId::STRINGS_OCCUR_INDEX_RE: return "STRINGS_OCCUR_INDEX_RE";
-    case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
-    case SkolemFunId::STRINGS_OCCUR_LEN_RE: return "STRINGS_OCCUR_LEN_RE";
-    case SkolemFunId::STRINGS_DEQ_DIFF: return "STRINGS_DEQ_DIFF";
-    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
-      return "STRINGS_REPLACE_ALL_RESULT";
-    case SkolemFunId::STRINGS_ITOS_RESULT: return "STRINGS_ITOS_RESULT";
-    case SkolemFunId::STRINGS_STOI_RESULT: return "STRINGS_STOI_RESULT";
-    case SkolemFunId::STRINGS_STOI_NON_DIGIT: return "STRINGS_STOI_NON_DIGIT";
-    case SkolemFunId::RE_FIRST_MATCH_PRE: return "RE_FIRST_MATCH_PRE";
-    case SkolemFunId::RE_FIRST_MATCH: return "RE_FIRST_MATCH";
-    case SkolemFunId::RE_FIRST_MATCH_POST: return "RE_FIRST_MATCH_POST";
-    case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
-    case SkolemFunId::SEQ_MODEL_BASE_ELEMENT: return "SEQ_MODEL_BASE_ELEMENT";
-    case SkolemFunId::BAGS_CARD_CARDINALITY: return "BAGS_CARD_CARDINALITY";
-    case SkolemFunId::BAGS_CARD_ELEMENTS: return "BAGS_CARD_ELEMENTS";
-    case SkolemFunId::BAGS_CARD_N: return "BAGS_CARD_N";
-    case SkolemFunId::BAGS_CARD_UNION_DISJOINT:
-      return "BAGS_CARD_UNION_DISJOINT";
-    case SkolemFunId::BAGS_CHOOSE: return "BAGS_CHOOSE";
-    case SkolemFunId::BAGS_FOLD_CARD: return "BAGS_FOLD_CARD";
-    case SkolemFunId::BAGS_FOLD_COMBINE: return "BAGS_FOLD_COMBINE";
-    case SkolemFunId::BAGS_FOLD_ELEMENTS: return "BAGS_FOLD_ELEMENTS";
-    case SkolemFunId::BAGS_FOLD_UNION_DISJOINT: return "BAGS_FOLD_UNION_DISJOINT";
-    case SkolemFunId::BAGS_MAP_PREIMAGE: return "BAGS_MAP_PREIMAGE";
-    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE: return "BAGS_MAP_PREIMAGE_SIZE";
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return "BAGS_MAP_PREIMAGE_INDEX";
-    case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
-    case SkolemFunId::BAGS_DEQ_DIFF: return "BAGS_DEQ_DIFF";
-    case SkolemFunId::TABLES_GROUP_PART: return "TABLES_GROUP_PART";
-    case SkolemFunId::TABLES_GROUP_PART_ELEMENT:
-      return "TABLES_GROUP_PART_ELEMENT";
-    case SkolemFunId::RELATIONS_GROUP_PART: return "RELATIONS_GROUP_PART";
-    case SkolemFunId::RELATIONS_GROUP_PART_ELEMENT:
-      return "RELATIONS_GROUP_PART_ELEMENT";
-    case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
-    case SkolemFunId::SETS_DEQ_DIFF: return "SETS_DEQ_DIFF";
-    case SkolemFunId::SETS_FOLD_CARD: return "SETS_FOLD_CARD";
-    case SkolemFunId::SETS_FOLD_COMBINE: return "SETS_FOLD_COMBINE";
-    case SkolemFunId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
-    case SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
-    case SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
-    case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
-    case SkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
-    case SkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
-    case SkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
-    case SkolemFunId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
+    case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
+    case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
+    case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
+    case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
     default: return "?";
   }
 }
 
-std::ostream& operator<<(std::ostream& out, SkolemFunId id)
+std::ostream& operator<<(std::ostream& out, InternalSkolemId id)
 {
   out << toString(id);
   return out;
@@ -125,60 +74,104 @@ Node SkolemManager::mkPurifySkolem(Node t,
   if (t.getKind() == Kind::WITNESS)
   {
     // The purification skolem for (witness ((x T)) P) is the same as
-    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) 0).
+    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) x).
     NodeManager* nm = NodeManager::currentNM();
     Node exists =
         nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
-    k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
-                         t.getType(),
-                         {exists, nm->mkConstInt(Rational(0))});
+    k = mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {exists, t[0][0]});
     // store the proof generator if it exists
     if (pg != nullptr)
     {
       d_gens[exists] = pg;
     }
+    UnpurifiedFormAttribute ufa;
+    k.setAttribute(ufa, t);
   }
   else
   {
-    k = mkSkolemFunction(SkolemFunId::PURIFY, t.getType(), {t});
+    k = mkSkolemFunction(SkolemId::PURIFY, {t});
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }
-  // set unpurified form attribute for k
-  UnpurifiedFormAttribute ufa;
-  k.setAttribute(ufa, t);
-  // the original form of k can be computed by calling getOriginalForm, but
-  // it is not computed here
-
-  Trace("sk-manager-skolem")
-      << "skolem: " << k << " purify " << t << std::endl;
+  Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
+Node SkolemManager::mkSkolemFunction(SkolemId id, Node cacheVal)
 {
-  std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
-  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
-      d_skolemFuns.find(key);
-  if (it == d_skolemFuns.end())
+  std::vector<Node> cvals;
+  if (!cacheVal.isNull())
   {
-    Node k;
-    // For now, INPUT_VARIABLE is a special case that constructs a variable
-    // of the original name.
-    if (id == SkolemFunId::INPUT_VARIABLE)
+    if (cacheVal.getKind() == Kind::SEXPR)
     {
-      k = mkSkolemNode(Kind::VARIABLE,
-                       cacheVal[0].getConst<String>().toString(),
-                       tn,
-                       SKOLEM_EXACT_NAME);
+      cvals.insert(cvals.end(), cacheVal.begin(), cacheVal.end());
     }
     else
     {
-      // we use @ as a prefix, which follows the SMT-LIB standard indicating
-      // internal symbols starting with @ or . are reserved for internal use.
-      std::stringstream ss;
+      cvals.push_back(cacheVal);
+    }
+  }
+  TypeNode ctn = getTypeFor(id, cvals);
+  Assert(!ctn.isNull());
+  return mkSkolemFunctionTyped(id, ctn, cacheVal);
+}
+
+Node SkolemManager::mkSkolemFunction(SkolemId id,
+                                     const std::vector<Node>& cacheVals)
+{
+  TypeNode ctn = getTypeFor(id, cacheVals);
+  Assert(!ctn.isNull());
+  return mkSkolemFunctionTyped(id, ctn, cacheVals);
+}
+
+Node SkolemManager::mkInternalSkolemFunction(InternalSkolemId id,
+                                             TypeNode tn,
+                                             const std::vector<Node>& cacheVals)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> cvals;
+  cvals.push_back(nm->mkConstInt(Rational(static_cast<uint32_t>(id))));
+  cvals.insert(cvals.end(), cacheVals.begin(), cacheVals.end());
+  return mkSkolemFunctionTyped(SkolemId::INTERNAL, tn, cvals);
+}
+
+Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
+                                          TypeNode tn,
+                                          Node cacheVal)
+{
+  std::tuple<SkolemId, TypeNode, Node> key(id, tn, cacheVal);
+  std::map<std::tuple<SkolemId, TypeNode, Node>, Node>::iterator it =
+      d_skolemFuns.find(key);
+  if (it == d_skolemFuns.end())
+  {
+    // We use @ as a prefix, which follows the SMT-LIB standard indicating
+    // internal symbols starting with @ or . are reserved for internal use.
+    //
+    std::stringstream ss;
+    // Print internal skolems by the internal identifier, otherwise all would
+    // be @INTERNAL_*.
+    if (id == SkolemId::INTERNAL)
+    {
+      Node cval = cacheVal.getKind() == Kind::SEXPR ? cacheVal[0] : cacheVal;
+      Assert(cval.getKind() == Kind::CONST_INTEGER);
+      Rational r = cval.getConst<Rational>();
+      Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
+      ss << "@"
+         << static_cast<InternalSkolemId>(r.getNumerator().toUnsignedInt());
+    }
+    else
+    {
       ss << "@" << id;
-      k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
+    }
+    Node k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
+    if (id == SkolemId::PURIFY)
+    {
+      Assert(cacheVal.getType() == tn);
+      // set unpurified form attribute for k
+      UnpurifiedFormAttribute ufa;
+      k.setAttribute(ufa, cacheVal);
+      // the original form of k can be computed by calling getOriginalForm, but
+      // it is not computed here
     }
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
@@ -189,9 +182,9 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
   return it->second;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id,
-                                     TypeNode tn,
-                                     const std::vector<Node>& cacheVals)
+Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
+                                          TypeNode tn,
+                                          const std::vector<Node>& cacheVals)
 {
   Node cacheVal;
   // use null node if cacheVals is empty
@@ -201,33 +194,56 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
                    ? cacheVals[0]
                    : NodeManager::currentNM()->mkNode(Kind::SEXPR, cacheVals);
   }
-  return mkSkolemFunction(id, tn, cacheVal);
+  return mkSkolemFunctionTyped(id, tn, cacheVal);
+}
+
+bool SkolemManager::isSkolemFunction(TNode k) const
+{
+  return k.getKind() == Kind::SKOLEM;
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
-                                     SkolemFunId& id,
+                                     SkolemId& id,
                                      Node& cacheVal) const
 {
-  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  if (it == d_skolemFunMap.end())
+  if (k.getKind() != Kind::SKOLEM)
   {
     return false;
   }
+  std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
+      d_skolemFunMap.find(k);
+  Assert(it != d_skolemFunMap.end());
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;
 }
 
-SkolemFunId SkolemManager::getId(TNode k) const
+SkolemId SkolemManager::getId(TNode k) const
 {
-  SkolemFunId id;
+  SkolemId id;
   Node cacheVal;
   if (isSkolemFunction(k, id, cacheVal))
   {
     return id;
   }
-  return SkolemFunId::NONE;
+  return SkolemId::NONE;
+}
+
+InternalSkolemId SkolemManager::getInternalId(TNode k) const
+{
+  SkolemId id;
+  Node cacheVal;
+  // if its an internal skolem
+  if (isSkolemFunction(k, id, cacheVal) && id == SkolemId::INTERNAL)
+  {
+    Assert(!cacheVal.isNull());
+    Node cval = cacheVal.getKind() == Kind::SEXPR ? cacheVal[0] : cacheVal;
+    Assert(cval.getKind() == Kind::CONST_INTEGER);
+    Rational r = cval.getConst<Rational>();
+    Assert(r.sgn() >= 0 && r.getNumerator().fitsUnsignedInt());
+    return static_cast<InternalSkolemId>(r.getNumerator().toUnsignedInt());
+  }
+  return InternalSkolemId::NONE;
 }
 
 Node SkolemManager::mkDummySkolem(const std::string& prefix,
@@ -235,7 +251,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return mkSkolemNode(Kind::SKOLEM, prefix, type, flags);
+  return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const
@@ -250,13 +266,7 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
 
 bool SkolemManager::isAbstractValue(TNode n) const
 {
-  SkolemFunId id;
-  Node cacheVal;
-  if (isSkolemFunction(n, id, cacheVal))
-  {
-    return id == SkolemFunId::ABSTRACT_VALUE;
-  }
-  return false;
+  return (getInternalId(n) == InternalSkolemId::ABSTRACT_VALUE);
 }
 
 Node SkolemManager::getOriginalForm(Node n)
@@ -385,6 +395,205 @@ Node SkolemManager::mkSkolemNode(Kind k,
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);
   return n;
+}
+
+TypeNode SkolemManager::getTypeFor(SkolemId id,
+                                   const std::vector<Node>& cacheVals)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  switch (id)
+  {
+    // Type(cacheVals[0]), i.e skolems that return same type as first argument
+    case SkolemId::PURIFY:
+    case SkolemId::TRANSCENDENTAL_PURIFY:
+      Assert(cacheVals.size() > 0);
+      return cacheVals[0].getType();
+      break;
+    case SkolemId::GROUND_TERM:
+    {
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      return cacheVals[0].getConst<SortToTerm>().getType();
+    }
+    // real -> real function
+    case SkolemId::DIV_BY_ZERO:
+    {
+      TypeNode rtype = nm->realType();
+      return nm->mkFunctionType(rtype, rtype);
+    }
+    // real skolems
+    case SkolemId::TRANSCENDENTAL_PURIFY_ARG: return nm->realType();
+    // int -> int function
+    case SkolemId::INT_DIV_BY_ZERO:
+    case SkolemId::MOD_BY_ZERO:
+    case SkolemId::STRINGS_OCCUR_INDEX:
+    case SkolemId::STRINGS_OCCUR_INDEX_RE:
+    case SkolemId::STRINGS_OCCUR_LEN_RE:
+    case SkolemId::STRINGS_STOI_RESULT:
+    case SkolemId::STRINGS_ITOS_RESULT:
+    case SkolemId::BAGS_MAP_SUM:
+    case SkolemId::BAGS_CARD_COMBINE:
+    {
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, itype);
+    }
+    case SkolemId::BV_EMPTY:
+    {
+      return nm->mkBitVectorType(0);
+    }
+    // int -> Type(args[0])
+    case SkolemId::STRINGS_REPLACE_ALL_RESULT:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, cacheVals[0].getType());
+    }
+    // integer skolems
+    case SkolemId::STRINGS_NUM_OCCUR:
+    case SkolemId::STRINGS_NUM_OCCUR_RE:
+    case SkolemId::STRINGS_DEQ_DIFF:
+    case SkolemId::STRINGS_STOI_NON_DIGIT:
+    case SkolemId::BAGS_FOLD_CARD:
+    case SkolemId::SETS_FOLD_CARD:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
+    case SkolemId::BAGS_MAP_INDEX: return nm->integerType();
+    // string skolems
+    case SkolemId::RE_FIRST_MATCH_PRE:
+    case SkolemId::RE_FIRST_MATCH:
+    case SkolemId::RE_FIRST_MATCH_POST:
+    case SkolemId::RE_UNFOLD_POS_COMPONENT: return nm->stringType();
+    case SkolemId::ARRAY_DEQ_DIFF:
+    {
+      Assert(cacheVals.size() == 2);
+      TypeNode atype = cacheVals[0].getType();
+      Assert(atype.isArray());
+      return atype.getArrayIndexType();
+    }
+    case SkolemId::QUANTIFIERS_SKOLEMIZE:
+    {
+      Assert(cacheVals.size() == 2);
+      return cacheVals[1].getType();
+    }
+    break;
+    // skolems that return the set element type
+    case SkolemId::BAGS_DEQ_DIFF:
+    case SkolemId::SETS_DEQ_DIFF:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      return stype[0];
+    }
+    // skolems that return the set to set element type
+    case SkolemId::BAGS_CHOOSE:
+    case SkolemId::SETS_CHOOSE:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      return nm->mkFunctionType(stype, stype[0]);
+    }
+    case SkolemId::TABLES_GROUP_PART:
+    case SkolemId::RELATIONS_GROUP_PART:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      stype = stype[0];
+      Assert(stype.getNumChildren() == 1);
+      return nm->mkFunctionType(stype[0], stype);
+    }
+    // skolems that return the set element of set element type
+    case SkolemId::TABLES_GROUP_PART_ELEMENT:
+    case SkolemId::RELATIONS_GROUP_PART_ELEMENT:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      stype = stype[0];
+      Assert(stype.getNumChildren() == 1);
+      return stype[0];
+    }
+    case SkolemId::SETS_MAP_DOWN_ELEMENT:
+    {
+      Assert(cacheVals.size() == 2 && cacheVals[0].getKind() == Kind::SET_MAP);
+      TypeNode stype = cacheVals[0][1].getType();
+      Assert(stype.isSet());
+      return stype.getSetElementType();
+    }
+    case SkolemId::BAGS_FOLD_UNION_DISJOINT:
+    case SkolemId::SETS_FOLD_UNION:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, cacheVals[0].getType());
+    }
+    case SkolemId::BAGS_DISTINCT_ELEMENTS:
+    case SkolemId::BAGS_FOLD_ELEMENTS:
+    case SkolemId::SETS_FOLD_ELEMENTS:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode itype = nm->integerType();
+      TypeNode collectionType = cacheVals[0].getType();
+      Assert(collectionType.getNumChildren() == 1);
+      TypeNode elementType = collectionType[0];
+      return nm->mkFunctionType(itype, elementType);
+    }
+    case SkolemId::BAGS_FOLD_COMBINE:
+    case SkolemId::SETS_FOLD_COMBINE:
+    {
+      Assert(cacheVals.size() == 3);
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, cacheVals[1].getType());
+    }
+    case SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE:
+    {
+      Assert (cacheVals[0].getType().isFunction());
+      return cacheVals[0].getType().getArgTypes()[0];
+    }
+    case SkolemId::SHARED_SELECTOR:
+    {
+      Assert(cacheVals.size() == 3);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      Assert(cacheVals[1].getKind() == Kind::SORT_TO_TERM);
+      TypeNode dtt = cacheVals[0].getConst<SortToTerm>().getType();
+      TypeNode t = cacheVals[1].getConst<SortToTerm>().getType();
+      return nm->mkSelectorType(dtt, t);
+    }
+    // fp skolems
+    case SkolemId::FP_MIN_ZERO:
+    case SkolemId::FP_MAX_ZERO:
+    {
+      Assert(cacheVals.size() == 1);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      TypeNode type = cacheVals[0].getConst<SortToTerm>().getType();
+      Assert(type.isFloatingPoint());
+      return nm->mkFunctionType({type, type}, nm->mkBitVectorType(1));
+    }
+    case SkolemId::FP_TO_SBV:
+    case SkolemId::FP_TO_UBV:
+    {
+      Assert(cacheVals.size() == 2);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      TypeNode fptype = cacheVals[0].getConst<SortToTerm>().getType();
+      Assert(fptype.isFloatingPoint());
+      Assert(cacheVals[1].getKind() == Kind::SORT_TO_TERM);
+      TypeNode bvtype = cacheVals[1].getConst<SortToTerm>().getType();
+      Assert(bvtype.isBitVector());
+      return nm->mkFunctionType({nm->roundingModeType(), fptype}, bvtype);
+    }
+    case SkolemId::FP_TO_REAL:
+    {
+      Assert(cacheVals.size() == 1);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      TypeNode type = cacheVals[0].getConst<SortToTerm>().getType();
+      Assert(type.isFloatingPoint());
+      return nm->mkFunctionType({type}, nm->realType());
+    }
+    //
+    default: break;
+  }
+  return TypeNode();
 }
 
 }  // namespace cvc5::internal

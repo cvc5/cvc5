@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Andres Noetzli, Andrew Reynolds
+#   Mudathir Mohamed, Andres Noetzli, Hans-Jörg Schurr
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -58,6 +58,24 @@ add_custom_command(
 )
 add_custom_target(generate-java-proofrules DEPENDS ${JAVA_PROOF_RULE_FILE})
 
+# Generate SkolemId.java
+set(JAVA_SKOLEM_FUN_ID_FILE
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SkolemId.java"
+)
+add_custom_command(
+  OUTPUT
+    ${JAVA_SKOLEM_FUN_ID_FILE}
+  COMMAND
+    "${Python_EXECUTABLE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_skolem_id.h"
+    --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_skolem_id.h"
+)
+add_custom_target(generate-java-skolemfunids DEPENDS ${JAVA_SKOLEM_FUN_ID_FILE})
 
 set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/BlockModelsMode.java"
@@ -117,9 +135,12 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/SymbolManager.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/SynthResult.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Term.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/TermManager.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Utils.java
   ${JAVA_KIND_FILE}
+  ${JAVA_PROOF_RULE_FILE}
+  ${JAVA_SKOLEM_FUN_ID_FILE}
   ${JAVA_SORT_KIND_FILE}
   ${JAVA_TYPES_FILES}
 )
@@ -143,6 +164,7 @@ set(JNI_HEADERS
   ${JNI_DIR}/io_github_cvc5_Statistics.h
   ${JNI_DIR}/io_github_cvc5_SynthResult.h
   ${JNI_DIR}/io_github_cvc5_Term.h
+  ${JNI_DIR}/io_github_cvc5_TermManager.h
 )
 
 # generate jni headers
@@ -159,7 +181,7 @@ add_custom_command(
 )
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
-add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules)
+add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules generate-java-skolemfunids)
 
 # find jni package
 find_package(JNI REQUIRED)
@@ -173,12 +195,12 @@ message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")
 message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
-add_library(cvc5jni
+set(jni_files
   jni/api_utilities.cpp
   jni/datatype.cpp
   jni/command.cpp
   jni/datatype_constructor_decl.cpp
-  jni/datatype_constructor.cpp  
+  jni/datatype_constructor.cpp
   jni/datatype_decl.cpp
   jni/datatype_selector.cpp
   jni/grammar.cpp
@@ -193,8 +215,10 @@ add_library(cvc5jni
   jni/statistics.cpp
   jni/symbol_manager.cpp
   jni/synth_result.cpp
-  jni/term.cpp)
+  jni/term.cpp
+  jni/term_manager.cpp)
 
+add_library(cvc5jni ${jni_files})
 add_dependencies(cvc5jni generate-jni-headers)
 
 target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
@@ -203,23 +227,39 @@ target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
 
+# Java on Windows expects the JNI libraries without the prefix
+if (WIN32)
+  set_target_properties(cvc5jni PROPERTIES PREFIX "")
+  set_target_properties(cvc5jni PROPERTIES IMPORT_PREFIX "")
+endif()
+
 set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")
 
-# create cvc5.jar file
-add_jar(cvc5jar
-  SOURCES
-  ${JAVA_FILES}
-  VERSION ${CVC5_VERSION}
-  OUTPUT_NAME cvc5
-)
+# Create cvc5.jar file
+if (WIN32)
+  # CMake creates a symbolic link pointing to the jar with
+  # the version info when the VERSION attribute is provided.
+  # This fails on Windows so we don't provide it.
+  add_jar(cvc5jar
+    SOURCES
+    ${JAVA_FILES}
+    OUTPUT_NAME cvc5
+  )
+else()
+  add_jar(cvc5jar
+    SOURCES
+    ${JAVA_FILES}
+    VERSION ${CVC5_VERSION}
+    OUTPUT_NAME cvc5
+  )
+endif()
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5 cvc5parser)
 
-# install in the same directory of cvc5-targets
-install(TARGETS cvc5jni
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+# Install in the same directory of cvc5-targets.
+# On Windows, CMake's default install action places
+# DLLs into the runtime path (by default "bin")
+install(TARGETS cvc5jni)
 
 install_jar(cvc5jar DESTINATION share/java)
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz
+ *   Mathias Preiner, Aina Niemetz, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
+BVProofRuleChecker::BVProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm)
+{
+}
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerTrustedChecker(ProofRule::MACRO_BV_BITBLAST, this, 2);

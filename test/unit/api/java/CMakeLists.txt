@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -35,6 +35,7 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/SymbolManagerTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SynthResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/TermManagerTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ProofTest.java
 )
 
@@ -81,6 +82,11 @@ cvc5_add_java_api_test(SortTest)
 cvc5_add_java_api_test(SymbolManagerTest)
 cvc5_add_java_api_test(SynthResultTest)
 cvc5_add_java_api_test(TermTest)
+cvc5_add_java_api_test(TermManagerTest)
 cvc5_add_java_api_test(ProofTest)
 
+# suppress deprecated warnings to not error in CI
+set_source_files_properties(UncoveredTest.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 cvc5_add_unit_test_white(UncoveredTest api/java)

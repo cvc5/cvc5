@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "base/check.h"
+#include "expr/bound_var_manager.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
@@ -37,6 +38,13 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+/** An attribute for mapping sygus variables to builtin variables */
+struct SygusBuiltinFreeVarAttributeId
+{
+};
+using SygusBuiltinFreeVarAttribute =
+    expr::Attribute<SygusBuiltinFreeVarAttributeId, Node>;
+
 std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
 {
   switch (r)
@@ -50,16 +58,16 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc)
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
     : EnvObj(env),
       d_qstate(qs),
       d_syexp(new SygusExplain(env, this)),
       d_funDefEval(new FunDefEvaluator(env)),
       d_eval_unfold(new SygusEvalUnfold(env, this)),
-      d_ochecker(oc)
+      d_ochecker(env.getOracleChecker())
 {
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 void TermDbSygus::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
@@ -68,91 +76,15 @@ bool TermDbSygus::reset( Theory::Effort e ) {
   return true;  
 }
 
-TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
-  unsigned sindex = 0;
-  TypeNode vtn = tn;
-  TypeNode builtinType = tn;
-  if (tn.isDatatype())
-  {
-    const DType& dt = tn.getDType();
-    if (!dt.getSygusType().isNull())
-    {
-      builtinType = dt.getSygusType();
-      if (useSygusType)
-      {
-        vtn = builtinType;
-        sindex = 1;
-      }
-    }
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  while( i>=(int)d_fv[sindex][tn].size() ){
-    std::stringstream ss;
-    if( tn.isDatatype() ){
-      const DType& dt = tn.getDType();
-      ss << "fv_" << dt.getName() << "_" << i;
-    }else{
-      ss << "fv_" << tn << "_" << i;
-    }
-    Assert(!vtn.isNull());
-    Node v = nm->mkBoundVar(ss.str(), vtn);
-    // store its id, which is unique per builtin type, regardless of how it is
-    // otherwise cached.
-    d_fvId[v] = d_fvTypeIdCounter[builtinType];
-    d_fvTypeIdCounter[builtinType]++;
-    Trace("sygus-db-debug") << "Free variable id " << v << " = " << d_fvId[v]
-                            << ", " << builtinType << std::endl;
-    d_fv[sindex][tn].push_back( v );
-  }
-  return d_fv[sindex][tn][i];
-}
-
-TNode TermDbSygus::getFreeVarInc( TypeNode tn, std::map< TypeNode, int >& var_count, bool useSygusType ) {
-  std::map< TypeNode, int >::iterator it = var_count.find( tn );
-  if( it==var_count.end() ){
-    var_count[tn] = 1;
-    return getFreeVar( tn, 0, useSygusType );
-  }else{
-    int index = it->second;
-    var_count[tn]++;
-    return getFreeVar( tn, index, useSygusType );
-  }
-}
-
-bool TermDbSygus::isFreeVar(Node n) const
+TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i)
 {
-  return d_fvId.find(n) != d_fvId.end();
+  return d_fv.getFreeVar(tn, i);
 }
-size_t TermDbSygus::getFreeVarId(Node n) const
+
+TNode TermDbSygus::getFreeVarInc(const TypeNode& tn,
+                                 std::map<TypeNode, size_t>& var_count)
 {
-  std::map<Node, size_t>::const_iterator it = d_fvId.find(n);
-  if (it == d_fvId.end())
-  {
-    Assert(false) << "TermDbSygus::isFreeVar: " << n
-                  << " is not a cached free variable.";
-    return 0;
-  }
-  return it->second;
-}
-
-bool TermDbSygus::hasFreeVar( Node n, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( isFreeVar( n ) ){
-      return true;    
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( hasFreeVar( n[i], visited ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermDbSygus::hasFreeVar( Node n ) {
-  std::map< Node, bool > visited;
-  return hasFreeVar( n, visited );
+  return d_fv.getFreeVarInc(tn, var_count);
 }
 
 Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
@@ -166,7 +98,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
   {
     SygusTypeInfo& ti = getTypeInfo(tn);
     int anyC = ti.getAnyConstantConsNum();
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node k;
     if (anyC == -1)
     {
@@ -188,7 +120,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 
 Node TermDbSygus::mkGeneric(const DType& dt,
                             unsigned c,
-                            std::map<TypeNode, int>& var_count,
+                            std::map<TypeNode, size_t>& var_count,
                             std::map<int, Node>& pre,
                             bool doBetaRed)
 {
@@ -207,7 +139,11 @@ Node TermDbSygus::mkGeneric(const DType& dt,
       Trace("sygus-db-debug") << "From pre: " << a << std::endl;
     }else{
       TypeNode tna = dt[c].getArgType(i);
-      a = getFreeVarInc( tna, var_count, true );
+      a = getFreeVarInc(tna, var_count);
+      if (tna.isSygusDatatype())
+      {
+        a = getBuiltinFreeVarFor(a);
+      }
     }
     Trace("sygus-db-debug")
         << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
@@ -224,7 +160,7 @@ Node TermDbSygus::mkGeneric(const DType& dt,
                             std::map<int, Node>& pre,
                             bool doBetaRed)
 {
-  std::map<TypeNode, int> var_count;
+  std::map<TypeNode, size_t> var_count;
   return mkGeneric(dt, c, var_count, pre, doBetaRed);
 }
 
@@ -242,11 +178,11 @@ using CanonizeBuiltinAttribute =
 
 Node TermDbSygus::canonizeBuiltin(Node n)
 {
-  std::map<TypeNode, int> var_count;
+  std::map<TypeNode, size_t> var_count;
   return canonizeBuiltin(n, var_count);
 }
 
-Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
+Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, size_t>& var_count)
 {
   // has it already been computed?
   if (var_count.empty() && n.hasAttribute(CanonizeBuiltinAttribute()))
@@ -260,7 +196,12 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
   // it is symbolic if it represents "any constant"
   if (n.getKind() == Kind::APPLY_SELECTOR)
   {
-    ret = getFreeVarInc(n[0].getType(), var_count, true);
+    TypeNode tn = n[0].getType();
+    ret = getFreeVarInc(tn, var_count);
+    if (tn.isSygusDatatype())
+    {
+      ret = getBuiltinFreeVarFor(ret);
+    }
   }
   else if (n.getKind() != Kind::APPLY_CONSTRUCTOR)
   {
@@ -280,7 +221,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
     }
     if (childChanged)
     {
-      ret = NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+      ret = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
     }
   }
   // cache if we had a fresh variable count
@@ -347,15 +288,22 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     // this variable was associated by an attribute to a builtin node
     return n.getAttribute(SygusPrintProxyAttribute());
   }
-  Assert(isFreeVar(n));
-  // map to builtin variable type
-  size_t fv_num = getFreeVarId(n);
-  Assert(!dt.getSygusType().isNull());
-  TypeNode vtn = dt.getSygusType();
-  Node ret = getFreeVar(vtn, fv_num);
+  // It should be a free variable allocated by this class.
+  Assert(d_fv.isFreeVar(n));
+  Node ret = getBuiltinFreeVarFor(n);
   Trace("sygus-db-debug") << "SygusToBuiltin: variable for " << n << " is "
-                          << ret << ", fv_num=" << fv_num << std::endl;
+                          << ret << std::endl;
   return ret;
+}
+
+Node TermDbSygus::getBuiltinFreeVarFor(const Node& v)
+{
+  Assert(d_fv.isFreeVar(v));
+  const TypeNode& tn = v.getType();
+  Assert(tn.isSygusDatatype());
+  const TypeNode& vtn = tn.getDType().getSygusType();
+  BoundVarManager* bvm = nodeManager()->getBoundVarManager();
+  return bvm->mkBoundVar<SygusBuiltinFreeVarAttribute>(v, vtn);
 }
 
 bool TermDbSygus::registerSygusType(TypeNode tn)
@@ -399,7 +347,7 @@ void TermDbSygus::registerEnumerator(Node e,
   registerSygusType(et);
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
@@ -549,7 +497,7 @@ void TermDbSygus::registerEnumerator(Node e,
   // values for arguments of any-constant constructors (in sygus_explain.cpp),
   // hence those blocking lemmas are refutation unsound. For simplicity, we
   // mark unsound once and for all at the beginning, meaning we do not
-  // answer "infeasible" when using smart enuemration + any-constant
+  // answer "infeasible" when using smart enumeration + any-constant
   // constructors. Using --sygus-repair-const on the other hand avoids this
   // incompleteness, which is checked here.
   if (!isActiveGen && usingAnyConst && !options().quantifiers.sygusRepairConst)
@@ -582,12 +530,15 @@ void TermDbSygus::registerEnumerator(Node e,
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator";
     if (!f.isNull())
     {
-      Node ff;
-      SkolemFunId id;
       SkolemManager* sm = nm->getSkolemManager();
+      Assert(sm->getInternalId(f)
+             == InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED);
+      Node ff;
+      SkolemId id;
       sm->isSkolemFunction(f, id, ff);
-      Assert(id == SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
-      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff;
+      // get the argument, which is stored after the internal identifier
+      Assert(ff.getKind() == Kind::SEXPR && ff.getNumChildren() == 2);
+      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff[1];
     }
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
     std::stringstream ss;
@@ -981,40 +932,6 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
   // (and b1 b2) <---- (not (or (not b1) (not b2)))
   // (or b1 b2)  <---- (not (and (not b1) (not b2)))
   return false;
-}
-
-bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    Kind k = n.getKind();
-    if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
-        || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
-        || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL)
-    {
-      if( n[1].isConst() ){
-        if (n[1] == TermUtil::mkTypeValue(n[1].getType(), 0))
-        {
-          return true;
-        }
-      }else{
-        // if it has free variables it might be a non-zero constant
-        if( !hasFreeVar( n[1] ) ){
-          return true;
-        }
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( involvesDivByZero( n[i], visited ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermDbSygus::involvesDivByZero( Node n ) {
-  std::map< Node, bool > visited;
-  return involvesDivByZero( n, visited );
 }
 
 Node TermDbSygus::getAnchor( Node n ) {

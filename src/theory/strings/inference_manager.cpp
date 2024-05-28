@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mudathir Mohamed
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +46,7 @@ InferenceManager::InferenceManager(Env& env,
       d_ipcl(isProofEnabled() ? new InferProofCons(env, context(), d_statistics)
                               : nullptr)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_zero = nm->mkConstInt(Rational(0));
   d_one = nm->mkConstInt(Rational(1));
   d_true = nm->mkConst(true);
@@ -165,8 +165,12 @@ bool InferenceManager::sendInference(const std::vector<Node>& exp,
 void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
 {
   Assert(!ii.isTrivial());
-  // set that this inference manager will be processing this inference
-  ii.d_sim = this;
+  // This inference manager will be processing the side effects of this
+  // inferences if the inference manager has not been marked already.
+  if (ii.d_sim == nullptr)
+  {
+    ii.d_sim = this;
+  }
   Trace("strings-infer-debug")
       << "sendInference: " << ii << ", asLemma = " << asLemma << std::endl;
   // check if we should send a conflict, lemma or a fact
@@ -235,7 +239,7 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   {
     return false;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   InferInfo iiSplit(infer);
   iiSplit.d_sim = this;
   iiSplit.d_conc = nm->mkNode(Kind::OR, eq, nm->mkNode(Kind::NOT, eq));
@@ -560,7 +564,7 @@ Node InferenceManager::mkPrefixExplainMin(Node x,
     Trace("strings-exp-min-stats")
         << "Min-explain (prefix) " << minAssumptions.size() << " / "
         << assumptions.size() << std::endl;
-    return NodeManager::currentNM()->mkAnd(minAssumptions);
+    return nodeManager()->mkAnd(minAssumptions);
   }
   return Node::null();
 }

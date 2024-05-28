@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir, Andrew Reynolds
+ *   Alex Ozdemir, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,8 +30,10 @@
 
 #include "expr/node_traversal.h"
 #include "options/ff_options.h"
+#include "theory/ff/util.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
+#include "util/result.h"
 #include "util/statistics_registry.h"
 #include "util/utility.h"
 
@@ -52,6 +54,7 @@ TheoryFiniteFields::TheoryFiniteFields(Env& env,
                                        OutputChannel& out,
                                        Valuation valuation)
     : Theory(THEORY_FF, env, out, valuation),
+      d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, getStatsPrefix(THEORY_FF)),
       d_eqNotify(d_im),
@@ -89,12 +92,17 @@ void TheoryFiniteFields::postCheck(Effort level)
 #ifdef CVC5_USE_COCOA
   Trace("ff::check") << "ff::check : " << level << " @ level "
                      << context()->getLevel() << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (auto& subTheory : d_subTheories)
   {
-    subTheory.second.postCheck(level);
-    if (subTheory.second.inConflict())
+    Result r = subTheory.second.postCheck(level);
+    if (r.getStatus() == Result::UNKNOWN && level >= EFFORT_FULL)
     {
+      d_im.setModelUnsound(IncompleteId::UNKNOWN);
+    }
+    else if (r.getStatus() == Result::UNSAT)
+    {
+      Assert(subTheory.second.inConflict());
       const Node conflict = nm->mkAnd(subTheory.second.conflict());
       Trace("ff::conflict") << "ff::conflict : " << conflict << std::endl;
       d_im.conflict(conflict, InferenceId::FF_LEMMA);

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -108,6 +108,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   }
 
   // initialize for incremental string input
+  d_parser->setStringInput(d_lang, "", INPUT_FILENAME);
   d_usingEditline = false;
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
@@ -309,7 +310,8 @@ restart:
     }
   }
 
-  d_parser->setStringInput(d_lang, input, INPUT_FILENAME);
+  // set new string input, without a new parser
+  d_parser->setStringInputInternal(input, INPUT_FILENAME);
 
   /* There may be more than one command in the input. Build up a
      sequence. */

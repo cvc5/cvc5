@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -309,13 +309,13 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
+InferInfo InferenceGenerator::setof(Node n, Node e)
 {
-  Assert(n.getKind() == Kind::BAG_DUPLICATE_REMOVAL && n[0].getType().isBag());
+  Assert(n.getKind() == Kind::BAG_SETOF && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
-  InferInfo inferInfo(d_im, InferenceId::BAGS_DUPLICATE_REMOVAL);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_SETOF);
 
   Node countA = getMultiplicityTerm(e, A);
   Node skolem = registerAndAssertSkolemLemma(n);
@@ -415,44 +415,24 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node f = n[0];
   Node A = n[1];
   // declare an uninterpreted function uf: Int -> T
-  TypeNode domainType = f.getType().getArgTypes()[0];
-  TypeNode ufType = d_nm->mkFunctionType(d_nm->integerType(), domainType);
-  Node uf =
-      d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE, ufType, {n, e});
+  Node uf = d_sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS, {A});
 
   // declare uninterpreted function sum: Int -> Int
-  TypeNode sumType =
-      d_nm->mkFunctionType(d_nm->integerType(), d_nm->integerType());
-  Node sum = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_SUM, sumType, {n, e});
+  Node sum = d_sm->mkSkolemFunction(SkolemId::BAGS_MAP_SUM, {f, A, e});
 
   // (= (sum 0) 0)
   Node sum_zero = d_nm->mkNode(Kind::APPLY_UF, sum, d_zero);
   Node baseCase = d_nm->mkNode(Kind::EQUAL, sum_zero, d_zero);
 
-  // guess the size of the preimage of e
-  Node preImageSize = d_sm->mkSkolemFunction(
-      SkolemFunId::BAGS_MAP_PREIMAGE_SIZE, d_nm->integerType(), {n, e});
+  // guess the size of distinct elements in A
+  Node size =
+      d_sm->mkSkolemFunction(SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE, {A});
 
-  // (= (sum preImageSize) (bag.count e skolem))
+  // (= (sum size) (bag.count e skolem))
   Node mapSkolem = registerAndAssertSkolemLemma(n);
   Node countE = getMultiplicityTerm(e, mapSkolem);
-  Node totalSum = d_nm->mkNode(Kind::APPLY_UF, sum, preImageSize);
+  Node totalSum = d_nm->mkNode(Kind::APPLY_UF, sum, size);
   Node totalSumEqualCountE = d_nm->mkNode(Kind::EQUAL, totalSum, countE);
-
-  // (forall ((i Int))
-  //        (let ((uf_i (uf i)))
-  //          (let ((count_uf_i (bag.count uf_i A)))
-  //            (=>
-  //             (and (>= i 1) (<= i preImageSize))
-  //             (and
-  //               (= (f uf_i) e)
-  //               (>= count_uf_i 1)
-  //               (= (sum i) (+ (sum (- i 1)) count_uf_i))
-  //               (forall ((j Int))
-  //                 (=>
-  //                  (and (< i j) (<= j preImageSize))
-  //                  (not (= (uf i) (uf j))))))
-  //               )))))
 
   BoundVarManager* bvm = d_nm->getBoundVarManager();
   Node i = bvm->mkBoundVar<FirstIndexVarAttribute>(n, "i", d_nm->integerType());
@@ -469,48 +449,106 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node uf_iMinusOne = d_nm->mkNode(Kind::APPLY_UF, uf, iMinusOne);
   Node interval_i = d_nm->mkNode(Kind::AND,
                                  d_nm->mkNode(Kind::GEQ, i, d_one),
-                                 d_nm->mkNode(Kind::LEQ, i, preImageSize));
+                                 d_nm->mkNode(Kind::LEQ, i, size));
   Node sum_i = d_nm->mkNode(Kind::APPLY_UF, sum, i);
   Node sum_iPlusOne = d_nm->mkNode(Kind::APPLY_UF, sum, iPlusOne);
   Node sum_iMinusOne = d_nm->mkNode(Kind::APPLY_UF, sum, iMinusOne);
   Node count_iMinusOne = d_nm->mkNode(Kind::BAG_COUNT, uf_iMinusOne, A);
   Node count_uf_i = d_nm->mkNode(Kind::BAG_COUNT, uf_i, A);
-  Node inductiveCase = d_nm->mkNode(
+  Node addMultiplicity = d_nm->mkNode(
       Kind::EQUAL, sum_i, d_nm->mkNode(Kind::ADD, sum_iMinusOne, count_uf_i));
+  Node previousValue = d_nm->mkNode(Kind::EQUAL, sum_i, sum_iMinusOne);
   Node f_iEqualE = d_nm->mkNode(Kind::EQUAL, f_uf_i, e);
+  Node distinct = d_nm->mkNode(Kind::DISTINCT, f_uf_i, e);
   Node geqOne = d_nm->mkNode(Kind::GEQ, count_uf_i, d_one);
+  Node eqZero = d_nm->mkNode(Kind::EQUAL, count_uf_i, d_zero);
 
-  // i < j <= preImageSize
+  // i < j <= size
   Node interval_j = d_nm->mkNode(Kind::AND,
                                  d_nm->mkNode(Kind::LT, i, j),
-                                 d_nm->mkNode(Kind::LEQ, j, preImageSize));
+                                 d_nm->mkNode(Kind::LEQ, j, size));
   // uf(i) != uf(j)
   Node uf_i_equals_uf_j = d_nm->mkNode(Kind::EQUAL, uf_i, uf_j);
   Node notEqual = d_nm->mkNode(Kind::EQUAL, uf_i, uf_j).negate();
   Node body_j = d_nm->mkNode(Kind::OR, interval_j.negate(), notEqual);
   Node forAll_j = quantifiers::BoundedIntegers::mkBoundedForall(jList, body_j);
-  Node andNode =
-      d_nm->mkNode(Kind::AND, {f_iEqualE, geqOne, inductiveCase, forAll_j});
+  Node disjunct1 =
+      d_nm->mkNode(Kind::AND, {f_iEqualE, geqOne, addMultiplicity});
+  Node disjunct2 =
+      d_nm->mkNode(Kind::AND, {distinct, eqZero, previousValue});
+  Node orNode = disjunct1.orNode(disjunct2);
+  Node andNode = forAll_j.andNode(orNode);
   Node body_i = d_nm->mkNode(Kind::OR, interval_i.negate(), andNode);
   Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
-  Node preImageGTE_zero = d_nm->mkNode(Kind::GEQ, preImageSize, d_zero);
+  Node sizeGTE_zero = d_nm->mkNode(Kind::GEQ, size, d_zero);
   Node conclusion = d_nm->mkNode(
-      Kind::AND, {baseCase, totalSumEqualCountE, forAll_i, preImageGTE_zero});
+      Kind::AND, {baseCase, totalSumEqualCountE, forAll_i, sizeGTE_zero});
   inferInfo.d_conclusion = conclusion;
 
   Trace("bags::InferenceGenerator::mapDown")
       << "conclusion: " << inferInfo.d_conclusion << std::endl;
-  return std::tuple(inferInfo, uf, preImageSize);
+  return std::tuple(inferInfo, uf, size);
 }
 
-InferInfo InferenceGenerator::mapUp(
-    Node n, Node uf, Node preImageSize, Node y, Node x)
+InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
+{
+  Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
+  Assert(n[0].getType().isFunction()
+         && n[0].getType().getArgTypes().size() == 1);
+  Assert(y.getType() == n[0].getType().getRangeType());
+
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_DOWN_INJECTIVE);
+
+  Node f = n[0];
+  Node A = n[1];
+  // declare a fresh skolem of type T
+  Node x =
+      d_sm->mkSkolemFunction(SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE, {f, A, y});
+
+  Node mapSkolem = registerAndAssertSkolemLemma(n);
+  Node countY = getMultiplicityTerm(y, mapSkolem);
+  Node countX = getMultiplicityTerm(x, A);
+
+  Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
+  Node y_equals_f_x = y.eqNode(f_x);
+
+  Node count_x_equals_count_y = countX.eqNode(countY);
+  Node conclusion = y_equals_f_x.andNode(count_x_equals_count_y);
+  inferInfo.d_conclusion = conclusion;
+
+  Trace("bags::InferenceGenerator::mapDown")
+      << "conclusion: " << inferInfo.d_conclusion << std::endl;
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::mapUp1(Node n, Node x)
 {
   Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
          && n[0].getType().getArgTypes().size() == 1);
 
-  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP1);
+  Node f = n[0];
+  Node A = n[1];
+
+  Node countA = getMultiplicityTerm(x, A);
+  registerCountTerm(countA);
+  Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
+  Node mapSkolem = registerAndAssertSkolemLemma(n);
+  Node countN = getMultiplicityTerm(f_x, mapSkolem);
+  registerCountTerm(countN);
+  Node leq = d_nm->mkNode(Kind::LEQ, countA, countN);
+  inferInfo.d_conclusion = leq;
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::mapUp2(Node n, Node uf, Node size, Node y, Node x)
+{
+  Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
+  Assert(n[0].getType().isFunction()
+         && n[0].getType().getArgTypes().size() == 1);
+
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP2);
   Node f = n[0];
   Node A = n[1];
 
@@ -519,20 +557,17 @@ InferInfo InferenceGenerator::mapUp(
   Node notEqual =
       d_nm->mkNode(Kind::EQUAL, d_nm->mkNode(Kind::APPLY_UF, f, x), y).negate();
 
-  Node k = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_INDEX,
-                                  d_nm->integerType(),
-                                  {n, uf, preImageSize, y, x});
+  Node k =
+      d_sm->mkSkolemFunction(SkolemId::BAGS_MAP_INDEX, {n, uf, size, y, x});
   Node inRange = d_nm->mkNode(Kind::AND,
                               d_nm->mkNode(Kind::GEQ, k, d_one),
-                              d_nm->mkNode(Kind::LEQ, k, preImageSize));
+                              d_nm->mkNode(Kind::LEQ, k, size));
   Node equal =
       d_nm->mkNode(Kind::EQUAL, d_nm->mkNode(Kind::APPLY_UF, uf, k), x);
   Node andNode = d_nm->mkNode(Kind::AND, inRange, equal);
   Node orNode = d_nm->mkNode(Kind::OR, notEqual, andNode);
   Node implies = d_nm->mkNode(Kind::IMPLIES, xInA, orNode);
   inferInfo.d_conclusion = implies;
-  Trace("bags::InferenceGenerator::mapUpwards")
-      << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return inferInfo;
 }
 
@@ -834,9 +869,7 @@ InferInfo InferenceGenerator::groupPartCount(Node n, Node B, Node part)
   Node A_notEmpty = A.eqNode(empty).notNode();
   inferInfo.d_premises.push_back(A_notEmpty);
 
-  Node x = d_sm->mkSkolemFunction(SkolemFunId::TABLES_GROUP_PART_ELEMENT,
-                                  bagType.getBagElementType(),
-                                  {n, B});
+  Node x = d_sm->mkSkolemFunction(SkolemId::TABLES_GROUP_PART_ELEMENT, {n, B});
   d_state->registerPartElementSkolem(n, x);
   Node part_x = d_nm->mkNode(Kind::APPLY_UF, part, x);
   part_x = registerAndAssertSkolemLemma(part_x);
@@ -949,9 +982,7 @@ Node InferenceGenerator::defineSkolemPartFunction(Node n)
   TypeNode elementType = tableType.getBagElementType();
 
   // declare an uninterpreted function part: T -> (Table T)
-  TypeNode partType = d_nm->mkFunctionType(elementType, tableType);
-  Node part =
-      d_sm->mkSkolemFunction(SkolemFunId::TABLES_GROUP_PART, partType, {n});
+  Node part = d_sm->mkSkolemFunction(SkolemId::TABLES_GROUP_PART, {n});
   return part;
 }
 

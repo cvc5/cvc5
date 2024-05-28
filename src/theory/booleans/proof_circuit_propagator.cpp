@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Mathias Preiner
+ *   Gereon Kremer, Hans-Jörg Schurr, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -272,7 +272,8 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkCResolution(
 {
   auto* nm = NodeManager::currentNM();
   std::vector<std::shared_ptr<ProofNode>> children = {clause};
-  std::vector<Node> args;
+  std::vector<Node> cpols;
+  std::vector<Node> clits;
   Assert(lits.size() == polarity.size());
   for (std::size_t i = 0, n = lits.size(); i < n; ++i)
   {
@@ -295,9 +296,12 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkCResolution(
     {
       children.emplace_back(assume(lit));
     }
-    args.emplace_back(nm->mkConst(pol));
-    args.emplace_back(lit);
+    cpols.emplace_back(nm->mkConst(pol));
+    clits.emplace_back(lit);
   }
+  std::vector<Node> args;
+  args.push_back(nm->mkNode(Kind::SEXPR, cpols));
+  args.push_back(nm->mkNode(Kind::SEXPR, clits));
   return mkProof(ProofRule::CHAIN_RESOLUTION, children, args);
 }
 

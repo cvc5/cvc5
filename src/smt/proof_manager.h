@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -95,7 +95,9 @@ class PfManager : protected EnvObj
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
-                  options::ProofFormatMode mode);
+                  options::ProofFormatMode mode,
+                  const std::map<Node, std::string>& assertionNames =
+                      std::map<Node, std::string>());
 
   /**
    * Translate difficulty map. This takes a mapping dmap from preprocessed

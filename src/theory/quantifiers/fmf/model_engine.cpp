@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,7 @@ ModelEngine::~ModelEngine() {
 
 }
 
-std::string ModelEngine::identify() const { return "ModelEngine"; }
+std::string ModelEngine::identify() const { return "fmf-inst"; }
 
 bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
@@ -89,11 +89,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
 
     //the following will test that the model satisfies all asserted universal quantifiers by
     // (model-based) exhaustive instantiation.
-    double clSet = 0;
-    if( TraceIsOn("model-engine") ){
-      Trace("model-engine") << "---Model Engine Round---" << std::endl;
-      clSet = double(clock())/double(CLOCKS_PER_SEC);
-    }
+    beginCallDebug();
     Trace("model-engine-debug") << "Check model..." << std::endl;
     d_incomplete_check = false;
     // print debug
@@ -105,10 +101,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     // successfully built an acceptable model, now check it
     addedLemmas += checkModel();
 
-    if( TraceIsOn("model-engine") ){
-      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
-    }
+    endCallDebug();
 
     if( addedLemmas==0 ){
       Trace("model-engine-debug")

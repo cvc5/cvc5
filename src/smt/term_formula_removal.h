@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
 #include "expr/node.h"
@@ -128,6 +129,14 @@ class RemoveTermFormulas : protected EnvObj
    * returns the null node.
    */
   TrustNode runCurrent(TNode node, bool inTerm, TrustNode& newLem);
+
+  /**
+   * Is k a skolem introduced for purifying a Boolean term? This impacts whether
+   * k is treated as a theory atom.
+   * @param k The term in question.
+   * @return true if k is a Boolean term skolem.
+   */
+  bool isBooleanTermSkolem(const Node& k) const;
 
  private:
   typedef context::CDInsertHashMap<

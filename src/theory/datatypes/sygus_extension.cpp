@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,8 +56,8 @@ SygusExtension::SygusExtension(Env& env,
       d_active_terms(context()),
       d_currTermSize(context())
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
+  d_true = nodeManager()->mkConst(true);
 }
 
 SygusExtension::~SygusExtension() {
@@ -128,8 +128,7 @@ void SygusExtension::assertFact(Node n, bool polarity)
       Assert(its != d_szinfo.end());
       Node mt = its->second->getOrMkMeasureValue();
       //it relates the measure term to arithmetic
-      Node blem =
-          n.eqNode(NodeManager::currentNM()->mkNode(Kind::LEQ, mt, n[1]));
+      Node blem = n.eqNode(nodeManager()->mkNode(Kind::LEQ, mt, n[1]));
       d_im.lemma(blem, InferenceId::DATATYPES_SYGUS_FAIR_SIZE);
     }
     if( polarity ){
@@ -145,7 +144,7 @@ void SygusExtension::assertFact(Node n, bool polarity)
 }
 
 Node SygusExtension::getTermOrderPredicate( Node n1, Node n2 ) {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector< Node > comm_disj;
   // size of left is greater than or equal to the size of right
   Node szGeq = nm->mkNode(
@@ -254,7 +253,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
     }
     if( (unsigned)d_currTermSize[a].get()>ssz ){
       if( TraceIsOn("sygus-sb-fair") ){
-        std::map< TypeNode, int > var_count;
+        std::map<TypeNode, size_t> var_count;
         Node templ = getCurrentTemplate( a, var_count );
         Trace("sygus-sb-fair") << "FAIRNESS : we have " <<  d_currTermSize[a].get() << " at search size " << ssz << ", template is " << templ << std::endl;
       }
@@ -279,7 +278,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
       // Notice that conflict.size() is typically equal to
       // d_currTermSize[a].get(), except in cases where the size annotation is
       // not equal to (0,1) for (nullary, non-nullary) constructors.
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       // include the fairness literal for the current size, which is
       // typically asserted in the current context.
       Node fairLit = nm->mkNode(Kind::DT_SYGUS_BOUND, m, nm->mkConstInt(ssz));
@@ -306,7 +305,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
   Trace("sygus-sb-debug") << "Get simple symmetry breaking predicates...\n";
   unsigned max_depth = ssz>=d ? ssz-d : 0;
   unsigned min_depth = d_simple_proc[exp];
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if( min_depth<=max_depth ){
     TNode x = getFreeVar( ntn );
     std::vector<std::pair<Node, InferenceId>> sbLemmas;
@@ -425,9 +424,8 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
         }
         Assert(!disj.empty());
         if( excl ){
-          cond = disj.size() == 1
-                     ? disj[0]
-                     : NodeManager::currentNM()->mkNode(Kind::AND, disj);
+          cond = disj.size() == 1 ? disj[0]
+                                  : nodeManager()->mkNode(Kind::AND, disj);
         }
       }
       else
@@ -440,7 +438,7 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
       if( cond.isNull() ){
         cond = c1;
       }else if( !c1.isNull() ){
-        cond = NodeManager::currentNM()->mkNode(Kind::OR, cond, c1);
+        cond = nodeManager()->mkNode(Kind::OR, cond, c1);
       }
     }
     Trace("sygus-sb-debug2") << "Relevancy condition for " << n << " is " << cond << std::endl;
@@ -459,7 +457,7 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
   {
     return itt->second;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> types;
   types.push_back(tn);
@@ -471,7 +469,7 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
 
 Node SygusExtension::eliminateTraversalPredicates(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -576,7 +574,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   }
   // this function is only called on sygus datatype types
   Assert(tn.isDatatype());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node n = getFreeVar(tn);
   const DType& dt = tn.getDType();
   Assert(dt.isSygus());
@@ -1018,7 +1016,7 @@ Node SygusExtension::registerSearchValue(Node a,
     return n;
   }
   Assert(nv.getKind() == Kind::APPLY_CONSTRUCTOR);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // we call the body of this function in a bottom-up fashion
   // this ensures that the "abstraction" of the model value is available
   if( nv.getNumChildren()>0 ){
@@ -1054,7 +1052,7 @@ Node SygusExtension::registerSearchValue(Node a,
     return nv;
   }
   Trace("sygus-sb-debug2") << "Registering search value " << n << " -> " << nv << std::endl;
-  std::map<TypeNode, int> var_count;
+  std::map<TypeNode, size_t> var_count;
   Node cnv = d_tds->canonizeBuiltin(nv, var_count);
   Trace("sygus-sb-debug") << "  ...canonized value is " << cnv << std::endl;
   SearchCache& sca = d_cache[a];
@@ -1073,109 +1071,114 @@ Node SygusExtension::registerSearchValue(Node a,
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = utils::getSygusTermSize(nv);
-    if( d_tds->involvesDivByZero( bvr ) ){
-      quantifiers::DivByZeroSygusInvarianceTest dbzet(d_env.getRewriter());
-      Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in "
-                                   << bv << std::endl;
-      registerSymBreakLemmaForValue(a, nv, dbzet, Node::null(), var_count);
-      return Node::null();
-    }else{
-      std::unordered_map<Node, Node>& scasv = sca.d_search_val[tn];
-      std::unordered_map<Node, unsigned>& scasvs = sca.d_search_val_sz[tn];
-      std::unordered_map<Node, Node>::iterator itsv = scasv.find(bvr);
-      Node bad_val_bvr;
-      bool by_examples = false;
-      if (itsv == scasv.end())
+    std::unordered_map<Node, Node>& scasv = sca.d_search_val[tn];
+    std::unordered_map<Node, unsigned>& scasvs = sca.d_search_val_sz[tn];
+    std::unordered_map<Node, Node>::iterator itsv = scasv.find(bvr);
+    Node bad_val_bvr;
+    bool by_examples = false;
+    if (itsv == scasv.end())
+    {
+      // Is it equivalent under examples?
+      Node bvr_equiv;
+      if (aconj != nullptr && options().datatypes.sygusSymBreakPbe)
       {
-        // Is it equivalent under examples?
-        Node bvr_equiv;
-        if (aconj != nullptr && options().datatypes.sygusSymBreakPbe)
+        // If the enumerator has examples, see if it is equivalent up to its
+        // examples with a previous term.
+        quantifiers::ExampleEvalCache* eec = aconj->getExampleEvalCache(a);
+        if (eec != nullptr)
         {
-          // If the enumerator has examples, see if it is equivalent up to its
-          // examples with a previous term.
-          quantifiers::ExampleEvalCache* eec = aconj->getExampleEvalCache(a);
-          if (eec != nullptr)
-          {
-            bvr_equiv = eec->addSearchVal(tn, bvr);
-          }
-        }
-        if( !bvr_equiv.isNull() ){
-          if( bvr_equiv!=bvr ){
-            Trace("sygus-sb-debug") << "......adding search val for " << bvr << " returned " << bvr_equiv << std::endl;
-            Assert(scasv.find(bvr_equiv) != scasv.end());
-            Trace("sygus-sb-debug")
-                << "......search value was " << scasv[bvr_equiv] << std::endl;
-            if( TraceIsOn("sygus-sb-exc") ){
-              Node prev = d_tds->sygusToBuiltin(scasv[bvr_equiv], tn);
-              Trace("sygus-sb-exc") << "  ......programs " << prev << " and " << bv << " are equivalent up to examples." << std::endl;
-            }
-            bad_val_bvr = bvr_equiv;
-            by_examples = true;
-          }
-        }
-        //store rewritten values, regardless of whether it will be considered
-        scasv[bvr] = nv;
-        scasvs[bvr] = sz;
-      }
-      else
-      {
-        bad_val_bvr = bvr;
-        if( TraceIsOn("sygus-sb-exc") ){
-          Node prev_bv = d_tds->sygusToBuiltin( itsv->second, tn );
-          Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
+          bvr_equiv = eec->addSearchVal(tn, bvr);
         }
       }
-
-      if( !bad_val_bvr.isNull() ){
-        Node bad_val = nv;
-        Node bad_val_o = scasv[bad_val_bvr];
-        Assert(scasvs.find(bad_val_bvr) != scasvs.end());
-        unsigned prev_sz = scasvs[bad_val_bvr];
-        bool doFlip = (prev_sz > sz);
-        if (doFlip)
+      if (!bvr_equiv.isNull())
+      {
+        if (bvr_equiv != bvr)
         {
-          //swap : the excluded value is the previous
-          scasvs[bad_val_bvr] = sz;
-          bad_val = scasv[bad_val_bvr];
-          bad_val_o = nv;
+          Trace("sygus-sb-debug") << "......adding search val for " << bvr
+                                  << " returned " << bvr_equiv << std::endl;
+          Assert(scasv.find(bvr_equiv) != scasv.end());
+          Trace("sygus-sb-debug")
+              << "......search value was " << scasv[bvr_equiv] << std::endl;
           if (TraceIsOn("sygus-sb-exc"))
           {
-            Trace("sygus-sb-exc") << "Flip : exclude ";
-            quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val);
-            Trace("sygus-sb-exc") << " instead of ";
-            quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val_o);
-            Trace("sygus-sb-exc") << ", since its size is " << sz << " < "
-                                  << prev_sz << std::endl;
+            Node prev = d_tds->sygusToBuiltin(scasv[bvr_equiv], tn);
+            Trace("sygus-sb-exc")
+                << "  ......programs " << prev << " and " << bv
+                << " are equivalent up to examples." << std::endl;
           }
-          sz = prev_sz;
+          bad_val_bvr = bvr_equiv;
+          by_examples = true;
         }
-        if( TraceIsOn("sygus-sb-exc") ){
-          Node bad_val_bv = d_tds->sygusToBuiltin( bad_val, tn );
-          Trace("sygus-sb-exc") << "  ........exclude : " << bad_val_bv;
-          if( by_examples ){
-            Trace("sygus-sb-exc") << " (by examples)";
-          }
-          Trace("sygus-sb-exc") << std::endl;
-        }
-        Assert(utils::getSygusTermSize(bad_val) == sz);
+      }
+      // store rewritten values, regardless of whether it will be considered
+      scasv[bvr] = nv;
+      scasvs[bvr] = sz;
+    }
+    else
+    {
+      bad_val_bvr = bvr;
+      if (TraceIsOn("sygus-sb-exc"))
+      {
+        Node prev_bv = d_tds->sygusToBuiltin(itsv->second, tn);
+        Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv
+                              << " rewrite to " << bvr << "." << std::endl;
+      }
+    }
 
-        // generalize the explanation for why the analog of bad_val
-        // is equivalent to bvr
-        quantifiers::EquivSygusInvarianceTest eset(d_env.getRewriter());
-        eset.init(d_tds, tn, aconj, a, bvr);
-
-        Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
-        registerSymBreakLemmaForValue(a, bad_val, eset, bad_val_o, var_count);
-
-        // other generalization criteria go here
-
-        // If the exclusion was flipped, we are excluding a previous value
-        // instead of the current one. Hence, the current value is a legal
-        // value that we will consider.
-        if (!doFlip)
+    if (!bad_val_bvr.isNull())
+    {
+      Node bad_val = nv;
+      Node bad_val_o = scasv[bad_val_bvr];
+      Assert(scasvs.find(bad_val_bvr) != scasvs.end());
+      unsigned prev_sz = scasvs[bad_val_bvr];
+      bool doFlip = (prev_sz > sz);
+      if (doFlip)
+      {
+        // swap : the excluded value is the previous
+        scasvs[bad_val_bvr] = sz;
+        bad_val = scasv[bad_val_bvr];
+        bad_val_o = nv;
+        if (TraceIsOn("sygus-sb-exc"))
         {
-          return Node::null();
+          Trace("sygus-sb-exc") << "Flip : exclude ";
+          quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val);
+          Trace("sygus-sb-exc") << " instead of ";
+          quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val_o);
+          Trace("sygus-sb-exc")
+              << ", since its size is " << sz << " < " << prev_sz << std::endl;
         }
+        sz = prev_sz;
+      }
+      if (TraceIsOn("sygus-sb-exc"))
+      {
+        Node bad_val_bv = d_tds->sygusToBuiltin(bad_val, tn);
+        Trace("sygus-sb-exc") << "  ........exclude : " << bad_val_bv;
+        if (by_examples)
+        {
+          Trace("sygus-sb-exc") << " (by examples)";
+        }
+        Trace("sygus-sb-exc") << std::endl;
+      }
+      Assert(utils::getSygusTermSize(bad_val) == sz);
+
+      // generalize the explanation for why the analog of bad_val
+      // is equivalent to bvr
+      quantifiers::EquivSygusInvarianceTest eset(d_env.getRewriter());
+      eset.init(d_tds, tn, aconj, a, bvr);
+
+      Trace("sygus-sb-mexp-debug")
+          << "Minimize explanation for eval[" << d_tds->sygusToBuiltin(bad_val)
+          << "] = " << bvr << std::endl;
+      registerSymBreakLemmaForValue(a, bad_val, eset, bad_val_o, var_count);
+
+      // other generalization criteria go here
+
+      // If the exclusion was flipped, we are excluding a previous value
+      // instead of the current one. Hence, the current value is a legal
+      // value that we will consider.
+      if (!doFlip)
+      {
+        return Node::null();
       }
     }
   }
@@ -1187,15 +1190,14 @@ void SygusExtension::registerSymBreakLemmaForValue(
     Node val,
     quantifiers::SygusInvarianceTest& et,
     Node valr,
-    std::map<TypeNode, int>& var_count)
+    std::map<TypeNode, size_t>& var_count)
 {
   TypeNode tn = val.getType();
   Node x = getFreeVar(tn);
   unsigned sz = utils::getSygusTermSize(val);
   std::vector<Node> exp;
   d_tds->getExplain()->getExplanationFor(x, val, exp, et, valr, var_count, sz);
-  Node lem = exp.size() == 1 ? exp[0]
-                             : NodeManager::currentNM()->mkNode(Kind::AND, exp);
+  Node lem = exp.size() == 1 ? exp[0] : nodeManager()->mkNode(Kind::AND, exp);
   lem = lem.negate();
   Trace("sygus-sb-exc") << "  ........exc lemma is " << lem << ", size = " << sz
                         << std::endl;
@@ -1219,7 +1221,7 @@ void SygusExtension::registerSymBreakLemma(TypeNode tn,
   TNode x = getFreeVar( tn );
   unsigned csz = getSearchSizeForAnchor( a );
   int max_depth = ((int)csz)-((int)sz);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for( int d=0; d<=max_depth; d++ ){
     std::map<unsigned, std::vector<Node>>::iterator itt =
         sca.d_search_terms[tn].find(d);
@@ -1263,7 +1265,7 @@ void SygusExtension::addSymBreakLemmasFor(TypeNode tn,
   std::map<TypeNode, std::map<uint64_t, std::vector<Node>>>::iterator its =
       sca.d_sbLemmas.find(tn);
   Node rlv = getRelevancyCondition(t);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (its != sca.d_sbLemmas.end())
   {
     TNode x = getFreeVar( tn );
@@ -1366,7 +1368,7 @@ void SygusExtension::registerSizeTerm(Node e)
   registerMeasureTerm(m);
   d_szinfo[m]->d_anchors.push_back(e);
   d_anchor_to_measure_term[e] = m;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE)
   {
     // update constraints on the measure term
@@ -1474,7 +1476,7 @@ void SygusExtension::incrementCurrentSearchSize(TNode m)
   Assert(itsz != d_szinfo.end());
   itsz->second->d_curr_search_size++;
   Trace("sygus-fair") << "  register search size " << itsz->second->d_curr_search_size << " for " << m << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for( std::map< Node, SearchCache >::iterator itc = d_cache.begin(); itc != d_cache.end(); ++itc ){
     Node a = itc->first;
     Trace("sygus-fair-debug") << "  look at anchor " << a << "..." << std::endl;
@@ -1604,10 +1606,9 @@ void SygusExtension::check()
         //debugging : ensure fairness was properly handled
         if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE)
         {
-          Node prog_sz = NodeManager::currentNM()->mkNode(Kind::DT_SIZE, prog);
+          Node prog_sz = nodeManager()->mkNode(Kind::DT_SIZE, prog);
           Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
-          Node progv_sz =
-              NodeManager::currentNM()->mkNode(Kind::DT_SIZE, progv);
+          Node progv_sz = nodeManager()->mkNode(Kind::DT_SIZE, progv);
 
           Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv
                             << ", size = " << prog_szv << std::endl;
@@ -1678,7 +1679,7 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
     Assert(!vn.getType().isDatatype());
     return true;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (TraceIsOn("sygus-sb-check-value"))
   {
     Node prog_sz = nm->mkNode(Kind::DT_SIZE, n);
@@ -1729,7 +1730,9 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
   return true;
 }
 
-Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count ) {
+Node SygusExtension::getCurrentTemplate(Node n,
+                                        std::map<TypeNode, size_t>& var_count)
+{
   if( d_active_terms.find( n )!=d_active_terms.end() ){
     TypeNode tn = n.getType();
     IntMap::const_iterator it = d_testers.find( n );
@@ -1741,12 +1744,12 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
     std::vector< Node > children;
     children.push_back(dt[tindex].getConstructor());
     for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
-      Node sel = NodeManager::currentNM()->mkNode(
+      Node sel = nodeManager()->mkNode(
           Kind::APPLY_SELECTOR, getSelectorInternal(tn, dt[tindex], i), n);
       Node cc = getCurrentTemplate( sel, var_count );
       children.push_back( cc );
     }
-    return NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+    return nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
   }else{
     return d_tds->getFreeVarInc( n.getType(), var_count );
   }
@@ -1765,7 +1768,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkMeasureValue()
 {
   if (d_measure_value.isNull())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     d_measure_value = sm->mkDummySkolem("mt", nm->integerType());
     Node mtlem =
@@ -1780,7 +1783,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
 {
   if (mkNew)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     Node new_mt = sm->mkDummySkolem("mt", nm->integerType());
     Node mtlem = nm->mkNode(Kind::GEQ, new_mt, nm->mkConstInt(Rational(0)));
@@ -1809,7 +1812,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
     throw LogicException(ss.str());
   }
   Assert(!d_this.isNull());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("sygus-engine") << "******* Sygus : allocate size literal " << s
                         << " for " << d_this << std::endl;
   return nm->mkNode(Kind::DT_SYGUS_BOUND, d_this, nm->mkConstInt(Rational(s)));

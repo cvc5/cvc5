@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,7 +96,13 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     size_t lsize = sts.getTypeSize(lam.getType());
     for (const Node& v : syms)
     {
-      size_t vsize = sts.getTypeSize(v.getType());
+      TypeNode tn = v.getType();
+      if (!tn.isFirstClass())
+      {
+        // don't need to worry about constructor/selector/testers/etc.
+        continue;
+      }
+      size_t vsize = sts.getTypeSize(tn);
       if (vsize>=lsize)
       {
         shouldLift = true;

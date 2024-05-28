@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir, Andrew Reynolds
+ *   Andrew Reynolds, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,23 +53,42 @@ TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
                                                     bool check,
                                                     std::ostream* errOut)
 {
-  TNode::iterator it = n.begin();
-  TypeNode t = (*it).getType(check);
-  if (check)
+  TypeNode t;
+  for (const Node& nc : n)
   {
-    if (t.getKind() != Kind::FINITE_FIELD_TYPE)
+    TypeNode tc = nc.getType(check);
+    if (check)
     {
-      throw TypeCheckingExceptionPrivate(n, "expecting finite-field terms");
-    }
-    TNode::iterator it_end = n.end();
-    for (++it; it != it_end; ++it)
-    {
-      if ((*it).getType(check) != t)
+      if (!tc.isMaybeKind(Kind::FINITE_FIELD_TYPE))
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "expecting finite-field terms from the same field");
+        if (errOut)
+        {
+          (*errOut) << "expecting finite-field terms";
+        }
+        return TypeNode::null();
       }
     }
+    // if first child
+    if (t.isNull())
+    {
+      t = tc;
+      continue;
+    }
+    t = t.leastUpperBound(tc);
+    if (t.isNull())
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting comparable finite-field terms";
+      }
+      return TypeNode::null();
+    }
+  }
+  // if all arguments are fully abstract, ensure we return the abstract finite
+  // field type
+  if (t.isFullyAbstract())
+  {
+    return nodeManager->mkAbstractType(Kind::FINITE_FIELD_TYPE);
   }
   return t;
 }
