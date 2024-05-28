@@ -58,6 +58,16 @@ void getFreeAssumptionsMap(
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap);
 
 /**
+ * Get the subproofs of pn that have rule r.
+ * @param pn The proof node.
+ * @param r The rule to find.
+ * @param pfs The list of subproofs of pn that have rule r.
+ */
+void getSubproofRule(std::shared_ptr<ProofNode> pn,
+                     ProofRule r,
+                     std::vector<std::shared_ptr<ProofNode>>& pfs);
+
+/**
  * Return true if pn contains a subproof whose rule is ASSUME. Notice that we
  * do *not* distinguish between free vs. non-free assumptions in this call.
  * This call involves at most a single dag traversal over the proof node.
