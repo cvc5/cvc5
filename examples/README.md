@@ -7,7 +7,10 @@ available at http://cvc4.cs.stanford.edu/wiki/Tutorials
 ## Building Examples
 
 The examples provided in this directory are not built by default.
+First, build cvc5 and install it in the standard location.
+To do so, follow [these](https://github.com/cvc5/cvc5/blob/main/INSTALL.rst) instructions.
 
+Then, proceed as follows:
 ```
   mkdir <build_dir>
   cd <build_dir>
