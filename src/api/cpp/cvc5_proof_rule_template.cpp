@@ -122,7 +122,6 @@ const char* toString(ProofRule rule)
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
     case ProofRule::DT_UNIF: return "DT_UNIF";
-    case ProofRule::DT_INST: return "DT_INST";
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
@@ -222,15 +221,26 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
+    case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
+    case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
+    case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
+    case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
+    case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
+      return "macro-quant-partition-connected-fv";
+    case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
+    case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
+      return "dt-collapse-tester-singleton";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
     case ProofRewriteRule::RE_LOOP_ELIM:
       return "re-loop-elim";
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+      return "sets-is-empty-eval";
       //================================================= RARE rules
       // clang-format off
       ${printer}$

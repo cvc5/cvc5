@@ -54,13 +54,15 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
   d_false = nm->mkConst(false);
 }
 
-bool RewriteDbProofCons::prove(CDProof* cdp,
-                               const Node& a,
-                               const Node& b,
-                               theory::TheoryId tid,
-                               MethodId mid,
-                               int64_t recLimit,
-                               int64_t stepLimit)
+bool RewriteDbProofCons::prove(
+    CDProof* cdp,
+    const Node& a,
+    const Node& b,
+    theory::TheoryId tid,
+    MethodId mid,
+    int64_t recLimit,
+    int64_t stepLimit,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   // clear the proof caches
   d_pcache.clear();
@@ -92,37 +94,40 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                << std::endl;
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
-  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid))
+  bool success = false;
+  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid, subgoals))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
-    return true;
+    success = true;
   }
-  bool success = false;
-  ++d_statTotalInputs;
-  Trace("rpc-debug") << "- convert to internal" << std::endl;
-  // prove the equality
-  for (int64_t i = 0; i <= recLimit; i++)
+  else
   {
-    Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-    if (proveEq(cdp, eq, eq, i, stepLimit))
+    ++d_statTotalInputs;
+    Trace("rpc-debug") << "- convert to internal" << std::endl;
+    // prove the equality
+    for (int64_t i = 0; i <= recLimit; i++)
     {
-      success = true;
-      break;
-    }
-  }
-  if (!success)
-  {
-    Node eqi = d_rdnc.convert(eq);
-    // if converter didn't make a difference, don't try to prove again
-    if (eqi != eq)
-    {
-      for (int64_t i = 0; i <= recLimit; i++)
+      Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+      if (proveEq(cdp, eq, eq, i, stepLimit, subgoals))
       {
-        Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-        if (proveEq(cdp, eq, eqi, i, stepLimit))
+        success = true;
+        break;
+      }
+    }
+    if (!success)
+    {
+      Node eqi = d_rdnc.convert(eq);
+      // if converter didn't make a difference, don't try to prove again
+      if (eqi != eq)
+      {
+        for (int64_t i = 0; i <= recLimit; i++)
         {
-          success = true;
-          break;
+          Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+          if (proveEq(cdp, eq, eqi, i, stepLimit, subgoals))
+          {
+            success = true;
+            break;
+          }
         }
       }
     }
@@ -130,21 +135,30 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   if (!success)
   {
     // now try the "post-prove" method as a last resort
-    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid))
+    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid, subgoals))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
-      return true;
+      success = true;
+    }
+    else
+    {
+      Trace("rpc") << "...fail" << std::endl;
     }
   }
-  Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
+  else
+  {
+    Trace("rpc") << "...success" << std::endl;
+  }
   return success;
 }
 
-bool RewriteDbProofCons::proveEq(CDProof* cdp,
-                                 const Node& eq,
-                                 const Node& eqi,
-                                 int64_t recLimit,
-                                 int64_t stepLimit)
+bool RewriteDbProofCons::proveEq(
+    CDProof* cdp,
+    const Node& eq,
+    const Node& eqi,
+    int64_t recLimit,
+    int64_t stepLimit,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   // add one to recursion limit, since it is decremented whenever we
   // initiate the getMatches routine.
@@ -169,7 +183,7 @@ bool RewriteDbProofCons::proveEq(CDProof* cdp,
     {
       cdp->addStep(eq, ProofRule::ENCODE_PRED_TRANSFORM, {eqi}, {eq});
     }
-    ensureProofInternal(cdp, eqi);
+    ensureProofInternal(cdp, eqi, subgoals);
     AlwaysAssert(cdp->hasStep(eqi)) << eqi;
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
     return true;
@@ -220,6 +234,13 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
           RewriteProofStatus::ARITH_POLY_NORM, eqi, {}, {}, false, false, true))
   {
     return RewriteProofStatus::ARITH_POLY_NORM;
+  }
+  // Maybe holds via a THEORY_REWRITE that has been marked with
+  // TheoryRewriteCtx::DSL_SUBCALL.
+  if (proveWithRule(
+          RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+  {
+    return RewriteProofStatus::THEORY_REWRITE;
   }
   Trace("rpc-debug2") << "...not proved via builtin tactic" << std::endl;
   d_currRecLimit--;
@@ -286,6 +307,14 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
     // apply substitution, which may notice vars may be out of order wrt rule
     // var list
     target = expr::narySubstitute(target, vars, subs);
+    // it may be impossible to construct the conclusion due to null terminators
+    // for approximate types, return false in this case
+    if (target.isNull())
+    {
+      // note that we return false here, indicating that we don't want any
+      // more matches, since we have failed for the current fixed point rule.
+      return false;
+    }
     // We now prove with the given rule. this should only fail if there are
     // conditions on the rule which fail. Notice we never allow recursion here.
     // We also don't permit inflection matching (which regardless should not
@@ -346,7 +375,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
                                        bool doRecurse,
                                        ProofRewriteRule r)
 {
-  Assert(!target.isNull() && target.getKind() == Kind::EQUAL);
+  Assert(!target.isNull() && target.getKind() == Kind::EQUAL)
+      << "Unknown " << target << " with rule " << id << " " << r << std::endl;
   Trace("rpc-debug2") << "Check rule "
                       << (id == RewriteProofStatus::DSL ? toString(r)
                                                         : toString(id))
@@ -471,8 +501,20 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     }
     pic.d_id = id;
   }
+  else if (id == RewriteProofStatus::THEORY_REWRITE)
+  {
+    ProofRewriteRule prid = d_env.getRewriter()->findRule(
+        target[0], target[1], theory::TheoryRewriteCtx::DSL_SUBCALL);
+    if (prid == ProofRewriteRule::NONE)
+    {
+      return false;
+    }
+    pic.d_id = id;
+    pic.d_dslId = prid;
+  }
   else
   {
+    Assert(id == RewriteProofStatus::DSL);
     const RewriteProofRule& rpr = d_db->getRule(r);
     // does it conclusion match what we are trying to show?
     Node conc = rpr.getConclusion();
@@ -744,7 +786,10 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
   return false;
 }
 
-bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
+bool RewriteDbProofCons::ensureProofInternal(
+    CDProof* cdp,
+    const Node& eqi,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
   // note we could use single internal cdp to improve subproof sharing
   NodeManager* nm = nodeManager();
@@ -821,43 +866,43 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           {
             // premises are the steps, stored in d_vars
             ps.insert(ps.end(), pcur.d_vars.begin(), pcur.d_vars.end());
-            if (pcur.d_id == RewriteProofStatus::CONG
-                || pcur.d_id == RewriteProofStatus::CONG_EVAL)
-            {
-              pfac.push_back(ProofRuleChecker::mkKindNode(cur[0].getKind()));
-              if (cur[0].getMetaKind() == kind::metakind::PARAMETERIZED)
-              {
-                pfac.push_back(cur[0].getOperator());
-              }
-            }
           }
           else
           {
+            Assert(cur.getKind() == Kind::EQUAL);
             Assert(pcur.d_dslId != ProofRewriteRule::NONE);
-            const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
             // add the DSL proof rule we used
             pfac.push_back(
                 nm->mkConstInt(Rational(static_cast<uint32_t>(pcur.d_dslId))));
-            // compute premises based on the used substitution
-            // build the substitution context
-            const std::vector<Node>& vs = rpr.getVarList();
-            Assert(pcur.d_vars.size() == vs.size());
-            std::vector<Node> rsubs;
-            // must order the variables to match order of rewrite rule
-            for (const Node& v : vs)
+            if (pcur.d_id == RewriteProofStatus::DSL)
             {
-              itv = std::find(pcur.d_vars.begin(), pcur.d_vars.end(), v);
-              size_t d = std::distance(pcur.d_vars.begin(), itv);
-              Assert(d < pcur.d_subs.size());
-              rsubs.push_back(pcur.d_subs[d]);
+              const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
+              // compute premises based on the used substitution
+              // build the substitution context
+              const std::vector<Node>& vs = rpr.getVarList();
+              Assert(pcur.d_vars.size() == vs.size());
+              std::vector<Node> rsubs;
+              // must order the variables to match order of rewrite rule
+              for (const Node& v : vs)
+              {
+                itv = std::find(pcur.d_vars.begin(), pcur.d_vars.end(), v);
+                size_t d = std::distance(pcur.d_vars.begin(), itv);
+                Assert(d < pcur.d_subs.size());
+                rsubs.push_back(pcur.d_subs[d]);
+              }
+              // get the conditions, store into premises of cur.
+              if (!rpr.getObligations(vs, rsubs, ps))
+              {
+                Assert(false) << "failed a side condition?";
+                return false;
+              }
+              pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
             }
-            // get the conditions, store into premises of cur.
-            if (!rpr.getObligations(vs, rsubs, ps))
+            else
             {
-              Assert(false) << "failed a side condition?";
-              return false;
+              Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
+              pfac.push_back(cur);
             }
-            pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
           }
           // recurse on premises
           visit.insert(visit.end(), ps.begin(), ps.end());
@@ -941,18 +986,30 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       {
         cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
       }
-      else
+      else if (pcur.d_id == RewriteProofStatus::DSL
+               || pcur.d_id == RewriteProofStatus::THEORY_REWRITE)
       {
         Assert(pfArgs.find(cur) != pfArgs.end());
         Assert(pcur.d_dslId != ProofRewriteRule::NONE);
-        const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
         const std::vector<Node>& args = pfArgs[cur];
-        std::vector<Node> subs(args.begin() + 1, args.end());
-        conc = rpr.getConclusionFor(subs);
-        Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
-        Trace("rpc-debug") << "Proved: " << cur << std::endl;
-        Trace("rpc-debug") << "From: " << conc << std::endl;
-        cdp->addStep(conc, ProofRule::DSL_REWRITE, ps, args);
+        ProofRule pfr;
+        if (pcur.d_id == RewriteProofStatus::DSL)
+        {
+          std::vector<Node> subs(args.begin() + 1, args.end());
+          const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
+          conc = rpr.getConclusionFor(subs);
+          Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
+          Trace("rpc-debug") << "Proved: " << cur << std::endl;
+          Trace("rpc-debug") << "From: " << conc << std::endl;
+          pfr = ProofRule::DSL_REWRITE;
+          cdp->addStep(conc, pfr, ps, args);
+        }
+        else
+        {
+          Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
+          // use the utility, possibly to do macro expansion
+          d_trrc.ensureProofForTheoryRewrite(cdp, pcur.d_dslId, cur, subgoals);
+        }
       }
     }
   } while (!visit.empty());
@@ -1055,6 +1112,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
 
       ProvenInfo& dpi = d_pcache[source.eqNode(target)];
       dpi.d_id = pi.d_id;
+      dpi.d_dslId = pi.d_dslId;
       dpi.d_vars = vars;
       dpi.d_subs = stepSubs;
 

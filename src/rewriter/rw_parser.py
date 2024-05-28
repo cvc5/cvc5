@@ -194,8 +194,8 @@ class Parser:
         def fixed_rule_action(s, l, t):
             # t = [key, args, match, target, (cond)]
             assert len(t) == 4 or len(t) == 5
-            keys, args, match, target, cond = list(t) + [None] \
-                if len(t) == 4 else t
+            keys, args, match, target = t[:4]
+            cond = Placeholder() if len(t) == 4 else t[4]
             return self.rule_action(args, CBool(True), match, target, True, cond)
         fixed_rule = (
             pp.Suppress('(') +

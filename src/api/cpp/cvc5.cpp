@@ -7094,12 +7094,12 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
 /* Non-SMT-LIB commands                                                       */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::simplify(const Term& term)
+Term Solver::simplify(const Term& term, bool applySubs)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
-  Term res = Term(&d_tm, d_slv->simplify(*term.d_node));
+  Term res = Term(&d_tm, d_slv->simplify(*term.d_node, applySubs));
   Assert(*res.getSort().d_type == *term.getSort().d_type);
   return res;
   ////////
