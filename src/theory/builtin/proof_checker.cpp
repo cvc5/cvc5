@@ -419,17 +419,12 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::ENCODE_EQ_INTRO)
   {
-    Assert(children.size() == 1);
+    Assert(children.empty());
     Assert(args.size() == 1);
     rewriter::RewriteDbNodeConverter rconv(nodeManager());
-    Node f = children[0];
-    Node g = args[0];
-    // equivalent up to conversion via utility
-    if (rconv.convert(f) != rconv.convert(g))
-    {
-      return Node::null();
-    }
-    return g;
+    // run a single (small) step conversion
+    Node ac = rconv.postConvert(args[0]);
+    return args[0].eqNode(ac);
   }
   else if (id == ProofRule::ANNOTATION)
   {
