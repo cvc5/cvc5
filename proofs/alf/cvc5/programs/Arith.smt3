@@ -146,6 +146,21 @@
   )
 )
 
+; Helper for $arith_poly_to_term below.
+(program $arith_poly_to_term_rec ((T Type) (p @Polynomial :list) (a1 T) (c1 Real))
+  (@Polynomial) T
+  (
+    (($arith_poly_to_term_rec @poly.zero) 0)
+    (($arith_poly_to_term_rec (@poly (@mon a1 c1) p)) (+ (* c1 a1) ($arith_poly_to_term_rec p)))
+  )
+)
+
+; Converts a term to a polynomial (normalized) and then constructs the corresponding term.
+; This can be used for normalizing terms according to arithmetic.
+(define $arith_poly_to_term ((T Type :implicit) (t T))
+  ($arith_poly_to_term_rec (get_poly_norm t)))
+
+
 ; Helper for the method below.
 (program poly_is_equal_mod_c_rec ((c Real) (T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list))
   (Real @Polynomial @Polynomial) Bool
