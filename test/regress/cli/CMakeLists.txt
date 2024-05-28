@@ -1689,7 +1689,6 @@ set(regress_0_tests
   regress0/sets/proj-issue493-choose-det.smt2
   regress0/sets/proj-issue501-choose-bool-term-var.smt2
   regress0/sets/proj-issue583.smt2
-  regress0/sets/proj-issue583.smt2
   regress0/sets/proj-issue632.smt2
   regress0/sets/proj-issue664.smt2
   regress0/sets/proj-issue703.smt2
