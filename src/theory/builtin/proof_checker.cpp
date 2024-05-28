@@ -51,7 +51,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ACI_NORM, this);
   pc->registerChecker(ProofRule::ANNOTATION, this);
   pc->registerChecker(ProofRule::ITE_EQ, this);
-  pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
+  pc->registerChecker(ProofRule::ENCODE_EQ_INTRO, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
   pc->registerChecker(ProofRule::THEORY_REWRITE, this);
   // rules depending on the rewriter
@@ -417,7 +417,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getType().isInteger());
     return args[1];
   }
-  else if (id == ProofRule::ENCODE_PRED_TRANSFORM)
+  else if (id == ProofRule::ENCODE_EQ_INTRO)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);

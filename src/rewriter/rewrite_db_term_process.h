@@ -83,7 +83,7 @@ class ProofRewriteDbNodeConverter : protected EnvObj
    * Specifically, this returns a proof of
    *   n = RewriteDbNodeConverter::convert(n).
    * The returned proof is a term conversion proof whose small steps are
-   * EVALUATE, ACI_NORM and ENCODE_PRED_TRANSFORM.
+   * EVALUATE, ACI_NORM and ENCODE_EQ_INTRO.
    */
   std::shared_ptr<ProofNode> convert(const Node& n);
 

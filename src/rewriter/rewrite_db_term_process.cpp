@@ -64,7 +64,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   else if (k == Kind::CONST_SEQUENCE)
   {
     Node ret = theory::strings::utils::mkConcatForConstSequence(n);
-    recordProofStep(n, ret, ProofRule::ENCODE_PRED_TRANSFORM);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
   else if (k == Kind::CONST_BITVECTOR)
@@ -86,7 +86,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     {
       NodeManager* nm = NodeManager::currentNM();
       Node ret = nm->mkNode(Kind::FORALL, n[0], n[1]);
-      recordProofStep(n, ret, ProofRule::ENCODE_PRED_TRANSFORM);
+      recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
       return ret;
     }
   }
@@ -99,7 +99,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     indices.insert(indices.begin(), nm->mkConst(GenericOp(k)));
     indices.insert(indices.end(), n.begin(), n.end());
     Node ret = nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, indices);
-    recordProofStep(n, ret, ProofRule::ENCODE_PRED_TRANSFORM);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
   Node nacc = expr::getACINormalForm(n);
@@ -140,7 +140,7 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
       d_tpg->addRewriteStep(n, ret, d_proof);
     }
     break;
-    case ProofRule::ENCODE_PRED_TRANSFORM:
+    case ProofRule::ENCODE_EQ_INTRO:
       d_tpg->addRewriteStep(n, ret, r, {}, {n});
       break;
     default: break;
