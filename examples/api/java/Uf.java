@@ -18,7 +18,7 @@
 import io.github.cvc5.*;
 import java.util.Iterator;
 
-public class Combination
+public class Uf 
 {
   public static void main(String[] args) throws CVC5ApiException
   {
