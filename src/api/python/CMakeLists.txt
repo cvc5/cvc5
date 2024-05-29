@@ -17,6 +17,7 @@ if(NOT ONLY_PYTHON_EXT_SRC)
   # Python modules for building and installing
   check_python_module("setuptools")
   find_package(Cython 3.0.0 REQUIRED)
+  find_package(Repairwheel 0.2.9 REQUIRED)
 endif()
 
 configure_file(genenums.py.in genenums.py)
@@ -110,6 +111,7 @@ if (WIN32)
   set(PYTHON_EXT "pyd")
   set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include;${CMAKE_BINARY_DIR}/include")
   set(SETUP_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/src;${CMAKE_BINARY_DIR}/src/parser")
+  set(SETUP_COMPILER "[build]\ncompiler=mingw32")
 else()
   set(PYTHON_EXT "so")
   set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include")
@@ -224,8 +226,16 @@ else()
       ${LICENSE_FILES}
   )
 
+  set(BUILD_WHEEL_CMD
+      "${Python_EXECUTABLE} -m pip wheel ${CMAKE_CURRENT_BINARY_DIR} "
+      "${BUILD_WHEEL_CMD} --wheel-dir=${CMAKE_BINARY_DIR}/unrepaired-wheel")
+
+  set(REPAIR_WHEEL_CMD
+      "${Repairwheel_EXECUTABLE} -o ${CMAKE_BINARY_DIR}/repaired-wheel "
+      "-l ${CMAKE_BINARY_DIR}/src -l ${CMAKE_BINARY_DIR}/src/parser")
+
   set(INSTALL_CMD
-      "${Python_BASE_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}")
+      "${Python_BASE_EXECUTABLE} -m pip install")
 
   # If the user does not set a prefix, install the Python bindings in
   # the default location designated by the Python interpreter used to
@@ -234,9 +244,28 @@ else()
     set(INSTALL_CMD "${INSTALL_CMD} --prefix ${CMAKE_INSTALL_PREFIX}")
   endif()
 
-  message("Python bindings install command: ${INSTALL_CMD}")
+  set(UNREPAIRED_WHEEL_DIR ${CMAKE_BINARY_DIR}/unrepaired-wheel)
+  set(REPAIRED_WHEEL_DIR ${CMAKE_BINARY_DIR}/repaired-wheel)
 
-  install(CODE "execute_process(COMMAND ${INSTALL_CMD})"
+  # Remove previous wheel directories
+  install(CODE "execute_process(COMMAND \${CMAKE_COMMAND} -E remove_directory
+          ${UNREPAIRED_WHEEL_DIR} ${REPAIRED_WHEEL_DIR})"
+          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+
+  # Build wheel
+  install(CODE "execute_process(COMMAND ${BUILD_WHEEL_CMD})"
+          FILE_PERMISSIONS OWNER_WRITE OWNER_READ)
+
+  # Repair wheel (include required libraries)
+  install(CODE
+          "file(GLOB WHL_FILE ${UNREPAIRED_WHEEL_DIR}/cvc5*.whl)
+           execute_process(COMMAND ${REPAIR_WHEEL_CMD} \${WHL_FILE})"
+          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+
+  # Install wheel
+  install(CODE
+          "file(GLOB WHL_FILE ${REPAIRED_WHEEL_DIR}/cvc5*.whl)
+          execute_process(COMMAND ${INSTALL_CMD} \${WHL_FILE})"
           FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
 
 endif()

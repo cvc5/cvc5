@@ -2,3 +2,4 @@
 include_dirs=${SETUP_INCLUDE_DIRS}
 library_dirs=${SETUP_LIBRARY_DIRS}
 ${SETUP_RPATH}
+${SETUP_COMPILER}

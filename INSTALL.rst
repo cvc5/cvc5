@@ -270,7 +270,8 @@ Dependencies for Language Bindings
 
   - `Cython <https://cython.org/>`_ >= 3.0.0
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
-  - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
+  - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.2.9
+  - The source for the `pythonic API <https://github.com/cvc5/cvc5_pythonic_api>`_
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
 a virtual environment if they are missing. To install the modules globally and skip
