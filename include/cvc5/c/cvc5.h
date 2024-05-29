@@ -1011,7 +1011,7 @@ size_t cvc5_term_get_num_children(Cvc5Term term);
  * @param index The index of the child.
  * @return The child term at the given index.
  */
-Cvc5Term cvc5_term_get_child(size_t index);
+Cvc5Term cvc5_term_get_child(Cvc5Term term, size_t index);
 
 /**
  * Get the id of a given term.
@@ -1150,7 +1150,7 @@ bool cvc5_term_is_int32_value(Cvc5Term term);
  * @param term The term.
  * @return The given term as `int32_t` value.
  */
-int32_t cvc5_get_int32_value(Cvc5Term term);
+int32_t cvc5_term_get_int32_value(Cvc5Term term);
 /**
  * Determine if a given term is an uint32 value.
  * @note This will return true for integer constants and real constants that
@@ -1204,7 +1204,7 @@ uint64_t cvc5_term_get_uint64_value(Cvc5Term term);
  * @return True if the term is an integer constant or a real constant that
  *         has an integral value.
  */
-bool cvc5_term_isIntegerValue(Cvc5Term term);
+bool cvc5_term_is_integer_value(Cvc5Term term);
 /**
  * Get a string representation of a given integral value.
  * @note Requires that the term is an integral value (see
@@ -1556,7 +1556,7 @@ bool cvc5_term_is_cardinality_constraint(Cvc5Term term);
  */
 void cvc5_term_get_cardinality_constraint(Cvc5Term term,
                                           Cvc5Sort* sort,
-                                          uint32_t upper);
+                                          uint32_t* upper);
 
 /**
  * Determine if a given term is a real algebraic number.
@@ -1609,11 +1609,12 @@ Cvc5SkolemId cvc5_term_get_skolem_id(Cvc5Term term);
  * @note Asserts isSkolem().
  * @warning This function is experimental and may change in future versions.
  * @param term The skolem.
+ * @param size The size of the resulting array.
  * @return The skolem indices of the term. This is list of terms that the
- * skolem function is indexed by. For example, the array diff skolem
- * `Cvc5SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
+ *         skolem function is indexed by. For example, the array diff skolem
+ *         `Cvc5SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
  */
-const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term);
+const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term, size_t* size);
 
 /**
  * Compute the hash value of a term.
