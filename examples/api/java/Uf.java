@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Morgan Deters, Andres Noetzli
+ *   Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
@@ -10,9 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of the capabilities of cvc5
- *
- * A simple demonstration of how to use uninterpreted functions
+ * A simple demonstration of the capabilities of cvc5 uf solver.
  */
 
 import io.github.cvc5.*;

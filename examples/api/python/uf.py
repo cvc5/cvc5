@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Aina Niemetz, Alex Ozdemir
+#   Yoni Zohar
 #
 # This file is part of the cvc5 project.
 #
@@ -11,9 +11,7 @@
 # directory for licensing information.
 # #############################################################################
 #
-# A simple demonstration of the solving capabilities of the cvc5 combination
-# solver through the Python API. This is a direct translation of
-# combination-new.cpp.
+# A simple demonstration of the solving capabilities of the cvc5 uf solver.
 ##
 
 import cvc5
