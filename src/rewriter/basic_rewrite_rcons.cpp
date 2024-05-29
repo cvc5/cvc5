@@ -96,7 +96,7 @@ bool BasicRewriteRCons::postProve(
       success = true;
     }
   }
-  if (!success && tmode == TheoryRewriteMode::STANDARD
+  if (!success && tmode != TheoryRewriteMode::NEVER
       && tryTheoryRewrite(
           cdp, eq, theory::TheoryRewriteCtx::POST_DSL, subgoals))
   {
