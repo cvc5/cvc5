@@ -267,10 +267,11 @@ Dependencies for Language Bindings
   - `JDK >= 1.8 <https://www.java.com>`_
 
 - Python
-
   - `Cython <https://cython.org/>`_ >= 3.0.0
+  - `pip <https://pip.pypa.io/>`_ >= 23.0
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
   - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.2.9
+  - `setuptools <https://setuptools.pypa.io/>`_ >= 66.1.0
   - The source for the `pythonic API <https://github.com/cvc5/cvc5_pythonic_api>`_
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
@@ -279,6 +280,9 @@ the creation of the virtual environment, configure cvc5 with ``./configure.sh --
 
 If configured with ``--pythonic-path=PATH``, the build system will expect the Pythonic API's source to be at ``PATH``.
 Otherwise, if configured with ``--auto-download``, the build system will download it.
+
+Installing the Python bindings after building from source requires a Python environment with
+pip version 20.3 or higher.
 
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact the cvc5 team via `our issue tracker
