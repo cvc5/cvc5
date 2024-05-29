@@ -287,7 +287,11 @@ bool InferProofCons::convert(CDProof& cdp,
     case InferenceId::SETS_DEQ:
     {
       Assert(assumps.size() == 1);
-      Node res = psb.tryStep(ProofRule::SETS_EXT, {assumps[0]}, {}, conc);
+      Node exp = assums[0];
+      // ensure we are properly ordered
+      Assert(exp.getKind() == Kind::NOT && exp[0].getKind() == Kind::EQUAL
+             && exp[0][0] < exp[0][1]);
+      Node res = psb.tryStep(ProofRule::SETS_EXT, {exp}, {}, conc);
       success = (res == conc);
       Assert(success);
     }
