@@ -272,19 +272,26 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(MACRO_SR_PRED_TRANSFORM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- Encode predicate transformation**
+   * **Builtin theory -- Encode equality introduction**
    *
    * .. math::
-   *   \inferrule{F \mid G}{G}
+   *   \inferrule{- \mid t}{t=t'}
    * 
-   * where :math:`F` and :math:`G` are equivalent up to their encoding in an
-   * external proof format. This is currently verified by
-   * :math:`\texttt{RewriteDbNodeConverter::convert}(F) = \texttt{RewriteDbNodeConverter::convert}(G)`.
-   * This rule can be treated as a no-op when appropriate in external proof
-   * formats.
+   * where :math:`t` and :math:`t'` are equivalent up to their encoding in an
+   * external proof format.
+   *
+   * More specifically, it is the case that
+   * :math:`\texttt{RewriteDbNodeConverter::postConvert}(t) = t;`.
+   * This conversion method for instance may drop user patterns from quantified
+   * formulas or change the representation of :math:`t` in a way that is a
+   * no-op in external proof formats.
+   *
+   * Note this rule can be treated as a
+   * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
+   * external proof formats.
    * \endverbatim
    */
-  EVALUE(ENCODE_PRED_TRANSFORM),
+  EVALUE(ENCODE_EQ_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- DSL rewrite**
