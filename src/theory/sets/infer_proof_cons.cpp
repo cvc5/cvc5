@@ -287,7 +287,7 @@ bool InferProofCons::convert(CDProof& cdp,
     case InferenceId::SETS_DEQ:
     {
       Assert(assumps.size() == 1);
-      Node exp = assums[0];
+      Node exp = assumps[0];
       // ensure we are properly ordered
       Assert(exp.getKind() == Kind::NOT && exp[0].getKind() == Kind::EQUAL
              && exp[0][0] < exp[0][1]);
