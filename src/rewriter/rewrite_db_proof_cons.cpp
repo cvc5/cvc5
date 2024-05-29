@@ -58,11 +58,10 @@ bool RewriteDbProofCons::prove(
     CDProof* cdp,
     const Node& a,
     const Node& b,
-    theory::TheoryId tid,
-    MethodId mid,
     int64_t recLimit,
     int64_t stepLimit,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+    std::vector<std::shared_ptr<ProofNode>>& subgoals,
+    TheoryRewriteMode tmode)
 {
   // clear the proof caches
   d_pcache.clear();
@@ -115,7 +114,7 @@ bool RewriteDbProofCons::prove(
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
   bool success = false;
-  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid, subgoals))
+  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid, subgoals, tmode))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
@@ -155,7 +154,7 @@ bool RewriteDbProofCons::prove(
   if (!success)
   {
     // now try the "post-prove" method as a last resort
-    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid, subgoals))
+    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid, subgoals, tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
