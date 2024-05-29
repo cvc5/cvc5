@@ -290,7 +290,8 @@ Node SkolemCache::mkIndexVar(Node t)
   NodeManager* nm = NodeManager::currentNM();
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
-  return bvm->mkBoundVar<IndexVarAttribute>(t, intType);
+  // Note that proof rules may depend on the name of this variable.
+  return bvm->mkBoundVar<IndexVarAttribute>(t, "@var.str_index", intType);
 }
 
 Node SkolemCache::mkLengthVar(Node t)
@@ -298,7 +299,7 @@ Node SkolemCache::mkLengthVar(Node t)
   NodeManager* nm = NodeManager::currentNM();
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
-  return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
+  return bvm->mkBoundVar<LengthVarAttribute>(t, "@var.str_length", intType);
 }
 
 Node SkolemCache::mkSkolemFun(SkolemId id, Node a, Node b)
