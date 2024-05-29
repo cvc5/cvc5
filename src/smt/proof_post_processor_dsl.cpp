@@ -118,7 +118,7 @@ bool ProofPostprocessDsl::update(Node res,
   int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
   // Attempt to reconstruct the proof of the equality into cdp using the
   // rewrite database proof reconstructor.
-  // We record the subgoals in d_subgoals.,
+  // We record the subgoals in d_subgoals.
   if (d_rdbPc.prove(
           cdp, res[0], res[1], recLimit, stepLimit, d_subgoals, d_tmode))
   {
