@@ -301,6 +301,8 @@ class RewriteDbProofCons : protected EnvObj
   uint64_t d_currRecLimit;
   /** current step recursion limit */
   uint64_t d_currStepLimit;
+  /** The mode for if/when to try theory rewrites */
+  rewriter::TheoryRewriteMode d_tmode;
   /** current rule we are applying to fixed point */
   ProofRewriteRule d_currFixedPointId;
   /** current substitution from fixed point */

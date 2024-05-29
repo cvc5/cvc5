@@ -63,6 +63,7 @@ bool RewriteDbProofCons::prove(
     std::vector<std::shared_ptr<ProofNode>>& subgoals,
     TheoryRewriteMode tmode)
 {
+  d_tmode = tmode;
   // clear the proof caches
   d_pcache.clear();
   // clear the evaluate cache
@@ -256,10 +257,13 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   }
   // Maybe holds via a THEORY_REWRITE that has been marked with
   // TheoryRewriteCtx::DSL_SUBCALL.
-  if (proveWithRule(
-          RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+  if (d_tmode==TheoryRewriteMode::STANDARD)
   {
-    return RewriteProofStatus::THEORY_REWRITE;
+    if (proveWithRule(
+            RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+    {
+      return RewriteProofStatus::THEORY_REWRITE;
+    }
   }
   Trace("rpc-debug2") << "...not proved via builtin tactic" << std::endl;
   d_currRecLimit--;
