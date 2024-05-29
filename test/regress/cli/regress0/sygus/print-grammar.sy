@@ -1,6 +1,6 @@
 ; REQUIRES: no-competition
 ; COMMAND-LINE: -o sygus-grammar
-; EXPECT: (sygus-grammar f ((A_Int Int) (A_Bool Bool) )((A_Int Int (x y 0 1 (+ A_Int A_Int) (- A_Int A_Int) (ite A_Bool A_Int A_Int)))(A_Bool Bool (false true (= A_Int A_Int) (<= A_Int A_Int) (not A_Bool) (and A_Bool A_Bool) (or A_Bool A_Bool)))))
+; EXPECT: (sygus-grammar f ((A_Int Int) (A_Bool Bool) )((A_Int Int (x y 0 1 (+ A_Int A_Int) (- A_Int A_Int) (ite A_Bool A_Int A_Int)))(A_Bool Bool (true false (= A_Int A_Int) (<= A_Int A_Int) (not A_Bool) (and A_Bool A_Bool) (or A_Bool A_Bool)))))
 ; EXPECT: (
 ; EXPECT: (define-fun f ((x Int) (y Int)) Int 0)
 ; EXPECT: )
@@ -9,4 +9,7 @@
 
 (synth-fun f ((x Int) (y Int)) Int)
 
+(declare-var x Int)
+(declare-var y Int)
+(constraint (= (f x y) 0))
 (check-synth)

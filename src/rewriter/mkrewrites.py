@@ -93,7 +93,7 @@ def gen_mk_node(defns, expr):
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
         if expr.op in {Op.EXTRACT, Op.REPEAT, Op.ZERO_EXTEND,  Op.SIGN_EXTEND,
-                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV}:
+                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV, Op.REGEXP_LOOP}:
           args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
         return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
@@ -103,8 +103,13 @@ def gen_mk_node(defns, expr):
 
 def gen_rewrite_db_rule(defns, rule):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
-    fixed_point_arg = gen_mk_node(defns, rule.rhs_context) \
-        if rule.rhs_context else 'Node::null()'
+
+    if rule.rhs_context:
+        assert rule.is_fixed_point
+        fixed_point_arg = gen_mk_node(defns, rule.rhs_context)
+    else:
+        assert not rule.is_fixed_point
+        fixed_point_arg = 'Node::null()'
     return f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
            f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
            f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'

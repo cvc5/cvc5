@@ -22,6 +22,7 @@
 #include "proof/proof_node_manager.h"
 #include "proof/resolution_proofs_util.h"
 #include "proof/subtype_elim_proof_converter.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -173,6 +174,17 @@ bool ProofPostprocessCallback::update(Node res,
   Node ret = expandMacros(id, children, args, cdp, res);
   Trace("smt-proof-pp-debug") << "...expanded = " << !ret.isNull() << std::endl;
   return !ret.isNull();
+}
+
+bool ProofPostprocessCallback::canMerge(std::shared_ptr<ProofNode> pn)
+{
+  if (d_collectAllTrusted)
+  {
+    ProofRule id = pn->getRule();
+    return (id != ProofRule::TRUST_THEORY_REWRITE && id != ProofRule::TRUST);
+  }
+  // otherwise we can merge
+  return true;
 }
 
 bool ProofPostprocessCallback::updateInternal(Node res,
@@ -943,57 +955,9 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   }
   else if (id == ProofRule::MACRO_ARITH_SCALE_SUM_UB)
   {
-    Trace("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
-    if (TraceIsOn("macro::arith"))
-    {
-      for (const auto& child : children)
-      {
-        Trace("macro::arith") << "  child: " << child << std::endl;
-      }
-      Trace("macro::arith") << "   args: " << args << std::endl;
-    }
-    Assert(args.size() == children.size());
-    NodeManager* nm = nodeManager();
-    ProofStepBuffer steps{d_pc};
-
-    // Scale all children, accumulating
-    std::vector<Node> scaledRels;
-    for (size_t i = 0; i < children.size(); ++i)
-    {
-      TNode child = children[i];
-      TNode scalar = args[i];
-      bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp =
-          nm->mkNode(isPos ? Kind::GT : Kind::LT,
-                     scalar,
-                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
-      // (= scalarCmp true)
-      Node scalarCmpOrTrue =
-          steps.tryStep(ProofRule::EVALUATE, {}, {scalarCmp});
-      Assert(!scalarCmpOrTrue.isNull());
-      // scalarCmp
-      steps.addStep(ProofRule::TRUE_ELIM, {scalarCmpOrTrue}, {}, scalarCmp);
-      // (and scalarCmp relation)
-      Node scalarCmpAndRel =
-          steps.tryStep(ProofRule::AND_INTRO, {scalarCmp, child}, {});
-      Assert(!scalarCmpAndRel.isNull());
-      // (=> (and scalarCmp relation) scaled)
-      Node impl = steps.tryStep(
-          isPos ? ProofRule::ARITH_MULT_POS : ProofRule::ARITH_MULT_NEG,
-          {},
-          {scalar, child});
-      Assert(!impl.isNull());
-      // scaled
-      Node scaled =
-          steps.tryStep(ProofRule::MODUS_PONENS, {scalarCmpAndRel, impl}, {});
-      Assert(!scaled.isNull());
-      scaledRels.emplace_back(scaled);
-    }
-
-    Node sumBounds = steps.tryStep(ProofRule::ARITH_SUM_UB, scaledRels, {});
-    cdp->addSteps(steps);
-    Trace("macro::arith") << "Expansion done. Proved: " << sumBounds
-                          << std::endl;
+    Node sumBounds = theory::arith::expandMacroSumUb(children, args, cdp);
+    Assert(!sumBounds.isNull());
+    Assert(res.isNull() || sumBounds == res);
     return sumBounds;
   }
   else if (id == ProofRule::MACRO_STRING_INFERENCE)

@@ -258,10 +258,6 @@ TEST_F(TestApiBlackTermManager, mkFunctionSort)
           {d_tm.getIntegerSort(), d_tm.mkUninterpretedSort("u")}, funSort2),
       CVC5ApiException);
 
-  ASSERT_NO_THROW(d_tm.mkFunctionSort({d_tm.mkUninterpretedSort("u")},
-                                      d_tm.getIntegerSort()));
-  ASSERT_NO_THROW(d_tm.mkFunctionSort({d_tm.mkUninterpretedSort("u")},
-                                      d_tm.getIntegerSort()));
   std::vector<Sort> sorts1 = {
       d_tm.getBooleanSort(), d_tm.getIntegerSort(), d_tm.getIntegerSort()};
   std::vector<Sort> sorts2 = {d_tm.getBooleanSort(), d_tm.getIntegerSort()};
@@ -399,7 +395,7 @@ TEST_F(TestApiBlackTermManager, mkNullableSort)
   ASSERT_NO_THROW(d_tm.mkNullableSort(d_tm.getIntegerSort()));
   TermManager tm;
   // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(d_tm.mkNullableSort({tm.getIntegerSort()}));
+  ASSERT_NO_THROW(d_tm.mkNullableSort(tm.getIntegerSort()));
 }
 
 TEST_F(TestApiBlackTermManager, mkBitVector)

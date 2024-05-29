@@ -1595,6 +1595,21 @@ class SolverTest
   }
 
   @Test
+  void simplifyApplySubs() throws CVC5ApiException
+  {
+    d_solver.setOption("incremental", "true");
+    Sort intSort = d_tm.getIntegerSort();
+    Term x = d_solver.mkConst(intSort, "x");
+    Term zero = d_solver.mkInteger(0);
+    Term eq = d_solver.mkTerm(EQUAL, x, zero);
+    d_solver.assertFormula(eq);
+    assertDoesNotThrow(() -> d_solver.checkSat());
+
+    assertEquals(d_solver.simplify(x, false), x);
+    assertEquals(d_solver.simplify(x, true), zero);
+  }
+
+  @Test
   void simplify() throws CVC5ApiException
   {
     assertThrows(CVC5ApiException.class, () -> d_solver.simplify(new Term()));

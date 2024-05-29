@@ -372,23 +372,19 @@ endif()
 # either to be used when the '--auto-download' option is not specified, or
 # to create a virtual environment when the '--auto-download' option is given.
 # In the latter case, it is also used to install the Python bindings (if built).
-if(BUILD_BINDINGS_PYTHON)
-  # If the component Development is requested, CMake strongly recommends to
-  # also include the component Interpreter to get expected result.
-  if(DEFINED BUILD_BINDINGS_PYTHON_VERSION)
-    find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION}
-      EXACT COMPONENTS Interpreter Development REQUIRED
-    )
-  else()
-    find_package(Python COMPONENTS Interpreter Development REQUIRED)
-  endif()
+if(DEFINED BUILD_BINDINGS_PYTHON_VERSION)
+  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION}
+    EXACT COMPONENTS Interpreter REQUIRED
+  )
 else()
   find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 
 # Keep the PATH to the Python binary before setting venv.
+# Use a CACHE variable to remember the original value.
 # We use this path in the installation step of the Python bindings.
-set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}")
+set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
+    CACHE STRING "Base Python executable")
 
 if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
   # Set up Python venv if one doesn't exist already
@@ -418,11 +414,7 @@ if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
   endif()
 
   # Find the Python interpreter within the virtual environment
-  if(BUILD_BINDINGS_PYTHON)
-    find_package(Python COMPONENTS Interpreter Development REQUIRED)
-  else()
-    find_package(Python COMPONENTS Interpreter REQUIRED)
-  endif()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 
 find_package(GMP 6.3 REQUIRED)
