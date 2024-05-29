@@ -24,6 +24,9 @@
 #include "theory/theory_rewriter.h"
 
 namespace cvc5::internal {
+
+class TConvProofGenerator;
+
 namespace theory {
 namespace booleans {
 
@@ -34,7 +37,37 @@ class TheoryBoolRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
 
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+  /**
+   * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
+   * and computes NNF.
+   *
+   * @param nm Pointer to node manager.
+   * @param n The node to rewrite.
+   * @param pg If non-null, this stores rewrite rules that are capable of
+   * proving that n is equal to its normalized form.
+   * @return The normalized form of n.
+   */
+  static Node computeNnfNorm(NodeManager* nm,
+                             const Node& n,
+                             TConvProofGenerator* pg = nullptr);
+
  protected:
+  /**
+   * Helper method for computeNnfNorm.
+   */
+  static bool addNnfNormChild(std::vector<Node>& children,
+                              Node c,
+                              Kind k,
+                              std::map<Node, bool>& lit_pol,
+                              bool& childrenChanged);
   /**
    * Helper method which performs flattening.
    *

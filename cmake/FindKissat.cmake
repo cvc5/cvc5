@@ -88,4 +88,8 @@ if(Kissat_FOUND_SYSTEM)
 else()
   message(STATUS "Building Kissat ${Kissat_VERSION}: ${Kissat_LIBRARIES}")
   add_dependencies(Kissat Kissat-EP)
+  # Install static library only if it is a static build.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${Kissat_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()
