@@ -232,7 +232,8 @@ else()
 
   set(REPAIR_WHEEL_CMD
       "${Repairwheel_EXECUTABLE} -o ${CMAKE_BINARY_DIR}/repaired-wheel "
-      "-l ${CMAKE_BINARY_DIR}/src -l ${CMAKE_BINARY_DIR}/src/parser")
+      "-l ${CMAKE_BINARY_DIR}/src -l ${CMAKE_BINARY_DIR}/src/parser "
+      "-l ${DEPS_BASE}/bin")
 
   set(INSTALL_CMD
       "${Python_BASE_EXECUTABLE} -m pip install")
