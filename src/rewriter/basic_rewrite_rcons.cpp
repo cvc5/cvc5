@@ -35,6 +35,18 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
+std::ostream& operator<<(std::ostream& os, TheoryRewriteMode tm)
+{
+  switch (tm)
+  {
+    case TheoryRewriteMode::STANDARD: return os << "STANDARD";
+    case TheoryRewriteMode::RESORT: return os << "RESORT";
+    case TheoryRewriteMode::NEVER: return os << "NEVER";
+  }
+  Unreachable();
+  return os;
+}
+
 BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env)
 {
 
