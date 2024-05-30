@@ -2485,24 +2485,40 @@ enum ENUM(ProofRewriteRule) : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
    * \endverbatim
    */
   EVALUE(BV_UMULO_ELIMINATE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Signed multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
    * \endverbatim
    */
   EVALUE(BV_SMULO_ELIMINATE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Flatten nested add/or/mult/xor/and expression**
+   *
+   * .. math::
+   *    ((a1 and a2) and (a3 and a4)) \to (a1 and a2 and a3 and a4)
+   *
    * \endverbatim
    */
   EVALUE(BV_FLATTEN_ASSOC_COMMUT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Flatten nested add/or/mult/xor/and expression**
+   *
+   * .. math::
+   *    ((a1 and a2) and (a3 and a4)) \to (a1 and a2 and a3 and a4)
+   *
    * \endverbatim
    */
   EVALUE(BV_FLATTEN_ASSOC_COMMUT_NO_DUPLICATES),
@@ -2515,18 +2531,29 @@ enum ENUM(ProofRewriteRule) : uint32_t
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Extract negations from multiplicands**
+   *
+   * .. math::
+   *    (-a bvmul b bvmul c) \to -(a bvmul b c)
+   *
    * \endverbatim
    */
   EVALUE(BV_MULT_SIMPLIFY),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Remove like terms on both sides of an equation**
+   *
+   * .. math::
+   *    a + \dots = a + \dots \to \dots = \dots
+   *
    * \endverbatim
    */
   EVALUE(BV_SOLVE_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Eliminate equality sign when one side is a constant**
+   *
+   * This rule only acts on bitvectors of length 1. For example, if a & 1 = 0
+   * is rewritten as a = 1.
    * \endverbatim
    */
   EVALUE(BV_BITWISE_EQ),
