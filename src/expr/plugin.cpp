@@ -28,9 +28,10 @@ Plugin::~Plugin() {}
 Node Plugin::getSharableFormula(const Node& n) const
 {
   Node on = SkolemManager::getOriginalForm(n);
-  if (expr::hasSubtermKind(Kind::SKOLEM, on))
+  if (expr::hasSubtermKinds({Kind::SKOLEM, Kind::INST_CONSTANT}, on))
   {
-    // cannot share formulas with skolems currently
+    // We cannot share formulas with skolems currently.
+    // We should never share formulas with instantiation constants.
     return Node::null();
   }
   // also eliminate subtyping
