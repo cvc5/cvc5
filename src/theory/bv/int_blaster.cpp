@@ -21,9 +21,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "base/configuration.h"
 #include "expr/node.h"
-#include "expr/node_traversal.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_traversal.h"
 #include "expr/skolem_manager.h"
 #include "options/option_exception.h"
 #include "options/uf_options.h"
@@ -972,8 +973,21 @@ void IntBlaster::collectQuantificationData(Node n) {
         for (Node child : n) {
           // make sure d_quantifiedVariabls
           // is populated for child
+          // it won't be only if child is a translation
           if (d_quantifiedVariables.find(child) == d_quantifiedVariables.end()) {
-            collectQuantificationData(child);
+            if (Configuration::isDebugBuild())
+            {
+              bool inRange = false;
+              for (const auto& pair : d_intblastCache)
+              {
+                if (child == pair.second)
+                {
+                  inRange = true;
+                  break;
+                }
+              }
+              Assert(inRange);
+            }
           }
           for (Node varOfChild : d_quantifiedVariables[child].get())
           {
