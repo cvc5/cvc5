@@ -313,6 +313,19 @@ void Smt2State::addCoreSymbols()
   addClosureKind(Kind::EXISTS, "exists");
 }
 
+void Smt2State::addSkolemSymbols()
+{
+  for (int32_t s = static_cast<int32_t>(SkolemId::INTERNAL);
+       s <= static_cast<int32_t>(SkolemId::NONE);
+       ++s)
+  {
+    auto skolem = static_cast<SkolemId>(s);
+    std::stringstream ss;
+    ss << "@" << skolem;
+    addSkolemId(skolem, ss.str());
+  }
+}
+
 void Smt2State::addOperator(Kind kind, const std::string& name)
 {
   Trace("parser") << "Smt2State::addOperator( " << kind << ", " << name << " )"
@@ -332,6 +345,12 @@ void Smt2State::addClosureKind(Kind tKind, const std::string& name)
   // also include it as a normal operator
   addOperator(tKind, name);
   d_closureKindMap[name] = tKind;
+}
+
+void Smt2State::addSkolemId(SkolemId skolemID, const std::string& name)
+{
+  addOperator(Kind::SKOLEM, name);
+  d_skolemMap[name] = skolemID;
 }
 
 bool Smt2State::isIndexedOperatorEnabled(const std::string& name) const
@@ -756,6 +775,7 @@ void Smt2State::setLogic(std::string name)
 
   // Core theory belongs to every logic
   addCoreSymbols();
+  addSkolemSymbols();
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_UF))
   {
@@ -1559,6 +1579,29 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
                         << std::endl;
         return ret;
       }
+    }
+    else if (kind == Kind::SKOLEM)
+    {
+      Term ret;
+      SkolemId skolemId = d_skolemMap[p.d_name];
+
+      size_t numSkolemIndices = getNumIndicesForSkolemId(skolemId);
+      if (numSkolemIndices == args.size())
+      {
+        ret = d_tm.mkSkolem(skolemId, args);
+      }
+      else
+      {
+        std::vector<Term> skolemArgs(args.begin(),
+                                     args.begin() + numSkolemIndices);
+        Term skolem = d_tm.mkSkolem(skolemId, skolemArgs);
+        std::vector<Term> finalArgs = {skolem};
+        finalArgs.insert(
+            finalArgs.end(), args.begin() + numSkolemIndices, args.end());
+        ret = d_tm.mkTerm(Kind::APPLY_UF, finalArgs);
+      }
+      Trace("parser") << "applyParseOp: return skolem " << ret << std::endl;
+      return ret;
     }
     Term ret = d_tm.mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret
