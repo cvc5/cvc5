@@ -128,13 +128,12 @@ bool ArithEntail::check(Node a, bool strict, bool isSimple)
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
   Node ar = strict ? NodeManager::currentNM()->mkNode(Kind::SUB, a, d_one) : a;
+  ar = rewriteArith(ar);
   // if simple, just call the checkSimple routine.
   if (isSimple)
   {
-    ar = rewriteArith(ar);
     return checkSimple(ar);
   }
-  ar = rewriteArith(ar);
   Node ara = findApprox(ar, isSimple);
   return !ara.isNull();
 }
