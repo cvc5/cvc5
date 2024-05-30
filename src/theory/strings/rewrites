@@ -246,18 +246,6 @@
   (seq.nth s n)
   (str.to_code (str.substr s n 1)))
 
-(define-cond-rule str-len-substr-geq ((s String) (n Int) (m Int))
-  (>= m 0)
-  (>= (str.len (str.substr s m (str.len s))) n)
-  (>= (str.len s) (+ n m))
-)
-
-(define-cond-rule str-len-substr-eq ((s String) (n Int) (m Int))
-  (>= m 0)
-  (= (str.len (str.substr s m (str.len s))) n)
-  (= (str.len s) (+ n m))
-)
-
 ; =============== Sequences-specific rules
 
 (define-rule seq-len-unit ((x ?)) (str.len (seq.unit x)) 1)
