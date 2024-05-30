@@ -1,0 +1,28 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic ALL)
+
+(define-sort |T@T| () Int)
+(synth-fun aType ((x Int)) T@T)
+(synth-fun bType ((x Int)) T@T ((StartT T@T)) ( (StartT T@T ((Constant T@T)))))
+(synth-fun cType () T@T)
+(synth-fun dType () T@T ((StartT T@T)) ( (StartT T@T ((Constant T@T)))))
+
+
+(synth-fun X ((x Int) (y Int)) Int
+  ((Start Int) (StartBool Bool))
+  ((Start Int (0 1 2 3 4 5 6 x y
+               (+ Start Start)
+               (- Start Start)
+               (ite StartBool Start Start)))
+   (StartBool Bool ((and StartBool StartBool)
+                    (not StartBool)
+                    (= Start Start)
+                    (<= Start Start))))
+)
+
+(constraint (= (X 2 0) 1)) 
+(constraint (and (= (X 0 1) 5)  (= (X 0 0) 6)))
+
+
+(check-synth)

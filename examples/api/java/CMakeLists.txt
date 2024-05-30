@@ -43,11 +43,17 @@ function(add_java_example example)
 
   set(EXAMPLE_TEST_NAME api/java/${example})
 
+  if(WIN32)
+    set(PATH_SEP ";")
+  else()
+    set(PATH_SEP ":")
+  endif()
+
   add_test(
     NAME ${EXAMPLE_TEST_NAME}
     COMMAND
       ${Java_JAVA_EXECUTABLE}
-        -cp "${CVC5_JAR}:${CMAKE_BINARY_DIR}/bin/api/java/${example}.jar"
+        -cp "${CVC5_JAR}${PATH_SEP}${CMAKE_BINARY_DIR}/bin/api/java/${example}.jar"
         -Djava.library.path=${CVC5_JNI_PATH}
         ${example}
   )
