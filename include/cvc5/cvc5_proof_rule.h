@@ -2495,6 +2495,19 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(RE_LOOP_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings - regular expression membership evaluation**
+   *
+   * .. math::
+   *   (str.in_re s R) = c
+   *
+   * where `s` is a constant string, `R` is a constant regular expression and
+   * `c` is true or false.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression loop elimination**
    *
    * .. math::

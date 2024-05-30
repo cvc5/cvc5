@@ -51,6 +51,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
+                           TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_SIGMA,
@@ -65,6 +67,7 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::RE_LOOP_ELIM:
       return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::STR_IN_RE_EVAL: return rewriteViaStrInReEval(n);
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
       return rewriteViaStrInReConcatStarChar(n);
     case ProofRewriteRule::STR_IN_RE_SIGMA: return rewriteViaStrInReSigma(n);
@@ -1300,6 +1303,19 @@ Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
                       << std::endl;
   Assert(retNode != node);
   return retNode;
+}
+
+Node SequencesRewriter::rewriteViaStrInReEval(const Node& node)
+{
+  if (node.getKind() != Kind::STRING_IN_REGEXP || !node[0].isConst()
+      || !RegExpEntail::isConstRegExp(node[1]))
+  {
+    return Node::null();
+  }
+  // test whether x in node[1]
+  String s = node[0].getConst<String>();
+  bool test = RegExpEntail::testConstStringInRegExp(s, node[1]);
+  return nodeManager()->mkConst(test);
 }
 
 Node SequencesRewriter::rewriteViaStrInReConcatStarChar(const Node& n)
