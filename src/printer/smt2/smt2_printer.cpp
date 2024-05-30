@@ -671,6 +671,34 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       toStream(out, hoa, lbind, toDepth);
       return true;
     }
+    else if (n.getOperator().getKind() == Kind::SKOLEM)
+    {
+      SkolemManager* sm = nm->getSkolemManager();
+      SkolemId id;
+      Node cacheVal;
+      if (sm->isSkolemFunction(n.getOperator(), id, cacheVal))
+      {
+        // FIXME: refactor to reuse the code for printing standalone skolems
+        if (options::ioutils::getPrintSkolemDefinitions(out))
+        {
+          // do not print parens
+          out << "@" << id;
+          if (cacheVal.getKind() == Kind::SEXPR)
+          {
+            for (const Node& cv : cacheVal)
+            {
+              out << " " << cv;
+            }
+            out << " ";
+          }
+          else if (!cacheVal.isNull())
+          {
+            out << " " << cacheVal << " ";
+          }
+          return false;
+        }
+      }
+    }
   }
   else if (k == Kind::CONSTRUCTOR_TYPE)
   {
