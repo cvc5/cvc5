@@ -272,19 +272,26 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(MACRO_SR_PRED_TRANSFORM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- Encode predicate transformation**
+   * **Builtin theory -- Encode equality introduction**
    *
    * .. math::
-   *   \inferrule{F \mid G}{G}
+   *   \inferrule{- \mid t}{t=t'}
    * 
-   * where :math:`F` and :math:`G` are equivalent up to their encoding in an
-   * external proof format. This is currently verified by
-   * :math:`\texttt{RewriteDbNodeConverter::convert}(F) = \texttt{RewriteDbNodeConverter::convert}(G)`.
-   * This rule can be treated as a no-op when appropriate in external proof
-   * formats.
+   * where :math:`t` and :math:`t'` are equivalent up to their encoding in an
+   * external proof format.
+   *
+   * More specifically, it is the case that
+   * :math:`\texttt{RewriteDbNodeConverter::postConvert}(t) = t;`.
+   * This conversion method for instance may drop user patterns from quantified
+   * formulas or change the representation of :math:`t` in a way that is a
+   * no-op in external proof formats.
+   *
+   * Note this rule can be treated as a
+   * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
+   * external proof formats.
    * \endverbatim
    */
-  EVALUE(ENCODE_PRED_TRANSFORM),
+  EVALUE(ENCODE_EQ_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- DSL rewrite**
@@ -311,7 +318,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Other theory rewrite rules**
    *
    * .. math::
-   *   \inferrule{- \mid id, t}{t = t'}
+   *   \inferrule{- \mid id, t = t'}{t = t'}
    *
    * where `id` is the :cpp:enum:`ProofRewriteRule` of the theory rewrite
    * rule which transforms :math:`t` to :math:`t'`.
@@ -1668,9 +1675,17 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in R\mid -}{\texttt{RegExpOpr::reduceRegExpNeg}(t\not\in R)}
+   *   \inferrule{t \not \in \mathit{re}.\text{*}(R) \mid -}{t \neq \ '' \ \wedge \forall L. L \leq 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{*}(R)}
+   * 
+   * Or alternatively for regular expression concatenation:
+   * 
+   * .. math::
    *
-   * corresponding to the one-step unfolding of the premise.
+   *   \inferrule{t \not \in \mathit{re}.\text{++}(R_1, \ldots, R_n)\mid -}{\forall L. L < 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(R_2, \ldots, R_n)}
+   *
+   * Note that in either case the varaible :math:`L` has type :math:`Int` and
+   * name `"@var.str_index"`.
+   *
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG),
@@ -1680,13 +1695,22 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in R\mid
-   *   -}{\texttt{RegExpOpr::reduceRegExpNegConcatFixed}(t\not\in R,L,i)}
+   *   \inferrule{t\not\in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \bot}{
+   *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{re.++}(r_2, \ldots, r_n)}
    *
-   * where :math:`\texttt{RegExpOpr::getRegExpConcatFixed}(t\not\in R, i) = L`,
-   * corresponding to the one-step unfolding of the premise, optimized for fixed
-   * length of component :math:`i` of the regular expression concatenation
-   * :math:`R`.
+   * where :math:`r_1` has fixed length :math:`L`.
+   * 
+   * or alternatively for the reverse:
+   * 
+   *
+   * .. math::
+   *
+   *   \inferrule{t \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \top}{
+   *   \mathit{suf}(t, str.len(t) - L) \not \in r_n \vee
+   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_{n-1})}
+   * 
+   * where :math:`r_n` has fixed length :math:`L`.
+   * 
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
@@ -2288,10 +2312,25 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(DISTINCT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Booleans -- Negation Normal Form with normalization**
+   *
+   * .. math::
+   *   F = G
+   *
+   * where :math:`G` is the result of applying negation normal form to
+   * :math:`F` with additional normalizations, see
+   * TheoryBoolRewriter::computeNnfNorm.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BOOL_NNF_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**
    *
    * .. math::
-   *   ((\lambda x_1 \dots x_n.\> t) t_1 \ldots t_n) = t\{x_1 \mapsto t_1, \dots, x_n \mapsto t_n\}
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
+   *   \ldots, x_n \mapsto t_n\}
    *
    * The right hand side of the equality in the conclusion is computed using
    * standard substitution via ``Node::substitute``.
@@ -2319,6 +2358,57 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(EXISTS_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Unused variables**
+   *
+   * .. math::
+   *   \forall X.\> F = \forall X_1.\> F
+   *
+   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_UNUSED_VARS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Merge prenex**
+   *
+   * .. math::
+   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X_1 \ldots X_n.\> F
+   *
+   * where :math:`X_1 \ldots X_n` are lists of variables.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MERGE_PRENEX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Miniscoping**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \wedge \ldots \wedge F_n =
+   *   (\forall X.\> F_1) \wedge \ldots \wedge (\forall X.\> F_n)
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MINISCOPE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro connected free variable partitioning**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \vee \ldots \vee F_n =
+   *   (\forall X_1.\> F_{1,1} \vee \ldots \vee F_{1,k_1}) \vee \ldots \vee
+   *   (\forall X_m.\> F_{m,1} \vee \ldots \vee F_{m,k_m})
+   *
+   * where :math:`X_1, \ldots, X_m` is a partition of :math:`X`. This is
+   * determined by computing the connected components when considering two
+   * variables in :math:`X` to be connected if they occur in the same
+   * :math:`F_i`.
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_PARTITION_CONNECTED_FV),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Instantiation**
@@ -2403,6 +2493,24 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(RE_LOOP_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets - empty tester evaluation**
+   *
+   * .. math::
+   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) =
+   * \top
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   \mathit{sets.is\_empty}(c) = \bot
+   *
+   * where :math:`c` is a constant set that is not the empty set.
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_IS_EMPTY_EVAL),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-plus-zero */
@@ -2411,8 +2519,20 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARITH_MUL_ONE),
   /** Auto-generated from RARE rule arith-mul-zero */
   EVALUE(ARITH_MUL_ZERO),
-  /** Auto-generated from RARE rule arith-int-div-one */
-  EVALUE(ARITH_INT_DIV_ONE),
+  /** Auto-generated from RARE rule arith-div-total */
+  EVALUE(ARITH_DIV_TOTAL),
+  /** Auto-generated from RARE rule arith-int-div-total */
+  EVALUE(ARITH_INT_DIV_TOTAL),
+  /** Auto-generated from RARE rule arith-int-div-total-one */
+  EVALUE(ARITH_INT_DIV_TOTAL_ONE),
+  /** Auto-generated from RARE rule arith-int-div-total-zero */
+  EVALUE(ARITH_INT_DIV_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-int-mod-total */
+  EVALUE(ARITH_INT_MOD_TOTAL),
+  /** Auto-generated from RARE rule arith-int-mod-total-one */
+  EVALUE(ARITH_INT_MOD_TOTAL_ONE),
+  /** Auto-generated from RARE rule arith-int-mod-total-zero */
+  EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
   /** Auto-generated from RARE rule arith-neg-neg-one */
   EVALUE(ARITH_NEG_NEG_ONE),
   /** Auto-generated from RARE rule arith-elim-uminus */
@@ -2429,8 +2549,10 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARITH_LEQ_NORM),
   /** Auto-generated from RARE rule arith-geq-tighten */
   EVALUE(ARITH_GEQ_TIGHTEN),
-  /** Auto-generated from RARE rule arith-geq-norm */
-  EVALUE(ARITH_GEQ_NORM),
+  /** Auto-generated from RARE rule arith-geq-norm1 */
+  EVALUE(ARITH_GEQ_NORM1),
+  /** Auto-generated from RARE rule arith-geq-norm2 */
+  EVALUE(ARITH_GEQ_NORM2),
   /** Auto-generated from RARE rule arith-refl-leq */
   EVALUE(ARITH_REFL_LEQ),
   /** Auto-generated from RARE rule arith-refl-lt */
@@ -2439,6 +2561,10 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARITH_REFL_GEQ),
   /** Auto-generated from RARE rule arith-refl-gt */
   EVALUE(ARITH_REFL_GT),
+  /** Auto-generated from RARE rule arith-real-eq-elim */
+  EVALUE(ARITH_REAL_EQ_ELIM),
+  /** Auto-generated from RARE rule arith-int-eq-elim */
+  EVALUE(ARITH_INT_EQ_ELIM),
   /** Auto-generated from RARE rule arith-plus-flatten */
   EVALUE(ARITH_PLUS_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-flatten */
@@ -2449,6 +2575,16 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARITH_PLUS_CANCEL1),
   /** Auto-generated from RARE rule arith-plus-cancel2 */
   EVALUE(ARITH_PLUS_CANCEL2),
+  /** Auto-generated from RARE rule arith-abs-elim */
+  EVALUE(ARITH_ABS_ELIM),
+  /** Auto-generated from RARE rule arith-to-real-elim */
+  EVALUE(ARITH_TO_REAL_ELIM),
+  /** Auto-generated from RARE rule arith-to-int-elim-to-real */
+  EVALUE(ARITH_TO_INT_ELIM_TO_REAL),
+  /** Auto-generated from RARE rule arith-div-elim-to-real1 */
+  EVALUE(ARITH_DIV_ELIM_TO_REAL1),
+  /** Auto-generated from RARE rule arith-div-elim-to-real2 */
+  EVALUE(ARITH_DIV_ELIM_TO_REAL2),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
@@ -2459,6 +2595,10 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ARRAY_STORE_SELF),
   /** Auto-generated from RARE rule bool-double-not-elim */
   EVALUE(BOOL_DOUBLE_NOT_ELIM),
+  /** Auto-generated from RARE rule bool-not-true */
+  EVALUE(BOOL_NOT_TRUE),
+  /** Auto-generated from RARE rule bool-not-false */
+  EVALUE(BOOL_NOT_FALSE),
   /** Auto-generated from RARE rule bool-eq-true */
   EVALUE(BOOL_EQ_TRUE),
   /** Auto-generated from RARE rule bool-eq-false */
@@ -2495,6 +2635,12 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(BOOL_AND_CONF),
   /** Auto-generated from RARE rule bool-or-taut */
   EVALUE(BOOL_OR_TAUT),
+  /** Auto-generated from RARE rule bool-or-de-morgan */
+  EVALUE(BOOL_OR_DE_MORGAN),
+  /** Auto-generated from RARE rule bool-implies-de-morgan */
+  EVALUE(BOOL_IMPLIES_DE_MORGAN),
+  /** Auto-generated from RARE rule bool-and-de-morgan */
+  EVALUE(BOOL_AND_DE_MORGAN),
   /** Auto-generated from RARE rule bool-xor-refl */
   EVALUE(BOOL_XOR_REFL),
   /** Auto-generated from RARE rule bool-xor-nrefl */
@@ -2507,6 +2653,10 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(BOOL_XOR_COMM),
   /** Auto-generated from RARE rule bool-xor-elim */
   EVALUE(BOOL_XOR_ELIM),
+  /** Auto-generated from RARE rule bool-not-xor-elim */
+  EVALUE(BOOL_NOT_XOR_ELIM),
+  /** Auto-generated from RARE rule bool-not-eq-elim */
+  EVALUE(BOOL_NOT_EQ_ELIM),
   /** Auto-generated from RARE rule ite-neg-branch */
   EVALUE(ITE_NEG_BRANCH),
   /** Auto-generated from RARE rule ite-then-true */
@@ -2521,6 +2671,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(ITE_THEN_LOOKAHEAD_SELF),
   /** Auto-generated from RARE rule ite-else-lookahead-self */
   EVALUE(ITE_ELSE_LOOKAHEAD_SELF),
+  /** Auto-generated from RARE rule bool-not-ite-elim */
+  EVALUE(BOOL_NOT_ITE_ELIM),
   /** Auto-generated from RARE rule ite-true-cond */
   EVALUE(ITE_TRUE_COND),
   /** Auto-generated from RARE rule ite-false-cond */
@@ -2863,20 +3015,46 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_3),
   /** Auto-generated from RARE rule bv-sign-extend-ult-const-4 */
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_4),
+  /** Auto-generated from RARE rule sets-eq-singleton-emp */
+  EVALUE(SETS_EQ_SINGLETON_EMP),
   /** Auto-generated from RARE rule sets-member-singleton */
   EVALUE(SETS_MEMBER_SINGLETON),
+  /** Auto-generated from RARE rule sets-member-emp */
+  EVALUE(SETS_MEMBER_EMP),
   /** Auto-generated from RARE rule sets-subset-elim */
   EVALUE(SETS_SUBSET_ELIM),
   /** Auto-generated from RARE rule sets-union-comm */
   EVALUE(SETS_UNION_COMM),
   /** Auto-generated from RARE rule sets-inter-comm */
   EVALUE(SETS_INTER_COMM),
+  /** Auto-generated from RARE rule sets-inter-emp1 */
+  EVALUE(SETS_INTER_EMP1),
+  /** Auto-generated from RARE rule sets-inter-emp2 */
+  EVALUE(SETS_INTER_EMP2),
+  /** Auto-generated from RARE rule sets-minus-emp1 */
+  EVALUE(SETS_MINUS_EMP1),
+  /** Auto-generated from RARE rule sets-minus-emp2 */
+  EVALUE(SETS_MINUS_EMP2),
+  /** Auto-generated from RARE rule sets-union-emp1 */
+  EVALUE(SETS_UNION_EMP1),
+  /** Auto-generated from RARE rule sets-union-emp2 */
+  EVALUE(SETS_UNION_EMP2),
   /** Auto-generated from RARE rule sets-inter-member */
   EVALUE(SETS_INTER_MEMBER),
   /** Auto-generated from RARE rule sets-minus-member */
   EVALUE(SETS_MINUS_MEMBER),
   /** Auto-generated from RARE rule sets-union-member */
   EVALUE(SETS_UNION_MEMBER),
+  /** Auto-generated from RARE rule sets-choose-singleton */
+  EVALUE(SETS_CHOOSE_SINGLETON),
+  /** Auto-generated from RARE rule sets-card-singleton */
+  EVALUE(SETS_CARD_SINGLETON),
+  /** Auto-generated from RARE rule sets-card-union */
+  EVALUE(SETS_CARD_UNION),
+  /** Auto-generated from RARE rule sets-card-minus */
+  EVALUE(SETS_CARD_MINUS),
+  /** Auto-generated from RARE rule sets-card-emp */
+  EVALUE(SETS_CARD_EMP),
   /** Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
   /** Auto-generated from RARE rule str-concat-flatten */

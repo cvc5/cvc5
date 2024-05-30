@@ -37,6 +37,9 @@ enum class TheoryRewriteCtx
 {
   // Attempt to use the theory rewrite prior to DSL rewrite reconstruction.
   PRE_DSL,
+  // Attempt to use the theory rewrite during subcalls in DSL rewrite
+  // reconstruction.
+  DSL_SUBCALL,
   // Attempt to use the theory rewrite only after DSL rewrite reconstruction
   // fails.
   POST_DSL,
