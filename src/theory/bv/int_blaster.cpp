@@ -975,7 +975,7 @@ void IntBlaster::collectQuantificationData(Node n) {
           // is populated for child
           // it won't be only if child is a translation
           if (d_quantifiedVariables.find(child) == d_quantifiedVariables.end()) {
-            if (Configuration::isDebugBuild())
+            if (Configuration::isAssertionBuild())
             {
               bool inRange = false;
               for (const auto& pair : d_intblastCache)
