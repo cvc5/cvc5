@@ -2482,14 +2482,64 @@ enum ENUM(ProofRewriteRule) : uint32_t
    */
   EVALUE(DT_CONS_EQ),
 
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   * \endverbatim
+   */
   EVALUE(BV_UMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Signed multiplication overflow detection elimination**
+   * \endverbatim
+   */
   EVALUE(BV_SMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Flatten nested add/or/mult/xor/and expression**
+   * \endverbatim
+   */
   EVALUE(BV_FLATTEN_ASSOC_COMMUT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Flatten nested add/or/mult/xor/and expression**
+   * \endverbatim
+   */
   EVALUE(BV_FLATTEN_ASSOC_COMMUT_NO_DUPLICATES),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Combine like terms during addition by counting terms**
+   * \endverbatim
+   */
   EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Extract negations from multiplicands**
+   * \endverbatim
+   */
   EVALUE(BV_MULT_SIMPLIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Remove like terms on both sides of an equation**
+   * \endverbatim
+   */
   EVALUE(BV_SOLVE_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Eliminate equality sign when one side is a constant**
+   * \endverbatim
+   */
   EVALUE(BV_BITWISE_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Extract continuous substrings of bitvectors**
+   *
+   * .. math::
+   *    (a bvand c) \to (concat (bvand a[i0:j0] c0) ... (bvand a[in:jn] cn))
+   *
+   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the constant c
+   * \endverbatim
+   */
   EVALUE(BV_BITWISE_SLICING),
   /**
    * \verbatim embed:rst:leading-asterisk
