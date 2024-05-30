@@ -190,11 +190,13 @@
 
 ;;-------------------- Regular expressions
 
+; ProofRule::RE_INTER
 (declare-rule re_inter ((x String) (s RegLan) (t RegLan))
   :premises ((str.in_re x s) (str.in_re x t))
   :conclusion (str.in_re x (re.inter s t))
 )
 
+; ProofRule::RE_UNFOLD_POS
 (declare-rule re_unfold_pos ((t String) (r RegLan))
   :premises ((str.in_re t r))
   :conclusion
@@ -286,4 +288,23 @@
   :requires (((alf.is_neg (alf.add (alf.neg l) u)) false)
              (($str_mk_re_loop_elim l (alf.add (alf.neg l) u) r1) r2))
   :conclusion (= (re.loop l u r1) r2)
+)
+
+(declare-rule str-in-re-concat-star-char ((s1 String) (s2 String :list) (r RegLan) (b Bool))
+  :args ((= (str.in_re (str.++ s1 s2) (re.* r)) b))
+  :requires ((($str_fixed_len_re r) 1) 
+             (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) (re.* r)) b))
+  :conclusion (= (str.in_re (str.++ s1 s2) (re.* r)) b)
+)
+
+(declare-rule str-in-re-sigma ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_mk_str_in_re_sigma s r) b))
+  :conclusion (= (str.in_re s r) b)
+)
+
+(declare-rule str-in-re-sigma-star ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s (re.* r)) b))
+  :requires ((($str_mk_str_in_re_sigma_star s r) b))
+  :conclusion (= (str.in_re s (re.* r)) b)
 )
