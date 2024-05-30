@@ -44,6 +44,9 @@ enum class TheoryRewriteMode
   NEVER,
 };
 
+/** Print a TheoryRewriteMode to an output stream */
+std::ostream& operator<<(std::ostream& os, TheoryRewriteMode tm);
+
 /**
  * The module for basic (non-DSL-dependent) automatic reconstructing proofs of
  * THEORY_REWRITE steps. It handles special cases that are independent
