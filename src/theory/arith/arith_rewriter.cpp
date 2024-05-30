@@ -53,8 +53,6 @@ ArithRewriter::ArithRewriter(NodeManager* nm, OperatorElim& oe)
 {
   registerProofRewriteRule(ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL,
-                           TheoryRewriteCtx::DSL_SUBCALL);
   // we don't register ARITH_STRING_PRED_ENTAIL or ARITH_STRING_PRED_SAFE_APPROX,
   // as these are subsumed by MACRO_ARITH_STRING_PRED_ENTAIL.
 }
