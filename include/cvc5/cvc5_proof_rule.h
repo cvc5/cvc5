@@ -2481,6 +2481,16 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
+
+  EVALUE(BV_UMULO_ELIMINATE),
+  EVALUE(BV_SMULO_ELIMINATE),
+  EVALUE(BV_FLATTEN_ASSOC_COMMUT),
+  EVALUE(BV_FLATTEN_ASSOC_COMMUT_NO_DUPLICATES),
+  EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
+  EVALUE(BV_MULT_SIMPLIFY),
+  EVALUE(BV_SOLVE_EQ),
+  EVALUE(BV_BITWISE_EQ),
+  EVALUE(BV_BITWISE_SLICING),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression loop elimination**
