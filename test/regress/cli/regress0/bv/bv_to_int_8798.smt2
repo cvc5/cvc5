@@ -3,6 +3,11 @@
  (set-option :solve-bv-as-int iand)
  (set-option :mbqi true)
  (declare-sort byte 0)
+ (declare-fun g (byte byte) (_ BitVec 8))
  (declare-fun f (byte) (_ BitVec 8))
- (assert (forall ((x byte)) (exists ((y byte)) (= (f x) (f y)))))
+ (assert (forall ((x byte)) (exists ((y byte)) (= (f x) (g x y)))))
  (check-sat)
+
+
+
+;going up -- the first quantified formula (going up) that bounds any variable

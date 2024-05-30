@@ -986,6 +986,7 @@ void IntBlaster::collectQuantificationData(Node n) {
                   break;
                 }
               }
+              Trace("int-blaster-debug") << "inRange: " << inRange << std::endl;
               Assert(inRange);
             }
           }
