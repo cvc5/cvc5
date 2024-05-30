@@ -43,9 +43,9 @@ class ArithEntail
    */
   ArithEntail(Rewriter* r);
   /**
-   * Returns the rewritten form a term, must be an integer term.
-   * This method either invokes the rewriter if one is provided or
-   * using the ArithPolyNorm utility (arith/arith_poly_norm.h) otherwise.
+   * Returns the rewritten form of a term, which must be an integer term.
+   * This method invokes the rewriter, if one is provided, and uses the
+   * ArithPolyNorm utility (arith/arith_poly_norm.h) otherwise.
    */
   Node rewriteArith(Node a);
   /** check arithmetic entailment equal
@@ -58,7 +58,7 @@ class ArithEntail
    * @param strict Whether we are testing strict inequality.
    * @param isSimple If true, then we do not use approximations for recursive
    * calls when computing approximations.
-   * @return true if it is always the case a >= b, or a>b if strict is true.
+   * @return true if it is always the case a >= b, or a > b if strict is true.
    */
   bool check(Node a, Node b, bool strict = false, bool isSimple = false);
   /** check arithmetic entailment
@@ -67,7 +67,7 @@ class ArithEntail
    * @param strict Whether we are testing strict inequality.
    * @param isSimple If true, then we do not use approximations for recursive
    * calls when computing approximations.
-   * @return true if it is always the case a >= 0, or a>0 if strict is true.
+   * @return true if it is always the case a >= 0, or a > 0 if strict is true.
    */
   bool check(Node a, bool strict = false, bool isSimple = false);
 
@@ -206,7 +206,7 @@ class ArithEntail
    *
    * We require that n is either an equality or GEQ between integers.
    *
-   * This returns the term true or false if it is that case that n can be
+   * This returns the term true or false if it is the case that n can be
    * rewritten to that constant. This method returns null otherwise.
    *
    * If this returns a non-null node, then exp is updated to the term that
