@@ -17,9 +17,9 @@
 
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
-#include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_poly_norm.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
@@ -62,6 +62,11 @@ Node ArithEntail::rewritePredViaEntailment(const Node& n,
       return nm->mkConst(false);
     }
     exp = Node::null();
+    if (checkEq(n[0], n[1]))
+    {
+      // explanation is null
+      return nm->mkConst(true);
+    }
   }
   else if (n.getKind() == Kind::GEQ)
   {
@@ -92,7 +97,6 @@ Node ArithEntail::rewriteArith(Node a)
   // must be justified by ARITH_POLY_NORM when in proof mode (when d_rr is
   // null).
   Node an = arith::PolyNorm::getPolyNorm(a);
-  Trace("ajr-temp") << "Poly norm " << an << " for " << a << std::endl;
   return an;
 }
 
