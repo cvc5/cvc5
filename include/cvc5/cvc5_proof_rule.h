@@ -2495,6 +2495,46 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(RE_LOOP_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings - regular expression loop elimination**
+   *
+   * .. math::
+   *   (str.in_re (str.++ s1 \ldots sn) (re.* R)) =
+   *   (and (str.in_re s1 (re.* R)) \ldots (str.in_re sn (re.* R)))
+   *
+   * where all strings in :math:`R` have length one.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_CONCAT_STAR_CHAR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - string in regular expression sigma**
+   *
+   * .. math::
+   *   (str.in_re s (re.++ re.allchar \ldots re.allchar)) = (= (str.len s) n)
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   (str.in_re s (re.++ re.allchar \ldots re.allchar (re.* re.allchar)) =
+   *   (>= (str.len s) n)
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_SIGMA),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - string in regular expression sigma star**
+   *
+   * .. math::
+   *   (str.in_re s (re.* re.allchar \ldots re.allchar)) =
+   *   (= (mod (str.len s) n) 0)
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_SIGMA_STAR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets - empty tester evaluation**
    *
    * .. math::
