@@ -50,7 +50,7 @@ TEST_F(TestApiBlackSolver, pow2Large1)
   Term t180 = d_tm.mkTerm(Kind::POW2, {t10});
   Term t258 = d_tm.mkTerm(Kind::GEQ, {t74, t180});
   d_solver->assertFormula(t258);
-  ASSERT_THROW(d_solver->simplify(t82), CVC5ApiException);
+  ASSERT_THROW(d_solver->simplify(t82, true), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, pow2Large2)
@@ -1821,6 +1821,20 @@ TEST_F(TestApiBlackSolver, simplify)
   ASSERT_NO_THROW(slv.simplify(x));
 }
 
+TEST_F(TestApiBlackSolver, simplifyApplySubs)
+{
+  d_solver->setOption("incremental", "true");
+  Sort intSort = d_tm.getIntegerSort();
+  Term x = d_tm.mkConst(intSort, "x");
+  Term zero = d_tm.mkInteger(0);
+  Term eq = d_tm.mkTerm(Kind::EQUAL, {x, zero});
+  d_solver->assertFormula(eq);
+  ASSERT_NO_THROW(d_solver->checkSat());
+
+  ASSERT_EQ(d_solver->simplify(x, false), x);
+  ASSERT_EQ(d_solver->simplify(x, true), zero);
+}
+
 TEST_F(TestApiBlackSolver, assertFormula)
 {
   ASSERT_NO_THROW(d_solver->assertFormula(d_tm.mkTrue()));
@@ -2499,6 +2513,33 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   Term xval = d_solver->getValue(x);
   Term yval = d_solver->getValue(y);
   ASSERT_TRUE(xval != yval);
+}
+
+class PluginUnsat : public Plugin
+{
+ public:
+  PluginUnsat(TermManager& tm) : Plugin(tm), d_tm(tm) {}
+  virtual ~PluginUnsat() {}
+  std::vector<Term> check() override
+  {
+    std::vector<Term> lemmas;
+    // add the "false" lemma.
+    Term flem = d_tm.mkBoolean(false);
+    lemmas.push_back(flem);
+    return lemmas;
+  }
+  std::string getName() override { return "PluginUnsat"; }
+ private:
+  /** Reference to the term manager */
+  TermManager& d_tm;
+};
+
+TEST_F(TestApiBlackSolver, pluginUnsat)
+{
+  PluginUnsat pu(d_tm);
+  d_solver->addPlugin(pu);
+  // should be unsat since the plugin above asserts "false" as a lemma
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
 }
 
 TEST_F(TestApiBlackSolver, verticalBars)

@@ -18,6 +18,7 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrites.h"
 #include "smt/env.h"
 
 namespace cvc5::internal {
@@ -123,6 +124,16 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   // construction above.
   std::shared_ptr<ProofNode> pfs = pnm->mkNode(ProofRule::SCOPE, {pf}, exp);
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
+}
+
+TrustNode EagerProofGenerator::mkTrustNodeRewrite(const Node& a,
+                                                  const Node& b,
+                                                  ProofRewriteRule id)
+{
+  std::vector<Node> args;
+  args.push_back(rewriter::mkRewriteRuleNode(id));
+  args.push_back(a.eqNode(b));
+  return mkTrustedRewrite(a, b, ProofRule::THEORY_REWRITE, args);
 }
 
 TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,

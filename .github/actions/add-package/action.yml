@@ -45,6 +45,10 @@ runs:
     - name: install pyGithub
       shell: ${{ inputs.shell }}
       run: |
+        # Upgrading pyopenssl resolves the following error:
+        # AttributeError:
+        #   module 'lib' has no attribute 'X509_V_FLAG_NOTIFY_POLICY'
+        python3 -m pip install -U pyopenssl
         python3 -m pip install pyGithub
 
     - name: Store to latest

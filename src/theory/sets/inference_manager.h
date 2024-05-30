@@ -25,7 +25,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-class TheorySetsPrivate;
+class TheorySetsRewriter;
 
 /** Inference manager
  *
@@ -39,7 +39,7 @@ class InferenceManager : public InferenceManagerBuffered
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  InferenceManager(Env& env, Theory& t, SolverState& s);
+  InferenceManager(Env& env, Theory& t, TheorySetsRewriter* tr, SolverState& s);
   /**
    * Add facts corresponding to ( exp => fact ) via calls to the assertFact
    * method of TheorySetsPrivate.
@@ -72,6 +72,10 @@ class InferenceManager : public InferenceManagerBuffered
                        std::vector<Node>& exp,
                        int inferType = 0);
   /**
+   * Immediately send a conflict with inference identifier id.
+   */
+  void assertSetsConflict(const Node& conf, InferenceId id);
+  /**
    * Immediately assert an internal fact with the default handling of proofs.
    */
   bool assertSetsFact(Node atom, bool polarity, InferenceId id, Node exp);
@@ -103,6 +107,17 @@ class InferenceManager : public InferenceManagerBuffered
    * as a fact or as a lemma (see assertInference above).
    */
   bool assertFactRec(Node fact, InferenceId id, Node exp, int inferType = 0);
+  /**
+   * Add (=> exp conc) to the list of pending lemmas, and setup proof
+   * production for this lemma.
+   *
+   * @param exp The explanation.
+   * @param conc The conclusion.
+   * @param id The associated inference identifier.
+   */
+  void setupAndAddPendingLemma(const Node& exp,
+                               const Node& conc,
+                               InferenceId id);
 };
 
 }  // namespace sets

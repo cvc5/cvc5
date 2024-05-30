@@ -43,12 +43,24 @@ class AlfPrinter : protected EnvObj
 
   /**
    * Print the full proof of assertions => false by pfn.
+   * @param out The output stream.
+   * @param pfn The proof node.
    */
   void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+
+  /**
+   * Print proof rewrite rule name r to output stream out
+   * @param out The output stream.
+   * @param r The proof rewrite rule. This should be one of the proof rewrite
+   * rules that corresponds to a RARE rewrite.
+   */
+  void printDslRule(std::ostream& out, ProofRewriteRule r);
 
  private:
   /** Return true if it is possible to trust the topmost application in pfn */
   bool isHandled(const ProofNode* pfn) const;
+  /** Return true if id is handled as a theory rewrite for term n */
+  bool isHandledTheoryRewrite(ProofRewriteRule id, const Node& n) const;
   /**
    * Return true if it is possible to evaluate n using the evaluation side
    * condition in the ALF signature. Notice this requires that all subterms of n
@@ -56,6 +68,10 @@ class AlfPrinter : protected EnvObj
    * ProofRule::EVALUATE can be applied.
    */
   bool canEvaluate(Node n) const;
+  /**
+   * Whether we support evaluating (str.in_re s r) for any constant string s.
+   */
+  bool canEvaluateRegExp(Node r) const;
   /* Returns the normalized name of the proof rule of pfn */
   std::string getRuleName(const ProofNode* pfn) const;
 
@@ -102,8 +118,6 @@ class AlfPrinter : protected EnvObj
    * Allocate (if necessary) the identifier for step
    */
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
-  /** Print DSL rule name r to output stream out */
-  void printDslRule(std::ostream& out, ProofRewriteRule r);
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
   /** Reference to the term processor */

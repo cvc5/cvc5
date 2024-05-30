@@ -39,6 +39,14 @@ class TheoryUfRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode node) override;
   /** pre-rewrite */
   RewriteResponse preRewrite(TNode node) override;
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
   // conversion between HO_APPLY AND APPLY_UF
   /**
    * converts an APPLY_UF to a curried HO_APPLY e.g.

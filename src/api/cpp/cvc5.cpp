@@ -52,6 +52,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
+#include "expr/plugin.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "expr/sygus_grammar.h"
@@ -334,6 +335,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::SET_UNIVERSE, internal::Kind::SET_UNIVERSE),
         KIND_ENUM(Kind::SET_COMPREHENSION, internal::Kind::SET_COMPREHENSION),
         KIND_ENUM(Kind::SET_CHOOSE, internal::Kind::SET_CHOOSE),
+        KIND_ENUM(Kind::SET_IS_EMPTY, internal::Kind::SET_IS_EMPTY),
         KIND_ENUM(Kind::SET_IS_SINGLETON, internal::Kind::SET_IS_SINGLETON),
         KIND_ENUM(Kind::SET_MAP, internal::Kind::SET_MAP),
         KIND_ENUM(Kind::SET_FILTER, internal::Kind::SET_FILTER),
@@ -731,6 +733,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SET_UNIVERSE, Kind::SET_UNIVERSE},
         {internal::Kind::SET_COMPREHENSION, Kind::SET_COMPREHENSION},
         {internal::Kind::SET_CHOOSE, Kind::SET_CHOOSE},
+        {internal::Kind::SET_IS_EMPTY, Kind::SET_IS_EMPTY},
         {internal::Kind::SET_IS_SINGLETON, Kind::SET_IS_SINGLETON},
         {internal::Kind::SET_MAP, Kind::SET_MAP},
         {internal::Kind::SET_FILTER, Kind::SET_FILTER},
@@ -1066,6 +1069,46 @@ uint32_t maxArity(Kind k)
 }
 
 }  // namespace
+
+/**
+ * Class that acts as a converter from an external to an internal plugin.
+ */
+class PluginInternal : public internal::Plugin
+{
+ public:
+  PluginInternal(internal::NodeManager* nm,
+                 cvc5::TermManager& tm,
+                 cvc5::Plugin& e)
+      : internal::Plugin(nm), d_tm(tm), d_external(e)
+  {
+  }
+  /** Check method */
+  std::vector<internal::Node> check() override
+  {
+    std::vector<Term> lemsExt = d_external.check();
+    return Term::termVectorToNodes(lemsExt);
+  }
+  /** Notify SAT clause method */
+  void notifySatClause(const internal::Node& n) override
+  {
+    Term t = Term(&d_tm, n);
+    return d_external.notifySatClause(t);
+  }
+  /** Notify theory lemma method */
+  void notifyTheoryLemma(const internal::Node& n) override
+  {
+    Term t = Term(&d_tm, n);
+    return d_external.notifyTheoryLemma(t);
+  }
+  /** Get name */
+  std::string getName() override { return d_external.getName(); }
+
+ private:
+  /** Reference to the term manager */
+  cvc5::TermManager& d_tm;
+  /** Reference to the external (user-provided) plugin */
+  cvc5::Plugin& d_external;
+};
 
 std::string kindToString(Kind k)
 {
@@ -5124,6 +5167,24 @@ const std::shared_ptr<internal::ProofNode>& Proof::getProofNode(void) const
 }
 
 /* -------------------------------------------------------------------------- */
+/* Plugin                                                                     */
+/* -------------------------------------------------------------------------- */
+
+Plugin::Plugin(TermManager& tm)
+    : d_pExtToInt(new PluginInternal(tm.d_nm, tm, *this))
+{
+}
+Plugin::~Plugin() {}
+
+std::vector<Term> Plugin::check()
+{
+  std::vector<Term> ret;
+  return ret;
+}
+void Plugin::notifySatClause(const Term& cl) {}
+void Plugin::notifyTheoryLemma(const Term& lem) {}
+
+/* -------------------------------------------------------------------------- */
 /* TermManager                                                                */
 /* -------------------------------------------------------------------------- */
 
@@ -5311,9 +5372,23 @@ Term TermManager::mkRealOrIntegerFromStrHelper(const std::string& s, bool isInt)
   //////// all checks before this line
   try
   {
-    internal::Rational r = s.find('/') != std::string::npos
-                               ? internal::Rational(s)
-                               : internal::Rational::fromDecimal(s);
+    internal::Rational r;
+    size_t spos = s.find('/');
+    if (spos != std::string::npos)
+    {
+      // Ensure the denominator contains a non-zero digit. We catch this here to
+      // avoid a floating point exception in GMP. This exception will be caught
+      // and given the standard error message below.
+      if (s.find_first_not_of('0', spos + 1) == std::string::npos)
+      {
+        throw std::invalid_argument("Zero denominator encountered");
+      }
+      r = internal::Rational(s);
+    }
+    else
+    {
+      r = internal::Rational::fromDecimal(s);
+    }
     return TermManager::mkRationalValHelper(r, isInt);
   }
   catch (const std::invalid_argument& e)
@@ -5321,8 +5396,8 @@ Term TermManager::mkRealOrIntegerFromStrHelper(const std::string& s, bool isInt)
     /* Catch to throw with a more meaningful error message. To be caught in
      * enclosing CVC5_API_TRY_CATCH_* block to throw CVC5ApiException. */
     std::stringstream message;
-    message << "Cannot construct Real or Int from string argument '" << s << "'"
-            << std::endl;
+    message << "Cannot construct Real or Int from string argument '" << s
+            << "'";
     throw std::invalid_argument(message.str());
   }
 }
@@ -5844,6 +5919,7 @@ Op TermManager::mkOp(Kind kind, const std::vector<uint32_t>& args)
       break;
     case Kind::DIVISIBLE:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] != 0, args, 0) << "a value != 0";
       res = mkOpHelper(kind, internal::Divisible(args[0]));
       break;
     case Kind::FLOATINGPOINT_TO_SBV:
@@ -7032,12 +7108,12 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
 /* Non-SMT-LIB commands                                                       */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::simplify(const Term& term)
+Term Solver::simplify(const Term& term, bool applySubs)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
-  Term res = Term(&d_tm, d_slv->simplify(*term.d_node));
+  Term res = Term(&d_tm, d_slv->simplify(*term.d_node, applySubs));
   Assert(*res.getSort().d_type == *term.getSort().d_type);
   return res;
   ////////
@@ -8089,6 +8165,13 @@ Term Solver::declareOracleFun(
       });
   return Term(&d_tm, fun);
   ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+void Solver::addPlugin(Plugin& p)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  d_slv->addPlugin(p.d_pExtToInt.get());
   CVC5_API_TRY_CATCH_END;
 }
 

@@ -1335,7 +1335,7 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
       || (logic.isTheoryEnabled(THEORY_ARITH)
           && logic.isTheoryEnabled(THEORY_BV))
       // FP requires UF since there are multiple operators that are partially
-      // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
+      // defined (see http://smt-lib.org/papers/BTRW15.pdf for more
       // details).
       || logic.isTheoryEnabled(THEORY_FP))
   {
@@ -1390,6 +1390,11 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.instMaxLevel != -1)
   {
     SET_AND_NOTIFY(quantifiers, cegqi, false, "instMaxLevel");
+  }
+  // enable MBQI if --mbqi-fast-sygus is provided
+  if (opts.quantifiers.mbqiFastSygus)
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(quantifiers, mbqi, true, "mbqiFastSygus");
   }
   if (opts.quantifiers.mbqi)
   {

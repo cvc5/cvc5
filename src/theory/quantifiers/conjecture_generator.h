@@ -452,7 +452,7 @@ private:  //information about ground equivalence classes
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
-  std::string identify() const override { return "ConjectureGenerator"; }
+  std::string identify() const override;
   // options
  private:
   bool optReqDistinctVarPatterns();

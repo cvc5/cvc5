@@ -34,12 +34,11 @@ const char* toString(ProofRule rule)
     case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case ProofRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case ProofRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
-    case ProofRule::ENCODE_PRED_TRANSFORM: return "ENCODE_PRED_TRANSFORM";
+    case ProofRule::ENCODE_EQ_INTRO: return "ENCODE_EQ_INTRO";
     case ProofRule::ANNOTATION: return "ANNOTATION";
     case ProofRule::DSL_REWRITE: return "DSL_REWRITE";
     case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
-    case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
-      return "REMOVE_TERM_FORMULA_AXIOM";
+    case ProofRule::ITE_EQ: return "ITE_EQ";
     //================================================= Trusted rules
     case ProofRule::TRUST: return "TRUST";
     case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
@@ -111,21 +110,18 @@ const char* toString(ProofRule rule)
     case ProofRule::FALSE_ELIM: return "FALSE_ELIM";
     case ProofRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
     case ProofRule::HO_CONG: return "HO_CONG";
-    case ProofRule::BETA_REDUCE: return "BETA_REDUCE";
     //================================================= Array rules
     case ProofRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
     case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:
       return "ARRAYS_READ_OVER_WRITE_CONTRA";
     case ProofRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case ProofRule::ARRAYS_EXT: return "ARRAYS_EXT";
-    case ProofRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
     //================================================= Bit-Vector rules
     case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
     case ProofRule::DT_UNIF: return "DT_UNIF";
-    case ProofRule::DT_INST: return "DT_INST";
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
@@ -133,6 +129,9 @@ const char* toString(ProofRule rule)
     case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
+    //================================================= Sets rules
+    case ProofRule::SETS_SINGLETON_INJ: return "SETS_SINGLETON_INJ";
+    case ProofRule::SETS_EXT: return "SETS_EXT";
     //================================================= String rules
     case ProofRule::CONCAT_EQ: return "CONCAT_EQ";
     case ProofRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
@@ -222,12 +221,26 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
+    case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
+    case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
+    case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
+      return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
+    case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
+    case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
+    case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
+    case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
+      return "macro-quant-partition-connected-fv";
+    case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
+    case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
+      return "dt-collapse-tester-singleton";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
     case ProofRewriteRule::RE_LOOP_ELIM:
       return "re-loop-elim";
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+      return "sets-is-empty-eval";
       //================================================= RARE rules
       // clang-format off
       ${printer}$
