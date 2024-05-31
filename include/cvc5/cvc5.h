@@ -1942,13 +1942,6 @@ class CVC5_EXPORT Term
 };
 
 /**
- * Get the number of indices for a skolem id.
- * @param id The skolem id.
- * @return The number of indices for the skolem id.
- */
-CVC5_EXPORT size_t getNumIndicesForSkolemId(SkolemId id);
-
-/**
  * Serialize a term to given stream.
  * @param out The output stream.
  * @param t The term to be serialized to the given output stream.
@@ -3748,6 +3741,12 @@ class CVC5_EXPORT TermManager
    * @return The skolem.
    */
   Term mkSkolem(SkolemId id, const std::vector<Term>& indices);
+  /**
+   * Get the number of indices for a skolem id.
+   * @param id The skolem id.
+   * @return The number of indices for the skolem id.
+   */
+  size_t getNumIndicesForSkolemId(SkolemId id);
   /**
    * Create a sort parameter.
    *

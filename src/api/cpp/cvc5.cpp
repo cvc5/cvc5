@@ -3702,81 +3702,6 @@ std::vector<Term> Term::getSkolemIndices() const
   CVC5_API_TRY_CATCH_END;
 }
 
-size_t getNumIndicesForSkolemId(SkolemId id)
-{
-  size_t size = 0;
-
-  switch (id)
-  {
-    // Number of skolem indices: 0
-    case SkolemId::BV_EMPTY: size = 0; break;
-    case SkolemId::DIV_BY_ZERO: size = 0; break;
-    case SkolemId::INT_DIV_BY_ZERO: size = 0; break;
-    case SkolemId::MOD_BY_ZERO: size = 0; break;
-
-    // Number of skolem indices: 1
-    case SkolemId::PURIFY: size = 1; break;
-    case SkolemId::GROUND_TERM: size = 1; break;
-    case SkolemId::TRANSCENDENTAL_PURIFY: size = 1; break;
-    case SkolemId::TRANSCENDENTAL_PURIFY_ARG: size = 1; break;
-    case SkolemId::STRINGS_REPLACE_ALL_RESULT: size = 1; break;
-    case SkolemId::STRINGS_ITOS_RESULT: size = 1; break;
-    case SkolemId::STRINGS_STOI_RESULT: size = 1; break;
-    case SkolemId::STRINGS_STOI_NON_DIGIT: size = 1; break;
-    case SkolemId::BAGS_CARD_COMBINE: size = 1; break;
-    case SkolemId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT: size = 1; break;
-    case SkolemId::BAGS_FOLD_CARD: size = 1; break;
-    case SkolemId::BAGS_FOLD_ELEMENTS: size = 1; break;
-    case SkolemId::BAGS_FOLD_UNION_DISJOINT: size = 1; break;
-    case SkolemId::BAGS_CHOOSE: size = 1; break;
-    case SkolemId::BAGS_DISTINCT_ELEMENTS: size = 1; break;
-    case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE: size = 1; break;
-    case SkolemId::TABLES_GROUP_PART: size = 1; break;
-    case SkolemId::RELATIONS_GROUP_PART: size = 1; break;
-    case SkolemId::SETS_CHOOSE: size = 1; break;
-    case SkolemId::SETS_FOLD_CARD: size = 1; break;
-    case SkolemId::SETS_FOLD_ELEMENTS: size = 1; break;
-    case SkolemId::SETS_FOLD_UNION: size = 1; break;
-    case SkolemId::FP_MIN_ZERO: size = 1; break;
-    case SkolemId::FP_MAX_ZERO: size = 1; break;
-    case SkolemId::FP_TO_REAL: size = 1; break;
-
-    // Number of skolem indices: 2
-    case SkolemId::ARRAY_DEQ_DIFF: size = 2; break;
-    case SkolemId::QUANTIFIERS_SKOLEMIZE: size = 2; break;
-    case SkolemId::STRINGS_NUM_OCCUR: size = 2; break;
-    case SkolemId::STRINGS_OCCUR_INDEX: size = 2; break;
-    case SkolemId::STRINGS_NUM_OCCUR_RE: size = 2; break;
-    case SkolemId::STRINGS_OCCUR_INDEX_RE: size = 2; break;
-    case SkolemId::STRINGS_OCCUR_LEN_RE: size = 2; break;
-    case SkolemId::STRINGS_DEQ_DIFF: size = 2; break;
-    case SkolemId::RE_FIRST_MATCH_PRE: size = 2; break;
-    case SkolemId::RE_FIRST_MATCH: size = 2; break;
-    case SkolemId::RE_FIRST_MATCH_POST: size = 2; break;
-    case SkolemId::BAGS_DEQ_DIFF: size = 2; break;
-    case SkolemId::TABLES_GROUP_PART_ELEMENT: size = 2; break;
-    case SkolemId::RELATIONS_GROUP_PART_ELEMENT: size = 2; break;
-    case SkolemId::SETS_DEQ_DIFF: size = 2; break;
-    case SkolemId::SETS_MAP_DOWN_ELEMENT: size = 2; break;
-    case SkolemId::FP_TO_SBV: size = 2; break;
-    case SkolemId::FP_TO_UBV: size = 2; break;
-
-    // Number of skolem indices: 3
-    case SkolemId::SHARED_SELECTOR: size = 3; break;
-    case SkolemId::RE_UNFOLD_POS_COMPONENT: size = 3; break;
-    case SkolemId::BAGS_FOLD_COMBINE: size = 3; break;
-    case SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE: size = 3; break;
-    case SkolemId::BAGS_MAP_SUM: size = 3; break;
-    case SkolemId::SETS_FOLD_COMBINE: size = 3; break;
-
-    // Number of skolem indices: 5
-    case SkolemId::BAGS_MAP_INDEX: size = 5; break;
-
-    default: size = -1;
-  }
-  return size;
-}
-
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   // Note that this ignores the options::ioutils properties of `out`.
@@ -5803,6 +5728,11 @@ Term TermManager::mkSkolem(SkolemId id, const std::vector<Term>& indices)
   return Term(this, res);
   ////////
   CVC5_API_TRY_CATCH_END;
+}
+
+size_t TermManager::getNumIndicesForSkolemId(SkolemId id)
+{
+  return d_nm->getSkolemManager()->getNumIndicesForSkolemId(id);
 }
 
 Sort TermManager::mkParamSort(const std::optional<std::string>& symbol)

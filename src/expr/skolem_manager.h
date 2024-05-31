@@ -257,6 +257,12 @@ class SkolemManager
    * @return the unpurified form of k.
    */
   static Node getUnpurifiedForm(Node k);
+  /**
+   * Get the number of indices for a skolem id.
+   * @param id The skolem id.
+   * @return The number of indices for the skolem id.
+   */
+  size_t getNumIndicesForSkolemId(SkolemId id) const;
 
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */
