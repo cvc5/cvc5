@@ -775,7 +775,12 @@ void Smt2State::setLogic(std::string name)
 
   // Core theory belongs to every logic
   addCoreSymbols();
-  addSkolemSymbols();
+
+  // add skolems
+  if (d_solver->getOption("parse-skolem-definitions") == "true")
+  {
+    addSkolemSymbols();
+  }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_UF))
   {
