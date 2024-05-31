@@ -2331,6 +2331,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * .. math::
    *   t / c = t * 1/c
    *
+   * where :math:`c` is a constant.
+   *
    * \endverbatim
    */
   EVALUE(ARITH_DIV_BY_CONST_ELIM),
