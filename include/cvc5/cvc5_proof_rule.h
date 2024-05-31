@@ -2326,6 +2326,50 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arith -- Division by constant elimination**
+   *
+   * .. math::
+   *   t / c = t * 1/c
+   *
+   * where :math:`c` is a constant.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_DIV_BY_CONST_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic - strings predicate entailment**
+   *
+   * .. math::
+   *   (>= n 0) = true
+   *
+   * Where :math:`n` can be shown to be greater than or equal to :math:`0` by
+   * reasoning about string length being positive and basic properties of
+   * addition and multiplication.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_STRING_PRED_ENTAIL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic - strings predicate entailment**
+   *
+   * .. math::
+   *   (>= n 0) = (>= m 0)
+   *
+   * Where :math:`m` is a safe under-approximation of :math:`n`, namely
+   * we have that :math:`(>= n m)` and :math:`(>= m 0)`.
+   *
+   * In detail, subterms of :math:`n` may be replaced with other terms to
+   * obtain :math:`m` based on the reasoning described in the paper
+   * Reynolds et al, CAV 2019, "High-Level Abstractions for Simplifying
+   * Extended String Constraints in SMT".
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_STRING_PRED_SAFE_APPROX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**
    *
    * .. math::
