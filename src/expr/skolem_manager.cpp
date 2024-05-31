@@ -685,7 +685,7 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     // Number of skolem indices: 5
     case SkolemId::BAGS_MAP_INDEX: size = 5; break;
 
-    default: size = -1;
+    default: Uninmplemented() << "Unknown skolem kind " << id; break;
   }
   return size;
 }
