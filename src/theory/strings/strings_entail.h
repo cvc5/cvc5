@@ -315,6 +315,7 @@ class StringsEntail
    * infer that any of the yi must be empty.
    */
   Node inferEqsFromContains(Node x, Node y);
+
  private:
   /** component contains base
    *
