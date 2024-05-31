@@ -12,8 +12,13 @@
   (= (str.++ x1 x x2) y)
   false)
 
-(define-cond-rule str-eq-ctn-full-false ((x ?Seq) (y ?Seq))
+(define-cond-rule str-eq-ctn-full-false1 ((x ?Seq) (y ?Seq))
   (= (str.contains y x) false)
+  (= x y)
+  false)
+
+(define-cond-rule str-eq-ctn-full-false2 ((x ?Seq) (y ?Seq))
+  (= (str.contains x y) false)
   (= x y)
   false)
 
@@ -177,9 +182,14 @@
   (= (str.len w) 1)
   (str.contains (str.++ x y z) w)
   (or (str.contains x w) (str.contains (str.++ y z) w)))
-  
+
+(define-cond-rule str-contains-lt-len ((x String) (y String))
+  (> (str.len y) (str.len x))
+  (str.contains x y)
+  false)
+
 (define-cond-rule str-contains-leq-len-eq ((x String) (y String))
-  (<= (str.len x) (str.len y))
+  (>= (str.len y) (str.len x))
   (str.contains x y)
   (= x y))
 
