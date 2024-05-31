@@ -1767,6 +1767,8 @@ set(regress_0_tests
   regress0/strings/indexof-sym-simp.smt2
   regress0/strings/indexof_re.smt2
   regress0/strings/indexof_re-start-index.smt2
+  regress0/strings/instance13131.smt2
+  regress0/strings/instance15449.smt2
   regress0/strings/is_digit_simple.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
