@@ -678,6 +678,10 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       Node cacheVal;
       if (sm->isSkolemFunction(n.getOperator(), id, cacheVal))
       {
+        if (n.getNumChildren() != 0)
+        {
+          out << '(';
+        }
         // FIXME: refactor to reuse the code for printing standalone skolems
         if (options::ioutils::getPrintSkolemDefinitions(out))
         {
