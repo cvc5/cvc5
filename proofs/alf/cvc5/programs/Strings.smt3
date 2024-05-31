@@ -663,6 +663,7 @@
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
 )
 
+
 ; Forward declaration of $str_re_includes below.
 (program $str_re_includes () (RegLan RegLan) Bool)
 
@@ -685,6 +686,22 @@
   (
   (($str_re_includes_rhs_inter r1 (re.inter r3 r2)) (alf.ite ($str_re_includes r1 r3) true ($str_re_includes_rhs_inter r1 r2)))
   (($str_re_includes_rhs_inter r1 r3)               false)
+  )
+)
+
+; Helper for `$str_re_includes`.
+; If `$str_re_includes_lhs_star (re* r1) r2` returns true if
+; we can infer that `r2` is contained in `(re* r1)`.
+(program $str_re_includes_lhs_star ((r1 RegLan) (r2 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_lhs_star (re.* r1) r2) (alf.ite (alf.is_eq r1 re.allchar)
+                                              true
+                                              ($str_re_includes r1
+                                                (alf.match ((r3 RegLan))
+                                                  r2
+                                                  (((re.* r3) r3) (r3 r3))))))
+  (($str_re_includes_lhs_star r1 r2)        false)
   )
 )
 
@@ -749,15 +766,10 @@
                                                           (alf.requires (alf.is_neg z4) false
                                                             (alf.and ($compare_geq z2 z3) ($compare_geq z3 z1)
                                                                   ($compare_geq z2 z4) ($compare_geq z4 z1)))))))))))
-  (($str_re_includes (re.union r1 r2) r3)                 ($str_re_includes_lhs_union (re.union r1 r2) r3))
-  (($str_re_includes r1 (re.inter r3 r2))                 ($str_re_includes_rhs_inter r1 (re.inter r3 r2)))
-  (($str_re_includes (re.* r1) r3)                        (alf.ite (alf.is_eq r1 re.allchar)
-                                                                true
-                                                                ($str_re_includes r1
-                                                                  (alf.match ((r4 RegLan))
-                                                                    r3
-                                                                    (((re.* r4) r4) (r4 r4))))))
-  (($str_re_includes r1 r3)                               ($str_re_includes_rec ($re_to_flat_form r1 false) ($re_to_flat_form r3 false)))
+  (($str_re_includes r1 r3)                               (alf.ite (alf.is_eq ($str_re_includes_lhs_union r1 r3) true) true
+                                                          (alf.ite (alf.is_eq ($str_re_includes_rhs_inter r1 r3) true) true
+                                                          (alf.ite (alf.is_eq ($str_re_includes_lhs_star r1 r3) true) true
+                                                              ($str_re_includes_rec ($re_to_flat_form r1 false) ($re_to_flat_form r3 false))))))
   )
 )
 
