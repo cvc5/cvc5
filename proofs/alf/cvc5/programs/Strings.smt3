@@ -663,30 +663,8 @@
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
 )
 
-; Helper for `$str_re_includes`.
-; `$str_re_includes_simple r1 r2` returns true if we can infer all strings in r1
-; are also in r2 using simple (non-recursive) checks.
-(program $str_re_includes_simple ((s1 String) (s2 String) (s3 String) (s4 String) (r1 RegLan) (r2 RegLan :list) (r3 RegLan))
-  (RegLan RegLan) Bool
-  (
-  (($str_re_includes_simple r1 r1)                              true)
-  (($str_re_includes_simple r1 (str.to_re s1))                  ($str_eval_str_in_re s1 r1))
-  (($str_re_includes_simple (re.range s1 s2) (re.range s3 s4))  (let ((z1 (alf.to_z s1)))
-                                                                (let ((z2 (alf.to_z s2)))
-                                                                (let ((z3 (alf.to_z s3)))
-                                                                (let ((z4 (alf.to_z s4)))
-                                                                (alf.requires (alf.is_neg z1) false
-                                                                (alf.requires (alf.is_neg z2) false
-                                                                (alf.requires (alf.is_neg z3) false
-                                                                (alf.requires (alf.is_neg z4) false
-                                                                  (alf.and ($compare_geq z2 z3) ($compare_geq z3 z1)
-                                                                        ($compare_geq z2 z4) ($compare_geq z4 z1)))))))))))
-  (($str_re_includes_simple r1 r3)                              false)
-  )
-)
-
-; Forward declaration of $str_re_includes_rec below.
-(program $str_re_includes_rec () (RegLan RegLan) Bool)
+; Forward declaration of $str_re_includes below.
+(program $str_re_includes () (RegLan RegLan) Bool)
 
 ; Helper for `$str_re_includes`.
 ; If `$str_re_includes_lhs_union (re.union r1 ... rn) r` returns true if
@@ -694,7 +672,7 @@
 (program $str_re_includes_lhs_union ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   (RegLan RegLan) Bool
   (
-  (($str_re_includes_lhs_union (re.union r1 r2) r3) (alf.ite ($str_re_includes_rec r1 r3) true ($str_re_includes_lhs_union r2 r3)))
+  (($str_re_includes_lhs_union (re.union r1 r2) r3) (alf.ite ($str_re_includes r1 r3) true ($str_re_includes_lhs_union r2 r3)))
   (($str_re_includes_lhs_union r1 r3)               false)
   )
 )
@@ -705,7 +683,7 @@
 (program $str_re_includes_rhs_inter ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   (RegLan RegLan) Bool
   (
-  (($str_re_includes_rhs_inter r1 (re.inter r3 r2)) (alf.ite ($str_re_includes_rec r1 r3) true ($str_re_includes_rhs_inter r1 r2)))
+  (($str_re_includes_rhs_inter r1 (re.inter r3 r2)) (alf.ite ($str_re_includes r1 r3) true ($str_re_includes_rhs_inter r1 r2)))
   (($str_re_includes_rhs_inter r1 r3)               false)
   )
 )
@@ -734,7 +712,7 @@
   (($str_re_includes_rec r1 (re.++ (str.to_re "") r4))              ($str_re_includes_rec r1 r4))
   ; otherwise we recurse for three possible cases
   (($str_re_includes_rec (re.++ r1 r2) (re.++ r3 r4))
-    (alf.ite (alf.ite ($str_re_includes_rec r1 r3)            ; can skip both if we have a base inclusion
+    (alf.ite (alf.ite ($str_re_includes ($re_from_flat_form r1 false) ($re_from_flat_form r3 false)) ; can skip both if we have a base inclusion
               ($str_re_includes_rec r2 r4)
               false)
       true
@@ -749,27 +727,39 @@
       false))))
   ; handles the case where there is a leftover (re.* re.allchar) on the LHS
   (($str_re_includes_rec (re.++ r1 r2) @re.empty)       (alf.and (alf.is_eq r1 (re.* re.allchar)) (alf.is_eq r2 @re.empty)))
-  (($str_re_includes_rec r1 r3)                         (alf.ite ($str_re_includes_simple r1 r3) true
-                                                        (alf.ite ($str_re_includes_lhs_union r1 r3) true
-                                                        (alf.ite ($str_re_includes_rhs_inter r1 r3) true
-                                                        (alf.match ((r5 RegLan))
-                                                          r1
-                                                          (
-                                                          ((re.* r5) (alf.ite (alf.is_eq r5 re.allchar)
-                                                                      true
-                                                                      ($str_re_includes_rec r5
-                                                                          (alf.match ((r6 RegLan))
-                                                                            r3
-                                                                            (((re.* r6) r6) (r6 r6))))))
-                                                          (r5        false)
-                                                        ))))))
+  (($str_re_includes_rec r1 r3)                         false)
   )
 )
 
 ; `$str_re_includes r1 r2` returns true if we can infer that all strings in
 ; r2 are also in r1.
-(define $str_re_includes ((r1 RegLan) (r2 RegLan))
-  ($str_re_includes_rec ($re_to_flat_form r1 false) ($re_to_flat_form r2 false)))
+(program $str_re_includes ((s1 String) (s2 String) (s3 String) (s4 String) (r1 RegLan) (r2 RegLan :list) (r3 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes r1 r1)                               true)
+  (($str_re_includes r1 (str.to_re s1))                   ($str_eval_str_in_re s1 r1))
+  (($str_re_includes (str.to_re s1) r1)                   false)
+  (($str_re_includes (re.range s1 s2) (re.range s3 s4))   (let ((z1 (alf.to_z s1)))
+                                                          (let ((z2 (alf.to_z s2)))
+                                                          (let ((z3 (alf.to_z s3)))
+                                                          (let ((z4 (alf.to_z s4)))
+                                                          (alf.requires (alf.is_neg z1) false
+                                                          (alf.requires (alf.is_neg z2) false
+                                                          (alf.requires (alf.is_neg z3) false
+                                                          (alf.requires (alf.is_neg z4) false
+                                                            (alf.and ($compare_geq z2 z3) ($compare_geq z3 z1)
+                                                                  ($compare_geq z2 z4) ($compare_geq z4 z1)))))))))))
+  (($str_re_includes (re.union r1 r2) r3)                 ($str_re_includes_lhs_union (re.union r1 r2) r3))
+  (($str_re_includes r1 (re.inter r3 r2))                 ($str_re_includes_rhs_inter r1 (re.inter r3 r2)))
+  (($str_re_includes (re.* r1) r3)                        (alf.ite (alf.is_eq r1 re.allchar)
+                                                                true
+                                                                ($str_re_includes r1
+                                                                  (alf.match ((r4 RegLan))
+                                                                    r3
+                                                                    (((re.* r4) r4) (r4 r4))))))
+  (($str_re_includes r1 r3)                               ($str_re_includes_rec ($re_to_flat_form r1 false) ($re_to_flat_form r3 false)))
+  )
+)
 
 ; Checks whether r is an application of re.union with 2 children for which
 ; regular expression inclusion shows r is equivalent to (re.* re.allchar).
