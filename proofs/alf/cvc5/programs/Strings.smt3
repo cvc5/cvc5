@@ -685,13 +685,16 @@
   )
 )
 
+; Forward declaration of $str_re_includes_rec below.
+(program $str_re_includes_rec () (RegLan RegLan) Bool)
+
 ; Helper for `$str_re_includes`.
 ; If `$str_re_includes_lhs_union (re.union r1 ... rn) r` returns true if
 ; we can infer that r is contained in some ri.
 (program $str_re_includes_lhs_union ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   (RegLan RegLan) Bool
   (
-  (($str_re_includes_lhs_union (re.union r1 r2) r3) (alf.ite ($str_re_includes_simple r1 r3) true ($str_re_includes_lhs_union r2 r3)))
+  (($str_re_includes_lhs_union (re.union r1 r2) r3) (alf.ite ($str_re_includes_rec r1 r3) true ($str_re_includes_lhs_union r2 r3)))
   (($str_re_includes_lhs_union r1 r3)               false)
   )
 )
@@ -702,11 +705,10 @@
 (program $str_re_includes_rhs_inter ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   (RegLan RegLan) Bool
   (
-  (($str_re_includes_rhs_inter r1 (re.inter r3 r2)) (alf.ite ($str_re_includes_simple r1 r3) true ($str_re_includes_rhs_inter r1 r2)))
+  (($str_re_includes_rhs_inter r1 (re.inter r3 r2)) (alf.ite ($str_re_includes_rec r1 r3) true ($str_re_includes_rhs_inter r1 r2)))
   (($str_re_includes_rhs_inter r1 r3)               false)
   )
 )
-
 
 ; `$str_is_unbound_wildcard r` returns true if `r` is of the form
 ; (re.++ re.allchar ... re.allchar (re.* re.allchar) ...).
