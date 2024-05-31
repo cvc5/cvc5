@@ -13,8 +13,6 @@
 # The build system configuration.
 ##
 
-find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
-
 if(NOT ONLY_PYTHON_EXT_SRC)
   # Python modules for building and installing
   check_python_module("setuptools")
@@ -226,18 +224,13 @@ else()
       ${LICENSE_FILES}
   )
 
-  # figure out if we're in a virtualenv
-  execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
-    COMMAND
-    "${Python_EXECUTABLE}"
-    -c
-    "import os; print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
-
   set(INSTALL_CMD
-      "${Python_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}")
-  # if we're in a virtualenv, we install it in the virtualenv lib location
-  # otherwise install in prefix
-  if ("${IN_VIRTUALENV}" STREQUAL "NO")
+      "${Python_BASE_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}")
+
+  # If the user does not set a prefix, install the Python bindings in
+  # the default location designated by the Python interpreter used to
+  # build them. Otherwise, install them in the specified prefix.
+  if(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(INSTALL_CMD "${INSTALL_CMD} --prefix ${CMAKE_INSTALL_PREFIX}")
   endif()
 

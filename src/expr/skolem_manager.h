@@ -58,6 +58,8 @@ enum class InternalSkolemId
   MBQI_INPUT,
   /** abstract value for a term t */
   ABSTRACT_VALUE,
+  /** Input variables for quantifier elimination of closed formulas */
+  QE_CLOSED_INPUT
 };
 /** Converts an internal skolem function name to a string. */
 const char* toString(InternalSkolemId id);
@@ -274,6 +276,12 @@ class SkolemManager
    * by this node manager.
    */
   size_t d_skolemCounter;
+  /**
+   * Is the given skolem identifier commutative, in the sense that its
+   * arguments can be reordered? If this method returns true, then
+   * we always sort the arguments to the skolem upon construction.
+   */
+  static bool isCommutativeSkolemId(SkolemId id);
   /** Same as mkSkolemFunction, with explicit type */
   Node mkSkolemFunctionTyped(SkolemId id,
                              TypeNode tn,

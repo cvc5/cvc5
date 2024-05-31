@@ -74,6 +74,7 @@ class Solver;
 class Statistics;
 struct APIStatistics;
 class Term;
+class PluginInternal;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -1150,6 +1151,7 @@ class CVC5_EXPORT Term
   friend class TermManager;
   friend class Solver;
   friend class Grammar;
+  friend class PluginInternal;
   friend class SynthResult;
   friend struct std::hash<Term>;
 
@@ -3503,6 +3505,51 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out,
                                      const Statistics& stats);
 
 /* -------------------------------------------------------------------------- */
+/* Plugin                                                                     */
+/* -------------------------------------------------------------------------- */
+/**
+ * A cvc5 plugin.
+ */
+class CVC5_EXPORT Plugin
+{
+  friend class Solver;
+
+ public:
+  Plugin(TermManager& tm);
+  virtual ~Plugin();
+  /**
+   * Call to check, return vector of lemmas to add to the SAT solver.
+   * This method is called periodically, roughly at every SAT decision.
+   *
+   * @return The vector of lemmas to add to the SAT solver.
+   */
+  virtual std::vector<Term> check();
+  /**
+   * Notify SAT clause, called when cl is a clause learned by the SAT solver.
+   *
+   * @param cl The learned clause.
+   */
+  virtual void notifySatClause(const Term& cl);
+  /**
+   * Notify theory lemma, called when lem is a theory lemma sent by a theory
+   * solver.
+   *
+   * @param lem The theory lemma.
+   */
+  virtual void notifyTheoryLemma(const Term& lem);
+  /**
+   * Get the name of the plugin (for debugging).
+   *
+   * @return The name of the plugin.
+   */
+  virtual std::string getName() = 0;
+
+ private:
+  /** Converter to external */
+  std::shared_ptr<cvc5::PluginInternal> d_pExtToInt;
+};
+
+/* -------------------------------------------------------------------------- */
 /* Proof                                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -3532,7 +3579,7 @@ class CVC5_EXPORT Proof
    * @return The proof rewrite rule used by the root step of the proof.
    *
    * @exception raises an exception if `getRule()` does not return
-   * `DSL_REWRITE`.
+   * `DSL_REWRITE` or `THEORY_REWRITE`.
    */
   ProofRewriteRule getRewriteRule() const;
 
@@ -3577,6 +3624,7 @@ class CVC5_EXPORT TermManager
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
   friend class Grammar;
+  friend class Plugin;
   friend class Solver;
 
  public:
@@ -4387,6 +4435,7 @@ class CVC5_EXPORT Solver
   friend class DatatypeSelector;
   friend class DriverOptions;
   friend class Grammar;
+  friend class Plugin;
   friend class Op;
   friend class parser::Cmd;
   friend class Proof;
@@ -5410,18 +5459,19 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Simplify a formula without doing "much" work.
+   * Simplify a term or formula based on rewriting and (optionally) applying
+   * substitutions for solved variables.
    *
-   * Does not involve the SAT Engine in the simplification, but uses the
-   * current definitions, and assertions.  It also involves theory
-   * normalization.
+   * If applySubs is true, then for example, if `(= x 0)` was asserted to this
+   * solver, this method may replace occurrences of `x` with `0`.
    *
    * @warning This function is experimental and may change in future versions.
    *
-   * @param t The formula to simplify.
-   * @return The simplified formula.
+   * @param t The term to simplify.
+   * @param applySubs Whether to apply substitutions for solved variables.
+   * @return The simplified term.
    */
-  Term simplify(const Term& t);
+  Term simplify(const Term& t, bool applySubs = false);
 
   /**
    * Assert a formula.
@@ -6165,6 +6215,13 @@ class CVC5_EXPORT Solver
                         const std::vector<Sort>& sorts,
                         const Sort& sort,
                         std::function<Term(const std::vector<Term>&)> fn) const;
+  /**
+   * Add plugin to this solver. Its callbacks will be called throughout the
+   * lifetime of this solver.
+   *
+   * @param p The plugin to add to this solver.
+   */
+  void addPlugin(Plugin& p);
   /**
    * Pop (a) level(s) from the assertion stack.
    *

@@ -9,14 +9,14 @@
 (declare-fun q$ () (_ BitVec 32))
 (declare-fun n$ () Int)
 (assert (>= n$ 0))
-(define-fun bound () Int (bv2nat ((_ int2bv 32) (^ 2 11))))
+(define-fun bound () Int (bv2nat ((_ int2bv 32) (int.pow2 11))))
 
 ;assumptions
 (assert (< (bv2nat x$) bound))
-(assert (< (bv2nat y$) (^ 2 (+ 11 n$))))
-(assert (< (bv2nat z$) (^ 2 16)))
+(assert (< (bv2nat y$) (int.pow2 (+ 11 n$))))
+(assert (< (bv2nat z$) (int.pow2 16)))
 (assert (< (bv2nat q$) bound))
 
 ;conclusion
-(assert (not (< (div (+ (bv2nat x$) (bv2nat y$)) (^ 2 n$)) (^ 2 32))))
+(assert (not (< (div (+ (bv2nat x$) (bv2nat y$)) (int.pow2 n$)) (int.pow2 32))))
 (check-sat)

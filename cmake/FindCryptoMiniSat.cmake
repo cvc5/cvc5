@@ -110,4 +110,8 @@ else()
       "Building CryptoMiniSat ${CryptoMiniSat_VERSION}: ${CryptoMiniSat_LIBRARIES}"
   )
   add_dependencies(CryptoMiniSat CryptoMiniSat-EP)
+  # Install static library only if it is a static build.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${CryptoMiniSat_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()

@@ -53,6 +53,7 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
+    case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
     default: return "?";
   }
 }
@@ -110,9 +111,7 @@ Node SkolemManager::mkSkolemFunction(SkolemId id, Node cacheVal)
       cvals.push_back(cacheVal);
     }
   }
-  TypeNode ctn = getTypeFor(id, cvals);
-  Assert(!ctn.isNull());
-  return mkSkolemFunctionTyped(id, ctn, cacheVal);
+  return mkSkolemFunction(id, cvals);
 }
 
 Node SkolemManager::mkSkolemFunction(SkolemId id,
@@ -120,6 +119,14 @@ Node SkolemManager::mkSkolemFunction(SkolemId id,
 {
   TypeNode ctn = getTypeFor(id, cacheVals);
   Assert(!ctn.isNull());
+  if (isCommutativeSkolemId(id))
+  {
+    // sort arguments if commutative, which should not impact its type
+    std::vector<Node> cvs = cacheVals;
+    std::sort(cvs.begin(), cvs.end());
+    Assert(getTypeFor(id, cvs) == ctn);
+    return mkSkolemFunctionTyped(id, ctn, cvs);
+  }
   return mkSkolemFunctionTyped(id, ctn, cacheVals);
 }
 
@@ -132,6 +139,19 @@ Node SkolemManager::mkInternalSkolemFunction(InternalSkolemId id,
   cvals.push_back(nm->mkConstInt(Rational(static_cast<uint32_t>(id))));
   cvals.insert(cvals.end(), cacheVals.begin(), cacheVals.end());
   return mkSkolemFunctionTyped(SkolemId::INTERNAL, tn, cvals);
+}
+
+bool SkolemManager::isCommutativeSkolemId(SkolemId id)
+{
+  switch (id)
+  {
+    case cvc5::SkolemId::ARRAY_DEQ_DIFF:
+    case cvc5::SkolemId::BAGS_DEQ_DIFF:
+    case cvc5::SkolemId::SETS_DEQ_DIFF:
+    case cvc5::SkolemId::STRINGS_DEQ_DIFF: return true;
+    default: break;
+  }
+  return false;
 }
 
 Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
