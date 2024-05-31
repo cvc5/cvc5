@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "theory/strings/arith_entail.h"
+#include "theory/strings/rewrites.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -40,7 +41,7 @@ class SequencesRewriter;
 class StringsEntail
 {
  public:
-  StringsEntail(Rewriter* r, ArithEntail& aent, SequencesRewriter& rewriter);
+  StringsEntail(Rewriter* r, ArithEntail& aent, SequencesRewriter* rewriter);
 
   /** can constant contain list
    * return true if constant c can contain the list l in order
@@ -314,7 +315,6 @@ class StringsEntail
    * infer that any of the yi must be empty.
    */
   Node inferEqsFromContains(Node x, Node y);
-
  private:
   /** component contains base
    *
@@ -394,7 +394,7 @@ class StringsEntail
    * Reference to the sequences rewriter that owns this `StringsEntail`
    * instance.
    */
-  SequencesRewriter& d_rewriter;
+  SequencesRewriter* d_rewriter;
 };
 
 }  // namespace strings
