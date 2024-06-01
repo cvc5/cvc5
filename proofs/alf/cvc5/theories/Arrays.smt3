@@ -19,4 +19,7 @@
 ; The array diff skolem.
 ; (@array_deq_diff A B) denotes an index where A and B differ if A and B are not equal.
 (declare-const @array_deq_diff
-   (-> (! Type :var T :implicit) (! Type :var U :implicit) (Array T U) (Array T U) T))
+   (-> (! Type :var T :implicit) (! Type :var U :implicit)
+   (! (Array T U) :opaque)
+   (! (Array T U) :opaque)
+   T))
