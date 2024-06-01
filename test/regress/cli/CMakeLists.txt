@@ -1756,6 +1756,7 @@ set(regress_0_tests
   regress0/strings/code-sat-neg-one.smt2
   regress0/strings/complement-simple.smt2
   regress0/strings/delta-trust-subs.smt2
+  regress0/strings/denghan-instance56567.smt2
   regress0/strings/distinct-witness-id.smt2
   regress0/strings/escchar_25.smt2
   regress0/strings/escchar.smt2

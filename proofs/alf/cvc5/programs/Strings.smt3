@@ -706,7 +706,6 @@
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
 )
 
-
 ; Forward declaration of $str_re_includes below.
 (program $str_re_includes () (RegLan RegLan) Bool)
 
@@ -748,14 +747,28 @@
   )
 )
 
-; `$str_is_unbound_wildcard r` returns true if `r` is of the form
+; Helper for `$str_re_includes`.
+; $str_re_includes_is_rec r1 r2 returns true if the inclusion of r2 into r1
+; is not handled by one of the three cases above (union or star on LHS, or intersection
+; on RHS).
+(program $str_re_includes_is_rec ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_is_rec r1 (re.inter r3 r2)) false)
+  (($str_re_includes_is_rec (re.union r1 r2) r3) false)
+  (($str_re_includes_is_rec (re.* r1) r3)        false)
+  (($str_re_includes_is_rec r1 r3)               true)
+  )
+)
+
+; `$re_is_unbound_wildcard r` returns true if `r` is of the form
 ; (re.++ re.allchar ... re.allchar (re.* re.allchar) ...).
-(program $str_is_unbound_wildcard ((r1 RegLan) (r2 RegLan :list))
+(program $re_is_unbound_wildcard ((r1 RegLan) (r2 RegLan :list))
   (RegLan) Bool
   (
-  (($str_is_unbound_wildcard (re.++ (re.* re.allchar) r2))  true)
-  (($str_is_unbound_wildcard (re.++ re.allchar r2))         ($str_is_unbound_wildcard r2))
-  (($str_is_unbound_wildcard r1)                            false)
+  (($re_is_unbound_wildcard (re.++ (re.* re.allchar) r2))  true)
+  (($re_is_unbound_wildcard (re.++ re.allchar r2))         ($re_is_unbound_wildcard r2))
+  (($re_is_unbound_wildcard r1)                            false)
   )
 )
 
@@ -773,10 +786,10 @@
   ; otherwise we recurse for three possible cases
   (($str_re_includes_rec (re.++ r1 r2) (re.++ r3 r4))
     (alf.ite (alf.ite ($str_re_includes ($re_from_flat_form r1 false) ($re_from_flat_form r3 false)) ; can skip both if we have a base inclusion
-              ($str_re_includes_rec r2 r4)
-              false)
+               ($str_re_includes_rec r2 r4)
+               false)
       true
-    (alf.ite (alf.ite ($str_is_unbound_wildcard (re.++ r1 r2)) ; can skip LHS if unbounded wildcard
+    (alf.ite (alf.ite ($re_is_unbound_wildcard (re.++ r1 r2)) ; can skip LHS if unbounded wildcard
               ($str_re_includes_rec r2 (re.++ r3 r4))
               false)
       true
@@ -812,7 +825,11 @@
   (($str_re_includes r1 r3)                               (alf.ite (alf.is_eq ($str_re_includes_lhs_union r1 r3) true) true
                                                           (alf.ite (alf.is_eq ($str_re_includes_rhs_inter r1 r3) true) true
                                                           (alf.ite (alf.is_eq ($str_re_includes_lhs_star r1 r3) true) true
-                                                              ($str_re_includes_rec ($re_to_flat_form r1 false) ($re_to_flat_form r3 false))))))
+                                                          ; don't recurse if we checked one of the 3 cases above
+                                                          (alf.ite ($str_re_includes_is_rec r1 r3)
+                                                              ($str_re_includes_rec ($re_to_flat_form r1 false) ($re_to_flat_form r3 false))
+                                                              false)))))
+
   )
 )
 
