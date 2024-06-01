@@ -24,7 +24,7 @@ ALFC_DIR="$BASE_DIR/alf-checker"
 mkdir -p $ALFC_DIR
 
 # download and unpack ALFC
-ALF_VERSION="3c122c02bdb49d239223e683740da59f74816ba7"
+ALF_VERSION="46f37e7ed8981d16dc7f81099196efe75237edcc"
 download "https://github.com/cvc5/alfc/archive/$ALF_VERSION.tar.gz" $BASE_DIR/tmp/alfc.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/alfc.tgz -C $ALFC_DIR
 
