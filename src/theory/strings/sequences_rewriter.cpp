@@ -51,6 +51,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH,
+                           TheoryRewriteCtx::POST_DSL);
 }
 
 Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -59,6 +61,13 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::RE_LOOP_ELIM:
       return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
+    {
+      Rewrite rule;
+      ArithEntail ae(nullptr);
+      StringsEntail sent(nullptr, ae, nullptr);
+      return rewriteViaMacroSubstrStripSymLength(n, rule, sent);
+    }
     default: break;
   }
   return Node::null();
@@ -1289,6 +1298,19 @@ Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
                       << std::endl;
   Assert(retNode != node);
   return retNode;
+}
+
+Node SequencesRewriter::rewriteViaMacroSubstrStripSymLength(const Node& node,
+                                                            Rewrite& rule,
+                                                            StringsEntail& sent)
+{
+  if (node.getKind() != Kind::STRING_SUBSTR)
+  {
+    return Node::null();
+  }
+  std::vector<Node> ch1;
+  std::vector<Node> ch2;
+  return sent.rewriteViaMacroSubstrStripSymLength(node, rule, ch1, ch2);
 }
 
 Node SequencesRewriter::rewriteRepeatRegExp(TNode node)

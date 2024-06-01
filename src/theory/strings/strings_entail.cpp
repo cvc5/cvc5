@@ -1006,6 +1006,98 @@ Node StringsEntail::inferEqsFromContains(Node x, Node y)
   return nb.constructNode();
 }
 
+Node StringsEntail::rewriteViaMacroSubstrStripSymLength(const Node& node,
+                                                        Rewrite& rule,
+                                                        std::vector<Node>& ch1,
+                                                        std::vector<Node>& ch2)
+{
+  Assert(node.getKind() == Kind::STRING_SUBSTR);
+  NodeManager* nm = NodeManager::currentNM();
+  utils::getConcat(node[0], ch1);
+  TypeNode stype = node[0].getType();
+  Node zero = nm->mkConstInt(Rational(0));
+  // definite inclusion
+  if (node[1] == zero)
+  {
+    Node curr = node[2];
+    if (stripSymbolicLength(ch1, ch2, 1, curr))
+    {
+      std::vector<Node> chr = ch2;
+      if (curr != zero && !ch1.empty())
+      {
+        // make the length explicitly, which helps proof reconstruction
+        Node cpulled = utils::mkConcat(ch2, stype);
+        Node resultLen = nm->mkNode(
+            Kind::SUB, node[2], nm->mkNode(Kind::STRING_LENGTH, cpulled));
+        chr.push_back(nm->mkNode(Kind::STRING_SUBSTR,
+                                 utils::mkConcat(ch1, stype),
+                                 node[1],
+                                 resultLen));
+      }
+      Node ret = utils::mkConcat(chr, stype);
+      rule = Rewrite::SS_LEN_INCLUDE;
+      return ret;
+    }
+  }
+  for (unsigned r = 0; r < 2; r++)
+  {
+    // the amount of characters we can strip
+    Node curr;
+    if (r == 0)
+    {
+      if (node[1] != zero)
+      {
+        // strip up to start point off the start of the string
+        curr = node[1];
+      }
+    }
+    else if (r == 1)
+    {
+      Node tot_len = nm->mkNode(Kind::STRING_LENGTH, node[0]);
+      if (node[2] != tot_len)
+      {
+        Node end_pt = nm->mkNode(Kind::ADD, node[1], node[2]);
+        // strip up to ( str.len(node[0]) - end_pt ) off the end of the string
+        curr = nm->mkNode(Kind::SUB, tot_len, end_pt);
+        curr = d_arithEntail.rewriteArith(curr);
+      }
+    }
+    if (!curr.isNull())
+    {
+      // strip off components while quantity is entailed positive
+      int dir = r == 0 ? 1 : -1;
+      ch2.clear();
+      if (stripSymbolicLength(ch1, ch2, dir, curr))
+      {
+        if (r == 0)
+        {
+          // make the length explicitly, which helps proof reconstruction
+          Node cskipped = utils::mkConcat(ch2, stype);
+          Node resultStart = nm->mkNode(
+              Kind::SUB, node[1], nm->mkNode(Kind::STRING_LENGTH, cskipped));
+          Node ret = nm->mkNode(Kind::STRING_SUBSTR,
+                                utils::mkConcat(ch1, stype),
+                                resultStart,
+                                node[2]);
+          rule = Rewrite::SS_STRIP_START_PT;
+          return ret;
+        }
+        else
+        {
+          Node ret = nm->mkNode(Kind::STRING_SUBSTR,
+                                utils::mkConcat(ch1, stype),
+                                node[1],
+                                node[2]);
+          rule = Rewrite::SS_STRIP_END_PT;
+          return ret;
+        }
+      }
+    }
+  }
+
+  return Node::null();
+}
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace cvc5::internal
