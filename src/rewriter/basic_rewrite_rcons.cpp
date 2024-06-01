@@ -16,6 +16,7 @@
 
 #include "rewriter/basic_rewrite_rcons.h"
 
+#include "expr/nary_term_util.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -28,6 +29,8 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
+#include "theory/strings/strings_entail.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
