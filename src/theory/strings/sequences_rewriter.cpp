@@ -2032,26 +2032,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     }
   }
 
-  std::vector<Node> n1;
-  utils::getConcat(node[0], n1);
   TypeNode stype = node.getType();
-
-  // definite inclusion
-  if (node[1] == zero)
-  {
-    Node curr = node[2];
-    std::vector<Node> childrenr;
-    if (d_stringsEntail.stripSymbolicLength(n1, childrenr, 1, curr))
-    {
-      if (curr != zero && !n1.empty())
-      {
-        childrenr.push_back(nm->mkNode(
-            Kind::STRING_SUBSTR, utils::mkConcat(n1, stype), node[1], curr));
-      }
-      Node ret = utils::mkConcat(childrenr, stype);
-      return returnRewrite(node, ret, Rewrite::SS_LEN_INCLUDE);
-    }
-  }
 
   // (str.substr s x x) ---> "" if (str.len s) <= 1
   if (node[1] == node[2] && d_stringsEntail.checkLengthOne(node[0]))
@@ -2060,64 +2041,25 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     return returnRewrite(node, ret, Rewrite::SS_LEN_ONE_Z_Z);
   }
 
-  // symbolic length analysis
-  for (unsigned r = 0; r < 2; r++)
+  Node slenRew =
+      d_arithEntail.rewriteArith(nm->mkNode(Kind::STRING_LENGTH, node[0]));
+  if (node[2] != slenRew)
   {
-    // the amount of characters we can strip
-    Node curr;
-    if (r == 0)
+    if (d_arithEntail.check(node[2], slenRew))
     {
-      if (node[1] != zero)
-      {
-        // strip up to start point off the start of the string
-        curr = node[1];
-      }
+      // end point beyond end point of string, map to slenRew
+      Node ret = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[1], slenRew);
+      return returnRewrite(node, ret, Rewrite::SS_END_PT_NORM);
     }
-    else if (r == 1)
-    {
-      Node tot_len =
-          d_arithEntail.rewriteArith(nm->mkNode(Kind::STRING_LENGTH, node[0]));
-      Node end_pt =
-          d_arithEntail.rewriteArith(nm->mkNode(Kind::ADD, node[1], node[2]));
-      if (node[2] != tot_len)
-      {
-        if (d_arithEntail.check(node[2], tot_len))
-        {
-          // end point beyond end point of string, map to tot_len
-          Node ret = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[1], tot_len);
-          return returnRewrite(node, ret, Rewrite::SS_END_PT_NORM);
-        }
-        else
-        {
-          // strip up to ( str.len(node[0]) - end_pt ) off the end of the string
-          curr = d_arithEntail.rewriteArith(
-              nm->mkNode(Kind::SUB, tot_len, end_pt));
-        }
-      }
-    }
-    if (!curr.isNull())
-    {
-      // strip off components while quantity is entailed positive
-      int dir = r == 0 ? 1 : -1;
-      std::vector<Node> childrenr;
-      if (d_stringsEntail.stripSymbolicLength(n1, childrenr, dir, curr))
-      {
-        if (r == 0)
-        {
-          Node ret = nm->mkNode(
-              Kind::STRING_SUBSTR, utils::mkConcat(n1, stype), curr, node[2]);
-          return returnRewrite(node, ret, Rewrite::SS_STRIP_START_PT);
-        }
-        else
-        {
-          Node ret = nm->mkNode(Kind::STRING_SUBSTR,
-                                utils::mkConcat(n1, stype),
-                                node[1],
-                                node[2]);
-          return returnRewrite(node, ret, Rewrite::SS_STRIP_END_PT);
-        }
-      }
-    }
+  }
+
+  // symbolic SymLen analysis
+  Rewrite ruleSymLen;
+  Node retSymLen =
+      rewriteViaMacroSubstrStripSymLength(node, ruleSymLen, d_stringsEntail);
+  if (!retSymLen.isNull())
+  {
+    return returnRewrite(node, retSymLen, ruleSymLen);
   }
   // combine substr
   if (node[0].getKind() == Kind::STRING_SUBSTR)
