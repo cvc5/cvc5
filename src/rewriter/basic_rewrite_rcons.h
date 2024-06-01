@@ -130,15 +130,20 @@ class BasicRewriteRCons : protected EnvObj
    *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by ProofRewriteRule::MACRO_BOOL_NNF_NORM.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps. These are small step rewrites corresponding to NNF
-   * flattening of operators, and other simple inferences.
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroBoolNnfNorm(
       CDProof* cdp,
-      const Node& eq,
-      std::vector<std::shared_ptr<ProofNode>>& subgoals);
+      const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroSubstrStripSymLength(CDProof* cdp, const Node& eq);
   /**
    * Try THEORY_REWRITE with theory::TheoryRewriteCtx ctx.
    */
