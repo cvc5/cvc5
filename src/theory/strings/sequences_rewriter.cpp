@@ -44,7 +44,7 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
       d_statistics(statistics),
       d_rr(r),
       d_arithEntail(r),
-      d_stringsEntail(r, d_arithEntail, *this)
+      d_stringsEntail(r, d_arithEntail, this)
 {
   d_sigmaStar = nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
   d_true = nm->mkConst(true);
