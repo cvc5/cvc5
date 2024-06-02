@@ -1,0 +1,13 @@
+(include "../theories/Sets.smt3")
+
+(declare-rule sets-is-empty-eval ((T Type) (t (Set T)) (b Bool))
+  :args ((= (set.is_empty t) b))
+  :requires (((alf.match ((U Type) (x T) (s (Set T)))
+                t
+                (
+                ((set.empty U) true)
+                ((set.singleton x) false)
+                ((set.union (set.singleton x) s) false)
+                )) b))
+  :conclusion (= (set.is_empty t) b)
+)
