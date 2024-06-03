@@ -156,6 +156,11 @@ class BvInstantiator : public Instantiator
                       Node lit,
                       Node alit,
                       CegInstEffort effort);
+  /**
+   * WITNESS elimination converter. This ensures witness terms generated during
+   * the construction of instantiations are removed from final terms. 
+   */
+  WitnessElimConverter d_wec;
 };
 
 /** Bitvector instantiator preprocess

@@ -22,6 +22,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -356,6 +357,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
     // try instantiation pv -> inst_term
     TermProperties pv_prop_bv;
     Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
+    AlwaysAssert(!expr::hasSubtermKind(Kind::WITNESS, inst_term));
     d_var_to_curr_inst_id[pv] = inst_id;
     ci->markSolved(alit);
     if (ci->constructInstantiationInc(
