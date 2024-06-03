@@ -724,7 +724,9 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   {
     if (i == d_setm_choice[sro].size())
     {
-      Node stgt = nsr.getKind() == Kind::SET_EMPTY ? sro : nm->mkNode(Kind::SET_MINUS, sro, nsr);
+      Node stgt = nsr.getKind() == Kind::SET_EMPTY
+                      ? sro
+                      : nm->mkNode(Kind::SET_MINUS, sro, nsr);
       choice_i = nm->mkNode(Kind::SET_CHOOSE, stgt);
       d_setm_choice[sro].push_back(choice_i);
     }

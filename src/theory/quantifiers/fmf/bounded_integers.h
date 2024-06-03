@@ -250,7 +250,7 @@ private:
    * on the current iterator rsi.
    */
   Node getSetRange( Node q, Node v, RepSetIterator * rsi );
-  /** 
+  /**
    * Get the current value for set variable v of quantified formula q based
    * on the current iterator rsi. Additionally transforms the model value for
    * v based on the set_choose operator for the purposes of instantiating with
