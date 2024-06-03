@@ -25,14 +25,15 @@ ElimWitnessNodeConverter::ElimWitnessNodeConverter(Env& env)
 }
 
 Node ElimWitnessNodeConverter::postConvert(Node n)
-{ 
-  if (n.getKind()==Kind::WITNESS)
+{
+  if (n.getKind() == Kind::WITNESS)
   {
-    NodeManager * nm = nodeManager();
-    SkolemManager * skm = nm->getSkolemManager();
+    NodeManager* nm = nodeManager();
+    SkolemManager* skm = nm->getSkolemManager();
     std::vector<Node> nchildren(n.begin(), n.end());
     Node exists = nm->mkNode(Kind::EXISTS, nchildren);
-    Node k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {exists, n[0][0]});
+    Node k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
+                                   {exists, n[0][0]});
     d_exists.push_back(exists);
     return k;
   }
