@@ -289,6 +289,10 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   Node eqm = lhsm.eqNode(rhs);
   // Note that this is not marked simple, since it may require length
   // entailment to prove.
+  // Note that there are three cases of string rewrites handled by this macro,
+  // where we expect this trusted step to be filled by one of 3 RARE rewrites,
+  // namely:
+  // str-substr-len-include, str-substr-len-include-pre, str-substr-len-skip.
   cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
   Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
   cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
