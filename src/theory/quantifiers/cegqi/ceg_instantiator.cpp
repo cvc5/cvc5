@@ -940,6 +940,12 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   }
 }
 
+bool CegInstantiator::addLemma(const Node& lem, InferenceId id,
+                       ProofGenerator* pg)
+{
+  return d_qim.addPendingLemma(lem, id, LemmaProperty::NONE, pg);
+}
+
 bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
                                          std::vector<Node>& subs)
 {
