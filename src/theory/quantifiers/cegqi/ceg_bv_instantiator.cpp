@@ -17,6 +17,7 @@
 
 #include <stack>
 
+#include "expr/elim_witness_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
@@ -24,7 +25,6 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
-#include "expr/elim_witness_converter.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;

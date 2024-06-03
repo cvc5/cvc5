@@ -113,8 +113,8 @@ class CegInstantiator : protected EnvObj
                                  TermProperties& pv_prop,
                                  SolvedForm& sf,
                                  bool revertOnSuccess = false);
-  /** 
-   * Add lemma with the given inference id 
+  /**
+   * Add lemma with the given inference id
    * @param lem The lemma.
    * @param id The inference identifier
    * @param pg The proof generator that can provide a proof of lem, if one
@@ -122,8 +122,7 @@ class CegInstantiator : protected EnvObj
    * @return true if the lemma was sucessfully added to the pending vector
    * of the underlying quantifiers inference manager.
    */
-  bool addLemma(const Node& lem, InferenceId id,
-                       ProofGenerator* pg = nullptr);
+  bool addLemma(const Node& lem, InferenceId id, ProofGenerator* pg = nullptr);
   /** get the current model value of term n */
   Node getModelValue(Node n);
   /** get bound variable for type
