@@ -317,7 +317,8 @@ class StringsEntail
   Node inferEqsFromContains(Node x, Node y);
   /**
    * Rewrite for MACRO_SUBSTR_STRIP_SYM_LENGTH.
-   * @param node The node to rewrite, which should be of the form (str.substr s n m).
+   * @param node The node to rewrite, which should be of the form (str.substr s
+   * n m).
    * @param rule If we rewrite via this method, this is updated to the internal
    * rewrite identifier (strings/rewrites.h) that was used.
    * @param ch1 Along with ch2, this stores how the argument s of node was

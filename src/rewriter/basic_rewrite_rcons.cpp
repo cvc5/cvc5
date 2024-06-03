@@ -163,7 +163,6 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
     const Node& eq,
     std::vector<std::shared_ptr<ProofNode>>& subgoals)
 {
-
   bool handledMacro = false;
   switch (id)
   {
@@ -196,9 +195,8 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
   cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, args);
 }
 
-bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(
-    CDProof* cdp,
-    const Node& eq)
+bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
+                                                    const Node& eq)
 {
   Trace("brc-macro") << "Expand Bool NNF norm " << eq[0] << " == " << eq[1]
                      << std::endl;
