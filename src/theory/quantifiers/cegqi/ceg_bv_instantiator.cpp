@@ -16,13 +16,14 @@
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 
 #include <stack>
+
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
-#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
