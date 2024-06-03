@@ -39,8 +39,11 @@
 
 ; This is used to have a canonical ordering of variables.
 ; It could potentially be improved by having a builtin operator, e.g. alf.compare.
+; The variable ordering always returns true for the variable with the lower
+; hash. This leads to best case performance if sorting a term with distinct
+; children, where if we ask for the hash of the children in order and prefer
+; the ones where this compare returns true, then the term remains unchanged.
 (define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
-;  (alf.cmp a b))
   (alf.is_neg (alf.add (alf.hash b) (alf.neg (alf.hash a)))))
 
 ; Returns the tail of x, where x is expected to be a function application.
