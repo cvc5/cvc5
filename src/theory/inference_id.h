@@ -488,7 +488,7 @@ enum class InferenceId
   QUANTIFIERS_TDB_DEQ_CONG,
   // An existential corresponding to a witness term generated based on BV
   // invertibility conditions.
-  QUANTIFIERS_BV_INV_COND_WITNESS,
+  QUANTIFIERS_CEGQI_WITNESS,
   //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory

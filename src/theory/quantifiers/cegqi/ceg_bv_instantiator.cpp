@@ -16,9 +16,6 @@
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 
 #include <stack>
-
-#include "expr/elim_witness_converter.h"
-#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -350,7 +347,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   bool ret = false;
   bool tryMultipleInst = firstVar && options().quantifiers.cegqiMultiInst;
   bool revertOnSuccess = tryMultipleInst;
-  std::vector<Node> exists;
   for (unsigned j = 0, size = iti->second.size(); j < size; j++)
   {
     unsigned inst_id = iti->second[j];
@@ -360,19 +356,12 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
     // try instantiation pv -> inst_term
     TermProperties pv_prop_bv;
     Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
-    ElimWitnessNodeConverter ewc(d_env);
-    if (expr::hasSubtermKind(Kind::WITNESS, inst_term))
-    {
-      inst_term = ewc.convert(inst_term);
-    }
     d_var_to_curr_inst_id[pv] = inst_id;
     ci->markSolved(alit);
     if (ci->constructInstantiationInc(
             pv, inst_term, pv_prop_bv, sf, revertOnSuccess))
     {
       ret = true;
-      const std::vector<Node>& wexists = ewc.getExistentials();
-      exists.insert(exists.end(), wexists.begin(), wexists.end());
     }
     ci->markSolved(alit, false);
     // we are done unless we try multiple instances
@@ -383,11 +372,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   }
   if (ret)
   {
-    // add the existentials
-    for (const Node& q : exists)
-    {
-      ci->addLemma(q, InferenceId::QUANTIFIERS_BV_INV_COND_WITNESS);
-    }
     return true;
   }
   Trace("cegqi-bv") << "...failed to add instantiation for " << pv << std::endl;

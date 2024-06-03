@@ -28,6 +28,7 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
 {
   if (n.getKind() == Kind::WITNESS)
   {
+    Trace("elim-witness") << "Eliminate " << n << std::endl;
     NodeManager* nm = nodeManager();
     SkolemManager* skm = nm->getSkolemManager();
     std::vector<Node> nchildren(n.begin(), n.end());
