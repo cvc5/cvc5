@@ -15,6 +15,8 @@
 
 #include "expr/elim_witness_converter.h"
 
+#include "expr/skolem_manager.h"
+
 namespace cvc5::internal {
 
 ElimWitnessNodeConverter::ElimWitnessNodeConverter(Env& env)
@@ -22,7 +24,20 @@ ElimWitnessNodeConverter::ElimWitnessNodeConverter(Env& env)
 {
 }
 
-Node ElimWitnessNodeConverter::postConvert(Node n) { return n; }
+Node ElimWitnessNodeConverter::postConvert(Node n)
+{ 
+  if (n.getKind()==Kind::WITNESS)
+  {
+    NodeManager * nm = nodeManager();
+    SkolemManager * skm = nm->getSkolemManager();
+    std::vector<Node> nchildren(n.begin(), n.end());
+    Node exists = nm->mkNode(Kind::EXISTS, nchildren);
+    Node k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {exists, n[0][0]});
+    d_exists.push_back(exists);
+    return k;
+  }
+  return n;
+}
 const std::vector<Node>& ElimWitnessNodeConverter::getExistentials() const
 {
   return d_exists;

@@ -361,11 +361,10 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
     TermProperties pv_prop_bv;
     Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
     ElimWitnessNodeConverter ewc(d_env);
-    if (!expr::hasSubtermKind(Kind::WITNESS, inst_term))
+    if (expr::hasSubtermKind(Kind::WITNESS, inst_term))
     {
       inst_term = ewc.convert(inst_term);
     }
-    AlwaysAssert(!expr::hasSubtermKind(Kind::WITNESS, inst_term));
     d_var_to_curr_inst_id[pv] = inst_id;
     ci->markSolved(alit);
     if (ci->constructInstantiationInc(
