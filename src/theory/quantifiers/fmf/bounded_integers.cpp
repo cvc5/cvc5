@@ -719,9 +719,6 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   }
   Assert(sr.getKind() == Kind::SET_SINGLETON);
   srCard++;
-  // choices[i] stores the canonical symbolic representation of the (i+1)^th
-  // element of sro
-  std::vector<Node> choices;
   Node choice_i;
   for (unsigned i = 0; i < srCard; i++)
   {
@@ -733,7 +730,6 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     }
     Assert(i < d_setm_choice[sro].size());
     choice_i = d_setm_choice[sro][i];
-    choices.push_back(choice_i);
     Node sChoiceI = nm->mkNode(Kind::SET_SINGLETON, choice_i);
     if (nsr.getKind() == Kind::SET_EMPTY)
     {
