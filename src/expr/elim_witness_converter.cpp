@@ -17,14 +17,15 @@
 
 namespace cvc5::internal {
 
-  ElimWitnessNodeConverter::ElimWitnessNodeConverter(Env& env) : EnvObj(env), NodeConverter(nodeManager()){}
+ElimWitnessNodeConverter::ElimWitnessNodeConverter(Env& env)
+    : EnvObj(env), NodeConverter(nodeManager())
+{
+}
 
-  Node ElimWitnessNodeConverter::postConvert(Node n)
-  {
-    return n;
-  }
-  const std::vector<Node>& ElimWitnessNodeConverter::getExistentials() const
-  { return d_exists; }
+Node ElimWitnessNodeConverter::postConvert(Node n) { return n; }
+const std::vector<Node>& ElimWitnessNodeConverter::getExistentials() const
+{
+  return d_exists;
+}
 
 }  // namespace cvc5::internal
-

@@ -44,6 +44,7 @@ class ElimWitnessNodeConverter : protected EnvObj, public NodeConverter
    * Get the existentials
    */
   const std::vector<Node>& getExistentials() const;
+
  private:
   /** The list of existentials introduced by eliminating witness */
   std::vector<Node> d_exists;
