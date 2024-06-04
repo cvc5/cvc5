@@ -1327,11 +1327,7 @@ Node SequencesRewriter::rewriteViaStrInReConcatStarChar(const Node& n)
     return Node::null();
   }
   Node len = RegExpEntail::getFixedLengthForRegexp(n[1][0]);
-  if (len.isNull())
-  {
-    return Node::null();
-  }
-  if (!len.isConst() || len.getConst<Rational>() != Rational(1))
+  if (len.isNull() || !len.isConst() || len.getConst<Rational>() != Rational(1))
   {
     return Node::null();
   }
