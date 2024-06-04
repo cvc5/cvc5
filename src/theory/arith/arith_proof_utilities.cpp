@@ -69,7 +69,7 @@ Node expandMacroSumUb(const std::vector<Node>& children,
   {
     TNode child = children[i];
     TNode scalar = args[i];
-    if (scalar.getConst<Rational>()==1)
+    if (scalar.getConst<Rational>() == 1)
     {
       // if scaled by one, just take original
       scaledRels.push_back(child);

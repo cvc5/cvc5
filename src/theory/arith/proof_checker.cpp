@@ -278,7 +278,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
           }
         }
         // if multiplying by one, don't introduce MULT
-        if (scalar==1)
+        if (scalar == 1)
         {
           leftSum << children[i][0];
           rightSum << children[i][1];
