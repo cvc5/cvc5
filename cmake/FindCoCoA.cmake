@@ -105,4 +105,8 @@ if(CoCoA_FOUND_SYSTEM)
 else()
   message(STATUS "Building CoCoA ${CoCoA_VERSION}: ${CoCoA_LIBRARIES}")
   add_dependencies(CoCoA CoCoA-EP)
+  # Install static library only if it is a static build.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${CoCoA_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()

@@ -69,6 +69,12 @@ Node expandMacroSumUb(const std::vector<Node>& children,
   {
     TNode child = children[i];
     TNode scalar = args[i];
+    if (scalar.getConst<Rational>() == 1)
+    {
+      // if scaled by one, just take original
+      scaledRels.push_back(child);
+      continue;
+    }
     bool isPos = scalar.getConst<Rational>() > 0;
     Node scalarCmp =
         nm->mkNode(isPos ? Kind::GT : Kind::LT,
