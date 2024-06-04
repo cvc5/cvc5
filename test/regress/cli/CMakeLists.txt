@@ -1151,6 +1151,8 @@ set(regress_0_tests
   regress0/parser/get-value-empty-err.smt2
   regress0/parser/global-dec-cli.smt2
   regress0/parser/issue10723-divisible0.smt2
+  regress0/parser/issue10813-1.smt2
+  regress0/parser/issue10813-2.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
@@ -1826,6 +1828,10 @@ set(regress_0_tests
   regress0/strings/proj-issue595-max-model-option.smt2
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
+  regress0/strings/re-consume-bi-dir.smt2
+  regress0/strings/re-consume-inter.smt2
+  regress0/strings/re-consume-sym.smt2
+  regress0/strings/re-consume-sym-sigma.smt2
   regress0/strings/re-include-union.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
@@ -1842,6 +1848,7 @@ set(regress_0_tests
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
+  regress0/strings/sigma-star-mod-3.smt2
   regress0/strings/simple-include-mem.smt2
   regress0/strings/simple-include-subrange.smt2
   regress0/strings/simple-nth-fail.smt2
@@ -2425,6 +2432,7 @@ set(regress_1_tests
   regress1/interpolant-unk-570.smt2
   regress1/ite5.smt2
   regress1/issue10750-zll-repeat.smt2
+  regress1/issue10788-refresh-a-interp.smt2
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2
@@ -3243,7 +3251,9 @@ set(regress_1_tests
   regress1/strings/str-code-unsat-3.smt2
   regress1/strings/str-code-unsat.smt2
   regress1/strings/str-pred-small-rw_392.smt2
+  regress1/strings/str-term-small-rw_529-arith-subs-ent.smt2
   regress1/strings/str-rev-simple-s.smt2
+  regress1/strings/str-term-small-rw_545.smt2
   regress1/strings/str001.smt2
   regress1/strings/str002.smt2
   regress1/strings/str006.smt2

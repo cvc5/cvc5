@@ -9,7 +9,7 @@
 (include "./theories/Transcendentals.smt3")
 (include "./theories/BitVectors.smt3")
 (include "./rules/Strings.smt3")
-(include "./theories/Sets.smt3")
+(include "./rules/Sets.smt3")
 (include "./theories/Bags.smt3")
 (include "./theories/FiniteFields.smt3")
 (include "./rules/Quantifiers.smt3")
@@ -20,36 +20,6 @@
 (declare-const fmf.card (-> Type Int Bool))
 (declare-sort @ho-elim-sort 1)
 (declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
-
-; Converts x to an equivalent form, for ProofRule::ENCODE_TRANSFORM.
-; This side condition is used to convert between the native
-; representation in cvc5 to the form expected by DSL rewrite rules.
-; In particular, we convert:
-; - Word constants "ABC" to concatenations of chars (str.++ "A" "B" "C").
-(program encode_transform ((T Type) (S Type) (f (-> S T)) (x T) (y S))
-  (T) T
-  (
-    ((encode_transform (f y)) (_ (encode_transform f) (encode_transform y)))
-    ((encode_transform x)     (alf.ite ($is_str_literal x)
-                                ; string constants
-                                ; e.g. "AB" ---> (str.++ "A" "B")
-                                (alf.ite (check_length_gt_one x)
-                                  ($str_flatten_word x)
-                                  x)
-                              (alf.ite ($is_bin_literal x)
-                                ; bitvector constants
-                                ; e.g. #b0000 ----> (@bv 0 4)
-                                (@bv (alf.to_z x) (alf.len x))
-                                x)))
-  )
-)
-
-(declare-rule encode_pred_transform ((F Bool) (G Bool))
-  :premises (F)
-  :args (G)
-  :requires (((encode_transform F) (encode_transform G)))
-  :conclusion G)
-
 
 ; evaluate, for all theories
 (program run_evaluate ((T Type) (S Type) 

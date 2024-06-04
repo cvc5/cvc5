@@ -21,7 +21,9 @@
 #include <algorithm>
 #include <unordered_set>
 
+#include "expr/algorithm/flatten.h"
 #include "expr/node_value.h"
+#include "proof/conv_proof_generator.h"
 #include "util/cardinality.h"
 
 namespace cvc5::internal {
@@ -32,6 +34,236 @@ TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm)
 {
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_NNF_NORM,
+                           TheoryRewriteCtx::POST_DSL);
+}
+
+Node TheoryBoolRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::MACRO_BOOL_NNF_NORM:
+    {
+      Node nn = computeNnfNorm(nodeManager(), n);
+      if (nn != n)
+      {
+        return nn;
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
+}
+
+bool TheoryBoolRewriter::addNnfNormChild(std::vector<Node>& children,
+                                         Node c,
+                                         Kind k,
+                                         std::map<Node, bool>& lit_pol,
+                                         bool& childrenChanged)
+{
+  if (k == Kind::OR || k == Kind::AND)
+  {
+    Node lit = c.getKind() == Kind::NOT ? c[0] : c;
+    bool pol = c.getKind() != Kind::NOT;
+    std::map<Node, bool>::iterator it = lit_pol.find(lit);
+    if (it == lit_pol.end())
+    {
+      lit_pol[lit] = pol;
+      children.push_back(c);
+    }
+    else
+    {
+      childrenChanged = true;
+      if (it->second != pol)
+      {
+        return false;
+      }
+    }
+  }
+  else
+  {
+    children.push_back(c);
+  }
+  return true;
+}
+
+Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
+                                        const Node& n,
+                                        TConvProofGenerator* pg)
+{
+  // at pre-order traversal, we store preKind and preChildren, which
+  // determine the Kind and the children for the node to reconstruct.
+  std::unordered_map<TNode, Kind> preKind;
+  std::unordered_map<TNode, std::vector<Node>> preChildren;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      Kind k = cur.getKind();
+      bool negAllCh = false;
+      bool negCh1 = false;
+      // the new formula we should traverse
+      TNode ncur = cur;
+      if (k == Kind::IMPLIES)
+      {
+        k = Kind::OR;
+        negCh1 = true;
+      }
+      else if (k == Kind::XOR)
+      {
+        k = Kind::EQUAL;
+        negCh1 = true;
+      }
+      else if (k == Kind::NOT)
+      {
+        // double negation should already be eliminated
+        Assert(cur[0].getKind() != Kind::NOT);
+        if (cur[0].getKind() == Kind::OR || cur[0].getKind() == Kind::IMPLIES)
+        {
+          k = Kind::AND;
+          negAllCh = true;
+          negCh1 = cur[0].getKind() == Kind::IMPLIES;
+        }
+        else if (cur[0].getKind() == Kind::AND)
+        {
+          k = Kind::OR;
+          negAllCh = true;
+        }
+        else if (cur[0].getKind() == Kind::XOR
+                 || (cur[0].getKind() == Kind::EQUAL
+                     && cur[0][0].getType().isBoolean()))
+        {
+          k = Kind::EQUAL;
+          negCh1 = cur[0].getKind() == Kind::EQUAL;
+        }
+        else if (cur[0].getKind() == Kind::ITE)
+        {
+          k = cur[0].getKind();
+          negAllCh = true;
+          negCh1 = true;
+        }
+        else
+        {
+          visited[cur] = cur;
+          continue;
+        }
+        ncur = cur[0];
+      }
+      else if ((k != Kind::EQUAL || !cur[0].getType().isBoolean())
+               && k != Kind::ITE && k != Kind::AND && k != Kind::OR)
+      {
+        // a literal
+        visited[cur] = cur;
+        continue;
+      }
+      preKind[cur] = k;
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      std::vector<Node>& pc = preChildren[cur];
+      for (size_t i = 0, nchild = ncur.getNumChildren(); i < nchild; ++i)
+      {
+        Node c =
+            (i == 0 && negCh1) != negAllCh ? ncur[i].negate() : Node(ncur[i]);
+        pc.push_back(c);
+        visit.push_back(c);
+      }
+      // if proof producing, possibly add a pre-rewrite step
+      if (pg != nullptr)
+      {
+        Node preCur = nm->mkNode(k, pc);
+        if (preCur != cur)
+        {
+          pg->addRewriteStep(
+              cur, preCur, nullptr, true, TrustId::MACRO_BOOL_NNF_NORM_RCONS);
+        }
+      }
+    }
+    else if (it->second.isNull())
+    {
+      Kind ok = cur.getKind();
+      Assert(preKind.find(cur) != preKind.end());
+      Kind k = preKind[cur];
+      Assert(cur.getMetaKind() != kind::metakind::PARAMETERIZED);
+      bool childChanged = false;
+      std::vector<Node> children;
+      std::vector<Node>& pc = preChildren[cur];
+      std::map<Node, bool> lit_pol;
+      bool success = true;
+      for (const Node& cn : pc)
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        Node c = it->second;
+        if (c.getKind() == k && (k == Kind::OR || k == Kind::AND))
+        {
+          // flatten
+          childChanged = true;
+          for (const Node& cc : c)
+          {
+            if (!addNnfNormChild(children, cc, k, lit_pol, childChanged))
+            {
+              success = false;
+              break;
+            }
+          }
+        }
+        else
+        {
+          success = addNnfNormChild(children, c, k, lit_pol, childChanged);
+        }
+        if (!success)
+        {
+          // tautology
+          break;
+        }
+        childChanged = childChanged || c != cn;
+      }
+      Node ret = cur;
+      if (!success)
+      {
+        Assert(k == Kind::OR || k == Kind::AND);
+        ret = nm->mkConst(k == Kind::OR);
+      }
+      else if (childChanged || k != ok)
+      {
+        ret = (children.size() == 1 && k != Kind::NOT)
+                  ? children[0]
+                  : nm->mkNode(k, children);
+      }
+      // if proof producing, possibly add a post-rewrite step
+      if (pg != nullptr)
+      {
+        std::vector<Node> pcc;
+        for (const Node& cn : pc)
+        {
+          it = visited.find(cn);
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
+          pcc.push_back(it->second);
+        }
+        Node pcpc = nm->mkNode(k, pcc);
+        if (pcpc != ret)
+        {
+          pg->addRewriteStep(
+              pcpc, ret, nullptr, false, TrustId::MACRO_BOOL_NNF_NORM_RCONS);
+        }
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {

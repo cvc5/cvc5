@@ -5374,9 +5374,23 @@ Term TermManager::mkRealOrIntegerFromStrHelper(const std::string& s, bool isInt)
   //////// all checks before this line
   try
   {
-    internal::Rational r = s.find('/') != std::string::npos
-                               ? internal::Rational(s)
-                               : internal::Rational::fromDecimal(s);
+    internal::Rational r;
+    size_t spos = s.find('/');
+    if (spos != std::string::npos)
+    {
+      // Ensure the denominator contains a non-zero digit. We catch this here to
+      // avoid a floating point exception in GMP. This exception will be caught
+      // and given the standard error message below.
+      if (s.find_first_not_of('0', spos + 1) == std::string::npos)
+      {
+        throw std::invalid_argument("Zero denominator encountered");
+      }
+      r = internal::Rational(s);
+    }
+    else
+    {
+      r = internal::Rational::fromDecimal(s);
+    }
     return TermManager::mkRationalValHelper(r, isInt);
   }
   catch (const std::invalid_argument& e)
@@ -5384,8 +5398,8 @@ Term TermManager::mkRealOrIntegerFromStrHelper(const std::string& s, bool isInt)
     /* Catch to throw with a more meaningful error message. To be caught in
      * enclosing CVC5_API_TRY_CATCH_* block to throw CVC5ApiException. */
     std::stringstream message;
-    message << "Cannot construct Real or Int from string argument '" << s << "'"
-            << std::endl;
+    message << "Cannot construct Real or Int from string argument '" << s
+            << "'";
     throw std::invalid_argument(message.str());
   }
 }
