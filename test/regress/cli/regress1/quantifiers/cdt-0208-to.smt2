@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
+;; Codatatypes are not supported in Alethe
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)

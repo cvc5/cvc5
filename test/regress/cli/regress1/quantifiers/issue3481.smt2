@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --enum-inst --enum-inst-limit=2
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
-; DISABLE-TESTER: alethe
 
 ;; produced by cvc4_16.drv ;;
 (set-info :smt-lib-version 2.6)

@@ -1,5 +1,5 @@
 ; DISABLE-TESTER: lfsc
-;; Datatypes are not supported in Alethe
+;; Nullables are not supported in Alethe
 ; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (set-info :status unsat)

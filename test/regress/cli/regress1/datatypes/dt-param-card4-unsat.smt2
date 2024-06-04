@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_ALL)
 (set-info :status unsat)
 (declare-datatypes ((Pair 2)) ((par (T S) ((pair (first T) (second S))))))

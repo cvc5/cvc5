@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --dt-nested-rec
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
+;; introduces arrays Skolem
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)

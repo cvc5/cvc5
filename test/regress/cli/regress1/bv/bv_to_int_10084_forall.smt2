@@ -1,8 +1,7 @@
 ; COMMAND-LINE: --solve-bv-as-int=iand
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
+;; Instantiation with fresh constants not supported in Alethe
 ; DISABLE-TESTER: alethe
-
 ;; produced by cvc4_16.drv ;;
 (set-logic AUFBVFPDTNIRA)
 ;; produced by cvc4_16.drv

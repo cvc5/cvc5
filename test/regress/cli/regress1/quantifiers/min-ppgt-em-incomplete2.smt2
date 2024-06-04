@@ -1,4 +1,4 @@
-;; Datatypes are not supported in Alethe
+;; Non-standard Datatypes syntax not supported in Alethe
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)

@@ -3,8 +3,6 @@
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental true)
 (declare-fun a1 () UnitTuple)

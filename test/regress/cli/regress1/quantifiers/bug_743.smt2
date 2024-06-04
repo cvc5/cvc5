@@ -1,8 +1,6 @@
 ; COMMAND-LINE: --lang=smt2.6
 ; EXPECT: unsat
 ; DISABLE-TESTER: alf
-;; Datatypes are not supported in Alethe
-; DISABLE-TESTER: alethe
 
 ;; produced by cvc4_14.drv ;;
 (set-logic AUFBVDTNIRA)

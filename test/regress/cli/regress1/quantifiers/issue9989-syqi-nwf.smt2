@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --sygus-inst
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
+;; introduces fresh Skolem in a trusted step
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort a 0)

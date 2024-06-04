@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --quant-ind --conjecture-gen
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
+; Instantiation with fresh constants not supported in Alethe
 ; DISABLE-TESTER: alethe
 (set-logic UFDTLIA)
 (set-info :status unsat)

@@ -1,8 +1,6 @@
 ; COMMAND-LINE: --ee-mode=distributed
 ; COMMAND-LINE: --ee-mode=central
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((T 0)) (((A) (B (proj0B T) (proj1B T)) (C (proj0C T)) (D (proj0D T) ))))

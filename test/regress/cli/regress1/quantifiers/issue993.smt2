@@ -1,5 +1,3 @@
-;; Datatypes are not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic AUFBVDTNIRA)
 (set-info :smt-lib-version 2.6)
 (set-info :status unsat)

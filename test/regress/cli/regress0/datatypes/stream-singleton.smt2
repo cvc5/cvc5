@@ -1,4 +1,4 @@
-;; Datatypes are not supported in Alethe
+;; Codatatypes are not supported in Alethe
 ; DISABLE-TESTER: alethe
 (set-logic QF_ALL)
 (set-info :status unsat)

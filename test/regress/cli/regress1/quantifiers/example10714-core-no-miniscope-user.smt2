@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort integer 0)
 (declare-datatypes ((t 0)) (((tqtmk (rec__first integer) (rec__last integer)))))

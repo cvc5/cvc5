@@ -49,7 +49,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::BITVECTOR_BITOF:
     {
       std::stringstream ss;
-      ss << "(_ bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex
+      ss << "(_ @bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex
          << ")";
       TypeNode fType = nm->mkFunctionType(n[0].getType(), n.getType());
       Node op = mkInternalSymbol(ss.str(), fType, true);
@@ -66,7 +66,7 @@ Node AletheNodeConverter::postConvert(Node n)
         children.push_back(c);
       }
       TypeNode fType = nm->mkFunctionType(childrenTypes, n.getType());
-      Node op = mkInternalSymbol("bbT", fType, true);
+      Node op = mkInternalSymbol("@bbT", fType, true);
       children.insert(children.begin(), op);
       Node converted = nm->mkNode(Kind::APPLY_UF, children);
       return converted;

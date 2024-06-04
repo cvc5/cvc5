@@ -241,6 +241,7 @@ void AletheProofPrinter::printInternal(
     std::string subproofPrefix = prefix + "t" + std::to_string(id) + ".";
     std::unordered_map<Node, std::string> subproofAssumptionsMap{assumptionsMap.begin(), assumptionsMap.end()};
     std::unordered_map<std::shared_ptr<ProofNode>, std::string> subproofPfMap{pfMap.begin(), pfMap.end()};
+    std::vector<std::string> dischargeIds;
     // since the subproof shape relies on having at least one step inside it, if
     // the step relative to children[0] is already pfMap, we remove it from
     // subproofPfMap
@@ -263,6 +264,7 @@ void AletheProofPrinter::printInternal(
         printTerm(out, args[i]);
         out << ")\n";
         subproofAssumptionsMap[args[i]] = assumptionId;
+        dischargeIds.push_back(assumptionId);
       }
     }
     else
@@ -298,8 +300,7 @@ void AletheProofPrinter::printInternal(
       out << " :discharge (";
       for (size_t i = 3, size = args.size(); i < size; ++i)
       {
-        out << subproofAssumptionsMap[args[i]]
-            << (i < args.size() - 1 ? " " : "");
+        out << dischargeIds[i - 3] << (i < args.size() - 1 ? " " : "");
       }
       out << ")";
     }
