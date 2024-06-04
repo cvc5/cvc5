@@ -32,14 +32,14 @@ namespace proof {
 class AletheNodeConverter : public BaseAlfNodeConverter
 {
  public:
-
   /** Constructor
    *
    * @param nm The node manager
-   * @param defineSkolems Whether Skolem definitions will be saved to be printed separately.
+   * @param defineSkolems Whether Skolem definitions will be saved to be printed
+   * separately.
    */
   AletheNodeConverter(NodeManager* nm, bool defineSkolems = false)
-    : BaseAlfNodeConverter(nm), d_defineSkolems(defineSkolems)
+      : BaseAlfNodeConverter(nm), d_defineSkolems(defineSkolems)
   {
   }
   ~AletheNodeConverter() {}

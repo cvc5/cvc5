@@ -116,6 +116,14 @@ TrustNode Skolemize::process(Node q)
 
 std::vector<Node> Skolemize::getSkolemConstants(const Node& q)
 {
+  if (q.getKind()==Kind::FORALL)
+  {
+    std::vector<Node> echildren(q.begin(), q.end());
+    echildren[1] = echildren[1].notNode();
+    NodeManager* nm = NodeManager::currentNM();
+    Node existsq = nm->mkNode(Kind::EXISTS, echildren);
+    return getSkolemConstants(existsq);
+  }
   Assert(q.getKind() == Kind::EXISTS);
   std::vector<Node> skolems;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
@@ -201,6 +209,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
                                           Node& sub,
                                           std::vector<unsigned>& sub_vars)
 {
+  Assert (f.getKind()==Kind::FORALL);
   NodeManager* nm = NodeManager::currentNM();
   // compute the argument types from the free variables
   std::vector<TypeNode> argTypes;
@@ -215,7 +224,8 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
   std::vector<unsigned> ind_var_indicies;
   std::vector<TNode> vars;
   std::vector<unsigned> var_indicies;
-  for (unsigned i = 0; i < f[0].getNumChildren(); i++)
+  std::vector<Node> skc = getSkolemConstants(f);
+  for (size_t i = 0, nvars = f[0].getNumChildren(); i < nvars; i++)
   {
     if (isInductionTerm(opts, f[0][i]))
     {
@@ -233,8 +243,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
     {
       if (argTypes.empty())
       {
-        s = sm->mkDummySkolem(
-            "skv", f[0][i].getType(), "created during skolemization");
+        s = skc[i];
       }
       else
       {

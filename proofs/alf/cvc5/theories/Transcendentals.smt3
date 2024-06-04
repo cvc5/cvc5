@@ -19,5 +19,5 @@
 (declare-const sqrt (-> Real Real))
 
 ; skolems
-(declare-const @transcendental_purify (-> (-> Real Real) Real Real))
-(declare-const @transcendental_purify_arg (-> Real Real))
+(declare-const @transcendental_purify (-> (! (-> Real Real) :opaque) Real Real))
+(declare-const @transcendental_purify_arg (-> (! Real :opaque) Real))

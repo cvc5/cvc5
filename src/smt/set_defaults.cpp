@@ -1406,6 +1406,11 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     SET_AND_NOTIFY(quantifiers, cegqi, false, "instMaxLevel");
   }
+  // enable MBQI if --mbqi-fast-sygus is provided
+  if (opts.quantifiers.mbqiFastSygus)
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(quantifiers, mbqi, true, "mbqiFastSygus");
+  }
   if (opts.quantifiers.mbqi)
   {
     // MBQI is an alternative to CEGQI/SyQI

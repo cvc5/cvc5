@@ -862,6 +862,7 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::SET_CARD, "set.card");
     addOperator(Kind::SET_COMPLEMENT, "set.complement");
     addOperator(Kind::SET_CHOOSE, "set.choose");
+    addOperator(Kind::SET_IS_EMPTY, "set.is_empty");
     addOperator(Kind::SET_IS_SINGLETON, "set.is_singleton");
     addOperator(Kind::SET_MAP, "set.map");
     addOperator(Kind::SET_FILTER, "set.filter");

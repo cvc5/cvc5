@@ -229,8 +229,8 @@ Node AletheNodeConverter::postConvert(Node n)
 }
 
 Node AletheNodeConverter::mkInternalSymbol(const std::string& name,
-                                        TypeNode tn,
-                                        bool useRawSym)
+                                           TypeNode tn,
+                                           bool useRawSym)
 {
   std::pair<TypeNode, std::string> key(tn, name);
   std::map<std::pair<TypeNode, std::string>, Node>::iterator it =
@@ -262,7 +262,10 @@ Node AletheNodeConverter::getOriginalAssumption(Node n)
   return Node::null();
 }
 
-const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions() { return d_skolems; }
+const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions()
+{
+  return d_skolems;
+}
 
 }  // namespace proof
 }  // namespace cvc5::internal
