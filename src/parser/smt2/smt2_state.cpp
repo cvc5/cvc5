@@ -1590,11 +1590,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       Term ret;
       SkolemId skolemId = d_skolemMap[p.d_name];
       size_t numSkolemIndices = d_tm.getNumIndicesForSkolemId(skolemId);
-      if (numSkolemIndices < 0)
-      {
-        parseError("Unknown skolem symbol " + p.d_name);
-      }
-      else if (numSkolemIndices == args.size())
+      if (numSkolemIndices == args.size())
       {
         ret = d_tm.mkSkolem(skolemId, args);
       }
