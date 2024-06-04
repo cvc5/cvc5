@@ -1,7 +1,7 @@
 (include "../theories/Sets.smt3")
 
 (define $set_is_empty_eval ((T Type :implicit) (t (Set T)))
-  (alf.match ((U Type) (x T) (s (Set T)))
+  (alf.match ((U Type) (x U) (s (Set U)))
     t
     (
     ((set.empty U) true)
