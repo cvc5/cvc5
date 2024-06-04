@@ -135,7 +135,7 @@ void AletheProofPrinter::print(
   Assert(innerPf);
 
   // print quantifier Skolems, if they are being defined
-  if (options().proof.proofDefineSkolems)
+  if (options().proof.proofAletheDefineSkolems)
   {
     const std::map<Node, Node>& skolemDefs = d_anc.getSkolemDefinitions();
     for (const auto& [skolem, choice] : skolemDefs)
