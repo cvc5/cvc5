@@ -160,6 +160,14 @@ name   = "Proof"
   help       = "Prune unused input assumptions from final scope"
 
 [[option]]
+  name       = "proofDefineSkolems"
+  category   = "expert"
+  long       = "proof-define-skolems"
+  type       = "bool"
+  default    = "false"
+  help       = "In Alethe proofs, use define-funs in proof preamble for Skolemization terms"
+
+[[option]]
   name       = "proofAletheResPivots"
   category   = "expert"
   long       = "proof-alethe-res-pivots"
