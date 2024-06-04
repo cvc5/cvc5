@@ -127,6 +127,8 @@ bool InferProofCons::convert(CDProof& cdp,
     case InferenceId::SETS_MEM_EQ_CONFLICT:
     {
       Assert(assumps.size() >= 1);
+      Assert(assumps[0].getKind()==Kind::SET_MEMBER);
+      Assert(assumps.size()==1 || assumps[1].getKind()==Kind::EQUAL);
       // (and (set.member x S) (= S (op T1 T2))) =>
       // rewrite((set.member x (op T1 T2)))
       // this holds by applying the equality as a substitution to the first
