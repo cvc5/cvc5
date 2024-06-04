@@ -31,7 +31,7 @@ namespace proof {
 /** A callback for populating a let binder.
  *
  * This callback does not actually update the proof node, but rather just
- * consider the terms in the proof nodes for sharing. This is done in
+ * considers the terms in the proof nodes for sharing. This is done in
  * `shouldUpdate`, which is called on every proof node and always returns false.
  */
 class LetUpdaterPfCallback : public ProofNodeUpdaterCallback
@@ -53,11 +53,11 @@ class LetUpdaterPfCallback : public ProofNodeUpdaterCallback
 };
 
 /**
- * The Alethe printer, which prints proof nodes in a Alethe proof, according to
+ * The Alethe printer, which prints proof nodes in an Alethe proof, according to
  * the proof rules defined in alethe_proof_rule.h.
  *
- * It expects to print proof nodes that have processed by the Alethe proof post
- * processor.
+ * It expects to print proof nodes that have been processed by the Alethe proof
+ * post-processor.
  */
 class AletheProofPrinter : protected EnvObj
 {
@@ -65,8 +65,7 @@ class AletheProofPrinter : protected EnvObj
   AletheProofPrinter(Env& env, AletheNodeConverter& anc);
   ~AletheProofPrinter() {}
   /**
-   * This method prints a proof node that has been transformed into the Alethe
-   * proof format
+   * Prints a proof node in the Alethe proof format
    *
    * @param out The stream to write to
    * @param pfn The proof node to be printed
@@ -78,23 +77,21 @@ class AletheProofPrinter : protected EnvObj
              const std::map<Node, std::string>& assertionNames);
 
  private:
-  /** Used for printing the proof node after the initial Alethe anchor has been
-   * printed
+  /** Prints an Alethe proof node
    *
-   * The initial anchor introduces the initial assumptions of the problem, which
-   * correspond to the problem assertions.
+   * The printing is parameterized by a prefix to be used in the step ids, as
+   * well as by the current id (which will be incremented after this proof node,
+   * if it is fresh, is printed). The prefix is used to facilitate identifying
+   * that steps are under a given anchor.
    *
    * @param out The stream to write to
+   * @param prefix The prefix to be used in step ids.
+   * @param id The current id being used for printing step ids
    * @param pfn The proof node to be printed
-   * @param assumptionsMap Map from proof nodes to their ids. Since these ids
+   * @param assumptionsMap Map from assumptions to their ids. Since these ids
    * are arbitrary symbols for assumptions (which could be defined using user
-   * names), the map ranges over strings. Note that since subproofs may not
-   * refer to steps outside of them, this map is fresh for each subproof.
-   * @param pfMap Map from proof nodes to their ids. Since the step ids are auto
-   * generated, we rely on integers. As above, this map is fresh per subproof.
-   * @param prefix The prefix to be used when printing ids. E.g., the prefix
-   * "t19.t2." is used when we are under a subproof started at step "t19" and
-   * another at "t2" without leaving the first subproof.
+   * names), the map ranges over strings
+   * @param pfMap Map from proof nodes to their ids
    */
   void printInternal(
       std::ostream& out,
@@ -109,9 +106,20 @@ class AletheProofPrinter : protected EnvObj
    *
    * The printing is done separately because it uses the let binder (d_lbind)
    * for converting the term before printing.
+   *
+   * @param out The stream to write to
+   * @param n The node to be printed
    */
   void printTerm(std::ostream& out, TNode n);
 
+  /** Print the id for the previously printed step/assumption of the given proof
+   * node.
+   *
+   * @param out The stream to write to
+   * @param pfn The proof node
+   * @param assumptionsMap Map from assumptions to their ids
+   * @param pfMap Map from proof nodes to their ids
+   */
   void printStepId(
       std::ostream& out,
       std::shared_ptr<ProofNode> pfn,
