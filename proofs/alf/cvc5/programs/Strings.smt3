@@ -25,7 +25,7 @@
 
 ; Return the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (alf.concat str.++ x y)
+  (alf.list_concat str.++ x y)
 )
 
 ; Return the result of prepending of string x to string y where the latter is
