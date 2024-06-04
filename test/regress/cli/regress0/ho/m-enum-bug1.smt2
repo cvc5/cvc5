@@ -1,13 +1,15 @@
 ; COMMAND-LINE: --mbqi --mbqi-fast-sygus
 ; EXPECT: unsat
+;; HO not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-sort a 0)
 (declare-fun y () a)
-(assert 
-    (not 
-        (exists ((F (-> a a)) (X a)) 
-            (= 
-                (F X) 
+(assert
+    (not
+        (exists ((F (-> a a)) (X a))
+            (=
+                (F X)
                 y
             )
         )

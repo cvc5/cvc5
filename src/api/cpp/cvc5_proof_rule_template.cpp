@@ -200,7 +200,6 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_NL_COVERING_RECURSIVE:
       return "ARITH_NL_COVERING_RECURSIVE";
     //================================================= External rules
-    case ProofRule::LEAN_RULE: return "LEAN_RULE";
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule

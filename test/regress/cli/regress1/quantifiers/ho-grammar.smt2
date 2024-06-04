@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --mbqi --mbqi-fast-sygus
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
+;; HO not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-fun g (Int Int) Int)
 (declare-fun x () Int)

@@ -60,7 +60,7 @@ namespace cvc5 {
  *
  * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
  * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
- * Alternatively, we can write the application of a proof rule as
+ * Alternatively, we can write the application of a proof rule as 
  * ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion
  * (since it can be uniquely determined from premises and arguments).
  * Note that premises are sometimes given as proofs, i.e., application of
@@ -276,7 +276,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *   \inferrule{- \mid t}{t=t'}
-   *
+   * 
    * where :math:`t` and :math:`t'` are equivalent up to their encoding in an
    * external proof format.
    *
@@ -298,13 +298,13 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
-   *
+   * 
    * where `id` is a :cpp:enum:`ProofRewriteRule` whose definition in the
    * RARE DSL is :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
    * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
    * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
    * :math:`\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}`.
-   *
+   * 
    * Notice that the application of the substitution takes into account the
    * possible list semantics of variables :math:`x_1 \ldots x_n`. If
    * :math:`x_i` is a variable with list semantics, then :math:`t_i` denotes a
@@ -322,7 +322,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * where `id` is the :cpp:enum:`ProofRewriteRule` of the theory rewrite
    * rule which transforms :math:`t` to :math:`t'`.
-   *
+   * 
    * In contrast to :cpp:enumerator:`DSL_REWRITE`, theory rewrite rules used by
    * this proof rule are not necessarily expressible in RARE. Each rule that can
    * be used in this proof rule are documented explicitly in cases within the
@@ -1053,7 +1053,7 @@ enum ENUM(ProofRule) : uint32_t
    *   k(f?)(s_1,\dots, s_n)}
    *
    * where :math:`k` is the application kind. Notice that :math:`f` must be
-   * provided iff :math:`k` is a parameterized kind, e.g.
+   * provided iff :math:`k` is a parameterized kind, e.g. 
    * `cvc5::Kind::APPLY_UF`. The actual node for
    * :math:`k` is constructible via ``ProofRuleChecker::mkKindNode``.
    * If :math:`k` is a binder kind (e.g. ``cvc5::Kind::FORALL``) then :math:`f`
@@ -1427,7 +1427,7 @@ enum ENUM(ProofRule) : uint32_t
    * \mathit{index},b)` is null, in other words, neither is a prefix of the
    * other. Note it may be the case that one side of the equality denotes the
    * empty string.
-   *
+   * 
    * This rule is used exclusively for strings.
    *
    * \endverbatim
@@ -1444,7 +1444,7 @@ enum ENUM(ProofRule) : uint32_t
    * where $t_1$ and $s_1$ are constants of length one, or otherwise one side
    * of the equality is the empty sequence and $t_1$ or $s_1$ corresponding to
    * that side is the empty sequence.
-   *
+   * 
    * This rule is used exclusively for sequences.
    *
    * \endverbatim
@@ -1676,9 +1676,9 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{t \not \in \mathit{re}.\text{*}(R) \mid -}{t \neq \ '' \ \wedge \forall L. L \leq 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{*}(R)}
-   *
+   * 
    * Or alternatively for regular expression concatenation:
-   *
+   * 
    * .. math::
    *
    *   \inferrule{t \not \in \mathit{re}.\text{++}(R_1, \ldots, R_n)\mid -}{\forall L. L < 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(R_2, \ldots, R_n)}
@@ -1699,18 +1699,18 @@ enum ENUM(ProofRule) : uint32_t
    *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{re.++}(r_2, \ldots, r_n)}
    *
    * where :math:`r_1` has fixed length :math:`L`.
-   *
+   * 
    * or alternatively for the reverse:
-   *
+   * 
    *
    * .. math::
    *
    *   \inferrule{t \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \top}{
    *   \mathit{suf}(t, str.len(t) - L) \not \in r_n \vee
    *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_{n-1})}
-   *
+   * 
    * where :math:`r_n` has fixed length :math:`L`.
-   *
+   * 
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
@@ -2271,22 +2271,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALETHE_RULE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- Lean**
-   *
-   * Place holder for Lean rules.
-   *
-   * .. math::
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, Q', A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external Lean calculus,
-   * and that :math:`Q'` be the representation of Q to be printed by the Lean
-   * printer.
-   * \endverbatim
-   */
-  EVALUE(LEAN_RULE),
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),
