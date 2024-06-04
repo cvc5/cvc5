@@ -98,7 +98,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   Node d_false;
   /** Maps formulas to the inference id they were notified with */
   NodeInferenceMap d_imap;
-  /** */
+  /** Maps conclusions to their explanations */
   NodeExpMap d_expMap;
 };
 
