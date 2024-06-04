@@ -11,7 +11,7 @@
 (program mk_skolems ((x @List) (xs @List :list) (F Bool))
   (@List Bool) @List
   (
-    ((mk_skolems (@list x xs) F) (alf.cons @list (skolem (@quantifiers_skolemize F x)) (mk_skolems xs F)))
+    ((mk_skolems (@list x xs) F) (alf.cons @list (@quantifiers_skolemize F x) (mk_skolems xs F)))
     ((mk_skolems @list.nil F)    @list.nil)
   )
 )
@@ -34,8 +34,8 @@
       t
       (
         ; special case for witness
-        ((skolem (@quantifiers_skolemize (exists (@list x) F) x)) (= t (witness (@list x) F)))
-        ((skolem x)                                                 (= t x))
+        ((@quantifiers_skolemize (exists (@list x) F) x) (= t (witness (@list x) F)))
+        ((@purify x)                                     (= t x))
       )
    )
 )
