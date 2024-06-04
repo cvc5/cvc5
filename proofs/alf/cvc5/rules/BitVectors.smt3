@@ -17,7 +17,7 @@
   ((BitVec n)) (BitVec n)
   (
   (($bv_mk_bitblast_step_concat_rec @bv_empty)      @bv_empty)
-  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (alf.concat @bbT a1 ($bv_mk_bitblast_step_concat_rec a2)))
+  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (alf.list_concat @bbT a1 ($bv_mk_bitblast_step_concat_rec a2)))
   )
 )
 
