@@ -5931,7 +5931,6 @@ Op TermManager::mkOp(Kind kind, const std::vector<uint32_t>& args)
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::BitVectorZeroExtend(args[0]));
       break;
-    // unnecessary case: read-only kind.
     case Kind::BITVECTOR_BIT:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::BitVectorBit(args[0]));
