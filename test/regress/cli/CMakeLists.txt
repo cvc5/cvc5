@@ -1848,6 +1848,7 @@ set(regress_0_tests
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
+  regress0/strings/sigma-star-mod-3.smt2
   regress0/strings/simple-include-mem.smt2
   regress0/strings/simple-include-subrange.smt2
   regress0/strings/simple-nth-fail.smt2
@@ -3250,7 +3251,9 @@ set(regress_1_tests
   regress1/strings/str-code-unsat-3.smt2
   regress1/strings/str-code-unsat.smt2
   regress1/strings/str-pred-small-rw_392.smt2
+  regress1/strings/str-term-small-rw_529-arith-subs-ent.smt2
   regress1/strings/str-rev-simple-s.smt2
+  regress1/strings/str-term-small-rw_545.smt2
   regress1/strings/str001.smt2
   regress1/strings/str002.smt2
   regress1/strings/str006.smt2
