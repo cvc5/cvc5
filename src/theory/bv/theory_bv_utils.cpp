@@ -353,11 +353,11 @@ Node mkExtract(TNode node, unsigned high, unsigned low)
   return nm->mkNode(extractOp, node);
 }
 
-Node mkBitOf(TNode node, unsigned index)
+Node mkBit(TNode node, unsigned index)
 {
   NodeManager *nm = NodeManager::currentNM();
-  Node bitOfOp = nm->mkConst<BitVectorBitOf>(BitVectorBitOf(index));
-  return nm->mkNode(bitOfOp, node);
+  Node bitOp = nm->mkConst<BitVectorBit>(BitVectorBit(index));
+  return nm->mkNode(bitOp, node);
 }
 
 /* ------------------------------------------------------------------------- */

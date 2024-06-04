@@ -365,18 +365,18 @@ TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
   return retType;
 }
 
-TypeNode BitVectorBitOfTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode BitVectorBitTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->booleanType();
 }
-TypeNode BitVectorBitOfTypeRule::computeType(NodeManager* nodeManager,
-                                             TNode n,
-                                             bool check,
-                                             std::ostream* errOut)
+TypeNode BitVectorBitTypeRule::computeType(NodeManager* nodeManager,
+                                           TNode n,
+                                           bool check,
+                                           std::ostream* errOut)
 {
   if (check)
   {
-    BitVectorBitOf info = n.getOperator().getConst<BitVectorBitOf>();
+    BitVectorBit info = n.getOperator().getConst<BitVectorBit>();
     TypeNode t = n[0].getTypeOrNull();
     if (!checkMaybeBitVector(t, errOut))
     {

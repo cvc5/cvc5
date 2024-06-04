@@ -329,17 +329,17 @@ struct BitVectorExtract
 /**
  * The structure representing the extraction of one Boolean bit.
  */
-struct BitVectorBitOf
+struct BitVectorBit
 {
   /** The index of the bit */
   unsigned d_bitIndex;
-  BitVectorBitOf(unsigned i) : d_bitIndex(i) {}
+  BitVectorBit(unsigned i) : d_bitIndex(i) {}
 
-  bool operator==(const BitVectorBitOf& other) const
+  bool operator==(const BitVectorBit& other) const
   {
     return d_bitIndex == other.d_bitIndex;
   }
-}; /* struct BitVectorBitOf */
+}; /* struct BitVectorBit */
 
 struct BitVectorSize
 {
@@ -428,12 +428,12 @@ struct BitVectorExtractHashFunction
 }; /* struct BitVectorExtractHashFunction */
 
 /**
- * Hash function for the BitVectorBitOf objects.
+ * Hash function for the BitVectorBit objects.
  */
-struct BitVectorBitOfHashFunction
+struct BitVectorBitHashFunction
 {
-  size_t operator()(const BitVectorBitOf& b) const { return b.d_bitIndex; }
-}; /* struct BitVectorBitOfHashFunction */
+  size_t operator()(const BitVectorBit& b) const { return b.d_bitIndex; }
+}; /* struct BitVectorBitHashFunction */
 
 template <typename T>
 struct UnsignedHashFunction
@@ -457,8 +457,8 @@ inline std::ostream& operator<<(std::ostream& os, const BitVectorExtract& bv)
   return os << "[" << bv.d_high << ":" << bv.d_low << "]";
 }
 
-inline std::ostream& operator<<(std::ostream& os, const BitVectorBitOf& bv);
-inline std::ostream& operator<<(std::ostream& os, const BitVectorBitOf& bv)
+inline std::ostream& operator<<(std::ostream& os, const BitVectorBit& bv);
+inline std::ostream& operator<<(std::ostream& os, const BitVectorBit& bv)
 {
   return os << "[" << bv.d_bitIndex << "]";
 }

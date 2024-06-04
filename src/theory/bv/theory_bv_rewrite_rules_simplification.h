@@ -31,18 +31,18 @@ namespace bv {
 /* -------------------------------------------------------------------------- */
 
 /**
- * BitOfConst
+ * BitConst
  */
 template <>
-inline bool RewriteRule<BitOfConst>::applies(TNode node)
+inline bool RewriteRule<BitConst>::applies(TNode node)
 {
-  return node.getKind() == Kind::BITVECTOR_BITOF && node[0].isConst();
+  return node.getKind() == Kind::BITVECTOR_BIT && node[0].isConst();
 }
 
 template <>
-inline Node RewriteRule<BitOfConst>::apply(TNode node)
+inline Node RewriteRule<BitConst>::apply(TNode node)
 {
-  size_t pos = node.getOperator().getConst<BitVectorBitOf>().d_bitIndex;
+  size_t pos = node.getOperator().getConst<BitVectorBit>().d_bitIndex;
   return utils::getBit(node[0], pos) ? utils::mkTrue() : utils::mkFalse();
 }
 

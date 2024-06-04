@@ -893,9 +893,9 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
     }
-    case Kind::BITVECTOR_BITOF:
-      out << "(_ @bitOf "
-          << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex << ")";
+    case Kind::BITVECTOR_BIT:
+      out << "(_ @bit " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
+          << ")";
       stillNeedToPrintParams = false;
       break;
     case Kind::APPLY_CONSTRUCTOR:
@@ -1249,8 +1249,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_ULTBV: return "bvultbv";
     case Kind::BITVECTOR_SLTBV: return "bvsltbv";
 
-    case Kind::BITVECTOR_BB_TERM: return "@bbT";
-    case Kind::BITVECTOR_BITOF: return "@bitOf";
+    case Kind::BITVECTOR_FROM_BOOLS: return "@from_bools";
+    case Kind::BITVECTOR_BIT: return "@bit";
     case Kind::BITVECTOR_SIZE: return "@bvsize";
     case Kind::CONST_BITVECTOR_SYMBOLIC: return "@bv";
 

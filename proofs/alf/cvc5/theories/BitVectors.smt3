@@ -310,11 +310,11 @@
 
 ; internal operators
 
-(declare-const @bitOf
+(declare-const @bit
     (-> (! Int :var m :implicit)
         Int (BitVec m) Bool))
 
-(declare-const @bbT (->
+(declare-const @from_bools (->
   (! Int :var n :implicit)
   Bool
   (BitVec n)

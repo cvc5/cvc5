@@ -58,9 +58,9 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node)
   return res;
 }
 
-RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteBit(TNode node, bool prerewrite)
 {
-  Node resultNode = LinearRewriteStrategy<RewriteRule<BitOfConst>>::apply(node);
+  Node resultNode = LinearRewriteStrategy<RewriteRule<BitConst>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
@@ -735,7 +735,7 @@ void TheoryBVRewriter::initializeRewrites()
   }
 
   d_rewriteTable[static_cast<uint32_t>(Kind::EQUAL)] = RewriteEqual;
-  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_BITOF)] = RewriteBitOf;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_BIT)] = RewriteBit;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] = RewriteUlt;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SLT)] = RewriteSlt;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ULE)] = RewriteUle;

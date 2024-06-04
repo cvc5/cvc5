@@ -241,6 +241,9 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
                   internal::Kind::BITVECTOR_ROTATE_RIGHT),
         KIND_ENUM(Kind::INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR),
         KIND_ENUM(Kind::BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_TO_NAT),
+        KIND_ENUM(Kind::BITVECTOR_FROM_BOOLS,
+                  internal::Kind::BITVECTOR_FROM_BOOLS),
+        KIND_ENUM(Kind::BITVECTOR_BIT, internal::Kind::BITVECTOR_BIT),
         /* Finite Fields --------------------------------------------------- */
         KIND_ENUM(Kind::CONST_FINITE_FIELD, internal::Kind::CONST_FINITE_FIELD),
         KIND_ENUM(Kind::FINITE_FIELD_BITSUM,
@@ -632,6 +635,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::INT_TO_BITVECTOR_OP, Kind::INT_TO_BITVECTOR},
         {internal::Kind::INT_TO_BITVECTOR, Kind::INT_TO_BITVECTOR},
         {internal::Kind::BITVECTOR_TO_NAT, Kind::BITVECTOR_TO_NAT},
+        {internal::Kind::BITVECTOR_FROM_BOOLS, Kind::BITVECTOR_FROM_BOOLS},
+        {internal::Kind::BITVECTOR_BIT, Kind::BITVECTOR_BIT},
         /* Finite Fields --------------------------------------------------- */
         {internal::Kind::CONST_FINITE_FIELD, Kind::CONST_FINITE_FIELD},
         {internal::Kind::FINITE_FIELD_BITSUM, Kind::FINITE_FIELD_BITSUM},
@@ -872,6 +877,7 @@ const static std::unordered_set<Kind> s_indexed_kinds(
      Kind::BITVECTOR_ROTATE_LEFT,
      Kind::BITVECTOR_ROTATE_RIGHT,
      Kind::INT_TO_BITVECTOR,
+     Kind::BITVECTOR_BIT,
      Kind::FLOATINGPOINT_TO_UBV,
      Kind::FLOATINGPOINT_TO_SBV,
      Kind::BITVECTOR_EXTRACT,
@@ -891,6 +897,7 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
     {Kind::BITVECTOR_ROTATE_RIGHT, internal::Kind::BITVECTOR_ROTATE_RIGHT_OP},
     {Kind::BITVECTOR_SIGN_EXTEND, internal::Kind::BITVECTOR_SIGN_EXTEND_OP},
     {Kind::BITVECTOR_ZERO_EXTEND, internal::Kind::BITVECTOR_ZERO_EXTEND_OP},
+    {Kind::BITVECTOR_BIT, internal::Kind::BITVECTOR_BIT_OP},
     {Kind::DIVISIBLE, internal::Kind::DIVISIBLE_OP},
     {Kind::FLOATINGPOINT_TO_SBV, internal::Kind::FLOATINGPOINT_TO_SBV_OP},
     {Kind::FLOATINGPOINT_TO_UBV, internal::Kind::FLOATINGPOINT_TO_UBV_OP},
@@ -2164,6 +2171,7 @@ size_t Op::getNumIndicesHelper() const
     case Kind::BITVECTOR_ROTATE_LEFT: size = 1; break;
     case Kind::BITVECTOR_ROTATE_RIGHT: size = 1; break;
     case Kind::INT_TO_BITVECTOR: size = 1; break;
+    case Kind::BITVECTOR_BIT: size = 1; break;
     case Kind::IAND: size = 1; break;
     case Kind::FLOATINGPOINT_TO_UBV: size = 1; break;
     case Kind::FLOATINGPOINT_TO_SBV: size = 1; break;
@@ -2251,6 +2259,12 @@ Term Op::getIndexHelper(size_t index)
     {
       t = d_tm->mkRationalValHelper(
           d_node->getConst<internal::IntToBitVector>().d_size, true);
+      break;
+    }
+    case Kind::BITVECTOR_BIT:
+    {
+      t = d_tm->mkRationalValHelper(
+          d_node->getConst<internal::BitVectorBit>().d_bitIndex, true);
       break;
     }
     case Kind::IAND:
@@ -5916,6 +5930,11 @@ Op TermManager::mkOp(Kind kind, const std::vector<uint32_t>& args)
     case Kind::BITVECTOR_ZERO_EXTEND:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::BitVectorZeroExtend(args[0]));
+      break;
+    // unnecessary case: read-only kind.
+    case Kind::BITVECTOR_BIT:
+      CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
+      res = mkOpHelper(kind, internal::BitVectorBit(args[0]));
       break;
     case Kind::DIVISIBLE:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
