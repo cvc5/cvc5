@@ -51,6 +51,14 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+  registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_SIGMA,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_SIGMA_STAR,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -59,6 +67,12 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::RE_LOOP_ELIM:
       return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::STR_IN_RE_EVAL: return rewriteViaStrInReEval(n);
+    case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
+      return rewriteViaStrInReConcatStarChar(n);
+    case ProofRewriteRule::STR_IN_RE_SIGMA: return rewriteViaStrInReSigma(n);
+    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
+      return rewriteViaStrInReSigmaStar(n);
     default: break;
   }
   return Node::null();
@@ -1289,6 +1303,99 @@ Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
                       << std::endl;
   Assert(retNode != node);
   return retNode;
+}
+
+Node SequencesRewriter::rewriteViaStrInReEval(const Node& node)
+{
+  if (node.getKind() != Kind::STRING_IN_REGEXP || !node[0].isConst()
+      || !RegExpEntail::isConstRegExp(node[1]))
+  {
+    return Node::null();
+  }
+  // test whether x in node[1]
+  String s = node[0].getConst<String>();
+  bool test = RegExpEntail::testConstStringInRegExp(s, node[1]);
+  return nodeManager()->mkConst(test);
+}
+
+Node SequencesRewriter::rewriteViaStrInReConcatStarChar(const Node& n)
+{
+  if (n.getKind() != Kind::STRING_IN_REGEXP
+      || n[0].getKind() != Kind::STRING_CONCAT
+      || n[1].getKind() != Kind::REGEXP_STAR)
+  {
+    return Node::null();
+  }
+  Node len = RegExpEntail::getFixedLengthForRegexp(n[1][0]);
+  if (len.isNull() || !len.isConst() || len.getConst<Rational>() != Rational(1))
+  {
+    return Node::null();
+  }
+  NodeManager* nm = nodeManager();
+  std::vector<Node> cc;
+  utils::getConcat(n[0], cc);
+  std::vector<Node> conj;
+  for (const Node& c : cc)
+  {
+    conj.push_back(nm->mkNode(Kind::STRING_IN_REGEXP, c, n[1]));
+  }
+  return nm->mkAnd(conj);
+}
+
+Node SequencesRewriter::rewriteViaStrInReSigma(const Node& n)
+{
+  if (n.getKind() != Kind::STRING_IN_REGEXP
+      || n[1].getKind() != Kind::REGEXP_CONCAT)
+  {
+    return Node::null();
+  }
+  const Node& r = n[1];
+  bool allSigmaStrict = true;
+  size_t allSigmaMinSize = 0;
+  for (const Node& rc : r)
+  {
+    if (rc.getKind() == Kind::REGEXP_ALLCHAR)
+    {
+      allSigmaMinSize++;
+    }
+    else if (rc.getKind() == Kind::REGEXP_STAR
+             && rc[0].getKind() == Kind::REGEXP_ALLCHAR)
+    {
+      allSigmaStrict = false;
+    }
+    else
+    {
+      return Node::null();
+    }
+  }
+  // x in re.++(_*, _, _) ---> str.len(x) >= 2
+  NodeManager* nm = nodeManager();
+  Node num = nm->mkConstInt(Rational(allSigmaMinSize));
+  Node lenx = nm->mkNode(Kind::STRING_LENGTH, n[0]);
+  return nm->mkNode(allSigmaStrict ? Kind::EQUAL : Kind::GEQ, lenx, num);
+}
+Node SequencesRewriter::rewriteViaStrInReSigmaStar(const Node& n)
+{
+  if (n.getKind() != Kind::STRING_IN_REGEXP
+      || n[1].getKind() != Kind::REGEXP_STAR
+      || n[1][0].getKind() != Kind::REGEXP_CONCAT)
+  {
+    return Node::null();
+  }
+  const Node& r = n[1][0];
+  for (const Node& rc : r)
+  {
+    if (rc.getKind() != Kind::REGEXP_ALLCHAR)
+    {
+      return Node::null();
+    }
+  }
+  NodeManager* nm = nodeManager();
+  Node zero = nm->mkConstInt(Rational(0));
+  Node num = nm->mkConstInt(Rational(r.getNumChildren()));
+  Node lenx = nm->mkNode(Kind::STRING_LENGTH, n[0]);
+  Node t = nm->mkNode(Kind::INTS_MODULUS, lenx, num);
+  return nm->mkNode(Kind::EQUAL, t, zero);
 }
 
 Node SequencesRewriter::rewriteRepeatRegExp(TNode node)
