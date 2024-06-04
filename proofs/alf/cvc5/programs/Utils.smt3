@@ -128,7 +128,7 @@
   ((-> T U S) S S) S
   (
     ((get_a_norm_rec f id (f id x2))  (get_a_norm_rec f id x2))
-    ((get_a_norm_rec f id (f x1 x2))  (alf.concat f (get_a_norm_rec f id x1) (get_a_norm_rec f id x2)))
+    ((get_a_norm_rec f id (f x1 x2))  (alf.list_concat f (get_a_norm_rec f id x1) (get_a_norm_rec f id x2)))
     ((get_a_norm_rec f id id)         id)
     ((get_a_norm_rec f id x)          (alf.cons f x id))
   )
