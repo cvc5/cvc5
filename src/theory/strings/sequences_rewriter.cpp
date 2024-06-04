@@ -1377,7 +1377,8 @@ Node SequencesRewriter::rewriteViaStrInReSigma(const Node& n)
 Node SequencesRewriter::rewriteViaStrInReSigmaStar(const Node& n)
 {
   if (n.getKind() != Kind::STRING_IN_REGEXP
-      || n[1].getKind() != Kind::REGEXP_STAR)
+      || n[1].getKind() != Kind::REGEXP_STAR
+      || n[1][0].getKind() != Kind::REGEXP_CONCAT)
   {
     return Node::null();
   }
