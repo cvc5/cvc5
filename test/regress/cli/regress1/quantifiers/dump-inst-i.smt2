@@ -1,18 +1,18 @@
 ; COMMAND-LINE: --dump-instantiations --incremental --print-inst-full
-; SCRUBBER: sed -e 's/skv_.* )$/skv_TERM )/'
+; SCRUBBER: sed -e 's/@quantifiers_skolemize_.* )$/@quantifiers_skolemize_TERM )/'
 ; EXPECT: unsat
 ; EXPECT: (skolem (forall ((x Int)) (or (P x) (Q x)))
-; EXPECT:   ( skv_TERM )
+; EXPECT:   ( @quantifiers_skolemize_TERM )
 ; EXPECT: )
 ; EXPECT: (instantiations (forall ((x Int)) (P x))
-; EXPECT:   ( skv_TERM )
+; EXPECT:   ( @quantifiers_skolemize_TERM )
 ; EXPECT: )
 ; EXPECT: unsat
 ; EXPECT: (skolem (forall ((x Int)) (or (P x) (R x)))
-; EXPECT:   ( skv_TERM )
+; EXPECT:   ( @quantifiers_skolemize_TERM )
 ; EXPECT: )
 ; EXPECT: (instantiations (forall ((x Int)) (P x))
-; EXPECT:   ( skv_TERM )
+; EXPECT:   ( @quantifiers_skolemize_TERM )
 ; EXPECT: )
 ; disable proofs since it impacts what is relevant (e.g. the skolem lemmas)
 ; DISABLE-TESTER: proof

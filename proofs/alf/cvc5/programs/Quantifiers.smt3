@@ -6,7 +6,6 @@
   (S S U) U
   (
   ((substitute x y x)             y)
-  ((substitute x y (skolem w))    (skolem w))   ; do not traverse into skolems
   ((substitute x y (f a))         (_ (substitute x y f) (substitute x y a)))
   ((substitute x y z)             z)
   )
