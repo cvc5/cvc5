@@ -245,6 +245,11 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
     case ProofRewriteRule::RE_LOOP_ELIM:
       return "re-loop-elim";
+    case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
+    case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
+      return "str-in-re-concat-star-char";
+    case ProofRewriteRule::STR_IN_RE_SIGMA: return "str-in-re-sigma";
+    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
       return "sets-is-empty-eval";
       //================================================= RARE rules

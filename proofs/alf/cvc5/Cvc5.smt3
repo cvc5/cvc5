@@ -9,7 +9,7 @@
 (include "./theories/Transcendentals.smt3")
 (include "./theories/BitVectors.smt3")
 (include "./rules/Strings.smt3")
-(include "./theories/Sets.smt3")
+(include "./rules/Sets.smt3")
 (include "./theories/Bags.smt3")
 (include "./theories/FiniteFields.smt3")
 (include "./rules/Quantifiers.smt3")

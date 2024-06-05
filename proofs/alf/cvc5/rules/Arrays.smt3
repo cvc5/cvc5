@@ -18,5 +18,5 @@
 
 (declare-rule arrays_ext ((T Type) (U Type) (a (Array T U)) (b (Array T U)))
   :premises ((not (= a b)))
-  :conclusion (not (= (select a (skolem (@array_deq_diff a b))) (select b (skolem (@array_deq_diff a b)))))
+  :conclusion (not (= (select a (@array_deq_diff a b)) (select b (@array_deq_diff a b))))
 )

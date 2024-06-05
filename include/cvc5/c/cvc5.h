@@ -343,7 +343,7 @@ bool cvc5_sort_is_string(Cvc5Sort sort);
  * @param sort The sort.
  * @return True if given sort is the regular expression sort.
  */
-bool cvc5_sort_is_reg_exp(Cvc5Sort sort);
+bool cvc5_sort_is_regexp(Cvc5Sort sort);
 
 /**
  * Determine if given sort is the rounding mode sort
@@ -531,7 +531,7 @@ Cvc5Sort cvc5_sort_get_uninterpreted_sort_constructor(Cvc5Sort sort);
  * @param sort The sort.
  * @return The underlying datatype of a datatype sort.
  */
-Cvc5Datatype* cvc5_sort_get_datatype(Cvc5Sort sort);
+Cvc5Datatype cvc5_sort_get_datatype(Cvc5Sort sort);
 
 /**
  * Instantiate a parameterized datatype sort or uninterpreted sort
@@ -782,7 +782,7 @@ uint32_t cvc5_sort_bv_get_size(Cvc5Sort sort);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_sort_ff_get_size();
+const char* cvc5_sort_ff_get_size(Cvc5Sort sort);
 
 /* Floating-point sort ------------------------------------------------- */
 

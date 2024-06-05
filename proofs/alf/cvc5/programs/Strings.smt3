@@ -25,7 +25,7 @@
 
 ; Return the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (alf.concat str.++ x y)
+  (alf.list_concat str.++ x y)
 )
 
 ; Return the result of prepending of string x to string y where the latter is
@@ -171,7 +171,7 @@
 ; Get the term corresponding to the suffix of s after the first occurrence of
 ; t in s.
 (define skolem_first_ctn_post ((U Type :implicit) (s (Seq U)) (t (Seq U)))
-  (skolem_suffix_rem s (+ (str.len (skolem (skolem_first_ctn_pre s t))) (str.len t))))
+  (skolem_suffix_rem s (+ (str.len (@purify (skolem_first_ctn_pre s t))) (str.len t))))
 
 ;;-------------------- Utilities
 
@@ -215,10 +215,10 @@
   ((Seq U) Int Int) Bool
   (
     ((string_reduction_substr x n m)
-      (let ((k (skolem (str.substr x n m))))
+      (let ((k (@purify (str.substr x n m))))
       (let ((npm (+ n m)))
-      (let ((k1 (skolem (skolem_prefix x n))))
-      (let ((k2 (skolem (skolem_suffix_rem x npm))))
+      (let ((k1 (@purify (skolem_prefix x n))))
+      (let ((k2 (@purify (skolem_suffix_rem x npm))))
       (ite
         ; condition
         (and (>= n 0)(> (str.len x) n) (> m 0))
@@ -239,10 +239,10 @@
   ((Seq U) (Seq U) Int) Bool
   (
     ((string_reduction_indexof x y n)
-      (let ((k (skolem (str.indexof x y n))))
+      (let ((k (@purify (str.indexof x y n))))
       (let ((xn (str.substr x n (- (str.len x) n))))
-      (let ((k1 (skolem (skolem_first_ctn_pre xn y))))
-      (let ((k2 (skolem (skolem_first_ctn_post xn y))))
+      (let ((k1 (@purify (skolem_first_ctn_pre xn y))))
+      (let ((k2 (@purify (skolem_first_ctn_post xn y))))
       (ite
         (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
         (= k (alf.neg 1))
@@ -285,8 +285,8 @@
   ((Seq U) (Seq U)) Bool
   (
     ((string_eager_reduction_contains t r)
-        (let ((k1 (skolem (skolem_first_ctn_pre t r))))
-        (let ((k2 (skolem (skolem_first_ctn_post t r))))
+        (let ((k1 (@purify (skolem_first_ctn_pre t r))))
+        (let ((k2 (@purify (skolem_first_ctn_post t r))))
         (ite
           (str.contains t r)
           (= t (str.++ k1 r k2))
@@ -358,7 +358,7 @@
               ; a constant regular expression, append s
               ((str.to_re s) (@pair (str.++ s c) M))
               ; otherwise, make the skolem and append with constraint
-              (r            (let ((k (skolem (@re_unfold_pos_component t ro i))))
+              (r            (let ((k (@re_unfold_pos_component t ro i)))
                             (@pair (str.++ k c) (and (str.in_re k r) M))))
             )
           )
