@@ -683,9 +683,8 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     // Number of skolem indices: 5
     case SkolemId::BAGS_MAP_INDEX: return 5;
 
-    default: Uninmplemented() << "Unknown skolem kind " << id; break;
+    default: Unimplemented() << "Unknown skolem kind " << id; break;
   }
-  return size;
 }
 
 }  // namespace cvc5::internal
