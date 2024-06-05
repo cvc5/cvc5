@@ -37,8 +37,8 @@ namespace proof {
 class AlfPrintChannel
 {
  public:
-  AlfPrintChannel() {}
-  virtual ~AlfPrintChannel() {}
+  AlfPrintChannel();
+  virtual ~AlfPrintChannel();
   /** Print node n */
   virtual void printNode(TNode n) = 0;
   /** Print type node n */

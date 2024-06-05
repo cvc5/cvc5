@@ -78,7 +78,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
 {
  public:
   AlfNodeConverter(NodeManager* nm);
-  ~AlfNodeConverter() {}
+  ~AlfNodeConverter();
   /** Convert at pre-order traversal */
   Node preConvert(Node n) override;
   /** Convert at post-order traversal */
