@@ -649,7 +649,7 @@ Node TheorySetsRewriter::rewriteMembershipBinaryOp(const Node& node)
   Assert(node.getKind() == Kind::SET_MEMBER);
   Assert(node[1].getKind() == Kind::SET_UNION
          || node[1].getKind() == Kind::SET_INTER
-         || node[1].getKind() == Kinst::SET_MINUS);
+         || node[1].getKind() == Kind::SET_MINUS);
   NodeManager* nm = nodeManager();
   std::vector<Node> children;
   for (size_t i = 0, nchild = node[1].getNumChildren(); i < nchild; i++)
