@@ -1,5 +1,7 @@
 
-; Returns true if x is a Boolean literal.
+; @program $is_bool_literal
+; @arg arg1 : T. The term to inspect.
+; @return true if x is a Boolean literal.
 (define $is_bool_literal ((T Type :implicit) (x T))
   (alf.ite (alf.is_eq x true) true (alf.is_eq x false)))
 
