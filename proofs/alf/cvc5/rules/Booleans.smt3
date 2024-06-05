@@ -82,7 +82,7 @@
 ; second clause in the chain resolution step.
 ; @arg pols : @List. The list of polarities of the remaining resolution steps.
 ; This is a list of Booleans values.
-; @arg Ls : @List. The list of pivots of the remaining resolution steps.
+; @arg lits : @List. The list of pivots of the remaining resolution steps.
 ; This is a list of Boolean terms of the same length as pols.
 ; @return The result of chain resolution for C1, C2 for the given pivots.
 ; @note This side condition applies multiple steps of resolution but leaves the
@@ -101,11 +101,16 @@
     )
 )
 
-; This is a chain or resolution steps as described in the cvc5 proof rule
-; documentation.
-; `Cs` is a conjunction or the premise clauses.
-; `pols` and `lits` are lists of the same length denoting the polarities and
-;    the pivot literals respectively.
+; @rule chain_resolution implements ProofRule::CHAIN_RESOLUTION.
+; @premises Cs : Bool. The premises of the chain resolution step, collected as
+; a conjunction. The first is taken as the left resolvent, and the remaining
+; are taken as the right resolvents, to be resolved in order.
+; @arg pols : @List. The list of polarities of the remaining resolution steps.
+; This is a list of Booleans values.
+; @arg lits : @List. The list of pivots of the remaining resolution steps.
+; This is a list of Boolean terms of the same length as pols.
+; @conclusion The result of the chain resolution of the premises clauses for
+; the given polarities and pivots.
 (declare-rule chain_resolution ((Cs Bool) (pols @List) (lits @List))
     :premise-list Cs and
     :args (pols lits)
