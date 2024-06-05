@@ -1624,7 +1624,7 @@ Sort Sort::getUninterpretedSortConstructor() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isInstantiatedUninterpretedSort())
-      << "Expected instantiated uninterpreted sort.";
+      << "expected instantiated uninterpreted sort.";
   //////// all checks before this line
   return Sort(d_tm, d_type->getUninterpretedSortConstructor());
   ////////
@@ -1635,7 +1635,7 @@ Datatype Sort::getDatatype() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->isDatatype()) << "Expected datatype sort.";
+  CVC5_API_CHECK(d_type->isDatatype()) << "expected datatype sort.";
   //////// all checks before this line
   return Datatype(d_tm, d_type->getDType());
   ////////
@@ -1659,7 +1659,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   CVC5_API_CHECK_DOMAIN_SORTS(params);
   CVC5_API_CHECK(d_type->isParametricDatatype()
                  || d_type->isUninterpretedSortConstructor())
-      << "Expected parametric datatype or sort constructor sort.";
+      << "expected parametric datatype or sort constructor sort.";
   CVC5_API_CHECK(!d_type->isParametricDatatype()
                  || d_type->getNumChildren() == params.size() + 1)
       << "Arity mismatch for instantiated parametric datatype";
@@ -1679,7 +1679,7 @@ std::vector<Sort> Sort::getInstantiatedParameters() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isInstantiated())
-      << "Expected instantiated parametric sort";
+      << "expected instantiated parametric sort";
   //////// all checks before this line
   return typeNodeVectorToSorts(d_tm, d_type->getInstantiatedParamTypes());
   ////////
@@ -1738,7 +1738,7 @@ size_t Sort::getDatatypeConstructorArity() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isDatatypeConstructor())
-      << "Not a constructor sort: " << (*this);
+      << "not a constructor sort: " << (*this);
   //////// all checks before this line
   return d_type->getNumChildren() - 1;
   ////////
@@ -1750,7 +1750,7 @@ std::vector<Sort> Sort::getDatatypeConstructorDomainSorts() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isDatatypeConstructor())
-      << "Not a constructor sort: " << (*this);
+      << "not a constructor sort: " << (*this);
   //////// all checks before this line
   return typeNodeVectorToSorts(d_tm, d_type->getArgTypes());
   ////////
@@ -1762,7 +1762,7 @@ Sort Sort::getDatatypeConstructorCodomainSort() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isDatatypeConstructor())
-      << "Not a constructor sort: " << (*this);
+      << "not a constructor sort: " << (*this);
   //////// all checks before this line
   return Sort(d_tm, d_type->getDatatypeConstructorRangeType());
   ////////
@@ -1776,7 +1776,7 @@ Sort Sort::getDatatypeSelectorDomainSort() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isDatatypeSelector())
-      << "Not a selector sort: " << (*this);
+      << "not a selector sort: " << (*this);
   //////// all checks before this line
   return Sort(d_tm, d_type->getDatatypeSelectorDomainType());
   ////////
@@ -1788,7 +1788,7 @@ Sort Sort::getDatatypeSelectorCodomainSort() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isDatatypeSelector())
-      << "Not a selector sort: " << (*this);
+      << "not a selector sort: " << (*this);
   //////// all checks before this line
   return Sort(d_tm, d_type->getDatatypeSelectorRangeType());
   ////////
@@ -1802,7 +1802,7 @@ Sort Sort::getDatatypeTesterDomainSort() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isDatatypeTester())
-      << "Not a tester sort: " << (*this);
+      << "not a tester sort: " << (*this);
   //////// all checks before this line
   return Sort(d_tm, d_type->getDatatypeTesterDomainType());
   ////////
@@ -1814,7 +1814,7 @@ Sort Sort::getDatatypeTesterCodomainSort() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isDatatypeTester())
-      << "Not a tester sort: " << (*this);
+      << "not a tester sort: " << (*this);
   //////// all checks before this line
   return Sort(d_tm, d_tm->d_nm->booleanType());
   ////////
@@ -1827,7 +1827,7 @@ size_t Sort::getFunctionArity() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isFunction()) << "Not a function sort: " << (*this);
+  CVC5_API_CHECK(isFunction()) << "not a function sort: " << (*this);
   //////// all checks before this line
   return d_type->getNumChildren() - 1;
   ////////
@@ -1838,7 +1838,7 @@ std::vector<Sort> Sort::getFunctionDomainSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isFunction()) << "Not a function sort: " << (*this);
+  CVC5_API_CHECK(isFunction()) << "not a function sort: " << (*this);
   //////// all checks before this line
   return typeNodeVectorToSorts(d_tm, d_type->getArgTypes());
   ////////
@@ -1849,7 +1849,7 @@ Sort Sort::getFunctionCodomainSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isFunction()) << "Not a function sort" << (*this);
+  CVC5_API_CHECK(isFunction()) << "not a function sort" << (*this);
   //////// all checks before this line
   return Sort(d_tm, d_type->getRangeType());
   ////////
@@ -1862,7 +1862,7 @@ Sort Sort::getArrayIndexSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isArray()) << "Not an array sort.";
+  CVC5_API_CHECK(isArray()) << "not an array sort.";
   //////// all checks before this line
   return Sort(d_tm, d_type->getArrayIndexType());
   ////////
@@ -1873,7 +1873,7 @@ Sort Sort::getArrayElementSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isArray()) << "Not an array sort.";
+  CVC5_API_CHECK(isArray()) << "not an array sort.";
   //////// all checks before this line
   return Sort(d_tm, d_type->getArrayConstituentType());
   ////////
@@ -1886,7 +1886,7 @@ Sort Sort::getSetElementSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isSet()) << "Not a set sort.";
+  CVC5_API_CHECK(isSet()) << "not a set sort.";
   //////// all checks before this line
   return Sort(d_tm, d_type->getSetElementType());
   ////////
@@ -1899,7 +1899,7 @@ Sort Sort::getBagElementSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isBag()) << "Not a bag sort.";
+  CVC5_API_CHECK(isBag()) << "not a bag sort.";
   //////// all checks before this line
   return Sort(d_tm, d_type->getBagElementType());
   ////////
@@ -1912,7 +1912,7 @@ Sort Sort::getSequenceElementSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isSequence()) << "Not a sequence sort.";
+  CVC5_API_CHECK(isSequence()) << "not a sequence sort.";
   //////// all checks before this line
   return Sort(d_tm, d_type->getSequenceElementType());
   ////////
@@ -1925,7 +1925,7 @@ SortKind Sort::getAbstractedKind() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isAbstract()) << "Not an abstract sort.";
+  CVC5_API_CHECK(isAbstract()) << "not an abstract sort.";
   //////// all checks before this line
   return intToExtSortKind(d_type->getAbstractedKind());
   ////////
@@ -1939,7 +1939,7 @@ size_t Sort::getUninterpretedSortConstructorArity() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->isUninterpretedSortConstructor())
-      << "Not a sort constructor sort.";
+      << "not a sort constructor sort.";
   //////// all checks before this line
   return d_type->getUninterpretedSortConstructorArity();
   ////////
@@ -1952,7 +1952,7 @@ uint32_t Sort::getBitVectorSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isBitVector()) << "Not a bit-vector sort.";
+  CVC5_API_CHECK(isBitVector()) << "not a bit-vector sort.";
   //////// all checks before this line
   return d_type->getBitVectorSize();
   ////////
@@ -1965,7 +1965,7 @@ std::string Sort::getFiniteFieldSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isFiniteField()) << "Not a finite field sort.";
+  CVC5_API_CHECK(isFiniteField()) << "not a finite field sort.";
   //////// all checks before this line
   return d_type->getFfSize().toString();
   ////////
@@ -1978,7 +1978,7 @@ uint32_t Sort::getFloatingPointExponentSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->isFloatingPoint()) << "Not a floating-point sort.";
+  CVC5_API_CHECK(d_type->isFloatingPoint()) << "not a floating-point sort.";
   //////// all checks before this line
   return d_type->getFloatingPointExponentSize();
   ////////
@@ -1989,7 +1989,7 @@ uint32_t Sort::getFloatingPointSignificandSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->isFloatingPoint()) << "Not a floating-point sort.";
+  CVC5_API_CHECK(d_type->isFloatingPoint()) << "not a floating-point sort.";
   //////// all checks before this line
   return d_type->getFloatingPointSignificandSize();
   ////////
@@ -2002,7 +2002,7 @@ size_t Sort::getDatatypeArity() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->isDatatype()) << "Not a datatype sort.";
+  CVC5_API_CHECK(d_type->isDatatype()) << "not a datatype sort.";
   //////// all checks before this line
   return d_type->isParametricDatatype() ? d_type->getNumChildren() - 1 : 0;
   ////////
@@ -2015,7 +2015,7 @@ size_t Sort::getTupleLength() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isTuple()) << "Not a tuple sort.";
+  CVC5_API_CHECK(isTuple()) << "not a tuple sort.";
   //////// all checks before this line
   return d_type->getTupleLength();
   ////////
@@ -2026,7 +2026,7 @@ std::vector<Sort> Sort::getTupleSorts() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->isTuple()) << "Not a tuple sort.";
+  CVC5_API_CHECK(d_type->isTuple()) << "not a tuple sort.";
   //////// all checks before this line
   return typeNodeVectorToSorts(d_tm, d_type->getTupleTypes());
   ////////
@@ -2037,7 +2037,7 @@ Sort Sort::getNullableElementSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isNullable()) << "Not a nullable sort.";
+  CVC5_API_CHECK(isNullable()) << "not a nullable sort.";
   //////// all checks before this line
   return Sort(d_tm, d_type->getNullableElementType());
   ////////
@@ -2113,7 +2113,7 @@ bool Op::operator!=(const Op& t) const
 
 Kind Op::getKind() const
 {
-  CVC5_API_CHECK(d_kind != Kind::NULL_TERM) << "Expecting a non-null Kind";
+  CVC5_API_CHECK(d_kind != Kind::NULL_TERM) << "expecting a non-null Kind";
   //////// all checks before this line
   return d_kind;
 }
@@ -2200,7 +2200,7 @@ Term Op::getIndexHelper(size_t index)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(!d_node->isNull())
-      << "Expecting a non-null internal expression. This Op is not indexed.";
+      << "expecting a non-null internal expression. This Op is not indexed.";
   CVC5_API_CHECK(index < getNumIndicesHelper()) << "index out of bound";
   Kind k = intToExtKind(d_node->getKind());
   Term t;
@@ -2386,7 +2386,7 @@ std::string Op::toString() const
   else
   {
     CVC5_API_CHECK(!d_node->isNull())
-        << "Expecting a non-null internal expression";
+        << "expecting a non-null internal expression";
     Assert(isNull() || d_tm != nullptr);
     return d_node->toString();
   }
@@ -2506,7 +2506,7 @@ Term Term::operator[](size_t index) const
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(index < getNumChildren()) << "index out of bound";
   CVC5_API_CHECK(!isApplyKind(d_node->getKind()) || d_node->hasOperator())
-      << "Expected apply kind to have operator when accessing child of Term";
+      << "expected apply kind to have operator when accessing child of Term";
   //////// all checks before this line
 
   // special cases for apply kinds
@@ -2565,7 +2565,7 @@ Term Term::substitute(const Term& term, const Term& replacement) const
   CVC5_API_CHECK_TERM(term);
   CVC5_API_CHECK_TERM(replacement);
   CVC5_API_CHECK(term.getSort() == replacement.getSort())
-      << "Expecting terms of the same sort in substitute";
+      << "expecting terms of the same sort in substitute";
   //////// all checks before this line
   return Term(d_tm,
               d_node->substitute(internal::TNode(*term.d_node),
@@ -2580,7 +2580,7 @@ Term Term::substitute(const std::vector<Term>& terms,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(terms.size() == replacements.size())
-      << "Expecting vectors of the same arity in substitute";
+      << "expecting vectors of the same arity in substitute";
   CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_SORT_EQUAL_TO(terms, replacements);
   //////// all checks before this line
   std::vector<internal::Node> nodes = Term::termVectorToNodes(terms);
@@ -2610,7 +2610,7 @@ Op Term::getOp() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_node->hasOperator())
-      << "Expecting Term to have an Op when calling getOp()";
+      << "expecting Term to have an Op when calling getOp()";
   //////// all checks before this line
 
   // special cases for parameterized operators that are not indexed operators
@@ -3577,11 +3577,11 @@ Term Term::getRealAlgebraicNumberDefiningPolynomial(const Term& v) const
       << "Term to be a real algebraic number when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
   CVC5_API_ARG_CHECK_EXPECTED(v.getKind() == Kind::VARIABLE, v)
-      << "Expected a variable as argument when calling "
+      << "expected a variable as argument when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
 #ifndef CVC5_POLY_IMP
   throw CVC5ApiException(
-      "Expected libpoly enabled build when calling "
+      "expected libpoly enabled build when calling "
       "getRealAlgebraicNumberDefiningPolynomial");
 #endif
   //////// all checks before this line
@@ -3608,7 +3608,7 @@ Term Term::getRealAlgebraicNumberLowerBound() const
          "getRealAlgebraicNumberDefiningPolynomial()";
 #ifndef CVC5_POLY_IMP
   throw CVC5ApiException(
-      "Expected libpoly enabled build when calling "
+      "expected libpoly enabled build when calling "
       "getRealAlgebraicNumberLowerBound");
 #endif
   //////// all checks before this line
@@ -3633,7 +3633,7 @@ Term Term::getRealAlgebraicNumberUpperBound() const
          "getRealAlgebraicNumberDefiningPolynomial()";
 #ifndef CVC5_POLY_IMP
   throw CVC5ApiException(
-      "Expected libpoly enabled build when calling "
+      "expected libpoly enabled build when calling "
       "getRealAlgebraicNumberUpperBound");
 #endif
   //////// all checks before this line
@@ -4048,7 +4048,7 @@ DatatypeSelector::DatatypeSelector(TermManager* tm,
                                    const internal::DTypeSelector& stor)
     : d_tm(tm), d_stor(new internal::DTypeSelector(stor))
 {
-  CVC5_API_CHECK(d_stor->isResolved()) << "Expected resolved datatype selector";
+  CVC5_API_CHECK(d_stor->isResolved()) << "expected resolved datatype selector";
 }
 
 DatatypeSelector::~DatatypeSelector()
@@ -4146,7 +4146,7 @@ DatatypeConstructor::DatatypeConstructor(TermManager* tm,
     : d_tm(tm), d_ctor(new internal::DTypeConstructor(ctor))
 {
   CVC5_API_CHECK(d_ctor->isResolved())
-      << "Expected resolved datatype constructor";
+      << "expected resolved datatype constructor";
 }
 
 DatatypeConstructor::~DatatypeConstructor()
@@ -4192,7 +4192,7 @@ Term DatatypeConstructor::getInstantiatedTerm(const Sort& retSort) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_ctor->isResolved())
-      << "Expected resolved datatype constructor";
+      << "expected resolved datatype constructor";
   CVC5_API_CHECK(retSort.isDatatype())
       << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
@@ -4230,6 +4230,7 @@ DatatypeSelector DatatypeConstructor::operator[](size_t index) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(index < d_ctor->getNumArgs()) << "index out of bounds";
   //////// all checks before this line
   return DatatypeSelector(d_tm, (*d_ctor)[index]);
   ////////
@@ -4397,7 +4398,7 @@ std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 Datatype::Datatype(TermManager* tm, const internal::DType& dtype)
     : d_tm(tm), d_dtype(new internal::DType(dtype))
 {
-  CVC5_API_CHECK(d_dtype->isResolved()) << "Expected resolved datatype";
+  CVC5_API_CHECK(d_dtype->isResolved()) << "expected resolved datatype";
 }
 
 Datatype::Datatype() : d_tm(nullptr), d_dtype(nullptr) {}
@@ -4424,7 +4425,7 @@ DatatypeConstructor Datatype::operator[](size_t idx) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(idx < getNumConstructors()) << "Index out of bounds.";
+  CVC5_API_CHECK(idx < getNumConstructors()) << "index out of bounds.";
   //////// all checks before this line
   return DatatypeConstructor(d_tm, (*d_dtype)[idx]);
   ////////
@@ -4485,7 +4486,7 @@ std::vector<Sort> Datatype::getParameters() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(isParametric()) << "Expected parametric datatype";
+  CVC5_API_CHECK(isParametric()) << "expected parametric datatype";
   //////// all checks before this line
   std::vector<internal::TypeNode> params = d_dtype->getParameters();
   return Sort::typeNodeVectorToSorts(d_tm, params);
@@ -4746,8 +4747,9 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
                               ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-  CVC5_API_CHECK(ntSymbol.d_node->getType().isInstanceOf(rule.d_node->getType()))
-      << "Expected ntSymbol and rule to have the same sort";
+  CVC5_API_CHECK(
+      ntSymbol.d_node->getType().isInstanceOf(rule.d_node->getType()))
+      << "expected ntSymbol and rule to have the same sort";
   //////// all checks before this line
   d_sg->addRule(*ntSymbol.d_node, *rule.d_node);
   ////////
@@ -4896,7 +4898,7 @@ int64_t Stat::getInt() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data)) << "Stat holds no value";
-  CVC5_API_RECOVERABLE_CHECK(isInt()) << "Expected Stat of type int64_t.";
+  CVC5_API_RECOVERABLE_CHECK(isInt()) << "expected Stat of type int64_t.";
   return std::get<int64_t>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4909,7 +4911,7 @@ double Stat::getDouble() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data)) << "Stat holds no value";
-  CVC5_API_RECOVERABLE_CHECK(isDouble()) << "Expected Stat of type double.";
+  CVC5_API_RECOVERABLE_CHECK(isDouble()) << "expected Stat of type double.";
   return std::get<double>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4923,7 +4925,7 @@ const std::string& Stat::getString() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data)) << "Stat holds no value";
   CVC5_API_RECOVERABLE_CHECK(isString())
-      << "Expected Stat of type std::string.";
+      << "expected Stat of type std::string.";
   return std::get<std::string>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -4937,7 +4939,7 @@ const Stat::HistogramData& Stat::getHistogram() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data)) << "Stat holds no value";
   CVC5_API_RECOVERABLE_CHECK(isHistogram())
-      << "Expected Stat of type histogram.";
+      << "expected Stat of type histogram.";
   return std::get<HistogramData>(d_data->data);
   CVC5_API_TRY_CATCH_END;
 }
@@ -5094,7 +5096,7 @@ ProofRewriteRule Proof::getRewriteRule() const
   CVC5_API_CHECK(this->getProofNode()->getRule() == ProofRule::DSL_REWRITE
                  || this->getProofNode()->getRule()
                         == ProofRule::THEORY_REWRITE)
-      << "Expected `getRule()` to return `DSL_REWRITE` or `THEORY_REWRITE`, "
+      << "expected `getRule()` to return `DSL_REWRITE` or `THEORY_REWRITE`, "
          "got "
       << this->getProofNode()->getRule() << " instead.";
   //////// all checks before this line
@@ -5997,7 +5999,7 @@ Op TermManager::mkOp(Kind kind, const std::vector<uint32_t>& args)
       if (nargs == 0)
       {
         CVC5_API_CHECK(s_indexed_kinds.find(kind) == s_indexed_kinds.end())
-            << "Expected a kind for a non-indexed operator.";
+            << "expected a kind for a non-indexed operator.";
         return Op(this, kind);
       }
       else
@@ -6694,7 +6696,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
     if (grammar)
     {
       CVC5_API_CHECK(grammar->d_sg->getNtSyms()[0].getType() == *sort.d_type)
-          << "Invalid Start symbol for grammar, Expected Start's sort to be "
+          << "Invalid Start symbol for grammar, expected Start's sort to be "
           << *sort.d_type << " but found "
           << grammar->d_sg->getNtSyms()[0].getType();
     }
@@ -7976,7 +7978,7 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
       << "Cannot get domain elements unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_SORT(s);
   CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
-      << "Expecting an uninterpreted sort as argument to "
+      << "expecting an uninterpreted sort as argument to "
          "getModelDomainElements.";
   //////// all checks before this line
   std::vector<Term> res;
@@ -8003,7 +8005,7 @@ bool Solver::isModelCoreSymbol(const Term& v) const
          "response.";
   CVC5_API_SOLVER_CHECK_TERM(v);
   CVC5_API_RECOVERABLE_CHECK(v.getKind() == Kind::CONSTANT)
-      << "Expecting a free constant as argument to isModelCoreSymbol.";
+      << "expecting a free constant as argument to isModelCoreSymbol.";
   //////// all checks before this line
   return d_slv->isModelCoreSymbol(v.getNode());
   ////////
@@ -8024,14 +8026,14 @@ std::string Solver::getModel(const std::vector<Sort>& sorts,
   for (const Sort& s : sorts)
   {
     CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
-        << "Expecting an uninterpreted sort as argument to "
+        << "expecting an uninterpreted sort as argument to "
            "getModel.";
   }
   CVC5_API_SOLVER_CHECK_TERMS(vars);
   for (const Term& v : vars)
   {
     CVC5_API_RECOVERABLE_CHECK(v.getKind() == Kind::CONSTANT)
-        << "Expecting a free constant as argument to getModel.";
+        << "expecting a free constant as argument to getModel.";
   }
   //////// all checks before this line
   return d_slv->getModel(Sort::sortVectorToTypeNodes(sorts),
@@ -8609,10 +8611,10 @@ void Solver::addSygusInvConstraint(const Term& inv,
       << "boolean range";
 
   CVC5_API_CHECK(pre.d_node->getType() == invType)
-      << "Expected inv and pre to have the same sort";
+      << "expected inv and pre to have the same sort";
 
   CVC5_API_CHECK(post.d_node->getType() == invType)
-      << "Expected inv and post to have the same sort";
+      << "expected inv and post to have the same sort";
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
       << "Cannot addSygusInvConstraint unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
@@ -8634,7 +8636,7 @@ void Solver::addSygusInvConstraint(const Term& inv,
       d_tm.d_nm->mkFunctionType(expectedTypes);
 
   CVC5_API_CHECK(trans.d_node->getType() == expectedTransType)
-      << "Expected trans's sort to be " << invType;
+      << "expected trans's sort to be " << invType;
 
   d_slv->assertSygusInvConstraint(
       *inv.d_node, *pre.d_node, *trans.d_node, *post.d_node);
