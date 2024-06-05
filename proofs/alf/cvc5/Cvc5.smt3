@@ -178,10 +178,13 @@
   )
 )
 
-; ProofRule::ACI_NORM
-; Note that we need three checks. The first two handle the cases where one side
-; is treated as a singleton child of the other side. The remaining case checks
-; where both terms are not singletons.
+; @rule aci_norm implements ProofRule::ACI_NORM
+; @arg (= a b) : Bool. The equality to be proven by this rule.
+; @requires That the normal forms of a and b via $get_aci_normal_form suffices
+; to show that a and b are equivalent. Note that we need three checks. The first
+; two handle the cases where one side is treated as a singleton child of the
+; other side. The remaining case checks where both terms are not singletons.
+; @conclusion the equality between a and b.
 (declare-rule aci_norm ((U Type) (a U) (b U))
   :args ((= a b))
   :requires (((let ((an ($get_aci_normal_form a)) (bn ($get_aci_normal_form b)))
