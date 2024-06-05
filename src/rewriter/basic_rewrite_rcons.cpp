@@ -35,22 +35,31 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
+std::ostream& operator<<(std::ostream& os, TheoryRewriteMode tm)
+{
+  switch (tm)
+  {
+    case TheoryRewriteMode::STANDARD: return os << "STANDARD";
+    case TheoryRewriteMode::RESORT: return os << "RESORT";
+    case TheoryRewriteMode::NEVER: return os << "NEVER";
+  }
+  Unreachable();
+  return os;
+}
+
 BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env)
 {
-  d_isDslStrict = (options().proof.proofGranularityMode
-                   == options::ProofGranularityMode::DSL_REWRITE_STRICT);
+
 }
 
 bool BasicRewriteRCons::prove(CDProof* cdp,
                               Node a,
                               Node b,
-                              theory::TheoryId tid,
-                              MethodId mid,
-                              std::vector<std::shared_ptr<ProofNode>>& subgoals)
+                              std::vector<std::shared_ptr<ProofNode>>& subgoals,
+                              TheoryRewriteMode tmode)
 {
   Node eq = a.eqNode(b);
-  Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "
-                          << mid << ")" << std::endl;
+  Trace("trewrite-rcons") << "Reconstruct " << eq << std::endl;
   Node lhs = eq[0];
   Node rhs = eq[1];
   // this probably should never happen
@@ -68,7 +77,7 @@ bool BasicRewriteRCons::prove(CDProof* cdp,
   }
 
   // try theory rewrite (pre-rare)
-  if (!d_isDslStrict)
+  if (tmode == TheoryRewriteMode::STANDARD)
   {
     if (tryTheoryRewrite(cdp, eq, theory::TheoryRewriteCtx::PRE_DSL, subgoals))
     {
@@ -85,22 +94,21 @@ bool BasicRewriteRCons::postProve(
     CDProof* cdp,
     Node a,
     Node b,
-    theory::TheoryId tid,
-    MethodId mid,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+    std::vector<std::shared_ptr<ProofNode>>& subgoals,
+    TheoryRewriteMode tmode)
 {
   Node eq = a.eqNode(b);
   // try theory rewrite (post-rare), which may try both pre and post if
   // the proof-granularity mode is dsl-rewrite-strict.
   bool success = false;
-  if (d_isDslStrict)
+  if (tmode == TheoryRewriteMode::RESORT)
   {
     if (tryTheoryRewrite(cdp, eq, theory::TheoryRewriteCtx::PRE_DSL, subgoals))
     {
       success = true;
     }
   }
-  if (!success
+  if (!success && tmode != TheoryRewriteMode::NEVER
       && tryTheoryRewrite(
           cdp, eq, theory::TheoryRewriteCtx::POST_DSL, subgoals))
   {
@@ -116,20 +124,6 @@ bool BasicRewriteRCons::postProve(
     Trace("trewrite-rcons") << "...(fail)" << std::endl;
   }
   return success;
-}
-
-void BasicRewriteRCons::ensureProofForEncodeTransform(CDProof* cdp,
-                                                      const Node& eq,
-                                                      const Node& eqi)
-{
-  ProofRewriteDbNodeConverter rdnc(d_env);
-  std::shared_ptr<ProofNode> pfn = rdnc.convert(eq);
-  Node equiv = eq.eqNode(eqi);
-  Assert(pfn->getResult() == equiv);
-  cdp->addProof(pfn);
-  Node equivs = eqi.eqNode(eq);
-  cdp->addStep(equivs, ProofRule::SYMM, {equiv}, {});
-  cdp->addStep(eq, ProofRule::EQ_RESOLVE, {eqi, equivs}, {});
 }
 
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
@@ -152,6 +146,20 @@ bool BasicRewriteRCons::tryRule(CDProof* cdp,
     return true;
   }
   return false;
+}
+
+void BasicRewriteRCons::ensureProofForEncodeTransform(CDProof* cdp,
+                                                      const Node& eq,
+                                                      const Node& eqi)
+{
+  ProofRewriteDbNodeConverter rdnc(d_env);
+  std::shared_ptr<ProofNode> pfn = rdnc.convert(eq);
+  Node equiv = eq.eqNode(eqi);
+  Assert(pfn->getResult() == equiv);
+  cdp->addProof(pfn);
+  Node equivs = eqi.eqNode(eq);
+  cdp->addStep(equivs, ProofRule::SYMM, {equiv}, {});
+  cdp->addStep(eq, ProofRule::EQ_RESOLVE, {eqi, equivs}, {});
 }
 
 void BasicRewriteRCons::ensureProofForTheoryRewrite(
