@@ -2,8 +2,10 @@
 (include "../theories/Quantifiers.smt3")
 
 
-; @rule instantiate
-; Implements ProofRule::INSTANTIATE.
+; @rule instantiate, implements ProofRule::INSTANTIATE.
+; @premise (forall xs F) : Bool. The quantified formula to instantiate.
+; @arg ts : @List. The list of terms to instantiate with.
+; @conclusion The result of instantiating (forall xs F) with ts.
 (declare-rule instantiate ((F Bool) (xs @List) (ts @List))
   :premises ((forall xs F))
   :args (ts)
@@ -23,8 +25,11 @@
   )
 )
 
-; @rule skolemize
-; Implements ProofRule::SKOLEMIZE.
+; @rule skolemize, implements ProofRule::SKOLEMIZE.
+; @premise F: Bool. The quantified formula to skolemize. This is either an
+; existential or a negated universal.
+; @conclusion The skolemized body of F, where its variables are replaced by
+; skolems introduced via $mk_skolems,
 (declare-rule skolemize ((F Bool))
   :premises (F)
   :conclusion
@@ -36,8 +41,10 @@
         ))
 )
 
-; @rule skolem_intro
-; Implements ProofRule::SKOLEM_INTRO.
+; @rule skolem_intro, implements ProofRule::SKOLEM_INTRO.
+; @param t : T. The purification skolem.
+; @conclusion An equality equating t to its original form. This indicates that
+; the purification skolem for any term x can be assumed to be equal to x.
 (declare-rule skolem_intro ((T Type) (t T))
   :args (t)
   :conclusion 
@@ -51,11 +58,12 @@
    )
 )
 
-; @rule alpha_equiv
-; Implements ProofRule::ALPHA_EQUIV.
-; B is the formula to apply to
-; vs is a list of variables to substitution for the variable list ts
-; Note we don't currently check whether this is valid renaming.
+; @rule alpha_equiv, implements ProofRule::ALPHA_EQUIV.
+; @arg B : Bool. The formula to apply to alpha equivalence to.
+; @arg vs : @List. The list of variables to substitute from.
+; @arg ts : @List. The list of (renamed) variables to substitute into.
+; @conclusion The result of applying the substitution specified by vs and ts to
+; B.
 (declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
   :args (B vs ts)
   :conclusion (= B ($substitute_list vs ts B))
