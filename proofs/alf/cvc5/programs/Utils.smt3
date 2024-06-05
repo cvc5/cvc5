@@ -29,17 +29,6 @@
 (define $compare_geq ((T Type :implicit) (x T) (y T))
   (alf.not (alf.is_neg (alf.add (alf.neg y) x))))
 
-; Compare arithmetic greater than. Assumes x and y are values.
-; Returns true if x > y.
-(define $compare_gt ((T Type :implicit) (x T) (y T))
-  (alf.is_neg (alf.add (alf.neg x) y)))
-
-; Compare arithmetic greater than. Assumes x and y are values.
-; Returns true if x >= y.
-(define $compare_geq ((T Type :implicit) (x T) (y T))
-  (alf.not (alf.is_neg (alf.add (alf.neg y) x))))
-
-
 (declare-type @Pair (Type Type))
 (declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
 
@@ -50,8 +39,12 @@
 
 ; This is used to have a canonical ordering of variables.
 ; It could potentially be improved by having a builtin operator, e.g. alf.compare.
+; The variable ordering always returns true for the variable with the lower
+; hash. This leads to best case performance if sorting a term with distinct
+; children, where if we ask for the hash of the children in order and prefer
+; the ones where this compare returns true, then the term remains unchanged.
 (define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
-  (alf.is_neg (alf.add (alf.hash a) (alf.neg (alf.hash b)))))
+  (alf.is_neg (alf.add (alf.hash b) (alf.neg (alf.hash a)))))
 
 ; Returns the tail of x, where x is expected to be a function application.
 (define $tail ((S Type :implicit) (x S))
@@ -135,7 +128,7 @@
   ((-> T U S) S S) S
   (
     ((get_a_norm_rec f id (f id x2))  (get_a_norm_rec f id x2))
-    ((get_a_norm_rec f id (f x1 x2))  (alf.concat f (get_a_norm_rec f id x1) (get_a_norm_rec f id x2)))
+    ((get_a_norm_rec f id (f x1 x2))  (alf.list_concat f (get_a_norm_rec f id x1) (get_a_norm_rec f id x2)))
     ((get_a_norm_rec f id id)         id)
     ((get_a_norm_rec f id x)          (alf.cons f x id))
   )
@@ -147,4 +140,3 @@
     t
     (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_a_norm_rec f id t))))))
 )
-
