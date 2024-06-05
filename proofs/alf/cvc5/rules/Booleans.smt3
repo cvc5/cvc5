@@ -120,14 +120,19 @@
             (((and C1 C2) ($chain_resolve_rec ($to_clause C1) C2 pols lits))))
 )
 
-; FACTORING
-; $factor_literals xs x returns x with duplicates removed, xs is a list of
-; literals we have seen before.
+; @program $factor_literals
+; @arg xs : Bool. The current accumulated clause containing the unique literals
+; we have seen thus far.
+; @arg ys : Bool. The remainder of the clause to process.
+; @returns the result of concatenating all the unique literals in the order in
+; which they were seen. Note that we do not return the accumulator, which has
+; the literals in reverse order, which is why the recursive case of this method
+; constructs both versions.
 (program $factor_literals ((xs Bool :list) (l Bool) (ls Bool :list))
     (Bool Bool) Bool
     (
         (($factor_literals xs (or l ls)) (let ((cond (alf.is_neg (alf.list_find or xs l))))
-                                       (let ((ret ($factor_literals
+                                         (let ((ret ($factor_literals
                                                     (alf.ite cond (alf.cons or l xs) xs)
                                                     ls)))
                                             (alf.ite cond (alf.cons or l ret) ret))))
@@ -157,24 +162,37 @@
 )
 
 ; @rule eq_resolve implements ProofRule::EQ_RESOLVE
+; @premise F1 : Bool. The formula to resolve on the left hand side of the
+; equivalence.
+; @premise G : Bool. The equivalence between F1 and another formula F2.
+; @conclusion the formula F2.
 (declare-rule eq_resolve ((F1 Bool) (F2 Bool))
     :premises (F1 (= F1 F2))
     :conclusion F2
 )
 
 ; @rule modus_ponens implements ProofRule::MODUS_PONENS
+; @premise F1 : Bool. The formula to resolve on the left hand side of the
+; implication.
+; @premise G : Bool. The implication between F1 and another formula F2.
+; @conclusion the formula F2.
 (declare-rule modus_ponens ((F1 Bool) (F2 Bool))
     :premises (F1 (=> F1 F2))
     :conclusion F2
 )
 
 ; @rule not_not_elim implements ProofRule::NOT_NOT_ELIM
+; @premise F1 : Bool. The application of a double negation.
+; @conclusion the formula that F1 is the double negation of.
 (declare-rule not_not_elim ((F Bool))
     :premises ((not (not F)))
     :conclusion F
 )
 
 ; @rule contra implements ProofRule::CONTRA
+; @premise F1 : Bool. A formula.
+; @premise F2 : Bool. The negation of F1.
+: @conclusion false.
 (declare-rule contra ((F Bool))
     :premises (F (not F))
     :conclusion false
