@@ -1,4 +1,3 @@
-
 ; @define $is_bool_literal
 ; @arg x : T. The term to inspect.
 ; @return true if x is a Boolean literal.
@@ -75,10 +74,10 @@
 )
 
 ; @program $singleton_elim
-; @arg arg1 : S. The term to proces.
-; @return The result of applying singleton elimination for arg1. In particular,
-; if arg1 is of the form (f x1 x2) where x2 is the nil terminator of f, then we
-; return x1. Otherwise, we return arg1 unchanged.
+; @arg s : S. The term to proces.
+; @return The result of applying singleton elimination for s. In particular,
+; if s is of the form (f x1 x2) where x2 is the nil terminator of f, then we
+; return x1. Otherwise, we return s unchanged.
 (program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
   (S) S
   (
@@ -87,36 +86,44 @@
   )
 )
 
-; Eliminate singleton list, which takes:
-; (1) a function f
-; (2) the identity element of f
-; (3) the term to process
-(program singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+; @program $singleton_elim_aci
+; @arg f : (-> T U S). The function we are considering.
+; @arg id : S. The nil terminator of f.
+; @arg s : S. The term to process.
+; @return The result of applying singleton elimination for s, where s should
+; be an application of f. In particular, if s is of the form (f x1 x2) where
+; x2 is the nil terminator of f, then we return x1. Otherwise, we return s
+; unchanged.
+; @note This method is similar in purpose to $singleton_elim, but insists that
+; the function and its nil terminator are provided explicitly.
+(program $singleton_elim_aci ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
   ((-> T U S) S S) S
   (
-    ((singleton_elim f id (f x1 x2))  (alf.ite (alf.is_eq x2 id) x1 (f x1 x2)))
-    ((singleton_elim f id x)          x)
+    (($singleton_elim_aci f id (f x1 x2))  (alf.ite (alf.is_eq x2 id) x1 (f x1 x2)))
+    (($singleton_elim_aci f id x)          x)
   )
 )
 
 ;; =============== for ACI_NORM associative, commutative and idempotent
 
-; Append the children of two applications of an ACI operator, which takes:
-; (1) a function f
-; (2) the identity element of f
-; (3) the first f :list term to append
-; (4) the second f :list term to append
-(program ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
+; @program $ac_append
+; @arg f : (-> T U S). The function we are considering.
+; @arg id : S. The nil terminator of f.
+; @arg s1 : S. The first term to process.
+; @arg s2 : S. The second term to process.
+; @return the result of appending the children of two applications s1 and s2 of
+; the ACI operator f.
+(program $ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
   ((-> T U S) S S S) S
   (
-    ((ac_append f id (f x1 x2) (f y1 y2)) (alf.ite (alf.is_eq x1 y1)
-                                            (ac_append f id (f x1 x2) y2)
-                                          (alf.ite ($compare_var x1 y1)
-                                            (alf.cons f x1 (ac_append f id x2 (f y1 y2)))
-                                            (alf.cons f y1 (ac_append f id (f x1 x2) y2)))))
-    ((ac_append f id (f x1 x2) id)        (f x1 x2))
-    ((ac_append f id id (f y1 y2))        (f y1 y2))
-    ((ac_append f id id id)               id)
+    (($ac_append f id (f x1 x2) (f y1 y2)) (alf.ite (alf.is_eq x1 y1)
+                                             ($ac_append f id (f x1 x2) y2)
+                                           (alf.ite ($compare_var x1 y1)
+                                             (alf.cons f x1 ($ac_append f id x2 (f y1 y2)))
+                                             (alf.cons f y1 ($ac_append f id (f x1 x2) y2)))))
+    (($ac_append f id (f x1 x2) id)        (f x1 x2))
+    (($ac_append f id id (f y1 y2))        (f y1 y2))
+    (($ac_append f id id id)               id)
   )
 )
 
@@ -128,7 +135,7 @@
   ((-> T U S) S S) S
   (
     ((get_aci_norm_rec f id (f id x2))   (get_aci_norm_rec f id x2))
-    ((get_aci_norm_rec f id (f x1 x2))   (ac_append f id (get_aci_norm_rec f id x1) (get_aci_norm_rec f id x2)))
+    ((get_aci_norm_rec f id (f x1 x2))   ($ac_append f id (get_aci_norm_rec f id x1) (get_aci_norm_rec f id x2)))
     ((get_aci_norm_rec f id id)          id)
     ((get_aci_norm_rec f id x)           (alf.cons f x id))
   )
@@ -138,7 +145,7 @@
 (define get_aci_norm ((T Type :implicit) (t T))
   (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
     t
-    (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_aci_norm_rec f id t))))))
+    (((f x y) (let ((id (alf.nil f x y))) ($singleton_elim_aci f id (get_aci_norm_rec f id t))))))
 )
 
 ;; =============== for ACI_NORM associative
@@ -161,5 +168,5 @@
 (define get_a_norm ((T Type :implicit) (t T))
   (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
     t
-    (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_a_norm_rec f id t))))))
+    (((f x y) (let ((id (alf.nil f x y))) ($singleton_elim_aci f id (get_a_norm_rec f id t))))))
 )
