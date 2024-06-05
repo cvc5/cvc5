@@ -155,6 +155,12 @@
   :conclusion (= a b)
 )
 
+; @define $get_aci_normal_form
+; @arg t : S. The term to compute the normal form for.
+; @return the result of normalizing t for the proof rule aci_norm. In
+; particular, if t is an application of a known operator that has the property
+; of being either associative and commutative (resp. associative) we call
+; the method $get_aci_norm (resp. $get_a_norm).
 (define $get_aci_normal_form ((S Type :implicit) (t S))
   (alf.match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
               (xb1 (BitVec m)) (xb2 (BitVec m) :list)
