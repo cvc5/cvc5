@@ -1,6 +1,5 @@
 (include "../theories/Builtin.smt3")
 (include "../theories/Ints.smt3")
-
 (include "../programs/Nary.smt3")
 
 ; @rule split implements ProofRule::SPLIT.
@@ -307,11 +306,10 @@
     :conclusion (or C (not F2))
 )
 
-; NOT_AND
-
-; $lower_not_and c
-; Moves a negation into a disjunction.
-; `$lower_not_and (and l1 .. ln) = (or (not l1) ... (not ln))`
+; @program $lower_not_and
+; @arg F : Bool. The formula to process, which should be an and-list.
+; @return the result of negating F by turning it into a disjunction. For 
+; example, we return (or (not l1) ... (not ln)) given input (and l1 .. ln).
 (program $lower_not_and ((l Bool) (ls Bool :list))
     (Bool) Bool
     (
