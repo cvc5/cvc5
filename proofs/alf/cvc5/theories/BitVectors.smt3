@@ -298,7 +298,7 @@
 
 (declare-const int2bv (->
   (! Int :var w)
-  Int (BitVec w))
+  Int (BitVec ($eval_bv_sym w)))
 )
 
 (declare-const bv2nat (->
