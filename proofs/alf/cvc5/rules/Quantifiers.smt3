@@ -15,7 +15,7 @@
 ; @param arg1 : @List. The bound variable list to process.
 ; @param arg2 : Bool. The body of the quantified formula. This impacts the
 ; definition of the introduced skolems.
-; @return ret : @List. The list of skolem variables for the quantified formula
+; @return the list of skolem variables for the quantified formula
 ; whose bound variable list is arg1 and whose body is arg2.
 (program $mk_skolems ((x @List) (xs @List :list) (F Bool))
   (@List Bool) @List
@@ -42,7 +42,7 @@
 )
 
 ; @rule skolem_intro, implements ProofRule::SKOLEM_INTRO.
-; @param t : T. The purification skolem.
+; @arg t : T. The purification skolem.
 ; @conclusion An equality equating t to its original form. This indicates that
 ; the purification skolem for any term x can be assumed to be equal to x.
 (declare-rule skolem_intro ((T Type) (t T))

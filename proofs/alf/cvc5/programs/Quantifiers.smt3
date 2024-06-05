@@ -2,11 +2,10 @@
 (include "../theories/Quantifiers.smt3")
 
 ; @program $substitute
-; @param arg1 : S. The domain of the substitution.
-; @param arg2 : S. The range of the substitution.
-; @param arg3 : U. The term to process.
-; @return ret : U. The result of replacing all occurrences of arg1 with arg2
-; in arg3.
+; @arg arg1 : S. The domain of the substitution.
+; @arg arg2 : S. The range of the substitution.
+; @arg arg3 : U. The term to process.
+; @return the result of replacing all occurrences of arg1 with arg2 in arg3.
 (program $substitute
   ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U) (w T))
   (S S U) U
@@ -18,10 +17,10 @@
 )
 
 ; @program $substitute_list
-; @param arg1 : @List. The list of domains of the substitution.
-; @param arg2 : @List. The list of ranges of the substitution.
-; @param arg3 : U. The term to process.
-; @return ret : U. The result of applying the substitutions specified by arg1
+; @arg arg1 : @List. The list of domains of the substitution.
+; @arg arg2 : @List. The list of ranges of the substitution.
+; @arg arg3 : U. The term to process.
+; @return the result of applying the substitutions specified by arg1
 ; and arg2 in order to arg3. In particular, the first element in the lists arg1
 ; and arg2 are processed first.
 (program $substitute_list ((T Type) (U Type) (F U) (x T) (xs @List :list) (t T) (ts @List :list))
@@ -33,9 +32,9 @@
 )
 
 ; @program $contains_subterm
-; @param arg1 : S. The term to process.
-; @param arg2 : U. The term to find.
-; @return ret : Bool. The result is true if arg2 is a subterm of arg1.
+; @arg arg1 : S. The term to process.
+; @arg arg2 : U. The term to find.
+; @return the result is true if arg2 is a subterm of arg1.
 (program $contains_subterm
   ((T Type) (U Type) (S Type) (x U) (y S) (f (-> T S)) (a T))
   (S U) Bool
@@ -47,9 +46,9 @@
 )
 
 ; @program $contains_subterm_list
-; @param arg1 : T. The term to process.
-; @param arg2 : @List. The list of terms to find.
-; @return ret : Bool. The result is true if any term in arg2 is a subterm of arg1.
+; @arg arg1 : T. The term to process.
+; @arg arg2 : @List. The list of terms to find.
+; @return true if any term in arg2 is a subterm of arg1.
 (program $contains_subterm_list ((T Type) (U Type) (t T) (x U) (xs @List :list))
   (T @List) Bool
   (
