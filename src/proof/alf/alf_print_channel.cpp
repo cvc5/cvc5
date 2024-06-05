@@ -27,7 +27,7 @@ namespace proof {
 AlfPrintChannel::AlfPrintChannel() {}
 
 AlfPrintChannel::~AlfPrintChannel() {}
-  
+
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
                                        const LetBinding* lbind,
                                        const std::string& tprefix)

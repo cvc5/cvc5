@@ -57,7 +57,7 @@ AlfNodeConverter::AlfNodeConverter(NodeManager* nm) : BaseAlfNodeConverter(nm)
 }
 
 AlfNodeConverter::~AlfNodeConverter() {}
-  
+
 Node AlfNodeConverter::preConvert(Node n)
 {
   // match is not supported in ALF syntax, we eliminate it at pre-order
@@ -380,7 +380,7 @@ size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
 
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
 {
-  Assert (!args.empty());
+  Assert(!args.empty());
   TypeNode tn = NodeManager::currentNM()->booleanType();
   // singleton lists are handled due to (@list x) ---> (@list x alf.nil)
   return mkInternalApp("@list", args, tn);
