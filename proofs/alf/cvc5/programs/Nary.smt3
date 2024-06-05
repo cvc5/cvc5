@@ -104,8 +104,12 @@
     )
 )
 
-; `nary.prefix cons nil n t` returns the first n children of t, where t is
-; and application of nary operator cons with nil terminator nil.
+; @program nary.prefix
+; @arg cons : (-> L L L). The n-ary function symbol.
+; @arg nil : L. The nil terminator of cons.
+; @arg l : Int. The number of elements in the prefix left to extract.
+; @arg t : L. The term to process, which is expected to be a cons-list.
+; @return the prefix of t consisting of at most l children.
 (program nary.prefix
     ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (l Int))
     ((-> L L L) L Int L) Bool
@@ -116,9 +120,14 @@
     )
 )
 
-; `nary.subsequence cons nil l u t` returns the l^th through u^th children of t,
-; inclusive, where t is and application of nary operator cons with nil
-; terminator nil.
+; @program nary.subsequence
+; @arg cons : (-> L L L). The n-ary function symbol.
+; @arg nil : L. The nil terminator of cons.
+; @arg l : Int. The starting index, inclusive, of elements of t to extract.
+; @arg u : Int. The end index, inclusive, of elements of t to extract.
+; @arg t : L. The term to process, which is expected to be a cons-list.
+; @return the subsequent of t between indices l and u inclusive. Indices that
+; fall out of bounds of the number of children of t are ignored.
 (program nary.subsequence
     ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (u Int) (l Int))
     ((-> L L L) L Int Int L) Bool
