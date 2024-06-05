@@ -201,7 +201,7 @@ bool InferProofCons::convert(CDProof& cdp,
           success = true;
           if (isOr)
           {
-            // if union or minus, we get the desired (left or right) conclusion
+            // if union, we get the desired (left or right) conclusion
             success = psb.applyPredIntro(memor, {mtgt}, MethodId::SB_FORMULA);
             // should never fail
             Assert(success);
