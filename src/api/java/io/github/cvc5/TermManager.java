@@ -327,11 +327,11 @@ public class TermManager extends AbstractPointer
    */
   public Term mkSkolem(SkolemId skolemId, Term[] indices)
   {
-    long skolemPointer = mkSkolem(pointer, skolemId.getValue(), indices);
+    long skolemPointer = mkSkolem(pointer, skolemId.getValue(), Utils.getPointers(indices));
     return new Term(skolemPointer);
   }
 
-  private native long mkSkolem(long pointer, SkolemId skolemId, Term[] indices);
+  private native long mkSkolem(long pointer, int skolemId, long[] indices);
 
   /**
    * Create a predicate sort.

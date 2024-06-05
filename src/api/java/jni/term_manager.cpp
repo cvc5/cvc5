@@ -312,28 +312,15 @@ Java_io_github_cvc5_TermManager_mkParamSort__JLjava_lang_String_2(
 /*
  * Class:     io_github_cvc5_TermManager
  * Method:    mkSkolem
- * Signature: (JI[Lio/github/cvc5/Term;)J
+ * Signature: Signature: (JI[J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_mkSkolem(
-    JNIEnv* env, jobject, jlong pointer, jint jSkolemId, jobjectArray jIndices)
+    JNIEnv* env, jobject, jlong pointer, jint jSkolemId, jlongArray jIndices)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   TermManager* tm = reinterpret_cast<TermManager*>(pointer);
   SkolemId id = static_cast<SkolemId>(jSkolemId);
-  std::vector<Term> indices;
-  jsize length = env->GetArrayLength(jIndices);
-  for (jsize i = 0; i < length; ++i)
-  {
-    jobject jTerm = env->GetObjectArrayElement(jIndices, i);
-    jclass termClass = env->GetObjectClass(jTerm);
-    jfieldID pointerField = env->GetFieldID(termClass, "pointer", "J");
-    jlong termPointer = env->GetLongField(jTerm, pointerField);
-    Term* term = reinterpret_cast<Term*>(termPointer);
-    indices.push_back(*term);
-    env->DeleteLocalRef(jTerm);
-    env->DeleteLocalRef(termClass);
-  }
-
+  std::vector<Term> indices = getObjectsFromPointers<Term>(env, jIndices);
   Term* retPointer = new Term(tm->mkSkolem(id, indices));
   return reinterpret_cast<jlong>(retPointer);
 
