@@ -28,14 +28,20 @@ class TestCApiBlackTerm : public ::testing::Test
   void SetUp() override
   {
     d_tm = cvc5_term_manager_new();
+    d_solver = cvc5_new(d_tm);
     d_bool = cvc5_get_boolean_sort(d_tm);
     d_int = cvc5_get_integer_sort(d_tm);
     d_real = cvc5_get_real_sort(d_tm);
     d_uninterpreted = cvc5_mk_uninterpreted_sort(d_tm, "u");
   }
-  void TearDown() override { cvc5_term_manager_delete(d_tm); }
+  void TearDown() override
+  {
+    cvc5_delete(d_solver);
+    cvc5_term_manager_delete(d_tm);
+  }
 
   Cvc5TermManager* d_tm;
+  Cvc5* d_solver;
   Cvc5Sort d_bool;
   Cvc5Sort d_int;
   Cvc5Sort d_real;
@@ -862,8 +868,8 @@ TEST_F(TestCApiBlackTerm, get_set_value)
   ASSERT_TRUE(cvc5_term_is_set_value(s3));
   ASSERT_TRUE(cvc5_term_is_set_value(s4));
   ASSERT_FALSE(cvc5_term_is_set_value(s5));
-  // s5 = cvc5_simplify(d_solver, s5);
-  // ASSERT_TRUE(cvc5_term_is_set_value(s5));
+  s5 = cvc5_simplify(d_solver, s5, false);
+  ASSERT_TRUE(cvc5_term_is_set_value(s5));
 
   size_t size;
   ASSERT_DEATH(cvc5_term_get_set_value(nullptr, &size), "invalid term");
@@ -880,10 +886,10 @@ TEST_F(TestCApiBlackTerm, get_set_value)
   const Cvc5Term* res4 = cvc5_term_get_set_value(s4, &size);
   ASSERT_EQ(size, 1);
   ASSERT_TRUE(cvc5_term_is_equal(res4[0], i2));
-  // const Cvc5Term* res5 = cvc5_term_get_set_value(s5, &size);
-  // ASSERT_EQ(size, 2);
-  // ASSERT_TRUE(cvc5_term_is_equal(res5[0], i1));
-  // ASSERT_TRUE(cvc5_term_is_equal(res5[1], i2));
+  const Cvc5Term* res5 = cvc5_term_get_set_value(s5, &size);
+  ASSERT_EQ(size, 2);
+  ASSERT_TRUE(cvc5_term_is_equal(res5[0], i1));
+  ASSERT_TRUE(cvc5_term_is_equal(res5[1], i2));
 }
 
 TEST_F(TestCApiBlackTerm, get_sequence_value)
@@ -918,14 +924,14 @@ TEST_F(TestCApiBlackTerm, get_sequence_value)
   ASSERT_FALSE(cvc5_term_is_sequence_value(s3));
   ASSERT_FALSE(cvc5_term_is_sequence_value(s4));
   ASSERT_FALSE(cvc5_term_is_sequence_value(s5));
-  // s2 = cvc5_simplify(d_solver, s2);
-  // ASSERT_TRUE(cvc5_term_is_sequence_value(s2));
-  // s3 = cvc5_simplify(d_solver, s3);
-  // ASSERT_TRUE(cvc5_term_is_sequence_value(s3));
-  // s4 = cvc5_simplify(d_solver, s4);
-  // ASSERT_TRUE(cvc5_term_is_sequence_value(s4));
-  // s5 = cvc5_simplify(d_solver, s5);
-  // ASSERT_TRUE(cvc5_term_is_sequence_value(s5));
+  s2 = cvc5_simplify(d_solver, s2, false);
+  ASSERT_TRUE(cvc5_term_is_sequence_value(s2));
+  s3 = cvc5_simplify(d_solver, s3, false);
+  ASSERT_TRUE(cvc5_term_is_sequence_value(s3));
+  s4 = cvc5_simplify(d_solver, s4, false);
+  ASSERT_TRUE(cvc5_term_is_sequence_value(s4));
+  s5 = cvc5_simplify(d_solver, s5, false);
+  ASSERT_TRUE(cvc5_term_is_sequence_value(s5));
 
   size_t size;
   ASSERT_DEATH(cvc5_term_get_sequence_value(nullptr, &size), "invalid term");
@@ -933,22 +939,28 @@ TEST_F(TestCApiBlackTerm, get_sequence_value)
                "unexpected NULL argument");
   (void)cvc5_term_get_sequence_value(s1, &size);
   ASSERT_EQ(size, 0);
-  // const Cvc5Term* res2 = cvc5_term_get_sequence_value(s2, &size);
-  // ASSERT_EQ(size, 1);
-  // ASSERT_TRUE(cvc5_term_is_equal(res2[0], i1));
-  // const Cvc5Term* res3 = cvc5_term_get_sequence_value(s3, &size);
-  // ASSERT_EQ(size, 1);
-  // ASSERT_TRUE(cvc5_term_is_equal(res3[0], i1));
-  // const Cvc5Term* res4 = cvc5_term_get_sequence_value(s4, &size);
-  // ASSERT_EQ(size, 1);
-  // ASSERT_TRUE(cvc5_term_is_equal(res4[0], i2));
-  // const Cvc5Term* res5 = cvc5_term_get_sequence_value(s5, &size);
-  // ASSERT_EQ(size, 3);
-  // ASSERT_TRUE(cvc5_term_is_equal(res5[0], i1));
-  // ASSERT_TRUE(cvc5_term_is_equal(res5[1], i1));
-  // ASSERT_TRUE(cvc5_term_is_equal(res5[1], i2));
+  const Cvc5Term* res2 = cvc5_term_get_sequence_value(s2, &size);
+  ASSERT_EQ(size, 1);
+  ASSERT_TRUE(cvc5_term_is_equal(res2[0], i1));
+  const Cvc5Term* res3 = cvc5_term_get_sequence_value(s3, &size);
+  ASSERT_EQ(size, 1);
+  ASSERT_TRUE(cvc5_term_is_equal(res3[0], i1));
+  const Cvc5Term* res4 = cvc5_term_get_sequence_value(s4, &size);
+  ASSERT_EQ(size, 1);
+  ASSERT_TRUE(cvc5_term_is_equal(res4[0], i2));
+  const Cvc5Term* res5 = cvc5_term_get_sequence_value(s5, &size);
+  ASSERT_EQ(size, 3);
+  ASSERT_TRUE(cvc5_term_is_equal(res5[0], i1));
+  ASSERT_TRUE(cvc5_term_is_equal(res5[1], i1));
+  ASSERT_TRUE(cvc5_term_is_equal(res5[2], i2));
 
   seq_sort = cvc5_mk_sequence_sort(d_tm, d_real);
+  Cvc5Term s = cvc5_mk_empty_sequence(d_tm, seq_sort);
+  ASSERT_EQ(cvc5_term_get_kind(s), CVC5_KIND_CONST_SEQUENCE);
+  // empty sequence has zero elements
+  (void)cvc5_term_get_sequence_value(s, &size);
+  ASSERT_EQ(size, 0);
+
   // A seq.unit app is not a constant sequence (regardless of whether it is
   // applied to a constant).
   args = {cvc5_mk_real_int64(d_tm, 1)};
@@ -1080,16 +1092,16 @@ TEST_F(TestCApiBlackTerm, get_cardinality_constraint)
 
 TEST_F(TestCApiBlackTerm, get_real_algebraic_number)
 {
-  // cvc5_set_option(d_solver, "produce-models", "true");
-  // cvc5_set_logic(d_solver, "QF_NRA");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  cvc5_set_logic(d_solver, "QF_NRA");
   Cvc5Term x = cvc5_mk_const(d_tm, d_real, "x");
   Cvc5Term y = cvc5_mk_var(d_tm, d_real, "y");
   std::vector<Cvc5Term> args = {x, x};
   Cvc5Term x2 = cvc5_mk_term(d_tm, CVC5_KIND_MULT, args.size(), args.data());
   Cvc5Term two = cvc5_mk_real_num_den(d_tm, 2, 1);
   args = {x2, two};
-  // Cvc5Term eq = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(),
-  // args.data()); cvc5_assert_formula(d_solver, eq);
+  Cvc5Term eq = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, eq);
 
   ASSERT_DEATH(cvc5_term_is_real_algebraic_number(nullptr), "invalid term");
   ASSERT_DEATH(
@@ -1114,7 +1126,7 @@ TEST_F(TestCApiBlackTerm, get_real_algebraic_number)
   //  Cvc5Term vx = cvc5_get_value(d_solver, x);
   //  ASSERT_TRUE(cvc5_term_is_real_algebraic_number(vx));
   //  Cvc5Term poly =
-  //  cvc5_term_get_real_algebraic_number_defining_polynomial(vx, y);
+  //      cvc5_term_get_real_algebraic_number_defining_polynomial(vx, y);
   //  ASSERT_NE(poly, nullptr);
 
   //  Cvc5Term lb = cvc5_term_get_real_algebraic_number_lower_bound(vx);
@@ -1123,8 +1135,9 @@ TEST_F(TestCApiBlackTerm, get_real_algebraic_number)
   //  ASSERT_TRUE(cvc5_term_is_real_value(ub));
   //  // cannot call with non-variable
   //  Cvc5Term yc = cvc5_mk_const(d_tm, d_real, "y");
-  //  ASSERT_DEATH(cvc5_term_get_real_algebraic_number_defining_polynomial(vx,
-  //  yc), "asdf");
+  //  ASSERT_DEATH(
+  //      cvc5_term_get_real_algebraic_number_defining_polynomial(vx, yc),
+  //      "asdf");
   //}
 }
 
