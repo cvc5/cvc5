@@ -62,9 +62,12 @@
 ; @arg B : Bool. The formula to apply to alpha equivalence to.
 ; @arg vs : @List. The list of variables to substitute from.
 ; @arg ts : @List. The list of (renamed) variables to substitute into.
+; @requires ($contains_subterm_list B ts) = false. This requirement checks that
+; B does not contain any occurence of the range variables ts.
 ; @conclusion The result of applying the substitution specified by vs and ts to
-; B.
+; B. The substitution is valid renaming due to the requirement check.
 (declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
   :args (B vs ts)
+  :requires ((($contains_subterm_list B ts) false))
   :conclusion (= B ($substitute_list vs ts B))
 )
