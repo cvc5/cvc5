@@ -677,7 +677,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(INTS_MODULUS),
   /**
-   * Integer modulus, modulus by 0 defined to be 0.
+   * Integer modulus, t modulus by 0 defined to be t.
    *
    * - Arity: ``2``
    *
