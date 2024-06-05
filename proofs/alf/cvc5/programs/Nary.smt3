@@ -1,5 +1,3 @@
-; Programs to work with n-ary operators
-
 (include "../programs/Utils.smt3")
 
 ; =============================================
