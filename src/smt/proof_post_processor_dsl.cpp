@@ -51,7 +51,7 @@ void ProofPostprocessDsl::reconstruct(
   // in rare cases, an elaboration may require adding a trust step that itself
   // expects to require theory rewrites to prove (MACRO_THEORY_REWRITE_RCONS)
   // in which case this loop may run twice. We manually limit this loop to
-  // run no more than 3 times.
+  // run no more than 2 times.
   size_t iter = 0;
   while (!d_subgoals.empty())
   {
