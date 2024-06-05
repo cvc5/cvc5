@@ -24,6 +24,7 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
+#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -223,6 +224,12 @@ Node narySubstitute(Node src,
     it = visited.find(cur);
     if (it == visited.end())
     {
+      if (!expr::hasBoundVar(cur))
+      {
+        visited[cur] = cur;
+        visit.pop_back();
+        continue;
+      }
       // if it is a non-list variable, do the replacement
       itv = std::find(vars.begin(), vars.end(), cur);
       if (itv != vars.end())
