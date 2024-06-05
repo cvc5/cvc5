@@ -3516,7 +3516,7 @@ class CVC5_EXPORT Plugin
 
  public:
   Plugin(TermManager& tm);
-  virtual ~Plugin();
+  virtual ~Plugin() = default;
   /**
    * Call to check, return vector of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
