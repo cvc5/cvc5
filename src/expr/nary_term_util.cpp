@@ -16,6 +16,7 @@
 #include "expr/nary_term_util.h"
 
 #include "expr/attribute.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
@@ -24,7 +25,6 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
-#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 

@@ -1188,8 +1188,10 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
       TNode currp;
       while ((currp = parent[curr]) != Node::null())
       {
-        Node lhs = expr::narySubstitute(currp, {placeholder}, {source}, visitedSrc);
-        Node rhs = expr::narySubstitute(currp, {placeholder}, {target}, visitedTgt);
+        Node lhs =
+            expr::narySubstitute(currp, {placeholder}, {source}, visitedSrc);
+        Node rhs =
+            expr::narySubstitute(currp, {placeholder}, {target}, visitedTgt);
         congs.emplace_back(lhs.eqNode(rhs));
         curr = currp;
       }
