@@ -104,18 +104,21 @@ Node ArithEntail::rewriteArith(Node a)
 Node ArithEntail::normalizeGeq(const Node& n) const
 {
   NodeManager* nm = NodeManager::currentNM();
+  if (n.getNumChildren() != 2 || !n[0].getType().isInteger()
+      || !n[1].getType().isInteger())
+  {
+    return Node::null();
+  }
   switch (n.getKind())
   {
     case Kind::GEQ: return n;
     case Kind::LEQ: return nm->mkNode(Kind::GEQ, n[1], n[0]);
     case Kind::LT:
-      Assert(n[0].getType().isInteger());
       return nm->mkNode(
           Kind::GEQ,
           n[1],
           nm->mkNode(Kind::ADD, n[0], nm->mkConstInt(Rational(1))));
     case Kind::GT:
-      Assert(n[0].getType().isInteger());
       return nm->mkNode(
           Kind::GEQ,
           n[0],

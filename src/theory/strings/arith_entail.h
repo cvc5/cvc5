@@ -52,8 +52,9 @@ class ArithEntail
    */
   Node rewriteArith(Node a);
   /**
-   * Normalize the relation n to a GEQ, if possible.
-   * For example, (> t s) becomes (>= t (+ s 1)).
+   * Normalize the integer relation n to a GEQ, if possible.
+   * For example, (> t s) becomes (>= t (+ s 1)). Returns null if n is
+   * not an arithmetic relation {>,>=,<,<=} over integers.
    * @param n The relation to normalize.
    * @return a GEQ term equivalent to n, if one exists.
    */
