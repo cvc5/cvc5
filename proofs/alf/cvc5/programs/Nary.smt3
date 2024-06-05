@@ -6,23 +6,9 @@
 ;  Right-associative null-terminated operators
 ; =============================================
 ; The following functions work with right-associative symbols with a defined
-; null terminator.  Those behave somewhat similar to functional programming
-; lists.  Therefore, the symbol will always be called `cons` in the following
-; and the terminator will be `nil`.
-;
-; The AletheLF syntactic sugar for n-ary operators introduces some behavior
-; that can be counter intuitive:
-; 1) Consider a pattern `(cons x xs)` where `xs` is annotated with `:list`.
-;    In this case building the term `(cons x xs)` will not result in the
-;    term that matched the pattern.  This is because `(cons x xs)` is
-;    syntactic sugar for `(cons x (cons xs nil))`.  Note that, xs here
-;    is not the tail of the list.  It is just an element.
-; 2) It is not possible to directly build unit lists, since `(cons x)` is
-;    not valid.
-;
-; Both cases can be addressed by using the `append` function defined below.
-; A call `(append x xs)` will create the list from point 1 and `(append x nil)`
-; will create a unit list.
+; null terminator, i.e. attribute :right-assoc-nil.  Those behave somewhat
+; similar to functional programming lists. Therefore, the symbol will typically
+; be called `cons` in the following and its nil terminator will be `nil`.
 
 
 ; nary.is_subset cons nil c l
