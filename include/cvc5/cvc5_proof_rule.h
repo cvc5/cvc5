@@ -1716,7 +1716,7 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Regular expressions -- Elimination**
+   * **Strings -- Regular expressions -- Macro elimination**
    *
    * .. math::
    *
@@ -1726,9 +1726,12 @@ enum ENUM(ProofRule) : uint32_t
    * where :math:`b` is a Boolean indicating whether we are using aggressive
    * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
    * are performed for :math:`F`.
+   *
+   * \rst
+   * .. note:: We do not currently support elaboration of this macro.
    * \endverbatim
    */
-  EVALUE(RE_ELIM),
+  EVALUE(MACRO_RE_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Code points**
