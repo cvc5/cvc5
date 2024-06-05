@@ -743,7 +743,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
   if (dIsConstant && d.getConst<Rational>().isZero())
   {
     // (div x 0) ---> 0 or (mod x 0) ---> x
-    Node ret = k == Kind::INTS_MODULUS_TOTAL ? t[0] : nm->mkConstInt(0);
+    Node ret = k == Kind::INTS_MODULUS_TOTAL ? Node(t[0]) : nm->mkConstInt(0);
     return returnRewrite(t, ret, Rewrite::DIV_MOD_BY_ZERO);
   }
   else if (dIsConstant && d.getConst<Rational>().isOne())
