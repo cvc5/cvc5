@@ -180,6 +180,11 @@ void AlfPrintChannelPre::printNode(TNode n)
   }
 }
 
+void AlfPrintChannelPre::printTypeNode(TypeNode tn)
+{
+  // current do nothing
+}
+
 void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
 {
   processInternal(n);

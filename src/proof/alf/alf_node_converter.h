@@ -127,8 +127,6 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   size_t getNumChildrenToProcessForClosure(Kind k) const;
 
  private:
-  /** Make alf.nil for the given type. */
-  Node mkNil(TypeNode tn);
   /**
    * Get the variable index for free variable fv, or assign a fresh index if it
    * is not yet assigned.

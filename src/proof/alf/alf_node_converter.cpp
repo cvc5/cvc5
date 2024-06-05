@@ -375,18 +375,11 @@ size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
   return k == Kind::SET_COMPREHENSION ? 3 : 2;
 }
 
-Node AlfNodeConverter::mkNil(TypeNode tn)
-{
-  return mkInternalSymbol("alf.nil", tn);
-}
 
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
 {
+  Assert (!args.empty());
   TypeNode tn = NodeManager::currentNM()->booleanType();
-  if (args.empty())
-  {
-    return mkNil(tn);
-  }
   // singleton lists are handled due to (@list x) ---> (@list x alf.nil)
   return mkInternalApp("@list", args, tn);
 }
