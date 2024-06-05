@@ -61,11 +61,17 @@ class PolyNorm
   bool empty() const;
   /** Is this polynomial equal to polynomial p? */
   bool isEqual(const PolyNorm& p) const;
+  /** Is this polynomial a constant? If so, store it in c */
+  bool isConstant(Rational& c) const;
   /**
    * Is this polynomial equal to polynomial p*c for some c? If so, return
    * true and store in c.
    */
   bool isEqualMod(const PolyNorm& p, Rational& c) const;
+  /**
+   * Convert the polynomial representation to a node
+   */
+  Node toNode(const TypeNode& tn) const;
   /**
    * Make polynomial from real term n. This method normalizes applications
    * of operators ADD, SUB, NEG, MULT, NONLINEAR_MULT, bitvector equivalent
@@ -88,6 +94,12 @@ class PolyNorm
    * or if a/b are bitvector and ~ is in {=}.
    */
   static bool isArithPolyNormAtom(TNode a, TNode b);
+
+  /**
+   * Return the normalized form of (arithmetic) term a based on the techniques
+   * from this class.
+   */
+  static Node getPolyNorm(Node a);
 
  private:
   /**

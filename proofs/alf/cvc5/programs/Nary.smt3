@@ -31,7 +31,7 @@
     ((L Type) (cons (-> L L L)) (nil L) (c L) (t L) (xs L :list))
     ((-> L L L) L L L) Bool
     (
-        ((nary.is_subset cons nil (cons c xs) t) (alf.ite (alf.is_neg (alf.find cons t c)) false (nary.is_subset cons nil xs t)))
+        ((nary.is_subset cons nil (cons c xs) t) (alf.ite (alf.is_neg (alf.list_find cons t c)) false (nary.is_subset cons nil xs t)))
         ((nary.is_subset cons nil nil t)         true)
     )
 )
@@ -61,10 +61,11 @@
 ; nary.reverse cons nil xs
 ; Reverses the list `xs`.
 (program nary.reverse
-    ((L Type) (cons (-> L L L)) (nil L) (xs L :list))
-    ((-> L L L) L L) L
+    ((L Type) (cons (-> L L L)) (x L) (xs L :list))
+    (L) L
     (
-        ((nary.reverse cons nil xs) (nary.reverseRec cons nil xs nil))
+        ((nary.reverse (cons x xs)) (let ((nil (alf.nil cons x xs))) (nary.reverseRec cons nil (cons x xs) nil)))
+        ((nary.reverse x)           x)
     )
 )
 
@@ -86,7 +87,20 @@
     ((-> L L L) L L L) Bool
     (
         ((nary.is_prefix cons nil nil t)                       true)
+        ((nary.is_prefix cons nil t nil)                       false)
         ((nary.is_prefix cons nil (cons c1 xs1) (cons c2 xs2)) (alf.ite (alf.is_eq c1 c2) (nary.is_prefix cons nil xs1 xs2) false))
+    )
+)
+
+; nary.is_compatible cons t s
+; Retuns `true` if t is a prefix of s, or s is a prefix of t.
+(program nary.is_compatible
+    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
+    ((-> L L L) L L L) Bool
+    (
+        ((nary.is_compatible cons nil nil t)                       true)
+        ((nary.is_compatible cons nil t nil)                       true)
+        ((nary.is_compatible cons nil (cons c1 xs1) (cons c2 xs2)) (alf.ite (alf.is_eq c1 c2) (nary.is_compatible cons nil xs1 xs2) false))
     )
 )
 

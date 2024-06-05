@@ -34,7 +34,30 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm)
+{
+  // Needs to be a subcall in DSL reconstruction since set.is_empty is used
+  // as a premise to test emptiness of a set.
+  registerProofRewriteRule(ProofRewriteRule::SETS_IS_EMPTY_EVAL,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+}
+
+Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    {
+      if (n.getKind() == Kind::SET_IS_EMPTY && n[0].isConst())
+      {
+        return nodeManager()->mkConst(n[0].getKind() == Kind::SET_EMPTY);
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
+}
 
 bool TheorySetsRewriter::checkConstantMembership(TNode elementTerm, TNode setTerm)
 {
@@ -317,6 +340,23 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     break;
   }  // Kind::SET_CHOOSE
+  case Kind::SET_IS_EMPTY:
+  {
+    if (node[0].isConst())
+    {
+      // (set.is_empty c) ---> true if c is emptyset
+      // (set.is_empty c) ---> false if c is a constant that is not the emptyset
+      return RewriteResponse(
+          REWRITE_DONE,
+          nodeManager()->mkConst(node[0].getKind() == Kind::SET_EMPTY));
+    }
+    // (set.is_empty x) ----> (= x (as set.empty (Set T))).
+    Node eq = nodeManager()->mkNode(
+        Kind::EQUAL,
+        node[0],
+        nodeManager()->mkConst(EmptySet(node[0].getType())));
+    return RewriteResponse(REWRITE_AGAIN, eq);
+  }
   case Kind::SET_IS_SINGLETON:
   {
     Kind nk = node[0].getKind();

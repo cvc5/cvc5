@@ -5459,18 +5459,19 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Simplify a formula without doing "much" work.
+   * Simplify a term or formula based on rewriting and (optionally) applying
+   * substitutions for solved variables.
    *
-   * Does not involve the SAT Engine in the simplification, but uses the
-   * current definitions, and assertions.  It also involves theory
-   * normalization.
+   * If applySubs is true, then for example, if `(= x 0)` was asserted to this
+   * solver, this method may replace occurrences of `x` with `0`.
    *
    * @warning This function is experimental and may change in future versions.
    *
-   * @param t The formula to simplify.
-   * @return The simplified formula.
+   * @param t The term to simplify.
+   * @param applySubs Whether to apply substitutions for solved variables.
+   * @return The simplified term.
    */
-  Term simplify(const Term& t);
+  Term simplify(const Term& t, bool applySubs = false);
 
   /**
    * Assert a formula.

@@ -15,6 +15,8 @@
 
 #include "theory/arith/arith_poly_norm.h"
 
+#include "expr/attribute.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 
 using namespace cvc5::internal::kind;
@@ -161,6 +163,24 @@ bool PolyNorm::isEqual(const PolyNorm& p) const
   return true;
 }
 
+bool PolyNorm::isConstant(Rational& c) const
+{
+  if (d_polyNorm.size() == 0)
+  {
+    c = Rational(0);
+    return true;
+  }
+  if (d_polyNorm.size() == 1)
+  {
+    if (d_polyNorm.begin()->first.isNull())
+    {
+      c = d_polyNorm.begin()->second;
+      return true;
+    }
+  }
+  return false;
+}
+
 bool PolyNorm::isEqualMod(const PolyNorm& p, Rational& c) const
 {
   if (d_polyNorm.size() != p.d_polyNorm.size())
@@ -189,6 +209,79 @@ bool PolyNorm::isEqualMod(const PolyNorm& p, Rational& c) const
     }
   }
   return true;
+}
+
+Node PolyNorm::toNode(const TypeNode& tn) const
+{
+  std::vector<Node> sum;
+  NodeManager* nm = NodeManager::currentNM();
+  bool isArith = (tn.isInteger() || tn.isReal());
+  bool isBv = tn.isBitVector();
+  Kind multKind;
+  Kind addKind;
+  Node one;
+  if (isArith)
+  {
+    multKind = Kind::MULT;
+    addKind = Kind::ADD;
+    one = nm->mkConstRealOrInt(tn, Rational(1));
+  }
+  else if (isBv)
+  {
+    multKind = Kind::BITVECTOR_MULT;
+    addKind = Kind::BITVECTOR_ADD;
+    one = bv::utils::mkOne(tn.getBitVectorSize());
+  }
+  else
+  {
+    return Node::null();
+  }
+  for (const std::pair<const Node, Rational>& m : d_polyNorm)
+  {
+    Node coeff;
+    if (isArith)
+    {
+      coeff = nm->mkConstRealOrInt(tn, m.second);
+    }
+    else
+    {
+      Assert(isBv);
+      coeff = nm->mkConst(
+          BitVector(tn.getBitVectorSize(), m.second.getNumerator()));
+    }
+    if (m.first.isNull())
+    {
+      sum.push_back(coeff);
+    }
+    else if (coeff == one)
+    {
+      sum.push_back(m.first);
+    }
+    else
+    {
+      Assert(m.first.getType().isComparableTo(tn));
+      sum.push_back(nm->mkNode(multKind, {coeff, m.first}));
+    }
+  }
+  if (sum.size() == 1)
+  {
+    return sum[0];
+  }
+  if (sum.empty())
+  {
+    if (isArith)
+    {
+      return nm->mkConstRealOrInt(tn, Rational(0));
+    }
+    else
+    {
+      Assert(isBv);
+      return bv::utils::mkZero(tn.getBitVectorSize());
+    }
+  }
+  // must sort to ensure this method is idempotent
+  std::sort(sum.begin(), sum.end());
+  return nm->mkNode(addKind, sum);
 }
 
 Node PolyNorm::multMonoVar(TNode m1, TNode m2)
@@ -423,6 +516,30 @@ PolyNorm PolyNorm::mkDiff(TNode a, TNode b)
   PolyNorm pb = PolyNorm::mkPolyNorm(b);
   pa.subtract(pb);
   return pa;
+}
+
+struct ArithPolyNormTag
+{
+};
+/** Cache for PolyNorm::getPolyNorm */
+typedef expr::Attribute<ArithPolyNormTag, Node> ArithPolyNormAttr;
+
+Node PolyNorm::getPolyNorm(Node a)
+{
+  ArithPolyNormAttr apna;
+  Node an = a.getAttribute(apna);
+  if (an.isNull())
+  {
+    PolyNorm pa = arith::PolyNorm::mkPolyNorm(a);
+    an = pa.toNode(a.getType());
+    a.setAttribute(apna, an);
+    // as an optimization, assume idempotent
+    if (a != an)
+    {
+      an.setAttribute(apna, an);
+    }
+  }
+  return an;
 }
 
 }  // namespace arith

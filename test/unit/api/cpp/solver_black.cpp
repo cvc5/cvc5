@@ -50,7 +50,7 @@ TEST_F(TestApiBlackSolver, pow2Large1)
   Term t180 = d_tm.mkTerm(Kind::POW2, {t10});
   Term t258 = d_tm.mkTerm(Kind::GEQ, {t74, t180});
   d_solver->assertFormula(t258);
-  ASSERT_THROW(d_solver->simplify(t82), CVC5ApiException);
+  ASSERT_THROW(d_solver->simplify(t82, true), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, pow2Large2)
@@ -1819,6 +1819,20 @@ TEST_F(TestApiBlackSolver, simplify)
   Solver slv(tm);
   // this will throw when NodeManager is not a singleton anymore
   ASSERT_NO_THROW(slv.simplify(x));
+}
+
+TEST_F(TestApiBlackSolver, simplifyApplySubs)
+{
+  d_solver->setOption("incremental", "true");
+  Sort intSort = d_tm.getIntegerSort();
+  Term x = d_tm.mkConst(intSort, "x");
+  Term zero = d_tm.mkInteger(0);
+  Term eq = d_tm.mkTerm(Kind::EQUAL, {x, zero});
+  d_solver->assertFormula(eq);
+  ASSERT_NO_THROW(d_solver->checkSat());
+
+  ASSERT_EQ(d_solver->simplify(x, false), x);
+  ASSERT_EQ(d_solver->simplify(x, true), zero);
 }
 
 TEST_F(TestApiBlackSolver, assertFormula)
