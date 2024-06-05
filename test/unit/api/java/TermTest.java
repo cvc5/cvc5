@@ -1106,31 +1106,10 @@ class TermTest
 
     assertTrue(sk.isSkolem());
     assertEquals(sk.getSkolemId(), SkolemId.ARRAY_DEQ_DIFF);
-
-    // ASSERT_TRUE(sk.isSkolem());
-    // ASSERT_EQ(sk.getSkolemId(), 3);
-    // ASSERT_EQ(sk.getSkolemIndices(), std::vector<Term>({a, b}));
-    // // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
-    // ASSERT_EQ(sk2.getSkolemIndices(), std::vector<Term>({a, b}));
+    assertEquals(Arrays.asList(new Term[] {a, b}), Arrays.asList(sk.getSkolemIndices()));
+    // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
+    assertEquals(Arrays.asList(new Term[] {a, b}), Arrays.asList(sk2.getSkolemIndices()));
   }
-
-  // TEST_F(TestApiBlackTerm, mkSkolem)
-  // {
-  //   Sort integer = d_tm.getIntegerSort();
-  //   Sort arraySort = d_tm.mkArraySort(integer, integer);
-
-  //   Term a = d_tm.mkConst(arraySort, "a");
-  //   Term b = d_tm.mkConst(arraySort, "b");
-
-  //   Term sk = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {a, b});
-  //   Term sk2 = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {b, a});
-
-  //   ASSERT_TRUE(sk.isSkolem());
-  //   ASSERT_EQ(sk.getSkolemId(), SkolemId::ARRAY_DEQ_DIFF);
-  //   ASSERT_EQ(sk.getSkolemIndices(), std::vector<Term>({a, b}));
-  //   // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
-  //   ASSERT_EQ(sk2.getSkolemIndices(), std::vector<Term>({a, b}));
-  // }
 
   // TEST_F(TestApiBlackTerm, getNumIndicesForSkolemId)
   // {
