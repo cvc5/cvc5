@@ -1101,12 +1101,11 @@ class TermTest
     Term a = d_solver.mkConst(arraySort, "a");
     Term b = d_solver.mkConst(arraySort, "b");
 
-    List<Term> indices = new ArrayList<>();
-    indices.add(a);
-    indices.add(b);
-    long skid = 3;
-    Term sk = d_solver.mkSkolem(skid, indices);
-    // Term sk2 = d_tm.mkSkolem(3, {b, a});
+    Term sk = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {a, b});
+    Term sk2 = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {b, a});
+
+    assertTrue(sk.isSkolem());
+    assertEquals(sk.getSkolemId(), SkolemId.ARRAY_DEQ_DIFF);
 
     // ASSERT_TRUE(sk.isSkolem());
     // ASSERT_EQ(sk.getSkolemId(), 3);
