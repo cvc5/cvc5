@@ -128,25 +128,36 @@
     :conclusion (= ($mk_nary_cong_lhs f E) ($mk_nary_cong_rhs f E))
 )
 
-; TRUE_INTRO
+; @rule true_intro implements ProofRule::TRUE_INTRO
+; @premise F. The formula to process.
+; @conclusion The equality between F and true.
 (declare-rule true_intro ((F Bool))
     :premises (F)
     :conclusion (= F true)
 )
 
-; TRUE_ELIM
+; @rule true_elim implements ProofRule::TRUE_ELIM
+; @premise F1. The formula to process, which is an equality whose right hand
+; side is true.
+; @conclusion The left hand side of the premise.
 (declare-rule true_elim ((F Bool))
     :premises ((= F true))
     :conclusion F
 )
 
-; FALSE_INTRO
+; @rule false_intro implements ProofRule::FALSE_INTRO
+; @premise F1. The formula to process, which is a negation.
+; @conclusion The equality between the formula the premise negates and false.
 (declare-rule false_intro ((F Bool))
     :premises ((not F))
     :conclusion (= F false)
 )
 
-; FALSE_ELIM
+
+; @rule true_elim implements ProofRule::TRUE_ELIM
+; @premise F1. The formula to process, which is an equality whose right hand
+; side is false.
+; @conclusion The negation of the left hand side of the premise.
 (declare-rule false_elim ((F Bool))
     :premises ((= F false))
     :conclusion (not F)
