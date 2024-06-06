@@ -3051,6 +3051,19 @@ public class Solver extends AbstractPointer
       long pointer, String symbol, long[] sortPointers, long sortPointer, IOracle oracle);
 
   /**
+   * Add plugin to this solver. Its callbacks will be called throughout the
+   * lifetime of this solver.
+   *
+   * @param p The plugin to add to this solver.
+   */
+  public void addPlugin(AbstractPlugin p)
+  {
+    addPlugin(pointer, p);
+  }
+
+  private native void addPlugin(long pointer, AbstractPlugin p);
+
+  /**
    * Pop a level from the assertion stack.
    *
    * SMT-LIB:

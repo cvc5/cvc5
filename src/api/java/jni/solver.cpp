@@ -16,6 +16,7 @@
 #include <cvc5/cvc5.h>
 
 #include "api/java/jni/api_utilities.h"
+#include "api_plugin.h"
 #include "api_utilities.h"
 #include "io_github_cvc5_Solver.h"
 
@@ -976,6 +977,25 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
       new Term(solver->declareOracleFun(cSymbol, sorts, *sort, fn));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    addPlugin
+ * Signature: (JLio/github/cvc5/AbstractPlugin;)V
+ */
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer,
+                                                            jobject plugin)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  TermManager* tm = new TermManager();
+  jobject pluginReference = env->NewGlobalRef(plugin);
+  ApiPlugin* p = new ApiPlugin(*tm, env, pluginReference);
+  solver->addPlugin(*p);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 
 /*
