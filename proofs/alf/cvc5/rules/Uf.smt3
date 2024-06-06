@@ -163,6 +163,12 @@
     :conclusion (not F)
 )
 
+; @rule cong implements ProofRule::HO_CONG
+; @premises E. A conjunction of equalities to apply congruence to.
+; @conclusion An equality between a function application that is given by
+; the premises E. Note that the first equality in E should be an equality
+; between function that are respectively applied to the arguments given by
+; the remaining equalities.
 (declare-rule ho_cong ((T Type) (U Type) (E Bool) (f (-> T U)))
     :premise-list E and
     :args ()
