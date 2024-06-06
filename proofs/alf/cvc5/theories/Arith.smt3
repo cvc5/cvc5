@@ -34,35 +34,49 @@
 
 ; Core operators of arithmetic, which are used in mixed Int/Real arithmetic.
 ; Using integer nil terminators ensures typing is accurate.
+; @disclaimer This function is overloaded in SMT-LIB and does not permit
+; mixed arithmetic, the addition of an Int and Real.
 (declare-const + (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      T U (arith_typeunion T U)) :right-assoc-nil 0)
+; @disclaimer This function is overloaded in SMT-LIB and does not permit
+; mixed arithmetic.
 (declare-const - (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      T U (arith_typeunion T U)) :left-assoc)
+; @disclaimer This function is overloaded in SMT-LIB and does not permit
+; mixed arithmetic.
 (declare-const * (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      T U (arith_typeunion T U)) :right-assoc-nil 1)
 
 ; Core arithmetic predicates
+; @disclaimer This function is overloaded in SMT-LIB and does not permit
+; mixed arithmetic.
 (declare-const < (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      (! T :requires ((is_arith_type T) true))
                      (! U :requires ((is_arith_type U) true))
                      Bool)
                      :chainable and)
+; @disclaimer This function is overloaded in SMT-LIB and does not permit
+; mixed arithmetic.
 (declare-const <= (-> (! Type :var T :implicit)
                       (! Type :var U :implicit)
                       (! T :requires ((is_arith_type T) true))
                       (! U :requires ((is_arith_type U) true))
                       Bool)
                       :chainable and)
+; @disclaimer This function is overloaded in SMT-LIB and does not permit
+; mixed arithmetic.
 (declare-const > (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      (! T :requires ((is_arith_type T) true))
                      (! U :requires ((is_arith_type U) true))
                      Bool)
                      :chainable and)
+; @disclaimer This function is overloaded in SMT-LIB and does not permit
+; mixed arithmetic.
 (declare-const >= (-> (! Type :var T :implicit)
                       (! Type :var U :implicit)
                       (! T :requires ((is_arith_type T) true))
@@ -71,20 +85,25 @@
                       :chainable and)
 
 ; Conversion functions.
+; @disclaimer The type of this function in SMT-LIB only accepts an Int as argument.
 (declare-const to_real (-> (! Type :var T :implicit)
                            (! T :requires ((is_arith_type T) true))
                            Real))
+; @disclaimer The type of this function in SMT-LIB only accepts a Real as argument.
 (declare-const to_int (-> (! Type :var T :implicit)
                           (! T :requires ((is_arith_type T) true))
                           Int))
+; @disclaimer The type of this function in SMT-LIB only accepts a Real as argument.
 (declare-const is_int (-> (! Type :var T :implicit)
                           (! T :requires ((is_arith_type T) true))
                           Bool))
+; @disclaimer The type of this function in SMT-LIB only accepts an Int as argument.
 (declare-const abs (-> (! Type :var T :implicit)
                        (! T :requires ((is_arith_type T) true))
                        T))
 
 ; Power function.
+; @disclaimer This function is not a function in SMT-LIB. 
 (declare-const ^ (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      T U (arith_typeunion T U)))
@@ -93,6 +112,7 @@
 ; these two operators in ALFC based on their arity when applied, and with
 ; alf.as when they are used in higher-order contexts, e.g. as an argument to
 ; the cong proof rule.
+; @disclaimer This function is overloaded in SMT-LIB.
 (declare-const - (-> (! Type :var T :implicit)
                      (! T :requires ((is_arith_type T) true))
                      T))

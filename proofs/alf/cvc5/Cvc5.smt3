@@ -16,7 +16,12 @@
 (include "./theories/Datatypes.smt3")
 (include "./theories/SepLogic.smt3")
 
+; @disclaimer All symbols prefixed by @ are not part of the SMT-LIB standard
+; and are used to model cvc5's internal symbols, including its skolems,
+; other internally introduced terms, and extensions.
+
 ; extensions
+; @disclaimer this function is not part of the SMT-LIB standard.
 (declare-const fmf.card (-> Type Int Bool))
 (declare-sort @ho-elim-sort 1)
 (declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
