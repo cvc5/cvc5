@@ -5946,9 +5946,12 @@ class CVC5_EXPORT Solver
   std::map<Term, Term> getDifficulty() const;
 
   /**
-   * Get a timeout core, which computes a subset of the current assertions that
-   * cause a timeout. Note it does not require being proceeded by a call to
-   * checkSat.
+   * Get a timeout core.
+   *
+   * This function computes a subset of the current assertions that cause a
+   * timeout. It may make multiple checks for satisfiability internally, each
+   * limited by the timeout value given by
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
    *
    * SMT-LIB:
    *
@@ -5961,25 +5964,25 @@ class CVC5_EXPORT Solver
    * @warning This function is experimental and may change in future versions.
    *
    * @return The result of the timeout core computation. This is a pair
-   * containing a result and a list of formulas. If the result is unknown
-   * and the reason is timeout, then the list of formulas correspond to a
-   * subset of the current assertions that cause a timeout in the specified
-   * time :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-   * If the result is unsat, then the list of formulas correspond to an
-   * unsat core for the current assertions. Otherwise, the result is sat,
-   * indicating that the current assertions are satisfiable, and
-   * the list of formulas is empty.
-   *
-   * This function may make multiple checks for satisfiability internally, each
-   * limited by the timeout value given by
-   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   *         containing a result and a set of assertions.
+   *         If the result is unknown and the reason is timeout, then returned
+   *         the set of assertions corresponds to a subset of the current
+   *         assertions that cause a timeout in the specified time
+   *         :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   *         If the result is unsat, then the list of formulas correspond to an
+   *         unsat core for the current assertions. Otherwise, the result is
+   *         sat, indicating that the current assertions are satisfiable, and
+   *         the returned set of assertions is empty.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
   /**
-   * Get a timeout core, which computes a subset of the given assumptions that
-   * cause a timeout when added to the current assertions. Note it does not
-   * require being proceeded by a call to checkSat.
+   * Get a timeout core of the given assumptions.
+   *
+   * This function computes a subset of the given assumptions that cause a
+   * timeout when added to the current assertions.
+   *
+   * @note it does not require being proceeded by a call to `checkSat()`.
    *
    * SMT-LIB:
    *
@@ -5992,16 +5995,19 @@ class CVC5_EXPORT Solver
    * @warning This function is experimental and may change in future versions.
    *
    * @param assumptions The (non-empty) set of formulas to assume.
+   *
    * @return The result of the timeout core computation. This is a pair
-   * containing a result and a list of formulas. If the result is unknown
-   * and the reason is timeout, then the list of formulas correspond to a
-   * subset of assumptions that cause a timeout when added to the current
-   * assertions in the specified time
-   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-   * If the result is unsat, then the list of formulas plus the current
-   * assertions correspond to an unsat core for the current assertions.
-   * Otherwise, the result is sat, indicating that the given assumptions plus
-   * the current assertions are satisfiable, and the list of formulas is empty.
+   *         containing a result and a set of assumptions.
+   *         If the result is unknown and the reason is timeout, then the set
+   *         of assumptions corresponds to a subset of the given assumptions
+   *         that cause a timeout when added to the current assertions in the
+   *         specified time
+   *         :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   *         If the result is unsat, then the set of assumptions together with
+   *         the current assertions correspond to an unsat core for the current
+   *         assertions. Otherwise, the result is sat, indicating that the
+   *         given assumptions plus the current assertions are satisfiable, and
+   *         the returned set of assumptions is empty.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCoreAssuming(
       const std::vector<Term>& assumptions) const;
