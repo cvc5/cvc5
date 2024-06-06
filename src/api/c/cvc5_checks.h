@@ -121,6 +121,14 @@ class Cvc5CApiAbortStream
   CVC5_API_CHECK((format) >= 0 && (format) < CVC5_PROOF_FORMAT_LAST) \
       << "invalid proof format"
 
+#define CVC5_CAPI_CHECK_PROOF_RULE(rule)                       \
+  CVC5_API_CHECK((rule) >= 0 && (rule) < CVC5_PROOF_RULE_LAST) \
+      << "invalid proof rule"
+
+#define CVC5_CAPI_CHECK_PROOF_REWRITE_RULE(rule)                       \
+  CVC5_API_CHECK((rule) >= 0 && (rule) < CVC5_PROOF_REWRITE_RULE_LAST) \
+      << "invalid proof rewrite rule"
+
 /* -------------------------------------------------------------------------- */
 
 #define CVC5_CAPI_CHECK_SORT(sort) \
@@ -172,6 +180,11 @@ class Cvc5CApiAbortStream
 
 #define CVC5_CAPI_CHECK_RESULT(res) \
   CVC5_API_CHECK(res != nullptr) << "invalid result"
+
+/* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_PROOF(proof) \
+  CVC5_API_CHECK(proof != nullptr) << "invalid proof"
 
 /* -------------------------------------------------------------------------- */
 }
