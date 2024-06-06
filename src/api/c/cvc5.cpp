@@ -4763,6 +4763,32 @@ const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size)
   return res.data();
 }
 
+void cvc5_get_difficulty(Cvc5* cvc5,
+                         size_t* size,
+                         Cvc5Term* inputs[],
+                         Cvc5Term* values[])
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  CVC5_CAPI_CHECK_NOT_NULL(inputs);
+  CVC5_CAPI_CHECK_NOT_NULL(values);
+  auto res = cvc5->d_solver.getDifficulty();
+  static thread_local std::vector<Cvc5Term> rinputs;
+  static thread_local std::vector<Cvc5Term> rvalues;
+  rinputs.clear();
+  rvalues.clear();
+  for (const auto& p : res)
+  {
+    rinputs.push_back(cvc5->d_tm->export_term(p.first));
+    rvalues.push_back(cvc5->d_tm->export_term(p.second));
+  }
+  *size = rinputs.size();
+  *inputs = rinputs.data();
+  *values = rvalues.data();
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 void cvc5_push(Cvc5* cvc5, uint32_t nscopes)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
