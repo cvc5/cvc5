@@ -277,8 +277,17 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
         }
-        leftSum << nm->mkNode(Kind::MULT, args[i], children[i][0]);
-        rightSum << nm->mkNode(Kind::MULT, args[i], children[i][1]);
+        // if multiplying by one, don't introduce MULT
+        if (scalar == 1)
+        {
+          leftSum << children[i][0];
+          rightSum << children[i][1];
+        }
+        else
+        {
+          leftSum << nm->mkNode(Kind::MULT, args[i], children[i][0]);
+          rightSum << nm->mkNode(Kind::MULT, args[i], children[i][1]);
+        }
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
                           leftSum.constructNode(),

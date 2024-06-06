@@ -34,7 +34,7 @@ const char* toString(ProofRule rule)
     case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case ProofRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case ProofRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
-    case ProofRule::ENCODE_PRED_TRANSFORM: return "ENCODE_PRED_TRANSFORM";
+    case ProofRule::ENCODE_EQ_INTRO: return "ENCODE_EQ_INTRO";
     case ProofRule::ANNOTATION: return "ANNOTATION";
     case ProofRule::DSL_REWRITE: return "DSL_REWRITE";
     case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
@@ -221,10 +221,22 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
+    case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
+    case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
+      return "arith-div-by-const-elim";
+    case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
+      return "arith-string-pred-entail";
+    case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
+      return "arith-string-pred-safe-approx";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
+    case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
+    case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
+    case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
+    case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
+      return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
@@ -233,6 +245,11 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
     case ProofRewriteRule::RE_LOOP_ELIM:
       return "re-loop-elim";
+    case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
+    case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
+      return "str-in-re-concat-star-char";
+    case ProofRewriteRule::STR_IN_RE_SIGMA: return "str-in-re-sigma";
+    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
       return "sets-is-empty-eval";
       //================================================= RARE rules
