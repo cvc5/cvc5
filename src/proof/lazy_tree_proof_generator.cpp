@@ -68,10 +68,10 @@ void LazyTreeProofGenerator::setCurrent(size_t objectId,
 }
 
 void LazyTreeProofGenerator::setCurrentTrust(size_t objectId,
-                TrustId tid,
-                const std::vector<Node>& premise,
-                std::vector<Node> args,
-                Node proven)
+                                             TrustId tid,
+                                             const std::vector<Node>& premise,
+                                             std::vector<Node> args,
+                                             Node proven)
 {
   std::vector<Node> newArgs;
   newArgs.push_back(mkTrustId(tid));

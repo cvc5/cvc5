@@ -46,7 +46,6 @@ enum class TrustId : uint32_t
   /** A expanding of definitions of the input formula made without a proof */
   THEORY_EXPAND_DEF,
 
-
   /**
    * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
    * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that

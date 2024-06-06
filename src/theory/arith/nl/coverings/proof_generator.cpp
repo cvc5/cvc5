@@ -107,11 +107,8 @@ void CoveringsProofGenerator::startNewProof()
 void CoveringsProofGenerator::startRecursive() { d_current->openChild(); }
 void CoveringsProofGenerator::endRecursive(size_t intervalId)
 {
-  d_current->setCurrentTrust(intervalId,
-                        TrustId::ARITH_NL_COVERING_RECURSIVE,
-                        {},
-                        {d_false},
-                        d_false);
+  d_current->setCurrentTrust(
+      intervalId, TrustId::ARITH_NL_COVERING_RECURSIVE, {}, {d_false}, d_false);
   d_current->closeChild();
 }
 void CoveringsProofGenerator::startScope()
@@ -145,10 +142,10 @@ void CoveringsProofGenerator::addDirect(Node var,
     // "Full conflict", constraint excludes (-inf,inf)
     d_current->openChild();
     d_current->setCurrentTrust(intervalId,
-                          TrustId::ARITH_NL_COVERING_DIRECT,
-                          {constraint},
-                          {d_false},
-                          d_false);
+                               TrustId::ARITH_NL_COVERING_DIRECT,
+                               {constraint},
+                               {d_false},
+                               d_false);
     d_current->closeChild();
     return;
   }
@@ -186,10 +183,10 @@ void CoveringsProofGenerator::addDirect(Node var,
   startScope();
   d_current->openChild();
   d_current->setCurrentTrust(intervalId,
-                        TrustId::ARITH_NL_COVERING_DIRECT,
-                        {constraint},
-                        {d_false},
-                        d_false);
+                             TrustId::ARITH_NL_COVERING_DIRECT,
+                             {constraint},
+                             {d_false},
+                             d_false);
   d_current->closeChild();
   endScope(res);
 }
