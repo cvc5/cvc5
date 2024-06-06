@@ -61,12 +61,15 @@
         (BitVec m) (BitVec m))
 )
 
-; @disclaimer This function in SMT-LIB 
+; @disclaimer This function is declared to be binary in SMT-LIB. We declare it
+; with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvand ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.not (alf.to_bin m 0))
 )
 
+; @disclaimer This function is declared to be binary in SMT-LIB. We declare it
+; with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvor ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.to_bin m 0)
@@ -82,6 +85,8 @@
         (BitVec m) (BitVec m) (BitVec m)) 
 )
 
+; @disclaimer This function is declared to be binary in SMT-LIB. We declare it
+; with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvxor ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.to_bin m 0)
@@ -102,11 +107,15 @@
         (BitVec m) (BitVec m))
 )
 
+; @disclaimer This function is declared to be binary in SMT-LIB. We declare it
+; with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvadd ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.to_bin m 0)
 )
 
+; @disclaimer This function is declared to be binary in SMT-LIB. We declare it
+; with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvmul ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.to_bin m 1)
