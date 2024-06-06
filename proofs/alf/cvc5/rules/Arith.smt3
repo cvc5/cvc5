@@ -1,5 +1,3 @@
-; depends: arith_programs.plf
-
 (include "../theories/Builtin.smt3")
 (include "../theories/Reals.smt3")
 (include "../theories/Ints.smt3")
