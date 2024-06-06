@@ -13,6 +13,9 @@
 ; @disclaimer This sort is declared to be an atomic sort in SMT-LIB. We
 ; generalize it to be defined as a sequence of characters, for the purposes
 ; of lifting the theory definition and proof rules for strings to sequences.
+; @disclaimer The types of functions over Strings is generalized in this
+; signature to support both strings and sequences. The SMT-LIB standard only
+; accepts strings.
 (define-fun String () Type (Seq Char))
 
 ; The regular expression type.
@@ -38,6 +41,9 @@
 (declare-const str.len 
   (-> (! Type :var T :implicit)
       (Seq T) Int))
+; @disclaimer This function is declared in SMT-LIB to be :left-assoc. We
+; declare it to be :right-assoc-nil to model cvc5's treatment of variadic
+; functions.
 (declare-parameterized-const str.++ ((T Type))
   (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil (mk_emptystr (Seq T)))
 

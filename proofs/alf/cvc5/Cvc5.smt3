@@ -21,7 +21,7 @@
 ; other internally introduced terms, and extensions.
 
 ; extensions
-; @disclaimer this function is not part of the SMT-LIB standard.
+; @disclaimer this function is not in SMT-LIB.
 (declare-const fmf.card (-> Type Int Bool))
 (declare-sort @ho-elim-sort 1)
 (declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))

@@ -2,6 +2,8 @@
 
 ; Transcendental-specific operators of arithmetic.
 
+; @disclaimer All of the functions in this file are not in SMT-LIB.
+
 (declare-const real.pi Real)
 (declare-const exp (-> Real Real))
 (declare-const sin (-> Real Real))
