@@ -4840,6 +4840,26 @@ const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
   return res.data();
 }
 
+const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
+                                          Cvc5LearnedLitType type,
+                                          size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto lits = cvc5->d_solver.getLearnedLiterals(
+      static_cast<cvc5::modes::LearnedLitType>(type));
+  for (const auto& t : lits)
+  {
+    res.push_back(cvc5->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
 void cvc5_push(Cvc5* cvc5, uint32_t nscopes)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
