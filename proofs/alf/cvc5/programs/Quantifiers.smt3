@@ -11,11 +11,11 @@
   )
 )
 
-(program $substitute_list ((T Type) (U Type) (F U) (x T) (xs @List :list) (t T) (ts @List :list))
+(program substitute_list ((T Type) (U Type) (F U) (x T) (xs @List :list) (t T) (ts @List :list))
   (@List @List U) U
   (
-    (($substitute_list (@list x xs) (@list t ts) F) ($substitute_list xs ts (substitute x t F)))
-    (($substitute_list @list.nil @list.nil F)       F)
+    ((substitute_list (@list x xs) (@list t ts) F) (substitute_list xs ts (substitute x t F)))
+    ((substitute_list @list.nil @list.nil F)       F)
   )
 )
 

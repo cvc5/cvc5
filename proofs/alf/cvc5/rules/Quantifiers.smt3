@@ -5,7 +5,7 @@
 (declare-rule instantiate ((F Bool) (xs @List) (ts @List))
   :premises ((forall xs F))
   :args (ts)
-  :conclusion ($substitute_list xs ts F))
+  :conclusion (substitute_list xs ts F))
 
 ; returns the list of skolems for F
 (program mk_skolems ((x @List) (xs @List :list) (F Bool))
@@ -22,8 +22,8 @@
     (alf.match ((T Type) (x @List) (G Bool))
         F
         (
-          ((exists x G)       ($substitute_list x (mk_skolems x F) G))
-          ((not (forall x G)) ($substitute_list x (mk_skolems x (exists x (not G))) (not G)))
+          ((exists x G)       (substitute_list x (mk_skolems x F) G))
+          ((not (forall x G)) (substitute_list x (mk_skolems x (exists x (not G))) (not G)))
         ))
 )
 
@@ -45,7 +45,7 @@
 ; Note we don't currently check whether this is valid renaming.
 (declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
   :args (B vs ts)
-  :conclusion (= B ($substitute_list vs ts B))
+  :conclusion (= B (substitute_list vs ts B))
 )
 
 ; @rule beta_reduce implements ProofRewriteRule::BETA_REDUCE
