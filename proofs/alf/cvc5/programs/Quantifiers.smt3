@@ -28,7 +28,7 @@
 (program $beta_reduce ((U Type) (T Type) (S Type) (f (-> T U)) (a T) (t S) (xs @List) (ss @List :list))
   (U @List) U
   (
-  (($beta_reduce (lambda xs t) ss) ($substitute_list xs ss))
-  (($beta_reduce (f a) ss)         ($beta_reduce a (@list a ss))
+  (($beta_reduce (lambda xs t) ss) ($substitute_list xs ss t))
+  (($beta_reduce (f a) ss)         ($beta_reduce f (@list a ss)))
   )
 )
