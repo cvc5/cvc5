@@ -10,7 +10,7 @@
 # directory for licensing information.
 # #############################################################################
 #
-# A simple demonstration of the capabilities of cvc5 uf solver.
+# A simple demonstration of the capabilities of the cvc5 uf solver.
 ##
 from cvc5.pythonic import *
 

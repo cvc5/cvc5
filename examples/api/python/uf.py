@@ -23,7 +23,7 @@ if __name__ == "__main__":
     slv.setLogic("QF_UF")
 
     # Sorts
-    u = tm.mkUninterpretedSort("u")
+    u = tm.mkUninterpretedSort("U")
     integer = tm.getIntegerSort()
     boolean = tm.getBooleanSort()
     uTou = tm.mkFunctionSort(u, u)

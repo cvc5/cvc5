@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of the capabilities of cvc5 uf solver.
+ * A simple demonstration of the capabilities of the cvc5 uf solver.
  */
 
 import io.github.cvc5.*;
@@ -25,7 +25,7 @@ public class Uf
       slv.setLogic("QF_UF");
 
       // Sorts
-      Sort u = slv.mkUninterpretedSort("u");
+      Sort u = slv.mkUninterpretedSort("U");
       Sort bool = slv.getBooleanSort();
       Sort uTou = slv.mkFunctionSort(u, u);
       Sort uPred = slv.mkFunctionSort(u, bool);
