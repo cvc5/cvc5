@@ -59,7 +59,8 @@
   :conclusion ($mk_arith_sum_ub F)
 )
 
-; Computes the conclusion of the ProofRule::ARITH_MULT_POS rule.
+; @program $mk_arith_mult_pos
+; @return the conclusion of the ProofRule::ARITH_MULT_POS rule.
 (program $mk_arith_mult_pos ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
   (
@@ -73,6 +74,7 @@
   :conclusion (=> (and (> m ($arith_mk_zero (alf.typeof m))) F) ($mk_arith_mult_pos m F))
 )
 
+; @program $arith_rel_inv
 (program $arith_rel_inv ((T Type) (U Type) (S Type))
   (T) S
   (
@@ -84,6 +86,7 @@
   )
 )
 
+; @program $mk_arith_mult_neg
 ; Computes the conclusion of the ProofRule::ARITH_MULT_NEG rule.
 (program $mk_arith_mult_neg ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
@@ -98,34 +101,42 @@
   :conclusion (=> (and (< m ($arith_mk_zero (alf.typeof m))) F) ($mk_arith_mult_neg m F))
 )
 
-(program arith_rel_trichotomy ((T Type) (U Type) (S Type))
+; @program $arith_rel_trichotomy
+; @arg r1 : T. The first arithmetic relation.
+; @arg r2 : U. The second arithmetic relation.
+; @return the relation that along with r1 and r2 form a trichotomy over
+; arithmetic values.
+(program $arith_rel_trichotomy ((T Type) (U Type) (S Type))
   (T U) S
   (
-    ((arith_rel_trichotomy = <) >)
-    ((arith_rel_trichotomy = >) <)
-    ((arith_rel_trichotomy > =) <)
-    ((arith_rel_trichotomy < =) >)
-    ((arith_rel_trichotomy > <) =)
-    ((arith_rel_trichotomy < >) =)
+    (($arith_rel_trichotomy = <) >)
+    (($arith_rel_trichotomy = >) <)
+    (($arith_rel_trichotomy > =) <)
+    (($arith_rel_trichotomy < =) >)
+    (($arith_rel_trichotomy > <) =)
+    (($arith_rel_trichotomy < >) =)
   )
 )
 
-(program arith_rel_neg ((T Type) (U Type) (S Type))
+; @program $arith_rel_trichotomy
+; @arg r : T. The arithmetic relation.
+; @return the relation corresponding to the negation of r.
+(program $arith_rel_neg ((T Type) (U Type) (S Type))
   (T) S
   (
-    ((arith_rel_neg <) >=)
-    ((arith_rel_neg <=) >)
-    ((arith_rel_neg >) <=)
-    ((arith_rel_neg >=) <)
+    (($arith_rel_neg <) >=)
+    (($arith_rel_neg <=) >)
+    (($arith_rel_neg >) <=)
+    (($arith_rel_neg >=) <)
   )
 )
 
-(program arith_normalize_lit ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U))
+(program $arith_normalize_lit ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U))
   (Bool) Bool
   (
-    ((arith_normalize_lit (not (not (r a b)))) (r a b))
-    ((arith_normalize_lit (not (r a b)))       (_ (arith_rel_neg r) a b))
-    ((arith_normalize_lit (r a b))             (r a b))
+    (($arith_normalize_lit (not (not (r a b)))) (r a b))
+    (($arith_normalize_lit (not (r a b)))       (_ ($arith_rel_neg r) a b))
+    (($arith_normalize_lit (r a b))             (r a b))
   )
 )
 
@@ -133,17 +144,19 @@
 (program $mk_arith_trichotomy ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U) (m S))
   (Bool S) Bool
   (
-    (($mk_arith_trichotomy (r1 a b) (r2 a b)) (_ (arith_rel_trichotomy r1 r2) a b))
+    (($mk_arith_trichotomy (r1 a b) (r2 a b)) (_ ($arith_rel_trichotomy r1 r2) a b))
   )
 )
 
 ; @rule arith_trichotomy implements ProofRule::ARITH_TRICHOTOMY
 (declare-rule arith_trichotomy ((F1 Bool) (F2 Bool))
   :premises (F1 F2)
-  :conclusion ($mk_arith_trichotomy (arith_normalize_lit (not F1)) (arith_normalize_lit (not F2)))
+  :conclusion ($mk_arith_trichotomy ($arith_normalize_lit (not F1)) ($arith_normalize_lit (not F2)))
 )
 
-; Returns the greatest integer less than (integer or real) c.
+; @program $greatest_int_lt
+; @arg c : R. A rational or integer value.
+; @return the greatest integer less than (integer or real) c.
 (program $greatest_int_lt ((R Type) (c R))
   (R) Int
   (
@@ -155,12 +168,17 @@
 )
 
 ; @rule int_tight_ub implements ProofRule::INT_TIGHT_UB
+; @premise r. The relation we are considering, whose right hand side should be
+; a rational or integer value.
+; @conlusion. The result of tightening the upper bound.
 (declare-rule int_tight_ub ((R Type) (s Int) (t R))
   :premises ((< s t))
   :conclusion (<= s ($greatest_int_lt t))
 )
 
-; Returns the least integer greater than (integer or real) c.
+; @program $least_int_gt
+; @arg c : R. A rational or integer value.
+; @return the least integer greater than (integer or real) c.
 (program $least_int_gt ((R Type) (c R))
   (R) Int
   (
@@ -169,6 +187,9 @@
 )
 
 ; @rule int_tight_lb implements ProofRule::INT_TIGHT_LB
+; @premise r. The relation we are considering, whose right hand side should be
+; a rational or integer value.
+; @conlusion. The result of tightening the lower bound.
 (declare-rule int_tight_lb ((R Type) (s Int) (t R))
   :premises ((> s t))
   :conclusion (>= s ($least_int_gt t))
