@@ -1320,6 +1320,145 @@ TEST_F(TestCApiBlackSolver, get_unsat_core2)
   ASSERT_DEATH(cvc5_get_unsat_core(d_solver, &size), "cannot get unsat core");
 }
 
+TEST_F(TestCApiBlackSolver, get_unsat_core_and_proof)
+{
+  cvc5_set_option(d_solver, "incremental", "true");
+  cvc5_set_option(d_solver, "produce-unsat-cores", "true");
+  cvc5_set_option(d_solver, "produce-proofs", "true");
+
+  std::vector<Cvc5Sort> domain = {d_uninterpreted};
+  Cvc5Sort u_to_int =
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int);
+  domain = {d_int};
+  Cvc5Sort int_pred =
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_bool);
+
+  Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_uninterpreted, "y");
+  Cvc5Term f = cvc5_mk_const(d_tm, u_to_int, "f");
+  Cvc5Term p = cvc5_mk_const(d_tm, int_pred, "p");
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term one = cvc5_mk_integer_int64(d_tm, 1);
+  std::vector<Cvc5Term> args = {f, x};
+  Cvc5Term f_x =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {f, y};
+  Cvc5Term f_y =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {f_x, f_y};
+  Cvc5Term sum = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {p, zero};
+  Cvc5Term p_0 =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {p, f_y};
+  Cvc5Term p_f_y =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+
+  args = {zero, f_x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {zero, f_y};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {sum, one};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  cvc5_assert_formula(d_solver, p_0);
+  args = {p_f_y};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data()));
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+
+  size_t uc_size, proof_size;
+  const Cvc5Term* uc = cvc5_get_unsat_core(d_solver, &uc_size);
+  ASSERT_TRUE(uc_size > 0);
+
+  (void)cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_FULL, &proof_size);
+  (void)cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_SAT, &proof_size);
+
+  cvc5_reset_assertions(d_solver);
+  for (size_t i = 0; i < uc_size; ++i)
+  {
+    cvc5_assert_formula(d_solver, uc[i]);
+  }
+  Cvc5Result res = cvc5_check_sat(d_solver);
+  ASSERT_TRUE(cvc5_result_is_unsat(res));
+  (void)cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_FULL, &proof_size);
+}
+
+TEST_F(TestCApiBlackSolver, get_unsat_core_lemmas1)
+{
+  cvc5_set_option(d_solver, "produce-unsat-cores", "true");
+  cvc5_set_option(d_solver, "unsat-cores-mode", "sat-proof");
+
+  size_t size;
+  // cannot ask before a check sat
+  ASSERT_DEATH(cvc5_get_unsat_core_lemmas(d_solver, &size),
+               "cannot get unsat core");
+
+  cvc5_assert_formula(d_solver, cvc5_mk_false(d_tm));
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+  (void)cvc5_get_unsat_core_lemmas(d_solver, &size);
+
+  ASSERT_DEATH(cvc5_get_unsat_core_lemmas(nullptr, &size),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_unsat_core_lemmas(d_solver, nullptr),
+               "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, get_unsat_core_lemmas2)
+{
+  cvc5_set_option(d_solver, "incremental", "true");
+  cvc5_set_option(d_solver, "produce-unsat-cores", "true");
+  cvc5_set_option(d_solver, "produce-proofs", "true");
+
+  std::vector<Cvc5Sort> domain = {d_uninterpreted};
+  Cvc5Sort u_to_int =
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int);
+  domain = {d_int};
+  Cvc5Sort int_pred =
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_bool);
+
+  Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_uninterpreted, "y");
+  Cvc5Term f = cvc5_mk_const(d_tm, u_to_int, "f");
+  Cvc5Term p = cvc5_mk_const(d_tm, int_pred, "p");
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term one = cvc5_mk_integer_int64(d_tm, 1);
+  std::vector<Cvc5Term> args = {f, x};
+  Cvc5Term f_x =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {f, y};
+  Cvc5Term f_y =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {f_x, f_y};
+  Cvc5Term sum = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {p, zero};
+  Cvc5Term p_0 =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {p, f_y};
+  Cvc5Term p_f_y =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+
+  args = {zero, f_x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {zero, f_y};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {sum, one};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  cvc5_assert_formula(d_solver, p_0);
+  args = {p_f_y};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data()));
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+
+  size_t size;
+  (void)cvc5_get_unsat_core_lemmas(d_solver, &size);
+}
+
 TEST_F(TestCApiBlackSolver, get_difficulty)
 {
   cvc5_set_option(d_solver, "produce-difficulty", "true");
@@ -1449,6 +1588,75 @@ TEST_F(TestCApiBlackSolver, get_timeout_core_assuming_empty)
       cvc5_get_timeout_core_assuming(
           d_solver, assumptions.size(), assumptions.data(), &result, &size),
       "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, get_proof_and_proof_to_string)
+{
+  cvc5_set_option(d_solver, "produce-proofs", "true");
+
+  std::vector<Cvc5Sort> domain = {d_uninterpreted};
+  Cvc5Sort u_to_int =
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int);
+  domain = {d_int};
+  Cvc5Sort int_pred =
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_bool);
+
+  Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_uninterpreted, "y");
+  Cvc5Term f = cvc5_mk_const(d_tm, u_to_int, "f");
+  Cvc5Term p = cvc5_mk_const(d_tm, int_pred, "p");
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term one = cvc5_mk_integer_int64(d_tm, 1);
+  std::vector<Cvc5Term> args = {f, x};
+  Cvc5Term f_x =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {f, y};
+  Cvc5Term f_y =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {f_x, f_y};
+  Cvc5Term sum = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {p, zero};
+  Cvc5Term p_0 =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {p, f_y};
+  Cvc5Term p_f_y =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+
+  args = {zero, f_x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {zero, f_y};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {sum, one};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  cvc5_assert_formula(d_solver, p_0);
+  args = {p_f_y};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data()));
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+
+  size_t size;
+  ASSERT_DEATH(cvc5_get_proof(nullptr, CVC5_PROOF_COMPONENT_FULL, &size),
+               "unexpected NULL");
+  ASSERT_DEATH(cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_FULL, nullptr),
+               "unexpected NULL");
+
+  const Cvc5Proof* proofs =
+      cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_FULL, &size);
+  ASSERT_TRUE(size > 0);
+
+  std::string proof_str = cvc5_proof_to_string(
+      d_solver, proofs[0], CVC5_PROOF_FORMAT_DEFAULT, 0, nullptr, nullptr);
+  ASSERT_FALSE(proof_str.empty());
+  proof_str = cvc5_proof_to_string(
+      d_solver, proofs[0], CVC5_PROOF_FORMAT_ALETHE, 0, nullptr, nullptr);
+  ASSERT_FALSE(proof_str.empty());
+  proofs = cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_SAT, &size);
+  proof_str = cvc5_proof_to_string(
+      d_solver, proofs[0], CVC5_PROOF_FORMAT_NONE, 0, nullptr, nullptr);
+  ASSERT_FALSE(proof_str.empty());
 }
 
 TEST_F(TestCApiBlackSolver, get_learned_literals)

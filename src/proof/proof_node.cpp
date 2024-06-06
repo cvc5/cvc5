@@ -145,5 +145,12 @@ size_t ProofNodeHashFunction::operator()(const ProofNode* pfn) const
 
   return static_cast<size_t>(ret);
 }
-
 }  // namespace cvc5::internal
+
+namespace std {
+size_t hash<cvc5::internal::ProofNode>::operator()(
+    const cvc5::internal::ProofNode& node) const
+{
+  return cvc5::internal::ProofNodeHashFunction{}(&node);
+}
+}  // namespace std

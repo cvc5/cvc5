@@ -915,7 +915,6 @@ TEST_F(TestApiBlackSolver, getUnsatCoreLemmas1)
   ASSERT_THROW(d_solver->getUnsatCoreLemmas(), CVC5ApiException);
 
   d_solver->assertFormula(d_tm.mkFalse());
-  d_solver->checkSat();
   ASSERT_TRUE(d_solver->checkSat().isUnsat());
   ASSERT_NO_THROW(d_solver->getUnsatCoreLemmas());
 }
@@ -1275,6 +1274,7 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_FALSE(printedProof.empty());
   ASSERT_NO_THROW(printedProof = d_solver->proofToString(
                       proofs[0], modes::ProofFormat::ALETHE));
+  ASSERT_FALSE(printedProof.empty());
   ASSERT_NO_THROW(proofs = d_solver->getProof(modes::ProofComponent::SAT));
   ASSERT_NO_THROW(printedProof = d_solver->proofToString(
                       proofs[0], modes::ProofFormat::NONE));

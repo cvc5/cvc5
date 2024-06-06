@@ -120,7 +120,7 @@ typedef struct Cvc5OptionInfo Cvc5OptionInfo;
 /**
  * A cvc5 proof.
  */
-typedef struct Cvc5Proof Cvc5Proof;
+typedef struct cvc5_proof_t* Cvc5Proof;
 
 /**
  * A cvc5 statistics instance.
@@ -3180,83 +3180,70 @@ const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
  * Get the proof rule used by the root step of a given proof.
  * @return The proof rule.
  */
-Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof* proof);
+Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof);
 
 /**
- * @return The proof rewrite rule used by the root step of the proof.
+ * Get the proof rewrite rule used  by the root step of the proof.
  *
- * @exception raises an exception if `getRule()` does not return
- * `CVC5_PROOF_RULE_DSL_REWRITE`.
+ * Requires that `cvc5_proof_get_rule()` does not return
+ * `CVC5_PROOF_REWRITE_RULE_DSL_REWRITE` or
+ * `CVC5_PROOF_REWRITE_RULE_THEORY_REWRITE`.
+ *
+ * @param proof The proof.
+ * @return The proof rewrite rule.
  */
-Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof* proof);
+Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof);
 
 /**
  * Get the conclusion of the root step of a given proof.
+ * @param proof The proof.
  * @return The conclusion term.
  */
-Cvc5Term cvc5_proof_get_result(Cvc5Proof* proof);
+Cvc5Term cvc5_proof_get_result(Cvc5Proof proof);
 
 /**
  * Get the premises of the root step of a given proof.
- * @param size Output parameter to store the number of resulting premise proofs.
+ * @param proof The proof.
+ * @param size  Output parameter to store the number of resulting premise
+ *              proofs.
  * @return The premise proofs.
+ * @note The returned Cvc5Proof array pointer is only valid until the next call
+ *       to this function.
  */
-const Cvc5Proof** cvc5_proof_get_children(Cvc5Proof* proof);
+const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof, size_t* size);
 
 /**
  * Get the arguments of the root step of a given proof.
- * @param size Output parameter to store the number of resulting argument terms.
+ * @param proof The proof.
+ * @param size  Output parameter to store the number of resulting argument
+ *              terms.
  * @return The argument terms.
  */
-const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof* proof);
+const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size);
 
 /**
  * Compare two proofs for referential equality.
  * @param a The first proof.
  * @param b The second proof.
- * @return `true` if both proofs point to the same internal proof object.
+ * @return  True if both proof pointers point to the same internal proof object.
  */
-bool cvc5_proof_is_equal(Cvc5Proof* a, Cvc5Proof* b);
+bool cvc5_proof_is_equal(Cvc5Proof a, Cvc5Proof b);
 
 /**
  * Compare two proofs for referential disequality.
  * @param a The first proof.
  * @param b The second proof.
- * @return `true` if the proofs point to different internal proof objects.
+ * @return  True if both proof pointers point to different internal proof
+ *          objects.
  */
-bool cvc5_proof_is_disequal(Cvc5Proof* a, Cvc5Proof* b);
+bool cvc5_proof_is_disequal(Cvc5Proof a, Cvc5Proof b);
 
 /**
  * Compute the hash value of a proof.
  * @param proof The proof.
  * @return The hash value of the proof.
  */
-size_t cvc5_proof_hash(Cvc5Proof* proof);
-
-/**
- * Prints a proof as a string in a selected proof format mode.
- * Other aspects of printing are taken from the solver options.
- *
- * @warning This function is experimental and may change in future versions.
- *
- * @param proof A proof, usually obtained from Solver::getProof().
- * @param format The proof format used to print the proof.  Must be
- * `modes::ProofFormat::NONE` if the proof is from a component other than
- * `modes::ProofComponent::FULL`.
- * @param assertions_size The number of assertions to names mappings given.
- * @param assertions The list of assertions that are mapped to
- *                   `assertions_names`. May be NULL if `assertions_size` is 0.
- * @param assertion_names The names of the `assertions` (1:1 mapping). May
- *                        by NULL if `assertions` is NULL.
- * @return The string representation of the proof in the given format.
- * @note The returned char* pointer is only valid until the next call to this
- *       function.
- */
-const char* cvc5_proof_to_string(Cvc5Proof* proof,
-                                 Cvc5ProofFormat format,
-                                 size_t assertions_size,
-                                 const Cvc5Term assertions[],
-                                 const char* assertion_names[]);
+size_t cvc5_proof_hash(Cvc5Proof proof);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
@@ -3290,13 +3277,13 @@ void cvc5_delete(Cvc5* cvc5);
  *     (declare-datatype <symbol> <datatype_decl>)
  * \endverbatim
  *
- * @param solver The solver instance.
+ * @param cvc5   The solver instance.
  * @param symbol The name of the datatype sort.
  * @param size The number of constructor declarations of the datatype sort.
  * @param ctors The constructor declarations.
  * @return The datatype sort.
  */
-Cvc5Sort cvc5_declare_dt(Cvc5* solver,
+Cvc5Sort cvc5_declare_dt(Cvc5* cvc5,
                          const char* symbol,
                          size_t size,
                          const Cvc5DatatypeConstructorDecl ctors[]);
@@ -3312,7 +3299,7 @@ Cvc5Sort cvc5_declare_dt(Cvc5* solver,
  *     (declare-fun <symbol> ( <sort>* ) <sort>)
  * \endverbatim
  *
- * @param solver The solver instance.
+ * @param cvc5   The solver instance.
  * @param symbol The name of the function.
  * @param size   The number of domain sorts of the function.
  * @param sorts  The domain sorts of the function.
@@ -3322,7 +3309,7 @@ Cvc5Sort cvc5_declare_dt(Cvc5* solver,
  *               the given sorts and symbol where fresh is false.
  * @return The function.
  */
-Cvc5Term cvc5_declare_fun(Cvc5* solver,
+Cvc5Term cvc5_declare_fun(Cvc5* cvc5,
                           const char* symbol,
                           size_t size,
                           const Cvc5Sort sorts[],
@@ -3344,13 +3331,13 @@ Cvc5Term cvc5_declare_fun(Cvc5* solver,
  *       `cvc5_mk_uninterpreted_sort()` if arity = 0, and to
  *       `cvc5_mk_uninterpreted_sort_constructor_sort()` if arity > 0.
  *
- * @param solver The solver instance.
+ * @param cvc5   The solver instance.
  * @param symbol The name of the sort.
  * @param arity  The arity of the sort.
  * @param fresh  If true, then this method always returns a new Sort.
  * @return The sort.
  */
-Cvc5Sort cvc5_declare_sort(Cvc5* solver,
+Cvc5Sort cvc5_declare_sort(Cvc5* cvc5,
                            const char* symbol,
                            uint32_t arity,
                            bool fresh);
@@ -3676,6 +3663,33 @@ const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* size);
 const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size);
 
 /**
+ * Get the lemmas used to derive unsatisfiability.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (get-unsat-core-lemmas)
+ *
+ * Requires the SAT proof unsat core mode, so to enable option
+ * :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
+ *
+ * \endverbatim
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @note The returned Cvc5Term array pointer is only valid until the next call
+ *       to this function.
+ *
+ * @param cvc5 The solver instance.
+ * @param size The size of the resulting unsat core.
+ * @return A set of terms representing the lemmas used to derive
+ *         unsatisfiability.
+ */
+const Cvc5Term* cvc5_get_unsat_core_lemmas(Cvc5* cvc5, size_t* size);
+
+/**
  * Get a difficulty estimate for an asserted formula. This function is
  * intended to be called immediately after any response to a checkSat.
  *
@@ -3806,10 +3820,14 @@ const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
  * @warning This function is experimental and may change in future versions.
  *
  * @param cvc5 The solver instance.
- * @param c The component of the proof to return
+ * @param c    The component of the proof to return
+ * @param size The size of the resulting array of proofs.
  * @return An array of proofs.
+ *
+ * @note The returned Cvc5Proof array pointer is only valid until the next call
+ *       to this function.
  */
-Cvc5Proof** cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c);
+const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c, size_t* size);
 
 /**
  * Get a list of learned literals that are entailed by the current set of
@@ -4750,6 +4768,35 @@ bool cvc5_is_output_on(const char* tag);
  *       function.
  */
 const char* cvc5_get_version(Cvc5* cvc5);
+
+/**
+ * Prints a proof as a string in a selected proof format mode.
+ * Other aspects of printing are taken from the solver options.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param cvc5       The solver instance.
+ * @param proof      A proof, usually obtained from Solver::getProof().
+ * @param format     The proof format used to print the proof.  Must be
+ *                   `modes::ProofFormat::NONE` if the proof is from a component
+ *                   other than `modes::ProofComponent::FULL`.
+ * @param size       The number of assertions to names mappings given.
+ * @param assertions The list of assertions that are mapped to
+ *                   `assertions_names`. May be NULL if `assertions_size` is 0.
+ * @param names      The names of the `assertions` (1:1 mapping). May by NULL
+ *                   if `assertions` is NULL.
+ *
+ * @return The string representation of the proof in the given format.
+ *
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+const char* cvc5_proof_to_string(Cvc5* cvc5,
+                                 Cvc5Proof proof,
+                                 Cvc5ProofFormat format,
+                                 size_t size,
+                                 const Cvc5Term assertions[],
+                                 const char* names[]);
 
 #if __cplusplus
 }

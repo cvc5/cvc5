@@ -3628,10 +3628,13 @@ class CVC5_EXPORT Proof
   ProofRule getRule() const;
 
   /**
-   * @return The proof rewrite rule used by the root step of the proof.
+   * Get the proof rewrite rule used  by the root step of the proof.
    *
-   * @exception raises an exception if `getRule()` does not return
-   * `DSL_REWRITE` or `THEORY_REWRITE`.
+   * Requires that `getRule()` does not return `DSL_REWRITE` or
+   * `THEORY_REWRITE`.
+   *
+   * @return The proof rewrite rule.
+   *
    */
   ProofRewriteRule getRewriteRule() const;
 
@@ -3989,7 +3992,7 @@ class CVC5_EXPORT TermManager
    * Create n-ary term of given kind.
    * @param kind     The kind of the term.
    * @param children The children of the term.
-   * @return The Term
+   * @return The term.
    */
   Term mkTerm(Kind kind, const std::vector<Term>& children = {});
   /**
