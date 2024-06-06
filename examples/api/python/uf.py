@@ -48,8 +48,8 @@ if __name__ == "__main__":
     assertions = tm.mkTerm(Kind.AND,
                             tm.mkTerm(Kind.EQUAL, x, f_x),
                             tm.mkTerm(Kind.EQUAL, y, f_y), 
-                            p_f_x.notTerm(),                            p_f_y 
-                            )
+                            p_f_x.notTerm(),
+                            p_f_y)
 
     slv.assertFormula(assertions)
     assert(slv.checkSat().isSat())

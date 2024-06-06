@@ -17,24 +17,13 @@
 
 #include <iostream>
 
-using namespace std;
 using namespace cvc5;
-
-void prefixPrintGetValue(Solver& slv, Term t, int level = 0)
-{
-  cout << "slv.getValue(" << t << "): " << slv.getValue(t) << endl;
-
-  for (const Term& c : t)
-  {
-    prefixPrintGetValue(slv, c, level + 1);
-  }
-}
 
 int main()
 {
   TermManager tm;
   Solver slv(tm);
-  slv.setLogic(string("QF_UF"));
+  slv.setLogic("QF_UF");
 
   // Sorts
   Sort u = tm.mkUninterpretedSort("U");
