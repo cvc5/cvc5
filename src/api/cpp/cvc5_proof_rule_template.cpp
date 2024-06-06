@@ -196,9 +196,6 @@ const char* toString(ProofRule rule)
       return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
     case ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
       return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
-    case ProofRule::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
-    case ProofRule::ARITH_NL_COVERING_RECURSIVE:
-      return "ARITH_NL_COVERING_RECURSIVE";
     //================================================= External rules
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
