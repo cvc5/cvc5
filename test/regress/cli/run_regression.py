@@ -279,7 +279,7 @@ class AlfTester(Tester):
             cvc5_args = [
                 "--dump-proofs",
                 "--proof-format=alf",
-                "--proof-granularity=theory-rewrite",
+                "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
             ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
@@ -754,6 +754,9 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
+            if disable_tester == "dsl-proof":
+                if "alf" in testers:
+                    testers.remove("alf")
             if disable_tester == "proof":
                 if "lfsc" in testers:
                     testers.remove("lfsc")
