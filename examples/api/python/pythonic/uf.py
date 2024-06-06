@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz
+#   Yoni Zohar
 #
 # This file is part of the cvc5 project.
 #
@@ -10,12 +10,20 @@
 # directory for licensing information.
 # #############################################################################
 #
-# The build system configuration.
+# A simple demonstration of the capabilities of the cvc5 uf solver.
 ##
+from cvc5.pythonic import *
 
-# Generate and add unit test.
-cvc5_add_unit_test_black(capi_kind_black api/c)
-cvc5_add_unit_test_black(capi_sort_black api/c)
-cvc5_add_unit_test_black(capi_sort_kind_black api/c)
-cvc5_add_unit_test_black(capi_term_manager_black api/c)
-cvc5_add_unit_test_black(capi_types_black api/c)
+if __name__ == "__main__":
+
+    U = DeclareSort("U")
+    x, y = Consts("x y", U)
+
+    f = Function("f", U, U)
+    p = Function("p", U, BoolSort())
+
+    assumptions = [f(x) == x, f(y) == y, Not(p(f(x))), p(f(y))]
+
+    s = Solver()
+    s.add(assumptions)
+    assert sat == s.check()

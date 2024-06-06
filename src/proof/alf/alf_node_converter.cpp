@@ -326,14 +326,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
-    Node app;
-    if (sfi == SkolemId::PURIFY)
-    {
-      Assert(cacheVal.getType() == k.getType());
-      // special case: just use self
-      app = convert(cacheVal);
-    }
-    else if (isHandledSkolemId(sfi))
+    if (isHandledSkolemId(sfi))
     {
       // convert every skolem function to its name applied to arguments
       std::stringstream ss;
@@ -351,18 +344,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
         args.push_back(convert(cacheVal));
       }
       // must convert all arguments
-      app = mkInternalApp(ss.str(), args, k.getType());
-    }
-    if (!app.isNull())
-    {
-      // If it has no children, then we don't wrap in `(skolem ...)`, since it
-      // makes no difference for substitution. Moreover, it is important not
-      // to do this since bitvector concat uses @bv_empty as its nil terminator.
-      if (sfi == SkolemId::PURIFY || app.getNumChildren() > 0)
-      {
-        // wrap in "skolem" operator
-        return mkInternalApp("skolem", {app}, k.getType());
-      }
+      Node app = mkInternalApp(ss.str(), args, k.getType());
       return app;
     }
   }
