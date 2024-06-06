@@ -31,7 +31,7 @@
   (
   (($substitute_simul (f a) xs ss)                  (_ ($substitute_simul f xs ss) ($substitute_simul a xs ss)))
   (($substitute_simul x @list.nil @list.nil)        x)
-  (($substitute_simul x (@list x xs) (@list s ss))  s)
+  (($substitute_simul x (@list x xs) (@list s ss))  s)  ; note that we do not substitute further since this is a simultaneous substitution.
   (($substitute_simul x (@list y xs) (@list s ss))  ($substitute_simul x xs ss))
   )
 )
