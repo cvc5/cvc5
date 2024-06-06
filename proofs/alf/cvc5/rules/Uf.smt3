@@ -1,17 +1,18 @@
 (include "../theories/Builtin.smt3")
 
-; REFL
+; @rule refl implements ProofRule::REFL
+; @arg t : T. The term to apply reflexivity to.
+; @conclusion The equality between t and itself.
 (declare-rule refl ((T Type) (t T))
-    :premises ()
     :args (t)
     :conclusion (= t t)
 )
 
-; SYMM
-; Either t1 = t2 ==> t2 = t1 or t1 != t2 ==> t2 != t1
+; @rule symm implements ProofRule::SYMM
+; @arg F : Bool. The (dis)equality to apply symmetry to.
+; @conclusion The symmetric version of the (dis)equality F.
 (declare-rule symm ((F Bool))
     :premises (F)
-    :args ()
     :conclusion
         (alf.match ((T Type) (t1 T) (t2 T))
             F
@@ -21,23 +22,34 @@
             ))
 )
 
-; TRANS
-; note that we assume that there is never exactly one premise
-(program mk_trans ((U Type) (t1 U) (t2 U) (t3 U) (t4 U) (tail Bool :list))
+; @program $mk_trans
+; @arg t1 : U. The current left hand side of the equality we have proven.
+; @arg t2 : U. The current right hand side of the equality we have proven.
+; @arg F : Bool. A conjunction of the remaining equalities we have left to
+; process.
+; @returns an equality between the original left hand side and the final right
+; hand side. Each additional equality checks that its left hand side matches
+; the current right hand side.
+(program $mk_trans ((U Type) (t1 U) (t2 U) (t3 U) (t4 U) (tail Bool :list))
     (U U Bool) Bool
     (
-        ((mk_trans t1 t2 (and (= t3 t4) tail))
-            (alf.requires t2 t3 (mk_trans t1 t4 tail)))
-        ((mk_trans t1 t2 true)              (= t1 t2))
+        (($mk_trans t1 t2 (and (= t3 t4) tail))
+            (alf.requires t2 t3 ($mk_trans t1 t4 tail)))
+        (($mk_trans t1 t2 true)              (= t1 t2))
     )
 )
 
+; @rule trans implements ProofRule::TRANS
+; @premises E. A conjunction of equalities to apply transitivity to.
+; @conclusion An equality between the left hand side of the first equality
+; and the right hand side of the last equality, assuming that the right hand
+; side of each equality matches the left hand side of the one that follows it.
 (declare-rule trans ((T Type) (U Type) (E Bool) (f (-> T U)))
     :premise-list E and
     :conclusion
         (alf.match ((t1 U) (t2 U) (tail Bool :list))
         E
-        (((and (= t1 t2) tail) (mk_trans t1 t2 tail))))
+        (((and (= t1 t2) tail) ($mk_trans t1 t2 tail))))
 )
 
 ; CONG
