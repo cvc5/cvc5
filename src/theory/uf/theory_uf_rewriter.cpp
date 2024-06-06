@@ -60,6 +60,20 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     Node lambda = FunctionConst::toLambda(node.getOperator());
     if (!lambda.isNull())
     {
+      // ensure the lambda is rewritten
+      /*
+      Node lambdaPrev = lambda;
+      lambda = d_rr->rewrite(lambda);
+      if (lambda!=lambdaPrev)
+      {
+        std::vector<TNode> args;
+        args.push_back(lambda);
+        args.insert(args.end(), node.begin(), node.end());
+        NodeManager * nm = NodeManager::currentNM();
+        Node ret = nm->mkNode(Kind::APPLY_UF, args);
+        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+      }
+      */
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
                           << lambda << " for " << node << "\n";
       std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
@@ -70,10 +84,16 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         expr::getFreeVariables(s, fvs);
       }
       Node new_body = lambda[1];
+      Trace("uf-ho-beta") << "... body is " << new_body << std::endl;
       if (!fvs.empty())
       {
         ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
         new_body = esnc.convert(new_body);
+        Trace("uf-ho-beta") << "... elim shadow body is " << new_body << std::endl;
+      }
+      else
+      {
+        Trace("uf-ho-beta") << "... no free vars in substitution for " << vars << " -> " << subs << std::endl;
       }
       Node ret = new_body.substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());
@@ -175,8 +195,24 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
+      std::unordered_set<Node> fvs;
+      for (TNode s : subs)
+      {
+        expr::getFreeVariables(s, fvs);
+      }
+      // cannot beta-reduce if shadow elimination is necessary
+      if (!fvs.empty())
+      {
+        return Node::null();
+      }
       Node ret = lambda[1].substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());
+      /*
+      for (TNode v : vars)
+      {
+        AlwaysAssert (v.getKind()==Kind::BOUND_VARIABLE);
+      }
+      */
       return ret;
     }
     break;
