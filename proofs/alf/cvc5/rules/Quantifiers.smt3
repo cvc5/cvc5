@@ -52,7 +52,7 @@
 ; @args eq : Bool. The equality to prove between terms a and b.
 ; @requires Showing that a beta-reduces to b.
 ; @conclusion The given equality.
-(declare-rule beta_reduce ((T Type) (a T) (b T))
+(declare-rule beta-reduce ((T Type) (a T) (b T))
   :args ((= a b))
   :requires ((($beta_reduce a @list.nil) b))
   :conclusion (= a b)
