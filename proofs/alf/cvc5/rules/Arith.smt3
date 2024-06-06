@@ -60,7 +60,10 @@
 )
 
 ; @program $mk_arith_mult_pos
-; @return the conclusion of the ProofRule::ARITH_MULT_POS rule.
+; @arg m : S. A real or integer term to multiply by.
+; @arg F : Bool. The arithmetic atom to multiply.
+; @return the result of multiply the atom by m. This is used to compute the
+; conclusion of the ProofRule::ARITH_MULT_POS rule.
 (program $mk_arith_mult_pos ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
   (
@@ -69,12 +72,19 @@
 )
 
 ; @rule arith_mult_pos implements ProofRule::ARITH_MULT_POS
+; @arg m : T. A real or integer term to multiply by.
+; @arg F : Bool. The arithmetic atom to multiply.
+; @conclusion An implication stating that if m is positive and F is true, then
+; the result of multiply m by F also holds.
 (declare-rule arith_mult_pos ((T Type) (m T) (F Bool))
   :args (m F)
   :conclusion (=> (and (> m ($arith_mk_zero (alf.typeof m))) F) ($mk_arith_mult_pos m F))
 )
 
 ; @program $arith_rel_inv
+; @arg r : T. An arithmetic relation.
+; @return the relation that is obtained by flipping its side. This is used for
+; determining the relation obtained when multiply both sides by a negative term.
 (program $arith_rel_inv ((T Type) (U Type) (S Type))
   (T) S
   (
@@ -87,7 +97,10 @@
 )
 
 ; @program $mk_arith_mult_neg
-; Computes the conclusion of the ProofRule::ARITH_MULT_NEG rule.
+; @arg m : S. A real or integer term to multiply by.
+; @arg F : Bool. The arithmetic atom to multiply.
+; @return the result of multiply the atom by m and invert its relation.
+; This is used to compute the conclusion of the ProofRule::ARITH_MULT_NEG rule.
 (program $mk_arith_mult_neg ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
   (
@@ -96,6 +109,10 @@
 )
 
 ; @rule arith_mult_neg implements ProofRule::ARITH_MULT_NEG
+; @arg m : T. A real or integer term to multiply by.
+; @arg F : Bool. The arithmetic atom to multiply.
+; @conclusion An implication stating that if m is negative and F is true, then
+; the result of multiply m by F and inverting its relation also holds.
 (declare-rule arith_mult_neg ((T Type) (m T) (F Bool))
   :args (m F)
   :conclusion (=> (and (< m ($arith_mk_zero (alf.typeof m))) F) ($mk_arith_mult_neg m F))
@@ -131,6 +148,9 @@
   )
 )
 
+; @program $arith_normalize_lit
+; @arg F : Bool. An arithmetic literal, possibly negated or doubly negated.
+; @return a literal equivalent to F that eliminates its negations, if any.
 (program $arith_normalize_lit ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U))
   (Bool) Bool
   (
@@ -140,15 +160,26 @@
   )
 )
 
-; Computes the conclusion of the ProofRule::ARITH_TRICHOTOMY rule.
-(program $mk_arith_trichotomy ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U) (m S))
-  (Bool S) Bool
+; @program $mk_arith_trichotomy
+; @premise F1. The first arithmetic atom, which is an application of a binary
+; arithmetic relation.
+; @premise F2. The first arithmetic atom, which is an application of a binary
+; arithmetic relation over the same terms as F2.
+; @return the relation that along with F1 and F2 forms a trichotomy.
+(program $mk_arith_trichotomy ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U))
+  (Bool Bool) Bool
   (
     (($mk_arith_trichotomy (r1 a b) (r2 a b)) (_ ($arith_rel_trichotomy r1 r2) a b))
   )
 )
 
 ; @rule arith_trichotomy implements ProofRule::ARITH_TRICHOTOMY
+; @premise F1. The first arithmetic atom, which is an application of a (possibly
+; negated) binary arithmetic relation.
+; @premise F2. The first arithmetic atom, which is an application of a (possibly
+; negated) binary arithmetic relation over the same terms as F2.
+; @conclusion A third relation over the same terms that along with F1 and F2
+; forms a trichotomy.
 (declare-rule arith_trichotomy ((F1 Bool) (F2 Bool))
   :premises (F1 F2)
   :conclusion ($mk_arith_trichotomy ($arith_normalize_lit (not F1)) ($arith_normalize_lit (not F2)))
