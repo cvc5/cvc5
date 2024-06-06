@@ -5093,12 +5093,12 @@ ProofRule Proof::getRule() const
 ProofRewriteRule Proof::getRewriteRule() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_proofNode()->getRule() == ProofRule::DSL_REWRITE
-                 || d_proofNode()->getRule()
+  CVC5_API_CHECK(d_proofNode->getRule() == ProofRule::DSL_REWRITE
+                 || d_proofNode->getRule()
                         == ProofRule::THEORY_REWRITE)
       << "expected `getRule()` to return `DSL_REWRITE` or `THEORY_REWRITE`, "
          "got "
-      << d_proofNode()->getRule() << " instead.";
+      << d_proofNode->getRule() << " instead.";
   //////// all checks before this line
   if (d_proofNode != nullptr)
   {
