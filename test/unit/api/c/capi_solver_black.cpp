@@ -1320,6 +1320,62 @@ TEST_F(TestCApiBlackSolver, get_unsat_core2)
   ASSERT_DEATH(cvc5_get_unsat_core(d_solver, &size), "cannot get unsat core");
 }
 
+TEST_F(TestCApiBlackSolver, get_difficulty)
+{
+  cvc5_set_option(d_solver, "produce-difficulty", "true");
+  size_t size;
+  Cvc5Term *inputs, *values;
+  ASSERT_DEATH(cvc5_get_difficulty(nullptr, &size, &inputs, &values),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_difficulty(d_solver, nullptr, &inputs, &values),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_difficulty(d_solver, &size, nullptr, &values),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_difficulty(d_solver, &size, &inputs, nullptr),
+               "unexpected NULL argument");
+  // cannot ask before a check sat
+  ASSERT_DEATH(cvc5_get_difficulty(d_solver, &size, &inputs, &values),
+               "cannot get difficulty");
+  cvc5_check_sat(d_solver);
+  cvc5_get_difficulty(d_solver, &size, &inputs, &values);
+}
+
+TEST_F(TestCApiBlackSolver, get_difficulty2)
+{
+  cvc5_check_sat(d_solver);
+  size_t size;
+  Cvc5Term *inputs, *values;
+  // option is not set
+  ASSERT_DEATH(cvc5_get_difficulty(d_solver, &size, &inputs, &values),
+               "Cannot get difficulty");
+}
+
+TEST_F(TestCApiBlackSolver, get_difficulty3)
+{
+  cvc5_set_option(d_solver, "produce-difficulty", "true");
+  size_t size;
+  Cvc5Term *inputs, *values;
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term ten = cvc5_mk_integer_int64(d_tm, 10);
+  std::vector<Cvc5Term> args = {x, ten};
+  Cvc5Term f0 = cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
+  args = {zero, x};
+  Cvc5Term f1 = cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
+  cvc5_assert_formula(d_solver, f0);
+  cvc5_assert_formula(d_solver, f1);
+  cvc5_check_sat(d_solver);
+  cvc5_get_difficulty(d_solver, &size, &inputs, &values);
+  ASSERT_EQ(size, 2);
+  // difficulty should map assertions to integer values
+  for (size_t i = 0; i < size; ++i)
+  {
+    ASSERT_TRUE(cvc5_term_is_equal(inputs[i], f0)
+                || cvc5_term_is_equal(inputs[i], f1));
+    ASSERT_EQ(cvc5_term_get_kind(values[i]), CVC5_KIND_CONST_INTEGER);
+  }
+}
+
 TEST_F(TestCApiBlackSolver, push1)
 {
   cvc5_set_option(d_solver, "incremental", "true");

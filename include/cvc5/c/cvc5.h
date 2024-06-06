@@ -3355,10 +3355,6 @@ Cvc5Sort cvc5_declare_sort(Cvc5* solver,
                            uint32_t arity,
                            bool fresh);
 
-/* .................................................................... */
-/* Formula Handling                                                     */
-/* .................................................................... */
-
 /**
  * Define n-ary function.
  *
@@ -3476,6 +3472,11 @@ void cvc5_define_funs_rec(Cvc5* cvc5,
                           const Cvc5Term* vars[],
                           const Cvc5Term terms[],
                           bool global);
+
+/* .................................................................... */
+/* Other commands                                                       */
+/* .................................................................... */
+
 /**
  * Simplify a formula without doing "much" work.
  *
@@ -3684,15 +3685,18 @@ const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size);
  * to real `values` is an estimate of how difficult each assertion was to solve.
  * Unmentioned assertions can be assumed to have zero difficulty.
  *
- * @param cvc5 The solver instance.
- * @param size The size of `inputs` and `values`.
+ * @param cvc5   The solver instance.
+ * @param size   The resulting size of `inputs` and `values`.
  * @param inputs The resulting inputs that are mapped to the resulting `values`.
  * @param values The resulting real values.
+ *
+ * @note The resulting `inputs` and `values` array pointers are only valid
+ *       until the next call to this function.
  */
 void cvc5_get_difficulty(Cvc5* cvc5,
                          size_t* size,
-                         const Cvc5Term inputs[],
-                         const Cvc5Term values[]);
+                         Cvc5Term* inputs[],
+                         Cvc5Term* values[]);
 
 /**
  * Get a timeout core, which computes a subset of the current assertions that
@@ -3885,7 +3889,7 @@ const char* cvc5_get_model(Cvc5* cvc5,
  * \endverbatim
  *
  * @note Quantifier Elimination is is only complete for logics such as LRA,
- * LIA and BV.
+ *       LIA and BV.
  *
  * @warning This function is experimental and may change in future versions.
  *
