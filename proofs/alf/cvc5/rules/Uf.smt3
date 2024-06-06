@@ -82,28 +82,50 @@
     :conclusion ($mk_cong f f E)
 )
 
-; N-ary congruence
-; We use two side conditions for computing each side of the returned equality.
-; This avoids intermediate node construction.
-(program mk_nary_cong_lhs ((U Type) (f (-> U U)) (s1 U) (s2 U) (tail Bool :list))
-    ((-> U U) Bool) Bool
+; @program $mk_nary_cong_lhs
+; @arg f : (-> U U U). The function we are applying congruence over. This is
+; assumed to be a right-associative n-ary operator with nil terminator, i.e.
+; marked with :right-assoc-nil.
+; @arg E : Bool. A conjunction of the remaining equalities we have left to
+; process.
+; @returns the left hand side of the equality proven by nary_cong for f and
+; the given premises E.
+; @note We use two side conditions for computing each side of the returned
+; equality. This avoids constructing equalities between intermediate terms.
+(program $mk_nary_cong_lhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (tail Bool :list))
+    ((-> U U U) Bool) Bool
     (
-        ((mk_nary_cong_lhs f (and (= s1 s2) tail)) (alf.cons f s1 (mk_nary_cong_lhs f tail)))
-        ((mk_nary_cong_lhs f true)                 (alf.nil f))
-    )
-)
-(program mk_nary_cong_rhs ((U Type) (f (-> U U)) (s1 U) (s2 U) (tail Bool :list))
-    ((-> U U) Bool) Bool
-    (
-        ((mk_nary_cong_rhs f (and (= s1 s2) tail)) (alf.cons f s2 (mk_nary_cong_rhs f tail)))
-        ((mk_nary_cong_rhs f true)                 (alf.nil f))
+        (($mk_nary_cong_lhs f (and (= s1 s2) tail)) (alf.cons f s1 ($mk_nary_cong_lhs f tail)))
+        (($mk_nary_cong_lhs f true)                 (alf.nil f))
     )
 )
 
+; @program $mk_nary_cong_rhs
+; @arg f : (-> U U U). The function we are applying congruence over.
+; @arg E : Bool. A conjunction of the remaining equalities we have left to
+; process.
+; @returns the right hand side of the equality proven by nary_cong for f and
+; the given premises E.
+; @note This program is analogous to $mk_nary_cong_lhs.
+(program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (tail Bool :list))
+    ((-> U U U) Bool) Bool
+    (
+        (($mk_nary_cong_rhs f (and (= s1 s2) tail)) (alf.cons f s2 ($mk_nary_cong_rhs f tail)))
+        (($mk_nary_cong_rhs f true)                 (alf.nil f))
+    )
+)
+
+; @rule nary_cong implements ProofRule::NARY_CONG
+; @premises E. A conjunction of equalities to apply nary-congruence to.
+; @arg f : (-> T U). The function to apply congruence to. This is assumed to be
+; a function that is right-associative n-ary operator with nil terminator, e.g.
+; it is marked :right-assoc-nil.
+; @conclusion An equality between applications of f whose arguments are given
+; by the equalities in E.
 (declare-rule nary_cong ((U Type) (E Bool) (f (-> U U)) (nil U))
     :premise-list E and
     :args (f)
-    :conclusion (= (mk_nary_cong_lhs f E) (mk_nary_cong_rhs f E))
+    :conclusion (= ($mk_nary_cong_lhs f E) ($mk_nary_cong_rhs f E))
 )
 
 ; TRUE_INTRO
