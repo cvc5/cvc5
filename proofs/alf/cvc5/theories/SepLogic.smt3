@@ -2,19 +2,25 @@
 ; NOTE: this signature does not enforce that the operators take into account the declared heap types.
 
 ; The distinguished nil element.
+; @disclaimer This function is not in SMT-LIB.
 (declare-const sep.nil (-> (! Type :var T) T))
 
 ; The empty heap constraint.
+; @disclaimer This function is not in SMT-LIB.
 (declare-const sep.emp Bool)
 
 ; Separating conjunction.
+; @disclaimer This function is not in SMT-LIB.
 (declare-const sep (-> Bool Bool Bool) :right-assoc-nil true)
 
 ; Magic wand.
+; @disclaimer This function is not in SMT-LIB.
 (declare-const wand (-> Bool Bool Bool))
 
 ; The points-to predicate.
+; @disclaimer This function is not in SMT-LIB.
 (declare-const pto (-> (! Type :var U :implicit) (! Type :var T :implicit) U T Bool))
 
 ; Internal functions.
+; @disclaimer This function is not in SMT-LIB.
 (declare-const SEP_LABEL (-> (! Type :var U :implicit) (! Type :var T :implicit) U (Set T) Bool))

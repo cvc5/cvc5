@@ -2,7 +2,7 @@
 (include "../theories/Builtin.smt3")
 (include "../theories/Arith.smt3")
 
-; @disclaimer This sort is not part of the SMT-LIB standard. All further
+; @disclaimer This sort is not in the SMT-LIB standard. All further
 ; function symbols over this sort are also not part of the SMT-LIB standard.
 (declare-sort Bag 1)
 

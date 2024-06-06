@@ -1,5 +1,6 @@
 (include "../theories/Ints.smt3")
 
+; Note that we do not currently check that the index of this sort is positive.
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 

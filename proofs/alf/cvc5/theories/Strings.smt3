@@ -2,12 +2,17 @@
 (include "../theories/Arith.smt3")
 
 ; The sequence type.
+; @disclaimer This sort is not in SMT-LIB.
 (declare-type Seq (Type))
 
 ; String is treated as a sequence of characters in the ALF signature.
 ; Note that this is only for the purposes of simplifying the type rules below.
 ; Internally, cvc5 will never generate any proofs involving the Char type.
+; @disclaimer This sort is not in SMT-LIB.
 (declare-sort Char 0)
+; @disclaimer This sort is declared to be an atomic sort in SMT-LIB. We
+; generalize it to be defined as a sequence of characters, for the purposes
+; of lifting the theory definition and proof rules for strings to sequences.
 (define-fun String () Type (Seq Char))
 
 ; The regular expression type.
@@ -17,6 +22,7 @@
 (declare-consts <string> String)
 
 ; Empty sequence
+; @disclaimer This function is not in SMT-LIB.
 (declare-const seq.empty (-> (! Type :var T) T))
 
 ; Make empty string of the given string-like sort U.
@@ -50,12 +56,17 @@
                                 (Seq T) (Seq T) Bool))
 (declare-const str.suffixof (-> (! Type :var T :implicit)
                                 (Seq T) (Seq T) Bool))
+; @disclaimer This function is not in SMT-LIB.
 (declare-const str.rev (-> (! Type :var T :implicit)
                            (Seq T) (Seq T)))
+; @disclaimer This function is not in SMT-LIB.
 (declare-const str.unit (-> Int String))
+; @disclaimer This function is not in SMT-LIB.
 (declare-const str.update (-> (! Type :var T :implicit)
                               (Seq T) Int (Seq T) (Seq T)))
+; @disclaimer This function is not in SMT-LIB.
 (declare-const str.to_lower (-> String String))
+; @disclaimer This function is not in SMT-LIB.
 (declare-const str.to_upper (-> String String))
 (declare-const str.to_code (-> String Int))
 (declare-const str.from_code (-> Int String))
@@ -68,6 +79,7 @@
                                    (Seq T) (Seq T) (Seq T) (Seq T)))
 (declare-const str.replace_re (-> String RegLan String String))
 (declare-const str.replace_re_all (-> String RegLan String String))
+; @disclaimer This function is not in SMT-LIB.
 (declare-const str.indexof_re (-> String RegLan Int Int))
 
 ; Regular expression operators.
@@ -89,20 +101,33 @@
 (declare-const str.in_re (-> String RegLan Bool))
 
 ; Sequence-specific operators.
+; @disclaimer This function is not in SMT-LIB.
 (declare-const seq.unit (-> (! Type :var T :implicit) T (Seq T)))
+; @disclaimer This function is not in SMT-LIB.
 (declare-const seq.nth (-> (! Type :var T :implicit) (Seq T) Int (alf.ite (alf.is_eq T Char) Int T)))
 
 ; Sequence operators are automatically translated to the string operators.
+; @disclaimer This function is not in SMT-LIB.
 (define seq.len () str.len)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.++ () str.++)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.extract () str.substr)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.contains () str.contains)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.replace () str.replace)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.indexof () str.indexof)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.prefixof () str.prefixof)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.suffixof () str.suffixof)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.rev () str.rev)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.update () str.update)
+; @disclaimer This function is not in SMT-LIB.
 (define seq.at () str.at)
 
 ; Skolem functions for strings and sequences.
