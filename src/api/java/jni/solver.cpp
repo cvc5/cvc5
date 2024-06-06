@@ -993,6 +993,7 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   TermManager* tm = new TermManager();
   jobject pluginReference = env->NewGlobalRef(plugin);
+  globalReferences[pointer].push_back(pluginReference);
   ApiPlugin* p = new ApiPlugin(*tm, env, pluginReference);
   solver->addPlugin(*p);
   CVC5_JAVA_API_TRY_CATCH_END(env);
