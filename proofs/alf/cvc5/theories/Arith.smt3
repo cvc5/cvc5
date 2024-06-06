@@ -36,6 +36,8 @@
 ; Using integer nil terminators ensures typing is accurate.
 ; @disclaimer This function is overloaded in SMT-LIB and does not permit
 ; mixed arithmetic.
+; @disclaimer This function is declared to be :left-assoc in SMT-LIB. We declare
+; it with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-const + (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      T U (arith_typeunion T U)) :right-assoc-nil 0)
@@ -46,6 +48,8 @@
                      T U (arith_typeunion T U)) :left-assoc)
 ; @disclaimer This function is overloaded in SMT-LIB and does not permit
 ; mixed arithmetic.
+; @disclaimer This function is declared to be :left-assoc in SMT-LIB. We declare
+; it with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-const * (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      T U (arith_typeunion T U)) :right-assoc-nil 1)
