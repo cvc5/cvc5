@@ -4,6 +4,11 @@
 (include "../programs/Arith.smt3")
 (include "../programs/Utils.smt3")
 
+; @program $arith_rel_sum
+; @arg r1 : T. The first arithmetic relation.
+; @arg r2 : U. The second arithmetic relation.
+; @return the relation that is implied when applications of the relations r1 and
+; r2 are added together for ProofRule::ARITH_SUM_UB.
 (program $arith_rel_sum ((T Type) (U Type) (S Type) (r1 T) (r2 U))
   (T U) S
   (
@@ -18,6 +23,10 @@
     (($arith_rel_sum = <=) <=)
   )
 )
+
+; @program $arith_mk_zero
+; @arg u : Type. The type of the zero, which should be Int or Real.
+; @return the zero for the given type.
 (program $arith_mk_zero ((T Type))
   (Type) T
   (
@@ -26,6 +35,10 @@
   )
 )
 
+; @program $mk_arith_sum_ub
+; @arg F : Bool. A conjunction of arithmetic relations.
+; @return the arithmetic relation that is implied by adding each of the
+; relations in F together.
 (program $mk_arith_sum_ub ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U) (tail Bool :list))
     (Bool) Bool
     (
@@ -37,6 +50,10 @@
     )
 )
 
+; @rule arith_sum_ub implements ProofRule::ARITH_SUM_UB
+; @premises F : Bool. A conjunction of arithmetic relations.
+; @conclusion The arithmetic relation that is implied by adding each of the
+; relations in F together.
 (declare-rule arith_sum_ub ((F Bool))
   :premise-list F and
   :conclusion ($mk_arith_sum_ub F)
@@ -50,19 +67,20 @@
   )
 )
 
+; @rule arith_mult_pos implements ProofRule::ARITH_MULT_POS
 (declare-rule arith_mult_pos ((T Type) (m T) (F Bool))
   :args (m F)
   :conclusion (=> (and (> m ($arith_mk_zero (alf.typeof m))) F) ($mk_arith_mult_pos m F))
 )
 
-(program arith_rel_inv ((T Type) (U Type) (S Type))
+(program $arith_rel_inv ((T Type) (U Type) (S Type))
   (T) S
   (
-    ((arith_rel_inv =) =)
-    ((arith_rel_inv <) >)
-    ((arith_rel_inv <=) >=)
-    ((arith_rel_inv >) <)
-    ((arith_rel_inv >=) <=)
+    (($arith_rel_inv =) =)
+    (($arith_rel_inv <) >)
+    (($arith_rel_inv <=) >=)
+    (($arith_rel_inv >) <)
+    (($arith_rel_inv >=) <=)
   )
 )
 
@@ -70,10 +88,11 @@
 (program $mk_arith_mult_neg ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
   (
-    (($mk_arith_mult_neg m (r a b)) (_ (arith_rel_inv r) (* m a) (* m b)))
+    (($mk_arith_mult_neg m (r a b)) (_ ($arith_rel_inv r) (* m a) (* m b)))
   )
 )
 
+; @rule arith_mult_neg implements ProofRule::ARITH_MULT_NEG
 (declare-rule arith_mult_neg ((T Type) (m T) (F Bool))
   :args (m F)
   :conclusion (=> (and (< m ($arith_mk_zero (alf.typeof m))) F) ($mk_arith_mult_neg m F))
@@ -118,6 +137,7 @@
   )
 )
 
+; @rule arith_trichotomy implements ProofRule::ARITH_TRICHOTOMY
 (declare-rule arith_trichotomy ((F1 Bool) (F2 Bool))
   :premises (F1 F2)
   :conclusion ($mk_arith_trichotomy (arith_normalize_lit (not F1)) (arith_normalize_lit (not F2)))
@@ -134,7 +154,7 @@
   )
 )
 
-; Implements ProofRule::INT_TIGHT_UB based on the above method.
+; @rule int_tight_ub implements ProofRule::INT_TIGHT_UB
 (declare-rule int_tight_ub ((R Type) (s Int) (t R))
   :premises ((< s t))
   :conclusion (<= s ($greatest_int_lt t))
@@ -148,7 +168,7 @@
   )
 )
 
-; Implements ProofRule::INT_TIGHT_LB based on the above method.
+; @rule int_tight_lb implements ProofRule::INT_TIGHT_LB
 (declare-rule int_tight_lb ((R Type) (s Int) (t R))
   :premises ((> s t))
   :conclusion (>= s ($least_int_gt t))
