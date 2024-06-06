@@ -675,8 +675,434 @@ void Cvc5TermManager::release()
 }
 
 /* -------------------------------------------------------------------------- */
-/* Cvc5Datatype                                                               */
+/* Cvc5Sort                                                                   */
 /* -------------------------------------------------------------------------- */
+
+bool cvc5_sort_is_equal(Cvc5Sort a, Cvc5Sort b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_sort == b->d_sort;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_disequal(Cvc5Sort a, Cvc5Sort b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a != b;
+  }
+  else
+  {
+    res = a->d_sort != b->d_sort;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+int64_t cvc5_sort_compare(Cvc5Sort a, Cvc5Sort b)
+{
+  int64_t res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(a);
+  CVC5_CAPI_CHECK_SORT(b);
+  res = a->d_sort < b->d_sort ? -1 : (a->d_sort > b->d_sort ? 1 : 0);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5SortKind cvc5_sort_get_kind(Cvc5Sort sort)
+{
+  Cvc5SortKind res = CVC5_SORT_KIND_INTERNAL_SORT_KIND;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = static_cast<Cvc5SortKind>(sort->d_sort.getKind());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_has_symbol(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.hasSymbol();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_sort_get_symbol(Cvc5Sort sort)
+{
+  const char* res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_API_CHECK(cvc5_sort_has_symbol(sort))
+      << "cannot get symbol of sort that has no symbol";
+  static thread_local std::string str;
+  if (sort->d_sort.hasSymbol())
+  {
+    str = sort->d_sort.getSymbol();
+    res = str.c_str();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_boolean(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isBoolean();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_integer(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isInteger();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_real(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isReal();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_string(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isString();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_regexp(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isRegExp();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_rm(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isRoundingMode();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_bv(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isBitVector();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_fp(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isFloatingPoint();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_dt(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isDatatype();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_dt_constructor(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isDatatypeConstructor();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_dt_selector(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isDatatypeSelector();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_dt_tester(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isDatatypeTester();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_dt_updater(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isDatatypeUpdater();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_fun(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isFunction();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_predicate(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isPredicate();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_tuple(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isTuple();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_nullable(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isNullable();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_record(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isRecord();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_array(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isArray();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_ff(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isFiniteField();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_set(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isSet();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_bag(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isBag();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_sequence(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isSequence();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_abstract(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isAbstract();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_uninterpreted_sort(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isUninterpretedSort();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_uninterpreted_sort_constructor(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isUninterpretedSortConstructor();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_sort_is_instantiated(Cvc5Sort sort)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (sort)
+  {
+    res = sort->d_sort.isInstantiated();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Sort cvc5_sort_get_uninterpreted_sort_constructor(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getUninterpretedSortConstructor());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Datatype cvc5_sort_get_datatype(Cvc5Sort sort)
+{
+  Cvc5Datatype res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_dt(sort->d_sort.getDatatype());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
 
 Cvc5Sort cvc5_sort_instantiate(Cvc5Sort sort,
                                size_t size,
@@ -693,6 +1119,390 @@ Cvc5Sort cvc5_sort_instantiate(Cvc5Sort sort,
     cparams.push_back(params[i]->d_sort);
   }
   res = sort->d_tm->export_sort(sort->d_sort.instantiate(cparams));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Sort* cvc5_sort_get_instantiated_parameters(Cvc5Sort sort,
+                                                      size_t* size)
+{
+  static thread_local std::vector<Cvc5Sort> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto sorts = sort->d_sort.getInstantiatedParameters();
+  auto tm = sort->d_tm;
+  for (auto& s : sorts)
+  {
+    res.push_back(tm->export_sort(s));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return *size > 0 ? res.data() : nullptr;
+}
+
+Cvc5Sort cvc5_sort_substitute(Cvc5Sort sort, Cvc5Sort s, Cvc5Sort replacement)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_SORT(s);
+  CVC5_CAPI_CHECK_SORT(replacement);
+  res = sort->d_tm->export_sort(
+      sort->d_sort.substitute(s->d_sort, replacement->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Sort cvc5_sort_substitute_sorts(Cvc5Sort sort,
+                                    size_t size,
+                                    const Cvc5Sort sorts[],
+                                    const Cvc5Sort replacements[])
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_NOT_NULL(sorts);
+  CVC5_CAPI_CHECK_NOT_NULL(replacements);
+  std::vector<cvc5::Sort> csorts;
+  for (uint32_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_SORT_AT_IDX(sorts, i);
+    csorts.push_back(sorts[i]->d_sort);
+  }
+  std::vector<cvc5::Sort> creplacements;
+  for (uint32_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_SORT_AT_IDX(replacements, i);
+    creplacements.push_back(replacements[i]->d_sort);
+  }
+  res = sort->d_tm->export_sort(sort->d_sort.substitute(csorts, creplacements));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_sort_to_string(Cvc5Sort sort)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  str = sort->d_sort.toString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+size_t cvc5_sort_hash(Cvc5Sort sort)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = std::hash<cvc5::Sort>{}(sort->d_sort);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Datatype constructor sort ------------------------------------------- */
+
+size_t cvc5_sort_dt_constructor_get_arity(Cvc5Sort sort)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_sort.getDatatypeConstructorArity();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Sort* cvc5_sort_dt_constructor_get_domain(Cvc5Sort sort, size_t* size)
+{
+  static thread_local std::vector<Cvc5Sort> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto sorts = sort->d_sort.getDatatypeConstructorDomainSorts();
+  auto tm = sort->d_tm;
+  for (auto& s : sorts)
+  {
+    res.push_back(tm->export_sort(s));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return *size > 0 ? res.data() : nullptr;
+}
+
+Cvc5Sort cvc5_sort_dt_constructor_get_codomain(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(
+      sort->d_sort.getDatatypeConstructorCodomainSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Dataype Selector sort ------------------------------------------------ */
+
+Cvc5Sort cvc5_sort_dt_selector_get_domain(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getDatatypeSelectorDomainSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Sort cvc5_sort_dt_selector_get_codomain(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getDatatypeSelectorCodomainSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Datatype Tester sort ------------------------------------------------ */
+
+Cvc5Sort cvc5_sort_dt_tester_get_domain(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getDatatypeTesterDomainSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Sort cvc5_sort_dt_tester_get_codomain(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getDatatypeTesterCodomainSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Function sort ------------------------------------------------------- */
+
+size_t cvc5_sort_fun_get_arity(Cvc5Sort sort)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_sort.getFunctionArity();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Sort* cvc5_sort_fun_get_domain(Cvc5Sort sort, size_t* size)
+{
+  static thread_local std::vector<Cvc5Sort> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto sorts = sort->d_sort.getFunctionDomainSorts();
+  auto tm = sort->d_tm;
+  for (auto& s : sorts)
+  {
+    res.push_back(tm->export_sort(s));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return *size > 0 ? res.data() : nullptr;
+}
+
+Cvc5Sort cvc5_sort_fun_get_codomain(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getFunctionCodomainSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Array sort ---------------------------------------------------------- */
+
+Cvc5Sort cvc5_sort_array_get_index_sort(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getArrayIndexSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Sort cvc5_sort_array_get_element_sort(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getArrayElementSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Set sort ------------------------------------------------------------ */
+
+Cvc5Sort cvc5_sort_set_get_element_sort(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getSetElementSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Bag sort ------------------------------------------------------------ */
+
+Cvc5Sort cvc5_sort_bag_get_element_sort(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getBagElementSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Sequence sort ------------------------------------------------------- */
+
+Cvc5Sort cvc5_sort_sequence_get_element_sort(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getSequenceElementSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Abstract sort ------------------------------------------------------- */
+
+Cvc5SortKind cvc5_sort_abstract_get_kind(Cvc5Sort sort)
+{
+  Cvc5SortKind res = CVC5_SORT_KIND_INTERNAL_SORT_KIND;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = static_cast<Cvc5SortKind>(sort->d_sort.getAbstractedKind());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Uninterpreted sort constructor sort --------------------------------- */
+
+size_t cvc5_sort_uninterpreted_sort_constructor_get_arity(Cvc5Sort sort)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_sort.getUninterpretedSortConstructorArity();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Bit-vector sort ----------------------------------------------------- */
+
+uint32_t cvc5_sort_bv_get_size(Cvc5Sort sort)
+{
+  uint32_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_sort.getBitVectorSize();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Finite field sort --------------------------------------------------- */
+
+const char* cvc5_sort_ff_get_size(Cvc5Sort sort)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  str = sort->d_sort.getFiniteFieldSize();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+/* Floating-point sort ------------------------------------------------- */
+
+uint32_t cvc5_sort_fp_get_exp_size(Cvc5Sort sort)
+{
+  uint32_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_sort.getFloatingPointExponentSize();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+uint32_t cvc5_sort_fp_get_sig_size(Cvc5Sort sort)
+{
+  uint32_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_sort.getFloatingPointSignificandSize();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Datatype sort ------------------------------------------------------- */
+
+size_t cvc5_sort_dt_get_arity(Cvc5Sort sort)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_sort.getDatatypeArity();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Tuple sort ---------------------------------------------------------- */
+
+size_t cvc5_sort_tuple_get_length(Cvc5Sort sort)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_sort.getTupleLength();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Sort* cvc5_sort_tuple_get_element_sorts(Cvc5Sort sort, size_t* size)
+{
+  static thread_local std::vector<Cvc5Sort> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto sorts = sort->d_sort.getTupleSorts();
+  auto tm = sort->d_tm;
+  for (auto& s : sorts)
+  {
+    res.push_back(tm->export_sort(s));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return *size > 0 ? res.data() : nullptr;
+}
+
+Cvc5Sort cvc5_sort_nullable_get_element_sort(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->export_sort(sort->d_sort.getNullableElementSort());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -836,7 +1646,7 @@ Cvc5Term cvc5_dt_sel_get_updater_term(Cvc5DatatypeSelector sel)
   Cvc5Term res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_DT_SEL(sel);
-  res = sel->d_tm->export_term(sel->d_dt_sel.getTerm());
+  res = sel->d_tm->export_term(sel->d_dt_sel.getUpdaterTerm());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -1010,6 +1820,7 @@ const Cvc5Sort* cvc5_dt_get_parameters(Cvc5Datatype dt, size_t* size)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_DT(dt);
   CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
   auto sorts = dt->d_dt.getParameters();
   auto tm = dt->d_tm;
   for (auto& s : sorts)
@@ -1089,6 +1900,20 @@ const char* cvc5_dt_to_string(Cvc5Datatype dt)
   str = dt->d_dt.toString();
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Term                                                                   */
+/* -------------------------------------------------------------------------- */
+
+Cvc5Sort cvc5_term_get_sort(Cvc5Term term)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_tm->export_sort(term->d_term.getSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1241,6 +2066,7 @@ const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
   CVC5_CAPI_CHECK_NOT_NULL(decls);
+  res.clear();
   std::vector<cvc5::DatatypeDecl> cdecls;
   for (size_t i = 0; i < size; ++i)
   {
@@ -1383,7 +2209,6 @@ Cvc5Sort cvc5_mk_uninterpreted_sort(Cvc5TermManager* tm, const char* symbol)
   Cvc5Sort res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
-  CVC5_CAPI_CHECK_NOT_NULL(symbol);
   if (symbol)
   {
     res = tm->export_sort(tm->d_tm.mkUninterpretedSort(symbol));

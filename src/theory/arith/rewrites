@@ -26,6 +26,8 @@
 (define-rule arith-elim-minus ((t ?) (s ?)) (- t s) (+ t (* (- 1) s)))
 (define-rule arith-elim-gt ((t ?) (s ?)) (> t s) (not (<= t s)))
 (define-rule arith-elim-lt ((t ?) (s ?)) (< t s) (not (>= t s)))
+(define-rule arith-elim-int-gt ((t Int) (s Int)) (> t s) (>= t (+ s 1)))
+(define-rule arith-elim-int-lt ((t Int) (s Int)) (< t s) (>= s (+ t 1)))
 (define-rule arith-elim-leq ((t ?) (s ?)) (<= t s) (>= s t))
 
 (define-rule arith-leq-norm ((t Int) (s Int)) (<= t s) (not (>= t (+ s 1))))
