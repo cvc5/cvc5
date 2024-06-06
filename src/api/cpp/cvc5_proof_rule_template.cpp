@@ -151,10 +151,10 @@ const char* toString(ProofRule rule)
     case ProofRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
-    case ProofRule::MACRO_RE_ELIM: return "RE_ELIM";
     case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
     case ProofRule::MACRO_STRING_INFERENCE: return "MACRO_STRING_INFERENCE";
+    case ProofRule::MACRO_RE_ELIM: return "MACRO_RE_ELIM";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
     case ProofRule::ARITH_SUM_UB: return "ARITH_SUM_UB";

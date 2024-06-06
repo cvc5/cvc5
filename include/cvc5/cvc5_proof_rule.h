@@ -1716,24 +1716,6 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Regular expressions -- Macro elimination**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid F,b}{F =
-   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
-   *
-   * where :math:`b` is a Boolean indicating whether we are using aggressive
-   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
-   * are performed for :math:`F`.
-   *
-   * \rst
-   * .. note:: We do not currently support elaboration of this macro.
-   * \endverbatim
-   */
-  EVALUE(MACRO_RE_ELIM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Code points**
    *
    * .. math::
@@ -1769,7 +1751,24 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(MACRO_STRING_INFERENCE),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Macro elimination**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid F,b}{F =
+   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
+   *
+   * where :math:`b` is a Boolean indicating whether we are using aggressive
+   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
+   * are performed for :math:`F`.
+   *
+   * \rst
+   * .. note:: We do not currently support elaboration of this macro.
+   * \endverbatim
+   */
+  EVALUE(MACRO_RE_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Adding inequalities**
