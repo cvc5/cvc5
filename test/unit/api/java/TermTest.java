@@ -1111,11 +1111,12 @@ class TermTest
     assertEquals(Arrays.asList(new Term[] {a, b}), Arrays.asList(sk2.getSkolemIndices()));
   }
 
-  // TEST_F(TestApiBlackTerm, getNumIndicesForSkolemId)
-  // {
-  //   size_t numIndices = d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX);
-  //   ASSERT_EQ(numIndices, 5);
-  // }
+  @Test
+  void testGetNumIndices() throws CVC5ApiException
+  {
+    int numIndices = d_tm.getNumIndicesForSkolemId(SkolemId.ARRAY_DEQ_DIFF);
+    assertEquals(numIndices, 2);
+  }
 
   @Test
   void substitute()
