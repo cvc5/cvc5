@@ -1376,6 +1376,81 @@ TEST_F(TestCApiBlackSolver, get_difficulty3)
   }
 }
 
+TEST_F(TestCApiBlackSolver, get_timeout_core)
+{
+  cvc5_set_option(d_solver, "timeout-core-timeout", "100");
+  cvc5_set_option(d_solver, "produce-unsat-cores", "true");
+
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term tt = cvc5_mk_true(d_tm);
+  std::vector<Cvc5Term> args = {x, x};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_MULT, args.size(), args.data()),
+          cvc5_mk_integer(d_tm, "501240912901901249014210220059591")};
+  Cvc5Term hard = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, tt);
+  cvc5_assert_formula(d_solver, hard);
+
+  Cvc5Result result;
+  size_t size;
+  const Cvc5Term* core = cvc5_get_timeout_core(d_solver, &result, &size);
+  ASSERT_TRUE(cvc5_result_is_unknown(result));
+  ASSERT_EQ(size, 1);
+  ASSERT_TRUE(cvc5_term_is_equal(core[0], hard));
+
+  ASSERT_DEATH(cvc5_get_timeout_core(nullptr, &result, &size),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_timeout_core(d_solver, nullptr, &size),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_timeout_core(d_solver, &result, nullptr),
+               "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, get_timeout_core_unsat)
+{
+  cvc5_set_option(d_solver, "produce-unsat-cores", "true");
+  Cvc5Term ff = cvc5_mk_false(d_tm);
+  Cvc5Term tt = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, tt);
+  cvc5_assert_formula(d_solver, ff);
+  cvc5_assert_formula(d_solver, tt);
+
+  Cvc5Result result;
+  size_t size;
+  const Cvc5Term* core = cvc5_get_timeout_core(d_solver, &result, &size);
+  ASSERT_TRUE(cvc5_result_is_unsat(result));
+  ASSERT_EQ(size, 1);
+  ASSERT_TRUE(cvc5_term_is_equal(core[0], ff));
+}
+
+TEST_F(TestCApiBlackSolver, get_timeout_core_assuming)
+{
+  cvc5_set_option(d_solver, "produce-unsat-cores", "true");
+  Cvc5Term ff = cvc5_mk_false(d_tm);
+  Cvc5Term tt = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, tt);
+
+  std::vector<Cvc5Term> assumptions = {ff, tt};
+  Cvc5Result result;
+  size_t size;
+  const Cvc5Term* core = cvc5_get_timeout_core_assuming(
+      d_solver, assumptions.size(), assumptions.data(), &result, &size);
+  ASSERT_TRUE(cvc5_result_is_unsat(result));
+  ASSERT_EQ(size, 1);
+  ASSERT_TRUE(cvc5_term_is_equal(core[0], ff));
+}
+
+TEST_F(TestCApiBlackSolver, get_timeout_core_assuming_empty)
+{
+  cvc5_set_option(d_solver, "produce-unsat-cores", "true");
+  std::vector<Cvc5Term> assumptions = {};
+  Cvc5Result result;
+  size_t size;
+  ASSERT_DEATH(
+      cvc5_get_timeout_core_assuming(
+          d_solver, assumptions.size(), assumptions.data(), &result, &size),
+      "unexpected NULL argument");
+}
+
 TEST_F(TestCApiBlackSolver, push1)
 {
   cvc5_set_option(d_solver, "incremental", "true");

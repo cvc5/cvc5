@@ -1348,7 +1348,7 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals2)
   ASSERT_NO_THROW(d_solver->getLearnedLiterals());
 }
 
-TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
+TEST_F(TestApiBlackSolver, getTimeoutCore)
 {
   d_solver->setOption("timeout-core-timeout", "100");
   d_solver->setOption("produce-unsat-cores", "true");
@@ -1367,7 +1367,7 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
   ASSERT_EQ(res.second[0], hard);
 }
 
-TEST_F(TestApiBlackSolver, getTimeoutCore)
+TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
 {
   d_solver->setOption("produce-unsat-cores", "true");
   Term ff = d_tm.mkBoolean(false);
