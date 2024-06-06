@@ -35,7 +35,7 @@
 ; Core operators of arithmetic, which are used in mixed Int/Real arithmetic.
 ; Using integer nil terminators ensures typing is accurate.
 ; @disclaimer This function is overloaded in SMT-LIB and does not permit
-; mixed arithmetic, the addition of an Int and Real.
+; mixed arithmetic.
 (declare-const + (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      T U (arith_typeunion T U)) :right-assoc-nil 0)
