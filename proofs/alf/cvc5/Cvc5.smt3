@@ -46,15 +46,15 @@
       ((run_evaluate (xor x y))           (alf.xor (run_evaluate x) (run_evaluate y)))
   
       ; arithmetic
-      ((run_evaluate (< x z))             (alf.is_neg (arith_eval_qsub (run_evaluate x) (run_evaluate z))))
-      ((run_evaluate (<= x z))            (let ((d (arith_eval_qsub (run_evaluate x) (run_evaluate z))))
+      ((run_evaluate (< x z))             (alf.is_neg ($arith_eval_qsub (run_evaluate x) (run_evaluate z))))
+      ((run_evaluate (<= x z))            (let ((d ($arith_eval_qsub (run_evaluate x) (run_evaluate z))))
                                             (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
-      ((run_evaluate (> x z))             (alf.is_neg (arith_eval_qsub (run_evaluate z) (run_evaluate x))))
-      ((run_evaluate (>= x z))            (let ((d (arith_eval_qsub (run_evaluate z) (run_evaluate x))))
+      ((run_evaluate (> x z))             (alf.is_neg ($arith_eval_qsub (run_evaluate z) (run_evaluate x))))
+      ((run_evaluate (>= x z))            (let ((d ($arith_eval_qsub (run_evaluate z) (run_evaluate x))))
                                             (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
-      ((run_evaluate (+ x ys))            (arith_eval_add (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (- x z))             (arith_eval_sub (run_evaluate x) (run_evaluate z)))
-      ((run_evaluate (* x ys))            (arith_eval_mul (run_evaluate x) (run_evaluate ys)))
+      ((run_evaluate (+ x ys))            ($arith_eval_add (run_evaluate x) (run_evaluate ys)))
+      ((run_evaluate (- x z))             ($arith_eval_sub (run_evaluate x) (run_evaluate z)))
+      ((run_evaluate (* x ys))            ($arith_eval_mul (run_evaluate x) (run_evaluate ys)))
       ((run_evaluate (- x))               (alf.neg (run_evaluate x)))
       ((run_evaluate (/ x y))             (alf.qdiv (alf.to_q (run_evaluate x)) (alf.to_q (run_evaluate y))))
       ((run_evaluate (/_total x y))       (let ((d (alf.to_q (run_evaluate y))))
@@ -128,30 +128,30 @@
   :conclusion (= t (run_evaluate t))
 )
 
-(program is_poly_norm ((T Type) (U Type) (a T) (b T) (a1 U) (a2 U) (b1 U) (b2 U))
+(program $is_poly_norm ((T Type) (U Type) (a T) (b T) (a1 U) (a2 U) (b1 U) (b2 U))
   (T T) Bool
   (
-    ((is_poly_norm (> a1 a2) (> b1 b2))   (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    ((is_poly_norm (>= a1 a2) (>= b1 b2)) (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    ((is_poly_norm (<= a1 a2) (<= b1 b2)) (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    ((is_poly_norm (< a1 a2) (< b1 b2))   (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    ((is_poly_norm (= a1 a2) (= b1 b2))   (alf.ite (is_arith_type (alf.typeof a1)) 
-                                          (alf.ite (is_arith_type (alf.typeof b1))
-                                            (is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) false)
-                                            false)
-                                          false)) ; TODO: bv
-    ((is_poly_norm a b)                   (alf.ite (is_arith_type (alf.typeof a)) 
-                                          (alf.ite (is_arith_type (alf.typeof b))
-                                            (is_poly_norm_arith a b)
-                                            false)
-                                          false)) ; TODO: bv
+    (($is_poly_norm (> a1 a2) (> b1 b2))   ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    (($is_poly_norm (>= a1 a2) (>= b1 b2)) ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    (($is_poly_norm (<= a1 a2) (<= b1 b2)) ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    (($is_poly_norm (< a1 a2) (< b1 b2))   ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
+    (($is_poly_norm (= a1 a2) (= b1 b2))   (alf.ite (is_arith_type (alf.typeof a1)) 
+                                           (alf.ite (is_arith_type (alf.typeof b1))
+                                             ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) false)
+                                             false)
+                                           false)) ; TODO: bv
+    (($is_poly_norm a b)                   (alf.ite (is_arith_type (alf.typeof a)) 
+                                           (alf.ite (is_arith_type (alf.typeof b))
+                                             ($is_poly_norm_arith a b)
+                                             false)
+                                           false)) ; TODO: bv
   )
 )
 
 ; ProofRule::ARITH_POLY_NORM
 (declare-rule arith_poly_norm ((U Type) (a U) (b U))
   :args ((= a b))
-  :requires (((is_poly_norm a b) true))
+  :requires ((($is_poly_norm a b) true))
   :conclusion (= a b)
 )
 
