@@ -232,6 +232,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
+        Term mkSkolem(SkolemId& id, const vector[Term]& indices) except +
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
@@ -322,6 +323,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
+        Term mkSkolem(SkolemId& id, const vector[Term]& indices) except +
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +

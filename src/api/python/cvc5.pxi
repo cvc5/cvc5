@@ -1308,6 +1308,19 @@ cdef class TermManager:
           return _sort(self, self.ctm.mkParamSort())
         return _sort(self, self.ctm.mkParamSort(symbolname.encode()))
 
+    def mkSkolem(self, c_SkolemId id, indices):
+        """
+            Create a skolem. 
+
+            :param id: The skolem id.
+            :param indices: The indices for the skolem.
+            :return: The skolem with the given id and indices. 
+        """  
+        cdef vector[c_Term] v
+        for t in indices:
+            v.push_back((<Term?>t).cterm)
+        return _term(self, self.ctm.mkSkolem(id, <const vector[c_Term]&>indices))
+
     def mkPredicateSort(self, *sorts):
         """
             Create a predicate sort.
@@ -2249,6 +2262,16 @@ cdef class Solver:
                          future release.
         """
         return self.tm.mkParamSort(symbolname)
+
+    def mkSkolem(self, id, indices):
+        """
+            Create a skolem. 
+
+            :param id: The skolem id.
+            :param indices: The indices for the skolem.
+            :return: The skolem with the given id and indices. 
+        """  
+        return self.tm.mkSkolem(id, indices)
 
     def mkPredicateSort(self, *sorts):
         """
