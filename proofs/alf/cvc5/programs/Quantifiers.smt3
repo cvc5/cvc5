@@ -11,10 +11,24 @@
   )
 )
 
-(program substitute_list ((T Type) (U Type) (F U) (x T) (xs @List :list) (t T) (ts @List :list))
+(program $substitute_list ((T Type) (U Type) (F U) (x T) (xs @List :list) (t T) (ts @List :list))
   (@List @List U) U
   (
-    ((substitute_list (@list x xs) (@list t ts) F) (substitute_list xs ts (substitute x t F)))
-    ((substitute_list @list.nil @list.nil F)       F)
+    (($substitute_list (@list x xs) (@list t ts) F) ($substitute_list xs ts (substitute x t F)))
+    (($substitute_list @list.nil @list.nil F)       F)
+  )
+)
+
+
+; @program $beta_reduce
+; @arg u : U. The term to beta reduce. This should be an application of a lambda
+; whose arguments have been partially accumulated into ss.
+; @arg ss : @List. The accumulated list of arguments to pass to the lambda.
+; @return the result of beta reduction.
+(program $beta_reduce ((U Type) (T Type) (S Type) (f (-> T U)) (a T) (t S) (xs @List) (ss @List :list))
+  (U @List) U
+  (
+  (($beta_reduce (lambda xs t) ss) ($substitute_list xs ss))
+  (($beta_reduce (f a) ss)         ($beta_reduce a (@list a ss))
   )
 )

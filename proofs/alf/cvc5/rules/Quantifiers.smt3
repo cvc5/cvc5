@@ -47,3 +47,13 @@
   :args (B vs ts)
   :conclusion (= B (substitute_list vs ts B))
 )
+
+; @rule beta_reduce implements ProofRewriteRule::BETA_REDUCE
+; @args eq : Bool. The equality to prove.
+; @requires Showing that a beta-reduces to b.
+; @conclusion The given equality.
+(declare-rule beta_reduce ((T Type) (a T) (b T))
+  :args ((= a b))
+  :requires ((($beta_reduce a) b))
+  :conclusion (= a b)
+)
