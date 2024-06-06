@@ -192,7 +192,7 @@
 ; @rule contra implements ProofRule::CONTRA
 ; @premise F1 : Bool. A formula.
 ; @premise F2 : Bool. The negation of F1.
-: @conclusion false.
+; @conclusion false.
 (declare-rule contra ((F Bool))
     :premises (F (not F))
     :conclusion false
