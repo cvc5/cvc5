@@ -154,7 +154,7 @@
 )
 
 
-; @rule true_elim implements ProofRule::TRUE_ELIM
+; @rule false_elim implements ProofRule::FALSE_ELIM
 ; @premise F1. The formula to process, which is an equality whose right hand
 ; side is false.
 ; @conclusion The negation of the left hand side of the premise.
@@ -163,7 +163,7 @@
     :conclusion (not F)
 )
 
-; @rule cong implements ProofRule::HO_CONG
+; @rule ho_cong implements ProofRule::HO_CONG
 ; @premises E. A conjunction of equalities to apply congruence to.
 ; @conclusion An equality between a function application that is given by
 ; the premises E. Note that the first equality in E should be an equality
@@ -177,10 +177,6 @@
         E
         (((and (= t1 t2) tail) ($mk_cong t1 t2 tail))))
 )
-
-; HO_APP_ENCODE
-
-; BETA_REDUCE
 
 ;;-------------------- Instances of THEORY_REWRITE
 

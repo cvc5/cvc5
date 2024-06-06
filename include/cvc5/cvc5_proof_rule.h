@@ -1134,6 +1134,10 @@ enum ENUM(ProofRule) : uint32_t
    *
    * For example, this rule concludes :math:`f(x,y) = @(@(f,x),y)`, where
    * :math:`@` isthe ``HO_APPLY`` kind.
+   *
+   * Note this rule can be treated as a
+   * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
+   * external proof formats.
    *  \endverbatim
    */
   EVALUE(HO_APP_ENCODE),
