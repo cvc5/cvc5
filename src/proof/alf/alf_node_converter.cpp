@@ -243,7 +243,7 @@ Node AlfNodeConverter::postConvert(Node n)
     std::vector<Node> newArgs;
     newArgs.push_back(nm->mkConstInt(irp.d_index));
     newArgs.insert(newArgs.end(), n.begin(), n.end());
-    return mkInternalApp("INDEXED_ROOT_PREDICATE", newArgs, tn);
+    return mkInternalApp("@indexed_root_predicate", newArgs, tn);
   }
   else if (k == Kind::FLOATINGPOINT_COMPONENT_NAN
            || k == Kind::FLOATINGPOINT_COMPONENT_INF

@@ -1422,6 +1422,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SEP_WAND: return "wand";
     case Kind::SEP_EMP: return "sep.emp";
     case Kind::SEP_NIL: return "sep.nil";
+    case Kind::SEP_LABEL: return "@sep_label";
 
     // quantifiers
     case Kind::FORALL: return "forall";
