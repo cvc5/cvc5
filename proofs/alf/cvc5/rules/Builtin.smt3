@@ -51,14 +51,3 @@
   :conclusion
     (let ((k (ite b t1 t2))) (ite b (= k t1) (= k t2))))
 
-; trust with an arbitrary list of premises
-(declare-rule trust ((P Bool) (F Bool))
-    :premise-list P and
-    :args (F)
-    :conclusion F
-)
-
-(declare-rule identity ((F Bool))
-    :premises (F)
-    :conclusion F
-)

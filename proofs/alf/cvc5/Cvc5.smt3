@@ -40,6 +40,16 @@
 ; The cases of ProofRule::DSL_REWRITE are by default provided on demand in
 ; the preamble of the proof that is output by cvc5.
 ;
+; The rules ProofRule::TRUST and ProofRule::TRUST_THEORY_REWRITE are output in
+; ALF proofs using a catch-all rule trust defined at the end of this file. This
+; rule is also used for any ProofRule for which the ALF signature does not
+; currently support. In cvc5's proof ouput, an ALF comment will be displayed
+; above an application of this rule to indicate diagnostic information on the
+; source of this inference, in the format of a TrustId, tracked internally in
+; cvc5 to classify the source of the incompleteness.
+; !!! NOTE: proofs having any instance of trust should be considered incomplete
+; and not having a formal justification.
+;
 ; Discrepancies between cvc5's Proof API and the formal ALF definition are
 ; also noted when applicable by @disclaimer.
 ; 
@@ -239,4 +249,18 @@
               (alf.ite (alf.is_eq a bn) true
                 (alf.is_eq an bn)))) true))
   :conclusion (= a b)
+)
+
+; @rule trust
+; @premises P. A conjunction of the premises passed to this rule.
+; @args F : Bool. The proven formula, which should be implied by P.
+; @conclusion The given formula F.
+; @note This rule is not sound. Any proof involving this rule should be
+; considered incomplete. We use this rule when encountering ProofRule::TRUST,
+; ProofRule::TRUST_THEORY_REWRITE, or any other rule that is not currently
+; formalized in the ALF signature.
+(declare-rule trust ((P Bool) (F Bool))
+    :premise-list P and
+    :args (F)
+    :conclusion F
 )
