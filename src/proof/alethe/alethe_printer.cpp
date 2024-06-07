@@ -119,6 +119,8 @@ void AletheProofPrinter::printTerm(std::ostream& out, TNode n)
   // Make sure we do not introduce "let" for sharing, since names will not have
   // been introduced under binders.
   options::ioutils::applyDagThresh(ss, 0);
+  // Guarantee we print reals as expected
+  options::ioutils::applyPrintArithLitToken(ss, true);
   ss << d_lbind.convert(n, "@p_");
   out << ss.str();
 }
