@@ -96,7 +96,8 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> indices =
         GenericOp::getIndicesForOperator(k, n.getOperator());
-    indices.insert(indices.begin(), nm->mkConst(Kind::APPLY_INDEXED_SYMBOLIC_OP, GenericOp(k)));
+    indices.insert(indices.begin(),
+                   nm->mkConst(Kind::APPLY_INDEXED_SYMBOLIC_OP, GenericOp(k)));
     indices.insert(indices.end(), n.begin(), n.end());
     Node ret = nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, indices);
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);

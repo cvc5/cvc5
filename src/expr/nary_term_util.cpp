@@ -17,6 +17,7 @@
 
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
@@ -24,7 +25,6 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
-#include "theory/builtin/generic_op.h"
 
 using namespace cvc5::internal::kind;
 
@@ -381,7 +381,7 @@ using NormalFormAttr = expr::Attribute<NormalFormTag, Node>;
 Node getACINormalForm(Node a)
 {
   // special case
-  if (a.getKind()==Kind::APPLY_SINGLETON)
+  if (a.getKind() == Kind::APPLY_SINGLETON)
   {
     return a[0];
   }
