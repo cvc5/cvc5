@@ -1,4 +1,35 @@
-; Meta-inclusion for cvc5 rules and extra rules
+; =============================================================================
+;
+; This is the official development version of the ALF signature for cvc5's
+; internal proof calculus. It is a faithful formalization of cvc5's theory
+; signatures and proof rules.
+;
+; NOTE: cvc5 does not strictly follow the SMT-LIB version 2.6 standard. In
+; particular, it contains many extensions, including non-standard theories as
+; well as non-standard extensions of existing theories. Moreover, some standard
+; theory symbols have subtle differences with the SMT-LIB standard.
+;
+; For example of the latter:
+; - Many arithmetic symbols in cvc5 such as +, *, >= operate on *mixed*
+; arithmetic. That is, they can be applied to mixtures of Real and Int.
+; - Most associative operators are modelled as variadic (modelled in ALF as
+; :left-assoc-nil and :right-assoc-nil) instead of being seen as syntax sugar
+; for an associative chain that does not distinguish a nil terminator (e.g.
+; :left-assoc and :right-assoc). Examples of these operators include or, bvand,
+; +, and so on.
+; - cvc5 generalizes strings to sequences, so that strings are defined to be
+; (Seq Char).
+; Whenever applicable, these differences are marked with @disclaimer comments.
+;
+; Furthermore, this signature is designed to capture the exact definition of
+; cvc5's proof API. That is, Proof objects in our API are expected to have the
+; same expected arguments and premises as their formal definition in this
+; signature.
+;
+; Discrepancies between cvc5's Proof API and the formal ALF definition are
+; also noted when applicable by @disclaimer.
+; 
+; =============================================================================
 
 (include "./rules/Builtin.smt3")
 (include "./rules/Booleans.smt3")
