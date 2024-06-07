@@ -81,6 +81,23 @@ if(NOT GLPK_FOUND_SYSTEM)
     message(FATAL_ERROR "Can not build GLPK, missing binary for automake")
   endif()
 
+  set(CONFIGURE_ENV "")
+  set(CONFIGURE_OPTS "")
+  if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
+    set(CONFIGURE_OPTS
+      --host=${TOOLCHAIN_PREFIX}
+      --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
+
+    set(CONFIGURE_ENV ${CONFIGURE_ENV} ${CMAKE_COMMAND} -E
+      env "CC_FOR_BUILD=cc")
+    if (CMAKE_CROSSCOMPILING_MACOS)
+      set(CONFIGURE_ENV
+        ${CONFIGURE_ENV}
+        env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
+        env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+    endif()
+  endif()
+
   ExternalProject_Add(
     GLPK-EP
     ${COMMON_EP_CONFIG}
@@ -93,8 +110,9 @@ if(NOT GLPK_FOUND_SYSTEM)
     COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ${AUTOHEADER}
     COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ${AUTOCONF}
     COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ${AUTOMAKE} --add-missing
-    COMMAND ${SHELL} <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-shared
-            --enable-static --with-pic
+    COMMAND ${CONFIGURE_ENV} ${SHELL} <SOURCE_DIR>/configure
+            --prefix=<INSTALL_DIR> --disable-shared
+            --enable-static --with-pic ${CONFIGURE_OPTS}
     BUILD_COMMAND ${MAKE_CMD} install
     BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libglpk.a
                      <INSTALL_DIR>/include/glpk.h
