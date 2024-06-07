@@ -29,7 +29,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm, Rewriter * rr) : TheoryRewriter(nm), d_rr(rr)
+TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm, Rewriter* rr)
+    : TheoryRewriter(nm), d_rr(rr)
 {
   registerProofRewriteRule(ProofRewriteRule::BETA_REDUCE,
                            TheoryRewriteCtx::PRE_DSL);
@@ -66,14 +67,14 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       Node lambdaRew = d_rr->rewrite(lambda);
       // We compare against the original operator, if it is different, then
       // we rewrite again.
-      if (lambdaRew!=node.getOperator())
+      if (lambdaRew != node.getOperator())
       {
         std::vector<TNode> args;
         args.push_back(lambdaRew);
         args.insert(args.end(), node.begin(), node.end());
-        NodeManager * nm = NodeManager::currentNM();
+        NodeManager* nm = NodeManager::currentNM();
         Node ret = nm->mkNode(Kind::APPLY_UF, args);
-        Assert (ret!=node);
+        Assert(ret != node);
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
@@ -91,11 +92,13 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       {
         ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
         new_body = esnc.convert(new_body);
-        Trace("uf-ho-beta") << "... elim shadow body is " << new_body << std::endl;
+        Trace("uf-ho-beta")
+            << "... elim shadow body is " << new_body << std::endl;
       }
       else
       {
-        Trace("uf-ho-beta") << "... no free vars in substitution for " << vars << " -> " << subs << std::endl;
+        Trace("uf-ho-beta") << "... no free vars in substitution for " << vars
+                            << " -> " << subs << std::endl;
       }
       Node ret = new_body.substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());

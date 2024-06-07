@@ -58,7 +58,7 @@ Node ElimShadowNodeConverter::postConvert(Node n)
   }
   std::vector<Node> oldVars;
   std::vector<Node> newVars;
-  for (size_t i=0, nvars=n[0].getNumChildren(); i<nvars; i++)
+  for (size_t i = 0, nvars = n[0].getNumChildren(); i < nvars; i++)
   {
     const Node& v = n[0][i];
     if (std::find(d_vars.begin(), d_vars.end(), v) != d_vars.end())
@@ -97,10 +97,10 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
   // drop duplicate variables
   std::vector<Node> vars;
   bool childChanged = false;
-  for (size_t i=0, nvars=q[0].getNumChildren(); i<nvars; i++)
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
     const Node& v = q[0][i];
-    if (std::find(vars.begin(), vars.end(), v)==vars.end())
+    if (std::find(vars.begin(), vars.end(), v) == vars.end())
     {
       vars.push_back(v);
     }

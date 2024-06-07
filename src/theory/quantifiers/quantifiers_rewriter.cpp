@@ -574,7 +574,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
     // to be over the fresh variables instead.
     std::vector<Node> oldVars;
     std::vector<Node> newVars;
-    for (size_t i=0, nvars=body[0].getNumChildren(); i<nvars; i++)
+    for (size_t i = 0, nvars = body[0].getNumChildren(); i < nvars; i++)
     {
       const Node& v = body[0][i];
       if (std::find(args.begin(), args.end(), v) != args.end())
@@ -582,7 +582,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
         Trace("quantifiers-rewrite-unshadow")
             << "Found shadowed variable " << v << " in " << q << std::endl;
         oldVars.push_back(v);
-        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, body,i);
+        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, body, i);
         newVars.push_back(nv);
       }
     }
