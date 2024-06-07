@@ -915,8 +915,8 @@ bool RewriteDbProofCons::ensureProofInternal(
                 rsubs.push_back(pcur.d_subs[d]);
               }
               // get the conditions, store into premises of cur.
-              std::vector<bool> ess;
-              if (!rpr.getObligations(vs, rsubs, ps, ess))
+              std::vector<Node> psse;
+              if (!rpr.getObligations(vs, rsubs, ps, psse))
               {
                 Assert(false) << "failed a side condition?";
                 return false;

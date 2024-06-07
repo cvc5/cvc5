@@ -84,7 +84,8 @@ class RewriteProofRule
   bool getObligations(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
                       std::vector<Node>& vcs,
-                      std::vector<bool>& ess) const;
+                      std::vector<Node>& vcsse,
+                      bool computeSingletonElim = false) const;
   /**
    * Check match, return true if h matches the head of this rule; notifies
    * the match notify object ntm.

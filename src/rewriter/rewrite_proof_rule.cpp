@@ -113,22 +113,36 @@ bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs) const
 {
-  std::vector<bool> ess;
-  return getObligations(vs, ss, vcs, ess);
+  std::vector<Node> vcsse;
+  return getObligations(vs, ss, vcs, vcsse, false);
 }
 
 bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs,
-                                      std::vector<bool>& ess) const
+                                      std::vector<Node>& vcsse,
+                      bool computeSingletonElim) const
 {
   // substitute into each condition
   for (const Node& c : d_obGen)
   {
     bool estmp = false;
-    Node sc = expr::narySubstitute(c, vs, ss, true, estmp);
-    vcs.push_back(sc);
-    ess.push_back(estmp);
+    Node sc = expr::narySubstitute(c, vs, ss, computeSingletonElim, estmp);
+    if (estmp)
+    {
+      Assert (computeSingletonElim);
+      Node scnse = expr::narySubstitute(c, vs, ss, false, estmp);
+      vcs.push_back(scnse);
+      vcsse.push_back(sc);
+    }
+    else
+    {    
+      vcs.push_back(sc);
+      if (computeSingletonElim)
+      {
+        vcsse.push_back(sc);
+      }
+    }
   }
   return true;
 }
