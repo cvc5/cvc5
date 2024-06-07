@@ -61,15 +61,16 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     if (!lambda.isNull())
     {
       // ensure the lambda is rewritten
-      Node lambdaPrev = lambda;
-      lambda = d_rr->rewrite(lambda);
-      if (lambda!=lambdaPrev)
+      Node lambdaRew = d_rr->rewrite(lambda);
+      // We compare against the original operator, not its lambda equivalent
+      if (lambdaRew!=node.getOperator())
       {
         std::vector<TNode> args;
-        args.push_back(lambda);
+        args.push_back(lambdaRew);
         args.insert(args.end(), node.begin(), node.end());
         NodeManager * nm = NodeManager::currentNM();
         Node ret = nm->mkNode(Kind::APPLY_UF, args);
+        Assert (ret!=node);
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
