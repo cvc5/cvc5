@@ -923,10 +923,10 @@ bool RewriteDbProofCons::ensureProofInternal(
                 Assert(false) << "failed a side condition?";
                 return false;
               }
-              Assert (ps.size()==premisesEs.size());
-              for (size_t i=0, nps = ps.size(); i<nps; i++)
+              Assert(ps.size() == premisesEs.size());
+              for (size_t i = 0, nps = ps.size(); i < nps; i++)
               {
-                if (ps[i]!=premisesEs[i])
+                if (ps[i] != premisesEs[i])
                 {
                   ensureProofSingletonElim(cdp, ps[i], premisesEs[i]);
                 }
@@ -1044,7 +1044,7 @@ bool RewriteDbProofCons::ensureProofInternal(
           {
             conc = concEs;
           }
-          if (conc!=concEs)
+          if (conc != concEs)
           {
             ensureProofSingletonElim(cdp, conc, concEs);
           }
@@ -1203,7 +1203,9 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
   return ret;
 }
 
-bool RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp, const Node& eq, const Node eqSe)
+bool RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp,
+                                                  const Node& eq,
+                                                  const Node eqSe)
 {
   ++d_statPfSingletonElims;
   return true;

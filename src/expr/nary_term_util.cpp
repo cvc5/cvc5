@@ -197,8 +197,8 @@ Node getNullTerminator(Kind k, TypeNode tn)
   return nullTerm;
 }
 
-Node mkSingletonApp(Kind k, const Node& n) 
-{ 
+Node mkSingletonApp(Kind k, const Node& n)
+{
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args;
   args.push_back nm->mkConst(GenericOp(k)));
@@ -206,10 +206,10 @@ Node mkSingletonApp(Kind k, const Node& n)
   return nm->mkNode(Kind::APPLY_SINGLETON, args);
 }
 
-bool isSingletonApp(const Node& n, Kind& k, Node& arg) 
-{ 
+bool isSingletonApp(const Node& n, Kind& k, Node& arg)
+{
   // FIXME
-  return n.getKind()==Kind::APPLY_SINGLETON; 
+  return n.getKind() == Kind::APPLY_SINGLETON;
 }
 
 Node narySubstitute(Node src,
