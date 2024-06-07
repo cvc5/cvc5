@@ -80,8 +80,9 @@ class TheoryUfRewriter : public TheoryRewriter
 
  private:
   /**
-   * Pointer to the rewriter. NOTE this is a cyclic dependency, and should
-   * be removed.
+   * Pointer to the rewriter, required for rewriting lambdas that appear
+   * inside of operators that are not in rewritten form. NOTE this is a cyclic
+   * dependency, and should be removed.
    */
   Rewriter* d_rr;
   /** Entry point for rewriting lambdas */
