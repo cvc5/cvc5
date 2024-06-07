@@ -219,10 +219,11 @@ glpk-cut-log (A fork of the GNU Linear Programming Kit)
 This can be used to speed up certain classes of problems for the arithmetic
 implementation in cvc5. (This is not recommended for most users.)
 
-glpk-cut-log can be installed using the ``contrib/get-glpk-cut-log`` script.
-Note that the only installation option is manual installation via this script.
-cvc5 is no longer compatible with the main GLPK library. Configure cvc5 with
-``configure.sh --glpk`` to build with this dependency.
+cvc5 is no longer compatible with the main GLPK library.
+To use the patched version of it, we recommend downloading it using
+the ``--auto-download`` configuration flag, which applies
+the patch automatically.
+Configure cvc5 with ``configure.sh --glpk`` to build with this dependency.
 
 Note that GLPK and glpk-cut-log are covered by the `GNU General Public License,
 version 3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If you choose to use
