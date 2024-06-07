@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
+TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm, Rewriter * rr) : TheoryRewriter(nm), d_rr(rr)
 {
   registerProofRewriteRule(ProofRewriteRule::BETA_REDUCE,
                            TheoryRewriteCtx::PRE_DSL);
@@ -61,7 +61,6 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     if (!lambda.isNull())
     {
       // ensure the lambda is rewritten
-      /*
       Node lambdaPrev = lambda;
       lambda = d_rr->rewrite(lambda);
       if (lambda!=lambdaPrev)
@@ -73,7 +72,6 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         Node ret = nm->mkNode(Kind::APPLY_UF, args);
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
-      */
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
                           << lambda << " for " << node << "\n";
       std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
