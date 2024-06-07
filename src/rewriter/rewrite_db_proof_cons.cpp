@@ -1022,7 +1022,16 @@ bool RewriteDbProofCons::ensureProofInternal(
           std::vector<Node> subs(args.begin() + 1, args.end());
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
           // do not eliminate singletons
-          conc = rpr.getConclusionFor(subs, false);
+          bool ems = false;
+          Node concEms = rpr.getConclusionFor(subs, true, ems);
+          if (ems)
+          {
+            conc = rpr.getConclusionFor(subs, false, ems);
+          }
+          else
+          {
+            conc = concEms;
+          }
           // TODO: eliminate singletons here and see difference??
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
           Trace("rpc-debug") << "Proved: " << cur << std::endl;

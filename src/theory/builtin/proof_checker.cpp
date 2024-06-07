@@ -465,7 +465,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
       }
     }
     // do not eliminate singletons
-    return rpr.getConclusionFor(subs, false);
+    return rpr.getConclusionFor(subs, false, estmp);
   }
   else if (id == ProofRule::THEORY_REWRITE)
   {

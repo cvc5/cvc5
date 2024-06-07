@@ -737,7 +737,8 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       std::vector<Node> ss(pargs.begin() + 1, pargs.end());
       std::vector<std::pair<Kind, std::vector<Node>>> witnessTerms;
       // do not eliminate singletons
-      rpr.getConclusionFor(ss, witnessTerms, false);
+      bool estmp = false;
+      rpr.getConclusionFor(ss, witnessTerms, false, estmp);
       TypeNode absType = nodeManager()->mkAbstractType(Kind::ABSTRACT_TYPE);
       // the arguments are the computed witness terms
       for (const std::pair<Kind, std::vector<Node>>& w : witnessTerms)
