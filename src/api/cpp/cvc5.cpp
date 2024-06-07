@@ -5732,7 +5732,11 @@ Term TermManager::mkSkolem(SkolemId id, const std::vector<Term>& indices)
 
 size_t TermManager::getNumIndicesForSkolemId(SkolemId id)
 {
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   return d_nm->getSkolemManager()->getNumIndicesForSkolemId(id);
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 
 Sort TermManager::mkParamSort(const std::optional<std::string>& symbol)
