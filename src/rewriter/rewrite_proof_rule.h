@@ -110,7 +110,7 @@ class RewriteProofRule
    * variable,
    * @return the substituted conclusion of the rule.
    */
-  Node getConclusionFor(const std::vector<Node>& ss) const;
+  Node getConclusionFor(const std::vector<Node>& ss, bool elimSingletons) const;
   /**
    * Get conclusion of the rule for the substituted terms ss.
    * Additionally computes the "witness term" for each variable in the rule
@@ -131,7 +131,7 @@ class RewriteProofRule
    */
   Node getConclusionFor(
       const std::vector<Node>& ss,
-      std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms) const;
+      std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms, bool elimSingletons) const;
 
   /**
    * Is variable explicit? An explicit variable is one that does not occur

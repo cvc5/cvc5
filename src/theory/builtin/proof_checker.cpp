@@ -457,13 +457,15 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     bool estmp = false;
     for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
     {
+      // do not eliminate singletons
       Node scond = expr::narySubstitute(conds[i], varList, subs, false, estmp);
       if (scond != children[i])
       {
         return Node::null();
       }
     }
-    return rpr.getConclusionFor(subs);
+    // do not eliminate singletons
+    return rpr.getConclusionFor(subs, false);
   }
   else if (id == ProofRule::THEORY_REWRITE)
   {
