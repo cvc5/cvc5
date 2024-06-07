@@ -1205,9 +1205,10 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
 
 bool RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp,
                                                   const Node& eq,
-                                                  const Node eqSe)
+                                                  const Node& eqSe)
 {
   ++d_statPfSingletonElims;
+  cdp->addTrustedStep(eqSe, TrustId::SINGLETON_ELIM, {eq}, {});
   return true;
 }
 

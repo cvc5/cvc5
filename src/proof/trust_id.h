@@ -73,6 +73,8 @@ enum class TrustId : uint32_t
    * require the use of theory rewrites to prove.
    */
   MACRO_THEORY_REWRITE_RCONS_SIMPLE,
+  /** singleton elim */
+  SINGLETON_ELIM
 };
 /** Converts a trust id to a string. */
 const char* toString(TrustId id);
