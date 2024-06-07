@@ -3058,10 +3058,10 @@ public class Solver extends AbstractPointer
    */
   public void addPlugin(AbstractPlugin p)
   {
-    addPlugin(pointer, p);
+    addPlugin(pointer, p.getTermManager().getPointer(), p);
   }
 
-  private native void addPlugin(long pointer, AbstractPlugin p);
+  private native void addPlugin(long pointer, long termManagerPointer, AbstractPlugin p);
 
   /**
    * Pop a level from the assertion stack.

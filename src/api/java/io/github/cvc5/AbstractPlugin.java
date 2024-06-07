@@ -29,6 +29,15 @@ public abstract class AbstractPlugin
   protected final TermManager termManager;
 
   /**
+   * Get the associated term manager instance
+   * @return The term manager.
+   */
+  public TermManager getTermManager()
+  {
+    return termManager;
+  }
+
+  /**
    * Call to check, return vector of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
    *

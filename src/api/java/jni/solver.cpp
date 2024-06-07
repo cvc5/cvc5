@@ -982,18 +982,20 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    addPlugin
- * Signature: (JLio/github/cvc5/AbstractPlugin;)V
- */
+ * Signature: (JJLio/github/cvc5/AbstractPlugin;)V
+ */  
 JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
                                                             jobject,
                                                             jlong pointer,
+                                                            jlong termManagerPointer,
                                                             jobject plugin)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
+  TermManager* tm = reinterpret_cast<TermManager*>(pointer);
   jobject pluginReference = env->NewGlobalRef(plugin);
   globalReferences[pointer].push_back(pluginReference);
-  ApiPlugin* p = new ApiPlugin(solver->getTermManager(), env, pluginReference);
+  ApiPlugin* p = new ApiPlugin(*tm, env, pluginReference);
   solver->addPlugin(*p);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
