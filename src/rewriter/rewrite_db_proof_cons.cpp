@@ -915,11 +915,13 @@ bool RewriteDbProofCons::ensureProofInternal(
                 rsubs.push_back(pcur.d_subs[d]);
               }
               // get the conditions, store into premises of cur.
-              if (!rpr.getObligations(vs, rsubs, ps))
+              std::vector<bool> ess;
+              if (!rpr.getObligations(vs, rsubs, ps, ess))
               {
                 Assert(false) << "failed a side condition?";
                 return false;
               }
+              // TODO: connect proofs
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
             }
             else
