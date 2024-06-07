@@ -174,6 +174,7 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    bool check,
                                                    std::ostream* errOut)
 {
+  Assert (n.getKind()==Kind::APPLY_INDEXED_SYMBOLIC);
   // get the concrete application version of this, if possible
   Node cn = GenericOp::getConcreteApp(n);
   if (cn == n)
@@ -183,6 +184,20 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
   }
   // if we can make concrete, return its type
   return cn.getType();
+}
+
+TypeNode ApplySingletonTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode ApplySingletonTypeRule::computeType(NodeManager* nodeManager,
+                                                   TNode n,
+                                                   bool check,
+                                                   std::ostream* errOut)
+{
+  Assert (n.getKind()==Kind::APPLY_SINGLETON);
+  // always the type of the first argument
+  return  n[0].getType();
 }
 
 Node SortProperties::mkGroundTerm(TypeNode type)

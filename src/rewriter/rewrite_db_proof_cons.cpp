@@ -47,7 +47,9 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_statTotalAttempts(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalAttempts")),
       d_statTotalInputSuccess(statisticsRegistry().registerInt(
-          "RewriteDbProofCons::totalInputSuccess"))
+          "RewriteDbProofCons::totalInputSuccess")),
+      d_statPfSingletonElims(statisticsRegistry().registerInt(
+          "RewriteDbProofCons::pfSingletonElim"))
 {
   NodeManager* nm = nodeManager();
   d_true = nm->mkConst(true);
@@ -915,11 +917,19 @@ bool RewriteDbProofCons::ensureProofInternal(
                 rsubs.push_back(pcur.d_subs[d]);
               }
               // get the conditions, store into premises of cur.
-              std::vector<Node> psse;
-              if (!rpr.getObligations(vs, rsubs, ps, psse))
+              std::vector<Node> premisesEs;
+              if (!rpr.getObligations(vs, rsubs, ps, premisesEs))
               {
                 Assert(false) << "failed a side condition?";
                 return false;
+              }
+              Assert (ps.size()==premisesEs.size());
+              for (size_t i=0, nps = ps.size(); i<nps; i++)
+              {
+                if (ps[i]!=premisesEs[i])
+                {
+                  ensureProofSingletonElim(cdp, ps[i], premisesEs[i]);
+                }
               }
               // TODO: connect proofs
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
@@ -1025,14 +1035,18 @@ bool RewriteDbProofCons::ensureProofInternal(
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
           // do not eliminate singletons
           bool ems = false;
-          Node concEms = rpr.getConclusionFor(subs, true, ems);
+          Node concEs = rpr.getConclusionFor(subs, true, ems);
           if (ems)
           {
             conc = rpr.getConclusionFor(subs, false, ems);
           }
           else
           {
-            conc = concEms;
+            conc = concEs;
+          }
+          if (conc!=concEs)
+          {
+            ensureProofSingletonElim(cdp, conc, concEs);
           }
           // TODO: eliminate singletons here and see difference??
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
@@ -1187,6 +1201,12 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
   Node ret = expr::narySubstitute(concRhs, vars, subs, true, estmpr);
   Trace("rpc-ctx") << "***RETURN " << ret << std::endl;
   return ret;
+}
+
+bool RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp, const Node& eq, const Node eqSe)
+{
+  ++d_statPfSingletonElims;
+  return true;
 }
 
 void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,

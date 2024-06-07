@@ -199,6 +199,9 @@ class RewriteDbProofCons : protected EnvObj
   bool ensureProofInternal(CDProof* cdp,
                            const Node& eqi,
                            std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  /**
+   */
+  bool ensureProofSingletonElim(CDProof* cdp, const Node& eq, const Node eqSe);
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**
@@ -315,6 +318,8 @@ class RewriteDbProofCons : protected EnvObj
   IntStat d_statTotalAttempts;
   /** Total number of rewrites we proved successfully */
   IntStat d_statTotalInputSuccess;
+  /** Total number of rewrites we proved successfully */
+  IntStat d_statPfSingletonElims;
   /** Fixed point limit */
   static size_t s_fixedPointLimit;
 };
