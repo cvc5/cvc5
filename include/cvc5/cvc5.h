@@ -6113,13 +6113,14 @@ class CVC5_EXPORT Solver
   std::vector<Term> getModelDomainElements(const Sort& s) const;
 
   /**
-   * This returns false if the model value of free constant v was not essential
-   * for showing the satisfiability of the last call to checkSat using the
-   * current model. This function will only return false (for any `v`) if
-   * option
-   * \verbatim embed:rst:inline :ref:`model-cores
-   * <lbl-option-model-cores>`\endverbatim has been set.
+   * Determine if the model value of the given free constant was essential for
+   * showing satisfiability of the last `checkSat()` query based on the current
+   * model.
    *
+   * For any free constant `v`, this will only return false if
+   * \verbatim embed:rst:inline :ref:`model-cores
+   * <lbl-option-model-cores>`\endverbatim
+   * has been set to true.
    * @warning This function is experimental and may change in future versions.
    *
    * @param v The term in question.

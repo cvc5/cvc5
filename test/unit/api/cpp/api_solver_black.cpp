@@ -1493,8 +1493,8 @@ TEST_F(TestApiBlackSolver, getModelDomainElements)
   Term f = d_tm.mkTerm(Kind::DISTINCT, {x, y, z});
   d_solver->assertFormula(f);
   d_solver->checkSat();
-  ASSERT_NO_THROW(d_solver->getModelDomainElements(uSort));
-  ASSERT_TRUE(d_solver->getModelDomainElements(uSort).size() >= 3);
+  auto elems = d_solver->getModelDomainElements(uSort);
+  ASSERT_TRUE(elems.size() >= 3);
   ASSERT_THROW(d_solver->getModelDomainElements(intSort), CVC5ApiException);
 
   TermManager tm;
@@ -1517,9 +1517,9 @@ TEST_F(TestApiBlackSolver, getModelDomainElements2)
   Term f = d_tm.mkTerm(Kind::FORALL, {bvl, eq});
   d_solver->assertFormula(f);
   d_solver->checkSat();
-  ASSERT_NO_THROW(d_solver->getModelDomainElements(uSort));
+  auto elems = d_solver->getModelDomainElements(uSort);
   // a model for the above must interpret u as size 1
-  ASSERT_TRUE(d_solver->getModelDomainElements(uSort).size() == 1);
+  ASSERT_TRUE(elems.size() == 1);
 }
 
 TEST_F(TestApiBlackSolver, isModelCoreSymbol)
@@ -1557,11 +1557,8 @@ TEST_F(TestApiBlackSolver, getModel)
   Term f = d_tm.mkTerm(Kind::NOT, {d_tm.mkTerm(Kind::EQUAL, {x, y})});
   d_solver->assertFormula(f);
   d_solver->checkSat();
-  std::vector<Sort> sorts;
-  sorts.push_back(uSort);
-  std::vector<Term> terms;
-  terms.push_back(x);
-  terms.push_back(y);
+  std::vector<Sort> sorts{uSort};
+  std::vector<Term> terms{x, y};
   ASSERT_NO_THROW(d_solver->getModel(sorts, terms));
   Term null;
   terms.push_back(null);

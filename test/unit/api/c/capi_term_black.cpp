@@ -729,21 +729,20 @@ TEST_F(TestCApiBlackTerm, get_ff_value)
 TEST_F(TestCApiBlackTerm, get_uninterpreted_sort_value)
 {
   ASSERT_DEATH(cvc5_term_get_uninterpreted_sort_value(nullptr), "invalid term");
-  // cvc5_set_option(d_solver, "produce-models", "true");
-  // Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
-  // Cvc5Term y = cvc5_mk_const(d_tm, d_uninterpreted, "y");
-  // std::vector<Cvc5Term> args = {x, y};
-  // cvc5_assert_formula(
-  //     d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(),
-  //     args.data()));
-  // Cvc5Result res = cvc5_check_sat(d_solver);
-  // ASSERT_TRUE(cvc5_result_is_sat(res));
-  // Cvc5Term vx = cvc5_get_value(d_solver, x);
-  // Cvc5Term vy = cvc5_get_value(d_solver, y);
-  // ASSERT_TRUE(cvc5_term_is_uninterpreted_sort_value(vx));
-  // ASSERT_TRUE(cvc5_term_is_uninterpreted_sort_value(vy));
-  // ASSERT_TRUE(cvc5_term_is_equal(cvc5_term_get_uninterpreted_sort_value(vx),
-  //                                cvc5_term_get_uninterpreted_sort_value(vy)));
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_uninterpreted, "y");
+  std::vector<Cvc5Term> args = {x, y};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  Cvc5Result res = cvc5_check_sat(d_solver);
+  ASSERT_TRUE(cvc5_result_is_sat(res));
+  Cvc5Term vx = cvc5_get_value(d_solver, x);
+  Cvc5Term vy = cvc5_get_value(d_solver, y);
+  ASSERT_TRUE(cvc5_term_is_uninterpreted_sort_value(vx));
+  ASSERT_TRUE(cvc5_term_is_uninterpreted_sort_value(vy));
+  ASSERT_EQ(std::string(cvc5_term_get_uninterpreted_sort_value(vx)),
+            cvc5_term_get_uninterpreted_sort_value(vy));
 }
 
 TEST_F(TestCApiBlackTerm, is_rm_value)
@@ -1117,28 +1116,27 @@ TEST_F(TestCApiBlackTerm, get_real_algebraic_number)
 
   // Note that check-sat should only return "sat" if libpoly is enabled.
   // Otherwise, we do not test the following functionality.
-  // if (cvc5_result_is_sat(cvc5_check_sat(d_solver)))
-  //{
-  //  // We find a model for (x*x = 2), where x should be a real algebraic
-  //  number.
-  //  // We assert that its defining polynomial is non-null and its lower and
-  //  // upper bounds are real.
-  //  Cvc5Term vx = cvc5_get_value(d_solver, x);
-  //  ASSERT_TRUE(cvc5_term_is_real_algebraic_number(vx));
-  //  Cvc5Term poly =
-  //      cvc5_term_get_real_algebraic_number_defining_polynomial(vx, y);
-  //  ASSERT_NE(poly, nullptr);
+  if (cvc5_result_is_sat(cvc5_check_sat(d_solver)))
+  {
+    // We find a model for (x*x = 2), where x should be a real algebraic number.
+    // We assert that its defining polynomial is non-null and its lower and
+    // upper bounds are real.
+    Cvc5Term vx = cvc5_get_value(d_solver, x);
+    ASSERT_TRUE(cvc5_term_is_real_algebraic_number(vx));
+    Cvc5Term poly =
+        cvc5_term_get_real_algebraic_number_defining_polynomial(vx, y);
+    ASSERT_NE(poly, nullptr);
 
-  //  Cvc5Term lb = cvc5_term_get_real_algebraic_number_lower_bound(vx);
-  //  Cvc5Term ub = cvc5_term_get_real_algebraic_number_upper_bound(vx);
-  //  ASSERT_TRUE(cvc5_term_is_real_value(lb));
-  //  ASSERT_TRUE(cvc5_term_is_real_value(ub));
-  //  // cannot call with non-variable
-  //  Cvc5Term yc = cvc5_mk_const(d_tm, d_real, "y");
-  //  ASSERT_DEATH(
-  //      cvc5_term_get_real_algebraic_number_defining_polynomial(vx, yc),
-  //      "asdf");
-  //}
+    Cvc5Term lb = cvc5_term_get_real_algebraic_number_lower_bound(vx);
+    Cvc5Term ub = cvc5_term_get_real_algebraic_number_upper_bound(vx);
+    ASSERT_TRUE(cvc5_term_is_real_value(lb));
+    ASSERT_TRUE(cvc5_term_is_real_value(ub));
+    // cannot call with non-variable
+    Cvc5Term yc = cvc5_mk_const(d_tm, d_real, "y");
+    ASSERT_DEATH(
+        cvc5_term_get_real_algebraic_number_defining_polynomial(vx, yc),
+        "invalid argument");
+  }
 }
 
 TEST_F(TestCApiBlackTerm, get_skolem)
