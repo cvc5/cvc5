@@ -541,7 +541,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     Assert(id == RewriteProofStatus::DSL);
     const RewriteProofRule& rpr = d_db->getRule(r);
     // does it conclusion match what we are trying to show?
-    Node conc = rpr.getConclusion();
+    Node conc = rpr.getConclusion(false);
     Assert(conc.getKind() == Kind::EQUAL && target.getKind() == Kind::EQUAL);
     // get rule conclusion, which may incorporate fixed point semantics when
     // doFixedPoint is true. This stores the rule for the conclusion in pic,
@@ -1021,7 +1021,7 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           std::vector<Node> subs(args.begin() + 1, args.end());
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
-          conc = rpr.getConclusionFor(subs, false);
+          conc = rpr.getConclusionFor(subs);
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
           Trace("rpc-debug") << "Proved: " << cur << std::endl;
           Trace("rpc-debug") << "From: " << conc << std::endl;
@@ -1078,7 +1078,8 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     // start from the source, match again to start the chain. Notice this is
     // required for uniformity since we want to successfully cache the first
     // step, independent of the target.
-    Node ssrc = expr::narySubstitute(conc[0], vars, subs);
+    bool estmp = false;
+    Node ssrc = expr::narySubstitute(conc[0], vars, subs, true, estmp);
     Node stgt = ssrc;
     do
     {
@@ -1126,8 +1127,10 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     {
       const std::vector<Node>& stepSubs = stepsSubs[i];
       Node step = steps[i];
-      Node source = expr::narySubstitute(conc[0], vars, stepSubs);
-      Node target = expr::narySubstitute(body, vars, stepSubs);
+      bool estmps = false;
+      Node source = expr::narySubstitute(conc[0], vars, stepSubs, true, estmps);
+      bool estmpt = false;
+      Node target = expr::narySubstitute(body, vars, stepSubs, true, estmpt);
       target = target.substitute(TNode(placeholder), TNode(step));
       cacheProofSubPlaceholder(currContext, placeholder, source, target);
       Trace("rpc-ctx") << "Step " << source << " == " << target << " from "
@@ -1140,7 +1143,8 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       dpi.d_vars = vars;
       dpi.d_subs = stepSubs;
 
-      currConc = expr::narySubstitute(currConc, vars, stepSubs);
+      bool estmpc = false;
+      currConc = expr::narySubstitute(currConc, vars, stepSubs, true, estmpc);
       currContext = currConc;
       Node prevConc = currConc;
       if (i < size - 1)
@@ -1166,7 +1170,8 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     }
   }
 
-  Node ret = expr::narySubstitute(concRhs, vars, subs);
+  bool estmpr = false;
+  Node ret = expr::narySubstitute(concRhs, vars, subs, true, estmpr);
   Trace("rpc-ctx") << "***RETURN " << ret << std::endl;
   return ret;
 }

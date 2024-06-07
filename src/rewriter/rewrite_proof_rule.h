@@ -100,7 +100,7 @@ class RewriteProofRule
    * the RARE rule is given a "context" as described in the constructor).
    * @return The (uninstantiated) conclusion of the rule.
    */
-  Node getConclusion(bool includeContext = false) const;
+  Node getConclusion(bool includeContext) const;
   /**
    * Get conclusion of the rule for the substituted terms ss for the variables
    * v = getVarList() of this rule.

@@ -197,9 +197,15 @@ Node getNullTerminator(Kind k, TypeNode tn)
   return nullTerm;
 }
 
-Node mkSingletonApp(Kind k, const Node& n);
+Node mkSingletonApp(Kind k, const Node& n)
+{
+  return n;
+}
 
-bool isSingletonApp(const Node& n, Kind& k, Node& arg);
+bool isSingletonApp(const Node& n, Kind& k, Node& arg)
+{
+  return false;
+}
 
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
