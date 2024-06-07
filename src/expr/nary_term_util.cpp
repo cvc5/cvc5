@@ -24,6 +24,7 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
+#include "theory/builtin/generic_op.h"
 
 using namespace cvc5::internal::kind;
 
@@ -201,7 +202,7 @@ Node mkSingletonApp(Kind k, const Node& n)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args;
-  args.push_back nm->mkConst(GenericOp(k)));
+  args.push_back(nm->mkConst(Kind::APPLY_SINGLETON_OP, GenericOp(k)));
   args.push_back(n);
   return nm->mkNode(Kind::APPLY_SINGLETON, args);
 }
@@ -379,6 +380,11 @@ using NormalFormAttr = expr::Attribute<NormalFormTag, Node>;
 
 Node getACINormalForm(Node a)
 {
+  // special case
+  if (a.getKind()==Kind::APPLY_SINGLETON)
+  {
+    return a[0];
+  }
   NormalFormAttr nfa;
   Node an = a.getAttribute(nfa);
   if (!an.isNull())
