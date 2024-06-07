@@ -9,7 +9,7 @@
 ; well as non-standard extensions of existing theories. Moreover, some standard
 ; theory symbols have subtle differences with the SMT-LIB standard.
 ;
-; For example of the latter:
+; For examples of the latter:
 ; - Many arithmetic symbols in cvc5 such as +, *, >= operate on *mixed*
 ; arithmetic. That is, they can be applied to mixtures of Real and Int.
 ; - Most associative operators are modelled as variadic (modelled in ALF as
@@ -19,6 +19,8 @@
 ; +, and so on.
 ; - cvc5 generalizes strings to sequences, so that strings are defined to be
 ; (Seq Char).
+; - We model quantifiers (forall, exists) using explicit function symbols taking
+; lists to model their binders.
 ; Whenever applicable, these differences are marked with @disclaimer comments.
 ;
 ; Furthermore, this signature is designed to capture the exact definition of
