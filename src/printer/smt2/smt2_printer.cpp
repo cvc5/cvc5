@@ -666,7 +666,6 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         {
           out << '(';
         }
-        // FIXME: refactor to reuse the code for printing standalone skolems
         if (options::ioutils::getPrintSkolemDefinitions(out))
         {
           toStreamSkolem(out, cacheVal, id, /*isApplied=*/true);
