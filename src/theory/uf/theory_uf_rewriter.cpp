@@ -60,9 +60,12 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     Node lambda = FunctionConst::toLambda(node.getOperator());
     if (!lambda.isNull())
     {
-      // ensure the lambda is rewritten
+      // Note that the rewriter does not rewrite inside of operators, so the
+      // lambda we receive here may not be in rewritten form, and thus may
+      // contain variable shadowing. We rewrite the operator explicitly here.
       Node lambdaRew = d_rr->rewrite(lambda);
-      // We compare against the original operator, not its lambda equivalent
+      // We compare against the original operator, if it is different, then
+      // we rewrite again.
       if (lambdaRew!=node.getOperator())
       {
         std::vector<TNode> args;
