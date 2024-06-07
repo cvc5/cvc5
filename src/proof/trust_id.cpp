@@ -49,8 +49,7 @@ const char* toString(TrustId id)
       return "MACRO_THEORY_REWRITE_RCONS";
     case TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE:
       return "MACRO_THEORY_REWRITE_RCONS_SIMPLE";
-    case TrustId::SINGLETON_ELIM:
-      return "SINGLETON_ELIM";
+    case TrustId::SINGLETON_ELIM: return "SINGLETON_ELIM";
     default: return "TrustId::Unknown";
   };
 }
