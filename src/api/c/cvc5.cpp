@@ -5205,6 +5205,30 @@ const char* cvc5_get_model(Cvc5* cvc5,
   return str.c_str();
 }
 
+Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_TERM(q);
+  res = cvc5->d_tm->export_term(
+      cvc5->d_solver.getQuantifierElimination(q->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_get_quantifier_elimination_disjunct(Cvc5* cvc5, Cvc5Term q)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_TERM(q);
+  res = cvc5->d_tm->export_term(
+      cvc5->d_solver.getQuantifierEliminationDisjunct(q->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 void cvc5_push(Cvc5* cvc5, uint32_t nscopes)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;

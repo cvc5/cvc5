@@ -1968,6 +1968,65 @@ TEST_F(TestCApiBlackSolver, get_model3)
       "unexpected NULL argument");
 }
 
+TEST_F(TestCApiBlackSolver, get_quantifier_elimination)
+{
+  Cvc5Term x = cvc5_mk_var(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x};
+  Cvc5Term vlist =
+      cvc5_mk_term(d_tm, CVC5_KIND_VARIABLE_LIST, args.size(), args.data());
+  args = {x, cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data())};
+  Cvc5Term b = cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data());
+  args = {vlist, b};
+  Cvc5Term forall =
+      cvc5_mk_term(d_tm, CVC5_KIND_FORALL, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_get_quantifier_elimination(nullptr, forall),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_quantifier_elimination(d_solver, nullptr),
+               "invalid term");
+  ASSERT_DEATH(cvc5_get_quantifier_elimination(d_solver, cvc5_mk_false(d_tm)),
+               "Expecting a quantified formula");
+  (void)cvc5_get_quantifier_elimination(d_solver, forall);
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_check_sat(slv);
+  // this will throw when NodeManager is not a singleton anymore
+  (void)cvc5_get_quantifier_elimination(slv, forall);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_quantifier_elimination_disjunct)
+{
+  Cvc5Term x = cvc5_mk_var(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x};
+  Cvc5Term vlist =
+      cvc5_mk_term(d_tm, CVC5_KIND_VARIABLE_LIST, args.size(), args.data());
+  args = {x, cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data())};
+  Cvc5Term b = cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data());
+  args = {vlist, b};
+  Cvc5Term forall =
+      cvc5_mk_term(d_tm, CVC5_KIND_FORALL, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_get_quantifier_elimination_disjunct(nullptr, forall),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_quantifier_elimination_disjunct(d_solver, nullptr),
+               "invalid term");
+  ASSERT_DEATH(
+      cvc5_get_quantifier_elimination_disjunct(d_solver, cvc5_mk_false(d_tm)),
+      "Expecting a quantified formula");
+  (void)cvc5_get_quantifier_elimination_disjunct(d_solver, forall);
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_check_sat(slv);
+  // this will throw when NodeManager is not a singleton anymore
+  (void)cvc5_get_quantifier_elimination(slv, forall);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
 TEST_F(TestCApiBlackSolver, push1)
 {
   cvc5_set_option(d_solver, "incremental", "true");
