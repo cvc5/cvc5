@@ -322,6 +322,7 @@ public class TermManager extends AbstractPointer
    *
    * @api.note This method is experimental and may change in future versions.
    *
+   * @param skolemId The id of the skolem.
    * @param indices The indices of the skolem.
    * @return The skolem.
    */
