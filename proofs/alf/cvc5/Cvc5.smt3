@@ -28,6 +28,18 @@
 ; same expected arguments and premises as their formal definition in this
 ; signature.
 ;
+; This signature however intentionally does *not* formalize any proof rules that
+; are prefixed by MACRO_. These can be eliminated using the cvc5 option
+; --proof-granularity=theory-rewrite or --proof-granularity=dsl-rewrite.
+;
+; The cases of ProofRule::THEORY_REWRITE are each formalized as individual
+; proof rules. Similarly, each theory rewrite with a ProofRewriteRule that
+; is prefixed by MACRO_ are not formalized in this signature and will not
+; appear in final proofs.
+;
+; The cases of ProofRule::DSL_REWRITE are by default provided on demand in
+; the preamble of the proof that is output by cvc5.
+;
 ; Discrepancies between cvc5's Proof API and the formal ALF definition are
 ; also noted when applicable by @disclaimer.
 ; 
