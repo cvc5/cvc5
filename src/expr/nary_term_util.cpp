@@ -197,15 +197,9 @@ Node getNullTerminator(Kind k, TypeNode tn)
   return nullTerm;
 }
 
-Node mkSingletonApp(Kind k, const Node& n)
-{
-  return n;
-}
+Node mkSingletonApp(Kind k, const Node& n) { return n; }
 
-bool isSingletonApp(const Node& n, Kind& k, Node& arg)
-{
-  return false;
-}
+bool isSingletonApp(const Node& n, Kind& k, Node& arg) { return false; }
 
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
@@ -214,7 +208,8 @@ Node narySubstitute(Node src,
                     bool& elimedSingleton)
 {
   std::unordered_map<TNode, Node> visited;
-  return narySubstitute(src, vars, subs, visited, elimSingleton, elimedSingleton);
+  return narySubstitute(
+      src, vars, subs, visited, elimSingleton, elimedSingleton);
 }
 
 Node narySubstitute(Node src,
@@ -301,7 +296,7 @@ Node narySubstitute(Node src,
               return ret;
             }
           }
-          else if (children.size()==1)
+          else if (children.size() == 1)
           {
             if (elimSingleton)
             {

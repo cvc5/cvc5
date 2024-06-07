@@ -120,7 +120,7 @@ bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
 bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs,
-                      std::vector<bool>& ess) const
+                                      std::vector<bool>& ess) const
 {
   // substitute into each condition
   for (const Node& c : d_obGen)
