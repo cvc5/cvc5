@@ -264,6 +264,13 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   // normalization on array constants, and then converting the array constant
   // back to a lambda.
   Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
+  // eliminate shadowing, prior to handling whether the lambda is constant
+  // below.
+  Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
+  if (retElimShadow != node)
+  {
+    return retElimShadow;
+  }
   Node anode = FunctionConst::toArrayConst(node);
   // Only rewrite constant array nodes, since these are the only cases
   // where we require canonicalization of lambdas. Moreover, applying the
@@ -283,12 +290,6 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   }
   Trace("builtin-rewrite-debug")
       << "...failed to get array representation." << std::endl;
-  // eliminate shadowing
-  Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
-  if (retElimShadow != node)
-  {
-    return retElimShadow;
-  }
   // see if it can be eliminated, (lambda ((x T)) (f x)) ---> f
   if (node[1].getKind() == Kind::APPLY_UF)
   {
