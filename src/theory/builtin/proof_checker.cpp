@@ -454,9 +454,10 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
+    bool estmp = false;
     for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
     {
-      Node scond = expr::narySubstitute(conds[i], varList, subs);
+      Node scond = expr::narySubstitute(conds[i], varList, subs, false, estmp);
       if (scond != children[i])
       {
         return Node::null();

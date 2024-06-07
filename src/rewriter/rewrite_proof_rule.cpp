@@ -113,11 +113,22 @@ bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs) const
 {
+  std::vector<bool> ess;
+  return getObligations(vs, ss, vcs, ess);
+}
+
+bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
+                                      const std::vector<Node>& ss,
+                                      std::vector<Node>& vcs,
+                      std::vector<bool>& ess) const
+{
   // substitute into each condition
   for (const Node& c : d_obGen)
   {
-    Node sc = expr::narySubstitute(c, vs, ss);
+    bool estmp = false;
+    Node sc = expr::narySubstitute(c, vs, ss, true, estmp);
     vcs.push_back(sc);
+    ess.push_back(estmp);
   }
   return true;
 }
@@ -145,7 +156,8 @@ Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
 {
   Assert(d_fvs.size() == ss.size());
   Node conc = getConclusion(true);
-  return expr::narySubstitute(conc, d_fvs, ss);
+  bool estmp = false;
+  return expr::narySubstitute(conc, d_fvs, ss, false, estmp);
 }
 
 Node RewriteProofRule::getConclusionFor(

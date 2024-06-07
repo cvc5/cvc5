@@ -64,7 +64,9 @@ Node getNullTerminator(Kind k, TypeNode tn);
  */
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
-                    const std::vector<Node>& subs);
+                    const std::vector<Node>& subs,
+                    bool elimSingleton,
+                    bool& elimedSingleton);
 /**
  * Same as above, with visited cache.
  *
@@ -76,7 +78,16 @@ Node narySubstitute(Node src,
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs,
-                    std::unordered_map<TNode, Node>& visited);
+                    std::unordered_map<TNode, Node>& visited,
+                    bool elimSingleton,
+                    bool& elimedSingleton);
+/**
+ */
+Node mkSingletonApp(Kind k, const Node& n);
+
+/**
+ */
+bool isSingletonApp(const Node& n, Kind& k, Node& arg);
 
 /**
  * @param k A kind

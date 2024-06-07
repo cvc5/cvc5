@@ -329,7 +329,8 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
     Node target = rpr.getConclusion(true);
     // apply substitution, which may notice vars may be out of order wrt rule
     // var list
-    target = expr::narySubstitute(target, vars, subs);
+    bool elimedSingleton = false;
+    target = expr::narySubstitute(target, vars, subs, true, elimedSingleton);
     // it may be impossible to construct the conclusion due to null terminators
     // for approximate types, return false in this case
     if (target.isNull())
@@ -1020,7 +1021,7 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           std::vector<Node> subs(args.begin() + 1, args.end());
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
-          conc = rpr.getConclusionFor(subs);
+          conc = rpr.getConclusionFor(subs, false);
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
           Trace("rpc-debug") << "Proved: " << cur << std::endl;
           Trace("rpc-debug") << "From: " << conc << std::endl;

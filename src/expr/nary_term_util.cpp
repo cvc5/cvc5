@@ -197,18 +197,26 @@ Node getNullTerminator(Kind k, TypeNode tn)
   return nullTerm;
 }
 
+Node mkSingletonApp(Kind k, const Node& n);
+
+bool isSingletonApp(const Node& n, Kind& k, Node& arg);
+
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
-                    const std::vector<Node>& subs)
+                    const std::vector<Node>& subs,
+                    bool elimSingleton,
+                    bool& elimedSingleton)
 {
   std::unordered_map<TNode, Node> visited;
-  return narySubstitute(src, vars, subs, visited);
+  return narySubstitute(src, vars, subs, visited, elimSingleton, elimedSingleton);
 }
 
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs,
-                    std::unordered_map<TNode, Node>& visited)
+                    std::unordered_map<TNode, Node>& visited,
+                    bool elimSingleton,
+                    bool& elimedSingleton)
 {
   // assumes all variables are list variables
   NodeManager* nm = NodeManager::currentNM();
@@ -287,10 +295,21 @@ Node narySubstitute(Node src,
               return ret;
             }
           }
+          else if (children.size()==1)
+          {
+            if (elimSingleton)
+            {
+              elimedSingleton = true;
+              ret = children[0];
+            }
+            else
+            {
+              ret = mkSingletonApp(cur.getKind(), children[0]);
+            }
+          }
           else
           {
-            ret = (children.size() == 1 ? children[0]
-                                        : nm->mkNode(cur.getKind(), children));
+            ret = nm->mkNode(cur.getKind(), children);
           }
         }
         else

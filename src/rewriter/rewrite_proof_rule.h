@@ -81,6 +81,10 @@ class RewriteProofRule
   bool getObligations(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
                       std::vector<Node>& vcs) const;
+  bool getObligations(const std::vector<Node>& vs,
+                      const std::vector<Node>& ss,
+                      std::vector<Node>& vcs,
+                      std::vector<bool>& ess) const;
   /**
    * Check match, return true if h matches the head of this rule; notifies
    * the match notify object ntm.
