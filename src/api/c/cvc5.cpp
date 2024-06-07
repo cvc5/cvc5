@@ -5229,6 +5229,36 @@ Cvc5Term cvc5_get_quantifier_elimination_disjunct(Cvc5* cvc5, Cvc5Term q)
   return res;
 }
 
+void cvc5_declare_sep_heap(Cvc5* cvc5, Cvc5Sort loc, Cvc5Sort data)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_SORT(loc);
+  CVC5_CAPI_CHECK_SORT(data);
+  cvc5->d_solver.declareSepHeap(loc->d_sort, data->d_sort);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+Cvc5Term cvc5_get_value_sep_heap(Cvc5* cvc5)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  res = cvc5->d_tm->export_term(cvc5->d_solver.getValueSepHeap());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_get_value_sep_nil(Cvc5* cvc5)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  res = cvc5->d_tm->export_term(cvc5->d_solver.getValueSepNil());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 void cvc5_push(Cvc5* cvc5, uint32_t nscopes)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;

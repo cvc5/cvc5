@@ -41,6 +41,28 @@ class TestCApiBlackSolver : public ::testing::Test
     cvc5_term_manager_delete(d_tm);
   }
 
+  /**
+   * Helper function for testGetSeparation{Heap,Nil}TermX. Asserts and checks
+   * some simple separation logic constraints.
+   */
+  void check_simple_separation_constraints()
+  {
+    // declare the separation heap
+    cvc5_declare_sep_heap(d_solver, d_int, d_int);
+    Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+    Cvc5Term p = cvc5_mk_const(d_tm, d_int, "p");
+    std::vector<Cvc5Term> args = {p, x};
+    Cvc5Term heap =
+        cvc5_mk_term(d_tm, CVC5_KIND_SEP_PTO, args.size(), args.data());
+    cvc5_assert_formula(d_solver, heap);
+    Cvc5Term nil = cvc5_mk_sep_nil(d_tm, d_int);
+    args = {nil, cvc5_mk_integer_int64(d_tm, 5)};
+    cvc5_assert_formula(
+        d_solver,
+        cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(d_solver);
+  }
+
   Cvc5TermManager* d_tm;
   Cvc5* d_solver;
   Cvc5Sort d_bool;
@@ -2025,6 +2047,138 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination_disjunct)
   (void)cvc5_get_quantifier_elimination(slv, forall);
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, declare_sep_heap)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_declare_sep_heap(d_solver, d_int, d_int);
+  // cannot declare separation logic heap more than once
+  ASSERT_DEATH(cvc5_declare_sep_heap(d_solver, d_int, d_int),
+               "cannot declare heap types");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  // no logic set yet
+  Cvc5* slv = cvc5_new(tm);
+  ASSERT_DEATH(cvc5_declare_sep_heap(d_solver, d_int, d_int),
+               "cannot declare heap types");
+  cvc5_delete(slv);
+
+  // this will throw when NodeManager is not a singleton anymore
+  slv = cvc5_new(tm);
+  cvc5_set_logic(slv, "ALL");
+  cvc5_declare_sep_heap(slv, cvc5_get_integer_sort(tm), d_int);
+  cvc5_delete(slv);
+  slv = cvc5_new(tm);
+  cvc5_set_logic(slv, "ALL");
+  cvc5_declare_sep_heap(slv, d_int, cvc5_get_integer_sort(tm));
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap1)
+{
+  cvc5_set_logic(d_solver, "QF_BV");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver),
+               "cannot obtain separation logic expressions");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap2)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "false");
+  check_simple_separation_constraints();
+  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver),
+               "cannot get separation heap term");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap3)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_false(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver), "after SAT or UNKNOWN");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap4)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver), "Failed to obtain heap/nil");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap5)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  check_simple_separation_constraints();
+  (void)cvc5_get_value_sep_heap(d_solver);
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil1)
+{
+  cvc5_set_logic(d_solver, "QF_BV");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver),
+               "cannot obtain separation logic expressions");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil2)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "false");
+  check_simple_separation_constraints();
+  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver), "cannot get separation nil");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil3)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_false(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver), "after SAT or UNKNOWN");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil4)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver),
+               "Failed to obtain heap/nil expressions");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil5)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  check_simple_separation_constraints();
+  cvc5_get_value_sep_nil(d_solver);
 }
 
 TEST_F(TestCApiBlackSolver, push1)
