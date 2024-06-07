@@ -3875,14 +3875,16 @@ Cvc5Term cvc5_get_value(Cvc5* cvc5, Cvc5Term term);
  *     (get-value ( <term>* ))
  * \endverbatim
  *
- * @param cvc5 The solver instance.
- * @param size The number of terms for which the value is queried.
+ * @param cvc5  The solver instance.
+ * @param size  The number of terms for which the value is queried.
  * @param terms The terms.
+ * @param rsize The resulting size of the timeout core.
  * @return The values of the given terms.
  */
 const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
                                 size_t size,
-                                const Cvc5Term terms[]);
+                                const Cvc5Term terms[],
+                                size_t* rsize);
 
 /**
  * Get the domain elements of uninterpreted sort s in the current model. The
@@ -3890,27 +3892,29 @@ const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
  * given in the return value of this function.
  *
  * @param cvc5 The solver instance.
- * @param s The uninterpreted sort in question.
+ * @param sort The uninterpreted sort in question.
  * @param size The size of the resulting domain elements array.
  * @return The domain elements of s in the current model.
  */
 const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
-                                               Cvc5Sort s,
+                                               Cvc5Sort sort,
                                                size_t* size);
 
 /**
- * This returns false if the model value of free constant v was not essential
- * for showing the satisfiability of the last call to checkSat using the
- * current model. This function will only return false (for any `v`) if
- * option
+ * Determine if the model value of the given free constant was essential for
+ * showing satisfiability of the last `cvc5_check_sat()` query based on the
+ * current model.
+ *
+ * For any free constant `v`, this will only return false if
  * \verbatim embed:rst:inline :ref:`model-cores
- * <lbl-option-model-cores>`\endverbatim has been set.
+ * <lbl-option-model-cores>`\endverbatim
+ * has been set to true.
  *
  * @warning This function is experimental and may change in future versions.
  *
  * @param cvc5 The solver instance.
  * @param v The term in question.
- * @return True if `v` is a model core symbol.
+ * @return True if `v` was essential and is thus a model core symbol.
  */
 bool cvc5_is_model_core_symbol(Cvc5* cvc5, Cvc5Term v);
 

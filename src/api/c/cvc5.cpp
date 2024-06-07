@@ -5109,6 +5109,102 @@ const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
   return res.data();
 }
 
+Cvc5Term cvc5_get_value(Cvc5* cvc5, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = cvc5->d_tm->export_term(cvc5->d_solver.getValue(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
+                                size_t size,
+                                const Cvc5Term terms[],
+                                size_t* rsize)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(terms);
+  CVC5_CAPI_CHECK_NOT_NULL(rsize);
+  res.clear();
+  std::vector<cvc5::Term> cterms;
+  for (size_t i = 0; i < size; ++i)
+  {
+    cterms.push_back(terms[i]->d_term);
+  }
+  auto values = cvc5->d_solver.getValue(cterms);
+  for (const auto& t : values)
+  {
+    res.push_back(cvc5->d_tm->export_term(t));
+  }
+  *rsize = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
+                                               Cvc5Sort sort,
+                                               size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto elems = cvc5->d_solver.getModelDomainElements(sort->d_sort);
+  for (const auto& t : elems)
+  {
+    res.push_back(cvc5->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+bool cvc5_is_model_core_symbol(Cvc5* cvc5, Cvc5Term v)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  if (v)
+  {
+    res = cvc5->d_solver.isModelCoreSymbol(v->d_term);
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_get_model(Cvc5* cvc5,
+                           size_t nsorts,
+                           const Cvc5Sort sorts[],
+                           size_t nconsts,
+                           const Cvc5Term consts[])
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(sorts);
+  CVC5_CAPI_CHECK_NOT_NULL(consts);
+  std::vector<cvc5::Sort> csorts;
+  for (size_t i = 0; i < nsorts; ++i)
+  {
+    csorts.push_back(sorts[i]->d_sort);
+  }
+  std::vector<cvc5::Term> cconsts;
+  for (size_t i = 0; i < nconsts; ++i)
+  {
+    cconsts.push_back(consts[i]->d_term);
+  }
+  str = cvc5->d_solver.getModel(csorts, cconsts);
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
 void cvc5_push(Cvc5* cvc5, uint32_t nscopes)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
