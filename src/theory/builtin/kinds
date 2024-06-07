@@ -346,7 +346,7 @@ constant APPLY_SINGLETON_OP \
   ::cvc5::internal::GenericOpHashFunction \
   "theory/builtin/generic_op.h" \
   "operator for the bit-vector extract; payload is an instance of the cvc5::internal::GenericOp class"
-parameterized APPLY_SINGLETON APPLY_SINGLETON_OP 1: "generic operator for singletons"
+parameterized APPLY_SINGLETON APPLY_SINGLETON_OP 1 "generic operator for singletons"
 
 typerule APPLY_SINGLETON_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule APPLY_SINGLETON ::cvc5::internal::theory::builtin::ApplySingletonTypeRule
