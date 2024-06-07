@@ -197,24 +197,12 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
-      std::unordered_set<Node> fvs;
-      for (TNode s : subs)
-      {
-        expr::getFreeVariables(s, fvs);
-      }
-      // cannot beta-reduce if shadow elimination is necessary
-      if (!fvs.empty())
-      {
-        return Node::null();
-      }
+      // Note that we do not check for variable shadowing in the lambda here.
+      // This rule will only be used to capture valid instances of beta
+      // reduction. If a beta reduction had to eliminate shadowing, then it
+      // will not be inferred by this rule as is.
       Node ret = lambda[1].substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());
-      /*
-      for (TNode v : vars)
-      {
-        AlwaysAssert (v.getKind()==Kind::BOUND_VARIABLE);
-      }
-      */
       return ret;
     }
     break;
