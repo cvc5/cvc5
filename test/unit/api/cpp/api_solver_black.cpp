@@ -1599,15 +1599,9 @@ TEST_F(TestApiBlackSolver, getQuantifierElimination)
 
   TermManager tm;
   Solver slv(tm);
-  slv.setOption("produce-models", "true");
   slv.checkSat();
-  Term xx = tm.mkVar(tm.getBooleanSort(), "x");
-  Term fforall =
-      tm.mkTerm(Kind::FORALL,
-                {tm.mkTerm(Kind::VARIABLE_LIST, {xx}),
-                 tm.mkTerm(Kind::OR, {xx, tm.mkTerm(Kind::NOT, {xx})})});
   // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(slv.getQuantifierElimination(fforall));
+  ASSERT_NO_THROW(slv.getQuantifierElimination(forall));
 }
 
 TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
@@ -1626,15 +1620,9 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
 
   TermManager tm;
   Solver slv(tm);
-  slv.setOption("produce-models", "true");
   slv.checkSat();
-  Term xx = tm.mkVar(tm.getBooleanSort(), "x");
-  Term fforall =
-      tm.mkTerm(Kind::FORALL,
-                {tm.mkTerm(Kind::VARIABLE_LIST, {xx}),
-                 tm.mkTerm(Kind::OR, {xx, tm.mkTerm(Kind::NOT, {xx})})});
   // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(slv.getQuantifierEliminationDisjunct(fforall));
+  ASSERT_NO_THROW(slv.getQuantifierEliminationDisjunct(forall));
 }
 
 TEST_F(TestApiBlackSolver, declareSepHeap)
