@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@ namespace sep {
 class TheorySepRewriter : public TheoryRewriter
 {
  public:
+  TheorySepRewriter(NodeManager* nm);
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override
   {
@@ -36,13 +37,32 @@ class TheorySepRewriter : public TheoryRewriter
   }
 
  private:
-  static void getStarChildren(Node n,
-                              std::vector<Node>& s_children,
-                              std::vector<Node>& ns_children);
-  static void getAndChildren(Node n,
-                             std::vector<Node>& s_children,
-                             std::vector<Node>& ns_children);
-  static bool isSpatial(Node n, std::map<Node, bool>& visited);
+  /**
+   * Get the children of a SEP_STAR application, partition children based on
+   * whether they are spatial.
+   * @param n The node to inspect
+   * @param s_children The spatial children of n
+   * @param ns_children The non-spatial children of n
+   */
+  void getStarChildren(Node n,
+                       std::vector<Node>& s_children,
+                       std::vector<Node>& ns_children) const;
+  /**
+   * Get the children of an AND application, partition children based on whether
+   * they are spatial.
+   * @param n The node to inspect
+   * @param s_children The spatial children of n
+   * @param ns_children The non-spatial children of n
+   */
+  void getAndChildren(Node n,
+                      std::vector<Node>& s_children,
+                      std::vector<Node>& ns_children) const;
+  /**
+   * @param n The node to inspect
+   * @param visited A cache for the nodes we have visited already
+   * @return true if n is a spatial term.
+   */
+  bool isSpatial(Node n, std::map<Node, bool>& visited) const;
 }; /* class TheorySepRewriter */
 
 }  // namespace sep

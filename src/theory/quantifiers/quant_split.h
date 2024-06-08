@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANT_SPLIT_H
 #define CVC5__THEORY__QUANT_SPLIT_H
 
+#include "context/cdhashmap.h"
 #include "context/cdo.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/quant_module.h"
@@ -48,7 +49,8 @@ namespace quantifiers {
  * one variable per quantified formula at a time.
  */
 class QuantDSplit : public QuantifiersModule {
-  typedef context::CDHashSet<Node> NodeSet;
+  using NodeSet = context::CDHashSet<Node>;
+  using NodeIntMap = context::CDHashMap<Node, int>;
 
  public:
   QuantDSplit(Env& env,
@@ -69,7 +71,7 @@ class QuantDSplit : public QuantifiersModule {
 
  private:
   /** list of relevant quantifiers asserted in the current context */
-  std::map<Node, int> d_quant_to_reduce;
+  NodeIntMap d_quant_to_reduce;
   /** whether we have instantiated quantified formulas */
   NodeSet d_added_split;
 };

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Alex Ozdemir
+ *   Andrew Reynolds, Hans-Jörg Schurr, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrites.h"
 #include "smt/env.h"
 
 namespace cvc5::internal {
@@ -123,6 +124,16 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   // construction above.
   std::shared_ptr<ProofNode> pfs = pnm->mkNode(ProofRule::SCOPE, {pf}, exp);
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
+}
+
+TrustNode EagerProofGenerator::mkTrustNodeRewrite(const Node& a,
+                                                  const Node& b,
+                                                  ProofRewriteRule id)
+{
+  std::vector<Node> args;
+  args.push_back(rewriter::mkRewriteRuleNode(id));
+  args.push_back(a.eqNode(b));
+  return mkTrustedRewrite(a, b, ProofRule::THEORY_REWRITE, args);
 }
 
 TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,6 +29,10 @@ namespace prop {
 class Registrar {
 public:
   virtual ~Registrar() {}
+  /**
+   * Called when a SAT literal for atom n has been allocated in the SAT solver.
+   * @param n The SAT literal to be notified.
+   */
   virtual void notifySatLiteral(Node n) = 0;
 
 };/* class Registrar */

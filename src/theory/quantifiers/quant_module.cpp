@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
+namespace quantifiers {
 
 QuantifiersModule::QuantifiersModule(
     Env& env,
@@ -81,5 +82,10 @@ quantifiers::TermRegistry& QuantifiersModule::getTermRegistry()
   return d_treg;
 }
 
+void QuantifiersModule::beginCallDebug() { d_qim.beginCallDebug(this); }
+
+void QuantifiersModule::endCallDebug() { d_qim.endCallDebug(); }
+
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

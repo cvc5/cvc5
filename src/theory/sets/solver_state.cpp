@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,8 +35,8 @@ SolverState::SolverState(Env& env, Valuation val, SkolemCache& skc)
       d_members(env.getContext()),
       d_partElementSkolems(env.getUserContext())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 void SolverState::reset()
@@ -602,7 +602,7 @@ bool SolverState::merge(TNode t1,
       // if there is a concrete set in t1, propagate new facts or conflicts
       if (!cset.isNull())
       {
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Assert(areEqual(m2[1], cset));
         Node exp = nm->mkNode(Kind::AND, m2[1].eqNode(cset), m2);
         if (cset.getKind() == Kind::SET_SINGLETON)

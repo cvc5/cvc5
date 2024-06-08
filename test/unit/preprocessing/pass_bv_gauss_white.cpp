@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -2424,7 +2424,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique1)
       Kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 4u)));
   Node resz = d_nodeManager->mkNode(
       Kind::EQUAL, d_z, d_nodeManager->mkConst<BitVector>(BitVector(32, 9u)));
-  ASSERT_EQ(apipe.size(), 4);
+  ASSERT_EQ(apipe.size(), 6);
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resy), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resz), apipe.end());
@@ -2517,7 +2517,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique2)
       Kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 2u)));
   Node resz = d_nodeManager->mkNode(
       Kind::EQUAL, d_z, d_nodeManager->mkConst<BitVector>(BitVector(32, 9u)));
-  ASSERT_EQ(apipe.size(), 8);
+  ASSERT_EQ(apipe.size(), 10);
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx1), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx2), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resy1), apipe.end());

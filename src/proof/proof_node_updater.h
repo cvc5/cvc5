@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,6 +83,13 @@ class ProofNodeUpdaterCallback
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof* cdp);
+  /**
+   * Can we merge pn into other proofs? This method is only called if we are
+   * merging subproofs with a proof node updater (mergeSubproofs=true).
+   * If we return false for pn, then its contents will never be copied into
+   * another proof, nor will its contents be replaced.
+   */
+  virtual bool canMerge(std::shared_ptr<ProofNode> pn);
 };
 
 /**

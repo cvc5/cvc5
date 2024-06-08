@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,8 +44,8 @@ struct ExtRewriteAggAttributeId
 };
 typedef expr::Attribute<ExtRewriteAggAttributeId, Node> ExtRewriteAggAttribute;
 
-ExtendedRewriter::ExtendedRewriter(Rewriter& rew, bool aggr)
-    : d_rew(rew), d_aggr(aggr)
+ExtendedRewriter::ExtendedRewriter(NodeManager* nm, Rewriter& rew, bool aggr)
+    : d_nm(nm), d_rew(rew), d_aggr(aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -229,7 +229,31 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   {
     new_ret = extendedRewriteEqChain(
         Kind::EQUAL, Kind::AND, Kind::OR, Kind::NOT, ret);
-    debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
+    if (!new_ret.isNull())
+    {
+      debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
+    }
+    else if (ret[0].getType().isInteger())
+    {
+      theory::strings::ArithEntail ae(&d_rew);
+      new_ret = ae.rewritePredViaEntailment(ret);
+      if (!new_ret.isNull())
+      {
+        debugExtendedRewrite(ret, new_ret, "String EQUAL len entailment");
+      }
+    }
+  }
+  else if (ret.getKind() == Kind::GEQ)
+  {
+    if (ret[0].getType().isInteger())
+    {
+      theory::strings::ArithEntail ae(&d_rew);
+      new_ret = ae.rewritePredViaEntailment(ret);
+      if (!new_ret.isNull())
+      {
+        debugExtendedRewrite(ret, new_ret, "String GEQ len entailment");
+      }
+    }
   }
   Assert(new_ret.isNull() || new_ret != ret);
   if (new_ret.isNull() && ret.getKind() != Kind::ITE)
@@ -1706,7 +1730,7 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   Kind k = node.getKind();
   if (k == Kind::EQUAL)
   {
-    strings::SequencesRewriter sr(&d_rew, nullptr);
+    strings::SequencesRewriter sr(d_nm, &d_rew, nullptr);
     return sr.rewriteEqualityExt(node);
   }
   else if (k == Kind::STRING_SUBSTR)

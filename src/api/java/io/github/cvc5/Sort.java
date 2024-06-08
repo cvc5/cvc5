@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -314,6 +314,17 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native boolean isTuple(long pointer);
+
+  /**
+   * Determine if this a nullable sort.
+   * @return True if this sort is a nullable sort.
+   */
+  public boolean isNullable()
+  {
+    return isNullable(pointer);
+  }
+
+  private native boolean isNullable(long pointer);
 
   /**
    * Determine if this is a record sort.
@@ -832,4 +843,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native long[] getTupleSorts(long pointer);
+
+  /**
+   * @return The element sort of a nullable sort.
+   */
+  public Sort getNullableElementSort()
+  {
+    long sortPointer = getNullableElementSort(pointer);
+    return new Sort(sortPointer);
+  }
+
+  private native long getNullableElementSort(long pointer);
 }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +49,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     Node ret = n;
     if (n.getNumChildren() > 0)
@@ -84,10 +84,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             }
             Node cc = coeffs.empty()
                           ? Node::null()
-                          : (coeffs.size() == 1
-                                 ? coeffs[0]
-                                 : rewrite(NodeManager::currentNM()->mkNode(
-                                     Kind::MULT, coeffs)));
+                          : (coeffs.size() == 1 ? coeffs[0]
+                                                : rewrite(nodeManager()->mkNode(
+                                                    Kind::MULT, coeffs)));
             std::vector<Node> sum;
             for (std::map<Node, Node>::iterator itm = msum.begin();
                  itm != msum.end();
@@ -98,9 +97,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               Node s;
               if (c.isNull())
               {
-                c = cc.isNull()
-                        ? NodeManager::currentNM()->mkConstInt(Rational(1))
-                        : cc;
+                c = cc.isNull() ? nodeManager()->mkConstInt(Rational(1)) : cc;
               }
               else
               {
@@ -120,8 +117,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                 Node vv = realToIntInternal(v, cache, var_eq);
                 if (vv.getType().isInteger())
                 {
-                  sum.push_back(
-                      NodeManager::currentNM()->mkNode(Kind::MULT, c, vv));
+                  sum.push_back(nodeManager()->mkNode(Kind::MULT, c, vv));
                 }
                 else
                 {
@@ -152,9 +148,14 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         bool childChanged = false;
         std::vector<Node> children;
         Kind k = n.getKind();
-        // we change Real equalities to Int equalities
-        bool preserveTypes =
-            k != Kind::EQUAL && (kindToTheoryId(k) != THEORY_ARITH);
+        bool preserveTypes = true;
+        // We change Real equalities to Int equalities, we handle other kinds
+        // here as well.
+        if (k==Kind::EQUAL || k==Kind::MULT || k==Kind::NONLINEAR_MULT ||
+          k==Kind::ADD || k==Kind::SUB || k==Kind::NEG)
+        {
+          preserveTypes = false;
+        }
         for (size_t i = 0; i < n.getNumChildren(); i++)
         {
           Node nc = realToIntInternal(n[i], cache, var_eq);
@@ -182,7 +183,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
     else
     {
       TypeNode tn = n.getType();
-      if (tn.isReal() && !tn.isInteger())
+      if (tn.isReal())
       {
         if (n.getKind() == Kind::BOUND_VARIABLE)
         {
@@ -222,10 +223,10 @@ PreprocessingPassResult RealToInt::applyInternal(
   std::vector<Node> var_eq;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    assertionsToPreprocess->replace(
-        i,
-        rewrite(
-            realToIntInternal((*assertionsToPreprocess)[i], d_cache, var_eq)));
+    Node a = (*assertionsToPreprocess)[i];
+    Node ac = realToIntInternal(a, d_cache, var_eq);
+    Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
+    assertionsToPreprocess->replace(i, rewrite(ac));
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;

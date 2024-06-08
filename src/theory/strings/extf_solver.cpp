@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -74,8 +74,8 @@ ExtfSolver::ExtfSolver(Env& env,
   d_extt.addFunctionKind(Kind::SEQ_UNIT);
   d_extt.addFunctionKind(Kind::SEQ_NTH);
 
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 ExtfSolver::~ExtfSolver() {}
@@ -202,7 +202,7 @@ void ExtfSolver::doReduction(Node n, int pol)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Assert(k == Kind::STRING_SUBSTR || k == Kind::STRING_UPDATE
            || k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
            || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_ITOS
@@ -229,11 +229,13 @@ void ExtfSolver::doReduction(Node n, int pol)
     else
     {
       InferInfo ii(InferenceId::STRINGS_REDUCTION);
+      // ensure that we are called to process the side effects
+      ii.d_sim = this;
       ii.d_conc = nnlem;
       d_im.sendInference(ii, true);
       Trace("strings-extf-debug")
           << "  resolve extf : " << n << " based on reduction." << std::endl;
-      d_reduced.insert(nn);
+      d_reductionWaitingMap[nnlem] = nn;
     }
   }
 }
@@ -295,7 +297,7 @@ void ExtfSolver::checkExtfEval(int effort)
   Trace("strings-extf-list")
       << "Active extended functions, effort=" << effort << " : " << std::endl;
   d_extfInfoTmp.clear();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   bool has_nreduce = false;
   std::vector<Node> terms = d_extt.getActive();
   // the set of terms we have done extf inferences for
@@ -538,7 +540,7 @@ void ExtfSolver::checkExtfInference(Node n,
   {
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("strings-extf-infer")
       << "checkExtfInference: " << n << " : " << nr << " == " << in.d_const
       << " with exp " << in.d_exp << std::endl;
@@ -816,6 +818,25 @@ bool StringsExtfCallback::getCurrentSubstitution(
     subs.push_back(s);
   }
   return true;
+}
+
+void ExtfSolver::processFact(InferInfo& ii, ProofGenerator*& pg)
+{
+  // process it with the inference manager
+  d_im.processFact(ii, pg);
+}
+
+TrustNode ExtfSolver::processLemma(InferInfo& ii, LemmaProperty& p)
+{
+  // if this was the reduction lemma for a term, mark it reduced now
+  std::map<Node, Node>::iterator it = d_reductionWaitingMap.find(ii.d_conc);
+  if (it != d_reductionWaitingMap.end())
+  {
+    d_reduced.insert(it->second);
+    d_reductionWaitingMap.erase(it);
+  }
+  // now process it with the inference manager
+  return d_im.processLemma(ii, p);
 }
 
 std::string ExtfSolver::debugPrintModel()

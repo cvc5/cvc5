@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,18 +31,34 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
+TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
+    : TheoryRewriter(nm)
+{
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+}
+
+Node TheoryBuiltinRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::DISTINCT_ELIM:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        return blastDistinct(n);
+      }
+      break;
+    default: break;
+  }
+  return Node::null();
+}
+
 Node TheoryBuiltinRewriter::blastDistinct(TNode in)
 {
   Assert(in.getKind() == Kind::DISTINCT);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
-  if (in[0].getType().isCardinalityLessThan(in.getNumChildren()))
-  {
-    // Cardinality of type does not allow to find distinct values for all
-    // children of this node.
-    return nm->mkConst<bool>(false);
-  }
 
   if (in.getNumChildren() == 2)
   {
@@ -64,8 +80,13 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
   return nm->mkNode(Kind::AND, diseqs);
 }
 
-RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
-  // otherwise, do the default call
+RewriteResponse TheoryBuiltinRewriter::preRewrite(TNode node)
+{
+  return doRewrite(node);
+}
+
+RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node)
+{
   return doRewrite(node);
 }
 
@@ -83,6 +104,12 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
       return RewriteResponse(REWRITE_DONE, rnode);
     }
     case Kind::DISTINCT:
+      if (node[0].getType().isCardinalityLessThan(node.getNumChildren()))
+      {
+        // Cardinality of type does not allow to find distinct values for all
+        // children of this node.
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(false));
+      }
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
     case Kind::APPLY_INDEXED_SYMBOLIC:
     {
@@ -124,12 +151,12 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
   else if (node[1] == node[0][0])
   {
     // (witness ((x Bool)) x) ---> true
-    return NodeManager::currentNM()->mkConst(true);
+    return nodeManager()->mkConst(true);
   }
   else if (node[1].getKind() == Kind::NOT && node[1][0] == node[0][0])
   {
     // (witness ((x Bool)) (not x)) ---> false
-    return NodeManager::currentNM()->mkConst(false);
+    return nodeManager()->mkConst(false);
   }
   // eliminate shadowing
   return ElimShadowNodeConverter::eliminateShadow(node);

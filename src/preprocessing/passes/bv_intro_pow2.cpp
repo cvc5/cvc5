@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,15 +73,14 @@ bool BvIntroPow2::isPowerOfTwo(TNode node)
   TNode a = t[0];
   TNode b = t[1];
   if (bv::utils::getSize(t) < 2) return false;
-  Node diff =
-      rewrite(NodeManager::currentNM()->mkNode(Kind::BITVECTOR_SUB, a, b));
+  Node diff = rewrite(nodeManager()->mkNode(Kind::BITVECTOR_SUB, a, b));
   return (diff.isConst()
           && (bv::utils::isOne(diff) || bv::utils::isOnes(diff)));
 }
 
 Node BvIntroPow2::rewritePowerOfTwo(TNode node)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TNode term = bv::utils::isZero(node[0]) ? node[1] : node[0];
   TNode a = term[0];
   TNode b = term[1];
@@ -121,7 +120,7 @@ Node BvIntroPow2::pow2Rewrite(Node node, std::unordered_map<Node, Node>& cache)
       }
       if (changed)
       {
-        res = NodeManager::currentNM()->mkNode(Kind::AND, children);
+        res = nodeManager()->mkNode(Kind::AND, children);
       }
     }
     break;

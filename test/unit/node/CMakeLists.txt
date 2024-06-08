@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz
+#   Aina Niemetz, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -30,3 +30,5 @@ cvc5_add_unit_test_white(node_white node)
 cvc5_add_unit_test_black(symbol_table_black node)
 cvc5_add_unit_test_black(type_cardinality_black node)
 cvc5_add_unit_test_white(type_node_white node)
+cvc5_add_unit_test_white(node_type_rules node)
+

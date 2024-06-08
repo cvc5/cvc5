@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,6 +64,28 @@ class InputParserTest extends ParserTest
     InputParser p = new InputParser(d_solver);
     p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
     p.appendIncrementalStringInput("(set-logic ALL)");
+    p.appendIncrementalStringInput("(declare-fun a () Bool)");
+    p.appendIncrementalStringInput("(declare-fun b () Int)");
+
+    final Command cmd1 = p.nextCommand();
+    assertNotEquals(cmd1.isNull(), true);
+    assertDoesNotThrow(() -> cmd1.invoke(d_solver, d_symman));
+
+    final Command cmd2 = p.nextCommand();
+    assertNotEquals(cmd2.isNull(), true);
+    assertDoesNotThrow(() -> cmd2.invoke(d_solver, d_symman));
+
+    final Command cmd3 = p.nextCommand();
+    assertNotEquals(cmd3.isNull(), true);
+    assertDoesNotThrow(() -> cmd3.invoke(d_solver, d_symman));
+  }
+
+  @Test
+  void setAndAppendIncrementalStringInputInterleave()
+  {
+    InputParser p = new InputParser(d_solver);
+    p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
+    p.appendIncrementalStringInput("(set-logic ALL)");
 
     final Command cmd1 = p.nextCommand();
     assertNotEquals(cmd1.isNull(), true);
@@ -81,6 +103,25 @@ class InputParserTest extends ParserTest
   }
 
   @Test
+  void appendIncrementalNoSet()
+  {
+    InputParser p = new InputParser(d_solver);
+    assertThrows(CVC5ApiException.class, () -> p.appendIncrementalStringInput("(set-logic ALL)"));
+  }
+
+  @Test
+  void setStringInput()
+  {
+    InputParser p = new InputParser(d_solver);
+    p.setStringInput(InputLanguage.SMT_LIB_2_6, "(set-logic ALL)", "input_parser_black");
+    final Command cmd1 = p.nextCommand();
+    assertNotEquals(cmd1.isNull(), true);
+    assertDoesNotThrow(() -> cmd1.invoke(d_solver, d_symman));
+    final Command cmd2 = p.nextCommand();
+    assertEquals(cmd2.isNull(), true);
+  }
+
+  @Test
   void nextCommand()
   {
     InputParser p = new InputParser(d_solver);
@@ -89,6 +130,17 @@ class InputParserTest extends ParserTest
     p.appendIncrementalStringInput("");
     Command cmd = p.nextCommand();
     assertEquals(cmd.isNull(), true);
+  }
+
+  @Test
+  void nextCommandNoInput()
+  {
+    InputParser p = new InputParser(d_solver);
+    p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
+    Command cmd = p.nextCommand();
+    assertEquals(cmd.isNull(), true);
+    Term t = p.nextTerm();
+    assertEquals(t.isNull(), true);
   }
 
   @Test
@@ -107,26 +159,26 @@ class InputParserTest extends ParserTest
     InputParser p = new InputParser(d_solver, d_symman);
     p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
     // parse a declaration command
-    p.appendIncrementalStringInput("(declare-fun a () Int)");
+    p.appendIncrementalStringInput("(declare-fun a () Int)\n");
     final Command cmd1 = p.nextCommand();
     assertNotEquals(cmd1.isNull(), true);
     assertDoesNotThrow(() -> cmd1.invoke(d_solver, d_symman));
     // now parse some terms
 
-    p.appendIncrementalStringInput("45");
+    p.appendIncrementalStringInput("45\n");
     assertDoesNotThrow(() -> {
       Term t = p.nextTerm();
       assertEquals(t.isNull(), false);
     });
 
-    p.appendIncrementalStringInput("(+ a 1)");
+    p.appendIncrementalStringInput("(+ a 1)\n");
     assertDoesNotThrow(() -> {
       Term t = p.nextTerm();
       assertEquals(t.isNull(), false);
       assertEquals(t.getKind(), Kind.ADD);
     });
 
-    p.appendIncrementalStringInput("(+ b 1)");
+    p.appendIncrementalStringInput("(+ b 1)\n");
     assertThrows(CVC5ParserException.class, () -> { Term t = p.nextTerm(); });
   }
 
@@ -171,5 +223,25 @@ class InputParserTest extends ParserTest
     InputParser p5 = new InputParser(s4, d_symman);
     assertThrows(CVC5ApiException.class,
         () -> p5.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black"));
+  }
+  @Test
+  void getDeclaredTermsAndSorts()
+  {
+    InputParser p = new InputParser(d_solver, d_symman);
+    p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
+    p.appendIncrementalStringInput("(set-logic ALL)");
+    p.appendIncrementalStringInput("(declare-sort U 0)");
+    p.appendIncrementalStringInput("(declare-fun x () U)");
+    for (int i = 0; i < 3; i++)
+    {
+      final Command cmd = p.nextCommand();
+      assertNotEquals(cmd.isNull(), true);
+      assertDoesNotThrow(() -> cmd.invoke(d_solver, d_symman));
+    }
+    Sort[] sorts = d_symman.getDeclaredSorts();
+    Term[] terms = d_symman.getDeclaredTerms();
+    assertEquals(sorts.length, 1);
+    assertEquals(terms.length, 1);
+    assertEquals(terms[0].getSort(), sorts[0]);
   }
 }

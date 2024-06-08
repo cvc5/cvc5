@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -106,6 +106,14 @@ TrustNode Skolemize::process(Node q)
 
 std::vector<Node> Skolemize::getSkolemConstants(const Node& q)
 {
+  if (q.getKind()==Kind::FORALL)
+  {
+    std::vector<Node> echildren(q.begin(), q.end());
+    echildren[1] = echildren[1].notNode();
+    NodeManager* nm = NodeManager::currentNM();
+    Node existsq = nm->mkNode(Kind::EXISTS, echildren);
+    return getSkolemConstants(existsq);
+  }
   Assert(q.getKind() == Kind::EXISTS);
   std::vector<Node> skolems;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
@@ -121,10 +129,8 @@ Node Skolemize::getSkolemConstant(const Node& q, size_t i)
   Assert(i < q[0].getNumChildren());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node r = nm->mkConstInt(Rational(i));
-  std::vector<Node> cacheVals{q, r};
-  return sm->mkSkolemFunction(
-      SkolemFunId::QUANTIFIERS_SKOLEMIZE, q[0][i].getType(), cacheVals);
+  std::vector<Node> cacheVals{q, q[0][i]};
+  return sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, cacheVals);
 }
 
 void Skolemize::getSelfSel(const DType& dt,
@@ -193,6 +199,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
                                           Node& sub,
                                           std::vector<unsigned>& sub_vars)
 {
+  Assert (f.getKind()==Kind::FORALL);
   NodeManager* nm = NodeManager::currentNM();
   // compute the argument types from the free variables
   std::vector<TypeNode> argTypes;
@@ -207,7 +214,8 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
   std::vector<unsigned> ind_var_indicies;
   std::vector<TNode> vars;
   std::vector<unsigned> var_indicies;
-  for (unsigned i = 0; i < f[0].getNumChildren(); i++)
+  std::vector<Node> skc = getSkolemConstants(f);
+  for (size_t i = 0, nvars = f[0].getNumChildren(); i < nvars; i++)
   {
     if (isInductionTerm(opts, f[0][i]))
     {
@@ -225,8 +233,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
     {
       if (argTypes.empty())
       {
-        s = sm->mkDummySkolem(
-            "skv", f[0][i].getType(), "created during skolemization");
+        s = skc[i];
       }
       else
       {

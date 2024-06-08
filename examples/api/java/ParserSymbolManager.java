@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,8 +32,7 @@ public class ParserSymbolManager
     ss += "(declare-fun a () Int)\n";
     ss += "(declare-fun b () Int)\n";
     ss += "(declare-fun c () Bool)\n";
-    parser.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "MyStream");
-    parser.appendIncrementalStringInput(ss);
+    parser.setStringInput(InputLanguage.SMT_LIB_2_6, ss, "MyStream");
 
     // parse commands until finished
     Command cmd;

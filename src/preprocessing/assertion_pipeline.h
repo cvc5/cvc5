@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/lazy_proof.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
@@ -127,24 +128,11 @@ class AssertionPipeline : protected EnvObj
   void addSubstitutionNode(Node n, ProofGenerator* pg = nullptr);
 
   /**
-   * Conjoin n to the assertion vector at position i. This replaces
-   * d_nodes[i] with the rewritten form of (AND d_nodes[i] n).
-   *
-   * @param i The assertion to replace
-   * @param n The formula to conjoin at position i
-   * @param pg The proof generator that can provide a proof of n
-   */
-  void conjoin(size_t i, Node n, ProofGenerator* pg = nullptr);
-
-  /**
    * Checks whether the assertion at a given index represents substitutions.
    *
    * @param i The index in question
    */
-  bool isSubstsIndex(size_t i)
-  {
-    return d_storeSubstsInAsserts && i == d_substsIndex;
-  }
+  bool isSubstsIndex(size_t i) const;
   /** Is in conflict? True if this pipeline contains the false assertion */
   bool isInConflict() const { return d_conflict; }
   /** Is refutation unsound? */
@@ -201,7 +189,7 @@ class AssertionPipeline : protected EnvObj
    *
    * TODO(#2473): replace by separate vector of substitution assertions.
    */
-  size_t d_substsIndex;
+  std::unordered_set<size_t> d_substsIndices;
 
   /** Index of the first assumption */
   size_t d_assumptionsStart;
@@ -217,6 +205,10 @@ class AssertionPipeline : protected EnvObj
   bool d_isModelUnsound;
   /** Is negated? */
   bool d_isNegated;
+  /**
+   * Maintains proofs for eliminating top-level AND from inputs to this class.
+   */
+  std::unique_ptr<LazyCDProof> d_andElimEpg;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing

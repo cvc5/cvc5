@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -147,10 +147,11 @@ bool hasSubtermKind(Kind k, Node n)
       {
         return true;
       }
-      for (const Node& cn : cur)
+      if (cur.hasOperator())
       {
-        visit.push_back(cn);
+        visit.push_back(cur.getOperator());
       }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
   return false;
@@ -173,11 +174,15 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
     visit.pop_back();
     if (visited.find(cur) == visited.end())
     {
+      visited.insert(cur);
       if (ks.find(cur.getKind()) != ks.end())
       {
         return true;
       }
-      visited.insert(cur);
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
@@ -477,14 +482,14 @@ bool hasFreeVariablesScope(TNode n, std::unordered_set<TNode>& scope)
   return getVariablesInternal(n, fvs, scope, false);
 }
 
-bool getVariables(TNode n, std::unordered_set<TNode>& vs)
+bool getVariables(TNode n, std::unordered_set<Node>& vs)
 {
   std::unordered_set<TNode> visited;
   return getVariables(n, vs, visited);
 }
 
 bool getVariables(TNode n,
-                  std::unordered_set<TNode>& vs,
+                  std::unordered_set<Node>& vs,
                   std::unordered_set<TNode>& visited)
 {
   std::vector<TNode> visit;
@@ -503,6 +508,10 @@ bool getVariables(TNode n,
       }
       else
       {
+        if (cur.hasOperator())
+        {
+          visit.push_back(cur.getOperator());
+        }
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
       visited.insert(cur);
@@ -704,7 +713,7 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
     visited.insert(curr);
     if (curr.first.getNumChildren() == 0)
     {
-      if (curr.first.getType() != curr.second.getType())
+      if (!curr.first.getType().isComparableTo(curr.second.getType()))
       {
         // the two subterms have different types
         return false;

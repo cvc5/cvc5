@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -166,7 +166,7 @@ void Printer::printUnknownCommandStatus(std::ostream& out,
 void Printer::printUnknownCommand(std::ostream& out,
                                   const std::string& name) const
 {
-  out << "ERROR: don't know how to print " << name << " command" << std::endl;
+  out << "ERROR: don't know how to print " << name << " command";
 }
 
 void Printer::toStreamCmdSuccess(std::ostream& out) const

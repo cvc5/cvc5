@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -175,18 +175,6 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         Trace("smt-pppg-debug")
             << "...rewritten from " << proven[0] << std::endl;
         Assert(proven.getKind() == Kind::EQUAL);
-        if (!proofStepProcessed)
-        {
-          // maybe its just an (extended) rewrite?
-          Node pr = extendedRewrite(proven[0]);
-          if (proven[1] == pr)
-          {
-            Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
-            Trace("smt-pppg-debug") << "...add simple rewrite" << std::endl;
-            cdp.addStep(proven, ProofRule::MACRO_REWRITE, {}, {proven[0], idr});
-            proofStepProcessed = true;
-          }
-        }
         transChildren.push_back(proven);
         // continue with source
         curr = proven[0];

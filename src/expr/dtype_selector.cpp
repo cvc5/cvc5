@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -90,3 +90,11 @@ std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg)
 }
 
 }  // namespace cvc5::internal
+
+namespace std {
+size_t hash<cvc5::internal::DTypeSelector>::operator()(
+    const cvc5::internal::DTypeSelector& sel) const
+{
+  return std::hash<std::string>()(sel.getName());
+}
+}  // namespace std

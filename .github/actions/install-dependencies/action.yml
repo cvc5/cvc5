@@ -3,19 +3,17 @@ description: Install necessary dependencies on the target system
 inputs:
   with-documentation:
     default: false
-  with-python-bindings:
-    default: false
-  with-python-packaging:
-    default: false
   windows-build:
     default: false
     type: boolean
+  shell:
+    default: bash
 runs:
   using: composite
   steps:
     - name: Install Linux software
       if: runner.os == 'Linux'
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install Linux software"
         sudo apt-get update
@@ -27,26 +25,26 @@ runs:
           libedit-dev \
           libgmp-dev \
           libtinfo-dev \
-          flex \
-          libfl-dev \
-          flexc++
-        python3 -m pip install --user pexpect setuptools tomli
-        # Make ImageVersion accessible as env.image_version. Environment
-        # variables of the runner are not automatically imported:
-        #
-        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
+          libfl-dev
         echo "SED=sed" >> $GITHUB_ENV
         echo "CCACHE_CONFIGPATH=/home/runner/.ccache/ccache.conf" >> $GITHUB_ENV
-        echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(( $(nproc) + 1 ))" >> $GITHUB_ENV
-        echo "/usr/lib/ccache" >> $GITHUB_PATH
+        echo "::endgroup::"
+
+    - name: Install software for cross-compiling for arm64 Linux
+      if: runner.os == 'Linux'
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Install software for cross-compiling for arm64 Linux"
+        sudo apt-get install -y \
+          gcc-aarch64-linux-gnu \
+          g++-aarch64-linux-gnu
         echo "::endgroup::"
 
     - name: Install software for cross-compiling for Windows
       # Boolean inputs are actually strings:
       # https://github.com/actions/runner/issues/1483
-      if: inputs.windows-build == 'true'
-      shell: bash
+      if: runner.os == 'Linux' && inputs.windows-build == 'true'
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install software for cross-compiling for Windows"
         sudo apt-get update
@@ -59,10 +57,33 @@ runs:
         sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
         echo "::endgroup::"
 
+    - name: Install Windows software
+      if: runner.os == 'Windows' && inputs.windows-build == 'true'
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        msystem: MINGW64
+        path-type: inherit
+        install: |
+          make
+          mingw-w64-x86_64-ccache
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-gmp
+          zip
+
+    - name: Set up num_proc variable for Linux and Windows
+      if: runner.os == 'Linux' || runner.os == 'Windows'
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Set up num_proc variable for Linux and Windows"
+        echo "num_proc=$(( $(nproc) + 1 ))" >> $GITHUB_ENV
+        echo "::endgroup::"
+
     # Note: macOS comes with a libedit; it does not need to brew-installed
     - name: Install macOS software
       if: runner.os == 'macOS'
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install macOS software"
         brew config
@@ -71,53 +92,30 @@ runs:
 
         brew install \
           ccache \
-          cln \
-          gmp \
           pkgconfig \
-          flex \
           gnu-sed
-        python3 -m pip install --user pexpect setuptools tomli pyparsing
-        # Make ImageVersion accessible as env.image_version. Environment
-        # variables of the runner are not automatically imported:
-        #
-        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
         echo "SED=gsed" >> $GITHUB_ENV
         echo "CCACHE_CONFIGPATH=/Users/runner/Library/Preferences/ccache/ccache.conf" >> $GITHUB_ENV
-        echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "num_proc=$(( $(sysctl -n hw.logicalcpu) + 1 ))" >> $GITHUB_ENV
-        echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
         echo "::endgroup::"
 
-    - name: Install software for Python bindings
-      if: inputs.with-python-bindings == 'true'
-      shell: bash
+    # Required by PEP-668
+    - name: Set up Python virtual environment
+      if: runner.os == 'macOS'
+      shell: ${{ inputs.shell }}
       run: |
-        echo "::group::Install software for Python bindings"
-        python3 -m pip install -q --upgrade pip
-        python3 -m pip install --user pytest scikit-build
-        python3 -m pytest --version
-        python3 -m pip install --user Cython==3.*
-        # Add binary path of user site-packages to PATH
-        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
-        echo "::endgroup::"
-
-    - name: Install software for Python packaging
-      if: inputs.with-python-packaging == 'true'
-      shell: bash
-      run: |
-        echo "::group::Install software for Python packaging"
-        python3 -m pip install -q --upgrade pip
-        python3 -m pip install --user twine
-        python3 -m pip install --user -U urllib3 requests
+        echo "::group::Set up Python virtual environment"
+        python3 -m venv ~/.venv
+        echo "$HOME/.venv/bin" >> $GITHUB_PATH
         echo "::endgroup::"
     
     - name: Install software for documentation
       if: inputs.with-documentation == 'true'
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install software for documentation"
         sudo apt-get install -y doxygen python3-docutils python3-jinja2
-        python3 -m pip install --user \
+        python3 -m pip install \
           sphinx==7.1.2 \
           sphinxcontrib-bibtex==2.5.0 sphinx-tabs==3.4.1 sphinx-rtd-theme==1.3.0 breathe==4.35.0 \
           sphinxcontrib-programoutput==0.17

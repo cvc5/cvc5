@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -129,17 +129,23 @@ void getConcat(Node n, std::vector<Node>& c)
 Node mkConcat(const std::vector<Node>& c, TypeNode tn)
 {
   Assert(tn.isStringLike() || tn.isRegExp());
-  if (c.empty())
-  {
-    Assert(tn.isStringLike());
-    return Word::mkEmptyWord(tn);
-  }
-  else if (c.size() == 1)
+  if (c.size() == 1)
   {
     return c[0];
   }
+  NodeManager* nm = NodeManager::currentNM();
+  if (c.empty())
+  {
+    if (tn.isRegExp())
+    {
+      TypeNode stn = nm->stringType();
+      Node emp = Word::mkEmptyWord(stn);
+      return nm->mkNode(Kind::STRING_TO_REGEXP, emp);
+    }
+    return Word::mkEmptyWord(tn);
+  }
   Kind k = tn.isStringLike() ? Kind::STRING_CONCAT : Kind::REGEXP_CONCAT;
-  return NodeManager::currentNM()->mkNode(k, c);
+  return nm->mkNode(k, c);
 }
 
 Node mkPrefix(Node t, Node n)
@@ -156,6 +162,12 @@ Node mkSuffix(Node t, Node n)
       t,
       n,
       nm->mkNode(Kind::SUB, nm->mkNode(Kind::STRING_LENGTH, t), n));
+}
+Node mkSuffixOfLen(Node t, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node lent = nm->mkNode(Kind::STRING_LENGTH, t);
+  return nm->mkNode(Kind::STRING_SUBSTR, t, nm->mkNode(Kind::SUB, lent, n), n);
 }
 
 Node mkUnit(TypeNode tn, Node n)
@@ -226,9 +238,9 @@ Node mkConcatForConstSequence(const Node& c)
   const std::vector<Node>& charVec = c.getConst<Sequence>().getVec();
   std::vector<Node> vec;
   NodeManager* nm = NodeManager::currentNM();
-  for (size_t i = 0, size = charVec.size(); i < size; i++)
+  for (const Node& cc : charVec)
   {
-    vec.push_back(nm->mkNode(Kind::SEQ_UNIT, charVec[size - (i + 1)]));
+    vec.push_back(nm->mkNode(Kind::SEQ_UNIT, cc));
   }
   return mkConcat(vec, c.getType());
 }

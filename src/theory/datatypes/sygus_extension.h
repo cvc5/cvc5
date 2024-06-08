@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -422,7 +422,7 @@ private:
                                      Node val,
                                      quantifiers::SygusInvarianceTest& et,
                                      Node valr,
-                                     std::map<TypeNode, int>& var_count);
+                                     std::map<TypeNode, size_t>& var_count);
   /** Add symmetry breaking lemmas for term
    *
    * Sends all active symmetry breaking lemmas for selector chain t via the
@@ -664,7 +664,7 @@ private:
    * for fresh variables x1, x2, x3. The map var_count maintains the variable
    * count for generating these fresh variables.
    */
-  Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
+  Node getCurrentTemplate(Node n, std::map<TypeNode, size_t>& var_count);
   //----------------------end search size information
   /** check value
    *

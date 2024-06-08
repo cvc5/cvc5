@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,8 @@ QuantifiersState::QuantifiersState(Env& env,
                                    Valuation val,
                                    const LogicInfo& logicInfo)
     : TheoryState(env, val),
-      d_ierCounterc(env.getContext()),
+      d_ierCounterc(context()),
+      d_conflictInst(context()),
       d_logicInfo(logicInfo),
       d_statistics(statisticsRegistry())
 {
@@ -135,6 +136,8 @@ void QuantifiersState::debugPrintEqualityEngine(const char* c) const
 const LogicInfo& QuantifiersState::getLogicInfo() const { return d_logicInfo; }
 
 QuantifiersStatistics& QuantifiersState::getStats() { return d_statistics; }
+
+void QuantifiersState::notifyConflictingInst() { d_conflictInst = true; }
 
 }  // namespace quantifiers
 }  // namespace theory

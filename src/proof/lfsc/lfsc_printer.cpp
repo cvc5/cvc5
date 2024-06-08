@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Mathias Preiner
+ *   Andrew Reynolds, Hans-Jörg Schurr, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +45,7 @@ LfscPrinter::LfscPrinter(Env& env,
       d_pletTrustChildPrefix("q"),
       d_rdb(rdb)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_boolType = nm->booleanType();
   // used for the `flag` type in LFSC
   d_tt = d_tproc.mkInternalSymbol("tt", d_boolType);
@@ -186,7 +186,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     }
     const DType& dt = stc.getDType();
     preamble << "; DATATYPE " << dt.getName() << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DTypeConstructor& cons = dt[i];
@@ -217,8 +217,8 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   }
 
   // [6] print the DSL rewrite rule declarations
-  const std::unordered_set<DslProofRule>& dslrs = lpcp.getDslRewrites();
-  for (DslProofRule dslr : dslrs)
+  const std::unordered_set<ProofRewriteRule>& dslrs = lpcp.getDslRewrites();
+  for (ProofRewriteRule dslr : dslrs)
   {
     // also computes the format for the rule
     printDslRule(out, dslr, d_dslFormat[dslr]);
@@ -370,12 +370,13 @@ void LfscPrinter::printTypeDefinition(
   }
   else if (tn.isDatatype())
   {
-    if (tn.getKind() == Kind::PARAMETRIC_DATATYPE)
+    const DType& dt = tn.getDType();
+    if (tn.getKind() == Kind::PARAMETRIC_DATATYPE || dt.isNullable())
     {
       // skip the instance of a parametric datatype
+      // nullables don't need printing
       return;
     }
-    const DType& dt = tn.getDType();
     if (dt.isTuple())
     {
       const DTypeConstructor& cons = dt[0];
@@ -540,7 +541,7 @@ void LfscPrinter::printProofInternal(
           Assert(passumeIt != passumeMap.end());
           out->printId(passumeIt->second, d_assumpPrefix);
         }
-        else if (r == ProofRule::ENCODE_PRED_TRANSFORM)
+        else if (r == ProofRule::ENCODE_EQ_INTRO)
         {
           // just add child
           visit.push_back(PExpr(cur->getChildren()[0].get()));
@@ -762,7 +763,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
-      pf << h << as[0] << as[1];
+      pf << h << as[0] << as[1] << d_tproc.convertType(as[0].getType());
     }
     break;
     case ProofRule::ARITH_TRICHOTOMY:
@@ -880,8 +881,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     break;
     case ProofRule::DSL_REWRITE:
     {
-      DslProofRule di = DslProofRule::FAIL;
-      if (!rewriter::getDslProofRule(args[0], di))
+      ProofRewriteRule di = ProofRewriteRule::NONE;
+      if (!rewriter::getRewriteRule(args[0], di))
       {
         Assert(false);
       }
@@ -900,7 +901,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           if (as[i].getKind() == Kind::SEXPR)
           {
             Assert(args[i].getKind() == Kind::SEXPR);
-            NodeManager* nm = NodeManager::currentNM();
+            NodeManager* nm = nodeManager();
             Kind k = rpr.getListContext(v);
             // notice we use d_tproc.getNullTerminator and not
             // expr::getNullTerminator here, which has subtle differences
@@ -960,7 +961,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       }
       // print child proofs, which is based on the format computed for the rule
       size_t ccounter = 0;
-      std::map<rewriter::DslProofRule, std::vector<Node>>::iterator itf =
+      std::map<ProofRewriteRule, std::vector<Node>>::iterator itf =
           d_dslFormat.find(di);
       if (itf == d_dslFormat.end())
       {
@@ -1086,7 +1087,7 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 }
 
 void LfscPrinter::printDslRule(std::ostream& out,
-                               DslProofRule id,
+                               ProofRewriteRule id,
                                std::vector<Node>& format)
 {
   const rewriter::RewriteProofRule& rpr = d_rdb->getRule(id);
@@ -1100,7 +1101,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
 
   std::stringstream rparen;
   odecl << "(declare ";
-  LfscPrintChannelOut::printDslProofRuleId(odecl, id);
+  LfscPrintChannelOut::printProofRewriteRule(odecl, id);
   std::vector<Node> vlsubs;
   // streams for printing the computation of term in side conditions or
   // list semantics substitutions
@@ -1149,7 +1150,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
            << std::endl;
       // body must be converted to incorporate list semantics for substitutions
       // first traversal applies nary_elim to required n-ary applications
-      LfscListScNodeConverter llsncp(d_tproc, listVars, true);
+      LfscListScNodeConverter llsncp(nodeManager(), d_tproc, listVars, true);
       Node tscp;
       if (isConclusion)
       {
@@ -1165,7 +1166,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       // second traversal converts to LFSC form
       Node t = d_tproc.convert(tscp);
       // third traversal applies nary_concat where list variables are used
-      LfscListScNodeConverter llsnc(d_tproc, listVars, false);
+      LfscListScNodeConverter llsnc(nodeManager(), d_tproc, listVars, false);
       Node tsc = llsnc.convert(t);
       oscs << "  ";
       print(oscs, tsc);

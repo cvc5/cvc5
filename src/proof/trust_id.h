@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,6 +36,8 @@ enum class TrustId : uint32_t
   PREPROCESS,
   /** A lemma added during preprocessing without a proof */
   PREPROCESS_LEMMA,
+  /** A ppStaticRewrite step */
+  PP_STATIC_REWRITE,
   /** A rewrite of the input formula made by a theory during preprocessing
      without a proof */
   THEORY_PREPROCESS,
@@ -43,6 +45,8 @@ enum class TrustId : uint32_t
   THEORY_PREPROCESS_LEMMA,
   /** A expanding of definitions of the input formula made without a proof */
   THEORY_EXPAND_DEF,
+  /** An extended theory rewrite */
+  EXT_THEORY_REWRITE,
   /** An axiom for an introduced witness term without a corresponding proof */
   WITNESS_AXIOM,
   /** A rewrite whose proof could not be elaborated */
@@ -56,8 +60,19 @@ enum class TrustId : uint32_t
   SUBS_MAP,
   /** A proof of a substitution x=t that could not be shown by rewrite */
   SUBS_EQ,
+  /** A step of the form (~ s t) = (~ (to_real s) (to_real t)) */
+  ARITH_PRED_CAST_TYPE,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
+  /** A subtype elimination step that could not be processed */
+  SUBTYPE_ELIMINATION,
+  /** A rewrite required for showing a macro theory rewrite */
+  MACRO_THEORY_REWRITE_RCONS,
+  /**
+   * A rewrite required for showing a macro theory rewrite that should not
+   * require the use of theory rewrites to prove.
+   */
+  MACRO_THEORY_REWRITE_RCONS_SIMPLE,
 };
 /** Converts a trust id to a string. */
 const char* toString(TrustId id);

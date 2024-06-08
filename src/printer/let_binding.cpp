@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,12 @@
 
 namespace cvc5::internal {
 
-LetBinding::LetBinding(const std::string& prefix, uint32_t thresh)
+LetBinding::LetBinding(const std::string& prefix,
+                       uint32_t thresh,
+                       bool traverseBinders)
     : d_prefix(prefix),
       d_thresh(thresh),
+      d_traverseBinders(traverseBinders),
       d_context(),
       d_visitList(&d_context),
       d_count(&d_context),
@@ -156,20 +159,17 @@ void LetBinding::updateCounts(Node n)
   {
     cur = visit.back();
     it = d_count.find(cur);
+    // do not traverse beneath quantifiers if d_traverseBinders is false.
+    if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST
+        || (!d_traverseBinders && cur.isClosure()))
+    {
+      visit.pop_back();
+      continue;
+    }
     if (it == d_count.end())
     {
-      // do not traverse beneath quantifiers
-      if (cur.getNumChildren() == 0 || cur.isClosure())
-      {
-        d_visitList.push_back(cur);
-        d_count[cur] = 1;
-        visit.pop_back();
-      }
-      else
-      {
-        d_count[cur] = 0;
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
+      d_count[cur] = 0;
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
     else
     {
@@ -192,12 +192,7 @@ void LetBinding::convertCountToLet()
   NodeIdMap::const_iterator itc;
   for (const Node& n : d_visitList)
   {
-    if (n.getNumChildren() == 0)
-    {
-      // do not letify terms with no children
-      continue;
-    }
-    else if (d_letMap.find(n) != d_letMap.end())
+    if (d_letMap.find(n) != d_letMap.end())
     {
       // already letified, perhaps at a lower context
       continue;

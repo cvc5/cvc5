@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,21 +96,16 @@ Node ForeignTheoryRewriter::foreignRewrite(Node n)
   Assert(n.getKind() != Kind::GT);
   Assert(n.getKind() != Kind::LT);
   Assert(n.getKind() != Kind::LEQ);
-  // apply rewrites according to the structure of n
-  if (n.getKind() == Kind::GEQ)
+  // apply rewrites according to the structure of n.
+  if ((n.getKind() == Kind::GEQ || n.getKind() == Kind::EQUAL)
+      && n[0].getType().isInteger())
   {
-    return rewriteStringsGeq(n);
-  }
-  return n;
-}
-
-Node ForeignTheoryRewriter::rewriteStringsGeq(Node n)
-{
-  theory::strings::ArithEntail ae(d_env.getRewriter());
-  // check if the node can be simplified to true
-  if (ae.check(n[0], n[1], false))
-  {
-    return NodeManager::currentNM()->mkConst(true);
+    theory::strings::ArithEntail ae(d_env.getRewriter());
+    Node r = ae.rewritePredViaEntailment(n);
+    if (!r.isNull())
+    {
+      return r;
+    }
   }
   return n;
 }

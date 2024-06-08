@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Alex Ozdemir, Gereon Kremer
+ *   Andrew Reynolds, Alex Ozdemir, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -137,6 +137,21 @@ class EagerProofGenerator : protected EnvObj, public ProofGenerator
                         const std::vector<Node>& exp,
                         const std::vector<Node>& args,
                         bool isConflict = false);
+  /**
+   * Make trust node from a single step proof of a rewrite. This is a
+   * convenience function that avoids the need to explictly construct ProofNode
+   * by the caller.
+   *
+   * @param a the original
+   * @param b what is rewrites to
+   * @param id The rewrite rule of the proof concluding conc based on rewriting
+   * the term a.
+   * @return The trust node corresponding to the fact that this generator has
+   * a proof of a=b.
+   */
+  TrustNode mkTrustNodeRewrite(const Node& a,
+                               const Node& b,
+                               ProofRewriteRule id);
   /**
    * Make trust node: wrap `exp => n` in a trust node with this generator, and
    * have it store the proof `pf` too.

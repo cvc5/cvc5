@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hanna Lachnitt, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Jörg Schurr, Hanna Lachnitt
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "theory/builtin/proof_checker.h"
 
+#include "expr/nary_term_util.h"
 #include "expr/skolem_manager.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
@@ -34,8 +35,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env)
-    : d_env(env), d_rdb(nullptr)
+BuiltinProofRuleChecker::BuiltinProofRuleChecker(NodeManager* nm,
+                                                 Rewriter* r,
+                                                 Env& env)
+    : ProofRuleChecker(nm), d_rewriter(r), d_env(env), d_rdb(nullptr)
 {
 }
 
@@ -45,10 +48,12 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SCOPE, this);
   pc->registerChecker(ProofRule::SUBS, this);
   pc->registerChecker(ProofRule::EVALUATE, this);
+  pc->registerChecker(ProofRule::ACI_NORM, this);
   pc->registerChecker(ProofRule::ANNOTATION, this);
-  pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
-  pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
+  pc->registerChecker(ProofRule::ITE_EQ, this);
+  pc->registerChecker(ProofRule::ENCODE_EQ_INTRO, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
+  pc->registerChecker(ProofRule::THEORY_REWRITE, this);
   // rules depending on the rewriter
   pc->registerTrustedChecker(ProofRule::MACRO_REWRITE, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_EQ_INTRO, this, 4);
@@ -61,7 +66,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   // external proof rules
   pc->registerChecker(ProofRule::LFSC_RULE, this);
   pc->registerChecker(ProofRule::ALETHE_RULE, this);
-  pc->registerChecker(ProofRule::ALF_RULE, this);
 
   d_rdb = pc->getRewriteDatabase();
 }
@@ -201,7 +205,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // compute what was proven
   if (id == ProofRule::ASSUME)
   {
@@ -279,6 +283,20 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0].eqNode(res);
   }
+  else if (id == ProofRule::ACI_NORM)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    if (args[0].getKind() != Kind::EQUAL)
+    {
+      return Node::null();
+    }
+    if (!expr::isACINorm(args[0][0], args[0][1]))
+    {
+      return Node::null();
+    }
+    return args[0];
+  }
   else if (id == ProofRule::MACRO_SR_EQ_INTRO)
   {
     Assert(1 <= args.size() && args.size() <= 4);
@@ -314,7 +332,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
                              << SkolemManager::getOriginalForm(res) << std::endl;
     // **** NOTE: can rewrite the witness form here. This enables certain lemmas
     // to be provable, e.g. (= k t) where k is a purification Skolem for t.
-    res = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res));
+    res = d_rewriter->rewrite(SkolemManager::getOriginalForm(res));
     if (!res.isConst() || !res.getConst<bool>())
     {
       Trace("builtin-pfcheck")
@@ -364,8 +382,8 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
           << "Failed to show " << res1 << " == " << res2
           << ", resort to original forms..." << std::endl;
       // can rewrite the witness forms
-      res1 = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res1));
-      res2 = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res2));
+      res1 = d_rewriter->rewrite(SkolemManager::getOriginalForm(res1));
+      res2 = d_rewriter->rewrite(SkolemManager::getOriginalForm(res2));
       if (res1.isNull() || res1 != res2)
       {
         Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
@@ -375,7 +393,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0];
   }
-  else if (id == ProofRule::REMOVE_TERM_FORMULA_AXIOM)
+  else if (id == ProofRule::ITE_EQ)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -393,26 +411,20 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-  else if (id == ProofRule::LFSC_RULE || id == ProofRule::ALETHE_RULE
-           || id == ProofRule::ALF_RULE)
+  else if (id == ProofRule::LFSC_RULE || id == ProofRule::ALETHE_RULE)
   {
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());
     return args[1];
   }
-  else if (id == ProofRule::ENCODE_PRED_TRANSFORM)
+  else if (id == ProofRule::ENCODE_EQ_INTRO)
   {
-    Assert(children.size() == 1);
+    Assert(children.empty());
     Assert(args.size() == 1);
-    rewriter::RewriteDbNodeConverter rconv;
-    Node f = children[0];
-    Node g = args[0];
-    // equivalent up to conversion via utility
-    if (rconv.convert(f) != rconv.convert(g))
-    {
-      return Node::null();
-    }
-    return g;
+    rewriter::RewriteDbNodeConverter rconv(nodeManager());
+    // run a single (small) step conversion
+    Node ac = rconv.postConvert(args[0]);
+    return args[0].eqNode(ac);
   }
   else if (id == ProofRule::ANNOTATION)
   {
@@ -421,11 +433,11 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::DSL_REWRITE)
   {
-    // consult rewrite db, apply args[1]...args[n] as a substituion
+    // consult rewrite db, apply args[1]...args[n] as a substitution
     // to variable list and prove equality between LHS and RHS.
     Assert(d_rdb != nullptr);
-    rewriter::DslProofRule di;
-    if (!getDslProofRule(args[0], di))
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
     {
       return Node::null();
     }
@@ -452,7 +464,25 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return rpr.getConclusionFor(subs);
   }
-
+  else if (id == ProofRule::THEORY_REWRITE)
+  {
+    Assert(args.size() == 2);
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
+    {
+      return Node::null();
+    }
+    if (args[1].getKind() != Kind::EQUAL)
+    {
+      return Node::null();
+    }
+    Node rhs = d_rewriter->rewriteViaRule(di, args[1][0]);
+    if (rhs.isNull() || rhs != args[1][1])
+    {
+      return Node::null();
+    }
+    return args[1];
+  }
   // no rule
   return Node::null();
 }

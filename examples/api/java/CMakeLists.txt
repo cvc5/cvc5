@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -34,6 +34,7 @@ set(EXAMPLES_API_JAVA
    SygusInv
    Transcendentals
    UnsatCores
+   Uf
 )
 
 function(add_java_example example)
@@ -43,11 +44,17 @@ function(add_java_example example)
 
   set(EXAMPLE_TEST_NAME api/java/${example})
 
+  if(WIN32)
+    set(PATH_SEP ";")
+  else()
+    set(PATH_SEP ":")
+  endif()
+
   add_test(
     NAME ${EXAMPLE_TEST_NAME}
     COMMAND
       ${Java_JAVA_EXECUTABLE}
-        -cp "${CVC5_JAR}:${CMAKE_BINARY_DIR}/bin/api/java/${example}.jar"
+        -cp "${CVC5_JAR}${PATH_SEP}${CMAKE_BINARY_DIR}/bin/api/java/${example}.jar"
         -Djava.library.path=${CVC5_JNI_PATH}
         ${example}
   )

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -677,11 +677,13 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    */
   public Triplet<Long, Long, Term> getFloatingPointValue()
   {
-    Triplet<Long, Long, Long> triplet = getFloatingPointValue(pointer);
-    return new Triplet<>(triplet.first, triplet.second, new Term(triplet.third));
+    Triplet<String, String, Long> triplet = getFloatingPointValue(pointer);
+    Long exponent = Long.valueOf(triplet.first);
+    Long significand = Long.valueOf(triplet.second);
+    return new Triplet<>(exponent, significand, new Term(triplet.third));
   }
 
-  private native Triplet<Long, Long, Long> getFloatingPointValue(long pointer);
+  private native Triplet<String, String, Long> getFloatingPointValue(long pointer);
 
   /**
    * @return True if the term is a set value.
@@ -800,6 +802,48 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native long getRealAlgebraicNumberUpperBound(long pointer);
+
+  /**
+   * @api.note This method is experimental and may change in future versions.
+   * @return True if this term is a skolem function.
+   */
+  public boolean isSkolem()
+  {
+    return isSkolem(pointer);
+  }
+  private native boolean isSkolem(long pointer);
+
+  /**
+   * Get skolem identifier of this term.
+   * @api.note Asserts isSkolem().
+   * @api.note This method is experimental and may change in future versions.
+   * @return The skolem identifier of this term.
+   * @throws CVC5ApiException
+   */
+  public SkolemId getSkolemId() throws CVC5ApiException
+  {
+    int value = getSkolemId(pointer);
+    return SkolemId.fromInt(value);
+  }
+
+  private native int getSkolemId(long pointer);
+
+  /**
+   * Get the skolem indices of this term.
+   * @api.note Asserts isSkolem().
+   * @api.note This method is experimental and may change in future versions.
+   * @return The skolem indices of this term. This a list of terms that the
+   * skolem function is indexed by. For example, the array diff skolem
+   * {@link SkolemId#ARRAY_DEQ_DIFF} is indexed by two arrays.
+   * @throws CVC5ApiException
+   */
+  public Term[] getSkolemIndices() throws CVC5ApiException
+  {
+    long[] termPointers = getSkolemIndices(pointer);
+    return Utils.getTerms(termPointers);
+  }
+
+  private native long[] getSkolemIndices(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {

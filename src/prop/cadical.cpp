@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Gereon Kremer, Andres Noetzli
+ *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,12 @@
 #include <deque>
 
 #include "base/check.h"
+#include "options/main_options.h"
+#include "options/proof_options.h"
 #include "prop/theory_proxy.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -252,12 +255,25 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     {
       return true;
     }
-
     // CaDiCaL may backtrack while importing clauses, which can result in some
     // clauses not being processed. Make sure to add all clauses before
     // checking the model.
     if (!d_new_clauses.empty())
     {
+      Trace("cadical::propagator") << "cb::check_found_model end: new "
+                                      "variables added via theory decision"
+                                   << std::endl;
+      // CaDiCaL expects us to be able to provide a reason for rejecting the
+      // model (it asserts that after this call, cb_has_external_clause()
+      // returns true). However, in this particular case, we want to force
+      // CaDiCaL to give us model values for the new variables that were
+      // introduced (to kick off the assignment notification machinery), we
+      // don't have a reason clause for rejecting the model. CaDiCaL's
+      // expectation will be weakened in the future to allow for this, but for
+      // now we simply add a tautology as reason to pacify CaDiCaL.
+      d_new_clauses.push_back(1);
+      d_new_clauses.push_back(-1);
+      d_new_clauses.push_back(0);
       return false;
     }
 
@@ -307,6 +323,19 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
       }
     } while (d_var_info.size() == size && recheck);
 
+    if (d_var_info.size() != size)
+    {
+      Trace("cadical::propagator") << "cb::check_found_model end: new "
+                                      "variables added via theory check"
+                                   << std::endl;
+      // Same as above, until CaDiCaL's assertion that we have to have
+      // a reason clause for rejecting the model is weakened, we need to
+      // pacify it with a tautology.
+      d_new_clauses.push_back(1);
+      d_new_clauses.push_back(-1);
+      d_new_clauses.push_back(0);
+      return false;
+    }
     bool res = done();
     Trace("cadical::propagator")
         << "cb::check_found_model end: done: " << res << std::endl;
@@ -624,7 +653,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   /**
    * Push user assertion level.
    */
-  void user_push(SatLiteral& alit)
+  void user_push(SatVariable& alit)
   {
     Trace("cadical::propagator")
         << "user push: " << d_active_vars_control.size();
@@ -655,8 +684,6 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     Trace("cadical::propagator")
         << "disable activation lit: " << alit << std::endl;
     d_activation_literals.pop_back();
-    d_solver.add(toCadicalLit(alit));
-    d_solver.add(0);
 
     size_t user_level = current_user_level();
 
@@ -924,13 +951,15 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
-                             const std::string& name)
+                             const std::string& name,
+                             bool logProofs)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
       d_context(nullptr),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
+      d_logProofs(logProofs),
       d_inSatMode(false),
       d_statistics(registry, name)
 {
@@ -953,6 +982,17 @@ void CadicalSolver::init()
   d_solver->add(0);
   d_solver->add(-toCadicalVar(d_false));
   d_solver->add(0);
+
+  if (d_logProofs)
+  {
+    d_pfFile = options().driver.filename + ".drat_proof.txt";
+    if (!options().proof.dratBinaryFormat)
+    {
+      d_solver->set("binary", 0);
+    }
+    d_solver->set("inprocessing", 0);
+    d_solver->trace_proof(d_pfFile.c_str());
+  }
 }
 
 CadicalSolver::~CadicalSolver() {}
@@ -1144,7 +1184,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 void CadicalSolver::initialize(context::Context* context,
                                prop::TheoryProxy* theoryProxy,
                                context::UserContext* userContext,
-                               ProofNodeManager* pnm)
+                               PropPfManager* ppm)
 {
   d_context = context;
   d_proxy = theoryProxy;
@@ -1158,10 +1198,7 @@ void CadicalSolver::push()
 {
   d_context->push();  // SAT context for cvc5
   // New activation literal for pushed user level.
-  // Note that we do not use newVar() here, since activation literals do not
-  // need to be observed. This avoids additional notification overhead for this
-  // variable.
-  SatLiteral alit = SatLiteral(d_nextVarIdx++);
+  SatVariable alit = newVar(false);
   d_propagator->user_push(alit);
 }
 
@@ -1214,9 +1251,23 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
 
 std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
-std::shared_ptr<ProofNode> CadicalSolver::getProof() { return nullptr; }
+std::shared_ptr<ProofNode> CadicalSolver::getProof()
+{
+  // do not throw an exception, since we test whether the proof is available
+  // by comparing it to nullptr.
+  return nullptr;
+}
 
-SatProofManager* CadicalSolver::getProofManager() { return nullptr; }
+std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
+{
+  Assert(d_logProofs);
+  d_solver->flush_proof_trace();
+  std::vector<Node> args = {NodeManager::currentNM()->mkConst(String(d_pfFile))};
+  // The proof is DRAT_REFUTATION whose premises is all inputs + theory lemmas.
+  // The DRAT file is an argument to the file proof.
+  return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,
+                                                 args);
+}
 
 /* -------------------------------------------------------------------------- */
 }  // namespace prop

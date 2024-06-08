@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,8 +35,7 @@ public class Parser
     ss += "(assert (> a (+ b c)))\n";
     ss += "(assert (< a b))\n";
     ss += "(assert (> c 0))\n";
-    parser.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "MyStream");
-    parser.appendIncrementalStringInput(ss);
+    parser.setStringInput(InputLanguage.SMT_LIB_2_6, ss, "MyStream");
 
     // get the symbol manager of the parser, used when invoking commands below
     SymbolManager sm = parser.getSymbolManager();

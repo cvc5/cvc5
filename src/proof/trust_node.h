@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,6 +96,10 @@ class TrustNode
   /** Make a trust node, replacing the original generator */
   static TrustNode mkReplaceGenTrustNode(const TrustNode& orig,
                                          ProofGenerator* g);
+  /** Make a trust node with the given explicit arguments. */
+  static TrustNode mkTrustNode(TrustNodeKind tnk,
+                               Node p,
+                               ProofGenerator* g = nullptr);
   /** The null proven node */
   static TrustNode null();
   ~TrustNode() {}

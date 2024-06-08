@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
+#include "theory/quantifiers/mbqi_fast_sygus.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -25,6 +26,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/uf/function_const.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -44,6 +46,11 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   d_nonClosedKinds.insert(Kind::STORE_ALL);
   d_nonClosedKinds.insert(Kind::CODATATYPE_BOUND_VARIABLE);
   d_nonClosedKinds.insert(Kind::UNINTERPRETED_SORT_VALUE);
+
+  if (options().quantifiers.mbqiFastSygus)
+  {
+    d_msenum.reset(new MbqiFastSygus(env, *this));
+  }
 }
 
 void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
@@ -96,7 +103,7 @@ void InstStrategyMbqi::process(Node q)
   // model values to the fresh variables
   std::map<Node, Node> mvToFreshVar;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   const RepSet* rs = d_treg.getModel()->getRepSet();
   FirstOrderModel* fm = d_treg.getModel();
@@ -105,7 +112,7 @@ void InstStrategyMbqi::process(Node q)
   Subs skolems;
   for (const Node& v : q[0])
   {
-    Node k = sm->mkPurifySkolem(v);
+    Node k = mkMbqiSkolem(v);
     skolems.add(v, k);
     // do not take its model value (which does not exist) in conversion below
     tmpConvertMap[k] = k;
@@ -236,7 +243,8 @@ void InstStrategyMbqi::process(Node q)
 
   // get the model values for skolems
   std::vector<Node> terms;
-  getModelFromSubsolver(*mbqiChecker.get(), skolems.d_subs, terms);
+  modelValueFromQuery(
+      q, query, *mbqiChecker.get(), skolems.d_subs, terms, mvToFreshVar);
   Assert(skolems.size() == terms.size());
   if (TraceIsOn("mbqi"))
   {
@@ -308,7 +316,7 @@ Node InstStrategyMbqi::convertToQuery(
     std::unordered_map<Node, Node>& cmap,
     std::map<TypeNode, std::unordered_set<Node> >& freshVarType)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   FirstOrderModel* fm = d_treg.getModel();
   std::unordered_map<Node, Node>::iterator it;
@@ -344,7 +352,8 @@ Node InstStrategyMbqi::convertToQuery(
         cmap[cur] = k;
         continue;
       }
-      else if (ck == Kind::CONST_SEQUENCE || cur.isVar())
+      else if (ck == Kind::CONST_SEQUENCE || ck == Kind::FUNCTION_ARRAY_CONST
+               || cur.isVar())
       {
         // constant sequences and variables require two passes
         if (!cur.getType().isFirstClass())
@@ -362,13 +371,17 @@ Node InstStrategyMbqi::convertToQuery(
             {
               mval = strings::utils::mkConcatForConstSequence(cur);
             }
+            else if (ck == Kind::FUNCTION_ARRAY_CONST)
+            {
+              mval = uf::FunctionConst::toLambda(cur);
+            }
             else
             {
               mval = fm->getValue(cur);
             }
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
-            if (cur == mval)
+            if (expr::hasSubterm(mval, cur))
             {
               // failed to evaluate in model, keep itself
               cmap[cur] = cur;
@@ -436,12 +449,32 @@ Node InstStrategyMbqi::convertToQuery(
   return cmap[cur];
 }
 
+
+void InstStrategyMbqi::modelValueFromQuery(
+    const Node& q,
+    const Node& query,
+    SolverEngine& smt,
+    const std::vector<Node>& vars,
+    std::vector<Node>& mvs,
+    const std::map<Node, Node>& mvToFreshVar)
+{
+  getModelFromSubsolver(smt, vars, mvs);
+  if (options().quantifiers.mbqiFastSygus)
+  {
+    std::vector<Node> smvs(mvs);
+    if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))
+    {
+      mvs = smvs;
+    }
+  }
+}
+
 Node InstStrategyMbqi::convertFromModel(
     Node t,
     std::unordered_map<Node, Node>& cmap,
     const std::map<Node, Node>& mvToFreshVar)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> modelValue;
   std::unordered_set<Node> processingChildren;
@@ -470,6 +503,7 @@ Node InstStrategyMbqi::convertFromModel(
         if (itmv != mvToFreshVar.end())
         {
           cmap[cur] = itmv->second;
+          continue;
         }
         else
         {
@@ -478,26 +512,39 @@ Node InstStrategyMbqi::convertFromModel(
           return Node::null();
         }
       }
-      else if (ck == Kind::CONST_SEQUENCE)
+      // must convert to concat of sequence units
+      // must convert function array constant to lambda
+      Node cconv;
+      if (ck == Kind::CONST_SEQUENCE)
       {
-        // must convert to concat of sequence units
-        Node cconv = strings::utils::mkConcatForConstSequence(cur);
-        cmap[cur] = convertFromModel(cconv, cmap, mvToFreshVar);
+        cconv = strings::utils::mkConcatForConstSequence(cur);
+      }
+      else if (ck == Kind::FUNCTION_ARRAY_CONST)
+      {
+        cconv = uf::FunctionConst::toLambda(cur);
+      }
+      if (!cconv.isNull())
+      {
+        Node cconvRet = convertFromModel(cconv, cmap, mvToFreshVar);
+        if (cconvRet.isNull())
+        {
+          return cconvRet;
+        }
+        cmap[cur] = cconvRet;
+        continue;
       }
       else if (cur.getNumChildren() == 0)
       {
         cmap[cur] = cur;
+        continue;
       }
-      else
+      processingChildren.insert(cur);
+      visit.push_back(cur);
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
-        processingChildren.insert(cur);
-        visit.push_back(cur);
-        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-        {
-          visit.push_back(cur.getOperator());
-        }
-        visit.insert(visit.end(), cur.begin(), cur.end());
+        visit.push_back(cur.getOperator());
       }
+      visit.insert(visit.end(), cur.begin(), cur.end());
       continue;
     }
     processingChildren.erase(cur);
@@ -526,6 +573,13 @@ Node InstStrategyMbqi::convertFromModel(
 
   Assert(cmap.find(cur) != cmap.end());
   return cmap[cur];
+}
+
+Node InstStrategyMbqi::mkMbqiSkolem(const Node& t)
+{
+  SkolemManager* skm = nodeManager()->getSkolemManager();
+  return skm->mkInternalSkolemFunction(
+      InternalSkolemId::MBQI_INPUT, t.getType(), {t});
 }
 
 }  // namespace quantifiers

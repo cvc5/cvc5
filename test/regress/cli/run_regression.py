@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli, Abdalrhman Mohamed, Aina Niemetz
+#   Andres Noetzli, Abdalrhman Mohamed, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,6 +21,7 @@ import difflib
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -28,6 +29,10 @@ import threading
 
 g_args = None
 
+# For maximum reliability, we get a fully qualified path for the executable.
+bash_bin = shutil.which("bash")
+if bash_bin is None:
+    raise FileNotFoundError("Bash executable is required but not found.")
 
 class Color:
     BLUE = "\033[94m"
@@ -36,18 +41,24 @@ class Color:
     RED = "\033[91m"
     ENDC = "\033[0m"
 
+is_windows = sys.platform.startswith('win')
+
+class BulletSymbol:
+    # On Windows, the special characters cause this error:
+    #   UnicodeEncodeError: 'charmap' codec can't encode character
+    # when ctest runs the Python script
+    INFO = "▶ " if not is_windows else "> "
+    OK = "✓ " if not is_windows else "> "
+    ERROR = "✖ " if not is_windows else "> "
 
 def print_info(msg):
-    print(Color.BLUE + "▶ " + msg + Color.ENDC)
-
+    print(Color.BLUE + BulletSymbol.INFO + msg + Color.ENDC)
 
 def print_ok(msg):
-    print(Color.GREEN + "✓ " + msg + Color.ENDC)
-
+    print(Color.GREEN + BulletSymbol.OK + msg + Color.ENDC)
 
 def print_error(err):
-    print(Color.RED + "✖ " + err + Color.ENDC)
-
+    print(Color.RED + BulletSymbol.ERROR + err + Color.ENDC)
 
 class Tester:
 
@@ -208,12 +219,12 @@ class LfscTester(Tester):
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
         with tempfile.NamedTemporaryFile() as tmpf:
-            cvc5_args = benchmark_info.command_line_args + [
+            cvc5_args = [
                 "--dump-proofs",
                 "--proof-format=lfsc",
                 "--proof-granularity=theory-rewrite",
                 "--proof-check=lazy",
-            ]
+            ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + cvc5_args
@@ -265,12 +276,12 @@ class AlfTester(Tester):
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
         with tempfile.NamedTemporaryFile() as tmpf:
-            cvc5_args = benchmark_info.command_line_args + [
+            cvc5_args = [
                 "--dump-proofs",
                 "--proof-format=alf",
-                "--proof-granularity=theory-rewrite",
+                "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
-            ]
+            ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + cvc5_args
@@ -279,7 +290,7 @@ class AlfTester(Tester):
                 benchmark_info.timeout,
             )
             alf_sig_dir = os.path.abspath(g_args.alf_sig_dir)
-            tmpf.write(("(include \"" + alf_sig_dir + "/Cvc5.smt3\")").encode())
+            tmpf.write(("(include \"" + alf_sig_dir + "/cvc5/Cvc5.smt3\")").encode())
             tmpf.write(output.strip("unsat\n".encode()))
             tmpf.flush()
             output, error = output.decode(), error.decode()
@@ -557,7 +568,7 @@ def run_process(args, cwd, timeout, s_input=None):
         # shell=True seems to produce different exit codes on different
         # platforms under certain circumstances.
         res = subprocess.run(
-            ["bash", "-c", cmd],
+            [bash_bin,"-c", cmd],
             cwd=cwd,
             input=s_input,
             timeout=timeout,
@@ -743,6 +754,9 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
+            if disable_tester == "dsl-proof":
+                if "alf" in testers:
+                    testers.remove("alf")
             if disable_tester == "proof":
                 if "lfsc" in testers:
                     testers.remove("lfsc")

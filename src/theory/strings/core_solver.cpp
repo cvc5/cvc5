@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -741,11 +741,8 @@ Node CoreSolver::getConclusion(Node x,
   Node conc;
   if (rule == ProofRule::CONCAT_SPLIT || rule == ProofRule::CONCAT_LPROP)
   {
-    // must compare so that we are agnostic to order of x/y
-    Node ux = x < y ? x : y;
-    Node uy = x < y ? y : x;
-    Node sk = skc->mkSkolemCached(ux,
-                                  uy,
+    Node sk = skc->mkSkolemCached(x,
+                                  y,
                                   isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
                                         : SkolemCache::SK_ID_V_UNIFIED_SPT,
                                   "v_spt");
@@ -761,9 +758,7 @@ Node CoreSolver::getConclusion(Node x,
     {
       Node eq2 = y.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, x)
                                 : nm->mkNode(Kind::STRING_CONCAT, x, sk));
-      // make agnostic to x/y
-      conc = x < y ? nm->mkNode(Kind::OR, eq1, eq2)
-                   : nm->mkNode(Kind::OR, eq2, eq1);
+      conc = nm->mkNode(Kind::OR, eq1, eq2);
     }
     // we can assume its length is greater than zero
     Node emp = Word::mkEmptyWord(sk.getType());
@@ -797,10 +792,9 @@ Node CoreSolver::getConclusion(Node x,
     Assert(d.isConst());
     Node c = y;
     Assert(c.isConst());
-    size_t cLen = Word::getLength(c);
     size_t p = getSufficientNonEmptyOverlap(c, d, isRev);
-    Node preC =
-        p == cLen ? c : (isRev ? Word::suffix(c, p) : Word::prefix(c, p));
+    Node rp = nm->mkConstInt(p);
+    Node preC = (isRev ? utils::mkSuffixOfLen(c, rp) : utils::mkPrefix(c, rp));
     Node sk = skc->mkSkolemCached(
         z,
         preC,
@@ -2452,8 +2446,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemCache* sc = d_termReg.getSkolemCache();
-  TypeNode intType = nm->integerType();
-  Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
+  Node k = sc->mkSkolemFun(SkolemId::STRINGS_DEQ_DIFF, n1, n2);
   Node deq = eq.negate();
   // we could use seq.nth instead of substr
   Node ss1, ss2;
@@ -2720,6 +2713,24 @@ size_t CoreSolver::pickInferInfo(const std::vector<CoreInferInfo>& pinfer)
   return use_index;
 }
 
+void CoreSolver::processFact(InferInfo& ii, ProofGenerator*& pg)
+{
+  // process it with the inference manager
+  d_im.processFact(ii, pg);
+}
+
+TrustNode CoreSolver::processLemma(InferInfo& ii, LemmaProperty& p)
+{
+  // process the state change to this solver
+  if (!ii.d_nfPair[0].isNull())
+  {
+    Assert(!ii.d_nfPair[1].isNull());
+    addNormalFormPair(ii.d_nfPair[0], ii.d_nfPair[1]);
+  }
+  // now, process it with the inference manager
+  return d_im.processLemma(ii, p);
+}
+
 void CoreSolver::checkNormalFormsEq()
 {
   // we've computed the possible inferences above
@@ -2728,12 +2739,9 @@ void CoreSolver::checkNormalFormsEq()
     // add one inference from our list of possible inferences
     size_t use_index = pickInferInfo(d_pinfers);
     InferInfo& ii = d_pinfers[use_index].d_infer;
-    // process the state change to this solver
-    if (!ii.d_nfPair[0].isNull())
-    {
-      Assert(!ii.d_nfPair[1].isNull());
-      addNormalFormPair(ii.d_nfPair[0], ii.d_nfPair[1]);
-    }
+    // Send the inference, which is a lemma. This class will process the side
+    // effects of the inference.
+    ii.d_sim = this;
     d_im.sendInference(ii, true);
     return;
   }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Hans-Jörg Schurr, Mudathir Mohamed, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,16 @@ import java.math.BigInteger;
  */
 public class Proof implements IPointer
 {
+  /**
+   * Null proof
+   */
+  public Proof()
+  {
+    this(getNullProof());
+  }
+
+  private static native long getNullProof();
+
   Proof(long pointer)
   {
     this.pointer = pointer;
@@ -57,6 +67,19 @@ public class Proof implements IPointer
 
   private native int getRule(long pointer);
 
+  /**
+   * @return The proof rewrite rule used by the root step of the proof.
+   * @throws CVC5ApiException if `getRule()` does not return `DSL_REWRITE`
+   *         or `THEORY_REWRITE`.
+   */
+  public ProofRewriteRule getRewriteRule() throws CVC5ApiException
+  {
+    int value = getRewriteRule(pointer);
+    return ProofRewriteRule.fromInt(value);
+  }
+
+  private native int getRewriteRule(long pointer);
+
   /** @return The conclusion of the root step of the proof. */
   public Term getResult()
   {
@@ -86,4 +109,41 @@ public class Proof implements IPointer
   }
 
   private native long[] getArguments(long pointer);
+
+  /**
+   * Referential equality operator.
+   * Return `true` if both proofs point to the same internal proof object.
+   *
+   * @param p The proof to compare to for equality.
+   * @return `true` if the proofs are equal.
+   */
+  @Override
+  public boolean equals(Object p)
+  {
+    if (this == p)
+    {
+      return true;
+    }
+    if (p == null || getClass() != p.getClass())
+    {
+      return false;
+    }
+    Proof proof = (Proof) p;
+    if (pointer == proof.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, proof.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /** @return The hash value of the proof. */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

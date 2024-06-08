@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,7 @@
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/linear/linear_solver.h"
 #include "theory/arith/pp_rewrite_eq.h"
 #include "theory/arith/proof_checker.h"
 #include "theory/theory.h"
@@ -37,17 +38,12 @@ class NonlinearExtension;
 
 class EqualitySolver;
 
-namespace linear {
-class TheoryArithPrivate;
-}
-
 /**
  * Implementation of linear and non-linear integer and real arithmetic.
  * The linear arithmetic solver is based upon:
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-  friend class linear::TheoryArithPrivate;
  public:
   TheoryArith(Env& env, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
@@ -169,7 +165,7 @@ class TheoryArith : public Theory {
   /** The equality solver */
   std::unique_ptr<EqualitySolver> d_eqSolver;
   /** The (old) linear arithmetic solver */
-  linear::TheoryArithPrivate* d_internal;
+  linear::LinearSolver d_internal;
 
   /**
    * The non-linear extension, responsible for all approaches for non-linear

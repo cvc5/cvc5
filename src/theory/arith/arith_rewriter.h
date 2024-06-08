@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,7 @@ class OperatorElim;
 class ArithRewriter : public TheoryRewriter
 {
  public:
-  ArithRewriter(OperatorElim& oe);
+  ArithRewriter(NodeManager* nm, OperatorElim& oe);
   RewriteResponse preRewrite(TNode n) override;
   RewriteResponse postRewrite(TNode n) override;
   /**
@@ -46,71 +46,82 @@ class ArithRewriter : public TheoryRewriter
    * if possible, return an equivalent formula involving a bitvector inequality.
    * Otherwise, return ineq itself.
    */
-  static Node rewriteIneqToBv(const Node& ineq);
+  Node rewriteIneqToBv(const Node& ineq);
+
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
 
  private:
   /** preRewrite for atoms */
-  static RewriteResponse preRewriteAtom(TNode t);
+  RewriteResponse preRewriteAtom(TNode t);
   /** postRewrite for atoms */
-  static RewriteResponse postRewriteAtom(TNode t);
+  RewriteResponse postRewriteAtom(TNode t);
 
   /** preRewrite for terms */
-  static RewriteResponse preRewriteTerm(TNode t);
+  RewriteResponse preRewriteTerm(TNode t);
   /** postRewrite for terms */
-  static RewriteResponse postRewriteTerm(TNode t);
+  RewriteResponse postRewriteTerm(TNode t);
 
   /** rewrite real algebraic numbers */
-  static RewriteResponse rewriteRAN(TNode t);
+  RewriteResponse rewriteRAN(TNode t);
   /** rewrite variables */
-  static RewriteResponse rewriteVariable(TNode t);
+  RewriteResponse rewriteVariable(TNode t);
 
   /** rewrite unary minus */
-  static RewriteResponse rewriteNeg(TNode t, bool pre);
+  RewriteResponse rewriteNeg(TNode t, bool pre);
   /** rewrite binary minus */
-  static RewriteResponse rewriteSub(TNode t);
+  RewriteResponse rewriteSub(TNode t);
   /** preRewrite addition */
-  static RewriteResponse preRewritePlus(TNode t);
+  RewriteResponse preRewritePlus(TNode t);
   /** postRewrite addition */
-  static RewriteResponse postRewritePlus(TNode t);
+  RewriteResponse postRewritePlus(TNode t);
   /** preRewrite multiplication */
-  static RewriteResponse preRewriteMult(TNode t);
+  RewriteResponse preRewriteMult(TNode t);
   /** postRewrite multiplication */
-  static RewriteResponse postRewriteMult(TNode t);
+  RewriteResponse postRewriteMult(TNode t);
 
   /** rewrite division */
-  static RewriteResponse rewriteDiv(TNode t, bool pre);
+  RewriteResponse rewriteDiv(TNode t, bool pre);
   /** rewrite to_real */
-  static RewriteResponse rewriteToReal(TNode t);
+  RewriteResponse rewriteToReal(TNode t);
   /** rewrite absolute */
-  static RewriteResponse rewriteAbs(TNode t);
+  RewriteResponse rewriteAbs(TNode t);
   /** rewrite integer division and modulus */
-  static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
+  RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
   /** rewrite integer total division and total modulus */
-  static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
+  RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
   /** rewrite to_int and is_int */
-  static RewriteResponse rewriteExtIntegerOp(TNode t);
+  RewriteResponse rewriteExtIntegerOp(TNode t);
 
   /** postRewrite IAND */
-  static RewriteResponse postRewriteIAnd(TNode t);
+  RewriteResponse postRewriteIAnd(TNode t);
   /** postRewrite POW2 */
-  static RewriteResponse postRewritePow2(TNode t);
+  RewriteResponse postRewritePow2(TNode t);
+  /** postRewrite INTS_LOG2 */
+  RewriteResponse postRewriteIntsIsPow2(TNode t);
+  /** postRewrite INTS_LOG2 */
+  RewriteResponse postRewriteIntsLog2(TNode t);
 
   /** preRewrite transcendental functions */
-  static RewriteResponse preRewriteTranscendental(TNode t);
+  RewriteResponse preRewriteTranscendental(TNode t);
   /** postRewrite transcendental functions */
-  static RewriteResponse postRewriteTranscendental(TNode t);
+  RewriteResponse postRewriteTranscendental(TNode t);
 
   /** return rewrite */
-  static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
+  RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
 
   /**
    * Rewrite inequality to bv. If applicable, return
    * the bitvector inequality that is the rewritten form of the arithmetic
    * inequality ineq that is equivalent to (<k> sum 0).
    */
-  static Node rewriteIneqToBv(Kind k,
-                              const rewriter::Sum& sum,
-                              const Node& ineq);
+  Node rewriteIneqToBv(Kind k, const rewriter::Sum& sum, const Node& ineq);
   /** The operator elimination utility */
   OperatorElim& d_opElim;
 }; /* class ArithRewriter */

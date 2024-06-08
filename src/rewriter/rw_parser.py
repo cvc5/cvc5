@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Haniel Barbosa
+#   Haniel Barbosa, Leni Aniva
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -75,7 +75,7 @@ class Parser:
         return int(s[2:])
 
     def symbol(self):
-        special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.'
+        special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.' + '@' + '/'
         return pp.Word(pp.alphas + special_chars, pp.alphanums + special_chars)
 
     def app_action(self, s, l, t):
@@ -194,8 +194,8 @@ class Parser:
         def fixed_rule_action(s, l, t):
             # t = [key, args, match, target, (cond)]
             assert len(t) == 4 or len(t) == 5
-            keys, args, match, target, cond = list(t) + [None] \
-                if len(t) == 4 else t
+            keys, args, match, target = t[:4]
+            cond = Placeholder() if len(t) == 4 else t[4]
             return self.rule_action(args, CBool(True), match, target, True, cond)
         fixed_rule = (
             pp.Suppress('(') +

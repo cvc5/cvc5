@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -115,6 +115,11 @@ class SygusUtils
    * function-to-synthesize f.
    */
   static TypeNode getSygusType(const Node& f);
+  /**
+   * Makes an arbitrary term as a solution for f, possibly using its sygus
+   * type if it has one.
+   */
+  static Node mkSygusTermFor(const Node& f);
 };
 
 }  // namespace quantifiers

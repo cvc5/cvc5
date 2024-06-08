@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,7 +63,7 @@ class SkolemCache
    * purification skolem. It is required for the purposes of proof checking
    * that this only results in calls to SkolemManager::mkPurifySkolem.
    */
-  enum SkolemId
+  enum StringSkolemId
   {
     // exists k. k = a
     SK_PURIFY,
@@ -124,17 +124,20 @@ class SkolemCache
    * Returns a skolem of type string that is cached for (a,b,id) and has
    * name c.
    */
-  Node mkSkolemCached(Node a, Node b, SkolemId id, const char* c);
+  Node mkSkolemCached(Node a, Node b, StringSkolemId id, const char* c);
   /**
    * Returns a skolem of type string that is cached for (a,[null],id) and has
    * name c.
    */
-  Node mkSkolemCached(Node a, SkolemId id, const char* c);
+  Node mkSkolemCached(Node a, StringSkolemId id, const char* c);
   /** Same as above, but the skolem to construct has a custom type tn */
   Node mkTypedSkolemCached(
-      TypeNode tn, Node a, Node b, SkolemId id, const char* c);
+      TypeNode tn, Node a, Node b, StringSkolemId id, const char* c);
   /** Same as mkTypedSkolemCached above for (a,[null],id) */
-  Node mkTypedSkolemCached(TypeNode tn, Node a, SkolemId id, const char* c);
+  Node mkTypedSkolemCached(TypeNode tn,
+                           Node a,
+                           StringSkolemId id,
+                           const char* c);
   /** Returns a (uncached) skolem of type string with name c */
   Node mkSkolem(const char* c);
   /** Returns true if n is a skolem allocated by this class */
@@ -168,10 +171,7 @@ class SkolemCache
    * Skolem we construct (in d_allSkolems), which is used for finite model
    * finding.
    */
-  Node mkSkolemFun(SkolemFunId id,
-                   TypeNode tn,
-                   Node a = Node::null(),
-                   Node b = Node::null());
+  Node mkSkolemFun(SkolemId id, Node a = Node::null(), Node b = Node::null());
 
  private:
   /**
@@ -188,9 +188,8 @@ class SkolemCache
    * @return A tuple with the new skolem id, the new first, and the new second
    * argument
    */
-  std::tuple<SkolemId, Node, Node> normalizeStringSkolem(SkolemId id,
-                                                         Node a,
-                                                         Node b);
+  std::tuple<StringSkolemId, Node, Node> normalizeStringSkolem(
+      StringSkolemId id, Node a, Node b);
   /** the optional rewriter */
   Rewriter* d_rr;
   /** string type */
@@ -198,9 +197,14 @@ class SkolemCache
   /** Constant node zero */
   Node d_zero;
   /** map from node pairs and identifiers to skolems */
-  std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
+  std::map<Node, std::map<Node, std::map<StringSkolemId, Node>>> d_skolemCache;
   /** the set of all skolems we have generated */
   std::unordered_set<Node> d_allSkolems;
+  /**
+   * Get cache vals, which returns the vector of terms from (possibly null)
+   * a and b that should be passed to the skolem manager.
+   */
+  std::vector<Node> getSkolemCacheVals(const Node& a, const Node& b) const;
 };
 
 }  // namespace strings

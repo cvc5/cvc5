@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Gereon Kremer
+ *   Andrew Reynolds, Clark Barrett, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,8 +42,8 @@ TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
 {
   // must use function models when ufHo is enabled
   Assert(d_enableFuncModels || !logicInfo().isHigherOrder());
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 TheoryModel::~TheoryModel() {}
@@ -119,7 +119,7 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
     // Sorts are always interpreted as non-empty, thus we add a single element.
     // We use mkGroundValue here, since domain elements must all be
     // of UNINTERPRETED_SORT_VALUE kind.
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     elements.push_back(nm->mkGroundValue(tn));
     return elements;
   }
@@ -149,7 +149,7 @@ Node TheoryModel::getValue(TNode n) const
     {
       // normalize the body. Do not normalize the entire node, which
       // involves array normalization.
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       nn = nm->mkNode(Kind::LAMBDA, nn[0], rewrite(nn[1]));
     }
   }
@@ -174,25 +174,20 @@ bool TheoryModel::isModelCoreSymbol(Node s) const
   return d_model_core.find(s) != d_model_core.end();
 }
 
-Cardinality TheoryModel::getCardinality(TypeNode tn) const
+size_t TheoryModel::getCardinality(const TypeNode& tn) const
 {
   //for now, we only handle cardinalities for uninterpreted sorts
-  if (!tn.isUninterpretedSort())
-  {
-    Trace("model-getvalue-debug")
-        << "Get cardinality other sort, unknown." << std::endl;
-    return Cardinality( CardinalityUnknown() );
-  }
+  Assert(tn.isUninterpretedSort());
   if (d_rep_set.hasType(tn))
   {
     Trace("model-getvalue-debug")
         << "Get cardinality sort, #rep : "
         << d_rep_set.getNumRepresentatives(tn) << std::endl;
-    return Cardinality(d_rep_set.getNumRepresentatives(tn));
+    return d_rep_set.getNumRepresentatives(tn);
   }
   Trace("model-getvalue-debug")
       << "Get cardinality sort, unconstrained, return 1." << std::endl;
-  return Cardinality(1);
+  return 1;
 }
 
 Node TheoryModel::getModelValue(TNode n) const
@@ -211,7 +206,7 @@ Node TheoryModel::getModelValue(TNode n) const
   }
 
   Node ret = n;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   // If it has children, evaluate them. We do this even if n is an unevaluatable
   // or semi-unevaluatable operator. Notice this includes quantified
@@ -261,8 +256,9 @@ Node TheoryModel::getModelValue(TNode n) const
           ret.getOperator().getConst<CardinalityConstraint>();
       Trace("model-getvalue-debug")
           << "get cardinality constraint " << cc.getType() << std::endl;
-      ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
-                        <= cc.getUpperBound());
+      size_t cval = getCardinality(cc.getType());
+      Assert(cval > 0);
+      ret = nm->mkConst(Integer(cval) <= cc.getUpperBound());
     }
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we are an evaluated kind. This can occur if the
@@ -303,6 +299,7 @@ Node TheoryModel::getModelValue(TNode n) const
     {
       ret = it2->second;
       d_modelCache[n] = ret;
+      Trace("model-getvalue-debug") << "...set rep is " << ret << std::endl;
       return ret;
     }
   }
@@ -517,7 +514,24 @@ void TheoryModel::assertSkeleton(TNode n)
   Trace("model-builder-reps") << "Assert skeleton : " << n << std::endl;
   Trace("model-builder-reps") << "...rep eqc is : " << getRepresentative(n)
                               << std::endl;
-  d_reps[ n ] = n;
+  d_reps[n] = n;
+}
+
+void TheoryModel::assignRepresentative(const Node& r,
+                                       const Node& n,
+                                       bool isFinal)
+{
+  Assert(r.getType() == n.getType());
+  TypeNode tn = r.getType();
+  if (isFinal && logicInfo().isHigherOrder() && tn.isFunction())
+  {
+    assignFunctionDefinition(r, n);
+  }
+  else
+  {
+    d_reps[r] = n;
+  }
+  d_rep_set.add(tn, n);
 }
 
 void TheoryModel::setAssignmentExclusionSet(TNode n,
@@ -681,11 +695,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
   }
- 
-  // d_uf_models only stores models for variables
-  if( f.isVar() ){
-    d_uf_models[f] = f_def;
-  }
+
+  d_uf_models[f] = f_def;
 
   if (logicInfo().isHigherOrder() && d_equalityEngine->hasTerm(f))
   {
@@ -694,13 +705,16 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     Node r = d_equalityEngine->getRepresentative( f );
     //always replace the representative, since it is initially assigned to itself
     Trace("model-builder") << "    Assign: Setting function rep " << r << " to " << f_def << endl;
+    // should not have assigned it yet, unless it was set to itself
+    Assert(d_reps.find(r) == d_reps.end() || d_reps[r] == r)
+        << "Function already assigned " << d_reps[r];
     d_reps[r] = f_def;  
     // also assign to other assignable functions in the same equivalence class
     eq::EqClassIterator eqc_i = eq::EqClassIterator(r,d_equalityEngine);
     while( !eqc_i.isFinished() ) {
       Node n = *eqc_i;
       // if an unassigned variable function
-      if (n.isVar() && !hasAssignedFunctionDefinition(n))
+      if (isAssignableUf(n) && !hasAssignedFunctionDefinition(n))
       {
         d_uf_models[n] = f_def;
         Trace("model-builder") << "  Assigning function (" << n << ") to function definition of " << f << std::endl;
@@ -725,40 +739,62 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     Node n = it->first;
     Assert(!n.isNull());
     // lambdas do not need assignments
-    if (n.getKind() == Kind::LAMBDA)
+    if (!isAssignableUf(n))
     {
       continue;
     }
     // should not have been solved for in a substitution
     Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
-    if( !hasAssignedFunctionDefinition( n ) ){
-      Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
-      if (logicInfo().isHigherOrder())
+    if (hasAssignedFunctionDefinition(n))
+    {
+      continue;
+    }
+    Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
+    if (logicInfo().isHigherOrder())
+    {
+      // if in higher-order mode, assign function definitions modulo equality
+      Node r = getRepresentative(n);
+      if (hasAssignedFunctionDefinition(r))
       {
-        // if in higher-order mode, assign function definitions modulo equality
-        Node r = getRepresentative( n );
-        std::map< Node, Node >::iterator itf = func_to_rep.find( r );
-        if( itf==func_to_rep.end() ){
-          func_to_rep[r] = n;
-          funcs_to_assign.push_back( n );
-          Trace("model-builder-fun") << "Make function " << n;
-          Trace("model-builder-fun") << " the assignable function in its equivalence class." << std::endl;
-        }else{
-          // must combine uf terms          
-          Trace("model-builder-fun") << "Copy " << it->second.size() << " uf terms";
-          d_uf_terms[itf->second].insert( d_uf_terms[itf->second].end(), it->second.begin(), it->second.end() );
-          std::map< Node, std::vector< Node > >::iterator ith = d_ho_uf_terms.find( n );
-          if( ith!=d_ho_uf_terms.end() ){
-            d_ho_uf_terms[itf->second].insert( d_ho_uf_terms[itf->second].end(), ith->second.begin(), ith->second.end() );
-            Trace("model-builder-fun") << " and " << ith->second.size() << " ho uf terms";
-          }
-          Trace("model-builder-fun") << " from " << n << " to its assignable representative function " << itf->second << std::endl;
-          it->second.clear();
-        }
-      }else{
-        Trace("model-builder-fun") << "Function to assign : " << n << std::endl;
-        funcs_to_assign.push_back( n );
+        continue;
       }
+      std::map<Node, Node>::iterator itf = func_to_rep.find(r);
+      if (itf == func_to_rep.end())
+      {
+        func_to_rep[r] = n;
+        funcs_to_assign.push_back( n );
+        Trace("model-builder-fun") << "Make function " << n;
+        Trace("model-builder-fun")
+            << " the assignable function in its equivalence class."
+            << std::endl;
+      }
+      else
+      {
+        // must combine uf terms
+        Trace("model-builder-fun")
+            << "Copy " << it->second.size() << " uf terms";
+        d_uf_terms[itf->second].insert(d_uf_terms[itf->second].end(),
+                                       it->second.begin(),
+                                       it->second.end());
+        std::map<Node, std::vector<Node>>::iterator ith = d_ho_uf_terms.find(n);
+        if (ith != d_ho_uf_terms.end())
+        {
+          d_ho_uf_terms[itf->second].insert(d_ho_uf_terms[itf->second].end(),
+                                            ith->second.begin(),
+                                            ith->second.end());
+          Trace("model-builder-fun")
+              << " and " << ith->second.size() << " ho uf terms";
+        }
+        Trace("model-builder-fun")
+            << " from " << n << " to its assignable representative function "
+            << itf->second << std::endl;
+        it->second.clear();
+      }
+    }
+    else
+    {
+      Trace("model-builder-fun") << "Function to assign : " << n << std::endl;
+      funcs_to_assign.push_back(n);
     }
   }
 
@@ -806,6 +842,11 @@ bool TheoryModel::isBaseModelValue(TNode n) const
     return true;
   }
   return false;
+}
+
+bool TheoryModel::isAssignableUf(const Node& n) const
+{
+  return n.getKind() != Kind::LAMBDA;
 }
 
 bool TheoryModel::isValue(TNode n) const

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -245,8 +245,17 @@ private:
   void getBounds( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
   void getBoundValues( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
   bool isGroundRange(Node f, Node v);
-  //for set range
+  /**
+   * Get the current value for set variable v of quantified formula q based
+   * on the current iterator rsi.
+   */
   Node getSetRange( Node q, Node v, RepSetIterator * rsi );
+  /**
+   * Get the current value for set variable v of quantified formula q based
+   * on the current iterator rsi. Additionally transforms the model value for
+   * v based on the set_choose operator for the purposes of instantiating with
+   * symbolic elements of the model of v.
+   */
   Node getSetRangeValue( Node q, Node v, RepSetIterator * rsi );
   Node matchBoundVar( Node v, Node t, Node e );
   

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -169,8 +169,12 @@ bool Instantiate::addInstantiationInternal(
                     << std::endl;
       bad_inst = true;
     }
-    else if (options().quantifiers.cegqi)
+    else
     {
+      // This checks whether the term represents a "counterexample". It is
+      // model-unsound to instantiate with such terms.
+      // Note we check this even if cegqi is false, since sygusInst also
+      // introduces terms with this attribute.
       Node icf = TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
       {
@@ -340,12 +344,12 @@ bool Instantiate::addInstantiationInternal(
   if (hasProof)
   {
     // use proof generator
-    addedLem =
-        d_qim.addPendingLemma(lem, id, LemmaProperty::NONE, d_pfInst.get());
+    addedLem = d_qim.addPendingLemma(
+        lem, id, LemmaProperty::INPROCESS, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qim.addPendingLemma(lem, id);
+    addedLem = d_qim.addPendingLemma(lem, id, LemmaProperty::INPROCESS);
   }
 
   if (!addedLem)
@@ -568,10 +572,12 @@ Node Instantiate::getInstantiation(Node q,
   // store the proof of the instantiated body, with (open) assumption q
   if (pf != nullptr)
   {
+    std::vector<Node> pfTerms;
+    // Include the list of terms as an SEXPR.
+    pfTerms.push_back(NodeManager::currentNM()->mkNode(Kind::SEXPR, terms));
     // additional arguments: if the inference id is not unknown, include it,
     // followed by the proof argument if non-null. The latter is used e.g.
     // to track which trigger caused an instantiation.
-    std::vector<Node> pfTerms = terms;
     if (id != InferenceId::UNKNOWN)
     {
       pfTerms.push_back(mkInferenceIdNode(id));

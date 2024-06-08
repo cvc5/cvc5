@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,14 +34,16 @@ struct QElimShadowAttributeId
 };
 using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
-ElimShadowNodeConverter::ElimShadowNodeConverter(const Node& q) : d_closure(q)
+ElimShadowNodeConverter::ElimShadowNodeConverter(NodeManager* nm, const Node& q)
+    : NodeConverter(nm), d_closure(q)
 {
   Assert(q.isClosure());
   d_vars.insert(d_vars.end(), q[0].begin(), q[0].end());
 }
 
 ElimShadowNodeConverter::ElimShadowNodeConverter(
-    const Node& n, const std::unordered_set<Node>& vars)
+    NodeManager* nm, const Node& n, const std::unordered_set<Node>& vars)
+    : NodeConverter(nm)
 {
   d_closure = n;
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
@@ -85,7 +87,8 @@ Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
 Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
 {
   Assert(q.isClosure());
-  ElimShadowNodeConverter esnc(q);
+  NodeManager* nm = NodeManager::currentNM();
+  ElimShadowNodeConverter esnc(nm, q);
   // eliminate shadowing in all children
   std::vector<Node> children;
   children.push_back(q[0]);

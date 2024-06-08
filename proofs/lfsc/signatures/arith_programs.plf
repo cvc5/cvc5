@@ -68,13 +68,16 @@
 (function sc_arith_mult ((t1 term) (t2 term)) term
   (a.* t1 (a.* t2 (int 1))))
 
+(function sc_arith_zero ((u sort)) term
+  (match u (Int (int 0)) (Real (real 0/1))))
+
 ; Returns (> t 0).
-(function sc_arith_>_zero ((t term)) term
-  (a.> t (int 0)))
+(function sc_arith_>_zero ((t term) (u sort)) term
+  (a.> t (sc_arith_zero u))))
 
 ; Returns (< t 0).
-(function sc_arith_<_zero ((t term)) term
-  (a.< t (int 0)))
+(function sc_arith_<_zero ((t term) (u sort)) term
+  (a.< t (sc_arith_zero u)))
 
 ; Get relation for the negation of arithmetic literal f.
 (function sc_arith_get_rel_neg ((f term)) term

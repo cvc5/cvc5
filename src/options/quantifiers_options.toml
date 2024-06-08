@@ -35,6 +35,14 @@ name   = "Quantifiers"
   help = "Enable aggressive miniscope, which further may rewrite quantified formulas into a form where miniscoping is possible."
 
 [[option]]
+  name       = "miniscopeQuantUser"
+  category   = "regular"
+  long       = "miniscope-quant-user"
+  type       = "bool"
+  default    = "false"
+  help       = "miniscope quantified formulas with user patterns"
+
+[[option]]
   name       = "prenexQuant"
   category   = "regular"
   long       = "prenex-quant=MODE"
@@ -192,6 +200,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "use model-based quantifier instantiation"
 
+[[option]]
+  name       = "mbqiFastSygus"
+  category   = "expert"
+  long       = "mbqi-fast-sygus"
+  type       = "bool"
+  default    = "false"
+  help       = "use fast enumeration to augment instantiations from MBQI"
+
 #### E-matching options
 
 [[option]]
@@ -216,14 +232,6 @@ name   = "Quantifiers"
 [[option.mode.RELEVANT]]
   name = "relevant"
   help = "Quantifiers module considers only ground terms connected to current assertions."
-
-[[option]]
-  name       = "termDbCd"
-  category   = "expert"
-  long       = "term-db-cd"
-  type       = "bool"
-  default    = "true"
-  help       = "register terms in term database based on the SAT context"
 
 [[option]]
   name       = "registerQuantBodyTerms"
@@ -766,22 +774,6 @@ name   = "Quantifiers"
   help       = "cbqi experimental variable ordering"
 
 [[option]]
-  name       = "cbqiEagerTest"
-  category   = "expert"
-  long       = "cbqi-eager-test"
-  type       = "bool"
-  default    = "true"
-  help       = "optimization, test cbqi instances eagerly"
-
-[[option]]
-  name       = "cbqiEagerCheckRd"
-  category   = "expert"
-  long       = "cbqi-eager-check-rd"
-  type       = "bool"
-  default    = "true"
-  help       = "optimization, eagerly check relevant domain of matched position"
-
-[[option]]
   name       = "cbqiSkipRd"
   category   = "expert"
   long       = "cbqi-skip-rd"
@@ -814,6 +806,22 @@ name   = "Quantifiers"
 [[option.mode.USE_LEARN]]
   name = "use-learn"
   help = "Use instantiation evaluation, and generalize learning."
+
+[[option]]
+  name       = "quantSubCbqi"
+  category   = "regular"
+  long       = "sub-cbqi"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable conflict-based instantiation subsolver strategy"
+
+[[option]]
+  name       = "quantSubCbqiTimeout"
+  category   = "regular"
+  long       = "sub-cbqi-timeout=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "Timeout (in milliseconds) for subsolver calls for sub-cbqi"
 
 ### Induction options
 
@@ -878,10 +886,20 @@ name   = "Quantifiers"
 [[option]]
   name       = "sygusInference"
   category   = "expert"
-  long       = "sygus-inference"
-  type       = "bool"
-  default    = "false"
-  help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
+  long       = "sygus-inference=MODE"
+  type       = "SygusInferenceMode"
+  default    = "OFF"
+  help       = "mode for preprocessing arbitrary inputs to sygus conjectures"
+  help_mode  = "Modes  for preprocessing arbitrary inputs to sygus conjectures."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not use sygus inference techniques."
+[[option.mode.TRY]]
+  name = "try"
+  help = "Try to use sygus inference techniques but resort to ordinary SMT solving if it does not apply."
+[[option.mode.ON]]
+  name = "on"
+  help = "Try to sygus inference and abort if it does not apply."
 
 # this is set to true for sygus inputs
 [[option]]
@@ -1050,7 +1068,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-repair-const"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]

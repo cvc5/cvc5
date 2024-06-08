@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,6 +86,24 @@ const std::string& SymbolManager::getLogic() const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<Sort> SymbolManager::getDeclaredSorts() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_sm->getDeclaredSorts();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> SymbolManager::getDeclaredTerms() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_sm->getDeclaredTerms();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 SymManager* SymbolManager::toSymManager() { return d_sm.get(); }
 
 /* -------------------------------------------------------------------------- */
@@ -152,7 +170,10 @@ std::ostream& operator<<(std::ostream& out, const Command& c)
 /* -------------------------------------------------------------------------- */
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm)
-    : d_solver(solver), d_allocSm(nullptr), d_sm(sm)
+    : d_solver(solver),
+      d_allocSm(nullptr),
+      d_sm(sm),
+      d_usingIStringStream(false)
 {
   initialize();
 }
@@ -197,6 +218,8 @@ void InputParser::initialize()
 
 void InputParser::initializeInternal()
 {
+  // reset to false
+  d_usingIStringStream = false;
   SymManager* sm = d_sm->toSymManager();
   bool slvLogicSet = d_solver->isLogicSet();
   bool smLogicSet = sm->isLogicSet();
@@ -293,6 +316,28 @@ void InputParser::setStreamInput(modes::InputLanguage lang,
   CVC5_API_TRY_CATCH_END;
 }
 
+void InputParser::setStringInput(modes::InputLanguage lang,
+                                 const std::string& input,
+                                 const std::string& name)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
+                  << std::endl;
+  // initialize the parser
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  initializeInternal();
+  setStringInputInternal(input, name);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+void InputParser::setStringInputInternal(const std::string& input,
+                                         const std::string& name)
+{
+  d_parser->setStringInput(input, name);
+}
+
 void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
                                             const std::string& name)
 {
@@ -300,11 +345,13 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   //////// all checks before this line
   Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name
                   << ")" << std::endl;
-  d_istringLang = lang;
-  d_istringName = name;
   // initialize the parser
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
+  d_istringStream.str("");
+  d_parser->setStreamInput(d_istringStream, name);
+  // remember that we are using d_istringStream
+  d_usingIStringStream = true;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -313,9 +360,12 @@ void InputParser::appendIncrementalStringInput(const std::string& input)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_PARSER_API_CHECK(d_parser != nullptr)
       << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_usingIStringStream)
+      << "Must call setIncrementalStringInput prior to using "
+         "appendIncrementalStringInput";
   //////// all checks before this line
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
-  d_parser->setStringInput(input, d_istringName);
+  d_istringStream << input;
   ////////
   CVC5_API_TRY_CATCH_END;
 }

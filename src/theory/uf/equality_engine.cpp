@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,8 +80,8 @@ void EqualityEngine::init() {
   // to ensure that true/false could never be removed. However, this assertion
   // restricts our ability to construct equality engines in nested contexts.
 
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 
   d_triggerDatabaseAllocatedSize = 100000;
   d_triggerDatabase = (char*) malloc(d_triggerDatabaseAllocatedSize);
@@ -572,7 +572,9 @@ bool EqualityEngine::assertEquality(TNode eq,
             storePropagatedDisequality(aTag, aSharedId, bSharedId);
             // Notify
             Trace("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ": notifying " << aTag << " for " << d_nodes[aSharedId] << " != " << d_nodes[bSharedId] << std::endl;
-            if (!d_notify->eqNotifyTriggerTermEquality(aTag, d_nodes[aSharedId], d_nodes[bSharedId], false)) {
+            if (!notifyTriggerTermEquality(
+                    aTag, d_nodes[aSharedId], d_nodes[bSharedId], false))
+            {
               break;
             }
           }
@@ -804,7 +806,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
               class1triggers.d_triggers[i1++];
           // since they are both tagged notify of merge
           EqualityNodeId tag2id = class2triggers.d_triggers[i2++];
-          if (!d_notify->eqNotifyTriggerTermEquality(
+          if (!notifyTriggerTermEquality(
                   tag1, d_nodes[tag1id], d_nodes[tag2id], true))
           {
             return false;
@@ -1035,7 +1037,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   Trace("equality") << "buildEqConclusion: {" << id2 << "} " << d_nodes[id2]
                     << "\n";
   Node eq[2];
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (unsigned i = 0; i < 2; ++i)
   {
     EqualityNodeId equalityNodeId = i == 0 ? id1 : id2;
@@ -1323,7 +1325,7 @@ Node EqualityEngine::mkExplainLit(TNode lit) const
   Node ret;
   if (assumptions.empty())
   {
-    ret = NodeManager::currentNM()->mkConst(true);
+    ret = nodeManager()->mkConst(true);
   }
   else if (assumptions.size() == 1)
   {
@@ -1331,7 +1333,7 @@ Node EqualityEngine::mkExplainLit(TNode lit) const
   }
   else
   {
-    ret = NodeManager::currentNM()->mkNode(Kind::AND, assumptions);
+    ret = nodeManager()->mkNode(Kind::AND, assumptions);
   }
   return ret;
 }
@@ -1649,11 +1651,16 @@ void EqualityEngine::getExplanation(
                 } else {
                   // The LFSC translator prefers (not (= a b)) over (= (= a b) false)
 
-                  if (a == NodeManager::currentNM()->mkConst(false)) {
+                  if (a == nodeManager()->mkConst(false))
+                  {
                     eqpc->d_node = b.notNode();
-                  } else if (b == NodeManager::currentNM()->mkConst(false)) {
+                  }
+                  else if (b == nodeManager()->mkConst(false))
+                  {
                     eqpc->d_node = a.notNode();
-                  } else {
+                  }
+                  else
+                  {
                     eqpc->d_node = b.eqNode(a);
                   }
                 }
@@ -2242,8 +2249,7 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
         << "): already have this trigger in class with " << d_nodes[triggerId]
         << std::endl;
     if (eqNodeId != triggerId
-        && !d_notify->eqNotifyTriggerTermEquality(
-               tag, t, d_nodes[triggerId], true))
+        && !notifyTriggerTermEquality(tag, t, d_nodes[triggerId], true))
     {
       d_done = true;
     }
@@ -2599,7 +2605,7 @@ bool EqualityEngine::propagateTriggerTermDisequalities(
         // Store the propagation
         storePropagatedDisequality(currentTag, myRep, tagRep);
         // Notify
-        if (!d_notify->eqNotifyTriggerTermEquality(
+        if (!notifyTriggerTermEquality(
                 currentTag, d_nodes[myRep], d_nodes[tagRep], false))
         {
           d_done = true;

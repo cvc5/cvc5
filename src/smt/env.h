@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "context/cdhashset.h"
 #include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
@@ -36,6 +37,7 @@ namespace cvc5::internal {
 
 class NodeManager;
 class StatisticsRegistry;
+class Plugin;
 class ProofNodeManager;
 class Printer;
 class ResourceManager;
@@ -52,6 +54,10 @@ namespace theory {
 class Evaluator;
 class Rewriter;
 class TrustSubstitutionMap;
+
+namespace quantifiers {
+class OracleChecker;
+}
 }
 
 /**
@@ -69,11 +75,14 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(const Options* opts);
+  Env(NodeManager* nm, const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
   /* Access to members------------------------------------------------------- */
+  /** Get a pointer to the node manager */
+  NodeManager* getNodeManager();
+
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();
 
@@ -259,6 +268,38 @@ class Env
   /** get the separation logic data type */
   TypeNode getSepDataType() const;
 
+  /**
+   * Add plugin to this environment. Any theory engine that uses this
+   * environment will use these plugins. These plugins should not be added
+   * after having fully initialized the solver engine for this environment.
+   */
+  void addPlugin(Plugin* p);
+  /** Get plugins */
+  const std::vector<Plugin*>& getPlugins() const;
+
+  /** get oracle checker */
+  theory::quantifiers::OracleChecker* getOracleChecker() const;
+
+  /**
+   * Register Boolean term skolem. This registers that k is a Boolean variable
+   * that should be treated as a theory atom. This impacts theoryOf, where
+   * Boolean term skolems belong to THEORY_UF, not THEORY_BOOL.
+   *
+   * This method is called by the "remove term formula" pass, which recognizes
+   * when Boolean terms occur in term positions, which are relevant for
+   * theory combination.
+   *
+   * @param k The node to register as a Boolean term skolem. This should be
+   * a variable of Boolean type.
+   */
+  void registerBooleanTermSkolem(const Node& k);
+  /**
+   * Is Boolean term skolem?
+   * @param k The node in question.
+   * @return true if k is a Boolean term skolem.
+   */
+  bool isBooleanTermSkolem(const Node& k) const;
+
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -273,6 +314,8 @@ class Env
   void shutdown();
   /* Members ---------------------------------------------------------------- */
 
+  /** Pointer to the node manager */
+  NodeManager* d_nm;
   /** The SAT context owned by this Env */
   std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */
@@ -326,6 +369,21 @@ class Env
   /** The separation logic location and data types */
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
+  /**
+   * List of plugins, to be used in any theory engine that uses this
+   * environment
+   */
+  std::vector<Plugin*> d_plugins;
+  /** oracle checker */
+  std::unique_ptr<theory::quantifiers::OracleChecker> d_ochecker;
+  /**
+   * The set of skolems introduced for Boolean term elimination. This is a set
+   * of purification skolems of Boolean type. These variables are important
+   * since unlike other Boolean variables, they must be treated as theory
+   * atoms to ensure that theory combination works when argument terms are
+   * Boolean type.
+   */
+  context::CDHashSet<Node> d_boolTermSkolems;
 }; /* class Env */
 
 }  // namespace cvc5::internal

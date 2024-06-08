@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -247,11 +247,34 @@ function(check_python_module module)
   endif()
 
   if(RET_MODULE_TEST)
-    message(FATAL_ERROR
+    if(ENABLE_AUTO_DOWNLOAD)
+      message(STATUS "Installing Python module ${module_name}")
+      execute_process(
+        COMMAND
+        ${Python_EXECUTABLE} -m pip install ${module_name}
+        RESULT_VARIABLE PYTHON_MODULE_INSTALL_CMD_EXIT_CODE
+      )
+      if(PYTHON_MODULE_INSTALL_CMD_EXIT_CODE)
+        message(FATAL_ERROR "Could not install Python module ${module_name}")
+      endif()
+    else()
+      message(FATAL_ERROR
         "Could not find module ${module_name} for Python "
         "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
         "Make sure to install ${module_name} for this Python version "
-        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}',\n"
+        "or use --auto-download to let us install it for you.\n"
         "Note: You need to have pip installed for this Python version.")
+    endif()
   endif()
 endfunction()
+
+macro(copy_file_from_src filename)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${filename}
+    COMMAND ${CMAKE_COMMAND} -E copy
+      ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+      ${CMAKE_CURRENT_BINARY_DIR}/${filename}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+  )
+endmacro()

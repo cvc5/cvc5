@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,9 +41,18 @@ namespace datatypes {
 class DatatypesRewriter : public TheoryRewriter
 {
  public:
-  DatatypesRewriter(Evaluator* sygusEval, const Options& opts);
+  DatatypesRewriter(NodeManager* nm, Evaluator* sygusEval, const Options& opts);
   RewriteResponse postRewrite(TNode in) override;
   RewriteResponse preRewrite(TNode in) override;
+
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
 
   /** normalize codatatype constant
    *
@@ -85,16 +94,42 @@ class DatatypesRewriter : public TheoryRewriter
   static Node expandMatch(Node n);
   /** expand defintions */
   TrustNode expandDefinition(Node n) override;
+  /**
+   * Expand a nullable lift term with an ite expression.
+   * Example:
+   * input : (nullable.lift f x y) where f is a function
+   *         and x,y are nullable terms.
+   * output: (ite
+   *           (or (nullable.is_null x) (nullable.is_null y))
+   *           (nullable.null)
+   *           (f (nullable.val x) (nullable.val y))
+   *         )
+   * @pre Higher-order logic is enabled.
+   * @param n A nullable lift term.
+   * @return An ite expression.
+   */
+  Node expandNullableLift(Node n);
+
+  /**
+   * Rewrite nullable lift terms as null if any of the arguments is null,
+   * or return the some of applying the function (first child) to values
+   * if all arguments are some constants.
+   * - input : (nullable.lift f x1 ... (nullable.null) ... xn))
+   *   output: (nullable.null)
+   * - input : (nullable.lift f (nullable.some c1) ... (nullable.some cn))
+   *   output: (f c1 ... cn)
+   */
+  RewriteResponse rewriteNullableLift(TNode n);
 
  private:
   /** rewrite constructor term in */
-  static RewriteResponse rewriteConstructor(TNode in);
+  RewriteResponse rewriteConstructor(TNode in);
   /** rewrite selector term in */
-  static RewriteResponse rewriteSelector(TNode in);
+  RewriteResponse rewriteSelector(TNode in);
   /** rewrite tester term in */
-  static RewriteResponse rewriteTester(TNode in);
+  RewriteResponse rewriteTester(TNode in);
   /** rewrite updater term in */
-  static RewriteResponse rewriteUpdater(TNode in);
+  RewriteResponse rewriteUpdater(TNode in);
 
   /** collect references
    *
@@ -174,10 +209,7 @@ class DatatypesRewriter : public TheoryRewriter
    * Tree datatype, replaceDebruijn( node( 0, c[0], node( 1, c[0], c[1] ) ), t,
    * Tree, 0 ) returns node( 0, t, node( 1, c[0], t ) ).
    */
-  static Node replaceDebruijn(Node n,
-                              Node orig,
-                              TypeNode orig_tn,
-                              unsigned depth);
+  Node replaceDebruijn(Node n, Node orig, TypeNode orig_tn, unsigned depth);
 
   /** Sygus to builtin eval
    *

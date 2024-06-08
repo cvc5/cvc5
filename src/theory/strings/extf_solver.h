@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,7 +80,7 @@ class ExtfInfoTmp
  * functions for the theory of strings using a combination of context-dependent
  * simplification (Reynolds et al CAV 2017) and lazy reductions.
  */
-class ExtfSolver : protected EnvObj
+class ExtfSolver : public InferSideEffectProcess, protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
@@ -199,6 +199,11 @@ class ExtfSolver : protected EnvObj
    */
   void markReduced(const Node& n);
 
+  /** Called when ii is ready to be processed as a fact */
+  void processFact(InferInfo& ii, ProofGenerator*& pg) override;
+  /** Called when ii is ready to be processed as a lemma */
+  TrustNode processLemma(InferInfo& ii, LemmaProperty& p) override;
+
  private:
   /**
    * Helper method for checkExtfReductions / maybeHasCandidateModel, returns
@@ -269,6 +274,8 @@ class ExtfSolver : protected EnvObj
   NodeSet d_extfInferCache;
   /** The set of extended functions we have sent reduction lemmas for */
   NodeSet d_reduced;
+  /** Map from lemmas to the terms they justify the reduction of */
+  std::map<Node, Node> d_reductionWaitingMap;
 };
 
 /** An extended theory callback */

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Haniel Barbosa
+#   Leni Aniva, Haniel Barbosa
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -39,7 +39,6 @@ class Op(Enum):
     # Bit-vectors
     ###########################################################################
 
-    BVSIZE = ('bvsize', 'BITVECTOR_SIZE')
     # Bit-vector predicates
     BVUGT = ('bvugt', 'BITVECTOR_UGT')
     BVUGE = ('bvuge', 'BITVECTOR_UGE')
@@ -89,12 +88,14 @@ class Op(Enum):
     BVITE = ('bvite', 'BITVECTOR_ITE')
     BVCOMP = ('bvcomp', 'BITVECTOR_COMP')
 
-    BVCONST = ('bv', 'CONST_BITVECTOR_SYMBOLIC')
     ZERO_EXTEND = ('zero_extend', 'BITVECTOR_ZERO_EXTEND')
     SIGN_EXTEND = ('sign_extend', 'BITVECTOR_SIGN_EXTEND')
     CONCAT = ('concat', 'BITVECTOR_CONCAT')
     EXTRACT = ('extract', 'BITVECTOR_EXTRACT')
     REPEAT = ('repeat', 'BITVECTOR_REPEAT')
+
+    BVSIZE = ('@bvsize', 'BITVECTOR_SIZE')
+    BVCONST = ('@bv', 'CONST_BITVECTOR_SYMBOLIC')
 
     ###########################################################################
     # Boolean
@@ -115,14 +116,22 @@ class Op(Enum):
     SUB = ('-', 'SUB')
     MULT = ('*', 'MULT')
     INT_DIV = ('div', 'INTS_DIVISION')
+    INT_DIV_TOTAL = ('div_total', 'INTS_DIVISION_TOTAL')
     DIV = ('/', 'DIVISION')
+    DIV_TOTAL = ('/_total', 'DIVISION_TOTAL')
     MOD = ('mod', 'INTS_MODULUS')
+    MOD_TOTAL = ('mod_total', 'INTS_MODULUS_TOTAL')
     ABS = ('abs', 'ABS')
     LT = ('<', 'LT')
     GT = ('>', 'GT')
     LEQ = ('<=', 'LEQ')
     GEQ = ('>=', 'GEQ')
     POW2 = ('int.pow2', 'POW2')
+    TO_INT = ('to_int', 'TO_INTEGER')
+    TO_REAL = ('to_real', 'TO_REAL')
+
+    INT_ISPOW2 = ('int.ispow2', 'INTS_ISPOW2')  # Backdoor for some bv rewrites
+    INT_LENGTH = ('int.log2', 'INTS_LOG2')  # Backdoor for some bv rewrites
 
     ###########################################################################
     # Theory-independent
@@ -166,8 +175,8 @@ class Op(Enum):
     STRING_STOI = ('str.to_int', 'STRING_STOI')
     STRING_TO_CODE = ('str.to_code', 'STRING_TO_CODE')
     STRING_FROM_CODE = ('str.from_code', 'STRING_FROM_CODE')
-    STRING_TOLOWER = ('str.tolower', 'STRING_TOLOWER')
-    STRING_TOUPPER = ('str.toupper', 'STRING_TOUPPER')
+    STRING_TO_LOWER = ('str.to_lower', 'STRING_TO_LOWER')
+    STRING_TO_UPPER = ('str.to_upper', 'STRING_TO_UPPER')
     STRING_REV = ('str.rev', 'STRING_REV')
 
     SEQ_UNIT = ('seq.unit', 'SEQ_UNIT')
@@ -183,6 +192,7 @@ class Op(Enum):
     REGEXP_OPT = ('re.opt', 'REGEXP_OPT')
     REGEXP_RANGE = ('re.range', 'REGEXP_RANGE')
     REGEXP_COMPLEMENT = ('re.comp', 'REGEXP_COMPLEMENT')
+    REGEXP_LOOP = ('re.loop', 'REGEXP_LOOP')
 
     REGEXP_NONE = (None, 'REGEXP_NONE')  # Handled as constants
     REGEXP_ALL = (None, 'REGEXP_ALL')
@@ -198,6 +208,11 @@ class Op(Enum):
     SET_SUBSET = ('set.subset', 'SET_SUBSET')
     SET_MEMBER = ('set.member', 'SET_MEMBER')
     SET_SINGLETON = ('set.singleton', 'SET_SINGLETON')
+    SET_CHOOSE = ('set.choose', 'SET_CHOOSE')
+    SET_CARD = ('set.card', 'SET_CARD')
+    SET_IS_EMPTY = ('set.is_empty', 'SET_IS_EMPTY')
+    SET_IS_SINGLETON = ('set.is_singleton', 'SET_IS_SINGLETON')
+
 
 class BaseSort(Enum):
     Bool = auto()

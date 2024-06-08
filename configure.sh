@@ -45,6 +45,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
   --python-bindings        build Python bindings based on new C++ API
+  --python-only-src        create only Python bindings source files
   --java-bindings          build Java bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
   --asan                   build with ASan instrumentation
@@ -92,7 +93,7 @@ msg () {
 
 #--------------------------------------------------------------------------#
 
-[ ! -e src/theory ] && die "$0 not called from CVC4 base directory"
+[ ! -e src/theory ] && die "$0 not called from cvc5 base directory"
 
 #--------------------------------------------------------------------------#
 
@@ -123,6 +124,8 @@ muzzle=default
 ninja=default
 profiling=default
 python_bindings=default
+python_only_src=default
+pyvenv=default
 java_bindings=default
 editline=default
 build_shared=ON
@@ -145,6 +148,12 @@ wasm=default
 wasm_flags=""
 
 #--------------------------------------------------------------------------#
+
+uname_output=$(uname)
+
+if [[ $uname_output =~ ^MSYS || $uname_output =~ ^MINGW ]]; then
+  win64_native=ON
+fi
 
 cmake_opts=""
 
@@ -256,6 +265,9 @@ do
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
 
+    --pyvenv) pyvenv=ON;;
+    --no-pyvenv) pyvenv=OFF;;
+
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
 
@@ -267,6 +279,8 @@ do
 
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
+    --python-only-src) python_only_src=ON;;
+    --no-python-only-src) python_only_src=OFF;;
 
     --java-bindings) java_bindings=ON;;
     --no-java-bindings) java_bindings=OFF;;
@@ -338,6 +352,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
 [ $auto_download != default ] \
   && cmake_opts="$cmake_opts -DENABLE_AUTO_DOWNLOAD=$auto_download"
+[ $pyvenv != default ] \
+  && cmake_opts="$cmake_opts -DUSE_PYTHON_VENV=$pyvenv"
 [ $ubsan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
 [ $tsan != default ] \
@@ -380,6 +396,8 @@ fi
   && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
+[ $python_only_src != default ] \
+  && cmake_opts="$cmake_opts -DONLY_PYTHON_EXT_SRC=$python_only_src"
 [ $java_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$java_bindings"
 [ $valgrind != default ] \
