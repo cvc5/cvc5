@@ -291,11 +291,14 @@
 ; implements: ProofRewriteRule::ARITH_STRING_SAFE_APPROX
 ; args:
 ; - eq Bool: The equality to prove between integer inequalities.
-; requires: showing that the right hand side is a valid under-approximation of the left hand side.
+; requires:
+; - showing that the right hand side is a valid under-approximation of the left hand side. In other words (>= n m) is entailed.
+; - showing that the right hand side is entailed to be true, that is, (>= m 0) is true and thus (>= n 0) is true.
 ; conclusion: The given equality.
 (declare-rule arith-string-pred-safe-approx ((n Int) (m Int))
   :args ((= (>= n 0) (>= m 0)))
-  :requires ((($str_arith_entail_is_approx n m true) true))
+  :requires ((($str_arith_entail_is_approx n m true) true)
+             (($str_arith_entail_simple_pred (>= m 0)) true))
   :conclusion (= (>= n 0) (>= m 0))
 )
 
