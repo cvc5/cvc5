@@ -275,12 +275,24 @@
 
 ;;-------------------- Instances of THEORY_REWRITE
 
+; rule: arith-string-pred-entail
+; implements: ProofRewriteRule::ARITH_STRING_PRED_ENTAIL
+; args:
+; - eq Bool: The equality to prove between an integer inequality and true.
+; requires: showing that n is entailed be greated than 0 using $str_arith_entail_simple.
+; conclusion: The given equality.
 (declare-rule arith-string-pred-entail ((n Int))
   :args ((= (>= n 0) true))
   :requires ((($str_arith_entail_simple n) true))
   :conclusion (= (>= n 0) true)
 )
 
+; rule: arith-string-pred-entail
+; implements: ProofRewriteRule::ARITH_STRING_SAFE_APPROX
+; args:
+; - eq Bool: The equality to prove between integer inequalities.
+; requires: showing that the right hand side is a valid under-approximation of the left hand side.
+; conclusion: The given equality.
 (declare-rule arith-string-pred-safe-approx ((n Int) (m Int))
   :args ((= (>= n 0) (>= m 0)))
   :requires ((($str_arith_entail_is_approx n m true) true))

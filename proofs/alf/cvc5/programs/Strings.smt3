@@ -588,7 +588,12 @@
   ($str_nary_elim (string_collect ($str_rev rev s)))
 )
 
-; $str_arith_entail_simple n returns true if we can show n >= 0
+; program: $str_arith_entail_simple
+; args:
+; - n Int: An integer term to process.
+; return: >
+;   true if we can show n is greater than or equal 0 using the fact that length
+;   is non-negative and basic properties of arithmetic.
 (program $str_arith_entail_simple ((s String) (n1 Int) (n2 Int :list))
   (Int) Bool
   (
@@ -599,6 +604,14 @@
   )
 )
 
+; program: $str_arith_entail_simple_pred
+; args:
+; - F Bool: A relation over integer terms.
+; return: >
+;   true if we can show that F holds using the fact that length
+;   is non-negative and basic properties of arithmetic. We first
+;   normalize the polynomial corresponding to F and check this
+;   using the $str_arith_entail_simple program above.
 (program $str_arith_entail_simple_pred ((n Int) (m Int))
   (Bool) Int
   (
@@ -607,6 +620,16 @@
   )
 )
 
+; program: $str_arith_entail_is_approx_len
+; args:
+; - s String: The string whose length we are considering.
+; - n Int: An integer that may under (resp. over) approximate the length of s when b is true (resp. false).
+; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; return: >
+;   true if we can show that (>= (str.len s) n) (or <= if b is false) holds using approximation
+;   cases as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
+;   in SMT", CAV 2019. When applicable, we also rely on calls that reason that string
+;   length is non-negative and basic properties of arithmetic.
 (program $str_arith_entail_is_approx_len ((s String) (t String) (r String) (n1 Int) (n2 Int) (n Int) (isUnder Bool))
   (String Int Bool) Bool
   (
@@ -648,6 +671,18 @@
   )
 )
 
+; program: $str_arith_entail_is_approx_len
+; args:
+; - s String: The first string argument to str.indexof.
+; - t String: The second string argument to str.indexof.
+; - n Int: The third argument of str.indexof.
+; - m Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
+; - b Bool: Whether we are checking that m is an under (resp. over) approximation.
+; return: >
+;   true if we can show that (>= (str.indexof s t n) m) (or <= if b is false) holds using
+;   approximation cases as defined by Figure 2 of "High-Level Abstractions for Simplifying
+;   Extended String Constraints in SMT", CAV 2019. When applicable, we also rely on calls
+;   that reason that string length is non-negative and basic properties of arithmetic.
 (define $str_arith_entail_is_approx_indexof ((s String) (t String) (n Int) (m Int) (isUnder Bool))
   (let ((ls (str.len s)))
   (let ((lt (str.len t)))
@@ -659,10 +694,28 @@
     (alf.and (alf.not isUnder) ($str_arith_entail_simple_pred (>= ls lt)))
     false))))))
 
+; define: $str_arith_entail_is_approx_to_int
+; args:
+; - s String: The first string argument to str.to_int.
+; - n Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
+; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; return: >
+;   true if we can show that (>= (str.to_int s) n) (or <= if b is false) holds using approximation cases
+;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
+;   in SMT", CAV 2019.
 (define $str_arith_entail_is_approx_to_int ((s String) (n Int) (isUnder Bool))
   (alf.ite (alf.is_eq n -1) isUnder false)
 )
 
+; define: $str_arith_entail_is_approx
+; args:
+; - n Int: The first integer term.
+; - m Int: The second integer term.
+; - b Bool: Whether we are checking that n is an under (resp. over) approximation of m.
+; return: >
+;   true if we can show that (>= n m) (resp (<= n m) when b is false) holds using approximation cases
+;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
+;   in SMT", CAV 2019.
 (program $str_arith_entail_is_approx ((s String) (t String) (n1 Int) (n2 Int :list) (n3 Int) (n4 Int :list) (n5 Int) (isUnder Bool))
   (Int Int Bool) Bool
   (
