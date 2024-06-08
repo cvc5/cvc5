@@ -1,3 +1,4 @@
+cimport cpython.ref as cpy_ref
 # import dereference and increment operators
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
@@ -62,6 +63,18 @@ cdef extern from "<tuple>" namespace "std":
 cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
     cdef cppclass Options:
         pass
+
+
+cdef extern from "py_plugin.h" namespace "cvc5":
+    cdef cppclass PyPlugin:
+        PyPlugin(cpy_ref.PyObject *obj, TermManager& tm) except +
+        vector[Term] check() except +
+        vector[Term] plugin_check() except +
+        void notifySatClause(const Term& cl) except +
+        void plugin_notifySatClause(const Term& cl) except +
+        void notifyTheoryLemma(const Term& lem) except +
+        void plugin_notifyTheoryLemma(const Term& lem) except +
+        string getName() except +
 
 
 cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
@@ -304,6 +317,13 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         # default value for symbol defined in cpp/cvc5.h
         Term mkVar(Sort sort) except +
 
+    cdef cppclass Plugin:
+        Plugin(TermManager& tm) except +
+        vector[Term] check() except +
+        void notifySatClause(const Term& cl) except +
+        void notifyTheoryLemma(const Term& lem) except +
+        string getName() except +
+
     cdef cppclass Solver:
         Solver(TermManager& tm) except +
         TermManager getTermManager() except +
@@ -453,6 +473,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term getValueSepHeap() except +
         Term getValueSepNil() except +
         Term declarePool(const string& name, Sort sort, vector[Term]& initValue) except +
+        void addPlugin(Plugin& p) except +
         void pop(uint32_t nscopes) except +
         void push(uint32_t nscopes) except +
         void reset() except +
