@@ -32,24 +32,24 @@ TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
 {
   initializeRewrites();
   registerProofRewriteRule(ProofRewriteRule::BV_UMULO_ELIMINATE,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_SMULO_ELIMINATE,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_FLATTEN_ASSOC_COMMUT,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(
       ProofRewriteRule::BV_FLATTEN_ASSOC_COMMUT_NO_DUPLICATES,
-      TheoryRewriteCtx::PRE_DSL);
+      TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_MULT_SIMPLIFY,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_SOLVE_EQ,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_BITWISE_EQ,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_BITWISE_SLICING,
-                           TheoryRewriteCtx::PRE_DSL);
+                           TheoryRewriteCtx::POST_DSL);
 }
 
 RewriteResponse TheoryBVRewriter::preRewrite(TNode node)
