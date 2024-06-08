@@ -41,8 +41,7 @@
 ; program: $mk_arith_sum_ub
 ; args:
 ; - F Bool: A conjunction of arithmetic relations.
-; return: the arithmetic relation that is implied by adding each of the
-; relations in F together.
+; return: the arithmetic relation that is implied by adding each of the relations in F together.
 (program $mk_arith_sum_ub ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U) (tail Bool :list))
     (Bool) Bool
     (
@@ -186,7 +185,7 @@
 ; program: $mk_arith_trichotomy
 ; premises:
 ; - F1: The first arithmetic atom, which is an application of a binary arithmetic relation.
-; - F2: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F2.
+; - F2: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
 ; return: the relation that along with F1 and F2 forms a trichotomy.
 (program $mk_arith_trichotomy ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U))
   (Bool Bool) Bool
@@ -199,7 +198,7 @@
 ; implements: ProofRule::ARITH_TRICHOTOMY
 ; premises:
 ; - F1: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation.
-; - F2: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation over the same terms as F2.
+; - F2: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation over the same terms as F1.
 ; conclusion: >
 ;   A third relation over the same terms that along with F1 and F2
 ;   forms a trichotomy.
@@ -209,7 +208,8 @@
 )
 
 ; program: $greatest_int_lt
-; args: c : R. A rational or integer value.
+; args:
+; - c R: A rational or integer value.
 ; return: the greatest integer less than (integer or real) c.
 (program $greatest_int_lt ((R Type) (c R))
   (R) Int
@@ -232,7 +232,8 @@
 )
 
 ; program: $least_int_gt
-; args: c : R. A rational or integer value.
+; args:
+; - c R: A rational or integer value.
 ; return: the least integer greater than (integer or real) c.
 (program $least_int_gt ((R Type) (c R))
   (R) Int
