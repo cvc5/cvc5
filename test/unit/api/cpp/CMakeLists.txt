@@ -12,6 +12,7 @@
 #
 # The build system configuration.
 ##
+cvc5_add_unit_test_black(api_grammar_black api/cpp)
 cvc5_add_unit_test_black(api_kind_black api/cpp)
 cvc5_add_unit_test_black(api_op_black api/cpp)
 cvc5_add_unit_test_white(api_op_white api/cpp)
@@ -27,7 +28,6 @@ cvc5_add_unit_test_white(api_term_white api/cpp)
 cvc5_add_unit_test_black(api_types_black api/cpp)
 cvc5_add_unit_test_black(command_black api/cpp)
 cvc5_add_unit_test_black(datatype_api_black api/cpp)
-cvc5_add_unit_test_black(grammar_black api/cpp)
 cvc5_add_unit_test_black(input_parser_black api/cpp)
 cvc5_add_unit_test_black(parametric_datatype_black api/cpp)
 cvc5_add_unit_test_black(result_black api/cpp)

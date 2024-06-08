@@ -187,4 +187,9 @@ class Cvc5CApiAbortStream
   CVC5_API_CHECK(proof != nullptr) << "invalid proof"
 
 /* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_GRAMMAR(grammar) \
+  CVC5_API_CHECK(grammar != nullptr) << "invalid grammar"
+
+/* -------------------------------------------------------------------------- */
 }

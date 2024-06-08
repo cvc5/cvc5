@@ -2333,4 +2333,148 @@ TEST_F(TestCApiBlackSolver, reset_assertions)
   cvc5_check_sat_assuming(d_solver, args.size(), args.data());
 }
 
+TEST_F(TestCApiBlackSolver, declare_sygus_var)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+
+  std::vector<Cvc5Sort> domain = {d_int};
+  Cvc5Sort fun_sort =
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_bool);
+
+  (void)cvc5_declare_sygus_var(d_solver, "", d_bool);
+  (void)cvc5_declare_sygus_var(d_solver, "", fun_sort);
+  (void)cvc5_declare_sygus_var(d_solver, "b", d_bool);
+
+  ASSERT_DEATH(cvc5_declare_sygus_var(nullptr, "", d_bool),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_declare_sygus_var(d_solver, nullptr, d_bool),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_declare_sygus_var(d_solver, "", nullptr), "invalid sort");
+
+  Cvc5* slv = cvc5_new(d_tm);
+  ASSERT_DEATH(cvc5_declare_sygus_var(slv, "", d_bool), "cannot call");
+  cvc5_delete(slv);
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  slv = cvc5_new(tm);
+  cvc5_set_option(slv, "sygus", "true");
+  // this will throw when NodeManager is not a singleton anymore
+  (void)cvc5_declare_sygus_var(slv, "", d_bool);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, mk_grammar)
+{
+  Cvc5Term bt = cvc5_mk_true(d_tm);
+  Cvc5Term bv = cvc5_mk_var(d_tm, d_bool, "b");
+  Cvc5Term iv = cvc5_mk_var(d_tm, d_int, "i");
+
+  std::vector<Cvc5Term> bvars;
+  std::vector<Cvc5Term> symbols = {iv};
+  (void)cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  bvars = {bv};
+  (void)cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          nullptr, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "unexpected NULL argument");
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+
+  symbols = {nullptr};
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+  bvars = {nullptr};
+  symbols = {iv};
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+  bvars = {};
+  symbols = {bt};
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+  bvars = {bt};
+  symbols = {iv};
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  bvars = {};
+  symbols = {iv};
+  (void)cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  bvars = {bv};
+  symbols = {cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "")};
+  (void)cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, synth_fun)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+
+  Cvc5Term x = cvc5_mk_var(d_tm, d_bool, "");
+  Cvc5Term start1 = cvc5_mk_var(d_tm, d_bool, "");
+  Cvc5Term start2 = cvc5_mk_var(d_tm, d_int, "");
+
+  std::vector<Cvc5Term> bvars{x};
+  std::vector<Cvc5Term> symbols{start1};
+  Cvc5Grammar g1 = cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+
+  (void)cvc5_synth_fun(d_solver, "", 0, nullptr, d_bool);
+  (void)cvc5_synth_fun(d_solver, "f1", bvars.size(), bvars.data(), d_bool);
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1),
+               "invalid grammar");
+
+  cvc5_grammar_add_rule(g1, start1, cvc5_mk_false(d_tm));
+
+  symbols = {start2};
+  Cvc5Grammar g2 = cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  cvc5_grammar_add_rule(g2, start2, cvc5_mk_integer_int64(d_tm, 0));
+
+  cvc5_synth_fun_with_grammar(
+      d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1);
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   nullptr, "f2", bvars.size(), bvars.data(), d_bool, g1),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   d_solver, "f2", bvars.size(), bvars.data(), nullptr, g1),
+               "invalid sort");
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   d_solver, "f2", bvars.size(), bvars.data(), d_bool, nullptr),
+               "invalid grammar");
+
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   d_solver, "f6", bvars.size(), bvars.data(), d_bool, g2),
+               "invalid Start symbol");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_synth_fun_with_grammar(
+      d_solver, "f8", bvars.size(), bvars.data(), d_bool, g1);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
 }  // namespace cvc5::internal::test
