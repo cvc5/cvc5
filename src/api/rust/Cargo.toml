@@ -1,0 +1,4 @@
+[package]
+name = "cvc5-sys"
+version = "0.0.1"
+authors = [ "Leni Aniva <v@leni.sh>" ]

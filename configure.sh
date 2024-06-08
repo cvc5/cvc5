@@ -47,6 +47,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --python-bindings        build Python bindings based on new C++ API
   --python-only-src        create only Python bindings source files
   --java-bindings          build Java bindings based on new C++ API
+  --rust-bindings          build Rust bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
   --asan                   build with ASan instrumentation
   --ubsan                  build with UBSan instrumentation
@@ -285,9 +286,13 @@ do
     --java-bindings) java_bindings=ON;;
     --no-java-bindings) java_bindings=OFF;;
 
+    --rust-bindings) rust_bindings=ON;;
+    --no-rust-bindings) rust_bindings=OFF;;
+
     --all-bindings)
       python_bindings=ON
-      java_bindings=ON;;
+      java_bindings=ON
+      rust_bindings=ON;;
 
     --valgrind) valgrind=ON;;
     --no-valgrind) valgrind=OFF;;
@@ -400,6 +405,8 @@ fi
   && cmake_opts="$cmake_opts -DONLY_PYTHON_EXT_SRC=$python_only_src"
 [ $java_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$java_bindings"
+[ $rust_bindings != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_RUST=$rust_bindings"
 [ $valgrind != default ] \
   && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind"
 [ $profiling != default ] \

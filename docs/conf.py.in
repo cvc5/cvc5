@@ -25,6 +25,8 @@ if("${BUILD_BINDINGS_PYTHON}" == "ON"):
         tags.add('bindings_python')
 if("${BUILD_BINDINGS_JAVA}" == "ON"):
         tags.add('bindings_java')
+if("${BUILD_BINDINGS_RUST}" == "ON"):
+        tags.add('bindings_rust')
 
 
 # -- Project information -----------------------------------------------------
