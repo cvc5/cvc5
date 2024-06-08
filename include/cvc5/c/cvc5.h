@@ -100,7 +100,7 @@ typedef struct cvc5_dt_decl_t* Cvc5DatatypeDecl;
  * of terms. Its interface coincides with the definition of grammars
  * (``GrammarDef``) in the SyGuS IF 2.1 standard.
  */
-typedef struct Cvc5Grammar Cvc5Grammar;
+typedef struct cvc5_grammar_t* Cvc5Grammar;
 
 /**
  * A cvc5 solver.
@@ -2133,9 +2133,7 @@ const char* cvc5_dt_to_string(Cvc5Datatype dt);
  * @param symbol  The non-terminal to which the rule is added.
  * @param rule The rule to add.
  */
-void cvc5_grammar_add_rule(Cvc5Grammar* grammar,
-                           Cvc5Term symbol,
-                           Cvc5Term rule);
+void cvc5_grammar_add_rule(Cvc5Grammar grammar, Cvc5Term symbol, Cvc5Term rule);
 
 /**
  * Add `rules` to the set of rules corresponding to `symbol` of a given grammar.
@@ -2144,7 +2142,7 @@ void cvc5_grammar_add_rule(Cvc5Grammar* grammar,
  * @param size   The number of rules to add.
  * @param rules The rules to add.
  */
-void cvc5_grammar_add_rules(Cvc5Grammar* grammar,
+void cvc5_grammar_add_rules(Cvc5Grammar grammar,
                             Cvc5Term symbol,
                             size_t size,
                             const Cvc5Term rules[]);
@@ -2154,7 +2152,7 @@ void cvc5_grammar_add_rules(Cvc5Grammar* grammar,
  * @param grammar The grammar.
  * @param symbol The non-terminal allowed to be any constant.
  */
-void cvc5_grammar_add_any_constant(Cvc5Grammar* grammar, Cvc5Term symbol);
+void cvc5_grammar_add_any_constant(Cvc5Grammar grammar, Cvc5Term symbol);
 
 /**
  * Allow `symbol` to be any input variable of a given grammar to corresponding
@@ -2162,7 +2160,7 @@ void cvc5_grammar_add_any_constant(Cvc5Grammar* grammar, Cvc5Term symbol);
  * @param grammar The grammar.
  * @param symbol The non-terminal allowed to be any input variable.
  */
-void cvc5_grammar_add_any_variable(Cvc5Grammar* grammar, Cvc5Term symbol);
+void cvc5_grammar_add_any_variable(Cvc5Grammar grammar, Cvc5Term symbol);
 
 /**
  * Get a string representation of a given grammar.
@@ -2171,7 +2169,32 @@ void cvc5_grammar_add_any_variable(Cvc5Grammar* grammar, Cvc5Term symbol);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_grammar_to_string(const Cvc5Grammar* grammar);
+const char* cvc5_grammar_to_string(const Cvc5Grammar grammar);
+
+/**
+ * Compare two grammars for referential equality.
+ * @param a The first grammar.
+ * @param b The second grammar.
+ * @return  True if both grammar pointers point to the same internal grammar
+ *          object.
+ */
+bool cvc5_grammar_is_equal(Cvc5Grammar a, Cvc5Grammar b);
+
+/**
+ * Compare two grammars for referential disequality.
+ * @param a The first grammar.
+ * @param b The second grammar.
+ * @return  True if both grammar pointers point to different internal grammar
+ *          objects.
+ */
+bool cvc5_grammar_is_disequal(Cvc5Grammar a, Cvc5Grammar b);
+
+/**
+ * Compute the hash value of a grammar.
+ * @param grammar The grammar.
+ * @return The hash value of the grammar.
+ */
+size_t cvc5_grammar_hash(Cvc5Grammar grammar);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5TermManager                                                            */
@@ -4480,16 +4503,18 @@ Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5, const char* symbol, Cvc5Sort sort);
  * Create a Sygus grammar. The first non-terminal is treated as the starting
  * non-terminal, so the order of non-terminals matters.
  *
- * @param cvc5 The solver instance.
- * @param size The number of parameters.
- * @param bound_vars The parameters to corresponding synth-fun/synth-inv.
- * @param symbols The pre-declaration of the non-terminal symbols.
+ * @param cvc5        The solver instance.
+ * @param nbound_vars The number of bound variabls.
+ * @param bound_vars  The parameters to corresponding synth-fun/synth-inv.
+ * @param nsymbols    The number of symbols.
+ * @param symbols     The pre-declaration of the non-terminal symbols.
  * @return The grammar.
  */
-Cvc5Grammar* cvc5_mk_grammar(Cvc5* cvc5,
-                             size_t size,
-                             const Cvc5Term bound_vars[],
-                             Cvc5Term symbols);
+Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
+                            size_t nbound_vars,
+                            const Cvc5Term bound_vars[],
+                            size_t nsymbols,
+                            const Cvc5Term symbols[]);
 
 /**
  * Synthesize n-ary function.
@@ -4539,7 +4564,7 @@ Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
                                      size_t size,
                                      const Cvc5Term bound_vars[],
                                      Cvc5Sort sort,
-                                     Cvc5Grammar* grammar);
+                                     Cvc5Grammar grammar);
 
 /**
  * Add a forumla to the set of Sygus constraints.
