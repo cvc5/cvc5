@@ -244,8 +244,8 @@
 
 ; rule: int_tight_lb
 ; implements: ProofRule::INT_TIGHT_LB
-; premises: 
-­­; - r: The relation we are considering, whose right hand side should be a rational or integer value.
+; premises:
+; - r: The relation we are considering, whose right hand side should be a rational or integer value.
 ; conclusion: The result of tightening the lower bound.
 (declare-rule int_tight_lb ((R Type) (s Int) (t R))
   :premises ((> s t))
