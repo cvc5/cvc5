@@ -3,7 +3,7 @@
 ; rule: refl
 ; implements: ProofRule::REFL
 ; args:
-; - t : T. The term to apply reflexivity to.
+; - t T: The term to apply reflexivity to.
 ; conclusion: The equality between t and itself.
 (declare-rule refl ((T Type) (t T))
     :args (t)
@@ -28,8 +28,8 @@
 
 ; program: $mk_trans
 ; args:
-; - t1 : U. The current left hand side of the equality we have proven.
-; - t2 : U. The current right hand side of the equality we have proven.
+; - t1 U: The current left hand side of the equality we have proven.
+; - t2 U: The current right hand side of the equality we have proven.
 ; - E Bool: A conjunction of the remaining equalities we have left to process.
 ; return: >
 ;   An equality between the original left hand side and the final right
@@ -47,7 +47,7 @@
 ; rule: trans
 ; implements: ProofRule::TRANS
 ; premises:
-; - E: A conjunction of equalities to apply transitivity to.
+; - E [:list]: A conjunction of equalities to apply transitivity to.
 ; conclusion: >
 ;   An equality between the left hand side of the first equality
 ;   and the right hand side of the last equality, assuming that the right hand
@@ -63,8 +63,8 @@
 
 ; program: $mk_cong
 ; args:
-; - t1 : U. The current left hand side of the equality we have proven.
-; - t2 : U. The current right hand side of the equality we have proven.
+; - t1 U: The current left hand side of the equality we have proven.
+; - t2 U: The current right hand side of the equality we have proven.
 ; - E Bool: A conjunction of the remaining equalities we have left to process.
 ; return: >
 ;   An equality where the original terms are applied to the left and
