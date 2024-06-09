@@ -907,11 +907,16 @@
   ))
 )
 
-; Checks whether r can be written to rr via the rule
-; ProofRewriteRule::RE_INTER_UNION_INCLUSION. In particular, we first verify
-; that rr has the result of the inclusion as the first child. We then subtract
-; the remainder (rr1) to find the regular expressions that are relevant for this
-; inference.
+; program: $str_decompose_and_check_re_inter_union_inclusion
+; args:
+; - r : The regular expression to check.
+; - rr : The rewritten form of r.
+; return: >
+;   true if r can be rewritten to rr via the rule
+;   ProofRewriteRule::RE_INTER_UNION_INCLUSION. In particular, we first verify
+;   that rr has the result of the inclusion as the first child. We then subtract
+;   the remainder (rr1) to find the regular expressions that are relevant for this
+;   inference.
 (define $str_decompose_and_check_re_inter_union_inclusion ((r RegLan) (rr RegLan))
   (alf.match ((rr1 RegLan :list))
   rr
