@@ -35,6 +35,7 @@ set(EXAMPLES_API_PYTHON
   sygus-fun
   sygus-inv
   transcendentals
+  uf
 )
 
 find_package(Python ${CVC5_BINDINGS_PYTHON_VERSION} EXACT REQUIRED)

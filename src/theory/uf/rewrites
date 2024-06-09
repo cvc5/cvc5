@@ -15,3 +15,9 @@
 ;(define-rule uf-int2bv-bv2nat ((w Int) (t Int))
 ;  (bv2nat (int2bv w t))
 ;  (mod t (^ 2 w)))
+
+
+(define-rule uf-bv2nat-geq-elim ((x ?BitVec) (n Int))
+  (def (w (@bvsize x)))
+  (>= (bv2nat x) n)
+  (ite (>= n w) false (ite (< n 0) true (bvuge x (int2bv w n)))))
