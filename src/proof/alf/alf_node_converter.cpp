@@ -56,6 +56,8 @@ AlfNodeConverter::AlfNodeConverter(NodeManager* nm) : BaseAlfNodeConverter(nm)
   d_sortType = nm->mkSort("sortType");
 }
 
+AlfNodeConverter::~AlfNodeConverter() {}
+
 Node AlfNodeConverter::preConvert(Node n)
 {
   // match is not supported in ALF syntax, we eliminate it at pre-order
@@ -326,14 +328,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
-    Node app;
-    if (sfi == SkolemId::PURIFY)
-    {
-      Assert(cacheVal.getType() == k.getType());
-      // special case: just use self
-      app = convert(cacheVal);
-    }
-    else if (isHandledSkolemId(sfi))
+    if (isHandledSkolemId(sfi))
     {
       // convert every skolem function to its name applied to arguments
       std::stringstream ss;
@@ -351,18 +346,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
         args.push_back(convert(cacheVal));
       }
       // must convert all arguments
-      app = mkInternalApp(ss.str(), args, k.getType());
-    }
-    if (!app.isNull())
-    {
-      // If it has no children, then we don't wrap in `(skolem ...)`, since it
-      // makes no difference for substitution. Moreover, it is important not
-      // to do this since bitvector concat uses @bv_empty as its nil terminator.
-      if (sfi == SkolemId::PURIFY || app.getNumChildren() > 0)
-      {
-        // wrap in "skolem" operator
-        return mkInternalApp("skolem", {app}, k.getType());
-      }
+      Node app = mkInternalApp(ss.str(), args, k.getType());
       return app;
     }
   }
@@ -393,18 +377,11 @@ size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
   return k == Kind::SET_COMPREHENSION ? 3 : 2;
 }
 
-Node AlfNodeConverter::mkNil(TypeNode tn)
-{
-  return mkInternalSymbol("alf.nil", tn);
-}
 
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
 {
+  Assert(!args.empty());
   TypeNode tn = NodeManager::currentNM()->booleanType();
-  if (args.empty())
-  {
-    return mkNil(tn);
-  }
   // singleton lists are handled due to (@list x) ---> (@list x alf.nil)
   return mkInternalApp("@list", args, tn);
 }

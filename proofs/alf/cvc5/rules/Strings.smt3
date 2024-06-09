@@ -62,8 +62,8 @@
               (alf.requires (string_check_length_one s1) true    ; checks if char
                 (= u
                   (alf.ite rev
-                    (str.++ (skolem (skolem_prefix u (- (str.len u) 1))) s1)
-                    (str.++ s1 (skolem (skolem_suffix_rem u 1)))))))))))))
+                    (str.++ (@purify (skolem_prefix u (- (str.len u) 1))) s1)
+                    (str.++ s1 (@purify (skolem_suffix_rem u 1)))))))))))))
 )
 
 ; ProofRule::CONCAT_SPLIT
@@ -79,7 +79,7 @@
             (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (let ((k (skolem (skolem_unify_split t1 s1 rev))))
+                (let ((k (@purify (skolem_unify_split t1 s1 rev))))
                 (and 
                   (or 
                     (= t1
@@ -108,7 +108,7 @@
             (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (let ((k (skolem (skolem_unify_split t1 s1 rev))))
+                (let ((k (@purify (skolem_unify_split t1 s1 rev))))
                   (and
                     (= t1
                       (alf.ite rev
@@ -136,9 +136,9 @@
                   (= tc
                     (alf.ite rev
                       (let ((oc ($str_suffix_len s1 v)))
-                      (str.++ (skolem (skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
+                      (str.++ (@purify (skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
                       (let ((oc (skolem_prefix s1 v)))
-                      (str.++ oc (skolem (skolem_suffix_rem tc (str.len oc)))))))
+                      (str.++ oc (@purify (skolem_suffix_rem tc (str.len oc)))))))
                 )))))))))
 )
 
@@ -234,7 +234,7 @@
                        (alf.ite rev
                        (or (not (str.in_re ($str_suffix_len s n) r1)) 
                            (not (str.in_re (skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
-                       (or (not (str.in_re (skolem_prefix s n) r1)) 
+                       (or (not (str.in_re (skolem_prefix s n) r1))
                            (not (str.in_re (skolem_suffix_rem s n) ($singleton_elim r2)))))))
     ))
 )
@@ -267,7 +267,7 @@
 
 (declare-rule string_reduction ((U Type) (s U))
   :args (s)
-  :conclusion (and (string_reduction_pred s) (= s (skolem s)))
+  :conclusion (and (string_reduction_pred s) (= s (@purify s)))
 )
 
 (declare-rule string_eager_reduction ((U Type) (s U))

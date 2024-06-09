@@ -31,7 +31,7 @@
     ((L Type) (cons (-> L L L)) (nil L) (c L) (t L) (xs L :list))
     ((-> L L L) L L L) Bool
     (
-        ((nary.is_subset cons nil (cons c xs) t) (alf.ite (alf.is_neg (alf.find cons t c)) false (nary.is_subset cons nil xs t)))
+        ((nary.is_subset cons nil (cons c xs) t) (alf.ite (alf.is_neg (alf.list_find cons t c)) false (nary.is_subset cons nil xs t)))
         ((nary.is_subset cons nil nil t)         true)
     )
 )
