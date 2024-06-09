@@ -30,6 +30,8 @@ libcvc5_add_sources(
   rewrite_proof_status.cpp
   rewrite_proof_status.h
   rewrites.h
+  singleton_elim_process.cpp
+  singleton_elim_process.h
 )
 
 set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)
