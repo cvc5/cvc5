@@ -128,9 +128,10 @@
   (-> (! Type :var T :implicit)
       (! Int :var e) (! Int :var s) RoundingMode T (FloatingPoint e s)))
 
-; @disclaimer This function uses a different syntax (to_fp_bv instead of to_tp)
-; from the SMT-LIB standard since it does not take RoundingMode. This is don
-; to disambiguate the overloading of to_fp from the SMT-LIB standard.
+; disclaimer: >
+;   This function uses a different syntax (to_fp_bv instead of to_tp)
+;   from the SMT-LIB standard since it does not take RoundingMode. This is don
+;   to disambiguate the overloading of to_fp from the SMT-LIB standard.
 (declare-const to_fp_bv
   (-> (! Int :var w :implicit)
       (! Int :var e) (! Int :var s) (BitVec w) (FloatingPoint e s)))

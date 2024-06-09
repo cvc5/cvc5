@@ -1,13 +1,15 @@
 (include "../programs/Utils.smt3")
 
-; @disclaimer This function is a builtin function symbol of SMT-LIB denoting
-; universal quantification. We represent it as an ordinary function taking a
-; list as the first child to model cvc5's treatment of quantified formulas.
+; disclaimer: >
+;   This function is a builtin function symbol of SMT-LIB denoting
+;   universal quantification. We represent it as an ordinary function taking a
+;   list as the first child to model cvc5's treatment of quantified formulas.
 (declare-const forall (-> @List Bool Bool) :binder @list)
 
-; @disclaimer This function is a builtin function symbol of SMT-LIB denoting
-; existential quantification. We represent it as an ordinary function taking a
-; list as the first child to model cvc5's treatment of quantified formulas.
+; disclaimer: >
+;   This function is a builtin function symbol of SMT-LIB denoting
+;   existential quantification. We represent it as an ordinary function taking a
+;   list as the first child to model cvc5's treatment of quantified formulas.
 (declare-const exists (-> @List Bool Bool) :binder @list)
 
 ; returns the type of the element in the list, if the list is a singleton.
@@ -17,7 +19,7 @@
     ((get_witness_type (@list x)) (alf.typeof x))
   )
 )
-; @disclaimer This function is not in SMT-LIB.
+; disclaimer: This function is not in SMT-LIB.
 (declare-const witness (-> (! @List :var L) Bool (get_witness_type L)) :binder @list)
 
 ; skolems

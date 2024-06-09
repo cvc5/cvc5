@@ -21,7 +21,7 @@
 ; (Seq Char).
 ; - We model quantifiers (forall, exists) using explicit function symbols taking
 ; lists to model their binders.
-; Whenever applicable, these differences are marked with @disclaimer comments.
+; Whenever applicable, these differences are marked with disclaimer: comments.
 ;
 ; Furthermore, this signature is designed to capture the exact definition of
 ; cvc5's proof API. That is, Proof objects in our API are expected to have the
@@ -51,7 +51,7 @@
 ; and not having a formal justification.
 ;
 ; Discrepancies between cvc5's Proof API and the formal ALF definition are
-; also noted when applicable by @disclaimer.
+; also noted when applicable by disclaimer:.
 ; 
 ; =============================================================================
 
@@ -71,12 +71,12 @@
 (include "./theories/Datatypes.smt3")
 (include "./theories/SepLogic.smt3")
 
-; @disclaimer All symbols prefixed by @ are not part of the SMT-LIB standard
+; disclaimer: All symbols prefixed by @ are not part of the SMT-LIB standard
 ; and are used to model cvc5's internal symbols, including its skolems,
 ; other internally introduced terms, and extensions.
 
 ; extensions
-; @disclaimer this function is not in SMT-LIB.
+; disclaimer: this function is not in SMT-LIB.
 (declare-const fmf.card (-> Type Int Bool))
 (declare-sort @ho-elim-sort 1)
 (declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))

@@ -1,10 +1,12 @@
 (include "../programs/Nary.smt3")
 
-; @disclaimer This sort is not in the SMT-LIB standard. All further function
-; symbols over this sort are also not part of the SMT-LIB standard.
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
 (declare-const UnitTuple Type)
-; @disclaimer This sort is not in the SMT-LIB standard. All further function
-; symbols over this sort are also not part of the SMT-LIB standard.
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
 (declare-const Tuple (-> Type Type Type) :right-assoc-nil UnitTuple)
 
 (declare-const tuple.unit UnitTuple)
@@ -18,8 +20,9 @@
         Int T S T))
 (declare-const is-tuple (-> (! Type :var T :implicit) T Bool))
 
-; @disclaimer This sort is not in the SMT-LIB standard. All further function
-; symbols over this sort are also not part of the SMT-LIB standard.
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
 (declare-const Nullable (-> Type Type))
 (declare-const nullable.null (-> (! Type :var T) (Nullable T)))
 (declare-const nullable.some (-> (! Type :var T :implicit) T (Nullable T)))
@@ -34,7 +37,7 @@
       ((get_type_nullable.lift U)        (Nullable U))
     )
 )
-; @disclaimer This function is not in the SMT-LIB standard.
+; disclaimer: This function is not in the SMT-LIB standard.
 (declare-const nullable.lift (-> (! Type :var F :implicit) F (get_type_nullable.lift F)))
 
 ; skolems

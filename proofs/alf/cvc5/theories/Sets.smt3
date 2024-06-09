@@ -3,8 +3,9 @@
 (include "../theories/Arith.smt3")
 (include "../theories/Datatypes.smt3")
 
-; @disclaimer This sort is not in the SMT-LIB standard. All further function
-; symbols over this sort are also not part of the SMT-LIB standard.
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further
+;   function symbols over this sort are also not part of the SMT-LIB standard.
 (declare-sort Set 1)
 
 ; Constants for the theory of sets.

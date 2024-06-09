@@ -50,7 +50,7 @@
     )
 )
 
-; @disclaimer This proof rule takes only the function to do congruence over,
+; disclaimer: This proof rule takes only the function to do congruence over,
 ; whereas the internal proof calculus takes an internal value denoting its
 ; cvc5::Kind along with an (optional) function if the kind if parameterized.
 (declare-rule cong ((T Type) (U Type) (E Bool) (f (-> T U)))
@@ -77,7 +77,7 @@
     )
 )
 
-; @disclaimer This proof rule takes as argument the function to do congruence
+; disclaimer: This proof rule takes as argument the function to do congruence
 ; over, whereas the internal proof calculus takes an internal value denoting its
 ; cvc5::Kind.
 (declare-rule nary_cong ((U Type) (E Bool) (f (-> U U)) (nil U))
