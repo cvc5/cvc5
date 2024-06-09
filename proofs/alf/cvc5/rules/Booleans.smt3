@@ -4,7 +4,8 @@
 
 ; rule: split
 ; implements: ProofRule::SPLIT.
-; args: F Bool: The formula to split on.
+; args:
+; - F Bool: The formula to split on.
 ; conclusion: The split of F, which the disjunction of F and its negation.
 (declare-rule split ((F Bool))
     :args (F)
@@ -262,9 +263,9 @@
 ; rule: not_or_elim
 ; implements: ProofRule::NOT_OR_ELIM
 ; premises:
-; - F Bool: The formula to process, which should be the negation of an
-; or-list Fs.
-; args: i : Int. The child index of Fs to process.
+; - F Bool: The formula to process, which should be the negation of an or-list Fs.
+; args:
+; - i : Int. The child index of Fs to process.
 ; conclusion: the negation of the i^th child of the or-list Fs.
 (declare-rule not_or_elim ((Fs Bool) (i Int))
     :premises ((not Fs))
@@ -554,7 +555,8 @@
 
 ; rule: cnf_equiv_neg2
 ; implements: ProofRule::CNF_EQUIV_NEG2
-; args: F Bool: The formula to process.
+; args:
+; - F Bool: The formula to process.
 ; conclusion: A clause corresponding to one of the cases of converting t to CNF.
 (declare-rule cnf_equiv_neg2 ((F1 Bool) (F2 Bool))
     :args ((= F1 F2))
@@ -623,7 +625,8 @@
 
 ; rule: cnf_ite_pos3
 ; implements: ProofRule::CNF_ITE_POS3
-; args: F Bool: The formula to process.
+; args:
+; - F Bool: The formula to process.
 ; conclusion: A clause corresponding to one of the cases of converting t to CNF.
 (declare-rule cnf_ite_pos3 ((C Bool) (F1 Bool) (F2 Bool))
     :args ((ite C F1 F2))
