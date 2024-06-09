@@ -115,17 +115,25 @@
 )
 
 
-; `nary.diff cons nil t1 t2` returns the result of subtracting t2 from t1, where
-; these terms are in nary form for the operator cons with nil terminator nil.
-; For example, (nary.diff or false (or a b c d) (or a c)) = (or b d).
-(program nary.diff
+; program: $nary_diff
+; args:
+; - cons (-> L L L): >
+;   The function whose applications we are considering. It is assumed that
+;   cons is a function with attribute :right-assoc-nil.
+; - nil L: The nil terminator of cons.
+; - t1 L: The first term.
+; - t2 L: The second term.
+; return: >
+;   The result of subtracting t2 from t1, where these terms are cons-lists.
+;   For example, ($nary_diff or false (or a b c d) (or a c)) = (or b d).
+(program $nary_diff
     ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
     ((-> L L L) L L L) Bool
     (
-        ((nary.diff cons nil (cons c1 xs1) (cons c2 xs2)) (alf.ite (alf.is_eq c1 c2) 
-                                                            (nary.diff cons nil xs1 xs2)
-                                                            (alf.cons cons c1 (nary.diff cons nil xs1 (cons c2 xs2)))))
-        ((nary.diff cons nil c1 nil)                       c1)
+        (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (alf.ite (alf.is_eq c1 c2)
+                                                              ($nary_diff cons nil xs1 xs2)
+                                                              (alf.cons cons c1 ($nary_diff cons nil xs1 (cons c2 xs2)))))
+        (($nary_diff cons nil c1 nil)                       c1)
     )
 )
 

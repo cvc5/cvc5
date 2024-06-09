@@ -864,9 +864,9 @@
   (alf.match ((rr1 RegLan :list))
   rr
   (
-  ((re.union (re.* re.allchar) rr1) ($str_check_re_union_inclusion (nary.diff re.union re.none r rr1)))
+  ((re.union (re.* re.allchar) rr1) ($str_check_re_union_inclusion ($nary_diff re.union re.none r rr1)))
   ((re.* re.allchar)                ($str_check_re_union_inclusion r))
-  ((re.inter re.none rr1)           ($str_check_re_inter_inclusion (nary.diff re.inter re.all r rr1)))
+  ((re.inter re.none rr1)           ($str_check_re_inter_inclusion ($nary_diff re.inter re.all r rr1)))
   (re.none                          ($str_check_re_inter_inclusion r))
   ))
 )
