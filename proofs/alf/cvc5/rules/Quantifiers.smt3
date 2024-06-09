@@ -2,21 +2,25 @@
 (include "../theories/Quantifiers.smt3")
 
 
-; @rule instantiate, implements ProofRule::INSTANTIATE.
-; @premise (forall xs F) : Bool. The quantified formula to instantiate.
-; @arg ts : @List. The list of terms to instantiate with.
-; @conclusion The result of instantiating (forall xs F) with ts.
+; rule: instantiate
+; implements: ProofRule::INSTANTIATE.
+; premises:
+; - Q Bool: The quantified formula to instantiate.
+; args:
+; - ts @List: The list of terms to instantiate with.
+; conclusion: The result of instantiating (forall xs F) with ts.
 (declare-rule instantiate ((F Bool) (xs @List) (ts @List))
   :premises ((forall xs F))
   :args (ts)
   :conclusion ($substitute_list xs ts F))
 
-; @program $mk_skolems
-; @param arg1 : @List. The bound variable list to process.
-; @param arg2 : Bool. The body of the quantified formula. This impacts the
-; definition of the introduced skolems.
-; @return the list of skolem variables for the quantified formula
-; whose bound variable list is arg1 and whose body is arg2.
+; program: $mk_skolems
+; args:
+; - arg1 @List: The bound variable list to process.
+; - arg2 Bool: The body of the quantified formula. This impacts the definition of the introduced skolems.
+; return: >
+;   The list of skolem variables for the quantified formula whose bound variable list
+;   is arg1 and whose body is arg2.
 (program $mk_skolems ((x @List) (xs @List :list) (F Bool))
   (@List Bool) @List
   (
@@ -25,11 +29,13 @@
   )
 )
 
-; @rule skolemize, implements ProofRule::SKOLEMIZE.
-; @premise F: Bool. The quantified formula to skolemize. This is either an
-; existential or a negated universal.
-; @conclusion The skolemized body of F, where its variables are replaced by
-; skolems introduced via $mk_skolems,
+; rule: skolemize
+; implements: ProofRule::SKOLEMIZE.
+; premises:
+; - Q Bool: The quantified formula to skolemize. This is either an existential or a negated universal.
+; conclusion: >
+;   The skolemized body of Q, where its variables are replaced by skolems
+;   introduced via $mk_skolems,
 (declare-rule skolemize ((F Bool))
   :premises (F)
   :conclusion
@@ -41,10 +47,13 @@
         ))
 )
 
-; @rule skolem_intro, implements ProofRule::SKOLEM_INTRO.
-; @arg t : T. The purification skolem.
-; @conclusion An equality equating t to its original form. This indicates that
-; the purification skolem for any term x can be assumed to be equal to x.
+; rule: skolem_intro
+; implements: ProofRule::SKOLEM_INTRO.
+; args:
+; - t T: The purification skolem.
+; conclusion: >
+;   An equality equating t to its original form. This indicates that
+;   the purification skolem for any term x can be assumed to be equal to x.
 (declare-rule skolem_intro ((T Type) (t T))
   :args (t)
   :conclusion 
@@ -58,14 +67,16 @@
    )
 )
 
-; @rule alpha_equiv, implements ProofRule::ALPHA_EQUIV.
-; @arg B : Bool. The formula to apply to alpha equivalence to.
-; @arg vs : @List. The list of variables to substitute from.
-; @arg ts : @List. The list of (renamed) variables to substitute into.
-; @requires ($contains_subterm_list B ts) = false. This requirement checks that
-; B does not contain any occurence of the range variables ts.
-; @conclusion The result of applying the substitution specified by vs and ts to
-; B. The substitution is valid renaming due to the requirement check.
+; rule: alpha_equiv
+; implements: ProofRule::ALPHA_EQUIV.
+; args:
+; - B Bool: The formula to apply to alpha equivalence to.
+; - vs @List: The list of variables to substitute from.
+; - ts @List: The list of (renamed) variables to substitute into.
+; requires: B does not contain any occurence of the range variables ts.
+; conclusion: >
+;   The result of applying the substitution specified by vs and ts to
+;   B. The substitution is valid renaming due to the requirement check.
 (declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
   :args (B vs ts)
   :requires ((($contains_subterm_list B ts) false))
