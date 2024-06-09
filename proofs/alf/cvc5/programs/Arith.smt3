@@ -2,12 +2,14 @@
 (include "../theories/Arith.smt3")
 (include "../programs/Utils.smt3")
 
-; @define $arith_eval_add
-; @arg x : T. The first arithmetic term to add.
-; @arg y : U. The second arithmetic term to add.
-; @return the addition of x and y, for mixed arithmetic. Note that x and y
-; can each be integer or real. This method returns an integer value if x and y
-; are both integer, or a rational value otherwise.
+; define: $arith_eval_add
+; args:
+; - x T: The first arithmetic term to add.
+; - y U: The second arithmetic term to add.
+; return: >
+;   The addition of x and y, for mixed arithmetic. Note that x and y
+;   can each be integer or real. This method returns an integer value if x and y
+;   are both integer, or a rational value otherwise.
 (define $arith_eval_add ((T Type :implicit) (U Type :implicit) (x T) (y U))
   (let ((xq (alf.to_q x)))
   (let ((yq (alf.to_q y)))
@@ -18,22 +20,26 @@
         (alf.add x y)))))
 )
 
-; @define $arith_eval_sub
-; @arg x : T. The first arithmetic term to subtract.
-; @arg y : U. The second arithmetic term to subtract.
-; @return the substraction of x and y, for mixed arithmetic. Note that x and y
-; can each be integer or real. This method returns an integer value if x and y
-; are both integer, or a rational value otherwise.
+; define: $arith_eval_sub
+; args:
+; - x T: The first arithmetic term to subtract.
+; - y U: The second arithmetic term to subtract.
+; return: >
+;   The subtraction of x and y, for mixed arithmetic. Note that x and y
+;   can each be integer or real. This method returns an integer value if x and y
+;   are both integer, or a rational value otherwise.
 (define $arith_eval_sub ((U Type :implicit) (T Type :implicit) (x U) (y T))
   ($arith_eval_add x (alf.neg y))
 )
 
-; @define $arith_eval_mul
-; @arg x : T. The first arithmetic term to multiply.
-; @arg y : U. The second arithmetic term to multiply.
-; @return the multiplication of x and y, for mixed arithmetic. Note that x and y
-; can each be integer or real. This method returns an integer value if x and y
-; are both integer, or a rational value otherwise.
+; define: $arith_eval_mul
+; args:
+; - x T: The first arithmetic term to multiply.
+; - y U: The second arithmetic term to multiply.
+; return: >
+;   The multiplication of x and y, for mixed arithmetic. Note that x and y
+;   can each be integer or real. This method returns an integer value if x and y
+;   are both integer, or a rational value otherwise.
 (define $arith_eval_mul ((T Type :implicit) (U Type :implicit) (x T) (y U))
   (let ((xq (alf.to_q x)))
   (let ((yq (alf.to_q y)))
@@ -44,20 +50,21 @@
         (alf.mul x y)))))
 )
 
-; @define $arith_eval_qsub
-; @arg x : T. The first arithmetic term to subtract.
-; @arg y : U. The second arithmetic term to subtract.
-; @return the substraction of x and y as a rational.
-; @note This returns a rational value even if x and y are numeral values.
+; define: $arith_eval_qsub
+; args:
+; - x T: The first arithmetic term to subtract.
+; - y U: The second arithmetic term to subtract.
+; return: The subtraction of x and y as a rational.
+; note: This returns a rational value even if x and y are numeral values.
 (define $arith_eval_qsub ((U Type :implicit) (T Type :implicit) (x U) (y T))
   (alf.add (alf.to_q x) (alf.neg (alf.to_q y)))
 )
 
-; @program $arith_eval_int_log_2_rec
-; @arg x : Int. The term to compute the log (base 2) of, assumed to be a
-; positive numeral value.
-; @return the log base 2 of x.
-; @note Helper method for $arith_eval_int_log_2 below.
+; program: $arith_eval_int_log_2_rec
+; args:
+; - x : Int. The term to compute the log (base 2) of, assumed to be a positive numeral value.
+; return: The log base 2 of x.
+; note: Helper method for $arith_eval_int_log_2 below.
 (program $arith_eval_int_log_2_rec ((x Int))
   (Int) Int
   (
@@ -66,10 +73,12 @@
   )
 )
 
-; @define $arith_eval_int_log_2
-; @arg x : Int. The term to compute the log (base 2) of.
-; @return the log base 2 of x. If x is not strictly positive, we return
-; the term (int.log2 x).
+; define: $arith_eval_int_log_2
+; args:
+; - x : Int. The term to compute the log (base 2) of.
+; return: >
+;   the log base 2 of x. If x is not strictly positive, we return
+;   the term (int.log2 x).
 (define $arith_eval_int_log_2 ((x Int))
   (alf.ite (alf.is_neg (alf.neg x)) ($arith_eval_int_log_2_rec x) (int.log2 x)))
 
@@ -85,9 +94,10 @@
 (declare-const @poly.zero @Polynomial)
 (declare-const @poly (-> @Monomial @Polynomial @Polynomial) :right-assoc-nil @poly.zero)
 
-; @program $poly_neg
-; @arg p : @Polynomial. The polynomial to negate.
-; @return the negation of the given polynomial.
+; program: $poly_neg
+; args:
+; - p : @Polynomial. The polynomial to negate.
+; return: the negation of the given polynomial.
 (program $poly_neg ((T Type) (c Real) (a T) (p @Polynomial :list))
   (@Polynomial) @Polynomial
   (
@@ -96,10 +106,11 @@
   )
 )
 
-; @program $poly_add
-; @arg p1 : @Polynomial. The first polynomial to add.
-; @arg p2 : @Polynomial. The second polynomial to add.
-; @return the addition of the given polynomials.
+; program: $poly_add
+; args:
+; - p1 : @Polynomial. The first polynomial to add.
+; - p2 : @Polynomial. The second polynomial to add.
+; return: the addition of the given polynomials.
 (program $poly_add ((T Type) (U Type) (c1 Real) (a1 T) (c2 Real) (a2 U) (p @Polynomial) (p1 @Polynomial :list) (p2 @Polynomial :list))
   (@Polynomial @Polynomial) @Polynomial
   (
@@ -115,10 +126,11 @@
   )
 )
 
-; @program $mvar_mul_mvar
-; @arg a : X. The first monomial variable to multiply.
-; @arg b : Y. The second monomial variable to multiply.
-; @return the multiplication of the given monomial variables.
+; program: $mvar_mul_mvar
+; args:
+; - a : X. The first monomial variable to multiply.
+; - b : Y. The second monomial variable to multiply.
+; return: the multiplication of the given monomial variables.
 (program $mvar_mul_mvar ((T Type) (U Type) (V Type) (W Type) (X Type) (Y Type) (Z Type) (a1 T) (a2 U :list) (b1 V) (b2 W :list))
   (X Y) Z
   (
@@ -131,10 +143,11 @@
   )
 )
 
-; @program $mon_mul_mon
-; @arg a : @Monomial. The first monomial to multiply.
-; @arg b : @Monomial. The second monomial to multiply.
-; @return the multiplication of the given monomials.
+; program: $mon_mul_mon
+; args:
+; - a : @Monomial. The first monomial to multiply.
+; - b : @Monomial. The second monomial to multiply.
+; return: the multiplication of the given monomials.
 (program $mon_mul_mon ((T Type) (U Type) (V Type) (W Type) (a1 T) (a2 U) (b1 V) (b2 W) (c1 Real) (c2 Real))
   (@Monomial @Monomial) @Monomial
   (
@@ -142,10 +155,11 @@
   )
 )
 
-; @program $poly_mul_mon
-; @arg a : @Monomial. The monomial to multiply.
-; @arg p : @Polynomial. The polynomial to multiply.
-; @return the multiplication of the polynomial by a monomial.
+; program: $poly_mul_mon
+; args:
+; - a : @Monomial. The monomial to multiply.
+; - p : @Polynomial. The polynomial to multiply.
+; return: the multiplication of the polynomial by a monomial.
 (program $poly_mul_mon ((m1 @Monomial) (m2 @Monomial) (p2 @Polynomial :list))
   (@Monomial @Polynomial) @Polynomial
   (
@@ -154,10 +168,11 @@
   )
 )
 
-; @program $poly_mul
-; @arg p1 : @Polynomial. The first polynomial to multiply.
-; @arg p2 : @Polynomial. The second polynomial to multiply.
-; @return the multiplication of the given polynomials.
+; program: $poly_mul
+; args:
+; - p1 : @Polynomial. The first polynomial to multiply.
+; - p2 : @Polynomial. The second polynomial to multiply.
+; return: the multiplication of the given polynomials.
 (program $poly_mul ((m @Monomial) (p1 @Polynomial :list) (p @Polynomial))
   (@Polynomial @Polynomial) @Polynomial
   (
@@ -167,9 +182,10 @@
   )
 )
 
-; @program $get_poly_norm
-; @arg a : T. The arithmetic term to process of type Int or Real.
-; @return the polynomial corresponding to the (normalized) form of a.
+; program: $get_poly_norm
+; args:
+; - a T: The arithmetic term to process of type Int or Real.
+; return: the polynomial corresponding to the (normalized) form of a.
 (program $get_poly_norm ((T Type) (U Type) (V Type) (a T) (a1 U) (a2 V :list))
   (T) @Polynomial
   (
@@ -189,11 +205,12 @@
   )
 )
 
-; @program $poly_is_equal_mod_c_rec
-; @arg c : Real. The coefficient.
-; @arg p1 : @Polynomial. The first polynomial.
-; @arg p2 : @Polynomial. The second polynomial.
-; @return true if p2 is equal to p1 multiplied by the coefficient c.
+; program: $poly_is_equal_mod_c_rec
+; args:
+; - c : Real. The coefficient.
+; - p1 : @Polynomial. The first polynomial.
+; - p2 : @Polynomial. The second polynomial.
+; return: true if p2 is equal to p1 multiplied by the coefficient c.
 (program $poly_is_equal_mod_c_rec ((c Real) (T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list))
   (Real @Polynomial @Polynomial) Bool
   (
@@ -202,21 +219,23 @@
   )
 )
 
-; @define $is_poly_norm_arith
-; @arg a : T. The first arithmetic term to process, of type Int or Real.
-; @arg b : T. The second arithmetic term to process, of type Int or Real.
-; @return true if a and b normalize to the same polynomial
+; define: $is_poly_norm_arith
+; args:
+; - a T: The first arithmetic term to process, of type Int or Real.
+; - b T: The second arithmetic term to process, of type Int or Real.
+; return: true if a and b normalize to the same polynomial
 (define $is_poly_norm_arith ((T Type :implicit) (a T) (b T))
   (alf.is_eq ($get_poly_norm a) ($get_poly_norm b))
 )
 
-; @program $poly_is_equal_mod_c
-; @arg p1 : @Polynomial. The first polynomial.
-; @arg p2 : @Polynomial. The second polynomial.
-; @arg reqPos : Bool. Whether we require the ratio between p1 and p2 to be
-; a positive numeral.
-; @return true if the two given polynomials are equivalent up to modulus by a
-; (non-zero, positive if reqPos is true) coefficient.
+; program: $poly_is_equal_mod_c
+; args:
+; - p1 : @Polynomial. The first polynomial.
+; - p2 : @Polynomial. The second polynomial.
+; - reqPos : Bool. Whether we require the ratio between p1 and p2 to be a positive numeral.
+; return:
+;   true if the two given polynomials are equivalent up to modulus by a
+;   (non-zero, positive if reqPos is true) coefficient.
 (program $poly_is_equal_mod_c ((T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list) (reqPos Bool))
   (@Polynomial @Polynomial Bool) Bool
   (
@@ -227,13 +246,14 @@
   )
 )
 
-; @define $is_poly_norm_arith_mod_c
-; @arg a : T. The first arithmetic term to process, of type Int or Real.
-; @arg b : T. The second arithmetic term to process, of type Int or Real.
-; @arg reqPos : Bool. Whether we require the ratio between a and b to be a
-; positive numeral.
-; @return true if a and b normalize to polynomials that are same up to modulus
-; by a (non-zero, positive if reqPos is true) coefficient.
+; define: $is_poly_norm_arith_mod_c
+; args:
+; - a T: The first arithmetic term to process, of type Int or Real.
+; - b T: The second arithmetic term to process, of type Int or Real.
+; - reqPos : Bool. Whether we require the ratio between a and b to be a positive numeral.
+; return: >
+;   true if a and b normalize to polynomials that are same up to modulus
+;   by a (non-zero, positive if reqPos is true) coefficient.
 (define $is_poly_norm_arith_mod_c ((T Type :implicit) (a T) (b T) (reqPos Bool))
   ($poly_is_equal_mod_c ($get_poly_norm a) ($get_poly_norm b) reqPos)
 )
