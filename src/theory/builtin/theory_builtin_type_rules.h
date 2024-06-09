@@ -77,6 +77,7 @@ class WitnessTypeRule
                               std::ostream* errOut);
 };
 
+/** Type rule of nodes of kind APPLY_INDEXED_SYMBOLIC */
 class ApplyIndexedSymbolicTypeRule
 {
  public:
@@ -87,6 +88,7 @@ class ApplyIndexedSymbolicTypeRule
                               std::ostream* errOut);
 };
 
+/** Type rule of nodes of kind APPLY_SINGLETON */
 class ApplySingletonTypeRule
 {
  public:

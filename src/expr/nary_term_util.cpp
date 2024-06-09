@@ -207,24 +207,7 @@ Node mkSingletonApp(Kind k, const Node& n)
   return nm->mkNode(Kind::APPLY_SINGLETON, args);
 }
 
-bool isSingletonApp(const Node& n, Kind& k, Node& arg)
-{
-  // FIXME
-  return n.getKind() == Kind::APPLY_SINGLETON;
-}
-
-Node narySubstitute(Node src,
-                    const std::vector<Node>& vars,
-                    const std::vector<Node>& subs,
-                    bool elimSingleton,
-                    bool& elimedSingleton)
-{
-  std::unordered_map<TNode, Node> visited;
-  return narySubstitute(
-      src, vars, subs, visited, elimSingleton, elimedSingleton);
-}
-
-Node narySubstitute(Node src,
+Node narySubstituteInternal(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs,
                     std::unordered_map<TNode, Node>& visited,
@@ -341,6 +324,46 @@ Node narySubstitute(Node src,
   Assert(visited.find(src) != visited.end());
   Assert(!visited.find(src)->second.isNull());
   return visited[src];
+}
+
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs)
+{
+  std::unordered_map<TNode, Node> visited;
+  bool elimedSingleton = false;
+  return narySubstituteInternal(
+      src, vars, subs, visited, false, elimedSingleton);
+}
+
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited)
+{
+  bool elimedSingleton = false;
+  return narySubstituteInternal(
+      src, vars, subs, visited, false, elimedSingleton);
+}
+
+Node narySubstituteSElim(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs)
+{
+  std::unordered_map<TNode, Node> visited;
+  bool elimedSingleton = false;
+  return narySubstituteInternal(
+      src, vars, subs, visited, true, elimedSingleton);
+}
+
+Node narySubstituteSElim(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited,
+                    bool& elimedSingleton)
+{
+  return narySubstituteInternal(
+      src, vars, subs, visited, true, elimedSingleton);
 }
 
 bool isAssocCommIdem(Kind k)

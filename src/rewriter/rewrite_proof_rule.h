@@ -78,14 +78,17 @@ class RewriteProofRule
   /**
    * Get the conditions of the rule under the substitution { vs -> ss }.
    */
-  bool getObligations(const std::vector<Node>& vs,
+  bool getObligationsSElim(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
                       std::vector<Node>& vcs) const;
+  /**
+   * Get the conditions of the rule under the substitution { vs -> ss },
+   * with and without singleton elimination.
+   */
   bool getObligations(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
                       std::vector<Node>& vcs,
-                      std::vector<Node>& vcsse,
-                      bool computeSingletonElim = true) const;
+                      std::vector<Node>& vcsse) const;
   /**
    * Check match, return true if h matches the head of this rule; notifies
    * the match notify object ntm.
@@ -111,8 +114,8 @@ class RewriteProofRule
    * variable,
    * @return the substituted conclusion of the rule.
    */
-  Node getConclusionFor(const std::vector<Node>& ss,
-                        bool elimSingletons,
+  Node getConclusionFor(const std::vector<Node>& ss) const;
+  Node getConclusionForSElim(const std::vector<Node>& ss,
                         bool& elimedSingleton) const;
   /**
    * Get conclusion of the rule for the substituted terms ss.
@@ -134,9 +137,7 @@ class RewriteProofRule
    */
   Node getConclusionFor(
       const std::vector<Node>& ss,
-      std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms,
-      bool elimSingletons,
-      bool& elimedSingleton) const;
+      std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms) const;
 
   /**
    * Is variable explicit? An explicit variable is one that does not occur

@@ -331,8 +331,7 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
     Node target = rpr.getConclusion(true);
     // apply substitution, which may notice vars may be out of order wrt rule
     // var list
-    bool elimedSingleton = false;
-    target = expr::narySubstitute(target, vars, subs, true, elimedSingleton);
+    target = expr::narySubstituteSElim(target, vars, subs);
     // it may be impossible to construct the conclusion due to null terminators
     // for approximate types, return false in this case
     if (target.isNull())
@@ -585,8 +584,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     }
     // do its conditions hold?
     // Get the conditions, substituted { vars -> subs } and with side conditions
-    // evaluated.
-    if (!rpr.getObligations(vars, subs, vcs))
+    // evaluated, using singleton elimination semantics
+    if (!rpr.getObligationsSElim(vars, subs, vcs))
     {
       // cannot get conditions, likely due to failed side condition
       Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
@@ -888,6 +887,7 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           std::vector<Node>& ps = premises[cur];
           std::vector<Node>& pfac = pfArgs[cur];
+          bool processedVisit = false;
           if (pcur.isInternalRule())
           {
             // premises are the steps, stored in d_vars
@@ -917,22 +917,24 @@ bool RewriteDbProofCons::ensureProofInternal(
                 rsubs.push_back(pcur.d_subs[d]);
               }
               // get the conditions, store into premises of cur.
-              std::vector<Node> premisesEs;
-              if (!rpr.getObligations(vs, rsubs, ps, premisesEs))
+              std::vector<Node> psSe;
+              if (!rpr.getObligations(vs, rsubs, ps, psSe))
               {
                 Assert(false) << "failed a side condition?";
                 return false;
               }
-              Assert(ps.size() == premisesEs.size());
+              Assert(ps.size() == psSe.size());
               for (size_t i = 0, nps = ps.size(); i < nps; i++)
               {
-                if (ps[i] != premisesEs[i])
+                if (ps[i] != psSe[i])
                 {
-                  ensureProofSingletonElim(cdp, ps[i], premisesEs[i]);
+                  ensureProofSingletonElim(cdp, ps[i], psSe[i], true);
                 }
               }
               // TODO: connect proofs
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
+              processedVisit = true;
+              visit.insert(visit.end(), psSe.begin(), psSe.end());
             }
             else
             {
@@ -941,7 +943,10 @@ bool RewriteDbProofCons::ensureProofInternal(
             }
           }
           // recurse on premises
-          visit.insert(visit.end(), ps.begin(), ps.end());
+          if (!processedVisit)
+          {
+            visit.insert(visit.end(), ps.begin(), ps.end());
+          }
         }
       }
     }
@@ -1035,18 +1040,20 @@ bool RewriteDbProofCons::ensureProofInternal(
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
           // do not eliminate singletons
           bool ems = false;
-          Node concEs = rpr.getConclusionFor(subs, true, ems);
+          Node concSe = rpr.getConclusionForSElim(subs, ems);
           if (ems)
           {
-            conc = rpr.getConclusionFor(subs, false, ems);
+            // if eliminated singletons, get the conclusion without singleton elimination
+            conc = rpr.getConclusionFor(subs);
+            if (conc != concSe)
+            {
+              // ensure the proof of the conversion
+              ensureProofSingletonElim(cdp, conc, concSe, false);
+            }
           }
           else
           {
-            conc = concEs;
-          }
-          if (conc != concEs)
-          {
-            ensureProofSingletonElim(cdp, conc, concEs);
+            conc = concSe;
           }
           // TODO: eliminate singletons here and see difference??
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
@@ -1105,8 +1112,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     // start from the source, match again to start the chain. Notice this is
     // required for uniformity since we want to successfully cache the first
     // step, independent of the target.
-    bool estmp = false;
-    Node ssrc = expr::narySubstitute(conc[0], vars, subs, true, estmp);
+    Node ssrc = expr::narySubstituteSElim(conc[0], vars, subs);
     Node stgt = ssrc;
     do
     {
@@ -1154,10 +1160,9 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     {
       const std::vector<Node>& stepSubs = stepsSubs[i];
       Node step = steps[i];
-      bool estmps = false;
-      Node source = expr::narySubstitute(conc[0], vars, stepSubs, true, estmps);
-      bool estmpt = false;
-      Node target = expr::narySubstitute(body, vars, stepSubs, true, estmpt);
+      // use singleton elimination semantics
+      Node source = expr::narySubstituteSElim(conc[0], vars, stepSubs);
+      Node target = expr::narySubstituteSElim(body, vars, stepSubs);
       target = target.substitute(TNode(placeholder), TNode(step));
       cacheProofSubPlaceholder(currContext, placeholder, source, target);
       Trace("rpc-ctx") << "Step " << source << " == " << target << " from "
@@ -1170,8 +1175,8 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       dpi.d_vars = vars;
       dpi.d_subs = stepSubs;
 
-      bool estmpc = false;
-      currConc = expr::narySubstitute(currConc, vars, stepSubs, true, estmpc);
+      // use singleton elimination semantics
+      currConc = expr::narySubstituteSElim(currConc, vars, stepSubs);
       currContext = currConc;
       Node prevConc = currConc;
       if (i < size - 1)
@@ -1196,19 +1201,26 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       return transEq.back()[1];
     }
   }
-
-  bool estmpr = false;
-  Node ret = expr::narySubstitute(concRhs, vars, subs, true, estmpr);
+  // use singleton elimination semantics
+  Node ret = expr::narySubstituteSElim(concRhs, vars, subs);
   Trace("rpc-ctx") << "***RETURN " << ret << std::endl;
   return ret;
 }
 
 bool RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp,
                                                   const Node& eq,
-                                                  const Node& eqSe)
+                                                  const Node& eqSe,
+                                                  bool fromSe)
 {
   ++d_statPfSingletonElims;
-  cdp->addTrustedStep(eqSe, TrustId::SINGLETON_ELIM, {eq}, {});
+  if (fromSe)
+  {
+    cdp->addTrustedStep(eq, TrustId::SINGLETON_ELIM, {eqSe}, {});
+  }
+  else
+  {
+    cdp->addTrustedStep(eqSe, TrustId::SINGLETON_ELIM, {eq}, {});
+  }
   return true;
 }
 

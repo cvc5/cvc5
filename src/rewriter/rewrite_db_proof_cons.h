@@ -201,7 +201,7 @@ class RewriteDbProofCons : protected EnvObj
                            std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /**
    */
-  bool ensureProofSingletonElim(CDProof* cdp, const Node& eq, const Node& eqSe);
+  bool ensureProofSingletonElim(CDProof* cdp, const Node& eq, const Node& eqSe, bool fromSe);
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**

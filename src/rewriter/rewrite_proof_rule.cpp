@@ -109,39 +109,41 @@ const std::vector<Node>& RewriteProofRule::getConditions() const
   return d_cond;
 }
 
-bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
+bool RewriteProofRule::getObligationsSElim(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs) const
 {
-  std::vector<Node> vcsse;
-  return getObligations(vs, ss, vcs, vcsse, false);
+  std::unordered_map<TNode, Node> visited;
+  bool estmp = false;
+  for (const Node& c : d_obGen)
+  {
+    Node sc = expr::narySubstituteSElim(c, vs, ss, visited, estmp);
+    vcs.push_back(sc);
+  }
+  return true;
 }
 
 bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs,
-                                      std::vector<Node>& vcsse,
-                                      bool computeSingletonElim) const
+                                      std::vector<Node>& vcsse) const
 {
   // substitute into each condition
+  std::unordered_map<TNode, Node> visited;
   for (const Node& c : d_obGen)
   {
     bool estmp = false;
-    Node sc = expr::narySubstitute(c, vs, ss, computeSingletonElim, estmp);
+    Node sc = expr::narySubstituteSElim(c, vs, ss, visited, estmp);
     if (estmp)
     {
-      Assert(computeSingletonElim);
-      Node scnse = expr::narySubstitute(c, vs, ss, false, estmp);
+      Node scnse = expr::narySubstitute(c, vs, ss);
       vcs.push_back(scnse);
       vcsse.push_back(sc);
     }
     else
     {
       vcs.push_back(sc);
-      if (computeSingletonElim)
-      {
-        vcsse.push_back(sc);
-      }
+      vcsse.push_back(sc);
     }
   }
   return true;
@@ -166,32 +168,36 @@ Node RewriteProofRule::getConclusion(bool includeContext) const
   return conc;
 }
 
-Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss,
-                                        bool elimSingletons,
-                                        bool& elimedSingleton) const
+Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
 {
   Assert(d_fvs.size() == ss.size());
   Node conc = getConclusion(true);
-  return expr::narySubstitute(conc, d_fvs, ss, elimSingletons, elimedSingleton);
+  return expr::narySubstitute(conc, d_fvs, ss);
+}
+
+Node RewriteProofRule::getConclusionForSElim(const std::vector<Node>& ss,
+                                             bool& elimedSingleton) const
+{
+  Assert(d_fvs.size() == ss.size());
+  Node conc = getConclusion(true);
+  std::unordered_map<TNode, Node> visited;
+  return expr::narySubstituteSElim(conc, d_fvs, ss, visited, elimedSingleton);
 }
 
 Node RewriteProofRule::getConclusionFor(
     const std::vector<Node>& ss,
-    std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms,
-    bool elimSingletons,
-    bool& elimedSingleton) const
+    std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms) const
 {
   Assert(d_fvs.size() == ss.size());
   Node conc = getConclusion(true);
   std::unordered_map<TNode, Node> visited;
   Node ret = expr::narySubstitute(
-      conc, d_fvs, ss, visited, elimSingletons, elimedSingleton);
+      conc, d_fvs, ss, visited);
   // also compute for the condition
-  bool estmp = false;
   for (const Node& c : d_cond)
   {
     // does not count towards whether singleton elimination mattered
-    expr::narySubstitute(c, d_fvs, ss, visited, elimSingletons, estmp);
+    expr::narySubstitute(c, d_fvs, ss, visited);
   }
   std::map<Node, Node>::const_iterator itl;
   for (size_t i = 0, nfvs = ss.size(); i < nfvs; i++)

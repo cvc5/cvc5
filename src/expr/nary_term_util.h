@@ -53,7 +53,7 @@ bool getListVarContext(TNode n, std::map<Node, Node>& context);
 Node getNullTerminator(Kind k, TypeNode tn);
 
 /**
- * Substitution with list semantics.
+ * Substitution with list semantics, without singleton elimination semantics.
  * Handles mixtures of list / non-list variables in vars.
  * List variables are mapped to SEXPR whose children are the list to substitute.
  *
@@ -64,30 +64,53 @@ Node getNullTerminator(Kind k, TypeNode tn);
  */
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
-                    const std::vector<Node>& subs,
-                    bool elimSingleton,
-                    bool& elimedSingleton);
+                    const std::vector<Node>& subs);
 /**
  * Same as above, with visited cache.
  *
  * @param src The term to substitute
  * @param vars The domain of the substitution
  * @param subs The range of the substitution
+ * @param visited The visited cache.
  * @return the substituted term.
  */
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs,
-                    std::unordered_map<TNode, Node>& visited,
-                    bool elimSingleton,
-                    bool& elimedSingleton);
-/**
- */
-Node mkSingletonApp(Kind k, const Node& n);
+                    std::unordered_map<TNode, Node>& visited);
 
 /**
+ * Substitution with list semantics, with singleton elimination semantics.
+ * Handles mixtures of list / non-list variables in vars.
+ * List variables are mapped to SEXPR whose children are the list to substitute.
+ *
+ * @param src The term to substitute
+ * @param vars The domain of the substitution
+ * @param subs The range of the substitution
+ * @return the substituted term.
  */
-bool isSingletonApp(const Node& n, Kind& k, Node& arg);
+Node narySubstituteSElim(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs);
+/**
+ * Same as above, with visited cache.
+ *
+ * @param src The term to substitute
+ * @param vars The domain of the substitution
+ * @param subs The range of the substitution
+ * @param visited The visited cache.
+ * @param elimedSingleton Whether we eliminated a singleton list.
+ * @return the substituted term.
+ */
+Node narySubstituteSElim(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited,
+                    bool& elimedSingleton);
+/**
+ * Make a singleton application of nary kind k to argument n.
+ */
+Node mkSingletonApp(Kind k, const Node& n);
 
 /**
  * @param k A kind
