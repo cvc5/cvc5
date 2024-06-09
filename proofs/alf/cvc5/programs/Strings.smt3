@@ -67,8 +67,13 @@
   )
 )
 
-; `$str_is_char_range s1 s2` returns true if (re.range s1 s2) is a character
-; range (i.e. s1 and s2 are strings of length 1).
+; define: $str_is_char_range
+; args:
+; - s1 String: The first string.
+; - s2 String: The second string.
+; return: >
+;   true if (re.range s1 s2) is a character
+;   range, i.e. s1 and s2 are strings of length one.
 (define $str_is_char_range ((s1 String) (s2 String))
   (alf.and (alf.is_eq (alf.len s1) 1) (alf.is_eq (alf.len s2) 1))
 )
@@ -198,9 +203,13 @@
     )
 )
 
-; Regular expression nary-intro, which ensures that the input t is a re.++
-; application. In particular, if it is not a re.++ and not the empty regular
-; expression, then we return (re.++ t @re.empty).
+; program: $re_nary_intro
+; args:
+; - t RegLan: The regular expresion to process.
+; return: >
+;   Regular expression nary-intro, which returns the regular expression equivalent
+;   to t that is a re.++ list. In particular, if t is not a re.++ and not the empty
+;   regular expression, then we return (re.++ t @re.empty).
 (program $re_nary_intro ((t RegLan) (ss RegLan :list))
     (RegLan) RegLan
     (
@@ -706,12 +715,16 @@
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
 )
 
-; Forward declaration of $str_re_includes below.
+; note: This is a forward declaration of $str_re_includes below.
 (program $str_re_includes () (RegLan RegLan) Bool)
 
-; Helper for `$str_re_includes`.
-; If `$str_re_includes_lhs_union (re.union r1 ... rn) r` returns true if
-; we can infer that r is contained in some ri.
+; program: $str_re_includes_lhs_union
+; args:
+; - r RegLan: The first regular expression.
+; - s RegLan: The second regular expression.
+; return: >
+;   true if r is of the form (re.union r1 ... rn), and we can infer
+;   that s is contained in some ri.
 (program $str_re_includes_lhs_union ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   (RegLan RegLan) Bool
   (
@@ -721,8 +734,13 @@
 )
 
 ; Helper for `$str_re_includes`.
-; If `$str_re_includes_rhs_inter r (re.inter r1 ... rn)` returns true if
-; we can infer that some ri is contained in r.
+; program: $str_re_includes_rhs_inter
+; args:
+; - r RegLan: The first regular expression.
+; - s RegLan: The second regular expression.
+; return: >
+;   true if s is of the form (re.inter s1 ... sn), and we can infer
+;   that r is contained in some si.
 (program $str_re_includes_rhs_inter ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   (RegLan RegLan) Bool
   (
@@ -732,8 +750,14 @@
 )
 
 ; Helper for `$str_re_includes`.
-; If `$str_re_includes_lhs_star (re* r1) r2` returns true if
-; we can infer that `r2` is contained in `(re* r1)`.
+; program: $str_re_includes_rhs_inter
+; args:
+; - r RegLan: The first regular expression.
+; - s RegLan: The second regular expression.
+; return: >
+;   true if r is of the form (re.* r1), and we can infer that either
+;   s is included in r1, or s1 is included in r1 where is of the form
+;   (re.* s1).
 (program $str_re_includes_lhs_star ((r1 RegLan) (r2 RegLan))
   (RegLan RegLan) Bool
   (
@@ -748,9 +772,13 @@
 )
 
 ; Helper for `$str_re_includes`.
-; $str_re_includes_is_rec r1 r2 returns true if the inclusion of r2 into r1
-; is not handled by one of the three cases above (union or star on LHS, or intersection
-; on RHS).
+; program: $str_re_includes_is_rec
+; args:
+; - r1 RegLan: The first regular expression.
+; - r2 RegLan: The second regular expression.
+; return: >
+;   true if the inclusion of r2 into r1 is not handled by one of the
+;   three cases above (union or star on LHS, or intersection on RHS).
 (program $str_re_includes_is_rec ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   (RegLan RegLan) Bool
   (
@@ -761,8 +789,13 @@
   )
 )
 
-; `$re_is_unbound_wildcard r` returns true if `r` is of the form
-; (re.++ re.allchar ... re.allchar (re.* re.allchar) ...).
+; program: $re_is_unbound_wildcard
+; args:
+; - r RegLan: The regular expression to consider.
+; return: >
+;   true if r is of the form (re.++ re.allchar ... re.allchar (re.* re.allchar) ...).
+;   This method is used for checking if there is no upper bound on the number of
+;   arbitrary characters can be consumed at the current position.
 (program $re_is_unbound_wildcard ((r1 RegLan) (r2 RegLan :list))
   (RegLan) Bool
   (
@@ -773,6 +806,13 @@
 )
 
 ; Helper for `$str_re_includes`
+; program: $str_re_includes_rec
+; args:
+; - r1 RegLan: The first regular expression.
+; - r2 RegLan: The second regular expression.
+; return: >
+;   true if we can infer r2 is included in r1. We assume that r1 and r2
+;   are re.++ lists that have been put into normal form with $re_to_flat_form.
 (program $str_re_includes_rec ((s1 String) (s2 String :list) (r1 RegLan) (r2 RegLan :list) (r3 RegLan) (r4 RegLan :list))
   (RegLan RegLan) Bool
   (
@@ -804,8 +844,12 @@
   )
 )
 
-; `$str_re_includes r1 r2` returns true if we can infer that all strings in
-; r2 are also in r1.
+; program: $str_re_includes
+; args:
+; - r1 RegLan: The first regular expression.
+; - r2 RegLan: The second regular expression.
+; return: >
+;   true if we can infer that all strings in r2 are also in r1.
 (program $str_re_includes ((s1 String) (s2 String) (s3 String) (s4 String) (r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   (RegLan RegLan) Bool
   (
@@ -833,8 +877,12 @@
   )
 )
 
-; Checks whether r is an application of re.union with 2 children for which
-; regular expression inclusion shows r is equivalent to (re.* re.allchar).
+; program: $str_check_re_union_inclusion
+; args:
+; - r RegLan: The regular expression to check.
+; return: >
+;   true if r is an application of re.union with 2 children for which
+;   regular expression inclusion shows r is equivalent to (re.* re.allchar).
 (define $str_check_re_union_inclusion ((r RegLan))
   (alf.match ((r1 RegLan) (r2 RegLan))
   r
@@ -844,8 +892,12 @@
   ))
 )
 
-; Checks whether r is an application of re.inter with 2 children for which
-; regular expression inclusion shows r is equivalent to re.none.
+; program: $str_check_re_inter_inclusion
+; args:
+; - r RegLan: The regular expression to check.
+; return: >
+;   true if r is an application of re.inter with 2 children for which
+;   regular expression inclusion shows r is equivalent to re.none.
 (define $str_check_re_inter_inclusion ((r RegLan))
   (alf.match ((r1 RegLan) (r2 RegLan))
   r
