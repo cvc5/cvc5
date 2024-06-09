@@ -155,12 +155,14 @@
   :conclusion (= a b)
 )
 
-; @define $get_aci_normal_form
-; @arg t : S. The term to compute the normal form for.
-; @return the result of normalizing t for the proof rule aci_norm. In
-; particular, if t is an application of a known operator that has the property
-; of being either associative and commutative (resp. associative) we call
-; the method $get_aci_norm (resp. $get_a_norm).
+; define: $get_aci_normal_form
+; args:
+; - t S: The term to compute the normal form for.
+; return: >
+;   The result of normalizing t for the proof rule aci_norm. In
+;   particular, if t is an application of a known operator that has the property
+;   of being either associative and commutative (resp. associative) we call
+;   the method $get_aci_norm (resp. $get_a_norm).
 (define $get_aci_normal_form ((S Type :implicit) (t S))
   (alf.match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
               (xb1 (BitVec m)) (xb2 (BitVec m) :list)
@@ -184,13 +186,17 @@
   )
 )
 
-; @rule aci_norm implements ProofRule::ACI_NORM
-; @arg (= a b) : Bool. The equality to be proven by this rule.
-; @requires That the normal forms of a and b via $get_aci_normal_form suffices
-; to show that a and b are equivalent. Note that we need three checks. The first
-; two handle the cases where one side is treated as a singleton child of the
-; other side. The remaining case checks where both terms are not singletons.
-; @conclusion the equality between a and b.
+; rule: aci_norm
+; implements: ProofRule::ACI_NORM
+; args:
+; - eq Bool: The equality to be proven by this rule.
+; requires: >
+;   That computing the normal forms via $get_aci_normal_form of the sides of the
+;   given equality between terms a and b suffices to show that a and b are
+;   equivalent. Note that we need three checks. The first two handle the cases
+;   where one side is treated as a singleton child of the other side. The
+;   remaining case checks where both terms are not singletons.
+; conclusion: The given equality.
 (declare-rule aci_norm ((U Type) (a U) (b U))
   :args ((= a b))
   :requires (((let ((an ($get_aci_normal_form a)) (bn ($get_aci_normal_form b)))
