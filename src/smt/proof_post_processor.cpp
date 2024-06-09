@@ -791,6 +791,11 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       // substitutions are pre-rewrites
       tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], true);
+      if (ida == MethodId::SBA_FIXPOINT)
+      {
+        // fixed point substitutions are also post-rewrites
+        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
+      }
     }
     // add the proof constructed by the term conversion utility
     std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(t);

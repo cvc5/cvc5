@@ -107,22 +107,22 @@
 
 ; Skolem functions for strings and sequences.
 
-(declare-const @re_unfold_pos_component (-> String RegLan Int String))
-(declare-const @strings_deq_diff (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
-(declare-const @strings_stoi_result (-> String Int Int))
-(declare-const @strings_stoi_non_digit (-> String Int))
-(declare-const @strings_itos_result (-> Int Int Int))
+(declare-const @re_unfold_pos_component (-> (! String :opaque) (! RegLan :opaque) (! Int :opaque) String))
+(declare-const @strings_deq_diff (-> (! Type :var T :implicit) (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
+(declare-const @strings_stoi_result (-> (! String :opaque) Int Int))
+(declare-const @strings_stoi_non_digit (-> (! String :opaque) Int))
+(declare-const @strings_itos_result (-> (! Int :opaque) Int Int))
 
-(declare-const @strings_num_occur (-> (! Type :var T :implicit) (Seq T) (Seq T) Int))
-(declare-const @strings_num_occur_re (-> String RegLan Int))
-(declare-const @strings_occur_index (-> (! Type :var T :implicit) (Seq T) (Seq T) Int Int))
-(declare-const @strings_occur_index_re (-> String RegLan Int Int))
-(declare-const @strings_occur_len_re (-> String RegLan Int Int))
+(declare-const @strings_num_occur (-> (! Type :var T :implicit) (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
+(declare-const @strings_num_occur_re (-> (! String :opaque) (! RegLan :opaque) Int))
+(declare-const @strings_occur_index (-> (! Type :var T :implicit) (! (Seq T) :opaque) (! (Seq T) :opaque) Int Int))
+(declare-const @strings_occur_index_re (-> (! String :opaque) (! RegLan :opaque) Int Int))
+(declare-const @strings_occur_len_re (-> (! String :opaque) (! RegLan :opaque) Int Int))
 
-(declare-const @strings_replace_all_result (-> (! Type :var T :implicit) (Seq T) Int (Seq T)))
+(declare-const @strings_replace_all_result (-> (! Type :var T :implicit) (! (Seq T) :opaque) Int (Seq T)))
 
-(declare-const @re_first_match_pre (-> String RegLan String))
-(declare-const @re_first_match (-> String RegLan String))
-(declare-const @re_first_match_post (-> String RegLan String))
+(declare-const @re_first_match_pre (-> (! String :opaque) (! RegLan :opaque) String))
+(declare-const @re_first_match (-> (! String :opaque) (! RegLan :opaque) String))
+(declare-const @re_first_match_post (-> (! String :opaque) (! RegLan :opaque) String))
 
 

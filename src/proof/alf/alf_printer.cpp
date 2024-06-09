@@ -138,11 +138,12 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::RE_INTER:
     case ProofRule::RE_UNFOLD_POS:
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
+    case ProofRule::RE_UNFOLD_NEG:
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
-    case ProofRule::ENCODE_PRED_TRANSFORM:
+    case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::ACI_NORM:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::THEORY_REWRITE:
@@ -202,7 +203,11 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   switch (id)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
-    case ProofRewriteRule::RE_LOOP_ELIM: return true;
+    case ProofRewriteRule::RE_LOOP_ELIM:
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
+    case ProofRewriteRule::STR_IN_RE_SIGMA:
+    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return true;
     default: break;
   }
   return false;
@@ -223,6 +228,7 @@ bool AlfPrinter::canEvaluate(Node n) const
       visited.insert(cur);
       switch (cur.getKind())
       {
+        case Kind::ITE:
         case Kind::NOT:
         case Kind::AND:
         case Kind::OR:
@@ -258,6 +264,8 @@ bool AlfPrinter::canEvaluate(Node n) const
         case Kind::STRING_INDEXOF:
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
+        case Kind::BITVECTOR_EXTRACT:
+        case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:
         case Kind::BITVECTOR_SUB:
         case Kind::BITVECTOR_NEG:
@@ -278,13 +286,6 @@ bool AlfPrinter::canEvaluate(Node n) const
         break;
         case Kind::BITVECTOR_SIZE:
           // special case, evaluates no matter what is inside
-          continue;
-        case Kind::STRING_IN_REGEXP:
-          if (!canEvaluateRegExp(cur[1]))
-          {
-            return false;
-          }
-          visit.push_back(cur[0]);
           continue;
         default:
           Trace("alf-printer-debug")
@@ -357,7 +358,7 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     ProofRewriteRule dr;
     rewriter::getRewriteRule(pfn->getArguments()[0], dr);
     std::stringstream ss;
-    ss << "dsl." << dr;
+    ss << dr;
     return ss.str();
   }
   else if (r == ProofRule::THEORY_REWRITE)
@@ -367,6 +368,12 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     std::stringstream ss;
     ss << id;
     return ss.str();
+  }
+  else if (r == ProofRule::ENCODE_EQ_INTRO)
+  {
+    // ENCODE_EQ_INTRO proves (= t (convert t)) from argument t,
+    // where (convert t) is indistinguishable from t according to the proof.
+    return "refl";
   }
   std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
@@ -387,7 +394,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   // BOUND_VARIABLE of this rule as user provided variables. The substitution
   // su stores this mapping.
   Subs su;
-  out << "(declare-rule dsl." << r << " (";
+  out << "(declare-rule " << r << " (";
   AlfDependentTypeConverter adtc(nodeManager(), d_tproc);
   std::stringstream ssExplicit;
   for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)

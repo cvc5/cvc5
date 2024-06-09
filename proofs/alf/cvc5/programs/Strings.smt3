@@ -25,7 +25,7 @@
 
 ; Return the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (alf.concat str.++ x y)
+  (alf.list_concat str.++ x y)
 )
 
 ; Return the result of prepending of string x to string y where the latter is
@@ -177,7 +177,7 @@
 ; Get the term corresponding to the suffix of s after the first occurrence of
 ; t in s.
 (define skolem_first_ctn_post ((U Type :implicit) (s (Seq U)) (t (Seq U)))
-  (skolem_suffix_rem s (+ (str.len (skolem (skolem_first_ctn_pre s t))) (str.len t))))
+  (skolem_suffix_rem s (+ (str.len (@purify (skolem_first_ctn_pre s t))) (str.len t))))
 
 ;;-------------------- Utilities
 
@@ -244,10 +244,10 @@
   ((Seq U) Int Int) Bool
   (
     ((string_reduction_substr x n m)
-      (let ((k (skolem (str.substr x n m))))
+      (let ((k (@purify (str.substr x n m))))
       (let ((npm (+ n m)))
-      (let ((k1 (skolem (skolem_prefix x n))))
-      (let ((k2 (skolem (skolem_suffix_rem x npm))))
+      (let ((k1 (@purify (skolem_prefix x n))))
+      (let ((k2 (@purify (skolem_suffix_rem x npm))))
       (ite
         ; condition
         (and (>= n 0)(> (str.len x) n) (> m 0))
@@ -268,10 +268,10 @@
   ((Seq U) (Seq U) Int) Bool
   (
     ((string_reduction_indexof x y n)
-      (let ((k (skolem (str.indexof x y n))))
+      (let ((k (@purify (str.indexof x y n))))
       (let ((xn (str.substr x n (- (str.len x) n))))
-      (let ((k1 (skolem (skolem_first_ctn_pre xn y))))
-      (let ((k2 (skolem (skolem_first_ctn_post xn y))))
+      (let ((k1 (@purify (skolem_first_ctn_pre xn y))))
+      (let ((k2 (@purify (skolem_first_ctn_post xn y))))
       (ite
         (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
         (= k (alf.neg 1))
@@ -314,8 +314,8 @@
   ((Seq U) (Seq U)) Bool
   (
     ((string_eager_reduction_contains t r)
-        (let ((k1 (skolem (skolem_first_ctn_pre t r))))
-        (let ((k2 (skolem (skolem_first_ctn_post t r))))
+        (let ((k1 (@purify (skolem_first_ctn_pre t r))))
+        (let ((k2 (@purify (skolem_first_ctn_post t r))))
         (ite
           (str.contains t r)
           (= t (str.++ k1 r k2))
@@ -387,7 +387,7 @@
               ; a constant regular expression, append s
               ((str.to_re s) (@pair (str.++ s c) M))
               ; otherwise, make the skolem and append with constraint
-              (r            (let ((k (skolem (@re_unfold_pos_component t ro i))))
+              (r            (let ((k (@re_unfold_pos_component t ro i)))
                             (@pair (str.++ k c) (and (str.in_re k r) M))))
             )
           )
@@ -595,6 +595,49 @@
 (define $str_mk_re_loop_elim ((n Int) (d Int) (r RegLan))
   ($singleton_elim ($str_mk_re_loop_elim_rec n d r @re.empty))
 )
+
+; Helper for ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR.
+; Note that we do not require a singleton elimination step since the original input should be a concatenation term.
+(program $str_mk_str_in_re_concat_star_char ((s1 String) (s2 String :list) (r RegLan))
+  (String RegLan) Bool
+  (
+    (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) r) (alf.cons and (str.in_re s1 r) ($str_mk_str_in_re_concat_star_char s2 r)))
+    (($str_mk_str_in_re_concat_star_char "" r)             true)
+  )
+)
+
+
+; Helper for $str_mk_str_in_re_sigma.
+; Calling `$str_mk_str_in_re_sigma_rec s r n b` means we have s in r, we have stripped
+; off n re.allchar from r so far. If `b` is false, then we have stripped off
+; a (re.* re.allchar).
+(program $str_mk_str_in_re_sigma_rec ((s String) (r RegLan :list) (n Int) (b Bool))
+  (String RegLan Int Bool) Bool
+  (
+    (($str_mk_str_in_re_sigma_rec s @re.empty n b)                    (alf.ite b (= (str.len s) n) (>= (str.len s) n)))
+    (($str_mk_str_in_re_sigma_rec s (re.++ re.allchar r) n b)         ($str_mk_str_in_re_sigma_rec s r (alf.add n 1) b))
+    (($str_mk_str_in_re_sigma_rec s (re.++ (re.* re.allchar) r) n b)  ($str_mk_str_in_re_sigma_rec s r n false))
+  )
+)
+
+; Helper for ProofRewriteRule::STR_IN_RE_SIGMA.
+(define $str_mk_str_in_re_sigma ((s String) (r RegLan))
+  ($str_mk_str_in_re_sigma_rec s r 0 true))
+
+; Helper for $str_mk_str_in_re_sigma.
+; Calling `$str_mk_str_in_re_sigma_star_rec s r n` means we have s in r, we have
+; stripped off n re.allchar from r so far.
+(program $str_mk_str_in_re_sigma_star_rec ((s String) (r RegLan :list) (n Int))
+  (String RegLan Int) Bool
+  (
+    (($str_mk_str_in_re_sigma_star_rec s @re.empty n)                    (= (mod (str.len s) n) 0))
+    (($str_mk_str_in_re_sigma_star_rec s (re.++ re.allchar r) n)         ($str_mk_str_in_re_sigma_star_rec s r (alf.add n 1)))
+  )
+)
+
+; Helper for ProofRewriteRule::STR_IN_RE_SIGMA_STAR, r is the body of the star.
+(define $str_mk_str_in_re_sigma_star ((s String) (r RegLan))
+  ($str_mk_str_in_re_sigma_star_rec s r 0))
 
 ; Converts a str.++ application into "flat form" so that we are ready to
 ; process its prefix. This consists of the following steps:
