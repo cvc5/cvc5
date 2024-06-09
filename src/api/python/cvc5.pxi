@@ -158,6 +158,7 @@ cdef Proof _proof(tm: TermManager, proof: c_Proof):
 cdef c_hash[c_Op] cophash = c_hash[c_Op]()
 cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
 cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
+cdef c_hash[c_Proof] cproofhash = c_hash[c_Proof]()
 
 # ----------------------------------------------------------------------------
 # SymbolManager
@@ -2929,20 +2930,23 @@ cdef class Solver:
         """
         return self.tm.mkDatatypeDecl(name, sorts_or_bool, isCoDatatype)
 
-    def simplify(self, Term t):
+    def simplify(self, Term t, applySubs=False):
         """
-            Simplify a formula without doing "much" work.  Does not involve the
-            SAT Engine in the simplification, but uses the current definitions,
-            assertions, and the current partial model, if one has been
-            constructed. It also involves theory normalization.
+            Simplify a term or formula based on rewriting and (optionally)
+            applying substitutions for solved variables.
+            
+            If applySubs is true, then for example, if `(= x 0)` was asserted to
+            this solver, this method may replace occurrences of `x` with `0`.
 
             .. warning:: This function is experimental and may change in future
                          versions.
 
-            :param t: The formula to simplify.
-            :return: The simplified formula.
+            :param t: The term to simplify.
+            :param applySubs: Whether to apply substitutions for solved
+                              variables.
+            :return: The simplified term.
         """
-        return _term(self.tm, self.csolver.simplify(t.cterm))
+        return _term(self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
 
     def assertFormula(self, Term term):
         """
@@ -5668,6 +5672,15 @@ cdef class Proof:
     cdef c_Proof cproof
     cdef TermManager tm
 
+    def __eq__(self, Proof other):
+        return self.cproof == other.cproof
+
+    def __ne__(self, Proof other):
+        return self.cproof != other.cproof
+
+    def __hash__(self):
+        return cproofhash(self.cproof)
+
     def getRule(self):
         """
             :return: The proof rule used by the root step of the proof.
@@ -5678,7 +5691,7 @@ cdef class Proof:
         """
             :return: The proof rewrite rule used by the root step of the proof.
                      Raises an exception if `getRule()` does not return
-                     `DSL_REWRITE`.
+                     `DSL_REWRITE` or `THEORY_REWRITE`.
         """
         return ProofRewriteRule(<int> self.cproof.getRewriteRule())
 
@@ -5706,4 +5719,3 @@ cdef class Proof:
         for a in self.cproof.getArguments():
             args.append(_term(self.tm, a))
         return args
-

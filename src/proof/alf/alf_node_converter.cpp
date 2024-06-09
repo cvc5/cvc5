@@ -56,6 +56,8 @@ AlfNodeConverter::AlfNodeConverter(NodeManager* nm) : BaseAlfNodeConverter(nm)
   d_sortType = nm->mkSort("sortType");
 }
 
+AlfNodeConverter::~AlfNodeConverter() {}
+
 Node AlfNodeConverter::preConvert(Node n)
 {
   // match is not supported in ALF syntax, we eliminate it at pre-order
@@ -265,6 +267,18 @@ Node AlfNodeConverter::postConvert(Node n)
     args.insert(args.end(), n.begin(), n.end());
     return mkInternalApp("@list", args, tn);
   }
+  else if (k == Kind::APPLY_INDEXED_SYMBOLIC)
+  {
+    Kind okind = n.getOperator().getConst<GenericOp>().getKind();
+    if (okind == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
+    {
+      // This does not take a rounding mode, we change the smt2 syntax
+      // to distinguish this case, similar to the case in getOperatorOfTerm
+      // where it is processed as an indexed operator.
+      std::vector<Node> children(n.begin(), n.end());
+      return mkInternalApp("to_fp_bv", children, tn);
+    }
+  }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
     // return app of?
@@ -314,14 +328,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
-    Node app;
-    if (sfi == SkolemId::PURIFY)
-    {
-      Assert(cacheVal.getType() == k.getType());
-      // special case: just use self
-      app = convert(cacheVal);
-    }
-    else if (isHandledSkolemId(sfi))
+    if (isHandledSkolemId(sfi))
     {
       // convert every skolem function to its name applied to arguments
       std::stringstream ss;
@@ -339,12 +346,8 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
         args.push_back(convert(cacheVal));
       }
       // must convert all arguments
-      app = mkInternalApp(ss.str(), args, k.getType());
-    }
-    if (!app.isNull())
-    {
-      // wrap in "skolem" operator
-      return mkInternalApp("skolem", {app}, k.getType());
+      Node app = mkInternalApp(ss.str(), args, k.getType());
+      return app;
     }
   }
   return Node::null();
@@ -374,18 +377,11 @@ size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
   return k == Kind::SET_COMPREHENSION ? 3 : 2;
 }
 
-Node AlfNodeConverter::mkNil(TypeNode tn)
-{
-  return mkInternalSymbol("alf.nil", tn);
-}
 
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
 {
+  Assert(!args.empty());
   TypeNode tn = NodeManager::currentNM()->booleanType();
-  if (args.empty())
-  {
-    return mkNil(tn);
-  }
   // singleton lists are handled due to (@list x) ---> (@list x alf.nil)
   return mkInternalApp("@list", args, tn);
 }
@@ -668,6 +664,7 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
   {
     case SkolemId::PURIFY:
     case SkolemId::ARRAY_DEQ_DIFF:
+    case SkolemId::BV_EMPTY:
     case SkolemId::DIV_BY_ZERO:
     case SkolemId::INT_DIV_BY_ZERO:
     case SkolemId::MOD_BY_ZERO:

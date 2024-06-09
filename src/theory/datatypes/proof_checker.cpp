@@ -32,8 +32,6 @@ DatatypesProofRuleChecker::DatatypesProofRuleChecker(NodeManager* nm,
 void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::DT_UNIF, this);
-  pc->registerChecker(ProofRule::DT_INST, this);
-  pc->registerChecker(ProofRule::DT_COLLAPSE, this);
   pc->registerChecker(ProofRule::DT_SPLIT, this);
   pc->registerChecker(ProofRule::DT_CLASH, this);
 }
@@ -62,45 +60,6 @@ Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
     }
     Assert(children[0][0].getNumChildren() == children[0][1].getNumChildren());
     return children[0][0][i].eqNode(children[0][1][i]);
-  }
-  else if (id == ProofRule::DT_INST)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Node t = args[0];
-    TypeNode tn = t.getType();
-    uint32_t i;
-    if (!tn.isDatatype() || !getUInt32(args[1], i))
-    {
-      return Node::null();
-    }
-    const DType& dt = tn.getDType();
-    if (i >= dt.getNumConstructors())
-    {
-      return Node::null();
-    }
-    Node tester = utils::mkTester(t, i, dt);
-    Node ticons = utils::getInstCons(t, dt, i, d_sharedSel);
-    return tester.eqNode(t.eqNode(ticons));
-  }
-  else if (id == ProofRule::DT_COLLAPSE)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    Node t = args[0];
-    if (t.getKind() != Kind::APPLY_SELECTOR
-        || t[0].getKind() != Kind::APPLY_CONSTRUCTOR)
-    {
-      return Node::null();
-    }
-    Node selector = t.getOperator();
-    size_t constructorIndex = utils::indexOf(t[0].getOperator());
-    const DType& dt = utils::datatypeOf(selector);
-    const DTypeConstructor& dtc = dt[constructorIndex];
-    int selectorIndex = dtc.getSelectorIndexInternal(selector);
-    Node r =
-        selectorIndex < 0 ? nm->mkGroundTerm(t.getType()) : t[0][selectorIndex];
-    return t.eqNode(r);
   }
   else if (id == ProofRule::DT_SPLIT)
   {

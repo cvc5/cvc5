@@ -39,10 +39,6 @@ class ForeignTheoryRewriter : protected EnvObj
    * does a traversal on n and call rewriting fucntions.
    */
   Node simplify(Node n);
-  /** A specific simplification function specific for GEQ
-   * constraints in strings.
-   */
-  Node rewriteStringsGeq(Node n);
   /** invoke rewrite functions for n.
    * based on the structure of n (typically its kind)
    * we invoke rewrites from other theories.

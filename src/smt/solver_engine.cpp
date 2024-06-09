@@ -192,6 +192,16 @@ void SolverEngine::finishInit()
         *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
+  if (d_env->isOutputOn(OutputTag::RARE_DB))
+  {
+    if (!d_env->getOptions().smt.produceProofs
+        || options().proof.proofGranularityMode
+               != options::ProofGranularityMode::DSL_REWRITE)
+    {
+      Warning() << "WARNING: -o rare-db requires --produce-proofs and "
+                   "--proof-granularity=dsl-rewrite" << std::endl;
+    }
+  }
   // enable proof support in the environment/rewriter
   d_env->finishInit(pnm);
 
@@ -342,7 +352,7 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
 
   if (key == "filename")
   {
-    d_env->d_options.writeDriver().filename = value;
+    d_env->d_options.write_driver().filename = value;
     d_env->getStatisticsRegistry().registerValue<std::string>(
         "driver::filename", value);
   }
@@ -355,12 +365,12 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    getOptions().writeBase().inputLanguage = Language::LANG_SMTLIB_V2_6;
+    getOptions().write_base().inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
     if (!getOptions().printer.outputLanguageWasSetByUser)
     {
       setOption("output-language", "smtlib2.6");
-      getOptions().writePrinter().outputLanguageWasSetByUser = false;
+      getOptions().write_printer().outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
@@ -1106,13 +1116,18 @@ void SolverEngine::addPlugin(Plugin* p)
   d_env->addPlugin(p);
 }
 
-Node SolverEngine::simplify(const Node& t)
+Node SolverEngine::simplify(const Node& t, bool applySubs)
 {
   beginCall(true);
-  // ensure we've processed assertions
-  d_smtDriver->refreshAssertions();
-  // apply substitutions
-  Node tt = d_smtSolver->getPreprocessor()->applySubstitutions(t);
+  Node tt = t;
+  // if we are applying substitutions
+  if (applySubs)
+  {
+    // ensure we've processed assertions
+    d_smtDriver->refreshAssertions();
+    // apply substitutions
+    tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
+  }
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
   // make so that the returned term does not involve arithmetic subtyping
@@ -1875,6 +1890,8 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 {
   beginCall(true);
+  // Analogous to getAbduct, ensure that assertions are current.
+  d_smtDriver->refreshAssertions();
   std::vector<Node> axioms = getSubstitutedAssertions();
   // expand definitions in the conjecture as well
   Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
@@ -1911,6 +1928,8 @@ Node SolverEngine::getInterpolantNext()
 Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
 {
   beginCall(true);
+  // ensure that assertions are current
+  d_smtDriver->refreshAssertions();
   std::vector<Node> axioms = getSubstitutedAssertions();
   // expand definitions in the conjecture as well
   Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
@@ -2038,16 +2057,16 @@ void SolverEngine::setResourceLimit(uint64_t units, bool cumulative)
 {
   if (cumulative)
   {
-    d_env->d_options.writeBase().cumulativeResourceLimit = units;
+    d_env->d_options.write_base().cumulativeResourceLimit = units;
   }
   else
   {
-    d_env->d_options.writeBase().perCallResourceLimit = units;
+    d_env->d_options.write_base().perCallResourceLimit = units;
   }
 }
 void SolverEngine::setTimeLimit(uint64_t millis)
 {
-  d_env->d_options.writeBase().perCallMillisecondLimit = millis;
+  d_env->d_options.write_base().perCallMillisecondLimit = millis;
 }
 
 unsigned long SolverEngine::getResourceUsage() const

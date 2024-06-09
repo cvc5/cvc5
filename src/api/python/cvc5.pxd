@@ -412,7 +412,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
         # default value for symbol defined in cpp/cvc5.h
         Term mkVar(Sort sort) except +
-        Term simplify(const Term& t) except +
+        Term simplify(const Term& t, bint applySubs) except +
         void assertFormula(Term term) except +
         Result checkSat() except +
         Result checkSatAssuming(const vector[Term]& assumptions) except +
@@ -670,11 +670,17 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         size_t operator()(const Term & t) except +
 
     cdef cppclass Proof:
+        bint operator==(const Proof&) except +
+        bint operator!=(const Proof&) except +
         ProofRule getRule() except +
         ProofRewriteRule getRewriteRule() except +
         Term getResult() except +
         vector[Proof] getChildren() except +
         vector[Term] getArguments() except +
+
+    cdef cppclass ProofHashFunction:
+        ProofHashFunction() except +
+        size_t operator()(const Proof&) except +
 
 
 cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":

@@ -46,26 +46,39 @@ class RewriteDbProofCons : protected EnvObj
  public:
   RewriteDbProofCons(Env& env, RewriteDb* db);
   /**
-   * Prove (= a b) with recursion limit recLimit and step limit stepLimit.
+   * Prove a = b with recursion limit recLimit and step limit stepLimit.
    * If cdp is provided, we add a proof for this fact on it.
    *
-   * @param cdp The object to add the proof of (= a b) to
-   * @param a The left hand side of the equality
-   * @param b The right hand side of the equality
-   * @param tid The theory identifier responsible for the rewrite, if one
-   * exists.
-   * @param mid The method id (the kind of rewrite)
-   * @param recLimit The recursion limit for this call
+   * More specifically, the strategy used by this method is:
+   * 1. Try to prove a=b via THEORY_REWRITE in context TheoryRewriteCtx::PRE_DSL,
+   * 2. Try to prove a=b via a proof involving RARE rewrites,
+   * 3. Try to prove a'=b' via a proof involving RARE rewrites, where a' and b'
+   * are obtained by transforming a and b via RewriteDbNodeConverter.
+   * 4. Try to prove a=b via THEORY_REWRITE in context
+   * TheoryRewriteCtx::POST_DSL.
+   *
+   * The option --proof-granularity=dsl-rewrite-strict essentially moves step 1
+   * after step 3, that is, RARE rewrites are always preferred to
+   * THEORY_REWRITE.
+   *
+   * @param cdp The object to add the proof of (= a b) to.
+   * @param a The left hand side of the equality.
+   * @param b The right hand side of the equality.
+   * @param recLimit The recursion limit for this call.
    * @param stepLimit The step limit for this call.
+   * @param subgoals The list of proofs introduced when proving (= a b) that
+   * are trusted steps, and thus would require further elaboration from the
+   * caller of this method.
+   * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp
    */
   bool prove(CDProof* cdp,
              const Node& a,
              const Node& b,
-             theory::TheoryId tid,
-             MethodId mid,
              int64_t recLimit,
-             int64_t stepLimit);
+             int64_t stepLimit,
+             std::vector<std::shared_ptr<ProofNode>>& subgoals,
+             TheoryRewriteMode tmode);
 
  private:
   /**
@@ -117,17 +130,31 @@ class RewriteDbProofCons : protected EnvObj
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
-    bool isInternalRule() const { return d_id != RewriteProofStatus::DSL; }
+    bool isInternalRule() const
+    {
+      return d_id != RewriteProofStatus::DSL
+             && d_id != RewriteProofStatus::THEORY_REWRITE;
+    }
   };
   /**
    * Prove and store the proof of eq with internal form eqi in cdp if possible,
    * return true if successful.
+   *
+   * @param cdp The object to add the proof of eq to.
+   * @param eq The equality we are trying to prove.
+   * @param eqi The internal version of the equality that may have been
+   * converted from eq using d_rdnc.
+   * @param recLimit The recursion limit for this call.
+   * @param stepLimit The step limit for this call.
+   * @param subgoals The list of proofs introduced when proving eq that
+   * are trusted steps.
    */
   bool proveEq(CDProof* cdp,
                const Node& eq,
                const Node& eqi,
                int64_t recLimit,
-               int64_t stepLimit);
+               int64_t stepLimit,
+               std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /**
    * Prove internal, which is the main entry point for proven an equality eqi.
    * Returns the proof rule that was used to prove eqi, or
@@ -166,8 +193,12 @@ class RewriteDbProofCons : protected EnvObj
    *
    * @param cdp The proof to add the proof of eqi to
    * @param eqi The proven equality
+   * @param subgoals The list of proofs introduced when proving eq that
+   * are trusted steps.
    */
-  bool ensureProofInternal(CDProof* cdp, const Node& eqi);
+  bool ensureProofInternal(CDProof* cdp,
+                           const Node& eqi,
+                           std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**
@@ -270,6 +301,8 @@ class RewriteDbProofCons : protected EnvObj
   uint64_t d_currRecLimit;
   /** current step recursion limit */
   uint64_t d_currStepLimit;
+  /** The mode for if/when to try theory rewrites */
+  rewriter::TheoryRewriteMode d_tmode;
   /** current rule we are applying to fixed point */
   ProofRewriteRule d_currFixedPointId;
   /** current substitution from fixed point */
