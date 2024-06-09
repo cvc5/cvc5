@@ -58,8 +58,8 @@
 ; premises:
 ; - F Bool: A conjunction of arithmetic relations.
 ; conclusion: >
-; The arithmetic relation that is implied by adding each of the
-; relations in F together.
+;   The arithmetic relation that is implied by adding each of the
+;   relations in F together.
 (declare-rule arith_sum_ub ((F Bool))
   :premise-list F and
   :conclusion ($mk_arith_sum_ub F)
@@ -224,7 +224,7 @@
 ; rule: int_tight_ub
 ; implements: ProofRule::INT_TIGHT_UB
 ; premises:
-; - r: The relation we are considering, whose right hand side should bea rational or integer value.
+; - r: The relation we are considering, whose right hand side should be a rational or integer value.
 ; conclusion: The result of tightening the upper bound.
 (declare-rule int_tight_ub ((R Type) (s Int) (t R))
   :premises ((< s t))
