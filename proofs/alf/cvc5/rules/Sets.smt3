@@ -22,7 +22,7 @@
 ; args:
 ; - eq Bool: The equality to prove, whose left hand side is an application of set.is_empty.
 ; requires: >
-;   showing that the set that set.is_empty is applied is (or is not) the
+;   showing that the set that set.is_empty is applied to is (or is not) the
 ;   empty set, as denoted by the right hand side of eq.
 ; conclusion: The given equality.
 (declare-rule sets-is-empty-eval ((T Type) (t (Set T)) (b Bool))
