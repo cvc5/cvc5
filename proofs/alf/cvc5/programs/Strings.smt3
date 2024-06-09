@@ -706,12 +706,18 @@
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
 )
 
-; `$str_re_consume_rec s r b rev` returns the result of implied consumption
-; of string s in regular expression r, where b stores temporary results, and
-; rev indicates whether s and r were reversed (in which case its components must
-; be reversed when we recurse on non-str.to_re children).
-; In particular, when r is not a concatenation term, b stores the result of
-; this method for (s, r).
+; program: $str_re_consume_rec
+; args:
+; - s String: The string argument of the membership to rewrite.
+; - r RegLan: The regular expression argument of the membership to rewrite.
+; - b Bool: >
+;   Stores temporary results when we are processing a union or intersection
+;   regular expression as argument r. Otherwise, this argument is @result.null.
+; - rev Bool: >
+;   Indicates whether s and r were reversed, in which case their components must
+;   be reversed when we recurse on non-str.to_re children.
+; return: >
+;   The result of implied consumption of string s in regular expression r.
 (program $str_re_consume_rec ((s1 String) (s2 String :list) (s String) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool))
   (String RegLan Bool Bool) Bool
   (
@@ -801,12 +807,17 @@
   )
 )
 
-; `$str_re_consume s r` either returns false if `(str.in_re s r)` can be shown
-; to be equivalent to false, or otherwise `(str.in_re sr rr)` where sr and rr
-; are the result of "consuming" prefixes/suffixes from s and r. We consume
-; from the end of s and r first by reversing them initially and converting them
-; to flat forms. We then reverse them again and consume from the beginning of
-; the remainder. Finally, we convert back from flat form when applicable.
+; `$str_re_consume
+; args:
+; - s String: The string argument of the membership to rewrite.
+; - r RegLan: The regular expression argument of the membership to rewrite.
+; returns: >
+;   false if `(str.in_re s r)` can be shown  to be equivalent to false, or
+;   otherwise `(str.in_re sr rr)` where sr and rr are the result of "consuming"
+;   prefixes/suffixes from s and r. We consume from the end of s and r first by
+;   reversing them initially and converting them to flat forms. We then reverse
+;   them again and consume from the beginning of the remainder. Finally, we convert
+;   back from flat form when applicable.
 (define $str_re_consume ((s String) (r RegLan))
   (let ((ss (string_to_flat_form s true)))  
   (let ((rr ($re_to_flat_form r true)))
