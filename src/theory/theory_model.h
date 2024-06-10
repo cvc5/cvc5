@@ -27,7 +27,6 @@
 #include "theory/type_enumerator.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
-#include "util/cardinality.h"
 
 namespace cvc5::internal {
 
@@ -294,9 +293,6 @@ class TheoryModel : protected EnvObj
   bool isModelCoreSymbol(Node sym) const;
   //---------------------------- end model cores
 
-  /** get cardinality for sort */
-  Cardinality getCardinality(TypeNode t) const;
-
   //---------------------------- function values
   /** Does this model have terms for the given uninterpreted function? */
   bool hasUfTerms(Node f) const;
@@ -337,6 +333,13 @@ class TheoryModel : protected EnvObj
   bool isValue(TNode node) const;
 
  protected:
+  /**
+   * Get cardinality for sort, where t is an uninterpreted sort.
+   * @param t The sort.
+   * @return the cardinality of the sort, which is the number of representatives
+   * for that sort, or 1 if none exist.
+   */
+  size_t getCardinality(const TypeNode& t) const;
   /**
    * Assign that n is the representative of the equivalence class r.
    * @param r The equivalence class

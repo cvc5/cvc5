@@ -486,6 +486,9 @@ enum class InferenceId
   // when term indexing discovers disequal congruent terms in the master
   // equality engine
   QUANTIFIERS_TDB_DEQ_CONG,
+  // An existential corresponding to a witness term generated based on BV
+  // invertibility conditions.
+  QUANTIFIERS_CEGQI_WITNESS,
   //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory

@@ -42,7 +42,7 @@
       ((resolve C1 C2 pol L)
         (let ((lp (alf.ite pol L (not L))))
         (let ((ln (alf.ite pol (not L) L)))
-            (from_clause (alf.concat or
+            (from_clause (alf.list_concat or
                     (removeSelf lp (to_clause C1))
                     (removeSelf ln (to_clause C2)))))))
     )
@@ -64,7 +64,7 @@
             (chainResolveRec
                 (let ((lp (alf.ite pol L (not L))))
                 (let ((ln (alf.ite pol (not L) L)))
-                    (alf.concat or
+                    (alf.list_concat or
                             (removeSelf lp C1)
                             (removeSelf ln (to_clause C2))))) Cs pols lits))
     )
@@ -90,7 +90,7 @@
 (program factorLiterals ((xs Bool :list) (l Bool) (ls Bool :list))
     (Bool Bool) Bool
     (
-        ((factorLiterals xs (or l ls)) (let ((cond (alf.is_neg (alf.find or xs l))))
+        ((factorLiterals xs (or l ls)) (let ((cond (alf.is_neg (alf.list_find or xs l))))
                                        (let ((ret (factorLiterals
                                                     (alf.ite cond (alf.cons or l xs) xs)
                                                     ls)))
@@ -139,7 +139,7 @@
 (declare-rule and_elim ((Fs Bool) (i Int))
     :premises (Fs)
     :args (i)
-    :conclusion (alf.extract and Fs i)
+    :conclusion (alf.list_nth and Fs i)
 )
 
 ; AND_INTRO
@@ -152,7 +152,7 @@
 (declare-rule not_or_elim ((Fs Bool) (i Int))
     :premises ((not Fs))
     :args (i)
-    :conclusion (not (alf.extract or Fs i))
+    :conclusion (not (alf.list_nth or Fs i))
 )
 
 ; IMPLIES_ELIM
@@ -266,7 +266,7 @@
 ; CNF_AND_POS
 (declare-rule cnf_and_pos ((Fs Bool) (i Int))
     :args (Fs i)
-    :conclusion (or (not Fs) (alf.extract and Fs i))
+    :conclusion (or (not Fs) (alf.list_nth and Fs i))
 )
 
 ; CNF_AND_NEG
@@ -284,7 +284,7 @@
 ; CNF_OR_NEG
 (declare-rule cnf_or_neg ((Fs Bool) (i Int))
     :args (Fs i)
-    :conclusion (or Fs (not (alf.extract or Fs i)))
+    :conclusion (or Fs (not (alf.list_nth or Fs i)))
 )
 
 ; CNF_IMPLIES_POS

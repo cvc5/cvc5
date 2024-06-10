@@ -158,6 +158,7 @@ cdef Proof _proof(tm: TermManager, proof: c_Proof):
 cdef c_hash[c_Op] cophash = c_hash[c_Op]()
 cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
 cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
+cdef c_hash[c_Proof] cproofhash = c_hash[c_Proof]()
 
 # ----------------------------------------------------------------------------
 # SymbolManager
@@ -5671,6 +5672,15 @@ cdef class Proof:
     cdef c_Proof cproof
     cdef TermManager tm
 
+    def __eq__(self, Proof other):
+        return self.cproof == other.cproof
+
+    def __ne__(self, Proof other):
+        return self.cproof != other.cproof
+
+    def __hash__(self):
+        return cproofhash(self.cproof)
+
     def getRule(self):
         """
             :return: The proof rule used by the root step of the proof.
@@ -5709,4 +5719,3 @@ cdef class Proof:
         for a in self.cproof.getArguments():
             args.append(_term(self.tm, a))
         return args
-

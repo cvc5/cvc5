@@ -381,8 +381,10 @@ else()
 endif()
 
 # Keep the PATH to the Python binary before setting venv.
+# Use a CACHE variable to remember the original value.
 # We use this path in the installation step of the Python bindings.
-set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}")
+set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
+    CACHE STRING "Base Python executable")
 
 if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
   # Set up Python venv if one doesn't exist already
@@ -511,9 +513,6 @@ if(USE_CRYPTOMINISAT)
   # CryptoMiniSat requires pthreads support
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
-  if(THREADS_HAVE_PTHREAD_ARG)
-    add_c_cxx_flag(-pthread)
-  endif()
   find_package(CryptoMiniSat 5.8 REQUIRED)
   add_definitions(-DCVC5_USE_CRYPTOMINISAT)
 endif()
