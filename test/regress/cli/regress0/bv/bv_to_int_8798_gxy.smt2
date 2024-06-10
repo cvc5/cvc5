@@ -1,3 +1,4 @@
+; COMMAND-LINE: --tlimit=3000
 ; EXPECT: sat
  (set-logic ALL)
  (set-option :solve-bv-as-int iand)
