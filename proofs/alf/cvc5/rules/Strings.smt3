@@ -190,10 +190,20 @@
 
 ; rule: string_decompose
 ; implements: ProofRule::STRING_DECOMPOSE
+; premises:
+; - a: An inequality between the length of some string term s and integer n.
+; args:
+; - b Bool: Whether we are the reverse variant of this inference.
+; conclusion: >
+;   A conjunction stating that s is equal to two purification skolems
+;   corresponding to decomposing s at position n, and that the decomposed term
+;   has length n.
 (declare-rule string_decompose ((U Type) (s (Seq U)) (n Int) (b Bool))
   :premises ((>= (str.len s) n))
   :args (b)
-  :conclusion false
+  :conclusion (let ((kp (@purify (skolem_prefix s n)))
+                    (ks (@purify (skolem_suffix_rem s n))))
+              (and (= s (str.++ kp ks)) (= (str.len (alf.ite b ks kp)) n)))
 )
 
 
