@@ -29,7 +29,11 @@
 namespace cvc5::internal {
 namespace rewriter {
 
-/**  */
+/**
+ * A class capable of proving equalities of the form (= n nse) where nse
+ * is the result of removing singletons (e.g. nodes of kind APPLY_SINGLETON)
+ * from n. It does so using a term conversion proof generator.
+ */
 class SingletonElimConverter : protected EnvObj
 {
  public:
