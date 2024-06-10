@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sets-infer-as-lemmas --simplification=none
+; COMMAND-LINE: --simplification=none
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun b () (Relation String Int))
