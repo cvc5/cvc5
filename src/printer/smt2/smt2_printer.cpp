@@ -2109,6 +2109,10 @@ void Smt2Printer::toStreamSkolem(std::ostream& out,
   {
     out << " " << cacheVal << delim;
   }
+  else
+  {
+    out << delim;
+  }
 }
 
 void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
