@@ -1094,7 +1094,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
   const std::vector<Node>& varList = rpr.getVarList();
   const std::vector<Node>& uvarList = rpr.getUserVarList();
   const std::vector<Node>& conds = rpr.getConditions();
-  Node conc = rpr.getConclusion();
+  Node conc = rpr.getConclusion(false);
 
   std::stringstream oscs;
   std::stringstream odecl;

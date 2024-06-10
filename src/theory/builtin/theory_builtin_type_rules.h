@@ -77,7 +77,19 @@ class WitnessTypeRule
                               std::ostream* errOut);
 };
 
+/** Type rule of nodes of kind APPLY_INDEXED_SYMBOLIC */
 class ApplyIndexedSymbolicTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/** Type rule of nodes of kind APPLY_SINGLETON */
+class ApplySingletonTypeRule
 {
  public:
   static TypeNode preComputeType(NodeManager* nm, TNode n);

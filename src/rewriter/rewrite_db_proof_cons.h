@@ -199,6 +199,21 @@ class RewriteDbProofCons : protected EnvObj
   bool ensureProofInternal(CDProof* cdp,
                            const Node& eqi,
                            std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  /**
+   * Ensure proof for singleton elimination. This proves eqSe from eq or
+   * vice versa, if fromSe is true, where eqSe is the singleton elimination
+   * version of eq.
+   * @param cdp The proof to add a proof of eqSe (resp. eq) given assumption
+   * eq (resp. eqSe) when fromSe is true (resp. false).
+   * @param eq The original equality.
+   * @param eqSe The singleton elimination form of eq.
+   * @param fromSe Determines whether we are proving eqSe from eq or vice
+   * versa.
+   */
+  void ensureProofSingletonElim(CDProof* cdp,
+                                const Node& eq,
+                                const Node& eqSe,
+                                bool fromSe);
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**
@@ -315,6 +330,8 @@ class RewriteDbProofCons : protected EnvObj
   IntStat d_statTotalAttempts;
   /** Total number of rewrites we proved successfully */
   IntStat d_statTotalInputSuccess;
+  /** Total number of times we had to prove a singleton elimination step */
+  IntStat d_statPfSingletonElims;
   /** Fixed point limit */
   static size_t s_fixedPointLimit;
 };

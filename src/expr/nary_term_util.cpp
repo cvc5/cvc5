@@ -17,6 +17,7 @@
 
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
@@ -197,18 +198,21 @@ Node getNullTerminator(Kind k, TypeNode tn)
   return nullTerm;
 }
 
-Node narySubstitute(Node src,
-                    const std::vector<Node>& vars,
-                    const std::vector<Node>& subs)
+Node mkSingletonApp(Kind k, const Node& n)
 {
-  std::unordered_map<TNode, Node> visited;
-  return narySubstitute(src, vars, subs, visited);
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> args;
+  args.push_back(nm->mkConst(Kind::APPLY_SINGLETON_OP, GenericOp(k)));
+  args.push_back(n);
+  return nm->mkNode(Kind::APPLY_SINGLETON, args);
 }
 
-Node narySubstitute(Node src,
-                    const std::vector<Node>& vars,
-                    const std::vector<Node>& subs,
-                    std::unordered_map<TNode, Node>& visited)
+Node narySubstituteInternal(Node src,
+                            const std::vector<Node>& vars,
+                            const std::vector<Node>& subs,
+                            std::unordered_map<TNode, Node>& visited,
+                            bool elimSingleton,
+                            bool& elimedSingleton)
 {
   // assumes all variables are list variables
   NodeManager* nm = NodeManager::currentNM();
@@ -287,10 +291,21 @@ Node narySubstitute(Node src,
               return ret;
             }
           }
+          else if (children.size() == 1)
+          {
+            if (elimSingleton)
+            {
+              elimedSingleton = true;
+              ret = children[0];
+            }
+            else
+            {
+              ret = mkSingletonApp(cur.getKind(), children[0]);
+            }
+          }
           else
           {
-            ret = (children.size() == 1 ? children[0]
-                                        : nm->mkNode(cur.getKind(), children));
+            ret = nm->mkNode(cur.getKind(), children);
           }
         }
         else
@@ -309,6 +324,46 @@ Node narySubstitute(Node src,
   Assert(visited.find(src) != visited.end());
   Assert(!visited.find(src)->second.isNull());
   return visited[src];
+}
+
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs)
+{
+  std::unordered_map<TNode, Node> visited;
+  bool elimedSingleton = false;
+  return narySubstituteInternal(
+      src, vars, subs, visited, false, elimedSingleton);
+}
+
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited)
+{
+  bool elimedSingleton = false;
+  return narySubstituteInternal(
+      src, vars, subs, visited, false, elimedSingleton);
+}
+
+Node narySubstituteSElim(Node src,
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs)
+{
+  std::unordered_map<TNode, Node> visited;
+  bool elimedSingleton = false;
+  return narySubstituteInternal(
+      src, vars, subs, visited, true, elimedSingleton);
+}
+
+Node narySubstituteSElim(Node src,
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs,
+                         std::unordered_map<TNode, Node>& visited,
+                         bool& elimedSingleton)
+{
+  return narySubstituteInternal(
+      src, vars, subs, visited, true, elimedSingleton);
 }
 
 bool isAssocCommIdem(Kind k)
@@ -334,7 +389,8 @@ bool isAssoc(Kind k)
   switch (k)
   {
     case Kind::STRING_CONCAT:
-    case Kind::REGEXP_CONCAT: return true;
+    case Kind::REGEXP_CONCAT:
+    case Kind::BITVECTOR_CONCAT: return true;
     default: break;
   }
   // also return true for the operators listed above
@@ -356,6 +412,10 @@ Node getACINormalForm(Node a)
     return an;
   }
   Kind k = a.getKind();
+  if (k == Kind::APPLY_SINGLETON)
+  {
+    k = a.getOperator().getConst<GenericOp>().getKind();
+  }
   bool aci = isAssocCommIdem(k);
   if (!aci && !isAssoc(k))
   {
@@ -371,41 +431,50 @@ Node getACINormalForm(Node a)
     a.setAttribute(nfa, a);
     return a;
   }
-  std::vector<Node> toProcess;
-  toProcess.insert(toProcess.end(), a.rbegin(), a.rend());
-  std::vector<Node> children;
-  Node cur;
-  do
+  // special case
+  if (a.getKind() == Kind::APPLY_SINGLETON)
   {
-    cur = toProcess.back();
-    toProcess.pop_back();
-    if (cur == nt)
-    {
-      // ignore null terminator (which is the neutral element)
-      continue;
-    }
-    else if (cur.getKind() == k)
-    {
-      // flatten
-      toProcess.insert(toProcess.end(), cur.rbegin(), cur.rend());
-    }
-    else if (!aci
-             || std::find(children.begin(), children.end(), cur)
-                    == children.end())
-    {
-      // add to final children if not idempotent or if not a duplicate
-      children.push_back(cur);
-    }
-  } while (!toProcess.empty());
-  if (aci)
-  {
-    // sort if commutative
-    std::sort(children.begin(), children.end());
+    an = a[0];
   }
-  an = children.empty() ? nt
-                        : (children.size() == 1
-                               ? children[0]
-                               : NodeManager::currentNM()->mkNode(k, children));
+  else
+  {
+    std::vector<Node> toProcess;
+    toProcess.insert(toProcess.end(), a.rbegin(), a.rend());
+    std::vector<Node> children;
+    Node cur;
+    do
+    {
+      cur = toProcess.back();
+      toProcess.pop_back();
+      if (cur == nt)
+      {
+        // ignore null terminator (which is the neutral element)
+        continue;
+      }
+      else if (cur.getKind() == k)
+      {
+        // flatten
+        toProcess.insert(toProcess.end(), cur.rbegin(), cur.rend());
+      }
+      else if (!aci
+               || std::find(children.begin(), children.end(), cur)
+                      == children.end())
+      {
+        // add to final children if not idempotent or if not a duplicate
+        children.push_back(cur);
+      }
+    } while (!toProcess.empty());
+    if (aci)
+    {
+      // sort if commutative
+      std::sort(children.begin(), children.end());
+    }
+    an = children.empty()
+             ? nt
+             : (children.size() == 1
+                    ? children[0]
+                    : NodeManager::currentNM()->mkNode(k, children));
+  }
   a.setAttribute(nfa, an);
   return an;
 }

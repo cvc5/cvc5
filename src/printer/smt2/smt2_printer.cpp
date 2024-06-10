@@ -252,6 +252,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         break;
     }
     case Kind::APPLY_INDEXED_SYMBOLIC_OP:
+    case Kind::APPLY_SINGLETON_OP:
       out << smtKindString(n.getConst<GenericOp>().getKind());
       break;
     case Kind::BITVECTOR_TYPE:

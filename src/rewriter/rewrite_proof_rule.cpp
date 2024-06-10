@@ -109,15 +109,42 @@ const std::vector<Node>& RewriteProofRule::getConditions() const
   return d_cond;
 }
 
-bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
-                                      const std::vector<Node>& ss,
-                                      std::vector<Node>& vcs) const
+bool RewriteProofRule::getObligationsSElim(const std::vector<Node>& vs,
+                                           const std::vector<Node>& ss,
+                                           std::vector<Node>& vcs) const
 {
-  // substitute into each condition
+  std::unordered_map<TNode, Node> visited;
+  bool estmp = false;
   for (const Node& c : d_obGen)
   {
-    Node sc = expr::narySubstitute(c, vs, ss);
+    Node sc = expr::narySubstituteSElim(c, vs, ss, visited, estmp);
     vcs.push_back(sc);
+  }
+  return true;
+}
+
+bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
+                                      const std::vector<Node>& ss,
+                                      std::vector<Node>& vcs,
+                                      std::vector<Node>& vcsse) const
+{
+  // substitute into each condition
+  std::unordered_map<TNode, Node> visited;
+  for (const Node& c : d_obGen)
+  {
+    bool estmp = false;
+    Node sc = expr::narySubstituteSElim(c, vs, ss, visited, estmp);
+    if (estmp)
+    {
+      Node scnse = expr::narySubstitute(c, vs, ss);
+      vcs.push_back(scnse);
+      vcsse.push_back(sc);
+    }
+    else
+    {
+      vcs.push_back(sc);
+      vcsse.push_back(sc);
+    }
   }
   return true;
 }
@@ -146,6 +173,15 @@ Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
   Assert(d_fvs.size() == ss.size());
   Node conc = getConclusion(true);
   return expr::narySubstitute(conc, d_fvs, ss);
+}
+
+Node RewriteProofRule::getConclusionForSElim(const std::vector<Node>& ss,
+                                             bool& elimedSingleton) const
+{
+  Assert(d_fvs.size() == ss.size());
+  Node conc = getConclusion(true);
+  std::unordered_map<TNode, Node> visited;
+  return expr::narySubstituteSElim(conc, d_fvs, ss, visited, elimedSingleton);
 }
 
 Node RewriteProofRule::getConclusionFor(

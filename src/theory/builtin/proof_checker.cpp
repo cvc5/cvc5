@@ -456,12 +456,14 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
     {
+      // do not eliminate singletons
       Node scond = expr::narySubstitute(conds[i], varList, subs);
       if (scond != children[i])
       {
         return Node::null();
       }
     }
+    // do not eliminate singletons
     return rpr.getConclusionFor(subs);
   }
   else if (id == ProofRule::THEORY_REWRITE)

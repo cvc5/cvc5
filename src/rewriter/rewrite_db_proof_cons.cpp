@@ -19,6 +19,7 @@
 #include "options/proof_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/singleton_elim_process.h"
 #include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
@@ -47,7 +48,9 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_statTotalAttempts(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalAttempts")),
       d_statTotalInputSuccess(statisticsRegistry().registerInt(
-          "RewriteDbProofCons::totalInputSuccess"))
+          "RewriteDbProofCons::totalInputSuccess")),
+      d_statPfSingletonElims(statisticsRegistry().registerInt(
+          "RewriteDbProofCons::pfSingletonElim"))
 {
   NodeManager* nm = nodeManager();
   d_true = nm->mkConst(true);
@@ -329,7 +332,7 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
     Node target = rpr.getConclusion(true);
     // apply substitution, which may notice vars may be out of order wrt rule
     // var list
-    target = expr::narySubstitute(target, vars, subs);
+    target = expr::narySubstituteSElim(target, vars, subs);
     // it may be impossible to construct the conclusion due to null terminators
     // for approximate types, return false in this case
     if (target.isNull())
@@ -540,7 +543,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     Assert(id == RewriteProofStatus::DSL);
     const RewriteProofRule& rpr = d_db->getRule(r);
     // does it conclusion match what we are trying to show?
-    Node conc = rpr.getConclusion();
+    Node conc = rpr.getConclusion(false);
     Assert(conc.getKind() == Kind::EQUAL && target.getKind() == Kind::EQUAL);
     // get rule conclusion, which may incorporate fixed point semantics when
     // doFixedPoint is true. This stores the rule for the conclusion in pic,
@@ -582,8 +585,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     }
     // do its conditions hold?
     // Get the conditions, substituted { vars -> subs } and with side conditions
-    // evaluated.
-    if (!rpr.getObligations(vars, subs, vcs))
+    // evaluated, using singleton elimination semantics
+    if (!rpr.getObligationsSElim(vars, subs, vcs))
     {
       // cannot get conditions, likely due to failed side condition
       Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
@@ -885,6 +888,7 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           std::vector<Node>& ps = premises[cur];
           std::vector<Node>& pfac = pfArgs[cur];
+          bool processedVisit = false;
           if (pcur.isInternalRule())
           {
             // premises are the steps, stored in d_vars
@@ -914,12 +918,25 @@ bool RewriteDbProofCons::ensureProofInternal(
                 rsubs.push_back(pcur.d_subs[d]);
               }
               // get the conditions, store into premises of cur.
-              if (!rpr.getObligations(vs, rsubs, ps))
+              std::vector<Node> psSe;
+              if (!rpr.getObligations(vs, rsubs, ps, psSe))
               {
                 Assert(false) << "failed a side condition?";
                 return false;
               }
+              Assert(ps.size() == psSe.size());
+              for (size_t i = 0, nps = ps.size(); i < nps; i++)
+              {
+                if (ps[i] != psSe[i])
+                {
+                  ensureProofSingletonElim(cdp, ps[i], psSe[i], true);
+                }
+              }
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
+              // we will connect the proofs of psSe to those of ps at post
+              // traversal
+              processedVisit = true;
+              visit.insert(visit.end(), psSe.begin(), psSe.end());
             }
             else
             {
@@ -927,8 +944,11 @@ bool RewriteDbProofCons::ensureProofInternal(
               pfac.push_back(cur);
             }
           }
-          // recurse on premises
-          visit.insert(visit.end(), ps.begin(), ps.end());
+          // recurse on premises, if we have not already added them above
+          if (!processedVisit)
+          {
+            visit.insert(visit.end(), ps.begin(), ps.end());
+          }
         }
       }
     }
@@ -1020,11 +1040,32 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           std::vector<Node> subs(args.begin() + 1, args.end());
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
-          conc = rpr.getConclusionFor(subs);
+          // do not eliminate singletons
+          bool ems = false;
+          Node concSe = rpr.getConclusionForSElim(subs, ems);
+          if (ems)
+          {
+            // if eliminated singletons, get the conclusion without singleton
+            // elimination
+            conc = rpr.getConclusionFor(subs);
+            if (conc != concSe)
+            {
+              // ensure the proof of the conversion to singleton elimination
+              // semantics.
+              ensureProofSingletonElim(cdp, conc, concSe, false);
+            }
+          }
+          else
+          {
+            conc = concSe;
+          }
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
           Trace("rpc-debug") << "Proved: " << cur << std::endl;
           Trace("rpc-debug") << "From: " << conc << std::endl;
           pfr = ProofRule::DSL_REWRITE;
+          // The conclusion is without singleton elimination. When it makes
+          // a difference, the conclusion with singleton elimination semantics
+          // is added above.
           cdp->addStep(conc, pfr, ps, args);
         }
         else
@@ -1077,7 +1118,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     // start from the source, match again to start the chain. Notice this is
     // required for uniformity since we want to successfully cache the first
     // step, independent of the target.
-    Node ssrc = expr::narySubstitute(conc[0], vars, subs);
+    Node ssrc = expr::narySubstituteSElim(conc[0], vars, subs);
     Node stgt = ssrc;
     do
     {
@@ -1125,8 +1166,9 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     {
       const std::vector<Node>& stepSubs = stepsSubs[i];
       Node step = steps[i];
-      Node source = expr::narySubstitute(conc[0], vars, stepSubs);
-      Node target = expr::narySubstitute(body, vars, stepSubs);
+      // use singleton elimination semantics
+      Node source = expr::narySubstituteSElim(conc[0], vars, stepSubs);
+      Node target = expr::narySubstituteSElim(body, vars, stepSubs);
       target = target.substitute(TNode(placeholder), TNode(step));
       cacheProofSubPlaceholder(currContext, placeholder, source, target);
       Trace("rpc-ctx") << "Step " << source << " == " << target << " from "
@@ -1139,7 +1181,8 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       dpi.d_vars = vars;
       dpi.d_subs = stepSubs;
 
-      currConc = expr::narySubstitute(currConc, vars, stepSubs);
+      // use singleton elimination semantics
+      currConc = expr::narySubstituteSElim(currConc, vars, stepSubs);
       currContext = currConc;
       Node prevConc = currConc;
       if (i < size - 1)
@@ -1164,10 +1207,29 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       return transEq.back()[1];
     }
   }
-
-  Node ret = expr::narySubstitute(concRhs, vars, subs);
+  // use singleton elimination semantics
+  Node ret = expr::narySubstituteSElim(concRhs, vars, subs);
   Trace("rpc-ctx") << "***RETURN " << ret << std::endl;
   return ret;
+}
+
+void RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp,
+                                                  const Node& eq,
+                                                  const Node& eqSe,
+                                                  bool fromSe)
+{
+  ++d_statPfSingletonElims;
+  SingletonElimConverter sec(d_env);
+  std::shared_ptr<ProofNode> pfn = sec.convert(eq, eqSe);
+  Node equiv = eq.eqNode(eqSe);
+  cdp->addProof(pfn);
+  if (fromSe)
+  {
+    Node equivs = eqSe.eqNode(eq);
+    cdp->addStep(equivs, ProofRule::SYMM, {equiv}, {});
+    equiv = equivs;
+  }
+  cdp->addStep(equiv[1], ProofRule::EQ_RESOLVE, {equiv[0], equiv}, {});
 }
 
 void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,

@@ -94,7 +94,7 @@ def gen_mk_node(defns, expr):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
         if expr.op in {Op.EXTRACT, Op.REPEAT, Op.ZERO_EXTEND,  Op.SIGN_EXTEND,
                        Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV, Op.REGEXP_LOOP}:
-          args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
+          args = f'nm->mkConst(Kind::APPLY_INDEXED_SYMBOLIC_OP, GenericOp(Kind::{gen_kind(expr.op)})),' + args
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
         return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
     else:

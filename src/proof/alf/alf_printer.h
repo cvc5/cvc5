@@ -23,7 +23,6 @@
 #include <iostream>
 
 #include "expr/node_algorithm.h"
-#include "proof/alf/alf_list_node_converter.h"
 #include "proof/alf/alf_node_converter.h"
 #include "proof/alf/alf_print_channel.h"
 #include "proof/proof_checker.h"
@@ -138,8 +137,6 @@ class AlfPrinter : protected EnvObj
   std::string d_termLetPrefix;
   /** The false node */
   Node d_false;
-  /** List node converter */
-  AlfListNodeConverter d_ltproc;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
   /** The DSL rules we have seen */

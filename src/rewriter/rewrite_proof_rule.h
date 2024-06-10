@@ -78,9 +78,21 @@ class RewriteProofRule
   /**
    * Get the conditions of the rule under the substitution { vs -> ss }.
    */
+  bool getObligationsSElim(const std::vector<Node>& vs,
+                           const std::vector<Node>& ss,
+                           std::vector<Node>& vcs) const;
+  /**
+   * Get the conditions of the rule under the substitution { vs -> ss },
+   * with and without singleton elimination.
+   * @param vs The variables to substitute.
+   * @param ss The terms to substitute.
+   * @param vcs The conditions, without singleton elimination semantics.
+   * @param vcs The conditions, with singleton elimination semantics.
+   */
   bool getObligations(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
-                      std::vector<Node>& vcs) const;
+                      std::vector<Node>& vcs,
+                      std::vector<Node>& vcsse) const;
   /**
    * Check match, return true if h matches the head of this rule; notifies
    * the match notify object ntm.
@@ -96,17 +108,32 @@ class RewriteProofRule
    * the RARE rule is given a "context" as described in the constructor).
    * @return The (uninstantiated) conclusion of the rule.
    */
-  Node getConclusion(bool includeContext = false) const;
+  Node getConclusion(bool includeContext) const;
   /**
    * Get conclusion of the rule for the substituted terms ss for the variables
-   * v = getVarList() of this rule.
+   * v = getVarList() of this rule. This does not use singleton elimination
+   * semantics.
    *
    * @param ss The terms to substitute in this rule. Each ss[i] is the same sort
    * as v[i] if v[i] is not a list variable, or is an SEXPR if v[i] is a list
    * variable,
-   * @return the substituted conclusion of the rule.
+   * @return the substituted conclusion of the rule without singleton
+   * elimination.
    */
   Node getConclusionFor(const std::vector<Node>& ss) const;
+  /**
+   * Get conclusion of the rule for the substituted terms ss for the variables
+   * v = getVarList() of this rule. This uses singleton elimination semantics.
+   *
+   * @param ss The terms to substitute in this rule. Each ss[i] is the same sort
+   * as v[i] if v[i] is not a list variable, or is an SEXPR if v[i] is a list
+   * variable,
+   * @param elimedSingleton Set to true if we eliminated a singleton list when
+   * computing the return value of this method.
+   * @return the substituted conclusion of the rule with singleton elimination.
+   */
+  Node getConclusionForSElim(const std::vector<Node>& ss,
+                             bool& elimedSingleton) const;
   /**
    * Get conclusion of the rule for the substituted terms ss.
    * Additionally computes the "witness term" for each variable in the rule
