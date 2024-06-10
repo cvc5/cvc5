@@ -310,7 +310,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       if (!updateInternal(eq, ProofRule::MACRO_REWRITE, {}, rargs, cdp))
       {
         // if not elimianted, add as step
-        cdp->addStep(eq, ProofRule::MACRO_REWRITE, {}, rargs);
+        cdp->addTrustedStep(eq, TrustId::EXT_THEORY_REWRITE, {}, rargs);
       }
       tchildren.push_back(eq);
     }
@@ -862,6 +862,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       getMethodId(args[1], idr);
     }
+    Trace("smt-proof-pp-debug") << "Expand macro rewrite " << idr << " " << theoryId << std::endl;
     Rewriter* rr = d_env.getRewriter();
     Node ret = d_env.rewriteViaMethod(args[0], idr);
     Node eq = args[0].eqNode(ret);
@@ -872,6 +873,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       // use rewrite with proof interface
       TrustNode trn = rr->rewriteWithProof(args[0], isExtEq);
       std::shared_ptr<ProofNode> pfn = trn.toProofNode();
+      Trace("smt-proof-pp-debug") << "...rewrite with proof returns " << *pfn.get() << std::endl;
       if (pfn == nullptr)
       {
         Trace("smt-proof-pp-debug")
@@ -926,7 +928,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
           Node mid = mkMethodId(midi);
-          cdp->addStep(eqd, ProofRule::MACRO_REWRITE, {}, {retCurr, mid});
+          cdp->addTrustedStep(eqd, TrustId::EXT_THEORY_REWRITE, {}, {});
           transEq.push_back(eqd);
         }
         retCurr = retDef;
