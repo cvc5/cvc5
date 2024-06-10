@@ -1,3 +1,5 @@
+; COMMAND-LINE: --parse-skolem-definitions
+; EXPECT: sat
 (set-option :parse-skolem-definitions true)
 (set-logic QF_NIA)
 (set-info :status sat)
