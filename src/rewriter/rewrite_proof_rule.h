@@ -152,9 +152,11 @@ class RewriteProofRule
   Kind getListContext(Node v) const;
   /** Was this rule marked as being applied to fixed point? */
   bool isFixedPoint() const;
-  /** Is this rule in flat form? */
-  bool isFlatForm() const;
-
+  /** Get condition definition for variable v */
+  void getConditionalDefinitions(const std::vector<Node>& vs,
+                                 const std::vector<Node>& ss,
+                                 std::vector<Node>& dvs,
+                                 std::vector<Node>& dss) const;
  private:
   /** The id of the rule */
   ProofRewriteRule d_id;
@@ -179,6 +181,8 @@ class RewriteProofRule
    * "holes" in a proof.
    */
   std::unordered_set<Node> d_noOccVars;
+  /** Maps variables to the term they are defined to be */
+  std::map<Node, Node> d_condDefinedVars;
   /** The context for list variables (see expr::getListVarContext). */
   std::map<Node, Node> d_listVarCtx;
   /** The match trie (for fixed point matching) */

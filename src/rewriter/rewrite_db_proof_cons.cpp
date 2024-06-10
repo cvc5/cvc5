@@ -405,6 +405,9 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
                                                         : toString(id))
                       << std::endl;
   std::vector<Node> vcs;
+  // the implied substitution if we have a rule with free variables on RHS
+  std::vector<Node> impliedVs;
+  std::vector<Node> impliedSs;
   Node transEq;
   ProvenInfo pic;
   if (id == RewriteProofStatus::CONG)
@@ -549,6 +552,11 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
     Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
     Trace("rpc-debug2") << "     Target RHS: " << target[1] << std::endl;
+    if (expr::hasBoundVar(stgt))
+    {
+      rpr.getConditionalDefinitions(vars, subs, impliedVs, impliedSs);
+      Trace("rpc-debug2") << " Implied definitions: " << impliedVs << " -> " << impliedSs << std::endl;
+    }
     // check if conclusion is null
     if (stgt.isNull())
     {

@@ -48,6 +48,10 @@ void RewriteProofRule::init(ProofRewriteRule id,
     }
     d_cond.push_back(c);
     d_obGen.push_back(c);
+    if (c.getKind()==Kind::EQUAL && c[0].getKind()==Kind::BOUND_VARIABLE)
+    {
+      d_condDefinedVars[c[0]] = c[1];
+    }
   }
   d_conc = conc;
   d_context = context;
@@ -201,5 +205,19 @@ bool RewriteProofRule::isFixedPoint() const
 {
   return d_context != Node::null();
 }
+
+void RewriteProofRule::getConditionalDefinitions(const std::vector<Node>& vs,
+                                                 const std::vector<Node>& ss,
+                                 std::vector<Node>& dvs,
+                                 std::vector<Node>& dss) const
+{
+  for (const std::pair<const Node, Node>& cv : d_condDefinedVars)
+  {
+    dvs.push_back(cv.first);
+    Node cvs = expr::narySubstitute(cv.second, vs, ss);
+    dss.push_back(cvs);
+  }
+}
+  
 }  // namespace rewriter
 }  // namespace cvc5::internal
