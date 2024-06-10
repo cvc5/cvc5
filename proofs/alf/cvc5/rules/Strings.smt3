@@ -190,20 +190,34 @@
 
 ; rule: string_decompose
 ; implements: ProofRule::STRING_DECOMPOSE
-;(declare-rule string_decompose
+(declare-rule string_decompose ((U Type) (s (Seq U)) (n Int) (b Bool))
+  :premises ((>= (str.len s) n))
+  :args (b)
+  :conclusion false
+)
+
 
 ; rule: string_code_inj
-; implements: ProofRule::STRING_CODE_INJ:
+; implements: ProofRule::STRING_CODE_INJ
+; args:
+; - t String: The first string.
+; - s String: The second string.
+; conclusion: >
+;   A disjunction of three cases, indicating that t is not a string of length
+;   one, its code point is different from that of s, or t and s are equal.
 (declare-rule string_code_inj ((t String) (s String))
   :args (t s)
-  :conclusion (or (= (str.to_code t) -1) (not (= (str.to_code t) (str.to_code s)) (not (= t s))))
+  :conclusion (or (= (str.to_code t) -1) (not (= (str.to_code t) (str.to_code s))) (= t s))
 )
 
 ; rule: string_seq_unit_inj
-; implements: ProofRule::STRING_SEQ_UNIT_INJ:
-(declare-rule string_seq_unit_inj ((U Type) (s U) (t U))
-  :premises ((= (seq.unit s) (str.unit t)))
-  :conclusion (= s t)
+; implements: ProofRule::STRING_SEQ_UNIT_INJ
+; premises:
+; - eq: An equality stating that the unit sequences of elements a and b are equal.
+; conclusion: That a and b are equal.
+(declare-rule string_seq_unit_inj ((U Type) (a U) (b U))
+  :premises ((= (seq.unit a) (seq.unit b)))
+  :conclusion (= a b)
 )
 
 ;;-------------------- Regular expressions

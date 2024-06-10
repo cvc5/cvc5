@@ -139,6 +139,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::RE_UNFOLD_POS:
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
     case ProofRule::RE_UNFOLD_NEG:
+    case ProofRule::STRING_DECOMPOSE:
     case ProofRule::STRING_CODE_INJ:
     case ProofRule::STRING_SEQ_UNIT_INJ:
     case ProofRule::ITE_EQ:

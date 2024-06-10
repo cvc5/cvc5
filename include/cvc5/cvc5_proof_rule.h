@@ -1592,8 +1592,8 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{\mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_2) = n}
    *
-   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
-   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)` and
+   * :math:`w_2` is the purification skolem for :math:`\mathit{suf}(t,n)`.
    * \endverbatim
    */
   EVALUE(STRING_DECOMPOSE),
@@ -1721,7 +1721,7 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t) \neq
-   *   \mathit{to\_code}(s) \vee t\neq s}
+   *   \mathit{to\_code}(s) \vee t = s}
    * \endverbatim
    */
   EVALUE(STRING_CODE_INJ),
