@@ -956,8 +956,8 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
                                             jobject oracle)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  jobject oracleReference = env->NewGlobalRef(oracle);
-  ApiManager::currentAM()->addGlobalReference(pointer, oracleReference);
+  ApiManager* am = ApiManager::currentAM();
+  jobject oracleReference = am->addGlobalReference(env, pointer, oracle);
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
@@ -989,9 +989,8 @@ Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   TermManager* tm = reinterpret_cast<TermManager*>(pointer);
-  jobject pluginReference = env->NewGlobalRef(plugin);
   ApiManager* am = ApiManager::currentAM();
-  am->addGlobalReference(pointer, pluginReference);
+  jobject pluginReference = am->addGlobalReference(env, pointer, plugin);
   ApiPlugin* p = new ApiPlugin(*tm, env, pluginReference);
   am->addPluginPointer(pointer, reinterpret_cast<jlong>(p));
   solver->addPlugin(*p);

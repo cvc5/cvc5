@@ -148,16 +148,27 @@ jobject getBooleanObject(JNIEnv* env, bool value);
 /**
  * The java api manager.
  *
- * This class should not be used simultaneously in multiple threads. It is a
- * singleton that is accessible via NodeManager::currentNM().
+ * It is a singleton that is accessible via ApiManager::currentAM().
  */
 class ApiManager
 {
  public:
-  /** The singleton instance */
+  /**
+   * Get the singleton instance.
+   */
   static ApiManager* currentAM();
-  void addGlobalReference(jlong pointer, jobject object);
+  /**
+   * Create a new global reference to the object referred to by the obj
+   * argument, and store the object to be disposed of later.
+   */
+  jobject addGlobalReference(JNIEnv* env, jlong pointer, jobject object);
+  /**
+   * Store a plugin pointer to be deleted later.
+   */
   void addPluginPointer(jlong pointer, jlong pluginPointer);
+  /**
+   * Delete resources associated with pointer.
+   */
   void deletePointer(JNIEnv* env, jlong pointer);
 
  private:

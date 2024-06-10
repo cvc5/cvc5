@@ -86,9 +86,13 @@ ApiManager* ApiManager::currentAM()
   return &am;
 }
 
-void ApiManager::addGlobalReference(jlong pointer, jobject object)
+jobject ApiManager::addGlobalReference(JNIEnv* env,
+                                       jlong pointer,
+                                       jobject object)
 {
-  d_globalReferences[pointer].push_back(object);
+  jobject reference = env->NewGlobalRef(object);
+  d_globalReferences[pointer].push_back(reference);
+  return reference;
 }
 
 void ApiManager::addPluginPointer(jlong pointer, jlong pluginPointer)
