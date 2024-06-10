@@ -27,17 +27,9 @@
         ))
 )
 
-(declare-rule skolem_intro ((T Type) (t T))
-  :args (t)
-  :conclusion 
-    (alf.match ((T Type) (x T) (F Bool))
-      t
-      (
-        ; special case for witness
-        ((@quantifiers_skolemize (exists (@list x) F) x) (= t (witness (@list x) F)))
-        ((@purify x)                                     (= t x))
-      )
-   )
+(declare-rule skolem_intro ((T Type) (x T))
+  :args ((@purify x))
+  :conclusion (= (@purify x) x)
 )
 
 ; B is the formula to apply to

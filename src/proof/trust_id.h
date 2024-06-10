@@ -97,8 +97,6 @@ enum class TrustId : uint32_t
   ARITH_NL_COVERING_RECURSIVE,
   /** An extended theory rewrite */
   EXT_THEORY_REWRITE,
-  /** An axiom for an introduced witness term without a corresponding proof */
-  WITNESS_AXIOM,
   /** A rewrite whose proof could not be elaborated */
   REWRITE_NO_ELABORATE,
   /** A flattening rewrite in an equality engine proof */

@@ -39,7 +39,6 @@ const char* toString(TrustId id)
     case TrustId::ARITH_NL_COVERING_RECURSIVE:
       return "ARITH_NL_COVERING_RECURSIVE";
     case TrustId::EXT_THEORY_REWRITE: return "EXT_THEORY_REWRITE";
-    case TrustId::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case TrustId::REWRITE_NO_ELABORATE: return "REWRITE_NO_ELABORATE";
     case TrustId::FLATTENING_REWRITE: return "FLATTENING_REWRITE";
     case TrustId::SUBS_NO_ELABORATE: return "SUBS_NO_ELABORATE";
