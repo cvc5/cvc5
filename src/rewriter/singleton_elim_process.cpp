@@ -45,16 +45,18 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
     stack.pop_back();
     if (curr.first == curr.second)
     {
+      Trace("selim-proc") << "...already equal" << std::endl;
       continue;
     }
     if (visited.find(curr) != visited.end())
     {
+      Trace("selim-proc") << "...already processed" << std::endl;
       continue;
     }
     visited.insert(curr);
     if (curr.first.getKind() == Kind::APPLY_SINGLETON)
     {
-      stack.pop_back();
+      Trace("selim-proc") << "...singleton eq" << std::endl;
       Node eq = curr.first.eqNode(curr.second);
       Node res = pc->checkDebug(ProofRule::ACI_NORM, {}, {eq}, Node::null(), "singleton elim");
       if (!res.isNull())
@@ -70,11 +72,12 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
             curr.first, curr.second, ProofRule::ARITH_POLY_NORM, {}, {eq});
         continue;
       }
-      AlwaysAssert(false) << "Unknown kind " << curr.first << " == " << curr.second;
+      Assert(false) << "Unknown kind " << curr.first << " == " << curr.second;
       continue;
     }
     // else recurse
     size_t nchild = curr.first.getNumChildren();
+    Trace("selim-proc") << "...recurse on " << nchild << " children" << std::endl;
     Assert(curr.second.getNumChildren() == nchild);
     for (size_t i = 0; i < nchild; i++)
     {
