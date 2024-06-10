@@ -228,6 +228,7 @@ bool AlfPrinter::canEvaluate(Node n) const
       visited.insert(cur);
       switch (cur.getKind())
       {
+        case Kind::ITE:
         case Kind::NOT:
         case Kind::AND:
         case Kind::OR:
@@ -285,13 +286,6 @@ bool AlfPrinter::canEvaluate(Node n) const
         break;
         case Kind::BITVECTOR_SIZE:
           // special case, evaluates no matter what is inside
-          continue;
-        case Kind::STRING_IN_REGEXP:
-          if (!canEvaluateRegExp(cur[1]))
-          {
-            return false;
-          }
-          visit.push_back(cur[0]);
           continue;
         default:
           Trace("alf-printer-debug")
