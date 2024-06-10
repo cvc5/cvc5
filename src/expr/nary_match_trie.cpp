@@ -65,7 +65,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
       // if we matched, there must be a data member at this node
       Assert(!mt->d_data.isNull());
       // notify match?
-      Assert(n == expr::narySubstitute(mt->d_data, vars, subs));
+      Assert(n == expr::narySubstituteSElim(mt->d_data, vars, subs));
       Trace("match-debug") << "notify : " << mt->d_data << std::endl;
       if (!ntm->notify(n, mt->d_data, vars, subs))
       {

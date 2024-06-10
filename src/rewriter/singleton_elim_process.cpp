@@ -35,6 +35,7 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
   while (!stack.empty())
   {
     curr = stack.back();
+    Trace("selim-proc") << "Setup proof of " << curr.first << " == " << curr.second << std::endl;
     stack.pop_back();
     if (curr.first == curr.second)
     {
@@ -58,7 +59,7 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
     Assert(curr.second.getNumChildren() == nchild);
     for (size_t i = 0; i < nchild; i++)
     {
-      stack.emplace_back(n[i], nse[i]);
+      stack.emplace_back(curr.first[i], curr.second[i]);
     }
   }
   Node eq = n.eqNode(nse);

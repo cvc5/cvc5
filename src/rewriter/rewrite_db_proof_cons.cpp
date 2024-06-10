@@ -19,6 +19,7 @@
 #include "options/proof_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/singleton_elim_process.h"
 #include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
@@ -1208,21 +1209,23 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
   return ret;
 }
 
-bool RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp,
+void RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp,
                                                   const Node& eq,
                                                   const Node& eqSe,
                                                   bool fromSe)
 {
   ++d_statPfSingletonElims;
+  SingletonElimConverter sec(d_env);
+  std::shared_ptr<ProofNode> pfn = sec.convert(eq, eqSe);
+  Node equiv = eq.eqNode(eqSe);
+  cdp->addProof(pfn);
   if (fromSe)
   {
-    cdp->addTrustedStep(eq, TrustId::SINGLETON_ELIM, {eqSe}, {});
+    Node equivs = eqSe.eqNode(eq);
+    cdp->addStep(equivs, ProofRule::SYMM, {equiv}, {});
+    equiv = equivs;
   }
-  else
-  {
-    cdp->addTrustedStep(eqSe, TrustId::SINGLETON_ELIM, {eq}, {});
-  }
-  return true;
+  cdp->addStep(equiv[1], ProofRule::EQ_RESOLVE, {equiv[0], equiv}, {});
 }
 
 void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
