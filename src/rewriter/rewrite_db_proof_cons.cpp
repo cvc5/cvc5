@@ -552,11 +552,6 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
     Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
     Trace("rpc-debug2") << "     Target RHS: " << target[1] << std::endl;
-    if (expr::hasBoundVar(stgt))
-    {
-      rpr.getConditionalDefinitions(vars, subs, impliedVs, impliedSs);
-      Trace("rpc-debug2") << " Implied definitions: " << impliedVs << " -> " << impliedSs << std::endl;
-    }
     // check if conclusion is null
     if (stgt.isNull())
     {
@@ -564,6 +559,15 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       // type term
       Trace("rpc-debug2") << "...fail (no construct conclusion)" << std::endl;
       return false;
+    }
+    if (expr::hasBoundVar(stgt))
+    {
+      rpr.getConditionalDefinitions(vars, subs, impliedVs, impliedSs);
+      Trace("rpc-debug2") << " Implied definitions: " << impliedVs << " -> " << impliedSs << std::endl;
+      if (!impliedVs.empty())
+      {
+        stgt = expr::narySubstitute(stgt, impliedVs, impliedSs);
+      }
     }
     // inflection substitution, used if conclusion does not exactly match
     std::unordered_map<Node, std::pair<Node, Node>> isubs;
@@ -591,7 +595,20 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     // do its conditions hold?
     // Get the conditions, substituted { vars -> subs } and with side conditions
     // evaluated.
-    if (!rpr.getObligations(vars, subs, vcs))
+    if (!impliedVs.empty())
+    {
+      std::vector<Node> vsall = vars;
+      vsall.insert(vsall.end(), impliedVs.begin(), impliedVs.end());
+      std::vector<Node> subsall = subs;
+      subsall.insert(subsall.end(), impliedSs.begin(), impliedSs.end());
+      if (!rpr.getObligations(vars, subs, vcs))
+      {
+        // cannot get conditions, likely due to failed side condition
+        Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
+        return false;
+      }
+    }
+    else if (!rpr.getObligations(vars, subs, vcs))
     {
       // cannot get conditions, likely due to failed side condition
       Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
