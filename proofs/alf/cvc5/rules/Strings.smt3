@@ -188,6 +188,24 @@
               false)))))
 )
 
+; rule: string_decompose
+; implements: ProofRule::STRING_DECOMPOSE
+;(declare-rule string_decompose
+
+; rule: string_code_inj
+; implements: ProofRule::STRING_CODE_INJ:
+(declare-rule string_code_inj ((t String) (s String))
+  :args (t s)
+  :conclusion (or (= (str.to_code t) -1) (not (= (str.to_code t) (str.to_code s)) (not (= t s))))
+)
+
+; rule: string_seq_unit_inj
+; implements: ProofRule::STRING_SEQ_UNIT_INJ:
+(declare-rule string_seq_unit_inj ((U Type) (s U) (t U))
+  :premises ((= (seq.unit s) (str.unit t)))
+  :conclusion (= s t)
+)
+
 ;;-------------------- Regular expressions
 
 ; ProofRule::RE_INTER
