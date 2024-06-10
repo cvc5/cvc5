@@ -389,7 +389,8 @@ bool isAssoc(Kind k)
   switch (k)
   {
     case Kind::STRING_CONCAT:
-    case Kind::REGEXP_CONCAT: return true;
+    case Kind::REGEXP_CONCAT:
+    case Kind::BITVECTOR_CONCAT: return true;
     default: break;
   }
   // also return true for the operators listed above

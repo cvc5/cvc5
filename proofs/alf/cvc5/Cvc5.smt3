@@ -173,6 +173,7 @@
       ((ff.mul xf1 xf2)  (get_aci_norm t))
       ((str.++ xs1 xs2)  (get_a_norm t))
       ((re.++ x1 x2)     (get_a_norm t))
+      ((concat xb1 xb2)  (get_a_norm t))
       (x                 x)
     )
   )
