@@ -412,7 +412,7 @@ Node getACINormalForm(Node a)
     return an;
   }
   Kind k = a.getKind();
-  if (k==Kind::APPLY_SINGLETON)
+  if (k == Kind::APPLY_SINGLETON)
   {
     k = a.getOperator().getConst<GenericOp>().getKind();
   }
@@ -457,7 +457,7 @@ Node getACINormalForm(Node a)
         toProcess.insert(toProcess.end(), cur.rbegin(), cur.rend());
       }
       else if (!aci
-              || std::find(children.begin(), children.end(), cur)
+               || std::find(children.begin(), children.end(), cur)
                       == children.end())
       {
         // add to final children if not idempotent or if not a duplicate
@@ -469,10 +469,11 @@ Node getACINormalForm(Node a)
       // sort if commutative
       std::sort(children.begin(), children.end());
     }
-    an = children.empty() ? nt
-                          : (children.size() == 1
-                                ? children[0]
-                                : NodeManager::currentNM()->mkNode(k, children));
+    an = children.empty()
+             ? nt
+             : (children.size() == 1
+                    ? children[0]
+                    : NodeManager::currentNM()->mkNode(k, children));
   }
   a.setAttribute(nfa, an);
   return an;

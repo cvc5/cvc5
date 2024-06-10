@@ -15,14 +15,15 @@
 
 #include "rewriter/singleton_elim_process.h"
 
-#include "smt/env.h"
-#include "proof/proof_node_manager.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace rewriter {
 
-SingletonElimConverter::SingletonElimConverter(Env& env) : EnvObj(env), d_tpg(env, nullptr)
+SingletonElimConverter::SingletonElimConverter(Env& env)
+    : EnvObj(env), d_tpg(env, nullptr)
 {
 }
 
@@ -58,14 +59,16 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
     {
       Trace("selim-proc") << "...singleton eq" << std::endl;
       Node eq = curr.first.eqNode(curr.second);
-      Node res = pc->checkDebug(ProofRule::ACI_NORM, {}, {eq}, Node::null(), "singleton elim");
+      Node res = pc->checkDebug(
+          ProofRule::ACI_NORM, {}, {eq}, Node::null(), "singleton elim");
       if (!res.isNull())
       {
         d_tpg.addRewriteStep(
             curr.first, curr.second, ProofRule::ACI_NORM, {}, {eq});
         continue;
       }
-      res = pc->checkDebug(ProofRule::ARITH_POLY_NORM, {}, {eq}, Node::null(), "singleton elim");
+      res = pc->checkDebug(
+          ProofRule::ARITH_POLY_NORM, {}, {eq}, Node::null(), "singleton elim");
       if (!res.isNull())
       {
         d_tpg.addRewriteStep(
@@ -77,7 +80,8 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
     }
     // else recurse
     size_t nchild = curr.first.getNumChildren();
-    Trace("selim-proc") << "...recurse on " << nchild << " children" << std::endl;
+    Trace("selim-proc") << "...recurse on " << nchild << " children"
+                        << std::endl;
     Assert(curr.second.getNumChildren() == nchild);
     for (size_t i = 0; i < nchild; i++)
     {
