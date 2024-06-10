@@ -24,12 +24,13 @@
 #include "expr/node_converter.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace rewriter {
 
 /**  */
-class SingletonElimConverter
+class SingletonElimConverter : protected EnvObj
 {
  public:
   SingletonElimConverter(Env& env);

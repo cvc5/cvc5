@@ -359,7 +359,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
                || k == Kind::MULT || k == Kind::NONLINEAR_MULT
                || k == Kind::TO_REAL || k == Kind::BITVECTOR_ADD
                || k == Kind::BITVECTOR_SUB || k == Kind::BITVECTOR_NEG
-               || k == Kind::BITVECTOR_MULT)
+               || k == Kind::BITVECTOR_MULT || k == Kind::APPLY_SINGLETON)
       {
         visited[cur] = PolyNorm();
         for (const Node& cn : cur)
@@ -379,6 +379,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       PolyNorm& ret = visited[cur];
       switch (k)
       {
+        case Kind::APPLY_SINGLETON:
         case Kind::ADD:
         case Kind::SUB:
         case Kind::NEG:

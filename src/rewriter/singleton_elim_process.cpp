@@ -15,16 +15,21 @@
 
 #include "rewriter/singleton_elim_process.h"
 
+#include "smt/env.h"
+#include "proof/proof_node_manager.h"
+#include "proof/proof_checker.h"
+
 namespace cvc5::internal {
 namespace rewriter {
 
-SingletonElimConverter::SingletonElimConverter(Env& env) : d_tpg(env, nullptr)
+SingletonElimConverter::SingletonElimConverter(Env& env) : EnvObj(env), d_tpg(env, nullptr)
 {
 }
 
 std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
                                                            const Node& nse)
 {
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
   std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator
       it;
@@ -49,10 +54,23 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
     visited.insert(curr);
     if (curr.first.getKind() == Kind::APPLY_SINGLETON)
     {
-      Node eq = curr.first.eqNode(curr.second);
-      d_tpg.addRewriteStep(
-          curr.first, curr.second, ProofRule::ACI_NORM, {}, {eq});
       stack.pop_back();
+      Node eq = curr.first.eqNode(curr.second);
+      Node res = pc->checkDebug(ProofRule::ACI_NORM, {}, {eq}, Node::null(), "singleton elim");
+      if (!res.isNull())
+      {
+        d_tpg.addRewriteStep(
+            curr.first, curr.second, ProofRule::ACI_NORM, {}, {eq});
+        continue;
+      }
+      res = pc->checkDebug(ProofRule::ARITH_POLY_NORM, {}, {eq}, Node::null(), "singleton elim");
+      if (!res.isNull())
+      {
+        d_tpg.addRewriteStep(
+            curr.first, curr.second, ProofRule::ARITH_POLY_NORM, {}, {eq});
+        continue;
+      }
+      AlwaysAssert(false) << "Unknown kind " << curr.first << " == " << curr.second;
       continue;
     }
     // else recurse

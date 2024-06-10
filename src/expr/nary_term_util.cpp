@@ -404,11 +404,6 @@ using NormalFormAttr = expr::Attribute<NormalFormTag, Node>;
 
 Node getACINormalForm(Node a)
 {
-  // special case
-  if (a.getKind() == Kind::APPLY_SINGLETON)
-  {
-    return a[0];
-  }
   NormalFormAttr nfa;
   Node an = a.getAttribute(nfa);
   if (!an.isNull())
@@ -417,6 +412,10 @@ Node getACINormalForm(Node a)
     return an;
   }
   Kind k = a.getKind();
+  if (k==Kind::APPLY_SINGLETON)
+  {
+    k = a.getOperator().getConst<GenericOp>().getKind();
+  }
   bool aci = isAssocCommIdem(k);
   if (!aci && !isAssoc(k))
   {
@@ -432,41 +431,49 @@ Node getACINormalForm(Node a)
     a.setAttribute(nfa, a);
     return a;
   }
-  std::vector<Node> toProcess;
-  toProcess.insert(toProcess.end(), a.rbegin(), a.rend());
-  std::vector<Node> children;
-  Node cur;
-  do
+  // special case
+  if (a.getKind() == Kind::APPLY_SINGLETON)
   {
-    cur = toProcess.back();
-    toProcess.pop_back();
-    if (cur == nt)
-    {
-      // ignore null terminator (which is the neutral element)
-      continue;
-    }
-    else if (cur.getKind() == k)
-    {
-      // flatten
-      toProcess.insert(toProcess.end(), cur.rbegin(), cur.rend());
-    }
-    else if (!aci
-             || std::find(children.begin(), children.end(), cur)
-                    == children.end())
-    {
-      // add to final children if not idempotent or if not a duplicate
-      children.push_back(cur);
-    }
-  } while (!toProcess.empty());
-  if (aci)
-  {
-    // sort if commutative
-    std::sort(children.begin(), children.end());
+    an = a[0];
   }
-  an = children.empty() ? nt
-                        : (children.size() == 1
-                               ? children[0]
-                               : NodeManager::currentNM()->mkNode(k, children));
+  else
+  {
+    std::vector<Node> toProcess;
+    toProcess.insert(toProcess.end(), a.rbegin(), a.rend());
+    std::vector<Node> children;
+    Node cur;
+    do
+    {
+      cur = toProcess.back();
+      toProcess.pop_back();
+      if (cur == nt)
+      {
+        // ignore null terminator (which is the neutral element)
+        continue;
+      }
+      else if (cur.getKind() == k)
+      {
+        // flatten
+        toProcess.insert(toProcess.end(), cur.rbegin(), cur.rend());
+      }
+      else if (!aci
+              || std::find(children.begin(), children.end(), cur)
+                      == children.end())
+      {
+        // add to final children if not idempotent or if not a duplicate
+        children.push_back(cur);
+      }
+    } while (!toProcess.empty());
+    if (aci)
+    {
+      // sort if commutative
+      std::sort(children.begin(), children.end());
+    }
+    an = children.empty() ? nt
+                          : (children.size() == 1
+                                ? children[0]
+                                : NodeManager::currentNM()->mkNode(k, children));
+  }
   a.setAttribute(nfa, an);
   return an;
 }
