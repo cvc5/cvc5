@@ -76,7 +76,11 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
         continue;
       }
       Assert(false) << "Unknown kind " << curr.first << " == " << curr.second;
-      d_tpg.addRewriteStep(curr.first, curr.second, nullptr, false, TrustId::RARE_SINGLETON_ELIM);
+      d_tpg.addRewriteStep(curr.first,
+                           curr.second,
+                           nullptr,
+                           false,
+                           TrustId::RARE_SINGLETON_ELIM);
       continue;
     }
     // else recurse
