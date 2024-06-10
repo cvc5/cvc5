@@ -208,11 +208,11 @@ Node mkSingletonApp(Kind k, const Node& n)
 }
 
 Node narySubstituteInternal(Node src,
-                    const std::vector<Node>& vars,
-                    const std::vector<Node>& subs,
-                    std::unordered_map<TNode, Node>& visited,
-                    bool elimSingleton,
-                    bool& elimedSingleton)
+                            const std::vector<Node>& vars,
+                            const std::vector<Node>& subs,
+                            std::unordered_map<TNode, Node>& visited,
+                            bool elimSingleton,
+                            bool& elimedSingleton)
 {
   // assumes all variables are list variables
   NodeManager* nm = NodeManager::currentNM();
@@ -347,8 +347,8 @@ Node narySubstitute(Node src,
 }
 
 Node narySubstituteSElim(Node src,
-                    const std::vector<Node>& vars,
-                    const std::vector<Node>& subs)
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs)
 {
   std::unordered_map<TNode, Node> visited;
   bool elimedSingleton = false;
@@ -357,10 +357,10 @@ Node narySubstituteSElim(Node src,
 }
 
 Node narySubstituteSElim(Node src,
-                    const std::vector<Node>& vars,
-                    const std::vector<Node>& subs,
-                    std::unordered_map<TNode, Node>& visited,
-                    bool& elimedSingleton)
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs,
+                         std::unordered_map<TNode, Node>& visited,
+                         bool& elimedSingleton)
 {
   return narySubstituteInternal(
       src, vars, subs, visited, true, elimedSingleton);

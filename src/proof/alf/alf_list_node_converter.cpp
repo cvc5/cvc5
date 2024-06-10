@@ -68,7 +68,7 @@ Node AlfListNodeConverter::postConvert(Node n)
   // if less than 2 non-list children, it might collapse to a single element
   if (nlistChildren < 2)
   {
-    //return d_tproc.mkInternalApp("$singleton_elim", {n}, n.getType());
+    // return d_tproc.mkInternalApp("$singleton_elim", {n}, n.getType());
   }
   return n;
 }

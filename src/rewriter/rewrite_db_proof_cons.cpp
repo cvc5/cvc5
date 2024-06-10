@@ -1043,7 +1043,8 @@ bool RewriteDbProofCons::ensureProofInternal(
           Node concSe = rpr.getConclusionForSElim(subs, ems);
           if (ems)
           {
-            // if eliminated singletons, get the conclusion without singleton elimination
+            // if eliminated singletons, get the conclusion without singleton
+            // elimination
             conc = rpr.getConclusionFor(subs);
             if (conc != concSe)
             {

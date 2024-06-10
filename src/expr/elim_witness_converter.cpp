@@ -40,7 +40,6 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
   }
   return n;
 }
-
 const std::vector<Node>& ElimWitnessNodeConverter::getExistentials() const
 {
   return d_exists;

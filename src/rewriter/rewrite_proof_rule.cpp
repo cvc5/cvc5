@@ -110,8 +110,8 @@ const std::vector<Node>& RewriteProofRule::getConditions() const
 }
 
 bool RewriteProofRule::getObligationsSElim(const std::vector<Node>& vs,
-                                      const std::vector<Node>& ss,
-                                      std::vector<Node>& vcs) const
+                                           const std::vector<Node>& ss,
+                                           std::vector<Node>& vcs) const
 {
   std::unordered_map<TNode, Node> visited;
   bool estmp = false;
@@ -191,8 +191,7 @@ Node RewriteProofRule::getConclusionFor(
   Assert(d_fvs.size() == ss.size());
   Node conc = getConclusion(true);
   std::unordered_map<TNode, Node> visited;
-  Node ret = expr::narySubstitute(
-      conc, d_fvs, ss, visited);
+  Node ret = expr::narySubstitute(conc, d_fvs, ss, visited);
   // also compute for the condition
   for (const Node& c : d_cond)
   {

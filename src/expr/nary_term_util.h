@@ -90,8 +90,8 @@ Node narySubstitute(Node src,
  * @return the substituted term.
  */
 Node narySubstituteSElim(Node src,
-                    const std::vector<Node>& vars,
-                    const std::vector<Node>& subs);
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs);
 /**
  * Same as above, with visited cache.
  *
@@ -103,10 +103,10 @@ Node narySubstituteSElim(Node src,
  * @return the substituted term.
  */
 Node narySubstituteSElim(Node src,
-                    const std::vector<Node>& vars,
-                    const std::vector<Node>& subs,
-                    std::unordered_map<TNode, Node>& visited,
-                    bool& elimedSingleton);
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs,
+                         std::unordered_map<TNode, Node>& visited,
+                         bool& elimedSingleton);
 /**
  * Make a singleton application of nary kind k to argument n.
  */

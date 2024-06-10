@@ -79,8 +79,8 @@ class RewriteProofRule
    * Get the conditions of the rule under the substitution { vs -> ss }.
    */
   bool getObligationsSElim(const std::vector<Node>& vs,
-                      const std::vector<Node>& ss,
-                      std::vector<Node>& vcs) const;
+                           const std::vector<Node>& ss,
+                           std::vector<Node>& vcs) const;
   /**
    * Get the conditions of the rule under the substitution { vs -> ss },
    * with and without singleton elimination.
@@ -116,7 +116,7 @@ class RewriteProofRule
    */
   Node getConclusionFor(const std::vector<Node>& ss) const;
   Node getConclusionForSElim(const std::vector<Node>& ss,
-                        bool& elimedSingleton) const;
+                             bool& elimedSingleton) const;
   /**
    * Get conclusion of the rule for the substituted terms ss.
    * Additionally computes the "witness term" for each variable in the rule
