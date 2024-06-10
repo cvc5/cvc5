@@ -150,8 +150,7 @@ void AletheProofPrinter::print(
     // Traverse the proof node to letify the (converted) conclusions of proof
     // steps. Note that we traverse the original proof node because assumptions
     // may apper just in them (if they are not used in the rest of the proof).
-    // Otherwise repeated terms *only* in assumptions would not be letified
-    // otherwise.
+    // Otherwise repeated terms *only* in assumptions would not be letified.
     ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
     Trace("alethe-printer") << "- letify.\n";
     updater.process(pfn);
