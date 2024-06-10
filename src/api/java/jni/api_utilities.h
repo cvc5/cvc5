@@ -156,13 +156,21 @@ class ApiManager
  public:
   /** The singleton instance */
   static ApiManager* currentAM();
-  /**
-   * a map from solver pointers to global references that need to be freed when
-   * the java Solver.deletePointer method is called
-   */
-  std::map<jlong, std::vector<jobject> > globalReferences;
+  void addGlobalReference(jlong pointer, jobject object);
+  void addPluginPointer(jlong pointer, jlong pluginPointer);
+  void deletePointer(JNIEnv* env, jlong pointer);
 
-  std::map<jlong, std::vector<jlong> > globalPointers;
+ private:
+  /**
+   * A map from pointers to jni global references that need to be freed when
+   * the deletePointer method is called
+   */
+  std::map<jlong, std::vector<jobject> > d_globalReferences;
+  /**
+   * A map to ApiPlugin pointers that need to be freed when
+   * the deletePointer method is called
+   */
+  std::map<jlong, std::vector<jlong> > d_pluginPointers;
 };
 
 /**

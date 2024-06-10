@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 
+#include "api_plugin.h"
+
 jobjectArray getStringArrayFromStringVector(
     JNIEnv* env, const std::vector<std::string>& cStrings)
 {
@@ -80,6 +82,33 @@ cvc5::Term applyOracle(JNIEnv* env,
 
 ApiManager* ApiManager::currentAM()
 {
-  thread_local static ApiManager am;
+  static ApiManager am;
   return &am;
+}
+
+void ApiManager::addGlobalReference(jlong pointer, jobject object)
+{
+  d_globalReferences[pointer].push_back(object);
+}
+
+void ApiManager::addPluginPointer(jlong pointer, jlong pluginPointer)
+{
+  d_pluginPointers[pointer].push_back(pluginPointer);
+}
+
+void ApiManager::deletePointer(JNIEnv* env, jlong pointer)
+{
+  const std::vector<jobject>& refs = d_globalReferences[pointer];
+  for (jobject ref : refs)
+  {
+    env->DeleteGlobalRef(ref);
+  }
+  const std::vector<jlong>& pointers = d_pluginPointers[pointer];
+  for (jlong p : pointers)
+  {
+    ApiPlugin* plugin = reinterpret_cast<ApiPlugin*>(p);
+    delete plugin;
+  }
+  d_globalReferences.erase(pointer);
+  d_pluginPointers.erase(pointer);
 }
