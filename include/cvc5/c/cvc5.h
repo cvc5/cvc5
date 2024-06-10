@@ -2948,6 +2948,29 @@ const Cvc5Proof** cvc5_proof_get_children(Cvc5Proof* proof);
 const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof* proof);
 
 /**
+ * Compare two proofs for referential equality.
+ * @param a The first proof.
+ * @param b The second proof.
+ * @return `true` if both proofs point to the same internal proof object.
+ */
+bool cvc5_proof_is_equal(Cvc5Proof* a, Cvc5Proof* b);
+
+/**
+ * Compare two proofs for referential disequality.
+ * @param a The first proof.
+ * @param b The second proof.
+ * @return `true` if the proofs point to different internal proof objects.
+ */
+bool cvc5_proof_is_disequal(Cvc5Proof* a, Cvc5Proof* b);
+
+/**
+ * Compute the hash value of a proof.
+ * @param proof The proof.
+ * @return The hash value of the proof.
+ */
+size_t cvc5_proof_hash(Cvc5Proof* proof);
+
+/**
  * Prints a proof as a string in a selected proof format mode.
  * Other aspects of printing are taken from the solver options.
  *

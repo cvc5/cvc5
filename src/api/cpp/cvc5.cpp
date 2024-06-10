@@ -5071,7 +5071,7 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 Proof::Proof() : d_tm(nullptr) {}
 
 Proof::Proof(TermManager* tm, const std::shared_ptr<internal::ProofNode> p)
-    : d_proof_node(p), d_tm(tm)
+    : d_proofNode(p), d_tm(tm)
 {
 }
 
@@ -5081,9 +5081,9 @@ ProofRule Proof::getRule() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (d_proof_node != nullptr)
+  if (d_proofNode != nullptr)
   {
-    return this->getProofNode()->getRule();
+    return d_proofNode->getRule();
   }
   return ProofRule::UNKNOWN;
   ////////
@@ -5093,18 +5093,17 @@ ProofRule Proof::getRule() const
 ProofRewriteRule Proof::getRewriteRule() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(this->getProofNode()->getRule() == ProofRule::DSL_REWRITE
-                 || this->getProofNode()->getRule()
+  CVC5_API_CHECK(d_proofNode->getRule() == ProofRule::DSL_REWRITE
+                 || d_proofNode->getRule()
                         == ProofRule::THEORY_REWRITE)
       << "expected `getRule()` to return `DSL_REWRITE` or `THEORY_REWRITE`, "
          "got "
-      << this->getProofNode()->getRule() << " instead.";
+      << d_proofNode->getRule() << " instead.";
   //////// all checks before this line
-  if (d_proof_node != nullptr)
+  if (d_proofNode != nullptr)
   {
     return static_cast<ProofRewriteRule>(
-        detail::getInteger(this->d_proof_node->getArguments()[0])
-            .getUnsignedInt());
+        detail::getInteger(d_proofNode->getArguments()[0]).getUnsignedInt());
   }
   return ProofRewriteRule::NONE;
   ////////
@@ -5115,9 +5114,9 @@ Term Proof::getResult() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (d_proof_node != nullptr)
+  if (d_proofNode != nullptr)
   {
-    return Term(d_tm, this->getProofNode()->getResult());
+    return Term(d_tm, d_proofNode->getResult());
   }
   return Term();
   ////////
@@ -5128,14 +5127,14 @@ const std::vector<Proof> Proof::getChildren() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (d_proof_node != nullptr)
+  if (d_proofNode != nullptr)
   {
     std::vector<Proof> children;
-    std::vector<std::shared_ptr<internal::ProofNode>> node_children =
-        d_proof_node->getChildren();
-    for (size_t i = 0, psize = node_children.size(); i < psize; i++)
+    std::vector<std::shared_ptr<internal::ProofNode>> nodeChildren =
+        d_proofNode->getChildren();
+    for (size_t i = 0, psize = nodeChildren.size(); i < psize; i++)
     {
-      children.push_back(Proof(d_tm, node_children[i]));
+      children.push_back(Proof(d_tm, nodeChildren[i]));
     }
     return children;
   }
@@ -5148,13 +5147,13 @@ const std::vector<Term> Proof::getArguments() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (d_proof_node != nullptr)
+  if (d_proofNode != nullptr)
   {
     std::vector<Term> args;
-    const std::vector<internal::Node> node_args = d_proof_node->getArguments();
-    for (size_t i = 0, asize = node_args.size(); i < asize; i++)
+    const std::vector<internal::Node> nodeArgs = d_proofNode->getArguments();
+    for (size_t i = 0, asize = nodeArgs.size(); i < asize; i++)
     {
-      args.push_back(Term(d_tm, node_args[i]));
+      args.push_back(Term(d_tm, nodeArgs[i]));
     }
     return args;
   }
@@ -5163,9 +5162,22 @@ const std::vector<Term> Proof::getArguments() const
   CVC5_API_TRY_CATCH_END;
 }
 
-const std::shared_ptr<internal::ProofNode>& Proof::getProofNode(void) const
+bool Proof::operator==(const Proof& p) const
 {
-  return this->d_proof_node;
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_proofNode == p.d_proofNode;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Proof::operator!=(const Proof& p) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_proofNode != p.d_proofNode;
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -5176,7 +5188,6 @@ Plugin::Plugin(TermManager& tm)
     : d_pExtToInt(new PluginInternal(tm.d_nm, tm, *this))
 {
 }
-Plugin::~Plugin() {}
 
 std::vector<Term> Plugin::check()
 {
@@ -7871,7 +7882,7 @@ std::string Solver::proofToString(
   {
     nodeAssertionNames[p.first.getNode()] = p.second;
   }
-  this->d_slv->printProof(ss, proof.getProofNode(), format, nodeAssertionNames);
+  this->d_slv->printProof(ss, proof.d_proofNode, format, nodeAssertionNames);
   return ss.str();
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -8889,6 +8900,11 @@ size_t std::hash<cvc5::DatatypeConstructor>::operator()(
 size_t hash<cvc5::Datatype>::operator()(const cvc5::Datatype& dt) const
 {
   return std::hash<cvc5::internal::DType>()(*dt.d_dtype);
+}
+
+size_t std::hash<cvc5::Proof>::operator()(const cvc5::Proof& p) const
+{
+  return cvc5::internal::ProofNodeHashFunction()(p.d_proofNode);
 }
 
 }  // namespace std
