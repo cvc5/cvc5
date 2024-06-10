@@ -195,7 +195,6 @@ Node RewriteProofRule::getConclusionFor(
   // also compute for the condition
   for (const Node& c : d_cond)
   {
-    // does not count towards whether singleton elimination mattered
     expr::narySubstitute(c, d_fvs, ss, visited);
   }
   std::map<Node, Node>::const_iterator itl;

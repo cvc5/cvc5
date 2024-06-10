@@ -330,7 +330,7 @@ class RewriteDbProofCons : protected EnvObj
   IntStat d_statTotalAttempts;
   /** Total number of rewrites we proved successfully */
   IntStat d_statTotalInputSuccess;
-  /** Total number of rewrites we proved successfully */
+  /** Total number of times we had to prove a singleton elimination step */
   IntStat d_statPfSingletonElims;
   /** Fixed point limit */
   static size_t s_fixedPointLimit;

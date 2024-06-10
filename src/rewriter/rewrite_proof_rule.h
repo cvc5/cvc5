@@ -84,6 +84,10 @@ class RewriteProofRule
   /**
    * Get the conditions of the rule under the substitution { vs -> ss },
    * with and without singleton elimination.
+   * @param vs The variables to substitute.
+   * @param ss The terms to substitute.
+   * @param vcs The conditions, without singleton elimination semantics.
+   * @param vcs The conditions, with singleton elimination semantics.
    */
   bool getObligations(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
