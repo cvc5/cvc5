@@ -23,8 +23,8 @@
 ; program: $substitute_simul
 ; args:
 ; - s S: The term to substitute into.
-; - xs @List:. The list of variables to substitute.
-; - ss @List:. The terms to substitute.
+; - xs @List: The list of variables to substitute.
+; - ss @List: The terms to substitute.
 ; return: the result of simultaneously substituting xs to ss in t.
 (program $substitute_simul
   ((T Type) (S Type) (x S) (f (-> T S)) (a T) (xs @List :list) (ss @List :list) (s S) (y S))
