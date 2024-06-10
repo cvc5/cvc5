@@ -129,6 +129,8 @@ class Cvc5CApiAbortStream
 #define CVC5_CAPI_CHECK_SORT_AT_IDX(sorts, i) \
   CVC5_API_CHECK(sorts[i] != nullptr) << "invalid sort at index " << i
 
+/* -------------------------------------------------------------------------- */
+
 #define CVC5_CAPI_CHECK_DT_DECL(decl) \
   CVC5_API_CHECK(decl != nullptr) << "invalid datatype declaration"
 
@@ -148,6 +150,11 @@ class Cvc5CApiAbortStream
 
 #define CVC5_CAPI_CHECK_DT(dt) \
   CVC5_API_CHECK(dt != nullptr) << "invalid datatype"
+
+/* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_TERM(term) \
+  CVC5_API_CHECK(term != nullptr) << "invalid term"
 
 /* -------------------------------------------------------------------------- */
 }

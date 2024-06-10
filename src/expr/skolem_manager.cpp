@@ -66,33 +66,10 @@ std::ostream& operator<<(std::ostream& out, InternalSkolemId id)
 
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
-Node SkolemManager::mkPurifySkolem(Node t,
-                                   ProofGenerator* pg)
+Node SkolemManager::mkPurifySkolem(Node t)
 {
   // We do not recursively compute the original form of t here
-  Node k;
-  if (t.getKind() == Kind::WITNESS)
-  {
-    // The purification skolem for (witness ((x T)) P) is the same as
-    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) x).
-    NodeManager* nm = NodeManager::currentNM();
-    Node exists =
-        nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
-    k = mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {exists, t[0][0]});
-    // store the proof generator if it exists
-    if (pg != nullptr)
-    {
-      d_gens[exists] = pg;
-    }
-    UnpurifiedFormAttribute ufa;
-    k.setAttribute(ufa, t);
-  }
-  else
-  {
-    k = mkSkolemFunction(SkolemId::PURIFY, {t});
-    // shouldn't provide proof generators for other terms
-    Assert(pg == nullptr);
-  }
+  Node k = mkSkolemFunction(SkolemId::PURIFY, {t});
   Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
@@ -271,16 +248,6 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   int flags)
 {
   return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
-}
-
-ProofGenerator* SkolemManager::getProofGenerator(Node t) const
-{
-  std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(t);
-  if (it != d_gens.end())
-  {
-    return it->second;
-  }
-  return nullptr;
 }
 
 bool SkolemManager::isAbstractValue(TNode n) const
