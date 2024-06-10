@@ -541,7 +541,7 @@ void LfscPrinter::printProofInternal(
           Assert(passumeIt != passumeMap.end());
           out->printId(passumeIt->second, d_assumpPrefix);
         }
-        else if (r == ProofRule::ENCODE_PRED_TRANSFORM)
+        else if (r == ProofRule::ENCODE_EQ_INTRO)
         {
           // just add child
           visit.push_back(PExpr(cur->getChildren()[0].get()));

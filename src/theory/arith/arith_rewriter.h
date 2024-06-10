@@ -48,6 +48,15 @@ class ArithRewriter : public TheoryRewriter
    */
   Node rewriteIneqToBv(const Node& ineq);
 
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
  private:
   /** preRewrite for atoms */
   RewriteResponse preRewriteAtom(TNode t);

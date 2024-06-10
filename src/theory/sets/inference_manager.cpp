@@ -31,7 +31,9 @@ InferenceManager::InferenceManager(Env& env,
                                    Theory& t,
                                    TheorySetsRewriter* tr,
                                    SolverState& s)
-    : InferenceManagerBuffered(env, t, s, "theory::sets::"), d_state(s)
+    : InferenceManagerBuffered(env, t, s, "theory::sets::"),
+      d_state(s),
+      d_ipc(isProofEnabled() ? new InferProofCons(env, tr) : nullptr)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
@@ -118,8 +120,11 @@ bool InferenceManager::assertSetsFact(Node atom,
                                       Node exp)
 {
   Node conc = polarity ? atom : atom.notNode();
-  return assertInternalFact(
-      atom, polarity, id, ProofRule::TRUST, {exp}, {d_tid, conc, d_tsid});
+  if (d_ipc)
+  {
+    d_ipc->notifyFact(conc, exp, id);
+  }
+  return assertInternalFact(atom, polarity, id, {exp}, d_ipc.get());
 }
 
 void InferenceManager::assertInference(Node fact,
@@ -193,7 +198,11 @@ void InferenceManager::setupAndAddPendingLemma(const Node& exp,
 {
   if (conc == d_false)
   {
-    TrustNode trn = TrustNode::mkTrustConflict(exp);
+    if (d_ipc)
+    {
+      d_ipc->notifyConflict(exp, id);
+    }
+    TrustNode trn = TrustNode::mkTrustConflict(exp, d_ipc.get());
     trustedConflict(trn, id);
     return;
   }
@@ -202,7 +211,11 @@ void InferenceManager::setupAndAddPendingLemma(const Node& exp,
   {
     lem = nodeManager()->mkNode(Kind::IMPLIES, exp, conc);
   }
-  addPendingLemma(lem, id, LemmaProperty::NONE);
+  if (d_ipc)
+  {
+    d_ipc->notifyLemma(lem, id);
+  }
+  addPendingLemma(lem, id, LemmaProperty::NONE, d_ipc.get());
 }
 
 }  // namespace sets
