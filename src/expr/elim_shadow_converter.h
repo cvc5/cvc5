@@ -62,7 +62,12 @@ class ElimShadowNodeConverter : public NodeConverter
    */
   static Node getElimShadowVar(const Node& q, const Node& n, size_t i);
 
-  /** Eliminate shadowing in the closure q */
+  /**
+   * Eliminate shadowing in the closure q. This includes eliminating duplicate
+   * variables in the quantifier prefix of q.
+   * @param q The term to process which should have a binder kind.
+   * @return The result of eliminating shadowing in q.
+   */
   static Node eliminateShadow(const Node& q);
 
  private:

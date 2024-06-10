@@ -201,7 +201,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         return Node::null();
       }
       // Note that we do not check for variable shadowing in the lambda here.
-      // This rule will only be used to capture valid instances of beta
+      // This rule will only be used to express valid instances of beta
       // reduction. If a beta reduction had to eliminate shadowing, then it
       // will not be inferred by this rule as is.
       Node ret = lambda[1].substitute(
