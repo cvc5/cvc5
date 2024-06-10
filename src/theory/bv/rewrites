@@ -18,10 +18,12 @@
   (concat xs (extract k i s) ys))
 
 ; x[i..j][k..l] = x[i+k..i+l]
-(define-rule* bv-extract-extract
-  ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
+; note: could be fixed-point but we don't permit conditional fixed point
+(define-cond-rule bv-extract-extract
+  ((x ?BitVec) (i Int) (j Int) (k Int) (l Int) (ll Int) (kk Int))
+  (and (= ll (+ i l)) (= kk (+ i k)))
   (extract l k (extract j i x))
-  (extract (+ i l) (+ i k) x))
+  (extract ll kk x))
 (define-cond-rule bv-extract-whole
   ((x ?BitVec) (n Int))
   (>= n (- (@bvsize x) 1))
