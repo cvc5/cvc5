@@ -219,7 +219,7 @@ glpk-cut-log (A fork of the GNU Linear Programming Kit)
 This can be used to speed up certain classes of problems for the arithmetic
 implementation in cvc5. (This is not recommended for most users.)
 
-cvc5 is no longer compatible with the main GLPK library.
+cvc5 is not compatible with the official version of the GLPK library.
 To use the patched version of it, we recommend downloading it using
 the ``--auto-download`` configuration flag, which applies
 the patch automatically.
