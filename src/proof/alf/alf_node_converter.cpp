@@ -602,11 +602,6 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     else
     {
       opName << printer::smt2::Smt2Printer::smtKindString(k);
-      if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-          || k == Kind::INTS_MODULUS_TOTAL)
-      {
-        opName << "_total";
-      }
     }
   }
   std::vector<Node> args(n.begin(), n.end());
