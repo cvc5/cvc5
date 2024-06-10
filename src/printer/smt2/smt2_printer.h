@@ -286,7 +286,12 @@ class Smt2Printer : public cvc5::internal::Printer
                               TypeNode locType,
                               TypeNode dataType) const override;
 
-  /** Print skolems. */
+  /** Print skolems.
+   * @param out The stream to print to
+   * @param cacheVal The cache value of the skolem
+   * @param id The skolem id
+   * @param isApplied Whether the skolem is applied as an APPLY_UF
+   */
   void toStreamSkolem(std::ostream& out,
                       Node cacheVal,
                       SkolemId id,
