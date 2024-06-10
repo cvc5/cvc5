@@ -35,7 +35,8 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
   while (!stack.empty())
   {
     curr = stack.back();
-    Trace("selim-proc") << "Setup proof of " << curr.first << " == " << curr.second << std::endl;
+    Trace("selim-proc") << "Setup proof of " << curr.first
+                        << " == " << curr.second << std::endl;
     stack.pop_back();
     if (curr.first == curr.second)
     {
