@@ -932,8 +932,9 @@ bool RewriteDbProofCons::ensureProofInternal(
                   ensureProofSingletonElim(cdp, ps[i], psSe[i], true);
                 }
               }
-              // TODO: connect proofs
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
+              // we will connect the proofs of psSe to those of ps at post
+              // traversal
               processedVisit = true;
               visit.insert(visit.end(), psSe.begin(), psSe.end());
             }
@@ -943,7 +944,7 @@ bool RewriteDbProofCons::ensureProofInternal(
               pfac.push_back(cur);
             }
           }
-          // recurse on premises
+          // recurse on premises, if we have not already added them above
           if (!processedVisit)
           {
             visit.insert(visit.end(), ps.begin(), ps.end());
@@ -1049,7 +1050,8 @@ bool RewriteDbProofCons::ensureProofInternal(
             conc = rpr.getConclusionFor(subs);
             if (conc != concSe)
             {
-              // ensure the proof of the conversion
+              // ensure the proof of the conversion to singleton elimination
+              // semantics.
               ensureProofSingletonElim(cdp, conc, concSe, false);
             }
           }
@@ -1057,11 +1059,13 @@ bool RewriteDbProofCons::ensureProofInternal(
           {
             conc = concSe;
           }
-          // TODO: eliminate singletons here and see difference??
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
           Trace("rpc-debug") << "Proved: " << cur << std::endl;
           Trace("rpc-debug") << "From: " << conc << std::endl;
           pfr = ProofRule::DSL_REWRITE;
+          // The conclusion is without singleton elimination. When it makes
+          // a difference, the conclusion with singleton elimination semantics
+          // is added above.
           cdp->addStep(conc, pfr, ps, args);
         }
         else
