@@ -17,6 +17,10 @@ if(NOT ONLY_PYTHON_EXT_SRC)
   # Python modules for building and installing
   check_python_module("setuptools")
   find_package(Cython 3.0.0 REQUIRED)
+  # Repairwheel copies the required shared libraries to
+  # a directory within the Python wheel package so that
+  # the package is self-contained. It works on Linux,
+  # macOS, and Windows.
   find_package(Repairwheel 0.2.9 REQUIRED)
 endif()
 
