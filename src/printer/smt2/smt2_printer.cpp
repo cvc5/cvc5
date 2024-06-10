@@ -1170,12 +1170,12 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::LEQ: return "<=";
     case Kind::GT: return ">";
     case Kind::GEQ: return ">=";
-    case Kind::DIVISION:
-    case Kind::DIVISION_TOTAL: return "/";
-    case Kind::INTS_DIVISION_TOTAL:
+    case Kind::DIVISION: return "/";
+    case Kind::DIVISION_TOTAL: return "/_total";
     case Kind::INTS_DIVISION: return "div";
-    case Kind::INTS_MODULUS_TOTAL:
+    case Kind::INTS_DIVISION_TOTAL: return "div_total";
     case Kind::INTS_MODULUS: return "mod";
+    case Kind::INTS_MODULUS_TOTAL: return "mod_total";
     case Kind::INTS_LOG2: return "int.log2";
     case Kind::INTS_ISPOW2: return "int.ispow2";
     case Kind::ABS: return "abs";
