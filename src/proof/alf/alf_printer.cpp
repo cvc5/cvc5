@@ -42,7 +42,6 @@ AlfPrinter::AlfPrinter(Env& env,
     : EnvObj(env),
       d_tproc(atp),
       d_termLetPrefix("@t"),
-      d_ltproc(nodeManager(), atp),
       d_rdb(rdb)
 {
   d_pfType = nodeManager()->mkSort("proofType");
@@ -443,9 +442,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
       {
         out << " ";
       }
-      // note we apply list conversion to premises as well.
       Node cc = d_tproc.convert(su.apply(c));
-      cc = d_ltproc.convert(cc);
       out << cc;
     }
     out << ")" << std::endl;
@@ -461,7 +458,6 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
-  sconc = d_ltproc.convert(sconc);
   Assert(sconc.getKind() == Kind::EQUAL);
   out << "  :conclusion (= " << sconc[0] << " " << sconc[1] << ")" << std::endl;
   out << ")" << std::endl;
