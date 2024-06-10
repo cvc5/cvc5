@@ -1,4 +1,4 @@
-; COMMAND-LINE: --parse-skolem-definitions
+; COMMAND-LINE: --parse-skolem-definitions --print-skolem-definitions
 ; EXPECT: unsat
 (set-option :parse-skolem-definitions true)
 (set-logic QF_AUFNIA)
