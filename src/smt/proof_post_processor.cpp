@@ -310,7 +310,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       if (!updateInternal(eq, ProofRule::MACRO_REWRITE, {}, rargs, cdp))
       {
         // if not elimianted, add as step
-        cdp->addTrustedStep(eq, TrustId::EXT_THEORY_REWRITE, {}, rargs);
+        cdp->addStep(eq, ProofRule::MACRO_REWRITE, {}, rargs);
       }
       tchildren.push_back(eq);
     }
@@ -930,7 +930,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
           Node mid = mkMethodId(midi);
-          cdp->addTrustedStep(eqd, TrustId::EXT_THEORY_REWRITE, {}, {});
+          cdp->addStep(eqd, ProofRule::MACRO_REWRITE, {}, {retCurr, mid});
           transEq.push_back(eqd);
         }
         retCurr = retDef;
