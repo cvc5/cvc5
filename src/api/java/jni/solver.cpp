@@ -47,12 +47,21 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
-  const std::vector<jobject>& refs = globalReferences[pointer];
+  const std::vector<jobject>& refs =
+      ApiManager::currentAM()->globalReferences[pointer];
   for (jobject ref : refs)
   {
     env->DeleteGlobalRef(ref);
   }
-  globalReferences.erase(pointer);
+  const std::vector<jlong>& pointers =
+      ApiManager::currentAM()->globalPointers[pointer];
+  for (jlong p : pointers)
+  {
+    ApiPlugin* plugin = reinterpret_cast<ApiPlugin*>(p);
+    delete plugin;
+  }
+  ApiManager::currentAM()->globalReferences.erase(pointer);
+  ApiManager::currentAM()->globalPointers.erase(pointer);
   delete (reinterpret_cast<Solver*>(pointer));
 }
 
@@ -962,7 +971,7 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   jobject oracleReference = env->NewGlobalRef(oracle);
-  globalReferences[pointer].push_back(oracleReference);
+  ApiManager::currentAM()->globalReferences[pointer].push_back(oracleReference);
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
@@ -995,9 +1004,12 @@ Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   TermManager* tm = reinterpret_cast<TermManager*>(pointer);
   jobject pluginReference = env->NewGlobalRef(plugin);
-  globalReferences[pointer].push_back(pluginReference);
+  ApiManager::currentAM()->globalReferences[pointer].push_back(pluginReference);
   ApiPlugin* p = new ApiPlugin(*tm, env, pluginReference);
+  ApiManager::currentAM()->globalPointers[pointer].push_back(
+      reinterpret_cast<jlong>(p));
   solver->addPlugin(*p);
+
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 

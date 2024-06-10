@@ -63,7 +63,7 @@ class TypeChecker;
 /**
  * The node manager.
  *
- * This class should not be used simulatenously in multiple threads. It is a
+ * This class should not be used simultaneously in multiple threads. It is a
  * singleton that is accessible via NodeManager::currentNM().
  */
 class NodeManager

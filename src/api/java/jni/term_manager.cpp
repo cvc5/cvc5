@@ -43,12 +43,13 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
 JNIEXPORT void JNICALL Java_io_github_cvc5_TermManager_deletePointer(
     JNIEnv* env, jobject, jlong pointer)
 {
-  const std::vector<jobject>& refs = globalReferences[pointer];
+  const std::vector<jobject>& refs =
+      ApiManager::currentAM()->globalReferences[pointer];
   for (jobject ref : refs)
   {
     env->DeleteGlobalRef(ref);
   }
-  globalReferences.erase(pointer);
+  ApiManager::currentAM()->globalReferences.erase(pointer);
   delete (reinterpret_cast<TermManager*>(pointer));
 }
 

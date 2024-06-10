@@ -77,3 +77,9 @@ cvc5::Term applyOracle(JNIEnv* env,
   cvc5::Term* term = reinterpret_cast<cvc5::Term*>(termPointer);
   return *term;
 }
+
+ApiManager* ApiManager::currentAM()
+{
+  thread_local static ApiManager am;
+  return &am;
+}

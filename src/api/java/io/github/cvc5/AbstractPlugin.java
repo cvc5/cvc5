@@ -43,14 +43,17 @@ public abstract class AbstractPlugin
    *
    * @return The vector of lemmas to add to the SAT solver.
    */
-  public abstract Term[] check();
+  public Term[] check()
+  {
+    return new Term[0];
+  }
 
   /**
    * Notify SAT clause, called when cl is a clause learned by the SAT solver.
    *
    * @param cl The learned clause.
    */
-  public abstract void notifySatClause(Term cl);
+  public void notifySatClause(Term cl) {}
 
   /**
    * Notify theory lemma, called when lem is a theory lemma sent by a theory
@@ -58,7 +61,7 @@ public abstract class AbstractPlugin
    *
    * @param lem The theory lemma.
    */
-  public abstract void notifyTheoryLemma(Term lem);
+  public void notifyTheoryLemma(Term lem) {}
 
   /**
    * Get the name of the plugin (for debugging).
