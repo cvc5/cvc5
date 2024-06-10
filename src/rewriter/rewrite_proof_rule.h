@@ -111,14 +111,27 @@ class RewriteProofRule
   Node getConclusion(bool includeContext) const;
   /**
    * Get conclusion of the rule for the substituted terms ss for the variables
-   * v = getVarList() of this rule.
+   * v = getVarList() of this rule. This does not use singleton elimination
+   * semantics.
    *
    * @param ss The terms to substitute in this rule. Each ss[i] is the same sort
    * as v[i] if v[i] is not a list variable, or is an SEXPR if v[i] is a list
    * variable,
-   * @return the substituted conclusion of the rule.
+   * @return the substituted conclusion of the rule without singleton
+   * elimination.
    */
   Node getConclusionFor(const std::vector<Node>& ss) const;
+  /**
+   * Get conclusion of the rule for the substituted terms ss for the variables
+   * v = getVarList() of this rule. This uses singleton elimination semantics.
+   *
+   * @param ss The terms to substitute in this rule. Each ss[i] is the same sort
+   * as v[i] if v[i] is not a list variable, or is an SEXPR if v[i] is a list
+   * variable,
+   * @param elimedSingleton Set to true if we eliminated a singleton list when
+   * computing the return value of this method.
+   * @return the substituted conclusion of the rule with singleton elimination.
+   */
   Node getConclusionForSElim(const std::vector<Node>& ss,
                              bool& elimedSingleton) const;
   /**
