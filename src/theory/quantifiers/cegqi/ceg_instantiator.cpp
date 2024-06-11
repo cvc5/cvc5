@@ -942,9 +942,11 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
 }
 
 /**
- * A class for eliminating witness terms. We require overriding the methd of
+ * A class for eliminating witness terms. We require overriding the metohd of
  * the base class to ensure that quantified formulas have been run through
- * theory preprocessing.
+ * theory preprocessing. This ensures that the skolem variables introduced
+ * align exactly with the quantified formula we will assert in the corresponding
+ * QUANTIFIERS_CEGQI_WITNESS lemma.
  */
 class PreprocessElimWitnessNodeConverter : public ElimWitnessNodeConverter
 {
