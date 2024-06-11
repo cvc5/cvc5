@@ -34,7 +34,7 @@ namespace uf {
 class TheoryUfRewriter : public TheoryRewriter
 {
  public:
-  TheoryUfRewriter(NodeManager* nm);
+  TheoryUfRewriter(NodeManager* nm, Rewriter* rr);
   /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
   /** pre-rewrite */
@@ -79,6 +79,12 @@ class TheoryUfRewriter : public TheoryRewriter
   static bool canUseAsApplyUfOperator(TNode n);
 
  private:
+  /**
+   * Pointer to the rewriter, required for rewriting lambdas that appear
+   * inside of operators that are not in rewritten form. NOTE this is a cyclic
+   * dependency, and should be removed.
+   */
+  Rewriter* d_rr;
   /** Entry point for rewriting lambdas */
   Node rewriteLambda(Node node);
   /** rewrite bv2nat */
