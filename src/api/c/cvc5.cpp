@@ -388,7 +388,7 @@ struct Cvc5TermManager
 
   /**
    * Decrement the external ref count of a term. If the ref count reaches zero,
-   * the term is release (freed).
+   * the term is released (freed).
    * @param term The term to release.
    */
   void release(cvc5_term_t* term);
@@ -400,19 +400,19 @@ struct Cvc5TermManager
   cvc5_term_t* copy(cvc5_term_t* term);
   /**
    * Decrement the external ref count of an operator. If the ref count reaches
-   * zero, the operator is release (freed).
+   * zero, the operator is released (freed).
    * @param op The operator to release.
    */
   void release(cvc5_op_t* op);
   /**
-   * Increment the external ref count of a operator.
+   * Increment the external ref count of an operator.
    * @param op The operator to copy.
    * @return The copied operator.
    */
   cvc5_op_t* copy(cvc5_op_t* term);
   /**
    * Decrement the external ref count of a sort. If the ref count reaches zero,
-   * the sort is release (freed).
+   * the sort is released (freed).
    * @param sort The sort to release.
    */
   void release(cvc5_sort_t* sort);
@@ -424,7 +424,7 @@ struct Cvc5TermManager
   cvc5_sort_t* copy(cvc5_sort_t* sort);
   /**
    * Decrement the external ref count of a datatype. If the ref count reaches
-   * zero, the datatype is release (freed).
+   * zero, the datatype is released (freed).
    * @param dt The datatype to release.
    */
   void release(cvc5_dt_t* dt);
@@ -436,7 +436,7 @@ struct Cvc5TermManager
   cvc5_dt_t* copy(cvc5_dt_t* dt);
   /**
    * Decrement the external ref count of a datatype constructor. If the ref
-   * count reaches zero, the datatype constructor is release (freed).
+   * count reaches zero, the datatype constructor is released (freed).
    * @param cons The datatype constructor to release.
    */
   void release(cvc5_dt_cons_t* cons);
@@ -448,7 +448,7 @@ struct Cvc5TermManager
   cvc5_dt_cons_t* copy(cvc5_dt_cons_t* cons);
   /**
    * Decrement the external ref count of a datatype selector. If the ref
-   * count reaches zero, the datatype selector is release (freed).
+   * count reaches zero, the datatype selector is released (freed).
    * @param cons The datatype selector to release.
    */
   void release(cvc5_dt_sel_t* sel);
@@ -460,7 +460,7 @@ struct Cvc5TermManager
   cvc5_dt_sel_t* copy(cvc5_dt_sel_t* sel);
   /**
    * Decrement the external ref count of a datatype declaration. If the ref
-   * count reaches zero, the datatype declaration is release (freed).
+   * count reaches zero, the datatype declaration is released (freed).
    * @param decl The datatype declaration to release.
    */
   void release(cvc5_dt_decl_t* decl);
@@ -598,130 +598,178 @@ Cvc5DatatypeConstructorDecl Cvc5TermManager::export_dt_cons_decl(
 
 void Cvc5TermManager::release(cvc5_term_t* term)
 {
-  term->d_refs -= 1;
-  if (term->d_refs == 0)
+  if (term)
   {
-    Assert(d_alloc_terms.find(term->d_term) != d_alloc_terms.end());
-    d_alloc_terms.erase(term->d_term);
+    term->d_refs -= 1;
+    if (term->d_refs == 0)
+    {
+      Assert(d_alloc_terms.find(term->d_term) != d_alloc_terms.end());
+      d_alloc_terms.erase(term->d_term);
+    }
   }
 }
 
 cvc5_term_t* Cvc5TermManager::copy(cvc5_term_t* term)
 {
-  term->d_refs += 1;
+  if (term)
+  {
+    term->d_refs += 1;
+  }
   return term;
 }
 
 void Cvc5TermManager::release(cvc5_op_t* op)
 {
-  op->d_refs -= 1;
-  if (op->d_refs == 0)
+  if (op)
   {
-    Assert(d_alloc_ops.find(op->d_op) != d_alloc_ops.end());
-    d_alloc_ops.erase(op->d_op);
+    op->d_refs -= 1;
+    if (op->d_refs == 0)
+    {
+      Assert(d_alloc_ops.find(op->d_op) != d_alloc_ops.end());
+      d_alloc_ops.erase(op->d_op);
+    }
   }
 }
 
 cvc5_op_t* Cvc5TermManager::copy(cvc5_op_t* op)
 {
-  op->d_refs += 1;
+  if (op)
+  {
+    op->d_refs += 1;
+  }
   return op;
 }
 
 void Cvc5TermManager::release(cvc5_sort_t* sort)
 {
-  sort->d_refs -= 1;
-  if (sort->d_refs == 0)
+  if (sort)
   {
-    Assert(d_alloc_sorts.find(sort->d_sort) != d_alloc_sorts.end());
-    d_alloc_sorts.erase(sort->d_sort);
+    sort->d_refs -= 1;
+    if (sort->d_refs == 0)
+    {
+      Assert(d_alloc_sorts.find(sort->d_sort) != d_alloc_sorts.end());
+      d_alloc_sorts.erase(sort->d_sort);
+    }
   }
 }
 
 cvc5_sort_t* Cvc5TermManager::copy(cvc5_sort_t* sort)
 {
-  sort->d_refs += 1;
+  if (sort)
+  {
+    sort->d_refs += 1;
+  }
   return sort;
 }
 
 void Cvc5TermManager::release(cvc5_dt_t* dt)
 {
-  dt->d_refs -= 1;
-  if (dt->d_refs == 0)
+  if (dt)
   {
-    Assert(d_alloc_dts.find(dt->d_dt) != d_alloc_dts.end());
-    d_alloc_dts.erase(dt->d_dt);
+    dt->d_refs -= 1;
+    if (dt->d_refs == 0)
+    {
+      Assert(d_alloc_dts.find(dt->d_dt) != d_alloc_dts.end());
+      d_alloc_dts.erase(dt->d_dt);
+    }
   }
 }
 
 cvc5_dt_t* Cvc5TermManager::copy(cvc5_dt_t* dt)
 {
-  dt->d_refs += 1;
+  if (dt)
+  {
+    dt->d_refs += 1;
+  }
   return dt;
 }
 
 void Cvc5TermManager::release(cvc5_dt_cons_t* cons)
 {
-  cons->d_refs -= 1;
-  if (cons->d_refs == 0)
+  if (cons)
   {
-    Assert(d_alloc_dt_conss.find(cons->d_dt_cons) != d_alloc_dt_conss.end());
-    d_alloc_dt_conss.erase(cons->d_dt_cons);
+    cons->d_refs -= 1;
+    if (cons->d_refs == 0)
+    {
+      Assert(d_alloc_dt_conss.find(cons->d_dt_cons) != d_alloc_dt_conss.end());
+      d_alloc_dt_conss.erase(cons->d_dt_cons);
+    }
   }
 }
 
 cvc5_dt_cons_t* Cvc5TermManager::copy(cvc5_dt_cons_t* cons)
 {
-  cons->d_refs += 1;
+  if (cons)
+  {
+    cons->d_refs += 1;
+  }
   return cons;
 }
 
 void Cvc5TermManager::release(cvc5_dt_sel_t* sel)
 {
-  sel->d_refs -= 1;
-  if (sel->d_refs == 0)
+  if (sel)
   {
-    Assert(d_alloc_dt_sels.find(sel->d_dt_sel) != d_alloc_dt_sels.end());
-    d_alloc_dt_sels.erase(sel->d_dt_sel);
+    sel->d_refs -= 1;
+    if (sel->d_refs == 0)
+    {
+      Assert(d_alloc_dt_sels.find(sel->d_dt_sel) != d_alloc_dt_sels.end());
+      d_alloc_dt_sels.erase(sel->d_dt_sel);
+    }
   }
 }
 
 cvc5_dt_sel_t* Cvc5TermManager::copy(cvc5_dt_sel_t* sel)
 {
-  sel->d_refs += 1;
+  if (sel)
+  {
+    sel->d_refs += 1;
+  }
   return sel;
 }
 
 void Cvc5TermManager::release(cvc5_dt_decl_t* decl)
 {
-  decl->d_refs -= 1;
-  if (decl->d_refs == 0)
+  if (decl)
   {
-    Assert(d_alloc_dt_decls.find(decl->d_decl) != d_alloc_dt_decls.end());
-    d_alloc_dt_decls.erase(decl->d_decl);
+    decl->d_refs -= 1;
+    if (decl->d_refs == 0)
+    {
+      Assert(d_alloc_dt_decls.find(decl->d_decl) != d_alloc_dt_decls.end());
+      d_alloc_dt_decls.erase(decl->d_decl);
+    }
   }
 }
 
 cvc5_dt_decl_t* Cvc5TermManager::copy(cvc5_dt_decl_t* decl)
 {
-  decl->d_refs += 1;
+  if (decl)
+  {
+    decl->d_refs += 1;
+  }
   return decl;
 }
 
 void Cvc5TermManager::release(cvc5_dt_cons_decl_t* decl)
 {
-  decl->d_refs -= 1;
-  if (decl->d_refs == 0)
+  if (decl)
   {
-    Assert(d_alloc_dt_cons_decls.find(decl->d_decl)
-           != d_alloc_dt_cons_decls.end());
-    d_alloc_dt_cons_decls.erase(decl->d_decl);
+    decl->d_refs -= 1;
+    if (decl->d_refs == 0)
+    {
+      Assert(d_alloc_dt_cons_decls.find(decl->d_decl)
+             != d_alloc_dt_cons_decls.end());
+      d_alloc_dt_cons_decls.erase(decl->d_decl);
+    }
   }
 }
 
 cvc5_dt_cons_decl_t* Cvc5TermManager::copy(cvc5_dt_cons_decl_t* decl)
 {
-  decl->d_refs += 1;
+  if (decl)
+  {
+    decl->d_refs += 1;
+  }
   return decl;
 }
 
@@ -739,6 +787,24 @@ void Cvc5TermManager::release()
 /* -------------------------------------------------------------------------- */
 /* Cvc5Sort                                                                   */
 /* -------------------------------------------------------------------------- */
+
+Cvc5Sort cvc5_sort_copy(Cvc5Sort sort)
+{
+  Cvc5Sort res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = sort->d_tm->copy(sort);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_sort_release(Cvc5Sort sort)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SORT(sort);
+  sort->d_tm->release(sort);
+  CVC5_CAPI_TRY_CATCH_END;
+}
 
 bool cvc5_sort_is_equal(Cvc5Sort a, Cvc5Sort b)
 {
@@ -1575,6 +1641,25 @@ Cvc5Sort cvc5_sort_nullable_get_element_sort(Cvc5Sort sort)
 
 /* Cvc5DatatypeConstructorDecl ----------------------------------------- */
 
+Cvc5DatatypeConstructorDecl cvc5_dt_cons_decl_copy(
+    Cvc5DatatypeConstructorDecl decl)
+{
+  Cvc5DatatypeConstructorDecl res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_CONS_DECL(decl);
+  res = decl->d_tm->copy(decl);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_dt_decl_release(Cvc5DatatypeConstructorDecl decl)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_CONS_DECL(decl);
+  decl->d_tm->release(decl);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 void cvc5_dt_cons_decl_add_selector(Cvc5DatatypeConstructorDecl decl,
                                     const char* name,
                                     Cvc5Sort sort)
@@ -1620,6 +1705,24 @@ const char* cvc5_dt_cons_decl_to_string(Cvc5DatatypeConstructorDecl decl)
 }
 
 /* Cvc5DatatypeDecl ---------------------------------------------------- */
+
+Cvc5DatatypeDecl cvc5_dt_decl_copy(Cvc5DatatypeDecl decl)
+{
+  Cvc5DatatypeDecl res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_DECL(decl);
+  res = decl->d_tm->copy(decl);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_dt_decl_release(Cvc5DatatypeDecl decl)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_DECL(decl);
+  decl->d_tm->release(decl);
+  CVC5_CAPI_TRY_CATCH_END;
+}
 
 void cvc5_dt_decl_add_constructor(Cvc5DatatypeDecl decl,
                                   Cvc5DatatypeConstructorDecl cdecl)
@@ -1683,7 +1786,25 @@ const char* cvc5_dt_decl_get_name(Cvc5DatatypeDecl decl)
 
 /* Cvc5DatatypeSelector ------------------------------------------------ */
 
-const char* cvc5_dt_del_get_name(Cvc5DatatypeSelector sel)
+Cvc5DatatypeSelector cvc5_dt_sel_copy(Cvc5DatatypeSelector sel)
+{
+  Cvc5DatatypeSelector res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_SEL(sel);
+  res = sel->d_tm->copy(sel);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_dt_sel_release(Cvc5DatatypeSelector sel)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_SEL(sel);
+  sel->d_tm->release(sel);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+const char* cvc5_dt_sel_get_name(Cvc5DatatypeSelector sel)
 {
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
@@ -1734,6 +1855,24 @@ const char* cvc5_dt_sel_to_string(Cvc5DatatypeSelector sel)
 }
 
 /* Cvc5DatatypeConstructor --------------------------------------------- */
+
+Cvc5DatatypeConstructor cvc5_dt_cons_copy(Cvc5DatatypeConstructor cons)
+{
+  Cvc5DatatypeConstructor res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_CONS(cons);
+  res = cons->d_tm->copy(cons);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_dt_cons_release(Cvc5DatatypeConstructor cons)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_CONS(cons);
+  cons->d_tm->release(cons);
+  CVC5_CAPI_TRY_CATCH_END;
+}
 
 const char* cvc5_dt_cons_get_name(Cvc5DatatypeConstructor cons)
 {
@@ -1822,6 +1961,24 @@ const char* cvc5_dt_cons_to_string(Cvc5DatatypeConstructor cons)
 }
 
 /* Cvc5Datatype -------------------------------------------------------- */
+
+Cvc5Datatype cvc5_dt_copy(Cvc5Datatype dt)
+{
+  Cvc5Datatype res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT(dt);
+  res = dt->d_tm->copy(dt);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_dt_release(Cvc5Datatype dt)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT(dt);
+  dt->d_tm->release(dt);
+  CVC5_CAPI_TRY_CATCH_END;
+}
 
 Cvc5DatatypeConstructor cvc5_dt_get_constructor(Cvc5Datatype dt, size_t idx)
 {
@@ -1967,6 +2124,24 @@ const char* cvc5_dt_to_string(Cvc5Datatype dt)
 /* -------------------------------------------------------------------------- */
 /* Cvc5Term                                                                   */
 /* -------------------------------------------------------------------------- */
+
+Cvc5Term cvc5_term_copy(Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_tm->copy(term);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_term_release(Cvc5Term term)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  term->d_tm->release(term);
+  CVC5_CAPI_TRY_CATCH_END;
+}
 
 Cvc5Sort cvc5_term_get_sort(Cvc5Term term)
 {
