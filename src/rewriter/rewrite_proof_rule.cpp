@@ -39,6 +39,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
   Assert(d_cond.empty() && d_obGen.empty() && d_fvs.empty());
   d_id = id;
   d_userFvs = userFvs;
+  std::map<Node, Node> condDef;
   for (const Node& c : cond)
   {
     if (!expr::getListVarContext(c, d_listVarCtx))
@@ -50,7 +51,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
     d_obGen.push_back(c);
     if (c.getKind()==Kind::EQUAL && c[0].getKind()==Kind::BOUND_VARIABLE)
     {
-      d_condDefinedVars[c[0]] = c[1];
+      condDef[c[0]] = c[1];
     }
   }
   d_conc = conc;
@@ -59,6 +60,29 @@ void RewriteProofRule::init(ProofRewriteRule id,
   {
     Unhandled() << "Ambiguous context for list variables in conclusion of rule "
                 << id;
+  }
+  if (!condDef.empty())
+  {
+    std::unordered_set<Node> fvsLhs;
+    expr::getFreeVariables(d_conc[0], fvsLhs);
+    std::unordered_set<Node> fvsRhs;
+    expr::getFreeVariables(d_conc[1], fvsRhs);
+    std::map<Node, Node>::iterator itc;
+    for (const Node& v : fvsRhs)
+    {
+      if (fvsLhs.find(v)!=fvsLhs.end())
+      {
+        // variable on left hand side
+        continue;
+      }
+      itc = condDef.find(v);
+      if (itc==condDef.end())
+      {
+        Unhandled() << "Free variable on right hand side of conclusion that is not on the left hand side, nor is defined in a condition";
+      }
+      // variable defined in the condition
+      d_condDefinedVars[v] = itc->second;
+    }
   }
 
   d_numFv = fvs.size();

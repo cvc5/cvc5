@@ -572,6 +572,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
           s = evaluate(s, {}, {});
         }
         stgt = expr::narySubstitute(stgt, impliedVs, impliedSs);
+        Trace("rpc-debug2") << " Implied definitions (post-eval): " << impliedVs << " -> " << impliedSs << std::endl;
+        Trace("rpc-debug2") << "Substituted RHS (post-eval): " << stgt << std::endl;
       }
     }
     // inflection substitution, used if conclusion does not exactly match
@@ -603,10 +605,10 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     if (!impliedVs.empty())
     {
       std::vector<Node> vsall = vars;
-      vsall.insert(vsall.end(), impliedVs.begin(), impliedVs.end());
       std::vector<Node> subsall = subs;
+      vsall.insert(vsall.end(), impliedVs.begin(), impliedVs.end());
       subsall.insert(subsall.end(), impliedSs.begin(), impliedSs.end());
-      if (!rpr.getObligations(vars, subs, vcs))
+      if (!rpr.getObligations(vsall, subsall, vcs))
       {
         // cannot get conditions, likely due to failed side condition
         Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
@@ -696,6 +698,11 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   {
     pi->d_vars = vars;
     pi->d_subs = subs;
+    if (!impliedVs.empty())
+    {
+      pi->d_vars.insert(pi->d_vars.end(), impliedVs.begin(), impliedVs.end());
+      pi->d_subs.insert(pi->d_subs.end(), impliedSs.begin(), impliedSs.end());
+    }
   }
   Trace("rpc-debug2") << "...target proved by " << d_pcache[target].d_id
                       << std::endl;
