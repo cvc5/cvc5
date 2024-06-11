@@ -107,11 +107,7 @@
 ;   This function is declared in SMT-LIB to be :left-assoc. We
 ;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
 ;   functions.
-(declare-const re.++ (-> RegLan RegLan RegLan) :right-assoc-nil (str.to_re ""))
-; disclaimer: >
-;   This function is declared in SMT-LIB to be :left-assoc. We
-;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
-;   functions.
+(declare-const re.++ (-> RegLan RegLan RegLan) :right-assoc-nil @re.empty)
 (declare-const re.inter (-> RegLan RegLan RegLan) :right-assoc-nil re.all)
 ; disclaimer: >
 ;   This function is declared in SMT-LIB to be :left-assoc. We
