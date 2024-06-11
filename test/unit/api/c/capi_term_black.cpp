@@ -42,6 +42,12 @@ class TestCApiBlackTerm : public ::testing::Test
   Cvc5Sort d_uninterpreted;
 };
 
+TEST_F(TestCApiBlackTerm, hash)
+{
+  ASSERT_DEATH(cvc5_term_hash(nullptr), "invalid term");
+  (void)cvc5_term_hash(cvc5_mk_integer_int64(d_tm, 2));
+}
+
 TEST_F(TestCApiBlackTerm, compare)
 {
   Cvc5Term x = cvc5_mk_var(d_tm, d_uninterpreted, "x");
