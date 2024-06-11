@@ -652,7 +652,7 @@ void InferProofCons::convert(InferenceId infer,
         }
         else
         {
-          AlwaysAssert(false)
+          Assert(false)
               << "Failed to convert length " << lenReq << " " << ps.d_children;
           Trace("strings-ipc-deq") << "...fail length" << std::endl;
         }

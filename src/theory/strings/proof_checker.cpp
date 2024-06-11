@@ -323,8 +323,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     }
     SkolemCache skc(nullptr);
     std::vector<Node> newSkolems;
-    Node conc = CoreSolver::getConclusion(
-        atom[0][0], atom[1], id, isRev, &skc, newSkolems);
+    Node conc = CoreSolver::getDecomposeConclusion(
+        atom[0][0], atom[1], isRev, &skc, newSkolems);
     return conc;
   }
   else if (id == ProofRule::STRING_REDUCTION
