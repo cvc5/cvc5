@@ -168,7 +168,10 @@ Node mkPrefixExceptLen(Node t, Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node lent = nm->mkNode(Kind::STRING_LENGTH, t);
-  return nm->mkNode(Kind::STRING_SUBSTR, t, nm->mkConstInt(Rational(0)), nm->mkNode(Kind::SUB, lent, n));
+  return nm->mkNode(Kind::STRING_SUBSTR,
+                    t,
+                    nm->mkConstInt(Rational(0)),
+                    nm->mkNode(Kind::SUB, lent, n));
 }
 
 Node mkSuffixOfLen(Node t, Node n)
