@@ -2467,6 +2467,54 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
+
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
+   * \endverbatim
+   */
+  EVALUE(BV_UMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
+   * \endverbatim
+   */
+  EVALUE(BV_SMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Combine like terms during addition by counting terms**
+   * \endverbatim
+   */
+  EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Extract negations from multiplicands**
+   *
+   * .. math::
+   *    (-a bvmul b bvmul c) \to -(a bvmul b c)
+   *
+   * \endverbatim
+   */
+  EVALUE(BV_MULT_SIMPLIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Extract continuous substrings of bitvectors**
+   *
+   * .. math::
+   *    (a bvand c) \to (concat (bvand a[i0:j0] c0) ... (bvand a[in:jn] cn))
+   *
+   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the constant c
+   * \endverbatim
+   */
+  EVALUE(BV_BITWISE_SLICING),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression loop elimination**
