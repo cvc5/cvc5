@@ -662,12 +662,12 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       Node cacheVal;
       if (sm->isSkolemFunction(n.getOperator(), id, cacheVal))
       {
-        if (n.getNumChildren() != 0)
-        {
-          out << '(';
-        }
         if (options::ioutils::getPrintSkolemDefinitions(out))
         {
+          if (n.getNumChildren() != 0)
+          {
+            out << '(';
+          }
           toStreamSkolem(out, cacheVal, id, /*isApplied=*/true);
           return false;
         }
@@ -2096,7 +2096,6 @@ void Smt2Printer::toStreamSkolem(std::ostream& out,
   {
     out << "(";
   }
-
   out << "@" << id;
   if (cacheVal.getKind() == Kind::SEXPR)
   {
