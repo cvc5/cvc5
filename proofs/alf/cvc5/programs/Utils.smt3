@@ -140,3 +140,29 @@
     t
     (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_a_norm_rec f id t))))))
 )
+
+
+;; =============== for results
+
+; Used for representing partial results of the method below.
+(declare-const @result.null Bool)
+(declare-const @result.invalid Bool)
+
+; program: $result_combine
+; args:
+; - b1 Bool: The first Boolean result to combine.
+; - b2 Bool: The second Boolean result to combine.
+; return: >
+;   The result of combining the two results if they agree, where @result.null
+;   is treated as no result and @result.invalid is treated as an invalid result.
+; note: >
+;   In summary, ($result_combine b1 ... ($result_combine bn @result.null)) returns
+;   b1 if b1...bn are the same or @result.invalid otherwise.
+(program $result_combine ((b1 Bool) (b2 Bool))
+  (Bool Bool) Bool
+  (
+    (($result_combine b1 @result.null) b1)
+    (($result_combine b1 b1)           b1)
+    (($result_combine b1 b2)           @result.invalid)
+  )
+)

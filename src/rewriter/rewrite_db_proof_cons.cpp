@@ -58,12 +58,12 @@ bool RewriteDbProofCons::prove(
     CDProof* cdp,
     const Node& a,
     const Node& b,
-    theory::TheoryId tid,
-    MethodId mid,
     int64_t recLimit,
     int64_t stepLimit,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+    std::vector<std::shared_ptr<ProofNode>>& subgoals,
+    TheoryRewriteMode tmode)
 {
+  d_tmode = tmode;
   // clear the proof caches
   d_pcache.clear();
   // clear the evaluate cache
@@ -115,7 +115,7 @@ bool RewriteDbProofCons::prove(
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
   bool success = false;
-  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid, subgoals))
+  if (d_trrc.prove(cdp, eq[0], eq[1], subgoals, tmode))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
@@ -155,7 +155,7 @@ bool RewriteDbProofCons::prove(
   if (!success)
   {
     // now try the "post-prove" method as a last resort
-    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid, subgoals))
+    if (d_trrc.postProve(cdp, eq[0], eq[1], subgoals, tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
@@ -257,10 +257,13 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   }
   // Maybe holds via a THEORY_REWRITE that has been marked with
   // TheoryRewriteCtx::DSL_SUBCALL.
-  if (proveWithRule(
-          RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+  if (d_tmode==TheoryRewriteMode::STANDARD)
   {
-    return RewriteProofStatus::THEORY_REWRITE;
+    if (proveWithRule(
+            RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+    {
+      return RewriteProofStatus::THEORY_REWRITE;
+    }
   }
   Trace("rpc-debug2") << "...not proved via builtin tactic" << std::endl;
   d_currRecLimit--;

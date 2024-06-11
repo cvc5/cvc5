@@ -66,33 +66,10 @@ std::ostream& operator<<(std::ostream& out, InternalSkolemId id)
 
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
-Node SkolemManager::mkPurifySkolem(Node t,
-                                   ProofGenerator* pg)
+Node SkolemManager::mkPurifySkolem(Node t)
 {
   // We do not recursively compute the original form of t here
-  Node k;
-  if (t.getKind() == Kind::WITNESS)
-  {
-    // The purification skolem for (witness ((x T)) P) is the same as
-    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) x).
-    NodeManager* nm = NodeManager::currentNM();
-    Node exists =
-        nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
-    k = mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {exists, t[0][0]});
-    // store the proof generator if it exists
-    if (pg != nullptr)
-    {
-      d_gens[exists] = pg;
-    }
-    UnpurifiedFormAttribute ufa;
-    k.setAttribute(ufa, t);
-  }
-  else
-  {
-    k = mkSkolemFunction(SkolemId::PURIFY, {t});
-    // shouldn't provide proof generators for other terms
-    Assert(pg == nullptr);
-  }
+  Node k = mkSkolemFunction(SkolemId::PURIFY, {t});
   Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
@@ -271,16 +248,6 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   int flags)
 {
   return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
-}
-
-ProofGenerator* SkolemManager::getProofGenerator(Node t) const
-{
-  std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(t);
-  if (it != d_gens.end())
-  {
-    return it->second;
-  }
-  return nullptr;
 }
 
 bool SkolemManager::isAbstractValue(TNode n) const
@@ -613,6 +580,78 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     default: break;
   }
   return TypeNode();
+}
+
+size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
+{
+  switch (id)
+  {
+    // Number of skolem indices: 0
+    case SkolemId::BV_EMPTY:
+    case SkolemId::DIV_BY_ZERO:
+    case SkolemId::INT_DIV_BY_ZERO:
+    case SkolemId::MOD_BY_ZERO: return 0;
+
+    // Number of skolem indices: 1
+    case SkolemId::PURIFY:
+    case SkolemId::GROUND_TERM:
+    case SkolemId::TRANSCENDENTAL_PURIFY:
+    case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
+    case SkolemId::STRINGS_REPLACE_ALL_RESULT:
+    case SkolemId::STRINGS_ITOS_RESULT:
+    case SkolemId::STRINGS_STOI_RESULT:
+    case SkolemId::STRINGS_STOI_NON_DIGIT:
+    case SkolemId::BAGS_CARD_COMBINE:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT:
+    case SkolemId::BAGS_FOLD_CARD:
+    case SkolemId::BAGS_FOLD_ELEMENTS:
+    case SkolemId::BAGS_FOLD_UNION_DISJOINT:
+    case SkolemId::BAGS_CHOOSE:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS:
+    case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
+    case SkolemId::TABLES_GROUP_PART:
+    case SkolemId::RELATIONS_GROUP_PART:
+    case SkolemId::SETS_CHOOSE:
+    case SkolemId::SETS_FOLD_CARD:
+    case SkolemId::SETS_FOLD_ELEMENTS:
+    case SkolemId::SETS_FOLD_UNION:
+    case SkolemId::FP_MIN_ZERO:
+    case SkolemId::FP_MAX_ZERO:
+    case SkolemId::FP_TO_REAL: return 1;
+
+    // Number of skolem indices: 2
+    case SkolemId::ARRAY_DEQ_DIFF:
+    case SkolemId::QUANTIFIERS_SKOLEMIZE:
+    case SkolemId::STRINGS_NUM_OCCUR:
+    case SkolemId::STRINGS_OCCUR_INDEX:
+    case SkolemId::STRINGS_NUM_OCCUR_RE:
+    case SkolemId::STRINGS_OCCUR_INDEX_RE:
+    case SkolemId::STRINGS_OCCUR_LEN_RE:
+    case SkolemId::STRINGS_DEQ_DIFF:
+    case SkolemId::RE_FIRST_MATCH_PRE:
+    case SkolemId::RE_FIRST_MATCH:
+    case SkolemId::RE_FIRST_MATCH_POST:
+    case SkolemId::BAGS_DEQ_DIFF:
+    case SkolemId::TABLES_GROUP_PART_ELEMENT:
+    case SkolemId::RELATIONS_GROUP_PART_ELEMENT:
+    case SkolemId::SETS_DEQ_DIFF:
+    case SkolemId::SETS_MAP_DOWN_ELEMENT:
+    case SkolemId::FP_TO_SBV:
+    case SkolemId::FP_TO_UBV: return 2;
+
+    // Number of skolem indices: 3
+    case SkolemId::SHARED_SELECTOR:
+    case SkolemId::RE_UNFOLD_POS_COMPONENT:
+    case SkolemId::BAGS_FOLD_COMBINE:
+    case SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE:
+    case SkolemId::BAGS_MAP_SUM:
+    case SkolemId::SETS_FOLD_COMBINE: return 3;
+
+    // Number of skolem indices: 5
+    case SkolemId::BAGS_MAP_INDEX: return 5;
+
+    default: Unimplemented() << "Unknown skolem kind " << id; break;
+  }
 }
 
 }  // namespace cvc5::internal
