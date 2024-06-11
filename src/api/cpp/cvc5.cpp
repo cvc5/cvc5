@@ -4408,7 +4408,7 @@ DatatypeSelector DatatypeConstructor::getSelectorForName(
       snames << (*d_ctor)[i].getName() << " ";
     }
     snames << "} ";
-    CVC5_API_CHECK(foundSel) << "No selector " << name << " for constructor "
+    CVC5_API_CHECK(foundSel) << "no selector " << name << " for constructor "
                              << getName() << " exists among " << snames.str();
   }
   return DatatypeSelector(d_tm, (*d_ctor)[index]);
@@ -4566,7 +4566,7 @@ bool Datatype::isFinite() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(!d_dtype->isParametric())
-      << "invalid call to 'isFinite()', expected non-parametric Datatype";
+      << "invalid call to 'isFinite()', expected non-parametric datatype";
   //////// all checks before this line
   // we assume that finite model finding is disabled by passing false as the
   // second argument
@@ -4637,7 +4637,7 @@ DatatypeConstructor Datatype::getConstructorForName(
       snames << (*d_dtype)[i].getName() << " ";
     }
     snames << "}";
-    CVC5_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
+    CVC5_API_CHECK(foundCons) << "no constructor " << name << " for datatype "
                               << getName() << " exists, among " << snames.str();
   }
   return DatatypeConstructor(d_tm, (*d_dtype)[index]);
@@ -4662,7 +4662,7 @@ DatatypeSelector Datatype::getSelectorForName(const std::string& name) const
   if (!foundSel)
   {
     CVC5_API_CHECK(foundSel)
-        << "No select " << name << " for datatype " << getName() << " exists";
+        << "no selector " << name << " for datatype " << getName() << " exists";
   }
   return DatatypeSelector(d_tm, (*d_dtype)[index][sindex]);
 }
@@ -5077,7 +5077,7 @@ const Stat& Statistics::get(const std::string& name)
   CVC5_API_TRY_CATCH_BEGIN;
   auto it = d_stats.find(name);
   CVC5_API_RECOVERABLE_CHECK(it != d_stats.end())
-      << "No stat with name \"" << name << "\" exists.";
+      << "no statistic with name \"" << name << "\" exists.";
   return it->second;
   CVC5_API_TRY_CATCH_END;
 }

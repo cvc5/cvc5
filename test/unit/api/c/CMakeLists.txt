@@ -14,6 +14,7 @@
 ##
 
 # Generate and add unit test.
+cvc5_add_unit_test_black(capi_datatype_black api/c)
 cvc5_add_unit_test_black(capi_grammar_black api/c)
 cvc5_add_unit_test_black(capi_kind_black api/c)
 cvc5_add_unit_test_black(capi_op_black api/c)
