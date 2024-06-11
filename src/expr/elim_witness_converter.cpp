@@ -34,13 +34,20 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     std::vector<Node> nchildren(n.begin(), n.end());
     nchildren[1] = nchildren[1].notNode();
     Node q = nm->mkNode(Kind::FORALL, nchildren);
+    Node qn = getNormalFormFor(q);
     Node k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
-                                   {q, n[0][0]});
-    d_exists.push_back(q.notNode());
+                                   {qn, n[0][0]});
+    d_exists.push_back(qn.notNode());
     return k;
   }
   return n;
 }
+
+Node ElimWitnessNodeConverter::getNormalFormFor(const Node& q)
+{
+  return q;
+}
+
 const std::vector<Node>& ElimWitnessNodeConverter::getExistentials() const
 {
   return d_exists;
