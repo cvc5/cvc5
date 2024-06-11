@@ -3516,7 +3516,7 @@ class CVC5_EXPORT Plugin
 
  public:
   Plugin(TermManager& tm);
-  virtual ~Plugin();
+  virtual ~Plugin() = default;
   /**
    * Call to check, return vector of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
@@ -3761,6 +3761,19 @@ class CVC5_EXPORT TermManager
    * @return The function sort.
    */
   Sort mkFunctionSort(const std::vector<Sort>& sorts, const Sort& codomain);
+  /**
+   * Make a skolem.
+   * @param id The skolem identifier.
+   * @param indices The indices of the skolem.
+   * @return The skolem.
+   */
+  Term mkSkolem(SkolemId id, const std::vector<Term>& indices);
+  /**
+   * Get the number of indices for a skolem id.
+   * @param id The skolem id.
+   * @return The number of indices for the skolem id.
+   */
+  size_t getNumIndicesForSkolemId(SkolemId id);
   /**
    * Create a sort parameter.
    *

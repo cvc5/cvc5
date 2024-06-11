@@ -5188,7 +5188,6 @@ Plugin::Plugin(TermManager& tm)
     : d_pExtToInt(new PluginInternal(tm.d_nm, tm, *this))
 {
 }
-Plugin::~Plugin() {}
 
 std::vector<Term> Plugin::check()
 {
@@ -5727,6 +5726,28 @@ Sort TermManager::mkFunctionSort(const std::vector<Sort>& sorts,
   //////// all checks before this line
   std::vector<internal::TypeNode> argTypes = Sort::sortVectorToTypeNodes(sorts);
   return Sort(this, d_nm->mkFunctionType(argTypes, *codomain.d_type));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term TermManager::mkSkolem(SkolemId id, const std::vector<Term>& indices)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  // iterate over indices and convert the Terms to Nodes
+  std::vector<internal::Node> nodeIndices = Term::termVectorToNodes(indices);
+  internal::Node res =
+      d_nm->getSkolemManager()->mkSkolemFunction(id, nodeIndices);
+  return Term(this, res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+size_t TermManager::getNumIndicesForSkolemId(SkolemId id)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_nm->getSkolemManager()->getNumIndicesForSkolemId(id);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

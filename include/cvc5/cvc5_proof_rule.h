@@ -1716,21 +1716,6 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Regular expressions -- Elimination**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid F,b}{F =
-   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
-   *
-   * where :math:`b` is a Boolean indicating whether we are using aggressive
-   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
-   * are performed for :math:`F`.
-   * \endverbatim
-   */
-  EVALUE(RE_ELIM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Code points**
    *
    * .. math::
@@ -1766,7 +1751,24 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(MACRO_STRING_INFERENCE),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Macro elimination**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid F,b}{F =
+   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
+   *
+   * where :math:`b` is a Boolean indicating whether we are using aggressive
+   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
+   * are performed for :math:`F`.
+   *
+   * \rst
+   * .. note:: We do not currently support elaboration of this macro.
+   * \endverbatim
+   */
+  EVALUE(MACRO_RE_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Adding inequalities**
@@ -2181,66 +2183,6 @@ enum ENUM(ProofRule) : uint32_t
    * :math:`u`. \endverbatim
    */
   EVALUE(ARITH_TRANS_SINE_APPROX_BELOW_POS),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Coverings -- Direct conflict**
-   *
-   * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
-   * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that
-   * :math:`poly` may not be univariate; in this case, the value of
-   * :math:`\texttt{IRP}_k(poly)` can only be calculated with respect to a
-   * (partial) model for all but one variable of :math:`poly`.
-   *
-   * A formula :math:`\texttt{Interval}(x_i)` describes that a variable
-   * :math:`x_i` is within a particular interval whose bounds are given as IRPs.
-   * It is either an open interval or a point interval:
-   *
-   * .. math::
-   *   \texttt{IRP}_k(poly) < x_i < \texttt{IRP}_k(poly)
-   *
-   *   x_i = \texttt{IRP}_k(poly)
-   *
-   * A formula :math:`\texttt{Cell}(x_1 \dots x_i)` describes a portion
-   * of the real space in the following form:
-   *
-   * .. math::
-   *   \texttt{Interval}(x_1) \land \dots \land \texttt{Interval}(x_i)
-   *
-   * A cell can also be empty (for :math:`i = 0`).
-   *
-   * A formula :math:`\texttt{Covering}(x_i)` is a set of intervals, implying
-   * that :math:`x_i` can be in neither of these intervals. To be a covering (of
-   * the real line), the union of these intervals should be the real numbers.
-   *
-   * .. math::
-   *   \inferrule{\texttt{Cell}, A \mid -}{\bot}
-   *
-   * A direct interval is generated from an assumption :math:`A` (in variables
-   * :math:`x_1 \dots x_i`) over a :math:`\texttt{Cell}(x_1 \dots x_i)`. It
-   * derives that :math:`A` evaluates to false over the cell. In the actual
-   * algorithm, it means that :math:`x_i` can not be in the topmost interval of
-   * the cell. \endverbatim
-   */
-  EVALUE(ARITH_NL_COVERING_DIRECT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Coverings -- Recursive interval**
-   *
-   * See
-   * :cpp:enumerator:`ARITH_NL_COVERING_DIRECT <cvc5::ProofRule::ARITH_NL_COVERING_DIRECT>`
-   * for the necessary definitions.
-   *
-   * .. math::
-   *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
-   *
-   * A recursive interval is generated from :math:`\texttt{Covering}(x_i)` over
-   * :math:`\texttt{Cell}(x_1 \dots x_{i-1})`. It generates the conclusion that
-   * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
-   * \endverbatim
-   */
-  EVALUE(ARITH_NL_COVERING_RECURSIVE),
-
   /**
    * \verbatim embed:rst:leading-asterisk
    * **External -- LFSC**
@@ -2525,6 +2467,54 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
+
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
+   * \endverbatim
+   */
+  EVALUE(BV_UMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
+   * \endverbatim
+   */
+  EVALUE(BV_SMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Combine like terms during addition by counting terms**
+   * \endverbatim
+   */
+  EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Extract negations from multiplicands**
+   *
+   * .. math::
+   *    (-a bvmul b bvmul c) \to -(a bvmul b c)
+   *
+   * \endverbatim
+   */
+  EVALUE(BV_MULT_SIMPLIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Extract continuous substrings of bitvectors**
+   *
+   * .. math::
+   *    (a bvand c) \to (concat (bvand a[i0:j0] c0) ... (bvand a[in:jn] cn))
+   *
+   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the constant c
+   * \endverbatim
+   */
+  EVALUE(BV_BITWISE_SLICING),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression loop elimination**

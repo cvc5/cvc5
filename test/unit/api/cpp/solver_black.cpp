@@ -2554,10 +2554,15 @@ class PluginListen : public Plugin
   {
   }
   virtual ~PluginListen() {}
-  void notifySatClause(const Term& cl) override { d_hasSeenSatClause = true; }
+  void notifySatClause(const Term& cl) override
+  {
+    Plugin::notifySatClause(cl); // Cover default implementation
+    d_hasSeenSatClause = true;
+  }
   bool hasSeenSatClause() const { return d_hasSeenSatClause; }
   void notifyTheoryLemma(const Term& lem) override
   {
+    Plugin::notifyTheoryLemma(lem); // Cover default implementation
     d_hasSeenTheoryLemma = true;
   }
   bool hasSeenTheoryLemma() const { return d_hasSeenTheoryLemma; }
