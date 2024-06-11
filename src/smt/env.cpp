@@ -18,6 +18,9 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
@@ -304,6 +307,26 @@ bool Env::isBooleanTermSkolem(const Node& k) const
     return false;
   }
   return d_boolTermSkolems.find(k) != d_boolTermSkolems.end();
+}
+
+Node Env::getSharableFormula(const Node& n) const
+{
+  Node on = n;
+  if (!d_options.base.pluginShareSkolems)
+  {
+    // note we only remove purify skolems if the above option is disabled
+    on = SkolemManager::getOriginalForm(n);
+    if (expr::hasSubtermKinds({Kind::SKOLEM, Kind::INST_CONSTANT}, on))
+    {
+      // We cannot share formulas with skolems currently.
+      // We should never share formulas with instantiation constants.
+      return Node::null();
+    }
+  }
+  // also eliminate subtyping
+  SubtypeElimNodeConverter senc(d_nm);
+  on = senc.convert(on);
+  return on;
 }
 
 }  // namespace cvc5::internal

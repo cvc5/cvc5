@@ -339,3 +339,19 @@ name   = "Base"
   type       = "bool"
   default    = "false"
   help       = "do not allow setting any option that is not common or regular"
+
+[[option]]
+  name       = "pluginNotifySatClauseInSolve"
+  category   = "expert"
+  long       = "plugin-notify-sat-clause-in-solve"
+  type       = "bool"
+  default    = "true"
+  help       = "only inform plugins of SAT clauses when we are in the main solving loop of the SAT solver"
+
+[[option]]
+  name       = "pluginShareSkolems"
+  category   = "expert"
+  long       = "plugin-share-skolems"
+  type       = "bool"
+  default    = "true"
+  help       = "true if we permit sharing theory lemmas and SAT clauses with skolems"
