@@ -804,6 +804,26 @@ Node CoreSolver::getConclusion(Node x,
     conc = z.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, preC)
                           : nm->mkNode(Kind::STRING_CONCAT, preC, sk));
   }
+  else if (rule==ProofRule::STRING_DECOMPOSE)
+  {
+    Assert (x.getType().isStringLike());
+    Assert (y.getType().isInteger());
+    Node k1, k2;
+    Node eq2;
+    if (isRev)
+    {
+      k1 = utils::mkPrefixExceptLen(x, y);
+      k2 = utils::mkSuffixOfLen(x, y);
+      eq2 = nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::STRING_LENGTH, k2), y);
+    }
+    else
+    {
+      k1 = utils::mkPrefix(x, y);
+      k2 = utils::mkSuffix(x, y);
+      eq2 = nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::STRING_LENGTH, k1), y);
+    }
+    conc = nm->mkNode(Kind::AND, nm->mkNode(Kind::EQUAL, x, nm->mkNode(Kind::STRING_CONCAT, k1, k2)), eq2);
+  }
 
   return conc;
 }
