@@ -46,7 +46,7 @@ class CommandTest extends ParserTest
     assertNotEquals(cmd.isNull(), true);
     String result = cmd.invoke(d_solver, d_symman);
     assertEquals(
-        "(error \"Cannot get model unless model generation is enabled (try --produce-models)\")\n",
+        "(error \"cannot get model unless model generation is enabled (try --produce-models)\")\n",
         result);
     // logic already set
     assertThrows(CVC5ParserException.class, () -> parseCommand("(set-logic QF_LRA)"));
