@@ -34,6 +34,8 @@
 #include "theory/arith/rewriter/node_utils.h"
 #include "theory/arith/rewriter/ordering.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
+#include "theory/rewriter.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/theory.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
@@ -49,6 +51,64 @@ namespace arith {
 ArithRewriter::ArithRewriter(NodeManager* nm, OperatorElim& oe)
     : TheoryRewriter(nm), d_opElim(oe)
 {
+  registerProofRewriteRule(ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+  // we don't register ARITH_STRING_PRED_ENTAIL or ARITH_STRING_PRED_SAFE_APPROX,
+  // as these are subsumed by MACRO_ARITH_STRING_PRED_ENTAIL.
+}
+
+Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
+    {
+      if (n.getKind() == Kind::DIVISION && n[1].isConst())
+      {
+        Rational r = n[1].getConst<Rational>();
+        if (r.sgn() != 0)
+        {
+          Rational rinv = Rational(1) / r;
+          NodeManager* nm = nodeManager();
+          return nm->mkNode(Kind::MULT, n[0], nm->mkConstReal(rinv));
+        }
+      }
+    }
+    break;
+    case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
+    case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
+    {
+      if (n.getKind() != Kind::GEQ || !n[1].isConst()
+          || n[1].getConst<Rational>().sgn() != 0)
+      {
+        return Node::null();
+      }
+      if (id == ProofRewriteRule::ARITH_STRING_PRED_ENTAIL)
+      {
+        if (theory::strings::ArithEntail::checkSimple(n[0]))
+        {
+          return nodeManager()->mkConst(true);
+        }
+      }
+      else if (id == ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX)
+      {
+        // Note that we do *not* pass a rewriter here, since the proof rule
+        // cannot depend on the rewriter.
+        theory::strings::ArithEntail ae(nullptr);
+        // must only use simple checks when computing the approximations
+        Node approx = ae.findApprox(n[0], true);
+        if (approx != n[0])
+        {
+          Trace("arith-rewriter-proof")
+              << n[0] << " --> " << approx << " by safe approx" << std::endl;
+          return nodeManager()->mkNode(Kind::GEQ, approx, n[1]);
+        }
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
 }
 
 RewriteResponse ArithRewriter::preRewrite(TNode t)
@@ -1238,7 +1298,11 @@ Node ArithRewriter::rewriteIneqToBv(Kind kind,
                     ? zero
                     : (otherSum.size() == 1 ? otherSum[0]
                                             : nm->mkNode(Kind::ADD, otherSum));
-    Node o = bv2natPol ? nm->mkNode(Kind::NEG, osum) : osum;
+    // possibly negate the sum
+    Node o = bv2natPol
+                 ? (osum.getKind() == Kind::NEG ? osum[0]
+                                                : nm->mkNode(Kind::NEG, osum))
+                 : osum;
     Node ub = nm->mkNode(Kind::GEQ, o, w);
     Node lb = nm->mkNode(Kind::LT, o, zero);
     Node iToBvop = nm->mkConst(IntToBitVector(bvsize));

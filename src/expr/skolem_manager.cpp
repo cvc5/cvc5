@@ -66,33 +66,10 @@ std::ostream& operator<<(std::ostream& out, InternalSkolemId id)
 
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
-Node SkolemManager::mkPurifySkolem(Node t,
-                                   ProofGenerator* pg)
+Node SkolemManager::mkPurifySkolem(Node t)
 {
   // We do not recursively compute the original form of t here
-  Node k;
-  if (t.getKind() == Kind::WITNESS)
-  {
-    // The purification skolem for (witness ((x T)) P) is the same as
-    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) x).
-    NodeManager* nm = NodeManager::currentNM();
-    Node exists =
-        nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
-    k = mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {exists, t[0][0]});
-    // store the proof generator if it exists
-    if (pg != nullptr)
-    {
-      d_gens[exists] = pg;
-    }
-    UnpurifiedFormAttribute ufa;
-    k.setAttribute(ufa, t);
-  }
-  else
-  {
-    k = mkSkolemFunction(SkolemId::PURIFY, {t});
-    // shouldn't provide proof generators for other terms
-    Assert(pg == nullptr);
-  }
+  Node k = mkSkolemFunction(SkolemId::PURIFY, {t});
   Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
@@ -111,9 +88,7 @@ Node SkolemManager::mkSkolemFunction(SkolemId id, Node cacheVal)
       cvals.push_back(cacheVal);
     }
   }
-  TypeNode ctn = getTypeFor(id, cvals);
-  Assert(!ctn.isNull());
-  return mkSkolemFunctionTyped(id, ctn, cacheVal);
+  return mkSkolemFunction(id, cvals);
 }
 
 Node SkolemManager::mkSkolemFunction(SkolemId id,
@@ -121,6 +96,14 @@ Node SkolemManager::mkSkolemFunction(SkolemId id,
 {
   TypeNode ctn = getTypeFor(id, cacheVals);
   Assert(!ctn.isNull());
+  if (isCommutativeSkolemId(id))
+  {
+    // sort arguments if commutative, which should not impact its type
+    std::vector<Node> cvs = cacheVals;
+    std::sort(cvs.begin(), cvs.end());
+    Assert(getTypeFor(id, cvs) == ctn);
+    return mkSkolemFunctionTyped(id, ctn, cvs);
+  }
   return mkSkolemFunctionTyped(id, ctn, cacheVals);
 }
 
@@ -133,6 +116,19 @@ Node SkolemManager::mkInternalSkolemFunction(InternalSkolemId id,
   cvals.push_back(nm->mkConstInt(Rational(static_cast<uint32_t>(id))));
   cvals.insert(cvals.end(), cacheVals.begin(), cacheVals.end());
   return mkSkolemFunctionTyped(SkolemId::INTERNAL, tn, cvals);
+}
+
+bool SkolemManager::isCommutativeSkolemId(SkolemId id)
+{
+  switch (id)
+  {
+    case cvc5::SkolemId::ARRAY_DEQ_DIFF:
+    case cvc5::SkolemId::BAGS_DEQ_DIFF:
+    case cvc5::SkolemId::SETS_DEQ_DIFF:
+    case cvc5::SkolemId::STRINGS_DEQ_DIFF: return true;
+    default: break;
+  }
+  return false;
 }
 
 Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
@@ -252,16 +248,6 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   int flags)
 {
   return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
-}
-
-ProofGenerator* SkolemManager::getProofGenerator(Node t) const
-{
-  std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(t);
-  if (it != d_gens.end())
-  {
-    return it->second;
-  }
-  return nullptr;
 }
 
 bool SkolemManager::isAbstractValue(TNode n) const
