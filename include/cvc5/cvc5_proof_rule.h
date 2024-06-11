@@ -2545,7 +2545,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Strings - regular expression membership consume**
    *
    * .. math::
-   *   (str.in_re s R) = b
+   *   \mathit{str.in_re}(s, R) = b
    * 
    * where :math:`b` is either :math:`false` or the result of stripping
    * entailed prefixes and suffixes off of :math:`s` and :math:`R`.
