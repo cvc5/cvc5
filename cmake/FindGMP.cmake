@@ -164,4 +164,21 @@ if(GMP_FOUND_SYSTEM)
 else()
   message(STATUS "Building GMP ${GMP_VERSION}: ${GMP_LIBRARIES}")
   add_dependencies(GMP GMP-EP)
+  # Static builds install the GMP static libraries.
+  # These libraries are required to compile a program that
+  # uses the cvc5 static library.
+  # On Windows, this installs the import libraries (LIB) and
+  # the DLL libraries (BIN)
+  install(
+    DIRECTORY ${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/
+    TYPE LIB
+    FILES_MATCHING PATTERN libgmp* PATTERN gmp*.pc
+  )
+  if(BUILD_SHARED_LIBS AND WIN32)
+    install(
+      DIRECTORY ${DEPS_BASE}/${CMAKE_INSTALL_BINDIR}/
+      TYPE BIN
+      FILES_MATCHING PATTERN libgmp*
+    )
+  endif()
 endif()

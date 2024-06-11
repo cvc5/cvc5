@@ -1109,11 +1109,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     opName << "u";
   }
   opName << printer::smt2::Smt2Printer::smtKindString(k);
-  if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-      || k == Kind::INTS_MODULUS_TOTAL)
-  {
-    opName << "_total";
-  }
   return getSymbolInternal(k, ftype, opName.str());
 }
 

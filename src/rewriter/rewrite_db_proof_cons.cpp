@@ -1179,6 +1179,8 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
   std::unordered_map<TNode, TNode> parent;
   std::vector<Node> congs;
   parent[context] = TNode::null();
+  std::unordered_map<TNode, Node> visitedSrc;
+  std::unordered_map<TNode, Node> visitedTgt;
   while (!toVisit.empty())
   {
     TNode curr = toVisit.back();
@@ -1189,8 +1191,10 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
       TNode currp;
       while ((currp = parent[curr]) != Node::null())
       {
-        Node lhs = currp.substitute(placeholder, source);
-        Node rhs = currp.substitute(placeholder, target);
+        Node lhs =
+            expr::narySubstitute(currp, {placeholder}, {source}, visitedSrc);
+        Node rhs =
+            expr::narySubstitute(currp, {placeholder}, {target}, visitedTgt);
         congs.emplace_back(lhs.eqNode(rhs));
         curr = currp;
       }

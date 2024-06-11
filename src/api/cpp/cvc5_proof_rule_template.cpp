@@ -151,10 +151,10 @@ const char* toString(ProofRule rule)
     case ProofRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
-    case ProofRule::RE_ELIM: return "RE_ELIM";
     case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
     case ProofRule::MACRO_STRING_INFERENCE: return "MACRO_STRING_INFERENCE";
+    case ProofRule::MACRO_RE_ELIM: return "MACRO_RE_ELIM";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
     case ProofRule::ARITH_SUM_UB: return "ARITH_SUM_UB";
@@ -196,9 +196,6 @@ const char* toString(ProofRule rule)
       return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
     case ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
       return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
-    case ProofRule::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
-    case ProofRule::ARITH_NL_COVERING_RECURSIVE:
-      return "ARITH_NL_COVERING_RECURSIVE";
     //================================================= External rules
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
@@ -243,6 +240,11 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
       return "dt-collapse-tester-singleton";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
+    case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
+    case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS: return "bv-add-combine-like-terms";
+    case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
+    case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
     case ProofRewriteRule::RE_LOOP_ELIM:
       return "re-loop-elim";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
