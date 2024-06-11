@@ -58,7 +58,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Assert(args.empty());
     // must use negated FORALL
     if (children[0].getKind() != Kind::NOT
-            || children[0][0].getKind() != Kind::FORALL)
+        || children[0][0].getKind() != Kind::FORALL)
     {
       return Node::null();
     }

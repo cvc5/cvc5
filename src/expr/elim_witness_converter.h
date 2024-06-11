@@ -50,6 +50,7 @@ class ElimWitnessNodeConverter : protected EnvObj, public NodeConverter
    * a skolem variable for based on eliminating a witness term.
    */
   virtual Node getNormalFormFor(const Node& q);
+
  private:
   /** The list of existentials introduced by eliminating witness */
   std::vector<Node> d_exists;

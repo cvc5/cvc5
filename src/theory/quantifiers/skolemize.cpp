@@ -106,7 +106,7 @@ TrustNode Skolemize::process(Node q)
 
 std::vector<Node> Skolemize::getSkolemConstants(const Node& q)
 {
-  Assert (q.getKind()==Kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   std::vector<Node> skolems;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {

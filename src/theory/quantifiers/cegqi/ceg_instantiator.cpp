@@ -946,11 +946,14 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
  * the base class to ensure that quantified formulas have been run through
  * theory preprocessing.
  */
-class PreprocessElimWitnessNodeConverter : public ElimWitnessNodeConverter 
+class PreprocessElimWitnessNodeConverter : public ElimWitnessNodeConverter
 {
-public:
-  PreprocessElimWitnessNodeConverter(Env& env, Valuation& val) : ElimWitnessNodeConverter(env), d_val(val){}
-  /** 
+ public:
+  PreprocessElimWitnessNodeConverter(Env& env, Valuation& val)
+      : ElimWitnessNodeConverter(env), d_val(val)
+  {
+  }
+  /**
    * Get the normal form for quantified formula q, which must perform theory
    * preprocessing.
    */
@@ -958,7 +961,8 @@ public:
   {
     return d_val.getPreprocessedTerm(q);
   }
-private:
+
+ private:
   /** Reference to a valuation */
   Valuation& d_val;
 };
