@@ -3516,7 +3516,7 @@ class CVC5_EXPORT Plugin
 
  public:
   Plugin(TermManager& tm);
-  virtual ~Plugin();
+  virtual ~Plugin() = default;
   /**
    * Call to check, return vector of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
@@ -3561,6 +3561,7 @@ class CVC5_EXPORT Plugin
 class CVC5_EXPORT Proof
 {
   friend class Solver;
+  friend struct std::hash<Proof>;
 
  public:
   /**
@@ -3595,15 +3596,26 @@ class CVC5_EXPORT Proof
    */
   const std::vector<Term> getArguments() const;
 
+  /**
+   * Operator overloading for referential equality of two proofs.
+   * @param p The proof to compare to for equality.
+   * @return `true` if both proofs point to the same internal proof object.
+   */
+  bool operator==(const Proof& p) const;
+
+  /**
+   * Referential disequality operator.
+   * @param p The proof to compare to for disequality.
+   * @return `true` if proofs point to different internal proof objects.
+   */
+  bool operator!=(const Proof& p) const;
+
  private:
   /** Construct a proof by wrapping a ProofNode. */
   Proof(TermManager* tm, const std::shared_ptr<internal::ProofNode> p);
 
-  /** @return The internal proof node wrapped by this proof object. */
-  const std::shared_ptr<internal::ProofNode>& getProofNode(void) const;
-
   /** The internal proof node wrapped by this proof object. */
-  std::shared_ptr<internal::ProofNode> d_proof_node;
+  std::shared_ptr<internal::ProofNode> d_proofNode;
   /**
    * The associated term manager.
    * @note This is only needed temporarily until deprecated term/sort handling
@@ -3611,6 +3623,21 @@ class CVC5_EXPORT Proof
    */
   TermManager* d_tm;
 };
+
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for proofs.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Proof>
+{
+  size_t operator()(const cvc5::Proof& p) const;
+};
+}  // namespace std
+
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* TermManager                                                                */
@@ -3734,6 +3761,19 @@ class CVC5_EXPORT TermManager
    * @return The function sort.
    */
   Sort mkFunctionSort(const std::vector<Sort>& sorts, const Sort& codomain);
+  /**
+   * Make a skolem.
+   * @param id The skolem identifier.
+   * @param indices The indices of the skolem.
+   * @return The skolem.
+   */
+  Term mkSkolem(SkolemId id, const std::vector<Term>& indices);
+  /**
+   * Get the number of indices for a skolem id.
+   * @param id The skolem id.
+   * @return The number of indices for the skolem id.
+   */
+  size_t getNumIndicesForSkolemId(SkolemId id);
   /**
    * Create a sort parameter.
    *

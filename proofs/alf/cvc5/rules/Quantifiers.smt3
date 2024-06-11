@@ -27,17 +27,9 @@
         ))
 )
 
-(declare-rule skolem_intro ((T Type) (t T))
-  :args (t)
-  :conclusion 
-    (alf.match ((T Type) (x T) (F Bool))
-      t
-      (
-        ; special case for witness
-        ((@quantifiers_skolemize (exists (@list x) F) x) (= t (witness (@list x) F)))
-        ((@purify x)                                     (= t x))
-      )
-   )
+(declare-rule skolem_intro ((T Type) (x T))
+  :args ((@purify x))
+  :conclusion (= (@purify x) x)
 )
 
 ; B is the formula to apply to
@@ -46,4 +38,15 @@
 (declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
   :args (B vs ts)
   :conclusion (= B (substitute_list vs ts B))
+)
+
+; rule: beta_reduce implements ProofRewriteRule::BETA_REDUCE
+; args:
+; - eq : Bool. The equality to prove between terms a and b.
+; requires: Showing that a beta-reduces to b.
+; conclusion: The given equality.
+(declare-rule beta-reduce ((T Type) (a T) (b T))
+  :args ((= a b))
+  :requires ((($beta_reduce a @list.nil) b))
+  :conclusion (= a b)
 )
