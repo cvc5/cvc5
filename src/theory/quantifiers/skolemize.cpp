@@ -74,6 +74,7 @@ TrustNode Skolemize::process(Node q)
         vars.begin(), vars.end(), skolems.begin(), skolems.end());
     Node qnot = q.notNode();
     CDProof cdp(d_env);
+    res = res.notNode();
     cdp.addStep(res, ProofRule::SKOLEMIZE, {qnot}, {});
     std::shared_ptr<ProofNode> pf = cdp.getProofFor(res);
     std::vector<Node> assumps;

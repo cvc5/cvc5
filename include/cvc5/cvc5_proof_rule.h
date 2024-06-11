@@ -1303,12 +1303,6 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{\exists x_1\dots x_n.\> F\mid -}{F\sigma}
-   *
-   * or
-   *
-   * .. math::
-   *
    *   \inferrule{\neg (\forall x_1\dots x_n.\> F)\mid -}{\neg F\sigma}
    *
    * where :math:`\sigma` maps :math:`x_1,\dots,x_n` to their representative
