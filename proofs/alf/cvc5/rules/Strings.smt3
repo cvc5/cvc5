@@ -135,7 +135,7 @@
                 (let ((v (alf.add 1 ($str_overlap ($tail sc) (string_to_flat_form t2 rev)))))
                   (= tc
                     (alf.ite rev
-                      (let ((oc ($str_suffix_len s1 v)))
+                      (let ((oc ($str_suffix_w_len s1 v)))
                       (str.++ (@purify (skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
                       (let ((oc (skolem_prefix s1 v)))
                       (str.++ oc (@purify (skolem_suffix_rem tc (str.len oc)))))))
@@ -201,9 +201,13 @@
 (declare-rule string_decompose ((U Type) (s (Seq U)) (n Int) (b Bool))
   :premises ((>= (str.len s) n))
   :args (b)
-  :conclusion (let ((kp (@purify (skolem_prefix s n)))
-                    (ks (@purify (skolem_suffix_rem s n))))
-              (and (= s (str.++ kp ks)) (= (str.len (alf.ite b ks kp)) n)))
+  :conclusion (alf.ite b
+                (let ((kp (@purify (skolem_prefix s n)))
+                      (ks (@purify (skolem_suffix_rem s n))))
+                (and (= s (str.++ kp ks)) (= (str.len ks) n)))
+                (let ((kp (@purify ($str_prefix_wo_len s n)))
+                      (ks (@purify ($str_suffix_w_len s n))))
+                (and (= s (str.++ kp ks)) (= (str.len ks) n))))
 )
 
 ;;-------------------- Regular expressions
@@ -250,7 +254,7 @@
       (
         ((re.++ r1 r2) (let ((n ($str_fixed_len_re r1)))
                        (alf.ite rev
-                       (or (not (str.in_re ($str_suffix_len s n) r1)) 
+                       (or (not (str.in_re ($str_suffix_w_len s n) r1))
                            (not (str.in_re (skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
                        (or (not (str.in_re (skolem_prefix s n) r1))
                            (not (str.in_re (skolem_suffix_rem s n) ($singleton_elim r2)))))))
