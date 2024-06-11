@@ -1309,6 +1309,28 @@ cdef class TermManager:
           return _sort(self, self.ctm.mkParamSort())
         return _sort(self, self.ctm.mkParamSort(symbolname.encode()))
 
+    def mkSkolem(self, id, *indices):
+        """
+            Create a skolem. 
+
+            :param id: The skolem id.
+            :param indices: The indices for the skolem.
+            :return: The skolem with the given id and indices. 
+        """  
+        cdef vector[c_Term] v
+        for t in indices:
+            v.push_back((<Term?> t).cterm)
+        return _term(self, self.ctm.mkSkolem(<c_SkolemId> id.value, v))
+
+    def getNumIndicesForSkolemId(self, id):
+        """
+            Get the number of indices for a skolem id. 
+
+            :param id: The skolem id.
+            :return: The number of indice for a skolem with the given id. 
+        """  
+        return self.ctm.getNumIndicesForSkolemId(<c_SkolemId> id.value)
+
     def mkPredicateSort(self, *sorts):
         """
             Create a predicate sort.
@@ -2250,6 +2272,25 @@ cdef class Solver:
                          future release.
         """
         return self.tm.mkParamSort(symbolname)
+
+    def mkSkolem(self, id, *indices):
+        """
+            Create a skolem. 
+
+            :param id: The skolem id.
+            :param indices: The indices for the skolem.
+            :return: The skolem with the given id and indices. 
+        """  
+        return self.tm.mkSkolem(id, indices)
+
+    def getNumIndicesForSkolemId(self, id):
+        """
+            Get the number of indices for a skolem id. 
+
+            :param id: The skolem id.
+            :return: The number of indice for a skolem with the given id. 
+        """  
+        return self.tm.getNumIndicesForSkolemId(id)
 
     def mkPredicateSort(self, *sorts):
         """
