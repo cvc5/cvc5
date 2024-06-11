@@ -1313,6 +1313,9 @@ cdef class TermManager:
         """
             Create a skolem. 
 
+            .. warning:: This function is experimental and may change in future
+                         versions.
+
             :param id: The skolem id.
             :param indices: The indices for the skolem.
             :return: The skolem with the given id and indices. 
@@ -1325,6 +1328,9 @@ cdef class TermManager:
     def getNumIndicesForSkolemId(self, id):
         """
             Get the number of indices for a skolem id. 
+
+            .. warning:: This function is experimental and may change in future
+                         versions.
 
             :param id: The skolem id.
             :return: The number of indice for a skolem with the given id. 
