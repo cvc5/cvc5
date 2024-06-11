@@ -61,12 +61,20 @@ void RewriteProofRule::init(ProofRewriteRule id,
     Unhandled() << "Ambiguous context for list variables in conclusion of rule "
                 << id;
   }
+  
+  std::unordered_set<Node> fvsCond;
+  for (const Node& c : d_cond)
+  {
+    expr::getFreeVariables(c, fvsCond);
+  }
+  
   if (!condDef.empty())
   {
     std::unordered_set<Node> fvsLhs;
     expr::getFreeVariables(d_conc[0], fvsLhs);
-    std::unordered_set<Node> fvsRhs;
-    expr::getFreeVariables(d_conc[1], fvsRhs);
+    std::unordered_set<Node> fvsUnmatched;
+    expr::getFreeVariables(d_conc[1], fvsUnmatched);
+    fvsUnmatched.insert(fvsCond.begin(), fvsCond.end());
     std::map<Node, Node>::iterator itc;
     for (const Node& v : fvsRhs)
     {
@@ -79,8 +87,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
       if (itc == condDef.end())
       {
         Unhandled()
-            << "Free variable on right hand side of conclusion that is not on "
-               "the left hand side, nor is defined in a condition";
+            << "Free variable " << v << " in rule " << id << " is not on the left hand side, nor is defined in a condition";
       }
       // variable defined in the condition
       d_condDefinedVars[v] = itc->second;
@@ -89,11 +96,6 @@ void RewriteProofRule::init(ProofRewriteRule id,
 
   d_numFv = fvs.size();
 
-  std::unordered_set<Node> fvsCond;
-  for (const Node& c : d_cond)
-  {
-    expr::getFreeVariables(c, fvsCond);
-  }
   for (const Node& v : fvs)
   {
     d_fvs.push_back(v);
