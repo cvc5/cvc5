@@ -49,7 +49,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
     }
     d_cond.push_back(c);
     d_obGen.push_back(c);
-    if (c.getKind()==Kind::EQUAL && c[0].getKind()==Kind::BOUND_VARIABLE)
+    if (c.getKind() == Kind::EQUAL && c[0].getKind() == Kind::BOUND_VARIABLE)
     {
       condDef[c[0]] = c[1];
     }
@@ -70,15 +70,17 @@ void RewriteProofRule::init(ProofRewriteRule id,
     std::map<Node, Node>::iterator itc;
     for (const Node& v : fvsRhs)
     {
-      if (fvsLhs.find(v)!=fvsLhs.end())
+      if (fvsLhs.find(v) != fvsLhs.end())
       {
         // variable on left hand side
         continue;
       }
       itc = condDef.find(v);
-      if (itc==condDef.end())
+      if (itc == condDef.end())
       {
-        Unhandled() << "Free variable on right hand side of conclusion that is not on the left hand side, nor is defined in a condition";
+        Unhandled()
+            << "Free variable on right hand side of conclusion that is not on "
+               "the left hand side, nor is defined in a condition";
       }
       // variable defined in the condition
       d_condDefinedVars[v] = itc->second;
@@ -232,8 +234,8 @@ bool RewriteProofRule::isFixedPoint() const
 
 void RewriteProofRule::getConditionalDefinitions(const std::vector<Node>& vs,
                                                  const std::vector<Node>& ss,
-                                 std::vector<Node>& dvs,
-                                 std::vector<Node>& dss) const
+                                                 std::vector<Node>& dvs,
+                                                 std::vector<Node>& dss) const
 {
   for (const std::pair<const Node, Node>& cv : d_condDefinedVars)
   {
@@ -242,6 +244,6 @@ void RewriteProofRule::getConditionalDefinitions(const std::vector<Node>& vs,
     dss.push_back(cvs);
   }
 }
-  
+
 }  // namespace rewriter
 }  // namespace cvc5::internal

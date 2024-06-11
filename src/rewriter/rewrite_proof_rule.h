@@ -157,6 +157,7 @@ class RewriteProofRule
                                  const std::vector<Node>& ss,
                                  std::vector<Node>& dvs,
                                  std::vector<Node>& dss) const;
+
  private:
   /** The id of the rule */
   ProofRewriteRule d_id;

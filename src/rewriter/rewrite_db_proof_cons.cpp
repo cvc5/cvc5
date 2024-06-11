@@ -563,7 +563,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     if (expr::hasBoundVar(stgt))
     {
       rpr.getConditionalDefinitions(vars, subs, impliedVs, impliedSs);
-      Trace("rpc-debug2") << " Implied definitions: " << impliedVs << " -> " << impliedSs << std::endl;
+      Trace("rpc-debug2") << " Implied definitions: " << impliedVs << " -> "
+                          << impliedSs << std::endl;
       if (!impliedVs.empty())
       {
         // evaluate them
@@ -572,8 +573,10 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
           s = evaluate(s, {}, {});
         }
         stgt = expr::narySubstitute(stgt, impliedVs, impliedSs);
-        Trace("rpc-debug2") << " Implied definitions (post-eval): " << impliedVs << " -> " << impliedSs << std::endl;
-        Trace("rpc-debug2") << "Substituted RHS (post-eval): " << stgt << std::endl;
+        Trace("rpc-debug2") << " Implied definitions (post-eval): " << impliedVs
+                            << " -> " << impliedSs << std::endl;
+        Trace("rpc-debug2")
+            << "Substituted RHS (post-eval): " << stgt << std::endl;
       }
     }
     // inflection substitution, used if conclusion does not exactly match
