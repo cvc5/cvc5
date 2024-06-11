@@ -566,6 +566,11 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       Trace("rpc-debug2") << " Implied definitions: " << impliedVs << " -> " << impliedSs << std::endl;
       if (!impliedVs.empty())
       {
+        // evaluate them
+        for (Node& s : impliedSs)
+        {
+          s = evaluate(s, {}, {});
+        }
         stgt = expr::narySubstitute(stgt, impliedVs, impliedSs);
       }
     }
