@@ -76,7 +76,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
     expr::getFreeVariables(d_conc[1], fvsUnmatched);
     fvsUnmatched.insert(fvsCond.begin(), fvsCond.end());
     std::map<Node, Node>::iterator itc;
-    for (const Node& v : fvsRhs)
+    for (const Node& v : fvsUnmatched)
     {
       if (fvsLhs.find(v) != fvsLhs.end())
       {
