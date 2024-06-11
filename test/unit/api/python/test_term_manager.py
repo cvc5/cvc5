@@ -287,6 +287,26 @@ def test_mk_param_sort(tm):
     tm.mkParamSort("T")
     tm.mkParamSort("")
 
+def test_mk_skolem(tm):
+    integer = tm.getIntegerSort()
+    arraySort = tm.mkArraySort(integer, integer)
+    a = tm.mkConst(arraySort, "a")
+    b = tm.mkConst(arraySort, "b")
+
+    sk = tm.mkSkolem(cvc5.SkolemId.ARRAY_DEQ_DIFF, a, b)
+    sk2 = tm.mkSkolem(cvc5.SkolemId.ARRAY_DEQ_DIFF, b, a)
+
+    assert sk.isSkolem()
+    assert sk2.isSkolem()
+    assert sk.getSkolemId() == cvc5.SkolemId.ARRAY_DEQ_DIFF
+    assert sk2.getSkolemId() == cvc5.SkolemId.ARRAY_DEQ_DIFF
+    assert sk.getSkolemIndices() == [a, b]
+    # ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
+    assert sk2.getSkolemIndices() == [a, b]
+
+def test_skolem_num_indices(tm):
+    num = tm.getNumIndicesForSkolemId(cvc5.SkolemId.ARRAY_DEQ_DIFF)
+    assert num == 2
 
 def test_mk_predicate_sort(tm):
     tm.mkPredicateSort(tm.getIntegerSort())

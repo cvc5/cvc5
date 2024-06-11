@@ -248,6 +248,29 @@ const char* cvc5_synth_result_to_string(const Cvc5SynthResult* result);
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Make copy of sort, increases reference counter of `sort`.
+ *
+ * @param sort The sort to copy.
+ * @return The same sort with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5Sort cvc5_sort_copy(Cvc5Sort sort);
+
+/**
+ * Release copy of sort, decrements reference counter of `sort`.
+ *
+ * @param sort The sort to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a
+ *       Cvc5Sort returns a copy that is owned by the callee of the function
+ *       and thus, can be released.
+ */
+void cvc5_sort_release(Cvc5Sort sort);
+
+/**
  * Compare two sorts for structural equality.
  * @param a The first sort.
  * @param b The second sort.
@@ -839,6 +862,28 @@ Cvc5Sort cvc5_sort_nullable_get_element_sort(Cvc5Sort sort);
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Make copy of operator, increases reference counter of `op`.
+ *
+ * @param op The op to copy.
+ * @return The same op with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5Op cvc5_op_copy(Cvc5Op op);
+
+/**
+ * Release copy of operator, decrements reference counter of `op`.
+ *
+ * @param op The op to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a
+ *       Cvc5Op returns a copy that is owned by the callee of the function
+ *       and thus, can be released.
+ */
+void cvc5_op_release(Cvc5Op op);
+/**
  * Compare two operators for syntactic equality.
  *
  * @param a The first operator.
@@ -966,7 +1011,7 @@ size_t cvc5_term_get_num_children(Cvc5Term term);
  * @param index The index of the child.
  * @return The child term at the given index.
  */
-Cvc5Term cvc5_term_get_child(Cvc5Term term, size_t index);
+Cvc5Term cvc5_term_get_child(size_t index);
 
 /**
  * Get the id of a given term.
@@ -1105,7 +1150,7 @@ bool cvc5_term_is_int32_value(Cvc5Term term);
  * @param term The term.
  * @return The given term as `int32_t` value.
  */
-int32_t cvc5_term_get_int32_value(Cvc5Term term);
+int32_t cvc5_get_int32_value(Cvc5Term term);
 /**
  * Determine if a given term is an uint32 value.
  * @note This will return true for integer constants and real constants that
@@ -1159,7 +1204,7 @@ uint64_t cvc5_term_get_uint64_value(Cvc5Term term);
  * @return True if the term is an integer constant or a real constant that
  *         has an integral value.
  */
-bool cvc5_term_is_integer_value(Cvc5Term term);
+bool cvc5_term_isIntegerValue(Cvc5Term term);
 /**
  * Get a string representation of a given integral value.
  * @note Requires that the term is an integral value (see
@@ -1511,7 +1556,7 @@ bool cvc5_term_is_cardinality_constraint(Cvc5Term term);
  */
 void cvc5_term_get_cardinality_constraint(Cvc5Term term,
                                           Cvc5Sort* sort,
-                                          uint32_t* upper);
+                                          uint32_t upper);
 
 /**
  * Determine if a given term is a real algebraic number.
@@ -1564,12 +1609,11 @@ Cvc5SkolemId cvc5_term_get_skolem_id(Cvc5Term term);
  * @note Asserts isSkolem().
  * @warning This function is experimental and may change in future versions.
  * @param term The skolem.
- * @param size The size of the resulting array.
  * @return The skolem indices of the term. This is list of terms that the
- *         skolem function is indexed by. For example, the array diff skolem
- *         `Cvc5SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
+ * skolem function is indexed by. For example, the array diff skolem
+ * `Cvc5SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
  */
-const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term, size_t* size);
+const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term);
 
 /**
  * Compute the hash value of a term.
@@ -1625,6 +1669,29 @@ const char* cvc5_dt_cons_decl_to_string(Cvc5DatatypeConstructorDecl decl);
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Make copy of datatype declaration, increases reference counter of `decl`.
+ *
+ * @param decl The datatype declaration to copy.
+ * @return The same datatype with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5DatatypeDecl cvc5_dt_decl_copy(Cvc5DatatypeDecl decl);
+
+/**
+ * Release copy of datatype declaration, decrements reference counter of `dt`.
+ *
+ * @param decl The datatype declaration to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a
+ *       Cvc5DatatypeDecl returns a copy that is owned by the callee of the
+ *       function and thus, can be released.
+ */
+void cvc5_dt_decl_release(Cvc5DatatypeDecl decl);
+
+/**
  * Add datatype constructor declaration.
  * @param decl The datatype declaration.
  * @param ctor The datatype constructor declaration to add.
@@ -1678,6 +1745,29 @@ const char* cvc5_dt_decl_get_name(Cvc5DatatypeDecl decl);
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Make copy of datatype selector, increases reference counter of `sel`.
+ *
+ * @param sel The datatype selector to copy.
+ * @return The same datatype selector with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5DatatypeSelector cvc5_dt_sel_copy(Cvc5DatatypeSelector sel);
+
+/**
+ * Release copy of datatype selector, decrements reference counter of `sel`.
+ *
+ * @param sel The datatype selector to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a
+ *       Cvc5DatatypeSelector returns a copy that is owned by the callee of the
+ *       function and thus, can be released.
+ */
+void cvc5_dt_sel_release(Cvc5DatatypeSelector sel);
+
+/**
  * Get the name of a given datatype selector.
  * @param sel The datatype selector.
  * @return The name of the Datatype selector.
@@ -1729,6 +1819,30 @@ const char* cvc5_dt_sel_to_string(Cvc5DatatypeSelector sel);
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeConstructor                                                    */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Make copy of datatype constructor, increases reference counter of `cons`.
+ *
+ * @param cons The datatype constructor to copy.
+ * @return The same datatype constructor with its reference count increased by
+ *         one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5DatatypeConstructor cvc5_dt_cons_copy(Cvc5DatatypeConstructor cons);
+
+/**
+ * Release copy of datatype constructor, decrements reference counter of `cons`.
+ *
+ * @param cons The datatype constructor to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a
+ *       Cvc5DatatypeConstructor returns a copy that is owned by the callee of
+ *       the function and thus, can be released.
+ */
+void cvc5_dt_cons_release(Cvc5DatatypeConstructor cons);
 
 /**
  * Get the name of a given datatype constructor.
@@ -1851,6 +1965,29 @@ const char* cvc5_dt_cons_to_string(Cvc5DatatypeConstructor cons);
 /* -------------------------------------------------------------------------- */
 /* Cvc5Datatype                                                               */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Make copy of datatype, increases reference counter of `dt`.
+ *
+ * @param dt The datatype to copy.
+ * @return The same datatype with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5Datatype cvc5_dt_copy(Cvc5Datatype dt);
+
+/**
+ * Release copy of datatype, decrements reference counter of `dt`.
+ *
+ * @param dt The datatype to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a
+ *       Cvc5Datatype returns a copy that is owned by the callee of the
+ *       function and thus, can be released.
+ */
+void cvc5_dt_release(Cvc5Datatype dt);
 
 /**
  * Get the datatype constructor of a given datatype at a given index.

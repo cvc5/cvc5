@@ -609,23 +609,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         }
         else if (options::ioutils::getPrintSkolemDefinitions(out))
         {
-          if (!cacheVal.isNull())
-          {
-            out << "(";
-          }
-          out << "@" << id;
-          if (cacheVal.getKind() == Kind::SEXPR)
-          {
-            for (const Node& cv : cacheVal)
-            {
-              out << " " << cv;
-            }
-            out << ")";
-          }
-          else if (!cacheVal.isNull())
-          {
-            out << " " << cacheVal << ")";
-          }
+          toStreamSkolem(out, cacheVal, id, /*isApplied=*/false);
           printed = true;
         }
       }
@@ -670,6 +654,24 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       Node hoa = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
       toStream(out, hoa, lbind, toDepth);
       return true;
+    }
+    else if (n.getOperator().getKind() == Kind::SKOLEM)
+    {
+      SkolemManager* sm = nm->getSkolemManager();
+      SkolemId id;
+      Node cacheVal;
+      if (sm->isSkolemFunction(n.getOperator(), id, cacheVal))
+      {
+        if (options::ioutils::getPrintSkolemDefinitions(out))
+        {
+          if (n.getNumChildren() != 0)
+          {
+            out << '(';
+          }
+          toStreamSkolem(out, cacheVal, id, /*isApplied=*/true);
+          return false;
+        }
+      }
     }
   }
   else if (k == Kind::CONSTRUCTOR_TYPE)
@@ -2081,6 +2083,36 @@ void Smt2Printer::toStreamCmdDeclareHeap(std::ostream& out,
                                          TypeNode dataType) const
 {
   out << "(declare-heap (" << locType << " " << dataType << "))";
+}
+
+void Smt2Printer::toStreamSkolem(std::ostream& out,
+                                 Node cacheVal,
+                                 SkolemId id,
+                                 bool isApplied) const
+{
+  auto delim = isApplied ? " " : ")";
+
+  if (!isApplied && !cacheVal.isNull())
+  {
+    out << "(";
+  }
+  out << "@" << id;
+  if (cacheVal.getKind() == Kind::SEXPR)
+  {
+    for (const Node& cv : cacheVal)
+    {
+      out << " " << cv;
+    }
+    out << delim;
+  }
+  else if (!cacheVal.isNull())
+  {
+    out << " " << cacheVal << delim;
+  }
+  else
+  {
+    out << delim;
+  }
 }
 
 void Smt2Printer::toStreamCmdEmpty(std::ostream& out,

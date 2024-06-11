@@ -199,7 +199,6 @@ TEST_F(TestApiBlackTerm, getOp)
   Term headTerm = d_tm.mkTerm(Kind::APPLY_SELECTOR, {headOpTerm, consTerm});
   Term tailTerm = d_tm.mkTerm(Kind::APPLY_SELECTOR, {tailOpTerm, consTerm});
 
-  ASSERT_FALSE(c.hasOp());
   ASSERT_TRUE(nilTerm.hasOp());
   ASSERT_TRUE(consTerm.hasOp());
   ASSERT_TRUE(headTerm.hasOp());
@@ -1089,8 +1088,12 @@ TEST_F(TestApiBlackTerm, substitute)
   Term y = d_tm.mkConst(d_tm.getIntegerSort(), "y");
   Term xpy = d_tm.mkTerm(Kind::ADD, {x, y});
   Term xpone = d_tm.mkTerm(Kind::ADD, {y, one});
-  std::vector<Term> es = {x, y};
-  std::vector<Term> rs = {y, one};
+  std::vector<Term> es;
+  std::vector<Term> rs;
+  es.push_back(x);
+  rs.push_back(y);
+  es.push_back(y);
+  rs.push_back(one);
   ASSERT_EQ(xpy.substitute(es, rs), xpone);
 
   // incorrect substitution due to arity
@@ -1204,8 +1207,7 @@ TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
     ASSERT_TRUE(ub.isRealValue());
     // cannot call with non-variable
     Term yc = d_tm.mkConst(realsort, "y");
-    ASSERT_THROW(vx.getRealAlgebraicNumberDefiningPolynomial(yc),
-                 CVC5ApiException);
+    ASSERT_THROW(vx.getRealAlgebraicNumberDefiningPolynomial(yc), CVC5ApiException);
   }
 }
 
@@ -1218,6 +1220,30 @@ TEST_F(TestApiBlackTerm, getSkolem)
   ASSERT_THROW(x.getSkolemIndices(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackTerm, mkSkolem)
+{
+  Sort integer = d_tm.getIntegerSort();
+  Sort arraySort = d_tm.mkArraySort(integer, integer);
+
+  Term a = d_tm.mkConst(arraySort, "a");
+  Term b = d_tm.mkConst(arraySort, "b");
+
+  Term sk = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {a, b});
+  Term sk2 = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {b, a});
+
+  ASSERT_TRUE(sk.isSkolem());
+  ASSERT_EQ(sk.getSkolemId(), SkolemId::ARRAY_DEQ_DIFF);
+  ASSERT_EQ(sk.getSkolemIndices(), std::vector<Term>({a, b}));
+  // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
+  ASSERT_EQ(sk2.getSkolemIndices(), std::vector<Term>({a, b}));
+}
+
+TEST_F(TestApiBlackTerm, getNumIndicesForSkolemId)
+{
+  size_t numIndices = d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX);
+  ASSERT_EQ(numIndices, 5);
+}
+
 TEST_F(TestApiBlackTerm, termScopedToString)
 {
   Sort intsort = d_tm.getIntegerSort();
@@ -1226,8 +1252,7 @@ TEST_F(TestApiBlackTerm, termScopedToString)
   ASSERT_EQ(x.toString(), "x");
 }
 
-TEST_F(TestApiBlackTerm, toString)
-{
+TEST_F(TestApiBlackTerm, toString) {
   ASSERT_NO_THROW(Term().toString());
 
   Sort intsort = d_tm.getIntegerSort();

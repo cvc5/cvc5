@@ -240,6 +240,11 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
       return "dt-collapse-tester-singleton";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
+    case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
+    case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS: return "bv-add-combine-like-terms";
+    case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
+    case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
     case ProofRewriteRule::RE_LOOP_ELIM:
       return "re-loop-elim";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
