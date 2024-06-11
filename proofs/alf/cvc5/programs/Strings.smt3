@@ -683,7 +683,7 @@
   ($str_nary_elim (string_collect ($str_rev rev s)))
 )
 
-; `$re_str_to_flat_form rev r` convert the strings s occurring as direct
+; `$re_str_from_flat_form rev r` convert the strings s occurring as direct
 ; children (str.to_re s) of regular expression concatenation r from their flat
 ; form, reversing if rev is true.
 (program $re_str_from_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
@@ -702,7 +702,7 @@
 ; (2) (optionally) reverse,
 ; (3) eliminate n-ary form to its element if the term is a singleton list.
 (define $re_from_flat_form ((r RegLan) (rev Bool))
-  ; intro, flatten, reverse
+  ; (un?)flatten, reverse, elim
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
 )
 
@@ -812,7 +812,7 @@
 ; - s String: The string argument of the membership to rewrite.
 ; - r RegLan: The regular expression argument of the membership to rewrite.
 ; returns: >
-;   false if `(str.in_re s r)` can be shown  to be equivalent to false, or
+;   false if `(str.in_re s r)` can be shown to be equivalent to false, or
 ;   otherwise `(str.in_re sr rr)` where sr and rr are the result of "consuming"
 ;   prefixes/suffixes from s and r. We consume from the end of s and r first by
 ;   reversing them initially and converting them to flat forms. We then reverse
