@@ -72,11 +72,11 @@ Node mkPrefix(Node t, Node n);
 Node mkSuffix(Node t, Node n);
 
 /**
- * Returns (lpre t n), which is (str.substr t 0 (- (str.len t) n)).
+ * Returns (str.substr t 0 (- (str.len t) n)).
  */
 Node mkPrefixExceptLen(Node t, Node n);
 /**
- * Returns (lsuf t n), which is (str.substr t (- (str.len t) n) n).
+ * Returns (str.substr t (- (str.len t) n) n).
  */
 Node mkSuffixOfLen(Node t, Node n);
 
