@@ -199,6 +199,7 @@ TEST_F(TestApiBlackTerm, getOp)
   Term headTerm = d_tm.mkTerm(Kind::APPLY_SELECTOR, {headOpTerm, consTerm});
   Term tailTerm = d_tm.mkTerm(Kind::APPLY_SELECTOR, {tailOpTerm, consTerm});
 
+  ASSERT_FALSE(c.hasOp());
   ASSERT_TRUE(nilTerm.hasOp());
   ASSERT_TRUE(consTerm.hasOp());
   ASSERT_TRUE(headTerm.hasOp());
@@ -1088,12 +1089,8 @@ TEST_F(TestApiBlackTerm, substitute)
   Term y = d_tm.mkConst(d_tm.getIntegerSort(), "y");
   Term xpy = d_tm.mkTerm(Kind::ADD, {x, y});
   Term xpone = d_tm.mkTerm(Kind::ADD, {y, one});
-  std::vector<Term> es;
-  std::vector<Term> rs;
-  es.push_back(x);
-  rs.push_back(y);
-  es.push_back(y);
-  rs.push_back(one);
+  std::vector<Term> es = {x, y};
+  std::vector<Term> rs = {y, one};
   ASSERT_EQ(xpy.substitute(es, rs), xpone);
 
   // incorrect substitution due to arity
@@ -1207,7 +1204,8 @@ TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
     ASSERT_TRUE(ub.isRealValue());
     // cannot call with non-variable
     Term yc = d_tm.mkConst(realsort, "y");
-    ASSERT_THROW(vx.getRealAlgebraicNumberDefiningPolynomial(yc), CVC5ApiException);
+    ASSERT_THROW(vx.getRealAlgebraicNumberDefiningPolynomial(yc),
+                 CVC5ApiException);
   }
 }
 
@@ -1228,7 +1226,8 @@ TEST_F(TestApiBlackTerm, termScopedToString)
   ASSERT_EQ(x.toString(), "x");
 }
 
-TEST_F(TestApiBlackTerm, toString) {
+TEST_F(TestApiBlackTerm, toString)
+{
   ASSERT_NO_THROW(Term().toString());
 
   Sort intsort = d_tm.getIntegerSort();

@@ -198,6 +198,23 @@ struct cvc5_term_t
   Cvc5TermManager* d_tm = nullptr;
 };
 
+/** Wrapper for cvc5 C++ operators. */
+struct cvc5_op_t
+{
+  /**
+   * Constructor.
+   * @param op The wrapped C++ operator.
+   * @param tm The associated term manager.
+   */
+  cvc5_op_t(Cvc5TermManager* tm, const cvc5::Op& op) : d_op(op), d_tm(tm) {}
+  /** The wrapped C++ op. */
+  cvc5::Op d_op;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated term manager. */
+  Cvc5TermManager* d_tm = nullptr;
+};
+
 /** Wrapper for cvc5 C++ sorts. */
 struct cvc5_sort_t
 {
@@ -336,6 +353,11 @@ struct Cvc5TermManager
    */
   Cvc5Term export_term(const cvc5::Term& term);
   /**
+   * Export C++ operator to C API.
+   * @param op The operator to export.
+   */
+  Cvc5Op export_op(const cvc5::Op& op);
+  /**
    * Export C++ datatype to C API.
    * @param dt The datatype to export.
    */
@@ -376,6 +398,18 @@ struct Cvc5TermManager
    * @return The copied term.
    */
   cvc5_term_t* copy(cvc5_term_t* term);
+  /**
+   * Decrement the external ref count of an operator. If the ref count reaches
+   * zero, the operator is release (freed).
+   * @param op The operator to release.
+   */
+  void release(cvc5_op_t* op);
+  /**
+   * Increment the external ref count of a operator.
+   * @param op The operator to copy.
+   * @return The copied operator.
+   */
+  cvc5_op_t* copy(cvc5_op_t* term);
   /**
    * Decrement the external ref count of a sort. If the ref count reaches zero,
    * the sort is release (freed).
@@ -461,6 +495,7 @@ struct Cvc5TermManager
  private:
   std::unordered_map<cvc5::Sort, cvc5_sort_t> d_alloc_sorts;
   std::unordered_map<cvc5::Term, cvc5_term_t> d_alloc_terms;
+  std::unordered_map<cvc5::Op, cvc5_op_t> d_alloc_ops;
   std::unordered_map<cvc5::Datatype, cvc5_dt_t> d_alloc_dts;
   std::unordered_map<cvc5::DatatypeConstructor, cvc5_dt_cons_t>
       d_alloc_dt_conss;
@@ -485,6 +520,17 @@ Cvc5Term Cvc5TermManager::export_term(const cvc5::Term& term)
 {
   Assert(!term.isNull());
   auto [it, inserted] = d_alloc_terms.try_emplace(term, this, term);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+Cvc5Op Cvc5TermManager::export_op(const cvc5::Op& op)
+{
+  Assert(!op.isNull());
+  auto [it, inserted] = d_alloc_ops.try_emplace(op, this, op);
   if (!inserted)
   {
     copy(&it->second);
@@ -564,6 +610,22 @@ cvc5_term_t* Cvc5TermManager::copy(cvc5_term_t* term)
 {
   term->d_refs += 1;
   return term;
+}
+
+void Cvc5TermManager::release(cvc5_op_t* op)
+{
+  op->d_refs -= 1;
+  if (op->d_refs == 0)
+  {
+    Assert(d_alloc_ops.find(op->d_op) != d_alloc_ops.end());
+    d_alloc_ops.erase(op->d_op);
+  }
+}
+
+cvc5_op_t* Cvc5TermManager::copy(cvc5_op_t* op)
+{
+  op->d_refs += 1;
+  return op;
 }
 
 void Cvc5TermManager::release(cvc5_sort_t* sort)
@@ -1906,12 +1968,891 @@ const char* cvc5_dt_to_string(Cvc5Datatype dt)
 /* Cvc5Term                                                                   */
 /* -------------------------------------------------------------------------- */
 
+Cvc5Term cvc5_term_copy(Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_tm->copy(term);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_term_release(Cvc5Term term)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  term->d_tm->release(term);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_term_is_equal(Cvc5Term a, Cvc5Term b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_term == b->d_term;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_disequal(Cvc5Term a, Cvc5Term b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a != b;
+  }
+  else
+  {
+    res = a->d_term != b->d_term;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+int64_t cvc5_term_compare(Cvc5Term a, Cvc5Term b)
+{
+  int64_t res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(a);
+  CVC5_CAPI_CHECK_TERM(b);
+  res = a->d_term < b->d_term ? -1 : (a->d_term > b->d_term ? 1 : 0);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+size_t cvc5_term_get_num_children(Cvc5Term term)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getNumChildren();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_term_get_child(Cvc5Term term, size_t index)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_tm->export_term(term->d_term[index]);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+uint64_t cvc5_term_get_id(Cvc5Term term)
+{
+  uint64_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getId();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Kind cvc5_term_get_kind(Cvc5Term term)
+{
+  Cvc5Kind res = CVC5_KIND_INTERNAL_KIND;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = static_cast<Cvc5Kind>(term->d_term.getKind());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 Cvc5Sort cvc5_term_get_sort(Cvc5Term term)
 {
   Cvc5Sort res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_TERM(term);
   res = term->d_tm->export_sort(term->d_term.getSort());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_term_substitute_term(Cvc5Term term,
+                                   Cvc5Term t,
+                                   Cvc5Term replacement)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_TERM(t);
+  CVC5_CAPI_CHECK_TERM(replacement);
+  res = term->d_tm->export_term(
+      term->d_term.substitute(t->d_term, replacement->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_term_substitute_terms(Cvc5Term term,
+                                    size_t size,
+                                    const Cvc5Term terms[],
+                                    const Cvc5Term replacements[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_NOT_NULL(terms);
+  CVC5_CAPI_CHECK_NOT_NULL(replacements);
+  std::vector<cvc5::Term> cterms;
+  for (uint32_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(terms, i);
+    cterms.push_back(terms[i]->d_term);
+  }
+  std::vector<cvc5::Term> creplacements;
+  for (uint32_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(replacements, i);
+    creplacements.push_back(replacements[i]->d_term);
+  }
+  res = term->d_tm->export_term(term->d_term.substitute(cterms, creplacements));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_has_op(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.hasOp();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Op cvc5_term_get_op(Cvc5Term term)
+{
+  Cvc5Op res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_tm->export_op(term->d_term.getOp());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_has_symbol(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.hasSymbol();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_term_get_symbol(Cvc5Term term)
+{
+  const char* res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_API_CHECK(cvc5_term_has_symbol(term))
+      << "cannot get symbol of term that has no symbol";
+  static thread_local std::string str;
+  if (term->d_term.hasSymbol())
+  {
+    str = term->d_term.getSymbol();
+    res = str.c_str();
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_term_to_string(Cvc5Term term)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  str = term->d_term.toString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+int32_t cvc5_term_get_real_or_integer_value_sign(Cvc5Term term)
+{
+  int32_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getRealOrIntegerValueSign();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_int32_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isInt32Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+int32_t cvc5_term_get_int32_value(Cvc5Term term)
+{
+  int32_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getInt32Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_uint32_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isUInt32Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+uint32_t cvc5_term_get_uint32_value(Cvc5Term term)
+{
+  uint32_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getUInt32Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_int64_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isInt64Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+int64_t cvc5_term_get_int64_value(Cvc5Term term)
+{
+  int64_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getInt64Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_uint64_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isUInt64Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+uint64_t cvc5_term_get_uint64_value(Cvc5Term term)
+{
+  uint64_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getUInt64Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_integer_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isIntegerValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_term_get_integer_value(Cvc5Term term)
+{
+  static thread_local std::string res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getIntegerValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.c_str();
+}
+
+bool cvc5_term_is_string_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isStringValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const wchar_t* cvc5_term_get_string_value(Cvc5Term term)
+{
+  static thread_local std::wstring res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getStringValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.c_str();
+}
+
+bool cvc5_term_is_real32_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isReal32Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_term_get_real32_value(Cvc5Term term, int32_t* num, uint32_t* den)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_NOT_NULL(num);
+  CVC5_CAPI_CHECK_NOT_NULL(den);
+  std::tie(*num, *den) = term->d_term.getReal32Value();
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_term_is_real64_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isReal64Value();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_term_get_real64_value(Cvc5Term term, int64_t* num, uint64_t* den)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_NOT_NULL(num);
+  CVC5_CAPI_CHECK_NOT_NULL(den);
+  std::tie(*num, *den) = term->d_term.getReal64Value();
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_term_is_real_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isRealValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_term_get_real_value(Cvc5Term term)
+{
+  static thread_local std::string res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getRealValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.c_str();
+}
+
+bool cvc5_term_is_const_array(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isConstArray();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_term_get_const_array_base(Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_tm->export_term(term->d_term.getConstArrayBase());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_boolean_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isBooleanValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_get_boolean_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getBooleanValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_bv_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isBitVectorValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_term_get_bv_value(Cvc5Term term, uint32_t base)
+{
+  static thread_local std::string res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getBitVectorValue(base);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.c_str();
+}
+
+bool cvc5_term_is_ff_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isFiniteFieldValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_term_get_ff_value(Cvc5Term term)
+{
+  static thread_local std::string res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getFiniteFieldValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.c_str();
+}
+
+bool cvc5_term_is_uninterpreted_sort_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isUninterpretedSortValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_term_get_uninterpreted_sort_value(Cvc5Term term)
+{
+  static thread_local std::string res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getUninterpretedSortValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.c_str();
+}
+
+bool cvc5_term_is_tuple_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isTupleValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Term* cvc5_term_get_tuple_value(Cvc5Term term, size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto terms = term->d_term.getTupleValue();
+  for (auto& t : terms)
+  {
+    res.push_back(term->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+bool cvc5_term_is_rm_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isRoundingModeValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5RoundingMode cvc5_term_get_rm_value(Cvc5Term term)
+{
+  Cvc5RoundingMode res = CVC5_RM_ROUND_NEAREST_TIES_TO_AWAY;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = static_cast<Cvc5RoundingMode>(term->d_term.getRoundingModeValue());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_fp_pos_zero(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isFloatingPointPosZero();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_fp_neg_zero(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isFloatingPointNegZero();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_fp_pos_inf(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isFloatingPointPosInf();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_fp_neg_inf(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isFloatingPointNegInf();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_fp_nan(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isFloatingPointNaN();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_fp_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isFloatingPointValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_term_get_fp_value(Cvc5Term term,
+                            uint32_t* ew,
+                            uint32_t* sw,
+                            Cvc5Term* val)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_NOT_NULL(ew);
+  CVC5_CAPI_CHECK_NOT_NULL(sw);
+  CVC5_CAPI_CHECK_NOT_NULL(val);
+  cvc5::Term res;
+  std::tie(*ew, *sw, res) = term->d_term.getFloatingPointValue();
+  *val = term->d_tm->export_term(res);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_term_is_set_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isSetValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Term* cvc5_term_get_set_value(Cvc5Term term, size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto terms = term->d_term.getSetValue();
+  for (auto& t : terms)
+  {
+    res.push_back(term->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+bool cvc5_term_is_sequence_value(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isSequenceValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Term* cvc5_term_get_sequence_value(Cvc5Term term, size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto terms = term->d_term.getSequenceValue();
+  for (auto& t : terms)
+  {
+    res.push_back(term->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+bool cvc5_term_is_cardinality_constraint(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isCardinalityConstraint();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_term_get_cardinality_constraint(Cvc5Term term,
+                                          Cvc5Sort* sort,
+                                          uint32_t* upper)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_NOT_NULL(sort);
+  CVC5_CAPI_CHECK_NOT_NULL(upper);
+  cvc5::Sort res;
+  std::tie(res, *upper) = term->d_term.getCardinalityConstraint();
+  *sort = term->d_tm->export_sort(res);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_term_is_real_algebraic_number(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isRealAlgebraicNumber();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_term_get_real_algebraic_number_defining_polynomial(Cvc5Term term,
+                                                                 Cvc5Term v)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_TERM(v);
+  res = term->d_tm->export_term(
+      term->d_term.getRealAlgebraicNumberDefiningPolynomial(v->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_term_get_real_algebraic_number_lower_bound(Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res =
+      term->d_tm->export_term(term->d_term.getRealAlgebraicNumberLowerBound());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_term_get_real_algebraic_number_upper_bound(Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res =
+      term->d_tm->export_term(term->d_term.getRealAlgebraicNumberUpperBound());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_term_is_skolem(Cvc5Term term)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.isSkolem();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5SkolemId cvc5_term_get_skolem_id(Cvc5Term term)
+{
+  Cvc5SkolemId res = CVC5_SKOLEM_ID_NONE;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = static_cast<Cvc5SkolemId>(term->d_term.getSkolemId());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term, size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto terms = term->d_term.getSkolemIndices();
+  for (auto& t : terms)
+  {
+    res.push_back(term->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+size_t cvc5_term_hash(Cvc5Term term)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = std::hash<cvc5::Term>{}(term->d_term);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Op                                                                     */
+/* -------------------------------------------------------------------------- */
+
+bool cvc5_op_is_equal(Cvc5Op a, Cvc5Op b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_op == b->d_op;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_op_is_disequal(Cvc5Op a, Cvc5Op b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a != b;
+  }
+  else
+  {
+    res = a->d_op != b->d_op;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Kind cvc5_op_get_kind(Cvc5Op op)
+{
+  Cvc5Kind res = CVC5_KIND_INTERNAL_KIND;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OP(op);
+  res = static_cast<Cvc5Kind>(op->d_op.getKind());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_op_is_indexed(Cvc5Op op)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OP(op);
+  res = op->d_op.isIndexed();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+size_t cvc5_op_get_num_indices(Cvc5Op op)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OP(op);
+  res = op->d_op.getNumIndices();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_op_get_index(Cvc5Op op, size_t i)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OP(op);
+  res = op->d_tm->export_term(op->d_op[i]);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_op_to_string(Cvc5Op op)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OP(op);
+  str = op->d_op.toString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+size_t cvc5_op_hash(Cvc5Op op)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OP(op);
+  res = std::hash<cvc5::Op>{}(op->d_op);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -2331,6 +3272,587 @@ Cvc5DatatypeDecl cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
     cparams.push_back(params[i]->d_sort);
   }
   res = tm->export_dt_decl(tm->d_tm.mkDatatypeDecl(name, cparams, is_codt));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Create Terms --------------------------------------------------------- */
+
+Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
+                      Cvc5Kind kind,
+                      size_t size,
+                      const Cvc5Term children[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_KIND(kind);
+  CVC5_API_CHECK(children || size == 0)
+      << "unexpected NULL argument for 'children'";
+  std::vector<cvc5::Term> cchildren;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(children, i);
+    cchildren.push_back(children[i]->d_term);
+  }
+  res = tm->export_term(
+      tm->d_tm.mkTerm(static_cast<cvc5::Kind>(kind), cchildren));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_term_from_op(Cvc5TermManager* tm,
+                              Cvc5Op op,
+                              size_t size,
+                              const Cvc5Term children[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(op);
+  CVC5_API_CHECK(children || size == 0)
+      << "unexpected NULL argument for 'children'";
+  std::vector<cvc5::Term> cchildren;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(children, i);
+    cchildren.push_back(children[i]->d_term);
+  }
+  res = tm->export_term(tm->d_tm.mkTerm(op->d_op, cchildren));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm, size_t size, const Cvc5Term terms[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(terms);
+  std::vector<cvc5::Term> cterms;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(terms, i);
+    cterms.push_back(terms[i]->d_term);
+  }
+  res = tm->export_term(tm->d_tm.mkTuple(cterms));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_some(Cvc5TermManager* tm, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = tm->export_term(tm->d_tm.mkNullableSome(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_val(Cvc5TermManager* tm, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = tm->export_term(tm->d_tm.mkNullableVal(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_is_null(Cvc5TermManager* tm, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = tm->export_term(tm->d_tm.mkNullableIsNull(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_is_some(Cvc5TermManager* tm, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = tm->export_term(tm->d_tm.mkNullableIsSome(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_null(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkNullableNull(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
+                               Cvc5Kind kind,
+                               size_t size,
+                               const Cvc5Term args[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_KIND(kind);
+  CVC5_CAPI_CHECK_NOT_NULL(args);
+  std::vector<cvc5::Term> cargs;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(args, i);
+    cargs.push_back(args[i]->d_term);
+  }
+  res = tm->export_term(
+      tm->d_tm.mkNullableLift(static_cast<cvc5::Kind>(kind), cargs));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Create Operators ---------------------------------------------------- */
+
+Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
+                  Cvc5Kind kind,
+                  size_t size,
+                  const uint32_t idxs[])
+{
+  Cvc5Op res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_KIND(kind);
+  CVC5_API_CHECK(idxs || size == 0) << "unexpected NULL argument for 'idxs'";
+  std::vector<uint32_t> cidxs;
+  for (size_t i = 0; i < size; ++i)
+  {
+    cidxs.push_back(idxs[i]);
+  }
+  res = tm->export_op(tm->d_tm.mkOp(static_cast<cvc5::Kind>(kind), cidxs));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Op cvc5_mk_op_from_str(Cvc5TermManager* tm, Cvc5Kind kind, const char* arg)
+{
+  Cvc5Op res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_KIND(kind);
+  CVC5_CAPI_CHECK_NOT_NULL(arg);
+  res = tm->export_op(tm->d_tm.mkOp(static_cast<cvc5::Kind>(kind), arg));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Create Constants ---------------------------------------------------- */
+
+Cvc5Term cvc5_mk_true(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkTrue());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_false(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFalse());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_boolean(Cvc5TermManager* tm, bool val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkBoolean(val));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_pi(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkPi());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_integer(Cvc5TermManager* tm, const char* s)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkInteger(s));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_integer_int64(Cvc5TermManager* tm, int64_t val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkInteger(val));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_real(Cvc5TermManager* tm, const char* s)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkReal(s));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_real_int64(Cvc5TermManager* tm, int64_t val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkReal(val));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_real_num_den(Cvc5TermManager* tm, int64_t num, int64_t den)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkReal(num, den));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_regexp_all(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkRegexpAll());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_regexp_allchar(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkRegexpAllchar());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_regexp_none(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkRegexpNone());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_empty_set(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkEmptySet(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_empty_bag(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkEmptyBag(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_sep_emp(Cvc5TermManager* tm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkSepEmp());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_sep_nil(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkSepNil(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkString(s, use_esc_seq));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkString(s));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_empty_sequence(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkEmptySequence(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_universe_set(Cvc5TermManager* tm, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkUniverseSet(sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_bv_uint64(Cvc5TermManager* tm, uint32_t size, uint64_t val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkBitVector(size, val));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_bv(Cvc5TermManager* tm,
+                    uint32_t size,
+                    const char* s,
+                    uint32_t base)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkBitVector(size, s, base));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_ff_elem(Cvc5TermManager* tm,
+                         const char* value,
+                         Cvc5Sort sort,
+                         uint32_t base)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(value);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(tm->d_tm.mkFiniteFieldElem(value, sort->d_sort, base));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_const_array(Cvc5TermManager* tm, Cvc5Sort sort, Cvc5Term val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_TERM(val);
+  res = tm->export_term(tm->d_tm.mkConstArray(sort->d_sort, val->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_pos_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointPosInf(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_neg_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointNegInf(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_nan(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointNaN(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_pos_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointPosZero(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_neg_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(tm->d_tm.mkFloatingPointNegZero(exp, sig));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_rm(Cvc5TermManager* tm, Cvc5RoundingMode rm)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_term(
+      tm->d_tm.mkRoundingMode(static_cast<cvc5::RoundingMode>(rm)));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp(Cvc5TermManager* tm,
+                    uint32_t exp,
+                    uint32_t sig,
+                    Cvc5Term val)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(val);
+  res = tm->export_term(tm->d_tm.mkFloatingPoint(exp, sig, val->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_fp_from_ieee(Cvc5TermManager* tm,
+                              Cvc5Term sign,
+                              Cvc5Term exp,
+                              Cvc5Term sig)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_TERM(sign);
+  CVC5_CAPI_CHECK_TERM(exp);
+  CVC5_CAPI_CHECK_TERM(sig);
+  res = tm->export_term(
+      tm->d_tm.mkFloatingPoint(sign->d_term, exp->d_term, sig->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_cardinality_constraint(Cvc5TermManager* tm,
+                                        Cvc5Sort sort,
+                                        uint32_t upperBound)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = tm->export_term(
+      tm->d_tm.mkCardinalityConstraint(sort->d_sort, upperBound));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* Create Variables ----------------------------------------------------- */
+
+Cvc5Term cvc5_mk_const(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  if (symbol)
+  {
+    res = tm->export_term(tm->d_tm.mkConst(sort->d_sort, symbol));
+  }
+  else
+  {
+    res = tm->export_term(tm->d_tm.mkConst(sort->d_sort));
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_var(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SORT(sort);
+  if (symbol)
+  {
+    res = tm->export_term(tm->d_tm.mkVar(sort->d_sort, symbol));
+  }
+  else
+  {
+    res = tm->export_term(tm->d_tm.mkVar(sort->d_sort));
+  }
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
