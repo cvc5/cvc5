@@ -156,7 +156,7 @@ class CVC5ApiUnsupportedExceptionStream
 #define CVC5_API_CHECK_NOT_NULL                     \
   CVC5_API_CHECK(!isNullHelper())                   \
       << "invalid call to '" << __PRETTY_FUNCTION__ \
-      << "', expected non-null object";
+      << "', expected non-null object"
 
 /** Check if given argument is not a null object. */
 #define CVC5_API_ARG_CHECK_NOT_NULL(arg) \
@@ -165,14 +165,14 @@ class CVC5ApiUnsupportedExceptionStream
 /** Check if given argument is not a null pointer. */
 #define CVC5_API_ARG_CHECK_NOT_NULLPTR(arg) \
   CVC5_API_CHECK(arg != nullptr)            \
-      << "invalid null argument for '" << #arg << "'";
+      << "invalid null argument for '" << #arg << "'"
 /**
  * Check if given argument at given index in container 'args' is not a null
  * object.
  */
 #define CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(what, arg, args, idx)      \
   CVC5_API_CHECK(!arg.isNull()) << "invalid null " << (what) << " in '" \
-                                << #args << "' at index " << (idx);
+                                << #args << "' at index " << (idx)
 
 /* -------------------------------------------------------------------------- */
 /* Kind checks.                                                               */
@@ -181,7 +181,7 @@ class CVC5ApiUnsupportedExceptionStream
 /** Check if given kind is a valid kind. */
 #define CVC5_API_KIND_CHECK(kind)     \
   CVC5_API_CHECK(isDefinedKind(kind)) \
-      << "invalid kind '" << std::to_string(kind) << "'";
+      << "invalid kind '" << std::to_string(kind) << "'"
 
 /**
  * Check if given kind is a valid kind.
@@ -283,7 +283,7 @@ class CVC5ApiUnsupportedExceptionStream
   CVC5_API_CHECK(d_tm->d_nm == arg.d_tm->d_nm)            \
       << "Given " << (what)                               \
       << " is not associated with the term manager this " \
-      << "object is associated with";
+      << "object is associated with"
 
 /* -------------------------------------------------------------------------- */
 /* Sort checks.                                                               */
@@ -494,7 +494,7 @@ class CVC5ApiUnsupportedExceptionStream
  */
 #define CVC5_API_ARG_TM_CHECK_TM(what, arg) \
   CVC5_API_CHECK(d_nm == arg.d_tm->d_nm)    \
-      << "Given " << (what) << " is not associated with this term manager";
+      << "Given " << (what) << " is not associated with this term manager"
 /**
  * Sort check for member functions of class TermManager.
  * Check if given sort is not null and associated with this term manager.
