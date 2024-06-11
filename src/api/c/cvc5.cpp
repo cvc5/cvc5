@@ -1701,12 +1701,29 @@ Cvc5DatatypeConstructorDecl cvc5_dt_cons_decl_copy(
   return res;
 }
 
-void cvc5_dt_decl_release(Cvc5DatatypeConstructorDecl decl)
+void cvc5_dt_cons_decl_release(Cvc5DatatypeConstructorDecl decl)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_DT_CONS_DECL(decl);
   decl->d_tm->release(decl);
   CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_dt_cons_decl_is_equal(Cvc5DatatypeConstructorDecl a,
+                                Cvc5DatatypeConstructorDecl b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_decl == b->d_decl;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 void cvc5_dt_cons_decl_add_selector(Cvc5DatatypeConstructorDecl decl,
@@ -1753,6 +1770,16 @@ const char* cvc5_dt_cons_decl_to_string(Cvc5DatatypeConstructorDecl decl)
   return str.c_str();
 }
 
+size_t cvc5_dt_cons_decl_hash(Cvc5DatatypeConstructorDecl decl)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_CONS_DECL(decl);
+  res = std::hash<cvc5::DatatypeConstructorDecl>{}(decl->d_decl);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 /* Cvc5DatatypeDecl ---------------------------------------------------- */
 
 Cvc5DatatypeDecl cvc5_dt_decl_copy(Cvc5DatatypeDecl decl)
@@ -1771,6 +1798,22 @@ void cvc5_dt_decl_release(Cvc5DatatypeDecl decl)
   CVC5_CAPI_CHECK_DT_DECL(decl);
   decl->d_tm->release(decl);
   CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_dt_decl_is_equal(Cvc5DatatypeDecl a, Cvc5DatatypeDecl b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_decl == b->d_decl;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 void cvc5_dt_decl_add_constructor(Cvc5DatatypeDecl decl,
@@ -1833,6 +1876,16 @@ const char* cvc5_dt_decl_get_name(Cvc5DatatypeDecl decl)
   return str.c_str();
 }
 
+size_t cvc5_dt_decl_hash(Cvc5DatatypeDecl decl)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_DECL(decl);
+  res = std::hash<cvc5::DatatypeDecl>{}(decl->d_decl);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 /* Cvc5DatatypeSelector ------------------------------------------------ */
 
 Cvc5DatatypeSelector cvc5_dt_sel_copy(Cvc5DatatypeSelector sel)
@@ -1851,6 +1904,22 @@ void cvc5_dt_sel_release(Cvc5DatatypeSelector sel)
   CVC5_CAPI_CHECK_DT_SEL(sel);
   sel->d_tm->release(sel);
   CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_dt_sel_is_equal(Cvc5DatatypeSelector a, Cvc5DatatypeSelector b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_dt_sel == b->d_dt_sel;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 const char* cvc5_dt_sel_get_name(Cvc5DatatypeSelector sel)
@@ -1903,6 +1972,16 @@ const char* cvc5_dt_sel_to_string(Cvc5DatatypeSelector sel)
   return str.c_str();
 }
 
+size_t cvc5_dt_sel_hash(Cvc5DatatypeSelector sel)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_SEL(sel);
+  res = std::hash<cvc5::DatatypeSelector>{}(sel->d_dt_sel);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 /* Cvc5DatatypeConstructor --------------------------------------------- */
 
 Cvc5DatatypeConstructor cvc5_dt_cons_copy(Cvc5DatatypeConstructor cons)
@@ -1921,6 +2000,22 @@ void cvc5_dt_cons_release(Cvc5DatatypeConstructor cons)
   CVC5_CAPI_CHECK_DT_CONS(cons);
   cons->d_tm->release(cons);
   CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_dt_cons_is_equal(Cvc5DatatypeConstructor a, Cvc5DatatypeConstructor b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_dt_cons == b->d_dt_cons;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 const char* cvc5_dt_cons_get_name(Cvc5DatatypeConstructor cons)
@@ -2009,6 +2104,16 @@ const char* cvc5_dt_cons_to_string(Cvc5DatatypeConstructor cons)
   return str.c_str();
 }
 
+size_t cvc5_dt_cons_hash(Cvc5DatatypeConstructor cons)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT_CONS(cons);
+  res = std::hash<cvc5::DatatypeConstructor>{}(cons->d_dt_cons);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 /* Cvc5Datatype -------------------------------------------------------- */
 
 Cvc5Datatype cvc5_dt_copy(Cvc5Datatype dt)
@@ -2027,6 +2132,22 @@ void cvc5_dt_release(Cvc5Datatype dt)
   CVC5_CAPI_CHECK_DT(dt);
   dt->d_tm->release(dt);
   CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_dt_is_equal(Cvc5Datatype a, Cvc5Datatype b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_dt == b->d_dt;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 Cvc5DatatypeConstructor cvc5_dt_get_constructor(Cvc5Datatype dt, size_t idx)
@@ -2168,6 +2289,16 @@ const char* cvc5_dt_to_string(Cvc5Datatype dt)
   str = dt->d_dt.toString();
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
+}
+
+size_t cvc5_dt_hash(Cvc5Datatype dt)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_DT(dt);
+  res = std::hash<cvc5::Datatype>{}(dt->d_dt);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -3200,6 +3331,7 @@ Cvc5Sort cvc5_mk_dt_sort(Cvc5TermManager* tm, Cvc5DatatypeDecl decl)
   Cvc5Sort res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_DT_DECL(decl);
   res = tm->export_sort(tm->d_tm.mkDatatypeSort(decl->d_decl));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
@@ -3470,12 +3602,14 @@ Cvc5DatatypeDecl cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
   CVC5_CAPI_CHECK_NOT_NULL(name);
-  CVC5_CAPI_CHECK_NOT_NULL(params);
   std::vector<cvc5::Sort> cparams;
-  for (size_t i = 0; i < size; ++i)
+  if (params)
   {
-    CVC5_CAPI_CHECK_SORT_AT_IDX(params, i);
-    cparams.push_back(params[i]->d_sort);
+    for (size_t i = 0; i < size; ++i)
+    {
+      CVC5_CAPI_CHECK_SORT_AT_IDX(params, i);
+      cparams.push_back(params[i]->d_sort);
+    }
   }
   res = tm->export_dt_decl(tm->d_tm.mkDatatypeDecl(name, cparams, is_codt));
   CVC5_CAPI_TRY_CATCH_END;

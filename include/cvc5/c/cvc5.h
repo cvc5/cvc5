@@ -905,6 +905,7 @@ Cvc5Op cvc5_op_copy(Cvc5Op op);
  *       and thus, can be released.
  */
 void cvc5_op_release(Cvc5Op op);
+
 /**
  * Compare two operators for syntactic equality.
  *
@@ -1649,6 +1650,42 @@ size_t cvc5_term_hash(Cvc5Term term);
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Make copy of datatype constructor declaration, increases reference counter
+ * of `decl`.
+ *
+ * @param decl The datatype constructor declaration to copy.
+ * @return The same datatype constructor declaration with its reference count
+ *         increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5DatatypeConstructorDecl cvc5_dt_cons_decl_copy(
+    Cvc5DatatypeConstructorDecl decl);
+
+/**
+ * Release copy of datatype constructor declaration, decrements reference
+ * counter of `decl`.
+ *
+ * @param decl The datatype constructor declaration to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a
+ *       Cvc5DatatypeConstructorDecl returns a copy that is owned by the callee
+ *       of the function and thus, can be released.
+ */
+void cvc5_dt_cons_decl_release(Cvc5DatatypeConstructorDecl decl);
+
+/**
+ * Compare two datatype constructor declarations for structural equality.
+ * @param a The first datatype constructor declaration.
+ * @param b The second datatype constructor declaration.
+ * @return True if the datatype constructor declarations are equal.
+ */
+bool cvc5_dt_cons_decl_is_equal(Cvc5DatatypeConstructorDecl a,
+                                Cvc5DatatypeConstructorDecl b);
+
+/**
  * Add datatype selector declaration to a given constructor declaration.
  * @param decl The datatype constructor declaration.
  * @param name The name of the datatype selector declaration to add.
@@ -1686,6 +1723,13 @@ void cvc5_dt_cons_decl_add_selector_unresolved(Cvc5DatatypeConstructorDecl decl,
  */
 const char* cvc5_dt_cons_decl_to_string(Cvc5DatatypeConstructorDecl decl);
 
+/**
+ * Compute the hash value of a datatype constructor declaration.
+ * @param term The datatype constructor declaration.
+ * @return The hash value of the datatype constructor declaration.
+ */
+size_t cvc5_dt_cons_decl_hash(Cvc5DatatypeConstructorDecl decl);
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeDecl                                                           */
 /* -------------------------------------------------------------------------- */
@@ -1694,7 +1738,8 @@ const char* cvc5_dt_cons_decl_to_string(Cvc5DatatypeConstructorDecl decl);
  * Make copy of datatype declaration, increases reference counter of `decl`.
  *
  * @param decl The datatype declaration to copy.
- * @return The same datatype with its reference count increased by one.
+ * @return The same datatype declarationwith its reference count increased by
+ *         one.
  *
  * @note This step is optional and allows users to manage resources in a more
  *       fine-grained manner.
@@ -1702,7 +1747,7 @@ const char* cvc5_dt_cons_decl_to_string(Cvc5DatatypeConstructorDecl decl);
 Cvc5DatatypeDecl cvc5_dt_decl_copy(Cvc5DatatypeDecl decl);
 
 /**
- * Release copy of datatype declaration, decrements reference counter of `dt`.
+ * Release copy of datatype declaration, decrements reference counter of `decl`.
  *
  * @param decl The datatype declaration to release.
  *
@@ -1712,6 +1757,14 @@ Cvc5DatatypeDecl cvc5_dt_decl_copy(Cvc5DatatypeDecl decl);
  *       function and thus, can be released.
  */
 void cvc5_dt_decl_release(Cvc5DatatypeDecl decl);
+
+/**
+ * Compare two datatype declarations for structural equality.
+ * @param a The first datatype declaration.
+ * @param b The second datatype declaration.
+ * @return True if the datatype declarations are equal.
+ */
+bool cvc5_dt_decl_is_equal(Cvc5DatatypeDecl a, Cvc5DatatypeDecl b);
 
 /**
  * Add datatype constructor declaration.
@@ -1762,6 +1815,13 @@ const char* cvc5_dt_decl_to_string(Cvc5DatatypeDecl decl);
  */
 const char* cvc5_dt_decl_get_name(Cvc5DatatypeDecl decl);
 
+/**
+ * Compute the hash value of a datatype declaration.
+ * @param term The datatype declaration.
+ * @return The hash value of the datatype declaration.
+ */
+size_t cvc5_dt_decl_hash(Cvc5DatatypeDecl decl);
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeSelector                                                       */
 /* -------------------------------------------------------------------------- */
@@ -1788,6 +1848,13 @@ Cvc5DatatypeSelector cvc5_dt_sel_copy(Cvc5DatatypeSelector sel);
  *       function and thus, can be released.
  */
 void cvc5_dt_sel_release(Cvc5DatatypeSelector sel);
+/**
+ * Compare two datatype selectors for structural equality.
+ * @param a The first datatype selector.
+ * @param b The second datatype selector.
+ * @return True if the datatype selectors are equal.
+ */
+bool cvc5_dt_sel_is_equal(Cvc5DatatypeSelector a, Cvc5DatatypeSelector b);
 
 /**
  * Get the name of a given datatype selector.
@@ -1796,7 +1863,7 @@ void cvc5_dt_sel_release(Cvc5DatatypeSelector sel);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_del_get_name(Cvc5DatatypeSelector sel);
+const char* cvc5_dt_sel_get_name(Cvc5DatatypeSelector sel);
 
 /**
  * Get the selector term of a given datatype selector.
@@ -1823,7 +1890,7 @@ Cvc5Term cvc5_dt_sel_get_term(Cvc5DatatypeSelector sel);
 Cvc5Term cvc5_dt_sel_get_updater_term(Cvc5DatatypeSelector sel);
 
 /**
- * Get the codomain sort of a given selector.
+ * Get the codomain sort of a given datatype selector.
  * @param sel The datatype selector.
  * @return The codomain sort of the selector.
  */
@@ -1837,6 +1904,13 @@ Cvc5Sort cvc5_dt_sel_get_codomain_sort(Cvc5DatatypeSelector sel);
  *       function.
  */
 const char* cvc5_dt_sel_to_string(Cvc5DatatypeSelector sel);
+
+/**
+ * Compute the hash value of a datatype selector.
+ * @param term The datatype selector.
+ * @return The hash value of the datatype selector.
+ */
+size_t cvc5_dt_sel_hash(Cvc5DatatypeSelector sel);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeConstructor                                                    */
@@ -1865,6 +1939,15 @@ Cvc5DatatypeConstructor cvc5_dt_cons_copy(Cvc5DatatypeConstructor cons);
  *       the function and thus, can be released.
  */
 void cvc5_dt_cons_release(Cvc5DatatypeConstructor cons);
+
+/**
+ * Compare two datatype constructors for structural equality.
+ * @param a The first datatype constructor.
+ * @param b The second datatype constructor.
+ * @return True if the datatype constructors are equal.
+ */
+bool cvc5_dt_cons_is_equal(Cvc5DatatypeConstructor a,
+                           Cvc5DatatypeConstructor b);
 
 /**
  * Get the name of a given datatype constructor.
@@ -1984,6 +2067,13 @@ Cvc5DatatypeSelector cvc5_dt_cons_get_selector_by_name(
  */
 const char* cvc5_dt_cons_to_string(Cvc5DatatypeConstructor cons);
 
+/**
+ * Compute the hash value of a datatype constructor.
+ * @param term The datatype constructor.
+ * @return The hash value of the datatype constructor.
+ */
+size_t cvc5_dt_cons_hash(Cvc5DatatypeConstructor cons);
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Datatype                                                               */
 /* -------------------------------------------------------------------------- */
@@ -2010,6 +2100,14 @@ Cvc5Datatype cvc5_dt_copy(Cvc5Datatype dt);
  *       function and thus, can be released.
  */
 void cvc5_dt_release(Cvc5Datatype dt);
+
+/**
+ * Compare two datatypes for structural equality.
+ * @param a The first datatype.
+ * @param b The second datatype.
+ * @return True if the datatypes are equal.
+ */
+bool cvc5_dt_is_equal(Cvc5Datatype a, Cvc5Datatype b);
 
 /**
  * Get the datatype constructor of a given datatype at a given index.
@@ -2122,6 +2220,13 @@ bool cvc5_dt_is_well_founded(Cvc5Datatype dt);
  *       function.
  */
 const char* cvc5_dt_to_string(Cvc5Datatype dt);
+
+/**
+ * Compute the hash value of a datatype.
+ * @param term The datatype.
+ * @return The hash value of the datatype.
+ */
+size_t cvc5_dt_hash(Cvc5Datatype dt);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Grammar                                                                */
