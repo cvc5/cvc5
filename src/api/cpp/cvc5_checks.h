@@ -460,7 +460,7 @@ class CVC5ApiUnsupportedExceptionStream
              "associated "                                                 \
              "with";                                                       \
       CVC5_API_CHECK(t1.getSort() == t2.getSort())                         \
-          << "Expecting terms of the same sort at index " << i;            \
+          << "expecting terms of the same sort at index " << i;            \
       i += 1;                                                              \
     }                                                                      \
   } while (0)
