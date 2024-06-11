@@ -60,7 +60,7 @@
 ; define: $compare_var
 ; args:
 ; - a T: The first term to compare.
-; - b : U. The second term to compare.
+; - b U: The second term to compare.
 ; return: true if a should be considered before b in an ordering where a and b are considered to be atomic variables.
 ; note: >
 ;   This method is used to have a canonical ordering of variables.
@@ -99,7 +99,7 @@
 
 ; program: $singleton_elim_aci
 ; args:
-; - f : (-> T U S). The function we are considering.
+; - f (-> T U S): The function we are considering.
 ; - id S: The nil terminator of f.
 ; - s S: The term to process.
 ; return: >
@@ -122,7 +122,7 @@
 
 ; program: $ac_append
 ; args:
-; - f : (-> T U S). The function, which is assumed to be associative, commutative, idempotent and has the given identity.
+; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
 ; - id S: The nil terminator of f.
 ; - s1 S: The first term to process.
 ; - s2 S: The second term to process.
@@ -143,7 +143,7 @@
 
 ; program: $get_aci_norm_rec
 ; args:
-; - f : (-> T U S). The function, which is assumed to be associative, commutative, idempotent and has the given identity.
+; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
 ; - id S: The nil terminator of f.
 ; - s S: The term to process.
 ; return: the result of normalizing s based on ACI reasoning.
@@ -171,7 +171,7 @@
 
 ; program: $get_a_norm_rec
 ; args:
-; - f : (-> T U S). The function we are considering, which is assumed to be associative and has the given identity.
+; - f (-> T U S): The function we are considering, which is assumed to be associative and has the given identity.
 ; - id S: The nil terminator of f.
 ; - s S: The term to process.
 ; return: the result of normalizing s based on associative+identity reasoning.
