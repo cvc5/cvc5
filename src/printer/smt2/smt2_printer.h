@@ -18,6 +18,8 @@
 #ifndef CVC5__PRINTER__SMT2_PRINTER_H
 #define CVC5__PRINTER__SMT2_PRINTER_H
 
+#include <cvc5/cvc5_skolem_id.h>
+
 #include "printer/printer.h"
 
 namespace cvc5::internal {
@@ -283,6 +285,17 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamCmdDeclareHeap(std::ostream& out,
                               TypeNode locType,
                               TypeNode dataType) const override;
+
+  /** Print skolems.
+   * @param out The stream to print to
+   * @param cacheVal The cache value of the skolem
+   * @param id The skolem id
+   * @param isApplied Whether the skolem is applied as an APPLY_UF
+   */
+  void toStreamSkolem(std::ostream& out,
+                      Node cacheVal,
+                      SkolemId id,
+                      bool isApplied) const;
 
   /**
    * Get the string for a kind k, which returns how the kind k is printed in
