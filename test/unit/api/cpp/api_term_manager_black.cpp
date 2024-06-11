@@ -482,6 +482,7 @@ TEST_F(TestApiBlackTermManager, mkConstArray)
   Term zero = d_tm.mkInteger(0);
   Term constArr = d_tm.mkConstArray(arrSort, zero);
 
+  ASSERT_NO_THROW(d_tm.mkConstArray(arrSort, zero));
   ASSERT_THROW(d_tm.mkConstArray(Sort(), zero), CVC5ApiException);
   ASSERT_THROW(d_tm.mkConstArray(arrSort, Term()), CVC5ApiException);
   ASSERT_THROW(d_tm.mkConstArray(arrSort, d_tm.mkBitVector(1, 1)),
@@ -495,8 +496,7 @@ TEST_F(TestApiBlackTermManager, mkConstArray)
   TermManager tm;
   // this will throw when NodeManager is not a singleton anymore
   ASSERT_NO_THROW(tm.mkConstArray(arrSort, tm.mkInteger(0)));
-  ASSERT_NO_THROW(tm.mkConstArray(
-      tm.mkArraySort(tm.getIntegerSort(), tm.getIntegerSort()), zero));
+  ASSERT_NO_THROW(tm.mkConstArray(tm.mkArraySort(intSort, intSort), zero));
 }
 
 TEST_F(TestApiBlackTermManager, mkVar)
@@ -542,12 +542,12 @@ TEST_F(TestApiBlackTermManager, mkFloatingPoint)
 {
   Term t1 = d_tm.mkBitVector(8);
   Term t2 = d_tm.mkBitVector(4);
+  Term t3 = d_tm.mkInteger(2);
   ASSERT_NO_THROW(d_tm.mkFloatingPoint(3, 5, t1));
   ASSERT_THROW(d_tm.mkFloatingPoint(0, 5, Term()), CVC5ApiException);
   ASSERT_THROW(d_tm.mkFloatingPoint(0, 5, t1), CVC5ApiException);
-  ASSERT_THROW(d_tm.mkFloatingPoint(1, 5, t1), CVC5ApiException);
   ASSERT_THROW(d_tm.mkFloatingPoint(3, 0, t1), CVC5ApiException);
-  ASSERT_THROW(d_tm.mkFloatingPoint(3, 1, t1), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkFloatingPoint(3, 5, t2), CVC5ApiException);
   ASSERT_THROW(d_tm.mkFloatingPoint(3, 5, t2), CVC5ApiException);
 
   ASSERT_EQ(d_tm.mkFloatingPoint(
@@ -578,6 +578,8 @@ TEST_F(TestApiBlackTermManager, mkFloatingPoint)
       d_tm.mkFloatingPoint(
           d_tm.mkBitVector(2), d_tm.mkBitVector(5), d_tm.mkBitVector(10)),
       CVC5ApiException);
+
+  ASSERT_NO_THROW(d_tm.mkFloatingPoint(3, 5, t1));
 
   TermManager tm;
   // this will throw when NodeManager is not a singleton anymore
@@ -705,8 +707,29 @@ TEST_F(TestApiBlackTermManager, mkInteger)
   ASSERT_THROW(d_tm.mkInteger("2/"), CVC5ApiException);
   ASSERT_THROW(d_tm.mkInteger("/2"), CVC5ApiException);
 
-  ASSERT_NO_THROW(d_tm.mkInteger(1));
-  ASSERT_NO_THROW(d_tm.mkInteger(-1));
+  ASSERT_NO_THROW(d_tm.mkReal(std::string("123")));
+  ASSERT_THROW(d_tm.mkInteger(std::string("1.23")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string("1/23")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string("12/3")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string(".2")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string("2.")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string("")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string("asdf")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string("1.2/3")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string(".")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string("/")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string("2/")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkInteger(std::string("/2")), CVC5ApiException);
+
+  int32_t val1 = 1;
+  int64_t val2 = -1;
+  uint32_t val3 = 1;
+  uint64_t val4 = -1;
+  ASSERT_NO_THROW(d_tm.mkInteger(val1));
+  ASSERT_NO_THROW(d_tm.mkInteger(val2));
+  ASSERT_NO_THROW(d_tm.mkInteger(val3));
+  ASSERT_NO_THROW(d_tm.mkInteger(val4));
+  ASSERT_NO_THROW(d_tm.mkInteger(val4));
 }
 
 TEST_F(TestApiBlackTermManager, mkReal)
@@ -724,6 +747,20 @@ TEST_F(TestApiBlackTermManager, mkReal)
   ASSERT_THROW(d_tm.mkReal("/"), CVC5ApiException);
   ASSERT_THROW(d_tm.mkReal("2/"), CVC5ApiException);
   ASSERT_THROW(d_tm.mkReal("/2"), CVC5ApiException);
+
+  ASSERT_NO_THROW(d_tm.mkReal(std::string("123")));
+  ASSERT_NO_THROW(d_tm.mkReal(std::string("1.23")));
+  ASSERT_NO_THROW(d_tm.mkReal(std::string("1/23")));
+  ASSERT_NO_THROW(d_tm.mkReal(std::string("12/3")));
+  ASSERT_NO_THROW(d_tm.mkReal(std::string(".2")));
+  ASSERT_NO_THROW(d_tm.mkReal(std::string("2.")));
+  ASSERT_THROW(d_tm.mkReal(std::string("")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal(std::string("asdf")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal(std::string("1.2/3")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal(std::string(".")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal(std::string("/")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal(std::string("2/")), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal(std::string("/2")), CVC5ApiException);
 
   int32_t val1 = 1;
   int64_t val2 = -1;
@@ -743,7 +780,6 @@ TEST_F(TestApiBlackTermManager, mkReal)
   ASSERT_NO_THROW(d_tm.mkReal("-1/1"));
   ASSERT_NO_THROW(d_tm.mkReal("1/1"));
   ASSERT_THROW(d_tm.mkReal("/-5"), CVC5ApiException);
-  ASSERT_THROW(d_tm.mkReal(1, 0), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkRegexpAll)
@@ -804,6 +840,7 @@ TEST_F(TestApiBlackTermManager, mkTerm)
   std::vector<Term> v5 = {d_tm.mkInteger(1), Term()};
   std::vector<Term> v6 = {};
 
+  // mkTerm(Kind kind) const
   ASSERT_NO_THROW(d_tm.mkTerm(Kind::PI));
   ASSERT_NO_THROW(d_tm.mkTerm(Kind::PI, {v6}));
   ASSERT_NO_THROW(d_tm.mkTerm(d_tm.mkOp(Kind::PI)));
@@ -822,6 +859,7 @@ TEST_F(TestApiBlackTermManager, mkTerm)
   ASSERT_NO_THROW(d_tm.mkTerm(d_tm.mkOp(Kind::SEP_EMP), {v6}));
   ASSERT_THROW(d_tm.mkTerm(Kind::CONST_BITVECTOR), CVC5ApiException);
 
+  // mkTerm(Kind kind, const std::vector<Term>& children) const
   ASSERT_NO_THROW(d_tm.mkTerm(Kind::NOT, {d_tm.mkTrue()}));
   ASSERT_NO_THROW(
       d_tm.mkTerm(Kind::BAG_MAKE, {d_tm.mkTrue(), d_tm.mkInteger(1)}));

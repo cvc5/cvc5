@@ -155,23 +155,23 @@ class CVC5ApiUnsupportedExceptionStream
 /** Check it 'this' is not a null object. */
 #define CVC5_API_CHECK_NOT_NULL                     \
   CVC5_API_CHECK(!isNullHelper())                   \
-      << "invalid call to '" << __PRETTY_FUNCTION__ \
+      << "Invalid call to '" << __PRETTY_FUNCTION__ \
       << "', expected non-null object";
 
 /** Check if given argument is not a null object. */
 #define CVC5_API_ARG_CHECK_NOT_NULL(arg) \
-  CVC5_API_CHECK(!arg.isNull()) << "invalid null argument for '" << #arg << "'";
+  CVC5_API_CHECK(!arg.isNull()) << "Invalid null argument for '" << #arg << "'";
 
 /** Check if given argument is not a null pointer. */
 #define CVC5_API_ARG_CHECK_NOT_NULLPTR(arg) \
   CVC5_API_CHECK(arg != nullptr)            \
-      << "invalid null argument for '" << #arg << "'";
+      << "Invalid null argument for '" << #arg << "'";
 /**
  * Check if given argument at given index in container 'args' is not a null
  * object.
  */
 #define CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(what, arg, args, idx)      \
-  CVC5_API_CHECK(!arg.isNull()) << "invalid null " << (what) << " in '" \
+  CVC5_API_CHECK(!arg.isNull()) << "Invalid null " << (what) << " in '" \
                                 << #args << "' at index " << (idx);
 
 /* -------------------------------------------------------------------------- */
@@ -181,7 +181,7 @@ class CVC5ApiUnsupportedExceptionStream
 /** Check if given kind is a valid kind. */
 #define CVC5_API_KIND_CHECK(kind)     \
   CVC5_API_CHECK(isDefinedKind(kind)) \
-      << "invalid kind '" << std::to_string(kind) << "'";
+      << "Invalid kind '" << std::to_string(kind) << "'";
 
 /**
  * Check if given kind is a valid kind.
@@ -193,7 +193,7 @@ class CVC5ApiUnsupportedExceptionStream
   ? (void)0                                      \
   : cvc5::internal::OstreamVoider()              \
           & CVC5ApiExceptionStream().ostream()   \
-                << "invalid kind '" << std::to_string(kind) << "', expected "
+                << "Invalid kind '" << std::to_string(kind) << "', expected "
 
 /* -------------------------------------------------------------------------- */
 /* Argument checks.                                                           */
@@ -209,7 +209,7 @@ class CVC5ApiUnsupportedExceptionStream
   ? (void)0                                                         \
   : cvc5::internal::OstreamVoider()                                 \
           & CVC5ApiExceptionStream().ostream()                      \
-                << "invalid argument '" << arg << "' for '" << #arg \
+                << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
 
 /**
@@ -222,7 +222,7 @@ class CVC5ApiUnsupportedExceptionStream
   ? (void)0                                                         \
   : cvc5::internal::OstreamVoider()                                 \
           & CVC5ApiRecoverableExceptionStream().ostream()           \
-                << "invalid argument '" << arg << "' for '" << #arg \
+                << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
 
 /**
@@ -237,7 +237,7 @@ class CVC5ApiUnsupportedExceptionStream
   ? (void)0                                         \
   : cvc5::internal::OstreamVoider()                 \
           & CVC5ApiExceptionStream().ostream()      \
-                << "invalid size of argument '" << #arg << "', expected "
+                << "Invalid size of argument '" << #arg << "', expected "
 
 /**
  * Check condition 'cond' for the argument at given index in container 'args'.
@@ -253,7 +253,7 @@ class CVC5ApiUnsupportedExceptionStream
   ? (void)0                                                                  \
   : cvc5::internal::OstreamVoider()                                          \
           & CVC5ApiExceptionStream().ostream()                               \
-                << "invalid " << (what) << " in '" << #args << "' at index " \
+                << "Invalid " << (what) << " in '" << #args << "' at index " \
                 << (idx) << ", expected "
 
 /**
@@ -267,7 +267,7 @@ class CVC5ApiUnsupportedExceptionStream
   ? (void)0                                                                   \
   : cvc5::internal::OstreamVoider()                                           \
           & CVC5ApiExceptionStream().ostream()                                \
-                << "invalid value '" << args[index] << "' at index " << index \
+                << "Invalid value '" << args[index] << "' at index " << index \
                 << " for operator, expected "
 
 /* -------------------------------------------------------------------------- */
@@ -460,7 +460,7 @@ class CVC5ApiUnsupportedExceptionStream
              "associated "                                                 \
              "with";                                                       \
       CVC5_API_CHECK(t1.getSort() == t2.getSort())                         \
-          << "expecting terms of the same sort at index " << i;            \
+          << "Expecting terms of the same sort at index " << i;            \
       i += 1;                                                              \
     }                                                                      \
   } while (0)
@@ -927,7 +927,7 @@ class CVC5ApiUnsupportedExceptionStream
  */
 #define CVC5_API_OP_CHECK_ARITY(nargs, expected, kind)                      \
   CVC5_API_CHECK(nargs == expected)                                         \
-      << "invalid number of indices for operator " << kind << ", expected " \
+      << "Invalid number of indices for operator " << kind << ". Expected " \
       << expected << " but got " << nargs << "."
 
 }  // namespace cvc5

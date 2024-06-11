@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; EXPECT: (error "cannot get model unless after a SAT or UNKNOWN response.")
+; EXPECT: (error "Cannot get model unless after a SAT or UNKNOWN response.")
 (set-logic ALL)
 (set-option :produce-models true)
 (declare-fun x () Int)

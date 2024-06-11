@@ -906,29 +906,6 @@ size_t cvc5_op_hash(Cvc5Op op);
 /* -------------------------------------------------------------------------- */
 
 /**
- * Make copy of term, increases reference counter of `term`.
- *
- * @param term The term to copy.
- * @return The same term with its reference count increased by one.
- *
- * @note This step is optional and allows users to manage resources in a more
- *       fine-grained manner.
- */
-Cvc5Term cvc5_term_copy(Cvc5Term term);
-
-/**
- * Release copy of term, decrements reference counter of `term`.
- *
- * @param term The term to release.
- *
- * @note This step is optional and allows users to release resources in a more
- *       fine-grained manner. Further, any API function that returns a
- *       Cvc5Term returns a copy that is owned by the callee of the function
- *       and thus, can be released.
- */
-void cvc5_term_release(Cvc5Term term);
-
-/**
  * Compare two terms for syntactic equality.
  * @param a The first term.
  * @param b The second term.
@@ -966,7 +943,7 @@ size_t cvc5_term_get_num_children(Cvc5Term term);
  * @param index The index of the child.
  * @return The child term at the given index.
  */
-Cvc5Term cvc5_term_get_child(Cvc5Term term, size_t index);
+Cvc5Term cvc5_term_get_child(size_t index);
 
 /**
  * Get the id of a given term.
@@ -1105,7 +1082,7 @@ bool cvc5_term_is_int32_value(Cvc5Term term);
  * @param term The term.
  * @return The given term as `int32_t` value.
  */
-int32_t cvc5_term_get_int32_value(Cvc5Term term);
+int32_t cvc5_get_int32_value(Cvc5Term term);
 /**
  * Determine if a given term is an uint32 value.
  * @note This will return true for integer constants and real constants that
@@ -1159,7 +1136,7 @@ uint64_t cvc5_term_get_uint64_value(Cvc5Term term);
  * @return True if the term is an integer constant or a real constant that
  *         has an integral value.
  */
-bool cvc5_term_is_integer_value(Cvc5Term term);
+bool cvc5_term_isIntegerValue(Cvc5Term term);
 /**
  * Get a string representation of a given integral value.
  * @note Requires that the term is an integral value (see
@@ -1270,7 +1247,7 @@ bool cvc5_term_is_boolean_value(Cvc5Term term);
  * @param term The term.
  * @return The representation of a Boolean value as a native Boolean value.
  */
-bool cvc5_term_get_boolean_value(Cvc5Term term);
+bool cvc5_get_boolean_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a bit-vector value.
@@ -1511,7 +1488,7 @@ bool cvc5_term_is_cardinality_constraint(Cvc5Term term);
  */
 void cvc5_term_get_cardinality_constraint(Cvc5Term term,
                                           Cvc5Sort* sort,
-                                          uint32_t* upper);
+                                          uint32_t upper);
 
 /**
  * Determine if a given term is a real algebraic number.
@@ -1564,12 +1541,11 @@ Cvc5SkolemId cvc5_term_get_skolem_id(Cvc5Term term);
  * @note Asserts isSkolem().
  * @warning This function is experimental and may change in future versions.
  * @param term The skolem.
- * @param size The size of the resulting array.
  * @return The skolem indices of the term. This is list of terms that the
- *         skolem function is indexed by. For example, the array diff skolem
- *         `Cvc5SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
+ * skolem function is indexed by. For example, the array diff skolem
+ * `Cvc5SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
  */
-const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term, size_t* size);
+const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term);
 
 /**
  * Compute the hash value of a term.
@@ -2341,7 +2317,6 @@ Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm,
 
 /**
  * Create a nullable some term.
- * @param tm The term manager instance.
  * @param term The element value.
  * @return the Element value wrapped in some constructor.
  */
@@ -2349,33 +2324,29 @@ Cvc5Term cvc5_mk_nullable_some(Cvc5TermManager* tm, Cvc5Term term);
 
 /**
  * Create a selector for nullable term.
- * @param tm The term manager instance.
  * @param term A nullable term.
  * @return The element value of the nullable term.
  */
-Cvc5Term cvc5_mk_nullable_val(Cvc5TermManager* tm, Cvc5Term term);
+Cvc5Term cvc5_mk_nullable_val(Cvc5Term term);
 /**
  * Create a null tester for a nullable term.
- * @param tm The term manager instance.
  * @param term A nullable term.
  * @return A tester whether term is null.
  */
-Cvc5Term cvc5_mk_nullable_is_null(Cvc5TermManager* tm, Cvc5Term term);
+Cvc5Term cvc5_mk_nullable_is_null(Cvc5Term term);
 /**
  * Create a some tester for a nullable term.
- * @param tm The term manager instance.
  * @param term A nullable term.
  * @return A tester whether term is some.
  */
-Cvc5Term cvc5_mk_nullable_is_some(Cvc5TermManager* tm, Cvc5Term term);
+Cvc5Term cvc5_mk_nullable_is_some(Cvc5Term term);
 
 /**
  * Create a constant representing an null of the given sort.
- * @param tm The term manager instance.
  * @param sort The sort of the Nullable element.
  * @return The null constant.
  */
-Cvc5Term cvc5_mk_nullable_null(Cvc5TermManager* tm, Cvc5Sort sort);
+Cvc5Term cvc5_mk_nullable_null(Cvc5Sort sort);
 /**
  * Create a term that lifts kind to nullable terms.
  *
@@ -2386,17 +2357,15 @@ Cvc5Term cvc5_mk_nullable_null(Cvc5TermManager* tm, Cvc5Sort sort);
  * This function would return
  * (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
  *
- * @param tm The term manager instance.
  * @param kind The lifted operator.
- * @param size The number of arguments of the lifted operator.
+ * @param nargs The number of arguments of the lifted operator.
  * @param args The arguments of the lifted operator.
  * @return A term of kind #CVC5_KIND_NULLABLE_LIFT where the first child
  *         is a lambda expression, and the remaining children are
  *         the original arguments.
  */
-Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
-                               Cvc5Kind kind,
-                               size_t size,
+Cvc5Term cvc5_mk_nullable_lift(Cvc5Kind kind,
+                               size_t nargs,
                                const Cvc5Term args[]);
 
 /* .................................................................... */
@@ -2522,7 +2491,7 @@ Cvc5Term cvc5_mk_real_int64(Cvc5TermManager* tm, int64_t val);
  * @param den The value of the denominator.
  * @return A constant of sort Real.
  */
-Cvc5Term cvc5_mk_real_num_den(Cvc5TermManager* tm, int64_t num, int64_t den);
+Cvc5Term cvc5_mk_real_num_den(int64_t num, int64_t den);
 
 /**
  * Create a regular expression all (re.all) term.
@@ -2536,7 +2505,7 @@ Cvc5Term cvc5_mk_regexp_all(Cvc5TermManager* tm);
  * @param tm The term manager instance.
  * @return The allchar term.
  */
-Cvc5Term cvc5_mk_regexp_allchar(Cvc5TermManager* tm);
+Cvc5Term cvc5_mk_regexp_all_char(Cvc5TermManager* tm);
 
 /**
  * Create a regular expression none (re.none) term.

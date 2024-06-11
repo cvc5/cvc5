@@ -78,7 +78,7 @@ int validate_exception(void)
 
   /* The exception message we expect to obtain */
   std::string expected(
-      "cannot obtain separation logic expressions if not using the separation "
+      "Cannot obtain separation logic expressions if not using the separation "
       "logic theory.");
 
   /* test the heap expression */

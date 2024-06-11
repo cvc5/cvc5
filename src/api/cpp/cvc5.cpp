@@ -1367,7 +1367,7 @@ std::string Sort::getSymbol() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_type->hasName())
-      << "invalid call to '" << __PRETTY_FUNCTION__
+      << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the sort to have a symbol.";
   //////// all checks before this line
   return d_type->getName();
@@ -2113,7 +2113,7 @@ bool Op::operator!=(const Op& t) const
 
 Kind Op::getKind() const
 {
-  CVC5_API_CHECK(d_kind != Kind::NULL_TERM) << "expected a non-null Kind";
+  CVC5_API_CHECK(d_kind != Kind::NULL_TERM) << "expecting a non-null Kind";
   //////// all checks before this line
   return d_kind;
 }
@@ -2200,7 +2200,7 @@ Term Op::getIndexHelper(size_t index)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(!d_node->isNull())
-      << "expected a non-null internal expression. This Op is not indexed.";
+      << "expecting a non-null internal expression. This Op is not indexed.";
   CVC5_API_CHECK(index < getNumIndicesHelper()) << "index out of bound";
   Kind k = intToExtKind(d_node->getKind());
   Term t;
@@ -2386,7 +2386,7 @@ std::string Op::toString() const
   else
   {
     CVC5_API_CHECK(!d_node->isNull())
-        << "expected a non-null internal expression";
+        << "expecting a non-null internal expression";
     Assert(isNull() || d_tm != nullptr);
     return d_node->toString();
   }
@@ -2565,7 +2565,7 @@ Term Term::substitute(const Term& term, const Term& replacement) const
   CVC5_API_CHECK_TERM(term);
   CVC5_API_CHECK_TERM(replacement);
   CVC5_API_CHECK(term.getSort() == replacement.getSort())
-      << "expected terms of the same sort in substitute";
+      << "expecting terms of the same sort in substitute";
   //////// all checks before this line
   return Term(d_tm,
               d_node->substitute(internal::TNode(*term.d_node),
@@ -2580,7 +2580,7 @@ Term Term::substitute(const std::vector<Term>& terms,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(terms.size() == replacements.size())
-      << "expected vectors of the same arity in substitute";
+      << "expecting vectors of the same arity in substitute";
   CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_SORT_EQUAL_TO(terms, replacements);
   //////// all checks before this line
   std::vector<internal::Node> nodes = Term::termVectorToNodes(terms);
@@ -2610,7 +2610,7 @@ Op Term::getOp() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_node->hasOperator())
-      << "expected Term to have an Op when calling getOp()";
+      << "expecting Term to have an Op when calling getOp()";
   //////// all checks before this line
 
   // special cases for parameterized operators that are not indexed operators
@@ -2651,7 +2651,7 @@ std::string Term::getSymbol() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_node->hasName())
-      << "invalid call to '" << __PRETTY_FUNCTION__
+      << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the term to have a symbol.";
   //////// all checks before this line
   return d_node->getName();
@@ -4194,7 +4194,7 @@ Term DatatypeConstructor::getInstantiatedTerm(const Sort& retSort) const
   CVC5_API_CHECK(d_ctor->isResolved())
       << "expected resolved datatype constructor";
   CVC5_API_CHECK(retSort.isDatatype())
-      << "cannot get specialized constructor type for non-datatype type "
+      << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
   //////// all checks before this line
   internal::Node ret = d_ctor->getInstantiatedConstructor(*retSort.d_type);
@@ -4539,7 +4539,7 @@ bool Datatype::isFinite() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(!d_dtype->isParametric())
-      << "invalid call to 'isFinite()', expected non-parametric Datatype";
+      << "Invalid call to 'isFinite()', expected non-parametric Datatype";
   //////// all checks before this line
   // we assume that finite model finding is disabled by passing false as the
   // second argument
@@ -5409,7 +5409,7 @@ Term TermManager::mkRealOrIntegerFromStrHelper(const std::string& s, bool isInt)
     /* Catch to throw with a more meaningful error message. To be caught in
      * enclosing CVC5_API_TRY_CATCH_* block to throw CVC5ApiException. */
     std::stringstream message;
-    message << "cannot construct Real or Int from string argument '" << s
+    message << "Cannot construct Real or Int from string argument '" << s
             << "'";
     throw std::invalid_argument(message.str());
   }
@@ -5437,13 +5437,13 @@ Term TermManager::mkBVFromStrHelper(uint32_t size,
   if (val.strictlyNegative())
   {
     CVC5_API_CHECK(val >= -internal::Integer(2).pow(size - 1))
-        << "overflow in bit-vector construction (specified bit-vector size "
+        << "Overflow in bitvector construction (specified bitvector size "
         << size << " too small to hold value " << s << ")";
   }
   else
   {
     CVC5_API_CHECK(val.modByPow2(size) == val)
-        << "overflow in bit-vector construction (specified bit-vector size "
+        << "Overflow in bitvector construction (specified bitvector size "
         << size << " too small to hold value " << s << ")";
   }
   return mkValHelper(internal::BitVector(size, val));
@@ -5804,7 +5804,7 @@ Sort TermManager::mkAbstractSort(SortKind k)
   CVC5_API_TRY_CATCH_BEGIN;
   internal::Kind ik = extToIntSortKind(k);
   CVC5_API_CHECK(d_nm->isSortKindAbstractable(ik))
-      << "cannot construct abstract type for kind " << k;
+      << "Cannot construct abstract type for kind " << k;
   //////// all checks before this line
   return Sort(this, d_nm->mkAbstractType(ik));
   ////////
@@ -6092,10 +6092,10 @@ Term TermManager::mkPi()
 Term TermManager::mkInteger(const std::string& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << "an integer ";
+  CVC5_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << " an integer ";
   Term res = mkRealOrIntegerFromStrHelper(s);
   CVC5_API_ARG_CHECK_EXPECTED(res.getSort() == getIntegerSort(), s)
-      << "a string representing an integer";
+      << " a string representing an integer";
   //////// all checks before this line
   return res;
   ////////
@@ -6139,7 +6139,6 @@ Term TermManager::mkReal(int64_t val)
 Term TermManager::mkReal(int64_t num, int64_t den)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(den != 0) << "invalid denominator '" << den << "'";
   //////// all checks before this line
   return TermManager::mkRationalValHelper(internal::Rational(num, den), false);
   ////////
@@ -6317,7 +6316,7 @@ Term TermManager::mkConstArray(const Sort& sort, const Term& val)
   CVC5_API_TM_CHECK_TERM(val);
   CVC5_API_ARG_CHECK_EXPECTED(sort.isArray(), sort) << "an array sort";
   CVC5_API_CHECK(val.getSort() == sort.getArrayElementSort())
-      << "value does not match element sort";
+      << "Value does not match element sort";
   internal::Node n = *val.d_node;
   CVC5_API_ARG_CHECK_EXPECTED(n.isConst(), val) << "a value";
   //////// all checks before this line
@@ -6708,7 +6707,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
     if (grammar)
     {
       CVC5_API_CHECK(grammar->d_sg->getNtSyms()[0].getType() == *sort.d_type)
-          << "invalid Start symbol for grammar, expected Start's sort to be "
+          << "Invalid Start symbol for grammar, expected Start's sort to be "
           << *sort.d_type << " but found "
           << grammar->d_sg->getNtSyms()[0].getType();
     }
@@ -6719,7 +6718,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
     for (const auto& sym : grammar->d_sg->getNtSyms())
     {
       CVC5_API_CHECK(!grammar->d_sg->getRulesFor(sym).empty())
-          << "invalid grammar, must have at least one rule for each "
+          << "Invalid grammar, must have at least one rule for each "
              "non-terminal symbol";
     }
   }
@@ -6751,7 +6750,7 @@ void Solver::ensureWellFormedTerm(const Term& t) const
     if (internal::expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
     {
       std::stringstream se;
-      se << "cannot process term " << *t.d_node << " with ";
+      se << "Cannot process term " << *t.d_node << " with ";
       if (wasShadow)
       {
         se << "shadowed variables " << std::endl;
@@ -7154,7 +7153,7 @@ Result Solver::checkSat(void) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
-      << "cannot make multiple queries unless incremental solving is enabled "
+      << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --"
       << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
@@ -7168,7 +7167,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
-      << "cannot make multiple queries unless incremental solving is enabled "
+      << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --"
       << internal::options::base::longName::incrementalSolving << ")";
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
@@ -7184,7 +7183,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_slv->isQueryMade() || assumptions.size() == 0
                  || d_slv->getOptions().base.incrementalSolving)
-      << "cannot make multiple queries unless incremental solving is enabled "
+      << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --"
       << internal::options::base::longName::incrementalSolving << ")";
   CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(assumptions, getBooleanSort());
@@ -7274,7 +7273,7 @@ Term Solver::defineFun(const std::string& symbol,
   CVC5_API_SOLVER_CHECK_TERM(term);
   // the sort of the body must match the return sort
   CVC5_API_CHECK(term.d_node->getType() == *sort.d_type)
-      << "invalid sort of function body '" << term << "', expected '" << sort
+      << "Invalid sort of function body '" << term << "', expected '" << sort
       << "', found '" << term.getSort() << "'";
 
   std::vector<Sort> domain_sorts;
@@ -7318,7 +7317,7 @@ Term Solver::defineFunRec(const std::string& symbol,
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_CHECK(term.d_node->getType() == *sort.d_type)
-      << "invalid sort of function body '" << term << "', expected '" << sort
+      << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
   std::vector<Sort> domain_sorts;
@@ -7367,7 +7366,7 @@ Term Solver::defineFunRec(const Term& fun,
     CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
     Sort codomain = fun.getSort().getFunctionCodomainSort();
     CVC5_API_CHECK(*codomain.d_type == term.d_node->getType())
-        << "invalid sort of function body '" << term << "', expected '"
+        << "Invalid sort of function body '" << term << "', expected '"
         << codomain << "'";
   }
   else
@@ -7718,11 +7717,11 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.unsatAssumptions)
-      << "cannot get unsat assumptions unless explicitly enabled "
+      << "Cannot get unsat assumptions unless explicitly enabled "
          "(try --"
       << internal::options::smt::longName::unsatAssumptions << ")";
   CVC5_API_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
-      << "cannot get unsat assumptions unless in unsat mode.";
+      << "Cannot get unsat assumptions unless in unsat mode.";
   //////// all checks before this line
 
   std::vector<internal::Node> uassumptions = d_slv->getUnsatAssumptions();
@@ -7743,11 +7742,11 @@ std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
-      << "cannot get unsat core unless explicitly enabled "
+      << "Cannot get unsat core unless explicitly enabled "
          "(try --"
       << internal::options::smt::longName::produceUnsatCores << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
-      << "cannot get unsat core unless in unsat mode.";
+      << "Cannot get unsat core unless in unsat mode.";
   //////// all checks before this line
   internal::UnsatCore core = d_slv->getUnsatCore();
   /* Can not use
@@ -7767,14 +7766,14 @@ std::vector<Term> Solver::getUnsatCoreLemmas(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
-      << "cannot get unsat core lemmas unless explicitly enabled "
+      << "Cannot get unsat core lemmas unless explicitly enabled "
          "(try --"
       << internal::options::smt::longName::produceUnsatCores << ")";
   CVC5_API_CHECK(d_slv->getOptions().smt.unsatCoresMode
                  == internal::options::UnsatCoresMode::SAT_PROOF)
-      << "cannot get unsat core lemmas unless SAT proofs are enabled";
+      << "Cannot get unsat core lemmas unless SAT proofs are enabled";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
-      << "cannot get unsat core unless in unsat mode.";
+      << "Cannot get unsat core unless in unsat mode.";
   //////// all checks before this line
   std::vector<internal::Node> lemmas = d_slv->getUnsatCoreLemmas();
   /* Can not use
@@ -7792,7 +7791,7 @@ std::map<Term, Term> Solver::getDifficulty() const
                              || d_slv->getSmtMode() == internal::SmtMode::SAT
                              || d_slv->getSmtMode()
                                     == internal::SmtMode::SAT_UNKNOWN)
-      << "cannot get difficulty unless after a UNSAT, SAT or UNKNOWN response.";
+      << "Cannot get difficulty unless after a UNSAT, SAT or UNKNOWN response.";
   //////// all checks before this line
   std::map<Term, Term> res;
   std::map<internal::Node, internal::Node> dmap;
@@ -7810,7 +7809,7 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
-      << "cannot get timeout core unless unsat cores are enabled "
+      << "Cannot get timeout core unless unsat cores are enabled "
          "(try --"
       << internal::options::smt::longName::produceUnsatCores << ")";
   //////// all checks before this line
@@ -7824,9 +7823,9 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCoreAssuming(
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!assumptions.empty())
-      << "cannot get timeout core assuming an empty set of assumptions";
+      << "Cannot get timeout core assuming an empty set of assumptions";
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
-      << "cannot get timeout core unless unsat cores are enabled "
+      << "Cannot get timeout core unless unsat cores are enabled "
          "(try --"
       << internal::options::smt::longName::produceUnsatCores << ")";
   //////// all checks before this line
@@ -7852,10 +7851,10 @@ std::vector<Proof> Solver::getProof(modes::ProofComponent c) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceProofs)
-      << "cannot get proof unless proofs are enabled (try --"
+      << "Cannot get proof unless proofs are enabled (try --"
       << internal::options::smt::longName::produceProofs << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
-      << "cannot get proof unless in unsat mode.";
+      << "Cannot get proof unless in unsat mode.";
   //////// all checks before this line
   std::vector<std::shared_ptr<internal::ProofNode>> proof_nodes =
       d_slv->getProof(c);
@@ -7893,14 +7892,14 @@ std::vector<Term> Solver::getLearnedLiterals(modes::LearnedLitType t) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceLearnedLiterals)
-      << "cannot get learned literals unless enabled (try "
+      << "Cannot get learned literals unless enabled (try "
          "--"
       << internal::options::smt::longName::produceLearnedLiterals << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT
                              || d_slv->getSmtMode() == internal::SmtMode::SAT
                              || d_slv->getSmtMode()
                                     == internal::SmtMode::SAT_UNKNOWN)
-      << "cannot get learned literals unless after a UNSAT, SAT or UNKNOWN "
+      << "Cannot get learned literals unless after a UNSAT, SAT or UNKNOWN "
          "response.";
   //////// all checks before this line
   std::vector<internal::Node> lits = d_slv->getLearnedLiterals(t);
@@ -7916,7 +7915,7 @@ Term Solver::getValueHelper(const Term& term) const
   bool freeOrShadowedVar =
       internal::expr::hasFreeOrShadowedVar(term.getNode(), wasShadow);
   CVC5_API_RECOVERABLE_CHECK(!freeOrShadowedVar)
-      << "cannot get value of term containing "
+      << "Cannot get value of term containing "
       << (wasShadow ? "shadowed" : "free") << " variables";
   //////// all checks before this line
   internal::Node value = d_slv->getValue(*term.d_node);
@@ -7929,17 +7928,17 @@ Term Solver::getValue(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
-      << "cannot get value unless model generation is enabled "
+      << "Cannot get value unless model generation is enabled "
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "cannot get value unless after a SAT or UNKNOWN response.";
+      << "Cannot get value unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_RECOVERABLE_CHECK(term.getSort().getTypeNode().isFirstClass())
-      << "cannot get value of a term that is not first class.";
+      << "Cannot get value of a term that is not first class.";
   CVC5_API_RECOVERABLE_CHECK(!term.getSort().isDatatype()
                              || term.getSort().getDatatype().isWellFounded())
-      << "cannot get value of a term of non-well-founded datatype sort.";
+      << "Cannot get value of a term of non-well-founded datatype sort.";
   ensureWellFormedTerm(term);
   //////// all checks before this line
   return getValueHelper(term);
@@ -7951,18 +7950,18 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
-      << "cannot get value unless model generation is enabled "
+      << "Cannot get value unless model generation is enabled "
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "cannot get value unless after a SAT or UNKNOWN response.";
+      << "Cannot get value unless after a SAT or UNKNOWN response.";
   for (const Term& t : terms)
   {
     CVC5_API_RECOVERABLE_CHECK(t.getSort().getTypeNode().isFirstClass())
-        << "cannot get value of a term that is not first class.";
+        << "Cannot get value of a term that is not first class.";
     CVC5_API_RECOVERABLE_CHECK(!t.getSort().isDatatype()
                                || t.getSort().getDatatype().isWellFounded())
-        << "cannot get value of a term of non-well-founded datatype sort.";
+        << "Cannot get value of a term of non-well-founded datatype sort.";
   }
   CVC5_API_SOLVER_CHECK_TERMS(terms);
   ensureWellFormedTerms(terms);
@@ -7983,14 +7982,14 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
-      << "cannot get domain elements unless model generation is enabled "
+      << "Cannot get domain elements unless model generation is enabled "
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "cannot get domain elements unless after a SAT or UNKNOWN response.";
+      << "Cannot get domain elements unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_SORT(s);
   CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
-      << "expected an uninterpreted sort as argument to "
+      << "expecting an uninterpreted sort as argument to "
          "getModelDomainElements.";
   //////// all checks before this line
   std::vector<Term> res;
@@ -8009,15 +8008,15 @@ bool Solver::isModelCoreSymbol(const Term& v) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
-      << "cannot check if model core symbol unless model generation is enabled "
+      << "Cannot check if model core symbol unless model generation is enabled "
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "cannot check if model core symbol unless after a SAT or UNKNOWN "
+      << "Cannot check if model core symbol unless after a SAT or UNKNOWN "
          "response.";
   CVC5_API_SOLVER_CHECK_TERM(v);
   CVC5_API_RECOVERABLE_CHECK(v.getKind() == Kind::CONSTANT)
-      << "expected a free constant as argument to isModelCoreSymbol.";
+      << "expecting a free constant as argument to isModelCoreSymbol.";
   //////// all checks before this line
   return d_slv->isModelCoreSymbol(v.getNode());
   ////////
@@ -8029,23 +8028,23 @@ std::string Solver::getModel(const std::vector<Sort>& sorts,
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
-      << "cannot get model unless model generation is enabled "
+      << "Cannot get model unless model generation is enabled "
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "cannot get model unless after a SAT or UNKNOWN response.";
+      << "Cannot get model unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_SORTS(sorts);
   for (const Sort& s : sorts)
   {
     CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
-        << "expected an uninterpreted sort as argument to "
+        << "expecting an uninterpreted sort as argument to "
            "getModel.";
   }
   CVC5_API_SOLVER_CHECK_TERMS(vars);
   for (const Term& v : vars)
   {
     CVC5_API_RECOVERABLE_CHECK(v.getKind() == Kind::CONSTANT)
-        << "expected a free constant as argument to getModel.";
+        << "expecting a free constant as argument to getModel.";
   }
   //////// all checks before this line
   return d_slv->getModel(Sort::sortVectorToTypeNodes(sorts),
@@ -8080,10 +8079,10 @@ void Solver::declareSepHeap(const Sort& locSort, const Sort& dataSort) const
   CVC5_API_SOLVER_CHECK_SORT(locSort);
   CVC5_API_SOLVER_CHECK_SORT(dataSort);
   CVC5_API_CHECK(d_slv->isLogicSet())
-      << "cannot call 'declareSepHeap()' if logic is not set";
+      << "Cannot call 'declareSepHeap()' if logic is not set";
   CVC5_API_CHECK(
       d_slv->getLogicInfo().isTheoryEnabled(internal::theory::THEORY_SEP))
-      << "cannot obtain separation logic expressions if not using the "
+      << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
   //////// all checks before this line
   d_slv->declareSepHeap(locSort.getTypeNode(), dataSort.getTypeNode());
@@ -8096,10 +8095,10 @@ Term Solver::getValueSepHeap() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(
       d_slv->getLogicInfo().isTheoryEnabled(internal::theory::THEORY_SEP))
-      << "cannot obtain separation logic expressions if not using the "
+      << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
-      << "cannot get separation heap term unless model generation is enabled "
+      << "Cannot get separation heap term unless model generation is enabled "
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
@@ -8115,10 +8114,10 @@ Term Solver::getValueSepNil() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(
       d_slv->getLogicInfo().isTheoryEnabled(internal::theory::THEORY_SEP))
-      << "cannot obtain separation logic expressions if not using the "
+      << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
-      << "cannot get separation nil term unless model generation is enabled "
+      << "Cannot get separation nil term unless model generation is enabled "
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
@@ -8157,7 +8156,7 @@ Term Solver::declareOracleFun(
   CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts);
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.oracles)
-      << "cannot call declareOracleFun unless oracles is enabled (use "
+      << "Cannot call declareOracleFun unless oracles is enabled (use "
          "--"
       << internal::options::quantifiers::longName::oracles << ")";
   //////// all checks before this line
@@ -8193,10 +8192,10 @@ void Solver::pop(uint32_t nscopes) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "cannot pop when not solving incrementally (use --"
+      << "Cannot pop when not solving incrementally (use --"
       << internal::options::base::longName::incrementalSolving << ")";
   CVC5_API_CHECK(nscopes <= d_slv->getNumUserLevels())
-      << "cannot pop beyond first pushed context";
+      << "Cannot pop beyond first pushed context";
   //////// all checks before this line
   for (uint32_t n = 0; n < nscopes; ++n)
   {
@@ -8211,7 +8210,7 @@ Term Solver::getInterpolant(const Term& conj) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
-      << "cannot get interpolant unless interpolants are enabled (try "
+      << "Cannot get interpolant unless interpolants are enabled (try "
          "--"
       << internal::options::smt::longName::produceInterpolants << ")";
   //////// all checks before this line
@@ -8227,13 +8226,13 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
-      << "cannot get interpolant unless interpolants are enabled (try "
+      << "Cannot get interpolant unless interpolants are enabled (try "
          "--"
       << internal::options::smt::longName::produceInterpolants << ")";
   for (const auto& sym : grammar.d_sg->getNtSyms())
   {
     CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
-        << "invalid grammar, must have at least one rule for each "
+        << "Invalid grammar, must have at least one rule for each "
            "non-terminal symbol";
   }
   //////// all checks before this line
@@ -8248,11 +8247,11 @@ Term Solver::getInterpolantNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
-      << "cannot get interpolant unless interpolants are enabled (try "
+      << "Cannot get interpolant unless interpolants are enabled (try "
          "--"
       << internal::options::smt::longName::produceInterpolants << ")";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "cannot get next interpolant when not solving incrementally (try "
+      << "Cannot get next interpolant when not solving incrementally (try "
          "--"
       << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
@@ -8267,7 +8266,7 @@ Term Solver::getAbduct(const Term& conj) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
-      << "cannot get abduct unless abducts are enabled (try --"
+      << "Cannot get abduct unless abducts are enabled (try --"
       << internal::options::smt::longName::produceAbducts << ")";
   //////// all checks before this line
   internal::TypeNode nullType;
@@ -8282,12 +8281,12 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
-      << "cannot get abduct unless abducts are enabled (try --"
+      << "Cannot get abduct unless abducts are enabled (try --"
       << internal::options::smt::longName::produceAbducts << ")";
   for (const auto& sym : grammar.d_sg->getNtSyms())
   {
     CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
-        << "invalid grammar, must have at least one rule for each "
+        << "Invalid grammar, must have at least one rule for each "
            "non-terminal symbol";
   }
   //////// all checks before this line
@@ -8302,11 +8301,11 @@ Term Solver::getAbductNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
-      << "cannot get next abduct unless abducts are enabled (try "
+      << "Cannot get next abduct unless abducts are enabled (try "
          "--"
       << internal::options::smt::longName::produceAbducts << ")";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "cannot get next abduct when not solving incrementally (try "
+      << "Cannot get next abduct when not solving incrementally (try "
          "--"
       << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
@@ -8320,7 +8319,7 @@ void Solver::blockModel(modes::BlockModelsMode mode) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
-      << "cannot get value unless model generation is enabled "
+      << "Cannot get value unless model generation is enabled "
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
@@ -8335,7 +8334,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceModels)
-      << "cannot get value unless model generation is enabled "
+      << "Cannot get value unless model generation is enabled "
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
@@ -8357,7 +8356,7 @@ std::string Solver::getInstantiations() const
                              || d_slv->getSmtMode() == internal::SmtMode::SAT
                              || d_slv->getSmtMode()
                                     == internal::SmtMode::SAT_UNKNOWN)
-      << "cannot get instantiations unless after a UNSAT, SAT or UNKNOWN "
+      << "Cannot get instantiations unless after a UNSAT, SAT or UNKNOWN "
          "response.";
   //////// all checks before this line
   std::stringstream ss;
@@ -8371,7 +8370,7 @@ void Solver::push(uint32_t nscopes) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "cannot push when not solving incrementally (use --"
+      << "Cannot push when not solving incrementally (use --"
       << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
   for (uint32_t n = 0; n < nscopes; ++n)
@@ -8427,9 +8426,9 @@ void Solver::setLogic(const std::string& logic) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_slv->isLogicSet())
-      << "invalid call to 'setLogic', logic is already set";
+      << "Invalid call to 'setLogic', logic is already set";
   CVC5_API_CHECK(!d_slv->isFullyInited())
-      << "invalid call to 'setLogic', solver is already fully initialized";
+      << "Invalid call to 'setLogic', solver is already fully initialized";
   //////// all checks before this line
   internal::LogicInfo linfo(logic);
   d_slv->setLogic(linfo);
@@ -8450,7 +8449,7 @@ std::string Solver::getLogic() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->isLogicSet())
-      << "invalid call to 'getLogic', logic has not yet been set";
+      << "Invalid call to 'getLogic', logic has not yet been set";
   //////// all checks before this line
   return d_slv->getUserLogicInfo().getLogicString();
   ////////
@@ -8479,7 +8478,7 @@ void Solver::setOption(const std::string& option,
       == mutableOpts.end())
   {
     CVC5_API_CHECK(!d_slv->isFullyInited())
-        << "invalid call to 'setOption' for option '" << option
+        << "Invalid call to 'setOption' for option '" << option
         << "', solver is already fully initialized";
   }
   //////// all checks before this line
@@ -8494,7 +8493,7 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot call declareSygusVar unless sygus is enabled (use --"
+      << "Cannot call declareSygusVar unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   internal::Node res = d_tm.mkVarHelper(*sort.d_type, symbol);
@@ -8526,7 +8525,7 @@ Term Solver::synthFun(const std::string& symbol,
   CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot call synthFun unless sygus is enabled (use --"
+      << "Cannot call synthFun unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   return synthFunHelper(symbol, boundVars, sort);
@@ -8543,7 +8542,7 @@ Term Solver::synthFun(const std::string& symbol,
   CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot call synthFun unless sygus is enabled (use --"
+      << "Cannot call synthFun unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   return synthFunHelper(symbol, boundVars, sort, false, &grammar);
@@ -8559,7 +8558,7 @@ void Solver::addSygusConstraint(const Term& term) const
       term.d_node->getType() == d_tm.d_nm->booleanType(), term)
       << "boolean term";
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot addSygusConstraint unless sygus is enabled (use --"
+      << "Cannot addSygusConstraint unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   d_slv->assertSygusConstraint(*term.d_node, false);
@@ -8585,7 +8584,7 @@ void Solver::addSygusAssume(const Term& term) const
       term.d_node->getType() == d_tm.d_nm->booleanType(), term)
       << "boolean term";
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot addSygusAssume unless sygus is enabled (use --"
+      << "Cannot addSygusAssume unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
   d_slv->assertSygusConstraint(*term.d_node, true);
@@ -8628,7 +8627,7 @@ void Solver::addSygusInvConstraint(const Term& inv,
   CVC5_API_CHECK(post.d_node->getType() == invType)
       << "expected inv and post to have the same sort";
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot addSygusInvConstraint unless sygus is enabled (use --"
+      << "Cannot addSygusInvConstraint unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   //////// all checks before this line
 
@@ -8660,11 +8659,11 @@ SynthResult Solver::checkSynth() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot checkSynth unless sygus is enabled (use --"
+      << "Cannot checkSynth unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
-      << "cannot make multiple checkSynth calls unless incremental solving is "
+      << "Cannot make multiple checkSynth calls unless incremental solving is "
          "enabled (try --"
       << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
@@ -8677,10 +8676,10 @@ SynthResult Solver::checkSynthNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot checkSynthNext unless sygus is enabled (use --"
+      << "Cannot checkSynthNext unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "cannot checkSynthNext when not solving incrementally (use "
+      << "Cannot checkSynthNext when not solving incrementally (use "
          "--"
       << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
@@ -8756,7 +8755,7 @@ Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
   for (const auto& sym : grammar.d_sg->getNtSyms())
   {
     CVC5_API_CHECK(!grammar.d_sg->getRulesFor(sym).empty())
-        << "invalid grammar, must have at least one rule for each "
+        << "Invalid grammar, must have at least one rule for each "
            "non-terminal symbol";
   }
   //////// all checks before this line
@@ -8790,7 +8789,7 @@ bool Solver::isOutputOn(const std::string& tag) const
   }
   catch (const internal::Exception& e)
   {
-    throw CVC5ApiException("invalid output tag " + tag);
+    throw CVC5ApiException("Invalid output tag " + tag);
   }
 }
 
@@ -8805,7 +8804,7 @@ std::ostream& Solver::getOutput(const std::string& tag) const
   }
   catch (const internal::Exception& e)
   {
-    throw CVC5ApiException("invalid output tag " + tag);
+    throw CVC5ApiException("Invalid output tag " + tag);
   }
 }
 
