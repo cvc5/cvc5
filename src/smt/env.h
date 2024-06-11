@@ -311,6 +311,7 @@ class Env
    * form. If n cannot be tranformed, this returns null.
    */
   Node getSharableFormula(const Node& n) const;
+
  private:
   /* Private initialization ------------------------------------------------- */
 

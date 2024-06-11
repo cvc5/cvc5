@@ -63,7 +63,7 @@ void PluginModule::notifyLemma(TNode n,
 
 void PluginModule::notifyLemmaInternal(const Node& n)
 {
-  Node ns = d_plugin->getSharableFormula(n);
+  Node ns = d_env.getSharableFormula(n);
   if (!ns.isNull())
   {
     d_plugin->notifyTheoryLemma(ns);
