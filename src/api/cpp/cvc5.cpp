@@ -5188,7 +5188,6 @@ Plugin::Plugin(TermManager& tm)
     : d_pExtToInt(new PluginInternal(tm.d_nm, tm, *this))
 {
 }
-Plugin::~Plugin() {}
 
 std::vector<Term> Plugin::check()
 {
