@@ -369,10 +369,10 @@
   (sign_extend (+ i j) x)
   )
 (define-cond-rule bv-merge-sign-extend-2
-  ((x ?BitVec) (i Int) (j Int))
-  (> j 1)
+  ((x ?BitVec) (i Int) (j Int) (k Int))
+  (and (> j 1) (= k (+ i j)))
   (sign_extend i (zero_extend j x))
-  (zero_extend (+ i j) x)
+  (zero_extend k x)
   )
 (define-cond-rule bv-merge-sign-extend-3
   ((x ?BitVec) (i Int) (n0 Int))
@@ -380,29 +380,31 @@
   (sign_extend i (zero_extend n0 x))
   (sign_extend i x)
   )
-(define-rule bv-sign-extend-eq-const-1
-  ((x ?BitVec) (m Int) (c Int) (nm Int))
+(define-cond-rule bv-sign-extend-eq-const-1
+  ((x ?BitVec) (m Int) (c Int) (nm Int) (mp1 Int))
   (def
     (n (@bvsize x))
     (clo (extract (- n 1) 0 (@bv c nm)))
     ; Combines the sign bit c[n-1] and the high part
     (chi (extract (- nm 1) (- n 1) (@bv c nm)))
   )
+  (= mp1 (+ m 1))
   (= (sign_extend m x) (@bv c nm))
   (and
-    (or (= chi (@bv 0 (+ m 1))) (= chi (bvnot (@bv 0 (+ m 1)))))
+    (or (= chi (@bv 0 mp1)) (= chi (bvnot (@bv 0 mp1))))
     (= x clo)))
-(define-rule bv-sign-extend-eq-const-2
-  ((x ?BitVec) (m Int) (c Int) (nm Int))
+(define-cond-rule bv-sign-extend-eq-const-2
+  ((x ?BitVec) (m Int) (c Int) (nm Int) (mp1 Int))
   (def
     (n (@bvsize x))
     (clo (extract (- n 1) 0 (@bv c nm)))
     ; Combines the sign bit c[n-1] and the high part
     (chi (extract (- nm 1) (- n 1) (@bv c nm)))
   )
+  (= mp1 (+ m 1))
   (= (@bv c nm) (sign_extend m x))
   (and
-    (or (= chi (@bv 0 (+ m 1))) (= chi (bvnot (@bv 0 (+ m 1)))))
+    (or (= chi (@bv 0 mp1)) (= chi (bvnot (@bv 0 mp1))))
     (= x clo)))
 (define-rule bv-zero-extend-eq-const-1
   ((x ?BitVec) (m Int) (c Int) (nm Int))
@@ -481,13 +483,13 @@
   (bvult clo x))
 
 (define-cond-rule bv-sign-extend-ult-const-4
-  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
   (def
     (n (@bvsize x))
     (clo (extract (- n 1) 0 (@bv c nm)))
     (a (bvshl (@bv 1 nm) (@bv (- n 1) nm))) ; 1 << (n-1)
     (b (bvshl (bvnot (@bv 0 nm)) (@bv (- n 1) nm))) ; ~0 << (n-1)
   )
-  (and (bvule (bvnot b) (@bv c nm)) (bvule (@bv c nm) (bvnot a)))
+  (and (bvule (bvnot b) (@bv c nm)) (bvule (@bv c nm) (bvnot a)) (= nm1 (- n 1)))
   (bvult (@bv c nm) (sign_extend m x))
-  (= (extract (- n 1) (- n 1) x) (@bv 1 1)))
+  (= (extract nm1 nm1 x) (@bv 1 1)))
