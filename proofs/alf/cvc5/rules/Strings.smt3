@@ -62,8 +62,8 @@
               (alf.requires (string_check_length_one s1) true    ; checks if char
                 (= u
                   (alf.ite rev
-                    (str.++ (skolem (skolem_prefix u (- (str.len u) 1))) s1)
-                    (str.++ s1 (skolem (skolem_suffix_rem u 1)))))))))))))
+                    (str.++ (@purify (skolem_prefix u (- (str.len u) 1))) s1)
+                    (str.++ s1 (@purify (skolem_suffix_rem u 1)))))))))))))
 )
 
 ; ProofRule::CONCAT_SPLIT
@@ -79,7 +79,7 @@
             (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (let ((k (skolem (skolem_unify_split t1 s1 rev))))
+                (let ((k (@purify (skolem_unify_split t1 s1 rev))))
                 (and 
                   (or 
                     (= t1
@@ -108,7 +108,7 @@
             (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (let ((k (skolem (skolem_unify_split t1 s1 rev))))
+                (let ((k (@purify (skolem_unify_split t1 s1 rev))))
                   (and
                     (= t1
                       (alf.ite rev
@@ -136,9 +136,9 @@
                   (= tc
                     (alf.ite rev
                       (let ((oc ($str_suffix_len s1 v)))
-                      (str.++ (skolem (skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
+                      (str.++ (@purify (skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
                       (let ((oc (skolem_prefix s1 v)))
-                      (str.++ oc (skolem (skolem_suffix_rem tc (str.len oc)))))))
+                      (str.++ oc (@purify (skolem_suffix_rem tc (str.len oc)))))))
                 )))))))))
 )
 
@@ -190,11 +190,13 @@
 
 ;;-------------------- Regular expressions
 
+; ProofRule::RE_INTER
 (declare-rule re_inter ((x String) (s RegLan) (t RegLan))
   :premises ((str.in_re x s) (str.in_re x t))
   :conclusion (str.in_re x (re.inter s t))
 )
 
+; ProofRule::RE_UNFOLD_POS
 (declare-rule re_unfold_pos ((t String) (r RegLan))
   :premises ((str.in_re t r))
   :conclusion
@@ -232,7 +234,7 @@
                        (alf.ite rev
                        (or (not (str.in_re ($str_suffix_len s n) r1)) 
                            (not (str.in_re (skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
-                       (or (not (str.in_re (skolem_prefix s n) r1)) 
+                       (or (not (str.in_re (skolem_prefix s n) r1))
                            (not (str.in_re (skolem_suffix_rem s n) ($singleton_elim r2)))))))
     ))
 )
@@ -265,7 +267,7 @@
 
 (declare-rule string_reduction ((U Type) (s U))
   :args (s)
-  :conclusion (and (string_reduction_pred s) (= s (skolem s)))
+  :conclusion (and (string_reduction_pred s) (= s (@purify s)))
 )
 
 (declare-rule string_eager_reduction ((U Type) (s U))
@@ -281,9 +283,44 @@
   :conclusion (= (str.in_re s r) b)
 )
 
+; rule: str-in-re-consume
+; implements: ProofRewriteRule::STR_IN_RE_CONSUME
+; args:
+; - eq Bool: The equality to prove whose left hand side is a regular expression membership.
+; requires: >
+;   Showing that consuming portions of the regular expression membership using the
+;   method $str_re_consume results in b, where b is either false or the result of
+;   stripping constant prefixes and suffixes from the arguments of the left hand side
+;   of the given equality.
+; conclusion: The given equality.
+(declare-rule str-in-re-consume ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_re_consume s r) b))
+  :conclusion (= (str.in_re s r) b)
+)
+
 (declare-rule re-loop-elim ((l Int) (u Int) (r1 RegLan) (r2 RegLan))
   :args ((= (re.loop l u r1) r2))
   :requires (((alf.is_neg (alf.add (alf.neg l) u)) false)
              (($str_mk_re_loop_elim l (alf.add (alf.neg l) u) r1) r2))
   :conclusion (= (re.loop l u r1) r2)
+)
+
+(declare-rule str-in-re-concat-star-char ((s1 String) (s2 String :list) (r RegLan) (b Bool))
+  :args ((= (str.in_re (str.++ s1 s2) (re.* r)) b))
+  :requires ((($str_fixed_len_re r) 1) 
+             (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) (re.* r)) b))
+  :conclusion (= (str.in_re (str.++ s1 s2) (re.* r)) b)
+)
+
+(declare-rule str-in-re-sigma ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_mk_str_in_re_sigma s r) b))
+  :conclusion (= (str.in_re s r) b)
+)
+
+(declare-rule str-in-re-sigma-star ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s (re.* r)) b))
+  :requires ((($str_mk_str_in_re_sigma_star s r) b))
+  :conclusion (= (str.in_re s (re.* r)) b)
 )

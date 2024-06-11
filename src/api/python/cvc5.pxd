@@ -232,6 +232,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
+        Term mkSkolem(SkolemId id, const vector[Term]& indices) except +
+        size_t getNumIndicesForSkolemId(SkolemId id) except +
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
@@ -322,6 +324,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
+        Term mkSkolem(SkolemId id, const vector[Term]& indices) except +
+        size_t getNumIndicesForSkolemId(SkolemId id) except +
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
@@ -670,11 +674,17 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         size_t operator()(const Term & t) except +
 
     cdef cppclass Proof:
+        bint operator==(const Proof&) except +
+        bint operator!=(const Proof&) except +
         ProofRule getRule() except +
         ProofRewriteRule getRewriteRule() except +
         Term getResult() except +
         vector[Proof] getChildren() except +
         vector[Term] getArguments() except +
+
+    cdef cppclass ProofHashFunction:
+        ProofHashFunction() except +
+        size_t operator()(const Proof&) except +
 
 
 cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":

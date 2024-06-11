@@ -17,6 +17,7 @@
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -57,11 +58,12 @@ Node ElimShadowNodeConverter::postConvert(Node n)
   }
   std::vector<Node> oldVars;
   std::vector<Node> newVars;
-  for (const Node& v : n[0])
+  for (size_t i = 0, nvars = n[0].getNumChildren(); i < nvars; i++)
   {
+    const Node& v = n[0][i];
     if (std::find(d_vars.begin(), d_vars.end(), v) != d_vars.end())
     {
-      Node nv = getElimShadowVar(d_closure, n, v);
+      Node nv = getElimShadowVar(d_closure, n, i);
       oldVars.push_back(v);
       newVars.push_back(nv);
     }
@@ -76,12 +78,13 @@ Node ElimShadowNodeConverter::postConvert(Node n)
 
 Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
                                                const Node& n,
-                                               const Node& v)
+                                               size_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
-  Node cacheVal = BoundVarManager::getCacheValue(q, n, v);
-  return bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, v.getType());
+  Node ii = nm->mkConstInt(Rational(i));
+  Node cacheVal = BoundVarManager::getCacheValue(q, n, ii);
+  return bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, n[0][i].getType());
 }
 
 Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
@@ -91,7 +94,31 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
   ElimShadowNodeConverter esnc(nm, q);
   // eliminate shadowing in all children
   std::vector<Node> children;
-  children.push_back(q[0]);
+  // drop duplicate variables
+  std::vector<Node> vars;
+  bool childChanged = false;
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
+    const Node& v = q[0][i];
+    if (std::find(vars.begin(), vars.end(), v) == vars.end())
+    {
+      vars.push_back(v);
+    }
+    else
+    {
+      Node vn = getElimShadowVar(q, q, i);
+      vars.push_back(vn);
+      childChanged = true;
+    }
+  }
+  if (childChanged)
+  {
+    children.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, vars));
+  }
+  else
+  {
+    children.push_back(q[0]);
+  }
   for (size_t i = 1, nchild = q.getNumChildren(); i < nchild; i++)
   {
     children.push_back(esnc.convert(q[i]));

@@ -203,7 +203,12 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   switch (id)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
-    case ProofRewriteRule::RE_LOOP_ELIM: return true;
+    case ProofRewriteRule::BETA_REDUCE:
+    case ProofRewriteRule::RE_LOOP_ELIM:
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
+    case ProofRewriteRule::STR_IN_RE_SIGMA:
+    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return true;
     default: break;
   }
   return false;
@@ -224,6 +229,7 @@ bool AlfPrinter::canEvaluate(Node n) const
       visited.insert(cur);
       switch (cur.getKind())
       {
+        case Kind::ITE:
         case Kind::NOT:
         case Kind::AND:
         case Kind::OR:
@@ -281,13 +287,6 @@ bool AlfPrinter::canEvaluate(Node n) const
         break;
         case Kind::BITVECTOR_SIZE:
           // special case, evaluates no matter what is inside
-          continue;
-        case Kind::STRING_IN_REGEXP:
-          if (!canEvaluateRegExp(cur[1]))
-          {
-            return false;
-          }
-          visit.push_back(cur[0]);
           continue;
         default:
           Trace("alf-printer-debug")

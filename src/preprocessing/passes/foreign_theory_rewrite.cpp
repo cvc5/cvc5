@@ -96,43 +96,16 @@ Node ForeignTheoryRewriter::foreignRewrite(Node n)
   Assert(n.getKind() != Kind::GT);
   Assert(n.getKind() != Kind::LT);
   Assert(n.getKind() != Kind::LEQ);
-  // apply rewrites according to the structure of n
-  if (n.getKind() == Kind::GEQ)
+  // apply rewrites according to the structure of n.
+  if ((n.getKind() == Kind::GEQ || n.getKind() == Kind::EQUAL)
+      && n[0].getType().isInteger())
   {
-    return rewriteStringsGeq(n);
-  }
-  else if (n.getKind() == Kind::EQUAL)
-  {
-    if (n[0].getType().isInteger())
+    theory::strings::ArithEntail ae(d_env.getRewriter());
+    Node r = ae.rewritePredViaEntailment(n);
+    if (!r.isNull())
     {
-      return rewriteStringsEq(n);
+      return r;
     }
-  }
-  return n;
-}
-
-Node ForeignTheoryRewriter::rewriteStringsGeq(Node n)
-{
-  theory::strings::ArithEntail ae(d_env.getRewriter());
-  // check if the node can be simplified to true or false
-  if (ae.check(n[0], n[1], false))
-  {
-    return nodeManager()->mkConst(true);
-  }
-  else if (ae.check(n[1], n[0], true))
-  {
-    return nodeManager()->mkConst(false);
-  }
-  return n;
-}
-
-Node ForeignTheoryRewriter::rewriteStringsEq(Node n)
-{
-  theory::strings::ArithEntail ae(d_env.getRewriter());
-  // check if the node can be simplified to false
-  if (ae.check(n[0], n[1], true) || ae.check(n[1], n[0], true))
-  {
-    return nodeManager()->mkConst(false);
   }
   return n;
 }
