@@ -155,36 +155,51 @@
   :conclusion (= a b)
 )
 
-(define get_aci_normal_form ((S Type :implicit) (t S))
+; define: $get_aci_normal_form
+; args:
+; - t S: The term to compute the normal form for.
+; return: >
+;   The result of normalizing t for the proof rule aci_norm. In
+;   particular, if t is an application of a known operator that has the property
+;   of being either associative and commutative (resp. associative) we call
+;   the method $get_aci_norm (resp. $get_a_norm).
+(define $get_aci_normal_form ((S Type :implicit) (t S))
   (alf.match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
               (xb1 (BitVec m)) (xb2 (BitVec m) :list)
               (xf1 (FiniteField m)) (xf2 (FiniteField m) :list)
               (xs1 (Seq U)) (xs2 (Seq U) :list))
     t
     (
-      ((or x1 x2)        (get_aci_norm t))
-      ((and x1 x2)       (get_aci_norm t))
-      ((sep x1 x2)       (get_aci_norm t))
-      ((re.union x1 x2)  (get_aci_norm t))
-      ((re.inter x1 x2)  (get_aci_norm t))
-      ((bvor xb1 xb2)    (get_aci_norm t))
-      ((bvand xb1 xb2)   (get_aci_norm t))
-      ((ff.add xf1 xf2)  (get_aci_norm t))
-      ((ff.mul xf1 xf2)  (get_aci_norm t))
-      ((str.++ xs1 xs2)  (get_a_norm t))
-      ((re.++ x1 x2)     (get_a_norm t))
+      ((or x1 x2)        ($get_aci_norm t))
+      ((and x1 x2)       ($get_aci_norm t))
+      ((sep x1 x2)       ($get_aci_norm t))
+      ((re.union x1 x2)  ($get_aci_norm t))
+      ((re.inter x1 x2)  ($get_aci_norm t))
+      ((bvor xb1 xb2)    ($get_aci_norm t))
+      ((bvand xb1 xb2)   ($get_aci_norm t))
+      ((ff.add xf1 xf2)  ($get_aci_norm t))
+      ((ff.mul xf1 xf2)  ($get_aci_norm t))
+      ((str.++ xs1 xs2)  ($get_a_norm t))
+      ((re.++ x1 x2)     ($get_a_norm t))
       (x                 x)
     )
   )
 )
 
-; ProofRule::ACI_NORM
-; Note that we need three checks. The first two handle the cases where one side
-; is treated as a singleton child of the other side. The remaining case checks
-; where both terms are not singletons.
+; rule: aci_norm
+; implements: ProofRule::ACI_NORM
+; args:
+; - eq Bool: The equality to be proven by this rule.
+; requires: >
+;   That computing the normal forms via $get_aci_normal_form of the sides of the
+;   given equality between terms a and b suffices to show that a and b are
+;   equivalent. Note that we need three checks. The first two handle the cases
+;   where one side is treated as a singleton child of the other side. The
+;   remaining case checks where both terms are not singletons.
+; conclusion: The given equality.
 (declare-rule aci_norm ((U Type) (a U) (b U))
   :args ((= a b))
-  :requires (((let ((an (get_aci_normal_form a)) (bn (get_aci_normal_form b)))
+  :requires (((let ((an ($get_aci_normal_form a)) (bn ($get_aci_normal_form b)))
               (alf.ite (alf.is_eq an b) true
               (alf.ite (alf.is_eq a bn) true
                 (alf.is_eq an bn)))) true))

@@ -417,6 +417,10 @@ if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
   find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 
+if(BUILD_BINDINGS_PYTHON)
+  find_package(Pip 23.0 REQUIRED)
+endif()
+
 find_package(GMP 6.3 REQUIRED)
 
 if(ENABLE_ASAN)
