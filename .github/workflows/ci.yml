@@ -19,7 +19,7 @@ jobs:
             python-bindings: true
             build-documentation: true
             check-examples: true
-            package-name: cvc5-Linux
+            package-name: cvc5-Linux-x86_64
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -37,7 +37,7 @@ jobs:
             strip-bin: strip
             python-bindings: true
             check-examples: true
-            package-name: cvc5-macOS
+            package-name: cvc5-macOS-x86_64
             macos-target: 10.13
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
@@ -69,7 +69,7 @@ jobs:
             windows-build: true
             shell: 'msys2 {0}'
             check-examples: true
-            package-name: cvc5-Win64
+            package-name: cvc5-Win64-x86_64
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
