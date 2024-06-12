@@ -23,6 +23,7 @@
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::internal::kind;
 
@@ -518,11 +519,57 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   }
   else if (id == RewriteProofStatus::ARITH_POLY_NORM)
   {
-    if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
+    if (target[0].getType().isBoolean())
     {
-      return false;
+      Rational ra, rb;
+      if (!theory::arith::PolyNorm::isArithPolyNormAtom(
+              target[0], target[1], ra, rb))
+      {
+        return false;
+      }
+      NodeManager* nm = nodeManager();
+      Node lhs, rhs;
+      if (target[0][0].getType().isInteger())
+      {
+        Node ca = nm->mkConstInt(ra);
+        Node cb = nm->mkConstInt(rb);
+        Node a = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
+        Node b = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
+        lhs = nm->mkNode(Kind::MULT, ca, a);
+        rhs = nm->mkNode(Kind::MULT, cb, b);
+      }
+      else if (target[0][0].getType().isReal())
+      {
+        Node ca = nm->mkConstReal(ra);
+        Node cb = nm->mkConstReal(rb);
+        Node a = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
+        Node b = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
+        lhs = nm->mkNode(Kind::MULT, ca, a);
+        rhs = nm->mkNode(Kind::MULT, cb, b);
+      }
+      else
+      {
+        uint32_t wa = target[0][0].getType().getBitVectorSize();
+        uint32_t wb = target[1][0].getType().getBitVectorSize();
+        Node ca = nm->mkConst(BitVector(wa, ra.getNumerator()));
+        Node cb = nm->mkConst(BitVector(wb, rb.getNumerator()));
+        Node a = nm->mkNode(Kind::BITVECTOR_SUB, target[0][0], target[0][1]);
+        Node b = nm->mkNode(Kind::BITVECTOR_SUB, target[1][0], target[1][1]);
+        lhs = nm->mkNode(Kind::BITVECTOR_MULT, ca, a);
+        rhs = nm->mkNode(Kind::BITVECTOR_MULT, cb, b);
+      }
+      pic.d_id = id;
+      pic.d_vars.push_back(lhs.eqNode(rhs));
+      pic.d_vars.push_back(ProofRuleChecker::mkKindNode(target.getKind()));
     }
-    pic.d_id = id;
+    else
+    {
+      if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
+      {
+        return false;
+      }
+      pic.d_id = id;
+    }
   }
   else if (id == RewriteProofStatus::THEORY_REWRITE)
   {
@@ -1007,7 +1054,16 @@ bool RewriteDbProofCons::ensureProofInternal(
       }
       else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
       {
-        cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
+        if (pcur.d_vars.empty())
+        {
+          cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
+        }
+        else
+        {
+          cdp->addStep(
+              pcur.d_vars[0], ProofRule::ARITH_POLY_NORM, {}, {pcur.d_vars[0]});
+          cdp->addStep(cur, ProofRule::ARITH_REL_EQUIV, {pcur.d_vars[0]}, {pcur.d_vars[1]});
+        }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL
                || pcur.d_id == RewriteProofStatus::THEORY_REWRITE)
