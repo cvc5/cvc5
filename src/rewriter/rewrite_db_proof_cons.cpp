@@ -542,27 +542,19 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       }
       else
       {
+        Node x = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
+        Node y = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
         Node cx, cy;
-        if (target[0][0].getType().isInteger()
-            && target[0][1].getType().isInteger())
+        if (x.getType().isInteger() && y.getType().isInteger())
         {
+          cx = nm->mkConstInt(rx);
           cy = nm->mkConstInt(ry);
         }
         else
         {
+          cx = nm->mkConstReal(rx);
           cy = nm->mkConstReal(ry);
         }
-        if (target[1][0].getType().isInteger()
-            && target[1][1].getType().isInteger())
-        {
-          cx = nm->mkConstInt(rx);
-        }
-        else
-        {
-          cx = nm->mkConstReal(rx);
-        }
-        Node x = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
-        Node y = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
         lhs = nm->mkNode(Kind::MULT, cx, x);
         rhs = nm->mkNode(Kind::MULT, cy, y);
       }
