@@ -152,7 +152,15 @@ class RewriteProofRule
   Kind getListContext(Node v) const;
   /** Was this rule marked as being applied to fixed point? */
   bool isFixedPoint() const;
-  /** Get condition definition for variable v */
+  /**
+   * Get condition definitions given an application vs -> ss of this rule.
+   * This is used to handle variables that do not occur in the left hand side
+   * of rewrite rules and are defined in conditions of this rule.
+   * @param vs The matched variables of this rule.
+   * @param ss The terms to substitute in this rule for each vs.
+   * @param dvs The variables for which a definition can now be inferred.
+   * @param dss The terms that each dvs are defined as, for each dvs. 
+   */
   void getConditionalDefinitions(const std::vector<Node>& vs,
                                  const std::vector<Node>& ss,
                                  std::vector<Node>& dvs,
