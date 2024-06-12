@@ -529,25 +529,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       }
       NodeManager* nm = nodeManager();
       Node lhs, rhs;
-      if (target[0][0].getType().isInteger())
-      {
-        Node cx = nm->mkConstInt(rx);
-        Node cy = nm->mkConstInt(ry);
-        Node x = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
-        Node y = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
-        lhs = nm->mkNode(Kind::MULT, cx, x);
-        rhs = nm->mkNode(Kind::MULT, cy, y);
-      }
-      else if (target[0][0].getType().isReal())
-      {
-        Node cx = nm->mkConstReal(rx);
-        Node cy = nm->mkConstReal(ry);
-        Node x = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
-        Node y = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
-        lhs = nm->mkNode(Kind::MULT, cx, x);
-        rhs = nm->mkNode(Kind::MULT, cy, y);
-      }
-      else
+      if (target[0][0].getType().isBitVector())
       {
         uint32_t wa = target[0][0].getType().getBitVectorSize();
         uint32_t wb = target[1][0].getType().getBitVectorSize();
@@ -558,9 +540,38 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
         lhs = nm->mkNode(Kind::BITVECTOR_MULT, cx, x);
         rhs = nm->mkNode(Kind::BITVECTOR_MULT, cy, y);
       }
+      else
+      {
+        Node cx, cy;
+        if (target[0][0].getType().isInteger()
+            && target[0][1].getType().isInteger())
+        {
+          cy = nm->mkConstInt(ry);
+        }
+        else
+        {
+          cy = nm->mkConstReal(ry);
+        }
+        if (target[1][0].getType().isInteger()
+            && target[1][1].getType().isInteger())
+        {
+          cx = nm->mkConstInt(rx);
+        }
+        else
+        {
+          cx = nm->mkConstReal(rx);
+        }
+        Node x = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
+        Node y = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
+        lhs = nm->mkNode(Kind::MULT, cx, x);
+        rhs = nm->mkNode(Kind::MULT, cy, y);
+      }
+      Node premise = lhs.eqNode(rhs);
+      ProvenInfo ppremise;
+      ppremise.d_id = id;
+      d_pcache[premise] = ppremise;
       pic.d_id = id;
-      pic.d_vars.push_back(lhs.eqNode(rhs));
-      pic.d_vars.push_back(ProofRuleChecker::mkKindNode(target.getKind()));
+      pic.d_vars.push_back(premise);
     }
     else
     {
@@ -1065,7 +1076,7 @@ bool RewriteDbProofCons::ensureProofInternal(
           cdp->addStep(cur,
                        ProofRule::ARITH_POLY_NORM_REL,
                        {pcur.d_vars[0]},
-                       {pcur.d_vars[1]});
+                       {ProofRuleChecker::mkKindNode(cur[0].getKind())});
         }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL
