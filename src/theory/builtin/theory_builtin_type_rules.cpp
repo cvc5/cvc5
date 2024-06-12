@@ -187,7 +187,8 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
         if (errOut)
         {
           (*errOut)
-              << "index " << nc << " of apply indexed symbolic that is not a variable or constant " << n;
+              << "index " << nc << " of apply indexed symbolic that is not a
+  variable or constant " << n;
         }
         return TypeNode::null();
       }

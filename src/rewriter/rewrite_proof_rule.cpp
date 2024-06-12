@@ -97,11 +97,12 @@ void RewriteProofRule::init(ProofRewriteRule id,
       expr::getFreeVariables(itc->second, fvst);
       for (const Node& vt : fvst)
       {
-        if (fvsLhs.find(vt)==fvsLhs.end())
+        if (fvsLhs.find(vt) == fvsLhs.end())
         {
-          Unhandled()
-            << "Free variable " << vt << " in rule " << id
-            << " is not on the left hand side of the rule, and it is used to give a definition to the free variable " << v;
+          Unhandled() << "Free variable " << vt << " in rule " << id
+                      << " is not on the left hand side of the rule, and it is "
+                         "used to give a definition to the free variable "
+                      << v;
         }
       }
     }
