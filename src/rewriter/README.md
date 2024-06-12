@@ -106,10 +106,10 @@ evaluable at the time of rule application.
 
 ``` lisp
 (define-cond-rule bv-repeat-eliminate-1
-	((x ?BitVec) (n Int))
-	(> n 1)
+	((x ?BitVec) (n Int) (nm1 Int))
+	(and (> n 1) (= nm1 (- n 1)))
 	(repeat n x)
-	(concat x (repeat (- n 1) x)))
+	(concat x (repeat nm1 x)))
 ```
 
 This rule is applied on `(repeat 3 ...)` but not `(repeat 1 ...)`.
