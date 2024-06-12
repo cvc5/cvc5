@@ -313,7 +313,8 @@ Node Env::getSharableFormula(const Node& n) const
 {
   Node on = n;
   // these kinds are never sharable
-  std::unordered_set<Kind, kind::KindHashFunction> ks = {Kind::INST_CONSTANT, Kind::DUMMY_SKOLEM};
+  std::unordered_set<Kind, kind::KindHashFunction> ks = {Kind::INST_CONSTANT,
+                                                         Kind::DUMMY_SKOLEM};
   if (!d_options.base.pluginShareSkolems)
   {
     // note we only remove purify skolems if the above option is disabled
