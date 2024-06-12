@@ -451,7 +451,7 @@ bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
   return pa.isEqual(pb);
 }
 
-bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b, Rational& ca, Rational& cb)
+bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
 {
   Assert(a.getType().isBoolean());
   if (a == b)

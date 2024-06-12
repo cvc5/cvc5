@@ -1873,7 +1873,7 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_POLY_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Relational equivalence**
+   * **Arithmetic -- Polynomial normalization for relations**
    *
    * .. math::
    *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid \diamond}
@@ -1885,7 +1885,7 @@ enum ENUM(ProofRule)
    * same sign. For bitvectors, they are set to :math:`1`.
    * \endverbatim
    */
-  EVALUE(ARITH_REL_EQUIV),
+  EVALUE(ARITH_POLY_NORM_REL),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sign inference**

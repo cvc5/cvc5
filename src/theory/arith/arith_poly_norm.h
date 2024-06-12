@@ -87,14 +87,14 @@ class PolyNorm
    */
   static bool isArithPolyNorm(TNode a, TNode b);
   /**
-   * Do atoms a and b normalize to an atom over the same polynomial?
+   * Do atoms a and b normalize to a relation over the same polynomial?
    * In particular, for relations a1 ~ a2 / b1 ~ b2, we return true if the
    * normalization of ca(a1-a2) is equivalent to the normalization of cb(b1-b2).
    *
    * This method can return true if a/b are Int/Real and ~ is in {=,>=,>,<=,<}
    * or if a/b are bitvector and ~ is in {=}.
    */
-  static bool isArithPolyNormAtom(TNode a, TNode b, Rational& ca, Rational& cb);
+  static bool isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb);
 
   /**
    * Return the normalized form of (arithmetic) term a based on the techniques
