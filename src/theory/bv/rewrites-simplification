@@ -114,11 +114,10 @@
     (extract nm1 amount x)
   ))
 (define-cond-rule bv-ashr-by-const-2
-  ((x ?BitVec) (amount Int) (sz Int) (nm1 Int))
-  (def (n (@bvsize x)))
-  (and (>= amount (@bvsize x)) (= nm1 (- n 1)))
+  ((x ?BitVec) (amount Int) (sz Int) (nm1 Int) (rn Int))
+  (and (>= amount (@bvsize x)) (= nm1 (- (@bvsize x) 1)) (= rn (@bvsize x)))
   (bvashr x (@bv amount sz))
-  (repeat n (extract nm1 nm1 x)))
+  (repeat rn (extract nm1 nm1 x)))
 
 ; AndOrXorConcatPullUp
 (define-rule* bv-and-concat-pullup
@@ -363,10 +362,11 @@
   (bvslt x (@bv 0 n))
   (= (extract (- n 1) (- n 1) x) (@bv 1 1)))
 
-(define-rule bv-merge-sign-extend-1
-  ((x ?BitVec) (i Int) (j Int))
+(define-cond-rule bv-merge-sign-extend-1
+  ((x ?BitVec) (i Int) (j Int) (k Int))
+  (= k (+ i j))
   (sign_extend i (sign_extend j x))
-  (sign_extend (+ i j) x)
+  (sign_extend k x)
   )
 (define-cond-rule bv-merge-sign-extend-2
   ((x ?BitVec) (i Int) (j Int) (k Int))

@@ -82,12 +82,12 @@
   (extract high low (sign_extend k x))
   (extract high low x))
 (define-cond-rule bv-extract-sign-extend-2
-  ((x ?BitVec) (low Int) (high Int) (k Int) (nm1 Int))
+  ((x ?BitVec) (low Int) (high Int) (k Int) (nm1 Int) (sn Int))
   (def (n (@bvsize x)))
-  (and (< low n) (>= high n) (= nm1 (- n 1)))
+  (and (< low n) (>= high n) (= nm1 (- n 1)) (= sn (+ 1 (- high n))))
   (extract high low (sign_extend k x))
   (sign_extend
-    (+ 1 (- high n))
+    sn
     (extract nm1 low x)))
 (define-cond-rule bv-extract-sign-extend-3
   ((x ?BitVec) (low Int) (high Int) (k Int) (rn Int))

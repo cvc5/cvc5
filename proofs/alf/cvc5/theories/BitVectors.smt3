@@ -47,7 +47,7 @@
     (-> (! Int :var n :implicit)
         (! Int :var i)
         (BitVec n)
-        (BitVec (alf.mul ($eval_bv_sym i) n))
+        (BitVec (alf.mul i n))
     ) 
 )
 
@@ -195,7 +195,7 @@
 (declare-const zero_extend
     (-> (! Int :var m :implicit)
         (! Int :var i)
-        (BitVec m) (BitVec (alf.add m ($eval_bv_sym i))))
+        (BitVec m) (BitVec (alf.add m i)))
 )
 
 (declare-const sign_extend
