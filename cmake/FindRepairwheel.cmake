@@ -68,10 +68,8 @@ find_repairwheel()
 
 if(NOT Repairwheel_EXECUTABLE AND ENABLE_AUTO_DOWNLOAD)
   message(STATUS "Installing repairwheel")
-  # Install repairwheel from repo until v0.2.9 is released
   execute_process(
-    COMMAND ${Python_EXECUTABLE} -m pip install 
-      git+https://github.com/jvolkman/repairwheel.git
+    COMMAND ${Python_EXECUTABLE} -m pip install repairwheel
   )
   find_repairwheel()
 endif()
