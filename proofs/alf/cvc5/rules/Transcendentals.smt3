@@ -99,8 +99,8 @@
 ; args:
 ; - x Real: The argument to the sine.
 ; conclusion: >
-;   When x is greater than pi, sin is greater than negative pi minus x,
-;   x is less than pi, sin is greater than pi minus x.
+;   When x is greater than negative pi, sin is greater than negative pi minus x,
+;   x is less than pi, sin is less than pi minus x.
 (declare-rule arith_trans_sine_tangent_pi ((x Real))
   :args (x)
   :conclusion (and (=> (> x (* -1 real.pi)) (> (sin x) (- (* -1 real.pi) x))) (=> (< x real.pi) (< (sin x) (- real.pi x))))
