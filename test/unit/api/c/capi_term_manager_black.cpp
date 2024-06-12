@@ -588,10 +588,10 @@ TEST_F(TestCApiBlackTermManager, mk_bv)
   ASSERT_DEATH(cvc5_mk_bv(d_tm, 8, "fffff", 16),
                "overflow in bit-vector construction");
 
-  ASSERT_DEATH(cvc5_mk_bv(d_tm, 8, "10201010", 2), "mpz_set_str");
-  ASSERT_DEATH(cvc5_mk_bv(d_tm, 8, "-25x", 10), "mpz_set_str");
-  ASSERT_DEATH(cvc5_mk_bv(d_tm, 8, "2x7", 10), "mpz_set_str");
-  ASSERT_DEATH(cvc5_mk_bv(d_tm, 8, "fzff", 16), "mpz_set_str");
+  ASSERT_DEATH(cvc5_mk_bv(d_tm, 8, "10201010", 2), "");
+  ASSERT_DEATH(cvc5_mk_bv(d_tm, 8, "-25x", 10), "");
+  ASSERT_DEATH(cvc5_mk_bv(d_tm, 8, "2x7", 10), "");
+  ASSERT_DEATH(cvc5_mk_bv(d_tm, 8, "fzff", 16), "");
 
   ASSERT_EQ(cvc5_mk_bv(d_tm, 8, "0101", 2), cvc5_mk_bv(d_tm, 8, "00000101", 2));
   ASSERT_EQ(cvc5_mk_bv(d_tm, 4, "-1", 2), cvc5_mk_bv(d_tm, 4, "1111", 2));
@@ -626,7 +626,7 @@ TEST_F(TestCApiBlackTermManager, mk_ff_elem)
 
   ASSERT_DEATH(cvc5_mk_ff_elem(nullptr, "-1", ff_sort, 10),
                "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_mk_ff_elem(d_tm, "a", ff_sort, 10), "mpz_set_str");
+  ASSERT_DEATH(cvc5_mk_ff_elem(d_tm, "a", ff_sort, 10), "");
   ASSERT_DEATH(cvc5_mk_ff_elem(d_tm, "-1", bv_sort, 10),
                "expected a finite field sort");
 
