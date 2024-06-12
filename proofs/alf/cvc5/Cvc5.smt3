@@ -33,11 +33,11 @@
       ((run_evaluate (= x y))             (let ((ex (run_evaluate x)))
                                           (let ((ey (run_evaluate y)))
                                           (let ((res (alf.is_eq ex ey)))
-                                          (alf.ite (alf.and ($is_q_literal ex) ($is_q_literal ey)) res
-                                          (alf.ite (alf.and ($is_z_literal ex) ($is_z_literal ey)) res
-                                          (alf.ite (alf.and ($is_bin_literal ex) ($is_bin_literal ey)) res
-                                          (alf.ite (alf.and ($is_str_literal ex) ($is_str_literal ey)) res
-                                          (alf.ite (alf.and ($is_bool_literal ex) ($is_bool_literal ey)) res
+                                          (alf.ite (alf.and (alf.is_q ex) (alf.is_q ey)) res
+                                          (alf.ite (alf.and (alf.is_z ex) (alf.is_z ey)) res
+                                          (alf.ite (alf.and (alf.is_bin ex) (alf.is_bin ey)) res
+                                          (alf.ite (alf.and (alf.is_str ex) (alf.is_str ey)) res
+                                          (alf.ite (alf.and (alf.is_bool ex) (alf.is_bool ey)) res
                                             (= ex ey))))))))))
       ((run_evaluate (not b))             (alf.not (run_evaluate b)))
       ((run_evaluate (ite b x y))         (alf.ite (run_evaluate b) (run_evaluate x) (run_evaluate y)))
@@ -91,7 +91,7 @@
                                           (alf.ite (alf.is_neg en) -1
                                             (let ((ex (run_evaluate x)))
                                             (let ((exl (alf.len ex)))
-                                            (alf.ite ($compare_gt en exl) -1
+                                            (alf.ite (alf.gt en exl) -1
                                               (let ((exs (alf.extract ex n exl)))
                                               (let ((ey (run_evaluate y)))
                                               (let ((r (alf.find (alf.to_str exs) (alf.to_str ey))))

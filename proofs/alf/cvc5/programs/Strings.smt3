@@ -36,7 +36,7 @@
 
 ; Return true if n is a valid code point [0, 196607].
 (define $str_is_code_point ((n Int))
-  (alf.ite ($is_z_literal n)
+  (alf.ite (alf.is_z n)
   (alf.ite ($compare_geq 196608 n)
     (alf.not (alf.is_neg n))
     false)
@@ -126,7 +126,7 @@
 ; Returns true if s is in regular expression r.
 ; Does not evaluate if s is not a string literal.
 (define $str_eval_str_in_re ((s String) (r RegLan))
-  (alf.ite ($is_str_literal s)
+  (alf.ite (alf.is_str s)
     ($str_eval_str_in_re_rec s 0 r @re.null)
     (str.in_re s r)))
 
