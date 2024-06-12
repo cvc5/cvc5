@@ -1,31 +1,51 @@
-
-; Returns true if x is a Boolean literal.
+; define: $is_bool_literal
+; args:
+; - x T: The term to inspect.
+; return: true if x is a Boolean literal.
 (define $is_bool_literal ((T Type :implicit) (x T))
   (alf.ite (alf.is_eq x true) true (alf.is_eq x false)))
 
-; Returns true if x is a rational literal.
+; define: $is_q_literal
+; args:
+; - x T: The term to inspect.
+; return: true if x is a rational literal.
 (define $is_q_literal ((T Type :implicit) (x T))
   (alf.is_eq (alf.to_q x) x))
 
-; Returns true if x is a numeral literal.
+; define: $is_z_literal
+; args:
+; - x T: The term to inspect.
+; return: true if x is a numeral literal.
 (define $is_z_literal ((T Type :implicit) (x T))
   (alf.is_eq (alf.to_z x) x))
 
-; Returns true if x is a binary literal.
+; define: $is_bin_literal
+; args:
+; - x T: The term to inspect.
+; return: true if x is a binary literal.
 (define $is_bin_literal ((T Type :implicit) (x T))
   (alf.is_eq (alf.to_bin (alf.len x) x) x))
 
-; Returns true if x is a string literal.
+; define: $is_str_literal
+; args:
+; - x T: The term to inspect.
+; return: true if x is a string literal.
 (define $is_str_literal ((T Type :implicit) (x T))
   (alf.is_eq (alf.to_str x) x))
 
-; Compare arithmetic greater than. Assumes x and y are values.
-; Returns true if x > y.
+; define: $compare_gt
+; args:
+; - x T: The first term to compare.
+; - y T: The second term to compare.
+; return: true if x > y, where x and y are assumed to be arithmetic values.
 (define $compare_gt ((T Type :implicit) (x T) (y T))
   (alf.is_neg (alf.add (alf.neg x) y)))
 
-; Compare arithmetic greater than. Assumes x and y are values.
-; Returns true if x >= y.
+; define: $compare_geq
+; args:
+; - x T: The first term to compare.
+; - y T: The second term to compare.
+; return: true if x >= y, where x and y are assumed to be arithmetic values.
 (define $compare_geq ((T Type :implicit) (x T) (y T))
   (alf.not (alf.is_neg (alf.add (alf.neg y) x))))
 
@@ -37,25 +57,38 @@
 (declare-const @list.nil @List)
 (declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
 
-; This is used to have a canonical ordering of variables.
-; It could potentially be improved by having a builtin operator, e.g. alf.compare.
-; The variable ordering always returns true for the variable with the lower
-; hash. This leads to best case performance if sorting a term with distinct
-; children, where if we ask for the hash of the children in order and prefer
-; the ones where this compare returns true, then the term remains unchanged.
-(define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
+; define: $compare_var
+; args:
+; - a T: The first term to compare.
+; - b U: The second term to compare.
+; return: true if a should be considered before b in an ordering where a and b are considered to be atomic variables.
+; note: >
+;   This method is used to have a canonical ordering of variables.
+;   It could potentially be improved by having a builtin operator, e.g. alf.compare.
+;   The variable ordering always returns true for the variable with the lower
+;   hash. This leads to best case performance if sorting a term with distinct
+;   children, where if we ask for the hash of the children in order and prefer
+;   the ones where this compare returns true, then the term remains unchanged.
+(define $compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (alf.is_neg (alf.add (alf.hash b) (alf.neg (alf.hash a)))))
 
-; Returns the tail of x, where x is expected to be a function application.
+; define: $tail
+; args:
+; - x S: The term to inspect.
+; return: the tail of x, where x is expected to be a function application.
 (define $tail ((S Type :implicit) (x S))
   (alf.match ((T Type) (U Type) (S Type) (f (-> T U S)) (x1 T) (x2 T :list))
     x
     (((f x1 x2) x2)))
 )
 
-; Eliminate singleton list.
-; If the input term is of the form (f x1 x2) where x2 is the nil terminator of
-; f, then we return x1. Otherwise, we return the input term unchanged.
+; program: $singleton_elim
+; args:
+; - s S: The term to proces.
+; return: >
+;   The result of applying singleton elimination for s. In particular,
+;   if s is of the form (f x1 x2) where x2 is the nil terminator of f, then we
+;   return x1. Otherwise, we return s unchanged.
 (program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
   (S) S
   (
@@ -64,81 +97,102 @@
   )
 )
 
-; Eliminate singleton list, which takes:
-; (1) a function f
-; (2) the identity element of f
-; (3) the term to process
-(program singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+; program: $singleton_elim_aci
+; args:
+; - f (-> T U S): The function we are considering.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: >
+;   The result of applying singleton elimination for s, where s should
+;   be an application of f. In particular, if s is of the form (f x1 x2) where
+;   x2 is the nil terminator of f, then we return x1. Otherwise, we return s
+;   unchanged.
+; note: >
+;   This method is similar in purpose to $singleton_elim, but insists that
+;   the function and its nil terminator are provided explicitly.
+(program $singleton_elim_aci ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
   ((-> T U S) S S) S
   (
-    ((singleton_elim f id (f x1 x2))  (alf.ite (alf.is_eq x2 id) x1 (f x1 x2)))
-    ((singleton_elim f id x)          x)
+    (($singleton_elim_aci f id (f x1 x2))  (alf.ite (alf.is_eq x2 id) x1 (f x1 x2)))
+    (($singleton_elim_aci f id x)          x)
   )
 )
 
 ;; =============== for ACI_NORM associative, commutative and idempotent
 
-; Append the children of two applications of an ACI operator, which takes:
-; (1) a function f
-; (2) the identity element of f
-; (3) the first f :list term to append
-; (4) the second f :list term to append
-(program ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
+; program: $ac_append
+; args:
+; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
+; - id S: The nil terminator of f.
+; - s1 S: The first term to process.
+; - s2 S: The second term to process.
+; return: the result of appending the children of two applications s1 and s2 of the ACI operator f.
+(program $ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
   ((-> T U S) S S S) S
   (
-    ((ac_append f id (f x1 x2) (f y1 y2)) (alf.ite (alf.is_eq x1 y1)
-                                            (ac_append f id (f x1 x2) y2)
-                                          (alf.ite (compare_var x1 y1)
-                                            (alf.cons f x1 (ac_append f id x2 (f y1 y2)))
-                                            (alf.cons f y1 (ac_append f id (f x1 x2) y2)))))
-    ((ac_append f id (f x1 x2) id)        (f x1 x2))
-    ((ac_append f id id (f y1 y2))        (f y1 y2))
-    ((ac_append f id id id)               id)
+    (($ac_append f id (f x1 x2) (f y1 y2)) (alf.ite (alf.is_eq x1 y1)
+                                             ($ac_append f id (f x1 x2) y2)
+                                           (alf.ite ($compare_var x1 y1)
+                                             (alf.cons f x1 ($ac_append f id x2 (f y1 y2)))
+                                             (alf.cons f y1 ($ac_append f id (f x1 x2) y2)))))
+    (($ac_append f id (f x1 x2) id)        (f x1 x2))
+    (($ac_append f id id (f y1 y2))        (f y1 y2))
+    (($ac_append f id id id)               id)
   )
 )
 
-; Helper to normalize an application of an ACI operator, which takes:
-; (1) a function f
-; (2) the identity element of f
-; (3) the term to process
-(program get_aci_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+; program: $get_aci_norm_rec
+; args:
+; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: the result of normalizing s based on ACI reasoning.
+(program $get_aci_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
   ((-> T U S) S S) S
   (
-    ((get_aci_norm_rec f id (f id x2))   (get_aci_norm_rec f id x2))
-    ((get_aci_norm_rec f id (f x1 x2))   (ac_append f id (get_aci_norm_rec f id x1) (get_aci_norm_rec f id x2)))
-    ((get_aci_norm_rec f id id)          id)
-    ((get_aci_norm_rec f id x)           (alf.cons f x id))
+    (($get_aci_norm_rec f id (f id x2))   ($get_aci_norm_rec f id x2))
+    (($get_aci_norm_rec f id (f x1 x2))   ($ac_append f id ($get_aci_norm_rec f id x1) ($get_aci_norm_rec f id x2)))
+    (($get_aci_norm_rec f id id)          id)
+    (($get_aci_norm_rec f id x)           (alf.cons f x id))
   )
 )
 
-; Normalize an application of an ACI operator.
-(define get_aci_norm ((T Type :implicit) (t T))
+; define: $get_aci_norm
+; args:
+; - t T: The term to process.
+; return: the result of normalizing s based on ACI reasoning.
+(define $get_aci_norm ((T Type :implicit) (t T))
   (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
     t
-    (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_aci_norm_rec f id t))))))
+    (((f x y) (let ((id (alf.nil f x y))) ($singleton_elim_aci f id ($get_aci_norm_rec f id t))))))
 )
 
 ;; =============== for ACI_NORM associative
 
-; Helper to normalize an application of an associative operator, which takes:
-; (1) a function f
-; (2) the identity element of f
-; (3) the term to process
-(program get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+; program: $get_a_norm_rec
+; args:
+; - f (-> T U S): The function we are considering, which is assumed to be associative and has the given identity.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: the result of normalizing s based on associative+identity reasoning.
+(program $get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
   ((-> T U S) S S) S
   (
-    ((get_a_norm_rec f id (f id x2))  (get_a_norm_rec f id x2))
-    ((get_a_norm_rec f id (f x1 x2))  (alf.list_concat f (get_a_norm_rec f id x1) (get_a_norm_rec f id x2)))
-    ((get_a_norm_rec f id id)         id)
-    ((get_a_norm_rec f id x)          (alf.cons f x id))
+    (($get_a_norm_rec f id (f id x2))  ($get_a_norm_rec f id x2))
+    (($get_a_norm_rec f id (f x1 x2))  (alf.list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
+    (($get_a_norm_rec f id id)         id)
+    (($get_a_norm_rec f id x)          (alf.cons f x id))
   )
 )
 
-; Normalize an application of an associative operator.
-(define get_a_norm ((T Type :implicit) (t T))
+; define: $get_a_norm
+; args:
+; - t T: The term to process.
+; return: the result of normalizing s based on associative+identity reasoning.
+(define $get_a_norm ((T Type :implicit) (t T))
   (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
     t
-    (((f x y) (let ((id (alf.nil f x y))) (singleton_elim f id (get_a_norm_rec f id t))))))
+    (((f x y) (let ((id (alf.nil f x y))) ($singleton_elim_aci f id ($get_a_norm_rec f id t))))))
 )
 
 
