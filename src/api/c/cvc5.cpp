@@ -5640,6 +5640,45 @@ Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
   return res;
 }
 
+Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_TERM(conj);
+  cvc5::Term cres = cvc5->d_solver.getInterpolant(conj->d_term);
+  res = cres.isNull() ? nullptr : cvc5->d_tm->export_term(cres);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_get_interpolant_with_grammar(Cvc5* cvc5,
+                                           Cvc5Term conj,
+                                           Cvc5Grammar grammar)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_TERM(conj);
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  cvc5::Term cres =
+      cvc5->d_solver.getInterpolant(conj->d_term, grammar->d_grammar);
+  res = cres.isNull() ? nullptr : cvc5->d_tm->export_term(cres);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_get_interpolant_next(Cvc5* cvc5)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  cvc5::Term cres = cvc5->d_solver.getInterpolantNext();
+  res = cres.isNull() ? nullptr : cvc5->d_tm->export_term(cres);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 void cvc5_push(Cvc5* cvc5, uint32_t nscopes)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
