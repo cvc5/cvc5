@@ -1085,8 +1085,6 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   TermManager tm;
   Solver slv(tm);
   slv.setOption("produce-interpolants", "true");
-  Term xx = tm.mkConst(intSort, "x");
-  Term yy = tm.mkConst(intSort, "y");
   Term zzero = tm.mkInteger(0);
   Term sstart = tm.mkVar(tm.getBooleanSort());
   Grammar gg = slv.mkGrammar({}, {sstart});

@@ -2805,4 +2805,133 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_error2)
                "unless oracles is enabled");
 }
 
+TEST_F(TestCApiBlackSolver, get_interpolant)
+{
+  cvc5_set_logic(d_solver, "QF_LIA");
+  cvc5_set_option(d_solver, "produce-interpolants", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  Cvc5Term z = cvc5_mk_const(d_tm, d_int, "z");
+
+  // Assumptions for interpolation: x + y > 0 /\ x < 0
+  std::vector<Cvc5Term> args = {x, y};
+  Cvc5Term add = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {add, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {x, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_LT, args.size(), args.data()));
+
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
+  args = {y, z};
+  add = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {add, zero};
+  Cvc5Term gt = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  args = {z, zero};
+  Cvc5Term lt = cvc5_mk_term(d_tm, CVC5_KIND_LT, args.size(), args.data());
+  args = {gt, lt};
+  Cvc5Term conj = cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data());
+
+  // Call the interpolation api, while the resulting interpolant is the output
+  Cvc5Term output = cvc5_get_interpolant(d_solver, conj);
+  // We expect the resulting output to be a boolean formula
+  ASSERT_TRUE(cvc5_sort_is_boolean(cvc5_term_get_sort(output)));
+
+  ASSERT_DEATH(cvc5_get_interpolant(nullptr, conj), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_interpolant(d_solver, nullptr), "invalid term");
+
+  // try with a grammar, a simple grammar admitting true
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
+  std::vector<Cvc5Term> symbols = {start};
+  Cvc5Grammar g =
+      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+
+  args = {zero, zero};
+  Cvc5Term conj2 =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(d_solver, conj2, g),
+               "invalid grammar, must have at least one rule");
+  cvc5_grammar_add_rule(g, start, ttrue);
+
+  // Call the interpolation api, while the resulting interpolant is the output
+  Cvc5Term output2 = cvc5_get_interpolant_with_grammar(d_solver, conj2, g);
+  // interpolant must be true
+  ASSERT_TRUE(cvc5_term_is_equal(output2, ttrue));
+
+  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(nullptr, conj2, g),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(d_solver, nullptr, g),
+               "invalid term");
+  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(d_solver, conj2, nullptr),
+               "invalid grammar");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "produce-interpolants", "true");
+  // this will throw when NodeManager is not a singleton anymore
+  Cvc5Term zzero = cvc5_mk_integer_int64(tm, 0);
+  Cvc5Term sstart = cvc5_mk_var(tm, cvc5_get_boolean_sort(tm), "start");
+  std::vector<Cvc5Term> ssymbols = {sstart};
+  Cvc5Grammar gg =
+      cvc5_mk_grammar(slv, 0, nullptr, ssymbols.size(), ssymbols.data());
+  cvc5_grammar_add_rule(gg, sstart, cvc5_mk_true(tm));
+  std::vector<Cvc5Term> aargs = {zzero, zzero};
+  Cvc5Term cconj2 =
+      cvc5_mk_term(tm, CVC5_KIND_EQUAL, aargs.size(), aargs.data());
+  (void)cvc5_get_interpolant_with_grammar(slv, cconj2, gg);
+  // this will throw when NodeManager is not a singleton anymore
+  (void)cvc5_get_interpolant(slv, conj2);
+  (void)cvc5_get_interpolant_with_grammar(slv, conj2, gg);
+  (void)cvc5_get_interpolant_with_grammar(slv, cconj2, g);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_interpolant_next)
+{
+  cvc5_set_logic(d_solver, "QF_LIA");
+  cvc5_set_option(d_solver, "produce-interpolants", "true");
+  cvc5_set_option(d_solver, "incremental", "true");
+
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  Cvc5Term z = cvc5_mk_const(d_tm, d_int, "z");
+
+  // Assumptions for interpolation: x + y > 0 /\ x < 0
+  std::vector<Cvc5Term> args = {x, y};
+  Cvc5Term add = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {add, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {x, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_LT, args.size(), args.data()));
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
+  args = {y, z};
+  add = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {add, zero};
+  Cvc5Term gt = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  args = {z, zero};
+  Cvc5Term lt = cvc5_mk_term(d_tm, CVC5_KIND_LT, args.size(), args.data());
+  args = {gt, lt};
+  Cvc5Term conj = cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data());
+
+  Cvc5Term output = cvc5_get_interpolant(d_solver, conj);
+  Cvc5Term output2 = cvc5_get_interpolant_next(d_solver);
+
+  ASSERT_DEATH(cvc5_get_interpolant(nullptr, conj), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_interpolant(d_solver, nullptr), "invalid term");
+
+  ASSERT_DEATH(cvc5_get_interpolant_next(nullptr), "unexpected NULL argument");
+
+  // We expect the next output to be distinct
+  ASSERT_TRUE(cvc5_term_is_disequal(output, output2));
+}
+
 }  // namespace cvc5::internal::test
