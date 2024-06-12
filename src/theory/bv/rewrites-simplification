@@ -477,14 +477,14 @@
   (bvult (sign_extend m x) (@bv c nm))
   (= (extract (- n 1) (- n 1) x) (@bv 0 1)))
 (define-cond-rule bv-sign-extend-ult-const-3
-  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
   (def
     (n (@bvsize x))
-    (clo (extract (- n 1) 0 (@bv c nm)))
+    (clo (extract nm1 0 (@bv c nm)))
     (a (bvshl (@bv 1 nm) (@bv (- n 1) nm))) ; 1 << (n-1)
     (b (bvshl (bvnot (@bv 0 nm)) (@bv (- n 1) nm))) ; ~0 << (n-1)
   )
-  (or (bvult (@bv c nm) a) (bvuge (@bv c nm) (bvnot a)))
+  (and (or (bvult (@bv c nm) a) (bvuge (@bv c nm) (bvnot a))) (= nm1 (- n 1)))
   (bvult (@bv c nm) (sign_extend m x))
   (bvult clo x))
 
