@@ -322,4 +322,4 @@
 )
 
 ; symbolic constant
-(declare-const @bv (-> Int (! Int :var w) (BitVec ($eval_bv_sym w))))
+(declare-const @bv (-> Int (! Int :var w) (BitVec w)))

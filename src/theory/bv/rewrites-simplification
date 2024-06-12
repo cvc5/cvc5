@@ -325,10 +325,11 @@
   ((x ?BitVec) (n Int))
   (bvurem x (@bv 1 n))
   (@bv 0 n))
-(define-rule bv-urem-self
-  ((x ?BitVec))
+(define-cond-rule bv-urem-self
+  ((x ?BitVec) (w Int))
+  (= w (@bvsize x))
   (bvurem x x)
-  (@bv 0 (@bvsize x)))
+  (@bv 0 w))
 ; ShiftZero rule
 ; (0_k >> a) = 0_k
 (define-rule bv-shl-zero
@@ -355,7 +356,7 @@
   (= w (@bvsize y))
   (bvugt (bvurem y x) x)
   (and
-    (= x (@bv 0 (@bvsize x)))
+    (= x (@bv 0 w))
     (bvugt y (@bv 0 w))
   ))
 
