@@ -59,8 +59,8 @@ In RARE, it is possible to define rewrites over indexed operators. For example:
 Note that we use the syntax e.g. `(extract n m x)` to denote the result of
 extracting the bits `n` to `m` (inclusive) of `x`, whereas in SMT-LIB version
 2.6, this must be written `((_ extract n m) x)`.
-We require the restriction that terms that appear in index positions, e.g.
-the first or second position of an extract must either be variables or values.
+We require that terms that appear in index positions, e.g. the first or second
+argument position of an extract must either be variables or values.
 
 ### Definition List
 
