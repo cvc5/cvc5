@@ -92,6 +92,18 @@ void RewriteProofRule::init(ProofRewriteRule id,
       }
       // variable defined in the condition
       d_condDefinedVars[v] = itc->second;
+      // ensure the defining term does not itself contain free variables
+      std::unordered_set<Node> fvst;
+      expr::getFreeVariables(itc->second, fvst);
+      for (const Node& vt : fvst)
+      {
+        if (fvsLhs.find(vt)==fvsLhs.end())
+        {
+          Unhandled()
+            << "Free variable " << vt << " in rule " << id
+            << " is not on the left hand side of the rule, and it is used to give a definition to the free variable " << v;
+        }
+      }
     }
   }
 

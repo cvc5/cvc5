@@ -174,6 +174,26 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    bool check,
                                                    std::ostream* errOut)
 {
+  /*
+  if (check)
+  {
+    Kind okind = n.getOperator().getConst<GenericOp>().getKind();
+    size_t nargs = kind::metakind::getMinArityForKind(okind);
+    for (size_t i=0, iend = n.getNumChildren()-nargs; i<iend; i++)
+    {
+      TNode nc = n[i];
+      if (!nc.isVar() && !nc.isConst())
+      {
+        if (errOut)
+        {
+          (*errOut)
+              << "index " << nc << " of apply indexed symbolic that is not a variable or constant " << n;
+        }
+        return TypeNode::null();
+      }
+    }
+  }
+  */
   // get the concrete application version of this, if possible
   Node cn = GenericOp::getConcreteApp(n);
   if (cn == n)
