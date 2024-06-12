@@ -176,7 +176,7 @@
 ; x < y + 1 <=> (not y < x) and y != 1...1
 (define-cond-rule bv-ult-add-one
   ((x ?BitVec) (y ?BitVec) (c1 ?BitVec) (w Int))
-  (and (= c1 (@bv 1 (@bvsize c1))) (= w (@bvsize y)))
+  (and (= c1 (@bv 1 w)) (= w (@bvsize y)))
   (bvult x (bvadd y c1))
   (and
     (not (bvult y x))
@@ -294,12 +294,13 @@
   (bvmul xs (bvmul s ys) zs)
   (bvmul xs s ys zs))
 
-(define-rule* bv-concat-merge-const
+(define-cond-rule bv-concat-merge-const
   ((xs ?BitVec :list)
-   (n1 Int) (w1 Int) (n2 Int) (w2 Int)
+   (n1 Int) (w1 Int) (n2 Int) (w2 Int) (ww Int)
    (zs ?BitVec :list))
+  (= ww (+ w1 w2))
   (concat xs (@bv n1 w1) (@bv n2 w2) zs)
-  (concat xs (@bv (+ (* n1 (int.pow2 w2)) n2) (+ w1 w2)) zs))
+  (concat xs (@bv (+ (* n1 (int.pow2 w2)) n2) ww) zs))
 
 ; These rules should be subsumed by ARITH_POLY_NORM, but removing them increases the number of holes
 (define-rule bv-commutative-add ((x ?BitVec) (y ?BitVec))
