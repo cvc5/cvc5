@@ -17,6 +17,7 @@ extern "C" {
 #include <cvc5/c/cvc5.h>
 }
 
+#include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
 
@@ -441,6 +442,14 @@ TEST_F(TestCApiBlackSolver, declare_datatype)
   (void)cvc5_declare_dt(d_solver, "a", ctors.size(), ctors.data());
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, dt_get_arity)
+{
+  std::vector<Cvc5DatatypeConstructorDecl> ctors = {
+      cvc5_mk_dt_cons_decl(d_tm, "_x21"), cvc5_mk_dt_cons_decl(d_tm, "_x31")};
+  Cvc5Sort s3 = cvc5_declare_dt(d_solver, "_x17", ctors.size(), ctors.data());
+  ASSERT_EQ(cvc5_sort_dt_get_arity(s3), 0);
 }
 
 TEST_F(TestCApiBlackSolver, declare_fun)
@@ -1133,7 +1142,7 @@ TEST_F(TestCApiBlackSolver, get_option_names)
   bool found_foobar = false;
   for (size_t i = 0; i < size; ++i)
   {
-    if (std::string(names[i]) == "verbose")
+    if (names[i] == std::string("verbose"))
     {
       found_verbose = true;
     }
@@ -2475,6 +2484,325 @@ TEST_F(TestCApiBlackSolver, synth_fun)
       d_solver, "f8", bvars.size(), bvars.data(), d_bool, g1);
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, declare_pool)
+{
+  Cvc5Sort set_sort = cvc5_mk_set_sort(d_tm, d_int);
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  // declare a pool with initial value { 0, x, y }
+  std::vector<Cvc5Term> args = {zero, x, y};
+  Cvc5Term p =
+      cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data());
+  // pool should have the same sort
+  ASSERT_TRUE(cvc5_sort_is_equal(cvc5_term_get_sort(p), set_sort));
+
+  ASSERT_DEATH(cvc5_declare_pool(nullptr, "p", d_int, args.size(), args.data()),
+               "unexpected NULL argument");
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, nullptr, d_int, args.size(), args.data()),
+      "unexpected NULL argument");
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, "p", nullptr, args.size(), args.data()),
+      "invalid sort");
+
+  // no init values is allowed
+  (void)cvc5_declare_pool(d_solver, "p", d_int, 0, nullptr);
+
+  args = {nullptr, x, y};
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data()),
+      "invalid term at index 0");
+  args = {zero, nullptr, y};
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data()),
+      "invalid term at index 1");
+  args = {zero, x, nullptr};
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data()),
+      "invalid term at index 2");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  args = {zero, x, y};
+  Cvc5Term zero2 = cvc5_mk_integer_int64(tm, 0);
+  Cvc5Term x2 = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "x");
+  Cvc5Term y2 = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "y");
+  std::vector<Cvc5Term> args2 = {zero2, x2, y2};
+  (void)cvc5_declare_pool(slv, "p", d_int, args2.size(), args2.data());
+  (void)cvc5_declare_pool(
+      slv, "p", cvc5_get_integer_sort(tm), args.size(), args.data());
+  args2 = {zero2, x, y2};
+  (void)cvc5_declare_pool(
+      slv, "p", cvc5_get_integer_sort(tm), args2.size(), args2.data());
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  // f is the function implementing (lambda ((x Int)) (+ x 1))
+  std::vector<Cvc5Sort> sorts = {d_int};
+  Cvc5Term f = cvc5_declare_oracle_fun(
+      d_solver,
+      "f",
+      sorts.size(),
+      sorts.data(),
+      d_int,
+      d_tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+
+  Cvc5Term three = cvc5_mk_integer_int64(d_tm, 3);
+  Cvc5Term five = cvc5_mk_integer_int64(d_tm, 5);
+  std::vector<Cvc5Term> args = {f, three};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data()),
+          five};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  // (f 3) = 5
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "oracles", "true");
+  Cvc5Sort int_sort = cvc5_get_integer_sort(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  std::vector<Cvc5Sort> sorts2 = {int_sort};
+  (void)cvc5_declare_oracle_fun(
+      slv,
+      "f",
+      sorts.size(),
+      sorts.data(),
+      int_sort,
+      tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+  (void)cvc5_declare_oracle_fun(
+      slv,
+      "f",
+      sorts2.size(),
+      sorts2.data(),
+      d_int,
+      tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+  (void)cvc5_declare_oracle_fun(
+      slv,
+      "f",
+      sorts2.size(),
+      sorts2.data(),
+      int_sort,
+      d_tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_sat)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  // f is the function implementing (lambda ((x Int)) (% x 10))
+  std::vector<Cvc5Sort> sorts = {d_int};
+  Cvc5Term f = cvc5_declare_oracle_fun(
+      d_solver,
+      "f",
+      sorts.size(),
+      sorts.data(),
+      d_int,
+      d_tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Assert(size == 1);
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) % 10);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+  Cvc5Term seven = cvc5_mk_integer_int64(d_tm, 7);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  std::vector<Cvc5Term> args = {x, cvc5_mk_integer_int64(d_tm, 0)};
+  Cvc5Term lb = cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
+  cvc5_assert_formula(d_solver, lb);
+  args = {x, cvc5_mk_integer_int64(d_tm, 100)};
+  Cvc5Term ub = cvc5_mk_term(d_tm, CVC5_KIND_LEQ, args.size(), args.data());
+  cvc5_assert_formula(d_solver, ub);
+  args = {f, x};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data()),
+          seven};
+  Cvc5Term eq = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, eq);
+  // x >= 0 ^ x <= 100 ^ (f x) = 7
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  Cvc5Term xval = cvc5_get_value(d_solver, x);
+  ASSERT_TRUE(cvc5_term_is_uint32_value(xval));
+  ASSERT_TRUE(cvc5_term_get_uint32_value(xval) % 10 == 7);
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_sat2)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
+  std::vector<Cvc5Sort> sorts = {d_int, d_int};
+  Cvc5Term eq = cvc5_declare_oracle_fun(
+      d_solver,
+      "eq",
+      sorts.size(),
+      sorts.data(),
+      d_bool,
+      d_tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Assert(size == 2);
+        return cvc5_mk_boolean(static_cast<Cvc5TermManager*>(state),
+                               cvc5_term_is_equal(input[0], input[1]));
+      });
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  std::vector<Cvc5Term> args = {eq, x, y};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data())};
+  Cvc5Term neq = cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
+  cvc5_assert_formula(d_solver, neq);
+  // (not (eq x y))
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  Cvc5Term xval = cvc5_get_value(d_solver, x);
+  Cvc5Term yval = cvc5_get_value(d_solver, y);
+  ASSERT_TRUE(cvc5_term_is_disequal(xval, yval));
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_error1)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  std::vector<Cvc5Sort> sorts = {d_int, d_int};
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   nullptr,
+                   "eq",
+                   sorts.size(),
+                   sorts.data(),
+                   d_bool,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_boolean(
+                         static_cast<Cvc5TermManager*>(state),
+                         cvc5_term_is_equal(input[0], input[1]));
+                   }),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   d_solver,
+                   nullptr,
+                   sorts.size(),
+                   sorts.data(),
+                   d_bool,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_boolean(
+                         static_cast<Cvc5TermManager*>(state),
+                         cvc5_term_is_equal(input[0], input[1]));
+                   }),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   d_solver,
+                   "eq",
+                   0,
+                   nullptr,
+                   d_bool,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_boolean(
+                         static_cast<Cvc5TermManager*>(state),
+                         cvc5_term_is_equal(input[0], input[1]));
+                   }),
+               "");
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   d_solver,
+                   "eq",
+                   sorts.size(),
+                   sorts.data(),
+                   nullptr,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_boolean(
+                         static_cast<Cvc5TermManager*>(state),
+                         cvc5_term_is_equal(input[0], input[1]));
+                   }),
+               "invalid sort");
+  // this won't die when declaring the function, only when the actual oracle
+  // fun is called
+  (void)cvc5_declare_oracle_fun(
+      d_solver,
+      "eq",
+      sorts.size(),
+      sorts.data(),
+      d_bool,
+      nullptr,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Assert(size == 2);
+        return cvc5_mk_boolean(static_cast<Cvc5TermManager*>(state),
+                               cvc5_term_is_equal(input[0], input[1]));
+      });
+  ASSERT_DEATH(
+      cvc5_declare_oracle_fun(
+          d_solver, "eq", sorts.size(), sorts.data(), d_bool, d_tm, nullptr),
+      "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_error2)
+{
+  std::vector<Cvc5Sort> sorts = {d_int};
+  // cannot declare without option
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   d_solver,
+                   "f",
+                   sorts.size(),
+                   sorts.data(),
+                   d_int,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_integer_int64(
+                         static_cast<Cvc5TermManager*>(state), 0);
+                   }),
+               "unless oracles is enabled");
 }
 
 }  // namespace cvc5::internal::test
