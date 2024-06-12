@@ -39,19 +39,18 @@
 ; Case 2: (< i n) but (>= j n), the extract crosses the boundary into the next one.
 ; Note that we do not know the size of the element after x, so we leave it in (extract (concat ...)) form
 (define-cond-rule bv-extract-concat-2
-  ((x ?BitVec) (xs ?BitVec :list) (y ?BitVec)
-  (i Int) (j Int))
-  (and (< i (@bvsize x)) (>= j (@bvsize x)))
+  ((x ?BitVec) (xs ?BitVec :list) (y ?BitVec) (i Int) (j Int) (u1 Int) (u2 Int))
+  (and (< i (@bvsize x)) (>= j (@bvsize x)) (= u1 (- j (@bvsize x))) (= u2 (- (@bvsize x) 1)))
   (extract j i (concat xs y x))
   (concat
-    (extract (- j (@bvsize x)) 0 (concat xs y))
-    (extract (- (@bvsize x) 1) i x)))
+    (extract u1 0 (concat xs y))
+    (extract u2 i x)))
 ; Case 3: (>= i n) and (>= j n), extract elides x
 (define-cond-rule bv-extract-concat-3
-  ((x ?BitVec) (y ?BitVec) (xs ?BitVec :list) (i Int) (j Int))
-  (>= i (@bvsize x))
+  ((x ?BitVec) (y ?BitVec) (xs ?BitVec :list) (i Int) (j Int) (u2 Int) (l2 Int))
+  (and (>= i (@bvsize x)) (= u2 (- j (@bvsize x))) (= l2 (- i (@bvsize x))))
   (extract j i (concat xs y x))
-  (extract (- j (@bvsize x)) (- i (@bvsize x)) (concat xs y)))
+  (extract u2 l2 (concat xs y)))
 ; Case 4: Elision from the higher portion
 (define-cond-rule bv-extract-concat-4
   ((x ?BitVec) (y ?BitVec) (xs ?BitVec :list) (i Int) (j Int))
@@ -83,19 +82,19 @@
   (extract high low (sign_extend k x))
   (extract high low x))
 (define-cond-rule bv-extract-sign-extend-2
-  ((x ?BitVec) (low Int) (high Int) (k Int))
+  ((x ?BitVec) (low Int) (high Int) (k Int) (nm1 Int))
   (def (n (@bvsize x)))
-  (and (< low n) (>= high n))
+  (and (< low n) (>= high n) (= nm1 (- n 1)))
   (extract high low (sign_extend k x))
   (sign_extend
     (+ 1 (- high n))
-    (extract (- n 1) low x)))
+    (extract nm1 low x)))
 (define-cond-rule bv-extract-sign-extend-3
-  ((x ?BitVec) (low Int) (high Int) (k Int))
+  ((x ?BitVec) (low Int) (high Int) (k Int) (rn Int))
   (def (n (@bvsize x)))
-  (>= low n)
+  (and (>= low n) (= rn (+ 1 (- high low))))
   (extract high low (sign_extend k x))
-  (repeat (+ 1 (- high low)) (extract (- n 1) (- n 1) x)))
+  (repeat rn (extract (- n 1) (- n 1) x)))
 
 (define-rule bv-neg-mult
   ((xs ?BitVec) (ys ?BitVec) (n Int) (m Int))

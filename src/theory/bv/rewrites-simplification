@@ -75,11 +75,11 @@
   (bvshl x (@bv 0 sz))
   x)
 (define-cond-rule bv-shl-by-const-1
-  ((x ?BitVec) (amount Int) (sz Int))
+  ((x ?BitVec) (amount Int) (sz Int) (en Int))
   (def (n (@bvsize x)))
-  (< amount n)
+  (and (< amount n) (= en (- n (+ 1 amount))))
   (bvshl x (@bv amount sz))
-  (concat (extract (- n (+ 1 amount)) 0 x) (@bv 0 amount)))
+  (concat (extract en 0 x) (@bv 0 amount)))
 (define-cond-rule bv-shl-by-const-2
   ((x ?BitVec) (amount Int) (sz Int))
   (>= amount (@bvsize x))
@@ -90,11 +90,11 @@
   (bvlshr x (@bv 0 sz))
   x)
 (define-cond-rule bv-lshr-by-const-1
-  ((x ?BitVec) (amount Int) (sz Int))
+  ((x ?BitVec) (amount Int) (sz Int) (nm1 Int))
   (def (n (@bvsize x)))
-  (< amount n)
+  (and (< amount n) (= nm1 (- n 1)))
   (bvlshr x (@bv amount sz))
-  (concat (@bv 0 amount) (extract (- n 1) amount x)))
+  (concat (@bv 0 amount) (extract nm1 amount x)))
 (define-cond-rule bv-lshr-by-const-2
   ((x ?BitVec) (amount Int) (sz Int))
   (>= amount (@bvsize x))
@@ -105,20 +105,20 @@
   (bvashr x (@bv 0 sz))
   x)
 (define-cond-rule bv-ashr-by-const-1
-  ((x ?BitVec) (amount Int) (sz Int))
+  ((x ?BitVec) (amount Int) (sz Int) (nm1 Int))
   (def (n (@bvsize x)))
-  (< amount n)
+  (and (< amount n) (= nm1 (- n 1)))
   (bvashr x (@bv amount sz))
   (concat
-    (repeat amount (extract (- n 1) (- n 1) x))
-    (extract (- n 1) amount x)
+    (repeat amount (extract nm1 nm1 x))
+    (extract nm1 amount x)
   ))
 (define-cond-rule bv-ashr-by-const-2
-  ((x ?BitVec) (amount Int) (sz Int))
+  ((x ?BitVec) (amount Int) (sz Int) (nm1 Int))
   (def (n (@bvsize x)))
-  (>= amount (@bvsize x))
+  (and (>= amount (@bvsize x)) (= nm1 (- n 1)))
   (bvashr x (@bv amount sz))
-  (repeat n (extract (- n 1) (- n 1) x)))
+  (repeat n (extract nm1 nm1 x)))
 
 ; AndOrXorConcatPullUp
 (define-rule* bv-and-concat-pullup
@@ -486,7 +486,6 @@
   ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
   (def
     (n (@bvsize x))
-    (clo (extract (- n 1) 0 (@bv c nm)))
     (a (bvshl (@bv 1 nm) (@bv (- n 1) nm))) ; 1 << (n-1)
     (b (bvshl (bvnot (@bv 0 nm)) (@bv (- n 1) nm))) ; ~0 << (n-1)
   )
