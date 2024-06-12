@@ -196,17 +196,17 @@
   :conclusion (= a b)
 )
 
-(program is_arith_rel ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
+(program is_poly_norm_rel ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
   (Bool) Bool
   (
-    ((is_arith_rel (< cx cy))   (alf.is_eq ($sgn cx) ($sgn cy)))
-    ((is_arith_rel (<= cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
-    ((is_arith_rel (= cx cy))   (alf.ite (alf.and ($is_bin_literal cx) ($is_bin_literal cy))
-                                  (alf.and (= cx (alf.to_bin (alf.len cx) 1)) (= cy (alf.to_bin (alf.len cy) 1)))
-                                  (alf.and (is_arith_type (alf.typeof cx)) (is_arith_type (alf.typeof cy)))))
-    ((is_arith_rel (>= cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
-    ((is_arith_rel (> cx cy))   (alf.is_eq ($sgn cx) ($sgn cy)))
-    ((is_arith_rel b)           false)
+    ((is_poly_norm_rel (< cx cy))   (alf.is_eq ($sgn cx) ($sgn cy)))
+    ((is_poly_norm_rel (<= cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
+    ((is_poly_norm_rel (= cx cy))   (alf.ite (alf.and ($is_bin_literal cx) ($is_bin_literal cy))
+                                      (alf.and (= cx (alf.to_bin (alf.len cx) 1)) (= cy (alf.to_bin (alf.len cy) 1)))
+                                      (alf.and (is_arith_type (alf.typeof cx)) (is_arith_type (alf.typeof cy)))))
+    ((is_poly_norm_rel (>= cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
+    ((is_poly_norm_rel (> cx cy))   (alf.is_eq ($sgn cx) ($sgn cy)))
+    ((is_poly_norm_rel b)           false)
   )
 )
 
@@ -214,7 +214,7 @@
 (declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x1 U) (x2 U) (y1 U) (y2 U) (cx U) (cy U))
   :premises ((= (* cx (- x1 x2)) (* cy (- y1 y2))))
   :args (r)
-  :requires (((is_arith_rel (r cx cy)) true))
+  :requires (((is_poly_norm_rel (r cx cy)) true))
   :conclusion (= (r x1 x2) (r y1 y2))
 )
 
