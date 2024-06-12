@@ -301,10 +301,12 @@ class Env
   bool isBooleanTermSkolem(const Node& k) const;
   /**
    * Get sharable formula. This returns an equivalent version of the given
-   * lemma n that can be shared externally. In particular, we require that the
-   * returned formula does not have any internally generated symbols, i.e.
-   * skolems. If n cannot be converted to a suitable formula, we return the
-   * null node.
+   * lemma n that can be shared externally. In particular, if the option
+   * pluginShareSkolems is false, we require that the returned formula does not
+   * have any internally generated symbols, i.e. skolems. We additionally
+   * exclude terms that have internally generated symbols (e.g. DUMMY_SKOLEM
+   * or INST_CONSTANT). If n cannot be converted to a suitable formula, we
+   * return the null node.
    *
    * @param n The candidate formula to share.
    * @return A tranformed version of n that is its represenation in a sharable
