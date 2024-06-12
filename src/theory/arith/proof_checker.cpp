@@ -52,6 +52,7 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ARITH_MULT_POS, this);
   pc->registerChecker(ProofRule::ARITH_MULT_NEG, this);
   pc->registerChecker(ProofRule::ARITH_POLY_NORM, this);
+  pc->registerChecker(ProofRule::ARITH_POLY_NORM_REL, this);
   // register the extended proof checkers
   d_extChecker.registerTo(pc);
   d_trChecker.registerTo(pc);

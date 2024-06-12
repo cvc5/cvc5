@@ -189,31 +189,33 @@
   :conclusion (= t (run_evaluate t))
 )
 
-(program $is_poly_norm ((T Type) (U Type) (a T) (b T) (a1 U) (a2 U) (b1 U) (b2 U))
-  (T T) Bool
-  (
-    (($is_poly_norm (> a1 a2) (> b1 b2))   ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    (($is_poly_norm (>= a1 a2) (>= b1 b2)) ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    (($is_poly_norm (<= a1 a2) (<= b1 b2)) ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    (($is_poly_norm (< a1 a2) (< b1 b2))   ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    (($is_poly_norm (= a1 a2) (= b1 b2))   (alf.ite (is_arith_type (alf.typeof a1)) 
-                                           (alf.ite (is_arith_type (alf.typeof b1))
-                                             ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) false)
-                                             false)
-                                           false)) ; TODO: bv
-    (($is_poly_norm a b)                   (alf.ite (is_arith_type (alf.typeof a)) 
-                                           (alf.ite (is_arith_type (alf.typeof b))
-                                             ($is_poly_norm_arith a b)
-                                             false)
-                                           false)) ; TODO: bv
-  )
-)
-
 ; ProofRule::ARITH_POLY_NORM
 (declare-rule arith_poly_norm ((U Type) (a U) (b U))
   :args ((= a b))
   :requires ((($is_poly_norm a b) true))
   :conclusion (= a b)
+)
+
+(program is_arith_rel ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
+  (Bool) Bool
+  (
+    ((is_arith_rel (< cx cy))   (alf.is_eq ($sgn cx) ($sgn cy)))
+    ((is_arith_rel (<= cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
+    ((is_arith_rel (= cx cy))   (alf.ite (alf.and ($is_bin_literal cx) ($is_bin_literal cy))
+                                  (alf.and (= cx (alf.to_bin (alf.len cx) 1)) (= cy (alf.to_bin (alf.len cy) 1)))
+                                  (alf.and (is_arith_type (alf.typeof cx)) (is_arith_type (alf.typeof cy)))))
+    ((is_arith_rel (>= cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
+    ((is_arith_rel (> cx cy))   (alf.is_eq ($sgn cx) ($sgn cy)))
+    ((is_arith_rel b)           false)
+  )
+)
+
+; ProofRule::ARITH_POLY_NORM_REL
+(declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x1 U) (x2 U) (y1 U) (y2 U) (cx U) (cy U))
+  :premises ((= (* cx (- x1 x2)) (* cy (- y1 y2))))
+  :args (r)
+  :requires (((is_arith_rel (r cx cy)) true))
+  :conclusion (= (r x1 x2) (r y1 y2))
 )
 
 ; define: $get_aci_normal_form
