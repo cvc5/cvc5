@@ -37,7 +37,7 @@
   (extract j i (concat xs y x)) ; (concat ...) needs at least 2 children
   (extract j i x))
 ; Case 2: (< i n) but (>= j n), the extract crosses the boundary into the next one.
-; Note that we do not know the size of the element after x, so we leave it in (extract (concat ...)) form
+; Note that we do not know the size of the element after x, so we leave it in (extract ... (concat ...)) form
 (define-cond-rule bv-extract-concat-2
   ((x ?BitVec) (xs ?BitVec :list) (y ?BitVec) (i Int) (j Int) (u1 Int) (u2 Int))
   (and (< i (@bvsize x)) (>= j (@bvsize x)) (= u1 (- j (@bvsize x))) (= u2 (- (@bvsize x) 1)))
@@ -90,11 +90,11 @@
     sn
     (extract nm1 low x)))
 (define-cond-rule bv-extract-sign-extend-3
-  ((x ?BitVec) (low Int) (high Int) (k Int) (rn Int))
+  ((x ?BitVec) (low Int) (high Int) (k Int) (rn Int) (nm1 Int))
   (def (n (@bvsize x)))
-  (and (>= low n) (= rn (+ 1 (- high low))))
+  (and (>= low n) (= rn (+ 1 (- high low))) (= nm1 (- n 1)))
   (extract high low (sign_extend k x))
-  (repeat rn (extract (- n 1) (- n 1) x)))
+  (repeat rn (extract nm1 nm1 x)))
 
 (define-rule bv-neg-mult
   ((xs ?BitVec) (ys ?BitVec) (n Int) (m Int))
@@ -226,21 +226,22 @@
 (define-rule bv-or-zero ((x ?BitVec) (n Int))
   (bvor x (@bv 0 n))
   x)
-(define-cond-rule bv-mul-one ((x ?BitVec) (c1 ?BitVec))
-  (= c1 (@bv 1 (@bvsize c1)))
-  (bvmul x c1)
+(define-cond-rule bv-mul-one ((x ?BitVec) (w Int))
+  (= w (@bvsize x))
+  (bvmul x (@bv 1 w))
   x)
-(define-cond-rule bv-mul-zero ((x ?BitVec) (c0 ?BitVec))
-  (= c0 (@bv 0 (@bvsize c0)))
-  (bvmul x c0)
-  (@bv 0 (@bvsize x)))
-(define-cond-rule bv-add-zero ((x ?BitVec) (c0 ?BitVec))
-  (= c0 (@bv 0 (@bvsize c0)))
-  (bvadd x c0)
+(define-cond-rule bv-mul-zero ((x ?BitVec) (w Int))
+  (= w (@bvsize x))
+  (bvmul x (@bv 0 w))
+  (@bv 0 w))
+(define-cond-rule bv-add-zero ((x ?BitVec) (w Int))
+  (= w (@bvsize x))
+  (bvadd x (@bv 0 w))
   x)
-(define-rule bv-add-two ((x ?BitVec))
+(define-cond-rule bv-add-two ((x ?BitVec) (w Int))
+  (= w (@bvsize x))
   (bvadd x x)
-  (bvmul x (@bv 2 (@bvsize x))))
+  (bvmul x (@bv 2 w)))
 
 
 (define-rule bv-zero-extend-eliminate-0
@@ -256,6 +257,7 @@
   (= x (bvnot x))
   false)
 
+; FIXME
 (define-cond-rule bv-ult-ones ((x ?BitVec) (y ?BitVec))
   (= y (bvnot (@bv 0 (@bvsize y))))
   (bvult x y)

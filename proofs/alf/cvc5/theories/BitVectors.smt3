@@ -201,7 +201,7 @@
 (declare-const sign_extend
     (-> (! Int :var m :implicit)
         (! Int :var i)
-        (BitVec m) (BitVec (alf.add m ($eval_bv_sym i))))
+        (BitVec m) (BitVec (alf.add m i)))
 )
 
 (declare-const rotate_left
