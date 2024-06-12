@@ -521,9 +521,9 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   {
     if (target[0].getType().isBoolean())
     {
-      Rational ra, rb;
-      if (!theory::arith::PolyNorm::isArithPolyNormAtom(
-              target[0], target[1], ra, rb))
+      Rational rx, ry;
+      if (!theory::arith::PolyNorm::isArithPolyNormRel(
+              target[0], target[1], rx, ry))
       {
         return false;
       }
@@ -531,32 +531,32 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       Node lhs, rhs;
       if (target[0][0].getType().isInteger())
       {
-        Node ca = nm->mkConstInt(ra);
-        Node cb = nm->mkConstInt(rb);
-        Node a = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
-        Node b = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
-        lhs = nm->mkNode(Kind::MULT, ca, a);
-        rhs = nm->mkNode(Kind::MULT, cb, b);
+        Node cx = nm->mkConstInt(rx);
+        Node cy = nm->mkConstInt(ry);
+        Node x = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
+        Node y = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
+        lhs = nm->mkNode(Kind::MULT, cx, x);
+        rhs = nm->mkNode(Kind::MULT, cy, y);
       }
       else if (target[0][0].getType().isReal())
       {
-        Node ca = nm->mkConstReal(ra);
-        Node cb = nm->mkConstReal(rb);
-        Node a = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
-        Node b = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
-        lhs = nm->mkNode(Kind::MULT, ca, a);
-        rhs = nm->mkNode(Kind::MULT, cb, b);
+        Node cx = nm->mkConstReal(rx);
+        Node cy = nm->mkConstReal(ry);
+        Node x = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
+        Node y = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
+        lhs = nm->mkNode(Kind::MULT, cx, x);
+        rhs = nm->mkNode(Kind::MULT, cy, y);
       }
       else
       {
         uint32_t wa = target[0][0].getType().getBitVectorSize();
         uint32_t wb = target[1][0].getType().getBitVectorSize();
-        Node ca = nm->mkConst(BitVector(wa, ra.getNumerator()));
-        Node cb = nm->mkConst(BitVector(wb, rb.getNumerator()));
-        Node a = nm->mkNode(Kind::BITVECTOR_SUB, target[0][0], target[0][1]);
-        Node b = nm->mkNode(Kind::BITVECTOR_SUB, target[1][0], target[1][1]);
-        lhs = nm->mkNode(Kind::BITVECTOR_MULT, ca, a);
-        rhs = nm->mkNode(Kind::BITVECTOR_MULT, cb, b);
+        Node cx = nm->mkConst(BitVector(wa, rx.getNumerator()));
+        Node cy = nm->mkConst(BitVector(wb, ry.getNumerator()));
+        Node x = nm->mkNode(Kind::BITVECTOR_SUB, target[0][0], target[0][1]);
+        Node y = nm->mkNode(Kind::BITVECTOR_SUB, target[1][0], target[1][1]);
+        lhs = nm->mkNode(Kind::BITVECTOR_MULT, cx, x);
+        rhs = nm->mkNode(Kind::BITVECTOR_MULT, cy, y);
       }
       pic.d_id = id;
       pic.d_vars.push_back(lhs.eqNode(rhs));
@@ -1062,7 +1062,10 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           cdp->addStep(
               pcur.d_vars[0], ProofRule::ARITH_POLY_NORM, {}, {pcur.d_vars[0]});
-          cdp->addStep(cur, ProofRule::ARITH_REL_EQUIV, {pcur.d_vars[0]}, {pcur.d_vars[1]});
+          cdp->addStep(cur,
+                       ProofRule::ARITH_POLY_NORM_REL,
+                       {pcur.d_vars[0]},
+                       {pcur.d_vars[1]});
         }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL
