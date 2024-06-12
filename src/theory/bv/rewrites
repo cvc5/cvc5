@@ -257,11 +257,10 @@
   (= x (bvnot x))
   false)
 
-; FIXME
-(define-cond-rule bv-ult-ones ((x ?BitVec) (y ?BitVec))
-  (= y (bvnot (@bv 0 (@bvsize y))))
-  (bvult x y)
-  (distinct x y))
+(define-cond-rule bv-ult-ones ((x ?BitVec) (n Int) (w Int))
+  (= n (- (int.pow2 w) 1))
+  (bvult x (@bv n w))
+  (distinct x (@bv n w)))
 
 ; Collapse rules
 
