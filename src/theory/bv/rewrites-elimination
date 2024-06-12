@@ -226,12 +226,12 @@
   (bvsrem x y)
   (ite xLt0 (bvneg u) u))
 
-(define-rule bv-usubo-eliminate
-  ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-usubo-eliminate
+  ((x ?BitVec) (y ?BitVec) (n Int))
   (def
-    (n (@bvsize x))
     (s (bvsub (zero_extend 1 x) (zero_extend 1 y)))
   )
+  (= n (@bvsize x))
   (bvusubo x y)
   (= (extract n n s) (@bv 1 1)))
 ; Overflow occurs when
