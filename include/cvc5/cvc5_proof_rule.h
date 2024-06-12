@@ -1876,14 +1876,13 @@ enum ENUM(ProofRule)
    * **Arithmetic -- Relational equivalence**
    *
    * .. math::
-   *  \inferrule{c_a \cdot (a_1 - a_2) = c_b \cdot (b_1 - b_2) \mid \diamond}
-   *            {(a_1 \diamond a_2) = (b_1 \diamond b_2)}
+   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid \diamond}
+   *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
    * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
-   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_a` and :math:c_b` are
-   * scaling factors. For :math:`<, \leq, \geq, >`, :math:`c_a` and :math:`c_b`
-   * have the same sign. For bitvectors, the scaling constants are set to
-   * :math:`1`.
+   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:c_y` are
+   * scaling factors. For :math:`<, \leq, \geq, >`, the scaling factors have the
+   * same sign. For bitvectors, they are set to :math:`1`.
    * \endverbatim
    */
   EVALUE(ARITH_REL_EQUIV),
