@@ -120,40 +120,42 @@
   (repeat rn (extract nm1 nm1 x)))
 
 ; AndOrXorConcatPullUp
-(define-rule* bv-and-concat-pullup
+(define-cond-rule bv-and-concat-pullup
   ((x ?BitVec) (y ?BitVec)
-   (z ?BitVec) (ys ?BitVec :list))
+   (z ?BitVec) (ys ?BitVec :list)
+   (nxm1 Int) (ny Int) (nym1 Int))
   (def
     (nx (@bvsize x))
-    (ny (@bvsize y))
   )
+  (and (= ny (@bvsize y)) (= nxm1 (- nx 1)) (= nym1 (- (@bvsize y) 1)))
   (bvand x (concat ys z y))
   (concat
-    (bvand (extract (- nx 1) ny x) (concat ys z)) ; Recur on this
-    (bvand (extract (- ny 1) 0 x) y)
+    (bvand (extract nxm1 ny x) (concat ys z)) ; Recur on this
+    (bvand (extract nym1 0 x) y)
   ))
-(define-rule* bv-or-concat-pullup
+(define-cond-rule bv-or-concat-pullup
   ((x ?BitVec) (y ?BitVec)
-   (z ?BitVec) (ys ?BitVec :list))
+   (z ?BitVec) (ys ?BitVec :list)
+   (nxm1 Int) (ny Int) (nym1 Int))
   (def
     (nx (@bvsize x))
-    (ny (@bvsize y))
   )
+  (and (= ny (@bvsize y)) (= nxm1 (- nx 1)) (= nym1 (- (@bvsize y) 1)))
   (bvor x (concat ys z y))
   (concat
-    (bvor (extract (- nx 1) ny x) (concat ys z)) ; Recur on this
-    (bvor (extract (- ny 1) 0 x) y)
+    (bvor (extract nxm1 ny x) (concat ys z)) ; Recur on this
+    (bvor (extract nym1 0 x) y)
   ))
-(define-rule* bv-xor-concat-pullup
-  ((x ?BitVec) (y ?BitVec) (z ?BitVec) (ys ?BitVec :list))
+(define-cond-rule bv-xor-concat-pullup
+  ((x ?BitVec) (y ?BitVec) (z ?BitVec) (ys ?BitVec :list) (nxm1 Int) (ny Int) (nym1 Int))
   (def
     (nx (@bvsize x))
-    (ny (@bvsize y))
   )
+  (and (= ny (@bvsize y)) (= nxm1 (- nx 1)) (= nym1 (- (@bvsize y) 1)))
   (bvxor x (concat ys z y))
   (concat
-    (bvxor (extract (- nx 1) ny x) (concat ys z)) ; Recur on this
-    (bvxor (extract (- ny 1) 0 x) y)
+    (bvxor (extract nxm1 ny x) (concat ys z)) ; Recur on this
+    (bvxor (extract nym1 0 x) y)
   ))
 
 
@@ -256,23 +258,6 @@
   (concat
     (extract u 0 (bvneg z))
     (@bv 0 exponent)))
-
-;(define-rule bv-mult-slice
-;  ((x ?BitVec) (y ?BitVec))
-;  (def
-;    (n (@bvsize x))
-;    (xBot (extract (- (div n 2) 1) 0 x))
-;    (yBot (extract (- (div n 2) 1) 0 y))
-;    (xTop (extract (- n 1) (div n 2) x))
-;    (yTop (extract (- n 1) (div n 2) y))
-;    (z (@bv 0 (div n 2)))
-;  )
-;  (bvmul x y)
-;  (bvadd
-;    (bvmul (concat z xBot) (concat z yBot))
-;    (concat (bvmul yTop xBot) z)
-;    (concat (bvmul xTop yBot) z)
-;  ))
 
 ; If the bit-vectors multiplied have enough leading zeros,
 ; we can determine that the top bits of the multiplication
@@ -472,15 +457,15 @@
   (bvult (sign_extend m x) (@bv c nm))
   (bvult x clo))
 (define-cond-rule bv-sign-extend-ult-const-2
-  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
   (def
     (n (@bvsize x))
     (a (bvshl (@bv 1 nm) (@bv (- n 1) nm))) ; 1 << (n-1)
     (b (bvshl (bvnot (@bv 0 nm)) (@bv (- n 1) nm))) ; ~0 << (n-1)
   )
-  (and (bvult a (@bv c nm)) (bvule (@bv c nm) b))
+  (and (bvult a (@bv c nm)) (bvule (@bv c nm) b) (= nm1 (- n 1)))
   (bvult (sign_extend m x) (@bv c nm))
-  (= (extract (- n 1) (- n 1) x) (@bv 0 1)))
+  (= (extract nm1 nm1 x) (@bv 0 1)))
 (define-cond-rule bv-sign-extend-ult-const-3
   ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
   (def

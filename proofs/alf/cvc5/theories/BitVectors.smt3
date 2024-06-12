@@ -40,7 +40,9 @@
   (! Int :var h)
   (! Int :var l)
   (BitVec n)
-  (BitVec (alf.add ($eval_bv_sym h) (alf.neg ($eval_bv_sym l)) 1)))
+  (BitVec (alf.add ($eval_bv_sym h) (alf.neg ($eval_bv_sym l)) 1))
+  ;(BitVec (alf.add h (alf.neg l) 1))
+  )
 )
 
 (declare-const repeat 
