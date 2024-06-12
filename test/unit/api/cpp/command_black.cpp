@@ -61,7 +61,7 @@ TEST_F(TestCommandBlack, invoke)
   cmd.invoke(d_solver.get(), d_symman.get(), out);
   std::string result = out.str();
   ASSERT_EQ(
-      "(error \"Cannot get model unless model generation is enabled (try "
+      "(error \"cannot get model unless model generation is enabled (try "
       "--produce-models)\")\n",
       result);
   // logic already set

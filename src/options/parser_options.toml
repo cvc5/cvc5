@@ -60,3 +60,11 @@ name   = "Parser"
   type       = "std::string"
   default    = '""'
   help       = "set the logic, and override all further user attempts to change it"
+
+[[option]]
+  name       = "parseSkolemDefinitions"
+  category   = "expert"
+  long       = "parse-skolem-definitions"
+  type       = "bool"
+  default    = "false"
+  help       = "allows the parsing of skolems in the input file"

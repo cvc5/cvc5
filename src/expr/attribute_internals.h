@@ -13,6 +13,10 @@
  * Node attributes' internals.
  */
 
+#include <algorithm>
+#include <numeric>
+#include <stdint.h>
+
 #include "cvc5_private.h"
 
 #ifndef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
@@ -145,15 +149,387 @@ inline uint64_t GetBitSet(uint64_t bit)
 }
 
 /**
- * An "AttrHash<value_type>"---the hash table underlying
- * attributes---is simply a mapping of pair<unique-attribute-id, Node>
- * to value_type using our specialized hash function for these pairs.
+ * An "AttrHash<V>"---the hash table underlying
+ * attributes---is a mapping of pair<unique-attribute-id, Node>
+ * to V using a two-level hash+flat_map structure. The top level
+ * uses NodeValue* as its key, allowing rapid deletion of matching
+ * collections of entries, while the second level, keyed on Ids
+ * and implemented with a sorted vector, optimizes for size and
+ * speed for small collections.
  */
-template <class value_type>
-class AttrHash :
-    public std::unordered_map<std::pair<uint64_t, NodeValue*>,
-                               value_type,
-                               AttrHashFunction> {
+template <class V>
+class AttrHash
+{
+  // Second level flat map uint64_t -> V
+  class IdMap
+  {
+   public:
+    using value_type = std::pair<uint64_t, V>;
+    using Container = std::vector<value_type>;
+    using iterator = typename Container::iterator;
+    using const_iterator = typename Container::const_iterator;
+
+    // only the methods required by AttrHash<V>:
+
+    const_iterator begin() const { return d_contents.begin(); }
+    const_iterator end() const { return d_contents.end(); }
+
+    iterator begin() { return d_contents.begin(); }
+    iterator end() { return d_contents.end(); }
+
+    std::size_t size() const { return d_contents.size(); }
+
+    bool empty() const { return d_contents.empty(); }
+
+    void reserve(std::size_t sz) { d_contents.reserve(sz); }
+
+    std::pair<iterator, bool> emplace(uint64_t k, V v)
+    {
+      value_type p = std::make_pair(k, std::move(v));
+      auto range =
+          std::equal_range(d_contents.begin(),
+                           d_contents.end(),
+                           p,
+                           [](const value_type& a, const value_type& b) {
+                             return a.first < b.first;
+                           });
+      if (range.first != range.second)
+      {
+        // key already present, don't insert
+        return std::make_pair(iterator{}, false);
+      }
+
+      return std::make_pair(d_contents.insert(range.first, std::move(p)), true);
+    }
+
+    const_iterator find(uint64_t key) const
+    {
+      auto range =
+          std::equal_range(d_contents.begin(),
+                           d_contents.end(),
+                           std::make_pair(key, V{}),
+                           [](const value_type& a, const value_type& b) {
+                             return a.first < b.first;
+                           });
+      if (range.first == range.second)
+      {
+        // not in map
+        return d_contents.end();
+      }
+      return range.first;
+    }
+
+    iterator find(uint64_t key)
+    {
+      auto range =
+          std::equal_range(d_contents.begin(),
+                           d_contents.end(),
+                           std::make_pair(key, V{}),
+                           [](const value_type& a, const value_type& b) {
+                             return a.first < b.first;
+                           });
+      if (range.first == range.second)
+      {
+        return d_contents.end();
+      }
+      return range.first;
+    }
+
+    iterator erase(iterator pos) { return d_contents.erase(pos); }
+
+    V& operator[](uint64_t key)
+    {
+      iterator it =
+          std::lower_bound(d_contents.begin(),
+                           d_contents.end(),
+                           std::make_pair(key, V{}),
+                           [](const value_type& a, const value_type& b) {
+                             return a.first < b.first;
+                           });
+      if ((it == d_contents.end()) || (it->first != key))
+      {
+        // not in map
+        it = d_contents.insert(it, std::make_pair(key, V{}));
+      }
+      return (*it).second;
+    }
+
+    // range insert
+    template <typename Iter>
+    void insert(Iter beg, Iter end)
+    {
+      for (Iter it = beg; it != end; ++it)
+      {
+        iterator found_it =
+            std::lower_bound(d_contents.begin(),
+                             d_contents.end(),
+                             it->first,
+                             [](const value_type& a, const value_type& b) {
+                               return a.first < b.first;
+                             });
+        if ((found_it != d_contents.end()) && (it->first == found_it->first))
+        {
+          // this key is already present in the map. replace it:
+          found_it->second = it->second;
+        }
+        else
+        {
+          d_contents.insert(found_it, *it);
+        }
+      }
+    }
+
+   private:
+    Container d_contents;
+  };
+
+  // a composite iterator combining a top-level (std::unordered_map)
+  // iterator with a lower-level (IdMap) iterator to preserve the
+  // illusion of a single map. Together they identify a virtual
+  // element pair<pair<uint64_t, NodeValue*>, V> expected by
+  // users of AttrHash<V>.
+  template <typename Parent, typename L1It, typename L2It>
+  class Iterator
+  {
+    // access for AttrHash to implement erase(Iterator)
+    using NonConstParent = typename std::remove_const_t<Parent>;
+    using NonConstIterator = typename NonConstParent::iterator;
+    friend NonConstIterator Parent::erase(NonConstIterator);
+
+   public:
+    // requirements for ForwardIterator
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = std::pair<std::pair<uint64_t, NodeValue*>, V>;
+    using reference = value_type;  // we don't supply a true reference
+    using pointer = value_type*;
+    using difference_type = std::ptrdiff_t;
+
+    // default constructor
+    Iterator() : d_atEnd{true} {}
+
+    Iterator(Parent* parent)
+        : d_parent{parent}, d_l1It(parent->d_storage.begin())
+    {
+      d_atEnd = (d_l1It == parent->d_storage.end());
+      if (!d_atEnd)
+      {
+        d_l2It = d_l1It->second.begin();
+        legalize();  // L2 map may be empty
+      }
+    }
+
+    // prerequisite: l1_it and l2_it are valid iterators
+    Iterator(Parent* parent, L1It l1_it, L2It l2_it)
+        : d_atEnd(l1_it == parent->d_storage.end()),
+          d_parent(parent),
+          d_l1It(l1_it),
+          d_l2It(l2_it)
+    {
+    }
+
+    // increment
+    Iterator& operator++()  // pre
+    {
+      increment();
+      return *this;
+    }
+
+    Iterator operator++(int)  // post
+    {
+      Iterator tmp = *this;
+      increment();
+      return tmp;
+    }
+
+    // dereference
+    value_type operator*() const
+    {
+      return std::make_pair(std::make_pair(d_l2It->first, d_l1It->first),
+                            d_l2It->second);
+    }
+
+    // comparison
+    bool operator==(Iterator const& other) const
+    {
+      return (d_atEnd && other.d_atEnd)
+             || (!d_atEnd && !other.d_atEnd && (d_l1It == other.d_l1It)
+                 && (d_l2It == other.d_l2It));
+    }
+    bool operator!=(Iterator const& other) const { return !(*this == other); }
+
+   private:
+    void increment()
+    {
+      ++d_l2It;
+
+      legalize();  // we may be at the end of the current L2 map
+    }
+
+    // if necessary, adjust L1/L2 iterators so they point at a real element
+    // called whenever a change may cause the L2 iterator to point to the end
+    // of the current L2 map, e.g.:
+    // initialization: the first L2 map is empty
+    // increment: the L2 iterator was pointing at the last element
+    // erase: the L2 iterator was pointing at the erased element and there are no more
+    void legalize()
+    {
+      // move forward to next valid entry
+      while (d_l2It == d_l1It->second.end())
+      {
+        ++d_l1It;
+        if (d_l1It == d_parent->d_storage.end())
+        {
+          d_atEnd = true;
+          return;
+        }
+        d_l2It = d_l1It->second.begin();
+      }
+    }
+
+    /** Whether at the end of all entries (matches only other end sentinels) */
+    bool d_atEnd;
+
+    /** The AttrHash this iterator belongs to */
+    Parent* d_parent;
+
+    /** Iterator within the top-level std::unordered_map */
+    L1It d_l1It;
+
+    /** Iterator within the second level IdMap (sorted vector) */
+    L2It d_l2It;
+  };
+
+  using Storage = std::unordered_map<NodeValue*, IdMap, AttrBoolHashFunction>;
+
+ public:
+  using iterator = Iterator<AttrHash<V>,
+                            typename Storage::iterator,
+                            typename IdMap::iterator>;
+  using const_iterator = Iterator<const AttrHash<V>,
+                                  typename Storage::const_iterator,
+                                  typename IdMap::const_iterator>;
+
+  std::size_t size() const
+  {
+    return std::accumulate(
+        d_storage.begin(),
+        d_storage.end(),
+        0u,
+        [](std::size_t sum, const std::pair<NodeValue*, IdMap>& l2) {
+          return sum + l2.second.size();
+        });
+  }
+
+  iterator begin() { return iterator(this); }
+  iterator end() { return iterator(); }
+
+  const_iterator begin() const
+  {
+    return const_iterator(const_cast<AttrHash<V>*>(this));
+  }
+  const_iterator end() const { return const_iterator(); }
+
+  iterator erase(iterator it)
+  {
+    // reach inside the iterator to get L1/L2 positions
+    auto nextL2It = it.d_l1It->second.erase(it.d_l2It);
+
+    iterator nextIt(this, it.d_l1It, nextL2It);
+    nextIt.legalize();
+
+    if (it.d_l1It->second.empty())
+    {
+      // this erase has made the L2 map empty. delete it:
+      d_storage.erase(it.d_l1It);
+    }
+
+    return nextIt;
+  }
+
+  template <typename Iter>
+  void insert(Iter beg, Iter end)
+  {
+    using Entry = typename std::iterator_traits<Iter>::value_type;
+    using Entries = std::vector<Entry>;
+    using EntryIt = typename Entries::iterator;
+    Entries entries(beg, end);
+
+    // sort by second (NodeValue*) then first (uint64_t)
+    std::sort(
+        entries.begin(), entries.end(), [](const Entry& a, const Entry& b) {
+          return (a.first.second < b.first.second)
+                 || ((a.first.second == b.first.second)
+                     && (a.first.first < b.first.first));
+        });
+
+    auto find_different_nv = [](NodeValue* nv, EntryIt first, EntryIt last) {
+      return std::find_if(
+          first, last, [nv](const Entry& a) { return a.first.second != nv; });
+    };
+
+    // determine number of new L1 entries required (count unique NodeValue*s)
+    std::size_t l1_unique_count = 0;
+    auto last = entries.end();
+    for (EntryIt it = entries.begin(); it != last;
+         it = find_different_nv(it->first.second, it, entries.end()))
+    {
+      ++l1_unique_count;
+    }
+    // pre-allocate enough space for the new L1 entries (for speed)
+    d_storage.reserve(d_storage.size() + l1_unique_count);
+
+    // add new entries one (same NodeValue*) chunk at a time
+    for (EntryIt it = entries.begin(); it != last;)
+    {
+      // identify range of entries with the same NodeValue* (a "chunk")
+      EntryIt chunk_end = std::find_if(it, entries.end(), [it](const Entry& v) {
+        return v.first.second != it->first.second;
+      });
+      // add to corresponding l2 map
+      auto& l2 = d_storage[it->first.second];
+      l2.reserve(l2.size() + std::distance(it, chunk_end));
+      for (; it != chunk_end; ++it)
+      {
+        l2.emplace(it->first.first, it->second);
+      }
+    }
+  }
+
+  void swap(AttrHash& other) { std::swap(d_storage, other.d_storage); }
+
+  V& operator[](std::pair<uint64_t, NodeValue*> p)
+  {
+    return d_storage[p.second][p.first];
+  }
+
+  void clear() { d_storage.clear(); }
+
+  const_iterator find(std::pair<uint64_t, NodeValue*> p) const
+  {
+    typename Storage::const_iterator it1 = d_storage.find(p.second);
+    if (it1 == d_storage.end()) return const_iterator();
+
+    typename IdMap::const_iterator it2 = it1->second.find(p.first);
+    if (it2 == it1->second.end()) return const_iterator();
+
+    return const_iterator(this, it1, it2);
+  }
+
+  iterator find(std::pair<uint64_t, NodeValue*> p)
+  {
+    typename Storage::iterator it1 = d_storage.find(p.second);
+    if (it1 == d_storage.end()) return iterator();
+
+    typename IdMap::iterator it2 = it1->second.find(p.first);
+    if (it2 == it1->second.end()) return iterator();
+
+    return iterator(this, it1, it2);
+  }
+
+  void eraseBy(NodeValue* nv) { d_storage.erase(nv); }
+
+ private:
+  Storage d_storage;
 };/* class AttrHash<> */
 
 /**
