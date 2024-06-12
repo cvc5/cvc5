@@ -407,6 +407,21 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       }
       return args[0];
     }
+    case ProofRule::ARITH_REL_EQUIV:
+    {
+      Assert(children.size() == 1);
+      Assert(args.size() == 1);
+      Kind k;
+      if (!getKind(args[0], k))
+      {
+        return Node::null();
+      }
+      Node a1 = children[0][0][1][0];
+      Node a2 = children[0][0][1][1];
+      Node b1 = children[0][1][1][0];
+      Node b2 = children[0][1][1][1];
+      return nm->mkNode(k, a1, a2).eqNode(nm->mkNode(k, b1, b2));
+    }
     default: return Node::null();
   }
 }

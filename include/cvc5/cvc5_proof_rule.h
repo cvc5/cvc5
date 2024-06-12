@@ -1866,11 +1866,27 @@ enum ENUM(ProofRule)
    *   \inferrule{- \mid t = s}{t = s}
    *
    * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
-   * method normalizes polynomials over arithmetic or bitvectors.
+   * method normalizes polynomials :math:`s` and :math:`t` over arithmetic or
+   * bitvectors.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Relational equivalence**
+   *
+   * .. math::
+   *  \inferrule{c_a \cdot (a_1 - a_2) = c_b \cdot (b_1 - b_2) \mid \diamond}
+   *            {(a_1 \diamond a_2) = (b_1 \diamond b_2)}
+   *
+   * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
+   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_a` and :math:c_b` are
+   * scaling factors. For :math:`<, \leq, \geq, >`, :math:`c_a` and :math:`c_b`
+   * have the same sign. For bitvectors, the scaling constants are set to
+   * :math:`1`.
+   * \endverbatim
+   */
+  EVALUE(ARITH_REL_EQUIV),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sign inference**

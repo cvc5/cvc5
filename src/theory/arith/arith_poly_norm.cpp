@@ -75,6 +75,19 @@ void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
   }
 }
 
+void PolyNorm::mulCoeffs(const Rational& c)
+{
+  if (c.sgn() == 0)
+  {
+    d_polyNorm.clear();
+    return;
+  }
+  for (std::pair<const Node, Rational>& m : d_polyNorm)
+  {
+    m.second *= c;
+  }
+}
+
 void PolyNorm::modCoeffs(const Rational& c)
 {
   Assert(c.sgn() != 0);
@@ -426,62 +439,53 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
 
 bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
 {
+  Assert(!a.getType().isBoolean());
   if (a == b)
   {
     return true;
   }
-  TypeNode at = a.getType();
-  if (at.isBoolean())
-  {
-    // otherwise may be atoms
-    return isArithPolyNormAtom(a, b);
-  }
-  // Otherwise normalize, which notice abstracts any non-arithmetic term.
+  // Normalize, which notice abstracts any non-arithmetic term.
   // We impose no type requirements here.
   PolyNorm pa = PolyNorm::mkPolyNorm(a);
   PolyNorm pb = PolyNorm::mkPolyNorm(b);
   return pa.isEqual(pb);
 }
 
-bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
+bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b, Rational& ca, Rational& cb)
 {
   Assert(a.getType().isBoolean());
+  if (a == b)
+  {
+    return true;
+  }
   Kind k = a.getKind();
   if (b.getKind() != k)
   {
     return false;
   }
-  // Compute the type of nodes are considering. We must ensure that a and b
+  // Compute the type of nodes we are considering. We must ensure that a and b
   // have comparable type, or else we fail here.
   TypeNode eqtn;
   if (k == Kind::EQUAL)
   {
-    for (size_t i = 0; i < 2; i++)
+    Assert(a[0].getType().isComparableTo(a[1].getType()));
+    Assert(b[0].getType().isComparableTo(b[1].getType()));
+    eqtn = a[0].getType().leastUpperBound(a[1].getType());
+    eqtn = eqtn.leastUpperBound(b[0].getType().leastUpperBound(b[1].getType()));
+    // could happen if we are comparing equalities of different types
+    if (eqtn.isNull())
     {
-      Node eq = i == 0 ? a : b;
-      for (size_t j = 0; j < 2; j++)
-      {
-        TypeNode tn = eq[j].getType();
-        eqtn = eqtn.isNull() ? tn : eqtn.leastUpperBound(tn);
-        // could happen if we are comparing equalities of different types
-        if (eqtn.isNull())
-        {
-          return false;
-        }
-      }
+      return false;
     }
   }
-  else if (k == Kind::GEQ || k == Kind::LEQ || k == Kind::GT || k == Kind::LT)
-  {
-    // k is a handled binary relation, i.e. one that permits normalization
-    // via subtracting the right side from the left.
-  }
-  else
+  else if (k != Kind::GEQ && k != Kind::LEQ && k != Kind::GT && k != Kind::LT)
   {
     // note that we cannot use this method to show equivalence for
     // bitvector inequalities.
     return false;
   }
+  // k is a handled binary relation, i.e. one that permits normalization
+  // via subtracting the right side from the left.
   PolyNorm pa = PolyNorm::mkDiff(a[0], a[1]);
   PolyNorm pb = PolyNorm::mkDiff(b[0], b[1]);
   // if a non-arithmetic equality
@@ -499,15 +503,19 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   }
   // check if the two polynomials are equal modulo a constant coefficient
   // in other words, x ~ y is equivalent to z ~ w if
-  // x-y = c*(z-w) for some c > 0.
-  Rational c;
-  if (!pa.isEqualMod(pb, c))
+  // c1*(x-y) = c2*(z-w) for some non-zero c1 and c2.
+  ca = pb.d_polyNorm.empty() ? Rational(1) : pb.d_polyNorm.cbegin()->second;
+  cb = pa.d_polyNorm.empty() ? Rational(1) : pa.d_polyNorm.cbegin()->second;
+  pa.mulCoeffs(ca);
+  pb.mulCoeffs(cb);
+  if (!pa.isEqual(pb))
   {
     return false;
   }
-  Assert(c.sgn() != 0);
+  Assert(ca.sgn() != 0);
+  Assert(ca.sgn() != 0);
   // if equal, can be negative. Notice this shortcuts symmetry of equality.
-  return k == Kind::EQUAL || c.sgn() == 1;
+  return k == Kind::EQUAL || ca.sgn() == cb.sgn();
 }
 
 PolyNorm PolyNorm::mkDiff(TNode a, TNode b)
