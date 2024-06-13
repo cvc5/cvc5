@@ -1764,8 +1764,6 @@ enum ENUM(ProofRule) : uint32_t
    * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
    * are performed for :math:`F`.
    *
-   * \rst
-   * .. note:: We do not currently support elaboration of this macro.
    * \endverbatim
    */
   EVALUE(MACRO_RE_ELIM),
