@@ -750,13 +750,13 @@
 )
 
 ; Helper for `$str_re_includes`.
-; program: $str_re_includes_rhs_inter
+; program: $str_re_includes_lhs_star
 ; args:
 ; - r RegLan: The first regular expression.
 ; - s RegLan: The second regular expression.
 ; return: >
 ;   true if r is of the form (re.* r1), and we can infer that either
-;   s is included in r1, or s1 is included in r1 where is of the form
+;   s is included in r1, or s1 is included in r1 where s is of the form
 ;   (re.* s1).
 (program $str_re_includes_lhs_star ((r1 RegLan) (r2 RegLan))
   (RegLan RegLan) Bool
@@ -795,7 +795,7 @@
 ; return: >
 ;   true if r is of the form (re.++ re.allchar ... re.allchar (re.* re.allchar) ...).
 ;   This method is used for checking if there is no upper bound on the number of
-;   arbitrary characters can be consumed at the current position.
+;   arbitrary characters that can be consumed at the current position.
 (program $re_is_unbound_wildcard ((r1 RegLan) (r2 RegLan :list))
   (RegLan) Bool
   (
