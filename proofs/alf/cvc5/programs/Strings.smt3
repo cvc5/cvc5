@@ -711,7 +711,7 @@
 ; (2) (optionally) reverse,
 ; (3) eliminate n-ary form to its element if the term is a singleton list.
 (define $re_from_flat_form ((r RegLan) (rev Bool))
-  ; intro, flatten, reverse
+  ; (un?)flatten, reverse, elim
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
 )
 
