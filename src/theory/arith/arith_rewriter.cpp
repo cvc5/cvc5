@@ -968,7 +968,8 @@ RewriteResponse ArithRewriter::postRewriteIntsLog2(TNode t)
     Assert(t[0].getType().isInteger());
     Integer i = t[0].getConst<Rational>().getNumerator();
     size_t const length = i.length();
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(length-1)));
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::mkConst(Integer(length - 1)));
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
