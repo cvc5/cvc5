@@ -16,15 +16,9 @@
   )
 )
 
-(declare-rule skolemize ((F Bool))
-  :premises (F)
-  :conclusion
-    (alf.match ((T Type) (x @List) (G Bool))
-        F
-        (
-          ((exists x G)       (substitute_list x (mk_skolems x F) G))
-          ((not (forall x G)) (substitute_list x (mk_skolems x (exists x (not G))) (not G)))
-        ))
+(declare-rule skolemize ((x @List) (G Bool))
+  :premises ((not (forall x G)))
+  :conclusion (substitute_list x (mk_skolems x (forall x G)) (not G))
 )
 
 (declare-rule skolem_intro ((T Type) (x T))
