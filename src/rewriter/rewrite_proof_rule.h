@@ -159,7 +159,7 @@ class RewriteProofRule
    * @param vs The matched variables of this rule.
    * @param ss The terms to substitute in this rule for each vs.
    * @param dvs The variables for which a definition can now be inferred.
-   * @param dss The terms that each dvs are defined as, for each dvs. 
+   * @param dss The terms that each dvs are defined as, for each dvs.
    */
   void getConditionalDefinitions(const std::vector<Node>& vs,
                                  const std::vector<Node>& ss,
