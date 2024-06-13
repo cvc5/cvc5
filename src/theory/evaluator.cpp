@@ -189,7 +189,8 @@ Node Evaluator::eval(TNode n,
   Assert(ret.isNull() || !ret.isConst() || d_rr == nullptr
          || ret
                 == d_rr->rewrite(n.substitute(
-                    args.begin(), args.end(), vals.begin(), vals.end())));
+                    args.begin(), args.end(), vals.begin(), vals.end()))) << "Inconsistent evaluation for " << ret << ", from " << n << " " << args << " -> " << vals << ", got " << d_rr->rewrite(n.substitute(
+                    args.begin(), args.end(), vals.begin(), vals.end()));
   return ret;
 }
 
