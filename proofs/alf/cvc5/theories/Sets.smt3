@@ -4,7 +4,7 @@
 (include "../theories/Datatypes.smt3")
 
 ; The set type
-(declare-sort Set 1)
+(declare-type Set (Type))
 
 ; Constants for the theory of sets.
 ; NOTE: empty and universe permits non-set types

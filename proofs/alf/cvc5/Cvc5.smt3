@@ -18,7 +18,7 @@
 
 ; extensions
 (declare-const fmf.card (-> Type Int Bool))
-(declare-sort @ho-elim-sort 1)
+(declare-type @ho-elim-sort (Type))
 (declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
 
 ; evaluate, for all theories
