@@ -3062,4 +3062,117 @@ TEST_F(TestCApiBlackSolver, get_abduct_next)
   ASSERT_TRUE(cvc5_term_is_disequal(output, output2));
 }
 
+TEST_F(TestCApiBlackSolver, block_model1)
+{
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS),
+               "cannot get value");
+}
+
+TEST_F(TestCApiBlackSolver, block_model2)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  ASSERT_DEATH(cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS),
+               "after SAT or UNKNOWN");
+}
+
+TEST_F(TestCApiBlackSolver, block_model3)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS);
+  ASSERT_DEATH(cvc5_block_model(nullptr, CVC5_BLOCK_MODELS_MODE_LITERALS),
+               "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values1)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  args = {cvc5_mk_true(d_tm)};
+  cvc5_block_model_values(d_solver, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_block_model_values(nullptr, args.size(), args.data()),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_block_model_values(d_solver, 0, nullptr),
+               "unexpected NULL argument");
+  args = {nullptr};
+  ASSERT_DEATH(cvc5_block_model_values(d_solver, args.size(), args.data()),
+               "invalid term at index 0");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "produce-models", "true");
+  cvc5_check_sat(slv);
+  args = {cvc5_mk_true(d_tm)};
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_block_model_values(slv, args.size(), args.data());
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values2)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  args = {x};
+  cvc5_block_model_values(d_solver, args.size(), args.data());
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values3)
+{
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  args = {x};
+  ASSERT_DEATH(cvc5_block_model_values(d_solver, args.size(), args.data()),
+               "cannot get value");
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values4)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  args = {x};
+  ASSERT_DEATH(cvc5_block_model_values(d_solver, args.size(), args.data()),
+               "SAT or UNKNOWN response");
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values5)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  args = {x};
+  cvc5_block_model_values(d_solver, args.size(), args.data());
+}
+
 }  // namespace cvc5::internal::test
