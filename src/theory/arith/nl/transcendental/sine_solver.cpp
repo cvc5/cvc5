@@ -192,15 +192,15 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a)
   else
   {
     Node shift = sm->mkDummySkolem("s", nm->realType(), "number of shifts");
-    Node shift = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT, {a[0]});
+    Node shift =
+        sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT, {a[0]});
     // TODO (cvc4-projects #47) : do not introduce shift here, instead needs
     // model-based refinement for constant shifts (cvc4-projects #1284)
     lem = getPhaseShiftLemma(a[0], new_a[0], shift);
     if (d_data->isProofEnabled())
     {
       proof = d_data->getProof();
-      proof->addStep(
-          lem, ProofRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0]});
+      proof->addStep(lem, ProofRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0]});
     }
     iid = InferenceId::ARITH_NL_T_PURIFY_ARG_PHASE_SHIFT;
   }
