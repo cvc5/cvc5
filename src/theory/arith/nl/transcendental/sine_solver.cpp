@@ -148,7 +148,7 @@ void SineSolver::doReductions()
 Node SineSolver::getPhaseShiftLemma(const Node& x)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node y = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY_ARG, {x});
   Node s = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT, {x});
   Assert(x.getType().isReal());
