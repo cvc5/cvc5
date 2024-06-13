@@ -86,7 +86,7 @@ if (Repairwheel_VERSION_CHECK_RESULT EQUAL 0)
     if (INSTALL_REQUIREWHEEL AND NOT ENABLE_AUTO_DOWNLOAD)
       set(INSTALL_REQUIREWHEEL FALSE)
       message(${Repairwheel_FIND_MODE}
-        "Repairwheel version ${Repairwheel_FIND_VERSION} is required, "
+        "Repairwheel version${INSTALL_REQUIREWHEEL_MESSAGE} is required, "
         "but found version ${Repairwheel_VERSION}.\n"
         "Use --auto-download to let us install it for you."
       )
