@@ -8731,7 +8731,7 @@ void Solver::addSygusInvConstraint(const Term& inv,
       d_tm.d_nm->mkFunctionType(expectedTypes);
 
   CVC5_API_CHECK(trans.d_node->getType() == expectedTransType)
-      << "expected trans's sort to be " << invType;
+      << "expected the sort of trans sort to be " << invType;
 
   d_slv->assertSygusInvConstraint(
       *inv.d_node, *pre.d_node, *trans.d_node, *post.d_node);

@@ -5894,3 +5894,69 @@ Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
+
+void cvc5_add_sygus_constraint(Cvc5* cvc5, Cvc5Term term)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_TERM(term);
+  cvc5->d_solver.addSygusConstraint(term->d_term);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+const Cvc5Term* cvc5_get_sygus_constraints(Cvc5* cvc5, size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto terms = cvc5->d_solver.getSygusConstraints();
+  for (auto& t : terms)
+  {
+    res.push_back(cvc5->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return *size > 0 ? res.data() : nullptr;
+}
+
+void cvc5_add_sygus_assume(Cvc5* cvc5, Cvc5Term term)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_TERM(term);
+  cvc5->d_solver.addSygusAssume(term->d_term);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+const Cvc5Term* cvc5_get_sygus_assumptions(Cvc5* cvc5, size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto terms = cvc5->d_solver.getSygusAssumptions();
+  for (auto& t : terms)
+  {
+    res.push_back(cvc5->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return *size > 0 ? res.data() : nullptr;
+}
+
+void cvc5_add_sygus_inv_constraint(
+    Cvc5* cvc5, Cvc5Term inv, Cvc5Term pre, Cvc5Term trans, Cvc5Term post)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_TERM(inv);
+  CVC5_CAPI_CHECK_TERM(pre);
+  CVC5_CAPI_CHECK_TERM(trans);
+  CVC5_CAPI_CHECK_TERM(post);
+  cvc5->d_solver.addSygusInvConstraint(
+      inv->d_term, pre->d_term, trans->d_term, post->d_term);
+  CVC5_CAPI_TRY_CATCH_END;
+}
