@@ -101,7 +101,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
       {
         Unhandled() << "Free variable " << vt << " in rule " << id
                     << " is not on the left hand side of the rule, and it is "
-                        "used to give a definition to the free variable "
+                       "used to give a definition to the free variable "
                     << v;
       }
     }
