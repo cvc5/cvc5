@@ -55,6 +55,7 @@ macro(get_repairwheel_version)
       COMMAND "${Repairwheel_EXECUTABLE}" --version
       RESULT_VARIABLE Repairwheel_VERSION_CHECK_RESULT
       OUTPUT_VARIABLE Repairwheel_VERSION
+      ERROR_QUIET
     )
   else()
     set(Repairwheel_VERSION_CHECK_RESULT 127) # Not-found exit code
@@ -78,7 +79,7 @@ if (Repairwheel_VERSION_CHECK_RESULT EQUAL 0)
     else()
       if (Repairwheel_VERSION VERSION_LESS ${Repairwheel_FIND_VERSION})
         set(INSTALL_REQUIREWHEEL TRUE)
-        set(INSTALL_REQUIREWHEEL_OPTION " -U")
+        set(INSTALL_REQUIREWHEEL_OPTION ";-U")
         set(INSTALL_REQUIREWHEEL_MESSAGE ">=${Repairwheel_FIND_VERSION}")
       endif()
     endif()
@@ -99,7 +100,7 @@ else()
       "Use --auto-download to let us install it for you.")
   else()
     set(INSTALL_REQUIREWHEEL TRUE)
-    set(INSTALL_REQUIREWHEEL_OPTION " -U")
+    set(INSTALL_REQUIREWHEEL_OPTION ";-U")
     set(INSTALL_REQUIREWHEEL_MESSAGE "")
   endif()
 endif()
