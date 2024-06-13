@@ -38,6 +38,18 @@ UnknownExplanation SynthResult::getUnknownExplanation() const
   return d_unknownExplanation;
 }
 
+bool SynthResult::operator==(const SynthResult& r) const
+{
+  return d_status == r.d_status
+         && (d_status != UNKNOWN
+             || d_unknownExplanation == r.d_unknownExplanation);
+}
+
+bool SynthResult::operator!=(const SynthResult& r) const
+{
+  return !(*this == r);
+}
+
 std::string SynthResult::toString() const
 {
   std::stringstream ss;

@@ -350,6 +350,20 @@ class CVC5_EXPORT SynthResult
   bool isUnknown() const;
 
   /**
+   * Operator overloading for equality of two synthesis results.
+   * @param r The synthesis result to compare to for equality.
+   * @return True if the synthesis results are equal.
+   */
+  bool operator==(const SynthResult& r) const;
+
+  /**
+   * Operator overloading for disequality of two synthesis results.
+   * @param r The synthesis result to compare to for disequality.
+   * @return True if the synthesis results are disequal.
+   */
+  bool operator!=(const SynthResult& r) const;
+
+  /**
    * @return A string representation of this synthesis result.
    */
   std::string toString() const;
@@ -378,6 +392,21 @@ class CVC5_EXPORT SynthResult
  * @return The output stream.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const SynthResult& r);
+
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for synthesis results.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::SynthResult>
+{
+  size_t operator()(const cvc5::SynthResult& result) const;
+};
+}  // namespace std
+
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */

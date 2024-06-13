@@ -45,7 +45,6 @@ class SynthResult
     UNKNOWN
   };
 
- public:
   /** Default constructor */
   SynthResult();
   /** Constructor when the solution is not successful */
@@ -58,6 +57,19 @@ class SynthResult
 
   /** Get the unknown explanation */
   UnknownExplanation getUnknownExplanation() const;
+
+  /**
+   * Operator overloading for equality of two synthesis results.
+   * @param r The synthesis result to compare to for equality.
+   * @return True if the synthesis results are equal.
+   */
+  bool operator==(const SynthResult& r) const;
+  /**
+   * Operator overloading for disequality of two synthesis results.
+   * @param r The synthesis result to compare to for disequality.
+   * @return True if the synthesis results are disequal.
+   */
+  bool operator!=(const SynthResult& r) const;
 
   /** Get the string representation */
   std::string toString() const;

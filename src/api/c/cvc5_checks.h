@@ -181,6 +181,9 @@ class Cvc5CApiAbortStream
 #define CVC5_CAPI_CHECK_RESULT(res) \
   CVC5_API_CHECK(res != nullptr) << "invalid result"
 
+#define CVC5_CAPI_CHECK_SYNTH_RESULT(res) \
+  CVC5_API_CHECK(res != nullptr) << "invalid synthesis result"
+
 /* -------------------------------------------------------------------------- */
 
 #define CVC5_CAPI_CHECK_PROOF(proof) \

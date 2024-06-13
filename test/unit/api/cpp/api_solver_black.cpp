@@ -2212,7 +2212,7 @@ TEST_F(TestApiBlackSolver, getSynthSolution)
   ASSERT_THROW(d_solver->getSynthSolution(f), CVC5ApiException);
 
   cvc5::SynthResult sr = d_solver->checkSynth();
-  ASSERT_EQ(sr.hasSolution(), true);
+  ASSERT_TRUE(sr.hasSolution());
 
   ASSERT_NO_THROW(d_solver->getSynthSolution(f));
   ASSERT_NO_THROW(d_solver->getSynthSolution(f));
@@ -2254,10 +2254,10 @@ TEST_F(TestApiBlackSolver, checkSynthNext)
   Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort());
 
   cvc5::SynthResult sr = d_solver->checkSynth();
-  ASSERT_EQ(sr.hasSolution(), true);
+  ASSERT_TRUE(sr.hasSolution());
   ASSERT_NO_THROW(d_solver->getSynthSolutions({f}));
   sr = d_solver->checkSynthNext();
-  ASSERT_EQ(sr.hasSolution(), true);
+  ASSERT_TRUE(sr.hasSolution());
   ASSERT_NO_THROW(d_solver->getSynthSolutions({f}));
 }
 
@@ -2265,8 +2265,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext2)
 {
   d_solver->setOption("sygus", "true");
   d_solver->setOption("incremental", "false");
-  Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort());
-
+  (void)d_solver->synthFun("f", {}, d_tm.getBooleanSort());
   d_solver->checkSynth();
   ASSERT_THROW(d_solver->checkSynthNext(), CVC5ApiException);
 }
@@ -2275,8 +2274,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext3)
 {
   d_solver->setOption("sygus", "true");
   d_solver->setOption("incremental", "true");
-  Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort());
-
+  (void)d_solver->synthFun("f", {}, d_tm.getBooleanSort());
   ASSERT_THROW(d_solver->checkSynthNext(), CVC5ApiException);
 }
 
@@ -2293,7 +2291,7 @@ TEST_F(TestApiBlackSolver, findSynth)
   Term falsen = d_tm.mkBoolean(false);
   g.addRule(start, truen);
   g.addRule(start, falsen);
-  Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort(), g);
+  (void)d_solver->synthFun("f", {}, d_tm.getBooleanSort(), g);
 
   // should enumerate based on the grammar of the function to synthesize above
   cvc5::Term t = d_solver->findSynth(modes::FindSynthTarget::ENUM);

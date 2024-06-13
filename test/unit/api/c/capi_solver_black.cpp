@@ -3368,4 +3368,175 @@ TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
   cvc5_term_manager_delete(tm);
 }
 
+TEST_F(TestCApiBlackSolver, check_synth)
+{
+  // requires option to be set
+  ASSERT_DEATH(cvc5_check_synth(d_solver),
+               "cannot check for a synthesis solution");
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_check_synth(d_solver);
+  ASSERT_DEATH(cvc5_check_synth(nullptr), "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, get_synth_solution)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+
+  Cvc5Term x = cvc5_mk_false(d_tm);
+  Cvc5Term f = cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+
+  ASSERT_DEATH(cvc5_get_synth_solution(d_solver, f), "not in a state");
+
+  Cvc5SynthResult res = cvc5_check_synth(d_solver);
+  ASSERT_TRUE(cvc5_synth_result_has_solution(res));
+
+  cvc5_get_synth_solution(d_solver, f);
+  cvc5_get_synth_solution(d_solver, f);
+
+  ASSERT_DEATH(cvc5_get_synth_solution(nullptr, f), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_synth_solution(d_solver, nullptr), "invalid term");
+  ASSERT_DEATH(cvc5_get_synth_solution(d_solver, x),
+               "synthesis solution not found for given term");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  ASSERT_DEATH(cvc5_get_synth_solution(slv, f), "not in a state");
+}
+
+TEST_F(TestCApiBlackSolver, get_synth_solutions)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+
+  Cvc5Term x = cvc5_mk_false(d_tm);
+  Cvc5Term f = cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+
+  std::vector<Cvc5Term> args{f};
+  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
+               "not in a state");
+
+  cvc5_check_synth(d_solver);
+
+  cvc5_get_synth_solutions(d_solver, args.size(), args.data());
+  args = {f, f};
+  cvc5_get_synth_solutions(d_solver, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, 0, nullptr),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_synth_solutions(nullptr, args.size(), args.data()),
+               "unexpected NULL argument");
+  args = {nullptr};
+  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
+               "invalid term at index 0");
+  args = {x};
+  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
+               "synthesis solution not found for term at index 0");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  ASSERT_DEATH(cvc5_get_synth_solutions(slv, args.size(), args.data()),
+               "not in a state");
+}
+
+TEST_F(TestCApiBlackSolver, check_synth_next)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "true");
+
+  Cvc5Term f = cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+
+  Cvc5SynthResult res = cvc5_check_synth(d_solver);
+  ASSERT_TRUE(cvc5_synth_result_has_solution(res));
+
+  std::vector<Cvc5Term> args{f};
+  cvc5_get_synth_solutions(d_solver, args.size(), args.data());
+
+  res = cvc5_check_synth_next(d_solver);
+  ASSERT_TRUE(cvc5_synth_result_has_solution(res));
+  cvc5_get_synth_solutions(d_solver, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_check_synth_next(nullptr), "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, check_synth_next2)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+  (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+  cvc5_check_synth(d_solver);
+  ASSERT_DEATH(cvc5_check_synth_next(d_solver),
+               "cannot check for a next synthesis solution");
+}
+
+TEST_F(TestCApiBlackSolver, check_synth_next3)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "true");
+  (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+  ASSERT_DEATH(cvc5_check_synth_next(d_solver), "unless immediately preceded");
+}
+
+TEST_F(TestCApiBlackSolver, find_synth)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
+  std::vector<Cvc5Term> symbols = {start};
+  Cvc5Grammar g =
+      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+
+  ASSERT_DEATH(
+      cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g),
+      "invalid grammar");
+
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term tfalse = cvc5_mk_false(d_tm);
+  cvc5_grammar_add_rule(g, start, ttrue);
+  cvc5_grammar_add_rule(g, start, tfalse);
+  (void)cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g);
+
+  // should enumerate based on the grammar of the function to synthesize above
+  Cvc5Term t = cvc5_find_synth(d_solver, CVC5_FIND_SYNTH_TARGET_ENUM);
+  ASSERT_TRUE(t && cvc5_sort_is_boolean(cvc5_term_get_sort(t)));
+
+  ASSERT_DEATH(cvc5_find_synth(nullptr, CVC5_FIND_SYNTH_TARGET_ENUM),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_find_synth(d_solver, static_cast<Cvc5FindSynthTarget>(125)),
+               "invalid find synthesis target");
+
+  ASSERT_DEATH(
+      cvc5_find_synth_with_grammar(nullptr, CVC5_FIND_SYNTH_TARGET_ENUM, g),
+      "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_find_synth_with_grammar(
+                   d_solver, static_cast<Cvc5FindSynthTarget>(125), g),
+               "invalid find synthesis target");
+  ASSERT_DEATH(cvc5_find_synth_with_grammar(
+                   d_solver, CVC5_FIND_SYNTH_TARGET_ENUM, nullptr),
+               "invalid grammar");
+}
+
+TEST_F(TestCApiBlackSolver, find_synth2)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "true");
+
+  Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
+  std::vector<Cvc5Term> symbols = {start};
+  Cvc5Grammar g =
+      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term tfalse = cvc5_mk_false(d_tm);
+  cvc5_grammar_add_rule(g, start, ttrue);
+  cvc5_grammar_add_rule(g, start, tfalse);
+
+  // should enumerate true/false
+  Cvc5Term t =
+      cvc5_find_synth_with_grammar(d_solver, CVC5_FIND_SYNTH_TARGET_ENUM, g);
+  ASSERT_TRUE(t && cvc5_sort_is_boolean(cvc5_term_get_sort(t)));
+  t = cvc5_find_synth_next(d_solver);
+  ASSERT_TRUE(t && cvc5_sort_is_boolean(cvc5_term_get_sort(t)));
+
+  ASSERT_DEATH(cvc5_find_synth_next(nullptr), "unexpected NULL argument");
+}
+
 }  // namespace cvc5::internal::test

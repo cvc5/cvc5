@@ -594,8 +594,7 @@ typedef enum ENUM(FindSynthTarget) ENUM(FindSynthTarget);
  * @param target The synthesis find target.
  * @return The string representation.
  */
-const char* cvc5_modes_find_synthesis_target_to_string(
-    Cvc5FindSynthTarget target);
+const char* cvc5_modes_find_synth_target_to_string(Cvc5FindSynthTarget target);
 #else
 /**
  * Serialize a FindSynthTarget to given stream.
