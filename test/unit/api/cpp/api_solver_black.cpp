@@ -976,21 +976,21 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Sort boolean = d_tm.getBooleanSort();
   Term truen = d_tm.mkBoolean(true);
   Term start = d_tm.mkVar(boolean);
-  Term output2;
   Grammar g = d_solver->mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::GT, {x, zero});
   ASSERT_THROW(d_solver->getAbduct(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the abduction api, while the resulting abduct is the output
-  output2 = d_solver->getAbduct(conj2, g);
+  Term output2 = d_solver->getAbduct(conj2, g);
   // abduct must be true
   ASSERT_EQ(output2, truen);
 
   TermManager tm;
   Solver slv(tm);
   slv.setOption("produce-abducts", "true");
-  Term xx = tm.mkConst(intSort, "x");
-  Term yy = tm.mkConst(intSort, "y");
+  Sort intSort2 = tm.getIntegerSort();
+  Term xx = tm.mkConst(intSort2, "x");
+  Term yy = tm.mkConst(intSort2, "y");
   Term zzero = tm.mkInteger(0);
   Term sstart = tm.mkVar(tm.getBooleanSort());
   slv.assertFormula(
