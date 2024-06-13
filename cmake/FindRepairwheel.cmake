@@ -48,7 +48,7 @@ else()
   set(Repairwheel_FIND_MODE STATUS)
 endif()
 
-macro(find_repairwheel)
+macro(get_repairwheel_version)
   find_program(Repairwheel_EXECUTABLE repairwheel ${Python_SCRIPTS_Paths})
   if(Repairwheel_EXECUTABLE)
     execute_process(
@@ -56,28 +56,83 @@ macro(find_repairwheel)
       RESULT_VARIABLE Repairwheel_VERSION_CHECK_RESULT
       OUTPUT_VARIABLE Repairwheel_VERSION
     )
-    # Check we can run repairwheel successfully.
-    # Otherwise, reset path to executable.
-    if(NOT(Repairwheel_VERSION_CHECK_RESULT EQUAL 0))
-      set(Repairwheel_EXECUTABLE "")
-    endif()
+  else()
+    set(Repairwheel_VERSION_CHECK_RESULT 127) # Not-found exit code
   endif()
 endmacro()
 
-find_repairwheel()
+get_repairwheel_version()
 
-if(NOT Repairwheel_EXECUTABLE AND ENABLE_AUTO_DOWNLOAD)
-  message(STATUS "Installing repairwheel")
-  execute_process(
-    COMMAND ${Python_EXECUTABLE} -m pip install repairwheel
-  )
-  find_repairwheel()
-endif()
-
-if(Repairwheel_EXECUTABLE)
+if (Repairwheel_VERSION_CHECK_RESULT EQUAL 0)
   set(Repairwheel_FOUND TRUE)
-  message(STATUS "Found repairwheel: ${Repairwheel_EXECUTABLE}")
+  message(STATUS "Found repairwheel version: ${Repairwheel_VERSION}")
+  if (DEFINED Repairwheel_FIND_VERSION)
+    if(Repairwheel_FIND_VERSION_EXACT)
+      if (NOT (Repairwheel_VERSION VERSION_EQUAL ${Repairwheel_FIND_VERSION}))
+        if(ENABLE_AUTO_DOWNLOAD)
+          message(STATUS
+            "Installing repairwheel==${Repairwheel_FIND_VERSION}"
+          )
+          execute_process(
+            COMMAND
+              ${Python_EXECUTABLE} -m pip install repairwheel==${Repairwheel_FIND_VERSION}
+              RESULT_VARIABLE REPAIRWHEEL_INSTALL_CMD_EXIT_CODE
+          )
+          if(REPAIRWHEEL_INSTALL_CMD_EXIT_CODE)
+            message(${Repairwheel_FIND_MODE}
+              "Could NOT install repairwheel==${Repairwheel_FIND_VERSION}"
+            )
+          else()
+            get_repairwheel_version()
+          endif()
+        else()
+          message(${Repairwheel_FIND_MODE}
+            "Repairwheel version ${Repairwheel_FIND_VERSION} is required, "
+            "but found version ${Repairwheel_VERSION}"
+          )
+        endif()
+      endif()
+    else()
+      if (Repairwheel_VERSION VERSION_LESS ${Repairwheel_FIND_VERSION})
+        if(ENABLE_AUTO_DOWNLOAD)
+          message(STATUS "Upgrading repairwheel")
+          execute_process(COMMAND
+            ${Python_EXECUTABLE} -m pip install repairwheel -U
+            RESULT_VARIABLE REPAIRWHEEL_INSTALL_CMD_EXIT_CODE
+          )
+          if(REPAIRWHEEL_INSTALL_CMD_EXIT_CODE)
+            message(${Repairwheel_FIND_MODE}
+              "Could NOT install repairwheel >= ${Repairwheel_FIND_VERSION}"
+            )
+          else()
+            get_repairwheel_version()
+          endif()
+        else()
+          message(${Repairwheel_FIND_MODE}
+            "Repairwheel version >= ${Repairwheel_FIND_VERSION} is required, "
+            "but found version ${Repairwheel_VERSION}"
+          )
+        endif()
+      endif()
+    endif()
+  endif()
 else()
   set(Repairwheel_FOUND FALSE)
-  message(${Repairwheel_FIND_MODE} "Could NOT find repairwheel executable")
+  if(ENABLE_AUTO_DOWNLOAD)
+    message(STATUS "Installing repairwheel")
+    execute_process(
+      COMMAND ${Python_EXECUTABLE} -m pip install repairwheel
+      RESULT_VARIABLE REPAIRWHEEL_INSTALL_CMD_EXIT_CODE
+    )
+    if(REPAIRWHEEL_INSTALL_CMD_EXIT_CODE)
+      message(${Repairwheel_FIND_MODE} "Could NOT install repairwheel")
+    else()
+      set(Repairwheel_FOUND TRUE)
+      get_repairwheel_version()
+    endif()
+  else()
+    message(${Repairwheel_FIND_MODE}
+      "Could NOT find repairwheel executable"
+    )
+  endif()
 endif()

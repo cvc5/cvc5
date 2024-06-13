@@ -21,7 +21,7 @@ if(NOT ONLY_PYTHON_EXT_SRC)
   # a directory within the Python wheel package so that
   # the package is self-contained. It works on Linux,
   # macOS, and Windows.
-  find_package(Repairwheel 0.2.9 REQUIRED)
+  find_package(Repairwheel 0.3.1 REQUIRED)
 endif()
 
 configure_file(genenums.py.in genenums.py)
