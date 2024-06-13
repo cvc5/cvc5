@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <utility>
 #include <array>
+#include <cstdint>
 
 namespace cvc5::internal {
 namespace test {
@@ -72,32 +73,32 @@ TEST_F(AttrHashFixture, basic)
   // add elements using "insert", varying Id
   Hash<int> hash2;
   std::array<typename Hash<int>::iterator::value_type, 3> new_elements{
-    std::make_pair(std::make_pair(42lu, nA.d_nv), 1),
-    std::make_pair(std::make_pair(43lu, nA.d_nv), 2),
-    std::make_pair(std::make_pair(44lu, nA.d_nv), 3)};
+    std::make_pair(std::make_pair(uint64_t{42}, nA.d_nv), 1),
+    std::make_pair(std::make_pair(uint64_t{43}, nA.d_nv), 2),
+    std::make_pair(std::make_pair(uint64_t{44}, nA.d_nv), 3)};
   hash2.insert(new_elements.begin(), new_elements.end());
   EXPECT_EQ(hash2.size(), 3u);
   EXPECT_EQ(std::distance(hash2.begin(), hash2.end()), 3u);
 
   // are they there?
-  EXPECT_NE(hash2.find(std::make_pair(42lu, nA.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(43lu, nA.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(44lu, nA.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{42}, nA.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{43}, nA.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{44}, nA.d_nv)), hash2.end());
 
   // erase by iterator
-  auto next_after_erase = hash2.erase(hash2.find(std::make_pair(43lu, nA.d_nv)));
+  auto next_after_erase = hash2.erase(hash2.find(std::make_pair(uint64_t{43}, nA.d_nv)));
   // entry is gone
-  EXPECT_EQ(hash2.find(std::make_pair(43lu, nA.d_nv)), hash2.end());
+  EXPECT_EQ(hash2.find(std::make_pair(uint64_t{43}, nA.d_nv)), hash2.end());
   // the returned "next" iterator makes sense
   EXPECT_TRUE((next_after_erase == hash2.end()) ||
-              ((*next_after_erase) == std::make_pair(std::make_pair(42lu, nA.d_nv), 1)) ||
-              ((*next_after_erase) == std::make_pair(std::make_pair(44lu, nA.d_nv), 3)));
+              ((*next_after_erase) == std::make_pair(std::make_pair(uint64_t{42}, nA.d_nv), 1)) ||
+              ((*next_after_erase) == std::make_pair(std::make_pair(uint64_t{44}, nA.d_nv), 3)));
 
   // erase by NodeValue*
   hash1.eraseBy(nC.d_nv);
   EXPECT_EQ(hash1.find(std::make_pair(0u, nC.d_nv)), hash1.end());
-  EXPECT_EQ(hash1.size(), 2lu);
-  EXPECT_EQ(std::distance(hash1.begin(), hash1.end()), 2lu);
+  EXPECT_EQ(hash1.size(), std::size_t{2});
+  EXPECT_EQ(std::distance(hash1.begin(), hash1.end()), std::size_t{2});
   EXPECT_NE(hash1.find(std::make_pair(0u, nA.d_nv)), hash1.end());
   EXPECT_NE(hash1.find(std::make_pair(0u, nB.d_nv)), hash1.end());
 
@@ -109,8 +110,8 @@ TEST_F(AttrHashFixture, basic)
   std::swap(hash1, hash2);
   EXPECT_EQ(hash2.size(), 0ul);
   EXPECT_EQ(hash1.size(), 2ul);
-  EXPECT_NE(hash1.find(std::make_pair(42lu, nA.d_nv)), hash1.end());
-  EXPECT_NE(hash1.find(std::make_pair(44lu, nA.d_nv)), hash1.end());
+  EXPECT_NE(hash1.find(std::make_pair(uint64_t{42}, nA.d_nv)), hash1.end());
+  EXPECT_NE(hash1.find(std::make_pair(uint64_t{44}, nA.d_nv)), hash1.end());
 
 }
 
@@ -126,16 +127,16 @@ TEST_F(AttrHashFixture, empty_levels)
   Node nD = d_nodeManager->mkVar("D", d_booleanType);
 
   std::array<typename Hash<int>::iterator::value_type, 2> new_elements{
-    std::make_pair(std::make_pair(42lu, nA.d_nv), 1),
-    std::make_pair(std::make_pair(43lu, nA.d_nv), 2)};
+    std::make_pair(std::make_pair(uint64_t{42}, nA.d_nv), 1),
+    std::make_pair(std::make_pair(uint64_t{43}, nA.d_nv), 2)};
 
   Hash<int> hash1;
   hash1.insert(new_elements.begin(), new_elements.end());
-  EXPECT_EQ(hash1.size(), 2lu);
+  EXPECT_EQ(hash1.size(), std::size_t{2});
   auto it = hash1.erase(hash1.begin());
   EXPECT_TRUE((it == hash1.end()) || (it == hash1.begin()));
   EXPECT_EQ(hash1.find((*hash1.begin()).first), hash1.begin());
-  EXPECT_EQ(hash1.size(), 1lu);
+  EXPECT_EQ(hash1.size(), std::size_t{1});
 
   // delete the last element
   hash1.erase(hash1.begin());
@@ -143,58 +144,58 @@ TEST_F(AttrHashFixture, empty_levels)
 
   // create several L2 maps in a fresh hash
   std::array<typename Hash<int>::iterator::value_type, 8> new_elements2{
-    std::make_pair(std::make_pair(11lu, nD.d_nv), 3),
-    std::make_pair(std::make_pair(12lu, nA.d_nv), 3),
-    std::make_pair(std::make_pair(13lu, nB.d_nv), 2),
-    std::make_pair(std::make_pair(14lu, nA.d_nv), 4),
-    std::make_pair(std::make_pair(15lu, nB.d_nv), 2),
-    std::make_pair(std::make_pair(16lu, nC.d_nv), 5),
-    std::make_pair(std::make_pair(17lu, nD.d_nv), 6),
-    std::make_pair(std::make_pair(18lu, nC.d_nv), 7)};
+    std::make_pair(std::make_pair(uint64_t{11}, nD.d_nv), 3),
+    std::make_pair(std::make_pair(uint64_t{12}, nA.d_nv), 3),
+    std::make_pair(std::make_pair(uint64_t{13}, nB.d_nv), 2),
+    std::make_pair(std::make_pair(uint64_t{14}, nA.d_nv), 4),
+    std::make_pair(std::make_pair(uint64_t{15}, nB.d_nv), 2),
+    std::make_pair(std::make_pair(uint64_t{16}, nC.d_nv), 5),
+    std::make_pair(std::make_pair(uint64_t{17}, nD.d_nv), 6),
+    std::make_pair(std::make_pair(uint64_t{18}, nC.d_nv), 7)};
 
   Hash<int> hash2;
   hash2.insert(new_elements2.begin(), new_elements2.end());
-  EXPECT_EQ(hash2.size(), 8lu);
+  EXPECT_EQ(hash2.size(), std::size_t{8});
 
   // remove the two node B attributes one at a time
-  hash2.erase(hash2.find(std::make_pair(13lu, nB.d_nv)));
-  EXPECT_EQ(hash2.find(std::make_pair(13lu, nB.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(15lu, nB.d_nv)), hash2.end());
-  EXPECT_EQ(hash2[std::make_pair(15lu, nB.d_nv)], 2);
-  EXPECT_EQ(hash2.size(), 7lu);
-  EXPECT_EQ(std::distance(hash2.begin(), hash2.end()), 7lu);
+  hash2.erase(hash2.find(std::make_pair(uint64_t{13}, nB.d_nv)));
+  EXPECT_EQ(hash2.find(std::make_pair(uint64_t{13}, nB.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{15}, nB.d_nv)), hash2.end());
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{15}, nB.d_nv)], 2);
+  EXPECT_EQ(hash2.size(), std::size_t{7});
+  EXPECT_EQ(std::distance(hash2.begin(), hash2.end()), std::size_t{7});
 
-  hash2.erase(hash2.find(std::make_pair(15lu, nB.d_nv)));
-  EXPECT_EQ(hash2.find(std::make_pair(15lu, nB.d_nv)), hash2.end());
+  hash2.erase(hash2.find(std::make_pair(uint64_t{15}, nB.d_nv)));
+  EXPECT_EQ(hash2.find(std::make_pair(uint64_t{15}, nB.d_nv)), hash2.end());
 
   // validate remaining entries
-  EXPECT_EQ(hash2.size(), 6lu);
-  EXPECT_EQ(std::distance(hash2.begin(), hash2.end()), 6lu);
-  EXPECT_NE(hash2.find(std::make_pair(11lu, nD.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(12lu, nA.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(14lu, nA.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(16lu, nC.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(17lu, nD.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(18lu, nC.d_nv)), hash2.end());
-  EXPECT_EQ(hash2[std::make_pair(11lu, nD.d_nv)], 3);
-  EXPECT_EQ(hash2[std::make_pair(12lu, nA.d_nv)], 3);
-  EXPECT_EQ(hash2[std::make_pair(14lu, nA.d_nv)], 4);
-  EXPECT_EQ(hash2[std::make_pair(16lu, nC.d_nv)], 5);
-  EXPECT_EQ(hash2[std::make_pair(17lu, nD.d_nv)], 6);
-  EXPECT_EQ(hash2[std::make_pair(18lu, nC.d_nv)], 7);
+  EXPECT_EQ(hash2.size(), std::size_t{6});
+  EXPECT_EQ(std::distance(hash2.begin(), hash2.end()), std::size_t{6});
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{11}, nD.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{12}, nA.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{14}, nA.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{16}, nC.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{17}, nD.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{18}, nC.d_nv)), hash2.end());
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{11}, nD.d_nv)], 3);
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{12}, nA.d_nv)], 3);
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{14}, nA.d_nv)], 4);
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{16}, nC.d_nv)], 5);
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{17}, nD.d_nv)], 6);
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{18}, nC.d_nv)], 7);
 
   // now delete one full NodeValue*'s worth (one L2 map) and reverify
   hash2.eraseBy(nA.d_nv);
-  EXPECT_EQ(hash2.size(), 4lu);
-  EXPECT_EQ(std::distance(hash2.begin(), hash2.end()), 4lu);
-  EXPECT_NE(hash2.find(std::make_pair(11lu, nD.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(16lu, nC.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(17lu, nD.d_nv)), hash2.end());
-  EXPECT_NE(hash2.find(std::make_pair(18lu, nC.d_nv)), hash2.end());
-  EXPECT_EQ(hash2[std::make_pair(11lu, nD.d_nv)], 3);
-  EXPECT_EQ(hash2[std::make_pair(16lu, nC.d_nv)], 5);
-  EXPECT_EQ(hash2[std::make_pair(17lu, nD.d_nv)], 6);
-  EXPECT_EQ(hash2[std::make_pair(18lu, nC.d_nv)], 7);
+  EXPECT_EQ(hash2.size(), std::size_t{4});
+  EXPECT_EQ(std::distance(hash2.begin(), hash2.end()), std::size_t{4});
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{11}, nD.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{16}, nC.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{17}, nD.d_nv)), hash2.end());
+  EXPECT_NE(hash2.find(std::make_pair(uint64_t{18}, nC.d_nv)), hash2.end());
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{11}, nD.d_nv)], 3);
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{16}, nC.d_nv)], 5);
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{17}, nD.d_nv)], 6);
+  EXPECT_EQ(hash2[std::make_pair(uint64_t{18}, nC.d_nv)], 7);
 
 }
 
@@ -208,37 +209,41 @@ TEST_F(AttrHashFixture, repeated_inserts)
   Node nC = d_nodeManager->mkVar("C", d_booleanType);
 
   std::array<typename Hash<int>::iterator::value_type, 5> initial_elements{
-    std::make_pair(std::make_pair(42lu, nA.d_nv), 2),
-    std::make_pair(std::make_pair(43lu, nA.d_nv), 1),
-    std::make_pair(std::make_pair(42lu, nB.d_nv), 4),
-    std::make_pair(std::make_pair(43lu, nB.d_nv), 5),
-    std::make_pair(std::make_pair(42lu, nC.d_nv), 2)};
+    std::make_pair(std::make_pair(uint64_t{42}, nA.d_nv), 2),
+    std::make_pair(std::make_pair(uint64_t{43}, nA.d_nv), 1),
+    std::make_pair(std::make_pair(uint64_t{42}, nB.d_nv), 4),
+    std::make_pair(std::make_pair(uint64_t{43}, nB.d_nv), 5),
+    std::make_pair(std::make_pair(uint64_t{42}, nC.d_nv), 2)};
 
   Hash<int> hash;
   hash.insert(initial_elements.begin(), initial_elements.end());
 
   // attempt to change two entries using insert
   std::array<typename Hash<int>::iterator::value_type, 2> new_elements{
-    std::make_pair(std::make_pair(42lu, nA.d_nv), 6),
-    std::make_pair(std::make_pair(42lu, nC.d_nv), 8)};
+    std::make_pair(std::make_pair(uint64_t{42}, nA.d_nv), 6),
+    std::make_pair(std::make_pair(uint64_t{42}, nC.d_nv), 8)};
   hash.insert(new_elements.begin(), new_elements.end());
 
   // entries should be unchanged (insert doesn't alter existing entries)
-  EXPECT_EQ(hash.size(), 5lu);
-  EXPECT_EQ(hash[std::make_pair(42lu, nA.d_nv)], 2);
-  EXPECT_EQ(hash[std::make_pair(42lu, nC.d_nv)], 2);
-  EXPECT_EQ(*hash.find(std::make_pair(42lu, nA.d_nv)), std::make_pair(std::make_pair(42lu, nA.d_nv), 2));
-  EXPECT_EQ(*hash.find(std::make_pair(42lu, nC.d_nv)), std::make_pair(std::make_pair(42lu, nC.d_nv), 2));
+  EXPECT_EQ(hash.size(), std::size_t{5});
+  EXPECT_EQ(hash[std::make_pair(uint64_t{42}, nA.d_nv)], 2);
+  EXPECT_EQ(hash[std::make_pair(uint64_t{42}, nC.d_nv)], 2);
+  EXPECT_EQ(*hash.find(std::make_pair(uint64_t{42}, nA.d_nv)),
+            std::make_pair(std::make_pair(uint64_t{42}, nA.d_nv), 2));
+  EXPECT_EQ(*hash.find(std::make_pair(uint64_t{42}, nC.d_nv)),
+            std::make_pair(std::make_pair(uint64_t{42}, nC.d_nv), 2));
 
   // change two entries using operator[]
-  hash[std::make_pair(42lu, nB.d_nv)] = 10;
-  hash[std::make_pair(42lu, nC.d_nv)] = 12;
+  hash[std::make_pair(uint64_t{42}, nB.d_nv)] = 10;
+  hash[std::make_pair(uint64_t{42}, nC.d_nv)] = 12;
 
   // entries should be changed this time
-  EXPECT_EQ(hash[std::make_pair(42lu, nB.d_nv)], 10);
-  EXPECT_EQ(hash[std::make_pair(42lu, nC.d_nv)], 12);
-  EXPECT_EQ(*hash.find(std::make_pair(42lu, nB.d_nv)), std::make_pair(std::make_pair(42lu, nB.d_nv), 10));
-  EXPECT_EQ(*hash.find(std::make_pair(42lu, nC.d_nv)), std::make_pair(std::make_pair(42lu, nC.d_nv), 12));
+  EXPECT_EQ(hash[std::make_pair(uint64_t{42}, nB.d_nv)], 10);
+  EXPECT_EQ(hash[std::make_pair(uint64_t{42}, nC.d_nv)], 12);
+  EXPECT_EQ(*hash.find(std::make_pair(uint64_t{42}, nB.d_nv)),
+            std::make_pair(std::make_pair(uint64_t{42}, nB.d_nv), 10));
+  EXPECT_EQ(*hash.find(std::make_pair(uint64_t{42}, nC.d_nv)),
+            std::make_pair(std::make_pair(uint64_t{42}, nC.d_nv), 12));
 }
 
 } // namespace test
