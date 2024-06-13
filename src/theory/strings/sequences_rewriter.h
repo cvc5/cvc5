@@ -144,6 +144,8 @@ class SequencesRewriter : public TheoryRewriter
   Node rewriteViaReLoopElim(const Node& n);
   /** Rewrite based on STR_IN_RE_EVAL */
   Node rewriteViaStrInReEval(const Node& n);
+  /** Rewrite based on STR_IN_RE_CONSUME */
+  Node rewriteViaStrInReConsume(const Node& n);
   /** Rewrite based on STR_IN_RE_CONCAT_STAR_CHAR */
   Node rewriteViaStrInReConcatStarChar(const Node& n);
   /** Rewrite based on STR_IN_RE_SIGMA */
