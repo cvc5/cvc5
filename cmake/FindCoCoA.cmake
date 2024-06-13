@@ -53,6 +53,11 @@ if(NOT CoCoA_FOUND_SYSTEM)
 
   get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
 
+  find_program(PATCH_BIN patch)
+  if(NOT PATCH_BIN)
+    message(FATAL_ERROR "Can not build CoCoA, missing binary for patch")
+  endif()
+
   ExternalProject_Add(
     CoCoA-EP
     ${COMMON_EP_CONFIG}
@@ -100,4 +105,8 @@ if(CoCoA_FOUND_SYSTEM)
 else()
   message(STATUS "Building CoCoA ${CoCoA_VERSION}: ${CoCoA_LIBRARIES}")
   add_dependencies(CoCoA CoCoA-EP)
+  # Install static library only if it is a static build.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${CoCoA_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()

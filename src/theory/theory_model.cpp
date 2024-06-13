@@ -174,25 +174,20 @@ bool TheoryModel::isModelCoreSymbol(Node s) const
   return d_model_core.find(s) != d_model_core.end();
 }
 
-Cardinality TheoryModel::getCardinality(TypeNode tn) const
+size_t TheoryModel::getCardinality(const TypeNode& tn) const
 {
   //for now, we only handle cardinalities for uninterpreted sorts
-  if (!tn.isUninterpretedSort())
-  {
-    Trace("model-getvalue-debug")
-        << "Get cardinality other sort, unknown." << std::endl;
-    return Cardinality( CardinalityUnknown() );
-  }
+  Assert(tn.isUninterpretedSort());
   if (d_rep_set.hasType(tn))
   {
     Trace("model-getvalue-debug")
         << "Get cardinality sort, #rep : "
         << d_rep_set.getNumRepresentatives(tn) << std::endl;
-    return Cardinality(d_rep_set.getNumRepresentatives(tn));
+    return d_rep_set.getNumRepresentatives(tn);
   }
   Trace("model-getvalue-debug")
       << "Get cardinality sort, unconstrained, return 1." << std::endl;
-  return Cardinality(1);
+  return 1;
 }
 
 Node TheoryModel::getModelValue(TNode n) const
@@ -261,8 +256,9 @@ Node TheoryModel::getModelValue(TNode n) const
           ret.getOperator().getConst<CardinalityConstraint>();
       Trace("model-getvalue-debug")
           << "get cardinality constraint " << cc.getType() << std::endl;
-      ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
-                        <= cc.getUpperBound());
+      size_t cval = getCardinality(cc.getType());
+      Assert(cval > 0);
+      ret = nm->mkConst(Integer(cval) <= cc.getUpperBound());
     }
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we are an evaluated kind. This can occur if the

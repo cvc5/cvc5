@@ -3433,6 +3433,28 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(SET_CHOOSE),
   /**
+   * Set is empty tester.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of set Sort
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(SET_IS_EMPTY),
+  /**
    * Set is singleton tester.
    *
    * - Arity: ``1``

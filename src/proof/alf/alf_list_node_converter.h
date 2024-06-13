@@ -35,7 +35,7 @@ namespace proof {
  *
  * becomes the ALF rule:
  *
- * (declare-rule dsl.bool-or-false ((xs Bool :list) (ys Bool :list))
+ * (declare-rule bool-or-false ((xs Bool :list) (ys Bool :list))
  *   :args (xs ys)
  *   :conclusion (= (or xs false ys)) ($singleton_elim (or xs ys)))
  * )

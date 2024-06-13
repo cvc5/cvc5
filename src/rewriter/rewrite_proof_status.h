@@ -42,6 +42,8 @@ enum class RewriteProofStatus : uint32_t
   ACI_NORM,
   // we have a DSL proof rule that proves this goal.
   DSL,
+  // we have a THEORY_REWRITE that proves this goal.
+  THEORY_REWRITE
 };
 
 /**

@@ -318,6 +318,40 @@ public class TermManager extends AbstractPointer
   private native long mkParamSort(long pointer);
 
   /**
+   * Create a skolem
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param skolemId The id of the skolem.
+   * @param indices The indices of the skolem.
+   * @return The skolem.
+   */
+  public Term mkSkolem(SkolemId skolemId, Term[] indices)
+  {
+    long skolemPointer = mkSkolem(pointer, skolemId.getValue(), Utils.getPointers(indices));
+    return new Term(skolemPointer);
+  }
+
+  private native long mkSkolem(long pointer, int skolemId, long[] indices);
+
+  /**
+   * Get the number of indices for a given skolem id.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param id The skolem id.
+   * @return The number of indices for the given skolem id.
+   */
+
+  public int getNumIndicesForSkolemId(SkolemId id)
+  {
+    int numIndices = getNumIndicesForSkolemId(pointer, id.getValue());
+    return numIndices;
+  }
+
+  private native int getNumIndicesForSkolemId(long pointer, int skolemId);
+
+  /**
    * Create a predicate sort.
    * @param sorts The list of sorts of the predicate.
    * @return The predicate sort.

@@ -145,7 +145,7 @@ bool hasFreeVariablesScope(TNode n, std::unordered_set<TNode>& scope);
  * @param vs The set which free variables are added to
  * @return true iff this node contains a free variable.
  */
-bool getVariables(TNode n, std::unordered_set<TNode>& vs);
+bool getVariables(TNode n, std::unordered_set<Node>& vs);
 /**
  * Get all variables in n.
  * @param n The node under investigation
@@ -154,7 +154,7 @@ bool getVariables(TNode n, std::unordered_set<TNode>& vs);
  * @return true iff this node contains a free variable.
  */
 bool getVariables(TNode n,
-                  std::unordered_set<TNode>& vs,
+                  std::unordered_set<Node>& vs,
                   std::unordered_set<TNode>& visited);
 
 /**

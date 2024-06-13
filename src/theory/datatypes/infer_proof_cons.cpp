@@ -146,7 +146,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           Node t = exp[0];
           Node nn = nm->mkConstInt(Rational(n));
           Node eq = exp.eqNode(conc);
-          cdp->addStep(eq, ProofRule::DT_INST, {}, {t, nn});
+          cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_INST);
           cdp->addStep(conc, ProofRule::EQ_RESOLVE, {exp, eq}, {});
           success = true;
         }

@@ -87,6 +87,13 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate) override;
+  /**
+   * Can merge. This returns false if pn is a trusted proof, since we do not
+   * want the proof node updater to merge its contents into another proof,
+   * which we otherwise would not be informed of and would lead to trusted
+   * proofs that are not recorded in d_trustedPfs.
+   */
+  bool canMerge(std::shared_ptr<ProofNode> pn) override;
 
  private:
   /** Common constants */

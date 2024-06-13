@@ -14,4 +14,4 @@
 (declare-const witness (-> (! @List :var L) Bool (get_witness_type L)) :binder @list)
 
 ; skolems
-(declare-const @quantifiers_skolemize (-> (! Type :var T :implicit) Bool T T))
+(declare-const @quantifiers_skolemize (-> (! Type :var T :implicit) (! Bool :opaque) (! T :opaque) T))

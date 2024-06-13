@@ -35,9 +35,12 @@ TEST_F(TestApiProofRule, proofRuleToString)
        ++r)
   {
     ProofRule rule = static_cast<ProofRule>(r);
-    auto rulestr = toString(rule);
     // If this assertion fails, the switch is missing rule r.
-    ASSERT_NE(rulestr, "?");
+    ASSERT_NE(toString(rule), "?");
+    ASSERT_NE(std::to_string(rule), "?");
+    std::stringstream ss;
+    ss << rule;
+    ASSERT_NE(ss.str(), "?");
   }
 }
 
@@ -57,9 +60,13 @@ TEST_F(TestApiProofRewriteRule, ProofRewriteRuleToString)
        r <= static_cast<int32_t>(ProofRewriteRule::DISTINCT_BINARY_ELIM);
        ++r)
   {
-    auto rulestr = std::to_string(static_cast<ProofRewriteRule>(r));
     // If this assertion fails, the switch is missing rule r.
-    ASSERT_NE(rulestr, "?");
+    auto rule = static_cast<ProofRewriteRule>(r);
+    ASSERT_NE(toString(rule), "?");
+    ASSERT_NE(std::to_string(rule), "?");
+    std::stringstream ss;
+    ss << rule;
+    ASSERT_NE(ss.str(), "?");
   }
 }
 

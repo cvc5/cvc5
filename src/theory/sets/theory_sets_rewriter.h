@@ -28,6 +28,16 @@ class TheorySetsRewriter : public TheoryRewriter
 {
  public:
   TheorySetsRewriter(NodeManager* nm);
+
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
   /**
    * Rewrite a node into the normal form for the theory of sets.
    * Called in post-order (really reverse-topological order) when
@@ -70,6 +80,15 @@ class TheorySetsRewriter : public TheoryRewriter
     // often this will suffice
     return postRewrite(equality).d_node;
   }
+
+  /**
+   * Rewrite membership for a binary op.
+   * For example, if mem is (set.member x (set.inter A B)), the returns the
+   * formula (and (set.member x A) (set.member x B)).
+   * @param mem The membership.
+   * @return The rewritten form of the membership.
+   */
+  Node rewriteMembershipBinaryOp(const Node& mem);
 
  private:
   /**

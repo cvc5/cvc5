@@ -227,23 +227,39 @@ target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
 
+# Java on Windows expects the JNI libraries without the prefix
+if (WIN32)
+  set_target_properties(cvc5jni PROPERTIES PREFIX "")
+  set_target_properties(cvc5jni PROPERTIES IMPORT_PREFIX "")
+endif()
+
 set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")
 
-# create cvc5.jar file
-add_jar(cvc5jar
-  SOURCES
-  ${JAVA_FILES}
-  VERSION ${CVC5_VERSION}
-  OUTPUT_NAME cvc5
-)
+# Create cvc5.jar file
+if (WIN32)
+  # CMake creates a symbolic link pointing to the jar with
+  # the version info when the VERSION attribute is provided.
+  # This fails on Windows so we don't provide it.
+  add_jar(cvc5jar
+    SOURCES
+    ${JAVA_FILES}
+    OUTPUT_NAME cvc5
+  )
+else()
+  add_jar(cvc5jar
+    SOURCES
+    ${JAVA_FILES}
+    VERSION ${CVC5_VERSION}
+    OUTPUT_NAME cvc5
+  )
+endif()
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5 cvc5parser)
 
-# install in the same directory of cvc5-targets
-install(TARGETS cvc5jni
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+# Install in the same directory of cvc5-targets.
+# On Windows, CMake's default install action places
+# DLLs into the runtime path (by default "bin")
+install(TARGETS cvc5jni)
 
 install_jar(cvc5jar DESTINATION share/java)
 

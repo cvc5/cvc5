@@ -50,7 +50,7 @@ TEST_F(TestApiBlackSolver, pow2Large1)
   Term t180 = d_tm.mkTerm(Kind::POW2, {t10});
   Term t258 = d_tm.mkTerm(Kind::GEQ, {t74, t180});
   d_solver->assertFormula(t258);
-  ASSERT_THROW(d_solver->simplify(t82), CVC5ApiException);
+  ASSERT_THROW(d_solver->simplify(t82, true), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, pow2Large2)
@@ -1821,6 +1821,20 @@ TEST_F(TestApiBlackSolver, simplify)
   ASSERT_NO_THROW(slv.simplify(x));
 }
 
+TEST_F(TestApiBlackSolver, simplifyApplySubs)
+{
+  d_solver->setOption("incremental", "true");
+  Sort intSort = d_tm.getIntegerSort();
+  Term x = d_tm.mkConst(intSort, "x");
+  Term zero = d_tm.mkInteger(0);
+  Term eq = d_tm.mkTerm(Kind::EQUAL, {x, zero});
+  d_solver->assertFormula(eq);
+  ASSERT_NO_THROW(d_solver->checkSat());
+
+  ASSERT_EQ(d_solver->simplify(x, false), x);
+  ASSERT_EQ(d_solver->simplify(x, true), zero);
+}
+
 TEST_F(TestApiBlackSolver, assertFormula)
 {
   ASSERT_NO_THROW(d_solver->assertFormula(d_tm.mkTrue()));
@@ -2499,6 +2513,90 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
   Term xval = d_solver->getValue(x);
   Term yval = d_solver->getValue(y);
   ASSERT_TRUE(xval != yval);
+}
+
+class PluginUnsat : public Plugin
+{
+ public:
+  PluginUnsat(TermManager& tm) : Plugin(tm), d_tm(tm) {}
+  virtual ~PluginUnsat() {}
+  std::vector<Term> check() override
+  {
+    std::vector<Term> lemmas;
+    // add the "false" lemma.
+    Term flem = d_tm.mkBoolean(false);
+    lemmas.push_back(flem);
+    return lemmas;
+  }
+  std::string getName() override { return "PluginUnsat"; }
+ private:
+  /** Reference to the term manager */
+  TermManager& d_tm;
+};
+
+TEST_F(TestApiBlackSolver, pluginUnsat)
+{
+  PluginUnsat pu(d_tm);
+  d_solver->addPlugin(pu);
+  ASSERT_TRUE(pu.getName() == "PluginUnsat");
+  // should be unsat since the plugin above asserts "false" as a lemma
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+}
+
+class PluginListen : public Plugin
+{
+ public:
+  PluginListen(TermManager& tm)
+      : Plugin(tm),
+        d_tm(tm),
+        d_hasSeenTheoryLemma(false),
+        d_hasSeenSatClause(false)
+  {
+  }
+  virtual ~PluginListen() {}
+  void notifySatClause(const Term& cl) override
+  {
+    Plugin::notifySatClause(cl); // Cover default implementation
+    d_hasSeenSatClause = true;
+  }
+  bool hasSeenSatClause() const { return d_hasSeenSatClause; }
+  void notifyTheoryLemma(const Term& lem) override
+  {
+    Plugin::notifyTheoryLemma(lem); // Cover default implementation
+    d_hasSeenTheoryLemma = true;
+  }
+  bool hasSeenTheoryLemma() const { return d_hasSeenTheoryLemma; }
+  std::string getName() override { return "PluginListen"; }
+
+ private:
+  /** Reference to the term manager */
+  TermManager& d_tm;
+  /** have we seen a theory lemma? */
+  bool d_hasSeenTheoryLemma;
+  /** have we seen a SAT clause? */
+  bool d_hasSeenSatClause;
+};
+
+TEST_F(TestApiBlackSolver, pluginListen)
+{
+  // NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
+  d_solver->setOption("plugin-notify-sat-clause-in-solve", "false");
+  PluginListen pl(d_tm);
+  d_solver->addPlugin(pl);
+  Sort stringSort = d_tm.getStringSort();
+  Term x = d_tm.mkConst(stringSort, "x");
+  Term y = d_tm.mkConst(stringSort, "y");
+  Term ctn1 = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
+  Term ctn2 = d_tm.mkTerm(Kind::STRING_CONTAINS, {y, x});
+  d_solver->assertFormula(d_tm.mkTerm(Kind::OR, {ctn1, ctn2}));
+  Term lx = d_tm.mkTerm(Kind::STRING_LENGTH, {x});
+  Term ly = d_tm.mkTerm(Kind::STRING_LENGTH, {y});
+  Term lc = d_tm.mkTerm(Kind::GT, {lx, ly});
+  d_solver->assertFormula(lc);
+  ASSERT_TRUE(d_solver->checkSat().isSat());
+  // above input formulas should induce a theory lemma and SAT clause learning
+  ASSERT_TRUE(pl.hasSeenTheoryLemma());
+  ASSERT_TRUE(pl.hasSeenSatClause());
 }
 
 TEST_F(TestApiBlackSolver, verticalBars)

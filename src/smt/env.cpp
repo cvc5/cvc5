@@ -18,6 +18,9 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
@@ -50,7 +53,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_logic(),
       d_options(),
       d_resourceManager(),
-      d_uninterpretedSortOwner(theory::THEORY_UF)
+      d_uninterpretedSortOwner(theory::THEORY_UF),
+      d_boolTermSkolems(d_userContext.get())
 {
   if (opts != nullptr)
   {
@@ -255,8 +259,15 @@ theory::TheoryId Env::theoryOf(TypeNode typeNode) const
 
 theory::TheoryId Env::theoryOf(TNode node) const
 {
-  return theory::Theory::theoryOf(
-      node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
+  theory::TheoryId tid = theory::Theory::theoryOf(node,
+                                  d_options.theory.theoryOfMode,
+                                  d_uninterpretedSortOwner);
+  // Special case: Boolean term skolems belong to THEORY_UF.
+  if (tid==theory::TheoryId::THEORY_BOOL && isBooleanTermSkolem(node))
+  {
+    return theory::TheoryId::THEORY_UF;
+  }
+  return tid;
 }
 
 bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
@@ -280,6 +291,47 @@ const std::vector<Plugin*>& Env::getPlugins() const { return d_plugins; }
 theory::quantifiers::OracleChecker* Env::getOracleChecker() const
 {
   return d_ochecker.get();
+}
+
+void Env::registerBooleanTermSkolem(const Node& k)
+{
+  Assert(k.isVar());
+  d_boolTermSkolems.insert(k);
+}
+
+bool Env::isBooleanTermSkolem(const Node& k) const
+{
+  // optimization: check whether k is a variable
+  if (!k.isVar())
+  {
+    return false;
+  }
+  return d_boolTermSkolems.find(k) != d_boolTermSkolems.end();
+}
+
+Node Env::getSharableFormula(const Node& n) const
+{
+  Node on = n;
+  // these kinds are never sharable
+  std::unordered_set<Kind, kind::KindHashFunction> ks = {Kind::INST_CONSTANT,
+                                                         Kind::DUMMY_SKOLEM};
+  if (!d_options.base.pluginShareSkolems)
+  {
+    // note we only remove purify skolems if the above option is disabled
+    on = SkolemManager::getOriginalForm(n);
+    // SKOLEM is additionally unsharable if option is set.
+    ks.insert(Kind::SKOLEM);
+  }
+  if (expr::hasSubtermKinds(ks, on))
+  {
+    // We cannot share formulas with skolems currently.
+    // We should never share formulas with instantiation constants.
+    return Node::null();
+  }
+  // also eliminate subtyping
+  SubtypeElimNodeConverter senc(d_nm);
+  on = senc.convert(on);
+  return on;
 }
 
 }  // namespace cvc5::internal

@@ -33,7 +33,14 @@ class TheoryBVRewriter : public TheoryRewriter
 
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
-
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
   static RewriteResponse UndefinedRewrite(TNode node, bool prerewrite = false);

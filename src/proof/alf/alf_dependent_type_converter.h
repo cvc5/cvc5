@@ -36,10 +36,12 @@ namespace proof {
  *
  * becomes the ALF rule:
  *
- * (declare-rule dsl.bv-extract-concat-1
- *   ((@n0 Int) (@n1 Int) (@n2 Int) (x (BitVec @n0)) (xs (BitVec @n1) :list) (y
- * (BitVec @n2)) (i Int) (j Int)) :premises ((= (<= j (@bvsize x)) true)) :args
- * (x xs y i j) :conclusion (= (extract j i (concat xs y x)) (extract j i x))
+ * (declare-rule bv-extract-concat-1
+ *   ((@n0 Int) (@n1 Int) (@n2 Int) (x (BitVec @n0)) (xs (BitVec @n1) :list)
+ *    (y (BitVec @n2)) (i Int) (j Int))
+ *  :premises ((= (<= j (@bvsize x)) true))
+ *  :args (x xs y i j)
+ *  :conclusion (= (extract j i (concat xs y x)) (extract j i x))
  * )
  *
  * This converter is responsible for converting an approximate type into a Node

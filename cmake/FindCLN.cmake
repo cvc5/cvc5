@@ -47,40 +47,87 @@ if(NOT CLN_FOUND_SYSTEM)
   include(ExternalProject)
 
   fail_if_cross_compiling("Windows" "" "CLN" "autoconf fails")
-  fail_if_cross_compiling("" "arm" "CLN" "syntax error in configure")
+
+  if("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles")
+    message(FATAL_ERROR
+      "Compilation of CLN in the MSYS2 environment is not supported."
+    )
+  endif()
 
   set(CLN_VERSION "1.3.7")
+  set(CLN_SO_MAJOR_VER "6")
+  set(CLN_SO_MINOR_VER "0")
+  set(CLN_SO_PATCH_VER "7")
+  set(CLN_SO_VERSION
+    "${CLN_SO_MAJOR_VER}.${CLN_SO_MINOR_VER}.${CLN_SO_PATCH_VER}"
+  )
   string(REPLACE "." "-" CLN_TAG ${CLN_VERSION})
 
   find_program(AUTORECONF autoreconf)
   if(NOT AUTORECONF)
-    message(SEND_ERROR "Can not build CLN, missing binary for autoreconf")
+    message(FATAL_ERROR "Can not build CLN, missing binary for autoreconf")
+  endif()
+
+  set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
+  if(BUILD_SHARED_LIBS)
+    set(LINK_OPTS --enable-shared --disable-static)
+    set(CLN_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set(CLN_BYPRODUCTS
+        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln.${CLN_SO_MAJOR_VER}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    else()
+      set(CLN_BYPRODUCTS
+        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}.${CLN_SO_MAJOR_VER}
+        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}.${CLN_SO_VERSION}
+      )
+    endif()
+  else()
+    set(LINK_OPTS --enable-static --disable-shared)
+    set(CLN_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(CLN_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_STATIC_LIBRARY_SUFFIX})
+  endif()
+
+  set(CONFIGURE_OPTS "")
+  # CLN yields the following message at the end of the build process.
+  #     WARNING: `makeinfo' is missing on your system.
+  # This is a specific issue to Github CI on linux environments.
+  # Since makeinfo just builds the documentation for CLN,
+  # it is possible to get around this issue by just disabling it:
+  set(CONFIGURE_ENV env "MAKEINFO=true")
+
+  if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
+    set(CONFIGURE_OPTS
+      --host=${TOOLCHAIN_PREFIX}
+      --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
+
+    set(CONFIGURE_ENV ${CONFIGURE_ENV} ${CMAKE_COMMAND} -E
+      env "CC_FOR_BUILD=cc")
+    if (CMAKE_CROSSCOMPILING_MACOS)
+      set(CONFIGURE_ENV
+        ${CONFIGURE_ENV}
+        env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
+        env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+    endif()
   endif()
 
   ExternalProject_Add(
     CLN-EP
     ${COMMON_EP_CONFIG}
-    URL "https://www.ginac.de/CLN/cln.git/?p=cln.git\\\;a=snapshot\\\;h=cln_${CLN_TAG}\\\;sf=tgz"
-    URL_HASH SHA1=bd6dec17cf1088bdd592794d9239d47c752cf3da
-    DOWNLOAD_NAME cln.tgz
+    URL "https://www.ginac.de/CLN/cln-1.3.7.tar.bz2"
+    URL_HASH SHA1=17cf2c60e262e30f57caae39692fce7917e11d95
+    DOWNLOAD_NAME cln.tar.bz2
     CONFIGURE_COMMAND
-      ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ./autogen.sh
-    COMMAND
-      ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> autoreconf -iv
-    COMMAND ${SHELL} <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-shared
-            --enable-static --with-pic
-    BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln.a
-                     <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${CONFIGURE_ENV} ${SHELL} <SOURCE_DIR>/configure
+        --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic
+        ${CONFIGURE_OPTS}
+    BUILD_BYPRODUCTS ${CLN_BYPRODUCTS}
   )
 
   add_dependencies(CLN-EP GMP)
 
-  set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
-  if(BUILD_SHARED_LIBS)
-    set(CLN_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  else()
-    set(CLN_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcln.a")
-  endif()
 endif()
 
 set(CLN_FOUND TRUE)
@@ -107,4 +154,12 @@ if(CLN_FOUND_SYSTEM)
 else()
   message(STATUS "Building CLN ${CLN_VERSION}: ${CLN_LIBRARIES}")
   add_dependencies(CLN CLN-EP)
+
+  ExternalProject_Get_Property(CLN-EP BUILD_BYPRODUCTS INSTALL_DIR)
+  string(REPLACE "<INSTALL_DIR>" "${INSTALL_DIR}" BUILD_BYPRODUCTS "${BUILD_BYPRODUCTS}")
+
+  # Static builds install the CLN static libraries.
+  # These libraries are required to compile a program that
+  # uses the cvc5 static library.
+  install(FILES ${BUILD_BYPRODUCTS} TYPE ${LIB_BUILD_TYPE})
 endif()
