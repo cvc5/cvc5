@@ -150,8 +150,8 @@ Node SineSolver::getPhaseShiftLemma(const Node& x)
   Node y = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY_ARG, n);
   Node s = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT, n);
   NodeManager* nm = NodeManager::currentNM();
-  Assert (x.getType().isReal());
-  Assert (y.getType().isReal());
+  Assert(x.getType().isReal());
+  Assert(y.getType().isReal());
   Node mone = nm->mkConstReal(Rational(-1));
   Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   return nm->mkAnd(std::vector<Node>{

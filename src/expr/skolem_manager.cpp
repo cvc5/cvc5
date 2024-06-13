@@ -408,7 +408,7 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     }
     // real skolems
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
-    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:return nm->realType();
+    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT: return nm->realType();
     // int -> int function
     case SkolemId::INT_DIV_BY_ZERO:
     case SkolemId::MOD_BY_ZERO:
