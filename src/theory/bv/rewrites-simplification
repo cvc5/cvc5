@@ -423,28 +423,6 @@
   (and
     (= chi (@bv 0 m))
     (= x clo)))
-; FIXME
-(define-cond-rule bv-zero-extend-ult-const-1
-  ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
-  (def
-    (n (@bvsize x))
-    (clo (extract nm1 0 (@bv c nm)))
-    (chi (extract (- nm 1) n (@bv c nm)))
-  )
-  (and (= chi (@bv 0 m)) (= nm1 (- n 1)))
-  (bvult (zero_extend m x) (@bv c nm))
-  (bvult x clo))
-; FIXME
-(define-cond-rule bv-zero-extend-ult-const-2
-  ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
-  (def
-    (n (@bvsize x))
-    (clo (extract nm1 0 (@bv c nm)))
-    (chi (extract (- nm 1) n (@bv c nm)))
-  )
-  (and (= chi (@bv 0 m)) (= nm1 (- n 1)))
-  (bvult (@bv c nm) (zero_extend m x))
-  (bvult clo x))
 (define-cond-rule bv-sign-extend-ult-const-1
   ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
   (def
