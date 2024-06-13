@@ -68,42 +68,41 @@ void RewriteProofRule::init(ProofRewriteRule id,
     expr::getFreeVariables(c, fvsCond);
   }
 
-  if (!condDef.empty())
+  // ensure free variables in conditions and right hand side are either matched
+  // or are in defined conditions.
+  std::unordered_set<Node> fvsLhs;
+  expr::getFreeVariables(d_conc[0], fvsLhs);
+  std::unordered_set<Node> fvsUnmatched;
+  expr::getFreeVariables(d_conc[1], fvsUnmatched);
+  fvsUnmatched.insert(fvsCond.begin(), fvsCond.end());
+  std::map<Node, Node>::iterator itc;
+  for (const Node& v : fvsUnmatched)
   {
-    std::unordered_set<Node> fvsLhs;
-    expr::getFreeVariables(d_conc[0], fvsLhs);
-    std::unordered_set<Node> fvsUnmatched;
-    expr::getFreeVariables(d_conc[1], fvsUnmatched);
-    fvsUnmatched.insert(fvsCond.begin(), fvsCond.end());
-    std::map<Node, Node>::iterator itc;
-    for (const Node& v : fvsUnmatched)
+    if (fvsLhs.find(v) != fvsLhs.end())
     {
-      if (fvsLhs.find(v) != fvsLhs.end())
+      // variable on left hand side
+      continue;
+    }
+    itc = condDef.find(v);
+    if (itc == condDef.end())
+    {
+      Unhandled()
+          << "Free variable " << v << " in rule " << id
+          << " is not on the left hand side, nor is defined in a condition";
+    }
+    // variable defined in the condition
+    d_condDefinedVars[v] = itc->second;
+    // ensure the defining term does not itself contain free variables
+    std::unordered_set<Node> fvst;
+    expr::getFreeVariables(itc->second, fvst);
+    for (const Node& vt : fvst)
+    {
+      if (fvsLhs.find(vt) == fvsLhs.end())
       {
-        // variable on left hand side
-        continue;
-      }
-      itc = condDef.find(v);
-      if (itc == condDef.end())
-      {
-        Unhandled()
-            << "Free variable " << v << " in rule " << id
-            << " is not on the left hand side, nor is defined in a condition";
-      }
-      // variable defined in the condition
-      d_condDefinedVars[v] = itc->second;
-      // ensure the defining term does not itself contain free variables
-      std::unordered_set<Node> fvst;
-      expr::getFreeVariables(itc->second, fvst);
-      for (const Node& vt : fvst)
-      {
-        if (fvsLhs.find(vt) == fvsLhs.end())
-        {
-          Unhandled() << "Free variable " << vt << " in rule " << id
-                      << " is not on the left hand side of the rule, and it is "
-                         "used to give a definition to the free variable "
-                      << v;
-        }
+        Unhandled() << "Free variable " << vt << " in rule " << id
+                    << " is not on the left hand side of the rule, and it is "
+                        "used to give a definition to the free variable "
+                    << v;
       }
     }
   }
