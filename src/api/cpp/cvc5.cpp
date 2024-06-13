@@ -1242,6 +1242,16 @@ bool SynthResult::isUnknown() const
   return d_result->getStatus() == internal::SynthResult::UNKNOWN;
 }
 
+bool SynthResult::operator==(const SynthResult& r) const
+{
+  return *d_result == *r.d_result;
+}
+
+bool SynthResult::operator!=(const SynthResult& r) const
+{
+  return *d_result != *r.d_result;
+}
+
 std::string SynthResult::toString(void) const { return d_result->toString(); }
 
 std::ostream& operator<<(std::ostream& out, const SynthResult& sr)
@@ -1249,6 +1259,19 @@ std::ostream& operator<<(std::ostream& out, const SynthResult& sr)
   out << sr.toString();
   return out;
 }
+
+}  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::SynthResult>::operator()(
+    const cvc5::SynthResult& result) const
+{
+  return std::hash<std::string>{}(result.toString());
+}
+}  // namespace std
+
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -8743,11 +8766,12 @@ SynthResult Solver::checkSynth() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot checkSynth unless sygus is enabled (use --"
+      << "cannot check for a synthesis solution unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
   CVC5_API_CHECK(!d_slv->isQueryMade()
                  || d_slv->getOptions().base.incrementalSolving)
-      << "cannot make multiple checkSynth calls unless incremental solving is "
+      << "cannot make multiple check synthesis solution calls unless "
+         "incremental solving is "
          "enabled (try --"
       << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
@@ -8760,10 +8784,12 @@ SynthResult Solver::checkSynthNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "cannot checkSynthNext unless sygus is enabled (use --"
+      << "cannot check for a next synth solution unless sygus is enabled (use "
+         "--"
       << internal::options::quantifiers::longName::sygus << ")";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
-      << "cannot checkSynthNext when not solving incrementally (use "
+      << "cannot check for a next synthesis solution when not solving "
+         "incrementally (use "
          "--"
       << internal::options::base::longName::incrementalSolving << ")";
   //////// all checks before this line
@@ -8779,13 +8805,14 @@ Term Solver::getSynthSolution(const Term& term) const
 
   std::map<internal::Node, internal::Node> map;
   CVC5_API_CHECK(d_slv->getSynthSolutions(map))
-      << "The solver is not in a state immediately preceded by a "
+      << "solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
 
   std::map<internal::Node, internal::Node>::const_iterator it =
       map.find(*term.d_node);
 
-  CVC5_API_CHECK(it != map.cend()) << "Synth solution not found for given term";
+  CVC5_API_CHECK(it != map.cend())
+      << "synthesis solution not found for given term";
   //////// all checks before this line
   return Term(&d_tm, it->second);
   ////////
@@ -8801,7 +8828,7 @@ std::vector<Term> Solver::getSynthSolutions(
 
   std::map<internal::Node, internal::Node> map;
   CVC5_API_CHECK(d_slv->getSynthSolutions(map))
-      << "The solver is not in a state immediately preceded by a "
+      << "solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
   //////// all checks before this line
 
@@ -8814,7 +8841,7 @@ std::vector<Term> Solver::getSynthSolutions(
         map.find(*terms[i].d_node);
 
     CVC5_API_CHECK(it != map.cend())
-        << "Synth solution not found for term at index " << i;
+        << "synthesis solution not found for term at index " << i;
 
     synthSolution.push_back(Term(&d_tm, it->second));
   }

@@ -190,8 +190,7 @@ size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule)
 /* Cvc5FindSynthTarget                                                        */
 /* -------------------------------------------------------------------------- */
 
-const char* cvc5_modes_find_synthesis_target_to_string(
-    Cvc5FindSynthTarget target)
+const char* cvc5_modes_find_synth_target_to_string(Cvc5FindSynthTarget target)
 {
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
@@ -4222,6 +4221,25 @@ struct cvc5_result_t
   Cvc5* d_cvc5 = nullptr;
 };
 
+/** Wrapper for cvc5 C++ synthesis results. */
+struct cvc5_synth_result_t
+{
+  /**
+   * Constructor.
+   * @param result The wrapped C++ synthesis result.
+   */
+  cvc5_synth_result_t(Cvc5* cvc5, const cvc5::SynthResult& result)
+      : d_result(result), d_cvc5(cvc5)
+  {
+  }
+  /** The wrapped C++ result. */
+  cvc5::SynthResult d_result;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated solver instance. */
+  Cvc5* d_cvc5 = nullptr;
+};
+
 /** Wrapper for cvc5 C++ proofs. */
 struct cvc5_proof_t
 {
@@ -4274,7 +4292,7 @@ struct Cvc5
   /**
    * Decrement the external ref count of a result. If the ref count reaches
    * zero, the result is released (freed).
-   * @param term The term to release.
+   * @param result The result to release.
    */
   void release(cvc5_result_t* result);
   /**
@@ -4283,6 +4301,24 @@ struct Cvc5
    * @return The copied result.
    */
   cvc5_result_t* copy(cvc5_result_t* result);
+
+  /**
+   * Export C++ synthesis result to C API.
+   * @param result Thesynthesis  result to export.
+   */
+  Cvc5SynthResult export_synth_result(const cvc5::SynthResult& result);
+  /**
+   * Decrement the external ref count of a synthesis result. If the ref count
+   * reaches zero, the result is released (freed).
+   * @param result The result to release.
+   */
+  void release(cvc5_synth_result_t* result);
+  /**
+   * Increment the external ref count of a synthesis result.
+   * @param result The synthesis result to copy.
+   * @return The copied synthesis result.
+   */
+  cvc5_synth_result_t* copy(cvc5_synth_result_t* result);
 
   /**
    * Export C++ proof to C API.
@@ -4326,6 +4362,9 @@ struct Cvc5
   Cvc5TermManager* d_tm = nullptr;
   /** Cache of allocated results. */
   std::unordered_map<cvc5::Result, cvc5_result_t> d_alloc_results;
+  /** Cache of allocated syntheis results. */
+  std::unordered_map<cvc5::SynthResult, cvc5_synth_result_t>
+      d_alloc_synth_results;
   /** Cache of allocated proofs. */
   std::unordered_map<cvc5::Proof, cvc5_proof_t> d_alloc_proofs;
   /** Cache of allocated grammars. */
@@ -4354,6 +4393,34 @@ void Cvc5::release(cvc5_result_t* result)
 }
 
 cvc5_result_t* Cvc5::copy(cvc5_result_t* result)
+{
+  result->d_refs += 1;
+  return result;
+}
+
+Cvc5SynthResult Cvc5::export_synth_result(const cvc5::SynthResult& result)
+{
+  Assert(!result.isNull());
+  auto [it, inserted] = d_alloc_synth_results.try_emplace(result, this, result);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+void Cvc5::release(cvc5_synth_result_t* result)
+{
+  result->d_refs -= 1;
+  if (result->d_refs == 0)
+  {
+    Assert(d_alloc_synth_results.find(result->d_result)
+           != d_alloc_synth_results.end());
+    d_alloc_synth_results.erase(result->d_result);
+  }
+}
+
+cvc5_synth_result_t* Cvc5::copy(cvc5_synth_result_t* result)
 {
   result->d_refs += 1;
   return result;
@@ -4525,6 +4592,114 @@ const char* cvc5_result_to_string(const Cvc5Result result)
   str = result->d_result.toString();
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
+}
+
+size_t cvc5_result_hash(Cvc5Result result)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_RESULT(result);
+  res = std::hash<cvc5::Result>{}(result->d_result);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5SynthResult                                                            */
+/* -------------------------------------------------------------------------- */
+
+bool cvc5_synth_result_is_null(const Cvc5SynthResult result)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SYNTH_RESULT(result);
+  res = result->d_result.isNull();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_synth_result_has_solution(const Cvc5SynthResult result)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SYNTH_RESULT(result);
+  res = result->d_result.hasSolution();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_synth_result_has_no_solution(const Cvc5SynthResult result)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SYNTH_RESULT(result);
+  res = result->d_result.hasNoSolution();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_synth_result_is_unknown(const Cvc5SynthResult result)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SYNTH_RESULT(result);
+  res = result->d_result.isUnknown();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_synth_result_is_equal(const Cvc5SynthResult a,
+                                const Cvc5SynthResult b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_result == b->d_result;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_synth_result_is_disequal(const Cvc5SynthResult a,
+                                   const Cvc5SynthResult b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a != b;
+  }
+  else
+  {
+    res = a->d_result != b->d_result;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_synth_result_to_string(const Cvc5SynthResult result)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SYNTH_RESULT(result);
+  str = result->d_result.toString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+size_t cvc5_synth_result_hash(Cvc5SynthResult result)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SYNTH_RESULT(result);
+  res = std::hash<cvc5::SynthResult>{}(result->d_result);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -5959,4 +6134,99 @@ void cvc5_add_sygus_inv_constraint(
   cvc5->d_solver.addSygusInvConstraint(
       inv->d_term, pre->d_term, trans->d_term, post->d_term);
   CVC5_CAPI_TRY_CATCH_END;
+}
+
+Cvc5SynthResult cvc5_check_synth(Cvc5* cvc5)
+{
+  Cvc5SynthResult res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  res = cvc5->export_synth_result(cvc5->d_solver.checkSynth());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5SynthResult cvc5_check_synth_next(Cvc5* cvc5)
+{
+  Cvc5SynthResult res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  res = cvc5->export_synth_result(cvc5->d_solver.checkSynthNext());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_get_synth_solution(Cvc5* cvc5, Cvc5Term term)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_TERM(term);
+  res = cvc5->d_tm->export_term(cvc5->d_solver.getSynthSolution(term->d_term));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
+                                         size_t size,
+                                         const Cvc5Term terms[])
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(terms);
+  res.clear();
+  std::vector<cvc5::Term> cterms;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(terms, i);
+    cterms.push_back(terms[i]->d_term);
+  }
+  auto rterms = cvc5->d_solver.getSynthSolutions(cterms);
+  for (auto& t : rterms)
+  {
+    res.push_back(cvc5->d_tm->export_term(t));
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget target)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_FIND_SYNTH_TARGET(target);
+  cvc5::Term cres = cvc5->d_solver.findSynth(
+      static_cast<cvc5::modes::FindSynthTarget>(target));
+  res = cres.isNull() ? nullptr : cvc5->d_tm->export_term(cres);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_find_synth_with_grammar(Cvc5* cvc5,
+                                      Cvc5FindSynthTarget target,
+                                      Cvc5Grammar grammar)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_FIND_SYNTH_TARGET(target);
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  cvc5::Term cres = cvc5->d_solver.findSynth(
+      static_cast<cvc5::modes::FindSynthTarget>(target), grammar->d_grammar);
+  res = cres.isNull() ? nullptr : cvc5->d_tm->export_term(cres);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_find_synth_next(Cvc5* cvc5)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  cvc5::Term cres = cvc5->d_solver.findSynthNext();
+  res = cres.isNull() ? nullptr : cvc5->d_tm->export_term(cres);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }

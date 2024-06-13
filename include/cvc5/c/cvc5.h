@@ -47,7 +47,7 @@ typedef struct cvc5_result_t* Cvc5Result;
  * which we call "synthesis queries".  This class indicates whether the
  * synthesis query has a solution, has no solution, or is unknown.
  */
-typedef struct Cvc5SynthResult Cvc5SynthResult;
+typedef struct cvc5_synth_result_t* Cvc5SynthResult;
 
 /**
  * The sort of a cvc5 term.
@@ -220,6 +220,13 @@ Cvc5UnknownExplanation cvc5_result_get_unknown_explanation(
  */
 const char* cvc5_result_to_string(const Cvc5Result result);
 
+/**
+ * Compute the hash value of a result.
+ * @param result The result.
+ * @return The hash value of the result.
+ */
+size_t cvc5_result_hash(Cvc5Result result);
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5SynthResult                                                            */
 /* -------------------------------------------------------------------------- */
@@ -230,14 +237,14 @@ const char* cvc5_result_to_string(const Cvc5Result result);
  * @param result The result.
  * @return True if the given result is a nullary result.
  */
-bool cvc5_synth_result_is_null(const Cvc5SynthResult* result);
+bool cvc5_synth_result_is_null(const Cvc5SynthResult result);
 
 /**
  * Determine if the given result is from a synthesis query that has a solution.
  * @param result The result.
  * @return True if the synthesis query has a solution.
  */
-bool cvc5_synth_result_has_solution(const Cvc5SynthResult* result);
+bool cvc5_synth_result_has_solution(const Cvc5SynthResult result);
 
 /**
  * Determine if the given result is from a synthesis query that has no solution.
@@ -245,7 +252,7 @@ bool cvc5_synth_result_has_solution(const Cvc5SynthResult* result);
  * @return True if the synthesis query has no solution. In this case, it
  *         was determined that there was no solution.
  */
-bool cvc5_synth_result_has_no_solution(const Cvc5SynthResult* result);
+bool cvc5_synth_result_has_no_solution(const Cvc5SynthResult result);
 
 /**
  * Determine if the given result is from a synthesis query where its result
@@ -253,7 +260,25 @@ bool cvc5_synth_result_has_no_solution(const Cvc5SynthResult* result);
  * @param result The result.
  * @return True if the result of the synthesis query could not be determined.
  */
-bool cvc5_synth_result_is_unknown(const Cvc5SynthResult* result);
+bool cvc5_synth_result_is_unknown(const Cvc5SynthResult result);
+
+/**
+ * Determine equality of two synthesis results.
+ * @param a The first synthesis result to compare to for equality.
+ * @param b The second synthesis result to compare to for equality.
+ * @return True if the synthesis results are equal.
+ */
+bool cvc5_synth_result_is_equal(const Cvc5SynthResult a,
+                                const Cvc5SynthResult b);
+
+/**
+ * Operator overloading for disequality of two synthesis results.
+ * @param a The first synthesis result to compare to for disequality.
+ * @param b The second synthesis result to compare to for disequality.
+ * @return True if the synthesis results are disequal.
+ */
+bool cvc5_synth_result_is_disequal(const Cvc5SynthResult a,
+                                   const Cvc5SynthResult b);
 
 /**
  * Get the string representation of a given result.
@@ -262,8 +287,14 @@ bool cvc5_synth_result_is_unknown(const Cvc5SynthResult* result);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_synth_result_to_string(const Cvc5SynthResult* result);
+const char* cvc5_synth_result_to_string(const Cvc5SynthResult result);
 
+/**
+ * Compute the hash value of a synthesis result.
+ * @param result The synthesis result.
+ * @return The hash value of the synthesis result.
+ */
+size_t cvc5_synth_result_hash(Cvc5SynthResult result);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Sort                                                                   */
@@ -4767,7 +4798,7 @@ void cvc5_add_sygus_inv_constraint(
  *         getSynthSolutions, "no solution" if it was determined there is no
  *         solution, or "unknown" otherwise.
  */
-Cvc5SynthResult* cvc5_check_synth(Cvc5* cvc5);
+Cvc5SynthResult cvc5_check_synth(Cvc5* cvc5);
 
 /**
  * Try to find a next solution for the synthesis conjecture corresponding to
@@ -4789,7 +4820,7 @@ Cvc5SynthResult* cvc5_check_synth(Cvc5* cvc5);
  *         getSynthSolutions, "no solution" if it was determined there is no
  *         solution, or "unknown" otherwise.
  */
-Cvc5SynthResult* cvc5_check_synth_next(Cvc5* cvc5);
+Cvc5SynthResult cvc5_check_synth_next(Cvc5* cvc5);
 
 /**
  * Get the synthesis solution of the given term. This function should be
@@ -4798,19 +4829,19 @@ Cvc5SynthResult* cvc5_check_synth_next(Cvc5* cvc5);
  * @param term The term for which the synthesis solution is queried.
  * @return The synthesis solution of the given term.
  */
-Cvc5Term cvc5_get_synth_solution(Cvc5Term term);
+Cvc5Term cvc5_get_synth_solution(Cvc5* cvc5, Cvc5Term term);
 
 /**
  * Get the synthesis solutions of the given terms. This function should be
  * called immediately after the solver answers unsat for sygus input.
- * @param cvc5 The solver instance.
+ * @param cvc5  The solver instance.
+ * @param size  The size of the terms array.
  * @param terms The terms for which the synthesis solutions is queried.
- * @param size The size of the resulting solutions array.
  * @return The synthesis solutions of the given terms.
  */
 const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
-                                         const Cvc5Term terms[],
-                                         size_t* size);
+                                         size_t size,
+                                         const Cvc5Term terms[]);
 
 /**
  * Find a target term of interest using sygus enumeration, with no provided
@@ -4828,13 +4859,14 @@ const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
  *     (find-synth :target)
  * \endverbatim
  *
- * @param cvc5 The solver instance.
- * @param fst The identifier specifying what kind of term to find
+ * @param cvc5   The solver instance.
+ * @param target The identifier specifying what kind of term to find
  * @return The result of the find, which is the null term if this call failed.
  *
  * @warning This function is experimental and may change in future versions.
  */
-Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget fst);
+Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget target);
+
 /**
  * Find a target term of interest using sygus enumeration with a provided
  * grammar.
@@ -4847,16 +4879,16 @@ Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget fst);
  *     (find-synth :target G)
  * \endverbatim
  *
- * @param cvc5 The solver instance.
- * @param fst The identifier specifying what kind of term to find
+ * @param cvc5    The solver instance.
+ * @param target  The identifier specifying what kind of term to find
  * @param grammar The grammar for the term
  * @return The result of the find, which is the null term if this call failed.
  *
  * @warning This function is experimental and may change in future versions.
  */
 Cvc5Term cvc5_find_synth_with_grammar(Cvc5* cvc5,
-                                      Cvc5FindSynthTarget fst,
-                                      Cvc5Grammar* grammar);
+                                      Cvc5FindSynthTarget target,
+                                      Cvc5Grammar grammar);
 /**
  * Try to find a next target term of interest using sygus enumeration. Must
  * be called immediately after a successful call to find-synth or
