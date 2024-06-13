@@ -189,32 +189,60 @@
   :conclusion (= t (run_evaluate t))
 )
 
-; ProofRule::ARITH_POLY_NORM
+; rule: arith_poly_norm
+; implements: ProofRule::ARITH_POLY_NORM
+; args:
+; - a U: The left-hand side of the equality.
+; - b U: The right-hand side of the equality.
+; requires: >
+;   That the arithmetic/bitvector expressions a and b are equal up polynomial
+;   normalization.
+; conclusion: The given equality.
 (declare-rule arith_poly_norm ((U Type) (a U) (b U))
   :args ((= a b))
   :requires ((($is_poly_norm a b) true))
   :conclusion (= a b)
 )
 
-(program is_poly_norm_rel ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
+; define: $is_poly_norm_rel
+; args:
+; - r (-> U U Bool): The binary relation to check.
+; - cx U: The scaling factor for (- x1 x2).
+; - cy U: The scaling factor for (- y1 y2).
+; return: >
+;   The result of checking if r is a polynomial normalization relation. If r is
+;   any of '<', '<=', '>=', '>', the scaling factors must have the same sign.
+;   For bitvectors, they must be set to 1. Returns false for any other relation.
+(program $is_poly_norm_rel ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
   (Bool) Bool
   (
-    ((is_poly_norm_rel (< cx cy))   (alf.is_eq ($sgn cx) ($sgn cy)))
-    ((is_poly_norm_rel (<= cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
-    ((is_poly_norm_rel (= cx cy))   (alf.ite (alf.and ($is_bin_literal cx) ($is_bin_literal cy))
+    (($is_poly_norm_rel (< cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel (<= cx cy)) (alf.is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel (= cx cy))  (alf.ite (alf.and ($is_bin_literal cx) ($is_bin_literal cy))
                                       (alf.and (= cx (alf.to_bin (alf.len cx) 1)) (= cy (alf.to_bin (alf.len cy) 1)))
                                       (alf.and (is_arith_type (alf.typeof cx)) (is_arith_type (alf.typeof cy)))))
-    ((is_poly_norm_rel (>= cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
-    ((is_poly_norm_rel (> cx cy))   (alf.is_eq ($sgn cx) ($sgn cy)))
-    ((is_poly_norm_rel b)           false)
+    (($is_poly_norm_rel (>= cx cy)) (alf.is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel (> cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel b)          false)
   )
 )
 
-; ProofRule::ARITH_POLY_NORM_REL
+; rule: arith_poly_norm_rel
+; implements: ProofRule::ARITH_POLY_NORM_REL
+; premises:
+; - (- x1 x2) and (- y1 y2) are equal modulo polynomial normalization and
+;   scaling factors cx and cy.
+; args:
+; - r (-> U U Bool): The relation whose equivalence is proven by this rule.
+; requires: >
+;   That r is a polynomial normalization relation. If r is an arithmetic
+;   inequality, the scaling factors must have the same sign. For bitvectors,
+;   they must be set to 1.
+; conclusion: The given equality.
 (declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x1 U) (x2 U) (y1 U) (y2 U) (cx U) (cy U))
   :premises ((= (* cx (- x1 x2)) (* cy (- y1 y2))))
   :args (r)
-  :requires (((is_poly_norm_rel (r cx cy)) true))
+  :requires ((($is_poly_norm_rel (r cx cy)) true))
   :conclusion (= (r x1 x2) (r y1 y2))
 )
 
