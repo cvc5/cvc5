@@ -3175,4 +3175,31 @@ TEST_F(TestCApiBlackSolver, block_model_values5)
   cvc5_block_model_values(d_solver, args.size(), args.data());
 }
 
+TEST_F(TestCApiBlackSolver, get_instantiations)
+{
+  std::vector<Cvc5Sort> sorts = {d_int};
+  Cvc5Term p =
+      cvc5_declare_fun(d_solver, "p", sorts.size(), sorts.data(), d_bool, true);
+  Cvc5Term x = cvc5_mk_var(d_tm, d_int, "x");
+  std::vector<Cvc5Term> args = {x};
+  Cvc5Term bvl =
+      cvc5_mk_term(d_tm, CVC5_KIND_VARIABLE_LIST, args.size(), args.data());
+  args = {p, x};
+  Cvc5Term app =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {bvl, app};
+  Cvc5Term q = cvc5_mk_term(d_tm, CVC5_KIND_FORALL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, q);
+  Cvc5Term five = cvc5_mk_integer_int64(d_tm, 5);
+  args = {p, five};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data())};
+  Cvc5Term app2 = cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
+  cvc5_assert_formula(d_solver, app2);
+  ASSERT_DEATH(cvc5_get_instantiations(d_solver),
+               "after a UNSAT, SAT or UNKNOWN response");
+  cvc5_check_sat(d_solver);
+  cvc5_get_instantiations(d_solver);
+  ASSERT_DEATH(cvc5_get_instantiations(nullptr), "unexpected NULL argument");
+}
+
 }  // namespace cvc5::internal::test
