@@ -4394,7 +4394,7 @@ Cvc5Term cvc5_get_abduct(Cvc5* cvc5, Cvc5Term conj);
  */
 Cvc5Term cvc5_get_abduct_with_grammar(Cvc5* cvc5,
                                       Cvc5Term conj,
-                                      Cvc5Grammar* grammar);
+                                      Cvc5Grammar grammar);
 
 /**
  * Get the next abduct. Can only be called immediately after a successful
