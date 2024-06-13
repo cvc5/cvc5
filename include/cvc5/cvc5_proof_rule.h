@@ -2542,7 +2542,20 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(STR_IN_RE_EVAL),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - regular expression loop elimination**
+   * **Strings - regular expression membership consume**
+   *
+   * .. math::
+   *   \mathit{str.in_re}(s, R) = b
+   * 
+   * where :math:`b` is either :math:`false` or the result of stripping
+   * entailed prefixes and suffixes off of :math:`s` and :math:`R`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_CONSUME),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - string in regular expression concatenation star character**
    *
    * .. math::
    *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) =

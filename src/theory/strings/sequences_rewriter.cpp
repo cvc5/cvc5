@@ -53,6 +53,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
                            TheoryRewriteCtx::DSL_SUBCALL);
+  registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_CONSUME,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_SIGMA,
@@ -68,6 +70,8 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::RE_LOOP_ELIM:
       return rewriteViaReLoopElim(n);
     case ProofRewriteRule::STR_IN_RE_EVAL: return rewriteViaStrInReEval(n);
+    case ProofRewriteRule::STR_IN_RE_CONSUME:
+      return rewriteViaStrInReConsume(n);
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
       return rewriteViaStrInReConcatStarChar(n);
     case ProofRewriteRule::STR_IN_RE_SIGMA: return rewriteViaStrInReSigma(n);
@@ -1468,6 +1472,40 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_EMPTY);
   }
   return node;
+}
+
+Node SequencesRewriter::rewriteViaStrInReConsume(const Node& node)
+{
+  if (node.getKind() != Kind::STRING_IN_REGEXP)
+  {
+    return Node::null();
+  }
+  std::vector<Node> children;
+  utils::getConcat(node[1], children);
+  std::vector<Node> mchildren;
+  utils::getConcat(node[0], mchildren);
+  Node scn = RegExpEntail::simpleRegexpConsume(mchildren, children);
+  if (!scn.isNull())
+  {
+    return scn;
+  }
+  else
+  {
+    // Given a membership (str.++ x1 ... xn) in (re.++ r1 ... rm),
+    // above, we strip components to construct an equivalent membership:
+    // (str.++ xi .. xj) in (re.++ rk ... rl).
+    Node xn = utils::mkConcat(mchildren, node[0].getType());
+    // construct the updated regular expression
+    Node newMem =
+        nodeManager()->mkNode(Kind::STRING_IN_REGEXP,
+                              xn,
+                              utils::mkConcat(children, node[1].getType()));
+    if (newMem != node)
+    {
+      return newMem;
+    }
+  }
+  return Node::null();
 }
 
 Node SequencesRewriter::rewriteMembership(TNode node)
