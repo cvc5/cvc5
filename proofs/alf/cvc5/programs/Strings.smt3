@@ -766,7 +766,10 @@
                                               ($str_re_includes r1
                                                 (alf.match ((r3 RegLan))
                                                   r2
-                                                  (((re.* r3) r3) (r3 r3))))))
+                                                  (
+                                                    ((re.* r3) r3) ; use the body if a star
+                                                    (r3 r3)        ; otherwise use self
+                                                  )))))
   (($str_re_includes_lhs_star r1 r2)        false)
   )
 )
