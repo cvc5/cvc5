@@ -245,7 +245,7 @@ Node AlfNodeConverter::postConvert(Node n)
     std::vector<Node> newArgs;
     newArgs.push_back(nm->mkConstInt(irp.d_index));
     newArgs.insert(newArgs.end(), n.begin(), n.end());
-    return mkInternalApp("INDEXED_ROOT_PREDICATE", newArgs, tn);
+    return mkInternalApp("@indexed_root_predicate", newArgs, tn);
   }
   else if (k == Kind::FLOATINGPOINT_COMPONENT_NAN
            || k == Kind::FLOATINGPOINT_COMPONENT_INF
@@ -602,11 +602,6 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     else
     {
       opName << printer::smt2::Smt2Printer::smtKindString(k);
-      if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-          || k == Kind::INTS_MODULUS_TOTAL)
-      {
-        opName << "_total";
-      }
     }
   }
   std::vector<Node> args(n.begin(), n.end());

@@ -205,11 +205,13 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   switch (id)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
+    case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:
-    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return true;
+    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
+    case ProofRewriteRule::STR_IN_RE_CONSUME: return true;
     default: break;
   }
   return false;

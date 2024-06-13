@@ -62,18 +62,6 @@ class Plugin
    * @return the name of the plugin.
    */
   virtual std::string getName() = 0;
-  /**
-   * Get sharable formula. This returns an equivalent version of the given
-   * lemma n that can be shared externally. In particular, we require that the
-   * returned formula does not have any internally generated symbols, i.e.
-   * skolems. If n cannot be converted to a suitable formula, we return the
-   * null node.
-   *
-   * @param n The candidate formula to share.
-   * @return A tranformed version of n that is its represenation in a sharable
-   * form. If n cannot be tranformed, this returns null.
-   */
-  Node getSharableFormula(const Node& n) const;
 
  private:
   /** Pointer to node manager */

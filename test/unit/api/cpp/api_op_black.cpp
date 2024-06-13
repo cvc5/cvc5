@@ -31,9 +31,8 @@ TEST_F(TestApiBlackOp, hash)
 
 TEST_F(TestApiBlackOp, getKind)
 {
-  Op x;
-  x = d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1});
-  ASSERT_NO_THROW(x.getKind());
+  Op x = d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1});
+  ASSERT_EQ(x.getKind(), Kind::BITVECTOR_EXTRACT);
 }
 
 TEST_F(TestApiBlackOp, isNull)

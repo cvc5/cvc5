@@ -18,3 +18,36 @@
     ((substitute_list @list.nil @list.nil F)       F)
   )
 )
+
+
+; program: $substitute_simul
+; args:
+; - s S: The term to substitute into.
+; - xs @List: The list of variables to substitute.
+; - ss @List: The terms to substitute.
+; return: the result of simultaneously substituting xs to ss in t.
+(program $substitute_simul
+  ((T Type) (S Type) (x S) (f (-> T S)) (a T) (xs @List :list) (ss @List :list) (s S) (y S))
+  (S @List @List) S
+  (
+  (($substitute_simul (f a) xs ss)                  (_ ($substitute_simul f xs ss) ($substitute_simul a xs ss)))
+  (($substitute_simul x @list.nil @list.nil)        x)
+  (($substitute_simul x (@list x xs) (@list s ss))  s)  ; note that we do not substitute further since this is a simultaneous substitution.
+  (($substitute_simul x (@list y xs) (@list s ss))  ($substitute_simul x xs ss))
+  )
+)
+
+; program: $beta_reduce
+; args:
+; - u U: >
+;   The term to beta reduce. This should be an application of a lambda
+;   whose arguments have been partially accumulated into ss.
+; - ss @List: The accumulated list of arguments to pass to the lambda.
+; return: the result of beta reduction.
+(program $beta_reduce ((U Type) (T Type) (S Type) (f (-> T U)) (a T) (t S) (xs @List) (ss @List :list))
+  (U @List) U
+  (
+  (($beta_reduce (lambda xs t) ss) ($substitute_simul t xs ss))
+  (($beta_reduce (f a) ss)         ($beta_reduce f (@list a ss)))
+  )
+)

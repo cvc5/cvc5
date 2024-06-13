@@ -67,6 +67,12 @@
   )
 )
 
+; `$str_is_char_range s1 s2` returns true if (re.range s1 s2) is a character
+; range (i.e. s1 and s2 are strings of length 1).
+(define $str_is_char_range ((s1 String) (s2 String))
+  (alf.and (alf.is_eq (alf.len s1) 1) (alf.is_eq (alf.len s2) 1))
+)
+
 ;;-------------------- RE evaluation
 
 (declare-const @re.null RegLan)
@@ -179,7 +185,7 @@
 (define $str_rev ((U Type :implicit) (rev Bool) (t U)) 
   (alf.ite rev (nary.reverse t) t))
 
-; Nary-intro, which ensures that the input t is a str.++ application.
+; String nary-intro, which ensures that the input t is a str.++ application.
 ; In particular, if it is not a str.++ and not the empty string, then we return
 ; (str.++ t empty) where empty is the empty string for the type of t.
 (program $str_nary_intro
@@ -192,9 +198,21 @@
     )
 )
 
-; Nary-elimination, which ensures that the input t is not a str.++ application.
-; In particular, if t is of the form (str.++ t empty) where empty is the empty
-; string for the type of t, we return t.
+; Regular expression nary-intro, which ensures that the input t is a re.++
+; application. In particular, if it is not a re.++ and not the empty regular
+; expression, then we return (re.++ t @re.empty).
+(program $re_nary_intro ((t RegLan) (ss RegLan :list))
+    (RegLan) RegLan
+    (
+        (($re_nary_intro (re.++ t ss))    (re.++ t ss))
+        (($re_nary_intro @re.empty)       @re.empty)
+        (($re_nary_intro t)               (alf.cons re.++ t @re.empty))
+    )
+)
+
+; String nary-elimination, which ensures that the input t is not a str.++
+; application. In particular, if t is of the form (str.++ t1 empty) where empty
+; is the empty string for the type of t, we return t1.
 (program $str_nary_elim
     ((T Type) (t (Seq T)) (ss (Seq T) :list))
     ((Seq T)) (Seq T)
@@ -202,6 +220,17 @@
         (($str_nary_elim (str.++ t ss)) (let ((nil (mk_emptystr (alf.typeof t))))
                                            (alf.ite (alf.is_eq ss nil) t (str.++ t ss))))
         (($str_nary_elim t)             ($str_self_if_empty t))
+    )
+)
+
+; Regular expression nary-elimination, which ensures that the input t is not a
+; re.++ application. In particular, if t is of the form (re.++ t1 @re.empty),
+; we return t1.
+(program $re_nary_elim ((t RegLan) (ss RegLan :list))
+    (RegLan) RegLan
+    (
+        (($re_nary_elim (re.++ t ss)) (alf.ite (alf.is_eq ss @re.empty) t (re.++ t ss)))
+        (($re_nary_elim t)            t)
     )
 )
 
@@ -345,7 +374,7 @@
 (program re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
   (String RegLan RegLan Int) (@Pair String Bool)
   (
-    ((re_unfold_pos_concat_rec t (str.to_re "") ro i)       (@pair "" true))
+    ((re_unfold_pos_concat_rec t @re.empty ro i)       (@pair "" true))
     ((re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
       ; match recursive call
       (alf.match ((c String :list) (M Bool :list))
@@ -562,9 +591,9 @@
 ; where d>0. This is the regular expression:
 ;   (re.union r^n ... r^{n+d})
 ; where r^k is (re.++ r ... r), where r is repeated k times when k>1, or
-; r if k=1 or (str.to_re "") if k=0.
+; r if k=1 or @re.empty if k=0.
 (define $str_mk_re_loop_elim ((n Int) (d Int) (r RegLan))
-  ($singleton_elim ($str_mk_re_loop_elim_rec n d r (str.to_re "")))
+  ($singleton_elim ($str_mk_re_loop_elim_rec n d r @re.empty))
 )
 
 ; Helper for ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR.
@@ -620,6 +649,29 @@
   ($str_rev rev ($str_flatten ($str_nary_intro s)))
 )
 
+; `$re_str_to_flat_form rev r` convert the strings s occurring as direct
+; children (str.to_re s) of regular expression concatenation r to their flat
+; form, reversing if rev is true.
+(program $re_str_to_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
+  (Bool RegLan) RegLan
+  (
+    (($re_str_to_flat_form rev (re.++ (str.to_re s) r2))  (alf.cons re.++ (str.to_re (string_to_flat_form s rev)) ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev (re.++ r1 r2))             (alf.cons re.++ r1 ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev r1)                        r1)
+  )
+)
+
+; Converts a regular expression term to "flat form". This consists of the
+; following steps:
+; (1) convert r to n-ary form if it not already a re.++ application,
+; (2) (optionally) reverse,
+; (3) convert the strings s occurring as direct children (str.to_re s) of the
+; result to their flat form. Note that other strings in r, i.e. those that
+; occur benath other children remain unchanged.
+(define $re_to_flat_form ((r RegLan) (rev Bool))
+  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
+)
+
 ; Converts a term in "flat form" to a term that is in a form that corresponds
 ; to one in cvc5 rewritten form. This is the dual method to
 ; string_to_flat_form. This consists of the following steps:
@@ -629,4 +681,159 @@
 (define string_from_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; reverse, collect, elim
   ($str_nary_elim (string_collect ($str_rev rev s)))
+)
+
+; `$re_str_from_flat_form rev r` convert the strings s occurring as direct
+; children (str.to_re s) of regular expression concatenation r from their flat
+; form, reversing if rev is true.
+(program $re_str_from_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
+  (Bool RegLan) RegLan
+  (
+    (($re_str_from_flat_form rev (re.++ (str.to_re s) r2))  (alf.cons re.++ (str.to_re (string_from_flat_form s rev)) ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev (re.++ r1 r2))             (alf.cons re.++ r1 ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev r1)                        r1)
+  )
+)
+
+; Converts a regular expression term in "flat form" to a term that is in a form
+; that corresponds to one in cvc5 rewritten form. This is the dual method to
+; $re_to_flat_form. This consists of the following steps:
+; (1) convert the strings s occurring as direct children (str.to_re s) from their flat form,
+; (2) (optionally) reverse,
+; (3) eliminate n-ary form to its element if the term is a singleton list.
+(define $re_from_flat_form ((r RegLan) (rev Bool))
+  ; (un?)flatten, reverse, elim
+  ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
+)
+
+; program: $str_re_consume_rec
+; args:
+; - s String: The string argument of the membership to rewrite.
+; - r RegLan: The regular expression argument of the membership to rewrite.
+; - b Bool: >
+;   Stores temporary results when we are processing a union or intersection
+;   regular expression as argument r. Otherwise, this argument is @result.null.
+; - rev Bool: >
+;   Indicates whether s and r were reversed, in which case their components must
+;   be reversed when we recurse on non-str.to_re children.
+; return: >
+;   The result of implied consumption of string s in regular expression r.
+(program $str_re_consume_rec ((s1 String) (s2 String :list) (s String) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool))
+  (String RegLan Bool Bool) Bool
+  (
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ r1 r2) @result.null rev)  
+        (alf.match ((s3 String) (s4 String :list) (s5 String) (r3 RegLan))
+          r1
+          (
+          ((str.to_re (str.++ s3 s4)) (alf.ite (alf.is_eq s1 s3)
+                                        ($str_re_consume_rec s2 (re.++ (str.to_re s4) r2) @result.null rev)
+                                        (alf.ite (alf.and (string_check_length_one s1) (string_check_length_one s3))
+                                          false                                       ; conflicting characters
+                                          (str.in_re (str.++ s1 s2) (re.++ r1 r2))))) ; otherwise stuck
+          (@re.empty                  ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)) ; finished current component
+          ((re.range s3 s5)           (alf.ite (alf.and (string_check_length_one s1) ($str_is_char_range s3 s5))
+                                        (alf.ite ($str_eval_str_in_re s1 (re.range s3 s5))
+                                          ($str_re_consume_rec s2 r2 @result.null rev)
+                                          false)
+                                        (str.in_re (str.++ s1 s2) (re.++ r1 r2))))
+          (re.allchar                 (alf.ite (string_check_length_one s1)
+                                        ($str_re_consume_rec s2 r2 @result.null rev)
+                                        (str.in_re (str.++ s1 s2) (re.++ r1 r2))))
+          ((re.* r3)                  ; see what happens if we unroll once
+                                      (alf.match ((sr String) (rr RegLan))
+                                        ($str_re_consume_rec (str.++ s1 s2) ($re_to_flat_form r3 rev) @result.null rev)
+                                        (
+                                          ; We can't unroll even once, thus we must skip it.
+                                          (false                     ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev))
+                                          ; If we fully consumed, now we go back and check if we get a conflict if we skip.
+                                          ((str.in_re sr @re.empty)  (alf.match ((br Bool))
+                                                                        ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)
+                                                                        (
+                                                                          ; Skipping would give a conflict.
+                                                                          (false (alf.ite (alf.is_eq (str.++ s1 s2) sr)
+                                                                                    ; if we did not consume anything, we are stuck.
+                                                                                    (str.in_re (str.++ s1 s2) (re.++ r1 r2))
+                                                                                    ; otherwise, we continue with the RE consumed once.
+                                                                                    ($str_re_consume_rec sr (re.++ r1 r2) @result.null rev)
+                                                                                  ))
+                                                                          ; Otherwise we are stuck.
+                                                                          (br    (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
+                                                                        )
+                                                                      ))
+                                          ; Otherwise we are stuck.
+                                          ((str.in_re sr rr)          (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
+                                        )
+                                      ))
+          (r3                         ; likely intersection or union, process cases recursively
+                                      (alf.match ((sr String) (br Bool))
+                                        ($str_re_consume_rec (str.++ s1 s2) r3 @result.null rev)
+                                        (
+                                          ; conflict
+                                          (false                     false)
+                                          ; if all cases consumed the same, continue
+                                          ((str.in_re sr @re.empty)  ($str_re_consume_rec sr r2 @result.null rev))
+                                          ; otherwise we are stuck
+                                          (br                        (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
+                                        )
+                                      ))
+          )
+        )
+    )
+    (($str_re_consume_rec s1 (re.++ @re.empty r2) @result.null rev)
+      ($str_re_consume_rec s1 r2 @result.null rev)) ; finished current component
+    ; Intersection reports conflicts eagerly, and otherwise combines the results
+    (($str_re_consume_rec s1 (re.inter r1 r2) b rev)   (let ((r1r ($re_to_flat_form r1 rev)))
+                                                       (alf.match ((bb Bool))
+                                                          ($str_re_consume_rec s1 r1r @result.null rev)
+                                                          (
+                                                            (false  false)
+                                                            (bb     ($str_re_consume_rec s1 r2 ($result_combine bb b) rev))
+                                                          )
+                                                       )))
+    (($str_re_consume_rec s1 re.all @result.null rev)  (str.in_re "" @re.empty)) ; only used if re.all appears in unexpected position
+    (($str_re_consume_rec s1 re.all b rev)             b)                        ; end of re.inter
+    ; Union ignores conflicts, and otherwise combines the results. We report a conflict if all children give conflicts.
+    (($str_re_consume_rec s1 (re.union r1 r2) b rev)   (let ((r1r ($re_to_flat_form r1 rev)))
+                                                       (alf.match ((bb Bool))
+                                                          ($str_re_consume_rec s1 r1r @result.null rev)
+                                                          (
+                                                            (false  ($str_re_consume_rec s1 r2 b rev))
+                                                            (bb     ($str_re_consume_rec s1 r2 ($result_combine bb b) rev))
+                                                          )
+                                                       )))
+    (($str_re_consume_rec s1 re.none @result.null rev) false)     ; end of re.union, conflict, also used if re.none appears in unexpected position
+    (($str_re_consume_rec s1 re.none b rev)            b)         ; end of re.union, no conflict
+    (($str_re_consume_rec s1 r1 @result.null rev)      (str.in_re s1 r1))
+  )
+)
+
+; `$str_re_consume
+; args:
+; - s String: The string argument of the membership to rewrite.
+; - r RegLan: The regular expression argument of the membership to rewrite.
+; returns: >
+;   false if `(str.in_re s r)` can be shown to be equivalent to false, or
+;   otherwise `(str.in_re sr rr)` where sr and rr are the result of "consuming"
+;   prefixes/suffixes from s and r. We consume from the end of s and r first by
+;   reversing them initially and converting them to flat forms. We then reverse
+;   them again and consume from the beginning of the remainder. Finally, we convert
+;   back from flat form when applicable.
+(define $str_re_consume ((s String) (r RegLan))
+  (let ((ss (string_to_flat_form s true)))  
+  (let ((rr ($re_to_flat_form r true)))
+  (alf.match ((s1 String) (r1 RegLan))
+      ($str_re_consume_rec ss rr @result.null true)
+      (
+        (false              false)
+        ((str.in_re s1 r1)  (let ((s1r ($str_rev true s1)) (r1r ($re_to_flat_form r1 true)))
+                            (alf.match ((s2 String) (r2 RegLan))
+                              ($str_re_consume_rec s1r r1r @result.null false)
+                              (
+                                (false              false)
+                                ((str.in_re s2 r2)  (str.in_re (string_from_flat_form s2 false) ($re_from_flat_form r2 false)))
+                              )
+                            ))
+        )
+      )
+  )))
 )
