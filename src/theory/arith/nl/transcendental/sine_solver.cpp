@@ -145,11 +145,13 @@ void SineSolver::doReductions()
   }
 }
 
-Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
+Node SineSolver::getPhaseShiftLemma(const Node& x)
 {
+  Node y = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY_ARG, n);
+  Node s = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT, n);
   NodeManager* nm = NodeManager::currentNM();
-  Node xr = (x.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, x) : x);
-  Node yr = (y.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, y) : y);
+  Assert (x.getType().isReal());
+  Assert (y.getType().isReal());
   Node mone = nm->mkConstReal(Rational(-1));
   Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   return nm->mkAnd(std::vector<Node>{
@@ -161,8 +163,8 @@ Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
                      nm->mkNode(Kind::GEQ, x, nm->mkNode(Kind::MULT, mone, pi)),
                      nm->mkNode(Kind::LEQ, x, pi),
                  }),
-                 xr.eqNode(yr),
-                 xr.eqNode(nm->mkNode(
+                 x.eqNode(y),
+                 x.eqNode(nm->mkNode(
                      Kind::ADD,
                      y,
                      nm->mkNode(Kind::MULT, nm->mkConstReal(2), s, pi)))),
@@ -196,7 +198,7 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a)
         sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT, {a[0]});
     // TODO (cvc4-projects #47) : do not introduce shift here, instead needs
     // model-based refinement for constant shifts (cvc4-projects #1284)
-    lem = getPhaseShiftLemma(a[0], new_a[0], shift);
+    lem = getPhaseShiftLemma(a[0]);
     if (d_data->isProofEnabled())
     {
       proof = d_data->getProof();

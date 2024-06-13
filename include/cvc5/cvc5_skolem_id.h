@@ -162,6 +162,9 @@ enum ENUM(SkolemId) : uint32_t
   EVALUE(TRANSCENDENTAL_PURIFY_ARG),
   /**
    * Argument used to reason about the phase shift of arguments to sine.
+   * In particular, this is an integral rational indicating the number of times
+   * ``2*pi`` is added a real value between ``-pi`` and ``pi`` to obtain the
+   * value of argument to sine.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The argument to sine.
