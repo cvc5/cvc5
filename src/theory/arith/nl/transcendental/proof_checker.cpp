@@ -227,11 +227,8 @@ Node TranscendentalProofRuleChecker::checkInternal(
   else if (id == ProofRule::ARITH_TRANS_SINE_SHIFT)
   {
     Assert(children.empty());
-    Assert(args.size() == 3);
-    const auto& x = args[0];
-    const auto& y = args[1];
-    const auto& s = args[2];
-    return SineSolver::getPhaseShiftLemma(x, y, s);
+    Assert(args.size() == 1);
+    return SineSolver::getPhaseShiftLemma(args[0]);
   }
   else if (id == ProofRule::ARITH_TRANS_SINE_SYMMETRY)
   {

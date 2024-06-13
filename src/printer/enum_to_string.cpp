@@ -38,6 +38,8 @@ const char* toString(cvc5::SkolemId id)
       return "transcendental_purify";
     case cvc5::SkolemId::TRANSCENDENTAL_PURIFY_ARG:
       return "transcendental_purify_arg";
+    case cvc5::SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:
+      return "transcendental_sine_phase_shift";
     case cvc5::SkolemId::SHARED_SELECTOR: return "shared_selector";
     case cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE:
       return "quantifiers_skolemize";

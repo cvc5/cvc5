@@ -160,6 +160,17 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``Real``
    */
   EVALUE(TRANSCENDENTAL_PURIFY_ARG),
+  /**
+   * Argument used to reason about the phase shift of arguments to sine.
+   * In particular, this is an integral rational indicating the number of times
+   * ``2*pi`` is added a real value between ``-pi`` and ``pi`` to obtain the
+   * value of argument to sine.
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` The argument to sine.
+   * - Sort: ``Real``
+   */
+  EVALUE(TRANSCENDENTAL_SINE_PHASE_SHIFT),
   /** 
    * A shared datatype selector, see Reynolds et. al. "Datatypes with Shared
    * Selectors", IJCAR 2018. Represents a selector that can extract fields

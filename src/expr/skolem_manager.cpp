@@ -407,7 +407,8 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       return nm->mkFunctionType(rtype, rtype);
     }
     // real skolems
-    case SkolemId::TRANSCENDENTAL_PURIFY_ARG: return nm->realType();
+    case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
+    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT: return nm->realType();
     // int -> int function
     case SkolemId::INT_DIV_BY_ZERO:
     case SkolemId::MOD_BY_ZERO:
@@ -597,6 +598,7 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::GROUND_TERM:
     case SkolemId::TRANSCENDENTAL_PURIFY:
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
+    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:
     case SkolemId::STRINGS_ITOS_RESULT:
     case SkolemId::STRINGS_STOI_RESULT:
