@@ -8,7 +8,7 @@
 ; Note that this is only for the purposes of simplifying the type rules below.
 ; Internally, cvc5 will never generate any proofs involving the Char type.
 (declare-type Char ())
-(define-fun String () Type (Seq Char))
+(define String () (Seq Char))
 
 ; The regular expression type.
 (declare-type RegLan ())
