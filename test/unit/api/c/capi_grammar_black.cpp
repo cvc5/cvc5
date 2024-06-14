@@ -283,4 +283,24 @@ TEST_F(TestCApiBlackGrammar, hash)
   }
   ASSERT_DEATH(cvc5_grammar_hash(nullptr), "invalid grammar");
 }
+
+TEST_F(TestCApiBlackGrammar, copy_release)
+{
+  ASSERT_DEATH(cvc5_grammar_copy(nullptr), "invalid grammar");
+  ASSERT_DEATH(cvc5_grammar_release(nullptr), "invalid grammar");
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
+  Cvc5Term x = cvc5_mk_var(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> bvars = {x};
+  std::vector<Cvc5Term> symbols = {start};
+  Cvc5Grammar g1 = cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  Cvc5Grammar g2 = cvc5_grammar_copy(g1);
+  ASSERT_EQ(cvc5_grammar_hash(g1), cvc5_grammar_hash(g2));
+  cvc5_grammar_release(g1);
+  ASSERT_EQ(cvc5_grammar_hash(g1), cvc5_grammar_hash(g2));
+  cvc5_grammar_release(g1);
+  // we cannot reliably check that querying on the (now freed) grammar fails
+  // unless ASAN is enabled
+}
 }  // namespace cvc5::internal::test

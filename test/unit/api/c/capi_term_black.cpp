@@ -58,6 +58,22 @@ TEST_F(TestCApiBlackTerm, hash)
   ASSERT_NE(cvc5_term_hash(x), cvc5_term_hash(y));
 }
 
+TEST_F(TestCApiBlackTerm, copy_release)
+{
+  ASSERT_DEATH(cvc5_term_copy(nullptr), "invalid term");
+  ASSERT_DEATH(cvc5_term_release(nullptr), "invalid term");
+  Cvc5Term tint = cvc5_mk_integer_int64(d_tm, 2);
+  size_t hash1 = cvc5_term_hash(tint);
+  Cvc5Term tint_copy = cvc5_term_copy(tint);
+  size_t hash2 = cvc5_term_hash(tint_copy);
+  ASSERT_EQ(hash1, hash2);
+  cvc5_term_release(tint);
+  ASSERT_EQ(cvc5_term_hash(tint), cvc5_term_hash(tint_copy));
+  cvc5_term_release(tint);
+  // we cannot reliably check that querying on the (now freed) term fails
+  // unless ASAN is enabled
+}
+
 TEST_F(TestCApiBlackTerm, compare)
 {
   Cvc5Term x = cvc5_mk_var(d_tm, d_uninterpreted, "x");

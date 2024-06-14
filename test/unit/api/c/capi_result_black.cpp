@@ -148,4 +148,23 @@ TEST_F(TestCApiBlackResult, hash)
   ASSERT_NE(cvc5_result_hash(res1), cvc5_result_hash(res2));
   ASSERT_DEATH(cvc5_result_hash(nullptr), "invalid result");
 }
+
+TEST_F(TestCApiBlackResult, copy_release)
+{
+  ASSERT_DEATH(cvc5_result_copy(nullptr), "invalid result");
+  ASSERT_DEATH(cvc5_result_release(nullptr), "invalid result");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  Cvc5Result res1 = cvc5_check_sat(d_solver);
+  Cvc5Result res2 = cvc5_result_copy(res1);
+  ASSERT_EQ(cvc5_result_hash(res1), cvc5_result_hash(res2));
+  cvc5_result_release(res1);
+  ASSERT_EQ(cvc5_result_hash(res1), cvc5_result_hash(res2));
+  cvc5_result_release(res1);
+  // we cannot reliably check that querying on the (now freed) result fails
+  // unless ASAN is enabled
+}
+
 }  // namespace cvc5::internal::test
