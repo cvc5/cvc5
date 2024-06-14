@@ -195,4 +195,12 @@ class Cvc5CApiAbortStream
   CVC5_API_CHECK(grammar != nullptr) << "invalid grammar"
 
 /* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_STAT(stat) \
+  CVC5_API_CHECK(stat != nullptr) << "invalid statistic"
+
+#define CVC5_CAPI_CHECK_STATS(stat) \
+  CVC5_API_CHECK(stat != nullptr) << "invalid statistics"
+
+/* -------------------------------------------------------------------------- */
 }

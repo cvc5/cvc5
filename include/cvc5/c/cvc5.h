@@ -123,9 +123,14 @@ typedef struct Cvc5OptionInfo Cvc5OptionInfo;
 typedef struct cvc5_proof_t* Cvc5Proof;
 
 /**
+ * A cvc5 statistic.
+ */
+typedef struct cvc5_stat_t* Cvc5Stat;
+
+/**
  * A cvc5 statistics instance.
  */
-typedef struct Cvc5Statistics Cvc5Statistics;
+typedef struct cvc5_stats_t* Cvc5Statistics;
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Result                                                                 */
@@ -3405,6 +3410,147 @@ bool cvc5_proof_is_disequal(Cvc5Proof a, Cvc5Proof b);
 size_t cvc5_proof_hash(Cvc5Proof proof);
 
 /* -------------------------------------------------------------------------- */
+/* Cvc5Stat                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Determine if a given statistic is intended for internal use only.
+ * @param stat The statistic.
+ * @return True if this is an internal statistic.
+ */
+bool cvc5_stat_is_internal(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistics statistic holds the default value.
+ * @param stat The statistic.
+ * @return True if this is a defaulted statistic.
+ */
+bool cvc5_stat_is_default(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistic holds an integer value.
+ * @param stat The statistic.
+ * @return True if this value is an integer.
+ */
+bool cvc5_stat_is_int(Cvc5Stat stat);
+
+/**
+ * Get the value of an integer statistic.
+ * @param stat The statistic.
+ * @return The integer value.
+ */
+int64_t cvc5_stat_get_int(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistic holds a double value.
+ * @param stat The statistic.
+ * @return True if this value is a double.
+ */
+bool cvc5_stat_is_double(Cvc5Stat stat);
+
+/**
+ * Get the value of a double statistic.
+ * @param stat The statistic.
+ * @return The double value.
+ */
+double cvc5_stat_get_double(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistic holds a string value.
+ * @param stat The statistic.
+ * @return True if this value is a string.
+ */
+bool cvc5_stat_is_string(Cvc5Stat stat);
+
+/**
+ * Get value of a string statistic.
+ * @param stat The statistic.
+ * @return The string value.
+ * @note The returned char pointer is only valid until the next call
+ *       to this function.
+ */
+const char* cvc5_stat_get_string(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistic holds a histogram.
+ * @param stat The statistic.
+ * @return True if this value is a histogram.
+ */
+bool cvc5_stat_is_histogram(Cvc5Stat stat);
+
+/**
+ * Get the value of a histogram statistic.
+ * @param stat The statistic.
+ * @return The histogram value.
+ */
+void cvc5_stat_get_histogram(Cvc5Stat stat,
+                             const char** keys[],
+                             uint64_t* values[],
+                             size_t* size);
+
+/**
+ * Get a string representation of a given statistic.
+ * @param stat The statistic.
+ * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+const char* cvc5_stat_to_string(Cvc5Stat stat);
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Statistics                                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Initialize iteration over the statistics values.
+ * By default, only entries that are public and have been set
+ * are visible while the others are skipped.
+ * @param stat The statistics.
+ * @param internal If set to true, internal statistics are shown as well.
+ * @param dflt     If set to true, defaulted statistics are shown as well.
+ */
+void cvc5_stats_iter_init(Cvc5Statistics stat, bool internal, bool dflt);
+
+/**
+ * Determine if statistics iterator has more statitics to query.
+ * @note Requires that iterator was initialized with `cvc5_stats_iter_init()`.
+ * @param stat The statistics.
+ * @return True if the iterator has more statistics to query.
+ */
+bool cvc5_stats_iter_has_next(Cvc5Statistics stat);
+
+/**
+ * Get next statistic and increment iterator.
+ * @note Requires that iterator was initialized with `cvc5_stats_iter_init()`
+ *       and that `cvc5_stats_iter_has_next()`.
+ * @param stat The statistics.
+ * @param name The output parameter for the name of the returned statistic.
+ *             May be NULL to ignore.
+ * @note       The returned char* pointer are only valid until the next call to
+ *             this function.
+ * @return The next statistic.
+ */
+Cvc5Stat cvc5_stats_iter_next(Cvc5Statistics stat, const char** name);
+
+/**
+ * Retrieve the statistic with the given name.
+ * @note Requires that a statistic with the given name actually exists.
+ * @param stat The statistics.
+ * @param name The name of the statistic.
+ * @return The statistic with the given name.
+ */
+Cvc5Stat cvc5_stats_get(Cvc5Statistics stat, const char* name);
+
+/**
+ * Get a string representation of a given statistics object.
+ * @param stat The statistics.
+ * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+const char* cvc5_stats_to_string(Cvc5Statistics stat);
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -4804,7 +4950,9 @@ Cvc5SynthResult cvc5_check_synth(Cvc5* cvc5);
  * Try to find a next solution for the synthesis conjecture corresponding to
  * the current list of functions-to-synthesize, universal variables and
  * constraints. Must be called immediately after a successful call to
- * check-synth or check-synth-next. Requires incremental mode.
+ * check-synth or check-synth-next.
+ *
+ * @note Requires incremental mode.
  *
  * SyGuS v2:
  *
@@ -4913,13 +5061,15 @@ Cvc5Term cvc5_find_synth_next(Cvc5* cvc5);
  * Get a snapshot of the current state of the statistic values of this
  * solver. The returned object is completely decoupled from the solver and
  * will not change when the solver is used again.
+ * @param cvc5 The solver instance.
  * @return A snapshot of the current state of the statistic values.
  */
-Cvc5Statistics* cvc5_get_stats(Cvc5* cvc5);
+Cvc5Statistics cvc5_get_statistics(Cvc5* cvc5);
 
 /**
  * Print the statistics to the given file descriptor, suitable for usage in
  * signal handlers.
+ * @param cvc5 The solver instance.
  * @param fd The file descriptor.
  */
 void cvc5_print_stats_safe(Cvc5* cvc5, int fd);
@@ -4927,10 +5077,13 @@ void cvc5_print_stats_safe(Cvc5* cvc5, int fd);
 /**
  * Determines if the output stream for the given tag is enabled. Tags can be
  * enabled with the `output` option (and `-o <tag>` on the command line).
- * Raises an exception when an invalid tag is given.
+ *
+ * @note Requires that a valid tag is given.
+ *
+ * @param cvc5 The solver instance.
  * @return True if the given tag is enabled.
  */
-bool cvc5_is_output_on(const char* tag);
+bool cvc5_is_output_on(Cvc5* cvc5, const char* tag);
 
 /**
  * Get a string representation of the version of this solver.
