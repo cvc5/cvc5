@@ -5021,9 +5021,34 @@ Stat::Stat(bool internal, bool defaulted, StatData&& sd)
 {
 }
 
-std::ostream& operator<<(std::ostream& os, const Stat& sv)
+bool Stat::operator==(const Stat& stat) const
 {
-  return internal::detail::print(os, sv.d_data->data);
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_data.get() == stat.d_data.get();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Stat::operator!=(const Stat& stat) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_data.get() != stat.d_data.get();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Stat::toString() const
+{
+  std::stringstream ss;
+  internal::detail::print(ss, d_data->data);
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const Stat& stat)
+{
+  return internal::detail::print(os, stat.d_data->data);
 }
 
 Statistics::BaseType::const_reference Statistics::iterator::operator*() const
@@ -5125,13 +5150,38 @@ Statistics::Statistics(const internal::StatisticsRegistry& reg)
   }
 }
 
+std::string Statistics::toString() const
+{
+  std::stringstream ss;
+  for (const auto& stat : *this)
+  {
+    ss << stat.first << " = " << stat.second << std::endl;
+  }
+  return ss.str();
+}
+
 std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 {
-  for (const auto& stat : stats)
-  {
-    out << stat.first << " = " << stat.second << std::endl;
-  }
+  out << stats.toString();
   return out;
+}
+
+bool Statistics::operator==(const Statistics& stat) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return this == &stat;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Statistics::operator!=(const Statistics& stat) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return this != &stat;
+  ////////
+  CVC5_API_TRY_CATCH_END;
 }
 
 /*--------------------------------------------------------------------------- */
@@ -9049,6 +9099,18 @@ size_t hash<cvc5::Grammar>::operator()(const cvc5::Grammar& grammar) const
     return 0;
   }
   return std::hash<cvc5::internal::SygusGrammar>{}(*grammar.d_grammar);
+}
+
+size_t hash<cvc5::Stat>::operator()(const cvc5::Stat& stat) const
+{
+  std::cout << "pointer: " << stat.d_data.get() << std::endl;
+  std::cout << "hash: " << std::hash<void*>{}(stat.d_data.get()) << std::endl;
+  return std::hash<void*>{}(stat.d_data.get());
+}
+
+size_t hash<cvc5::Statistics>::operator()(const cvc5::Statistics& stat) const
+{
+  return std::hash<const void*>{}(&stat);
 }
 
 }  // namespace std

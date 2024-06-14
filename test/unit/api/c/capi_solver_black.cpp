@@ -17,6 +17,8 @@ extern "C" {
 #include <cvc5/c/cvc5.h>
 }
 
+#include <cmath>
+
 #include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
@@ -3537,6 +3539,72 @@ TEST_F(TestCApiBlackSolver, find_synth2)
   ASSERT_TRUE(t && cvc5_sort_is_boolean(cvc5_term_get_sort(t)));
 
   ASSERT_DEATH(cvc5_find_synth_next(nullptr), "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, get_statistics)
+{
+  ASSERT_DEATH(cvc5_get_statistics(nullptr), "unexpected NULL argument");
+
+  // do some array reasoning to make sure we have a double statistics
+  {
+    Cvc5Sort s2 = cvc5_mk_array_sort(d_tm, d_int, d_int);
+    Cvc5Term t1 = cvc5_mk_const(d_tm, d_int, "i");
+    Cvc5Term t2 = cvc5_mk_const(d_tm, s2, "a");
+    std::vector<Cvc5Term> args = {t2, t1};
+    args = {cvc5_mk_term(d_tm, CVC5_KIND_SELECT, args.size(), args.data()), t1};
+    cvc5_assert_formula(
+        d_solver,
+        cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(d_solver);
+  }
+  Cvc5Statistics stats = cvc5_get_statistics(d_solver);
+  (void)cvc5_stats_to_string(stats);
+  {
+    Cvc5Stat stat = cvc5_stats_get(stats, "global::totalTime");
+    ASSERT_FALSE(cvc5_stat_is_internal(stat));
+    ASSERT_FALSE(cvc5_stat_is_default(stat));
+    ASSERT_TRUE(cvc5_stat_is_string(stat));
+    std::string time = cvc5_stat_get_string(stat);
+    ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
+    ASSERT_FALSE(cvc5_stat_is_double(stat));
+    stat = cvc5_stats_get(stats, "resource::resourceUnitsUsed");
+    ASSERT_TRUE(cvc5_stat_is_internal(stat));
+    ASSERT_FALSE(cvc5_stat_is_default(stat));
+    ASSERT_TRUE(cvc5_stat_is_int(stat));
+    ASSERT_TRUE(cvc5_stat_get_int(stat) >= 0);
+  }
+
+  ASSERT_DEATH(cvc5_stats_iter_init(nullptr, false, false),
+               "invalid statistics");
+  ASSERT_DEATH(cvc5_stats_iter_has_next(nullptr), "invalid statistics");
+  ASSERT_DEATH(cvc5_stats_iter_next(nullptr, nullptr), "invalid statistics");
+  ASSERT_DEATH(cvc5_stats_iter_has_next(stats), "iterator not initialized");
+  ASSERT_DEATH(cvc5_stats_iter_next(stats, nullptr),
+               "iterator not initialized");
+
+  cvc5_stats_iter_init(stats, true, true);
+  bool hasstats = false;
+  while (cvc5_stats_iter_has_next(stats))
+  {
+    hasstats = true;
+    const char* name;
+    Cvc5Stat stat = cvc5_stats_iter_next(stats, &name);
+    (void)cvc5_stat_to_string(stat);
+    if (name == std::string("theory::arrays::avgIndexListLength"))
+    {
+      ASSERT_TRUE(cvc5_stat_is_internal(stat));
+      ASSERT_TRUE(cvc5_stat_is_double(stat));
+      ASSERT_TRUE(std::isnan(cvc5_stat_get_double(stat)));
+    }
+  }
+  ASSERT_TRUE(hasstats);
+}
+
+TEST_F(TestCApiBlackSolver, print_statistics_safe)
+{
+  testing::internal::CaptureStdout();
+  cvc5_print_stats_safe(d_solver, STDOUT_FILENO);
+  testing::internal::GetCapturedStdout();
 }
 
 }  // namespace cvc5::internal::test

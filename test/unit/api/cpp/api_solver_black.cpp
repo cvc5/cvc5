@@ -1176,8 +1176,9 @@ TEST_F(TestApiBlackSolver, getStatistics)
     Sort s1 = d_tm.getIntegerSort();
     Sort s2 = d_tm.mkArraySort(s1, s1);
     Term t1 = d_tm.mkConst(s1, "i");
-    Term t2 = d_tm.mkVar(s2, "a");
+    Term t2 = d_tm.mkConst(s2, "a");
     Term t3 = d_tm.mkTerm(Kind::SELECT, {t2, t1});
+    d_solver->assertFormula(t3.eqTerm(t1));
     d_solver->checkSat();
   }
   cvc5::Statistics stats = d_solver->getStatistics();
@@ -1199,12 +1200,17 @@ TEST_F(TestApiBlackSolver, getStatistics)
     ASSERT_TRUE(s.isInt());
     ASSERT_TRUE(s.getInt() >= 0);
   }
+  bool hasstats = false;
   for (const auto& s : stats)
   {
+    hasstats = true;
     ASSERT_FALSE(s.first.empty());
   }
+  ASSERT_TRUE(hasstats);
+  hasstats = false;
   for (auto it = stats.begin(true, true); it != stats.end(); ++it)
   {
+    hasstats = true;
     {
       auto tmp1 = it, tmp2 = it;
       ++tmp1;
@@ -1227,6 +1233,7 @@ TEST_F(TestApiBlackSolver, getStatistics)
       ASSERT_TRUE(std::isnan(s.second.getDouble()));
     }
   }
+  ASSERT_TRUE(hasstats);
 }
 
 TEST_F(TestApiBlackSolver, printStatisticsSafe)
