@@ -122,4 +122,21 @@ TEST_F(TestCApiBlackSynthResult, hash)
   ASSERT_DEATH(cvc5_synth_result_hash(nullptr), "invalid synthesis result");
 }
 
+TEST_F(TestCApiBlackSynthResult, copy_release)
+{
+  ASSERT_DEATH(cvc5_synth_result_copy(nullptr), "invalid synthesis result");
+  ASSERT_DEATH(cvc5_synth_result_release(nullptr), "invalid synthesis result");
+  cvc5_set_option(d_solver, "sygus", "true");
+  (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  cvc5_add_sygus_constraint(d_solver, ttrue);
+  Cvc5SynthResult res1 = cvc5_check_synth(d_solver);
+  Cvc5SynthResult res2 = cvc5_synth_result_copy(res1);
+  ASSERT_EQ(cvc5_synth_result_hash(res1), cvc5_synth_result_hash(res2));
+  cvc5_synth_result_release(res1);
+  ASSERT_EQ(cvc5_synth_result_hash(res1), cvc5_synth_result_hash(res2));
+  cvc5_synth_result_release(res1);
+  // we cannot reliably check that querying on the (now freed) result fails
+  // unless ASAN is enabled
+}
 }  // namespace cvc5::internal::test
