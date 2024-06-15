@@ -3607,4 +3607,86 @@ TEST_F(TestCApiBlackSolver, print_statistics_safe)
   testing::internal::GetCapturedStdout();
 }
 
+namespace {
+const Cvc5Term* plugin_unsat_check(size_t* size, void* state)
+{
+  static thread_local std::vector<Cvc5Term> lemmas;
+  // add the "false" lemma.
+  Cvc5Term flem = cvc5_mk_false(static_cast<Cvc5TermManager*>(state));
+  lemmas = {flem};
+  *size = lemmas.size();
+  return lemmas.data();
+}
+const char* plugin_unsat_get_name() { return "PluginUnsat"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_unsat)
+{
+  Cvc5Plugin plugin{&plugin_unsat_check,
+                    nullptr,
+                    nullptr,
+                    &plugin_unsat_get_name,
+                    d_tm,
+                    nullptr,
+                    nullptr};
+  cvc5_add_plugin(d_solver, &plugin);
+  ASSERT_TRUE(plugin.get_name() == std::string("PluginUnsat"));
+  // should be unsat since the plugin above asserts "false" as a lemma
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+}
+
+namespace {
+void plugin_listen_notify_sat_clause(const Cvc5Term clause, void* state)
+{
+  *static_cast<bool*>(state) = true;
+}
+void plugin_listen_notify_theory_lemma(const Cvc5Term lemma, void* state)
+{
+  *static_cast<bool*>(state) = true;
+}
+const char* plugin_listen_get_name() { return "PluginListen"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_listen)
+{
+  bool clause_seen, lemma_seen;
+  Cvc5Plugin plugin{nullptr,
+                    &plugin_listen_notify_sat_clause,
+                    &plugin_listen_notify_theory_lemma,
+                    &plugin_listen_get_name,
+                    nullptr,
+                    &clause_seen,
+                    &lemma_seen};
+
+  // NOTE: this shouldn't be necessary but ensures notify_sat_clause is called
+  // here.
+  cvc5_set_option(d_solver, "plugin-notify-sat-clause-in-solve", "false");
+  cvc5_add_plugin(d_solver, &plugin);
+  Cvc5Sort string_sort = cvc5_get_string_sort(d_tm);
+  Cvc5Term x = cvc5_mk_const(d_tm, string_sort, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, string_sort, "y");
+  std::vector<Cvc5Term> args{x, y};
+  Cvc5Term ctn1 =
+      cvc5_mk_term(d_tm, CVC5_KIND_STRING_CONTAINS, args.size(), args.data());
+  args = {y, x};
+  Cvc5Term ctn2 =
+      cvc5_mk_term(d_tm, CVC5_KIND_STRING_CONTAINS, args.size(), args.data());
+  args = {ctn1, ctn2};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data()));
+  args = {x};
+  Cvc5Term lx =
+      cvc5_mk_term(d_tm, CVC5_KIND_STRING_LENGTH, args.size(), args.data());
+  args = {y};
+  Cvc5Term ly =
+      cvc5_mk_term(d_tm, CVC5_KIND_STRING_LENGTH, args.size(), args.data());
+  args = {lx, ly};
+  Cvc5Term lc = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  cvc5_assert_formula(d_solver, lc);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  // above input formulas should induce a theory lemma and SAT clause learning
+  ASSERT_TRUE(lemma_seen);
+  ASSERT_TRUE(clause_seen);
+}
+
 }  // namespace cvc5::internal::test
