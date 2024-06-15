@@ -3381,6 +3381,53 @@ struct Cvc5OptionInfo
 const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
 
 /* -------------------------------------------------------------------------- */
+/* Cvc5Plugin                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A cvc5 plugin.
+ */
+struct Cvc5Plugin
+{
+  /**
+   * Call to check, return list of lemmas to add to the SAT solver.
+   * This method is called periodically, roughly at every SAT decision.
+   * @param size  The size of the returned array of lemmas.
+   * @param state The state data for the function, may be NULL.
+   * @return The vector of lemmas to add to the SAT solver.
+   * @note This function pointer may be NULL to use the default implementation.
+   */
+  const Cvc5Term* (*check)(size_t* size, void* state);
+  /**
+   * Notify SAT clause, called when `clause` is learned by the SAT solver.
+   * @param clause The learned clause.
+   * @param state The state data for the function, may be NULL.
+   * @note This function pointer may be NULL to use the default implementation.
+   */
+  void (*notify_sat_clause)(const Cvc5Term clause, void* state);
+  /**
+   * Notify theory lemma, called when `lemma` is sent by a theory solver.
+   * @param lemma The theory lemma.
+   * @param state The state data for the function, may be NULL.
+   * @note This function pointer may be NULL to use the default implementation.
+   */
+  void (*notify_theory_lemma)(const Cvc5Term lemma, void* state);
+  /**
+   * Get the name of the plugin (for debugging).
+   * @return The name of the plugin.
+   * @note This function pointer may NOT be NULL.
+   */
+  const char* (*get_name)();
+
+  /** The state to pass into `check`. */
+  void* d_check_state;
+  /** The state to pass into `notify_sat_clause`. */
+  void* d_notify_sat_clause_state;
+  /** The state to pass into `notify_theory_lemma`. */
+  void* d_notify_theory_lemma_state;
+};
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5Proof                                                                  */
 /* -------------------------------------------------------------------------- */
 
@@ -4505,6 +4552,15 @@ Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
                                  Cvc5Term (*fun)(size_t,
                                                  const Cvc5Term*,
                                                  void*));
+/**
+ * Add plugin to this solver. Its callbacks will be called throughout the
+ * lifetime of this solver.
+ * @warning This function is experimental and may change in future versions.
+ * @param cvc5   The solver instance.
+ * @param plugin The plugin to add to this solver.
+ */
+void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
+
 /**
  * Get an interpolant
  *
