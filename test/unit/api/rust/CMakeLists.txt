@@ -14,7 +14,7 @@ add_custom_command(
         ${CMAKE_COMMAND}
         -E env
         CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}
-        cargo build ${RUST_CARGO_FLAGS} --manifest-path=${RUST_MANIFEST}
+        cargo build ${RUST_CARGO_FLAGS} --manifest-path=${RUST_MANIFEST} --bins
     DEPENDS
         ${RUST_FILES}
     COMMENT "Generate Rust tests"
