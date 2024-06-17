@@ -2378,7 +2378,7 @@ TEST_F(TestApiBlackSolver, tupleProject)
       projection.toString());
 }
 
-TEST_F(TestApiBlackSolver, Output)
+TEST_F(TestApiBlackSolver, output)
 {
   ASSERT_THROW(d_solver->isOutputOn("foo-invalid"), CVC5ApiException);
   ASSERT_THROW(d_solver->getOutput("foo-invalid"), CVC5ApiException);
@@ -2689,7 +2689,6 @@ TEST_F(TestApiBlackSolver, basicFiniteField)
 
 TEST_F(TestApiBlackSolver, basicFiniteFieldBase)
 {
-  Solver slv(d_tm);
   d_solver->setOption("produce-models", "true");
 
   Sort F = d_tm.mkFiniteFieldSort("101", 2);

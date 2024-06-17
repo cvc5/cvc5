@@ -3689,4 +3689,225 @@ TEST_F(TestCApiBlackSolver, plugin_listen)
   ASSERT_TRUE(clause_seen);
 }
 
+TEST_F(TestCApiBlackSolver, tuple_project)
+{
+  std::vector<Cvc5Term> args = {cvc5_mk_string(d_tm, "Z", false)};
+  std::vector<Cvc5Term> elements = {
+      cvc5_mk_true(d_tm),
+      cvc5_mk_integer_int64(d_tm, 3),
+      cvc5_mk_string(d_tm, "C", false),
+      cvc5_mk_term(d_tm, CVC5_KIND_SET_SINGLETON, args.size(), args.data())};
+
+  Cvc5Term tuple = cvc5_mk_tuple(d_tm, elements.size(), elements.data());
+
+  std::vector<uint32_t> indices1 = {};
+  std::vector<uint32_t> indices2 = {0};
+  std::vector<uint32_t> indices3 = {0, 1};
+  std::vector<uint32_t> indices4 = {0, 0, 2, 2, 3, 3, 0};
+  std::vector<uint32_t> indices5 = {4};
+  std::vector<uint32_t> indices6 = {0, 4};
+
+  args = {tuple};
+  (void)cvc5_mk_term_from_op(
+      d_tm,
+      cvc5_mk_op(
+          d_tm, CVC5_KIND_TUPLE_PROJECT, indices1.size(), indices1.data()),
+      args.size(),
+      args.data());
+  (void)cvc5_mk_term_from_op(
+      d_tm,
+      cvc5_mk_op(
+          d_tm, CVC5_KIND_TUPLE_PROJECT, indices2.size(), indices2.data()),
+      args.size(),
+      args.data());
+  (void)cvc5_mk_term_from_op(
+      d_tm,
+      cvc5_mk_op(
+          d_tm, CVC5_KIND_TUPLE_PROJECT, indices3.size(), indices3.data()),
+      args.size(),
+      args.data());
+  (void)cvc5_mk_term_from_op(
+      d_tm,
+      cvc5_mk_op(
+          d_tm, CVC5_KIND_TUPLE_PROJECT, indices4.size(), indices4.data()),
+      args.size(),
+      args.data());
+
+  ASSERT_DEATH(
+      cvc5_mk_term_from_op(
+          d_tm,
+          cvc5_mk_op(
+              d_tm, CVC5_KIND_TUPLE_PROJECT, indices5.size(), indices5.data()),
+          args.size(),
+          args.data()),
+      "Project index 4");
+  ASSERT_DEATH(
+      cvc5_mk_term_from_op(
+          d_tm,
+          cvc5_mk_op(
+              d_tm, CVC5_KIND_TUPLE_PROJECT, indices6.size(), indices6.data()),
+          args.size(),
+          args.data()),
+      "Project index 4");
+
+  std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
+
+  Cvc5Op op =
+      cvc5_mk_op(d_tm, CVC5_KIND_TUPLE_PROJECT, indices.size(), indices.data());
+  Cvc5Term projection =
+      cvc5_mk_term_from_op(d_tm, op, args.size(), args.data());
+
+  Cvc5Datatype datatype = cvc5_sort_get_datatype(cvc5_term_get_sort(tuple));
+  Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(datatype, 0);
+
+  for (size_t i = 0; i < indices.size(); i++)
+  {
+    args = {cvc5_dt_sel_get_term(cvc5_dt_cons_get_selector(cons, indices[i])),
+            tuple};
+    Cvc5Term selected =
+        cvc5_mk_term(d_tm, CVC5_KIND_APPLY_SELECTOR, args.size(), args.data());
+    Cvc5Term simplified = cvc5_simplify(d_solver, selected, false);
+    ASSERT_TRUE(cvc5_term_is_equal(elements[indices[i]], simplified));
+  }
+
+  ASSERT_EQ(
+      std::string(
+          "((_ tuple.project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton "
+          "\"Z\")))"),
+      cvc5_term_to_string(projection));
+}
+
+TEST_F(TestCApiBlackSolver, vertical_bars)
+{
+  Cvc5Term a = cvc5_declare_fun(d_solver, "|a |", 0, nullptr, d_real, true);
+  ASSERT_EQ(std::string("|a |"), cvc5_term_to_string(a));
+}
+
+TEST_F(TestCApiBlackSolver, get_version)
+{
+  std::cout << cvc5_get_version(d_solver) << std::endl;
+}
+
+TEST_F(TestCApiBlackSolver, multiple_solvers)
+{
+  Cvc5Term zero, value1, value2;
+  Cvc5Term deffun;
+  {
+    Cvc5* s1 = cvc5_new(d_tm);
+    cvc5_set_logic(s1, "ALL");
+    cvc5_set_option(s1, "produce-models", "true");
+    Cvc5Term fun1 = cvc5_declare_fun(s1, "f1", 0, nullptr, d_int, true);
+    Cvc5Term x = cvc5_mk_var(d_tm, d_int, "x");
+    zero = cvc5_mk_integer_int64(d_tm, 0);
+    std::vector<Cvc5Term> args = {x};
+    deffun =
+        cvc5_define_fun(s1, "f", args.size(), args.data(), d_int, zero, true);
+    args = {fun1, zero};
+    cvc5_assert_formula(
+        s1, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(s1);
+    value1 = cvc5_get_value(s1, fun1);
+    cvc5_delete(s1);
+  }
+  ASSERT_TRUE(cvc5_term_is_equal(zero, value1));
+  {
+    Cvc5* s2 = cvc5_new(d_tm);
+    cvc5_set_logic(s2, "ALL");
+    cvc5_set_option(s2, "produce-models", "true");
+    Cvc5Term fun2 = cvc5_declare_fun(s2, "f2", 0, nullptr, d_int, true);
+    std::vector<Cvc5Term> args = {fun2, value1};
+    cvc5_assert_formula(
+        s2, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(s2);
+    value2 = cvc5_get_value(s2, fun2);
+    cvc5_delete(s2);
+  }
+  ASSERT_TRUE(cvc5_term_is_equal(value1, value2));
+  {
+    Cvc5* s3 = cvc5_new(d_tm);
+    cvc5_set_logic(s3, "ALL");
+    cvc5_set_option(s3, "produce-models", "true");
+    Cvc5Term fun3 = cvc5_declare_fun(s3, "f3", 0, nullptr, d_int, true);
+    std::vector<Cvc5Term> args = {deffun, zero};
+    Cvc5Term apply =
+        cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+    args = {fun3, apply};
+    cvc5_assert_formula(
+        s3, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(s3);
+    Cvc5Term value3 = cvc5_get_value(s3, fun3);
+    ASSERT_TRUE(cvc5_term_is_equal(value1, value3));
+  }
+}
+
+#ifdef CVC5_USE_COCOA
+
+TEST_F(TestCApiBlackSolver, basic_finite_field)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+
+  Cvc5Sort ff_sort = cvc5_mk_ff_sort(d_tm, "5", 10);
+  Cvc5Term a = cvc5_mk_const(d_tm, ff_sort, "a");
+  Cvc5Term b = cvc5_mk_const(d_tm, ff_sort, "b");
+  ASSERT_EQ(std::string("5"), cvc5_sort_ff_get_size(ff_sort));
+
+  std::vector<Cvc5Term> args = {a, b};
+  args = {
+      cvc5_mk_term(d_tm, CVC5_KIND_FINITE_FIELD_MULT, args.size(), args.data()),
+      cvc5_mk_ff_elem(d_tm, "1", ff_sort, 10)};
+  Cvc5Term inv = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  args = {a, cvc5_mk_ff_elem(d_tm, "2", ff_sort, 10)};
+  Cvc5Term a_is_two =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+
+  cvc5_assert_formula(d_solver, inv);
+  cvc5_assert_formula(d_solver, a_is_two);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  ASSERT_EQ(cvc5_term_get_ff_value(cvc5_get_value(d_solver, a)),
+            std::string("2"));
+  ASSERT_EQ(cvc5_term_get_ff_value(cvc5_get_value(d_solver, b)),
+            std::string("-2"));
+
+  args = {b, cvc5_mk_ff_elem(d_tm, "2", ff_sort, 10)};
+  Cvc5Term b_is_two =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, b_is_two);
+  ASSERT_FALSE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+}
+
+TEST_F(TestCApiBlackSolver, basic_finite_field_base)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+
+  Cvc5Sort ff_sort = cvc5_mk_ff_sort(d_tm, "101", 2);
+  Cvc5Term a = cvc5_mk_const(d_tm, ff_sort, "a");
+  Cvc5Term b = cvc5_mk_const(d_tm, ff_sort, "b");
+  ASSERT_EQ(std::string("5"), cvc5_sort_ff_get_size(ff_sort));
+
+  std::vector<Cvc5Term> args = {a, b};
+  args = {
+      cvc5_mk_term(d_tm, CVC5_KIND_FINITE_FIELD_MULT, args.size(), args.data()),
+      cvc5_mk_ff_elem(d_tm, "1", ff_sort, 3)};
+  Cvc5Term inv = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+
+  args = {a, cvc5_mk_ff_elem(d_tm, "10", ff_sort, 2)};
+  Cvc5Term a_is_two =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+
+  cvc5_assert_formula(d_solver, inv);
+  cvc5_assert_formula(d_solver, a_is_two);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  ASSERT_EQ(cvc5_term_get_ff_value(cvc5_get_value(d_solver, a)),
+            std::string("2"));
+  ASSERT_EQ(cvc5_term_get_ff_value(cvc5_get_value(d_solver, b)),
+            std::string("-2"));
+
+  args = {b, cvc5_mk_ff_elem(d_tm, "2", ff_sort, 10)};
+  Cvc5Term b_is_two =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, b_is_two);
+  ASSERT_FALSE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+}
+
+#endif  // CVC5_USE_COCOA
 }  // namespace cvc5::internal::test
