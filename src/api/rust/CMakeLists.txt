@@ -1,9 +1,9 @@
 if(("Debug" STREQUAL ${CMAKE_BUILD_TYPE}) OR ("Testing" STREQUAL ${CMAKE_BUILD_TYPE}))
     set(RUST_PROFILE debug PARENT_SCOPE)
-    set(RUST_CARGO_FLAGS)
+    set(RUST_CARGO_FLAGS PARENT_SCOPE)
 else()
     set(RUST_PROFILE release PARENT_SCOPE)
-    set(RUST_CARGO_FLAGS --release)
+    set(RUST_CARGO_FLAGS --release PARENT_SCOPE)
 endif()
 set(RUST_API_OUTPUT
     ${CMAKE_CURRENT_BINARY_DIR}/${RUST_PROFILE}/libcvc5_sys.d
