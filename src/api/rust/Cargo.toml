@@ -1,4 +1,15 @@
 [package]
 name = "cvc5-sys"
+description = "Rust interface for cvc5"
 version = "0.0.1"
 authors = [ "Leni Aniva <v@leni.sh>" ]
+keywords = ["smt-solver", "automated-reasoning"]
+publish = false
+edition = "2021"
+rust-version = "1.76"
+
+[dependencies]
+cxx = "1.0"
+
+[lib]
+doc = true

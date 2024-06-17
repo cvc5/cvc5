@@ -1,0 +1,15 @@
+[package]
+name = "cvc5-sys-test"
+description = "Test for cvc5-sys"
+version = "0.0.1"
+authors = [ "Leni Aniva <v@leni.sh>" ]
+publish = false
+edition = "2021"
+rust-version = "1.76"
+
+[dependencies]
+cvc5-sys = { path = "../../../../src/api/rust" }
+
+[[bin]]
+name = "placeholder"
+path = "src/placeholder.rs"

@@ -16,6 +16,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "cvc5-sys-test"
+version = "0.0.1"
+dependencies = [
+ "cvc5-sys",
+]
+
+[[package]]
 name = "cxx"
 version = "1.0.124"
 source = "registry+https://github.com/rust-lang/crates.io-index"
