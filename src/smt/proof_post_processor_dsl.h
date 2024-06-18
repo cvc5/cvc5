@@ -62,6 +62,8 @@ class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
   Node d_true;
   /** The rewrite database proof generator */
   rewriter::RewriteDbProofCons d_rdbPc;
+  /** The default mode for if/when to try theory rewrites */
+  rewriter::TheoryRewriteMode d_tmode;
   /** The accumulated subgoals from calls to d_rdbPc */
   std::vector<std::shared_ptr<ProofNode>> d_subgoals;
 };

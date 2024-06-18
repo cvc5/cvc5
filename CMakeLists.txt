@@ -232,6 +232,7 @@ add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wshadow")
+add_check_c_cxx_flag("-fno-operator-names")
 
 # Assume no dynamic initialization of thread-local variables in non-defining
 # translation units. This option should result in better performance and works
@@ -513,9 +514,6 @@ if(USE_CRYPTOMINISAT)
   # CryptoMiniSat requires pthreads support
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
-  if(THREADS_HAVE_PTHREAD_ARG)
-    add_c_cxx_flag(-pthread)
-  endif()
   find_package(CryptoMiniSat 5.8 REQUIRED)
   add_definitions(-DCVC5_USE_CRYPTOMINISAT)
 endif()

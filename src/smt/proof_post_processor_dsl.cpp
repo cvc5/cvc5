@@ -28,6 +28,10 @@ ProofPostprocessDsl::ProofPostprocessDsl(Env& env, rewriter::RewriteDb* rdb)
     : EnvObj(env), d_rdbPc(env, rdb)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
+  d_tmode = (options().proof.proofGranularityMode
+             == options::ProofGranularityMode::DSL_REWRITE_STRICT)
+                ? rewriter::TheoryRewriteMode::RESORT
+                : rewriter::TheoryRewriteMode::STANDARD;
 }
 
 void ProofPostprocessDsl::reconstruct(
@@ -41,16 +45,46 @@ void ProofPostprocessDsl::reconstruct(
   {
     pnu.process(p);
   }
-  if (!d_subgoals.empty())
+  // We run until subgoals are empty. Note that this loop is only expected
+  // to run once, and moreover is guaranteed to run only once if the only
+  // trusted steps added have id MACRO_THEORY_REWRITE_RCONS_SIMPLE. However,
+  // in rare cases, an elaboration may require adding a trust step that itself
+  // expects to require theory rewrites to prove (MACRO_THEORY_REWRITE_RCONS)
+  // in which case this loop may run twice. We manually limit this loop to
+  // run no more than 2 times.
+  size_t iter = 0;
+  while (!d_subgoals.empty())
   {
+    iter++;
+    if (iter >= 3)
+    {
+      // prevent any accidental infinite loops
+      break;
+    }
     std::vector<std::shared_ptr<ProofNode>> sgs = d_subgoals;
     Trace("pp-dsl") << "Also reconstruct proofs for " << sgs.size()
                     << " subgoals..." << std::endl;
     d_subgoals.clear();
+    // Do not use theory rewrites to fill in remaining subgoals. This prevents
+    // generating subgoals in proofs of subgoals.
+    rewriter::TheoryRewriteMode mprev = d_tmode;
+    TrustId tid;
     for (std::shared_ptr<ProofNode> p : sgs)
     {
+      // determine if we should disable theory rewrites, this is the case if the
+      // trust id is MACRO_THEORY_REWRITE_RCONS_SIMPLE.
+      d_tmode = mprev;
+      if (p->getRule() == ProofRule::TRUST)
+      {
+        getTrustId(p->getArguments()[0], tid);
+        if (tid == TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE)
+        {
+          d_tmode = rewriter::TheoryRewriteMode::NEVER;
+        }
+      }
       pnu.process(p);
     }
+    d_tmode = mprev;
   }
   // should never construct a subgoal for a step from a subgoal
   if (!d_subgoals.empty())
@@ -103,13 +137,15 @@ bool ProofPostprocessDsl::update(Node res,
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
     getMethodId(args[2], mid);
   }
+  Trace("pp-dsl") << "Prove " << res << " from " << tid << " / " << mid
+                  << ", in mode " << d_tmode << std::endl;
   int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
   int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
   // Attempt to reconstruct the proof of the equality into cdp using the
   // rewrite database proof reconstructor.
   // We record the subgoals in d_subgoals.
   if (d_rdbPc.prove(
-          cdp, res[0], res[1], tid, mid, recLimit, stepLimit, d_subgoals))
+          cdp, res[0], res[1], recLimit, stepLimit, d_subgoals, d_tmode))
   {
     // If we made (= res true) above, conclude the original res.
     if (reqTrueElim)

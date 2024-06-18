@@ -53,6 +53,11 @@ if(NOT CoCoA_FOUND_SYSTEM)
 
   get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
 
+  find_program(PATCH_BIN patch)
+  if(NOT PATCH_BIN)
+    message(FATAL_ERROR "Can not build CoCoA, missing binary for patch")
+  endif()
+
   ExternalProject_Add(
     CoCoA-EP
     ${COMMON_EP_CONFIG}

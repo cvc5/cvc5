@@ -1093,6 +1093,8 @@ libcvc5_add_sources(
   theory/sep/theory_sep_type_rules.h
   theory/sets/cardinality_extension.cpp
   theory/sets/cardinality_extension.h
+  theory/sets/infer_proof_cons.cpp
+  theory/sets/infer_proof_cons.h
   theory/sets/inference_manager.cpp
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
@@ -1421,6 +1423,7 @@ set(REWRITES_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites-simplification
   ${PROJECT_SOURCE_DIR}/src/theory/sets/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites-regexp-membership
   ${PROJECT_SOURCE_DIR}/src/theory/uf/rewrites
 )
 
@@ -1503,6 +1506,7 @@ if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CryptoMiniSat> $<INSTALL_INTERFACE:cryptominisat5>)
+  target_link_libraries(cvc5 PRIVATE Threads::Threads) # Required by CryptoMiniSat
 endif()
 if(USE_KISSAT)
   add_dependencies(cvc5-obj Kissat)
