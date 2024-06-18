@@ -8,7 +8,7 @@
 ; - Q Bool: The quantified formula to instantiate.
 ; args:
 ; - ts @List: The list of terms to instantiate with.
-; conclusion: The result of instantiating (forall xs F) with ts.
+; conclusion: The result of substituting free occurrences of xs in F with ts.
 (declare-rule instantiate ((F Bool) (xs @List) (ts @List))
   :premises ((forall xs F))
   :args (ts)
