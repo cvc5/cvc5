@@ -68,6 +68,14 @@ IntBlaster::IntBlaster(Env& env,
 
 IntBlaster::~IntBlaster() {}
 
+void printSet(std::unordered_set<Node> s) {
+  for (Node n : s) {
+    std::cout << n << std::endl;
+  }
+}
+
+
+
 void IntBlaster::addRangeConstraint(Node node,
                                     uint32_t size,
                                     std::vector<Node>& lemmas)
@@ -985,6 +993,11 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // collect range constraints for UF applciations
   // that involve quantified variables
   std::unordered_set<Node> applys = getFreeApplyUf(quantifiedNode);
+  // std::cout << "*************************" << std::endl;
+  // std::cout << "panda quantifiedNode = " << quantifiedNode << std::endl;
+  // std::cout << "panda applys = " << std::endl;
+  // printSet(applys);
+  // std::cout << "*************************" << std::endl;
   for (const Node& apply : applys)
   {
     Trace("int-blaster-debug")
@@ -1028,26 +1041,45 @@ std::unordered_set<Node> IntBlaster::getFreeApplyUf(const Node& q) {
   Assert(q.getKind() == Kind::FORALL);
   std::unordered_set<Node> allApplys;
   std::unordered_set<Node> foralls;
-  expr::getKindSubterms(q, Kind::APPLY_UF, true, allApplys);
-  expr::getKindSubterms(q, Kind::FORALL, true, foralls);
+  expr::getKindSubterms(q[1], Kind::APPLY_UF, true, allApplys);
+  expr::getKindSubterms(q[1], Kind::FORALL, true, foralls);
+  // std::cout << "**********************" << std::endl;
+  // std::cout << "q = " << q << std::endl;
+  // std::cout << "panda allApplys" << std::endl;
+  // printSet(allApplys);
+  // std::cout << "panda foralls" << std::endl;
+  // printSet(foralls);
+
   std::unordered_set<Node> prevProcessedApplys;
   for (Node forall : foralls) {
     prevProcessedApplys.insert(d_processedApplyUf[forall].get().begin(), d_processedApplyUf[forall].get().end());
   }
+  // std::cout << "panda prevProcessedApplys" << std::endl;
+  // printSet(prevProcessedApplys);
   std::unordered_set<Node> freeApplys;
   std::set_difference(allApplys.begin(), allApplys.end(), prevProcessedApplys.begin(), prevProcessedApplys.end(), std::inserter(freeApplys, freeApplys.end()));
+  // std::cout << "panda freeApplys" << std::endl;
+  // printSet(freeApplys);
   std::unordered_set<Node> processedApplys;
   std::unordered_set<Node> variablesInq;
   expr::getKindSubterms(q, Kind::BOUND_VARIABLE, true, variablesInq);
+  // std::cout << "panda variablesInq" << std::endl;
+  // printSet(variablesInq);
   for (Node fa : freeApplys) {
     std::unordered_set<Node> variablesInfa;
     expr::getKindSubterms(q, Kind::BOUND_VARIABLE, true, variablesInfa);
+    // std::cout << "panda variablesInfa" << std::endl;
+    // printSet(variablesInfa);
     std::unordered_set<Node> intersection;
     std::set_intersection(variablesInq.begin(), variablesInq.end(), variablesInfa.begin(), variablesInfa.end(), std::inserter(intersection, intersection.end()));
+    // std::cout << "panda intersection" << std::endl;
+    // printSet(intersection);
     if (intersection.size() != 0) {
       processedApplys.insert(fa);
     }
   }
+  // std::cout << "panda processedApplys" << std::endl;
+  // printSet(processedApplys);
   d_processedApplyUf[q] = processedApplys;
   return d_processedApplyUf[q].get();
 }
