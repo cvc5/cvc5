@@ -24,6 +24,10 @@
 namespace cvc5::internal {
 namespace proof {
 
+AlfPrintChannel::AlfPrintChannel() {}
+
+AlfPrintChannel::~AlfPrintChannel() {}
+
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
                                        const LetBinding* lbind,
                                        const std::string& tprefix)
@@ -178,6 +182,11 @@ void AlfPrintChannelPre::printNode(TNode n)
   {
     d_lbind->process(n);
   }
+}
+
+void AlfPrintChannelPre::printTypeNode(TypeNode tn)
+{
+  // current do nothing
 }
 
 void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
