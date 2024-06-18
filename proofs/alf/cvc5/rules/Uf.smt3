@@ -154,7 +154,7 @@
 ; rule: true_intro
 ; implements: ProofRule::TRUE_INTRO
 ; premises:
-; - F: The formula to process.
+; - F: A formula.
 ; conclusion: The equality between F and true.
 (declare-rule true_intro ((F Bool))
     :premises (F)
@@ -164,7 +164,7 @@
 ; rule: true_elim
 ; implements: ProofRule::TRUE_ELIM
 ; premises:
-; - F1: The formula to process, which is an equality whose right hand side is true.
+; - F1: The formula, which is an equality whose right hand side is true.
 ; conclusion: The left hand side of the premise.
 (declare-rule true_elim ((F Bool))
     :premises ((= F true))
@@ -174,7 +174,7 @@
 ; rule: false_intro
 ; implements: ProofRule::FALSE_INTRO
 ; premises:
-; - F1: The formula to process, which is a negation.
+; - F1: The formula, which is a negation.
 ; conclusion: The equality between the formula the premise negates and false.
 (declare-rule false_intro ((F Bool))
     :premises ((not F))
@@ -185,7 +185,7 @@
 ; rule: false_elim
 ; implements: ProofRule::FALSE_ELIM
 ; premises:
-; - F1: The formula to process, which is an equality whose right hand side is false.
+; - F1: The formula, which is an equality whose right hand side is false.
 ; conclusion: The negation of the left hand side of the premise.
 (declare-rule false_elim ((F Bool))
     :premises ((= F false))
