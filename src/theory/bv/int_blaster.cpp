@@ -21,10 +21,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/configuration.h"
 #include "expr/node.h"
-#include "expr/node_algorithm.h"
 #include "expr/node_traversal.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/option_exception.h"
 #include "options/uf_options.h"
@@ -42,6 +41,7 @@ using namespace cvc5::internal::theory::bv;
 namespace cvc5::internal {
 
 namespace {
+
 // A helper function to compute 2^b as a Rational
 Rational intpow2(uint32_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
@@ -53,8 +53,6 @@ IntBlaster::IntBlaster(Env& env,
     : EnvObj(env),
       d_binarizeCache(userContext()),
       d_intblastCache(userContext()),
-      d_quantApplies(userContext()),
-      d_quantifiedVariables(userContext()),
       d_rangeAssertions(userContext()),
       d_bitwiseAssertions(userContext()),
       d_mode(mode),
@@ -190,7 +188,7 @@ Node IntBlaster::intBlast(Node n,
     }
     else
     {
-      // We already visited this node
+      // We already visited and translated this node
       if (!d_intblastCache[current].get().isNull())
       {
         // We are done computing the translation for current
@@ -200,10 +198,6 @@ Node IntBlaster::intBlast(Node n,
       {
         // We are now visiting current on the way back up.
         // This is when we do the actual translation.
-        // First, we collect quantification data from the node.
-        collectQuantificationData(current);
-
-        // translation will store the translation of the node to integers
         Node translation;
         if (currentNumChildren == 0)
         {
@@ -952,69 +946,6 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
   return ite;
 }
 
-void IntBlaster::collectQuantificationData(Node n) {
-  for (TNode current : NodeDfsIterable(n, VisitOrder::POSTORDER,
-           [this](TNode nn) { return d_quantifiedVariables.find(nn) != d_quantifiedVariables.end() && d_quantApplies.find(nn) != d_quantApplies.end(); }))
-  {
-    Trace("int-blaster-debug") << "collectQuantificationData for: " << n << std::endl;
-    // populating d_quantifiedVariables
-    if (d_quantifiedVariables.find(n) == d_quantifiedVariables.end()) {
-      // the set to assign to n
-      std::unordered_set<Node> qfvars;
-      // for bound variables, simply add them
-      if (n.getNumChildren() == 0) {
-        if (n.getKind() == Kind::BOUND_VARIABLE) {
-          qfvars.insert(n);
-        }
-      }
-      // for compound terms, add variables
-      // according to their children.
-      if (n.getNumChildren() > 0) {
-        for (Node child : n) {
-          // make sure d_quantifiedVariabls
-          // is populated for child
-          // it won't be only if child is a translation
-          if (d_quantifiedVariables.find(child) == d_quantifiedVariables.end()) {
-            if (Configuration::isAssertionBuild())
-            {
-              bool inRange = false;
-              for (const auto& pair : d_intblastCache)
-              {
-                if (child == pair.second)
-                {
-                  inRange = true;
-                  break;
-                }
-              }
-              Trace("int-blaster-debug") << "inRange: " << inRange << std::endl;
-              Assert(inRange);
-            }
-          }
-          for (Node varOfChild : d_quantifiedVariables[child].get())
-          {
-            qfvars.insert(varOfChild);
-          }
-        }
-      }
-      if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS) {
-        // deleting the variables that become bound
-        for (Node newvar : n[0]) {
-          qfvars.erase(newvar);
-        }
-      }
-      d_quantifiedVariables[n] = qfvars;
-    }
-
-    // populating d_quantApplies
-    if (d_quantApplies.find(n) == d_quantApplies.end())
-    {
-      std::unordered_set<Node> applies;
-      expr::getKindSubterms(n, Kind::APPLY_UF, true, applies);
-      d_quantApplies[n] = applies;
-    }
-  }
-}
-
 Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 {
   Kind k = quantifiedNode.getKind();
@@ -1050,20 +981,11 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
     }
   }
 
-  /* collect range constraints for UF applciations
-   * that involve quantified variables.
-   * Unlike quantified variables, whose constraints
-   * are saved in rangeConstraints, we save the range
-   * constraints for quantified uf applications in
-   * ufRangeConstraints.
-   * They are used differently in FORALL nodes.
-   * rangeConstraints is added as the left side
-   * of an implication, while ufRangeConstraints is added
-   * as a conjunction.
-   */
-  std::vector<Node> ufRangeConstraints;
-  std::unordered_set<Node> applies = d_quantApplies[quantifiedNode];
-  for (const Node& apply : applies)
+  // collect range constraints for UF applciations
+  // that involve quantified variables
+  std::unordered_set<Node> applys;
+  expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
+  for (const Node& apply : applys)
   {
     Trace("int-blaster-debug")
         << "quantified uf application: " << apply << std::endl;
@@ -1072,27 +994,9 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
     TypeNode range = f.getType().getRangeType();
     if (range.isBitVector())
     {
-      Node originalMatrix = quantifiedNode[1];
-      Assert(d_quantifiedVariables.find(apply) != d_quantifiedVariables.end());
-      Assert(d_quantifiedVariables.find(quantifiedNode) != d_quantifiedVariables.end());
-      Assert(d_quantifiedVariables.find(originalMatrix) != d_quantifiedVariables.end());
-      /** only add the constraints for the quantified uf application
-       * if the variables all belong to the quantified formula,
-       * but include at least one variables that is new.
-       * For example, in forall x exists y. f(x,y) /\ g(y),
-       * when we reach the forall node, we only add the constraint
-       * for f(x,y), but not for g(y), for which the constraint
-       * was already added.
-       */
-      std::unordered_set<Node> varsApply = d_quantifiedVariables[apply];
-      std::unordered_set<Node> varsNode = d_quantifiedVariables[quantifiedNode];
-      std::unordered_set<Node> varsMatrix =
-          d_quantifiedVariables[originalMatrix];
-      if (! std::includes(varsNode.begin(), varsNode.end(), varsApply.begin(), varsApply.end()) && std::includes(varsMatrix.begin(), varsMatrix.end(), varsApply.begin(), varsApply.end())) {
-        unsigned bvsize = range.getBitVectorSize();
-        ufRangeConstraints.push_back(
-            mkRangeConstraint(d_intblastCache[apply], bvsize));
-      }
+      unsigned bvsize = range.getBitVectorSize();
+      rangeConstraints.push_back(
+          mkRangeConstraint(d_intblastCache[apply], bvsize));
     }
   }
 
@@ -1103,12 +1007,8 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
                              oldBoundVars.end(),
                              newBoundVars.begin(),
                              newBoundVars.end());
-
-  // Nodes to represent all the range constraints.
+  // A node to represent all the range constraints.
   Node ranges = d_nm->mkAnd(rangeConstraints);
-  Node ufRanges = d_nm->mkAnd(ufRangeConstraints);
-  matrix = d_nm->mkNode(Kind::AND, ufRanges, matrix);
-
   // Add the range constraints to the body of the quantifier.
   // For "exists", this is added conjunctively
   // For "forall", this is added to the left side of an implication.
