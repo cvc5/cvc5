@@ -53,6 +53,7 @@ IntBlaster::IntBlaster(Env& env,
     : EnvObj(env),
       d_binarizeCache(userContext()),
       d_intblastCache(userContext()),
+      d_processedApplyUf(userContext()),
       d_rangeAssertions(userContext()),
       d_bitwiseAssertions(userContext()),
       d_mode(mode),
@@ -983,8 +984,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 
   // collect range constraints for UF applciations
   // that involve quantified variables
-  std::unordered_set<Node> applys;
-  expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
+  std::unordered_set<Node> applys = getFreeApplyUf(quantifiedNode);
   for (const Node& apply : applys)
   {
     Trace("int-blaster-debug")
@@ -1018,6 +1018,38 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   Node newBoundVarsList = d_nm->mkNode(Kind::BOUND_VAR_LIST, newBoundVars);
   Node result = d_nm->mkNode(Kind::FORALL, newBoundVarsList, matrix);
   return result;
+}
+
+
+std::unordered_set<Node> IntBlaster::getFreeApplyUf(const Node& q) {
+  if (d_processedApplyUf.find(q) != d_processedApplyUf.end()) {
+    return d_processedApplyUf[q].get();
+  }
+  Assert(q.getKind() == Kind::FORALL);
+  std::unordered_set<Node> allApplys;
+  std::unordered_set<Node> foralls;
+  expr::getKindSubterms(q, Kind::APPLY_UF, true, allApplys);
+  expr::getKindSubterms(q, Kind::FORALL, true, foralls);
+  std::unordered_set<Node> prevProcessedApplys;
+  for (Node forall : foralls) {
+    prevProcessedApplys.insert(d_processedApplyUf[forall].get().begin(), d_processedApplyUf[forall].get().end());
+  }
+  std::unordered_set<Node> freeApplys;
+  std::set_difference(allApplys.begin(), allApplys.end(), prevProcessedApplys.begin(), prevProcessedApplys.end(), std::inserter(freeApplys, freeApplys.end()));
+  std::unordered_set<Node> processedApplys;
+  std::unordered_set<Node> variablesInq;
+  expr::getKindSubterms(q, Kind::BOUND_VARIABLE, true, variablesInq);
+  for (Node fa : freeApplys) {
+    std::unordered_set<Node> variablesInfa;
+    expr::getKindSubterms(q, Kind::BOUND_VARIABLE, true, variablesInfa);
+    std::unordered_set<Node> intersection;
+    std::set_intersection(variablesInq.begin(), variablesInq.end(), variablesInfa.begin(), variablesInfa.end(), std::inserter(intersection, intersection.end()));
+    if (intersection.size() != 0) {
+      processedApplys.insert(fa);
+    }
+  }
+  d_processedApplyUf[q] = processedApplys;
+  return d_processedApplyUf[q].get();
 }
 
 Node IntBlaster::createBVAndNode(Node x,

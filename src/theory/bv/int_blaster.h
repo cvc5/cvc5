@@ -334,9 +334,14 @@ class IntBlaster : protected EnvObj
                            std::vector<Node>& lemmas,
                            std::map<Node, Node>& skolems);
 
+  std::unordered_set<Node> getFreeApplyUf(const Node& q);
+
+
   /** Caches for the different functions */
   CDNodeMap d_binarizeCache;
   CDNodeMap d_intblastCache;
+
+  context::CDHashMap<Node, std::unordered_set<Node>> d_processedApplyUf;
 
   /** Node manager that is used throughout the pass */
   NodeManager* d_nm;
