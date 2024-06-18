@@ -31,6 +31,7 @@ set(CVC5_EXAMPLES_API
   transcendentals
   parser
   parser_sym_manager
+  uf
 )
 
 foreach(example ${CVC5_EXAMPLES_API})
