@@ -62,7 +62,7 @@
 
 ; program: $arith_eval_int_log_2_rec
 ; args:
-; - x : Int. The term to compute the log (base 2) of, assumed to be a positive numeral value.
+; - x  Int: The term to compute the log (base 2) of, assumed to be a positive numeral value.
 ; return: The log base 2 of x.
 ; note: Helper method for $arith_eval_int_log_2 below.
 (program $arith_eval_int_log_2_rec ((x Int))
@@ -158,7 +158,7 @@
 ; program: $poly_mul_mon
 ; args:
 ; - a @Monomial: The monomial to multiply.
-; - p : @Polynomial. The polynomial to multiply.
+; - p @Polynomial: The polynomial to multiply.
 ; return: the multiplication of the polynomial by a monomial.
 (program $poly_mul_mon ((m1 @Monomial) (m2 @Monomial) (p2 @Polynomial :list))
   (@Monomial @Polynomial) @Polynomial
