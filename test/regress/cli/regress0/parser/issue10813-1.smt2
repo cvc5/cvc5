@@ -1,6 +1,6 @@
 ; DISABLE-TESTER: dump
-; SCRUBBER: grep -o 'Cannot construct Real or Int from string argument'
-; EXPECT: Cannot construct Real or Int from string argument
+; SCRUBBER: grep -o 'cannot construct Real or Int from string argument'
+; EXPECT: cannot construct Real or Int from string argument
 ; EXIT: 1
 (set-logic QF_LRA)
 (declare-const x Real)

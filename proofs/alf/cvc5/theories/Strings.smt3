@@ -81,7 +81,7 @@
 (declare-const re.opt (-> RegLan RegLan))
 (declare-const re.comp (-> RegLan RegLan))
 (declare-const re.range (-> String String RegLan))
-(declare-const re.++ (-> RegLan RegLan RegLan) :right-assoc-nil (str.to_re ""))
+(declare-const re.++ (-> RegLan RegLan RegLan) :right-assoc-nil @re.empty)
 (declare-const re.inter (-> RegLan RegLan RegLan) :right-assoc-nil re.all)
 (declare-const re.union (-> RegLan RegLan RegLan) :right-assoc-nil re.none)
 (declare-const re.diff (-> RegLan RegLan RegLan))
