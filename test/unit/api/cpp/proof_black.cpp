@@ -24,7 +24,7 @@ namespace test {
 class TestApiBlackProof : public TestApi
 {
  protected:
-  Proof create_proof()
+  Proof createProof()
   {
     d_solver->setOption("produce-proofs", "true");
 
@@ -74,7 +74,6 @@ TEST_F(TestApiBlackProof, nullProof)
 {
   Proof proof;
   ASSERT_EQ(proof.getRule(), ProofRule::UNKNOWN);
-
   ASSERT_EQ(std::hash<cvc5::ProofRule>()(ProofRule::UNKNOWN),
             static_cast<size_t>(ProofRule::UNKNOWN));
   ASSERT_TRUE(proof.getResult().isNull());
@@ -84,7 +83,7 @@ TEST_F(TestApiBlackProof, nullProof)
 
 TEST_F(TestApiBlackProof, getRule)
 {
-  Proof proof = create_proof();
+  Proof proof = createProof();
   ASSERT_EQ(proof.getRule(), ProofRule::SCOPE);
 }
 
@@ -108,13 +107,13 @@ TEST_F(TestApiBlackProof, getRewriteRule)
 
 TEST_F(TestApiBlackProof, getResult)
 {
-  Proof proof = create_proof();
+  Proof proof = createProof();
   ASSERT_NO_THROW(proof.getResult());
 }
 
 TEST_F(TestApiBlackProof, getChildren)
 {
-  Proof proof = create_proof();
+  Proof proof = createProof();
   std::vector<Proof> children;
   ASSERT_NO_THROW(children = proof.getChildren());
   ASSERT_FALSE(children.empty());
@@ -122,8 +121,24 @@ TEST_F(TestApiBlackProof, getChildren)
 
 TEST_F(TestApiBlackProof, getArguments)
 {
-  Proof proof = create_proof();
+  Proof proof = createProof();
   ASSERT_NO_THROW(proof.getArguments());
+}
+
+TEST_F(TestApiBlackProof, eq)
+{
+  Proof x = createProof();
+  Proof y = x.getChildren()[0];
+  Proof z;
+
+  ASSERT_TRUE(x == x);
+  ASSERT_FALSE(x != x);
+  ASSERT_FALSE(x == y);
+  ASSERT_TRUE(x != y);
+  ASSERT_FALSE(x == z);
+  ASSERT_TRUE(x != z);
+
+  ASSERT_TRUE(std::hash<Proof>()(x) == std::hash<Proof>()(x));
 }
 
 }  // namespace test

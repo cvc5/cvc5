@@ -17,4 +17,4 @@
 (declare-const pto (-> (! Type :var U :implicit) (! Type :var T :implicit) U T Bool))
 
 ; Internal functions.
-(declare-const SEP_LABEL (-> (! Type :var U :implicit) (! Type :var T :implicit) U (Set T) Bool))
+(declare-const @sep_label (-> (! Type :var U :implicit) (! Type :var T :implicit) U (Set T) Bool))
