@@ -80,7 +80,7 @@ std::string parse(std::string instr,
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);
-  SymbolManager symman(&solver);
+  SymbolManager symman(tm);
   InputParser parser(&solver, &symman);
   std::stringstream ss;
   ss << declarations;

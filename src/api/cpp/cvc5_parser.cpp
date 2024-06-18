@@ -63,7 +63,14 @@ class CVC5ParserApiExceptionStream
 /* SymbolManager                                                              */
 /* -------------------------------------------------------------------------- */
 
-SymbolManager::SymbolManager(cvc5::Solver* s) { d_sm.reset(new SymManager(s)); }
+SymbolManager::SymbolManager(cvc5::TermManager& tm)
+{
+  d_sm.reset(new SymManager(tm));
+}
+SymbolManager::SymbolManager(cvc5::Solver* slv)
+{
+  d_sm.reset(new SymManager(slv->getTermManager()));
+}
 
 SymbolManager::~SymbolManager() {}
 
@@ -180,7 +187,7 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm)
 
 InputParser::InputParser(Solver* solver)
     : d_solver(solver),
-      d_allocSm(new SymbolManager(solver)),
+      d_allocSm(new SymbolManager(solver->getTermManager())),
       d_sm(d_allocSm.get())
 {
   initialize();

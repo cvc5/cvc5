@@ -689,7 +689,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
 
 cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
     cdef cppclass SymbolManager:
-        SymbolManager(Solver* solver) except +
+        SymbolManager(TermManager& tm) except +
         bint isLogicSet() except +
         string getLogic() except +
         vector[Sort] getDeclaredSorts() except +
