@@ -553,7 +553,10 @@ void LogicInfo::setLogicString(std::string logicString)
     } else {
       err << "junk (\"" << p << "\") at end of logic string: " << logicString;
     }
-    IllegalArgument(logicString, err.str().c_str());
+    // The strings logicString and p are user-provided and
+    // may include format specifiers (e.g. "QF_LIA%s").
+    // Do not use unsafe macros/functions such as IllegalArgument.
+    throw cvc5::internal::Exception(err.str().c_str());
   }
 
   // ensure a getLogic() returns the same thing as was set
