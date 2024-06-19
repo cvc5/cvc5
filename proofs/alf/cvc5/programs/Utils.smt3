@@ -10,7 +10,7 @@
 (declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
 
 ; untyped list
-(declare-sort @List 0)
+(declare-type @List ())
 (declare-const @list.nil @List)
 (declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
 

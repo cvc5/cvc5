@@ -6,7 +6,7 @@
   ;(-> (! Int :var e) (! Int :var s) Type)
   (-> Int Int Type)
 )
-(declare-sort RoundingMode 0)
+(declare-type RoundingMode ())
 
 ; A floating point constant is a term having 3 bitvector children.
 ; Note this is used for both FLOATINGPOINT_FP and CONST_FLOATINGPOINT

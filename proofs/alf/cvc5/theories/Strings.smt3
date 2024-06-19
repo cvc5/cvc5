@@ -7,11 +7,11 @@
 ; String is treated as a sequence of characters in the ALF signature.
 ; Note that this is only for the purposes of simplifying the type rules below.
 ; Internally, cvc5 will never generate any proofs involving the Char type.
-(declare-sort Char 0)
-(define-fun String () Type (Seq Char))
+(declare-type Char ())
+(define String () (Seq Char))
 
 ; The regular expression type.
-(declare-sort RegLan 0)
+(declare-type RegLan ())
 
 ; String literals are strings.
 (declare-consts <string> String)
