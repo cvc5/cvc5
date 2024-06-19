@@ -957,7 +957,6 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
 
 Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 {
-  Kind k = quantifiedNode.getKind();
   Node boundVarList = quantifiedNode[0];
   Assert(boundVarList.getKind() == Kind::BOUND_VAR_LIST);
   // Since bit-vector variables are being translated to
@@ -1025,8 +1024,10 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // Add the range constraints to the body of the quantifier.
   // For "exists", this is added conjunctively
   // For "forall", this is added to the left side of an implication.
+  // matrix = d_nm->mkNode(
+  //     k == Kind::FORALL ? Kind::IMPLIES : Kind::AND, ranges, matrix);
   matrix = d_nm->mkNode(
-      k == Kind::FORALL ? Kind::IMPLIES : Kind::AND, ranges, matrix);
+     Kind::AND, ranges, matrix);
   // create the new quantified formula and return it.
   Node newBoundVarsList = d_nm->mkNode(Kind::BOUND_VAR_LIST, newBoundVars);
   Node result = d_nm->mkNode(Kind::FORALL, newBoundVarsList, matrix);
