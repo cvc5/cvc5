@@ -258,7 +258,7 @@ Node AletheNodeConverter::getOriginalAssumption(Node n)
   {
     return it->second;
   }
-  return Node::null();
+  return n;
 }
 
 const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions()
