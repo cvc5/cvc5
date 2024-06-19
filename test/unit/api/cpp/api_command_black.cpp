@@ -22,7 +22,6 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include <cvc5/cvc5_parser.h>
 #include "test_parser.h"
 
 using namespace cvc5::parser;
@@ -30,11 +29,11 @@ using namespace cvc5::parser;
 namespace cvc5::internal {
 namespace test {
 
-class TestCommandBlack : public TestParser
+class TestApiBlackCommand : public TestParser
 {
  protected:
-  TestCommandBlack() {}
-  virtual ~TestCommandBlack() {}
+  TestApiBlackCommand() {}
+  virtual ~TestApiBlackCommand() {}
 
   Command parseCommand(const std::string& cmdStr)
   {
@@ -47,17 +46,17 @@ class TestCommandBlack : public TestParser
   }
 };
 
-TEST_F(TestCommandBlack, invoke)
+TEST_F(TestApiBlackCommand, invoke)
 {
   std::stringstream out;
   Command cmd;
   // set logic command can be executed
   cmd = parseCommand("(set-logic QF_LIA)");
-  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_FALSE(cmd.isNull());
   cmd.invoke(d_solver.get(), d_symman.get(), out);
   // get model not available
   cmd = parseCommand("(get-model)");
-  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_FALSE(cmd.isNull());
   cmd.invoke(d_solver.get(), d_symman.get(), out);
   std::string result = out.str();
   ASSERT_EQ(
@@ -68,11 +67,11 @@ TEST_F(TestCommandBlack, invoke)
   ASSERT_THROW(parseCommand("(set-logic QF_LRA)"), ParserException);
 }
 
-TEST_F(TestCommandBlack, toString)
+TEST_F(TestApiBlackCommand, toString)
 {
   Command cmd;
   cmd = parseCommand("(set-logic QF_LIA )");
-  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_FALSE(cmd.isNull());
   // note normalizes wrt whitespace
   ASSERT_EQ(cmd.toString(), "(set-logic QF_LIA)");
   std::stringstream ss;
@@ -80,11 +79,11 @@ TEST_F(TestCommandBlack, toString)
   ASSERT_EQ(cmd.toString(), ss.str());
 }
 
-TEST_F(TestCommandBlack, getCommandName)
+TEST_F(TestApiBlackCommand, getCommandName)
 {
   Command cmd;
   cmd = parseCommand("(get-model)");
-  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_FALSE(cmd.isNull());
   ASSERT_EQ(cmd.getCommandName(), "get-model");
 }
 

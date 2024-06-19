@@ -17,6 +17,8 @@
 # libcvc5parser source files
 
 set(libcvc5parserapi_src_files
+  ../api/c/cvc5_parser.cpp
+  ../api/c/cvc5_c_structs.cpp
   ../api/cpp/cvc5_parser.cpp
 )
 

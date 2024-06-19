@@ -22,7 +22,6 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include <cvc5/cvc5_parser.h>
 #include "test_parser.h"
 
 using namespace cvc5::parser;
@@ -30,11 +29,11 @@ using namespace cvc5::parser;
 namespace cvc5::internal {
 namespace test {
 
-class TestSymbolManagerBlack : public TestParser
+class TestApiBlackSymbolManager : public TestParser
 {
  protected:
-  TestSymbolManagerBlack() {}
-  virtual ~TestSymbolManagerBlack() {}
+  TestApiBlackSymbolManager() {}
+  virtual ~TestApiBlackSymbolManager() {}
 
   void parseAndSetLogic(const std::string& logic)
   {
@@ -50,21 +49,21 @@ class TestSymbolManagerBlack : public TestParser
   }
 };
 
-TEST_F(TestSymbolManagerBlack, isLogicSet)
+TEST_F(TestApiBlackSymbolManager, isLogicSet)
 {
   ASSERT_EQ(d_symman->isLogicSet(), false);
   parseAndSetLogic("QF_LIA");
   ASSERT_EQ(d_symman->isLogicSet(), true);
 }
 
-TEST_F(TestSymbolManagerBlack, getLogic)
+TEST_F(TestApiBlackSymbolManager, getLogic)
 {
   ASSERT_THROW(d_symman->getLogic(), CVC5ApiException);
   parseAndSetLogic("QF_LIA");
   ASSERT_EQ(d_symman->getLogic(), "QF_LIA");
 }
 
-TEST_F(TestSymbolManagerBlack, getDeclaredTermsAndSorts)
+TEST_F(TestApiBlackSymbolManager, getDeclaredTermsAndSorts)
 {
   ASSERT_EQ(d_symman->getDeclaredSorts().size(), 0);
   ASSERT_EQ(d_symman->getDeclaredTerms().size(), 0);

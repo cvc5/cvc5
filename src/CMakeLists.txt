@@ -16,6 +16,8 @@
 # Collect libcvc5 source files
 libcvc5_add_sources(
   api/c/cvc5.cpp
+  api/c/cvc5_c_structs.h
+  api/c/cvc5_c_structs.cpp
   api/c/cvc5_checks.h
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
