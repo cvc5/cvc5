@@ -15,10 +15,10 @@
 (program $eval_bv_sym ((S Type) (T Type) (f (-> T S)) (x S) (ys S :list) (z S) (y T) (m Int) (xb (BitVec m)))
     (S) S
     (
-    (($eval_bv_sym (+ x ys))     (arith_eval_add ($eval_bv_sym x) ($eval_bv_sym ys)))
-    (($eval_bv_sym (- x z))      (arith_eval_sub ($eval_bv_sym x) ($eval_bv_sym z)))
+    (($eval_bv_sym (+ x ys))     ($arith_eval_add ($eval_bv_sym x) ($eval_bv_sym ys)))
+    (($eval_bv_sym (- x z))      ($arith_eval_sub ($eval_bv_sym x) ($eval_bv_sym z)))
     (($eval_bv_sym (@bvsize xb)) ($bv_bitwidth (alf.typeof xb)))
-    (($eval_bv_sym (int.log2 x)) (arith_eval_int_log_2 ($eval_bv_sym x)))
+    (($eval_bv_sym (int.log2 x)) ($arith_eval_int_log_2 ($eval_bv_sym x)))
     (($eval_bv_sym (mod x z))    (alf.zmod ($eval_bv_sym x) ($eval_bv_sym z)))
     (($eval_bv_sym x)            x)
     )
