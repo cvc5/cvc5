@@ -12,8 +12,10 @@
 #
 # The build system configuration.
 ##
+cvc5_add_unit_test_black(api_command_black api/cpp)
 cvc5_add_unit_test_black(api_datatype_black api/cpp)
 cvc5_add_unit_test_black(api_grammar_black api/cpp)
+cvc5_add_unit_test_black(api_input_parser_black api/cpp)
 cvc5_add_unit_test_black(api_kind_black api/cpp)
 cvc5_add_unit_test_black(api_op_black api/cpp)
 cvc5_add_unit_test_white(api_op_white api/cpp)
@@ -25,14 +27,12 @@ cvc5_add_unit_test_black(api_skolem_id_black api/cpp)
 cvc5_add_unit_test_black(api_solver_black api/cpp)
 cvc5_add_unit_test_black(api_sort_black api/cpp)
 cvc5_add_unit_test_black(api_sort_kind_black api/cpp)
+cvc5_add_unit_test_black(api_symbol_manager_black api/cpp)
 cvc5_add_unit_test_black(api_synth_result_black api/cpp)
 cvc5_add_unit_test_black(api_term_black api/cpp)
 cvc5_add_unit_test_black(api_term_manager_black api/cpp)
 cvc5_add_unit_test_white(api_term_white api/cpp)
 cvc5_add_unit_test_black(api_types_black api/cpp)
-cvc5_add_unit_test_black(command_black api/cpp)
-cvc5_add_unit_test_black(input_parser_black api/cpp)
-cvc5_add_unit_test_black(symbol_manager_black api/cpp)
 cvc5_add_unit_test_white(solver_white api/cpp)
 
 # do not issue deprecation warnings when using deprecated functions
