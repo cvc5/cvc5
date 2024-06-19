@@ -297,6 +297,9 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5293_1.smt2
   regress0/bv/bv_to_int_5293_2.smt2
   regress0/bv/bv_to_int_8412.smt2
+  regress0/bv/bv_to_int_8798.smt2
+  regress0/bv/bv_to_int_8798_gxy.smt2
+  regress0/bv/bv_to_int_8798_unsat.smt2
   regress0/bv/bv_to_int_9071.smt2
   regress0/bv/bv_to_int_9071_bv4.smt2
   regress0/bv/bv_to_int_9071_th_sym.smt2
@@ -306,6 +309,8 @@ set(regress_0_tests
   regress0/bv/bv_to_int_elim_err.smt2
   regress0/bv/bv_to_int_issue_8413_1.smt2
   regress0/bv/bv_to_int_issue_8413_2.smt2
+  regress0/bv/bv_to_int_inc0.smt2
+  regress0/bv/bv_to_int_inc1.smt2
   regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_proj_417.smt2
   regress0/bv/bv_to_int_zext.smt2

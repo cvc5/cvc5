@@ -49,6 +49,7 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  Trace("bv-to-int-debug") << "entering applyInternal" << std::endl;
   // vector of boolean nodes for additional constraints
   // this will always contain range constraints
   // and for options::SolveBVAsIntMode::BITWISE, it will
