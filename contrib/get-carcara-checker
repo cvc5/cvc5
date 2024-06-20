@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+# utility function to download a file
+function download {
+  if [ -x "$(command -v wget)" ]; then
+    wget -c -O "$2" "$1"
+  elif [ -x "$(command -v curl)" ]; then
+    curl -L "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
+
+CVC_DIR=$(dirname $(dirname "$0"))
+mkdir -p $CVC_DIR/deps
+pushd $CVC_DIR/deps
+
+BASE_DIR=`pwd`
+mkdir -p $BASE_DIR/tmp/
+
+###### Carcara
+CARCARA_DIR="$BASE_DIR/carcara"
+mkdir -p $CARCARA_DIR
+
+# download and unpack Carcara
+CARCARA_VERSION="e770994b5d981257d53a83d38a679fa98c144005"
+download "https://github.com/hanielb/carcara/archive/$CARCARA_VERSION.tar.gz" $BASE_DIR/tmp/carcara.tgz
+tar --strip 1 -xzf $BASE_DIR/tmp/carcara.tgz -C $CARCARA_DIR
+
+# build carcara
+pushd $CARCARA_DIR
+cargo build --release
+mkdir -p $BASE_DIR/bin
+cp ./target/release/carcara $BASE_DIR/bin/carcara
+popd
+
+cat << EOF > $BASE_DIR/bin/cvc5-carcara-check.sh
+#!/usr/bin/env bash
+echo "=== Generate proof: \$@"
+echo "> \$2.alethe"
+$BASE_DIR/bin/cvc5-alethe-proof.sh \$@ > \$2.alethe
+echo "=== Check proof with Carcara"
+$BASE_DIR/bin/carcara-check.sh \$2.alethe \$2
+EOF
+chmod +x $BASE_DIR/bin/cvc5-carcara-check.sh
+
+cat << EOF > $BASE_DIR/bin/cvc5-alethe-proof.sh
+#!/usr/bin/env bash
+# call cvc5 and remove the first line of the output (should be "unsat")
+\$@ --dump-proofs --proof-format=alethe --proof-alethe-experimental | tail -n +2
+EOF
+chmod +x $BASE_DIR/bin/cvc5-alethe-proof.sh
+
+cat << EOF > $BASE_DIR/bin/carcara-check.sh
+#!/usr/bin/env bash
+$BASE_DIR/bin/carcara check --allow-int-real-subtyping --expand-let-bindings --ignore-unknown-rules \$@ > carcara.out
+cat carcara.out
+rm carcara.out
+EOF
+chmod +x $BASE_DIR/bin/carcara-check.sh
+
+echo ""
+echo "========== How to use Carcara =========="
+echo "Generate an Alethe proof with cvc5 (for terms printed without sharing, use --dag-thresh=0):"
+echo "  $CVC_DIR/deps/bin/cvc5-alethe-proof.sh cvc5 <input file> <options>"
+echo "Check a proof:"
+echo "  $CVC_DIR/deps/bin/carcara-check.sh <proof file> <input file>"
+echo "Run cvc5 and check the generated proof:"
+echo "  $CVC_DIR/deps/bin/cvc5-carcara-check.sh cvc5 <input file> <options>"
