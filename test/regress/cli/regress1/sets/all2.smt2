@@ -1,8 +1,6 @@
+; COMMAND-LINE: --finite-model-find -q
 (set-logic HO_ALL)
 (set-info :status sat)
-(set-option :fmf-bound true)
-(set-option :uf-lazy-ll true)
-
 (define-fun map_fun ((i Int)) Int (+ i 1))
 (define-fun filter_fun ((i Int)) Bool (and (>= i 0) (<= i 10)))
 
@@ -20,4 +18,3 @@
 (assert (set.all (lambda ((i Int)) (>= i min_set)) FiltMapIntSet))
 
 (check-sat)
-(get-model)
