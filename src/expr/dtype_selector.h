@@ -42,7 +42,7 @@ class DTypeSelector
   DTypeSelector(std::string name, Node selector, Node updater);
 
   /** Get the name of this constructor argument. */
-  const std::string& getName() const;
+  std::string getName() const;
 
   /**
    * Get the selector for this constructor argument; this call is

@@ -18,7 +18,7 @@ set(CVC5_EXAMPLES_API_C
   bitvectors
   bitvectors_and_arrays
   combination
-  #datatypes
+  datatypes
   extract
   floating_point_arith
   helloworld
