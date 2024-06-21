@@ -16,7 +16,7 @@
 set(CVC5_EXAMPLES_API_C
   bags
   bitvectors
-  #bitvectors_and_arrays
+  bitvectors_and_arrays
   #combination
   #datatypes
   #extract
