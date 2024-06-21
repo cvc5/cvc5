@@ -42,9 +42,9 @@ void NodeBitblaster::bbAtom(TNode node)
   Node normalized = rewrite(node);
   Node atom_bb =
       normalized.getKind() != Kind::CONST_BOOLEAN
-              && normalized.getKind() != Kind::BITVECTOR_BITOF
+              && normalized.getKind() != Kind::BITVECTOR_BIT
           ? d_atomBBStrategies[static_cast<uint32_t>(normalized.getKind())](
-              normalized, this)
+                normalized, this)
           : normalized;
 
   storeBBAtom(node, rewrite(atom_bb));
@@ -74,7 +74,7 @@ void NodeBitblaster::makeVariable(TNode var, Bits& bits)
   Assert(bits.size() == 0);
   for (unsigned i = 0; i < utils::getSize(var); ++i)
   {
-    bits.push_back(utils::mkBitOf(var, i));
+    bits.push_back(utils::mkBit(var, i));
   }
   d_variables.insert(var);
 }
@@ -173,7 +173,7 @@ bool NodeBitblaster::isVariable(TNode node)
 Node NodeBitblaster::applyAtomBBStrategy(TNode node)
 {
   Assert(node.getKind() != Kind::CONST_BOOLEAN);
-  Assert(node.getKind() != Kind::BITVECTOR_BITOF);
+  Assert(node.getKind() != Kind::BITVECTOR_BIT);
   return d_atomBBStrategies[static_cast<uint32_t>(node.getKind())](node, this);
 }
 

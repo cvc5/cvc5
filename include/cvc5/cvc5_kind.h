@@ -2049,6 +2049,38 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_TO_NAT),
+  /**
+   * Converts a list of Bool terms to a bit-vector.
+   *
+   * - Arity: ``n > 0``
+   *
+   *   - ``1..n:`` Terms of Sort Bool
+   *
+   * \rst
+   * .. note:: May be returned as the result of an API call, but terms of this
+   *           kind may not be created explicitly via the API and may not
+   *           appear in assertions.
+   * \endrst
+   */
+  EVALUE(BITVECTOR_FROM_BOOLS),
+  /**
+   * Retrieves the bit at the given index from a bit-vector as a Bool term.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of bit-vector Sort
+   *
+   * - Indices: ``1``
+   *
+   *   - ``1:`` The bit index
+   *
+   * \rst
+   * .. note:: May be returned as the result of an API call, but terms of this
+   *           kind may not be created explicitly via the API and may not
+   *           appear in assertions.
+   * \endrst
+   */
+  EVALUE(BITVECTOR_BIT),
 
   /* Finite Fields --------------------------------------------------------- */
 
