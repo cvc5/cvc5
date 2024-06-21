@@ -19,7 +19,7 @@ set(CVC5_EXAMPLES_API_C
   bitvectors_and_arrays
   combination
   #datatypes
-  #extract
+  extract
   #floating_point_arith
   #helloworld
   #linear_arith
