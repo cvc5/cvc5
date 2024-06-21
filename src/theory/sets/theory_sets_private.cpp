@@ -391,7 +391,7 @@ void TheorySetsPrivate::fullEffortCheck()
       continue;
     }
     // check set.all rules
-    checkAll();
+    checkPredicateAll();
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -749,7 +749,7 @@ void TheorySetsPrivate::checkFilterUp()
   }
 }
 
-void TheorySetsPrivate::checkAll()
+void TheorySetsPrivate::checkPredicateAll()
 {
   NodeManager* nm = nodeManager();
   const std::vector<Node>& allTerms = d_state.getSetAllTerms();

@@ -107,7 +107,7 @@ class TheorySetsPrivate : protected EnvObj
    *      (set.isEmpty A)
    *      (set.all p A))
    */
-  void checkAll();
+  void checkPredicateAll();
 
   /**
    * Apply the following rule for map terms (set.map f A):
