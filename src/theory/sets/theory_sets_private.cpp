@@ -759,7 +759,6 @@ void TheorySetsPrivate::checkAll()
     Node p = term[0];
     Node A = term[1];
     Node empty = nm->mkConst(EmptySet(A.getType()));
-    Node skolem = d_treg.getProxy(term);
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
@@ -770,7 +769,7 @@ void TheorySetsPrivate::checkAll()
       Node B = pair.second[1];
       d_state.addEqualityToExp(A, B, exp);
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
-      exp.push_back(skolem);
+      exp.push_back(term);
       d_im.assertInference(p_x, InferenceId::SETS_ALL, exp);
       if (d_state.isInConflict())
       {
@@ -778,7 +777,7 @@ void TheorySetsPrivate::checkAll()
       }
     }
     Node isEmpty = empty.eqNode(A);
-    d_im.assertInference(skolem, InferenceId::SETS_ALL_EMPTY, {isEmpty});
+    d_im.assertInference(term, InferenceId::SETS_ALL_EMPTY, {isEmpty});
   }
 }
 

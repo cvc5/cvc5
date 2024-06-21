@@ -1,6 +1,5 @@
 (set-logic HO_ALL)
 (set-info :status sat)
-(set-option :simplification none)
 (define-fun map_fun ((i Int)) Int (+ i 1))
 (define-fun filter_fun ((i Int)) Bool (and (>= i 0) (<= i 10)))
 

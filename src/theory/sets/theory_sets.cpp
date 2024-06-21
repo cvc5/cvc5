@@ -81,7 +81,6 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(Kind::SET_MINUS);
   d_equalityEngine->addFunctionKind(Kind::SET_MEMBER);
   d_equalityEngine->addFunctionKind(Kind::SET_SUBSET);
-  d_equalityEngine->addFunctionKind(Kind::SET_ALL);
   // relation operators
   d_equalityEngine->addFunctionKind(Kind::RELATION_PRODUCT);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN);
