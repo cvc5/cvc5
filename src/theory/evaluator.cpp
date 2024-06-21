@@ -505,10 +505,14 @@ EvalResult Evaluator::evalInternal(
           {
             if (results[currNode[i]].d_rat.isZero())
             {
-              if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-                  || k == Kind::INTS_MODULUS_TOTAL)
+              if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL)
               {
                 res = Rational(0);
+                continue;
+              }
+              else if (k == Kind::INTS_MODULUS_TOTAL)
+              {
+                // result is unchanged
                 continue;
               }
               else
