@@ -70,9 +70,9 @@ foreach(example ${CVC5_EXAMPLES_API_C})
   cvc5_add_c_example(${example} "")
 endforeach()
 
-#if(CVC5_USE_COCOA)
-#  cvc5_add_c_example(finite_field "")
-#endif()
+if(CVC5_USE_COCOA)
+  cvc5_add_c_example(finite_field "")
+endif()
 #
 #set(SYGUS_EXAMPLES_API_C
 #  sygus-fun
