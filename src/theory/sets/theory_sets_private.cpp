@@ -752,7 +752,7 @@ void TheorySetsPrivate::checkFilterUp()
 void TheorySetsPrivate::checkPredicateAll()
 {
   NodeManager* nm = nodeManager();
-  const std::vector<Node>& allTerms = d_state.getSetAllTerms();
+  const std::vector<Node>& allTerms = d_state.getPredicateAllTerms();
 
   for (const Node& term : allTerms)
   {
