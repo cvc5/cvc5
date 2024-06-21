@@ -15,7 +15,7 @@
 
 set(CVC5_EXAMPLES_API_C
   bags
-  #bitvectors
+  bitvectors
   #bitvectors_and_arrays
   #combination
   #datatypes
