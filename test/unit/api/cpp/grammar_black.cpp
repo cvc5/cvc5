@@ -21,15 +21,20 @@ namespace test {
 
 class TestApiBlackGrammar : public TestApi
 {
+ protected:
+  void SetUp() override
+  {
+    TestApi::SetUp();
+    d_bool = d_tm.getBooleanSort();
+  }
+  Sort d_bool;
 };
 
 TEST_F(TestApiBlackGrammar, toString)
 {
   d_solver->setOption("sygus", "true");
-  Sort boolean = d_tm.getBooleanSort();
-  Term start = d_tm.mkVar(boolean);
-  Grammar g;
-  g = d_solver->mkGrammar({}, {start});
+  Term start = d_tm.mkVar(d_bool);
+  Grammar g = d_solver->mkGrammar({}, {start});
   g.addRule(start, d_tm.mkBoolean(false));
 
   {
@@ -42,12 +47,10 @@ TEST_F(TestApiBlackGrammar, toString)
 TEST_F(TestApiBlackGrammar, addRule)
 {
   d_solver->setOption("sygus", "true");
-  Sort boolean = d_tm.getBooleanSort();
-  Sort integer = d_tm.getIntegerSort();
 
   Term nullTerm;
-  Term start = d_tm.mkVar(boolean);
-  Term nts = d_tm.mkVar(boolean);
+  Term start = d_tm.mkVar(d_bool);
+  Term nts = d_tm.mkVar(d_bool);
 
   Grammar g = d_solver->mkGrammar({}, {start});
 
@@ -58,7 +61,7 @@ TEST_F(TestApiBlackGrammar, addRule)
   ASSERT_THROW(g.addRule(nts, d_tm.mkBoolean(false)), CVC5ApiException);
   ASSERT_THROW(g.addRule(start, d_tm.mkInteger(0)), CVC5ApiException);
 
-  d_solver->synthFun("f", {}, boolean, g);
+  d_solver->synthFun("f", {}, d_bool, g);
 
   ASSERT_THROW(g.addRule(start, d_tm.mkBoolean(false)), CVC5ApiException);
 }
@@ -66,12 +69,10 @@ TEST_F(TestApiBlackGrammar, addRule)
 TEST_F(TestApiBlackGrammar, addRules)
 {
   d_solver->setOption("sygus", "true");
-  Sort boolean = d_tm.getBooleanSort();
-  Sort integer = d_tm.getIntegerSort();
 
   Term nullTerm;
-  Term start = d_tm.mkVar(boolean);
-  Term nts = d_tm.mkVar(boolean);
+  Term start = d_tm.mkVar(d_bool);
+  Term nts = d_tm.mkVar(d_bool);
 
   Grammar g = d_solver->mkGrammar({}, {start});
 
@@ -82,7 +83,7 @@ TEST_F(TestApiBlackGrammar, addRules)
   ASSERT_THROW(g.addRules(nts, {d_tm.mkBoolean(false)}), CVC5ApiException);
   ASSERT_THROW(g.addRules(start, {d_tm.mkInteger(0)}), CVC5ApiException);
 
-  d_solver->synthFun("f", {}, boolean, g);
+  d_solver->synthFun("f", {}, d_bool, g);
 
   ASSERT_THROW(g.addRules(start, {d_tm.mkBoolean(false)}), CVC5ApiException);
 }
@@ -90,11 +91,10 @@ TEST_F(TestApiBlackGrammar, addRules)
 TEST_F(TestApiBlackGrammar, addAnyConstant)
 {
   d_solver->setOption("sygus", "true");
-  Sort boolean = d_tm.getBooleanSort();
 
   Term nullTerm;
-  Term start = d_tm.mkVar(boolean);
-  Term nts = d_tm.mkVar(boolean);
+  Term start = d_tm.mkVar(d_bool);
+  Term nts = d_tm.mkVar(d_bool);
 
   Grammar g = d_solver->mkGrammar({}, {start});
 
@@ -104,7 +104,7 @@ TEST_F(TestApiBlackGrammar, addAnyConstant)
   ASSERT_THROW(g.addAnyConstant(nullTerm), CVC5ApiException);
   ASSERT_THROW(g.addAnyConstant(nts), CVC5ApiException);
 
-  d_solver->synthFun("f", {}, boolean, g);
+  d_solver->synthFun("f", {}, d_bool, g);
 
   ASSERT_THROW(g.addAnyConstant(start), CVC5ApiException);
 }
@@ -112,12 +112,11 @@ TEST_F(TestApiBlackGrammar, addAnyConstant)
 TEST_F(TestApiBlackGrammar, addAnyVariable)
 {
   d_solver->setOption("sygus", "true");
-  Sort boolean = d_tm.getBooleanSort();
 
   Term nullTerm;
-  Term x = d_tm.mkVar(boolean);
-  Term start = d_tm.mkVar(boolean);
-  Term nts = d_tm.mkVar(boolean);
+  Term x = d_tm.mkVar(d_bool);
+  Term start = d_tm.mkVar(d_bool);
+  Term nts = d_tm.mkVar(d_bool);
 
   Grammar g1 = d_solver->mkGrammar({x}, {start});
   Grammar g2 = d_solver->mkGrammar({}, {start});
@@ -129,9 +128,90 @@ TEST_F(TestApiBlackGrammar, addAnyVariable)
   ASSERT_THROW(g1.addAnyVariable(nullTerm), CVC5ApiException);
   ASSERT_THROW(g1.addAnyVariable(nts), CVC5ApiException);
 
-  d_solver->synthFun("f", {}, boolean, g1);
+  d_solver->synthFun("f", {}, d_bool, g1);
 
   ASSERT_THROW(g1.addAnyVariable(start), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackGrammar, hash)
+{
+  d_solver->setOption("sygus", "true");
+
+  Term x = d_tm.mkVar(d_bool, "x");
+  Term start1 = d_tm.mkVar(d_bool, "start");
+  Term start2 = d_tm.mkVar(d_bool, "start");
+  std::vector<Term> bvars, symbols;
+  Grammar g1, g2;
+
+  {
+    symbols = {start1};
+    bvars = {};
+    g1 = d_solver->mkGrammar(bvars, symbols);
+    g2 = d_solver->mkGrammar(bvars, symbols);
+    ASSERT_EQ(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g1));
+    ASSERT_EQ(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
+  }
+
+  {
+    symbols = {start1};
+    bvars = {};
+    g1 = d_solver->mkGrammar(bvars, symbols);
+    bvars = {x};
+    g2 = d_solver->mkGrammar(bvars, symbols);
+    ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
+  }
+
+  {
+    bvars = {x};
+    symbols = {start1};
+    g1 = d_solver->mkGrammar(bvars, symbols);
+    symbols = {start2};
+    g2 = d_solver->mkGrammar(bvars, symbols);
+    ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
+  }
+
+  {
+    bvars = {x};
+    symbols = {start1};
+    g1 = d_solver->mkGrammar(bvars, symbols);
+    g2 = d_solver->mkGrammar(bvars, symbols);
+    g2.addAnyVariable(start1);
+    ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
+  }
+
+  {
+    bvars = {x};
+    symbols = {start1};
+    g1 = d_solver->mkGrammar(bvars, symbols);
+    g2 = d_solver->mkGrammar(bvars, symbols);
+    std::vector<Term> rules = {d_tm.mkFalse()};
+    g1.addRules(start1, rules);
+    g2.addRules(start1, rules);
+    ASSERT_EQ(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
+  }
+
+  {
+    bvars = {x};
+    symbols = {start1};
+    g1 = d_solver->mkGrammar(bvars, symbols);
+    g2 = d_solver->mkGrammar(bvars, symbols);
+    std::vector<Term> rules2 = {d_tm.mkFalse()};
+    g2.addRules(start1, rules2);
+    ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
+  }
+
+  {
+    bvars = {x};
+    symbols = {start1};
+    g1 = d_solver->mkGrammar(bvars, symbols);
+    g2 = d_solver->mkGrammar(bvars, symbols);
+    std::vector<Term> rules1 = {d_tm.mkTrue()};
+    std::vector<Term> rules2 = {d_tm.mkFalse()};
+    g1.addRules(start1, rules1);
+    g2.addRules(start1, rules2);
+    ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
+  }
+  (void)std::hash<Grammar>{}(Grammar());
 }
 }  // namespace test
 }  // namespace cvc5::internal

@@ -3064,8 +3064,25 @@ class CVC5_EXPORT Grammar
 {
   friend class parser::Cmd;
   friend class Solver;
+  friend struct std::hash<Grammar>;
 
  public:
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Grammar();
+
+  /**
+   * Destructor for bookeeping.
+   */
+  ~Grammar();
+
+  /**
+   * Determine if this is the null grammar (Grammar::Grammar()).
+   * @return True if this grammar is the null grammar.
+   */
+  bool isNull() const;
+
   /**
    * Add `rule` to the set of rules corresponding to `ntSymbol`.
    * @param ntSymbol The non-terminal to which the rule is added.
@@ -3098,16 +3115,6 @@ class CVC5_EXPORT Grammar
    */
   std::string toString() const;
 
-  /**
-   * Nullary constructor. Needed for the Cython API.
-   */
-  Grammar();
-
-  /**
-   * Destructor for bookeeping.
-   */
-  ~Grammar();
-
  private:
   /**
    * Constructor.
@@ -3131,7 +3138,7 @@ class CVC5_EXPORT Grammar
    */
   TermManager* d_tm;
   /** The internal representation of this grammar. */
-  std::shared_ptr<internal::SygusGrammar> d_sg;
+  std::shared_ptr<internal::SygusGrammar> d_grammar;
 };
 
 /**
@@ -3141,6 +3148,21 @@ class CVC5_EXPORT Grammar
  * @return The output stream.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Grammar& g);
+
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for grammar.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Grammar>
+{
+  size_t operator()(const cvc5::Grammar& grammar) const;
+};
+}  // namespace std
+
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Options                                                                    */
@@ -3572,6 +3594,12 @@ class CVC5_EXPORT Proof
    * Destructor.
    */
   ~Proof();
+
+  /**
+   * Determine if this is the null proof (Proof::Proof()).
+   * @return True if this grammar is the null proof.
+   */
+  bool isNull() const;
 
   /** @return The proof rule used by the root step of the proof. */
   ProofRule getRule() const;

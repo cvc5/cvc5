@@ -69,6 +69,8 @@ TEST_F(TestCApiBlackSort, hash)
 {
   ASSERT_DEATH(cvc5_sort_hash(nullptr), "invalid sort");
   (void)cvc5_sort_hash(d_int);
+  ASSERT_EQ(cvc5_sort_hash(d_int), cvc5_sort_hash(d_int));
+  ASSERT_NE(cvc5_sort_hash(d_int), cvc5_sort_hash(d_bool));
 }
 
 TEST_F(TestCApiBlackSort, compare)

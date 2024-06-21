@@ -189,6 +189,12 @@ TEST_F(TestApiBlackDatatype, equalHash)
             std::hash<DatatypeSelector>{}(head2));
   ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt1));
   ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt2));
+
+  (void)std::hash<DatatypeDecl>{}(DatatypeDecl());
+  (void)std::hash<DatatypeConstructorDecl>{}(DatatypeConstructorDecl());
+  (void)std::hash<DatatypeConstructor>{}(DatatypeConstructor());
+  //(void)std::hash<DatatypeSelector>{}(DatatypeSelector());
+  //(void)std::hash<Datatype>{}(Datatype());
 }
 
 TEST_F(TestApiBlackDatatype, mkDatatypeSorts)

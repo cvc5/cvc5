@@ -125,7 +125,7 @@ TEST_F(TestApiBlackProof, getArguments)
   ASSERT_NO_THROW(proof.getArguments());
 }
 
-TEST_F(TestApiBlackProof, eq)
+TEST_F(TestApiBlackProof, equalhash)
 {
   Proof x = createProof();
   Proof y = x.getChildren()[0];
@@ -139,6 +139,7 @@ TEST_F(TestApiBlackProof, eq)
   ASSERT_TRUE(x != z);
 
   ASSERT_TRUE(std::hash<Proof>()(x) == std::hash<Proof>()(x));
+  (void)std::hash<Proof>{}(Proof());
 }
 
 }  // namespace test

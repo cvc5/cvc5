@@ -23,7 +23,7 @@ class TestApiBlackTerm : public TestApi
 {
 };
 
-TEST_F(TestApiBlackTerm, eq)
+TEST_F(TestApiBlackTerm, equalHash)
 {
   Sort uSort = d_tm.mkUninterpretedSort("u");
   Term x = d_tm.mkVar(uSort, "x");
@@ -36,6 +36,10 @@ TEST_F(TestApiBlackTerm, eq)
   ASSERT_TRUE(x != y);
   ASSERT_FALSE((x == z));
   ASSERT_TRUE(x != z);
+
+  ASSERT_EQ(std::hash<Term>{}(x), std::hash<Term>{}(x));
+  ASSERT_NE(std::hash<Term>{}(x), std::hash<Term>{}(y));
+  (void)std::hash<Term>{}(Term());
 }
 
 TEST_F(TestApiBlackTerm, getId)
