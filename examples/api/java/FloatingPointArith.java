@@ -91,7 +91,7 @@ public class FloatingPointArith
       System.out.println("to different integer values for different rounding modes:");
       Term rtp = tm.mkRoundingMode(RoundingMode.ROUND_TOWARD_POSITIVE);
       Term rtn = tm.mkRoundingMode(RoundingMode.ROUND_TOWARD_NEGATIVE);
-      Op op = tm.mkOp(Kind.FLOATINGPOINT_TO_SBV, 16); // (_ fp.to_sbv 16)
+      Op op = tm.mkOp(Kind.FLOATINGPOINT_TO_UBV, 16); // (_ fp.to_ubv 16)
       lhs = tm.mkTerm(op, rtp, d);
       rhs = tm.mkTerm(op, rtn, d);
       solver.assertFormula(tm.mkTerm(Kind.FLOATINGPOINT_IS_NORMAL, d));
@@ -103,8 +103,8 @@ public class FloatingPointArith
       System.out.println("Get value of `d` as floating-point, bit-vector and real:");
       Term val = solver.getValue(d);
       System.out.println("Value of `d`: " + val);
-      System.out.println("Value of `((_ fp.to_sbv 16) RTP d)`: " + solver.getValue(lhs));
-      System.out.println("Value of `((_ fp.to_sbv 16) RTN d)`: " + solver.getValue(rhs));
+      System.out.println("Value of `((_ fp.to_ubv 16) RTP d)`: " + solver.getValue(lhs));
+      System.out.println("Value of `((_ fp.to_ubv 16) RTN d)`: " + solver.getValue(rhs));
       System.out.println("Value of `(fp.to_real d)`: "
           + solver.getValue(tm.mkTerm(Kind.FLOATINGPOINT_TO_REAL, val)));
 

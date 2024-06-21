@@ -107,7 +107,7 @@ int main()
   solver.push(1);
   Term rtp = tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE);
   Term rtn = tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE);
-  Op op = tm.mkOp(Kind::FLOATINGPOINT_TO_SBV, {16});  // (_ fp.to_sbv 16)
+  Op op = tm.mkOp(Kind::FLOATINGPOINT_TO_UBV, {16});  // (_ fp.to_ubv 16)
   Term lhs = tm.mkTerm(op, {rtp, d});
   Term rhs = tm.mkTerm(op, {rtn, d});
   solver.assertFormula(tm.mkTerm(Kind::FLOATINGPOINT_IS_NORMAL, {d}));
@@ -123,9 +123,9 @@ int main()
             << std::endl;
   Term val = solver.getValue(d);
   std::cout << "Value of `d`: " << val << std::endl;
-  std::cout << "Value of `((_ fp.to_sbv 16) RTP d)`: " << solver.getValue(lhs)
+  std::cout << "Value of `((_ fp.to_ubv 16) RTP d)`: " << solver.getValue(lhs)
             << std::endl;
-  std::cout << "Value of `((_ fp.to_sbv 16) RTN d)`: " << solver.getValue(rhs)
+  std::cout << "Value of `((_ fp.to_ubv 16) RTN d)`: " << solver.getValue(rhs)
             << std::endl;
   std::cout << "Value of `(fp.to_real d)` "
             << solver.getValue(tm.mkTerm(Kind::FLOATINGPOINT_TO_REAL, {val}))
