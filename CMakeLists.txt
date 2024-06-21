@@ -388,6 +388,7 @@ set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
     CACHE STRING "Base Python executable")
 
 if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
+  find_package(Pip REQUIRED)
   # Set up Python venv if one doesn't exist already
   set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
   if(NOT EXISTS ${VENV_PATH})
