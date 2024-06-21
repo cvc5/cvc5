@@ -29,12 +29,12 @@ public class Command extends AbstractPointer
   protected native void deletePointer(long pointer);
 
   /**
-   * Invoke the command on the solver and symbol manager sm, prints the result
-   * to output stream out.
+   * Invoke the command on the solver and symbol manager sm and return any
+   * resulting output as a string.
    *
    * @param solver The solver to invoke the command on.
    * @param symbolManager The symbol manager to invoke the command on.
-   * @return the output of invoking the command.
+   * @return The output of invoking the command.
    */
   public String invoke(Solver solver, SymbolManager symbolManager)
   {

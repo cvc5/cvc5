@@ -27,7 +27,7 @@ int main()
   TermManager tm;
   Solver slv(tm);
 
-  SymbolManager sm(&slv);
+  SymbolManager sm(tm);
 
   // construct an input parser associated the solver above
   InputParser parser(&slv, &sm);

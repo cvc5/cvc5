@@ -18,7 +18,7 @@
     || (defined(CVC5_API_USE_C_ENUMS)               \
         && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
-#include <cstdint>
+#include <stdint.h>
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef ENUM
@@ -88,7 +88,7 @@ namespace cvc5 {
  * in post-processing.
  * \endverbatim
  */
-enum ENUM(ProofRule) : uint32_t
+enum ENUM(ProofRule)
 {
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -2242,7 +2242,7 @@ enum ENUM(ProofRule) : uint32_t
  * proof rule.
  * \endverbatim
  */
-enum ENUM(ProofRewriteRule) : uint32_t
+enum ENUM(ProofRewriteRule)
 {
   EVALUE(NONE),
   // Custom theory rewrites.
@@ -2515,8 +2515,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * .. math::
    *    (a bvand c) \to (concat (bvand a[i0:j0] c0) ... (bvand a[in:jn] cn))
    *
-   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the constant c
-   * \endverbatim
+   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
+   * constant c \endverbatim
    */
   EVALUE(BV_BITWISE_SLICING),
   /**
@@ -2550,7 +2550,7 @@ enum ENUM(ProofRewriteRule) : uint32_t
    *
    * .. math::
    *   \mathit{str.in_re}(s, R) = b
-   * 
+   *
    * where :math:`b` is either :math:`false` or the result of stripping
    * entailed prefixes and suffixes off of :math:`s` and :math:`R`.
    *
@@ -2562,8 +2562,10 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Strings - string in regular expression concatenation star character**
    *
    * .. math::
-   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) =
-   *   \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
+   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n),
+   * \mathit{re}.\text{*}(R)) = \mathit{str.in\_re}(s_1,
+   * \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n,
+   * \mathit{re}.\text{*}(R))
    *
    * where all strings in :math:`R` have length one.
    *
@@ -2575,13 +2577,15 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Strings - string in regular expression sigma**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar})) =
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar})) =
    *   (\mathit{str.len}(s) = n)
    *
    * or alternatively:
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) =
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) =
    *   (\mathit{str.len}(s) \ge n)
    *
    * \endverbatim
@@ -2592,10 +2596,13 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Strings - string in regular expression sigma star**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}))) =
+   *   \mathit{str.in\_re}(s,
+   * \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar}))) =
    *   (\mathit{str.len}(s) \ \% \ n = 0)
    *
-   * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to :math:`\mathit{re}.\text{++}`.
+   * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to
+   * :math:`\mathit{re}.\text{++}`.
    *
    * \endverbatim
    */

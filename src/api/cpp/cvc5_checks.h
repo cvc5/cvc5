@@ -885,7 +885,8 @@ class CVC5ApiUnsupportedExceptionStream
           domain_sorts[i] == bound_vars[i].getSort(),                         \
           "sort of parameter",                                                \
           bound_vars,                                                         \
-          i);                                                                 \
+          i)                                                                  \
+          << "sort '" << domain_sorts[i] << "'";                              \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
           domain_sorts[i].getTypeNode().isFirstClass(),                       \
           "domain sort",                                                      \

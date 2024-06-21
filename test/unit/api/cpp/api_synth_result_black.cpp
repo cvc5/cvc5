@@ -35,7 +35,7 @@ TEST_F(TestApiBlackSynthResult, isNull)
 TEST_F(TestApiBlackSynthResult, hasSolution)
 {
   d_solver->setOption("sygus", "true");
-  Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort());
+  (void)d_solver->synthFun("f", {}, d_tm.getBooleanSort());
   Term boolTerm = d_tm.mkTrue();
   d_solver->addSygusConstraint(boolTerm);
   cvc5::SynthResult res = d_solver->checkSynth();
@@ -53,8 +53,6 @@ TEST_F(TestApiBlackSynthResult, hasSolution)
 
 TEST_F(TestApiBlackSynthResult, hasNoSolution)
 {
-  // note that we never return synth result for which hasNoSolution is true
-  // currently
   cvc5::SynthResult res_null;
   ASSERT_FALSE(res_null.hasNoSolution());
 }
@@ -62,7 +60,7 @@ TEST_F(TestApiBlackSynthResult, hasNoSolution)
 TEST_F(TestApiBlackSynthResult, isUnknown)
 {
   d_solver->setOption("sygus", "true");
-  Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort());
+  (void)d_solver->synthFun("f", {}, d_tm.getBooleanSort());
   Term boolTerm = d_tm.mkFalse();
   d_solver->addSygusConstraint(boolTerm);
   cvc5::SynthResult res = d_solver->checkSynth();

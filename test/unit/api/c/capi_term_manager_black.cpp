@@ -42,6 +42,17 @@ class TestCApiBlackTermManager : public ::testing::Test
 
 TEST_F(TestCApiBlackTermManager, new) {}
 
+TEST_F(TestCApiBlackTermManager, delete)
+{
+  ASSERT_DEATH(cvc5_term_manager_delete(nullptr), "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackTermManager, release)
+{
+  ASSERT_DEATH(cvc5_term_manager_release(nullptr), "unexpected NULL argument");
+  cvc5_term_manager_release(d_tm);
+}
+
 TEST_F(TestCApiBlackTermManager, get_boolean_sort)
 {
   (void)cvc5_get_boolean_sort(d_tm);
