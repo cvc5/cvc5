@@ -13,6 +13,31 @@
 # The build system configuration.
 ##
 
+if(WIN32)
+  set(CVC5_PYAPI_TEST_DIR ${CMAKE_BINARY_DIR}/cvc5-pyapi-test)
+  if(NOT EXISTS ${CVC5_PYAPI_TEST_DIR})
+    set(WHEEL_INSTALL_CMD
+      "${Python_EXECUTABLE} -m pip install --prefix ${CVC5_PYAPI_TEST_DIR}")
+
+    # Build Python wheel and install it in ${CVC5_PYAPI_TEST_DIR}
+    execute_process(COMMAND ${CMAKE_COMMAND}
+      -DPython_EXECUTABLE=${Python_EXECUTABLE}
+      -DRepairwheel_EXECUTABLE=${Repairwheel_EXECUTABLE}
+      -DINSTALL_CMD="${WHEEL_INSTALL_CMD}"
+      -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)
+
+    execute_process(COMMAND
+      ${Python_EXECUTABLE} -c
+        "import os.path;import sysconfig;\
+        print('${CVC5_PYAPI_TEST_DIR}'+\
+        sysconfig.get_paths()['platlib'].split(sysconfig.get_config_var('platbase'))[1])"
+      OUTPUT_VARIABLE PYTHON_MODULE_PATH
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+else()
+  set(PYTHON_MODULE_PATH ${CMAKE_BINARY_DIR}/src/api/python)
+endif()
+
 # Add Python bindings API tests.
 macro(cvc5_add_python_api_test name filename)
 # We create test target 'api/python/myapitest' and run it with
@@ -20,12 +45,11 @@ macro(cvc5_add_python_api_test name filename)
   set(test_name api/python/${name})
   add_test (NAME ${test_name}
     COMMAND ${Python_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+            ${CMAKE_CURRENT_SOURCE_DIR}/${filename})
     # directory for importing the python bindings
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
     set_tests_properties(${test_name}
       PROPERTIES LABELS "api"
-      ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH}:${CMAKE_SOURCE_DIR}/api/python)
+      ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH})
 endmacro()
 
 # add specific test files
