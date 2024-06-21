@@ -71,6 +71,7 @@ cvc5_add_example(simple_vc_cxx "" "")
 cvc5_add_example(simple_vc_quant_cxx "" "")
 
 add_subdirectory(api/cpp)
+add_subdirectory(api/c)
 
 if(TARGET cvc5::cvc5jar)
   find_package(Java REQUIRED)
