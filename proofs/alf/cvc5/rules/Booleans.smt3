@@ -265,7 +265,7 @@
 ; premises:
 ; - F Bool: The formula to process, which should be the negation of an or-list Fs.
 ; args:
-; - i : Int. The child index of Fs to process.
+; - i Int: The child index of Fs to process.
 ; conclusion: the negation of the i^th child of the or-list Fs.
 (declare-rule not_or_elim ((Fs Bool) (i Int))
     :premises ((not Fs))
