@@ -3542,7 +3542,7 @@ enum ENUM(Kind) : int32_t
    * (set.all :math:`p \; A`) takes a predicate :math:`p` of Sort
    * :math:`(\rightarrow T \; Bool)` as a first argument, and a set :math:`A`
    * of Sort (Set :math:`T`) as a second argument, and returns true iff all 
-   * elements of :math:`A` satisfies predicate :math:`p`. 
+   * elements of :math:`A` satisfy predicate :math:`p`. 
    *
    * - Arity: ``2``
    *
