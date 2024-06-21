@@ -769,8 +769,8 @@ void TheorySetsPrivate::checkAll()
       d_state.addEqualityToExp(A, B, exp);
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
       Node skolem = d_treg.getProxy(term);
-      Node eq = skolem.eqNode(p_x);
-      d_im.assertInference(eq, InferenceId::SETS_ALL, exp);
+      Node imp = skolem.impNode(p_x);
+      d_im.assertInference(imp, InferenceId::SETS_ALL, exp);
       if (d_state.isInConflict())
       {
         return;

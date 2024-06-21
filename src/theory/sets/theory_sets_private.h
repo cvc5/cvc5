@@ -102,7 +102,7 @@ class TheorySetsPrivate : protected EnvObj
    * Apply the following rule for set.all terms (set.all p A):
    * (=>
    *   (set.member x A)
-   *   (=
+   *   (=>
    *     (set.all p A)
    *     (p x)))
    */
