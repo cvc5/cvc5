@@ -1,0 +1,27 @@
+contribution
+related work 10 pages
+plan
+
+30 pages. as many as needed. 
+-----------------------------
+translator 
+-----------------------------
+how why this important?
+change to smt
+translation, implementation, 
+tables, bag tuples
+calculus. 
+reader functionality
+different spes. 
+containment , data model consistency
+cvc rich theory of elements (integer constraints, string constraints), scope acceptable. 
+grant proposal
+aggregation fold
+
+sets semantics, bag semantics. 
+examples. 
+query to aggregation to smt 
+how is our work different than bags theory, is worth pursuing. 
+more flexible, more efficient. 
+coherent, 
+

@@ -390,6 +390,13 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
+    // check set.all rules
+    checkAll();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
     // check map up rules
     checkMapUp();
     d_im.doPendingLemmas();
@@ -734,6 +741,36 @@ void TheorySetsPrivate::checkFilterUp()
       Node orNode =
           p_x.andNode(memberFilter).orNode(not_p_x.andNode(not_memberFilter));
       d_im.assertInference(orNode, InferenceId::SETS_FILTER_UP, exp);
+      if (d_state.isInConflict())
+      {
+        return;
+      }
+    }
+  }
+}
+
+void TheorySetsPrivate::checkAll()
+{
+  NodeManager* nm = nodeManager();
+  const std::vector<Node>& allTerms = d_state.getSetAllTerms();
+
+  for (const Node& term : allTerms)
+  {
+    Node p = term[0];
+    Node A = term[1];
+    const std::map<Node, Node>& positiveMembers =
+        d_state.getMembers(d_state.getRepresentative(A));
+    for (const std::pair<const Node, Node>& pair : positiveMembers)
+    {
+      Node x = pair.first;
+      std::vector<Node> exp;
+      exp.push_back(pair.second);
+      Node B = pair.second[1];
+      d_state.addEqualityToExp(A, B, exp);
+      Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
+      Node skolem = d_treg.getProxy(term);
+      Node eq = skolem.eqNode(p_x);
+      d_im.assertInference(eq, InferenceId::SETS_ALL, exp);
       if (d_state.isInConflict())
       {
         return;
@@ -1614,7 +1651,8 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
 
 bool TheorySetsPrivate::isHigherOrderKind(Kind k)
 {
-  return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_FOLD;
+  return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_ALL
+         || k == Kind::SET_FOLD;
 }
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)

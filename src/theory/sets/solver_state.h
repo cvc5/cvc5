@@ -163,6 +163,8 @@ class SolverState : public TheoryState
   const std::map<Kind, std::vector<Node> >& getOperatorList() const;
   /** Get the list of all set.filter terms */
   const std::vector<Node>& getFilterTerms() const;
+  /** Get the list of all set.all terms */
+  const std::vector<Node>& getSetAllTerms() const;
   /** Get the list of all set.map terms in the current user context */
   const context::CDHashSet<Node>& getMapTerms() const;
   /** Get the list of all rel.group terms in the current user context */
@@ -228,6 +230,8 @@ class SolverState : public TheoryState
   std::map<Node, std::vector<Node> > d_nvar_sets;
   /** A list of filter terms. It is initialized during full effort check */
   std::vector<Node> d_filterTerms;
+  /** A list of set.all terms. It is initialized during full effort check */
+  std::vector<Node> d_allTerms;
   /** User context collection of set.map terms */
   context::CDHashSet<Node> d_mapTerms;
   /** User context collection of rel.group terms */

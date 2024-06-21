@@ -57,6 +57,7 @@ void SolverState::reset()
   d_op_list.clear();
   d_allCompSets.clear();
   d_filterTerms.clear();
+  d_allTerms.clear();
 }
 
 void SolverState::registerEqc(TypeNode tn, Node r)
@@ -148,6 +149,10 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   else if (nk == Kind::SET_FILTER)
   {
     d_filterTerms.push_back(n);
+  }
+  else if (nk == Kind::SET_ALL)
+  {
+    d_allTerms.push_back(n);
   }
   else if (nk == Kind::SET_MAP)
   {
@@ -490,6 +495,11 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 }
 
 const std::vector<Node>& SolverState::getFilterTerms() const { return d_filterTerms; }
+
+const std::vector<Node>& SolverState::getSetAllTerms() const
+{
+  return d_allTerms;
+}
 
 const context::CDHashSet<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
 

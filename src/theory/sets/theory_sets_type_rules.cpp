@@ -561,6 +561,50 @@ TypeNode SetFilterTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
+TypeNode SetAllTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
+
+TypeNode SetAllTypeRule::computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check,
+                                     std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::SET_ALL);
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode setType = n[1].getTypeOrNull();
+  if (check)
+  {
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
+    {
+      if (errOut)
+      {
+        (*errOut) << "set.all operator expects a set in the second "
+                     "argument, a non-set is found";
+      }
+      return TypeNode::null();
+    }
+    if (!checkFunctionTypeFor(n, functionType, setType, errOut))
+    {
+      return TypeNode::null();
+    }
+    if (functionType.isFunction())
+    {
+      TypeNode rangeType = functionType.getRangeType();
+      if (!rangeType.isBoolean() && !rangeType.isFullyAbstract())
+      {
+        if (errOut)
+        {
+          (*errOut) << "Operator set.all expects a function returning Bool.";
+        }
+        return TypeNode::null();
+      }
+    }
+  }
+  return nodeManager->booleanType();
+}
+
 TypeNode SetFoldTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
