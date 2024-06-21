@@ -63,5 +63,5 @@ int main()
   solver.assertFormula(bIsTwo);
 
   r = solver.checkSat();
-  assert(!r.isSat());
+  assert(r.isUnsat());
 }
