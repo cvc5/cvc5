@@ -374,6 +374,7 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_FILTER_DOWN: return "SETS_FILTER_DOWN";
     case InferenceId::SETS_FILTER_UP: return "SETS_FILTER_UP";
     case InferenceId::SETS_ALL: return "SETS_ALL";
+    case InferenceId::SETS_ALL_EMPTY: return "SETS_ALL_EMPTY";
     case InferenceId::SETS_FOLD: return "SETS_FOLD";
     case InferenceId::SETS_MAP_DOWN_POSITIVE: return "SETS_MAP_DOWN_POSITIVE";
     case InferenceId::SETS_MAP_UP: return "SETS_MAP_UP";
