@@ -37,40 +37,39 @@ namespace strings {
 class ArithEntail
 {
  public:
+  /**
+   * @param r The rewriter, used for rewriting arithmetic terms. If none
+   * is provided, we rely on the ArithPolyNorm utility.
+   */
   ArithEntail(Rewriter* r);
   /**
-   * Returns the rewritten form a term, intended (although not enforced) to be
-   * an arithmetic term.
+   * Returns the rewritten form of a term, which must be an integer term.
+   * This method invokes the rewriter, if one is provided, and uses the
+   * ArithPolyNorm utility (arith/arith_poly_norm.h) otherwise.
    */
-  Node rewrite(Node a);
+  Node rewriteArith(Node a);
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */
   bool checkEq(Node a, Node b);
   /** check arithmetic entailment
-   * Returns true if it is always the case that a >= b,
-   * and a>b if strict is true.
+   * @param a The first term.
+   * @param b The second term
+   * @param strict Whether we are testing strict inequality.
+   * @param isSimple If true, then we do not use approximations for recursive
+   * calls when computing approximations.
+   * @return true if it is always the case a >= b, or a > b if strict is true.
    */
-  bool check(Node a, Node b, bool strict = false);
+  bool check(Node a, Node b, bool strict = false, bool isSimple = false);
   /** check arithmetic entailment
    * Returns true if it is always the case that a >= 0.
+   * @param a The term.
+   * @param strict Whether we are testing strict inequality.
+   * @param isSimple If true, then we do not use approximations for recursive
+   * calls when computing approximations.
+   * @return true if it is always the case a >= 0, or a > 0 if strict is true.
    */
-  bool check(Node a, bool strict = false);
-  /** check arithmetic entailment with approximations
-   *
-   * Returns true if it is always the case that a >= 0. We expect that a is in
-   * rewritten form.
-   *
-   * This function uses "approximation" techniques that under-approximate
-   * the value of a for the purposes of showing the entailment holds. For
-   * example, given:
-   *   len( x ) - len( substr( y, 0, len( x ) ) )
-   * Since we know that len( substr( y, 0, len( x ) ) ) <= len( x ), the above
-   * term can be under-approximated as len( x ) - len( x ) = 0, which is >= 0,
-   * and thus the entailment len( x ) - len( substr( y, 0, len( x ) ) ) >= 0
-   * holds.
-   */
-  bool checkApprox(Node a);
+  bool check(Node a, bool strict = false, bool isSimple = false);
 
   /**
    * Checks whether assumption |= a >= 0 (if strict is false) or
@@ -168,12 +167,73 @@ class ArithEntail
                           std::vector<Node>& ys,
                           std::vector<Node>& zeroYs);
 
- private:
-  /** check entail arithmetic internal
-   * Returns true if we can show a >= 0 always.
-   * a is in rewritten form.
+  /**
+   * Find approximation of a such that it can be shown to be greater than
+   * zero.
+   *
+   * Returns a non-null node if it is always the case that a >= 0. We expect
+   * that a is in rewritten form.
+   *
+   * This function uses "approximation" techniques that under-approximate
+   * the value of a for the purposes of showing the entailment holds. For
+   * example, given:
+   *   len( x ) - len( substr( y, 0, len( x ) ) )
+   * Since we know that len( substr( y, 0, len( x ) ) ) <= len( x ), the above
+   * term can be under-approximated as len( x ) - len( x ) = 0, which is >= 0,
+   * and thus the entailment len( x ) - len( substr( y, 0, len( x ) ) ) >= 0
+   * holds.
+   *
+   * @param a The node to find approximations for.
+   * @param isSimple If true, then we are only making recursive calls to check
+   * without approximations to determine the set of possible approximations.
+   * @return The approximated form of a, call it aa, such that a >= aa is
+   * entailed by the theory, and aa can be shown to be greater than zero (using
+   * checkSimple).
    */
-  bool checkInternal(Node a);
+  Node findApprox(Node a, bool isSimple = false);
+
+  /**
+   * Check entail arithmetic simple.
+   * Returns true if we can show a >= 0 always. This uses the fact that
+   * string length is non-negative but otherwise uses only basic properties
+   * of arithmetic.
+   * This method assumes that a is in rewritten form.
+   */
+  static bool checkSimple(Node a);
+
+  /**
+   * Rewrite the arithmetic predicate n based on string arithmetic entailment.
+   *
+   * We require that n is either an equality or GEQ between integers.
+   *
+   * This returns the term true or false if it is the case that n can be
+   * rewritten to that constant. This method returns null otherwise.
+   *
+   * If this returns a non-null node, then exp is updated to the term that
+   * we proved was always greater than or equal to zero. For example,
+   * given input:
+   * (= (str.len x) (- 5)), we return the false term and set exp to
+   * (- (- (str.len x) (- 5)) 1), since this term is always non-negative.
+   *
+   * @param n The arithmetic predicate (EQUAL or GEQ) to rewrite.
+   * @param exp The explanation term, if we return non-null.
+   * @return the Boolean constant that n can be rewritten to, or null if none
+   * exists.
+   */
+  Node rewritePredViaEntailment(const Node& n,
+                                Node& exp,
+                                bool isSimple = false);
+  /**
+   * Same as above, without an explanation.
+   */
+  Node rewritePredViaEntailment(const Node& n, bool isSimple = false);
+
+ private:
+  /**
+   * Helper for findApprox, called when the approximation for a is not in the
+   * cache.
+   */
+  Node findApproxInternal(Node a, bool isSimple);
   /** Get arithmetic approximations
    *
    * This gets the (set of) arithmetic approximations for term a and stores
@@ -191,7 +251,8 @@ class ArithEntail
    */
   void getArithApproximations(Node a,
                               std::vector<Node>& approx,
-                              bool isOverApprox = false);
+                              bool isOverApprox = false,
+                              bool isSimple = false);
   /** Set bound cache */
   static void setConstantBoundCache(TNode n, Node ret, bool isLower);
   /**
@@ -199,10 +260,15 @@ class ArithEntail
    * computed. Used for getConstantBound and getConstantBoundLength.
    */
   static bool getConstantBoundCache(TNode n, bool isLower, Node& c);
-  /** The underlying rewriter */
+  /** The underlying rewriter, if one exists */
   Rewriter* d_rr;
   /** Constant zero */
   Node d_zero;
+  Node d_one;
+  /** A cache for findApprox above */
+  std::map<Node, Node> d_approxCache;
+  /** A cache for findApprox above when isSimple is true */
+  std::map<Node, Node> d_approxCacheSimple;
 };
 
 }  // namespace strings

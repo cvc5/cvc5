@@ -158,6 +158,7 @@ cdef Proof _proof(tm: TermManager, proof: c_Proof):
 cdef c_hash[c_Op] cophash = c_hash[c_Op]()
 cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
 cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
+cdef c_hash[c_Proof] cproofhash = c_hash[c_Proof]()
 
 # ----------------------------------------------------------------------------
 # SymbolManager
@@ -179,11 +180,11 @@ cdef class SymbolManager:
         Wrapper class for the C++ class :cpp:class:`cvc5::parser::SymbolManager`.
     """
     cdef c_SymbolManager* csm
-    cdef Solver solver
+    cdef TermManager tm
 
-    def __cinit__(self, Solver solver):
-        self.csm = new c_SymbolManager(solver.csolver)
-        self.solver = solver
+    def __cinit__(self, TermManager tm):
+        self.csm = new c_SymbolManager(dereference(tm.ctm))
+        self.tm = tm
 
     def __dealloc__(self):
         del self.csm
@@ -212,13 +213,7 @@ cdef class SymbolManager:
 
             :return: The declared sorts.
         """
-        sorts = []
-        csorts = self.csm.getDeclaredSorts()
-        for c in csorts:
-            sort = Sort(self.solver)
-            sort.csort = c
-            sorts.append(sort)
-        return sorts
+        return [_sort(self.tm, c) for c in self.csm.getDeclaredSorts()]
 
     def getDeclaredTerms(self):
         """
@@ -228,13 +223,7 @@ cdef class SymbolManager:
 
             :return: The declared terms.
         """
-        terms = []
-        cterms = self.csm.getDeclaredTerms()
-        for c in cterms:
-            term = Term(self.solver)
-            term.cterm = c
-            terms.append(term)
-        return terms
+        return [_term(self.tm, c) for c in self.csm.getDeclaredTerms()]
 
 # ----------------------------------------------------------------------------
 # Command
@@ -328,7 +317,7 @@ cdef class InputParser:
     def __cinit__(self, Solver solver, SymbolManager sm=None):
         self.solver = solver
         if sm is None:
-            self.sm = SymbolManager(solver)
+            self.sm = SymbolManager(solver.tm)
         else:
             self.sm = sm
 
@@ -1308,6 +1297,34 @@ cdef class TermManager:
           return _sort(self, self.ctm.mkParamSort())
         return _sort(self, self.ctm.mkParamSort(symbolname.encode()))
 
+    def mkSkolem(self, id, *indices):
+        """
+            Create a skolem. 
+
+            .. warning:: This function is experimental and may change in future
+                         versions.
+
+            :param id: The skolem id.
+            :param indices: The indices for the skolem.
+            :return: The skolem with the given id and indices. 
+        """  
+        cdef vector[c_Term] v
+        for t in indices:
+            v.push_back((<Term?> t).cterm)
+        return _term(self, self.ctm.mkSkolem(<c_SkolemId> id.value, v))
+
+    def getNumIndicesForSkolemId(self, id):
+        """
+            Get the number of indices for a skolem id. 
+
+            .. warning:: This function is experimental and may change in future
+                         versions.
+
+            :param id: The skolem id.
+            :return: The number of indice for a skolem with the given id. 
+        """  
+        return self.ctm.getNumIndicesForSkolemId(<c_SkolemId> id.value)
+
     def mkPredicateSort(self, *sorts):
         """
             Create a predicate sort.
@@ -2249,6 +2266,25 @@ cdef class Solver:
                          future release.
         """
         return self.tm.mkParamSort(symbolname)
+
+    def mkSkolem(self, id, *indices):
+        """
+            Create a skolem. 
+
+            :param id: The skolem id.
+            :param indices: The indices for the skolem.
+            :return: The skolem with the given id and indices. 
+        """  
+        return self.tm.mkSkolem(id, indices)
+
+    def getNumIndicesForSkolemId(self, id):
+        """
+            Get the number of indices for a skolem id. 
+
+            :param id: The skolem id.
+            :return: The number of indice for a skolem with the given id. 
+        """  
+        return self.tm.getNumIndicesForSkolemId(id)
 
     def mkPredicateSort(self, *sorts):
         """
@@ -5671,6 +5707,15 @@ cdef class Proof:
     cdef c_Proof cproof
     cdef TermManager tm
 
+    def __eq__(self, Proof other):
+        return self.cproof == other.cproof
+
+    def __ne__(self, Proof other):
+        return self.cproof != other.cproof
+
+    def __hash__(self):
+        return cproofhash(self.cproof)
+
     def getRule(self):
         """
             :return: The proof rule used by the root step of the proof.
@@ -5709,4 +5754,3 @@ cdef class Proof:
         for a in self.cproof.getArguments():
             args.append(_term(self.tm, a))
         return args
-

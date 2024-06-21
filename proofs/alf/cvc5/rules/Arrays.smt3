@@ -1,22 +1,50 @@
 (include "../theories/Arrays.smt3")
 
+; rule: arrays_read_over_write
+; implements: ProofRule::ARRAYS_READ_OVER_WRITE
+; premises:
+; - deq: A disequality between index terms.
+; args:
+; - s U: A select over store term.
+; conclusion: The select over store term is equal to the select on the base array of the store.
 (declare-rule arrays_read_over_write ((T Type) (U Type) (i T) (j T) (e U) (a (Array T U)))
   :premises ((not (= i j)))
   :args ((select (store a i e) j))
   :conclusion (= (select (store a i e) j) (select a j))
 )
 
+
+; rule: arrays_read_over_write_contra
+; implements: ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA
+; premises:
+; - deq: A disequality between a select over store term and a select term.
+; conclusion: The index of the store is equal to the selected index.
 (declare-rule arrays_read_over_write_contra ((T Type) (U Type) (i T) (j T) (e U) (a (Array T U)))
   :premises ((not (= (select (store a i e) j) (select a j))))
   :conclusion (= i j)
 )
 
+; rule: arrays_read_over_write_1
+; implements: ProofRule::ARRAYS_READ_OVER_WRITE_1
+; args:
+; - s U: A select over store term with the same index.
+; conclusion: The select over store term is equal to the stored element.
 (declare-rule arrays_read_over_write_1 ((T Type) (U Type) (i T) (e U) (a (Array T U)))
   :args ((select (store a i e) i))
   :conclusion (= (select (store a i e) i) e)
 )
 
+; rule: arrays_ext
+; implements: ProofRule::ARRAYS_EXT
+; premises:
+; - deq: A disequality between arrays.
+; conclusion: The arrays are disequal for a witness index, as given by the skolem (@array_deq_diff a b).
+; note: >
+;   The arguments of @array_deq_diff are marked :opaque. This means that the term
+;   (@array_deq_diff a b) denotes a free constant of type T, i.e. one that is indexed by
+;   the arrays a and b. In other words, (@array_deq_diff a b) is not a function application,
+;   but instead a and b are merely used to identify the free constant introduced by this rule.
 (declare-rule arrays_ext ((T Type) (U Type) (a (Array T U)) (b (Array T U)))
   :premises ((not (= a b)))
-  :conclusion (not (= (select a (skolem (@array_deq_diff a b))) (select b (skolem (@array_deq_diff a b)))))
+  :conclusion (not (= (select a (@array_deq_diff a b)) (select b (@array_deq_diff a b))))
 )

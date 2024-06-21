@@ -35,7 +35,7 @@ class TestParser : public TestApi
   void SetUp() override
   {
     TestApi::SetUp();
-    d_symman.reset(new SymbolManager(d_solver.get()));
+    d_symman.reset(new SymbolManager(d_tm));
   }
 
   void TearDown() override { d_symman.reset(nullptr); }

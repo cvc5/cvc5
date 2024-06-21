@@ -15,28 +15,10 @@
 
 #include "expr/plugin.h"
 
-#include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
-#include "expr/subtype_elim_node_converter.h"
-
 namespace cvc5::internal {
 
 Plugin::Plugin(NodeManager* nm) : d_nm(nm) {}
 
 Plugin::~Plugin() {}
-
-Node Plugin::getSharableFormula(const Node& n) const
-{
-  Node on = SkolemManager::getOriginalForm(n);
-  if (expr::hasSubtermKind(Kind::SKOLEM, on))
-  {
-    // cannot share formulas with skolems currently
-    return Node::null();
-  }
-  // also eliminate subtyping
-  SubtypeElimNodeConverter senc(d_nm);
-  on = senc.convert(on);
-  return on;
-}
 
 }  // namespace cvc5::internal
