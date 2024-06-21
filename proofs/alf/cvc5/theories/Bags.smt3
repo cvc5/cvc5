@@ -2,7 +2,7 @@
 (include "../theories/Builtin.smt3")
 (include "../theories/Arith.smt3")
 
-(declare-sort Bag 1)
+(declare-type Bag (Type))
 
 ; NOTE: permits non-set types
 (declare-const bag.empty (-> (! Type :var T) T))

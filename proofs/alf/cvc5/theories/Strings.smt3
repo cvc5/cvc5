@@ -7,11 +7,11 @@
 ; String is treated as a sequence of characters in the ALF signature.
 ; Note that this is only for the purposes of simplifying the type rules below.
 ; Internally, cvc5 will never generate any proofs involving the Char type.
-(declare-sort Char 0)
-(define-fun String () Type (Seq Char))
+(declare-type Char ())
+(define String () (Seq Char))
 
 ; The regular expression type.
-(declare-sort RegLan 0)
+(declare-type RegLan ())
 
 ; String literals are strings.
 (declare-consts <string> String)
@@ -81,7 +81,7 @@
 (declare-const re.opt (-> RegLan RegLan))
 (declare-const re.comp (-> RegLan RegLan))
 (declare-const re.range (-> String String RegLan))
-(declare-const re.++ (-> RegLan RegLan RegLan) :right-assoc-nil (str.to_re ""))
+(declare-const re.++ (-> RegLan RegLan RegLan) :right-assoc-nil @re.empty)
 (declare-const re.inter (-> RegLan RegLan RegLan) :right-assoc-nil re.all)
 (declare-const re.union (-> RegLan RegLan RegLan) :right-assoc-nil re.none)
 (declare-const re.diff (-> RegLan RegLan RegLan))
