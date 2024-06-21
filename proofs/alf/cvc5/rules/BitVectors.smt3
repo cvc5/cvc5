@@ -10,7 +10,7 @@
   (T T) Bool
   (
   (($bv_mk_bitblast_step_eq @bv_empty @bv_empty)        true)
-  (($bv_mk_bitblast_step_eq (@bbT b1 a1) (@bbT b2 a2))  (alf.cons and (= b1 b2) ($bv_mk_bitblast_step_eq a1 a2)))
+  (($bv_mk_bitblast_step_eq (@from_bools b1 a1) (@from_bools b2 a2))  (alf.cons and (= b1 b2) ($bv_mk_bitblast_step_eq a1 a2)))
   )
 )
 
@@ -20,7 +20,7 @@
 ; @arg a1 : (BitVec n). The argument of the extract.
 ; @return the bitblasted term for (extract u l a1).
 (define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a1 (BitVec n)))
-  (nary.subsequence @bbT @bv_empty l u a1))
+  (nary.subsequence @from_bools @bv_empty l u a1))
 
 ; @program $bv_mk_bitblast_step_concat_rec
 ; @arg a : (BitVec n). The (reverse) of the bitvector concatenation term to
@@ -30,7 +30,7 @@
   ((BitVec n)) (BitVec n)
   (
   (($bv_mk_bitblast_step_concat_rec @bv_empty)      @bv_empty)
-  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (alf.list_concat @bbT a1 ($bv_mk_bitblast_step_concat_rec a2)))
+  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (alf.list_concat @from_bools a1 ($bv_mk_bitblast_step_concat_rec a2)))
   )
 )
 
@@ -54,7 +54,7 @@
   ((BitVec n) Int) (BitVec n)
   (
     (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
-    (($bv_mk_bitblast_step_var_rec a i)   (alf.cons @bbT (@bitOf i a) ($bv_mk_bitblast_step_var_rec a (alf.add i -1))))
+    (($bv_mk_bitblast_step_var_rec a i)   (alf.cons @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (alf.add i -1))))
   )
 )
 
@@ -74,7 +74,7 @@
   ((= a1 a2)        ($singleton_elim ($bv_mk_bitblast_step_eq a1 a2)))
   ((extract u l a1) ($bv_mk_bitblast_step_extract u l a1))
   ((concat a1 a3)   ($bv_mk_bitblast_step_concat a))
-  (a1               (alf.ite ($is_bin_literal a) 
+  (a1               (alf.ite (alf.is_bin a)
                       ($bv_mk_bitblast_step_const a)
                       ($bv_mk_bitblast_step_var a)))    ; otherwise assume a variable
   ))
