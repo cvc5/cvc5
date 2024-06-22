@@ -218,7 +218,7 @@
   (
     (($is_poly_norm_rel (< cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel (<= cx cy)) (alf.is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel (= cx cy))  (alf.ite (alf.and ($is_bin_literal cx) ($is_bin_literal cy))
+    (($is_poly_norm_rel (= cx cy))  (alf.ite (alf.and (alf.is_bin cx) (alf.is_bin cy))
                                       (alf.and (= cx (alf.to_bin (alf.len cx) 1)) (= cy (alf.to_bin (alf.len cy) 1)))
                                       (alf.and (is_arith_type (alf.typeof cx)) (is_arith_type (alf.typeof cy)))))
     (($is_poly_norm_rel (>= cx cy)) (alf.is_eq ($sgn cx) ($sgn cy)))
