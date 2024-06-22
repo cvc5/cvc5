@@ -245,6 +245,8 @@ else()
   install(CODE "execute_process(COMMAND \${CMAKE_COMMAND}
     -DPython_EXECUTABLE=${Python_EXECUTABLE}
     -DRepairwheel_EXECUTABLE=${Repairwheel_EXECUTABLE}
+    -DBUILD_DIR=${CMAKE_BINARY_DIR}
+    -DDEPS_BASE=${DEPS_BASE}
     -DINSTALL_CMD=\"${INSTALL_CMD}\"
     -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)")
 

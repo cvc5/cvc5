@@ -1,18 +1,18 @@
-set(UNREPAIRED_WHEEL_DIR ${CMAKE_BINARY_DIR}/unrepaired-wheel)
-set(REPAIRED_WHEEL_DIR ${CMAKE_BINARY_DIR}/repaired-wheel)
+set(UNREPAIRED_WHEEL_DIR ${BUILD_DIR}/unrepaired-wheel)
+set(REPAIRED_WHEEL_DIR ${BUILD_DIR}/repaired-wheel)
 
 execute_process(COMMAND
   ${CMAKE_COMMAND} -E remove_directory ${UNREPAIRED_WHEEL_DIR} ${REPAIRED_WHEEL_DIR})
 
 execute_process(COMMAND 
-    ${Python_EXECUTABLE} -m pip wheel ${CMAKE_BINARY_DIR}/src/api/python 
-    --wheel-dir=${CMAKE_BINARY_DIR}/unrepaired-wheel)
+    ${Python_EXECUTABLE} -m pip wheel ${BUILD_DIR}/src/api/python
+    --wheel-dir=${BUILD_DIR}/unrepaired-wheel)
 
 file(GLOB WHL_FILE ${UNREPAIRED_WHEEL_DIR}/cvc5*.whl)
 
 execute_process(COMMAND
-    ${Repairwheel_EXECUTABLE} -o ${CMAKE_BINARY_DIR}/repaired-wheel
-    -l ${CMAKE_BINARY_DIR}/src -l ${CMAKE_BINARY_DIR}/src/parser 
+    ${Repairwheel_EXECUTABLE} -o ${BUILD_DIR}/repaired-wheel
+    -l ${BUILD_DIR}/src -l ${BUILD_DIR}/src/parser
     -l ${DEPS_BASE}/bin ${WHL_FILE})
 
 file(GLOB WHL_FILE ${REPAIRED_WHEEL_DIR}/cvc5*.whl)
