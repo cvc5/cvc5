@@ -22,7 +22,7 @@ set(CVC5_EXAMPLES_API_C
   extract
   floating_point_arith
   helloworld
-  #linear_arith
+  linear_arith
   #quickstart
   #relations
   #sequences
