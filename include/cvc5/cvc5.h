@@ -288,6 +288,21 @@ class CVC5_EXPORT Result
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Result& r);
 
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for results.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Result>
+{
+  size_t operator()(const cvc5::Result& result) const;
+};
+}  // namespace std
+
+namespace cvc5 {
+
 /* -------------------------------------------------------------------------- */
 /* SynthResult                                                                */
 /* -------------------------------------------------------------------------- */
@@ -3199,7 +3214,7 @@ class CVC5_EXPORT DriverOptions
 
 /**
  * \verbatim embed:rst:leading-asterisk
- * Holds some description about a particular option, including its name, its
+ * Holds information about a specific option, including its name, its
  * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. It can be obtained via
  * :cpp:func:`Solver::getOptionInfo() <cvc5::Solver::getOptionInfo()>` and
@@ -3327,10 +3342,18 @@ struct CVC5_EXPORT OptionInfo
    * @return The current value as a `double`.
    */
   double doubleValue() const;
+  /**
+   * Get a string representation of an option info.
+   * @return The string representation.
+   */
+  std::string toString() const;
 };
 
 /**
- * Print an `OptionInfo` object to an ``std::ostream``.
+ * Print an `OptionInfo` object to an output stream.
+ * @param os The output stream.
+ * @param oi The option info.
+ * @return The output stream.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const OptionInfo& oi);
 
@@ -5535,8 +5558,8 @@ class CVC5_EXPORT Solver
    *
    * @warning This function is experimental and may change in future versions.
    *
-   * @param t The term to simplify.
-   * @param applySubs Whether to apply substitutions for solved variables.
+   * @param t         The term to simplify.
+   * @param applySubs True to apply substitutions for solved variables.
    * @return The simplified term.
    */
   Term simplify(const Term& t, bool applySubs = false);
@@ -6567,9 +6590,10 @@ class CVC5_EXPORT Solver
   void setLogic(const std::string& logic) const;
 
   /**
-   * Is logic set? Returns whether we called setLogic yet for this solver.
+   * Determine if `setLogic()` has been called.
    *
-   * @return whether we called setLogic yet for this solver.
+   * @return True if `setLogic()` has already been called for this solver
+   *         instance.
    */
   bool isLogicSet() const;
 

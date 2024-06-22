@@ -70,12 +70,12 @@ class Cvc5CApiAbortStream
 #endif
 
 #define CVC5_CAPI_CHECK_NOT_NULL(arg)                                          \
-  CVC5_API_CHECK(arg != nullptr) << "Invalid call to '" << __PRETTY_FUNCTION__ \
+  CVC5_API_CHECK(arg != nullptr) << "invalid call to '" << __PRETTY_FUNCTION__ \
                                  << "', unexpected NULL argument"
 
 #define CVC5_CAPI_CHECK_NOT_NULL_AT_IDX(arg, i)     \
   CVC5_API_CHECK(arg[i] != nullptr)                 \
-      << "Invalid call to '" << __PRETTY_FUNCTION__ \
+      << "invalid call to '" << __PRETTY_FUNCTION__ \
       << "', unexpected NULL argument at index " << i
 
 /* -------------------------------------------------------------------------- */
@@ -142,6 +142,10 @@ class Cvc5CApiAbortStream
   CVC5_API_CHECK(decl != nullptr) << "invalid datatype constructor " \
                                      "declaration"
 
+#define CVC5_CAPI_CHECK_DT_CONS_DECL_AT_IDX(decls, i) \
+  CVC5_API_CHECK(decls[i] != nullptr)                 \
+      << "invalid datatype constructor declaration at index " << i
+
 #define CVC5_CAPI_CHECK_DT_SEL(sel) \
   CVC5_API_CHECK(sel != nullptr) << "invalid datatype selector"
 
@@ -163,6 +167,11 @@ class Cvc5CApiAbortStream
 
 #define CVC5_CAPI_CHECK_OP(op) \
   CVC5_API_CHECK(op != nullptr) << "invalid operator term"
+
+/* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_RESULT(res) \
+  CVC5_API_CHECK(res != nullptr) << "invalid result"
 
 /* -------------------------------------------------------------------------- */
 }

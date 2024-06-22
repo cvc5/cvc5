@@ -1198,6 +1198,18 @@ std::ostream& operator<<(std::ostream& out, const Result& r)
   return out;
 }
 
+}  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::Result>::operator()(const cvc5::Result& result) const
+{
+  return std::hash<std::string>{}(result.toString());
+}
+}  // namespace std
+
+namespace cvc5 {
+
 /* -------------------------------------------------------------------------- */
 /* SynthResult */
 /* -------------------------------------------------------------------------- */
@@ -7511,7 +7523,7 @@ std::string Solver::getInfo(const std::string& flag) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_UNSUPPORTED_CHECK(d_slv->isValidGetInfoFlag(flag))
-      << "Unrecognized flag: " << flag << ".";
+      << "unrecognized flag: " << flag << ".";
   //////// all checks before this line
   return d_slv->getInfo(flag);
   ////////
@@ -7590,16 +7602,17 @@ double OptionInfo::doubleValue() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::ostream& operator<<(std::ostream& os, const OptionInfo& oi)
+std::string OptionInfo::toString() const
 {
-  os << "OptionInfo{ " << oi.name;
-  if (oi.setByUser)
+  std::stringstream os;
+  os << "OptionInfo{ " << name;
+  if (setByUser)
   {
     os << " | set by user";
   }
-  if (!oi.aliases.empty())
+  if (!aliases.empty())
   {
-    internal::container_to_stream(os, oi.aliases, ", ", "", ", ");
+    internal::container_to_stream(os, aliases, ", ", "", ", ");
   }
   auto printNum = [&os](const std::string& type, const auto& vi) {
     os << " | " << type << " | " << vi.currentValue << " | default "
@@ -7643,8 +7656,14 @@ std::ostream& operator<<(std::ostream& os, const OptionInfo& oi)
                    internal::container_to_stream(os, vi.modes, "", "", ", ");
                  },
              },
-             oi.valueInfo);
+             valueInfo);
   os << " }";
+  return os.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const OptionInfo& oi)
+{
+  os << oi.toString();
   return os;
 }
 
@@ -8444,7 +8463,7 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
       || keyword == "filename" || keyword == "license" || keyword == "name"
       || keyword == "notes" || keyword == "smt-lib-version"
       || keyword == "status")
-      << "Unrecognized keyword: " << keyword
+      << "unrecognized keyword: " << keyword
       << ", expected 'source', 'category', 'difficulty', "
          "'filename', 'license', 'name', "
          "'notes', 'smt-lib-version' or 'status'";
@@ -8510,7 +8529,7 @@ void Solver::setOption(const std::string& option,
   CVC5_API_UNSUPPORTED_CHECK(
       option.find("command-verbosity") != std::string::npos
       || std::find(options.cbegin(), options.cend(), option) != options.cend())
-      << "Unrecognized option: " << option << '.';
+      << "unrecognized option: " << option << '.';
   // this list includes options that are prescribed to be changable in any
   // context based on the SMT-LIB standard, as well as options (e.g. tlimit-per)
   // that have no impact on solver initialization or imply other options.

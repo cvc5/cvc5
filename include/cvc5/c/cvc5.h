@@ -35,7 +35,7 @@ extern "C" {
 /**
  * Encapsulation of a three-valued solver result, with explanations.
  */
-typedef struct Cvc5Result Cvc5Result;
+typedef struct cvc5_result_t* Cvc5Result;
 
 /**
  * Encapsulation of a solver synth result.
@@ -132,12 +132,34 @@ typedef struct Cvc5Statistics Cvc5Statistics;
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Make copy of result, increases reference counter of `result`.
+ *
+ * @param result The result to copy.
+ * @return The same result with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5Result cvc5_result_copy(Cvc5Result result);
+
+/**
+ * Release copy of result, decrements reference counter of `result`.
+ *
+ * @param result The result to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+void cvc5_result_release(Cvc5Result result);
+
+/**
  * Determine if a given result is empty (a nullary result) and not an actual
  * result returned from a cvc5_check_sat() (and friends) query.
  * @param result The result.
  * @return True if the given result is a nullary result.
  */
-bool cvc5_result_is_null(const Cvc5Result* result);
+bool cvc5_result_is_null(const Cvc5Result result);
 
 /**
  * Determine if given result is from a satisfiable cvc5_check_sat() or
@@ -145,7 +167,7 @@ bool cvc5_result_is_null(const Cvc5Result* result);
  * @param result The result.
  * @return True if result is from a satisfiable query.
  */
-bool cvc5_result_is_sat(const Cvc5Result* result);
+bool cvc5_result_is_sat(const Cvc5Result result);
 
 /**
  * Determine if given result is from an unsatisfiable cvc5_check_sat() or
@@ -153,7 +175,7 @@ bool cvc5_result_is_sat(const Cvc5Result* result);
  * @param result The result.
  * @return True if result is from an unsatisfiable query.
  */
-bool cvc5_result_is_unsat(const Cvc5Result* result);
+bool cvc5_result_is_unsat(const Cvc5Result result);
 
 /**
  * Determine if given result is from a cvc5_check_sat() or
@@ -163,7 +185,7 @@ bool cvc5_result_is_unsat(const Cvc5Result* result);
  * @return True if result is from a query where cvc5 was not able to determine
  *         (un)satisfiability.
  */
-bool cvc5_result_is_unknown(const Cvc5Result* result);
+bool cvc5_result_is_unknown(const Cvc5Result result);
 
 /**
  * Determine equality of two results.
@@ -171,7 +193,7 @@ bool cvc5_result_is_unknown(const Cvc5Result* result);
  * @param b The second result to compare to for equality.
  * @return True if the results are equal.
  */
-bool cvc5_result_is_equal(const Cvc5Result* a, const Cvc5Result* b);
+bool cvc5_result_is_equal(const Cvc5Result a, const Cvc5Result b);
 
 /**
  * Operator overloading for disequality of two results.
@@ -179,7 +201,7 @@ bool cvc5_result_is_equal(const Cvc5Result* a, const Cvc5Result* b);
  * @param b The second result to compare to for disequality.
  * @return True if the results are disequal.
  */
-bool cvc5_result_is_disequal(const Cvc5Result* a, const Cvc5Result* b);
+bool cvc5_result_is_disequal(const Cvc5Result a, const Cvc5Result b);
 
 /**
  * Get the explanation for an unknown result.
@@ -187,7 +209,7 @@ bool cvc5_result_is_disequal(const Cvc5Result* a, const Cvc5Result* b);
  * @return An explanation for an unknown query result.
  */
 Cvc5UnknownExplanation cvc5_result_get_unknown_explanation(
-    const Cvc5Result* result);
+    const Cvc5Result result);
 
 /**
  * Get the string representation of a given result.
@@ -196,7 +218,7 @@ Cvc5UnknownExplanation cvc5_result_get_unknown_explanation(
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_result_to_string(const Cvc5Result* result);
+const char* cvc5_result_to_string(const Cvc5Result result);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5SynthResult                                                            */
@@ -967,9 +989,8 @@ Cvc5Term cvc5_term_copy(Cvc5Term term);
  * @param term The term to release.
  *
  * @note This step is optional and allows users to release resources in a more
- *       fine-grained manner. Further, any API function that returns a
- *       Cvc5Term returns a copy that is owned by the callee of the function
- *       and thus, can be released.
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
  */
 void cvc5_term_release(Cvc5Term term);
 
@@ -2991,92 +3012,165 @@ Cvc5DatatypeDecl cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
                                              const Cvc5Sort params[],
                                              bool is_codt);
 
-/* .................................................................... */
-/* SMT-LIB-style Term/Sort Creation                                     */
-/* .................................................................... */
-
-/**
- * Create datatype sort.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (declare-datatype <symbol> <datatype_decl>)
- * \endverbatim
- *
- * @param solver The solver instance.
- * @param symbol The name of the datatype sort.
- * @param size The number of constructor declarations of the datatype sort.
- * @param ctors The constructor declarations.
- * @return The datatype sort.
- */
-Cvc5Sort cvc5_declare_dt(Cvc5* solver,
-                         const char* symbol,
-                         size_t size,
-                         const Cvc5DatatypeConstructorDecl ctors[]);
-
-/**
- * Declare n-ary function symbol.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (declare-fun <symbol> ( <sort>* ) <sort>)
- * \endverbatim
- *
- * @param solver The solver instance.
- * @param symbol The name of the function.
- * @param size   The number of domain sorts of the function.
- * @param sorts  The domain sorts of the function.
- * @param sort   The codomain sort of the function.
- * @param fresh  If true, then this method always returns a new Term. Otherwise,
- *               this method will always return the same Term for each call with
- *               the given sorts and symbol where fresh is false.
- * @return The function.
- */
-Cvc5Term cvc5_declare_fun(Cvc5* solver,
-                          const char* symbol,
-                          size_t size,
-                          const Cvc5Sort sorts[],
-                          Cvc5Sort sort,
-                          bool fresh);
-
-/**
- * Declare uninterpreted sort.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (declare-sort <symbol> <numeral>)
- * \endverbatim
- *
- * @note This corresponds to
- *       `cvc5_mk_uninterpreted_sort()` if arity = 0, and to
- *       `cvc5_mk_uninterpreted_sort_constructor_sort()` if arity > 0.
- *
- * @param tm The term manager instance.
- * @param symbol The name of the sort.
- * @param arity The arity of the sort.
- * @return The sort.
- */
-Cvc5Sort cvc5_declare_sort(Cvc5TermManager* tm,
-                           const char* symbol,
-                           uint32_t arity);
-
 /* -------------------------------------------------------------------------- */
 /* Cvc5OptionInfo                                                             */
 /* -------------------------------------------------------------------------- */
 
+enum Cvc5OptionInfoKind
+{
+  CVC5_OPTION_INFO_VOID,
+  CVC5_OPTION_INFO_BOOL,
+  CVC5_OPTION_INFO_STR,
+  CVC5_OPTION_INFO_INT64,
+  CVC5_OPTION_INFO_UINT64,
+  CVC5_OPTION_INFO_DOUBLE,
+  CVC5_OPTION_INFO_MODES,
+};
+
+/**
+ * \verbatim embed:rst:leading-asterisk
+ * Holds information about a specific option, including its name, its
+ * aliases, whether the option was explicitly set by the user, and information
+ * concerning its value.
+ * It can be obtained via :cpp:func:`cvc5_get_option_info()` and allows for a
+ * more detailed inspection of options than :cpp:func:`cvc5_get_option()`.
+ * Union member ``info`` holds any of the following alternatives:
+ *
+ * - Neither of the following if the option holds no value (or the value has no
+ *   native type). In that case, the kind of the option will be denoted as
+ *   #CVC5_OPTION_INFO_VOID.
+ * - Struct ``BoolInfo`` if the option is of type ``bool``. It holds the current
+ *   value and the default value of the option. Option kind is denoted as
+ *   #CVC5_OPTION_INFO_BOOL.
+ * - Struct ``StringInfo`` if the option is of type ``const char*``. It holds
+ *   the current value and the default value of the option. Option kind is
+ *   denoted as #CVC5_OPTION_INFO_STR.
+ * - Struct ``IntInfo`` if the option is of type ``int64_t``. It holds the
+ *   current, default, minimum and maximum value of the option. Option kind is
+ *   denoted as #CVC5_OPTION_INFO_INT64.
+ * - Struct ``UIntInfo`` if the option is of type ``uint64_t``. It holds the
+ *   current, default, minimum and maximum value of the option. Option kind is
+ *   denoted as #CVC5_OPTION_INFO_UINT64.
+ * - Struct ``DoubleInfo`` if the option is of type ``double``. It holds the
+ *   current, default, minimum and maximum value of the option. Option kind is
+ *   denoted as #CVC5_OPTION_INFO_DOUBLE.
+ * - Struct ``ModeInfo`` if the option has modes. It holds the current and
+ *   default valuesof the option, as well as a list of valid modes. Option kind
+ *   is denoted as #CVC5_OPTION_INFO_MODES.
+ *
+ * \endverbatim
+ */
 struct Cvc5OptionInfo
 {
-  const char* option;
+  /** The kind of the option info. */
+  Cvc5OptionInfoKind kind;
+  /** The option name */
+  const char* name;
+  /** The number of option name aliases */
+  size_t num_aliases;
+  /** The option name aliases */
+  const char** aliases;
+  /** True if the option was explicitly set by the user */
+  bool is_set_by_user;
+  /** True if the option is an expert option */
+  bool is_expert;
+  /** True if the option is a regular option */
+  bool is_regular;
+
+  /** Information for boolean option values. */
+  struct BoolInfo
+  {
+    /** The default value. */
+    bool dflt;
+    /** The current value. */
+    bool cur;
+  } info_bool;
+
+  /** Information for string option values. */
+  struct StringInfo
+  {
+    /** The default value. */
+    const char* dflt;
+    /** The current value. */
+    const char* cur;
+  } info_str;
+
+  /** Information for int64 values. */
+  struct IntInfo
+  {
+    /** The default value. */
+    int64_t dflt;
+    /** The current value. */
+    int64_t cur;
+    /** The minimum value. */
+    int64_t min;
+    /** The maximum value. */
+    int64_t max;
+    /** True if option has a minimum value. */
+    bool has_min;
+    /** True if option has a maximum value. */
+    bool has_max;
+  } info_int;
+
+  /** Information for uint64 values. */
+  struct UIntInfo
+  {
+    /** The default value. */
+    uint64_t dflt;
+    /** The current value. */
+    uint64_t cur;
+    /** The minimum value. */
+    uint64_t min;
+    /** The maximum value. */
+    uint64_t max;
+    /** True if option has a minimum value. */
+    bool has_min;
+    /** True if option has a maximum value. */
+    bool has_max;
+  } info_uint;
+
+  /** Information for double values. */
+  struct DoubleInfo
+  {
+    /** The default value. */
+    double dflt;
+    /** The current value. */
+    double cur;
+    /** The minimum value. */
+    double min;
+    /** The maximum value. */
+    double max;
+    /** True if option has a minimum value. */
+    bool has_min;
+    /** True if option has a maximum value. */
+    bool has_max;
+  } info_double;
+
+  /** Information for mode option values. */
+  struct ModeInfo
+  {
+    /** The default value. */
+    const char* dflt;
+    /** The current value. */
+    const char* cur;
+    /** The number of possible modes. */
+    size_t num_modes;
+    /** The possible modes. */
+    const char** modes;
+  } info_mode;
+
+  /** The associated C++ info. For internal use, only. */
+  void* d_cpp_info;
 };
+
+/**
+ * Get a string representation of a given option info.
+ * @param info The option info.
+ * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Proof                                                                  */
@@ -3182,6 +3276,86 @@ Cvc5* cvc5_new(Cvc5TermManager* tm);
 void cvc5_delete(Cvc5* cvc5);
 
 /* .................................................................... */
+/* SMT-LIB-style Term/Sort Creation                                     */
+/* .................................................................... */
+
+/**
+ * Create datatype sort.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (declare-datatype <symbol> <datatype_decl>)
+ * \endverbatim
+ *
+ * @param solver The solver instance.
+ * @param symbol The name of the datatype sort.
+ * @param size The number of constructor declarations of the datatype sort.
+ * @param ctors The constructor declarations.
+ * @return The datatype sort.
+ */
+Cvc5Sort cvc5_declare_dt(Cvc5* solver,
+                         const char* symbol,
+                         size_t size,
+                         const Cvc5DatatypeConstructorDecl ctors[]);
+
+/**
+ * Declare n-ary function symbol.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (declare-fun <symbol> ( <sort>* ) <sort>)
+ * \endverbatim
+ *
+ * @param solver The solver instance.
+ * @param symbol The name of the function.
+ * @param size   The number of domain sorts of the function.
+ * @param sorts  The domain sorts of the function.
+ * @param sort   The codomain sort of the function.
+ * @param fresh  If true, then this method always returns a new Term. Otherwise,
+ *               this method will always return the same Term for each call with
+ *               the given sorts and symbol where fresh is false.
+ * @return The function.
+ */
+Cvc5Term cvc5_declare_fun(Cvc5* solver,
+                          const char* symbol,
+                          size_t size,
+                          const Cvc5Sort sorts[],
+                          Cvc5Sort sort,
+                          bool fresh);
+
+/**
+ * Declare uninterpreted sort.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (declare-sort <symbol> <numeral>)
+ * \endverbatim
+ *
+ * @note This corresponds to
+ *       `cvc5_mk_uninterpreted_sort()` if arity = 0, and to
+ *       `cvc5_mk_uninterpreted_sort_constructor_sort()` if arity > 0.
+ *
+ * @param solver The solver instance.
+ * @param symbol The name of the sort.
+ * @param arity  The arity of the sort.
+ * @param fresh  If true, then this method always returns a new Sort.
+ * @return The sort.
+ */
+Cvc5Sort cvc5_declare_sort(Cvc5* solver,
+                           const char* symbol,
+                           uint32_t arity,
+                           bool fresh);
+
+/* .................................................................... */
 /* Formula Handling                                                     */
 /* .................................................................... */
 
@@ -3196,20 +3370,20 @@ void cvc5_delete(Cvc5* cvc5);
  *     (define-fun <function_def>)
  * \endverbatim
  *
- * @param cvc5 The cvc5 solver instance.
+ * @param cvc5   The cvc5 solver instance.
  * @param symbol The name of the function.
- * @param nbound_vars The number of parameters of the function.
- * @param bound_vars The parameters.
- * @param sort The sort of the return value of this function.
- * @param term The function body.
+ * @param size   The number of parameters of the function.
+ * @param vars   The parameters.
+ * @param sort   The sort of the return value of this function.
+ * @param term   The function body.
  * @param global Determines whether this definition is global (i.e., persists
  *               when popping the context).
  * @return The function.
  */
 Cvc5Term cvc5_define_fun(Cvc5* cvc5,
                          const char* symbol,
-                         size_t nbound_vars,
-                         const Cvc5Term bound_vars[],
+                         size_t size,
+                         const Cvc5Term vars[],
                          const Cvc5Sort sort,
                          const Cvc5Term term,
                          bool global);
@@ -3225,20 +3399,20 @@ Cvc5Term cvc5_define_fun(Cvc5* cvc5,
  *     (define-fun-rec <function_def>)
  * \endverbatim
  *
- * @param cvc5 The cvc5 solver instance.
+ * @param cvc5   The cvc5 solver instance.
  * @param symbol The name of the function.
- * @param nbound_vars The number of parameters of the function.
- * @param bound_vars The parameters to this function.
- * @param sort The sort of the return value of this function.
- * @param term The function body.
+ * @param size   The number of parameters of the function.
+ * @param vars   The parameters to this function.
+ * @param sort   The sort of the return value of this function.
+ * @param term   The function body.
  * @param global Determines whether this definition is global (i.e., persists
  *               when popping the context).
  * @return The function.
  */
 Cvc5Term cvc5_define_fun_rec(Cvc5* cvc5,
                              const char* symbol,
-                             size_t nbound_vars,
-                             const Cvc5Term bound_vars[],
+                             size_t size,
+                             const Cvc5Term vars[],
                              const Cvc5Sort sort,
                              const Cvc5Term term,
                              bool global);
@@ -3255,19 +3429,19 @@ Cvc5Term cvc5_define_fun_rec(Cvc5* cvc5,
  *
  * Create parameter `fun` with mkConst().
  *
- * @param cvc5 The cvc5 solver instance.
- * @param fun The sorted function.
- * @param nbound_vars The number of parameters of the function.
- * @param bound_vars The parameters to this function.
- * @param term The function body.
+ * @param cvc5   The cvc5 solver instance.
+ * @param fun    The sorted function.
+ * @param size   The number of parameters of the function.
+ * @param vars   The parameters to this function.
+ * @param term   The function body.
  * @param global Determines whether this definition is global (i.e., persists
  *               when popping the context).
  * @return The function.
  */
 Cvc5Term cvc5_define_fun_rec_from_const(Cvc5* cvc5,
                                         Cvc5Term fun,
-                                        size_t nbound_vars,
-                                        const Cvc5Term bound_vars[],
+                                        size_t size,
+                                        const Cvc5Term vars[],
                                         const Cvc5Term term,
                                         bool global);
 /**
@@ -3286,20 +3460,20 @@ Cvc5Term cvc5_define_fun_rec_from_const(Cvc5* cvc5,
  *
  * Create elements of parameter `funs` with `cvc5_mk_const()`.
  *
- * @param cvc5 The cvc5 solver instance.
- * @param nfuns The number of sorted functions.
- * @param funs The sorted functions.
- * @param nbound_vars The numbers of parameters for each function.
- * @param bound_vars The list of parameters to the functions.
- * @param terms The list of function bodies of the functions.
+ * @param cvc5   The cvc5 solver instance.
+ * @param nfuns  The number of sorted functions.
+ * @param funs   The sorted functions.
+ * @param nvars  The numbers of parameters for each function.
+ * @param vars   The list of parameters to the functions.
+ * @param terms  The list of function bodies of the functions.
  * @param global Determines whether this definition is global (i.e., persists
  *               when popping the context).
  */
 void cvc5_define_funs_rec(Cvc5* cvc5,
                           size_t nfuns,
                           const Cvc5Term funs[],
-                          size_t nbound_vars[],
-                          const Cvc5Term* bound_vars[],
+                          size_t nvars[],
+                          const Cvc5Term* vars[],
                           const Cvc5Term terms[],
                           bool global);
 /**
@@ -3311,11 +3485,12 @@ void cvc5_define_funs_rec(Cvc5* cvc5,
  *
  * @warning This function is experimental and may change in future versions.
  *
- * @param cvc5 The solver instance.
- * @param t The formula to simplify.
+ * @param cvc5       The solver instance.
+ * @param term       The formula to simplify.
+ * @param apply_subs True to apply substitutions for solved variables.
  * @return The simplified formula.
  */
-Cvc5Term cvc5_simplify(Cvc5* cvc5, Cvc5Term t);
+Cvc5Term cvc5_simplify(Cvc5* cvc5, Cvc5Term term, bool apply_subs);
 
 /**
  * Assert a formula.
@@ -3347,7 +3522,7 @@ void cvc5_assert_formula(Cvc5* cvc5, Cvc5Term term);
  * @param cvc5 The solver instance.
  * @return The result of the satisfiability check.
  */
-Cvc5Result* cvc5_check_sat(Cvc5* cvc5);
+Cvc5Result cvc5_check_sat(Cvc5* cvc5);
 
 /**
  * Check satisfiability assuming the given formulas.
@@ -3365,9 +3540,9 @@ Cvc5Result* cvc5_check_sat(Cvc5* cvc5);
  * @param assumptions The formulas to assume.
  * @return The result of the satisfiability check.
  */
-Cvc5Result* cvc5_check_sat_assuming(Cvc5* cvc5,
-                                    size_t size,
-                                    const Cvc5Term assumptions[]);
+Cvc5Result cvc5_check_sat_assuming(Cvc5* cvc5,
+                                   size_t size,
+                                   const Cvc5Term assumptions[]);
 /**
  * Get the list of asserted formulas.
  *
@@ -3382,6 +3557,8 @@ Cvc5Result* cvc5_check_sat_assuming(Cvc5* cvc5,
  * @param cvc5 The solver instance.
  * @param size The size of the resulting assertions array.
  * @return The list of asserted formulas.
+ * @note The returned Cvc5Term array pointer is only valid until the next call
+ *       to this function.
  */
 const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t* size);
 
@@ -3435,10 +3612,14 @@ const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size);
 
 /**
  * Get some information about a given option.
- * See struct Cvc5OptionInfo for more details on whic information is available.
- * @return The option information.
+ * See struct Cvc5OptionInfo for more details on which information is available.
+ * @param cvc5   The solver instance.
+ * @param option The option for which the info is queried.
+ * @param info   The output parameter for the queried info.
+ * @note The returned Cvc5OptionInfo data is only valid until the next call
+ *       to this function.
  */
-const Cvc5OptionInfo* cvc5_get_option_info(Cvc5* cvc5, const char* option);
+void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info);
 
 /**
  * Get the set of unsat ("failed") assumptions.
@@ -3453,6 +3634,9 @@ const Cvc5OptionInfo* cvc5_get_option_info(Cvc5* cvc5, const char* option);
  * Requires to enable option
  * :ref:`produce-unsat-assumptions <lbl-option-produce-unsat-assumptions>`.
  * \endverbatim
+ *
+ * @note The returned Cvc5Term array pointer is only valid until the next call
+ *       to this function.
  *
  * @param cvc5 The solver instance.
  * @param size The number of the resulting unsat assumptions.
@@ -3480,6 +3664,9 @@ const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* size);
  *   assumptions. A subset of those assumptions may be included in the
  *   unsatisfiable core returned by this function.
  * \endverbatim
+ *
+ * @note The returned Cvc5Term array pointer is only valid until the next call
+ *       to this function.
  *
  * @param cvc5 The solver instance.
  * @param size The size of the resulting unsat core.
@@ -3862,22 +4049,6 @@ Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
                                  Cvc5Sort sort,
                                  Cvc5Term (*fun)(const Cvc5Term*));
 /**
- * Pop (a) level(s) from the assertion stack.
- *
- * SMT-LIB:
- *
- * \verbatim embed:rst:leading-asterisk
- * .. code:: smtlib
- *
- *     (pop <numeral>)
- * \endverbatim
- *
- * @param cvc5 The solver instance.
- * @param nscopes The number of levels to pop.
- */
-void cvc5_pop(Cvc5* cvc5, uint32_t nscopes);
-
-/**
  * Get an interpolant
  *
  * SMT-LIB:
@@ -4107,7 +4278,23 @@ const char* cvc5_get_instantiations(Cvc5* cvc5);
  * @param cvc5 The solver instance.
  * @param nscopes The number of levels to push.
  */
-void cvc5_push(uint32_t nscopes);
+void cvc5_push(Cvc5* cvc5, uint32_t nscopes);
+
+/**
+ * Pop (a) level(s) from the assertion stack.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (pop <numeral>)
+ * \endverbatim
+ *
+ * @param cvc5 The solver instance.
+ * @param nscopes The number of levels to pop.
+ */
+void cvc5_pop(Cvc5* cvc5, uint32_t nscopes);
 
 /**
  * Remove all assertions.
@@ -4156,6 +4343,23 @@ void cvc5_set_info(Cvc5* cvc5, const char* keyword, const char* value);
  * @param logic The logic to set.
  */
 void cvc5_set_logic(Cvc5* cvc5, const char* logic);
+
+/**
+ * Determine if `cvc5_set_logic()` has been called.
+ *
+ * @return True if `setLogic()` has already been called for the given solver
+ *         instance.
+ */
+bool cvc5_is_logic_set(Cvc5* cvc5);
+
+/**
+ * Get the logic set the solver.
+ * @note Asserts `cvc5_is_logic_set()1.
+ * @return The logic used by the solver.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+const char* cvc5_get_logic(Cvc5* cvc5);
 
 /**
  * Set option.
