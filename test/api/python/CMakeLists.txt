@@ -15,25 +15,40 @@
 
 if(WIN32)
   set(CVC5_PYAPI_TEST_DIR ${CMAKE_BINARY_DIR}/cvc5-pyapi-test)
-  if(NOT EXISTS ${CVC5_PYAPI_TEST_DIR})
-    set(WHEEL_INSTALL_CMD
-      "${Python_EXECUTABLE} -m pip install --prefix ${CVC5_PYAPI_TEST_DIR}")
 
-    # Build Python wheel and install it in ${CVC5_PYAPI_TEST_DIR}
-    execute_process(COMMAND ${CMAKE_COMMAND}
-      -DPython_EXECUTABLE=${Python_EXECUTABLE}
-      -DRepairwheel_EXECUTABLE=${Repairwheel_EXECUTABLE}
-      -DINSTALL_CMD="${WHEEL_INSTALL_CMD}"
-      -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)
+  set(WHEEL_INSTALL_CMD
+       "${Python_EXECUTABLE} -m pip install --prefix ${CVC5_PYAPI_TEST_DIR}")
 
-    execute_process(COMMAND
-      ${Python_EXECUTABLE} -c
-        "import os.path;import sysconfig;\
-        print('${CVC5_PYAPI_TEST_DIR}'+\
-        sysconfig.get_paths()['platlib'].split(sysconfig.get_config_var('platbase'))[1])"
-      OUTPUT_VARIABLE PYTHON_MODULE_PATH
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endif()
+  # Install the cvc5 Python bindings in the build directory to run tests.
+  # On Windows, adding the directory with the Python bindings to PYTHONPATH
+  # is not enought because Python only searches for DLL dependencies for
+  # extension modules in system paths and the directory containing the PYD file.
+  # Specifically, since Python 3.8, PATH and the current working directory are
+  # no longer used for this purpose. See:
+  #  https://docs.python.org/3/whatsnew/3.8.html#bpo-36085-whatsnew
+  add_custom_command(
+    OUTPUT ${CVC5_PYAPI_TEST_DIR}
+    COMMAND
+      ${CMAKE_COMMAND}
+        -DPython_EXECUTABLE=${Python_EXECUTABLE}
+        -DRepairwheel_EXECUTABLE=${Repairwheel_EXECUTABLE}
+        -DINSTALL_CMD="${WHEEL_INSTALL_CMD}"
+        -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake
+    DEPENDS cvc5_python_api
+  )
+
+  add_custom_target(setup-cvc5-pyapi DEPENDS ${CVC5_PYAPI_TEST_DIR})
+
+  add_dependencies(build-tests setup-cvc5-pyapi)
+
+  # Get path to the python bindings installed in the build directory
+  execute_process(COMMAND
+    ${Python_EXECUTABLE} -c
+      "import os.path;import sysconfig;\
+      print('${CVC5_PYAPI_TEST_DIR}'+\
+      sysconfig.get_paths()['platlib'].split(sysconfig.get_config_var('platbase'))[1])"
+    OUTPUT_VARIABLE PYTHON_MODULE_PATH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
 else()
   set(PYTHON_MODULE_PATH ${CMAKE_BINARY_DIR}/src/api/python)
 endif()
