@@ -1451,6 +1451,51 @@ TEST_F(TestCApiBlackSolver, get_timeout_core_assuming_empty)
       "unexpected NULL argument");
 }
 
+TEST_F(TestCApiBlackSolver, get_learned_literals)
+{
+  cvc5_set_option(d_solver, "produce-learned-literals", "true");
+
+  size_t size;
+  // cannot ask before a check sat
+  ASSERT_DEATH(
+      cvc5_get_learned_literals(d_solver, CVC5_LEARNED_LIT_TYPE_INPUT, &size),
+      "cannot get learned literals");
+
+  cvc5_check_sat(d_solver);
+  (void)cvc5_get_learned_literals(d_solver, CVC5_LEARNED_LIT_TYPE_INPUT, &size);
+  (void)cvc5_get_learned_literals(
+      d_solver, CVC5_LEARNED_LIT_TYPE_PREPROCESS, &size);
+
+  ASSERT_DEATH(
+      cvc5_get_learned_literals(nullptr, CVC5_LEARNED_LIT_TYPE_INPUT, &size),
+      "unexpected NULL argument");
+  ASSERT_DEATH(
+      cvc5_get_learned_literals(d_solver, CVC5_LEARNED_LIT_TYPE_INPUT, nullptr),
+      "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, get_learned_literals2)
+{
+  cvc5_set_option(d_solver, "produce-learned-literals", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term ten = cvc5_mk_integer_int64(d_tm, 10);
+  std::vector<Cvc5Term> args = {x, ten};
+  Cvc5Term f0 = cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
+  args = {zero, x};
+  Cvc5Term args1 = cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
+  args = {y, zero};
+  Cvc5Term args2 = cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
+  args = {args1, args2};
+  Cvc5Term f1 = cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data());
+  cvc5_assert_formula(d_solver, f0);
+  cvc5_assert_formula(d_solver, f1);
+  cvc5_check_sat(d_solver);
+  size_t size;
+  (void)cvc5_get_learned_literals(d_solver, CVC5_LEARNED_LIT_TYPE_INPUT, &size);
+}
+
 TEST_F(TestCApiBlackSolver, push1)
 {
   cvc5_set_option(d_solver, "incremental", "true");

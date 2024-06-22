@@ -3818,12 +3818,15 @@ Cvc5Proof** cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c);
  * @warning This function is experimental and may change in future versions.
  *
  * @param cvc5 The solver instance.
- * @param t The type of learned literalsjto return
+ * @param type The type of learned literalsjto return
  * @param size The size of the resulting list of literals.
  * @return A list of literals that were learned at top-level.
+ *
+ * @note The resulting Cvc5Term array pointer is only valid until the next call
+ *       to this function.
  */
 const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
-                                          Cvc5LearnedLitType,
+                                          Cvc5LearnedLitType type,
                                           size_t* size);
 
 /**
