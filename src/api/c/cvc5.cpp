@@ -4736,8 +4736,8 @@ const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* size)
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   CVC5_CAPI_CHECK_NOT_NULL(size);
   res.clear();
-  auto assertions = cvc5->d_solver.getUnsatAssumptions();
-  for (auto& t : assertions)
+  auto assumptions = cvc5->d_solver.getUnsatAssumptions();
+  for (auto& t : assumptions)
   {
     res.push_back(cvc5->d_tm->export_term(t));
   }
@@ -4787,6 +4787,57 @@ void cvc5_get_difficulty(Cvc5* cvc5,
   *inputs = rinputs.data();
   *values = rvalues.data();
   CVC5_CAPI_TRY_CATCH_END;
+}
+
+const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
+                                      Cvc5Result* result,
+                                      size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(result);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto ccore = cvc5->d_solver.getTimeoutCore();
+  *result = cvc5->export_result(ccore.first);
+  for (const auto& t : ccore.second)
+  {
+    res.push_back(cvc5->d_tm->export_term(t));
+  }
+  *size = ccore.second.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
+                                               size_t size,
+                                               const Cvc5Term assumptions[],
+                                               Cvc5Result* result,
+                                               size_t* rsize)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(assumptions);
+  std::vector<cvc5::Term> cassumptions;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(assumptions, i);
+    cassumptions.push_back(assumptions[i]->d_term);
+  }
+  CVC5_CAPI_CHECK_NOT_NULL(result);
+  CVC5_CAPI_CHECK_NOT_NULL(rsize);
+  res.clear();
+  auto ccore = cvc5->d_solver.getTimeoutCoreAssuming(cassumptions);
+  *result = cvc5->export_result(ccore.first);
+  for (const auto& t : ccore.second)
+  {
+    res.push_back(cvc5->d_tm->export_term(t));
+  }
+  *rsize = ccore.second.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
 }
 
 void cvc5_push(Cvc5* cvc5, uint32_t nscopes)

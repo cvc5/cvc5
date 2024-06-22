@@ -155,14 +155,14 @@ void cvc5_result_release(Cvc5Result result);
 
 /**
  * Determine if a given result is empty (a nullary result) and not an actual
- * result returned from a cvc5_check_sat() (and friends) query.
+ * result returned from a `cvc5_check_sat()` (and friends) query.
  * @param result The result.
  * @return True if the given result is a nullary result.
  */
 bool cvc5_result_is_null(const Cvc5Result result);
 
 /**
- * Determine if given result is from a satisfiable cvc5_check_sat() or
+ * Determine if given result is from a satisfiable `cvc5_check_sat()` or
  * cvc5_check_sat_ssuming() query.
  * @param result The result.
  * @return True if result is from a satisfiable query.
@@ -170,7 +170,7 @@ bool cvc5_result_is_null(const Cvc5Result result);
 bool cvc5_result_is_sat(const Cvc5Result result);
 
 /**
- * Determine if given result is from an unsatisfiable cvc5_check_sat() or
+ * Determine if given result is from an unsatisfiable `cvc5_check_sat()` or
  * cvc5_check_sat_assuming() query.
  * @param result The result.
  * @return True if result is from an unsatisfiable query.
@@ -178,7 +178,7 @@ bool cvc5_result_is_sat(const Cvc5Result result);
 bool cvc5_result_is_unsat(const Cvc5Result result);
 
 /**
- * Determine if given result is from a cvc5_check_sat() or
+ * Determine if given result is from a `cvc5_check_sat()` or
  * cvc5_check_sat_assuming() query and cvc5 was not able to determine
  * (un)satisfiability.
  * @param result The result.
@@ -3699,9 +3699,15 @@ void cvc5_get_difficulty(Cvc5* cvc5,
                          Cvc5Term* values[]);
 
 /**
- * Get a timeout core, which computes a subset of the current assertions that
- * cause a timeout. Note it does not require being proceeded by a call to
- * checkSat.
+ * Get a timeout core.
+ *
+ * This function computes a subset of the current assertions that cause a
+ * timeout. It may make multiple checks for satisfiability internally, each
+ * limited by the timeout value given by
+ * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+ *
+ * @note it does not require being proceeded by a call to `cvc5_check_sat()`.
+ *
  *
  * SMT-LIB:
  *
@@ -3713,28 +3719,73 @@ void cvc5_get_difficulty(Cvc5* cvc5,
  *
  * @warning This function is experimental and may change in future versions.
  *
- * @return The result of the timeout core computation. This is a pair
- * containing a result and a list of formulas. If the result is unknown
- * and the reason is timeout, then the list of formulas correspond to a
- * subset of the current assertions that cause a timeout in the specified
- * time :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
- * If the result is unsat, then the list of formulas correspond to an
- * unsat core for the current assertions. Otherwise, the result is sat,
- * indicating that the current assertions are satisfiable, and
- * the list of formulas is empty.
- *
- * This function may make multiple checks for satisfiability internally, each
- * limited by the timeout value given by
- * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
- *
- * @param cvc5 The solver instance.
+ * @param cvc5   The solver instance.
  * @param result The resulting result.
- * @param size The resulting size of the timeout core.
- * @return The timeout core.
+ * @param size   The resulting size of the timeout core.
+ *
+ * @return The list of assertions determined to be the timeout core. The
+ *         resulting result is stored in `result`.
+ *         If `result` is unknown and the reason is timeout, then the list of
+ *         formulas correspond to a subset of the current assertions that cause
+ *         a timeout in the specified time :ref:`timeout-core-timeout
+ *         <lbl-option-timeout-core-timeout>`.
+ *         If the result is unsat, then the list of formulas correspond to an
+ *         unsat core for the current assertions. Otherwise, the result is sat,
+ *         indicating that the current assertions are satisfiable, and the
+ *         returned set of assertions is empty.
+ *
+ * @note The resulting `result` and term array pointer are only valid
+ *       until the next call to this function.
  */
 const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
                                       Cvc5Result* result,
                                       size_t* size);
+
+/**
+ * Get a timeout core of the given assumptions.
+ *
+ * This function computes a subset of the given assumptions that cause a
+ * timeout when added to the current assertions.
+ *
+ * @note it does not require being proceeded by a call to `checkSat()`.
+ *
+ * SMT-LIB:
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. code:: smtlib
+ *
+ *     (get-timeout-core (<assert>*))
+ * \endverbatim
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param cvc5        The solver instance.
+ * @param size        The number of assumptions.
+ * @param assumptions The (non-empty) set of formulas to assume.
+ * @param result      The resulting result.
+ * @param rsize       The resulting size of the timeout core.
+ *
+ * @return The list of assumptions determined to be the timeout core. The
+ *         resulting result is stored in `result`.
+ *         If the result is unknown and the reason is timeout, then the set
+ *         of assumptions corresponds to a subset of the given assumptions
+ *         that cause a timeout when added to the current assertions in the
+ *         specified time
+ *         :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+ *         If the result is unsat, then the set of assumptions together with
+ *         the current assertions correspond to an unsat core for the current
+ *         assertions. Otherwise, the result is sat, indicating that the
+ *         given assumptions plus the current assertions are satisfiable, and
+ *         the returned set of assumptions is empty.
+ *
+ * @note The resulting `result` and term array pointer are only valid
+ *       until the next call to this function.
+ */
+const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
+                                               size_t size,
+                                               const Cvc5Term assumptions[],
+                                               Cvc5Result* result,
+                                               size_t* rsize);
 
 /**
  * Get a proof associated with the most recent call to checkSat.
