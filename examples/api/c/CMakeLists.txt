@@ -23,7 +23,7 @@ set(CVC5_EXAMPLES_API_C
   floating_point_arith
   helloworld
   linear_arith
-  #quickstart
+  quickstart
   #relations
   #sequences
   #sets
