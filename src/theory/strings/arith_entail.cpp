@@ -149,7 +149,7 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
         visited[cur] = cur;
         continue;
       }
-      visited[cur] = Node::null();
+      visited.emplace(cur, Node::null());
       visit.insert(visit.end(), cur.begin(), cur.end());
       continue;
     }
