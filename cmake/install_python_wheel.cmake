@@ -17,8 +17,11 @@ execute_process(COMMAND
 
 file(GLOB WHL_FILE ${REPAIRED_WHEEL_DIR}/cvc5*.whl)
 
-string(REPLACE "\"" "" INSTALL_CMD "${INSTALL_CMD}")
 set(INSTALL_CMD "${INSTALL_CMD} ${WHL_FILE}")
+string(REPLACE "\"" "" INSTALL_CMD "${INSTALL_CMD}")
+if(WIN32)
+  string(REPLACE "/" "\\" INSTALL_CMD "${INSTALL_CMD}")
+endif()
 separate_arguments(INSTALL_CMD)
 
 execute_process(COMMAND ${INSTALL_CMD})
