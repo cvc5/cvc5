@@ -158,6 +158,7 @@ cdef Proof _proof(tm: TermManager, proof: c_Proof):
 cdef c_hash[c_Op] cophash = c_hash[c_Op]()
 cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
 cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
+cdef c_hash[c_Grammar] cgrammarhash = c_hash[c_Grammar]()
 cdef c_hash[c_Proof] cproofhash = c_hash[c_Proof]()
 
 # ----------------------------------------------------------------------------
@@ -942,6 +943,9 @@ cdef class Grammar:
 
     def __str__(self):
         return self.cgrammar.toString().decode()
+
+    def __hash__(self):
+        return cgrammarhash(self.cgrammar)
 
     def addRule(self, Term ntSymbol, Term rule):
         """
