@@ -1064,12 +1064,16 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
           }
           else
           {
-            Node var = var_ch[0]==0 ? n[0] : n[1];
-            Node oterm = var_ch[0]==0 ? n[1]: n[0];
+            Node var = var_ch[0] == 0 ? n[0] : n[1];
+            Node oterm = var_ch[0] == 0 ? n[1] : n[0];
             if (!expr::hasSubterm(oterm, var))
             {
               Trace("fmc-debug") << "Do variable relation " << n << std::endl;
-              doVariableRelation( fm, f, d, var_ch[0]==0 ? children[1] : children[0], var_ch[0]==0 ? n[0] : n[1] );
+              doVariableRelation(fm,
+                                 f,
+                                 d,
+                                 var_ch[0] == 0 ? children[1] : children[0],
+                                 var_ch[0] == 0 ? n[0] : n[1]);
               processed = true;
             }
           }
