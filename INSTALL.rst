@@ -267,6 +267,7 @@ Dependencies for Language Bindings
   - `JDK >= 1.8 <https://www.java.com>`_
 
 - Python
+
   - `Cython <https://cython.org/>`_ >= 3.0.0
   - `pip <https://pip.pypa.io/>`_ >= 23.0
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
