@@ -48,6 +48,7 @@ class GrammarTest
     Sort bool = d_tm.getBooleanSort();
     Term start = d_tm.mkVar(bool);
     Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    assertFalse(g.isNull());
     g.addRule(start, d_tm.mkBoolean(false));
     g.toString();
   }

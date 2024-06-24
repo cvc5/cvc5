@@ -42,6 +42,17 @@ public class Grammar extends AbstractPointer
   // endregion
 
   /**
+   * Determine if this is the null grammar.
+   * @return True if this Grammar is the null grammar.
+   */
+  public boolean isNull()
+  {
+    return isNull(pointer);
+  }
+
+  private native boolean isNull(long pointer);
+
+  /**
    * Add {@code rule} to the set of rules corresponding to {@code ntSymbol}.
    * @param ntSymbol the non-terminal to which the rule is added.
    * @param rule the rule to add.

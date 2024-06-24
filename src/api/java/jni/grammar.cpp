@@ -48,6 +48,21 @@ Java_io_github_cvc5_Grammar_deletePointer(JNIEnv*, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_Grammar
+ * Method:    isNull
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Grammar_isNull(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  return static_cast<jboolean>(current->isNull());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Grammar
  * Method:    addRule
  * Signature: (JJJ)V
  */
