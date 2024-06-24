@@ -943,6 +943,9 @@ cdef class Grammar:
     def __str__(self):
         return self.cgrammar.toString().decode()
 
+    def isNull(self):
+        return self.cgrammar.isNull()
+
     def addRule(self, Term ntSymbol, Term rule):
         """
             Add ``rule`` to the set of rules corresponding to ``ntSymbol``.
