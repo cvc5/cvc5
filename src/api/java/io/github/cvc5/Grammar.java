@@ -43,7 +43,7 @@ public class Grammar extends AbstractPointer
 
   /**
    * Determine if this is the null grammar.
-   * @return True if this Sort is the null grammar.
+   * @return True if this Grammar is the null grammar.
    */
   public boolean isNull()
   {
