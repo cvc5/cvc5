@@ -16,6 +16,7 @@
 #include "theory/quantifiers/fmf/full_model_check.h"
 
 #include "expr/skolem_manager.h"
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
