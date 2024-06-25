@@ -27,6 +27,15 @@ def solver(tm):
     return cvc5.Solver(tm)
 
 
+def test_is_null(tm, solver):
+    solver.setOption("sygus", "true")
+    boolean = tm.getBooleanSort()
+    start = tm.mkVar(boolean)
+    nts = tm.mkVar(boolean)
+    g = solver.mkGrammar([nts], [start])
+    assert not g.isNull()
+
+
 def test_to_string(tm, solver):
     solver.setOption("sygus", "true")
     boolean = tm.getBooleanSort()

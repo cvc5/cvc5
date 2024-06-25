@@ -37,7 +37,7 @@ TEST_F(TestApiBlackResult, isNull)
   ASSERT_FALSE(res.isNull());
 }
 
-TEST_F(TestApiBlackResult, eq)
+TEST_F(TestApiBlackResult, equalHash)
 {
   Sort u_sort = d_tm.mkUninterpretedSort("u");
   Term x = d_tm.mkConst(u_sort, "x");
@@ -55,6 +55,10 @@ TEST_F(TestApiBlackResult, eq)
     ASSERT_EQ(res.toString(), "sat");
     ASSERT_EQ(res.toString(), ss.str());
   }
+  ASSERT_EQ(std::hash<cvc5::Result>{}(res), std::hash<cvc5::Result>{}(res2));
+  ASSERT_NE(std::hash<cvc5::Result>{}(cvc5::Result()),
+            std::hash<cvc5::Result>{}(res2));
+  (void)std::hash<cvc5::Result>{}(cvc5::Result());
 }
 
 TEST_F(TestApiBlackResult, isSat)

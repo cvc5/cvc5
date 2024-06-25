@@ -482,6 +482,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
     cdef cppclass Grammar:
         Grammar() except +
         Grammar(Solver* solver, vector[Term] boundVars, vector[Term] ntSymbols) except +
+        bint isNull() except +
         void addRule(Term ntSymbol, Term rule) except +
         void addAnyConstant(Term ntSymbol) except +
         void addAnyVariable(Term ntSymbol) except +

@@ -947,6 +947,9 @@ cdef class Grammar:
     def __hash__(self):
         return cgrammarhash(self.cgrammar)
 
+    def isNull(self):
+        return self.cgrammar.isNull()
+
     def addRule(self, Term ntSymbol, Term rule):
         """
             Add ``rule`` to the set of rules corresponding to ``ntSymbol``.
