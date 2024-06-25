@@ -26,7 +26,7 @@ set(CVC5_EXAMPLES_API_C
   quickstart
   relations
   sequences
-  #sets
+  sets
   #strings
   #transcendentals
   #parser
