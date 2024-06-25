@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of reasoning about relations with cvc5 via C++ API.
+ * A simple demonstration of reasoning about relations via the C++ API.
  */
 
 #include <cvc5/cvc5.h>

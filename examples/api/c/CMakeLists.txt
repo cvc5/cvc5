@@ -24,7 +24,7 @@ set(CVC5_EXAMPLES_API_C
   helloworld
   linear_arith
   quickstart
-  #relations
+  relations
   #sequences
   #sets
   #strings
