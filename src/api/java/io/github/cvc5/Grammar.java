@@ -105,4 +105,13 @@ public class Grammar extends AbstractPointer
    * @return A String representation of this grammar.
    */
   protected native String toString(long pointer);
+
+  /** @return The hash value of the grammar. */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }
