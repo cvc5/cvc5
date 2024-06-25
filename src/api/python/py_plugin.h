@@ -23,25 +23,25 @@
 
 namespace cvc5 {
 
-    class PyPlugin : public Plugin {
+class PyPlugin : public Plugin
+{
+ public:
+  PyObject* m_obj;
+  TermManager& tm;
 
-        public:
-            PyObject *m_obj;
-            TermManager& tm;
+  PyPlugin(PyObject* obj, TermManager& tm);
+  virtual ~PyPlugin();
 
-            PyPlugin(PyObject *obj, TermManager& tm);
-            virtual ~PyPlugin();
-            
-            virtual std::vector<Term> check();
-            virtual void notifySatClause(const Term& cl);
-            virtual void notifyTheoryLemma(const Term& lem);
-            virtual std::string getName();
+  virtual std::vector<Term> check();
+  virtual void notifySatClause(const Term& cl);
+  virtual void notifyTheoryLemma(const Term& lem);
+  virtual std::string getName();
 
-            std::vector<Term> plugin_check();
-            void plugin_notifySatClause(const Term& cl);
-            void plugin_notifyTheoryLemma(const Term& lem);
-    };
+  std::vector<Term> plugin_check();
+  void plugin_notifySatClause(const Term& cl);
+  void plugin_notifyTheoryLemma(const Term& lem);
+};
 
-}
+}  // namespace cvc5
 
 #endif /* CVC5__PY_PLUGIN_H */
