@@ -25,7 +25,7 @@ set(CVC5_EXAMPLES_API_C
   linear_arith
   quickstart
   relations
-  #sequences
+  sequences
   #sets
   #strings
   #transcendentals
