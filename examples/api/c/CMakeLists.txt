@@ -27,7 +27,7 @@ set(CVC5_EXAMPLES_API_C
   relations
   sequences
   sets
-  #strings
+  strings
   #transcendentals
   #parser
   #parser_sym_manager
