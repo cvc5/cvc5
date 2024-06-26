@@ -35,6 +35,10 @@ cvc5_add_unit_test_black(symbol_manager_black api/cpp)
 cvc5_add_unit_test_black(synth_result_black api/cpp)
 cvc5_add_unit_test_white(solver_white api/cpp)
 
+# do not issue deprecation warnings when using deprecated functions
+set_source_files_properties(input_parser_black.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 # tests to cover deprecated functions for API coverage build in nightlies
 set_source_files_properties(api_deprecated_black.cpp
   PROPERTIES COMPILE_OPTIONS

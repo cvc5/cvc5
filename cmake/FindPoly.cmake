@@ -163,7 +163,7 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA1=981ff0081bed0d1e604000a3092e7af8881b7a5e
+    URL_HASH SHA256=ca7092eeeced3dd8bd86cdd3410207802ef1752d7052d92eee3e9e6bb496763c
     PATCH_COMMAND
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"

@@ -193,7 +193,7 @@ CoCoA (Optional computer algebra library)
 reasoning and for finite field reasoning. We use a patched version of it, so we
 recommend downloading it using the ``--auto-download`` configuration flag,
 which applies our patch automatically. It is included in the build through the
-``--cocoa`` configuration flag.
+``--cocoa --gpl`` configuration flag.
 
 CoCoA is covered by the GPLv3 license. See below for the ramifications of this.
 
@@ -202,7 +202,7 @@ CLN >= v1.3 (Class Library for Numbers)
 
 `CLN <http://www.ginac.de/CLN>`_ is an alternative multiprecision arithmetic
 package that may offer better performance and memory footprint than GMP.
-Configure cvc5 with ``configure.sh --cln`` to build with this dependency.
+Configure cvc5 with ``configure.sh --cln --gpl`` to build with this dependency.
 
 Note that CLN is covered by the `GNU General Public License, version 3
 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If you choose to use cvc5 with
@@ -219,10 +219,11 @@ glpk-cut-log (A fork of the GNU Linear Programming Kit)
 This can be used to speed up certain classes of problems for the arithmetic
 implementation in cvc5. (This is not recommended for most users.)
 
-glpk-cut-log can be installed using the ``contrib/get-glpk-cut-log`` script.
-Note that the only installation option is manual installation via this script.
-cvc5 is no longer compatible with the main GLPK library. Configure cvc5 with
-``configure.sh --glpk`` to build with this dependency.
+cvc5 is not compatible with the official version of the GLPK library.
+To use the patched version of it, we recommend downloading it using
+the ``--auto-download`` configuration flag, which applies
+the patch automatically.
+Configure cvc5 with ``configure.sh --glpk --gpl`` to build with this dependency.
 
 Note that GLPK and glpk-cut-log are covered by the `GNU General Public License,
 version 3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If you choose to use
@@ -267,10 +268,11 @@ Dependencies for Language Bindings
   - `JDK >= 1.8 <https://www.java.com>`_
 
 - Python
+
   - `Cython <https://cython.org/>`_ >= 3.0.0
   - `pip <https://pip.pypa.io/>`_ >= 23.0
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
-  - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.2.9
+  - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.3.1
   - `setuptools <https://setuptools.pypa.io/>`_ >= 66.1.0
   - The source for the `pythonic API <https://github.com/cvc5/cvc5_pythonic_api>`_
 

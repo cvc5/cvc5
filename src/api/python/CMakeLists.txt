@@ -23,7 +23,7 @@ if(NOT ONLY_PYTHON_EXT_SRC)
   # a directory within the Python wheel package so that
   # the package is self-contained. It works on Linux,
   # macOS, and Windows.
-  find_package(Repairwheel 0.2.9 REQUIRED)
+  find_package(Repairwheel 0.3.1 REQUIRED)
 endif()
 
 configure_file(genenums.py.in genenums.py)
@@ -110,6 +110,8 @@ add_custom_target(cvc5types DEPENDS ${GENERATED_TYPES_FILES})
 copy_file_from_src(cvc5.pxi)
 copy_file_from_src(cvc5.pxd)
 copy_file_from_src(cvc5_python_base.pyx)
+copy_file_from_src(py_plugin.h)
+copy_file_from_src(py_plugin.cpp)
 copy_file_from_src(pyproject.toml)
 
 # Set include_dirs and library_dirs variables that are used in setup.cfg.in
@@ -140,6 +142,8 @@ set(PYTHON_EXT_SRC_FILES
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxi
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxd
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5_python_base.pyx
+  ${CMAKE_CURRENT_BINARY_DIR}/py_plugin.h
+  ${CMAKE_CURRENT_BINARY_DIR}/py_plugin.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml
   ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg
   ${CMAKE_CURRENT_BINARY_DIR}/setup.py
