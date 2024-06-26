@@ -31,7 +31,7 @@ set(CVC5_EXAMPLES_API_C
   transcendentals
   #parser
   #parser_sym_manager
-  #uf
+  uf
 )
 
 # Add example target and create test to run example with ctest.
