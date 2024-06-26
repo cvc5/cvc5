@@ -148,6 +148,45 @@ const char* cvc5_modes_proof_format_to_string(Cvc5ProofFormat format)
 }
 
 /* -------------------------------------------------------------------------- */
+/* Cvc5ProofRule                                                              */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_proof_rule_to_string(Cvc5ProofRule rule)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF_RULE(rule);
+  str = std::to_string(static_cast<cvc5::ProofRule>(rule));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+size_t cvc5_proof_rule_hash(Cvc5ProofRule rule)
+{
+  return std::hash<cvc5::ProofRule>{}(static_cast<cvc5::ProofRule>(rule));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5ProofRewriteRule                                                       */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_proof_rewrite_rule_to_string(Cvc5ProofRewriteRule rule)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF_REWRITE_RULE(rule);
+  str = std::to_string(static_cast<cvc5::ProofRewriteRule>(rule));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule)
+{
+  return std::hash<cvc5::ProofRewriteRule>{}(
+      static_cast<cvc5::ProofRewriteRule>(rule));
+}
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5FindSynthTarget                                                        */
 /* -------------------------------------------------------------------------- */
 
@@ -4047,6 +4086,25 @@ struct cvc5_result_t
   Cvc5* d_cvc5 = nullptr;
 };
 
+/** Wrapper for cvc5 C++ proofs. */
+struct cvc5_proof_t
+{
+  /**
+   * Constructor.
+   * @param proof The wrapped C++ proof.
+   */
+  cvc5_proof_t(Cvc5* cvc5, const cvc5::Proof& proof)
+      : d_proof(proof), d_cvc5(cvc5)
+  {
+  }
+  /** The wrapped C++ proof. */
+  cvc5::Proof d_proof;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated solver instance. */
+  Cvc5* d_cvc5 = nullptr;
+};
+
 /** Wrapper for cvc5 C++ solver instance. */
 struct Cvc5
 {
@@ -4071,12 +4129,32 @@ struct Cvc5
    */
   cvc5_result_t* copy(cvc5_result_t* result);
 
+  /**
+   * Export C++ proof to C API.
+   * @param proof The proof to export.
+   */
+  Cvc5Proof export_proof(const cvc5::Proof& proof);
+  /**
+   * Decrement the external ref count of a proof. If the ref count reaches
+   * zero, the proof is released (freed).
+   * @param term The term to release.
+   */
+  void release(cvc5_proof_t* proof);
+  /**
+   * Increment the external ref count of a proof.
+   * @param proof The proof to copy.
+   * @return The copied proof.
+   */
+  cvc5_proof_t* copy(cvc5_proof_t* proof);
+
   /** The associated cvc5 instance. */
   cvc5::Solver d_solver;
   /** The associated term manager. */
   Cvc5TermManager* d_tm = nullptr;
   /** Cache of allocated results. */
   std::unordered_map<cvc5::Result, cvc5_result_t> d_alloc_results;
+  /** Cache of allocated proofs. */
+  std::unordered_map<cvc5::Proof, cvc5_proof_t> d_alloc_proofs;
 };
 
 Cvc5Result Cvc5::export_result(const cvc5::Result& result)
@@ -4104,6 +4182,32 @@ cvc5_result_t* Cvc5::copy(cvc5_result_t* result)
 {
   result->d_refs += 1;
   return result;
+}
+
+Cvc5Proof Cvc5::export_proof(const cvc5::Proof& proof)
+{
+  auto [it, inserted] = d_alloc_proofs.try_emplace(proof, this, proof);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+void Cvc5::release(cvc5_proof_t* proof)
+{
+  proof->d_refs -= 1;
+  if (proof->d_refs == 0)
+  {
+    Assert(d_alloc_proofs.find(proof->d_proof) != d_alloc_proofs.end());
+    d_alloc_proofs.erase(proof->d_proof);
+  }
+}
+
+cvc5_proof_t* Cvc5::copy(cvc5_proof_t* proof)
+{
+  proof->d_refs += 1;
+  return proof;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -4220,6 +4324,116 @@ const char* cvc5_result_to_string(const Cvc5Result result)
   str = result->d_result.toString();
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Proof                                                                  */
+/* -------------------------------------------------------------------------- */
+
+Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof)
+{
+  Cvc5ProofRule res = CVC5_PROOF_RULE_LAST;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  res = static_cast<Cvc5ProofRule>(proof->d_proof.getRule());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof)
+{
+  Cvc5ProofRewriteRule res = CVC5_PROOF_REWRITE_RULE_LAST;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  res = static_cast<Cvc5ProofRewriteRule>(proof->d_proof.getRewriteRule());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_proof_get_result(Cvc5Proof proof)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  res = proof->d_cvc5->d_tm->export_term(proof->d_proof.getResult());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof, size_t* size)
+{
+  static thread_local std::vector<Cvc5Proof> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto children = proof->d_proof.getChildren();
+  for (auto& p : children)
+  {
+    res.push_back(proof->d_cvc5->export_proof(p));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto args = proof->d_proof.getArguments();
+  for (auto& t : args)
+  {
+    res.push_back(proof->d_cvc5->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
+bool cvc5_proof_is_equal(Cvc5Proof a, Cvc5Proof b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_proof == b->d_proof;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_proof_is_disequal(Cvc5Proof a, Cvc5Proof b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a != b;
+  }
+  else
+  {
+    res = a->d_proof != b->d_proof;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+size_t cvc5_proof_hash(Cvc5Proof proof)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  res = std::hash<cvc5::Proof>{}(proof->d_proof);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -4763,6 +4977,23 @@ const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size)
   return res.data();
 }
 
+const Cvc5Term* cvc5_get_unsat_core_lemmas(Cvc5* cvc5, size_t* size)
+{
+  static thread_local std::vector<Cvc5Term> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto assertions = cvc5->d_solver.getUnsatCoreLemmas();
+  for (auto& t : assertions)
+  {
+    res.push_back(cvc5->d_tm->export_term(t));
+  }
+  *size = res.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
 void cvc5_get_difficulty(Cvc5* cvc5,
                          size_t* size,
                          Cvc5Term* inputs[],
@@ -4840,6 +5071,24 @@ const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
   return res.data();
 }
 
+const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c, size_t* size)
+{
+  static thread_local std::vector<Cvc5Proof> res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  res.clear();
+  auto proofs =
+      cvc5->d_solver.getProof(static_cast<cvc5::modes::ProofComponent>(c));
+  for (const auto& p : proofs)
+  {
+    res.push_back(cvc5->export_proof(p));
+  }
+  *size = proofs.size();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.data();
+}
+
 const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
                                           Cvc5LearnedLitType type,
                                           size_t* size)
@@ -4882,4 +5131,32 @@ void cvc5_reset_assertions(Cvc5* cvc5)
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   cvc5->d_solver.resetAssertions();
   CVC5_CAPI_TRY_CATCH_END;
+}
+
+const char* cvc5_proof_to_string(Cvc5* cvc5,
+                                 Cvc5Proof proof,
+                                 Cvc5ProofFormat format,
+                                 size_t size,
+                                 const Cvc5Term assertions[],
+                                 const char* names[])
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_PROOF(proof);
+  CVC5_API_CHECK(assertions || names == nullptr) << "unexpected NULL argument";
+  std::map<cvc5::Term, std::string> cassertion_names;
+  if (assertions)
+  {
+    for (size_t i = 0; i < size; ++i)
+    {
+      cassertion_names.emplace(assertions[i]->d_term, names[i]);
+    }
+  }
+  str = proof->d_cvc5->d_solver.proofToString(
+      proof->d_proof,
+      static_cast<cvc5::modes::ProofFormat>(format),
+      cassertion_names);
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
 }
