@@ -76,7 +76,7 @@ endif()
 
 set(SYGUS_EXAMPLES_API_C
   sygus-fun
-#  sygus-inv
+  sygus-inv
 )
 
 foreach(example ${SYGUS_EXAMPLES_API_C})
