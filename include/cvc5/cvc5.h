@@ -288,6 +288,21 @@ class CVC5_EXPORT Result
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Result& r);
 
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for results.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Result>
+{
+  size_t operator()(const cvc5::Result& result) const;
+};
+}  // namespace std
+
+namespace cvc5 {
+
 /* -------------------------------------------------------------------------- */
 /* SynthResult                                                                */
 /* -------------------------------------------------------------------------- */
@@ -3064,8 +3079,25 @@ class CVC5_EXPORT Grammar
 {
   friend class parser::Cmd;
   friend class Solver;
+  friend struct std::hash<Grammar>;
 
  public:
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Grammar();
+
+  /**
+   * Destructor for bookeeping.
+   */
+  ~Grammar();
+
+  /**
+   * Determine if this is the null grammar (Grammar::Grammar()).
+   * @return True if this grammar is the null grammar.
+   */
+  bool isNull() const;
+
   /**
    * Add `rule` to the set of rules corresponding to `ntSymbol`.
    * @param ntSymbol The non-terminal to which the rule is added.
@@ -3098,16 +3130,6 @@ class CVC5_EXPORT Grammar
    */
   std::string toString() const;
 
-  /**
-   * Nullary constructor. Needed for the Cython API.
-   */
-  Grammar();
-
-  /**
-   * Destructor for bookeeping.
-   */
-  ~Grammar();
-
  private:
   /**
    * Constructor.
@@ -3131,7 +3153,7 @@ class CVC5_EXPORT Grammar
    */
   TermManager* d_tm;
   /** The internal representation of this grammar. */
-  std::shared_ptr<internal::SygusGrammar> d_sg;
+  std::shared_ptr<internal::SygusGrammar> d_grammar;
 };
 
 /**
@@ -3141,6 +3163,21 @@ class CVC5_EXPORT Grammar
  * @return The output stream.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Grammar& g);
+
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for grammar.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Grammar>
+{
+  size_t operator()(const cvc5::Grammar& grammar) const;
+};
+}  // namespace std
+
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Options                                                                    */
@@ -3177,7 +3214,7 @@ class CVC5_EXPORT DriverOptions
 
 /**
  * \verbatim embed:rst:leading-asterisk
- * Holds some description about a particular option, including its name, its
+ * Holds information about a specific option, including its name, its
  * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. It can be obtained via
  * :cpp:func:`Solver::getOptionInfo() <cvc5::Solver::getOptionInfo()>` and
@@ -3305,10 +3342,18 @@ struct CVC5_EXPORT OptionInfo
    * @return The current value as a `double`.
    */
   double doubleValue() const;
+  /**
+   * Get a string representation of an option info.
+   * @return The string representation.
+   */
+  std::string toString() const;
 };
 
 /**
- * Print an `OptionInfo` object to an ``std::ostream``.
+ * Print an `OptionInfo` object to an output stream.
+ * @param os The output stream.
+ * @param oi The option info.
+ * @return The output stream.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const OptionInfo& oi);
 
@@ -3573,14 +3618,23 @@ class CVC5_EXPORT Proof
    */
   ~Proof();
 
+  /**
+   * Determine if this is the null proof (Proof::Proof()).
+   * @return True if this grammar is the null proof.
+   */
+  bool isNull() const;
+
   /** @return The proof rule used by the root step of the proof. */
   ProofRule getRule() const;
 
   /**
-   * @return The proof rewrite rule used by the root step of the proof.
+   * Get the proof rewrite rule used  by the root step of the proof.
    *
-   * @exception raises an exception if `getRule()` does not return
-   * `DSL_REWRITE` or `THEORY_REWRITE`.
+   * Requires that `getRule()` does not return `DSL_REWRITE` or
+   * `THEORY_REWRITE`.
+   *
+   * @return The proof rewrite rule.
+   *
    */
   ProofRewriteRule getRewriteRule() const;
 
@@ -3762,6 +3816,19 @@ class CVC5_EXPORT TermManager
    */
   Sort mkFunctionSort(const std::vector<Sort>& sorts, const Sort& codomain);
   /**
+   * Make a skolem.
+   * @param id The skolem identifier.
+   * @param indices The indices of the skolem.
+   * @return The skolem.
+   */
+  Term mkSkolem(SkolemId id, const std::vector<Term>& indices);
+  /**
+   * Get the number of indices for a skolem id.
+   * @param id The skolem id.
+   * @return The number of indices for the skolem id.
+   */
+  size_t getNumIndicesForSkolemId(SkolemId id);
+  /**
    * Create a sort parameter.
    *
    * @warning This function is experimental and may change in future versions.
@@ -3925,7 +3992,7 @@ class CVC5_EXPORT TermManager
    * Create n-ary term of given kind.
    * @param kind     The kind of the term.
    * @param children The children of the term.
-   * @return The Term
+   * @return The term.
    */
   Term mkTerm(Kind kind, const std::vector<Term>& children = {});
   /**
@@ -5494,8 +5561,8 @@ class CVC5_EXPORT Solver
    *
    * @warning This function is experimental and may change in future versions.
    *
-   * @param t The term to simplify.
-   * @param applySubs Whether to apply substitutions for solved variables.
+   * @param t         The term to simplify.
+   * @param applySubs True to apply substitutions for solved variables.
    * @return The simplified term.
    */
   Term simplify(const Term& t, bool applySubs = false);
@@ -5882,9 +5949,12 @@ class CVC5_EXPORT Solver
   std::map<Term, Term> getDifficulty() const;
 
   /**
-   * Get a timeout core, which computes a subset of the current assertions that
-   * cause a timeout. Note it does not require being proceeded by a call to
-   * checkSat.
+   * Get a timeout core.
+   *
+   * This function computes a subset of the current assertions that cause a
+   * timeout. It may make multiple checks for satisfiability internally, each
+   * limited by the timeout value given by
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
    *
    * SMT-LIB:
    *
@@ -5897,25 +5967,25 @@ class CVC5_EXPORT Solver
    * @warning This function is experimental and may change in future versions.
    *
    * @return The result of the timeout core computation. This is a pair
-   * containing a result and a list of formulas. If the result is unknown
-   * and the reason is timeout, then the list of formulas correspond to a
-   * subset of the current assertions that cause a timeout in the specified
-   * time :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-   * If the result is unsat, then the list of formulas correspond to an
-   * unsat core for the current assertions. Otherwise, the result is sat,
-   * indicating that the current assertions are satisfiable, and
-   * the list of formulas is empty.
-   *
-   * This function may make multiple checks for satisfiability internally, each
-   * limited by the timeout value given by
-   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   *         containing a result and a set of assertions.
+   *         If the result is unknown and the reason is timeout, then returned
+   *         the set of assertions corresponds to a subset of the current
+   *         assertions that cause a timeout in the specified time
+   *         :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   *         If the result is unsat, then the list of formulas correspond to an
+   *         unsat core for the current assertions. Otherwise, the result is
+   *         sat, indicating that the current assertions are satisfiable, and
+   *         the returned set of assertions is empty.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
   /**
-   * Get a timeout core, which computes a subset of the given assumptions that
-   * cause a timeout when added to the current assertions. Note it does not
-   * require being proceeded by a call to checkSat.
+   * Get a timeout core of the given assumptions.
+   *
+   * This function computes a subset of the given assumptions that cause a
+   * timeout when added to the current assertions.
+   *
+   * @note it does not require being proceeded by a call to `checkSat()`.
    *
    * SMT-LIB:
    *
@@ -5928,16 +5998,19 @@ class CVC5_EXPORT Solver
    * @warning This function is experimental and may change in future versions.
    *
    * @param assumptions The (non-empty) set of formulas to assume.
+   *
    * @return The result of the timeout core computation. This is a pair
-   * containing a result and a list of formulas. If the result is unknown
-   * and the reason is timeout, then the list of formulas correspond to a
-   * subset of assumptions that cause a timeout when added to the current
-   * assertions in the specified time
-   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-   * If the result is unsat, then the list of formulas plus the current
-   * assertions correspond to an unsat core for the current assertions.
-   * Otherwise, the result is sat, indicating that the given assumptions plus
-   * the current assertions are satisfiable, and the list of formulas is empty.
+   *         containing a result and a set of assumptions.
+   *         If the result is unknown and the reason is timeout, then the set
+   *         of assumptions corresponds to a subset of the given assumptions
+   *         that cause a timeout when added to the current assertions in the
+   *         specified time
+   *         :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   *         If the result is unsat, then the set of assumptions together with
+   *         the current assertions correspond to an unsat core for the current
+   *         assertions. Otherwise, the result is sat, indicating that the
+   *         given assumptions plus the current assertions are satisfiable, and
+   *         the returned set of assumptions is empty.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCoreAssuming(
       const std::vector<Term>& assumptions) const;
@@ -6040,13 +6113,14 @@ class CVC5_EXPORT Solver
   std::vector<Term> getModelDomainElements(const Sort& s) const;
 
   /**
-   * This returns false if the model value of free constant v was not essential
-   * for showing the satisfiability of the last call to checkSat using the
-   * current model. This function will only return false (for any `v`) if
-   * option
-   * \verbatim embed:rst:inline :ref:`model-cores
-   * <lbl-option-model-cores>`\endverbatim has been set.
+   * Determine if the model value of the given free constant was essential for
+   * showing satisfiability of the last `checkSat()` query based on the current
+   * model.
    *
+   * For any free constant `v`, this will only return false if
+   * \verbatim embed:rst:inline :ref:`model-cores
+   * <lbl-option-model-cores>`\endverbatim
+   * has been set to true.
    * @warning This function is experimental and may change in future versions.
    *
    * @param v The term in question.
@@ -6526,9 +6600,10 @@ class CVC5_EXPORT Solver
   void setLogic(const std::string& logic) const;
 
   /**
-   * Is logic set? Returns whether we called setLogic yet for this solver.
+   * Determine if `setLogic()` has been called.
    *
-   * @return whether we called setLogic yet for this solver.
+   * @return True if `setLogic()` has already been called for this solver
+   *         instance.
    */
   bool isLogicSet() const;
 

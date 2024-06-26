@@ -232,6 +232,7 @@ add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wshadow")
+add_check_c_cxx_flag("-fno-operator-names")
 
 # Assume no dynamic initialization of thread-local variables in non-defining
 # translation units. This option should result in better performance and works
@@ -387,6 +388,7 @@ set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
     CACHE STRING "Base Python executable")
 
 if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
+  find_package(Pip REQUIRED)
   # Set up Python venv if one doesn't exist already
   set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
   if(NOT EXISTS ${VENV_PATH})

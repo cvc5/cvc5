@@ -66,7 +66,8 @@ public class InputParser extends AbstractPointer
   {
     // unlike cpp api, here we create a symbol manager first and then
     // we call the corresponding constructor in cpp api
-    super(newInputParser(solver.getPointer(), new SymbolManager(solver).getPointer()));
+    super(newInputParser(
+        solver.getPointer(), new SymbolManager(solver.getTermManager()).getPointer()));
   }
 
   private static native long newInputParser(long solverPointer);

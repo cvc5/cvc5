@@ -1295,6 +1295,9 @@ libcvc5_add_sources(
 set_source_files_properties(api/cpp/cvc5.cpp
   PROPERTIES COMPILE_OPTIONS
   "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+set_source_files_properties(api/cpp/cvc5_parser.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 
 #-----------------------------------------------------------------------------#
 # Add required include paths for this and all subdirectories.
@@ -1514,6 +1517,7 @@ if(USE_KISSAT)
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Kissat> $<INSTALL_INTERFACE:kissat>)
 endif()
 if(USE_GLPK)
+  add_dependencies(cvc5-obj GLPK)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${GLPK_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
 endif()

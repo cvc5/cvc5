@@ -46,6 +46,12 @@ class TestInputParserBlack : public TestParser
   }
 };
 
+TEST_F(TestInputParserBlack, constructSymbolManager)
+{
+  (void)SymbolManager(d_tm);
+  (void)SymbolManager(d_solver.get());
+}
+
 TEST_F(TestInputParserBlack, getSolver)
 {
   InputParser p(d_solver.get());

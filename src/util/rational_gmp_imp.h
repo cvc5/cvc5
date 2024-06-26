@@ -298,7 +298,7 @@ class Rational
     size_t numeratorHash = gmpz_hash(d_value.get_num_mpz_t());
     size_t denominatorHash = gmpz_hash(d_value.get_den_mpz_t());
 
-    return numeratorHash xor denominatorHash;
+    return numeratorHash ^ denominatorHash;
   }
 
   uint32_t complexity() const

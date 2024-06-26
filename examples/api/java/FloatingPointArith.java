@@ -26,75 +26,95 @@ public class FloatingPointArith
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    Solver solver = new Solver();
+    TermManager tm = new TermManager();
+    Solver solver = new Solver(tm);
     {
+      solver.setOption("incremental", "true");
       solver.setOption("produce-models", "true");
 
       // Make single precision floating-point variables
-      Sort fpt32 = solver.mkFloatingPointSort(8, 24);
-      Term a = solver.mkConst(fpt32, "a");
-      Term b = solver.mkConst(fpt32, "b");
-      Term c = solver.mkConst(fpt32, "c");
-      Term d = solver.mkConst(fpt32, "d");
-      Term e = solver.mkConst(fpt32, "e");
+      Sort fpt32 = tm.mkFloatingPointSort(8, 24);
+      Term a = tm.mkConst(fpt32, "a");
+      Term b = tm.mkConst(fpt32, "b");
+      Term c = tm.mkConst(fpt32, "c");
+      Term d = tm.mkConst(fpt32, "d");
+      Term e = tm.mkConst(fpt32, "e");
+      // Rounding mode
+      Term rm = tm.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN);
 
-      // Assert that floating-point addition is not associative:
-      // (a + (b + c)) != ((a + b) + c)
-      Term rm = solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN);
-      Term lhs = solver.mkTerm(
-          Kind.FLOATINGPOINT_ADD, rm, a, solver.mkTerm(Kind.FLOATINGPOINT_ADD, rm, b, c));
-      Term rhs = solver.mkTerm(
-          Kind.FLOATINGPOINT_ADD, rm, solver.mkTerm(Kind.FLOATINGPOINT_ADD, rm, a, b), c);
-      solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.EQUAL, a, b)));
-
+      System.out.println("Show that fused multiplication and addition `(fp.fma RM a b c)`");
+      System.out.println("is different from `(fp.add RM (fp.mul a b) c)`:");
+      solver.push(1);
+      Term fma = tm.mkTerm(Kind.FLOATINGPOINT_FMA, new Term[] {rm, a, b, c});
+      Term mul = tm.mkTerm(Kind.FLOATINGPOINT_MULT, rm, a, b);
+      Term add = tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, mul, c);
+      solver.assertFormula(tm.mkTerm(Kind.DISTINCT, fma, add));
       Result r = solver.checkSat(); // result is sat
-      assert r.isSat();
+      System.out.println("Expect sat: " + r);
+      System.out.println("Value of `a`: " + solver.getValue(a));
+      System.out.println("Value of `b`: " + solver.getValue(b));
+      System.out.println("Value of `c`: " + solver.getValue(c));
+      System.out.println("Value of `(fp.fma RNE a b c)`: " + solver.getValue(fma));
+      System.out.println("Value of `(fp.add RNE (fp.mul a b) c)`: " + solver.getValue(add));
+      System.out.println();
+      solver.pop(1);
 
-      System.out.println("a = " + solver.getValue(a));
-      System.out.println("b = " + solver.getValue(b));
-      System.out.println("c = " + solver.getValue(c));
-
-      // Now, let's restrict `a` to be either NaN or positive infinity
-      Term nan = solver.mkFloatingPointNaN(8, 24);
-      Term inf = solver.mkFloatingPointPosInf(8, 24);
-      solver.assertFormula(solver.mkTerm(
-          Kind.OR, solver.mkTerm(Kind.EQUAL, a, inf), solver.mkTerm(Kind.EQUAL, a, nan)));
-
-      r = solver.checkSat(); // result is sat
-      assert r.isSat();
-
-      System.out.println("a = " + solver.getValue(a));
-      System.out.println("b = " + solver.getValue(b));
-      System.out.println("c = " + solver.getValue(c));
-
-      // And now for something completely different. Let's try to find a (normal)
-      // floating-point number that rounds to different integer values for
-      // different rounding modes.
-      Term rtp = solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_POSITIVE);
-      Term rtn = solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_NEGATIVE);
-      Op op = solver.mkOp(Kind.FLOATINGPOINT_TO_SBV, 16); // (_ fp.to_sbv 16)
-      lhs = solver.mkTerm(op, rtp, d);
-      rhs = solver.mkTerm(op, rtn, d);
-      solver.assertFormula(solver.mkTerm(Kind.FLOATINGPOINT_IS_NORMAL, d));
-      solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.EQUAL, lhs, rhs)));
+      System.out.println("Show that floating-point addition is not associative:");
+      System.out.println("(a + (b + c)) != ((a + b) + c)");
+      Term lhs =
+          tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, a, tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, b, c));
+      Term rhs =
+          tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, a, b), c);
+      solver.assertFormula(tm.mkTerm(Kind.NOT, tm.mkTerm(Kind.EQUAL, a, b)));
 
       r = solver.checkSat(); // result is sat
       assert r.isSat();
 
-      // Convert the result to a rational and print it
+      System.out.println("Value of `a`: " + solver.getValue(a));
+      System.out.println("Value of `b`: " + solver.getValue(b));
+      System.out.println("Value of `c`: " + solver.getValue(c));
+
+      System.out.println("Now, restrict `a` to be either NaN or positive infinity:");
+      Term nan = tm.mkFloatingPointNaN(8, 24);
+      Term inf = tm.mkFloatingPointPosInf(8, 24);
+      solver.assertFormula(
+          tm.mkTerm(Kind.OR, tm.mkTerm(Kind.EQUAL, a, inf), tm.mkTerm(Kind.EQUAL, a, nan)));
+
+      r = solver.checkSat(); // result is sat
+      assert r.isSat();
+
+      System.out.println("Value of `a`: " + solver.getValue(a));
+      System.out.println("Value of `b`: " + solver.getValue(b));
+      System.out.println("Value of `c`: " + solver.getValue(c));
+
+      System.out.println("Now, try to find a (normal) floating-point number that rounds");
+      System.out.println("to different integer values for different rounding modes:");
+      Term rtp = tm.mkRoundingMode(RoundingMode.ROUND_TOWARD_POSITIVE);
+      Term rtn = tm.mkRoundingMode(RoundingMode.ROUND_TOWARD_NEGATIVE);
+      Op op = tm.mkOp(Kind.FLOATINGPOINT_TO_UBV, 16); // (_ fp.to_ubv 16)
+      lhs = tm.mkTerm(op, rtp, d);
+      rhs = tm.mkTerm(op, rtn, d);
+      solver.assertFormula(tm.mkTerm(Kind.FLOATINGPOINT_IS_NORMAL, d));
+      solver.assertFormula(tm.mkTerm(Kind.NOT, tm.mkTerm(Kind.EQUAL, lhs, rhs)));
+
+      r = solver.checkSat(); // result is sat
+      assert r.isSat();
+
+      System.out.println("Get value of `d` as floating-point, bit-vector and real:");
       Term val = solver.getValue(d);
-      Term realVal = solver.getValue(solver.mkTerm(FLOATINGPOINT_TO_REAL, val));
-      System.out.println("d = " + val + " = " + realVal);
-      System.out.println("((_ fp.to_sbv 16) RTP d) = " + solver.getValue(lhs));
-      System.out.println("((_ fp.to_sbv 16) RTN d) = " + solver.getValue(rhs));
+      System.out.println("Value of `d`: " + val);
+      System.out.println("Value of `((_ fp.to_ubv 16) RTP d)`: " + solver.getValue(lhs));
+      System.out.println("Value of `((_ fp.to_ubv 16) RTN d)`: " + solver.getValue(rhs));
+      System.out.println("Value of `(fp.to_real d)`: "
+          + solver.getValue(tm.mkTerm(Kind.FLOATINGPOINT_TO_REAL, val)));
 
-      // For our final trick, let's try to find a floating-point number between
-      // positive zero and the smallest positive floating-point number
-      Term zero = solver.mkFloatingPointPosZero(8, 24);
-      Term smallest = solver.mkFloatingPoint(8, 24, solver.mkBitVector(32, 0b001));
-      solver.assertFormula(solver.mkTerm(Kind.AND,
-          solver.mkTerm(Kind.FLOATINGPOINT_LT, zero, e),
-          solver.mkTerm(Kind.FLOATINGPOINT_LT, e, smallest)));
+      System.out.println("Finally, try to find a floating-point number between positive");
+      System.out.println("zero and the smallest positive floating-point number:");
+      Term zero = tm.mkFloatingPointPosZero(8, 24);
+      Term smallest = tm.mkFloatingPoint(8, 24, tm.mkBitVector(32, 0b001));
+      solver.assertFormula(tm.mkTerm(Kind.AND,
+          tm.mkTerm(Kind.FLOATINGPOINT_LT, zero, e),
+          tm.mkTerm(Kind.FLOATINGPOINT_LT, e, smallest)));
 
       r = solver.checkSat(); // result is unsat
       assert !r.isSat();

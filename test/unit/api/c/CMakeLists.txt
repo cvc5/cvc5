@@ -15,7 +15,12 @@
 
 # Generate and add unit test.
 cvc5_add_unit_test_black(capi_kind_black api/c)
+cvc5_add_unit_test_black(capi_op_black api/c)
+cvc5_add_unit_test_black(capi_proof_black api/c)
+cvc5_add_unit_test_black(capi_proof_rule_black api/c)
+cvc5_add_unit_test_black(capi_solver_black api/c)
 cvc5_add_unit_test_black(capi_sort_black api/c)
 cvc5_add_unit_test_black(capi_sort_kind_black api/c)
+cvc5_add_unit_test_black(capi_term_black api/c)
 cvc5_add_unit_test_black(capi_term_manager_black api/c)
 cvc5_add_unit_test_black(capi_types_black api/c)
