@@ -41,11 +41,11 @@ int main()
 
   // Formulas
   Term x_gt_pi = tm.mkTerm(Kind::GT, {x, pi});
-  Term x_lt_tpi = tm.mkTerm(Kind::LT, {x, twopi});
+  Term x_lt_pi = tm.mkTerm(Kind::LT, {x, twopi});
   Term ysq_lt_sinx = tm.mkTerm(Kind::LT, {ysq, sinx});
 
   slv.assertFormula(x_gt_pi);
-  slv.assertFormula(x_lt_tpi);
+  slv.assertFormula(x_lt_pi);
   slv.assertFormula(ysq_lt_sinx);
 
   cout << "cvc5 should report UNSAT." << endl;
