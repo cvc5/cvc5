@@ -39,6 +39,7 @@ if(Poly_INCLUDE_DIR
   )
   string(REGEX MATCH "[0-9.]+" Poly_VERSION "${Poly_VERSION}")
 
+  set(Poly_FIND_VERSION "0.1.13")
   check_system_version("Poly")
 endif()
 
