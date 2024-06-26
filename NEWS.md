@@ -12,6 +12,9 @@ This file contains a summary of important user-visible changes.
   * Python:
     - Constructor `SymbolManager(Solver)` is now replaced
       by `SymbolManager(TermManager)`.
+  * Pythonic:
+    - Unsat cores and proofs are now available via the `Solver` methods
+      `unsat_core()` and `proof()`, respectively.
 
 
 cvc5 1.1.2
@@ -320,7 +323,7 @@ https://cvc5.github.io
 https://cvc5.github.io/docs
 
 ## System Description
-**cvc5: A Versatile and Industrial-Strength SMT Solver.**  
+**cvc5: A Versatile and Industrial-Strength SMT Solver.**
 Barbosa H., Barrett C., Brain M., Kremer G., Lachnitt H., Mann M., Mohamed A.,
 Mohamed M., Niemetz A., Nötzli A., Ozdemir A., Preiner M., Reynolds A., Sheng
 Y., Tinelli C., and Zohar Y., TACAS 2022.
