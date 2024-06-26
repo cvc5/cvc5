@@ -387,20 +387,31 @@ endif()
 set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
     CACHE STRING "Base Python executable")
 
+macro(create_venv)
+  message(STATUS "Creating Python virtual environment")
+  # Use packages installed in the base installation if they're already present
+  execute_process (
+    COMMAND
+      "${Python_EXECUTABLE}" -m venv --system-site-packages "${VENV_PATH}"
+    RESULT_VARIABLE VENV_CMD_EXIT_CODE
+  )
+  if(VENV_CMD_EXIT_CODE)
+    message(FATAL_ERROR "Could not create Python virtual environment")
+  endif()
+endmacro()
+
 if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
-  find_package(Pip REQUIRED)
   # Set up Python venv if one doesn't exist already
   set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
   if(NOT EXISTS ${VENV_PATH})
-    message(STATUS "Creating Python virtual environment")
-    # Use packages installed in the base installation if they're already present
-    execute_process (
-      COMMAND
-        "${Python_EXECUTABLE}" -m venv --system-site-packages "${VENV_PATH}"
-      RESULT_VARIABLE VENV_CMD_EXIT_CODE
-    )
-    if(VENV_CMD_EXIT_CODE)
-      message(FATAL_ERROR "Could not create Python virtual environment")
+    find_package(Pip REQUIRED)
+    create_venv()
+  else()
+    if(NOT (EXISTS ${VENV_PATH}/bin/pip OR EXISTS ${VENV_PATH}/Scripts/pip.exe))
+      # This situation may be possible if cvc5 was built before 715f649
+      execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${VENV_PATH})
+      find_package(Pip REQUIRED)
+      create_venv()
     endif()
   endif()
 
