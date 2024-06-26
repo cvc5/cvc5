@@ -73,12 +73,12 @@ endforeach()
 if(CVC5_USE_COCOA)
   cvc5_add_c_example(finite_field "")
 endif()
-#
-#set(SYGUS_EXAMPLES_API_C
-#  sygus-fun
+
+set(SYGUS_EXAMPLES_API_C
+  sygus-fun
 #  sygus-inv
-#)
-#
-#foreach(example ${SYGUS_EXAMPLES_API_C})
-#  cvc5_add_c_example(${example} "${example}.c utils.h utils.c")
-#endforeach()
+)
+
+foreach(example ${SYGUS_EXAMPLES_API_C})
+  cvc5_add_c_example(${example} "${example}.c utils.h utils.c")
+endforeach()
