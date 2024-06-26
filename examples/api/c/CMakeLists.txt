@@ -28,7 +28,7 @@ set(CVC5_EXAMPLES_API_C
   sequences
   sets
   strings
-  #transcendentals
+  transcendentals
   #parser
   #parser_sym_manager
   #uf
