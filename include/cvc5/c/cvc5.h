@@ -4313,7 +4313,7 @@ Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
  */
 Cvc5Term cvc5_get_interpolant_with_grammar(Cvc5* cvc5,
                                            Cvc5Term conj,
-                                           Cvc5Grammar* grammar);
+                                           Cvc5Grammar grammar);
 
 /**
  * Get the next interpolant. Can only be called immediately after a successful
