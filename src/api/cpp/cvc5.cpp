@@ -1682,11 +1682,11 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
       << "expected parametric datatype or sort constructor sort.";
   CVC5_API_CHECK(!d_type->isParametricDatatype()
                  || d_type->getNumChildren() == params.size() + 1)
-      << "Arity mismatch for instantiated parametric datatype";
+      << "arity mismatch for instantiated parametric datatype";
   CVC5_API_CHECK(!d_type->isUninterpretedSortConstructor()
                  || d_type->getUninterpretedSortConstructorArity()
                         == params.size())
-      << "Arity mismatch for instantiated sort constructor";
+      << "arity mismatch for instantiated sort constructor";
   //////// all checks before this line
   std::vector<internal::TypeNode> tparams = sortVectorToTypeNodes(params);
   return Sort(d_tm, d_type->instantiate(tparams));
