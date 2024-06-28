@@ -1,4 +1,5 @@
 (set-logic HO_ALL)
+(set-info :status sat)
 (set-option :tlimit 30000)
 (set-option :produce-unsat-cores false)
 (set-option :finite-model-find true)
