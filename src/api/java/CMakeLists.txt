@@ -108,6 +108,7 @@ include(UseJava)
 # specify java source files
 set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/AbstractPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/AbstractPlugin.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Command.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Context.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/CVC5ApiException.java
@@ -196,6 +197,8 @@ message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 set(jni_files
+  jni/api_plugin.cpp
+  jni/api_plugin.h
   jni/api_utilities.cpp
   jni/datatype.cpp
   jni/command.cpp
