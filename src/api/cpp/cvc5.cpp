@@ -4860,6 +4860,24 @@ std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
   return out << grammar.toString();
 }
 
+bool Grammar::operator==(const Grammar& grammar) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_grammar == grammar.d_grammar;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Grammar::operator!=(const Grammar& grammar) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_grammar != grammar.d_grammar;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Options                                                                    */
 /* -------------------------------------------------------------------------- */

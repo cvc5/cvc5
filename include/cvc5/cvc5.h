@@ -3099,6 +3099,20 @@ class CVC5_EXPORT Grammar
   bool isNull() const;
 
   /**
+   * Operator overloading for referential equality of two grammars.
+   * @param grammar The grammarto compare to for equality.
+   * @return True if both grammars point to the same internal grammar object.
+   */
+  bool operator==(const Grammar& grammar) const;
+
+  /**
+   * Referential disequality operator.
+   * @param grammar The grammar to compare to for disequality.
+   * @return True if both grammars point to different internal grammar objects.
+   */
+  bool operator!=(const Grammar& grammar) const;
+
+  /**
    * Add `rule` to the set of rules corresponding to `ntSymbol`.
    * @param ntSymbol The non-terminal to which the rule is added.
    * @param rule The rule to add.
@@ -3624,7 +3638,10 @@ class CVC5_EXPORT Proof
    */
   bool isNull() const;
 
-  /** @return The proof rule used by the root step of the proof. */
+  /**
+   * Get the proof rule used by the root step of the proof.
+   * @return The proof rule.
+   */
   ProofRule getRule() const;
 
   /**
@@ -3653,14 +3670,14 @@ class CVC5_EXPORT Proof
   /**
    * Operator overloading for referential equality of two proofs.
    * @param p The proof to compare to for equality.
-   * @return `true` if both proofs point to the same internal proof object.
+   * @return True if both proofs point to the same internal proof object.
    */
   bool operator==(const Proof& p) const;
 
   /**
    * Referential disequality operator.
    * @param p The proof to compare to for disequality.
-   * @return `true` if proofs point to different internal proof objects.
+   * @return True if both proofs point to different internal proof objects.
    */
   bool operator!=(const Proof& p) const;
 

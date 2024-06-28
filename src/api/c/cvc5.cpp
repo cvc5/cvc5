@@ -4105,6 +4105,25 @@ struct cvc5_proof_t
   Cvc5* d_cvc5 = nullptr;
 };
 
+/** Wrapper for cvc5 C++ grammars. */
+struct cvc5_grammar_t
+{
+  /**
+   * Constructor.
+   * @param grammar The wrapped C++ grammar.
+   */
+  cvc5_grammar_t(Cvc5* cvc5, const cvc5::Grammar& grammar)
+      : d_grammar(grammar), d_cvc5(cvc5)
+  {
+  }
+  /** The wrapped C++ grammar. */
+  cvc5::Grammar d_grammar;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated solver instance. */
+  Cvc5* d_cvc5 = nullptr;
+};
+
 /** Wrapper for cvc5 C++ solver instance. */
 struct Cvc5
 {
@@ -4147,6 +4166,24 @@ struct Cvc5
    */
   cvc5_proof_t* copy(cvc5_proof_t* proof);
 
+  /**
+   * Export C++ grammar to C API.
+   * @param grammar The grammar to export.
+   */
+  Cvc5Grammar export_grammar(const cvc5::Grammar& grammar);
+  /**
+   * Decrement the external ref count of a grammar. If the ref count reaches
+   * zero, the grammar is released (freed).
+   * @param term The term to release.
+   */
+  void release(cvc5_grammar_t* grammar);
+  /**
+   * Increment the external ref count of a grammar.
+   * @param grammar The grammar to copy.
+   * @return The copied grammar.
+   */
+  cvc5_grammar_t* copy(cvc5_grammar_t* grammar);
+
   /** The associated cvc5 instance. */
   cvc5::Solver d_solver;
   /** The associated term manager. */
@@ -4155,6 +4192,8 @@ struct Cvc5
   std::unordered_map<cvc5::Result, cvc5_result_t> d_alloc_results;
   /** Cache of allocated proofs. */
   std::unordered_map<cvc5::Proof, cvc5_proof_t> d_alloc_proofs;
+  /** Cache of allocated grammars. */
+  std::unordered_map<cvc5::Grammar, cvc5_grammar_t> d_alloc_grammars;
 };
 
 Cvc5Result Cvc5::export_result(const cvc5::Result& result)
@@ -4208,6 +4247,32 @@ cvc5_proof_t* Cvc5::copy(cvc5_proof_t* proof)
 {
   proof->d_refs += 1;
   return proof;
+}
+
+Cvc5Grammar Cvc5::export_grammar(const cvc5::Grammar& grammar)
+{
+  auto [it, inserted] = d_alloc_grammars.try_emplace(grammar, this, grammar);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+void Cvc5::release(cvc5_grammar_t* grammar)
+{
+  grammar->d_refs -= 1;
+  if (grammar->d_refs == 0)
+  {
+    Assert(d_alloc_grammars.find(grammar->d_grammar) != d_alloc_grammars.end());
+    d_alloc_grammars.erase(grammar->d_grammar);
+  }
+}
+
+cvc5_grammar_t* Cvc5::copy(cvc5_grammar_t* grammar)
+{
+  grammar->d_refs += 1;
+  return grammar;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -4432,6 +4497,109 @@ size_t cvc5_proof_hash(Cvc5Proof proof)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
   res = std::hash<cvc5::Proof>{}(proof->d_proof);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Grammar                                                                */
+/* -------------------------------------------------------------------------- */
+
+void cvc5_grammar_add_rule(Cvc5Grammar grammar, Cvc5Term symbol, Cvc5Term rule)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_CAPI_CHECK_TERM(symbol);
+  CVC5_CAPI_CHECK_TERM(rule);
+  grammar->d_grammar.addRule(symbol->d_term, rule->d_term);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_grammar_add_rules(Cvc5Grammar grammar,
+                            Cvc5Term symbol,
+                            size_t size,
+                            const Cvc5Term rules[])
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_CAPI_CHECK_TERM(symbol);
+  CVC5_CAPI_CHECK_NOT_NULL(rules);
+  std::vector<cvc5::Term> crules;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(rules, i);
+    crules.push_back(rules[i]->d_term);
+  }
+  grammar->d_grammar.addRules(symbol->d_term, crules);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_grammar_add_any_constant(Cvc5Grammar grammar, Cvc5Term symbol)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_CAPI_CHECK_TERM(symbol);
+  grammar->d_grammar.addAnyConstant(symbol->d_term);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_grammar_add_any_variable(Cvc5Grammar grammar, Cvc5Term symbol)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_CAPI_CHECK_TERM(symbol);
+  grammar->d_grammar.addAnyVariable(symbol->d_term);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+const char* cvc5_grammar_to_string(const Cvc5Grammar grammar)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  str = grammar->d_grammar.toString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+bool cvc5_grammar_is_equal(Cvc5Grammar a, Cvc5Grammar b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_grammar == b->d_grammar;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_grammar_is_disequal(Cvc5Grammar a, Cvc5Grammar b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  if (a == nullptr || b == nullptr)
+  {
+    res = a != b;
+  }
+  else
+  {
+    res = a->d_grammar != b->d_grammar;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+size_t cvc5_grammar_hash(Cvc5Grammar grammar)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  res = std::hash<cvc5::Grammar>{}(grammar->d_grammar);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -5309,4 +5477,97 @@ const char* cvc5_proof_to_string(Cvc5* cvc5,
       cassertion_names);
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
+}
+
+Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5, const char* symbol, Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(symbol);
+  CVC5_CAPI_CHECK_SORT(sort);
+  res = cvc5->d_tm->export_term(
+      cvc5->d_solver.declareSygusVar(symbol, sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
+                            size_t nbound_vars,
+                            const Cvc5Term bound_vars[],
+                            size_t nsymbols,
+                            const Cvc5Term symbols[])
+{
+  Cvc5Grammar res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(symbols);
+  std::vector<cvc5::Term> cbound_vars;
+  if (nbound_vars)
+  {
+    for (size_t i = 0; i < nbound_vars; ++i)
+    {
+      cbound_vars.push_back(bound_vars[i]->d_term);
+    }
+  }
+  std::vector<cvc5::Term> csymbols;
+  for (size_t i = 0; i < nsymbols; ++i)
+  {
+    csymbols.push_back(symbols[i]->d_term);
+  }
+  res = cvc5->export_grammar(cvc5->d_solver.mkGrammar(cbound_vars, csymbols));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_synth_fun(Cvc5* cvc5,
+                        const char* symbol,
+                        size_t size,
+                        const Cvc5Term bound_vars[],
+                        Cvc5Sort sort)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(symbol);
+  CVC5_CAPI_CHECK_SORT(sort);
+  std::vector<cvc5::Term> cbound_vars;
+  if (size)
+  {
+    for (size_t i = 0; i < size; ++i)
+    {
+      cbound_vars.push_back(bound_vars[i]->d_term);
+    }
+  }
+  res = cvc5->d_tm->export_term(
+      cvc5->d_solver.synthFun(symbol, cbound_vars, sort->d_sort));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
+                                     const char* symbol,
+                                     size_t size,
+                                     const Cvc5Term bound_vars[],
+                                     Cvc5Sort sort,
+                                     Cvc5Grammar grammar)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(symbol);
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  std::vector<cvc5::Term> cbound_vars;
+  if (size)
+  {
+    for (size_t i = 0; i < size; ++i)
+    {
+      cbound_vars.push_back(bound_vars[i]->d_term);
+    }
+  }
+  res = cvc5->d_tm->export_term(cvc5->d_solver.synthFun(
+      symbol, cbound_vars, sort->d_sort, grammar->d_grammar));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
