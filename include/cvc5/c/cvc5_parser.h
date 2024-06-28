@@ -53,7 +53,7 @@ typedef struct cvc5_cmd_t* Cvc5Command;
  *
  * After construction, it is expected that an input is first configure via,
  * e.g., `cvc5_parser_set_file_input()`, `cvc5_parser_set_stream_input()`
- * `cvc5_parser_set_string_input()` or `cvc5_parser_set_inc_str_input()` and
+ * `cvc5_parser_set_str_input()` or `cvc5_parser_set_inc_str_input()` and
  * `cvc5_parser_append_inc_str_input()`.
  * Then, functions `cvc5_parser_next_command()` and
  * `cvc5_parser_next_expression()` can be invoked to parse the input.
@@ -188,6 +188,13 @@ void cvc5_parser_delete(Cvc5InputParser* parser);
  * @param parser The parser instance.
  */
 void cvc5_parser_release(Cvc5InputParser* parser);
+
+/**
+ * Get the associated symbol manager of a given parser.
+ * @param parser The parser instance.
+ * @return The symbol manager.
+ */
+Cvc5SymbolManager* cvc5_parser_get_sm(Cvc5InputParser* parser);
 
 /**
  * Configure given file as input to a given input parser.

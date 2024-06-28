@@ -4307,6 +4307,16 @@ void cvc5_delete(Cvc5* cvc5)
   CVC5_CAPI_TRY_CATCH_END;
 }
 
+Cvc5TermManager* cvc5_get_tm(Cvc5* cvc5)
+{
+  Cvc5TermManager* tm = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  tm = cvc5->d_tm;
+  CVC5_CAPI_TRY_CATCH_END;
+  return tm;
+}
+
 void cvc5_set_info(Cvc5* cvc5, const char* keyword, const char* value)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
