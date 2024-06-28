@@ -877,10 +877,12 @@ bool cvc5_sort_is_disequal(Cvc5Sort a, Cvc5Sort b)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   if (a == nullptr || b == nullptr)
   {
+    printf("1\n");
     res = a != b;
   }
   else
   {
+    printf("2\n");
     res = a->d_sort != b->d_sort;
   }
   CVC5_CAPI_TRY_CATCH_END;
@@ -5557,6 +5559,83 @@ Cvc5Term cvc5_get_value_sep_nil(Cvc5* cvc5)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   res = cvc5->d_tm->export_term(cvc5->d_solver.getValueSepNil());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_declare_pool(Cvc5* cvc5,
+                           const char* symbol,
+                           Cvc5Sort sort,
+                           size_t size,
+                           const Cvc5Term init_value[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(symbol);
+  CVC5_CAPI_CHECK_SORT(sort);
+  std::vector<cvc5::Term> cinit_value;
+  if (init_value != nullptr)
+  {
+    for (size_t i = 0; i < size; ++i)
+    {
+      CVC5_CAPI_CHECK_TERM_AT_IDX(init_value, i);
+      cinit_value.push_back(init_value[i]->d_term);
+    }
+  }
+  res = cvc5->d_tm->export_term(
+      cvc5->d_solver.declarePool(symbol, sort->d_sort, cinit_value));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+namespace {
+cvc5::Term call_oracle(Cvc5* cvc5,
+                       Cvc5Term (*fun)(size_t, const Cvc5Term*, void*),
+                       const std::vector<cvc5::Term>& terms,
+                       void* state)
+{
+  std::vector<Cvc5Term> cterms;
+  for (auto& t : terms)
+  {
+    cterms.push_back(cvc5->d_tm->export_term(t));
+  }
+  return fun(cterms.size(), cterms.data(), state)->d_term;
+}
+}  // namespace
+
+Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
+                                 const char* symbol,
+                                 size_t size,
+                                 const Cvc5Sort sorts[],
+                                 Cvc5Sort sort,
+                                 void* state,
+                                 Cvc5Term (*fun)(size_t,
+                                                 const Cvc5Term*,
+                                                 void*))
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(symbol);
+  CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_CAPI_CHECK_NOT_NULL(fun);
+  std::vector<cvc5::Sort> csorts;
+  if (sorts != nullptr)
+  {
+    for (size_t i = 0; i < size; ++i)
+    {
+      CVC5_CAPI_CHECK_SORT_AT_IDX(sorts, i);
+      csorts.push_back(sorts[i]->d_sort);
+    }
+  }
+  std::function<cvc5::Term(const std::vector<cvc5::Term>&)> cfun =
+      [cvc5, state, fun](const std::vector<cvc5::Term>& terms) {
+        cvc5::Term term = call_oracle(cvc5, fun, terms, state);
+        return term;
+      };
+  res = cvc5->d_tm->export_term(
+      cvc5->d_solver.declareOracleFun(symbol, csorts, sort->d_sort, cfun));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }

@@ -4242,20 +4242,26 @@ Cvc5Term cvc5_declare_pool(Cvc5* cvc5,
  *
  * @warning This function is experimental and may change in future versions.
  *
- * @param cvc5 The solver instance.
+ * @param cvc5   The solver instance.
  * @param symbol The name of the oracle
- * @param nsorts The number of domain sorts of the oracle function.
- * @param sorts The domain sorts.
- * @param sort The sort of the return value of this function.
- * @param fun The function that implements the oracle function.
- * @return The oracle function
+ * @param size   The number of domain sorts of the oracle function.
+ * @param sorts  The domain sorts.
+ * @param sort   The sort of the return value of this function.
+ * @param state  The state data for the oracle function, may be NULL.
+ * @param fun    The function that implements the oracle function, taking a
+ *               an array of term arguments and its size and a void pointer
+ *               to optionally capture any state data the function may need.
+ * @return The oracle function.
  */
 Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
                                  const char* symbol,
-                                 size_t nsorts,
+                                 size_t size,
                                  const Cvc5Sort sorts[],
                                  Cvc5Sort sort,
-                                 Cvc5Term (*fun)(const Cvc5Term*));
+                                 void* state,
+                                 Cvc5Term (*fun)(size_t,
+                                                 const Cvc5Term*,
+                                                 void*));
 /**
  * Get an interpolant
  *
