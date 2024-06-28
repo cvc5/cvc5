@@ -8168,7 +8168,7 @@ Term Solver::getValueSepHeap() const
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Can only get separtion heap term after SAT or UNKNOWN response.";
+      << "can only get separtion heap term after SAT or UNKNOWN response.";
   //////// all checks before this line
   return Term(&d_tm, d_slv->getSepHeapExpr());
   ////////
@@ -8187,7 +8187,7 @@ Term Solver::getValueSepNil() const
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Can only get separtion nil term after SAT or UNKNOWN response.";
+      << "can only get separtion nil term after SAT or UNKNOWN response.";
   //////// all checks before this line
   return Term(&d_tm, d_slv->getSepNilExpr());
   ////////
@@ -8389,7 +8389,7 @@ void Solver::blockModel(modes::BlockModelsMode mode) const
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Can only block model after SAT or UNKNOWN response.";
+      << "can only block model after SAT or UNKNOWN response.";
   //////// all checks before this line
   d_slv->blockModel(mode);
   ////////
@@ -8404,7 +8404,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
          "(try --"
       << internal::options::smt::longName::produceModels << ")";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Can only block model values after SAT or UNKNOWN response.";
+      << "can only block model values after SAT or UNKNOWN response.";
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
       << "a non-empty set of terms";
   CVC5_API_SOLVER_CHECK_TERMS(terms);
