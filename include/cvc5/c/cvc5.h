@@ -3753,6 +3753,13 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
  */
 CVC5_EXPORT void cvc5_delete(Cvc5* cvc5);
 
+/**
+ * Get the associated term manager of a cvc5 solver instance.
+ * @param cvc5 The solver instance.
+ * @return The term manager.
+ */
+CVC5_EXPORT Cvc5TermManager* cvc5_get_tm(Cvc5* cvc5);
+
 /* .................................................................... */
 /* SMT-LIB-style Term/Sort Creation                                     */
 /* .................................................................... */
