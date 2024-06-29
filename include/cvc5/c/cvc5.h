@@ -4443,7 +4443,7 @@ Cvc5Term cvc5_get_abduct_next(Cvc5* cvc5);
  * @param cvc5 The solver instance.
  * @param mode The mode to use for blocking.
  */
-void cvc5_block_model(Cvc5BlockModelsMode mode);
+void cvc5_block_model(Cvc5* cvc5, Cvc5BlockModelsMode mode);
 
 /**
  * Block the current model values of (at least) the values in terms. Can be

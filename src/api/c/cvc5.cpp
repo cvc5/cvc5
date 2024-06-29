@@ -5717,6 +5717,29 @@ Cvc5Term cvc5_get_abduct_next(Cvc5* cvc5)
   return res;
 }
 
+void cvc5_block_model(Cvc5* cvc5, Cvc5BlockModelsMode mode)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  cvc5->d_solver.blockModel(static_cast<cvc5::modes::BlockModelsMode>(mode));
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_block_model_values(Cvc5* cvc5, size_t size, const Cvc5Term terms[])
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(terms);
+  std::vector<cvc5::Term> cterms;
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(terms, i);
+    cterms.push_back(terms[i]->d_term);
+  }
+  cvc5->d_solver.blockModelValues(cterms);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 void cvc5_push(Cvc5* cvc5, uint32_t nscopes)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
