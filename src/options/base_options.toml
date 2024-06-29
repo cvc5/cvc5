@@ -334,7 +334,7 @@ name   = "Base"
 
 [[option]]
   name       = "safeOptions"
-  category   = "common"
+  category   = "expert"
   long       = "safe-options"
   type       = "bool"
   default    = "false"
