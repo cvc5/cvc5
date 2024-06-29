@@ -3202,4 +3202,170 @@ TEST_F(TestCApiBlackSolver, get_instantiations)
   ASSERT_DEATH(cvc5_get_instantiations(nullptr), "unexpected NULL argument");
 }
 
+TEST_F(TestCApiBlackSolver, add_sygus_constraint)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term tbool = cvc5_mk_true(d_tm);
+
+  cvc5_add_sygus_constraint(d_solver, tbool);
+  ASSERT_DEATH(cvc5_add_sygus_constraint(nullptr, tbool),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_add_sygus_constraint(d_solver, nullptr), "invalid term");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "sygus", "true");
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_add_sygus_constraint(d_solver, cvc5_mk_true(tm));
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_sygus_constraints)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term tfalse = cvc5_mk_false(d_tm);
+  cvc5_add_sygus_constraint(d_solver, ttrue);
+  cvc5_add_sygus_constraint(d_solver, tfalse);
+  size_t size;
+  const Cvc5Term* constraints = cvc5_get_sygus_constraints(d_solver, &size);
+  ASSERT_TRUE(cvc5_term_is_equal(ttrue, constraints[0]));
+  ASSERT_TRUE(cvc5_term_is_equal(tfalse, constraints[1]));
+  ASSERT_DEATH(cvc5_get_sygus_constraints(nullptr, &size),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_sygus_constraints(d_solver, nullptr),
+               "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, add_sygus_assume)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term tbool = cvc5_mk_false(d_tm);
+  Cvc5Term tint = cvc5_mk_integer_int64(d_tm, 1);
+
+  cvc5_add_sygus_assume(d_solver, tbool);
+  ASSERT_DEATH(cvc5_add_sygus_assume(nullptr, tbool),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_add_sygus_assume(d_solver, nullptr), "invalid term");
+  ASSERT_DEATH(cvc5_add_sygus_assume(d_solver, tint), "invalid argument");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "sygus", "true");
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_add_sygus_assume(slv, tbool);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_sygus_assumptions)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term tfalse = cvc5_mk_false(d_tm);
+  cvc5_add_sygus_assume(d_solver, ttrue);
+  cvc5_add_sygus_assume(d_solver, tfalse);
+  cvc5_add_sygus_assume(d_solver, ttrue);
+  cvc5_add_sygus_assume(d_solver, tfalse);
+  size_t size;
+  const Cvc5Term* assumptions = cvc5_get_sygus_assumptions(d_solver, &size);
+  ASSERT_TRUE(cvc5_term_is_equal(ttrue, assumptions[0]));
+  ASSERT_TRUE(cvc5_term_is_equal(tfalse, assumptions[1]));
+  ASSERT_DEATH(cvc5_get_sygus_assumptions(nullptr, &size),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_sygus_assumptions(d_solver, nullptr),
+               "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term tint = cvc5_mk_integer_int64(d_tm, 1);
+
+  std::vector<Cvc5Sort> domain = {d_real};
+  Cvc5Term inv = cvc5_declare_fun(
+      d_solver, "inv", domain.size(), domain.data(), d_bool, true);
+  Cvc5Term pre = cvc5_declare_fun(
+      d_solver, "pre", domain.size(), domain.data(), d_bool, true);
+  domain = {d_real, d_real};
+  Cvc5Term trans = cvc5_declare_fun(
+      d_solver, "trans", domain.size(), domain.data(), d_bool, true);
+  domain = {d_real};
+  Cvc5Term post = cvc5_declare_fun(
+      d_solver, "post", domain.size(), domain.data(), d_bool, true);
+
+  Cvc5Term inv1 = cvc5_declare_fun(
+      d_solver, "inv1", domain.size(), domain.data(), d_real, true);
+  domain = {d_bool, d_real};
+  Cvc5Term trans1 = cvc5_declare_fun(
+      d_solver, "trans1", domain.size(), domain.data(), d_bool, true);
+  domain = {d_real, d_bool};
+  Cvc5Term trans2 = cvc5_declare_fun(
+      d_solver, "trans2", domain.size(), domain.data(), d_bool, true);
+  domain = {d_real, d_real};
+  Cvc5Term trans3 = cvc5_declare_fun(
+      d_solver, "trans3", domain.size(), domain.data(), d_real, true);
+
+  cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, post);
+
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(nullptr, inv, pre, trans, post),
+               "unexpected NULL argument");
+  ASSERT_DEATH(
+      cvc5_add_sygus_inv_constraint(d_solver, nullptr, pre, trans, post),
+      "invalid term");
+  ASSERT_DEATH(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, nullptr, trans, post),
+      "invalid term");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, nullptr, post),
+               "invalid term");
+  ASSERT_DEATH(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, nullptr),
+      "invalid term");
+
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, tint, pre, trans, post),
+               "invalid argument");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv1, pre, trans, post),
+               "invalid argument");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, trans, trans, post),
+               "have the same sort");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, tint, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, pre, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans1, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans2, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans3, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, trans),
+               "expected inv and post to have the same sort");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "sygus", "true");
+  Cvc5Sort bool_sort = cvc5_get_boolean_sort(tm);
+  Cvc5Sort real_sort = cvc5_get_real_sort(tm);
+  std::vector<Cvc5Sort> domain2 = {real_sort};
+  Cvc5Term inv22 = cvc5_declare_fun(
+      slv, "inv", domain2.size(), domain2.data(), bool_sort, true);
+  Cvc5Term pre22 = cvc5_declare_fun(
+      slv, "pre", domain2.size(), domain2.data(), bool_sort, true);
+  domain2 = {real_sort, real_sort};
+  Cvc5Term trans22 = cvc5_declare_fun(
+      slv, "trans", domain2.size(), domain2.data(), bool_sort, true);
+  domain2 = {real_sort};
+  Cvc5Term post22 = cvc5_declare_fun(
+      slv, "post", domain2.size(), domain2.data(), bool_sort, true);
+  cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post22);
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_add_sygus_inv_constraint(slv, inv, pre22, trans22, post22);
+  cvc5_add_sygus_inv_constraint(slv, inv22, pre, trans22, post22);
+  cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans, post22);
+  cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
 }  // namespace cvc5::internal::test
