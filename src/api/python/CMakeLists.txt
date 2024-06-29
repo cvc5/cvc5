@@ -15,7 +15,7 @@
 
 if(NOT ONLY_PYTHON_EXT_SRC)
   # Python modules for building:
-  check_python_module("setuptools")
+  find_package(Setuptools 66.1.0 REQUIRED)
   find_package(Cython 3.0.0 REQUIRED)
   # Python modules for installing:
   find_package(Pip 23.0 REQUIRED)
@@ -236,15 +236,6 @@ else()
       ${LICENSE_FILES}
   )
 
-  set(BUILD_WHEEL_CMD
-      "${Python_EXECUTABLE} -m pip wheel ${CMAKE_CURRENT_BINARY_DIR} "
-      "${BUILD_WHEEL_CMD} --wheel-dir=${CMAKE_BINARY_DIR}/unrepaired-wheel")
-
-  set(REPAIR_WHEEL_CMD
-      "${Repairwheel_EXECUTABLE} -o ${CMAKE_BINARY_DIR}/repaired-wheel "
-      "-l ${CMAKE_BINARY_DIR}/src -l ${CMAKE_BINARY_DIR}/src/parser "
-      "-l ${DEPS_BASE}/bin")
-
   set(INSTALL_CMD
       "${Python_BASE_EXECUTABLE} -m pip install")
 
@@ -255,28 +246,12 @@ else()
     set(INSTALL_CMD "${INSTALL_CMD} --prefix ${CMAKE_INSTALL_PREFIX}")
   endif()
 
-  set(UNREPAIRED_WHEEL_DIR ${CMAKE_BINARY_DIR}/unrepaired-wheel)
-  set(REPAIRED_WHEEL_DIR ${CMAKE_BINARY_DIR}/repaired-wheel)
-
-  # Remove previous wheel directories
-  install(CODE "execute_process(COMMAND \${CMAKE_COMMAND} -E remove_directory
-          ${UNREPAIRED_WHEEL_DIR} ${REPAIRED_WHEEL_DIR})"
-          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
-
-  # Build wheel
-  install(CODE "execute_process(COMMAND ${BUILD_WHEEL_CMD})"
-          FILE_PERMISSIONS OWNER_WRITE OWNER_READ)
-
-  # Repair wheel (include required libraries)
-  install(CODE
-          "file(GLOB WHL_FILE ${UNREPAIRED_WHEEL_DIR}/cvc5*.whl)
-           execute_process(COMMAND ${REPAIR_WHEEL_CMD} \${WHL_FILE})"
-          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
-
-  # Install wheel
-  install(CODE
-          "file(GLOB WHL_FILE ${REPAIRED_WHEEL_DIR}/cvc5*.whl)
-          execute_process(COMMAND ${INSTALL_CMD} \${WHL_FILE})"
-          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+  install(CODE "execute_process(COMMAND \${CMAKE_COMMAND}
+    -DPython_EXECUTABLE=${Python_EXECUTABLE}
+    -DRepairwheel_EXECUTABLE=${Repairwheel_EXECUTABLE}
+    -DBUILD_DIR=${CMAKE_BINARY_DIR}
+    -DDEPS_BASE=${DEPS_BASE}
+    -DINSTALL_CMD=\"${INSTALL_CMD}\"
+    -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)")
 
 endif()
