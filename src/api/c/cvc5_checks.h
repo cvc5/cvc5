@@ -129,6 +129,10 @@ class Cvc5CApiAbortStream
   CVC5_API_CHECK((rule) >= 0 && (rule) < CVC5_PROOF_REWRITE_RULE_LAST) \
       << "invalid proof rewrite rule"
 
+#define CVC5_CAPI_CHECK_SKOLEM_ID(id)                                          \
+  CVC5_API_CHECK((id) >= 0 && (id) < CVC5_SKOLEM_ID_LAST) << "invalid skolem " \
+                                                             "id"
+
 /* -------------------------------------------------------------------------- */
 
 #define CVC5_CAPI_CHECK_SORT(sort) \
