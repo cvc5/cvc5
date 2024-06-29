@@ -1517,6 +1517,50 @@ TEST_F(TestCApiBlackTermManager, mk_const)
   cvc5_term_manager_delete(tm);
 }
 
+TEST_F(TestCApiBlackTermManager, mk_skolem)
+{
+  Cvc5Sort arr_sort = cvc5_mk_array_sort(d_tm, d_int, d_int);
+  Cvc5Term a = cvc5_mk_const(d_tm, arr_sort, "a");
+  Cvc5Term b = cvc5_mk_const(d_tm, arr_sort, "b");
+
+  std::vector<Cvc5Term> idxs = {a, b};
+  Cvc5Term sk = cvc5_mk_skolem(
+      d_tm, CVC5_SKOLEM_ID_ARRAY_DEQ_DIFF, idxs.size(), idxs.data());
+  idxs = {b, a};
+  Cvc5Term sk2 = cvc5_mk_skolem(
+      d_tm, CVC5_SKOLEM_ID_ARRAY_DEQ_DIFF, idxs.size(), idxs.data());
+  ASSERT_TRUE(cvc5_term_is_skolem(sk));
+  ASSERT_TRUE(cvc5_term_is_skolem(sk2));
+  ASSERT_EQ(cvc5_term_get_skolem_id(sk), CVC5_SKOLEM_ID_ARRAY_DEQ_DIFF);
+  ASSERT_EQ(cvc5_term_get_skolem_id(sk2), CVC5_SKOLEM_ID_ARRAY_DEQ_DIFF);
+  size_t size;
+  const Cvc5Term* ridxs = cvc5_term_get_skolem_indices(sk, &size);
+  ASSERT_EQ(size, 2);
+  ASSERT_TRUE(cvc5_term_is_equal(ridxs[0], a));
+  ASSERT_TRUE(cvc5_term_is_equal(ridxs[1], b));
+  // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
+  ridxs = cvc5_term_get_skolem_indices(sk2, &size);
+  ASSERT_EQ(size, 2);
+  ASSERT_TRUE(cvc5_term_is_equal(ridxs[0], a));
+  ASSERT_TRUE(cvc5_term_is_equal(ridxs[1], b));
+
+  ASSERT_DEATH(
+      cvc5_mk_skolem(
+          nullptr, CVC5_SKOLEM_ID_ARRAY_DEQ_DIFF, idxs.size(), idxs.data()),
+      "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_mk_skolem(d_tm, CVC5_SKOLEM_ID_ARRAY_DEQ_DIFF, 0, nullptr),
+               "invalid number of indices");
+}
+
+TEST_F(TestCApiBlackTermManager, get_num_idxs_for_skolem_id)
+{
+  ASSERT_EQ(
+      cvc5_get_num_idxs_for_skolem_id(d_tm, CVC5_SKOLEM_ID_BAGS_MAP_INDEX), 5);
+  ASSERT_DEATH(
+      cvc5_get_num_idxs_for_skolem_id(nullptr, CVC5_SKOLEM_ID_BAGS_MAP_INDEX),
+      "unexpected NULL argument");
+}
+
 TEST_F(TestCApiBlackTermManager, get_statistics)
 {
   ASSERT_DEATH(cvc5_term_manager_get_statistics(nullptr),

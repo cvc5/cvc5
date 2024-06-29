@@ -2824,6 +2824,26 @@ CVC5_EXPORT Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
                                            Cvc5Kind kind,
                                            size_t size,
                                            const Cvc5Term args[]);
+/**
+ * Create a skolem.
+ * @param tm      The term manager instance.
+ * @param id      The skolem identifier.
+ * @param size    The number of arguments of the lifted operator.
+ * @param indices The indices of the skolem.
+ * @return The skolem.
+ */
+CVC5_EXPORT Cvc5Term cvc5_mk_skolem(Cvc5TermManager* tm,
+                                    Cvc5SkolemId id,
+                                    size_t size,
+                                    const Cvc5Term indices[]);
+
+/**
+ * Get the number of indices for a skolem id.
+ * @param id The skolem id.
+ * @return The number of indices for the skolem id.
+ */
+CVC5_EXPORT size_t cvc5_get_num_idxs_for_skolem_id(Cvc5TermManager* tm,
+                                                   Cvc5SkolemId id);
 
 /* .................................................................... */
 /* Create Operators                                                     */

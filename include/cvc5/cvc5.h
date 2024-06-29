@@ -3109,6 +3109,7 @@ class CVC5_EXPORT Grammar
   friend class parser::Cmd;
   friend class Solver;
   friend struct std::hash<Grammar>;
+  friend std::ostream& operator<<(std::ostream& out, const Grammar& grammar);
 
  public:
   /**
@@ -3865,14 +3866,14 @@ class CVC5_EXPORT TermManager
       const std::vector<DatatypeDecl>& dtypedecls);
   /**
    * Create function sort.
-   * @param sorts The sort of the function arguments.
+   * @param sorts    The sort of the function arguments.
    * @param codomain The sort of the function return value.
    * @return The function sort.
    */
   Sort mkFunctionSort(const std::vector<Sort>& sorts, const Sort& codomain);
   /**
-   * Make a skolem.
-   * @param id The skolem identifier.
+   * Create a skolem.
+   * @param id      The skolem identifier.
    * @param indices The indices of the skolem.
    * @return The skolem.
    */
