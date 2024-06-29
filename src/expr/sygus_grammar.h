@@ -122,6 +122,12 @@ class SygusGrammar
    */
   Node getLambdaForRule(const Node& r, std::map<Node, Node>& ntSymMap) const;
 
+  /**
+   * Determine if any rules have been added to this grammar.
+   * @return True if rules have been added.
+   */
+  bool hasRules() const;
+
  private:
   /** Input variables to the corresponding function/invariant to synthesize.*/
   std::vector<Node> d_sygusVars;

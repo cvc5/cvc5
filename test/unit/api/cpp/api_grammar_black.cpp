@@ -35,8 +35,9 @@ TEST_F(TestApiBlackGrammar, toString)
   d_solver->setOption("sygus", "true");
   Term start = d_tm.mkVar(d_bool);
   Grammar g = d_solver->mkGrammar({}, {start});
+  ASSERT_EQ(g.toString(), "");
   g.addRule(start, d_tm.mkBoolean(false));
-
+  ASSERT_NE(g.toString(), "");
   {
     std::stringstream ss;
     ss << g;

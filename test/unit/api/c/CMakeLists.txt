@@ -34,3 +34,9 @@ cvc5_add_unit_test_black(capi_synth_result_black api/c)
 cvc5_add_unit_test_black(capi_term_black api/c)
 cvc5_add_unit_test_black(capi_term_manager_black api/c)
 cvc5_add_unit_test_black(capi_types_black api/c)
+
+# suppress deprecated warnings to not error in CI
+set_source_files_properties(capi_uncovered_black.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+cvc5_add_unit_test_black(capi_uncovered_black api/c)

@@ -282,6 +282,18 @@ Node SygusGrammar::getLambdaForRule(const Node& r,
   return r;
 }
 
+bool SygusGrammar::hasRules() const
+{
+  for (const auto& r : d_rules)
+  {
+    if (r.second.size() > 0)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 TypeNode SygusGrammar::resolve(bool allowAny)
 {
   if (!isResolved())

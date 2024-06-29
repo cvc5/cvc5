@@ -1249,7 +1249,7 @@ bool cvc5_dt_decl_is_parametric(Cvc5DatatypeDecl decl)
   size_t res = 0;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_DT_DECL(decl);
-  res = decl->d_decl.getNumConstructors();
+  res = decl->d_decl.isParametric();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -3199,6 +3199,41 @@ Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
   }
   res = tm->export_term(
       tm->d_tm.mkNullableLift(static_cast<cvc5::Kind>(kind), cargs));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_skolem(Cvc5TermManager* tm,
+                        Cvc5SkolemId id,
+                        size_t size,
+                        const Cvc5Term indices[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SKOLEM_ID(id);
+  std::vector<cvc5::Term> cindices;
+  if (indices)
+  {
+    for (size_t i = 0; i < size; ++i)
+    {
+      CVC5_CAPI_CHECK_TERM_AT_IDX(indices, i);
+      cindices.push_back(indices[i]->d_term);
+    }
+  }
+  res = tm->export_term(
+      tm->d_tm.mkSkolem(static_cast<cvc5::SkolemId>(id), cindices));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+size_t cvc5_get_num_idxs_for_skolem_id(Cvc5TermManager* tm, Cvc5SkolemId id)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SKOLEM_ID(id);
+  res = tm->d_tm.getNumIndicesForSkolemId(static_cast<cvc5::SkolemId>(id));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }

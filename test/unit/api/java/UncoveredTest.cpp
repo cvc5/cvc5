@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Testing stuff that is not exposed by the Java API to fix code coverage
+ * Testing functions that are not exposed by the Java API for code coverage.
  */
 
 #include <cvc5/cvc5_parser.h>

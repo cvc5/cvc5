@@ -1110,6 +1110,32 @@ TEST_F(TestApiBlackTermManager, mkConst)
   ASSERT_NO_THROW(tm.mkConst(boolSort));
 }
 
+TEST_F(TestApiBlackTermManager, mkSkolem)
+{
+  Sort integer = d_tm.getIntegerSort();
+  Sort arraySort = d_tm.mkArraySort(integer, integer);
+
+  Term a = d_tm.mkConst(arraySort, "a");
+  Term b = d_tm.mkConst(arraySort, "b");
+
+  Term sk = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {a, b});
+  Term sk2 = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {b, a});
+
+  ASSERT_THROW(d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {a}), CVC5ApiException);
+
+  ASSERT_TRUE(sk.isSkolem());
+  ASSERT_EQ(sk.getSkolemId(), SkolemId::ARRAY_DEQ_DIFF);
+  ASSERT_EQ(sk.getSkolemIndices(), std::vector<Term>({a, b}));
+  // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
+  ASSERT_EQ(sk2.getSkolemIndices(), std::vector<Term>({a, b}));
+}
+
+TEST_F(TestApiBlackTermManager, getNumIndicesForSkolemId)
+{
+  size_t numIndices = d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX);
+  ASSERT_EQ(numIndices, 5);
+}
+
 TEST_F(TestApiBlackTermManager, uFIteration)
 {
   Sort intSort = d_tm.getIntegerSort();

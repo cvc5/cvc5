@@ -89,4 +89,4 @@ cvc5_add_java_api_test(ProofTest)
 set_source_files_properties(UncoveredTest.cpp
   PROPERTIES COMPILE_OPTIONS
   "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
-cvc5_add_unit_test_white(UncoveredTest api/java)
+cvc5_add_unit_test_black(UncoveredTest api/java)

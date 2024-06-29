@@ -4863,7 +4863,8 @@ std::string Grammar::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_grammar == nullptr ? "" : d_grammar->toString();
+  return d_grammar == nullptr || !d_grammar->hasRules() ? ""
+                                                        : d_grammar->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4879,7 +4880,9 @@ Sort Grammar::resolve()
 
 std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
 {
+  CVC5_API_TRY_CATCH_BEGIN;
   return out << grammar.toString();
+  CVC5_API_TRY_CATCH_END;
 }
 
 bool Grammar::operator==(const Grammar& grammar) const
@@ -5850,6 +5853,10 @@ Sort TermManager::mkFunctionSort(const std::vector<Sort>& sorts,
 Term TermManager::mkSkolem(SkolemId id, const std::vector<Term>& indices)
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  cvc5::internal::SkolemManager* sm = d_nm->getSkolemManager();
+  CVC5_API_CHECK(indices.size() == sm->getNumIndicesForSkolemId(id))
+      << "invalid number of indices, expected "
+      << sm->getNumIndicesForSkolemId(id) << " got " << indices.size();
   //////// all checks before this line
   // iterate over indices and convert the Terms to Nodes
   std::vector<internal::Node> nodeIndices = Term::termVectorToNodes(indices);

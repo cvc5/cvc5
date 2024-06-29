@@ -92,6 +92,8 @@ TEST_F(TestCApiBlackSort, compare)
 {
   ASSERT_DEATH(cvc5_sort_compare(d_int, nullptr), "invalid sort");
   ASSERT_DEATH(cvc5_sort_compare(nullptr, d_int), "invalid sort");
+  ASSERT_TRUE(cvc5_sort_is_equal(d_int, d_int));
+  ASSERT_TRUE(cvc5_sort_is_disequal(d_int, d_bool));
   ASSERT_FALSE(cvc5_sort_is_equal(d_int, nullptr));
   ASSERT_TRUE(cvc5_sort_is_disequal(d_int, nullptr));
   ASSERT_EQ(cvc5_sort_compare(d_int, d_int), 0);
