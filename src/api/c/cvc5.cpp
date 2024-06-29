@@ -216,6 +216,30 @@ const char* cvc5_modes_input_language_to_string(Cvc5InputLanguage lang)
 }
 
 /* -------------------------------------------------------------------------- */
+/* Cvc5Skolemid                                                               */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_skolem_id_to_string(Cvc5SkolemId id)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SKOLEM_ID(id);
+  str = std::to_string(static_cast<cvc5::SkolemId>(id));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+size_t cvc5_skolem_id_hash(Cvc5SkolemId id)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SKOLEM_ID(id);
+  res = std::hash<cvc5::SkolemId>{}(static_cast<cvc5::SkolemId>(id));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5Sort                                                                   */
 /* -------------------------------------------------------------------------- */
 

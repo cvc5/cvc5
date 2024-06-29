@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -24,11 +24,11 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiSkolemId : public ::testing::Test
+class TestApiBlackSkolemId : public ::testing::Test
 {
 };
 
-TEST_F(TestApiSkolemId, skolemIdToString)
+TEST_F(TestApiBlackSkolemId, skolemIdToString)
 {
   for (int32_t i = static_cast<int32_t>(SkolemId::INTERNAL);
        i <= static_cast<int32_t>(SkolemId::NONE);
@@ -41,9 +41,11 @@ TEST_F(TestApiSkolemId, skolemIdToString)
   }
 }
 
-TEST_F(TestApiSkolemId, skolemIdHash)
+TEST_F(TestApiBlackSkolemId, skolemIdHash)
 {
   ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
+            static_cast<size_t>(SkolemId::PURIFY));
+  ASSERT_NE(std::hash<cvc5::SkolemId>()(SkolemId::INTERNAL),
             static_cast<size_t>(SkolemId::PURIFY));
 }
 
