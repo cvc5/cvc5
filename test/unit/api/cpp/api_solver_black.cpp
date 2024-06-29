@@ -1171,7 +1171,7 @@ TEST_F(TestApiBlackSolver, getDriverOptions)
 TEST_F(TestApiBlackSolver, getStatistics)
 {
   ASSERT_NO_THROW(cvc5::Stat());
-  // do some array reasoning to make sure we have a double statistics
+  // do some array reasoning to make sure we have statistics
   {
     Sort s1 = d_tm.getIntegerSort();
     Sort s2 = d_tm.mkArraySort(s1, s1);
@@ -1238,6 +1238,16 @@ TEST_F(TestApiBlackSolver, getStatistics)
 
 TEST_F(TestApiBlackSolver, printStatisticsSafe)
 {
+  // do some array reasoning to make sure we have statistics
+  {
+    Sort s1 = d_tm.getIntegerSort();
+    Sort s2 = d_tm.mkArraySort(s1, s1);
+    Term t1 = d_tm.mkConst(s1, "i");
+    Term t2 = d_tm.mkConst(s2, "a");
+    Term t3 = d_tm.mkTerm(Kind::SELECT, {t2, t1});
+    d_solver->assertFormula(t3.eqTerm(t1));
+    d_solver->checkSat();
+  }
   testing::internal::CaptureStdout();
   d_solver->printStatisticsSafe(STDOUT_FILENO);
   testing::internal::GetCapturedStdout();
@@ -2555,10 +2565,7 @@ class PluginListen : public Plugin
 {
  public:
   PluginListen(TermManager& tm)
-      : Plugin(tm),
-        d_tm(tm),
-        d_hasSeenTheoryLemma(false),
-        d_hasSeenSatClause(false)
+      : Plugin(tm), d_hasSeenTheoryLemma(false), d_hasSeenSatClause(false)
   {
   }
   virtual ~PluginListen() {}
@@ -2577,8 +2584,6 @@ class PluginListen : public Plugin
   std::string getName() override { return "PluginListen"; }
 
  private:
-  /** Reference to the term manager */
-  TermManager& d_tm;
   /** have we seen a theory lemma? */
   bool d_hasSeenTheoryLemma;
   /** have we seen a SAT clause? */

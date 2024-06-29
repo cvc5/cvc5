@@ -231,6 +231,18 @@ struct CVC5_EXPORT Cvc5TermManager
   Cvc5DatatypeConstructorDecl export_dt_cons_decl(
       const cvc5::DatatypeConstructorDecl& decl);
 
+  /**
+   * Export C++ statistic to C API.
+   * @param statistic The statistic to export.
+   */
+  Cvc5Stat export_stat(const cvc5::Stat& stat);
+
+  /**
+   * Export C++ statistics to C API.
+   * @param statistics The statistics to export.
+   */
+  Cvc5Statistics export_stats(const cvc5::Statistics& stat);
+
   /* Manual memory management for sorts and terms. ------ */
 
   /**
@@ -358,6 +370,10 @@ struct CVC5_EXPORT Cvc5TermManager
   /** Cache of allocated datatype constructor declarations. */
   std::unordered_map<cvc5::DatatypeConstructorDecl, cvc5_dt_cons_decl_t>
       d_alloc_dt_cons_decls;
+  /** Cache of allocated statistic objects. */
+  std::vector<cvc5_stat_t> d_alloc_stats;
+  /** Cache of allocated statistics objects. */
+  std::vector<cvc5_stats_t> d_alloc_statistics;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -444,47 +460,6 @@ struct cvc5_grammar_t
   Cvc5* d_cvc5 = nullptr;
 };
 
-/** Wrapper for cvc5 C++ statistic. */
-struct cvc5_stat_t
-{
-  /**
-   * Constructor.
-   * @param cvc5   The associated solver instance.
-   * @param result The wrapped C++ statistic.
-   */
-  cvc5_stat_t(Cvc5* cvc5, const cvc5::Stat& stat) : d_stat(stat), d_cvc5(cvc5)
-  {
-  }
-  /** The wrapped C++ statistic. */
-  cvc5::Stat d_stat;
-  /** External refs count. */
-  uint32_t d_refs = 1;
-  /** The associated solver instance. */
-  Cvc5* d_cvc5 = nullptr;
-};
-
-/** Wrapper for cvc5 C++ statistics. */
-struct cvc5_stats_t
-{
-  /**
-   * Constructor.
-   * @param cvc5   The associated solver instance.
-   * @param result The wrapped C++ statistics.
-   */
-  cvc5_stats_t(Cvc5* cvc5, const cvc5::Statistics& stat)
-      : d_stat(stat), d_cvc5(cvc5)
-  {
-  }
-  /** The wrapped C++ statistics. */
-  cvc5::Statistics d_stat;
-  /** External refs count. */
-  uint32_t d_refs = 1;
-  /** The associated solver instance. */
-  Cvc5* d_cvc5 = nullptr;
-  /** The associated iterator. */
-  std::unique_ptr<cvc5::Statistics::iterator> d_iter = nullptr;
-};
-
 /** Wrapper for cvc5 C++ solver instance. */
 struct Cvc5
 {
@@ -566,18 +541,6 @@ struct Cvc5
    */
   cvc5_grammar_t* copy(cvc5_grammar_t* grammar);
 
-  /**
-   * Export C++ statistic to C API.
-   * @param statistic The statistic to export.
-   */
-  Cvc5Stat export_stat(const cvc5::Stat& stat);
-
-  /**
-   * Export C++ statistics to C API.
-   * @param statistics The statistics to export.
-   */
-  Cvc5Statistics export_stats(const cvc5::Statistics& stat);
-
   /** The associated cvc5 instance. */
   cvc5::Solver d_solver;
   /** The associated term manager. */
@@ -592,10 +555,6 @@ struct Cvc5
   std::unordered_map<cvc5::Proof, cvc5_proof_t> d_alloc_proofs;
   /** Cache of allocated grammars. */
   std::unordered_map<cvc5::Grammar, cvc5_grammar_t> d_alloc_grammars;
-  /** Cache of allocated statistic objects. */
-  std::vector<cvc5_stat_t> d_alloc_stats;
-  /** Cache of allocated statistics objects. */
-  std::vector<cvc5_stats_t> d_alloc_statistics;
 
   /** The configured plugin. */
   class PluginCpp : public cvc5::Plugin
@@ -615,6 +574,66 @@ struct Cvc5
     Cvc5Plugin* d_plugin;
   };
   std::unique_ptr<PluginCpp> d_plugin = nullptr;
+};
+
+/** Wrapper for cvc5 C++ statistic. */
+struct cvc5_stat_t
+{
+  /**
+   * Constructor.
+   * @param tm     The associated term manager instance.
+   * @param result The wrapped C++ statistic.
+   */
+  cvc5_stat_t(Cvc5TermManager* tm, const cvc5::Stat& stat)
+      : d_stat(stat), d_tm(tm)
+  {
+  }
+  /**
+   * Constructor.
+   * @param cvc5   The associated solver instance.
+   * @param result The wrapped C++ statistic.
+   */
+  cvc5_stat_t(Cvc5* cvc5, const cvc5::Stat& stat)
+      : d_stat(stat), d_tm(cvc5->d_tm)
+  {
+  }
+  /** The wrapped C++ statistic. */
+  cvc5::Stat d_stat;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated term manager instance. */
+  Cvc5TermManager* d_tm = nullptr;
+};
+
+/** Wrapper for cvc5 C++ statistics. */
+struct cvc5_stats_t
+{
+  /**
+   * Constructor.
+   * @param tm     The associated term manager instance.
+   * @param result The wrapped C++ statistics.
+   */
+  cvc5_stats_t(Cvc5TermManager* tm, const cvc5::Statistics& stat)
+      : d_stat(stat), d_tm(tm)
+  {
+  }
+  /**
+   * Constructor.
+   * @param cvc5   The associated solver instance.
+   * @param result The wrapped C++ statistics.
+   */
+  cvc5_stats_t(Cvc5* cvc5, const cvc5::Statistics& stat)
+      : d_stat(stat), d_tm(cvc5->d_tm)
+  {
+  }
+  /** The wrapped C++ statistics. */
+  cvc5::Statistics d_stat;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated term manager instance. */
+  Cvc5TermManager* d_tm = nullptr;
+  /** The associated iterator. */
+  std::unique_ptr<cvc5::Statistics::iterator> d_iter = nullptr;
 };
 
 /* -------------------------------------------------------------------------- */

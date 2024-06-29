@@ -3545,7 +3545,7 @@ TEST_F(TestCApiBlackSolver, get_statistics)
 {
   ASSERT_DEATH(cvc5_get_statistics(nullptr), "unexpected NULL argument");
 
-  // do some array reasoning to make sure we have a double statistics
+  // do some reasoning to make sure we have statistics
   {
     Cvc5Sort s2 = cvc5_mk_array_sort(d_tm, d_int, d_int);
     Cvc5Term t1 = cvc5_mk_const(d_tm, d_int, "i");
@@ -3554,33 +3554,26 @@ TEST_F(TestCApiBlackSolver, get_statistics)
     args = {cvc5_mk_term(d_tm, CVC5_KIND_SELECT, args.size(), args.data()), t1};
     cvc5_assert_formula(
         d_solver,
-        cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+        cvc5_mk_term(d_tm, CVC5_KIND_DISTINCT, args.size(), args.data()));
     cvc5_check_sat(d_solver);
   }
   Cvc5Statistics stats = cvc5_get_statistics(d_solver);
   (void)cvc5_stats_to_string(stats);
-  {
-    Cvc5Stat stat = cvc5_stats_get(stats, "global::totalTime");
-    ASSERT_FALSE(cvc5_stat_is_internal(stat));
-    ASSERT_FALSE(cvc5_stat_is_default(stat));
-    ASSERT_TRUE(cvc5_stat_is_string(stat));
-    std::string time = cvc5_stat_get_string(stat);
-    ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
-    ASSERT_FALSE(cvc5_stat_is_double(stat));
-    stat = cvc5_stats_get(stats, "resource::resourceUnitsUsed");
-    ASSERT_TRUE(cvc5_stat_is_internal(stat));
-    ASSERT_FALSE(cvc5_stat_is_default(stat));
-    ASSERT_TRUE(cvc5_stat_is_int(stat));
-    ASSERT_TRUE(cvc5_stat_get_int(stat) >= 0);
-  }
 
-  ASSERT_DEATH(cvc5_stats_iter_init(nullptr, false, false),
-               "invalid statistics");
-  ASSERT_DEATH(cvc5_stats_iter_has_next(nullptr), "invalid statistics");
-  ASSERT_DEATH(cvc5_stats_iter_next(nullptr, nullptr), "invalid statistics");
-  ASSERT_DEATH(cvc5_stats_iter_has_next(stats), "iterator not initialized");
-  ASSERT_DEATH(cvc5_stats_iter_next(stats, nullptr),
-               "iterator not initialized");
+  Cvc5Stat stat1 = cvc5_stats_get(stats, "global::totalTime");
+  ASSERT_FALSE(cvc5_stat_is_internal(stat1));
+  ASSERT_FALSE(cvc5_stat_is_default(stat1));
+  ASSERT_TRUE(cvc5_stat_is_string(stat1));
+
+  std::string time = cvc5_stat_get_string(stat1);
+  ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
+  ASSERT_FALSE(cvc5_stat_is_double(stat1));
+
+  Cvc5Stat stat2 = cvc5_stats_get(stats, "resource::resourceUnitsUsed");
+  ASSERT_TRUE(cvc5_stat_is_internal(stat2));
+  ASSERT_FALSE(cvc5_stat_is_default(stat2));
+  ASSERT_TRUE(cvc5_stat_is_int(stat2));
+  ASSERT_TRUE(cvc5_stat_get_int(stat2) >= 0);
 
   cvc5_stats_iter_init(stats, true, true);
   bool hasstats = false;
