@@ -68,6 +68,7 @@ TEST_F(TestApiBlackResult, isSat)
   d_solver->assertFormula(x.eqTerm(x));
   cvc5::Result res = d_solver->checkSat();
   ASSERT_TRUE(res.isSat());
+  ASSERT_FALSE(res.isUnsat());
   ASSERT_FALSE(res.isUnknown());
 }
 
@@ -77,6 +78,7 @@ TEST_F(TestApiBlackResult, isUnsat)
   Term x = d_tm.mkConst(u_sort, "x");
   d_solver->assertFormula(x.eqTerm(x).notTerm());
   cvc5::Result res = d_solver->checkSat();
+  ASSERT_FALSE(res.isSat());
   ASSERT_TRUE(res.isUnsat());
   ASSERT_FALSE(res.isUnknown());
 }
@@ -92,6 +94,7 @@ TEST_F(TestApiBlackResult, isUnknown)
   d_solver->assertFormula(d_tm.mkTerm(Kind::LT, {x, d_tm.mkReal("1.0")}));
   cvc5::Result res = d_solver->checkSat();
   ASSERT_FALSE(res.isSat());
+  ASSERT_FALSE(res.isUnsat());
   ASSERT_TRUE(res.isUnknown());
   cvc5::UnknownExplanation ue = res.getUnknownExplanation();
   ASSERT_EQ(ue, cvc5::UnknownExplanation::UNKNOWN_REASON);
