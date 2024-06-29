@@ -5740,6 +5740,16 @@ void cvc5_block_model_values(Cvc5* cvc5, size_t size, const Cvc5Term terms[])
   CVC5_CAPI_TRY_CATCH_END;
 }
 
+const char* cvc5_get_instantiations(Cvc5* cvc5)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  str = cvc5->d_solver.getInstantiations();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
 void cvc5_push(Cvc5* cvc5, uint32_t nscopes)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
