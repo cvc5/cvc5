@@ -301,6 +301,28 @@ const char* cvc5_synth_result_to_string(const Cvc5SynthResult result);
  */
 size_t cvc5_synth_result_hash(Cvc5SynthResult result);
 
+/**
+ * Make copy of synthesis result, increases reference counter of `result`.
+ *
+ * @param result The synthesis  result to copy.
+ * @return The same result with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result);
+
+/**
+ * Release copy of synthesis result, decrements reference counter of `result`.
+ *
+ * @param result The result to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+void cvc5_synth_result_release(Cvc5SynthResult result);
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Sort                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -2337,6 +2359,28 @@ bool cvc5_grammar_is_disequal(Cvc5Grammar a, Cvc5Grammar b);
  */
 size_t cvc5_grammar_hash(Cvc5Grammar grammar);
 
+/**
+ * Make copy of grammar, increases reference counter of `grammar`.
+ *
+ * @param grammar The grammar to copy.
+ * @return The same grammar with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar);
+
+/**
+ * Release copy of grammar, decrements reference counter of `grammar`.
+ *
+ * @param grammar The grammar to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+void cvc5_grammar_release(Cvc5Grammar grammar);
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5TermManager                                                            */
 /* -------------------------------------------------------------------------- */
@@ -3408,6 +3452,28 @@ bool cvc5_proof_is_disequal(Cvc5Proof a, Cvc5Proof b);
  * @return The hash value of the proof.
  */
 size_t cvc5_proof_hash(Cvc5Proof proof);
+
+/**
+ * Make copy of proof, increases reference counter of `proof`.
+ *
+ * @param proof The proof to copy.
+ * @return The same proof with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+Cvc5Proof cvc5_proof_copy(Cvc5Proof proof);
+
+/**
+ * Release copy of proof, decrements reference counter of `proof`.
+ *
+ * @param proof The proof to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+void cvc5_proof_release(Cvc5Proof proof);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Stat                                                                   */

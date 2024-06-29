@@ -3195,6 +3195,24 @@ size_t cvc5_op_hash(Cvc5Op op)
   return res;
 }
 
+Cvc5Op cvc5_op_copy(Cvc5Op op)
+{
+  Cvc5Op res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OP(op);
+  res = op->d_tm->copy(op);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_op_release(Cvc5Op op)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OP(op);
+  op->d_tm->release(op);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5TermManager                                                            */
 /* -------------------------------------------------------------------------- */
@@ -3211,6 +3229,7 @@ Cvc5TermManager* cvc5_term_manager_new()
 void cvc5_term_manager_delete(Cvc5TermManager* tm)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
   delete tm;
   CVC5_CAPI_TRY_CATCH_END;
 }
@@ -3218,6 +3237,7 @@ void cvc5_term_manager_delete(Cvc5TermManager* tm)
 void cvc5_term_manager_release(Cvc5TermManager* tm)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
   tm->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
@@ -4675,6 +4695,24 @@ size_t cvc5_result_hash(Cvc5Result result)
 /* Cvc5SynthResult                                                            */
 /* -------------------------------------------------------------------------- */
 
+Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result)
+{
+  Cvc5SynthResult res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SYNTH_RESULT(result);
+  res = result->d_cvc5->copy(result);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_synth_result_release(Cvc5SynthResult result)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SYNTH_RESULT(result);
+  result->d_cvc5->release(result);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 bool cvc5_synth_result_is_null(const Cvc5SynthResult result)
 {
   bool res = false;
@@ -4879,6 +4917,24 @@ size_t cvc5_proof_hash(Cvc5Proof proof)
   return res;
 }
 
+Cvc5Proof cvc5_proof_copy(Cvc5Proof proof)
+{
+  Cvc5Proof res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  res = proof->d_cvc5->copy(proof);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_proof_release(Cvc5Proof proof)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  proof->d_cvc5->release(proof);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Grammar                                                                */
 /* -------------------------------------------------------------------------- */
@@ -4980,6 +5036,24 @@ size_t cvc5_grammar_hash(Cvc5Grammar grammar)
   res = std::hash<cvc5::Grammar>{}(grammar->d_grammar);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
+}
+
+Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar)
+{
+  Cvc5Grammar res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  res = grammar->d_cvc5->copy(grammar);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_grammar_release(Cvc5Grammar grammar)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  grammar->d_cvc5->release(grammar);
+  CVC5_CAPI_TRY_CATCH_END;
 }
 
 /* -------------------------------------------------------------------------- */
