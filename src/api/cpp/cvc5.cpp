@@ -5311,13 +5311,9 @@ Plugin::Plugin(TermManager& tm)
 {
 }
 
-std::vector<Term> Plugin::check()
-{
-  std::vector<Term> ret;
-  return ret;
-}
-void Plugin::notifySatClause(const Term& cl) {}
-void Plugin::notifyTheoryLemma(const Term& lem) {}
+std::vector<Term> Plugin::check() { return {}; }
+void Plugin::notifySatClause(const Term& clause) {}
+void Plugin::notifyTheoryLemma(const Term& lemma) {}
 
 /* -------------------------------------------------------------------------- */
 /* TermManager                                                                */

@@ -4431,6 +4431,7 @@ struct Cvc5
   cvc5::Solver d_solver;
   /** The associated term manager. */
   Cvc5TermManager* d_tm = nullptr;
+
   /** Cache of allocated results. */
   std::unordered_map<cvc5::Result, cvc5_result_t> d_alloc_results;
   /** Cache of allocated syntheis results. */
@@ -4444,6 +4445,25 @@ struct Cvc5
   std::vector<cvc5_stat_t> d_alloc_stats;
   /** Cache of allocated statistics objects. */
   std::vector<cvc5_stats_t> d_alloc_statistics;
+
+  /** The configured plugin. */
+  class PluginCpp : public cvc5::Plugin
+  {
+   public:
+    PluginCpp(cvc5::TermManager& tm, Cvc5* cvc5, Cvc5Plugin* plugin)
+        : Plugin(tm), d_cvc5(cvc5), d_plugin(plugin)
+    {
+    }
+    std::vector<cvc5::Term> check() override;
+    void notifySatClause(const cvc5::Term& clause) override;
+    void notifyTheoryLemma(const cvc5::Term& lemma) override;
+    std::string getName() override;
+
+   private:
+    Cvc5* d_cvc5;
+    Cvc5Plugin* d_plugin;
+  };
+  std::unique_ptr<PluginCpp> d_plugin = nullptr;
 };
 
 Cvc5Result Cvc5::export_result(const cvc5::Result& result)
@@ -4563,6 +4583,49 @@ Cvc5Statistics Cvc5::export_stats(const cvc5::Statistics& stat)
 {
   d_alloc_statistics.emplace_back(this, stat);
   return &d_alloc_statistics.back();
+}
+
+std::vector<cvc5::Term> Cvc5::PluginCpp::check()
+{
+  Assert(d_plugin);
+  std::vector<cvc5::Term> res;
+  if (d_plugin->check)
+  {
+    size_t size;
+    const Cvc5Term* terms = d_plugin->check(&size, d_plugin->d_check_state);
+    for (size_t i = 0; i < size; ++i)
+    {
+      res.push_back(terms[i]->d_term);
+    }
+  }
+  return res;
+}
+
+void Cvc5::PluginCpp::notifySatClause(const cvc5::Term& clause)
+{
+  Assert(d_plugin);
+  if (d_plugin->notify_sat_clause)
+  {
+    d_plugin->notify_sat_clause(d_cvc5->d_tm->export_term(clause),
+                                d_plugin->d_notify_sat_clause_state);
+  }
+}
+
+void Cvc5::PluginCpp::notifyTheoryLemma(const cvc5::Term& lemma)
+{
+  Assert(d_plugin);
+  if (d_plugin->notify_theory_lemma)
+  {
+    d_plugin->notify_theory_lemma(d_cvc5->d_tm->export_term(lemma),
+                                  d_plugin->d_notify_theory_lemma_state);
+  }
+}
+
+std::string Cvc5::PluginCpp::getName()
+{
+  Assert(d_plugin);
+  Assert(d_plugin->get_name);
+  return d_plugin->get_name();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -6167,6 +6230,16 @@ Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
       cvc5->d_solver.declareOracleFun(symbol, csorts, sort->d_sort, cfun));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
+}
+
+void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(plugin);
+  cvc5->d_plugin.reset(new Cvc5::PluginCpp(cvc5->d_tm->d_tm, cvc5, plugin));
+  cvc5->d_solver.addPlugin(*cvc5->d_plugin);
+  CVC5_CAPI_TRY_CATCH_END;
 }
 
 Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj)
