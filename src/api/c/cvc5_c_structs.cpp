@@ -112,6 +112,18 @@ Cvc5DatatypeConstructorDecl Cvc5TermManager::export_dt_cons_decl(
   return &it->second;
 }
 
+Cvc5Stat Cvc5TermManager::export_stat(const cvc5::Stat& stat)
+{
+  d_alloc_stats.emplace_back(this, stat);
+  return &d_alloc_stats.back();
+}
+
+Cvc5Statistics Cvc5TermManager::export_stats(const cvc5::Statistics& stat)
+{
+  d_alloc_statistics.emplace_back(this, stat);
+  return &d_alloc_statistics.back();
+}
+
 void Cvc5TermManager::release(cvc5_term_t* term)
 {
   if (term)
@@ -409,18 +421,6 @@ cvc5_grammar_t* Cvc5::copy(cvc5_grammar_t* grammar)
 {
   grammar->d_refs += 1;
   return grammar;
-}
-
-Cvc5Stat Cvc5::export_stat(const cvc5::Stat& stat)
-{
-  d_alloc_stats.emplace_back(this, stat);
-  return &d_alloc_stats.back();
-}
-
-Cvc5Statistics Cvc5::export_stats(const cvc5::Statistics& stat)
-{
-  d_alloc_statistics.emplace_back(this, stat);
-  return &d_alloc_statistics.back();
 }
 
 std::vector<cvc5::Term> Cvc5::PluginCpp::check()

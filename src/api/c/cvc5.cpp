@@ -2625,6 +2625,24 @@ void cvc5_term_manager_release(Cvc5TermManager* tm)
   CVC5_CAPI_TRY_CATCH_END;
 }
 
+Cvc5Statistics cvc5_term_manager_get_statistics(Cvc5TermManager* tm)
+{
+  Cvc5Statistics res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  res = tm->export_stats(tm->d_tm.getStatistics());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_term_manager_print_stats_safe(Cvc5TermManager* tm, int fd)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  tm->d_tm.printStatisticsSafe(fd);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* Sorts Handling ----------------------------------------------------------- */
 
 Cvc5Sort cvc5_get_boolean_sort(Cvc5TermManager* tm)
@@ -4096,6 +4114,24 @@ void cvc5_grammar_release(Cvc5Grammar grammar)
 /* Cvc5Stat                                                                   */
 /* -------------------------------------------------------------------------- */
 
+bool cvc5_stat_is_equal(Cvc5Stat a, Cvc5Stat b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(a);
+  CVC5_CAPI_CHECK_STAT(b);
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_stat == b->d_stat;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 bool cvc5_stat_is_internal(Cvc5Stat stat)
 {
   bool res = false;
@@ -4227,6 +4263,24 @@ const char* cvc5_stat_to_string(Cvc5Stat stat)
 /* Cvc5Statistics                                                             */
 /* -------------------------------------------------------------------------- */
 
+bool cvc5_stats_is_equal(Cvc5Statistics a, Cvc5Statistics b)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(a);
+  CVC5_CAPI_CHECK_STAT(b);
+  if (a == nullptr || b == nullptr)
+  {
+    res = a == b;
+  }
+  else
+  {
+    res = a->d_stat == b->d_stat;
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 void cvc5_stats_iter_init(Cvc5Statistics stat, bool internal, bool dflt)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
@@ -4260,7 +4314,7 @@ Cvc5Stat cvc5_stats_iter_next(Cvc5Statistics stat, const char** name)
   {
     *name = str.c_str();
   }
-  res = stat->d_cvc5->export_stat(rstat);
+  res = stat->d_tm->export_stat(rstat);
   (*stat->d_iter)++;
   CVC5_CAPI_TRY_CATCH_END;
   return res;
@@ -4272,7 +4326,7 @@ Cvc5Stat cvc5_stats_get(Cvc5Statistics stat, const char* name)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_STATS(stat);
   CVC5_CAPI_CHECK_NOT_NULL(name);
-  res = stat->d_cvc5->export_stat(stat->d_stat.get(name));
+  res = stat->d_tm->export_stat(stat->d_stat.get(name));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4371,7 +4425,7 @@ Cvc5Statistics cvc5_get_statistics(Cvc5* cvc5)
   Cvc5Statistics res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
-  res = cvc5->export_stats(cvc5->d_solver.getStatistics());
+  res = cvc5->d_tm->export_stats(cvc5->d_solver.getStatistics());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
