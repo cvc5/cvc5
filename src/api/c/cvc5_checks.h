@@ -203,4 +203,9 @@ class Cvc5CApiAbortStream
   CVC5_API_CHECK(stat != nullptr) << "invalid statistics"
 
 /* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_CMD(cmd) \
+  CVC5_API_CHECK(cmd != nullptr) << "invalid command"
+
+/* -------------------------------------------------------------------------- */
 }

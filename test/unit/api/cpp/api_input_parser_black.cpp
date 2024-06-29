@@ -29,11 +29,11 @@ using namespace cvc5::parser;
 namespace cvc5::internal {
 namespace test {
 
-class TestInputParserBlack : public TestParser
+class TestApiBlackInputParser : public TestParser
 {
  protected:
-  TestInputParserBlack() {}
-  virtual ~TestInputParserBlack() {}
+  TestApiBlackInputParser() {}
+  virtual ~TestApiBlackInputParser() {}
 
   Command parseLogicCommand(InputParser& p, const std::string& logic)
   {
@@ -46,19 +46,18 @@ class TestInputParserBlack : public TestParser
   }
 };
 
-TEST_F(TestInputParserBlack, constructSymbolManager)
+TEST_F(TestApiBlackInputParser, constructSymbolManager)
 {
   (void)SymbolManager(d_tm);
-  (void)SymbolManager(d_solver.get());
 }
 
-TEST_F(TestInputParserBlack, getSolver)
+TEST_F(TestApiBlackInputParser, getSolver)
 {
   InputParser p(d_solver.get());
   ASSERT_EQ(p.getSolver(), d_solver.get());
 }
 
-TEST_F(TestInputParserBlack, getSymbolManager)
+TEST_F(TestApiBlackInputParser, getSymbolManager)
 {
   InputParser p(d_solver.get());
   // a symbol manager is allocated
@@ -68,7 +67,7 @@ TEST_F(TestInputParserBlack, getSymbolManager)
   ASSERT_EQ(p2.getSymbolManager(), d_symman.get());
 }
 
-TEST_F(TestInputParserBlack, setFileInput)
+TEST_F(TestApiBlackInputParser, setFileInput)
 {
   InputParser p(d_solver.get());
   ASSERT_THROW(
@@ -76,7 +75,7 @@ TEST_F(TestInputParserBlack, setFileInput)
       CVC5ApiException);
 }
 
-TEST_F(TestInputParserBlack, setStreamInput)
+TEST_F(TestApiBlackInputParser, setStreamInput)
 {
   InputParser p(d_solver.get());
   std::stringstream ss;
@@ -99,7 +98,7 @@ TEST_F(TestInputParserBlack, setStreamInput)
   ASSERT_EQ(p.done(), true);
 }
 
-TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
+TEST_F(TestApiBlackInputParser, setAndAppendIncrementalStringInput)
 {
   std::stringstream out;
   InputParser p(d_solver.get());
@@ -120,7 +119,7 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
   ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
 }
 
-TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInputInterleave)
+TEST_F(TestApiBlackInputParser, setAndAppendIncrementalStringInputInterleave)
 {
   std::stringstream out;
   InputParser p(d_solver.get());
@@ -141,14 +140,14 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInputInterleave)
   ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
 }
 
-TEST_F(TestInputParserBlack, appendIncrementalNoSet)
+TEST_F(TestApiBlackInputParser, appendIncrementalNoSet)
 {
   InputParser p(d_solver.get());
   ASSERT_THROW(p.appendIncrementalStringInput("(set-logic ALL)"),
                CVC5ApiException);
 }
 
-TEST_F(TestInputParserBlack, setStringInput)
+TEST_F(TestApiBlackInputParser, setStringInput)
 {
   std::stringstream out;
   InputParser p(d_solver.get());
@@ -163,7 +162,7 @@ TEST_F(TestInputParserBlack, setStringInput)
   ASSERT_EQ(cmd.isNull(), true);
 }
 
-TEST_F(TestInputParserBlack, nextCommand)
+TEST_F(TestApiBlackInputParser, nextCommand)
 {
   InputParser p(d_solver.get());
   ASSERT_THROW(p.nextCommand(), CVC5ApiException);
@@ -173,7 +172,7 @@ TEST_F(TestInputParserBlack, nextCommand)
   ASSERT_EQ(cmd.isNull(), true);
 }
 
-TEST_F(TestInputParserBlack, nextCommandNoInput)
+TEST_F(TestApiBlackInputParser, nextCommandNoInput)
 {
   InputParser p(d_solver.get());
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
@@ -184,7 +183,7 @@ TEST_F(TestInputParserBlack, nextCommandNoInput)
   ASSERT_EQ(t.isNull(), true);
 }
 
-TEST_F(TestInputParserBlack, nextTerm)
+TEST_F(TestApiBlackInputParser, nextTerm)
 {
   InputParser p(d_solver.get());
   ASSERT_THROW(p.nextTerm(), CVC5ApiException);
@@ -193,7 +192,7 @@ TEST_F(TestInputParserBlack, nextTerm)
   ASSERT_EQ(p.nextTerm().isNull(), true);
 }
 
-TEST_F(TestInputParserBlack, nextTerm2)
+TEST_F(TestApiBlackInputParser, nextTerm2)
 {
   std::stringstream out;
   InputParser p(d_solver.get(), d_symman.get());
@@ -217,7 +216,7 @@ TEST_F(TestInputParserBlack, nextTerm2)
   ASSERT_THROW(t = p.nextTerm(), ParserException);
 }
 
-TEST_F(TestInputParserBlack, multipleParsers)
+TEST_F(TestApiBlackInputParser, multipleParsers)
 {
   std::stringstream out;
   InputParser p(d_solver.get(), d_symman.get());
@@ -262,7 +261,7 @@ TEST_F(TestInputParserBlack, multipleParsers)
                CVC5ApiException);
 }
 
-TEST_F(TestInputParserBlack, ParserExceptions)
+TEST_F(TestApiBlackInputParser, ParserExceptions)
 {
   ParserException defaultConstructor;
   std::string message = "error";
@@ -285,23 +284,20 @@ TEST_F(TestInputParserBlack, ParserExceptions)
   ParserEndOfFileException eof(message, filename, 10, 11);
 }
 
-
-TEST_F(TestInputParserBlack, incrementalSetString)
+TEST_F(TestApiBlackInputParser, incrementalSetString)
 {
   InputParser p(d_solver.get(), d_symman.get());
   Command cmd;
   std::stringstream out;
-  std::vector<std::string> stringVec;
-  stringVec.push_back("(set-logic ALL)");
-  stringVec.push_back("(push)");
-  stringVec.push_back("(declare-fun x () Int)");
-  stringVec.push_back("(pop)");
-  stringVec.push_back("(declare-fun x () Int)");
-  for (size_t i=0; i<stringVec.size(); i++)
+  std::vector<std::string> strs{"(set-logic ALL)",
+                                "(push)",
+                                "(declare-fun x () Int)",
+                                "(pop)",
+                                "(declare-fun x () Int)"};
+  for (size_t i = 0; i < strs.size(); i++)
   {
-    p.setStringInput(modes::InputLanguage::SMT_LIB_2_6,
-                    stringVec[i],
-                    "input_parser_black");
+    p.setStringInput(
+        modes::InputLanguage::SMT_LIB_2_6, strs[i], "input_parser_black");
     cmd = p.nextCommand();
     ASSERT_NE(cmd.isNull(), true);
     ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
@@ -309,7 +305,7 @@ TEST_F(TestInputParserBlack, incrementalSetString)
   ASSERT_EQ(out.str().empty(), true);
 }
 
-TEST_F(TestInputParserBlack, getDeclaredTermsAndSorts)
+TEST_F(TestApiBlackInputParser, getDeclaredTermsAndSorts)
 {
   InputParser p(d_solver.get(), d_symman.get());
   Command cmd;
