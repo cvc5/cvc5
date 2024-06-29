@@ -4278,6 +4278,45 @@ struct cvc5_grammar_t
   Cvc5* d_cvc5 = nullptr;
 };
 
+/** Wrapper for cvc5 C++ statistic. */
+struct cvc5_stat_t
+{
+  /**
+   * Constructor.
+   * @param result The wrapped C++ statistic.
+   */
+  cvc5_stat_t(Cvc5* cvc5, const cvc5::Stat& stat) : d_stat(stat), d_cvc5(cvc5)
+  {
+  }
+  /** The wrapped C++ statistic. */
+  cvc5::Stat d_stat;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated solver instance. */
+  Cvc5* d_cvc5 = nullptr;
+};
+
+/** Wrapper for cvc5 C++ statistics. */
+struct cvc5_stats_t
+{
+  /**
+   * Constructor.
+   * @param result The wrapped C++ statistics.
+   */
+  cvc5_stats_t(Cvc5* cvc5, const cvc5::Statistics& stat)
+      : d_stat(stat), d_cvc5(cvc5)
+  {
+  }
+  /** The wrapped C++ statistics. */
+  cvc5::Statistics d_stat;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated solver instance. */
+  Cvc5* d_cvc5 = nullptr;
+  /** The associated iterator. */
+  std::unique_ptr<cvc5::Statistics::iterator> d_iter = nullptr;
+};
+
 /** Wrapper for cvc5 C++ solver instance. */
 struct Cvc5
 {
@@ -4328,7 +4367,7 @@ struct Cvc5
   /**
    * Decrement the external ref count of a proof. If the ref count reaches
    * zero, the proof is released (freed).
-   * @param term The term to release.
+   * @param proof The proof to release.
    */
   void release(cvc5_proof_t* proof);
   /**
@@ -4346,7 +4385,7 @@ struct Cvc5
   /**
    * Decrement the external ref count of a grammar. If the ref count reaches
    * zero, the grammar is released (freed).
-   * @param term The term to release.
+   * @param grammar The grammar to release.
    */
   void release(cvc5_grammar_t* grammar);
   /**
@@ -4355,6 +4394,18 @@ struct Cvc5
    * @return The copied grammar.
    */
   cvc5_grammar_t* copy(cvc5_grammar_t* grammar);
+
+  /**
+   * Export C++ statistic to C API.
+   * @param statistic The statistic to export.
+   */
+  Cvc5Stat export_stat(const cvc5::Stat& stat);
+
+  /**
+   * Export C++ statistics to C API.
+   * @param statistics The statistics to export.
+   */
+  Cvc5Statistics export_stats(const cvc5::Statistics& stat);
 
   /** The associated cvc5 instance. */
   cvc5::Solver d_solver;
@@ -4369,6 +4420,10 @@ struct Cvc5
   std::unordered_map<cvc5::Proof, cvc5_proof_t> d_alloc_proofs;
   /** Cache of allocated grammars. */
   std::unordered_map<cvc5::Grammar, cvc5_grammar_t> d_alloc_grammars;
+  /** Cache of allocated statistic objects. */
+  std::vector<cvc5_stat_t> d_alloc_stats;
+  /** Cache of allocated statistics objects. */
+  std::vector<cvc5_stats_t> d_alloc_statistics;
 };
 
 Cvc5Result Cvc5::export_result(const cvc5::Result& result)
@@ -4476,6 +4531,18 @@ cvc5_grammar_t* Cvc5::copy(cvc5_grammar_t* grammar)
 {
   grammar->d_refs += 1;
   return grammar;
+}
+
+Cvc5Stat Cvc5::export_stat(const cvc5::Stat& stat)
+{
+  d_alloc_stats.emplace_back(this, stat);
+  return &d_alloc_stats.back();
+}
+
+Cvc5Statistics Cvc5::export_stats(const cvc5::Statistics& stat)
+{
+  d_alloc_statistics.emplace_back(this, stat);
+  return &d_alloc_statistics.back();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -4916,6 +4983,201 @@ size_t cvc5_grammar_hash(Cvc5Grammar grammar)
 }
 
 /* -------------------------------------------------------------------------- */
+/* Cvc5Stat                                                                   */
+/* -------------------------------------------------------------------------- */
+
+bool cvc5_stat_is_internal(Cvc5Stat stat)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_stat.isInternal();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_stat_is_default(Cvc5Stat stat)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_stat.isDefault();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_stat_is_int(Cvc5Stat stat)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_stat.isInt();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+int64_t cvc5_stat_get_int(Cvc5Stat stat)
+{
+  int64_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_stat.getInt();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_stat_is_double(Cvc5Stat stat)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_stat.isDouble();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+double cvc5_stat_get_double(Cvc5Stat stat)
+{
+  double res = 0.0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_stat.getDouble();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+bool cvc5_stat_is_string(Cvc5Stat stat)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_stat.isString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_stat_get_string(Cvc5Stat stat)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  str = stat->d_stat.getString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+bool cvc5_stat_is_histogram(Cvc5Stat stat)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_stat.isHistogram();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_stat_get_histogram(Cvc5Stat stat,
+                             const char** keys[],
+                             uint64_t* values[],
+                             size_t* size)
+{
+  static thread_local std::vector<const char*> rkeys;
+  static thread_local std::vector<uint64_t> rvalues;
+  static thread_local cvc5::Stat::HistogramData histo;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  CVC5_CAPI_CHECK_NOT_NULL(keys);
+  CVC5_CAPI_CHECK_NOT_NULL(values);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  rkeys.clear();
+  rvalues.clear();
+  histo = stat->d_stat.getHistogram();
+  for (auto& h : histo)
+  {
+    rkeys.push_back(h.first.c_str());
+    rvalues.push_back(h.second);
+  }
+  *size = rkeys.size();
+  *keys = rkeys.data();
+  *values = rvalues.data();
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+const char* cvc5_stat_to_string(Cvc5Stat stat)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  str = stat->d_stat.toString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Statistics                                                             */
+/* -------------------------------------------------------------------------- */
+
+void cvc5_stats_iter_init(Cvc5Statistics stat, bool internal, bool dflt)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  stat->d_iter.reset(
+      new cvc5::Statistics::iterator(stat->d_stat.begin(internal, dflt)));
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+bool cvc5_stats_iter_has_next(Cvc5Statistics stat)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  CVC5_API_CHECK(stat->d_iter != nullptr) << "iterator not initialized";
+  res = *stat->d_iter != stat->d_stat.end();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Stat cvc5_stats_iter_next(Cvc5Statistics stat, const char** name)
+{
+  static thread_local std::string str;
+  Cvc5Stat res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  CVC5_API_CHECK(stat->d_iter != nullptr) << "iterator not initialized";
+  cvc5::Stat rstat;
+  std::tie(str, rstat) = **stat->d_iter;
+  if (name)
+  {
+    *name = str.c_str();
+  }
+  res = stat->d_cvc5->export_stat(rstat);
+  (*stat->d_iter)++;
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Stat cvc5_stats_get(Cvc5Statistics stat, const char* name)
+{
+  Cvc5Stat res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  CVC5_CAPI_CHECK_NOT_NULL(name);
+  res = stat->d_cvc5->export_stat(stat->d_stat.get(name));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_stats_to_string(Cvc5Statistics stat)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  str = stat->d_stat.toString();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -4981,6 +5243,24 @@ void cvc5_set_option(Cvc5* cvc5, const char* option, const char* value)
   CVC5_CAPI_CHECK_NOT_NULL(option);
   CVC5_CAPI_CHECK_NOT_NULL(value);
   cvc5->d_solver.setOption(option, value);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+Cvc5Statistics cvc5_get_statistics(Cvc5* cvc5)
+{
+  Cvc5Statistics res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  res = cvc5->export_stats(cvc5->d_solver.getStatistics());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_print_stats_safe(Cvc5* cvc5, int fd)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  cvc5->d_solver.printStatisticsSafe(fd);
   CVC5_CAPI_TRY_CATCH_END;
 }
 
