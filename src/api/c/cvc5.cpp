@@ -5401,6 +5401,27 @@ void cvc5_print_stats_safe(Cvc5* cvc5, int fd)
   CVC5_CAPI_TRY_CATCH_END;
 }
 
+bool cvc5_is_output_on(Cvc5* cvc5, const char* tag)
+{
+  bool res = false;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(tag);
+  res = cvc5->d_solver.isOutputOn(tag);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+const char* cvc5_get_version(Cvc5* cvc5)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  str = cvc5->d_solver.getVersion();
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
 /* .................................................................... */
 /* SMT-LIB-style Term/Sort Creation                                     */
 /* .................................................................... */
