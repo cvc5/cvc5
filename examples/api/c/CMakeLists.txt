@@ -21,7 +21,7 @@ set(CVC5_EXAMPLES_API_C
   #datatypes
   extract
   #floating_point_arith
-  #helloworld
+  helloworld
   #linear_arith
   #quickstart
   #relations
