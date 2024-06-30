@@ -17,7 +17,7 @@ set(CVC5_EXAMPLES_API_C
   bags
   bitvectors
   bitvectors_and_arrays
-  #combination
+  combination
   #datatypes
   #extract
   #floating_point_arith
