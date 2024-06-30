@@ -20,7 +20,7 @@ set(CVC5_EXAMPLES_API_C
   combination
   #datatypes
   extract
-  #floating_point_arith
+  floating_point_arith
   helloworld
   #linear_arith
   #quickstart
