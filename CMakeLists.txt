@@ -569,7 +569,8 @@ if(GPL_LIBS)
   if(NOT ENABLE_GPL)
     message(FATAL_ERROR
       "Bad configuration detected: BSD-licensed code only, but also requested "
-      "GPLed libraries: ${GPL_LIBS}")
+      "GPLed libraries: ${GPL_LIBS}. (Configure with --gpl to allow GPLed "
+      "libraries.)")
   endif()
   set(CVC5_GPL_DEPS 1)
 endif()
