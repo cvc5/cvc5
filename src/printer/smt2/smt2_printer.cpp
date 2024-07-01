@@ -1700,7 +1700,7 @@ void Smt2Printer::toStreamCmdDeclareFunction(
     const std::vector<TypeNode>& argTypes,
     TypeNode type) const
 {
-  if (d_variant==Variant::alf_variant)
+  if (d_variant == Variant::alf_variant)
   {
     out << "(declare-const " << cvc5::internal::quoteSymbol(id);
     if (!argTypes.empty())
@@ -1759,7 +1759,7 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
-  if (d_variant==Variant::alf_variant)
+  if (d_variant == Variant::alf_variant)
   {
     out << "(define " << cvc5::internal::quoteSymbol(id) << " ";
     toStreamSortedVarList(out, formals);
@@ -1853,12 +1853,12 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          const std::string& id,
                                          size_t arity) const
 {
-  if (d_variant==Variant::alf_variant)
+  if (d_variant == Variant::alf_variant)
   {
     out << "(declare-type " << cvc5::internal::quoteSymbol(id) << " (";
-    for (size_t i=0; i<arity; i++)
+    for (size_t i = 0; i < arity; i++)
     {
-      if (i>0)
+      if (i > 0)
       {
         out << " ";
       }

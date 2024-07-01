@@ -35,7 +35,7 @@ enum class Variant
   no_variant,
   smt2_6_variant,  // new-style 2.6 syntax, when it makes a difference, with
                    // support for the string standard
-  alf_variant   // support for ALF
+  alf_variant      // support for ALF
 };
 
 class Smt2Printer : public cvc5::internal::Printer
