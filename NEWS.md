@@ -1,14 +1,23 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.2.0
+==========
+
+## New Features
+
+- Expose creation and maintenance of Skolem functions to the API.
+
 ## Changes
 
+- We now require CMake >= 3.16.
+
 - **API**
-  * C++:
-    - Constructor `SymbolManager(cvc5::Solver*)` is now deprecated and replaced
-      by `SymbolManager(cvc5::TermManager&)`.
-  * Java:
-    - Constructor `SymbolManager(Solver)` is now deprecated and replaced
-      by `SymbolManager(TermManager)`.
+  All APIs have been refactore to expose a TermManager to the API. A term
+  manager manages creation and maintenance of all terms and sorts (across
+  potentially several solver instances within a thread).
+  Corresponding functions that were previously associated with a solver
+  instance and are now associated with a term manager are now deprecated
+  and will be removed in a future release.
   * Python:
     - Constructor `SymbolManager(Solver)` is now replaced
       by `SymbolManager(TermManager)`.
