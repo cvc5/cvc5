@@ -31,6 +31,17 @@ class NodeConverter;
 namespace smt {
 
 /**
+ * A variant for how to print the declarations below.
+ */
+enum PrintBenchmarkVariant
+{
+  // The printed variant is default (e.g. smt2)
+  DEFAULT,
+  // The printed variant is to be included in an ALF proof
+  PROOF
+};
+
+/**
  * A utility for printing a benchmark. This utility requires no bookkeeping
  * about which commands have been executed. It reconstructs the set of
  * commands that would have been required for generating a benchmark based on
@@ -39,8 +50,8 @@ namespace smt {
 class PrintBenchmark
 {
  public:
-  PrintBenchmark(const Printer* p, NodeConverter* c = nullptr)
-      : d_printer(p), d_converter(c)
+  PrintBenchmark(const Printer* p, NodeConverter* c = nullptr, PrintBenchmarkVariant v=PrintBenchmarkVariant::DEFAULT)
+      : d_printer(p), d_converter(c), d_variant(v)
   {
   }
   /**
@@ -147,6 +158,8 @@ class PrintBenchmark
   const Printer* d_printer;
   /** (Optional) node converter */
   NodeConverter* d_converter;
+  /** The variant */
+  PrintBenchmarkVariant d_variant;
 };
 
 }  // namespace smt
