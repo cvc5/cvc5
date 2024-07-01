@@ -55,8 +55,8 @@ Nightly builds are available [here](https://cvc5.github.io/downloads).
 Build and Dependencies
 -------------------------------------------------------------------------------
 
-cvc5 can be built on Linux and macOS.  For Windows, cvc5 can be cross-compiled
-using Mingw-w64.
+cvc5 can be built on Linux and macOS.  For Windows, cvc5 can be built using MSYS2
+or cross-compiled using Mingw-w64.
 
 For detailed build and installation instructions on these platforms,
 see file [INSTALL.rst](https://github.com/cvc5/cvc5/blob/main/INSTALL.rst).
