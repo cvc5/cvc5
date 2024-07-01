@@ -62,6 +62,13 @@ For detailed build and installation instructions on these platforms,
 see file [INSTALL.rst](https://github.com/cvc5/cvc5/blob/main/INSTALL.rst).
 
 
+Interfaces
+-------------------------------------------------------------------------------
+
+cvc5 features APIs for several different programming languages such as Python and
+Java. See the [user documentation](https://cvc5.github.io/docs/) for more information.
+
+
 Bug Reports
 -------------------------------------------------------------------------------
 

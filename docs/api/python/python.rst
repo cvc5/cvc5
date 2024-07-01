@@ -28,7 +28,7 @@ If you would like a more feature-complete---yet verbose---python API, with the a
 You can compare examples using the two APIs by visiting the :doc:`examples page <../../examples/quickstart>`.
 
 
-Installation (x86-64 variants of Linux and macOS)
+Installation (from PyPi)
 ------------
 
 The base and pythonic Python API can be installed via `pip` as follows:
@@ -38,27 +38,22 @@ The base and pythonic Python API can be installed via `pip` as follows:
   pip install cvc5
 
 
-Installation (ARM64 variants of Linux and macOS)
+Installation (from source)
 ------------
 
-For ARM64-based machines (including Apple computers with M1 and M2 chips), the base and the pythonic Python API can be installed from source.
-Before building and installing, the following dependencies should be installed, using `brew` and `pip`:
+The base and pythonic Python API can also be installed from source following these steps:
 
 .. code:: bash
 
-  brew install cmake python gmp java
-
-
-Then `cvc5` can be installed from source as follows:
-
-.. code:: bash
-
-  git clone git@github.com:cvc5/cvc5.git
+  git clone https://github.com/cvc5/cvc5.git
   cd cvc5
   ./configure.sh --python-bindings --auto-download
   cd build
-  make cvc5_python_api              # add -jN for parallel build using N threads
-  export PYTHONPATH="<path-to-local-cvc5-repo>/build/src/api/python/:$PYTHONPATH"
+  make # add -jN for parallel build using N threads
+  make install
+
+For Windows, the steps above must be executed on a MINGW64 environment
+(see the `installation instructions <../../installation/installation>`).
 
 And to make sure that it works:
 
