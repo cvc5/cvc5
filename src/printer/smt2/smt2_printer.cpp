@@ -1700,6 +1700,25 @@ void Smt2Printer::toStreamCmdDeclareFunction(
     const std::vector<TypeNode>& argTypes,
     TypeNode type) const
 {
+  if (d_variant==Variant::alf_variant)
+  {
+    out << "(declare-const " << cvc5::internal::quoteSymbol(id) << " ";
+    if (!argTypes.empty())
+    {
+      out << "(-> ";
+      for (const TypeNode& tn : argTypes)
+      {
+        out << tn;
+      }
+    }
+    out << type;
+    if (!argTypes.empty())
+    {
+      out << ')';
+    }
+    out << ')';
+    return;
+  }
   out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " ";
   toStreamDeclareType(out, argTypes, type);
   out << ')';
