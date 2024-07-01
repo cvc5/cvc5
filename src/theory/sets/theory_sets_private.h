@@ -89,7 +89,7 @@ class TheorySetsPrivate : protected EnvObj
   /**
    * Apply the following rule for filter terms (set.filter p A):
    * (=>
-   *   (bag.member x (set.filter p A))
+   *   (set.member x (set.filter p A))
    *   (and
    *    (p x)
    *    (set.member x A)
@@ -97,6 +97,17 @@ class TheorySetsPrivate : protected EnvObj
    * )
    */
   void checkFilterDown();
+
+  /**
+   * Apply the following rules for set.all terms (set.all p A):
+   * 1. (=>
+   *     (and (set.member x A) (set.all p A))
+   *     (p x))
+   * 2. (=>
+   *      (set.isEmpty A)
+   *      (set.all p A))
+   */
+  void checkPredicateAll();
 
   /**
    * Apply the following rule for map terms (set.map f A):
