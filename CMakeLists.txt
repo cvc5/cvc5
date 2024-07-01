@@ -550,6 +550,7 @@ else()
 endif()
 
 if(USE_COCOA)
+  set(GPL_LIBS "${GPL_LIBS} cocoa")
   find_package(CoCoA REQUIRED 0.99711)
   add_definitions(-DCVC5_USE_COCOA)
 endif()
