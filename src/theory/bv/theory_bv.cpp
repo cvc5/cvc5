@@ -290,6 +290,24 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
   return d_internal->ppRewrite(t);
 }
 
+TrustNode TheoryBV::ppStaticRewrite(TNode atom)
+{
+  Kind k = atom.getKind();
+  if (k == Kind::EQUAL)
+  {
+    if (RewriteRule<SolveEq>::applies(atom))
+    {
+      Node res = RewriteRule<SolveEq>::run<false>(atom);
+      if (res != atom)
+      {
+        res = d_env.getRewriter()->rewrite(res);
+        return TrustNode::mkTrustRewrite(atom, res);
+      }
+    }
+  }
+  return TrustNode::null();
+}
+
 void TheoryBV::presolve() { d_internal->presolve(); }
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)

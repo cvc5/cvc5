@@ -19,6 +19,7 @@
 
 #include "expr/term_context.h"
 #include "expr/term_context_stack.h"
+#include "printer/let_binding.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
@@ -497,7 +498,6 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
             startIndex = 1;
             // The variable list should never change.
             Assert(cur[0] == ret[0]);
-            pfArgs.push_back(cur[0]);
           }
           else if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
           {

@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "proof/proof_node.h"
 
 namespace cvc5::internal {
@@ -43,6 +44,23 @@ namespace arith {
  */
 std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
                                      const std::vector<Node>& coeffs);
+
+/**
+ * Expand an instance of ProofRule::MACRO_ARITH_SCALE_SUM_UB.
+ * This adds steps to cdp that prove the same as an application of this rule,
+ * assuming that children are free assumptions.
+ *
+ * This method assumes that children and args are valid parameters to
+ * MACRO_ARITH_SCALE_SUM_UB.
+ *
+ * @param children The children of MACRO_ARITH_SCALE_SUM_UB.
+ * @param args The arguments of MACRO_ARITH_SCALE_SUM_UB.
+ * @param cdp The proof to add steps to.
+ * @return The conclusion of the proof rule.
+ */
+Node expandMacroSumUb(const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      CDProof* cdp);
 
 }  // namespace arith
 }  // namespace theory

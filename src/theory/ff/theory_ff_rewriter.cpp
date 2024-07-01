@@ -62,7 +62,8 @@ Node TheoryFiniteFieldsRewriter::preRewriteFfNeg(TNode t)
 {
   Assert(t.getKind() == Kind::FINITE_FIELD_NEG);
   NodeManager* const nm = nodeManager();
-  const Node negOne = nm->mkConst(FiniteFieldValue(Integer(-1), t.getType().getFfSize()));
+  const Node negOne =
+      nm->mkConst(FiniteFieldValue(Integer(-1), t.getType().getFfSize()));
   return nm->mkNode(Kind::FINITE_FIELD_MULT, negOne, t[0]);
 }
 
@@ -213,7 +214,10 @@ RewriteResponse TheoryFiniteFieldsRewriter::postRewrite(TNode t)
   {
     case Kind::FINITE_FIELD_NEG: return RewriteResponse(REWRITE_DONE, t);
     case Kind::FINITE_FIELD_ADD:
-      return RewriteResponse(REWRITE_DONE, postRewriteFfAdd(t));
+    {
+      Node nt = postRewriteFfAdd(t);
+      return RewriteResponse(nt == t ? REWRITE_DONE : REWRITE_AGAIN, nt);
+    }
     case Kind::FINITE_FIELD_MULT:
       return RewriteResponse(REWRITE_DONE, postRewriteFfMult(t));
     case Kind::EQUAL: return RewriteResponse(REWRITE_DONE, postRewriteFfEq(t));

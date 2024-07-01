@@ -16,11 +16,12 @@
 # Collect libcvc5 source files
 libcvc5_add_sources(
   api/c/cvc5.cpp
+  api/c/cvc5_c_structs.h
+  api/c/cvc5_c_structs.cpp
   api/c/cvc5_checks.h
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
-  api/cpp/cvc5_proof_rule.cpp
   api/cpp/cvc5_skolem_id.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
@@ -147,6 +148,10 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
+  proof/alf/alf_dependent_type_converter.cpp
+  proof/alf/alf_dependent_type_converter.h
+  proof/alf/alf_list_node_converter.cpp
+  proof/alf/alf_list_node_converter.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
   proof/alf/alf_print_channel.cpp
@@ -340,6 +345,8 @@ libcvc5_add_sources(
   smt/proof_final_callback.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
+  smt/proof_post_processor_dsl.cpp
+  smt/proof_post_processor_dsl.h
   smt/set_defaults.cpp
   smt/set_defaults.h
   smt/solver_engine.cpp
@@ -896,6 +903,8 @@ libcvc5_add_sources(
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/master_eq_notify.cpp
   theory/quantifiers/master_eq_notify.h
+  theory/quantifiers/mbqi_fast_sygus.cpp
+  theory/quantifiers/mbqi_fast_sygus.h
   theory/quantifiers/oracle_checker.cpp
   theory/quantifiers/oracle_checker.h
   theory/quantifiers/oracle_engine.cpp
@@ -1086,9 +1095,13 @@ libcvc5_add_sources(
   theory/sep/theory_sep_type_rules.h
   theory/sets/cardinality_extension.cpp
   theory/sets/cardinality_extension.h
+  theory/sets/infer_proof_cons.cpp
+  theory/sets/infer_proof_cons.h
   theory/sets/inference_manager.cpp
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
+  theory/sets/proof_checker.cpp
+  theory/sets/proof_checker.h
   theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
   theory/sets/set_reduction.cpp
@@ -1284,6 +1297,9 @@ libcvc5_add_sources(
 set_source_files_properties(api/cpp/cvc5.cpp
   PROPERTIES COMPILE_OPTIONS
   "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+set_source_files_properties(api/cpp/cvc5_parser.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 
 #-----------------------------------------------------------------------------#
 # Add required include paths for this and all subdirectories.
@@ -1412,6 +1428,7 @@ set(REWRITES_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites-simplification
   ${PROJECT_SOURCE_DIR}/src/theory/sets/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites-regexp-membership
   ${PROJECT_SOURCE_DIR}/src/theory/uf/rewrites
 )
 
@@ -1451,10 +1468,9 @@ target_include_directories(cvc5
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-install(TARGETS cvc5
-  EXPORT cvc5-targets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+# On Windows, CMake's default install action places
+# DLLs into the runtime path (by default "bin")
+install(TARGETS cvc5 EXPORT cvc5-targets)
 
 if(BUILD_SHARED_LIBS)
   set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
@@ -1494,14 +1510,16 @@ endif()
 if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
-  target_link_libraries(cvc5 PRIVATE CryptoMiniSat)
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CryptoMiniSat> $<INSTALL_INTERFACE:cryptominisat5>)
+  target_link_libraries(cvc5 PRIVATE Threads::Threads) # Required by CryptoMiniSat
 endif()
 if(USE_KISSAT)
   add_dependencies(cvc5-obj Kissat)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${Kissat_INCLUDE_DIR})
-  target_link_libraries(cvc5 PRIVATE Kissat)
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Kissat> $<INSTALL_INTERFACE:kissat>)
 endif()
 if(USE_GLPK)
+  add_dependencies(cvc5-obj GLPK)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${GLPK_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
 endif()
@@ -1519,14 +1537,14 @@ endif()
 if(USE_COCOA)
   add_dependencies(cvc5-obj CoCoA)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${CoCoA_INCLUDE_DIR})
-  target_link_libraries(cvc5 PRIVATE CoCoA)
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CoCoA> $<INSTALL_INTERFACE:cocoa>)
 endif()
 
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
 
 # GMP has to be included at the end because of linker ordering issues when 
-# generating a static library. 
+# generating a static library.
 add_dependencies(cvc5-obj GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 if(BUILD_SHARED_LIBS)

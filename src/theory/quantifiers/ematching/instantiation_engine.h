@@ -52,7 +52,6 @@ class InstantiationEngine : public QuantifiersModule {
   void addUserNoPattern(Node q, Node pat);
   /** Identify this module */
   std::string identify() const override;
-
  private:
   /** do instantiation round */
   void doInstantiationRound(Theory::Effort effort);

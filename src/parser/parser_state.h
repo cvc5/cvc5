@@ -209,17 +209,29 @@ class CVC5_EXPORT ParserState
                bool doOverload = false);
 
   /**
-   * Create a new cvc5 bound variable expression of the given type. This binds
-   * the symbol name to that variable in the current scope.
+   * Create a (possibly) new cvc5 bound variable expression of the given type.
+   * This binds the symbol name to that variable in the current scope.
+   *
+   * @param name The name of the variable
+   * @param type The type of the variable
+   * @param fresh If true, the variable is always new. If false, we lookup the
+   * variable in a cache and return a
    */
-  Term bindBoundVar(const std::string& name, const Sort& type);
+  Term bindBoundVar(const std::string& name,
+                    const Sort& type,
+                    bool fresh = true);
   /**
-   * Create a new cvc5 bound variable expressions of the given names and types.
+   * Create new cvc5 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
+   *
+   * @param sortedVarNames The names and types of the variables.
+   * @param fresh If true, the variables are always new. If false, we lookup
+   * each variable in the cache.
    */
   std::vector<Term> bindBoundVars(
-      std::vector<std::pair<std::string, Sort> >& sortedVarNames);
+      std::vector<std::pair<std::string, Sort> >& sortedVarNames,
+      bool fresh = true);
 
   /**
    * Create a set of new cvc5 bound variable expressions of the given type.
@@ -570,6 +582,8 @@ class CVC5_EXPORT ParserState
    * Owns the memory of the Commands in the queue.
    */
   std::list<Command*> d_commandQueue;
+  /** A cache of variables, for implementing bindBoundVar when fresh is false */
+  std::map<std::pair<std::string, Sort>, Term> d_varCache;
 }; /* class Parser */
 
 /** Compute the unsigned integer for a token. */

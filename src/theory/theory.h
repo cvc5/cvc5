@@ -313,6 +313,16 @@ class Theory : protected EnvObj
 
   /**
    * Returns the ID of the theory responsible for the given node.
+   *
+   * Note this method does not take into account "Boolean term skolem". Boolean
+   * term skolems always belong to THEORY_UF. This case is handled in
+   * Env::theoryOf.
+   * 
+   * @param node The node in question.
+   * @param mdoe The theoryof mode, which impacts which theory owns e.g.
+   * variables.
+   * @param usortOwner The theory that owns uninterpreted sorts.
+   * @return The theory that owns node.
    */
   static TheoryId theoryOf(
       TNode node,
@@ -324,6 +334,8 @@ class Theory : protected EnvObj
    */
   inline bool isLeaf(TNode node) const
   {
+    // variables have 0 children thus theoryOf is not impacted by whether
+    // node is a Boolean term skolem.
     return node.getNumChildren() == 0
            || theoryOf(node, options().theory.theoryOfMode) != d_id;
   }
@@ -336,6 +348,8 @@ class Theory : protected EnvObj
       TheoryId theoryId,
       options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED)
   {
+    // variables have 0 children thus theoryOf is not impacted by whether
+    // node is a Boolean term skolem.
     return node.getNumChildren() == 0 || theoryOf(node, mode) != theoryId;
   }
 

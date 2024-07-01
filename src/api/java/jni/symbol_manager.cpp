@@ -28,11 +28,11 @@ using namespace cvc5::parser;
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_SymbolManager_newSymbolManager(
-    JNIEnv* env, jclass, jlong solverPointer)
+    JNIEnv* env, jclass, jlong tmPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(solverPointer);
-  SymbolManager* symbolManager = new SymbolManager(solver);
+  TermManager* tm = reinterpret_cast<TermManager*>(tmPointer);
+  SymbolManager* symbolManager = new SymbolManager(*tm);
   return reinterpret_cast<jlong>(symbolManager);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

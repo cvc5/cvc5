@@ -74,7 +74,7 @@ QF_NRA)
   finishwith --decision=internal --nl-ext=none
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|UFDTLIRA|AUFDTLIA|AUFDTLIRA|AUFBV|AUFBVDTLIA|AUFBVFP|AUFNIA|UFFPDTLIRA|UFFPDTNIRA)
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFBVFP|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|UFDTLIRA|AUFDTLIA|AUFDTLIRA|AUFBV|AUFBVDTLIA|AUFBVFP|AUFNIA|UFFPDTLIRA|UFFPDTNIRA)
   # initial runs 1 min
   trywith 30 --simplification=none --enum-inst
   trywith 30 --no-e-matching --enum-inst
@@ -86,7 +86,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|UFDT
   trywith 30 --multi-trigger-when-single --multi-trigger-priority --enum-inst
   trywith 30 --multi-trigger-cache --enum-inst
   trywith 30 --no-multi-trigger-linear --enum-inst
-  # other 4 min
+  # other 4 min 30 sec
   trywith 30 --pre-skolem-quant=on --enum-inst
   trywith 30 --inst-when=full --enum-inst
   trywith 30 --no-e-matching --no-cbqi --enum-inst
@@ -95,13 +95,15 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|UFDT
   trywith 30 --decision=internal --enum-inst --enum-inst-sum
   trywith 30 --term-db-mode=relevant --enum-inst
   trywith 30 --enum-inst-interleave --enum-inst
-  # finite model find 3 min
+  trywith 30 --preregister-mode=lazy --enum-inst
+  # finite model find and mbqi 3 min 30 sec
   trywith 30 --finite-model-find --fmf-mbqi=none
   trywith 30 --finite-model-find --decision=internal
   trywith 30 --finite-model-find --macros-quant --macros-quant-mode=all
   trywith 60 --finite-model-find --e-matching
-  # long runs 4 min
-  trywith 240 --finite-model-find --decision=internal
+  trywith 60 --mbqi
+  # long runs 3 min
+  trywith 180 --finite-model-find --decision=internal
   finishwith --enum-inst
   ;;
 UFBV)
@@ -109,6 +111,7 @@ UFBV)
   trywith 150 --sygus-inst
   trywith 150 --mbqi --no-cegqi --no-sygus-inst
   trywith 300 --enum-inst --cegqi-nested-qe --decision=internal
+  trywith 300 --mbqi-fast-sygus --no-cegqi --no-sygus-inst
   trywith 30 --enum-inst --no-cegqi-innermost --global-negate
   finishwith --finite-model-find
   ;;
@@ -116,13 +119,15 @@ ABV|BV)
   trywith 80 --enum-inst
   trywith 80 --sygus-inst
   trywith 80 --mbqi --no-cegqi --no-sygus-inst
+  trywith 300 --mbqi-fast-sygus --no-cegqi --no-sygus-inst
   trywith 300 --enum-inst --cegqi-nested-qe --decision=internal
   trywith 30 --enum-inst --no-cegqi-bv
   trywith 30 --enum-inst --cegqi-bv-ineq=eq-slack
   # finish 10min
   finishwith --enum-inst --no-cegqi-innermost --global-negate
   ;;
-ABVFP|ABVFPLRA|BVFP|FP|NIA|NRA)
+ABVFP|ABVFPLRA|BVFP|FP|NIA|NRA|BVFPLRA)
+  trywith 300 --mbqi-fast-sygus --no-cegqi --no-sygus-inst
   trywith 300 --enum-inst --nl-ext-tplanes
   trywith 60 --mbqi --no-cegqi --no-sygus-inst
   finishwith --sygus-inst
@@ -130,7 +135,8 @@ ABVFP|ABVFPLRA|BVFP|FP|NIA|NRA)
 LIA|LRA)
   trywith 30 --enum-inst
   trywith 300 --enum-inst --cegqi-nested-qe
-  trywith 60 --mbqi --no-cegqi --no-sygus-inst
+  trywith 30 --mbqi --no-cegqi --no-sygus-inst
+  trywith 30 --mbqi-fast-sygus --no-cegqi --no-sygus-inst
   finishwith --enum-inst --cegqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)

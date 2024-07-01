@@ -242,20 +242,82 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       body = nm->mkNode(Kind::IMPLIES, bodyAssump, body);
     }
     body = body.notNode();
-    Trace("smt") << "...constructed sygus constraint " << body << std::endl;
+    Trace("smt-debug") << "...constructed sygus constraint " << body
+                       << std::endl;
     if (!d_sygusVars.empty())
     {
       Node boundVars =
           nm->mkNode(Kind::BOUND_VAR_LIST, listToVector(d_sygusVars));
       body = nm->mkNode(Kind::EXISTS, boundVars, body);
-      Trace("smt") << "...constructed exists " << body << std::endl;
+      Trace("smt-debug") << "...constructed exists " << body << std::endl;
     }
-    if (!d_sygusFunSymbols.empty())
+    bool inferTrivial = true;
+    // cannot omit unused functions if in incremental or sygus-stream
+    if (options().quantifiers.sygusStream || options().base.incrementalSolving)
     {
-      body = quantifiers::SygusUtils::mkSygusConjecture(
-          listToVector(d_sygusFunSymbols), body);
+      inferTrivial = false;
     }
-    Trace("smt") << "...constructed forall " << body << std::endl;
+    // Mark functions that do not occur in the conjecture as trivial,
+    // and do not solve for them.
+    std::vector<Node> ntrivSynthFuns;
+    if (inferTrivial)
+    {
+      // must expand definitions first
+      Node ppBody = d_smtSolver.getPreprocessor()->applySubstitutions(body);
+      ppBody = rewrite(ppBody);
+      std::unordered_set<Node> vs;
+      expr::getVariables(ppBody, vs);
+      for (size_t i = 0; i < 2; i++)
+      {
+        d_trivialFuns.clear();
+        for (const Node& f : d_sygusFunSymbols)
+        {
+          if (vs.find(f) != vs.end())
+          {
+            ntrivSynthFuns.push_back(f);
+          }
+          else
+          {
+            Trace("smt-debug") << "...trivial function: " << f << std::endl;
+            d_trivialFuns.push_back(f);
+          }
+        }
+        // we could have dependencies from the grammars of
+        // functions-to-synthesize to trivial functions, account for this as
+        // well
+        if (i == 0 && !d_trivialFuns.empty())
+        {
+          size_t prevSize = vs.size();
+          for (const Node& f : ntrivSynthFuns)
+          {
+            TypeNode tnp = quantifiers::SygusUtils::getSygusType(f);
+            if (tnp.isNull())
+            {
+              continue;
+            }
+            theory::datatypes::utils::getFreeVariablesSygusType(tnp, vs);
+          }
+          if (vs.size() == prevSize)
+          {
+            // no new symbols found
+            break;
+          }
+        }
+        else
+        {
+          break;
+        }
+      }
+    }
+    else
+    {
+      ntrivSynthFuns = listToVector(d_sygusFunSymbols);
+    }
+    if (!ntrivSynthFuns.empty())
+    {
+      body = quantifiers::SygusUtils::mkSygusConjecture(ntrivSynthFuns, body);
+    }
+    Trace("smt-debug") << "...constructed forall " << body << std::endl;
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
 
@@ -347,14 +409,30 @@ SynthResult SygusSolver::checkSynth(bool isNext)
 
 bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
 {
+  bool ret = false;
   Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
   if (usingSygusSubsolver())
   {
     // use the call to get the synth solutions from the subsolver
-    return d_subsolver ? d_subsolver->getSubsolverSynthSolutions(solMap)
-                       : false;
+    if (d_subsolver)
+    {
+      ret = d_subsolver->getSubsolverSynthSolutions(solMap);
+    }
   }
-  return getSubsolverSynthSolutions(solMap);
+  else
+  {
+    ret = getSubsolverSynthSolutions(solMap);
+  }
+  // also get solutions for trivial functions to synthesize
+  for (const Node& f : d_trivialFuns)
+  {
+    Node sf = quantifiers::SygusUtils::mkSygusTermFor(f);
+    Trace("smt-debug") << "Got " << sf << " for trivial function " << f
+                       << std::endl;
+    Assert(f.getType() == sf.getType());
+    solMap[f] = sf;
+  }
+  return ret;
 }
 
 bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
@@ -435,10 +513,13 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     // Start new SMT engine to check solutions
     std::unique_ptr<SolverEngine> solChecker;
     initializeSygusSubsolver(solChecker, as);
-    solChecker->getOptions().writeSmt().checkSynthSol = false;
-    solChecker->getOptions().writeQuantifiers().sygusRecFun = false;
-    Assert(conj.getKind() == Kind::FORALL);
-    Node conjBody = conj[1];
+    solChecker->getOptions().write_smt().checkSynthSol = false;
+    solChecker->getOptions().write_quantifiers().sygusRecFun = false;
+    Node conjBody = conj;
+    if (conj.getKind() == Kind::FORALL)
+    {
+      conjBody = conjBody[1];
+    }
     // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
     conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);

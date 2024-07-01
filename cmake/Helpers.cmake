@@ -247,12 +247,25 @@ function(check_python_module module)
   endif()
 
   if(RET_MODULE_TEST)
-    message(FATAL_ERROR
+    if(ENABLE_AUTO_DOWNLOAD)
+      message(STATUS "Installing Python module ${module_name}")
+      execute_process(
+        COMMAND
+        ${Python_EXECUTABLE} -m pip install ${module_name}
+        RESULT_VARIABLE PYTHON_MODULE_INSTALL_CMD_EXIT_CODE
+      )
+      if(PYTHON_MODULE_INSTALL_CMD_EXIT_CODE)
+        message(FATAL_ERROR "Could not install Python module ${module_name}")
+      endif()
+    else()
+      message(FATAL_ERROR
         "Could not find module ${module_name} for Python "
         "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
         "Make sure to install ${module_name} for this Python version "
-        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}',\n"
+        "or use --auto-download to let us install it for you.\n"
         "Note: You need to have pip installed for this Python version.")
+    endif()
   endif()
 endfunction()
 

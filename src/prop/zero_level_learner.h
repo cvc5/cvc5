@@ -89,6 +89,13 @@ class ZeroLevelLearner : protected EnvObj
   bool getSolved(const Node& lit, Subs& subs);
   /** has learned literal */
   bool hasLearnedLiteralForRestart() const;
+  /** 
+   * Adds a substitution to d_tsmap. This occurs when we learn a literal at
+   * decision level zero that is equivalent to (= t s)
+   * @param t The term to substitute.
+   * @param s The value to substitute t to.
+   */
+  void addSimplification(const Node& t, const Node& s);
 
   /** The theory engine we are using */
   TheoryEngine* d_theoryEngine;

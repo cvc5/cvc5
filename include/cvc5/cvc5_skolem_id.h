@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -73,7 +73,7 @@ namespace cvc5 {
  * \internal
  * 
  */
-enum ENUM(SkolemId) : uint32_t
+enum ENUM(SkolemId)
 {
   /**
    * The identifier of the skolem is not exported. These skolems should not
@@ -107,6 +107,13 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``T1``
    */
   EVALUE(ARRAY_DEQ_DIFF),
+  /** 
+   * The empty bitvector.
+   *
+   * - Number of skolem indices: ``0``
+   * - Type: ``(_ BitVec 0)``
+   */
+  EVALUE(BV_EMPTY),
   /** 
    * The function for division by zero. This is semantically equivalent to the
    * SMT-LIB term ``(lambda ((x Real)) (/ x 0.0))``.

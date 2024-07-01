@@ -27,9 +27,27 @@ public class SymbolManager extends AbstractPointer
     super(pointer);
   }
 
+  /**
+   * Create symbol manager instance.
+   * @param tm The associated term manager.
+   */
+  public SymbolManager(TermManager tm)
+  {
+    super(newSymbolManager(tm.getPointer()));
+  }
+
+  /**
+   * Create symbol manager instance.
+   *
+   * @deprecated
+   * This function is deprecated and replaced by
+   * {@link Solver#Solver(TermManager)}.
+   * It will be removed in a future release.
+   */
+  @Deprecated
   public SymbolManager(Solver solver)
   {
-    super(newSymbolManager(solver.getPointer()));
+    this(solver.getTermManager());
   }
 
   private static native long newSymbolManager(long solverPointer);

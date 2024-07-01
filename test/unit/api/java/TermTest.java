@@ -814,6 +814,9 @@ class TermTest
     assertEquals("1/18446744073709551617", Utils.getRational(real8.getRealValue()));
     assertEquals("18446744073709551617/1", Utils.getRational(real9.getRealValue()));
     assertEquals("23432343/10000", Utils.getRational(real10.getRealValue()));
+
+    assertThrows(CVC5ApiException.class, () -> d_tm.mkReal("1/0"));
+    assertThrows(CVC5ApiException.class, () -> d_tm.mkReal("2/0000"));
   }
 
   @Test
@@ -1087,6 +1090,32 @@ class TermTest
     assertFalse(x.isSkolem());
     assertThrows(CVC5ApiException.class, () ->x.getSkolemId());
     assertThrows(CVC5ApiException.class, () ->x.getSkolemIndices());
+  }
+
+  @Test
+  void testMkSkolem() throws CVC5ApiException
+  {
+    Sort integer = d_solver.getIntegerSort();
+    Sort arraySort = d_solver.mkArraySort(integer, integer);
+
+    Term a = d_solver.mkConst(arraySort, "a");
+    Term b = d_solver.mkConst(arraySort, "b");
+
+    Term sk = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {a, b});
+    Term sk2 = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {b, a});
+
+    assertTrue(sk.isSkolem());
+    assertEquals(sk.getSkolemId(), SkolemId.ARRAY_DEQ_DIFF);
+    assertEquals(Arrays.asList(new Term[] {a, b}), Arrays.asList(sk.getSkolemIndices()));
+    // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
+    assertEquals(Arrays.asList(new Term[] {a, b}), Arrays.asList(sk2.getSkolemIndices()));
+  }
+
+  @Test
+  void testGetNumIndices() throws CVC5ApiException
+  {
+    int numIndices = d_tm.getNumIndicesForSkolemId(SkolemId.ARRAY_DEQ_DIFF);
+    assertEquals(numIndices, 2);
   }
 
   @Test

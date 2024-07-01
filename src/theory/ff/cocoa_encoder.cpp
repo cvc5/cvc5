@@ -125,7 +125,7 @@ void CocoaEncoder::endScan()
 
 void CocoaEncoder::addFact(const Node& fact)
 {
-  Assert(isFfFact(fact));
+  Assert(isFfFact(fact, size()));
   if (d_stage == Stage::Scan)
   {
     for (const auto& node :
@@ -137,7 +137,7 @@ void CocoaEncoder::addFact(const Node& fact)
       {
         continue;
       }
-      if (isFfLeaf(node) && !node.isConst())
+      if (isFfLeaf(node, size()) && !node.isConst())
       {
         Trace("ff::cocoa") << "CoCoA var sym for " << node << std::endl;
         CoCoA::symbol sym = freshSym(node.getName());
@@ -146,7 +146,7 @@ void CocoaEncoder::addFact(const Node& fact)
         d_varSyms.insert({node, sym});
         d_symNodes.insert({extractStr(sym), node});
       }
-      else if (node.getKind() == Kind::NOT && isFfFact(node))
+      else if (node.getKind() == Kind::NOT && isFfFact(node, size()))
       {
         Trace("ff::cocoa") << "CoCoA != sym for " << node << std::endl;
         CoCoA::symbol sym = freshSym("diseq", d_diseqSyms.size());
@@ -199,7 +199,7 @@ std::vector<std::pair<size_t, Node>> CocoaEncoder::nodeIndets() const
     {
       Node n = symNode(d_syms[i]);
       // skip indets for !=
-      if (isFfLeaf(n))
+      if (isFfLeaf(n, size()))
       {
         out.emplace_back(i, n);
       }
@@ -212,6 +212,16 @@ FiniteFieldValue CocoaEncoder::cocoaFfToFfVal(const Scalar& elem)
 {
   Assert(CoCoA::owner(elem) == coeffRing());
   return ff::cocoaFfToFfVal(elem, size());
+}
+
+const Node& CocoaEncoder::polyFact(const Poly& poly) const
+{
+  return d_polyFacts.at(extractStr(poly));
+}
+
+bool CocoaEncoder::polyHasFact(const Poly& poly) const
+{
+  return d_polyFacts.count(extractStr(poly));
 }
 
 const Poly& CocoaEncoder::symPoly(CoCoA::symbol s) const
@@ -232,11 +242,11 @@ void CocoaEncoder::encodeTerm(const Node& t)
   {
     // a rule must put the encoding here
     Poly elem;
-    if (isFfFact(node) || isFfTerm(node))
+    if (isFfFact(node, size()) || isFfTerm(node, size()))
     {
       Trace("ff::cocoa::enc") << "Encode " << node;
       // ff leaf
-      if (isFfLeaf(node) && !node.isConst())
+      if (isFfLeaf(node, size()) && !node.isConst())
       {
         elem = symPoly(d_varSyms.at(node));
       }
@@ -292,13 +302,14 @@ void CocoaEncoder::encodeTerm(const Node& t)
 void CocoaEncoder::encodeFact(const Node& f)
 {
   Assert(d_stage == Stage::Encode);
-  Assert(isFfFact(f));
+  Assert(isFfFact(f, size()));
+  Poly p;
   // ==
   if (f.getKind() == Kind::EQUAL)
   {
     encodeTerm(f[0]);
     encodeTerm(f[1]);
-    d_cache.insert({f, d_cache.at(f[0]) - d_cache.at(f[1])});
+    p = d_cache.at(f[0]) - d_cache.at(f[1]);
   }
   // !=
   else
@@ -306,8 +317,12 @@ void CocoaEncoder::encodeFact(const Node& f)
     encodeTerm(f[0][0]);
     encodeTerm(f[0][1]);
     Poly diff = d_cache.at(f[0][0]) - d_cache.at(f[0][1]);
-    d_cache.insert({f, diff * symPoly(d_diseqSyms.at(f)) - 1});
+    p = diff * symPoly(d_diseqSyms.at(f)) - 1;
   }
+  // normalize; if we don't do it, CoCoA will in GB input, confusing our tracer.
+  p = p / CoCoA::LC(p);
+  d_cache.insert({f, p});
+  d_polyFacts.insert({extractStr(p), f});
 }
 
 }  // namespace ff

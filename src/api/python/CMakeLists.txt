@@ -13,12 +13,17 @@
 # The build system configuration.
 ##
 
-find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
-
 if(NOT ONLY_PYTHON_EXT_SRC)
-  # Python modules for building and installing
-  check_python_module("setuptools")
+  # Python modules for building:
+  find_package(Setuptools 66.1.0 REQUIRED)
   find_package(Cython 3.0.0 REQUIRED)
+  # Python modules for installing:
+  find_package(Pip 23.0 REQUIRED)
+  # Repairwheel copies the required shared libraries to
+  # a directory within the Python wheel package so that
+  # the package is self-contained. It works on Linux,
+  # macOS, and Windows.
+  find_package(Repairwheel 0.3.1 REQUIRED)
 endif()
 
 configure_file(genenums.py.in genenums.py)
@@ -105,6 +110,8 @@ add_custom_target(cvc5types DEPENDS ${GENERATED_TYPES_FILES})
 copy_file_from_src(cvc5.pxi)
 copy_file_from_src(cvc5.pxd)
 copy_file_from_src(cvc5_python_base.pyx)
+copy_file_from_src(py_plugin.h)
+copy_file_from_src(py_plugin.cpp)
 copy_file_from_src(pyproject.toml)
 
 # Set include_dirs and library_dirs variables that are used in setup.cfg.in
@@ -112,6 +119,7 @@ if (WIN32)
   set(PYTHON_EXT "pyd")
   set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include;${CMAKE_BINARY_DIR}/include")
   set(SETUP_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/src;${CMAKE_BINARY_DIR}/src/parser")
+  set(SETUP_COMPILER "[build]\ncompiler=mingw32")
 else()
   set(PYTHON_EXT "so")
   set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include")
@@ -134,6 +142,8 @@ set(PYTHON_EXT_SRC_FILES
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxi
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxd
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5_python_base.pyx
+  ${CMAKE_CURRENT_BINARY_DIR}/py_plugin.h
+  ${CMAKE_CURRENT_BINARY_DIR}/py_plugin.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml
   ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg
   ${CMAKE_CURRENT_BINARY_DIR}/setup.py
@@ -226,24 +236,22 @@ else()
       ${LICENSE_FILES}
   )
 
-  # figure out if we're in a virtualenv
-  execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
-    COMMAND
-    "${Python_EXECUTABLE}"
-    -c
-    "import os; print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
-
   set(INSTALL_CMD
-      "${Python_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}")
-  # if we're in a virtualenv, we install it in the virtualenv lib location
-  # otherwise install in prefix
-  if ("${IN_VIRTUALENV}" STREQUAL "NO")
+      "${Python_BASE_EXECUTABLE} -m pip install")
+
+  # If the user does not set a prefix, install the Python bindings in
+  # the default location designated by the Python interpreter used to
+  # build them. Otherwise, install them in the specified prefix.
+  if(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(INSTALL_CMD "${INSTALL_CMD} --prefix ${CMAKE_INSTALL_PREFIX}")
   endif()
 
-  message("Python bindings install command: ${INSTALL_CMD}")
-
-  install(CODE "execute_process(COMMAND ${INSTALL_CMD})"
-          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+  install(CODE "execute_process(COMMAND \${CMAKE_COMMAND}
+    -DPython_EXECUTABLE=${Python_EXECUTABLE}
+    -DRepairwheel_EXECUTABLE=${Repairwheel_EXECUTABLE}
+    -DBUILD_DIR=${CMAKE_BINARY_DIR}
+    -DDEPS_BASE=${DEPS_BASE}
+    -DINSTALL_CMD=\"${INSTALL_CMD}\"
+    -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)")
 
 endif()

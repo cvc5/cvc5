@@ -28,9 +28,9 @@ int main()
   Solver slv(tm);
   slv.setLogic("QF_BV"); // Set the logic
 
-  Sort bitvector32 = tm.mkBitVectorSort(32);
+  Sort bv32 = tm.mkBitVectorSort(32);
 
-  Term x = tm.mkConst(bitvector32, "a");
+  Term x = tm.mkConst(bv32, "x");
 
   Op ext_31_1 = tm.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1});
   Term x_31_1 = tm.mkTerm(ext_31_1, {x});
@@ -48,10 +48,10 @@ int main()
   cout << " Asserting: " << eq << endl;
   slv.assertFormula(eq);
 
-  Term eq2 = tm.mkTerm(Kind::EQUAL, {x_31_31, x_0_0});
-  cout << " Check sat assuming: " << eq2.notTerm() << endl;
-  cout << " Expect UNSAT. " << endl;
-  cout << " cvc5: " << slv.checkSatAssuming(eq2.notTerm()) << endl;
+  Term dis = tm.mkTerm(Kind::DISTINCT, {x_31_31, x_0_0});
+  cout << " Check sat assuming: " << dis << endl;
+  cout << " Expect UNSAT." << endl;
+  cout << " cvc5: " << slv.checkSatAssuming(dis) << endl;
 
   return 0;
 }

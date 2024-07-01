@@ -17,7 +17,7 @@
 
 import pytest
 import cvc5
-from cvc5 import Kind
+from cvc5 import Kind, ProofRule
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ def solver(tm):
 
 
 def create_proof(tm, solver):
-    solver.setOption("produce-proofs", "true");
+    solver.setOption("produce-proofs", "true")
 
     uSort = tm.mkUninterpretedSort("u")
     intSort = tm.getIntegerSort()
@@ -58,10 +58,45 @@ def create_proof(tm, solver):
     return solver.getProof()[0]
 
 
-def test_get_result(tm, solver):
+def create_rewrite_proof(tm, solver):
+    solver.setOption("produce-proofs", "true")
+    solver.setOption("proof-granularity", "dsl-rewrite")
+    int_sort = tm.getIntegerSort()
+    x = tm.mkConst(int_sort, "x")
+    two_x = tm.mkTerm(Kind.MULT, tm.mkInteger(2), x)
+    x_plus_x = tm.mkTerm(Kind.ADD, x, x)
+    solver.assertFormula(tm.mkTerm(Kind.DISTINCT, two_x, x_plus_x))
+    solver.checkSat()
+    return solver.getProof()[0]
+
+
+def test_null_proof(solver):
+  proof = cvc5.Proof(solver)
+  assert proof.getRule() == ProofRule.UNKNOWN
+  assert hash(ProofRule.UNKNOWN) == hash(ProofRule.UNKNOWN)
+  assert proof.getResult().isNull()
+  assert len(proof.getChildren()) == 0
+  assert len(proof.getArguments()) == 0
+
+
+def test_get_rule(tm, solver):
     proof = create_proof(tm, solver)
     rule = proof.getRule()
-    assert rule == "SCOPE"
+    assert rule == ProofRule.SCOPE
+
+
+def test_get_rewrite_rule(tm, solver):
+    proof = create_rewrite_proof(tm, solver)
+    with pytest.raises(RuntimeError):
+        proof.getRewriteRule()
+    rule = None
+    stack = [proof]
+    while rule != ProofRule.DSL_REWRITE:
+        proof = stack.pop()
+        rule = proof.getRule()
+        children = proof.getChildren()
+        stack.extend(children)
+    assert proof.getRewriteRule() is not None
 
 
 def test_get_result(tm, solver):
@@ -78,3 +113,18 @@ def test_get_children(tm, solver):
 def test_get_arguments(tm, solver):
     proof = create_proof(tm, solver)
     proof.getArguments()
+
+
+def test_eq(tm, solver):
+    x = create_proof(tm, solver)
+    y = x.getChildren()[0]
+    z = cvc5.Proof(solver)
+
+    assert x == x
+    assert not x != x
+    assert not x == y
+    assert x != y
+    assert not (x == z)
+    assert x != z
+
+    assert hash(x) == hash(x)

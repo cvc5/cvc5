@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -23,6 +23,10 @@
 
 namespace cvc5::internal {
 namespace proof {
+
+AlfPrintChannel::AlfPrintChannel() {}
+
+AlfPrintChannel::~AlfPrintChannel() {}
 
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
                                        const LetBinding* lbind,
@@ -132,8 +136,16 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
   d_out << "; trust " << r;
   if (r == ProofRule::DSL_REWRITE)
   {
-    rewriter::DslProofRule di;
-    if (rewriter::getDslProofRule(args[0], di))
+    ProofRewriteRule di;
+    if (rewriter::getRewriteRule(args[0], di))
+    {
+      d_out << " " << di;
+    }
+  }
+  else if (r == ProofRule::THEORY_REWRITE)
+  {
+    ProofRewriteRule di;
+    if (rewriter::getRewriteRule(args[0], di))
     {
       d_out << " " << di;
     }
@@ -170,6 +182,11 @@ void AlfPrintChannelPre::printNode(TNode n)
   {
     d_lbind->process(n);
   }
+}
+
+void AlfPrintChannelPre::printTypeNode(TypeNode tn)
+{
+  // current do nothing
 }
 
 void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
@@ -215,7 +232,7 @@ void AlfPrintChannelPre::processInternal(const Node& n)
   expr::getVariables(n, d_vars, d_varsVisited);
 }
 
-const std::unordered_set<TNode>& AlfPrintChannelPre::getVariables() const
+const std::unordered_set<Node>& AlfPrintChannelPre::getVariables() const
 {
   return d_vars;
 }

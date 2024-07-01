@@ -65,7 +65,7 @@ class RewriteDb
    * @param cond The condition, or null if this is not a conditional rule
    * @param context The term context, if one exists
    */
-  void addRule(DslProofRule id,
+  void addRule(ProofRewriteRule id,
                const std::vector<Node> fvs,
                Node a,
                Node b,
@@ -77,20 +77,22 @@ class RewriteDb
    */
   void getMatches(const Node& eq, expr::NotifyMatch* ntm);
   /** Get the rule definition for id */
-  const RewriteProofRule& getRule(DslProofRule id) const;
+  const RewriteProofRule& getRule(ProofRewriteRule id) const;
   /**
    * Get ids for conclusion, returns the list of identifiers of rules whose
    * conclusion is eq.
    */
-  const std::vector<DslProofRule>& getRuleIdsForConclusion(
+  const std::vector<ProofRewriteRule>& getRuleIdsForConclusion(
       const Node& eq) const;
   /**
    * Get ids for head, returns the list of identifiers of rules whose
    * head (the left hand side of its equality) is h.
    */
-  const std::vector<DslProofRule>& getRuleIdsForHead(const Node& h) const;
+  const std::vector<ProofRewriteRule>& getRuleIdsForHead(const Node& h) const;
   /** Return the union of free variables in all rules */
   const std::unordered_set<Node>& getAllFreeVariables() const;
+  /** Return all rewrite rules */
+  const std::map<ProofRewriteRule, RewriteProofRule>& getAllRules() const;
 
  private:
   /** common constants */
@@ -103,13 +105,13 @@ class RewriteDb
   /** The match trie */
   expr::NaryMatchTrie d_mt;
   /** map ids to rewrite db rule information */
-  std::map<DslProofRule, RewriteProofRule> d_rewDbRule;
+  std::map<ProofRewriteRule, RewriteProofRule> d_rewDbRule;
   /** map conclusions to proof ids */
-  std::map<Node, std::vector<DslProofRule> > d_concToRules;
+  std::map<Node, std::vector<ProofRewriteRule> > d_concToRules;
   /** map head to proof ids */
-  std::map<Node, std::vector<DslProofRule> > d_headToRules;
+  std::map<Node, std::vector<ProofRewriteRule> > d_headToRules;
   /** dummy empty vector */
-  std::vector<DslProofRule> d_emptyVec;
+  std::vector<ProofRewriteRule> d_emptyVec;
   /** All free variables in all rules */
   std::unordered_set<Node> d_allFv;
 };
@@ -117,4 +119,4 @@ class RewriteDb
 }  // namespace rewriter
 }  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__REWRITE_DB__H */
+#endif /* CVC5__THEORY__REWRITE_DB__H */

@@ -45,6 +45,15 @@ class DatatypesRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode in) override;
   RewriteResponse preRewrite(TNode in) override;
 
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
   /** normalize codatatype constant
    *
    * This returns the normal form of the codatatype constant n. This runs a

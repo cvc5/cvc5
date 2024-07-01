@@ -49,14 +49,14 @@ if(NOT Kissat_FOUND_SYSTEM)
   fail_if_include_missing("sys/resource.h" "Kissat")
 
   set(Kissat_VERSION "sc2021")
-  set(Kissat_CHECKSUM "2541a45e023f51b39686865c40350ce091b5bd50")
+  set(Kissat_CHECKSUM "ad1945cc6980cc6d8b7049cf0a298f9f806ac3c9ca1ccb51f1bc533253d285cc")
 
   ExternalProject_Add(
     Kissat-EP
     ${COMMON_EP_CONFIG}
     BUILD_IN_SOURCE ON
     URL https://github.com/arminbiere/kissat/archive/${Kissat_VERSION}.tar.gz
-    URL_HASH SHA1=${Kissat_CHECKSUM}
+    URL_HASH SHA256=${Kissat_CHECKSUM}
     CONFIGURE_COMMAND <SOURCE_DIR>/configure -fPIC --quiet
                       CC=${CMAKE_C_COMPILER}
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libkissat.a
@@ -88,4 +88,8 @@ if(Kissat_FOUND_SYSTEM)
 else()
   message(STATUS "Building Kissat ${Kissat_VERSION}: ${Kissat_LIBRARIES}")
   add_dependencies(Kissat Kissat-EP)
+  # Install static library only if it is a static build.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${Kissat_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()

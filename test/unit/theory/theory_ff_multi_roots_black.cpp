@@ -25,7 +25,7 @@
 #include <memory>
 #include <utility>
 
-#include "test_smt.h"
+#include "test_env.h"
 #include "theory/ff/multi_roots.h"
 #include "util/cocoa_globals.h"
 
@@ -36,11 +36,11 @@ using namespace theory;
 
 namespace test {
 
-class TestTheoryFfModelBlack : public TestSmt
+class TestTheoryFfModelBlack : public TestEnv
 {
   void SetUp() override
   {
-    TestSmt::SetUp();
+    TestEnv::SetUp();
     initCocoaGlobalManager();
   }
 };
@@ -161,43 +161,45 @@ TEST_F(TestTheoryFfModelBlack, CommonRoot)
   {
     std::vector<CoCoA::RingElem> gens = {a * a - a, b * b - b, a - b, a};
     std::vector<CoCoA::RingElem> values = {z, z};
-    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens)), values);
+    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens), *d_env), values);
   }
 
   {
     std::vector<CoCoA::RingElem> gens = {a * a - a, b * b - b, a + b - 1, a};
     std::vector<CoCoA::RingElem> values = {z, z + 1};
-    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens)), values);
+    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens), *d_env), values);
   }
 
   {
     std::vector<CoCoA::RingElem> gens = {a, a - 1};
     std::vector<CoCoA::RingElem> values = {};
-    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens)), values);
+    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens), *d_env), values);
   }
 
   {
     std::vector<CoCoA::RingElem> gens = {a * (a - 1) * (a - 2) - 1};
     std::vector<CoCoA::RingElem> values = {};
-    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens)), values);
+    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens), *d_env), values);
   }
 
   {
     std::vector<CoCoA::RingElem> gens = {a * b - 1};
-    std::vector<CoCoA::RingElem> values = ff::findZero(CoCoA::ideal(gens));
+    std::vector<CoCoA::RingElem> values =
+        ff::findZero(CoCoA::ideal(gens), *d_env);
     EXPECT_EQ(values[0] * values[1], z + 1);
   }
 
   {
     std::vector<CoCoA::RingElem> gens = {a * b - 1, b};
-    std::vector<CoCoA::RingElem> values = ff::findZero(CoCoA::ideal(gens));
+    std::vector<CoCoA::RingElem> values =
+        ff::findZero(CoCoA::ideal(gens), *d_env);
     EXPECT_EQ(values.size(), 0);
   }
 
   {
     std::vector<CoCoA::RingElem> gens = {a * b - 1, b - 2};
     std::vector<CoCoA::RingElem> values = {z + 2, z + 2};
-    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens)), values);
+    EXPECT_EQ(ff::findZero(CoCoA::ideal(gens), *d_env), values);
   }
 }
 
@@ -214,7 +216,7 @@ TEST_F(TestTheoryFfModelBlack, CommonRootBig)
 
   std::vector<CoCoA::RingElem> gens = {
       a * a - a, b * b - b, a - b, a, c * d - 1};
-  std::vector<CoCoA::RingElem> values = ff::findZero(CoCoA::ideal(gens));
+  std::vector<CoCoA::RingElem> values = ff::findZero(CoCoA::ideal(gens), *d_env);
   EXPECT_EQ(values[0], z);
   EXPECT_EQ(values[1], z);
   EXPECT_EQ(values[2] * values[3], z + 1);
@@ -232,7 +234,7 @@ TEST_F(TestTheoryFfModelBlack, CommonRootCosntraints)
   // b is a perfect square
   // c is its inverse
   std::vector<CoCoA::RingElem> gens = {a * a - b, b * c - 1};
-  std::vector<CoCoA::RingElem> values = ff::findZero(CoCoA::ideal(gens));
+  std::vector<CoCoA::RingElem> values = ff::findZero(CoCoA::ideal(gens), *d_env);
   EXPECT_EQ(values[0] * values[0], values[1]);
   EXPECT_EQ(values[1] * values[2], z + 1);
 }

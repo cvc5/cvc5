@@ -43,7 +43,17 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
     Trace("cegqi-gn") << "  " << as << std::endl;
     expr::getSymbols(as, syms, visited);
   }
-  std::vector<Node> free_vars(syms.begin(), syms.end());
+  for (const Node& s : syms)
+  {
+    if (s.getType().isFirstClass())
+    {
+      // We have a symbol whose type is not first class. For example, a
+      // datatype selector. In such cases, this preprocessing pass cannot be
+      // applied.
+      return Node::null();
+    }
+  }
+  std::vector<Node> fvs(syms.begin(), syms.end());
 
   Node body;
   if (assertions.size() == 1)
@@ -58,17 +68,17 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
   // do the negation
   body = body.negate();
 
-  if (!free_vars.empty())
+  if (!fvs.empty())
   {
     std::vector<Node> bvs;
-    for (const Node& v : free_vars)
+    for (const Node& v : fvs)
     {
       Node bv = nm->mkBoundVar(v.getType());
       bvs.push_back(bv);
     }
 
     body = body.substitute(
-        free_vars.begin(), free_vars.end(), bvs.begin(), bvs.end());
+        fvs.begin(), fvs.end(), bvs.begin(), bvs.end());
 
     Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
 
@@ -89,6 +99,11 @@ PreprocessingPassResult GlobalNegate::applyInternal(
 {
   NodeManager* nm = nodeManager();
   Node simplifiedNode = simplify(assertionsToPreprocess->ref(), nm);
+  if (simplifiedNode.isNull())
+  {
+    // failed to convert, possibly due to an unhandled symbol
+    return PreprocessingPassResult::NO_CONFLICT;
+  }
   Node trueNode = nm->mkConst(true);
   // mark as negated
   assertionsToPreprocess->markNegated();

@@ -169,6 +169,16 @@ void SatProofManager::endResChain(Node conclusion,
                                   uint32_t clauseLevel)
 {
   Trace("sat-proof") << ", " << conclusion << "\n";
+  LazyCDProof* cnfProof = d_ppm->getCnfProof();
+  if (cnfProof->hasStep(conclusion) || cnfProof->hasGenerator(conclusion))
+  {
+    Trace("sat-proof") << "SatProofManager::endResChain: cnf proof has "
+                          "step/gen for it; skip\n";
+    // clearing
+    d_resLinks.clear();
+    d_redundantLits.clear();
+    return;
+  }
   if (d_resChains.hasGenerator(conclusion))
   {
     Trace("sat-proof")
@@ -645,7 +655,12 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     Trace("sat-proof") << "expand assumptions to prove false\n";
     std::shared_ptr<ProofNode> pfn = d_resChains.getProofFor(d_false);
     Assert(pfn);
-    Trace("sat-proof-debug") << "sat proof of flase: " << *pfn.get() << "\n";
+    if (TraceIsOn("sat-proof-debug"))
+    {
+      std::stringstream ss;
+      pfn->printDebug(ss, true);
+      Trace("sat-proof-debug") << "sat proof of false: " << ss.str() << "\n";
+    }
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
     if (TraceIsOn("sat-proof"))

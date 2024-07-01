@@ -346,6 +346,8 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_GT_PURIFY: return "QUANTIFIERS_GT_PURIFY";
     case InferenceId::QUANTIFIERS_TDB_DEQ_CONG:
       return "QUANTIFIERS_TDB_DEQ_CONG";
+    case InferenceId::QUANTIFIERS_CEGQI_WITNESS:
+      return "QUANTIFIERS_CEGQI_WITNESS";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
@@ -409,6 +411,9 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_JOIN_IMAGE_UP: return "SETS_RELS_JOIN_IMAGE_UP";
     case InferenceId::SETS_RELS_JOIN_SPLIT_1: return "SETS_RELS_JOIN_SPLIT_1";
     case InferenceId::SETS_RELS_JOIN_SPLIT_2: return "SETS_RELS_JOIN_SPLIT_2";
+    case InferenceId::SETS_RELS_TABLE_JOIN_UP: return "SETS_RELS_TABLE_JOIN_UP";
+    case InferenceId::SETS_RELS_TABLE_JOIN_DOWN:
+      return "SETS_RELS_TABLE_JOIN_DOWN";
     case InferenceId::SETS_RELS_PRODUCE_COMPOSE:
       return "SETS_RELS_PRODUCE_COMPOSE";
     case InferenceId::SETS_RELS_PRODUCT_SPLIT: return "SETS_RELS_PRODUCT_SPLIT";

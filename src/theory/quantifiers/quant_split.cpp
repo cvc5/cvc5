@@ -33,7 +33,9 @@ QuantDSplit::QuantDSplit(Env& env,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr), d_added_split(userContext())
+    : QuantifiersModule(env, qs, qim, qr, tr),
+      d_quant_to_reduce(userContext()),
+      d_added_split(userContext())
 {
 }
 
@@ -139,14 +141,17 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   NodeManager* nm = nodeManager();
   FirstOrderModel* m = d_treg.getModel();
   std::vector<Node> lemmas;
-  for (std::map<Node, int>::iterator it = d_quant_to_reduce.begin();
+  for (NodeIntMap::iterator it = d_quant_to_reduce.begin();
        it != d_quant_to_reduce.end();
        ++it)
   {
     Node q = it->first;
     Trace("quant-dsplit") << "- Split quantifier " << q << std::endl;
-    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q)
-        && d_added_split.find(q) == d_added_split.end())
+    if (d_added_split.find(q) != d_added_split.end())
+    {
+      continue;
+    }
+    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q))
     {
       d_added_split.insert(q);
       std::vector<Node> bvs;

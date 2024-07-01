@@ -30,6 +30,8 @@ class Skolemize;
 class QuantifiersRegistry;
 class TermRegistry;
 class FirstOrderModel;
+class QuantifiersModule;
+
 /**
  * The quantifiers inference manager.
  */
@@ -51,11 +53,24 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
    */
   void doPending();
 
+  // ----- For printing -o inst-strategy
+  /** Begin timing call */
+  void beginCallDebug(QuantifiersModule* qm);
+  /** End timing call */
+  void endCallDebug();
+
  private:
   /** instantiate utility */
   std::unique_ptr<Instantiate> d_instantiate;
   /** skolemize utility */
   std::unique_ptr<Skolemize> d_skolemize;
+  // ----- for printing -o inst-strategy
+  /** For debug output, the quantifiers module called in beginCallDebug */
+  QuantifiersModule* d_debugQm;
+  /** The number of pending lemmas */
+  size_t d_debugNumPendingLemmas;
+  /** The time stamp */
+  clock_t d_debugTimeStamp;
 };
 
 }  // namespace quantifiers

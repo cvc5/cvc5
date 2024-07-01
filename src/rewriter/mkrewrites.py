@@ -93,7 +93,7 @@ def gen_mk_node(defns, expr):
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
         if expr.op in {Op.EXTRACT, Op.REPEAT, Op.ZERO_EXTEND,  Op.SIGN_EXTEND,
-                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV}:
+                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV, Op.REGEXP_LOOP}:
           args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
         return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
@@ -103,9 +103,14 @@ def gen_mk_node(defns, expr):
 
 def gen_rewrite_db_rule(defns, rule):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
-    fixed_point_arg = gen_mk_node(defns, rule.rhs_context) \
-        if rule.rhs_context else 'Node::null()'
-    return f'db.addRule(DslProofRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
+
+    if rule.rhs_context:
+        assert rule.is_fixed_point
+        fixed_point_arg = gen_mk_node(defns, rule.rhs_context)
+    else:
+        assert not rule.is_fixed_point
+        fixed_point_arg = 'Node::null()'
+    return f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
            f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
            f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
 
@@ -302,7 +307,7 @@ def gen_individual_rewrite_db(rewrites_file: Path, template):
         enum = rule.get_enum()
         ids.append(enum)
         printer_code.append(
-            f'case DslProofRule::{enum}: return "{rule.name}";')
+            f'case ProofRewriteRule::{enum}: return "{rule.name}";')
 
     rules_code.append(
         block_tpl.format(filename=output_file,
@@ -330,10 +335,14 @@ def gen_rewrite_db(args):
             {block_code}
         }}
     '''
-
+    rewriter_dir = os.path.join(args.src_dir, 'src', 'rewriter')
+    src_include_dir = os.path.join(args.src_dir, 'include', 'cvc5')
+    src_api_dir = os.path.join(args.src_dir, 'src', 'api', 'cpp')
+    bin_include_dir = os.path.join(args.bin_dir, 'include', 'cvc5')
+    bin_api_dir = os.path.join(args.bin_dir, 'src', 'api', 'cpp')
     decls = []
     rewrites = []
-    individual_rewrites_cpp = read_tpl(args.src_dir, 'theory_rewrites_template.cpp')
+    individual_rewrites_cpp = read_tpl(rewriter_dir, 'theory_rewrites_template.cpp')
 
     printer_code = []
     ids = []
@@ -348,17 +357,27 @@ def gen_rewrite_db(args):
         decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
         call_individual_rewrites.append(f"{db.function_name}(db);")
 
-    rewrites_h = read_tpl(args.src_dir, 'rewrites_template.h')
-    with open('rewrites.h', 'w') as f:
-        f.write(format_cpp(rewrites_h.format(rule_ids=','.join(ids))))
+    def doc(rule: str):
+        rule = rule.lower().replace('_', '-')
+        return f'/** Auto-generated from RARE rule {rule} */'
 
-    rewrites_cpp = read_tpl(args.src_dir, 'rewrites_template.cpp')
+    cvc5_proof_rule_h = read_tpl_enclosed(src_include_dir, 'cvc5_proof_rule.h')
+    with open(os.path.join(bin_include_dir, 'cvc5_proof_rule.h'), 'w') as f:
+        f.write(format_cpp(cvc5_proof_rule_h.format(
+            rules='\n'.join([f'{doc(id)}\nEVALUE({id}),' for id in ids]))))
+
+    cvc5_proof_rule_cpp = read_tpl(src_api_dir, 'cvc5_proof_rule_template.cpp')
+    os.makedirs(bin_api_dir, exist_ok=True)
+    with open(os.path.join(bin_api_dir, 'cvc5_proof_rule.cpp'), 'w') as f:
+        f.write(format_cpp(cvc5_proof_rule_cpp.format(
+            printer='\n'.join(printer_code))))
+
+    rewrites_cpp = read_tpl(rewriter_dir, 'rewrites_template.cpp')
     with open('rewrites.cpp', 'w') as f:
         f.write(
             format_cpp(
                 rewrites_cpp.format(decl_individual_rewrites='\n'.join(decl_individual_rewrites),
-                                    call_individual_rewrites='\n'.join(call_individual_rewrites),
-                                    printer='\n'.join(printer_code))))
+                                    call_individual_rewrites='\n'.join(call_individual_rewrites))))
 
 
 def main():
@@ -367,6 +386,7 @@ def main():
 
     parser_compile = subparsers.add_parser("rewrite-db")
     parser_compile.add_argument("src_dir", help="Source directory")
+    parser_compile.add_argument("bin_dir", help="Binary directory")
     parser_compile.add_argument("rewrites_files",
                                 nargs='+',
                                 type=str,

@@ -77,6 +77,15 @@ class QuantifiersRewriter : public TheoryRewriter
   /** Post-rewrite n */
   RewriteResponse postRewrite(TNode in) override;
 
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
   static bool isLiteral( Node n );
   //-------------------------------------variable elimination utilities
   /** is variable elimination
@@ -161,11 +170,6 @@ class QuantifiersRewriter : public TheoryRewriter
                       QAttributes& qa) const;
   //-------------------------------------end variable elimination utilities
   /**
-   * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
-   * and computes NNF.
-   */
-  Node computeElimSymbols(Node body) const;
-  /**
    * Compute miniscoping in quantified formula q with attributes in qa.
    */
   Node computeMiniscoping(Node q,
@@ -222,8 +226,13 @@ class QuantifiersRewriter : public TheoryRewriter
    * (forall ((x Int)) (forall ((y Int)) (P x y))) --->
    * (forall ((x Int) (y Int)) (P x y)).
    * This is done until fixed point.
+   *
+   * @param q The quantified formula to prenex.
+   * @param checkStd If true, we do not merge prenex for any non-standard
+   * quantified formula
+   * @return The result of merging prenex in q.
    */
-  Node mergePrenex(const Node& q);
+  Node mergePrenex(const Node& q, bool checkStd);
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
@@ -233,11 +242,6 @@ class QuantifiersRewriter : public TheoryRewriter
                           std::vector<Node>& args,
                           std::vector<Node>& vars,
                           std::vector<Node>& subs) const;
-  bool addCheckElimChild(std::vector<Node>& children,
-                         Node c,
-                         Kind k,
-                         std::map<Node, bool>& lit_pol,
-                         bool& childrenChanged) const;
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,

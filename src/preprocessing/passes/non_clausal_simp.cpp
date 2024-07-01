@@ -354,6 +354,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Trace("non-clausal-simplify")
             << "substitute: will notify SAT layer of substitution: "
             << trhs.getProven() << std::endl;
+        // note that trhs.getProven() may not be in rewritten form (e.g. the
+        // rewriter may swap order). This is handled internally within
+        // addSubstitutionNode.
         assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
                                                     trhs.getGenerator());
       }

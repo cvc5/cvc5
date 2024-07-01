@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALF__ALF_PRINT_CHANNEL_H
-#define CVC4__PROOF__ALF__ALF_PRINT_CHANNEL_H
+#ifndef CVC5__PROOF__ALF__ALF_PRINT_CHANNEL_H
+#define CVC5__PROOF__ALF__ALF_PRINT_CHANNEL_H
 
 #include <iostream>
 #include <map>
@@ -37,14 +37,14 @@ namespace proof {
 class AlfPrintChannel
 {
  public:
-  AlfPrintChannel() {}
-  virtual ~AlfPrintChannel() {}
+  AlfPrintChannel();
+  virtual ~AlfPrintChannel();
   /** Print node n */
-  virtual void printNode(TNode n) {}
+  virtual void printNode(TNode n) = 0;
   /** Print type node n */
-  virtual void printTypeNode(TypeNode tn) {}
+  virtual void printTypeNode(TypeNode tn) = 0;
   /** Print assume */
-  virtual void printAssume(TNode n, size_t i, bool isPush = false) {}
+  virtual void printAssume(TNode n, size_t i, bool isPush = false) = 0;
   /**
    * Print step
    * @param rname The rule name.
@@ -59,18 +59,14 @@ class AlfPrintChannel
                          size_t i,
                          const std::vector<size_t>& premises,
                          const std::vector<Node>& args,
-                         bool isPop = false)
-  {
-  }
+                         bool isPop = false) = 0;
   /** Print trust step */
   virtual void printTrustStep(ProofRule r,
                               TNode n,
                               size_t i,
                               const std::vector<size_t>& premises,
                               const std::vector<Node>& args,
-                              TNode conc)
-  {
-  }
+                              TNode conc) = 0;
 };
 
 /** Prints the proof to output stream d_out */
@@ -140,6 +136,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
  public:
   AlfPrintChannelPre(LetBinding* lbind);
   void printNode(TNode n) override;
+  void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;
   void printStep(const std::string& rname,
                  TNode n,
@@ -155,7 +152,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
                       TNode conc) override;
 
   /** Get variables we encountered in printing */
-  const std::unordered_set<TNode>& getVariables() const;
+  const std::unordered_set<Node>& getVariables() const;
 
  private:
   /** The let binding */
@@ -163,7 +160,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
   /** For computing free variables */
   std::unordered_set<Node> d_keep;
   /** The set of variables we have encountered */
-  std::unordered_set<TNode> d_vars;
+  std::unordered_set<Node> d_vars;
   /** The visited cache for computing variables */
   std::unordered_set<TNode> d_varsVisited;
   /** Process that we will print node n in the final proof */

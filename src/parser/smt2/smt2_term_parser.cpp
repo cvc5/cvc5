@@ -213,7 +213,10 @@ Term Smt2TermParser::parseTerm()
               {
                 d_lex.parseError("Expected non-empty sorted variable list");
               }
-              std::vector<Term> vs = d_state.bindBoundVars(sortedVarNames);
+              // We set fresh to false here. This means that (x Int) appearing
+              // in a quantified formula always constructs the same variable.
+              std::vector<Term> vs =
+                  d_state.bindBoundVars(sortedVarNames, false);
               Term vl = tm.mkTerm(Kind::VARIABLE_LIST, vs);
               args.push_back(vl);
               xstack.emplace_back(ParseCtx::CLOSURE_NEXT_ARG);
@@ -999,17 +1002,21 @@ uint32_t Smt2TermParser::parseIntegerNumeral()
 uint32_t Smt2TermParser::tokenStrToUnsigned()
 {
   // forbid leading zeroes if in strict mode
+  std::string token = d_lex.tokenStr();
   if (d_lex.isStrict())
   {
-    std::string token = d_lex.tokenStr();
     if (token.size() > 1 && token[0] == '0')
     {
-      d_lex.parseError("Numeral with leading zeroes are forbidden");
+      d_lex.parseError("Numerals with leading zeroes are forbidden");
     }
+  }
+  if (token.size() > 1 && token[0] == '-')
+  {
+    d_lex.parseError("Negative numerals are forbidden in indices");
   }
   uint32_t result;
   std::stringstream ss;
-  ss << d_lex.tokenStr();
+  ss << token;
   ss >> result;
   return result;
 }

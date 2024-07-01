@@ -97,7 +97,7 @@ jobs:
         # Use delvewheel on windows
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-          delvewheel repair -w {dest_dir} {wheel} --add-path "${{ github.workspace }}\install\lib;${{ steps.mingw64-path.outputs.bin }}"
+          delvewheel repair -w {dest_dir} {wheel} --add-path "${{ github.workspace }}\install\bin;${{ steps.mingw64-path.outputs.bin }}"
         CIBW_ENVIRONMENT_LINUX: >
           LD_LIBRARY_PATH="$(pwd)/install/lib64:$LD_LIBRARY_PATH"
         CIBW_ENVIRONMENT_MACOS: >

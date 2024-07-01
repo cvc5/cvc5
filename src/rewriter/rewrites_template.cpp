@@ -28,48 +28,30 @@ namespace rewriter {
 
 // clang-format off
 ${decl_individual_rewrites}$
-// clang-format on
+    // clang-format on
 
-void addRules(RewriteDb& db)
-{
-  // Calls to individual rewrites
-  // clang-format off
+    void
+    addRules(RewriteDb& db){
+        // Calls to individual rewrites
+        // clang-format off
   ${call_individual_rewrites}$
-  // clang-format on
-}
+        // clang-format on
+    }
 
-const char* toString(DslProofRule drule)
-{
-  switch (drule)
-  {
-    case DslProofRule::NONE: return "NONE";
-      // clang-format off
-${printer}$
-    default : Unreachable();
-      // clang-format on
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, DslProofRule drule)
-{
-  out << toString(drule);
-  return out;
-}
-
-Node mkDslProofRuleNode(DslProofRule i)
+Node mkRewriteRuleNode(ProofRewriteRule rule)
 {
   return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(i)));
+      Rational(static_cast<uint32_t>(rule)));
 }
 
-bool getDslProofRule(TNode n, DslProofRule& i)
+bool getRewriteRule(TNode n, ProofRewriteRule& rule)
 {
   uint32_t index;
   if (!ProofRuleChecker::getUInt32(n, index))
   {
     return false;
   }
-  i = static_cast<DslProofRule>(index);
+  rule = static_cast<ProofRewriteRule>(index);
   return true;
 }
 

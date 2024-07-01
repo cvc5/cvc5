@@ -86,7 +86,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(ExternalProject)
 
   set(CaDiCaL_VERSION "rel-1.7.4")
-  set(CaDiCaL_CHECKSUM "9cc70c65c80f40c0c13b57cb43ea2a6804cae4eb")
+  set(CaDiCaL_CHECKSUM "866c8a1332ff1ad5dc7ad403bdef3164420f3f947816b5c9509aad1d18ada7a1")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
@@ -126,7 +126,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     ${COMMON_EP_CONFIG}
     BUILD_IN_SOURCE ON
     URL https://github.com/arminbiere/cadical/archive/${CaDiCaL_VERSION}.tar.gz
-    URL_HASH SHA1=${CaDiCaL_CHECKSUM}
+    URL_HASH SHA256=${CaDiCaL_CHECKSUM}
     CONFIGURE_COMMAND mkdir -p <SOURCE_DIR>/build
     # avoid configure script, prepare the makefile manually
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/makefile.in
@@ -177,8 +177,11 @@ if(CaDiCaL_FOUND_SYSTEM)
 else()
   message(STATUS "Building CaDiCaL ${CaDiCaL_VERSION}: ${CaDiCaL_LIBRARIES}")
   add_dependencies(CaDiCaL CaDiCaL-EP)
-  install(FILES
-    ${CaDiCaL_LIBRARIES}
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+
+  # Install CaDiCaL static library only if it is a static build.
+  # The CaDiCaL static library is required to compile a program that
+  # uses the cvc5 static library.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${CaDiCaL_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()

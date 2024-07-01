@@ -32,7 +32,7 @@ namespace strings {
 
 StringsEntail::StringsEntail(Rewriter* r,
                              ArithEntail& aent,
-                             SequencesRewriter& rewriter)
+                             SequencesRewriter* rewriter)
     : d_rr(r), d_arithEntail(aent), d_rewriter(rewriter)
 {
 }
@@ -136,7 +136,8 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
     if (n1[sindex_use].isConst())
     {
       // could strip part of a constant
-      Node lowerBound = d_arithEntail.getConstantBound(d_rr->rewrite(curr));
+      Node lowerBound =
+          d_arithEntail.getConstantBound(d_arithEntail.rewriteArith(curr));
       if (!lowerBound.isNull())
       {
         Assert(lowerBound.isConst());
@@ -148,12 +149,12 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
           size_t slen = Word::getLength(s);
           Node ncl = nm->mkConstInt(cvc5::internal::Rational(slen));
           Node next_s = nm->mkNode(Kind::SUB, lowerBound, ncl);
-          next_s = d_rr->rewrite(next_s);
+          next_s = d_arithEntail.rewriteArith(next_s);
           Assert(next_s.isConst());
           // we can remove the entire constant
           if (next_s.getConst<Rational>().sgn() >= 0)
           {
-            curr = d_rr->rewrite(nm->mkNode(Kind::SUB, curr, ncl));
+            curr = d_arithEntail.rewriteArith(nm->mkNode(Kind::SUB, curr, ncl));
             success = true;
             sindex++;
           }
@@ -163,7 +164,8 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
             // lower bound minus the length of a concrete string is negative,
             // hence lowerBound cannot be larger than long max
             Assert(lbr < Rational(String::maxSize()));
-            curr = d_rr->rewrite(nm->mkNode(Kind::SUB, curr, lowerBound));
+            curr = d_arithEntail.rewriteArith(
+                nm->mkNode(Kind::SUB, curr, lowerBound));
             uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
             Assert(lbsize < slen);
             if (dir == 1)
@@ -195,7 +197,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
           curr,
           NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH,
                                            n1[sindex_use]));
-      next_s = d_rr->rewrite(next_s);
+      next_s = d_arithEntail.rewriteArith(next_s);
       if (d_arithEntail.check(next_s))
       {
         success = true;
@@ -677,18 +679,26 @@ Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
 
   if (fullRewriter)
   {
+    if (d_rr == nullptr)
+    {
+      return Node::null();
+    }
     ctn = d_rr->rewrite(ctn);
   }
   else
   {
+    if (d_rewriter == nullptr)
+    {
+      return Node::null();
+    }
     Node prev;
     do
     {
       prev = ctn;
-      ctn = d_rewriter.rewriteContains(ctn);
+      ctn = d_rewriter->rewriteContains(ctn);
       if (ctn != prev)
       {
-        ctn = d_rewriter.postProcessRewrite(prev, ctn);
+        ctn = d_rewriter->postProcessRewrite(prev, ctn);
       }
     } while (prev != ctn && ctn.getKind() == Kind::STRING_CONTAINS);
   }
