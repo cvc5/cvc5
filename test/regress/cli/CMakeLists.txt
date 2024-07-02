@@ -1154,6 +1154,7 @@ set(regress_0_tests
   regress0/parser/issue10723-divisible0.smt2
   regress0/parser/issue10813-1.smt2
   regress0/parser/issue10813-2.smt2
+  regress0/parser/issue10889-sexpr-eof.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2

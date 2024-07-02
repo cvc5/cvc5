@@ -698,6 +698,11 @@ Term Smt2TermParser::parseSymbolicExpr()
         sstack.pop_back();
       }
       break;
+      case Token::EOF_TOK:
+      {
+        d_lex.parseError("Expected SMT-LIBv2 s-expression");
+      }
+      break;
       // ------------------- base case
       default:
       {
