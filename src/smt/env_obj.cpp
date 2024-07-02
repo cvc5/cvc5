@@ -31,6 +31,11 @@ Node EnvObj::rewrite(TNode node) const
   return d_env.getRewriter()->rewrite(node);
 }
 
+Node EnvObj::rewriteEqualityExt(TNode node) const
+{
+  return d_env.getRewriter()->rewriteEqualityExt(node);
+}
+
 Node EnvObj::extendedRewrite(TNode node, bool aggr) const
 {
   return d_env.getRewriter()->extendedRewrite(node, aggr);

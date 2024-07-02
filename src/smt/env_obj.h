@@ -59,6 +59,11 @@ class EnvObj
    */
   Node rewrite(TNode node) const;
   /**
+   * Rewrite a node.
+   * This is a wrapper around theory::Rewriter::rewriteEqualityExt via Env.
+   */
+  Node rewriteEqualityExt(TNode node) const;
+  /**
    * Extended rewrite a node.
    * This is a wrapper around theory::Rewriter::extendedRewrite via Env.
    */
