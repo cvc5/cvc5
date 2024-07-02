@@ -23,6 +23,7 @@
 #include "smt/logic_exception.h"
 #include "theory/care_pair_argument_callback.h"
 #include "theory/sets/inference_manager.h"
+#include "theory/sets/proof_checker.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
 #include "theory/sets/theory_sets_rewriter.h"
@@ -117,6 +118,8 @@ class TheorySets : public Theory
   CarePairArgumentCallback d_cpacb;
   /** The internal theory */
   std::unique_ptr<TheorySetsPrivate> d_internal;
+  /** The proof checker */
+  SetsProofRuleChecker d_checker;
   /** Instance of the above class */
   NotifyClass d_notify;
 }; /* class TheorySets */

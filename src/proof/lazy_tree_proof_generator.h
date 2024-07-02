@@ -155,6 +155,14 @@ class LazyTreeProofGenerator : protected EnvObj, public ProofGenerator
                   const std::vector<Node>& premise,
                   std::vector<Node> args,
                   Node proven);
+  /**
+   * Same as above, but with a trusted proof step.
+   */
+  void setCurrentTrust(size_t objectId,
+                       TrustId tid,
+                       const std::vector<Node>& premise,
+                       std::vector<Node> args,
+                       Node proven);
   /** Construct the proof as a ProofNode */
   std::shared_ptr<ProofNode> getProof() const;
   /** Return the constructed proof. Checks that we have proven f */

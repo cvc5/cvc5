@@ -1,21 +1,96 @@
 (include "../theories/Builtin.smt3")
 (include "../theories/Quantifiers.smt3")
 
-(program substitute
+; program: $substitute
+; args:
+; - arg1 S: The domain of the substitution.
+; - arg2 S: The range of the substitution.
+; - arg3 U: The term to process.
+; return: the result of replacing all occurrences of arg1 with arg2 in arg3.
+(program $substitute
   ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U) (w T))
   (S S U) U
   (
-  ((substitute x y x)             y)
-  ((substitute x y (skolem w))    (skolem w))   ; do not traverse into skolems
-  ((substitute x y (f a))         (_ (substitute x y f) (substitute x y a)))
-  ((substitute x y z)             z)
+  (($substitute x y x)             y)
+  (($substitute x y (f a))         (_ ($substitute x y f) ($substitute x y a)))
+  (($substitute x y z)             z)
   )
 )
 
-(program substitute_list ((T Type) (U Type) (F U) (x T) (xs @List :list) (t T) (ts @List :list))
+; program: $substitute_list
+; args:
+; - arg1 @List: The list of domains of the substitution.
+; - arg2 @List: The list of ranges of the substitution.
+; - arg3 U: The term to process.
+; return: >
+;   The result of applying the substitutions specified by arg1
+;   and arg2 in order to arg3. In particular, the first element in the lists arg1
+;   and arg2 are processed first.
+(program $substitute_list ((T Type) (U Type) (F U) (x T) (xs @List :list) (t T) (ts @List :list))
   (@List @List U) U
   (
-    ((substitute_list (@list x xs) (@list t ts) F) (substitute_list xs ts (substitute x t F)))
-    ((substitute_list @list.nil @list.nil F)       F)
+    (($substitute_list (@list x xs) (@list t ts) F) ($substitute_list xs ts ($substitute x t F)))
+    (($substitute_list @list.nil @list.nil F)       F)
+  )
+)
+
+; program: $contains_subterm
+; args:
+; - arg1 S: The term to process.
+; - arg2 U: The term to find.
+; return: The result is true if arg2 is a subterm of arg1.
+(program $contains_subterm
+  ((T Type) (U Type) (S Type) (x U) (y S) (f (-> T S)) (a T))
+  (S U) Bool
+  (
+  (($contains_subterm x x)      true)
+  (($contains_subterm (f a) x)  (alf.ite ($contains_subterm f x) true ($contains_subterm a x)))
+  (($contains_subterm x y)      false)
+  )
+)
+
+; program: $contains_subterm_list
+; args:
+; - arg1 T: The term to process.
+; - arg2 @List: The list of terms to find.
+; return: true if any term in arg2 is a subterm of arg1.
+(program $contains_subterm_list ((T Type) (U Type) (t T) (x U) (xs @List :list))
+  (T @List) Bool
+  (
+    (($contains_subterm_list t (@list x xs)) (alf.ite ($contains_subterm t x) true ($contains_subterm_list t xs)))
+    (($contains_subterm_list t @list.nil)    false)
+  )
+)
+
+
+; program: $substitute_simul
+; args:
+; - s S: The term to substitute into.
+; - xs @List: The list of variables to substitute.
+; - ss @List: The terms to substitute.
+; return: the result of simultaneously substituting xs to ss in t.
+(program $substitute_simul
+  ((T Type) (S Type) (x S) (f (-> T S)) (a T) (xs @List :list) (ss @List :list) (s S) (y S))
+  (S @List @List) S
+  (
+  (($substitute_simul (f a) xs ss)                  (_ ($substitute_simul f xs ss) ($substitute_simul a xs ss)))
+  (($substitute_simul x @list.nil @list.nil)        x)
+  (($substitute_simul x (@list x xs) (@list s ss))  s)  ; note that we do not substitute further since this is a simultaneous substitution.
+  (($substitute_simul x (@list y xs) (@list s ss))  ($substitute_simul x xs ss))
+  )
+)
+
+; program: $beta_reduce
+; args:
+; - u U: >
+;   The term to beta reduce. This should be an application of a lambda
+;   whose arguments have been partially accumulated into ss.
+; - ss @List: The accumulated list of arguments to pass to the lambda.
+; return: the result of beta reduction.
+(program $beta_reduce ((U Type) (T Type) (S Type) (f (-> T U)) (a T) (t S) (xs @List) (ss @List :list))
+  (U @List) U
+  (
+  (($beta_reduce (lambda xs t) ss) ($substitute_simul t xs ss))
+  (($beta_reduce (f a) ss)         ($beta_reduce f (@list a ss)))
   )
 )

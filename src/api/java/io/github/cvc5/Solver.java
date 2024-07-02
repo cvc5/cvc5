@@ -1975,16 +1975,12 @@ public class Solver extends AbstractPointer
   /* .................................................................... */
 
   /**
-   * Simplify a formula without doing "much" work.
+   * Simplify a term or formula based on rewriting.
    *
-   * Does not involve the SAT Engine in the simplification, but uses the
-   * current definitions, assertions, and the current partial model, if one has
-   * been constructed.  It also involves theory normalization.
+   * @api.note This function is experimental and may change in future versions.
    *
-   * @api.note This method is experimental and may change in future versions.
-   *
-   * @param t The formula to simplify.
-   * @return The simplified formula.
+   * @param t The term to simplify.
+   * @return The simplified term.
    */
   public Term simplify(Term t)
   {
@@ -1994,6 +1990,26 @@ public class Solver extends AbstractPointer
 
   private native long simplify(long pointer, long termPointer);
 
+  /**
+   * Simplify a term or formula based on rewriting and (optionally) applying
+   * substitutions for solved variables.
+   *
+   * If applySubs is true, then for example, if `(= x 0)` was asserted to this
+   * solver, this method may replace occurrences of `x` with `0`.
+   *
+   * @api.note This function is experimental and may change in future versions.
+   *
+   * @param t The term to simplify.
+   * @param applySubs Whether to apply substitutions for solved variables.
+   * @return The simplified term.
+   */
+  public Term simplify(Term t, boolean applySubs)
+  {
+    long termPointer = simplify(pointer, t.getPointer(), applySubs);
+    return new Term(termPointer);
+  }
+
+  private native long simplify(long pointer, long termPointer, boolean applySubs);
   /**
    * Assert a formula.
    * SMT-LIB:
@@ -3033,6 +3049,19 @@ public class Solver extends AbstractPointer
 
   private native long declareOracleFun(
       long pointer, String symbol, long[] sortPointers, long sortPointer, IOracle oracle);
+
+  /**
+   * Add plugin to this solver. Its callbacks will be called throughout the
+   * lifetime of this solver.
+   *
+   * @param p The plugin to add to this solver.
+   */
+  public void addPlugin(AbstractPlugin p)
+  {
+    addPlugin(pointer, p.getTermManager().getPointer(), p);
+  }
+
+  private native void addPlugin(long pointer, long termManagerPointer, AbstractPlugin p);
 
   /**
    * Pop a level from the assertion stack.

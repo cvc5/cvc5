@@ -719,31 +719,19 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   }
   Assert(sr.getKind() == Kind::SET_SINGLETON);
   srCard++;
-  // choices[i] stores the canonical symbolic representation of the (i+1)^th
-  // element of sro
-  std::vector<Node> choices;
   Node choice_i;
   for (unsigned i = 0; i < srCard; i++)
   {
     if (i == d_setm_choice[sro].size())
     {
-      choice_i = nm->mkBoundVar(tne);
-      choices.push_back(choice_i);
-      Node cBody = nm->mkNode(Kind::SET_MEMBER, choice_i, sro);
-      if (choices.size() > 1)
-      {
-        cBody =
-            nm->mkNode(Kind::AND, cBody, nm->mkNode(Kind::DISTINCT, choices));
-      }
-      choices.pop_back();
-      Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, choice_i);
-      choice_i = nm->mkNode(
-          Kind::WITNESS, bvl, nm->mkNode(Kind::OR, sro.eqNode(nsr), cBody));
+      Node stgt = nsr.getKind() == Kind::SET_EMPTY
+                      ? sro
+                      : nm->mkNode(Kind::SET_MINUS, sro, nsr);
+      choice_i = nm->mkNode(Kind::SET_CHOOSE, stgt);
       d_setm_choice[sro].push_back(choice_i);
     }
     Assert(i < d_setm_choice[sro].size());
     choice_i = d_setm_choice[sro][i];
-    choices.push_back(choice_i);
     Node sChoiceI = nm->mkNode(Kind::SET_SINGLETON, choice_i);
     if (nsr.getKind() == Kind::SET_EMPTY)
     {
@@ -758,8 +746,8 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   //   e.g.
   // singleton(0) union singleton(1)
   //   becomes
-  // C1 union (witness y. S =(set.singleton C1) OR (y in S AND distinct(y, C1)))
-  // where C1 = (witness x. S=empty OR x in S).
+  // C1 union (set.singleton (set.choose (set.minus S C1)))
+  // where C1 = (set.singleton (set.choose S)).
   Trace("bound-int-rsi") << "...reconstructed " << nsr << std::endl;
   return nsr;
 }

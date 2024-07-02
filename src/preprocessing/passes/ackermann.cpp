@@ -232,10 +232,10 @@ std::unordered_set<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 
   for (const Node& assertion : assertions->ref())
   {
-    std::unordered_set<TNode> vars;
+    std::unordered_set<Node> vars;
     expr::getVariables(assertion, vars);
 
-    for (const TNode& var : vars)
+    for (const Node& var : vars)
     {
       if (var.getType().isUninterpretedSort())
       {
@@ -263,7 +263,7 @@ void usortsToBitVectors(const LogicInfo& d_logic,
   if (toProcess.size() > 0)
   {
     /* the current version only supports BV for removing uninterpreted sorts */
-    if (not d_logic.isTheoryEnabled(theory::THEORY_BV))
+    if (!d_logic.isTheoryEnabled(theory::THEORY_BV))
     {
       return;
     }

@@ -130,11 +130,11 @@ class RegExpOpr : protected EnvObj
   /**
    * Given regular expression of the form
    *   (re.++ r_0 ... r_{n-1})
-   * This returns a non-null node reLen and updates index such that
+   * This returns a non-null node reLen and updates isRev such that
    *   RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
-   * where index is set to either 0 or n-1.
+   * where index is either 0 or n-1 when isRev is false or true respectively.
    */
-  static Node getRegExpConcatFixed(Node r, size_t& index);
+  static Node getRegExpConcatFixed(Node r, bool& isRev);
   //------------------------ trusted reductions
   /**
    * Return the unfolded form of mem of the form (str.in_re s r).
@@ -150,12 +150,12 @@ class RegExpOpr : protected EnvObj
    * Return the unfolded form of mem of the form
    *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
    * Called when RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
-   * where index is either 0 or n-1.
+   * where index is either 0 or n-1 where isRev is false or true respectively.
    *
    * This uses reLen as an optimization to improve the reduction. If reLen
    * is null, then this optimization is not applied.
    */
-  static Node reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index);
+  static Node reduceRegExpNegConcatFixed(Node mem, Node reLen, bool isRev);
   //------------------------ end trusted reductions
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string

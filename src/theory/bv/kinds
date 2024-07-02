@@ -41,7 +41,7 @@ well-founded BITVECTOR_TYPE \
 ### non-parameterized operator kinds ------------------------------------------
 
 ## conversion to bit-vector from vector of Booleans kind
-operator BITVECTOR_BB_TERM 1: "create bit-vector from vector of Booleans"
+operator BITVECTOR_FROM_BOOLS 1: "create bit-vector from vector of Booleans"
 
 ## size
 operator BITVECTOR_SIZE 1: "Size of bitvector"
@@ -115,13 +115,13 @@ operator BITVECTOR_EAGER_ATOM 1 "formula to be treated as a bv atom via eager bi
 
 ### parameterized operator kinds ----------------------------------------------
 
-constant BITVECTOR_BITOF_OP \
+constant BITVECTOR_BIT_OP \
   struct \
-  BitVectorBitOf \
-  ::cvc5::internal::BitVectorBitOfHashFunction \
+  BitVectorBit \
+  ::cvc5::internal::BitVectorBitHashFunction \
   "util/bitvector.h" \
-  "operator for the bit-vector boolean bit extract; payload is an instance of the cvc5::internal::BitVectorBitOf class"
-parameterized BITVECTOR_BITOF BITVECTOR_BITOF_OP 1 "bit-vector boolean bit extract; first parameter is a BITVECTOR_BITOF_OP, second is a bit-vector term"
+  "operator for the bit-vector boolean bit extract; payload is an instance of the cvc5::internal::BitVectorBit class"
+parameterized BITVECTOR_BIT BITVECTOR_BIT_OP 1 "bit-vector boolean bit extract; first parameter is a BITVECTOR_BIT_OP, second is a bit-vector term"
 
 constant BITVECTOR_EXTRACT_OP \
   struct \
@@ -183,7 +183,7 @@ typerule CONST_BITVECTOR_SYMBOLIC ::cvc5::internal::theory::bv::BitVectorConstan
 typerule CONST_BITVECTOR ::cvc5::internal::theory::bv::BitVectorConstantTypeRule
 
 ## conversion to bit-vector from vector of Booleans kind
-typerule BITVECTOR_BB_TERM ::cvc5::internal::theory::bv::BitVectorToBVTypeRule
+typerule BITVECTOR_FROM_BOOLS ::cvc5::internal::theory::bv::BitVectorToBVTypeRule
 
 ## concatenation kind
 typerule BITVECTOR_CONCAT ::cvc5::internal::theory::bv::BitVectorConcatTypeRule
@@ -251,8 +251,8 @@ typerule BITVECTOR_EAGER_ATOM ::cvc5::internal::theory::bv::BitVectorEagerAtomTy
 
 ### type rules for parameterized operator kinds -------------------------------
 
-typerule BITVECTOR_BITOF_OP "SimpleTypeRule<RBuiltinOperator>"
-typerule BITVECTOR_BITOF ::cvc5::internal::theory::bv::BitVectorBitOfTypeRule
+typerule BITVECTOR_BIT_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule BITVECTOR_BIT ::cvc5::internal::theory::bv::BitVectorBitTypeRule
 typerule BITVECTOR_EXTRACT_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_EXTRACT ::cvc5::internal::theory::bv::BitVectorExtractTypeRule
 typerule BITVECTOR_REPEAT_OP "SimpleTypeRule<RBuiltinOperator>"

@@ -108,13 +108,16 @@ name   = "Proof"
   help = "Allow macros. Do not improve the granularity of proofs."
 [[option.mode.REWRITE]]
   name = "rewrite"
-  help = "Allow rewrite or substitution steps, expand macros."
+  help = "Allow trusted rewrite or substitution steps, expand macros."
 [[option.mode.THEORY_REWRITE]]
   name = "theory-rewrite"
-  help = "Allow theory rewrite steps, expand macros, rewrite and substitution steps."
+  help = "Allow trusted theory rewrite steps, expand macros, rewrite and substitution steps."
 [[option.mode.DSL_REWRITE]]
   name = "dsl-rewrite"
-  help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
+  help = "Allow theory and DSL rewrite steps, expand macros, rewrite, substitution, and theory rewrite steps."
+[[option.mode.DSL_REWRITE_STRICT]]
+  name = "dsl-rewrite-strict"
+  help = "Allow theory and DSL rewrite steps giving preference to DSL rewrite steps."
 
 [[option]]
   name       = "proofRewriteRconsRecLimit"
@@ -129,7 +132,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-rewrite-rcons-step-limit=N"
   type       = "uint64_t"
-  default    = "200"
+  default    = "1000"
   help       = "the limit of steps considered for reconstructing proofs of theory rewrites"
 
 [[option]]

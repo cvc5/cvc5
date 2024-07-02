@@ -856,7 +856,52 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-
+        case Kind::STRING_REV:
+        {
+          const String& s = results[currNode[0]].d_str;
+          std::vector<unsigned> nvec = s.getVec();
+          std::reverse(nvec.begin(), nvec.end());
+          results[currNode] = EvalResult(String(nvec));
+          break;
+        }
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER:
+        {
+          const String& s = results[currNode[0]].d_str;
+          std::vector<unsigned> nvec = s.getVec();
+          Kind k = currNodeVal.getKind();
+          for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
+          {
+            unsigned newChar = nvec[i];
+            // transform it
+            // upper 65 ... 90
+            // lower 97 ... 122
+            if (k == Kind::STRING_TO_UPPER)
+            {
+              if (newChar >= 97 && newChar <= 122)
+              {
+                newChar = newChar - 32;
+              }
+            }
+            else if (k == Kind::STRING_TO_LOWER)
+            {
+              if (newChar >= 65 && newChar <= 90)
+              {
+                newChar = newChar + 32;
+              }
+            }
+            nvec[i] = newChar;
+          }
+          results[currNode] = EvalResult(String(nvec));
+          break;
+        }
+        case Kind::STRING_LEQ:
+        {
+          const String& s1 = results[currNode[0]].d_str;
+          const String& s2 = results[currNode[1]].d_str;
+          results[currNode] = EvalResult(s1.isLeq(s2));
+          break;
+        }
         case Kind::CONST_BITVECTOR:
           results[currNode] = EvalResult(currNodeVal.getConst<BitVector>());
           break;

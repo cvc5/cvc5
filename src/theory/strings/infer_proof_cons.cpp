@@ -700,6 +700,7 @@ void InferProofCons::convert(InferenceId infer,
         useBuffer = true;
       }
       ProofRule r = ProofRule::UNKNOWN;
+      std::vector<Node> args;
       if (mem.isNull())
       {
         // failed to eliminate above
@@ -718,25 +719,27 @@ void InferProofCons::convert(InferenceId infer,
                && mem[0].getKind() == Kind::STRING_IN_REGEXP);
         if (mem[0][1].getKind() == Kind::REGEXP_CONCAT)
         {
-          size_t index;
-          Node reLen = RegExpOpr::getRegExpConcatFixed(mem[0][1], index);
+          bool isCRev;
+          Node reLen = RegExpOpr::getRegExpConcatFixed(mem[0][1], isCRev);
           // if we can find a fixed length for a component, use the optimized
           // version
           if (!reLen.isNull())
           {
             r = ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED;
+            args.push_back(nm->mkConst(isCRev));
           }
         }
       }
       if (useBuffer)
       {
-        mem = psb.tryStep(r, {mem}, {});
+        mem = psb.tryStep(r, {mem}, args);
         // should match the conclusion
         useBuffer = (mem==conc);
       }
       else
       {
         ps.d_rule = r;
+        ps.d_args = args;
       }
     }
     break;

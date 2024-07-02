@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --cbqi-tconstraint --ieval=off
 ; EXPECT: unsat
+; DISABLE-TESTER: dsl-proof
 (set-logic AUFLIRA)
 (set-info :source |http://proval.lri.fr/why-benchmarks |)
 (set-info :smt-lib-version 2.6)

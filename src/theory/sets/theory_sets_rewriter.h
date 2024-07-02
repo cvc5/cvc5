@@ -28,6 +28,16 @@ class TheorySetsRewriter : public TheoryRewriter
 {
  public:
   TheorySetsRewriter(NodeManager* nm);
+
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
   /**
    * Rewrite a node into the normal form for the theory of sets.
    * Called in post-order (really reverse-topological order) when

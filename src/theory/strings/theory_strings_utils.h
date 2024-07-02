@@ -49,6 +49,7 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj);
  * when n = str.++( x, y ), c is { x, y }
  * when n = str.++( x, str.++( y, z ), w ), c is { x, str.++( y, z ), w )
  * when n = x, c is { x }
+ * when n = "", c is { "" }
  *
  * Also applies to regular expressions (re.++ above).
  */

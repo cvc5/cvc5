@@ -34,7 +34,30 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm)
+{
+  // Needs to be a subcall in DSL reconstruction since set.is_empty is used
+  // as a premise to test emptiness of a set.
+  registerProofRewriteRule(ProofRewriteRule::SETS_IS_EMPTY_EVAL,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+}
+
+Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    {
+      if (n.getKind() == Kind::SET_IS_EMPTY && n[0].isConst())
+      {
+        return nodeManager()->mkConst(n[0].getKind() == Kind::SET_EMPTY);
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
+}
 
 bool TheorySetsRewriter::checkConstantMembership(TNode elementTerm, TNode setTerm)
 {
@@ -623,6 +646,10 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
 Node TheorySetsRewriter::rewriteMembershipBinaryOp(const Node& node)
 {
+  Assert(node.getKind() == Kind::SET_MEMBER);
+  Assert(node[1].getKind() == Kind::SET_UNION
+         || node[1].getKind() == Kind::SET_INTER
+         || node[1].getKind() == Kind::SET_MINUS);
   NodeManager* nm = nodeManager();
   std::vector<Node> children;
   for (size_t i = 0, nchild = node[1].getNumChildren(); i < nchild; i++)

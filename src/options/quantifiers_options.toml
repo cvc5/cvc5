@@ -200,6 +200,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "use model-based quantifier instantiation"
 
+[[option]]
+  name       = "mbqiFastSygus"
+  category   = "expert"
+  long       = "mbqi-fast-sygus"
+  type       = "bool"
+  default    = "false"
+  help       = "use fast enumeration to augment instantiations from MBQI"
+
 #### E-matching options
 
 [[option]]
