@@ -315,6 +315,26 @@ class StringsEntail
    * infer that any of the yi must be empty.
    */
   Node inferEqsFromContains(Node x, Node y);
+  /**
+   * Rewrite for MACRO_SUBSTR_STRIP_SYM_LENGTH.
+   * @param node The node to rewrite, which should be of the form (str.substr s
+   * n m).
+   * @param rule If we rewrite via this method, this is updated to the internal
+   * rewrite identifier (strings/rewrites.h) that was used.
+   * @param ch1 Along with ch2, this stores how the argument s of node was
+   * partitioned. In particular, s is equivalent to (str.++ ch1 ch2)
+   * (respectively (str.++ ch2 ch1) if rule was set to
+   * Rewrite::SS_STRIP_END_PT), and we have determined based on n and m that
+   * ch1/ch2 are in separate parts of the computation of the substring, e.g.
+   * ch1 is what is contained in the substring, and ch2 is not contained, or
+   * vice versa.
+   * @param ch2 The second part of the partition of s.
+   * @return The rewritten form of node.
+   */
+  Node rewriteViaMacroSubstrStripSymLength(const Node& node,
+                                           Rewrite& rule,
+                                           std::vector<Node>& ch1,
+                                           std::vector<Node>& ch2);
 
  private:
   /** component contains base
