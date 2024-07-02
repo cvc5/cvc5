@@ -1,3 +1,5 @@
+; COMMAND-LINE: --finite-model-find
+; EXPECT: unknown
 (set-logic ALL)
 (declare-fun b (Int) Int)
 (declare-fun u (Int) Int)
