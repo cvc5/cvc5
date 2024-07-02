@@ -39,14 +39,12 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
 {
   switch(lang) {
     case Language::LANG_SMTLIB_V2_6:
-      return unique_ptr<Printer>(
-          new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
+      return unique_ptr<Printer>(new printer::smt2::Smt2Printer);
 
     case Language::LANG_SYGUS_V2:
       // sygus version 2.0 does not have discrepancies with smt2, hence we use
       // a normal smt2 variant here.
-      return unique_ptr<Printer>(
-          new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
+      return unique_ptr<Printer>(new printer::smt2::Smt2Printer);
 
     case Language::LANG_AST:
       return unique_ptr<Printer>(new printer::ast::AstPrinter());

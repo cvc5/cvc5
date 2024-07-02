@@ -561,7 +561,8 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       else
       {
         // [2] print the types
-        smt::PrintBenchmark pb(Printer::getPrinter(out), &d_tproc);
+        printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
+        smt::PrintBenchmark pb(&alfp, &d_tproc);
         std::stringstream outFuns;
         pb.printDeclarationsFrom(out, outFuns, definitions, assertions);
         // [3] print the universal variables

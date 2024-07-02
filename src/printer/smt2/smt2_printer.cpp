@@ -1700,6 +1700,25 @@ void Smt2Printer::toStreamCmdDeclareFunction(
     const std::vector<TypeNode>& argTypes,
     TypeNode type) const
 {
+  if (d_variant == Variant::alf_variant)
+  {
+    out << "(declare-const " << cvc5::internal::quoteSymbol(id);
+    if (!argTypes.empty())
+    {
+      out << " (->";
+      for (const TypeNode& tn : argTypes)
+      {
+        out << " " << tn;
+      }
+    }
+    out << " " << type;
+    if (!argTypes.empty())
+    {
+      out << ')';
+    }
+    out << ')';
+    return;
+  }
   out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " ";
   toStreamDeclareType(out, argTypes, type);
   out << ')';
@@ -1740,6 +1759,13 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
+  if (d_variant == Variant::alf_variant)
+  {
+    out << "(define " << cvc5::internal::quoteSymbol(id) << " ";
+    toStreamSortedVarList(out, formals);
+    out << " " << formula << ')';
+    return;
+  }
   out << "(define-fun " << cvc5::internal::quoteSymbol(id) << " ";
   toStreamSortedVarList(out, formals);
   out << " " << range << ' ' << formula << ')';
@@ -1827,6 +1853,20 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          const std::string& id,
                                          size_t arity) const
 {
+  if (d_variant == Variant::alf_variant)
+  {
+    out << "(declare-type " << cvc5::internal::quoteSymbol(id) << " (";
+    for (size_t i = 0; i < arity; i++)
+    {
+      if (i > 0)
+      {
+        out << " ";
+      }
+      out << "Type";
+    }
+    out << "))";
+    return;
+  }
   out << "(declare-sort " << cvc5::internal::quoteSymbol(id) << " " << arity
       << ")";
 }
