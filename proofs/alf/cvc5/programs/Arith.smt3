@@ -263,11 +263,11 @@
 ; - p @Polynomial: The polynomial to convert to a term.
 ; return: The term corresponding to the polynomial p.
 ; note: This is a helper for $arith_poly_to_term below.
-(program $arith_poly_to_term_rec ((T Type) (p @Polynomial :list) (a1 T) (c1 Real))
+(program $arith_poly_to_term_rec ((T Type) (p @Polynomial :list) (a T) (c T))
   (@Polynomial) T
   (
     (($arith_poly_to_term_rec @poly.zero) 0)
-    (($arith_poly_to_term_rec (@poly (@mon a1 c1) p)) (+ (* c1 a1) ($arith_poly_to_term_rec p)))
+    (($arith_poly_to_term_rec (@poly (@mon a c) p)) (+ (* c a) ($arith_poly_to_term_rec p)))
   )
 )
 

@@ -758,9 +758,9 @@
           (alf.ite isUnder
             (alf.and ($str_arith_entail_simple n1) ($str_arith_entail_simple_pred (>= lx npm)))
             ($str_arith_entail_simple n2))
-        (alf.ite (alf.is_eq n (str.len s))
+        (alf.ite (alf.is_eq n lx)
           (alf.not isUnder)
-        (alf.ite (alf.is_eq n (- (str.len s) n1))
+        (alf.ite (alf.is_eq n (- lx n1))
           (alf.ite isUnder
             (alf.and ($str_arith_entail_simple n1) ($str_arith_entail_simple_pred (>= npm lx)))
             ($str_arith_entail_simple_pred (>= lx n1)))
@@ -789,7 +789,7 @@
   )
 )
 
-; program: $str_arith_entail_is_approx_len
+; program: $str_arith_entail_is_approx_indexof
 ; args:
 ; - s String: The first string argument to str.indexof.
 ; - t String: The second string argument to str.indexof.
