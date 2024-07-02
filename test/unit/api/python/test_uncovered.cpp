@@ -142,6 +142,8 @@ TEST_F(TestApiBlackUncovered, deprecated)
 
   (void)slv.mkVar(slv.getIntegerSort());
   (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
+
+  (void)parser::SymbolManager(d_solver.get());
 }
 
 TEST_F(TestApiBlackUncovered, exception_getmessage)
@@ -222,6 +224,12 @@ TEST_F(TestApiBlackUncovered, equalHash)
   ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt1));
   ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt2));
 }
+
+TEST_F(TestApiBlackUncovered, hash)
+{
+  (void)std::hash<cvc5::Result>{}(cvc5::Result());
+}
+
 TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
 {
   std::stringstream ss;

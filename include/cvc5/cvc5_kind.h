@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Mudathir Mohamed
+ *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +56,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(Kind) : int32_t
+enum ENUM(Kind)
 {
   /**
    * Internal kind.
@@ -2049,6 +2049,38 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_TO_NAT),
+  /**
+   * Converts a list of Bool terms to a bit-vector.
+   *
+   * - Arity: ``n > 0``
+   *
+   *   - ``1..n:`` Terms of Sort Bool
+   *
+   * \rst
+   * .. note:: May be returned as the result of an API call, but terms of this
+   *           kind may not be created explicitly via the API and may not
+   *           appear in assertions.
+   * \endrst
+   */
+  EVALUE(BITVECTOR_FROM_BOOLS),
+  /**
+   * Retrieves the bit at the given index from a bit-vector as a Bool term.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of bit-vector Sort
+   *
+   * - Indices: ``1``
+   *
+   *   - ``1:`` The bit index
+   *
+   * \rst
+   * .. note:: May be returned as the result of an API call, but terms of this
+   *           kind may not be created explicitly via the API and may not
+   *           appear in assertions.
+   * \endrst
+   */
+  EVALUE(BITVECTOR_BIT),
 
   /* Finite Fields --------------------------------------------------------- */
 
@@ -5837,7 +5869,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(SortKind) : int32_t
+enum ENUM(SortKind)
 {
   /**
    * Internal kind.

@@ -2,48 +2,86 @@
 (include "../theories/Quantifiers.smt3")
 
 
+; rule: instantiate
+; implements: ProofRule::INSTANTIATE.
+; premises:
+; - Q Bool: The quantified formula to instantiate.
+; args:
+; - ts @List: The list of terms to instantiate with.
+; conclusion: The result of substituting free occurrences of xs in F with ts.
 (declare-rule instantiate ((F Bool) (xs @List) (ts @List))
   :premises ((forall xs F))
   :args (ts)
-  :conclusion (substitute_list xs ts F))
+  :conclusion ($substitute_list xs ts F))
 
-; returns the list of skolems for F
-(program mk_skolems ((x @List) (xs @List :list) (F Bool))
+; program: $mk_skolems
+; args:
+; - arg1 @List: The bound variable list to process.
+; - arg2 Bool: The body of the quantified formula. This impacts the definition of the introduced skolems.
+; return: >
+;   The list of skolem variables for the quantified formula whose bound variable list
+;   is arg1 and whose body is arg2.
+(program $mk_skolems ((x @List) (xs @List :list) (F Bool))
   (@List Bool) @List
   (
-    ((mk_skolems (@list x xs) F) (alf.cons @list (skolem (@quantifiers_skolemize F x)) (mk_skolems xs F)))
-    ((mk_skolems @list.nil F)    @list.nil)
+    (($mk_skolems (@list x xs) F) (alf.cons @list (@quantifiers_skolemize F x) ($mk_skolems xs F)))
+    (($mk_skolems @list.nil F)    @list.nil)
   )
 )
 
+; rule: skolemize
+; implements: ProofRule::SKOLEMIZE.
+; premises:
+; - Q Bool: The quantified formula to skolemize. This is either an existential or a negated universal.
+; conclusion: >
+;   The skolemized body of Q, where its variables are replaced by skolems
+;   introduced via $mk_skolems,
 (declare-rule skolemize ((F Bool))
   :premises (F)
   :conclusion
     (alf.match ((T Type) (x @List) (G Bool))
         F
         (
-          ((exists x G)       (substitute_list x (mk_skolems x F) G))
-          ((not (forall x G)) (substitute_list x (mk_skolems x (exists x (not G))) (not G)))
+          ((exists x G)       ($substitute_list x ($mk_skolems x F) G))
+          ((not (forall x G)) ($substitute_list x ($mk_skolems x (exists x (not G))) (not G)))
         ))
 )
 
-(declare-rule skolem_intro ((T Type) (t T))
-  :args (t)
-  :conclusion 
-    (alf.match ((T Type) (x T) (F Bool))
-      t
-      (
-        ; special case for witness
-        ((skolem (@quantifiers_skolemize (exists (@list x) F) x)) (= t (witness (@list x) F)))
-        ((skolem x)                                                 (= t x))
-      )
-   )
+; rule: skolem_intro
+; implements: ProofRule::SKOLEM_INTRO.
+; args:
+; - t T: The purification skolem.
+; conclusion: >
+;   An equality equating t to its original form. This indicates that
+;   the purification skolem for any term x can be assumed to be equal to x.
+(declare-rule skolem_intro ((T Type) (x T))
+  :args ((@purify x))
+  :conclusion (= (@purify x) x)
 )
 
-; B is the formula to apply to
-; vs is a list of variables to substitution for the variable list ts
-; Note we don't currently check whether this is valid renaming.
+; rule: alpha_equiv
+; implements: ProofRule::ALPHA_EQUIV.
+; args:
+; - B Bool: The formula to apply to alpha equivalence to.
+; - vs @List: The list of variables to substitute from.
+; - ts @List: The list of (renamed) variables to substitute into.
+; requires: B does not contain any occurence of the range variables ts.
+; conclusion: >
+;   The result of applying the substitution specified by vs and ts to
+;   B. The substitution is valid renaming due to the requirement check.
 (declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
   :args (B vs ts)
-  :conclusion (= B (substitute_list vs ts B))
+  :requires ((($contains_subterm_list B ts) false))
+  :conclusion (= B ($substitute_list vs ts B))
+)
+
+; rule: beta_reduce implements ProofRewriteRule::BETA_REDUCE
+; args:
+; - eq : Bool. The equality to prove between terms a and b.
+; requires: Showing that a beta-reduces to b.
+; conclusion: The given equality.
+(declare-rule beta-reduce ((T Type) (a T) (b T))
+  :args ((= a b))
+  :requires ((($beta_reduce a @list.nil) b))
+  :conclusion (= a b)
 )

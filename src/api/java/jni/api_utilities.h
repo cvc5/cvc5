@@ -146,10 +146,43 @@ jobject getDoubleObject(JNIEnv* env, double value);
 jobject getBooleanObject(JNIEnv* env, bool value);
 
 /**
- * a map from solver pointers to global references that need to be freed when
- * the java Solver.deletePointer method is called
+ * The java api manager.
+ *
+ * It is a singleton that is accessible via ApiManager::currentAM().
  */
-inline std::map<jlong, std::vector<jobject> > globalReferences;
+class ApiManager
+{
+ public:
+  /**
+   * Get the singleton instance.
+   */
+  static ApiManager* currentAM();
+  /**
+   * Create a new global reference to the object referred to by the obj
+   * argument, and store the object to be disposed of later.
+   */
+  jobject addGlobalReference(JNIEnv* env, jlong pointer, jobject object);
+  /**
+   * Store a plugin pointer to be deleted later.
+   */
+  void addPluginPointer(jlong pointer, jlong pluginPointer);
+  /**
+   * Delete resources associated with pointer.
+   */
+  void deletePointer(JNIEnv* env, jlong pointer);
+
+ private:
+  /**
+   * A map from pointers to jni global references that need to be freed when
+   * the deletePointer method is called
+   */
+  std::map<jlong, std::vector<jobject> > d_globalReferences;
+  /**
+   * A map to ApiPlugin pointers that need to be freed when
+   * the deletePointer method is called
+   */
+  std::map<jlong, std::vector<jlong> > d_pluginPointers;
+};
 
 /**
  * @param env jni environment

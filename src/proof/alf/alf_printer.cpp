@@ -143,7 +143,8 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
-    case ProofRule::ENCODE_PRED_TRANSFORM:
+    case ProofRule::ENCODE_EQ_INTRO:
+    case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::THEORY_REWRITE:
@@ -203,7 +204,13 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   switch (id)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
-    case ProofRewriteRule::RE_LOOP_ELIM: return true;
+    case ProofRewriteRule::BETA_REDUCE:
+    case ProofRewriteRule::RE_LOOP_ELIM:
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
+    case ProofRewriteRule::STR_IN_RE_SIGMA:
+    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
+    case ProofRewriteRule::STR_IN_RE_CONSUME: return true;
     default: break;
   }
   return false;
@@ -224,6 +231,7 @@ bool AlfPrinter::canEvaluate(Node n) const
       visited.insert(cur);
       switch (cur.getKind())
       {
+        case Kind::ITE:
         case Kind::NOT:
         case Kind::AND:
         case Kind::OR:
@@ -281,13 +289,6 @@ bool AlfPrinter::canEvaluate(Node n) const
         break;
         case Kind::BITVECTOR_SIZE:
           // special case, evaluates no matter what is inside
-          continue;
-        case Kind::STRING_IN_REGEXP:
-          if (!canEvaluateRegExp(cur[1]))
-          {
-            return false;
-          }
-          visit.push_back(cur[0]);
           continue;
         default:
           Trace("alf-printer-debug")
@@ -370,6 +371,14 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     std::stringstream ss;
     ss << id;
     return ss.str();
+  }
+  else if (r == ProofRule::ENCODE_EQ_INTRO || r == ProofRule::HO_APP_ENCODE)
+  {
+    // ENCODE_EQ_INTRO proves (= t (convert t)) from argument t,
+    // where (convert t) is indistinguishable from t according to the proof.
+    // Similarly, HO_APP_ENCODE proves an equality between a term of kind
+    // Kind::HO_APPLY and Kind::APPLY_UF, which denotes the same term in ALF.
+    return "refl";
   }
   std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {

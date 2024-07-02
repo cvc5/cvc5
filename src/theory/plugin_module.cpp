@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,7 +63,7 @@ void PluginModule::notifyLemma(TNode n,
 
 void PluginModule::notifyLemmaInternal(const Node& n)
 {
-  Node ns = d_plugin->getSharableFormula(n);
+  Node ns = d_env.getSharableFormula(n);
   if (!ns.isNull())
   {
     d_plugin->notifyTheoryLemma(ns);

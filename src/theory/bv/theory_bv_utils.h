@@ -175,7 +175,7 @@ Node mkSignExtend(TNode node, unsigned amount);
 Node mkExtract(TNode node, unsigned high, unsigned low);
 /* Create extract node of bit-width 1 where the resulting node represents
  * the bit at given index.  */
-Node mkBitOf(TNode node, unsigned index);
+Node mkBit(TNode node, unsigned index);
 
 /* Create n-ary concat node of given children.  */
 Node mkConcat(TNode t1, TNode t2);
