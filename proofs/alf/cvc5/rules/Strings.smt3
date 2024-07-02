@@ -279,7 +279,7 @@
 ; implements: ProofRewriteRule::ARITH_STRING_PRED_ENTAIL
 ; args:
 ; - eq Bool: The equality to prove between an integer inequality and true.
-; requires: showing that n is entailed be greated than 0 using $str_arith_entail_simple.
+; requires: showing that n is entailed to be greater than 0 using $str_arith_entail_simple.
 ; conclusion: The given equality.
 (declare-rule arith-string-pred-entail ((n Int))
   :args ((= (>= n 0) true))
