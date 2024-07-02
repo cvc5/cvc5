@@ -278,4 +278,4 @@
 ;   a term corresponding to the polynomial obtained by converting t to a polynomial.
 ;   This can be used for normalizing terms according to arithmetic.
 (define $arith_poly_to_term ((T Type :implicit) (t T))
-  ($arith_poly_to_term_rec (get_poly_norm t)))
+  ($arith_poly_to_term_rec ($get_poly_norm t)))
