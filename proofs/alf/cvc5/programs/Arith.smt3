@@ -85,10 +85,10 @@
 ;; =============== for ARITH_POLY_NORM
 
 ; Definitions of monomials and polynomials.
-; A monomial is a list of terms that are ordered by `$compare_var` and a rational coefficient.
+; A monomial is a list of terms that are ordered by `$compare_var` and a coefficient.
 ; A polynomial is a list of monomials whose monomials are ordered by `$compare_var`.
 (declare-type @Monomial ())
-(declare-const @mon (-> (! Type :var T :implicit) T Real @Monomial))
+(declare-const @mon (-> (! Type :var T :implicit) T T @Monomial))
 
 (declare-type @Polynomial ())
 (declare-const @poly.zero @Polynomial)
@@ -98,7 +98,7 @@
 ; args:
 ; - p @Polynomial: The polynomial to negate.
 ; return: the negation of the given polynomial.
-(program $poly_neg ((T Type) (c Real) (a T) (p @Polynomial :list))
+(program $poly_neg ((T Type) (c T) (a T) (p @Polynomial :list))
   (@Polynomial) @Polynomial
   (
     (($poly_neg @poly.zero)           @poly.zero)
@@ -111,7 +111,7 @@
 ; - p1 @Polynomial: The first polynomial to add.
 ; - p2 @Polynomial: The second polynomial to add.
 ; return: the addition of the given polynomials.
-(program $poly_add ((T Type) (U Type) (c1 Real) (a1 T) (c2 Real) (a2 U) (p @Polynomial) (p1 @Polynomial :list) (p2 @Polynomial :list))
+(program $poly_add ((T Type) (U Type) (c1 T) (a1 T) (c2 U) (a2 U) (p @Polynomial) (p1 @Polynomial :list) (p2 @Polynomial :list))
   (@Polynomial @Polynomial) @Polynomial
   (
     (($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) (alf.ite (alf.is_eq a1 a2)
@@ -148,7 +148,7 @@
 ; - a @Monomial: The first monomial to multiply.
 ; - b @Monomial: The second monomial to multiply.
 ; return: the multiplication of the given monomials.
-(program $mon_mul_mon ((T Type) (U Type) (V Type) (W Type) (a1 T) (a2 U) (b1 V) (b2 W) (c1 Real) (c2 Real))
+(program $mon_mul_mon ((T Type) (U Type) (a1 T) (a2 U) (c1 T) (c2 U))
   (@Monomial @Monomial) @Monomial
   (
     (($mon_mul_mon (@mon a1 c1) (@mon a2 c2))  (@mon ($mvar_mul_mvar a1 a2) (alf.mul c1 c2)))
@@ -205,55 +205,11 @@
   )
 )
 
-; program: $poly_is_equal_mod_c_rec
-; args:
-; - c Real: The coefficient.
-; - p1 @Polynomial: The first polynomial.
-; - p2 @Polynomial: The second polynomial.
-; return: true if p2 is equal to p1 multiplied by the coefficient c.
-(program $poly_is_equal_mod_c_rec ((c Real) (T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list))
-  (Real @Polynomial @Polynomial) Bool
-  (
-    (($poly_is_equal_mod_c_rec c @poly.zero @poly.zero)                          true)
-    (($poly_is_equal_mod_c_rec c (@poly (@mon a c1) p1) (@poly (@mon a c2) p2))  (alf.requires c (alf.qdiv c2 c1) ($poly_is_equal_mod_c_rec c p1 p2)))
-  )
-)
-
-; define: $is_poly_norm_arith
+; define: $is_poly_norm
 ; args:
 ; - a T: The first arithmetic term to process, of type Int or Real.
 ; - b T: The second arithmetic term to process, of type Int or Real.
 ; return: true if a and b normalize to the same polynomial
-(define $is_poly_norm_arith ((T Type :implicit) (a T) (b T))
+(define $is_poly_norm ((T Type :implicit) (a T) (b T))
   (alf.is_eq ($get_poly_norm a) ($get_poly_norm b))
-)
-
-; program: $poly_is_equal_mod_c
-; args:
-; - p1 @Polynomial: The first polynomial.
-; - p2 @Polynomial: The second polynomial.
-; - reqPos Bool: Whether we require the ratio between p1 and p2 to be a positive numeral.
-; return: >
-;   true if the two given polynomials are equivalent up to modulus by a
-;   (non-zero, positive if reqPos is true) coefficient.
-(program $poly_is_equal_mod_c ((T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list) (reqPos Bool))
-  (@Polynomial @Polynomial Bool) Bool
-  (
-    (($poly_is_equal_mod_c @poly.zero @poly.zero reqPos)                         true)
-    (($poly_is_equal_mod_c (@poly (@mon a c1) p1) (@poly (@mon a c2) p2) reqPos) (let ((c (alf.qdiv c2 c1))) 
-                                                                                (alf.requires (alf.and reqPos (alf.is_neg c)) false
-                                                                                ($poly_is_equal_mod_c_rec c p1 p2))))
-  )
-)
-
-; define: $is_poly_norm_arith_mod_c
-; args:
-; - a T: The first arithmetic term to process, of type Int or Real.
-; - b T: The second arithmetic term to process, of type Int or Real.
-; - reqPos Bool: Whether we require the ratio between a and b to be a positive numeral.
-; return: >
-;   true if a and b normalize to polynomials that are the same up to modulus
-;   by a (non-zero, positive if reqPos is true) coefficient.
-(define $is_poly_norm_arith_mod_c ((T Type :implicit) (a T) (b T) (reqPos Bool))
-  ($poly_is_equal_mod_c ($get_poly_norm a) ($get_poly_norm b) reqPos)
 )

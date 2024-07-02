@@ -6,6 +6,13 @@
 (define $compare_geq ((T Type :implicit) (x T) (y T))
   (alf.ite (alf.is_eq x y) true (alf.gt x y)))
 
+; define: $sgn
+; args:
+; - x T: The term to inspect. Assumed to be an arithmetic value.
+; return: The sign of x: -1 if x < 0, 1 if x > 0, and 0 otherwise.
+(define $sgn ((T Type :implicit) (x T))
+  (alf.ite (alf.is_neg x) -1 (alf.ite (alf.is_neg (alf.neg x)) 1 0)))
+
 (declare-type @Pair (Type Type))
 (declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
 

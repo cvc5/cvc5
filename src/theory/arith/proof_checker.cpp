@@ -52,6 +52,7 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ARITH_MULT_POS, this);
   pc->registerChecker(ProofRule::ARITH_MULT_NEG, this);
   pc->registerChecker(ProofRule::ARITH_POLY_NORM, this);
+  pc->registerChecker(ProofRule::ARITH_POLY_NORM_REL, this);
   // register the extended proof checkers
   d_extChecker.registerTo(pc);
   d_trChecker.registerTo(pc);
@@ -406,6 +407,21 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         return Node::null();
       }
       return args[0];
+    }
+    case ProofRule::ARITH_POLY_NORM_REL:
+    {
+      Assert(children.size() == 1);
+      Assert(args.size() == 1);
+      Kind k;
+      if (!getKind(args[0], k))
+      {
+        return Node::null();
+      }
+      Node x1 = children[0][0][1][0];
+      Node x2 = children[0][0][1][1];
+      Node y1 = children[0][1][1][0];
+      Node y2 = children[0][1][1][1];
+      return nm->mkNode(k, x1, x2).eqNode(nm->mkNode(k, y1, y2));
     }
     default: return Node::null();
   }
