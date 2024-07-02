@@ -160,6 +160,10 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       std::vector<Node> toErase;
       // For each substitution, see if we can drop it while maintaining the
       // invariant that the target literal still evaluates to true.
+      // For example, the lemma (=> (and (= x 1) (= y 0)) (> x 0)) can be
+      // minimized to (=> (= x 1) (> x 0)) noting that (> x 0) simplifies to
+      // true under substitution { x -> 1, y -> 0 }, and moreover still simplifies
+      // to true under { x -> 1 }.
       for (std::pair<const Node, Node>& ss : smap)
       {
         // try eliminating the substitution
