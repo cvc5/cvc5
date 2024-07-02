@@ -142,6 +142,8 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
+    case ProofRule::DRAT_REFUTATION:
+    case ProofRule::SAT_EXTERNAL_PROVE:
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
