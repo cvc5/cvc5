@@ -33,9 +33,8 @@ namespace smt2 {
 enum class Variant
 {
   no_variant,
-  smt2_6_variant,  // new-style 2.6 syntax, when it makes a difference, with
-                   // support for the string standard
-  alf_variant      // support for ALF
+  // A variant used for printing commands in the preamble of ALF proofs. This is used by the ALF printer.
+  alf_variant
 };
 
 class Smt2Printer : public cvc5::internal::Printer
