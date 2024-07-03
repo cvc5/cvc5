@@ -275,6 +275,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     }
     else
     {
+      // prove via ARITH_POLY_NORM.
       std::vector<Node> transEq;
       for (size_t i = 0; i < 2; i++)
       {
