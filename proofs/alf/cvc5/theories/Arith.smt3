@@ -23,15 +23,15 @@
     )
 )
 
-; program: $is_arith_type
+; program: is_arith_type
 ; args:
 ; - T Type: A type.
 ; return: true if T is Int or Real
-(program $is_arith_type ()
+(program is_arith_type ()
     (Type) Bool
     (
-      (($is_arith_type Int) true)
-      (($is_arith_type Real) true)
+      ((is_arith_type Int) true)
+      ((is_arith_type Real) true)
     )
 )
 
@@ -50,41 +50,41 @@
 ; Core arithmetic predicates
 (declare-const < (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
-                     (! T :requires (($is_arith_type T) true))
-                     (! U :requires (($is_arith_type U) true))
+                     (! T :requires ((is_arith_type T) true))
+                     (! U :requires ((is_arith_type U) true))
                      Bool)
                      :chainable and)
 (declare-const <= (-> (! Type :var T :implicit)
                       (! Type :var U :implicit)
-                      (! T :requires (($is_arith_type T) true))
-                      (! U :requires (($is_arith_type U) true))
+                      (! T :requires ((is_arith_type T) true))
+                      (! U :requires ((is_arith_type U) true))
                       Bool)
                       :chainable and)
 (declare-const > (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
-                     (! T :requires (($is_arith_type T) true))
-                     (! U :requires (($is_arith_type U) true))
+                     (! T :requires ((is_arith_type T) true))
+                     (! U :requires ((is_arith_type U) true))
                      Bool)
                      :chainable and)
 (declare-const >= (-> (! Type :var T :implicit)
                       (! Type :var U :implicit)
-                      (! T :requires (($is_arith_type T) true))
-                      (! U :requires (($is_arith_type U) true))
+                      (! T :requires ((is_arith_type T) true))
+                      (! U :requires ((is_arith_type U) true))
                       Bool)
                       :chainable and)
 
 ; Conversion functions.
 (declare-const to_real (-> (! Type :var T :implicit)
-                           (! T :requires (($is_arith_type T) true))
+                           (! T :requires ((is_arith_type T) true))
                            Real))
 (declare-const to_int (-> (! Type :var T :implicit)
-                          (! T :requires (($is_arith_type T) true))
+                          (! T :requires ((is_arith_type T) true))
                           Int))
 (declare-const is_int (-> (! Type :var T :implicit)
-                          (! T :requires (($is_arith_type T) true))
+                          (! T :requires ((is_arith_type T) true))
                           Bool))
 (declare-const abs (-> (! Type :var T :implicit)
-                       (! T :requires (($is_arith_type T) true))
+                       (! T :requires ((is_arith_type T) true))
                        T))
 
 ; Power function.
@@ -97,5 +97,5 @@
 ; alf.as when they are used in higher-order contexts, e.g. as an argument to
 ; the cong proof rule.
 (declare-const - (-> (! Type :var T :implicit)
-                     (! T :requires (($is_arith_type T) true))
+                     (! T :requires ((is_arith_type T) true))
                      T))
