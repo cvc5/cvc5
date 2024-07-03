@@ -779,9 +779,9 @@
           isUnder
           false)))))))
     (($str_arith_entail_is_approx_len (str.from_int n1) n isUnder)
-        (alf.ite (alf.is_eq n n1)
-          (alf.and (alf.not isUnder) ($str_arith_entail_simple n1))
         (alf.ite (alf.is_eq n (+ n1 1))
+          (alf.and (alf.not isUnder) ($str_arith_entail_simple n1))
+        (alf.ite (alf.is_eq n n1)
           (alf.and (alf.not isUnder) ($str_arith_entail_simple_pred (> n1 0)))
         (alf.ite (alf.is_eq n 1)
           (alf.and isUnder ($str_arith_entail_simple n1))
