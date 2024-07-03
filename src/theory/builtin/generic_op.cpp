@@ -59,7 +59,7 @@ bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
          || k == Kind::BITVECTOR_REPEAT || k == Kind::BITVECTOR_ZERO_EXTEND
          || k == Kind::BITVECTOR_SIGN_EXTEND || k == Kind::BITVECTOR_ROTATE_LEFT
          || k == Kind::BITVECTOR_ROTATE_RIGHT || k == Kind::INT_TO_BITVECTOR
-         || k == Kind::BITVECTOR_BITOF || k == Kind::IAND
+         || k == Kind::BITVECTOR_BIT || k == Kind::IAND
          || k == Kind::FLOATINGPOINT_TO_FP_FROM_FP
          || k == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || k == Kind::FLOATINGPOINT_TO_FP_FROM_SBV
@@ -120,9 +120,9 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
       indices.push_back(nm->mkConstInt(
           Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
       break;
-    case Kind::BITVECTOR_BITOF:
+    case Kind::BITVECTOR_BIT:
       indices.push_back(
-          nm->mkConstInt(Rational(n.getConst<BitVectorBitOf>().d_bitIndex)));
+          nm->mkConstInt(Rational(n.getConst<BitVectorBit>().d_bitIndex)));
       break;
     case Kind::INT_TO_BITVECTOR:
       indices.push_back(
@@ -303,9 +303,9 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
       case Kind::BITVECTOR_ROTATE_RIGHT:
         Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorRotateRight(numerals[0]));
-      case Kind::BITVECTOR_BITOF:
+      case Kind::BITVECTOR_BIT:
         Assert(numerals.size() == 1);
-        return nm->mkConst(BitVectorBitOf(numerals[0]));
+        return nm->mkConst(BitVectorBit(numerals[0]));
       case Kind::INT_TO_BITVECTOR:
         Assert(numerals.size() == 1);
         return nm->mkConst(IntToBitVector(numerals[0]));

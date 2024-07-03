@@ -49,7 +49,8 @@ int main()
 
 void testGetInfo(cvc5::Solver* solver, const char* s)
 {
-  std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
+  std::unique_ptr<SymbolManager> symman(
+      new SymbolManager(solver->getTermManager()));
 
   InputParser p(solver, symman.get());
   std::stringstream ssi;
