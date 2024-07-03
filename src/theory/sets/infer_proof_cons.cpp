@@ -294,7 +294,7 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(exp.getKind() == Kind::NOT && exp[0].getKind() == Kind::EQUAL
              && exp[0][0] < exp[0][1]);
       Node res = psb.tryStep(ProofRule::SETS_EXT, {exp}, {}, conc);
-      success = (res == conc);
+      success = CDProof::isSame(res, conc);
       Assert(success);
     }
     break;
@@ -304,7 +304,7 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(assumps.size() == 1);
       Node res =
           psb.tryStep(ProofRule::SETS_SINGLETON_INJ, {assumps[0]}, {}, conc);
-      success = (res == conc);
+      success = CDProof::isSame(res, conc);
       Assert(success);
     }
     break;
