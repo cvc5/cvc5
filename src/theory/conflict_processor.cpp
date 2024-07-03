@@ -27,8 +27,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-ConflictProcessor::ConflictProcessor(Env& env)
-    : EnvObj(env), d_stats(statisticsRegistry())
+ConflictProcessor::ConflictProcessor(Env& env, bool useExtRewriter)
+    : EnvObj(env), d_useExtRewriter(useExtRewriter), d_stats(statisticsRegistry())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -41,7 +41,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   ++d_stats.d_initLemmas;
   Node lemma = lem.getProven();
   lemma = rewrite(lemma);
-  // do not use compression
+  // do not use compression, because we will erase substitutions below
   SubstitutionMap s(nullptr, false);
   std::map<Node, Node> varToExp;
   std::vector<Node> tgtLits;
@@ -58,7 +58,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   Trace("confp") << "- Substitution: " << s.toString() << std::endl;
   Trace("confp") << "- Target: " << tgtLits << std::endl;
   // Check if the substitution implies one of the tgtLit. If so, store in
-  // tgtLit.
+  // tgtLit. If we find a single one, then we can ignore the others in tgtLits.
   Node tgtLit;
   std::vector<Node> tgtLitsNc;
   // Maps evaluated literals to their source.

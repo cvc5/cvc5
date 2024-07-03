@@ -39,13 +39,20 @@ namespace theory {
 class ConflictProcessor : protected EnvObj
 {
  public:
-  ConflictProcessor(Env& env);
+  /**
+   * The constructor for this class.
+   * @param env The environment.
+   * @param useExtRewriter Whether we use the extended rewriter when evaluating substitutions below.
+   */
+  ConflictProcessor(Env& env, bool useExtRewriter = false);
   ~ConflictProcessor() {}
 
   /**
    * Attempt to rewrite a lemma to a stronger one. For example, the lemma
    * (=> (= x a) (or B C)) may be replaced by (=> (= x a) B) if B[a/x] rewrites
-   * to true.
+   * to true. We also may drop literals that rewrite to the same this under this
+   * substitution, or drop equalities from the lemma that are determined to be
+   * irrelevant based on this reasoning.
    * 
    * @param lem The lemma.
    * @return A trust node for a lemma that implies lem.
@@ -63,9 +70,9 @@ class ConflictProcessor : protected EnvObj
   struct Statistics
   {
     Statistics(StatisticsRegistry& sr);
-    /** Total number of lemmas */
+    /** Total number of lemmas given to this module */
     IntStat d_initLemmas;
-    /** Total number of lemmas */
+    /** Total number of lemmas for which we were able to decompose */
     IntStat d_lemmas;
     /** Total number of minimized lemmas */
     IntStat d_minLemmas;
@@ -82,6 +89,10 @@ class ConflictProcessor : protected EnvObj
    *   (=> (and (= x_1 c_1) .... (= x_n c_n)) (or tgtLits[1] ... tgtLits[n]))
    * where s = { x_1 -> c_1, ..., x_n -> c_n }.
    *
+   * Any lemma that can be decomposed is a possible target for minimization,
+   * where we can recognize spurious or redundant literals, or spurious
+   * equalities in the substitution.
+   *
    * @param lem The lemma.
    * @param s The substitution that can be derived from lem.
    * @param varToExp Maps variables in the domain of s to the literal that
@@ -94,14 +105,18 @@ class ConflictProcessor : protected EnvObj
                       std::map<Node, Node>& varToExp,
                       std::vector<Node>& tgtLits) const;
   /**
-   * Evaluate substitution.
+   * Evaluate substitution, which returns the result applying s to tgt and
+   * applying extended rewriting. If this is not equal to constant Boolean,
+   * we return the null node. The formula tgt may be an AND/OR, which we
+   * optimize for in this method.
    * @param s The current substitution.
    * @param tgt The target formula.
    * @return The result of evaluating tgt under the substitution s.
    */
   Node evaluateSubstitution(const SubstitutionMap& s, const Node& tgt) const;
   /**
-   * Evaluate substitution for a literal.
+   * Evaluate substitution for a literal. This is the same as the above method
+   * but tgtLit is guaranteed to be a theory literal.
    * @param s The current substitution.
    * @param tgtLit The target literal.
    * @return The result of evaluating tgtLit under the substitution s.
@@ -115,8 +130,8 @@ class ConflictProcessor : protected EnvObj
    * substitutions. For example, given current substitution s = {y->z},
    *    (= x y) returns true with x -> y.
    *    (= x (f x)) return false.
-   *    (= y 0) returns false.
-   *    (= z (f y)) returns false.
+   *    (= y 0) returns false, since y is already bound.
+   *    (= z (f y)) returns false, since this would result in a cycle.
    * @param s The current substitution.
    * @param n The literal in question.
    * @param v If this method returns true, this updates v to the variable of
