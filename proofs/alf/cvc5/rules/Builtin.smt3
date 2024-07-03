@@ -2,8 +2,8 @@
 
 
 ; rule: scope
-; premises:
-; - F: The formula to assume.
+; assumption:
+; - F: The formula we have assumed.
 ; premises:
 ; - G: The formula proven by the body of the scope.
 ; conclusion: >
@@ -11,9 +11,14 @@
 ;   given to this rule, while the cvc5 implementation may accept a list of
 ;   assumptions which are collected as a conjunction.
 ; note: >
+;   Since this rule has an assumption, it is expected to be referenced in
+;   a step-pop command.
+; note: >
 ;   Along with process_scope, this rule implements ProofRule::SCOPE for a
 ;   single assumption; using n applications of it is required for handling
-;   an application of ProofRule::SCOPE with n assumptions.
+;   an application of ProofRule::SCOPE with n assumptions, which proves
+;   (=> F1 (=> F2 ... (=> Fn C))). We use process_scope to turn this into
+;   (=> (and F1 ... Fn) C), as required by the definition of ProofRule::SCOPE.
 (declare-rule scope
   ((F Bool) (G Bool))
   :assumption F
@@ -59,7 +64,7 @@
 ; - F Bool: The proof of the body of a scope.
 ; - C Bool: The conclusion.
 ; return: >
-;   The expected conclusion of a scope rule.
+;   The expected conclusion of a ProofRule::SCOPE.
 (program $run_process_scope
    ((C Bool) (F Bool))
    (Bool Bool) Bool
@@ -69,7 +74,18 @@
    )
 )
 
-; this rule processes the result of n scopes into the conclusion expected by ProofRule::SCOPE
+
+
+; rule: process_scope
+; premises:
+; - F: A formula, expected to be one proven by n>0 consecutive applications of scope.
+; args:
+; - C Bool: The conclusion of the innermost scope.
+; conclusion: >
+;   The conclusion of ProofRule::SCOPE based on the given applications of scope.
+;   For example, if F is (=> F1 (=> F2 ... (=> Fn C))), then this rule concludes
+;   (=> (and F1 ... Fn) C) when C is not false. Otherwise, this rule concludes
+;   (not (and F1 ... Fn)).
 (declare-rule process_scope
   ((C Bool) (F Bool))
   :premises (F)
