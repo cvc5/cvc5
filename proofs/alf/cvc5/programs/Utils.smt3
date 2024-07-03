@@ -1,13 +1,179 @@
+; define: $compare_geq
+; args:
+; - x T: The first term to compare.
+; - y T: The second term to compare.
+; return: true if x >= y, where x and y are assumed to be arithmetic values.
+(define $compare_geq ((T Type :implicit) (x T) (y T))
+  (alf.ite (alf.is_eq x y) true (alf.gt x y)))
 
 (declare-type @Pair (Type Type))
 (declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
 
 ; untyped list
-(declare-sort @List 0)
+(declare-type @List ())
 (declare-const @list.nil @List)
 (declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
 
-; This is used to have a canonical ordering of variables.
-; It could potentially be improved by having a builtin operator, e.g. alf.compare.
-(define compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
-  (alf.is_neg (alf.add (alf.hash a) (alf.neg (alf.hash b)))))
+; define: $compare_var
+; args:
+; - a T: The first term to compare.
+; - b U: The second term to compare.
+; return: true if a should be considered before b in an ordering where a and b are considered to be atomic variables.
+; note: >
+;   This method is used to have a canonical ordering of variables.
+;   It could potentially be improved by having a builtin operator, e.g. alf.compare.
+;   The variable ordering always returns true for the variable with the lower
+;   hash. This leads to best case performance if sorting a term with distinct
+;   children, where if we ask for the hash of the children in order and prefer
+;   the ones where this compare returns true, then the term remains unchanged.
+(define $compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
+  (alf.cmp b a))
+
+; define: $tail
+; args:
+; - x S: The term to inspect.
+; return: the tail of x, where x is expected to be a function application.
+(define $tail ((S Type :implicit) (x S))
+  (alf.match ((T Type) (U Type) (S Type) (f (-> T U S)) (x1 T) (x2 T :list))
+    x
+    (((f x1 x2) x2)))
+)
+
+; program: $singleton_elim
+; args:
+; - s S: The term to proces.
+; return: >
+;   The result of applying singleton elimination for s. In particular,
+;   if s is of the form (f x1 x2) where x2 is the nil terminator of f, then we
+;   return x1. Otherwise, we return s unchanged.
+(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
+  (S) S
+  (
+    (($singleton_elim (f x1 x2))  (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
+    (($singleton_elim x)          x)
+  )
+)
+
+; program: $singleton_elim_aci
+; args:
+; - f (-> T U S): The function we are considering.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: >
+;   The result of applying singleton elimination for s, where s should
+;   be an application of f. In particular, if s is of the form (f x1 x2) where
+;   x2 is the nil terminator of f, then we return x1. Otherwise, we return s
+;   unchanged.
+; note: >
+;   This method is similar in purpose to $singleton_elim, but insists that
+;   the function and its nil terminator are provided explicitly.
+(program $singleton_elim_aci ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S) S
+  (
+    (($singleton_elim_aci f id (f x1 x2))  (alf.ite (alf.is_eq x2 id) x1 (f x1 x2)))
+    (($singleton_elim_aci f id x)          x)
+  )
+)
+
+;; =============== for ACI_NORM associative, commutative and idempotent
+
+; program: $ac_append
+; args:
+; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
+; - id S: The nil terminator of f.
+; - s1 S: The first term to process.
+; - s2 S: The second term to process.
+; return: the result of appending the children of two applications s1 and s2 of the ACI operator f.
+(program $ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
+  ((-> T U S) S S S) S
+  (
+    (($ac_append f id (f x1 x2) (f y1 y2)) (alf.ite (alf.is_eq x1 y1)
+                                             ($ac_append f id (f x1 x2) y2)
+                                           (alf.ite ($compare_var x1 y1)
+                                             (alf.cons f x1 ($ac_append f id x2 (f y1 y2)))
+                                             (alf.cons f y1 ($ac_append f id (f x1 x2) y2)))))
+    (($ac_append f id (f x1 x2) id)        (f x1 x2))
+    (($ac_append f id id (f y1 y2))        (f y1 y2))
+    (($ac_append f id id id)               id)
+  )
+)
+
+; program: $get_aci_norm_rec
+; args:
+; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: the result of normalizing s based on ACI reasoning.
+(program $get_aci_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S) S
+  (
+    (($get_aci_norm_rec f id (f id x2))   ($get_aci_norm_rec f id x2))
+    (($get_aci_norm_rec f id (f x1 x2))   ($ac_append f id ($get_aci_norm_rec f id x1) ($get_aci_norm_rec f id x2)))
+    (($get_aci_norm_rec f id id)          id)
+    (($get_aci_norm_rec f id x)           (alf.cons f x id))
+  )
+)
+
+; define: $get_aci_norm
+; args:
+; - t T: The term to process.
+; return: the result of normalizing s based on ACI reasoning.
+(define $get_aci_norm ((T Type :implicit) (t T))
+  (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+    t
+    (((f x y) (let ((id (alf.nil f x y))) ($singleton_elim_aci f id ($get_aci_norm_rec f id t))))))
+)
+
+;; =============== for ACI_NORM associative
+
+; program: $get_a_norm_rec
+; args:
+; - f (-> T U S): The function we are considering, which is assumed to be associative and has the given identity.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: the result of normalizing s based on associative+identity reasoning.
+(program $get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S) S
+  (
+    (($get_a_norm_rec f id (f id x2))  ($get_a_norm_rec f id x2))
+    (($get_a_norm_rec f id (f x1 x2))  (alf.list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
+    (($get_a_norm_rec f id id)         id)
+    (($get_a_norm_rec f id x)          (alf.cons f x id))
+  )
+)
+
+; define: $get_a_norm
+; args:
+; - t T: The term to process.
+; return: the result of normalizing s based on associative+identity reasoning.
+(define $get_a_norm ((T Type :implicit) (t T))
+  (alf.match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+    t
+    (((f x y) (let ((id (alf.nil f x y))) ($singleton_elim_aci f id ($get_a_norm_rec f id t))))))
+)
+
+
+;; =============== for results
+
+; Used for representing partial results of the method below.
+(declare-const @result.null Bool)
+(declare-const @result.invalid Bool)
+
+; program: $result_combine
+; args:
+; - b1 Bool: The first Boolean result to combine.
+; - b2 Bool: The second Boolean result to combine.
+; return: >
+;   The result of combining the two results if they agree, where @result.null
+;   is treated as no result and @result.invalid is treated as an invalid result.
+; note: >
+;   In summary, ($result_combine b1 ... ($result_combine bn @result.null)) returns
+;   b1 if b1...bn are the same or @result.invalid otherwise.
+(program $result_combine ((b1 Bool) (b2 Bool))
+  (Bool Bool) Bool
+  (
+    (($result_combine b1 @result.null) b1)
+    (($result_combine b1 b1)           b1)
+    (($result_combine b1 b2)           @result.invalid)
+  )
+)

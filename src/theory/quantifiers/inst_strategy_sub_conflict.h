@@ -51,7 +51,7 @@ class InstStrategySubConflict : public QuantifiersModule
   /** check */
   void check(Theory::Effort e, QEffort quant_e) override;
   /** identify */
-  std::string identify() const override { return "InstStrategySubConflict"; }
+  std::string identify() const override;
 
  private:
   /** The options for subsolver calls */

@@ -1515,7 +1515,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
   }
 
   // assert the lemma
-  d_propEngine->assertLemma(tlemma, p);
+  d_propEngine->assertLemma(id, tlemma, p);
 
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
@@ -1634,16 +1634,21 @@ void TheoryEngine::conflict(TrustNode tconflict,
       {
         if (!CDProof::isSame(fullConflict, conflict))
         {
-          // ------------------------- explained  ---------- from theory
-          // fullConflict => conflict              ~conflict
-          // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+          // ------------------------- explained  
+          // fullConflict => conflict             
+          // ------------------------- IMPLIES_ELIM  ---------- from theory
+          // ~fullConflict V conflict                ~conflict
+          // -------------------------------------------------- RESOLUTION
           // ~fullConflict
-          children.push_back(conflict.notNode());
-          args.push_back(mkMethodId(MethodId::SB_LITERAL));
+          Node provenOr = nodeManager()->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
+          d_lazyProof->addStep(provenOr,
+                               ProofRule::IMPLIES_ELIM,
+                               {proven},
+                               {});
           d_lazyProof->addStep(fullConflictNeg,
-                               ProofRule::MACRO_SR_PRED_TRANSFORM,
-                               children,
-                               args);
+                               ProofRule::RESOLUTION,
+                               {provenOr, conflict.notNode()},
+                               {d_true, conflict});
         }
       }
     }
@@ -2062,6 +2067,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         if (val != d_true)
         {
           std::stringstream ss;
+          for (Node child : assertion)
+          {
+            Node value = d_tc->getModel()->getValue(child);
+            ss << "getValue(" << child << "): " << value << std::endl;
+          }
           ss << " " << theoryId << " has an asserted fact that";
           if (val == d_false)
           {

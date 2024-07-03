@@ -42,6 +42,17 @@ public class Grammar extends AbstractPointer
   // endregion
 
   /**
+   * Determine if this is the null grammar.
+   * @return True if this Grammar is the null grammar.
+   */
+  public boolean isNull()
+  {
+    return isNull(pointer);
+  }
+
+  private native boolean isNull(long pointer);
+
+  /**
    * Add {@code rule} to the set of rules corresponding to {@code ntSymbol}.
    * @param ntSymbol the non-terminal to which the rule is added.
    * @param rule the rule to add.
@@ -94,4 +105,13 @@ public class Grammar extends AbstractPointer
    * @return A String representation of this grammar.
    */
   protected native String toString(long pointer);
+
+  /** @return The hash value of the grammar. */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

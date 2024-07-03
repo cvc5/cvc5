@@ -1,0 +1,8 @@
+(set-logic QF_ABV)
+(set-info :status unsat)
+(set-option :bv-solver bitblast-internal)
+(set-option :check-models true)
+(declare-const _v (_ BitVec 1))
+(declare-fun v () (Array (_ BitVec 8) (_ BitVec 8)))
+(assert (= (store v (_ bv0 8) (_ bv0 8)) (store v (_ bv0 8) (bvadd (_ bv1 8) ((_ zero_extend 7) _v)))))
+(check-sat)

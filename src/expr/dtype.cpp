@@ -1005,3 +1005,11 @@ void DType::toStream(std::ostream& out) const
 }
 
 }  // namespace cvc5::internal
+
+namespace std {
+size_t hash<cvc5::internal::DType>::operator()(
+    const cvc5::internal::DType& dt) const
+{
+  return std::hash<std::string>()(dt.getName());
+}
+}  // namespace std

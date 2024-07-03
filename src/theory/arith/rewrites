@@ -9,9 +9,15 @@
 (define-rule arith-mul-one ((t ? :list) (s ? :list)) (* t 1 s) (* t s))
 (define-rule arith-mul-zero ((t ? :list) (s ? :list)) (* t 0 s) 0)
 
-;(define-rule arith-div-one ((t ?)) (/ t 1) t)
+(define-cond-rule arith-div-total ((t ?) (s ?)) (not (= s 0)) (/ t s) (/_total t s))
 
-(define-rule arith-int-div-one ((t Int)) (div t 1) t)
+(define-cond-rule arith-int-div-total ((t Int) (s Int)) (not (= s 0)) (div t s) (div_total t s))
+(define-rule arith-int-div-total-one ((t Int)) (div_total t 1) t)
+(define-rule arith-int-div-total-zero ((t Int)) (div_total t 0) 0)
+
+(define-cond-rule arith-int-mod-total ((t Int) (s Int)) (not (= s 0)) (mod t s) (mod_total t s))
+(define-rule arith-int-mod-total-one ((t Int)) (mod_total t 1) 0)
+(define-rule arith-int-mod-total-zero ((t Int)) (mod_total t 0) 0)
 
 (define-rule arith-neg-neg-one ((t ?)) (* (- 1) (* (- 1) t)) t)
 
@@ -20,18 +26,25 @@
 (define-rule arith-elim-minus ((t ?) (s ?)) (- t s) (+ t (* (- 1) s)))
 (define-rule arith-elim-gt ((t ?) (s ?)) (> t s) (not (<= t s)))
 (define-rule arith-elim-lt ((t ?) (s ?)) (< t s) (not (>= t s)))
+(define-rule arith-elim-int-gt ((t Int) (s Int)) (> t s) (>= t (+ s 1)))
+(define-rule arith-elim-int-lt ((t Int) (s Int)) (< t s) (>= s (+ t 1)))
 (define-rule arith-elim-leq ((t ?) (s ?)) (<= t s) (>= s t))
 
 (define-rule arith-leq-norm ((t Int) (s Int)) (<= t s) (not (>= t (+ s 1))))
 
 (define-rule arith-geq-tighten ((t Int) (s Int)) (not (>= t s)) (>= s (+ t 1)))
 
-(define-rule arith-geq-norm ((t ?) (s ?)) (>= t s) (>= (- t s) 0))
+(define-rule arith-geq-norm1 ((t ?) (s ?)) (>= t s) (>= (- t s) 0))
+
+(define-rule arith-geq-norm2 ((t ?) (s ?)) (>= t s) (<= (- t) (- s)))
 
 (define-rule arith-refl-leq ((t ?)) (<= t t) true)
 (define-rule arith-refl-lt ((t ?)) (< t t) false)
 (define-rule arith-refl-geq ((t ?)) (>= t t) true)
 (define-rule arith-refl-gt ((t ?)) (> t t) false)
+
+(define-rule arith-real-eq-elim ((t Real) (s Real)) (= t s) (and (>= t s) (<= t s)))
+(define-rule arith-int-eq-elim ((t Int) (s Int)) (= t s) (and (>= t s) (<= t s)))
 
 ;(define-cond-rule arith-geq-contra ((t ?) (s ?)) (not (>= (- t s) 0)) (>= t s) false)
 ;(define-cond-rule arith-eq-contra ((t ?) (s ?)) (not (= (- t s) 0)) (= t s) false)
@@ -51,3 +64,9 @@
 (define-rule* arith-plus-cancel1 ((t ? :list) (x ?) (s ? :list) (r ? :list)) (+ t x s (* (- 1) x) r) (+ t s r))
 (define-rule* arith-plus-cancel2 ((t ? :list) (x ?) (s ? :list) (r ? :list)) (+ t (* (- 1) x) s x r) (+ t s r))
 
+(define-rule arith-abs-elim ((x ?)) (abs x) (ite (< x 0) (- x) x))
+
+(define-rule arith-to-real-elim ((x Real)) (to_real x) x)
+(define-rule arith-to-int-elim-to-real ((x ?)) (to_int (to_real x)) (to_int x))
+(define-rule arith-div-elim-to-real1 ((x ?) (y ?)) (/ (to_real x) y) (/ x y))
+(define-rule arith-div-elim-to-real2 ((x ?) (y ?)) (/ x (to_real y)) (/ x y))

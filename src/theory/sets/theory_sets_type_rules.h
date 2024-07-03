@@ -165,9 +165,10 @@ struct ChooseTypeRule
 };
 
 /**
- * Type rule for (set.is_singleton A) to check the argument A is a set.
+ * Type rule for (set.is_empty A) and (set.is_singleton A) to check the argument
+ * A is a set.
  */
-struct IsSingletonTypeRule
+struct IsSetTypeRule
 {
   static TypeNode preComputeType(NodeManager* nm, TNode n);
 
@@ -251,6 +252,24 @@ struct RelBinaryOperatorTypeRule
                               bool check,
                               std::ostream* errOut);
 };
+
+/**
+ * Relation table join operator is indexed by a list of indices (m_1, m_k, n_1,
+ * ..., n_k). It ensures that it has 2 arguments:
+ * - A relation of type (Relation X_1 ... X_i)
+ * - A relation of type (Relation Y_1 ... Y_j)
+ * such that indices has constraints 0 <= m_1, ..., mk, n_1, ..., n_k <=
+ * min(i,j) and types has constraints X_{m_1} = Y_{n_1}, ..., X_{m_k} = Y_{n_k}.
+ * The returned type is (Relation X_1 ... X_i Y_1 ... Y_j)
+ */
+struct RelationTableJoinTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct RelationTableJoinTypeRule */
 
 /**
  * Type rule for unary operator (rel.transpose A) to check that A is a relation

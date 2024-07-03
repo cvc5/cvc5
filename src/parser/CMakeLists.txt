@@ -17,6 +17,7 @@
 # libcvc5parser source files
 
 set(libcvc5parserapi_src_files
+  ../api/c/cvc5_parser.cpp
   ../api/cpp/cvc5_parser.cpp
 )
 
@@ -82,16 +83,6 @@ endif()
 set_target_properties(cvc5parser PROPERTIES OUTPUT_NAME cvc5parser)
 target_link_libraries(cvc5parser PRIVATE cvc5)
 
-install(TARGETS cvc5parser
-  EXPORT cvc5-targets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-# The generated lexer/parser files define some functions as
-# __declspec(dllexport) via the ANTLR3_API macro, which leads to lots of
-# unresolved symbols when linking against libcvc5parser.
-# -Wl,--export-all-symbols makes sure that all symbols are exported when
-# building a DLL.
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  set_target_properties(cvc5parser-objs
-    PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
-endif()
+# On Windows, CMake's default install action places
+# DLLs into the runtime path (by default "bin")
+install(TARGETS cvc5parser EXPORT cvc5-targets)

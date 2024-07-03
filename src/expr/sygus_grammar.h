@@ -30,6 +30,8 @@ namespace cvc5::internal {
  */
 class SygusGrammar
 {
+  friend struct std::hash<SygusGrammar>;
+
  public:
   /**
    * Constructor.
@@ -133,4 +135,11 @@ class SygusGrammar
 
 }  // namespace cvc5::internal
 
+namespace std {
+template <>
+struct hash<cvc5::internal::SygusGrammar>
+{
+  size_t operator()(const cvc5::internal::SygusGrammar& grammar) const;
+};
+}  // namespace std
 #endif

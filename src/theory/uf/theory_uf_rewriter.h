@@ -34,11 +34,19 @@ namespace uf {
 class TheoryUfRewriter : public TheoryRewriter
 {
  public:
-  TheoryUfRewriter(NodeManager* nm);
+  TheoryUfRewriter(NodeManager* nm, Rewriter* rr);
   /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
   /** pre-rewrite */
   RewriteResponse preRewrite(TNode node) override;
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
   // conversion between HO_APPLY AND APPLY_UF
   /**
    * converts an APPLY_UF to a curried HO_APPLY e.g.
@@ -71,6 +79,12 @@ class TheoryUfRewriter : public TheoryRewriter
   static bool canUseAsApplyUfOperator(TNode n);
 
  private:
+  /**
+   * Pointer to the rewriter, required for rewriting lambdas that appear
+   * inside of operators that are not in rewritten form. NOTE this is a cyclic
+   * dependency, and should be removed.
+   */
+  Rewriter* d_rr;
   /** Entry point for rewriting lambdas */
   Node rewriteLambda(Node node);
   /** rewrite bv2nat */

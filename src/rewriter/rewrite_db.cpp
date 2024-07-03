@@ -45,7 +45,7 @@ RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
   }
 }
 
-void RewriteDb::addRule(DslProofRule id,
+void RewriteDb::addRule(ProofRewriteRule id,
                         const std::vector<Node> fvs,
                         Node a,
                         Node b,
@@ -58,16 +58,26 @@ void RewriteDb::addRule(DslProofRule id,
   Node eq = a.eqNode(b);
   // we canonize left-to-right, hence we should traverse in the opposite
   // order, since we index based on conclusion, we make a dummy node here
-  Node tmp = nm->mkNode(Kind::IMPLIES, eq, cond);
+  std::vector<Node> tmpArgs;
+  tmpArgs.push_back(eq);
+  tmpArgs.push_back(cond);
+  if (!context.isNull())
+  {
+    tmpArgs.push_back(context);
+  }
+  Node tmp = nm->mkNode(Kind::SEXPR, tmpArgs);
 
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a
                       << " == " << b << std::endl;
   Assert(a.getType().isComparableTo(b.getType()));
-  Node cr = d_canon.getCanonicalTerm(tmp, false, false);
-  context = d_canon.getCanonicalTerm(context, false, false);
+  Node ctmp = d_canon.getCanonicalTerm(tmp, false, false);
+  if (!context.isNull())
+  {
+    context = ctmp[2];
+  }
 
-  Node condC = cr[1];
+  Node condC = ctmp[1];
   std::vector<Node> conds;
   if (condC.getKind() == Kind::AND)
   {
@@ -102,7 +112,7 @@ void RewriteDb::addRule(DslProofRule id,
   }
   // register side conditions?
 
-  Node eqC = cr[0];
+  Node eqC = ctmp[0];
   Assert(eqC.getKind() == Kind::EQUAL);
 
   // add to discrimination tree
@@ -151,18 +161,18 @@ void RewriteDb::getMatches(const Node& eq, expr::NotifyMatch* ntm)
   d_mt.getMatches(eq, ntm);
 }
 
-const RewriteProofRule& RewriteDb::getRule(DslProofRule id) const
+const RewriteProofRule& RewriteDb::getRule(ProofRewriteRule id) const
 {
-  std::map<DslProofRule, RewriteProofRule>::const_iterator it =
+  std::map<ProofRewriteRule, RewriteProofRule>::const_iterator it =
       d_rewDbRule.find(id);
   Assert(it != d_rewDbRule.end());
   return it->second;
 }
 
-const std::vector<DslProofRule>& RewriteDb::getRuleIdsForConclusion(
+const std::vector<ProofRewriteRule>& RewriteDb::getRuleIdsForConclusion(
     const Node& eq) const
 {
-  std::map<Node, std::vector<DslProofRule> >::const_iterator it =
+  std::map<Node, std::vector<ProofRewriteRule> >::const_iterator it =
       d_concToRules.find(eq);
   if (it != d_concToRules.end())
   {
@@ -171,10 +181,10 @@ const std::vector<DslProofRule>& RewriteDb::getRuleIdsForConclusion(
   return d_emptyVec;
 }
 
-const std::vector<DslProofRule>& RewriteDb::getRuleIdsForHead(
+const std::vector<ProofRewriteRule>& RewriteDb::getRuleIdsForHead(
     const Node& eq) const
 {
-  std::map<Node, std::vector<DslProofRule> >::const_iterator it =
+  std::map<Node, std::vector<ProofRewriteRule> >::const_iterator it =
       d_headToRules.find(eq);
   if (it != d_headToRules.end())
   {
@@ -185,6 +195,12 @@ const std::vector<DslProofRule>& RewriteDb::getRuleIdsForHead(
 const std::unordered_set<Node>& RewriteDb::getAllFreeVariables() const
 {
   return d_allFv;
+}
+
+const std::map<ProofRewriteRule, RewriteProofRule>& RewriteDb::getAllRules()
+    const
+{
+  return d_rewDbRule;
 }
 
 }  // namespace rewriter

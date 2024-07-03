@@ -108,13 +108,16 @@ name   = "Proof"
   help = "Allow macros. Do not improve the granularity of proofs."
 [[option.mode.REWRITE]]
   name = "rewrite"
-  help = "Allow rewrite or substitution steps, expand macros."
+  help = "Allow trusted rewrite or substitution steps, expand macros."
 [[option.mode.THEORY_REWRITE]]
   name = "theory-rewrite"
-  help = "Allow theory rewrite steps, expand macros, rewrite and substitution steps."
+  help = "Allow trusted theory rewrite steps, expand macros, rewrite and substitution steps."
 [[option.mode.DSL_REWRITE]]
   name = "dsl-rewrite"
-  help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
+  help = "Allow theory and DSL rewrite steps, expand macros, rewrite, substitution, and theory rewrite steps."
+[[option.mode.DSL_REWRITE_STRICT]]
+  name = "dsl-rewrite-strict"
+  help = "Allow theory and DSL rewrite steps giving preference to DSL rewrite steps."
 
 [[option]]
   name       = "proofRewriteRconsRecLimit"
@@ -129,7 +132,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-rewrite-rcons-step-limit=N"
   type       = "uint64_t"
-  default    = "200"
+  default    = "1000"
   help       = "the limit of steps considered for reconstructing proofs of theory rewrites"
 
 [[option]]
@@ -219,3 +222,37 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print the DRAT proof in binary format"
+
+[[option]]
+  name       = "satProofMinDimacs"
+  category   = "expert"
+  long       = "sat-proof-min-dimacs"
+  type       = "bool"
+  default    = "true"
+  help       = "Minimize the DIMACs emitted when prop-proof-mode is set to sat-external-prove"
+
+[[option]]
+  name       = "propProofMode"
+  category   = "regular"
+  long       = "prop-proof-mode=MODE"
+  type       = "PropProofMode"
+  default    = "PROOF"
+  help       = "modes for proof granularity"
+  help_mode  = "Modes for proof granularity."
+[[option.mode.PROOF]]
+  name = "proof"
+  help = "A proof computed by the SAT solver."
+[[option.mode.SAT_EXTERNAL_PROVE]]
+  name = "sat-external-prove"
+  help = "A proof containing a step that will be proven externally."
+[[option.mode.SKETCH]]
+  name = "sketch"
+  help = "A sketch given by the SAT solver."
+
+[[option]]
+  name       = "alfAllowTrust"
+  category   = "expert"
+  long       = "alf-allow-trust"
+  type       = "bool"
+  default    = "true"
+  help       = "Whether to allow trust in the ALF printer"

@@ -231,6 +231,8 @@ class HoExtension : protected EnvObj
 
   /** map from non-standard operators to their skolems */
   NodeNodeMap d_uf_std_skolem;
+  /** Equalities between lambads we have already processed */
+  NodeSet d_lamEqProcessed;
 };
 
 }  // namespace uf

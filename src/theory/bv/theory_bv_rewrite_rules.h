@@ -209,7 +209,7 @@ enum RewriteRuleId
   UltAddOne,
   ConcatToMult,
   MultSltMult,
-  BitOfConst,
+  BitConst,
 };
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
@@ -378,7 +378,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ConcatToMult: out << "ConcatToMult"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
   case NormalizeEqAddNeg: out << "NormalizeEqAddNeg"; return out;
-  case BitOfConst: out << "BitOfConst"; return out;
+  case BitConst: out << "BitConst"; return out;
   default:
     Unreachable();
   }

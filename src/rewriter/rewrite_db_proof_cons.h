@@ -27,6 +27,7 @@
 #include "rewriter/basic_rewrite_rcons.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/rewrite_proof_status.h"
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
 #include "theory/evaluator.h"
@@ -45,26 +46,39 @@ class RewriteDbProofCons : protected EnvObj
  public:
   RewriteDbProofCons(Env& env, RewriteDb* db);
   /**
-   * Prove (= a b) with recursion limit recLimit and step limit stepLimit.
+   * Prove a = b with recursion limit recLimit and step limit stepLimit.
    * If cdp is provided, we add a proof for this fact on it.
    *
-   * @param cdp The object to add the proof of (= a b) to
-   * @param a The left hand side of the equality
-   * @param b The right hand side of the equality
-   * @param tid The theory identifier responsible for the rewrite, if one
-   * exists.
-   * @param mid The method id (the kind of rewrite)
-   * @param recLimit The recursion limit for this call
+   * More specifically, the strategy used by this method is:
+   * 1. Try to prove a=b via THEORY_REWRITE in context TheoryRewriteCtx::PRE_DSL,
+   * 2. Try to prove a=b via a proof involving RARE rewrites,
+   * 3. Try to prove a'=b' via a proof involving RARE rewrites, where a' and b'
+   * are obtained by transforming a and b via RewriteDbNodeConverter.
+   * 4. Try to prove a=b via THEORY_REWRITE in context
+   * TheoryRewriteCtx::POST_DSL.
+   *
+   * The option --proof-granularity=dsl-rewrite-strict essentially moves step 1
+   * after step 3, that is, RARE rewrites are always preferred to
+   * THEORY_REWRITE.
+   *
+   * @param cdp The object to add the proof of (= a b) to.
+   * @param a The left hand side of the equality.
+   * @param b The right hand side of the equality.
+   * @param recLimit The recursion limit for this call.
    * @param stepLimit The step limit for this call.
+   * @param subgoals The list of proofs introduced when proving (= a b) that
+   * are trusted steps, and thus would require further elaboration from the
+   * caller of this method.
+   * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp
    */
   bool prove(CDProof* cdp,
              const Node& a,
              const Node& b,
-             theory::TheoryId tid,
-             MethodId mid,
              int64_t recLimit,
-             int64_t stepLimit);
+             int64_t stepLimit,
+             std::vector<std::shared_ptr<ProofNode>>& subgoals,
+             TheoryRewriteMode tmode);
 
  private:
   /**
@@ -95,9 +109,16 @@ class RewriteDbProofCons : protected EnvObj
   class ProvenInfo
   {
    public:
-    ProvenInfo() : d_id(DslProofRule::FAIL), d_failMaxDepth(0) {}
+    ProvenInfo()
+        : d_id(RewriteProofStatus::FAIL),
+          d_dslId(ProofRewriteRule::NONE),
+          d_failMaxDepth(0)
+    {
+    }
     /** The identifier of the proof rule, or fail if we failed */
-    DslProofRule d_id;
+    RewriteProofStatus d_id;
+    /** The identifier of the DSL proof rule if d_id is DSL */
+    ProofRewriteRule d_dslId;
     /** The substitution used, if successful */
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
@@ -109,35 +130,50 @@ class RewriteDbProofCons : protected EnvObj
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
-    bool isInternalRule() const { return isInternalDslProofRule(d_id); }
+    bool isInternalRule() const
+    {
+      return d_id != RewriteProofStatus::DSL
+             && d_id != RewriteProofStatus::THEORY_REWRITE;
+    }
   };
   /**
    * Prove and store the proof of eq with internal form eqi in cdp if possible,
    * return true if successful.
+   *
+   * @param cdp The object to add the proof of eq to.
+   * @param eq The equality we are trying to prove.
+   * @param eqi The internal version of the equality that may have been
+   * converted from eq using d_rdnc.
+   * @param recLimit The recursion limit for this call.
+   * @param stepLimit The step limit for this call.
+   * @param subgoals The list of proofs introduced when proving eq that
+   * are trusted steps.
    */
   bool proveEq(CDProof* cdp,
                const Node& eq,
                const Node& eqi,
                int64_t recLimit,
-               int64_t stepLimit);
+               int64_t stepLimit,
+               std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /**
    * Prove internal, which is the main entry point for proven an equality eqi.
-   * Returns the proof rule that was used to prove eqi, or DslProofRule::FAIL
-   * if we failed to prove.
+   * Returns the proof rule that was used to prove eqi, or
+   * RewriteProofStatus::FAIL if we failed to prove.
    *
    * In detail, this runs a strategy of builtin tactics and otherwise consults
    * the rewrite rule database for the set of rewrite rules that match the
    * left hand side of eqi.
    *
    * If this call is successful (i.e. the returned rule is not
-   * DslProofRule::FAIL), the proven info for eqi is stored in d_pcache[eqi].
+   * RewriteProofStatus::FAIL), the proven info for eqi is stored in
+   * d_pcache[eqi].
    *
    * Note this method depends on the current step and recursion limits
    * d_currRecLimit/d_currStepLimit.
    */
-  DslProofRule proveInternal(const Node& eqi);
+  RewriteProofStatus proveInternal(const Node& eqi);
   /** Prove internal via strategy, a helper method for above. */
-  DslProofRule proveInternalViaStrategy(const Node& eqi);
+  RewriteProofStatus proveInternalViaStrategy(const Node& eqi);
   /**
    * Prove internal base eqi via DSL rule id.
    *
@@ -145,9 +181,9 @@ class RewriteDbProofCons : protected EnvObj
    * recursion. If so, we store the rule used for eqi in its proven info
    * (d_pcache[eqi]). Notice that this method returns true if eqi is
    * proven or *disproven*, where in the latter case proven info has d_id
-   * DslProofRule::FAIL.
+   * RewriteProofStatus::FAIL.
    */
-  bool proveInternalBase(const Node& eqi, DslProofRule& id);
+  bool proveInternalBase(const Node& eqi, RewriteProofStatus& id);
   /**
    * Ensure proof for proven fact exists in cdp. This method is called on
    * equalities eqi after they have been successfully proven by this class.
@@ -157,8 +193,12 @@ class RewriteDbProofCons : protected EnvObj
    *
    * @param cdp The proof to add the proof of eqi to
    * @param eqi The proven equality
+   * @param subgoals The list of proofs introduced when proving eq that
+   * are trusted steps.
    */
-  bool ensureProofInternal(CDProof* cdp, const Node& eqi);
+  bool ensureProofInternal(CDProof* cdp,
+                           const Node& eqi,
+                           std::vector<std::shared_ptr<ProofNode>>& subgoals);
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**
@@ -180,7 +220,7 @@ class RewriteDbProofCons : protected EnvObj
    * Prove with rule, which attempts to prove the equality target using the
    * DSL proof rule id, which may be a builtin rule or a user-provided rule.
    *
-   * @param id The rule to consider
+   * @param id The rule to consider, which may be a DSL rule given by r if DSL.
    * @param target The equality to prove
    * @param vars The variables (arguments) of the proof rule
    * @param subs The substitution (instantiated arguments) of the proof rule
@@ -191,14 +231,16 @@ class RewriteDbProofCons : protected EnvObj
    * point
    * @param doRecurse Whether we should attempt to prove the rule when premises
    * are required, by making a recursive call to proveInternal.
+   * @param r The DSL rule to consider if id is DSL.
    */
-  bool proveWithRule(DslProofRule id,
+  bool proveWithRule(RewriteProofStatus id,
                      const Node& target,
                      const std::vector<Node>& vars,
                      const std::vector<Node>& subs,
                      bool doTrans,
                      bool doFixedPoint,
-                     bool doRecurse);
+                     bool doRecurse,
+                     ProofRewriteRule r = ProofRewriteRule::NONE);
   /**
    * Get conclusion of rewrite rule rpr under the current variable and
    * substitution. Store the information in proven info pi. If doFixedPoint
@@ -259,8 +301,10 @@ class RewriteDbProofCons : protected EnvObj
   uint64_t d_currRecLimit;
   /** current step recursion limit */
   uint64_t d_currStepLimit;
+  /** The mode for if/when to try theory rewrites */
+  rewriter::TheoryRewriteMode d_tmode;
   /** current rule we are applying to fixed point */
-  DslProofRule d_currFixedPointId;
+  ProofRewriteRule d_currFixedPointId;
   /** current substitution from fixed point */
   std::vector<Node> d_currFixedPointSubs;
   /** current conclusion from fixed point */

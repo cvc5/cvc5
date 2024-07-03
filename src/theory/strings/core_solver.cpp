@@ -741,11 +741,8 @@ Node CoreSolver::getConclusion(Node x,
   Node conc;
   if (rule == ProofRule::CONCAT_SPLIT || rule == ProofRule::CONCAT_LPROP)
   {
-    // must compare so that we are agnostic to order of x/y
-    Node ux = x < y ? x : y;
-    Node uy = x < y ? y : x;
-    Node sk = skc->mkSkolemCached(ux,
-                                  uy,
+    Node sk = skc->mkSkolemCached(x,
+                                  y,
                                   isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
                                         : SkolemCache::SK_ID_V_UNIFIED_SPT,
                                   "v_spt");
@@ -761,9 +758,7 @@ Node CoreSolver::getConclusion(Node x,
     {
       Node eq2 = y.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, x)
                                 : nm->mkNode(Kind::STRING_CONCAT, x, sk));
-      // make agnostic to x/y
-      conc = x < y ? nm->mkNode(Kind::OR, eq1, eq2)
-                   : nm->mkNode(Kind::OR, eq2, eq1);
+      conc = nm->mkNode(Kind::OR, eq1, eq2);
     }
     // we can assume its length is greater than zero
     Node emp = Word::mkEmptyWord(sk.getType());
@@ -797,10 +792,9 @@ Node CoreSolver::getConclusion(Node x,
     Assert(d.isConst());
     Node c = y;
     Assert(c.isConst());
-    size_t cLen = Word::getLength(c);
     size_t p = getSufficientNonEmptyOverlap(c, d, isRev);
-    Node preC =
-        p == cLen ? c : (isRev ? Word::suffix(c, p) : Word::prefix(c, p));
+    Node rp = nm->mkConstInt(p);
+    Node preC = (isRev ? utils::mkSuffixOfLen(c, rp) : utils::mkPrefix(c, rp));
     Node sk = skc->mkSkolemCached(
         z,
         preC,
@@ -2212,7 +2206,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node conc =
               getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
-          Node lenConstraint = nm->mkNode(Kind::GT, uxLen, uyLen);
+          Node lenConstraint = nm->mkNode(Kind::GEQ, uxLen, uyLen);
           Node lenConstraintr = rewrite(lenConstraint);
           // If the length constraint rewrites to false, don't bother sending
           // the lemma. If it rewrites to true, then we include it as a

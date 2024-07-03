@@ -18,6 +18,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrites.h"
 #include "smt/env.h"
 
 using namespace cvc5::internal::kind;
@@ -271,6 +272,22 @@ bool CDProof::addTrustedStep(Node expected,
   sargs.insert(sargs.end(), args.begin(), args.end());
   return addStep(
       expected, ProofRule::TRUST, children, sargs, ensureChildren, opolicy);
+}
+
+bool CDProof::addTheoryRewriteStep(Node expected,
+                                   ProofRewriteRule id,
+                                   bool ensureChildren,
+                                   CDPOverwrite opolicy)
+{
+  if (expected.getKind() != Kind::EQUAL)
+  {
+    return false;
+  }
+  std::vector<Node> sargs;
+  sargs.push_back(rewriter::mkRewriteRuleNode(id));
+  sargs.push_back(expected);
+  return addStep(
+      expected, ProofRule::THEORY_REWRITE, {}, sargs, ensureChildren, opolicy);
 }
 
 bool CDProof::addStep(Node expected,

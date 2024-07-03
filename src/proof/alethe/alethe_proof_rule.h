@@ -245,6 +245,15 @@ enum class AletheRule : uint32_t
   // G > j. (= (f F1 ... Fn) (f G1 ... Gn))
   // where f is an n-ary function symbol.
   CONG,
+  // ======== ho_cong
+  // G > i0. (= f g)
+  // G > i1. (= F1 G1)
+  // ...
+  // G > in. (= Fn Gn)
+  // ...
+  // G > j. (= (f F1 ... Fn) (g G1 ... Gn))
+  // where f and g are n-ary function symbols.
+  HO_CONG,
   // ======== and
   // > i. (and F1 ... Fn)
   // ...
@@ -387,6 +396,7 @@ enum class AletheRule : uint32_t
   NARY_ELIM,
   QNT_SIMPLIFY,
   ALL_SIMPLIFY,
+  RARE_REWRITE,
   // ======== let
   // G,x1->F1,...,xn->Fn > j. (= G G')
   // ---------------------------------
@@ -432,10 +442,13 @@ enum class AletheRule : uint32_t
   BV_BITBLAST_STEP_BVMULT,
   BV_BITBLAST_STEP_BVULE,
   BV_BITBLAST_STEP_BVULT,
+  BV_BITBLAST_STEP_BVSLT,
+  BV_BITBLAST_STEP_BVCOMP,
   BV_BITBLAST_STEP_EXTRACT,
   BV_BITBLAST_STEP_BVEQUAL,
   BV_BITBLAST_STEP_CONCAT,
   BV_BITBLAST_STEP_CONST,
+  BV_BITBLAST_STEP_SIGN_EXTEND,
   // ======== hole
   // Used for unjustified steps
   HOLE,

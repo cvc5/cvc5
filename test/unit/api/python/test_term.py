@@ -1136,6 +1136,11 @@ def test_get_real(tm):
     assert Fraction("0.3") == real_decimal.getRealValue()
     assert Fraction(0.3) == Fraction(5404319552844595, 18014398509481984)
     assert Fraction(0.3) != real_decimal.getRealValue()
+    
+    with pytest.raises(RuntimeError):
+        tm.mkReal("1/0")
+    with pytest.raises(RuntimeError):
+        tm.mkReal("2/0000")
 
 
 def test_get_boolean(tm):

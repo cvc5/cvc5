@@ -27,6 +27,7 @@
 #include "prop/proof_cnf_stream.h"
 #include "prop/proof_post_processor.h"
 #include "smt/env_obj.h"
+#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -47,7 +48,16 @@ class PropPfManager : protected EnvObj
   friend class SatProofManager;
 
  public:
-  PropPfManager(Env& env, CDCLTSatSolver* satSolver, CnfStream& cnfProof);
+  /**
+   * @param env The environment
+   * @param satSolver Pointer to the SAT solver
+   * @param cnfProof Pointer to the CNF stream
+   * @param assumptions Reference to assumptions of parent prop engine
+   */
+  PropPfManager(Env& env,
+                CDCLTSatSolver* satSolver,
+                CnfStream& cnfProof,
+                const context::CDList<Node>& assumptions);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -62,14 +72,19 @@ class PropPfManager : protected EnvObj
    * goes through is saved as a concrete step in d_proof. This method makes a
    * call to the convertAndAssert method of d_pfCnfStream.
    *
-   * @param node formula to convert and assert
-   * @param negated whether we are asserting the node negated
-   * @param removable whether the SAT solver can choose to remove the clauses
-   * @param input whether the node is from the input
-   * @param pg a proof generator for node
+   * @param id The inference id indicating the source of the formula.
+   * @param node The formula to convert and assert.
+   * @param negated Whether we are asserting the node negated.
+   * @param removable Whether the SAT solver can choose to remove the clauses.
+   * @param input Whether the node is from the input.
+   * @param pg A proof generator for node.
    */
-  void convertAndAssert(
-      TNode node, bool negated, bool removable, bool input, ProofGenerator* pg);
+  void convertAndAssert(theory::InferenceId id,
+                        TNode node,
+                        bool negated,
+                        bool removable,
+                        bool input,
+                        ProofGenerator* pg);
   /** Saves assertion for later checking whether refutation proof is closed.
    *
    * The assertions registered via this interface are preprocessed assertions
@@ -164,6 +179,46 @@ class PropPfManager : protected EnvObj
   /** Retrieve the clauses derived from lemmas */
   std::vector<Node> getLemmaClauses();
   /**
+   * Return theory lemmas used for showing unsat. If the SAT solver has a proof,
+   * we examine its leaves. Otherwise, we recompute the unsat core lemmas
+   * using the method reproveUnsatCore.
+   *
+   * @param outDimacs If provided, we write the DIMACS output of uc to this
+   * stream
+   * @return the unsat core of lemmas.
+   */
+  std::vector<Node> getUnsatCoreClauses(std::ostream* outDimacs = nullptr);
+  /**
+   * Get minimized assumptions. Returns a vector of nodes which is a
+   * subset of the assumptions (d_assumptions) that appear in the unsat
+   * core. This should be called only when the unsat core is available (after
+   * an unsatisfiable check-sat).
+   */
+  std::vector<Node> getMinimizedAssumptions();
+  /**
+   * Calculate a subset of cset that is propositionally unsatisfiable.
+   * If sucessful, return true and store this in uc.
+   *
+   * @param cset The set of formulas to compute an unsat core for
+   * @param uc The set of formulas returned as the unsat core
+   * @param outDimacs If provided, we write a DIMACS representation of uc to
+   * this stream
+   */
+  bool reproveUnsatCore(const std::unordered_set<Node>& cset,
+                        std::vector<Node>& uc,
+                        std::ostream* outDimacs = nullptr);
+  /**
+   * Add a proof of false to cdp whose free assumptions are a subset of the
+   * clauses (after CNF conversion), which is a union of:
+   * (1) assumptions (d_assumptions),
+   * (2) input clauses (d_inputClauses),
+   * (3) lemma clauses (d_lemmaClauses).
+   * The choice of what to add to cdp is dependent on the prop-proof-mode.
+   *
+   * @param cdp The proof object to add the refutation proof to.
+   */
+  void getProofInternal(CDProof* cdp);
+  /**
    * Get auxilary units. Computes top-level formulas in clauses that
    * also occur as literals which we call "auxiliary units". In particular,
    * consider the set of propositionally unsatisfiable clauses:
@@ -209,6 +264,8 @@ class PropPfManager : protected EnvObj
   context::CDList<Node> d_assertions;
   /** The cnf stream proof generator */
   CnfStream& d_cnfStream;
+  /** Reference to the assumptions of the parent prop engine */
+  const context::CDList<Node>& d_assumptions;
   /** Asserted clauses derived from the input */
   context::CDHashSet<Node> d_inputClauses;
   /** Asserted clauses derived from lemmas */

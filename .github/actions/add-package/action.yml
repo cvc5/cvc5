@@ -9,11 +9,13 @@ inputs:
     description: token to upload package to latest
   github-token-release:
     description: token to upload package to release
+  shell:
+    default: bash
 runs:
   using: composite
   steps:
     - name: Create ZIP file
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Create ZIP file"
         # Run 'make install' on build directory
@@ -41,8 +43,12 @@ runs:
         echo "::endgroup::"
 
     - name: install pyGithub
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
+        # Upgrading pyopenssl resolves the following error:
+        # AttributeError:
+        #   module 'lib' has no attribute 'X509_V_FLAG_NOTIFY_POLICY'
+        python3 -m pip install -U pyopenssl
         python3 -m pip install pyGithub
 
     - name: Store to latest
@@ -90,7 +96,7 @@ runs:
         for cnt,asset in enumerate(assets):
           delete = False
           # We generate 10 artifacts per build:
-          # {Linux, Linux-arm64, macOS, macOS-arm64, Windows} * {static, shared}
+          # {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64} * {static, shared}
           if cnt >= 20: # Keep at most 2 builds
             delete = True
           if asset.name.startswith(samedayprefix):

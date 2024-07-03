@@ -100,10 +100,20 @@ Examples
   ; unsat
 
 
-References
-^^^^^^^^^^
+Experimental Extensions
+^^^^^^^^^^^^^^^^^^^^^^^
 
-The theory of finite fields was defined in
-"Satisfiability Modulo Finite Fields" :cite:`Ozdemir23`.
-See the paper for more information.
+These features of the theory are experimental; they may be removed in the
+future:
+
+* ``ff.bitsum``: an n-ary operator for bitsums: ``(ff.bitsum x0 x1 x2)`` is equivalent to :math:`x_0 + 2x_1 + 4x_2`.
+* ``ff.neg``: unary negation
+
+Solvers
+^^^^^^^
+
+Internally, cvc5 implements two solvers for the theory of finite fields.
+
+* The default solver is described in "Satisfiability Modulo Finite Fields" :cite:`Ozdemir23`.
+* The ``--ff-solver split`` flag turns on an alternate solver from "Split Groebner Bases for Satisfiability Modulo Finite Fields" :cite:`Ozdemir24`. This solver may be better on field equations that encode bit-decomposition. See the paper for more information.
 

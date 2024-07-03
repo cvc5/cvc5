@@ -90,3 +90,11 @@ std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg)
 }
 
 }  // namespace cvc5::internal
+
+namespace std {
+size_t hash<cvc5::internal::DTypeSelector>::operator()(
+    const cvc5::internal::DTypeSelector& sel) const
+{
+  return std::hash<std::string>()(sel.getName());
+}
+}  // namespace std

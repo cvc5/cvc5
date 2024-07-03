@@ -12,29 +12,33 @@
 #
 # The build system configuration.
 ##
-cvc5_add_unit_test_black(datatype_api_black api/cpp)
-cvc5_add_unit_test_black(grammar_black api/cpp)
+cvc5_add_unit_test_black(api_command_black api/cpp)
+cvc5_add_unit_test_black(api_datatype_black api/cpp)
+cvc5_add_unit_test_black(api_grammar_black api/cpp)
+cvc5_add_unit_test_black(api_input_parser_black api/cpp)
 cvc5_add_unit_test_black(api_kind_black api/cpp)
+cvc5_add_unit_test_black(api_op_black api/cpp)
+cvc5_add_unit_test_white(api_op_white api/cpp)
+cvc5_add_unit_test_black(api_parametric_datatype_black api/cpp)
+cvc5_add_unit_test_black(api_proof_black api/cpp)
 cvc5_add_unit_test_black(api_proof_rule_black api/cpp)
+cvc5_add_unit_test_black(api_result_black api/cpp)
 cvc5_add_unit_test_black(api_skolem_id_black api/cpp)
+cvc5_add_unit_test_black(api_solver_black api/cpp)
+cvc5_add_unit_test_black(api_sort_black api/cpp)
 cvc5_add_unit_test_black(api_sort_kind_black api/cpp)
+cvc5_add_unit_test_black(api_symbol_manager_black api/cpp)
+cvc5_add_unit_test_black(api_synth_result_black api/cpp)
+cvc5_add_unit_test_black(api_term_black api/cpp)
 cvc5_add_unit_test_black(api_term_manager_black api/cpp)
-cvc5_add_unit_test_black(op_black api/cpp)
-cvc5_add_unit_test_black(parametric_datatype_black api/cpp)
-cvc5_add_unit_test_black(result_black api/cpp)
-cvc5_add_unit_test_black(sort_black api/cpp)
-cvc5_add_unit_test_black(term_black api/cpp)
-cvc5_add_unit_test_white(op_white api/cpp)
+cvc5_add_unit_test_white(api_term_white api/cpp)
+cvc5_add_unit_test_black(api_types_black api/cpp)
 cvc5_add_unit_test_white(solver_white api/cpp)
-cvc5_add_unit_test_black(synth_result_black api/cpp)
-cvc5_add_unit_test_white(term_white api/cpp)
-cvc5_add_unit_test_white(api_types_black api/cpp)
-cvc5_add_unit_test_black(proof_black api/cpp)
-cvc5_add_unit_test_white(command_black api/cpp)
-cvc5_add_unit_test_white(symbol_manager_black api/cpp)
-cvc5_add_unit_test_white(input_parser_black api/cpp)
-cvc5_add_unit_test_black(solver_black api/cpp)
 
+# do not issue deprecation warnings when using deprecated functions
+set_source_files_properties(input_parser_black.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 # tests to cover deprecated functions for API coverage build in nightlies
 set_source_files_properties(api_deprecated_black.cpp
   PROPERTIES COMPILE_OPTIONS

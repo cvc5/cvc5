@@ -156,6 +156,11 @@ name   = "Base"
   help = "print instantiations during solving"
   description = "With ``-o inst``, cvc5 prints information about quantifier instantions for individual quantifers."
   example-file = "regress1/quantifiers/qid-debug-inst.smt2"
+[[option.mode.INST_STRATEGY]]
+  name = "inst-strategy"
+  help = "prints a summary of the instantiation techniques as they are run."
+  description = "With ``-o inst-strategy``, cvc5 prints a summary of the instantiation techniques as they are run."
+  example-file = "regress2/quantifiers/javafe.tc.CheckCompilationUnit.001.smt2"
 [[option.mode.ORACLES]]
   name = "oracles"
   help = "print calls to oracles and responses received"
@@ -240,16 +245,30 @@ name   = "Base"
   help = "print the corresponding benchmark when successfully computing an unsat core."
   description = "With ``-o unsat-core-benchmark``, cvc5 prints the corresponding benchmark when it successfully computes an unsat core."
   example-file = "regress0/printer/print_unsat_core.smt2"
+[[option.mode.UNSAT_CORE_LEMMAS_BENCHMARK]]
+  name = "unsat-core-lemmas-benchmark"
+  help = "print the corresponding benchmark when successfully computing an unsat core with theory lemmas."
+  description = "With ``-o unsat-core-lemmas-benchmark``, cvc5 prints the corresponding benchmark when it successfully computes an unsat core that includes the theory lemmas used."
+  example-file = "regress0/printer/print_unsat_core_lemmas.smt2"
 [[option.mode.PORTFOLIO]]
   name = "portfolio"
   help = "prints the option strings tried in portfolio mode."
   description = "With ``-o portfolio``, cvc5 prints the option strings tried in portfolio mode."
-  example-file = "regress0/printer/portfolio-out.smt2"
+  example-file = "regress0/printer/portfolio-out.smt2 --use-portfolio"
 [[option.mode.BLOCK_MODEL]]
   name = "block-model"
   help = "prints the formulas used when block-model is run."
   description = "With ``-o block-model``, cvc5 prints the formulas used when block-model is run."
   example-file = "regress0/printer/block_model_out.smt2"
+[[option.mode.OPTIONS_AUTO]]
+  name = "options-auto"
+  help = "prints the options set during automatic configuration."
+  description = "With ``-o options-auto``, cvc5 prints the options set during automatic configuration."
+  example-file = "regress0/printer/print_options_auto.smt2"
+[[option.mode.RARE_DB]]
+  name = "rare-db"
+  help = "upon initialization, print the entire set of RARE rewrite rules as they are defined in the proof signature."
+  description = "With ``-o rare-db``, upon initialization, cvc5 prints the entire set of RARE rewrite rules as they are defined in the proof signature."
 
 # Stores then enabled output tags.
 [[option]]
@@ -315,8 +334,24 @@ name   = "Base"
 
 [[option]]
   name       = "safeOptions"
-  category   = "common"
+  category   = "expert"
   long       = "safe-options"
   type       = "bool"
   default    = "false"
   help       = "do not allow setting any option that is not common or regular"
+
+[[option]]
+  name       = "pluginNotifySatClauseInSolve"
+  category   = "expert"
+  long       = "plugin-notify-sat-clause-in-solve"
+  type       = "bool"
+  default    = "true"
+  help       = "only inform plugins of SAT clauses when we are in the main solving loop of the SAT solver"
+
+[[option]]
+  name       = "pluginShareSkolems"
+  category   = "expert"
+  long       = "plugin-share-skolems"
+  type       = "bool"
+  default    = "true"
+  help       = "true if we permit sharing theory lemmas and SAT clauses with skolems"

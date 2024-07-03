@@ -53,6 +53,17 @@ if(NOT CoCoA_FOUND_SYSTEM)
 
   get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
 
+  find_program(PATCH_BIN patch)
+  if(NOT PATCH_BIN)
+    message(FATAL_ERROR "Can not build CoCoA, missing binary for patch")
+  endif()
+
+  # On macOS, we have to set `-isysroot` to make sure that include headers are
+  # found because they are not necessarily installed at /usr/include anymore.
+  if(CMAKE_OSX_SYSROOT)
+    set(CXXFLAGS "${CMAKE_CXX_SYSROOT_FLAG} ${CMAKE_OSX_SYSROOT}")
+  endif()
+
   ExternalProject_Add(
     CoCoA-EP
     ${COMMON_EP_CONFIG}
@@ -63,7 +74,7 @@ if(NOT CoCoA_FOUND_SYSTEM)
     PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
         -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoALib-0.99800-trace.patch
     BUILD_IN_SOURCE YES
-    CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> --with-libgmp=${GMP_LIBRARY} --with-cxx=${CMAKE_CXX_COMPILER}
+    CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> --with-libgmp=${GMP_LIBRARY} --with-cxx=${CMAKE_CXX_COMPILER} --with-cxxflags=${CXXFLAGS} 
     BUILD_COMMAND ${make_cmd} library
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcocoa.a
   )
@@ -100,4 +111,8 @@ if(CoCoA_FOUND_SYSTEM)
 else()
   message(STATUS "Building CoCoA ${CoCoA_VERSION}: ${CoCoA_LIBRARIES}")
   add_dependencies(CoCoA CoCoA-EP)
+  # Install static library only if it is a static build.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${CoCoA_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()

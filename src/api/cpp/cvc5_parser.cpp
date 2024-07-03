@@ -63,7 +63,14 @@ class CVC5ParserApiExceptionStream
 /* SymbolManager                                                              */
 /* -------------------------------------------------------------------------- */
 
-SymbolManager::SymbolManager(cvc5::Solver* s) { d_sm.reset(new SymManager(s)); }
+SymbolManager::SymbolManager(cvc5::TermManager& tm)
+{
+  d_sm.reset(new SymManager(tm));
+}
+SymbolManager::SymbolManager(cvc5::Solver* slv)
+{
+  d_sm.reset(new SymManager(slv->getTermManager()));
+}
 
 SymbolManager::~SymbolManager() {}
 
@@ -79,7 +86,7 @@ const std::string& SymbolManager::getLogic() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_PARSER_API_CHECK(d_sm->isLogicSet())
-      << "Invalid call to 'getLogic', logic has not yet been set";
+      << "invalid call to 'getLogic', logic has not yet been set";
   //////// all checks before this line
   return d_sm->getLogic();
   ////////
@@ -180,7 +187,7 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm)
 
 InputParser::InputParser(Solver* solver)
     : d_solver(solver),
-      d_allocSm(new SymbolManager(solver)),
+      d_allocSm(new SymbolManager(solver->getTermManager())),
       d_sm(d_allocSm.get())
 {
   initialize();

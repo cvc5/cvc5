@@ -25,7 +25,7 @@ namespace cvc5::internal {
 /**
  * The mode of the solver, which is an extension of Figure 4.1 on
  * page 52 of the SMT-LIB version 2.6 standard
- * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+ * http://smt-lib.org/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
  */
 enum class SmtMode
 {

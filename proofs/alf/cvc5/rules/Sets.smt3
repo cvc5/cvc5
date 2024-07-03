@@ -1,0 +1,32 @@
+(include "../theories/Sets.smt3")
+
+; define: $set_is_empty_eval
+; args:
+; - t (Set T): The set to check.
+; return: >
+;   true if we can determine that t is the empty set, false if we can
+;   determine t is not empty. Otherwise this method returns an unevaluated term.
+(define $set_is_empty_eval ((T Type :implicit) (t (Set T)))
+  (alf.match ((U Type) (x U) (s (Set U)))
+    t
+    (
+    ((set.empty U) true)
+    ((set.singleton x) false)
+    ((set.union (set.singleton x) s) false)
+    )
+  )
+)
+
+; rule: sets-is-empty-eval
+; implements: ProofRewriteRule::SETS_IS_EMPTY_EVAL
+; args:
+; - eq Bool: The equality to prove, whose left hand side is an application of set.is_empty.
+; requires: >
+;   showing that the set that set.is_empty is applied to is (or is not) the
+;   empty set, as denoted by the right hand side of eq.
+; conclusion: The given equality.
+(declare-rule sets-is-empty-eval ((T Type) (t (Set T)) (b Bool))
+  :args ((= (set.is_empty t) b))
+  :requires ((($set_is_empty_eval t) b))
+  :conclusion (= (set.is_empty t) b)
+)

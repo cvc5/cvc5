@@ -22,6 +22,7 @@
 #include "proof/proof_node_manager.h"
 #include "proof/resolution_proofs_util.h"
 #include "proof/subtype_elim_proof_converter.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -38,14 +39,12 @@ namespace cvc5::internal {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
-                                                   rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
     : EnvObj(env),
       d_pc(nullptr),
       d_pppg(nullptr),
-      d_rdbPc(env, rdb),
       d_wfpm(env),
-      d_elimAllTrusted(false),
+      d_collectAllTrusted(false),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = nodeManager()->mkConst(true);
@@ -64,9 +63,15 @@ void ProofPostprocessCallback::setEliminateRule(ProofRule rule)
   d_elimRules.insert(rule);
 }
 
-void ProofPostprocessCallback::setEliminateAllTrustedRules()
+void ProofPostprocessCallback::setCollectAllTrustedRules()
 {
-  d_elimAllTrusted = true;
+  d_collectAllTrusted = true;
+}
+
+std::unordered_set<std::shared_ptr<ProofNode>>&
+ProofPostprocessCallback::getTrustedProofs()
+{
+  return d_trustedPfs;
 }
 
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -93,6 +98,18 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     return false;
   }
   return true;
+}
+bool ProofPostprocessCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                                                const std::vector<Node>& fa)
+{
+  ProofRule id = pn->getRule();
+  // if we eliminate all trusted rules, remember this for later
+  if (d_collectAllTrusted
+      && (id == ProofRule::TRUST_THEORY_REWRITE || id == ProofRule::TRUST))
+  {
+    d_trustedPfs.insert(pn);
+  }
+  return false;
 }
 
 bool ProofPostprocessCallback::update(Node res,
@@ -159,6 +176,17 @@ bool ProofPostprocessCallback::update(Node res,
   return !ret.isNull();
 }
 
+bool ProofPostprocessCallback::canMerge(std::shared_ptr<ProofNode> pn)
+{
+  if (d_collectAllTrusted)
+  {
+    ProofRule id = pn->getRule();
+    return (id != ProofRule::TRUST_THEORY_REWRITE && id != ProofRule::TRUST);
+  }
+  // otherwise we can merge
+  return true;
+}
+
 bool ProofPostprocessCallback::updateInternal(Node res,
                                               ProofRule id,
                                               const std::vector<Node>& children,
@@ -171,15 +199,7 @@ bool ProofPostprocessCallback::updateInternal(Node res,
 
 bool ProofPostprocessCallback::shouldExpand(ProofRule id) const
 {
-  if (d_elimRules.find(id) != d_elimRules.end())
-  {
-    return true;
-  }
-  if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
-  {
-    return true;
-  }
-  return false;
+  return d_elimRules.find(id) != d_elimRules.end();
 }
 
 Node ProofPostprocessCallback::expandMacros(ProofRule id,
@@ -194,6 +214,30 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     return Node::null();
   }
   Trace("smt-proof-pp-debug") << "Expand macro " << id << std::endl;
+  if (id == ProofRule::TRUST)
+  {
+    TrustId tid;
+    getTrustId(args[0], tid);
+    // we don't do this for steps that are already extended theory rewrite
+    // steps, or we would get an infinite loop in reconstruction.
+    if (tid == TrustId::EXT_THEORY_REWRITE)
+    {
+      return Node::null();
+    }
+    // maybe we can show it rewrites to true based on (extended) rewriting
+    // modulo original forms (MACRO_SR_PRED_INTRO).
+    TheoryProofStepBuffer psb(d_pc);
+    if (psb.applyPredIntro(res,
+                           {},
+                           MethodId::SB_DEFAULT,
+                           MethodId::SBA_SEQUENTIAL,
+                           MethodId::RW_EXT_REWRITE))
+    {
+      cdp->addSteps(psb);
+      return res;
+    }
+    return Node::null();
+  }
   // macro elimination
   if (id == ProofRule::MACRO_SR_EQ_INTRO)
   {
@@ -747,6 +791,11 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       // substitutions are pre-rewrites
       tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], true);
+      if (ida == MethodId::SBA_FIXPOINT)
+      {
+        // fixed point substitutions are also post-rewrites
+        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], false);
+      }
     }
     // add the proof constructed by the term conversion utility
     std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(t);
@@ -889,24 +938,12 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       }
       if (retCurr != ret)
       {
-        // try to prove the rewritten form is equal to the extended rewritten
-        // form, treated as a stand alone (theory) rewrite
+        // We were unable to show it via ordinary rewriting, so we insert
+        // a trusted step. This cannot be TRUST_THEORY_REWRITE since it is
+        // not an ordinary theory rewrite.
         Node eqp = retCurr.eqNode(ret);
-        std::vector<Node> targs;
-        targs.push_back(eqp);
-        targs.push_back(
-            builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
-        // in this case, must be a non-standard rewrite kind
-        Assert(args.size() >= 2);
-        targs.push_back(args[1]);
-        Node eqpp =
-            expandMacros(ProofRule::TRUST_THEORY_REWRITE, {}, targs, cdp);
+        cdp->addTrustedStep(eqp, TrustId::EXT_THEORY_REWRITE, {}, {});
         transEq.push_back(eqp);
-        if (eqpp.isNull())
-        {
-          // don't know how to eliminate
-          return Node::null();
-        }
       }
       if (transEq.size() > 1)
       {
@@ -923,57 +960,9 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   }
   else if (id == ProofRule::MACRO_ARITH_SCALE_SUM_UB)
   {
-    Trace("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
-    if (TraceIsOn("macro::arith"))
-    {
-      for (const auto& child : children)
-      {
-        Trace("macro::arith") << "  child: " << child << std::endl;
-      }
-      Trace("macro::arith") << "   args: " << args << std::endl;
-    }
-    Assert(args.size() == children.size());
-    NodeManager* nm = nodeManager();
-    ProofStepBuffer steps{d_pc};
-
-    // Scale all children, accumulating
-    std::vector<Node> scaledRels;
-    for (size_t i = 0; i < children.size(); ++i)
-    {
-      TNode child = children[i];
-      TNode scalar = args[i];
-      bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp =
-          nm->mkNode(isPos ? Kind::GT : Kind::LT,
-                     scalar,
-                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
-      // (= scalarCmp true)
-      Node scalarCmpOrTrue =
-          steps.tryStep(ProofRule::EVALUATE, {}, {scalarCmp});
-      Assert(!scalarCmpOrTrue.isNull());
-      // scalarCmp
-      steps.addStep(ProofRule::TRUE_ELIM, {scalarCmpOrTrue}, {}, scalarCmp);
-      // (and scalarCmp relation)
-      Node scalarCmpAndRel =
-          steps.tryStep(ProofRule::AND_INTRO, {scalarCmp, child}, {});
-      Assert(!scalarCmpAndRel.isNull());
-      // (=> (and scalarCmp relation) scaled)
-      Node impl = steps.tryStep(
-          isPos ? ProofRule::ARITH_MULT_POS : ProofRule::ARITH_MULT_NEG,
-          {},
-          {scalar, child});
-      Assert(!impl.isNull());
-      // scaled
-      Node scaled =
-          steps.tryStep(ProofRule::MODUS_PONENS, {scalarCmpAndRel, impl}, {});
-      Assert(!scaled.isNull());
-      scaledRels.emplace_back(scaled);
-    }
-
-    Node sumBounds = steps.tryStep(ProofRule::ARITH_SUM_UB, scaledRels, {});
-    cdp->addSteps(steps);
-    Trace("macro::arith") << "Expansion done. Proved: " << sumBounds
-                          << std::endl;
+    Node sumBounds = theory::arith::expandMacroSumUb(children, args, cdp);
+    Assert(!sumBounds.isNull());
+    Assert(res.isNull() || sumBounds == res);
     return sumBounds;
   }
   else if (id == ProofRule::MACRO_STRING_INFERENCE)
@@ -1002,45 +991,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     Node bbAtom = bb.getStoredBBAtom(eq[0]);
     bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
     return eq;
-  }
-  else if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
-  {
-    if (res.isNull())
-    {
-      res = d_pc->checkDebug(id, children, args);
-      Assert(!res.isNull());
-    }
-    bool reqTrueElim = false;
-    // if not an equality, make (= res true).
-    if (res.getKind() != Kind::EQUAL)
-    {
-      res = res.eqNode(d_true);
-      reqTrueElim = true;
-    }
-    TheoryId tid = THEORY_LAST;
-    MethodId mid = MethodId::RW_REWRITE;
-    // if theory rewrite, get diagnostic information
-    if (id == ProofRule::TRUST_THEORY_REWRITE)
-    {
-      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-      getMethodId(args[2], mid);
-    }
-    int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
-    int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
-    // attempt to reconstruct the proof of the equality into cdp using the
-    // rewrite database proof reconstructor
-    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
-    {
-      // If we made (= res true) above, conclude the original res.
-      if (reqTrueElim)
-      {
-        cdp->addStep(res[0], ProofRule::TRUE_ELIM, {res}, {});
-        res = res[0];
-      }
-      // if successful, we update the proof
-      return res;
-    }
-    // otherwise no update
   }
   return Node::null();
 }
@@ -1131,12 +1081,16 @@ ProofPostprocess::ProofPostprocess(Env& env,
                                    rewriter::RewriteDb* rdb,
                                    bool updateScopedAssumptions)
     : EnvObj(env),
-      d_cb(env, rdb, updateScopedAssumptions),
+      d_cb(env, updateScopedAssumptions),
       // the update merges subproofs
       d_updater(env, d_cb, options().proof.proofPpMerge),
       d_finalCb(env),
       d_finalizer(env, d_finalCb)
 {
+  if (rdb != nullptr)
+  {
+    d_ppdsl.reset(new ProofPostprocessDsl(env, rdb));
+  }
 }
 
 ProofPostprocess::~ProofPostprocess() {}
@@ -1149,6 +1103,14 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
+
+  // run the reconstruction algorithm on the proofs to eliminate
+  std::unordered_set<std::shared_ptr<ProofNode>>& tproofs =
+      d_cb.getTrustedProofs();
+  if (!tproofs.empty())
+  {
+    d_ppdsl->reconstruct(tproofs);
+  }
 
   // eliminate subtypes if option is specified
   if (options().proof.proofElimSubtypes)
@@ -1182,7 +1144,7 @@ void ProofPostprocess::setEliminateRule(ProofRule rule)
 
 void ProofPostprocess::setEliminateAllTrustedRules()
 {
-  d_cb.setEliminateAllTrustedRules();
+  d_cb.setCollectAllTrustedRules();
 }
 
 void ProofPostprocess::setAssertions(const std::vector<Node>& assertions,

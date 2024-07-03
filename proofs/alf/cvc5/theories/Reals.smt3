@@ -12,7 +12,7 @@
                            (! Type :var U :implicit)
                            T U
                            (! Real :requires ((is_arith_type T) true) :requires ((is_arith_type U) true))) :left-assoc)
-(declare-const INDEXED_ROOT_PREDICATE (-> Int Bool Real Bool))
+(declare-const @indexed_root_predicate (-> Int Bool Real Bool))
 
 ; skolems
 (declare-const @div_by_zero (-> Real Real))

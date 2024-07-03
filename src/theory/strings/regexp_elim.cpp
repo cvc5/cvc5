@@ -83,7 +83,7 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
       Node eq = atom.eqNode(eatom);
       Node aggn = NodeManager::currentNM()->mkConst(d_isAggressive);
       std::shared_ptr<ProofNode> pn =
-          pnm->mkNode(ProofRule::RE_ELIM, {}, {atom, aggn}, eq);
+          pnm->mkNode(ProofRule::MACRO_RE_ELIM, {}, {atom, aggn}, eq);
       d_epg->setProofFor(eq, pn);
       return TrustNode::mkTrustRewrite(atom, eatom, d_epg.get());
     }

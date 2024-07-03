@@ -113,7 +113,14 @@ void InferenceManager::convert(ProofRule& id,
       Assert(exp.isConst());
       args.push_back(conc[0]);
       break;
-    case ProofRule::ARRAYS_EXT: children.push_back(exp); break;
+    case ProofRule::ARRAYS_EXT:
+      // since this rule depends on the ARRAY_DEQ_DIFF skolem which sorts
+      // indices, we assert that the equality is ordered here, which it should
+      // be based on the standard order for equality.
+      Assert(exp.getKind() == Kind::NOT && exp[0].getKind() == Kind::EQUAL
+             && exp[0][0] < exp[0][1]);
+      children.push_back(exp);
+      break;
     default:
       if (id != ProofRule::TRUST)
       {

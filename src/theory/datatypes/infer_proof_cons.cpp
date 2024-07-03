@@ -146,7 +146,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           Node t = exp[0];
           Node nn = nm->mkConstInt(Rational(n));
           Node eq = exp.eqNode(conc);
-          cdp->addStep(eq, ProofRule::DT_INST, {}, {t, nn});
+          cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_INST);
           cdp->addStep(conc, ProofRule::EQ_RESOLVE, {exp, eq}, {});
           success = true;
         }
@@ -193,7 +193,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         Node seq = sl.eqNode(sr);
         cdp->addStep(seq, ProofRule::CONG, {exp}, {asn, sop});
         Node sceq = sr.eqNode(concEq[1]);
-        cdp->addStep(sceq, ProofRule::DT_COLLAPSE, {}, {sr});
+        cdp->addTheoryRewriteStep(sceq, ProofRewriteRule::DT_COLLAPSE_SELECTOR);
         cdp->addStep(sl.eqNode(concEq[1]), ProofRule::TRANS, {seq, sceq}, {});
         if (conc.getKind() != Kind::EQUAL)
         {
