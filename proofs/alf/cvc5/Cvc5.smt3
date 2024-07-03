@@ -230,8 +230,9 @@
 ; rule: arith_poly_norm_rel
 ; implements: ProofRule::ARITH_POLY_NORM_REL
 ; premises:
-; - (- x1 x2) and (- y1 y2) are equal modulo polynomial normalization and
-;   scaling factors cx and cy.
+; - eq Bool: >
+;   An equality stating that (- x1 x2) and (- y1 y2) are equal modulo polynomial
+;   normalization and scaling factors cx and cy.
 ; args:
 ; - r (-> U U Bool): The relation whose equivalence is proven by this rule.
 ; requires: >
