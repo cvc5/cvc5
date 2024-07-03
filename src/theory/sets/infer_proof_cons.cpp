@@ -27,7 +27,11 @@ namespace theory {
 namespace sets {
 
 InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
-    : EnvObj(env), d_tsr(tsr), d_imap(userContext()), d_fmap(context()), d_expMap(context())
+    : EnvObj(env),
+      d_tsr(tsr),
+      d_imap(userContext()),
+      d_fmap(context()),
+      d_expMap(context())
 {
   d_false = nodeManager()->mkConst(false);
   d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
@@ -38,7 +42,7 @@ void InferProofCons::notifyFact(const Node& conc,
                                 InferenceId id)
 {
   Assert(conc.getKind() != Kind::AND && conc.getKind() != Kind::IMPLIES);
-  if (d_fmap.find(conc)!=d_fmap.end())
+  if (d_fmap.find(conc) != d_fmap.end())
   {
     // already exists, redundant
     return;
@@ -49,7 +53,8 @@ void InferProofCons::notifyFact(const Node& conc,
 
 void InferProofCons::notifyConflict(const Node& conf, InferenceId id)
 {
-  Trace("sets-ipc-debug") << "SetsIpc::conflict " << conf << " " << id << std::endl;
+  Trace("sets-ipc-debug") << "SetsIpc::conflict " << conf << " " << id
+                          << std::endl;
   d_imap[conf.notNode()] = id;
 }
 
@@ -66,7 +71,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   {
     // should be a fact
     it = d_fmap.find(fact);
-    Assert (it!=d_fmap.end());
+    Assert(it != d_fmap.end());
   }
   InferenceId id = it->second;
 
