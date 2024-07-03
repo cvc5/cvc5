@@ -263,7 +263,7 @@ void usortsToBitVectors(const LogicInfo& d_logic,
   if (toProcess.size() > 0)
   {
     /* the current version only supports BV for removing uninterpreted sorts */
-    if (not d_logic.isTheoryEnabled(theory::THEORY_BV))
+    if (!d_logic.isTheoryEnabled(theory::THEORY_BV))
     {
       return;
     }

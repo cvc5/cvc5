@@ -45,17 +45,17 @@ Node AletheNodeConverter::postConvert(Node n)
   Kind k = n.getKind();
   switch (k)
   {
-    case Kind::BITVECTOR_BITOF:
+    case Kind::BITVECTOR_BIT:
     {
       std::stringstream ss;
-      ss << "(_ @bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex
+      ss << "(_ @bitOf " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
          << ")";
       TypeNode fType = nm->mkFunctionType(n[0].getType(), n.getType());
       Node op = mkInternalSymbol(ss.str(), fType, true);
       Node converted = nm->mkNode(Kind::APPLY_UF, op, n[0]);
       return converted;
     }
-    case Kind::BITVECTOR_BB_TERM:
+    case Kind::BITVECTOR_FROM_BOOLS:
     {
       std::vector<Node> children;
       std::vector<TypeNode> childrenTypes;

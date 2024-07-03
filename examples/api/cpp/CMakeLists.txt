@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-set(CVC5_EXAMPLES_API
+set(CVC5_EXAMPLES_API_CPP
   bags
   bitvectors
   bitvectors_and_arrays
@@ -31,9 +31,10 @@ set(CVC5_EXAMPLES_API
   transcendentals
   parser
   parser_sym_manager
+  uf
 )
 
-foreach(example ${CVC5_EXAMPLES_API})
+foreach(example ${CVC5_EXAMPLES_API_CPP})
   cvc5_add_example(${example} "" "api/cpp")
 endforeach()
 
@@ -41,11 +42,11 @@ if(CVC5_USE_COCOA)
   cvc5_add_example(finite_field "" "api/cpp")
 endif()
 
-set(SYGUS_EXAMPLES_API
+set(SYGUS_EXAMPLES_API_CPP
   sygus-fun
   sygus-inv
 )
 
-foreach(example ${SYGUS_EXAMPLES_API})
+foreach(example ${SYGUS_EXAMPLES_API_CPP})
   cvc5_add_example(${example} "${example}.cpp utils.h utils.cpp" "api/cpp")
 endforeach()

@@ -16,6 +16,7 @@
 # Add unit tests.
 cvc5_add_unit_test_black(attribute_black node)
 cvc5_add_unit_test_white(attribute_white node)
+cvc5_add_unit_test_white(attrhash_white node)
 cvc5_add_unit_test_black(kind_black node)
 cvc5_add_unit_test_black(kind_map_black node)
 cvc5_add_unit_test_black(node_black node)

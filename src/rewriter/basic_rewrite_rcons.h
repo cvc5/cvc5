@@ -32,6 +32,22 @@ namespace cvc5::internal {
 namespace rewriter {
 
 /**
+ * Mode for if/when to try THEORY_REWRITE.
+ */
+enum class TheoryRewriteMode
+{
+  // Attempt to use the theory rewrites based on their TheoryRewriteCtx setting.
+  STANDARD,
+  // Only resort to theory rewrites after trying RARE rewrites.
+  RESORT,
+  // Do not try theory rewrites.
+  NEVER,
+};
+
+/** Print a TheoryRewriteMode to an output stream */
+std::ostream& operator<<(std::ostream& os, TheoryRewriteMode tm);
+
+/**
  * The module for basic (non-DSL-dependent) automatic reconstructing proofs of
  * THEORY_REWRITE steps. It handles special cases that are independent
  * of the user-provided DSL rules, including EVALUATE, REFL, BETA_REDUCE.
@@ -48,18 +64,16 @@ class BasicRewriteRCons : protected EnvObj
    * @param cdp The proof to add to.
    * @param a The left hand side of the equality.
    * @param b The left hand side of the equality.
-   * @param tid The theory that was the source of the rewrite (if any).
-   * @param tid The method that was the source of the rewrite (if any).
    * @param subgoals The list of proofs introduced when proving eq that
    * are trusted steps.
+   * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
   bool prove(CDProof* cdp,
              Node a,
              Node b,
-             theory::TheoryId tid,
-             MethodId mid,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals);
+             std::vector<std::shared_ptr<ProofNode>>& subgoals,
+             TheoryRewriteMode tmode);
   /**
    * There are theory rewrites which cannot be expressed in RARE rules. In this
    * case we need to use proof rules which are not written in RARE. It is only
@@ -68,18 +82,16 @@ class BasicRewriteRCons : protected EnvObj
    * @param cdp The proof to add to.
    * @param a The left hand side of the equality.
    * @param b The left hand side of the equality.
-   * @param tid The theory that was the source of the rewrite (if any).
-   * @param tid The method that was the source of the rewrite (if any).
    * @param subgoals The list of proofs introduced when proving eq that
    * are trusted steps.
+   * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
   bool postProve(CDProof* cdp,
                  Node a,
                  Node b,
-                 theory::TheoryId tid,
-                 MethodId mid,
-                 std::vector<std::shared_ptr<ProofNode>>& subgoals);
+                 std::vector<std::shared_ptr<ProofNode>>& subgoals,
+                 TheoryRewriteMode tmode);
   /**
    * Add to cdp a proof of eq from free asumption eqi, where eqi is the result
    * of term conversion via RewriteDbNodeConverter.
@@ -109,11 +121,6 @@ class BasicRewriteRCons : protected EnvObj
 
  private:
   /**
-   * Is proof-granularity set to dsl-rewrite-strict? This impacts when
-   * THEORY_REWRITE are tried.
-   */
-  bool d_isDslStrict;
-  /**
    * Try rule r, return true if eq could be proven by r with arguments args.
    * If this method returns true, a proof of eq was added to cdp.
    * If addStep is true, we add the proof to cdp. Otherwise, the caller is
@@ -130,15 +137,19 @@ class BasicRewriteRCons : protected EnvObj
    *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by ProofRewriteRule::MACRO_BOOL_NNF_NORM.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps. These are small step rewrites corresponding to NNF
-   * flattening of operators, and other simple inferences.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofMacroBoolNnfNorm(
-      CDProof* cdp,
-      const Node& eq,
-      std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroSubstrStripSymLength(CDProof* cdp, const Node& eq);
   /**
    * Try THEORY_REWRITE with theory::TheoryRewriteCtx ctx.
    */

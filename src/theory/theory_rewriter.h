@@ -45,6 +45,9 @@ enum class TheoryRewriteCtx
   POST_DSL,
 };
 
+/** Print a TheoryRewriteCtx to an output stream */
+std::ostream& operator<<(std::ostream& os, TheoryRewriteCtx trc);
+
 /**
  * Theory rewriters signal whether more rewriting is needed (or not)
  * by using a member of this enumeration.  See RewriteResponse, below.

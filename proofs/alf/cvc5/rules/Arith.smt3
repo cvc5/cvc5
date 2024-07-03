@@ -1,157 +1,253 @@
-; depends: arith_programs.plf
-
 (include "../theories/Builtin.smt3")
 (include "../theories/Reals.smt3")
 (include "../theories/Ints.smt3")
 (include "../programs/Arith.smt3")
 (include "../programs/Utils.smt3")
 
-(program arith_rel_sum ((T Type) (U Type) (S Type) (r1 T) (r2 U))
+; program: $arith_rel_sum
+; args:
+; - r1 T : The first arithmetic relation.
+; - r2 U : The second arithmetic relation.
+; return: >
+;   the relation that is implied when applications of the relations r1 and
+;   r2 are added together for ProofRule::ARITH_SUM_UB.
+(program $arith_rel_sum ((T Type) (U Type) (S Type) (r1 T) (r2 U))
   (T U) S
   (
-    ((arith_rel_sum < <) <)
-    ((arith_rel_sum < =) <)
-    ((arith_rel_sum < <=) <)
-    ((arith_rel_sum <= <) <)
-    ((arith_rel_sum <= =) <=)
-    ((arith_rel_sum <= <=) <=)
-    ((arith_rel_sum = <) <)
-    ((arith_rel_sum = =) <=)  ; could be =, but internal proof checker does <=
-    ((arith_rel_sum = <=) <=)
-  )
-)
-(program arith_mk_zero ((T Type))
-  (Type) T
-  (
-    ((arith_mk_zero Real) 0.0)
-    ((arith_mk_zero Int)  0)
+    (($arith_rel_sum < <) <)
+    (($arith_rel_sum < =) <)
+    (($arith_rel_sum < <=) <)
+    (($arith_rel_sum <= <) <)
+    (($arith_rel_sum <= =) <=)
+    (($arith_rel_sum <= <=) <=)
+    (($arith_rel_sum = <) <)
+    (($arith_rel_sum = =) <=)  ; could be =, but internal proof checker does <=
+    (($arith_rel_sum = <=) <=)
   )
 )
 
-(program mk_arith_sum_ub ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U) (tail Bool :list))
+; program: $arith_mk_zero
+; args:
+; - u Type : The type of the zero, which should be Int or Real.
+; return: the zero for the given type.
+(program $arith_mk_zero ((T Type))
+  (Type) T
+  (
+    (($arith_mk_zero Real) 0.0)
+    (($arith_mk_zero Int)  0)
+  )
+)
+
+; program: $mk_arith_sum_ub
+; args:
+; - F Bool: A conjunction of arithmetic relations.
+; return: the arithmetic relation that is implied by adding each of the relations in F together.
+(program $mk_arith_sum_ub ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U) (tail Bool :list))
     (Bool) Bool
     (
-        ((mk_arith_sum_ub true)               (= 0 0))
-        ((mk_arith_sum_ub (and (r a b) tail)) 
+        (($mk_arith_sum_ub true)               (= 0 0))
+        (($mk_arith_sum_ub (and (r a b) tail)) 
           (alf.match ((S Type) (V Type) (r2 (-> S V Bool)) (a2 S :list) (b2 V :list))
-            (mk_arith_sum_ub tail)
-            (((r2 a2 b2) (_ (arith_rel_sum r r2) (+ a a2) (+ b b2))))))
+            ($mk_arith_sum_ub tail)
+            (((r2 a2 b2) (_ ($arith_rel_sum r r2) (+ a a2) (+ b b2))))))
     )
 )
 
+; rule: arith_sum_ub
+; implements: ProofRule::ARITH_SUM_UB
+; premises:
+; - F Bool: A conjunction of arithmetic relations.
+; conclusion: >
+;   The arithmetic relation that is implied by adding each of the
+;   relations in F together.
 (declare-rule arith_sum_ub ((F Bool))
   :premise-list F and
-  :conclusion (mk_arith_sum_ub F)
+  :conclusion ($mk_arith_sum_ub F)
 )
 
-; Computes the conclusion of the ProofRule::ARITH_MULT_POS rule.
-(program mk_arith_mult_pos ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
+; program: $mk_arith_mult_pos
+; args:
+; - m S: A real or integer term to multiply by.
+; - F Bool: The arithmetic atom to multiply.
+; return: >
+;   the result of multiply the atom by m. This is used to compute the
+;   conclusion of the ProofRule::ARITH_MULT_POS rule.
+(program $mk_arith_mult_pos ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
   (
-    ((mk_arith_mult_pos m (r a b)) (r (* m a) (* m b)))
+    (($mk_arith_mult_pos m (r a b)) (r (* m a) (* m b)))
   )
 )
 
+; rule: arith_mult_pos
+; implements: ProofRule::ARITH_MULT_POS
+; args:
+; - m T: A real or integer term to multiply by.
+; - F Bool: The arithmetic atom to multiply.
+; conclusion: >
+;   An implication stating that if m is positive and F is true, then
+;   the result of multiply m by F also holds.
 (declare-rule arith_mult_pos ((T Type) (m T) (F Bool))
   :args (m F)
-  :conclusion (=> (and (> m (arith_mk_zero (alf.typeof m))) F) (mk_arith_mult_pos m F))
+  :conclusion (=> (and (> m ($arith_mk_zero (alf.typeof m))) F) ($mk_arith_mult_pos m F))
 )
 
-(program arith_rel_inv ((T Type) (U Type) (S Type))
+; program: $arith_rel_inv
+; args:
+; - r T: An arithmetic relation.
+; return: >
+;   the relation that is obtained by flipping its side. This is used for
+;   determining the relation obtained when multiply both sides by a negative term.
+(program $arith_rel_inv ((T Type) (U Type) (S Type))
   (T) S
   (
-    ((arith_rel_inv =) =)
-    ((arith_rel_inv <) >)
-    ((arith_rel_inv <=) >=)
-    ((arith_rel_inv >) <)
-    ((arith_rel_inv >=) <=)
+    (($arith_rel_inv =) =)
+    (($arith_rel_inv <) >)
+    (($arith_rel_inv <=) >=)
+    (($arith_rel_inv >) <)
+    (($arith_rel_inv >=) <=)
   )
 )
 
-; Computes the conclusion of the ProofRule::ARITH_MULT_NEG rule.
-(program mk_arith_mult_neg ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
+; program: $mk_arith_mult_neg
+; args:
+; - m S: A real or integer term to multiply by.
+; - F Bool: The arithmetic atom to multiply.
+; return: >
+;   the result of multiply the atom by m and invert its relation.
+;   This is used to compute the conclusion of the ProofRule::ARITH_MULT_NEG rule.
+(program $mk_arith_mult_neg ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
   (
-    ((mk_arith_mult_neg m (r a b)) (_ (arith_rel_inv r) (* m a) (* m b)))
+    (($mk_arith_mult_neg m (r a b)) (_ ($arith_rel_inv r) (* m a) (* m b)))
   )
 )
 
+; rule: arith_mult_neg
+; implements: ProofRule::ARITH_MULT_NEG
+; args:
+; - m T: A real or integer term to multiply by.
+; - F Bool: The arithmetic atom to multiply.
+; conclusion: >
+;   An implication stating that if m is negative and F is true, then
+;   the result of multiply m by F and inverting its relation also holds.
 (declare-rule arith_mult_neg ((T Type) (m T) (F Bool))
   :args (m F)
-  :conclusion (=> (and (< m (arith_mk_zero (alf.typeof m))) F) (mk_arith_mult_neg m F))
+  :conclusion (=> (and (< m ($arith_mk_zero (alf.typeof m))) F) ($mk_arith_mult_neg m F))
 )
 
-(program arith_rel_trichotomy ((T Type) (U Type) (S Type))
+; program: $arith_rel_trichotomy
+; args:
+; - r1 T: The first arithmetic relation.
+; - r2 U: The second arithmetic relation.
+; return: >
+;   the relation that along with r1 and r2 form a trichotomy over
+;   arithmetic values.
+(program $arith_rel_trichotomy ((T Type) (U Type) (S Type))
   (T U) S
   (
-    ((arith_rel_trichotomy = <) >)
-    ((arith_rel_trichotomy = >) <)
-    ((arith_rel_trichotomy > =) <)
-    ((arith_rel_trichotomy < =) >)
-    ((arith_rel_trichotomy > <) =)
-    ((arith_rel_trichotomy < >) =)
+    (($arith_rel_trichotomy = <) >)
+    (($arith_rel_trichotomy = >) <)
+    (($arith_rel_trichotomy > =) <)
+    (($arith_rel_trichotomy < =) >)
+    (($arith_rel_trichotomy > <) =)
+    (($arith_rel_trichotomy < >) =)
   )
 )
 
-(program arith_rel_neg ((T Type) (U Type) (S Type))
+; program: $arith_rel_trichotomy
+; args:
+; - r T: The arithmetic relation.
+; return: the relation corresponding to the negation of r.
+(program $arith_rel_neg ((T Type) (U Type) (S Type))
   (T) S
   (
-    ((arith_rel_neg <) >=)
-    ((arith_rel_neg <=) >)
-    ((arith_rel_neg >) <=)
-    ((arith_rel_neg >=) <)
+    (($arith_rel_neg <) >=)
+    (($arith_rel_neg <=) >)
+    (($arith_rel_neg >) <=)
+    (($arith_rel_neg >=) <)
   )
 )
 
-(program arith_normalize_lit ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U))
+; program: $arith_normalize_lit
+; args:
+; - F Bool: An arithmetic literal, possibly negated or doubly negated.
+; return: a literal equivalent to F that eliminates its negations, if any.
+(program $arith_normalize_lit ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U))
   (Bool) Bool
   (
-    ((arith_normalize_lit (not (not (r a b)))) (r a b))
-    ((arith_normalize_lit (not (r a b)))       (_ (arith_rel_neg r) a b))
-    ((arith_normalize_lit (r a b))             (r a b))
+    (($arith_normalize_lit (not (not (r a b)))) (r a b))
+    (($arith_normalize_lit (not (r a b)))       (_ ($arith_rel_neg r) a b))
+    (($arith_normalize_lit (r a b))             (r a b))
   )
 )
 
-; Computes the conclusion of the ProofRule::ARITH_TRICHOTOMY rule.
-(program mk_arith_trichotomy ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U) (m S))
-  (Bool S) Bool
+; program: $mk_arith_trichotomy
+; premises:
+; - F1: The first arithmetic atom, which is an application of a binary arithmetic relation.
+; - F2: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
+; return: the relation that along with F1 and F2 forms a trichotomy.
+(program $mk_arith_trichotomy ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U))
+  (Bool Bool) Bool
   (
-    ((mk_arith_trichotomy (r1 a b) (r2 a b)) (_ (arith_rel_trichotomy r1 r2) a b))
+    (($mk_arith_trichotomy (r1 a b) (r2 a b)) (_ ($arith_rel_trichotomy r1 r2) a b))
   )
 )
 
+; rule: arith_trichotomy
+; implements: ProofRule::ARITH_TRICHOTOMY
+; premises:
+; - F1: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation.
+; - F2: The first arithmetic atom, which is an application of a (possibly negated) binary arithmetic relation over the same terms as F1.
+; conclusion: >
+;   A third relation over the same terms that along with F1 and F2
+;   forms a trichotomy.
 (declare-rule arith_trichotomy ((F1 Bool) (F2 Bool))
   :premises (F1 F2)
-  :conclusion (mk_arith_trichotomy (arith_normalize_lit (not F1)) (arith_normalize_lit (not F2)))
+  :conclusion ($mk_arith_trichotomy ($arith_normalize_lit (not F1)) ($arith_normalize_lit (not F2)))
 )
 
-; Returns the greatest integer less than (integer or real) c.
-(program greatestIntLessThan ((R Type) (c R))
+; program: $greatest_int_lt
+; args:
+; - c R: A rational or integer value.
+; return: the greatest integer less than (integer or real) c.
+(program $greatest_int_lt ((R Type) (c R))
   (R) Int
   (
-    ((greatestIntLessThan c) (let ((ci (alf.to_z c)))
+    (($greatest_int_lt c) (let ((ci (alf.to_z c)))
                                (alf.ite (alf.is_eq (alf.to_q c) (alf.to_q ci))
                                  (alf.add -1 ci)
                                  ci)))
   )
 )
 
-; Implements ProofRule::INT_TIGHT_UB based on the above method.
+; rule: int_tight_ub
+; implements: ProofRule::INT_TIGHT_UB
+; premises:
+; - r: The relation we are considering, whose right hand side should be a rational or integer value.
+; conclusion: The result of tightening the upper bound.
 (declare-rule int_tight_ub ((R Type) (s Int) (t R))
   :premises ((< s t))
-  :conclusion (<= s (greatestIntLessThan t))
+  :conclusion (<= s ($greatest_int_lt t))
 )
 
-; Returns the least integer greater than (integer or real) c.
-(program leastIntGreaterThan ((R Type) (c R))
+; program: $least_int_gt
+; args:
+; - c R: A rational or integer value.
+; return: the least integer greater than (integer or real) c.
+(program $least_int_gt ((R Type) (c R))
   (R) Int
   (
-    ((leastIntGreaterThan c) (alf.add 1 (alf.to_z c)))
+    (($least_int_gt c) (alf.add 1 (alf.to_z c)))
   )
 )
 
-; Implements ProofRule::INT_TIGHT_LB based on the above method.
+; rule: int_tight_lb
+; implements: ProofRule::INT_TIGHT_LB
+; premises:
+; - r: The relation we are considering, whose right hand side should be a rational or integer value.
+; conclusion: The result of tightening the lower bound.
 (declare-rule int_tight_lb ((R Type) (s Int) (t R))
   :premises ((> s t))
-  :conclusion (>= s (leastIntGreaterThan t))
+  :conclusion (>= s ($least_int_gt t))
 )

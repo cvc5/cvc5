@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -594,8 +594,7 @@ typedef enum ENUM(FindSynthTarget) ENUM(FindSynthTarget);
  * @param target The synthesis find target.
  * @return The string representation.
  */
-const char* cvc5_modes_find_synthesis_target_to_string(
-    Cvc5FindSynthTarget target);
+const char* cvc5_modes_find_synth_target_to_string(Cvc5FindSynthTarget target);
 #else
 /**
  * Serialize a FindSynthTarget to given stream.

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Haniel Barbosa, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
     || (defined(CVC5_API_USE_C_ENUMS)               \
         && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
-#include <cstdint>
+#include <stdint.h>
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef ENUM
@@ -88,7 +88,7 @@ namespace cvc5 {
  * in post-processing.
  * \endverbatim
  */
-enum ENUM(ProofRule) : uint32_t
+enum ENUM(ProofRule)
 {
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1134,6 +1134,10 @@ enum ENUM(ProofRule) : uint32_t
    *
    * For example, this rule concludes :math:`f(x,y) = @(@(f,x),y)`, where
    * :math:`@` isthe ``HO_APPLY`` kind.
+   *
+   * Note this rule can be treated as a
+   * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
+   * external proof formats.
    *  \endverbatim
    */
   EVALUE(HO_APP_ENCODE),
@@ -1585,15 +1589,17 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_1) = n}
    *
-   * or alternatively for the reverse:
+   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
+   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * Or alternatively for the reverse:
    *
    * .. math::
    *
    *   \inferrule{\mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_2) = n}
    *
-   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
-   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)` and
+   * :math:`w_2` is the purification skolem for :math:`\mathit{suf}(t,n)`.
    * \endverbatim
    */
   EVALUE(STRING_DECOMPOSE),
@@ -1716,27 +1722,12 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Regular expressions -- Elimination**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid F,b}{F =
-   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
-   *
-   * where :math:`b` is a Boolean indicating whether we are using aggressive
-   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
-   * are performed for :math:`F`.
-   * \endverbatim
-   */
-  EVALUE(RE_ELIM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Code points**
    *
    * .. math::
    *
    *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t) \neq
-   *   \mathit{to\_code}(s) \vee t\neq s}
+   *   \mathit{to\_code}(s) \vee t = s}
    * \endverbatim
    */
   EVALUE(STRING_CODE_INJ),
@@ -1766,7 +1757,24 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(MACRO_STRING_INFERENCE),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Macro elimination**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid F,b}{F =
+   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
+   *
+   * where :math:`b` is a Boolean indicating whether we are using aggressive
+   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
+   * are performed for :math:`F`.
+   *
+   * \rst
+   * .. note:: We do not currently support elaboration of this macro.
+   * \endverbatim
+   */
+  EVALUE(MACRO_RE_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Adding inequalities**
@@ -2181,66 +2189,6 @@ enum ENUM(ProofRule) : uint32_t
    * :math:`u`. \endverbatim
    */
   EVALUE(ARITH_TRANS_SINE_APPROX_BELOW_POS),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Coverings -- Direct conflict**
-   *
-   * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
-   * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that
-   * :math:`poly` may not be univariate; in this case, the value of
-   * :math:`\texttt{IRP}_k(poly)` can only be calculated with respect to a
-   * (partial) model for all but one variable of :math:`poly`.
-   *
-   * A formula :math:`\texttt{Interval}(x_i)` describes that a variable
-   * :math:`x_i` is within a particular interval whose bounds are given as IRPs.
-   * It is either an open interval or a point interval:
-   *
-   * .. math::
-   *   \texttt{IRP}_k(poly) < x_i < \texttt{IRP}_k(poly)
-   *
-   *   x_i = \texttt{IRP}_k(poly)
-   *
-   * A formula :math:`\texttt{Cell}(x_1 \dots x_i)` describes a portion
-   * of the real space in the following form:
-   *
-   * .. math::
-   *   \texttt{Interval}(x_1) \land \dots \land \texttt{Interval}(x_i)
-   *
-   * A cell can also be empty (for :math:`i = 0`).
-   *
-   * A formula :math:`\texttt{Covering}(x_i)` is a set of intervals, implying
-   * that :math:`x_i` can be in neither of these intervals. To be a covering (of
-   * the real line), the union of these intervals should be the real numbers.
-   *
-   * .. math::
-   *   \inferrule{\texttt{Cell}, A \mid -}{\bot}
-   *
-   * A direct interval is generated from an assumption :math:`A` (in variables
-   * :math:`x_1 \dots x_i`) over a :math:`\texttt{Cell}(x_1 \dots x_i)`. It
-   * derives that :math:`A` evaluates to false over the cell. In the actual
-   * algorithm, it means that :math:`x_i` can not be in the topmost interval of
-   * the cell. \endverbatim
-   */
-  EVALUE(ARITH_NL_COVERING_DIRECT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Coverings -- Recursive interval**
-   *
-   * See
-   * :cpp:enumerator:`ARITH_NL_COVERING_DIRECT <cvc5::ProofRule::ARITH_NL_COVERING_DIRECT>`
-   * for the necessary definitions.
-   *
-   * .. math::
-   *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
-   *
-   * A recursive interval is generated from :math:`\texttt{Covering}(x_i)` over
-   * :math:`\texttt{Cell}(x_1 \dots x_{i-1})`. It generates the conclusion that
-   * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
-   * \endverbatim
-   */
-  EVALUE(ARITH_NL_COVERING_RECURSIVE),
-
   /**
    * \verbatim embed:rst:leading-asterisk
    * **External -- LFSC**
@@ -2296,7 +2244,7 @@ enum ENUM(ProofRule) : uint32_t
  * proof rule.
  * \endverbatim
  */
-enum ENUM(ProofRewriteRule) : uint32_t
+enum ENUM(ProofRewriteRule)
 {
   EVALUE(NONE),
   // Custom theory rewrites.
@@ -2525,6 +2473,54 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
+
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
+   * \endverbatim
+   */
+  EVALUE(BV_UMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
+   * \endverbatim
+   */
+  EVALUE(BV_SMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Combine like terms during addition by counting terms**
+   * \endverbatim
+   */
+  EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Extract negations from multiplicands**
+   *
+   * .. math::
+   *    (-a bvmul b bvmul c) \to -(a bvmul b c)
+   *
+   * \endverbatim
+   */
+  EVALUE(BV_MULT_SIMPLIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors - Extract continuous substrings of bitvectors**
+   *
+   * .. math::
+   *    (a bvand c) \to (concat (bvand a[i0:j0] c0) ... (bvand a[in:jn] cn))
+   *
+   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
+   * constant c \endverbatim
+   */
+  EVALUE(BV_BITWISE_SLICING),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression loop elimination**
@@ -2538,7 +2534,6 @@ enum ENUM(ProofRewriteRule) : uint32_t
    */
   EVALUE(RE_LOOP_ELIM),
   /**
-   * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
    *
    * .. math::
@@ -2552,11 +2547,26 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(STR_IN_RE_EVAL),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - regular expression loop elimination**
+   * **Strings - regular expression membership consume**
    *
    * .. math::
-   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) =
-   *   \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
+   *   \mathit{str.in_re}(s, R) = b
+   *
+   * where :math:`b` is either :math:`false` or the result of stripping
+   * entailed prefixes and suffixes off of :math:`s` and :math:`R`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_CONSUME),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - string in regular expression concatenation star character**
+   *
+   * .. math::
+   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n),
+   * \mathit{re}.\text{*}(R)) = \mathit{str.in\_re}(s_1,
+   * \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n,
+   * \mathit{re}.\text{*}(R))
    *
    * where all strings in :math:`R` have length one.
    *
@@ -2568,13 +2578,15 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Strings - string in regular expression sigma**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar})) =
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar})) =
    *   (\mathit{str.len}(s) = n)
    *
    * or alternatively:
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) =
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) =
    *   (\mathit{str.len}(s) \ge n)
    *
    * \endverbatim
@@ -2585,14 +2597,30 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Strings - string in regular expression sigma star**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}))) =
+   *   \mathit{str.in\_re}(s,
+   * \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar}))) =
    *   (\mathit{str.len}(s) \ \% \ n = 0)
    *
-   * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to :math:`\mathit{re}.\text{++}`.
+   * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to
+   * :math:`\mathit{re}.\text{++}`.
    *
    * \endverbatim
    */
   EVALUE(STR_IN_RE_SIGMA_STAR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - strings substring strip symbolic length**
+   *
+   * .. math::
+   *   (str.substr s n m) = t
+   *
+   * where :math:`t` is obtained by fully or partially stripping components of
+   * :math:`s` based on :math:`n` and :math:`m`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Sets - empty tester evaluation**
@@ -3424,6 +3452,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(EQ_SYMM),
   /** Auto-generated from RARE rule distinct-binary-elim */
   EVALUE(DISTINCT_BINARY_ELIM),
+  /** Auto-generated from RARE rule uf-bv2nat-geq-elim */
+  EVALUE(UF_BV2NAT_GEQ_ELIM),
 // ${rules}$
 #ifdef CVC5_API_USE_C_ENUMS
   // must be last entry

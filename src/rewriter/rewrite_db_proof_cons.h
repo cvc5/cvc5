@@ -64,24 +64,21 @@ class RewriteDbProofCons : protected EnvObj
    * @param cdp The object to add the proof of (= a b) to.
    * @param a The left hand side of the equality.
    * @param b The right hand side of the equality.
-   * @param tid The theory identifier responsible for the rewrite, if one
-   * exists.
-   * @param mid The method id (the kind of rewrite)
    * @param recLimit The recursion limit for this call.
    * @param stepLimit The step limit for this call.
    * @param subgoals The list of proofs introduced when proving (= a b) that
    * are trusted steps, and thus would require further elaboration from the
    * caller of this method.
+   * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp
    */
   bool prove(CDProof* cdp,
              const Node& a,
              const Node& b,
-             theory::TheoryId tid,
-             MethodId mid,
              int64_t recLimit,
              int64_t stepLimit,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals);
+             std::vector<std::shared_ptr<ProofNode>>& subgoals,
+             TheoryRewriteMode tmode);
 
  private:
   /**
@@ -304,6 +301,8 @@ class RewriteDbProofCons : protected EnvObj
   uint64_t d_currRecLimit;
   /** current step recursion limit */
   uint64_t d_currStepLimit;
+  /** The mode for if/when to try theory rewrites */
+  rewriter::TheoryRewriteMode d_tmode;
   /** current rule we are applying to fixed point */
   ProofRewriteRule d_currFixedPointId;
   /** current substitution from fixed point */

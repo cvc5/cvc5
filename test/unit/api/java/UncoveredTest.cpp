@@ -142,6 +142,7 @@ TEST_F(TestApiBlackUncovered, deprecated)
 
   (void)slv.mkVar(slv.getIntegerSort());
   (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
+  (void)parser::SymbolManager(d_solver.get());
 }
 
 TEST_F(TestApiBlackUncovered, comparison_operators)
@@ -160,6 +161,8 @@ TEST_F(TestApiBlackUncovered, comparison_operators)
   ASSERT_TRUE(term <= term);
   ASSERT_TRUE(term >= term);
   ASSERT_FALSE(term > term);
+  cvc5::Proof proof;
+  ASSERT_FALSE(proof != proof);
 }
 
 TEST_F(TestApiBlackUncovered, equalHash)
@@ -320,8 +323,9 @@ TEST_F(TestApiBlackUncovered, mkString)
 
 TEST_F(TestApiBlackUncovered, hash)
 {
-  std::hash<Op>()(Op());
-  std::hash<Sort>()(Sort());
+  (void)std::hash<Op>()(Op());
+  (void)std::hash<Sort>()(Sort());
+  (void)std::hash<cvc5::Result>{}(cvc5::Result());
 }
 
 TEST_F(TestApiBlackUncovered, isOutputOn)

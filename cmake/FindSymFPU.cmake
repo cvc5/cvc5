@@ -33,13 +33,13 @@ if(NOT SymFPU_FOUND_SYSTEM)
   include(deps-helper)
 
   set(SymFPU_COMMIT "e6ac3af9c2c574498ea171c957425b407625448b")
-  set(SymFPU_CHECKSUM "6ffc9009d2d665e0908edee634aa03bbbfc11482")
+  set(SymFPU_CHECKSUM "823aa663fcc2f6844ae5e9ea83ceda4ed393cdb3dadefce9b3c7c41cd0f4f702")
 
   ExternalProject_Add(
     SymFPU-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/cvc5/symfpu/archive/${SymFPU_COMMIT}.tar.gz
-    URL_HASH SHA1=${SymFPU_CHECKSUM}
+    URL_HASH SHA256=${SymFPU_CHECKSUM}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/core

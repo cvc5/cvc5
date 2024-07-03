@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,29 +15,10 @@
 
 #include "expr/plugin.h"
 
-#include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
-#include "expr/subtype_elim_node_converter.h"
-
 namespace cvc5::internal {
 
 Plugin::Plugin(NodeManager* nm) : d_nm(nm) {}
 
 Plugin::~Plugin() {}
-
-Node Plugin::getSharableFormula(const Node& n) const
-{
-  Node on = SkolemManager::getOriginalForm(n);
-  if (expr::hasSubtermKinds({Kind::SKOLEM, Kind::INST_CONSTANT}, on))
-  {
-    // We cannot share formulas with skolems currently.
-    // We should never share formulas with instantiation constants.
-    return Node::null();
-  }
-  // also eliminate subtyping
-  SubtypeElimNodeConverter senc(d_nm);
-  on = senc.convert(on);
-  return on;
-}
 
 }  // namespace cvc5::internal

@@ -1298,7 +1298,11 @@ Node ArithRewriter::rewriteIneqToBv(Kind kind,
                     ? zero
                     : (otherSum.size() == 1 ? otherSum[0]
                                             : nm->mkNode(Kind::ADD, otherSum));
-    Node o = bv2natPol ? nm->mkNode(Kind::NEG, osum) : osum;
+    // possibly negate the sum
+    Node o = bv2natPol
+                 ? (osum.getKind() == Kind::NEG ? osum[0]
+                                                : nm->mkNode(Kind::NEG, osum))
+                 : osum;
     Node ub = nm->mkNode(Kind::GEQ, o, w);
     Node lb = nm->mkNode(Kind::LT, o, zero);
     Node iToBvop = nm->mkConst(IntToBitVector(bvsize));

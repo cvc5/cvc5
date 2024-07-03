@@ -183,7 +183,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         if (preCur != cur)
         {
           pg->addRewriteStep(
-              cur, preCur, nullptr, true, TrustId::MACRO_BOOL_NNF_NORM_RCONS);
+              cur, preCur, nullptr, true, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
         }
       }
     }
@@ -255,7 +255,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         if (pcpc != ret)
         {
           pg->addRewriteStep(
-              pcpc, ret, nullptr, false, TrustId::MACRO_BOOL_NNF_NORM_RCONS);
+              pcpc, ret, nullptr, false, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
         }
       }
       visited[cur] = ret;
