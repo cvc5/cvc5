@@ -106,7 +106,7 @@ void AletheProofPrinter::printStepId(
     return;
   }
   Assert(pfMap.find(pfn) != pfMap.end())
-      << "Cannot find pf of " << pfn->getResult() << "\n";
+      << "Cannot find proof of " << pfn->getResult() << "\n";
   out << pfMap.find(pfn)->second;
 }
 
