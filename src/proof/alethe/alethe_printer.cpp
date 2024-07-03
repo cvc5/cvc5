@@ -229,7 +229,7 @@ void AletheProofPrinter::printInternal(
   // Get the alethe proof rule
   AletheRule arule = getAletheRule(args[0]);
   Trace("alethe-printer") << "... print step " << arule << " : " << args[2]
-                          << "\n";
+                          << std::endl;
   // We special case printing anchors
   if (arule >= AletheRule::ANCHOR_SUBPROOF
       && arule <= AletheRule::ANCHOR_SKO_EX)
