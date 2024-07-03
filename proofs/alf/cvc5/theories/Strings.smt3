@@ -23,7 +23,10 @@
 ; Empty sequence
 (declare-const seq.empty (-> (! Type :var T) T))
 
-; Make empty string of the given string-like sort U.
+; program: mk_emptystr
+; args: >
+;   U Type: The string-like type.
+; return: The empty string of the given string-like sort U.
 (program mk_emptystr ((U Type))
   (Type) U
   (
@@ -79,7 +82,11 @@
 (declare-const re.none RegLan)
 (declare-const re.all RegLan)
 (declare-const str.to_re (-> String RegLan))
+
+; define: @re.empty
+; return: The regular expression containing only the empty string.
 (define @re.empty () (str.to_re ""))
+
 (declare-const re.* (-> RegLan RegLan))
 (declare-const re.+ (-> RegLan RegLan))
 (declare-const re.opt (-> RegLan RegLan))
