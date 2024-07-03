@@ -1589,7 +1589,9 @@ enum ENUM(ProofRule)
    *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_1) = n}
    *
-   * or alternatively for the reverse:
+   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
+   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * Or alternatively for the reverse:
    *
    * .. math::
    *
