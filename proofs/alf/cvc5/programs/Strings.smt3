@@ -143,7 +143,7 @@
   (str.substr s n (- (str.len s) n))
 )
 
-; Get the term corresponding to the suffix of term s except for length n.
+; Get the term corresponding to the prefix of term s except for length n.
 (define $str_prefix_wo_len ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s 0 (- (str.len s) n))
 )

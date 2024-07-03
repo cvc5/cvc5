@@ -204,7 +204,7 @@
   :conclusion (alf.ite b
                 (let ((kp (@purify (skolem_prefix s n)))
                       (ks (@purify (skolem_suffix_rem s n))))
-                (and (= s (str.++ kp ks)) (= (str.len ks) n)))
+                (and (= s (str.++ kp ks)) (= (str.len kp) n)))
                 (let ((kp (@purify ($str_prefix_wo_len s n)))
                       (ks (@purify ($str_suffix_w_len s n))))
                 (and (= s (str.++ kp ks)) (= (str.len ks) n))))
