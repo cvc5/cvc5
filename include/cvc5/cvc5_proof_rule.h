@@ -2289,11 +2289,12 @@ enum ENUM(ProofRewriteRule)
    * **Arithmetic - strings predicate entailment**
    *
    * .. math::
-   *   (= s t) = false
+   *   (= s t) = c
    *
    * .. math::
-   *   (>= s t) = true
+   *   (>= s t) = c
    *
+   * where :math:`c` is a Boolean constant.
    * This macro is elaborated by applications of :math:`EVALUATE`,
    * :math:`ARITH_POLY_NORM`, :math:`ARITH_STRING_PRED_ENTAIL`,
    * :math:`ARITH_STRING_PRED_SAFE_APPROX`, as well as other rewrites for
