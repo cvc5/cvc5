@@ -140,50 +140,37 @@ TEST_F(TestApiBlackGrammar, hash)
   Term x = d_tm.mkVar(d_bool, "x");
   Term start1 = d_tm.mkVar(d_bool, "start");
   Term start2 = d_tm.mkVar(d_bool, "start");
-  std::vector<Term> bvars, symbols;
   Grammar g1, g2;
 
   {
-    symbols = {start1};
-    bvars = {};
-    g1 = d_solver->mkGrammar(bvars, symbols);
-    g2 = d_solver->mkGrammar(bvars, symbols);
+    g1 = d_solver->mkGrammar({}, {start1});
+    g2 = d_solver->mkGrammar({}, {start1});
     ASSERT_EQ(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g1));
     ASSERT_EQ(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
   }
 
   {
-    symbols = {start1};
-    bvars = {};
-    g1 = d_solver->mkGrammar(bvars, symbols);
-    bvars = {x};
-    g2 = d_solver->mkGrammar(bvars, symbols);
+    g1 = d_solver->mkGrammar({}, {start1});
+    g2 = d_solver->mkGrammar({x}, {start1});
     ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
   }
 
   {
-    bvars = {x};
-    symbols = {start1};
-    g1 = d_solver->mkGrammar(bvars, symbols);
-    symbols = {start2};
-    g2 = d_solver->mkGrammar(bvars, symbols);
+    g1 = d_solver->mkGrammar({x}, {start1});
+    g2 = d_solver->mkGrammar({x}, {start2});
     ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
   }
 
   {
-    bvars = {x};
-    symbols = {start1};
-    g1 = d_solver->mkGrammar(bvars, symbols);
-    g2 = d_solver->mkGrammar(bvars, symbols);
+    g1 = d_solver->mkGrammar({x}, {start1});
+    g2 = d_solver->mkGrammar({x}, {start1});
     g2.addAnyVariable(start1);
     ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
   }
 
   {
-    bvars = {x};
-    symbols = {start1};
-    g1 = d_solver->mkGrammar(bvars, symbols);
-    g2 = d_solver->mkGrammar(bvars, symbols);
+    g1 = d_solver->mkGrammar({x}, {start1});
+    g2 = d_solver->mkGrammar({x}, {start1});
     std::vector<Term> rules = {d_tm.mkFalse()};
     g1.addRules(start1, rules);
     g2.addRules(start1, rules);
@@ -191,20 +178,16 @@ TEST_F(TestApiBlackGrammar, hash)
   }
 
   {
-    bvars = {x};
-    symbols = {start1};
-    g1 = d_solver->mkGrammar(bvars, symbols);
-    g2 = d_solver->mkGrammar(bvars, symbols);
+    g1 = d_solver->mkGrammar({x}, {start1});
+    g2 = d_solver->mkGrammar({x}, {start1});
     std::vector<Term> rules2 = {d_tm.mkFalse()};
     g2.addRules(start1, rules2);
     ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
   }
 
   {
-    bvars = {x};
-    symbols = {start1};
-    g1 = d_solver->mkGrammar(bvars, symbols);
-    g2 = d_solver->mkGrammar(bvars, symbols);
+    g1 = d_solver->mkGrammar({x}, {start1});
+    g2 = d_solver->mkGrammar({x}, {start1});
     std::vector<Term> rules1 = {d_tm.mkTrue()};
     std::vector<Term> rules2 = {d_tm.mkFalse()};
     g1.addRules(start1, rules1);

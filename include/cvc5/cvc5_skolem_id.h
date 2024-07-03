@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -73,7 +73,7 @@ namespace cvc5 {
  * \internal
  * 
  */
-enum ENUM(SkolemId) : uint32_t
+enum ENUM(SkolemId)
 {
   /**
    * The identifier of the skolem is not exported. These skolems should not

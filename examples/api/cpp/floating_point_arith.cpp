@@ -138,7 +138,7 @@ int main()
             << "zero and the smallest positive floating-point number:"
             << std::endl;
   Term zero = tm.mkFloatingPointPosZero(8, 24);
-  Term smallest = tm.mkFloatingPoint(8, 24, tm.mkBitVector(32, 0b001));
+  Term smallest = tm.mkFloatingPoint(8, 24, tm.mkBitVector(32, 1));
   solver.assertFormula(
       tm.mkTerm(Kind::AND,
                 {tm.mkTerm(Kind::FLOATINGPOINT_LT, {zero, e}),

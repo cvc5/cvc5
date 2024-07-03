@@ -63,9 +63,10 @@ jobs:
 
           - name: win64:production
             os: windows-latest
-            config: production --auto-download --java-bindings
+            config: production --auto-download --all-bindings
             cache-key: production-win64-native
             strip-bin: strip
+            python-bindings: true
             windows-build: true
             shell: 'msys2 {0}'
             check-examples: true
@@ -80,6 +81,14 @@ jobs:
             strip-bin: x86_64-w64-mingw32-strip
             windows-build: true
 
+          - name: wasm:production
+            os: ubuntu-20.04
+            config: production --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE'
+            cache-key: productionwasm
+            wasm-build: true
+            build-shared: false
+            build-static: true
+
           - name: ubuntu:production-clang
             os: ubuntu-20.04
             env: CC=clang CXX=clang++
@@ -91,7 +100,7 @@ jobs:
 
           - name: ubuntu:production-dbg
             os: ubuntu-20.04
-            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa
+            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa --gpl
             cache-key: dbg
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
@@ -122,6 +131,7 @@ jobs:
       with:
         with-documentation: ${{ matrix.build-documentation }}
         windows-build: ${{ matrix.windows-build }}
+        wasm-build: ${{ matrix.wasm-build }}
         shell: ${{ matrix.shell }}
 
     - name: Setup caches

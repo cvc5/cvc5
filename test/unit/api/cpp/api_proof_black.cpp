@@ -140,6 +140,7 @@ TEST_F(TestApiBlackProof, equalhash)
 
   ASSERT_TRUE(std::hash<Proof>()(x) == std::hash<Proof>()(x));
   (void)std::hash<Proof>{}(Proof());
+  ASSERT_FALSE(std::hash<Proof>()(x) == std::hash<Proof>()(y));
 }
 
 }  // namespace test
