@@ -1,4 +1,4 @@
-(set-logic QF_AUFBV)
+(set-logic QF_ABV)
 (set-option :produce-models true)
 
 ; Consider the following code (where size is some previously defined constant):

@@ -17,6 +17,9 @@ extern "C" {
 #include <cvc5/c/cvc5.h>
 }
 
+#include <cmath>
+
+#include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
 
@@ -39,6 +42,28 @@ class TestCApiBlackSolver : public ::testing::Test
   {
     cvc5_delete(d_solver);
     cvc5_term_manager_delete(d_tm);
+  }
+
+  /**
+   * Helper function for testGetSeparation{Heap,Nil}TermX. Asserts and checks
+   * some simple separation logic constraints.
+   */
+  void check_simple_separation_constraints()
+  {
+    // declare the separation heap
+    cvc5_declare_sep_heap(d_solver, d_int, d_int);
+    Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+    Cvc5Term p = cvc5_mk_const(d_tm, d_int, "p");
+    std::vector<Cvc5Term> args = {p, x};
+    Cvc5Term heap =
+        cvc5_mk_term(d_tm, CVC5_KIND_SEP_PTO, args.size(), args.data());
+    cvc5_assert_formula(d_solver, heap);
+    Cvc5Term nil = cvc5_mk_sep_nil(d_tm, d_int);
+    args = {nil, cvc5_mk_integer_int64(d_tm, 5)};
+    cvc5_assert_formula(
+        d_solver,
+        cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(d_solver);
   }
 
   Cvc5TermManager* d_tm;
@@ -419,6 +444,14 @@ TEST_F(TestCApiBlackSolver, declare_datatype)
   (void)cvc5_declare_dt(d_solver, "a", ctors.size(), ctors.data());
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, dt_get_arity)
+{
+  std::vector<Cvc5DatatypeConstructorDecl> ctors = {
+      cvc5_mk_dt_cons_decl(d_tm, "_x21"), cvc5_mk_dt_cons_decl(d_tm, "_x31")};
+  Cvc5Sort s3 = cvc5_declare_dt(d_solver, "_x17", ctors.size(), ctors.data());
+  ASSERT_EQ(cvc5_sort_dt_get_arity(s3), 0);
 }
 
 TEST_F(TestCApiBlackSolver, declare_fun)
@@ -1111,7 +1144,7 @@ TEST_F(TestCApiBlackSolver, get_option_names)
   bool found_foobar = false;
   for (size_t i = 0; i < size; ++i)
   {
-    if (std::string(names[i]) == "verbose")
+    if (names[i] == std::string("verbose"))
     {
       found_verbose = true;
     }
@@ -1968,6 +2001,197 @@ TEST_F(TestCApiBlackSolver, get_model3)
       "unexpected NULL argument");
 }
 
+TEST_F(TestCApiBlackSolver, get_quantifier_elimination)
+{
+  Cvc5Term x = cvc5_mk_var(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x};
+  Cvc5Term vlist =
+      cvc5_mk_term(d_tm, CVC5_KIND_VARIABLE_LIST, args.size(), args.data());
+  args = {x, cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data())};
+  Cvc5Term b = cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data());
+  args = {vlist, b};
+  Cvc5Term forall =
+      cvc5_mk_term(d_tm, CVC5_KIND_FORALL, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_get_quantifier_elimination(nullptr, forall),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_quantifier_elimination(d_solver, nullptr),
+               "invalid term");
+  ASSERT_DEATH(cvc5_get_quantifier_elimination(d_solver, cvc5_mk_false(d_tm)),
+               "Expecting a quantified formula");
+  (void)cvc5_get_quantifier_elimination(d_solver, forall);
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_check_sat(slv);
+  // this will throw when NodeManager is not a singleton anymore
+  (void)cvc5_get_quantifier_elimination(slv, forall);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_quantifier_elimination_disjunct)
+{
+  Cvc5Term x = cvc5_mk_var(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x};
+  Cvc5Term vlist =
+      cvc5_mk_term(d_tm, CVC5_KIND_VARIABLE_LIST, args.size(), args.data());
+  args = {x, cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data())};
+  Cvc5Term b = cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data());
+  args = {vlist, b};
+  Cvc5Term forall =
+      cvc5_mk_term(d_tm, CVC5_KIND_FORALL, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_get_quantifier_elimination_disjunct(nullptr, forall),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_quantifier_elimination_disjunct(d_solver, nullptr),
+               "invalid term");
+  ASSERT_DEATH(
+      cvc5_get_quantifier_elimination_disjunct(d_solver, cvc5_mk_false(d_tm)),
+      "Expecting a quantified formula");
+  (void)cvc5_get_quantifier_elimination_disjunct(d_solver, forall);
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_check_sat(slv);
+  // this will throw when NodeManager is not a singleton anymore
+  (void)cvc5_get_quantifier_elimination(slv, forall);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, declare_sep_heap)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_declare_sep_heap(d_solver, d_int, d_int);
+  // cannot declare separation logic heap more than once
+  ASSERT_DEATH(cvc5_declare_sep_heap(d_solver, d_int, d_int),
+               "cannot declare heap types");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  // no logic set yet
+  Cvc5* slv = cvc5_new(tm);
+  ASSERT_DEATH(cvc5_declare_sep_heap(d_solver, d_int, d_int),
+               "cannot declare heap types");
+  cvc5_delete(slv);
+
+  // this will throw when NodeManager is not a singleton anymore
+  slv = cvc5_new(tm);
+  cvc5_set_logic(slv, "ALL");
+  cvc5_declare_sep_heap(slv, cvc5_get_integer_sort(tm), d_int);
+  cvc5_delete(slv);
+  slv = cvc5_new(tm);
+  cvc5_set_logic(slv, "ALL");
+  cvc5_declare_sep_heap(slv, d_int, cvc5_get_integer_sort(tm));
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap1)
+{
+  cvc5_set_logic(d_solver, "QF_BV");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver),
+               "cannot obtain separation logic expressions");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap2)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "false");
+  check_simple_separation_constraints();
+  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver),
+               "cannot get separation heap term");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap3)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_false(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver), "after SAT or UNKNOWN");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap4)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_get_value_sep_heap(d_solver), "Failed to obtain heap/nil");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_heap5)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  check_simple_separation_constraints();
+  (void)cvc5_get_value_sep_heap(d_solver);
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil1)
+{
+  cvc5_set_logic(d_solver, "QF_BV");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver),
+               "cannot obtain separation logic expressions");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil2)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "false");
+  check_simple_separation_constraints();
+  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver), "cannot get separation nil");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil3)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_false(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver), "after SAT or UNKNOWN");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil4)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term t = cvc5_mk_true(d_tm);
+  cvc5_assert_formula(d_solver, t);
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_get_value_sep_nil(d_solver),
+               "Failed to obtain heap/nil expressions");
+}
+
+TEST_F(TestCApiBlackSolver, get_value_sep_nil5)
+{
+  cvc5_set_logic(d_solver, "ALL");
+  cvc5_set_option(d_solver, "incremental", "false");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  check_simple_separation_constraints();
+  cvc5_get_value_sep_nil(d_solver);
+}
+
 TEST_F(TestCApiBlackSolver, push1)
 {
   cvc5_set_option(d_solver, "incremental", "true");
@@ -2120,4 +2344,1570 @@ TEST_F(TestCApiBlackSolver, reset_assertions)
   cvc5_check_sat_assuming(d_solver, args.size(), args.data());
 }
 
+TEST_F(TestCApiBlackSolver, declare_sygus_var)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+
+  std::vector<Cvc5Sort> domain = {d_int};
+  Cvc5Sort fun_sort =
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_bool);
+
+  (void)cvc5_declare_sygus_var(d_solver, "", d_bool);
+  (void)cvc5_declare_sygus_var(d_solver, "", fun_sort);
+  (void)cvc5_declare_sygus_var(d_solver, "b", d_bool);
+
+  ASSERT_DEATH(cvc5_declare_sygus_var(nullptr, "", d_bool),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_declare_sygus_var(d_solver, nullptr, d_bool),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_declare_sygus_var(d_solver, "", nullptr), "invalid sort");
+
+  Cvc5* slv = cvc5_new(d_tm);
+  ASSERT_DEATH(cvc5_declare_sygus_var(slv, "", d_bool), "cannot call");
+  cvc5_delete(slv);
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  slv = cvc5_new(tm);
+  cvc5_set_option(slv, "sygus", "true");
+  // this will throw when NodeManager is not a singleton anymore
+  (void)cvc5_declare_sygus_var(slv, "", d_bool);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, mk_grammar)
+{
+  Cvc5Term bt = cvc5_mk_true(d_tm);
+  Cvc5Term bv = cvc5_mk_var(d_tm, d_bool, "b");
+  Cvc5Term iv = cvc5_mk_var(d_tm, d_int, "i");
+
+  std::vector<Cvc5Term> bvars;
+  std::vector<Cvc5Term> symbols = {iv};
+  (void)cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  bvars = {bv};
+  (void)cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          nullptr, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "unexpected NULL argument");
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+
+  symbols = {nullptr};
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+  bvars = {nullptr};
+  symbols = {iv};
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+  bvars = {};
+  symbols = {bt};
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+  bvars = {bt};
+  symbols = {iv};
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  bvars = {};
+  symbols = {iv};
+  (void)cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  bvars = {bv};
+  symbols = {cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "")};
+  (void)cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, synth_fun)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+
+  Cvc5Term x = cvc5_mk_var(d_tm, d_bool, "");
+  Cvc5Term start1 = cvc5_mk_var(d_tm, d_bool, "");
+  Cvc5Term start2 = cvc5_mk_var(d_tm, d_int, "");
+
+  std::vector<Cvc5Term> bvars{x};
+  std::vector<Cvc5Term> symbols{start1};
+  Cvc5Grammar g1 = cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+
+  (void)cvc5_synth_fun(d_solver, "", 0, nullptr, d_bool);
+  (void)cvc5_synth_fun(d_solver, "f1", bvars.size(), bvars.data(), d_bool);
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1),
+               "invalid grammar");
+
+  cvc5_grammar_add_rule(g1, start1, cvc5_mk_false(d_tm));
+
+  symbols = {start2};
+  Cvc5Grammar g2 = cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  cvc5_grammar_add_rule(g2, start2, cvc5_mk_integer_int64(d_tm, 0));
+
+  cvc5_synth_fun_with_grammar(
+      d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1);
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   nullptr, "f2", bvars.size(), bvars.data(), d_bool, g1),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   d_solver, "f2", bvars.size(), bvars.data(), nullptr, g1),
+               "invalid sort");
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   d_solver, "f2", bvars.size(), bvars.data(), d_bool, nullptr),
+               "invalid grammar");
+
+  ASSERT_DEATH(cvc5_synth_fun_with_grammar(
+                   d_solver, "f6", bvars.size(), bvars.data(), d_bool, g2),
+               "invalid Start symbol");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_synth_fun_with_grammar(
+      d_solver, "f8", bvars.size(), bvars.data(), d_bool, g1);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, declare_pool)
+{
+  Cvc5Sort set_sort = cvc5_mk_set_sort(d_tm, d_int);
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  // declare a pool with initial value { 0, x, y }
+  std::vector<Cvc5Term> args = {zero, x, y};
+  Cvc5Term p =
+      cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data());
+  // pool should have the same sort
+  ASSERT_TRUE(cvc5_sort_is_equal(cvc5_term_get_sort(p), set_sort));
+
+  ASSERT_DEATH(cvc5_declare_pool(nullptr, "p", d_int, args.size(), args.data()),
+               "unexpected NULL argument");
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, nullptr, d_int, args.size(), args.data()),
+      "unexpected NULL argument");
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, "p", nullptr, args.size(), args.data()),
+      "invalid sort");
+
+  // no init values is allowed
+  (void)cvc5_declare_pool(d_solver, "p", d_int, 0, nullptr);
+
+  args = {nullptr, x, y};
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data()),
+      "invalid term at index 0");
+  args = {zero, nullptr, y};
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data()),
+      "invalid term at index 1");
+  args = {zero, x, nullptr};
+  ASSERT_DEATH(
+      cvc5_declare_pool(d_solver, "p", d_int, args.size(), args.data()),
+      "invalid term at index 2");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  args = {zero, x, y};
+  Cvc5Term zero2 = cvc5_mk_integer_int64(tm, 0);
+  Cvc5Term x2 = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "x");
+  Cvc5Term y2 = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "y");
+  std::vector<Cvc5Term> args2 = {zero2, x2, y2};
+  (void)cvc5_declare_pool(slv, "p", d_int, args2.size(), args2.data());
+  (void)cvc5_declare_pool(
+      slv, "p", cvc5_get_integer_sort(tm), args.size(), args.data());
+  args2 = {zero2, x, y2};
+  (void)cvc5_declare_pool(
+      slv, "p", cvc5_get_integer_sort(tm), args2.size(), args2.data());
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  // f is the function implementing (lambda ((x Int)) (+ x 1))
+  std::vector<Cvc5Sort> sorts = {d_int};
+  Cvc5Term f = cvc5_declare_oracle_fun(
+      d_solver,
+      "f",
+      sorts.size(),
+      sorts.data(),
+      d_int,
+      d_tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+
+  Cvc5Term three = cvc5_mk_integer_int64(d_tm, 3);
+  Cvc5Term five = cvc5_mk_integer_int64(d_tm, 5);
+  std::vector<Cvc5Term> args = {f, three};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data()),
+          five};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  // (f 3) = 5
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "oracles", "true");
+  Cvc5Sort int_sort = cvc5_get_integer_sort(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  std::vector<Cvc5Sort> sorts2 = {int_sort};
+  (void)cvc5_declare_oracle_fun(
+      slv,
+      "f",
+      sorts.size(),
+      sorts.data(),
+      int_sort,
+      tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+  (void)cvc5_declare_oracle_fun(
+      slv,
+      "f",
+      sorts2.size(),
+      sorts2.data(),
+      d_int,
+      tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+  (void)cvc5_declare_oracle_fun(
+      slv,
+      "f",
+      sorts2.size(),
+      sorts2.data(),
+      int_sort,
+      d_tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_sat)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  // f is the function implementing (lambda ((x Int)) (% x 10))
+  std::vector<Cvc5Sort> sorts = {d_int};
+  Cvc5Term f = cvc5_declare_oracle_fun(
+      d_solver,
+      "f",
+      sorts.size(),
+      sorts.data(),
+      d_int,
+      d_tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Assert(size == 1);
+        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+        if (cvc5_term_is_uint32_value(input[0]))
+        {
+          return cvc5_mk_integer_int64(
+              ctm, cvc5_term_get_uint32_value(input[0]) % 10);
+        }
+        return cvc5_mk_integer_int64(ctm, 0);
+      });
+  Cvc5Term seven = cvc5_mk_integer_int64(d_tm, 7);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  std::vector<Cvc5Term> args = {x, cvc5_mk_integer_int64(d_tm, 0)};
+  Cvc5Term lb = cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
+  cvc5_assert_formula(d_solver, lb);
+  args = {x, cvc5_mk_integer_int64(d_tm, 100)};
+  Cvc5Term ub = cvc5_mk_term(d_tm, CVC5_KIND_LEQ, args.size(), args.data());
+  cvc5_assert_formula(d_solver, ub);
+  args = {f, x};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data()),
+          seven};
+  Cvc5Term eq = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, eq);
+  // x >= 0 ^ x <= 100 ^ (f x) = 7
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  Cvc5Term xval = cvc5_get_value(d_solver, x);
+  ASSERT_TRUE(cvc5_term_is_uint32_value(xval));
+  ASSERT_TRUE(cvc5_term_get_uint32_value(xval) % 10 == 7);
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_sat2)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  cvc5_set_option(d_solver, "produce-models", "true");
+  // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
+  std::vector<Cvc5Sort> sorts = {d_int, d_int};
+  Cvc5Term eq = cvc5_declare_oracle_fun(
+      d_solver,
+      "eq",
+      sorts.size(),
+      sorts.data(),
+      d_bool,
+      d_tm,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Assert(size == 2);
+        return cvc5_mk_boolean(static_cast<Cvc5TermManager*>(state),
+                               cvc5_term_is_equal(input[0], input[1]));
+      });
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  std::vector<Cvc5Term> args = {eq, x, y};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data())};
+  Cvc5Term neq = cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
+  cvc5_assert_formula(d_solver, neq);
+  // (not (eq x y))
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  Cvc5Term xval = cvc5_get_value(d_solver, x);
+  Cvc5Term yval = cvc5_get_value(d_solver, y);
+  ASSERT_TRUE(cvc5_term_is_disequal(xval, yval));
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_error1)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  std::vector<Cvc5Sort> sorts = {d_int, d_int};
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   nullptr,
+                   "eq",
+                   sorts.size(),
+                   sorts.data(),
+                   d_bool,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_boolean(
+                         static_cast<Cvc5TermManager*>(state),
+                         cvc5_term_is_equal(input[0], input[1]));
+                   }),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   d_solver,
+                   nullptr,
+                   sorts.size(),
+                   sorts.data(),
+                   d_bool,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_boolean(
+                         static_cast<Cvc5TermManager*>(state),
+                         cvc5_term_is_equal(input[0], input[1]));
+                   }),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   d_solver,
+                   "eq",
+                   0,
+                   nullptr,
+                   d_bool,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_boolean(
+                         static_cast<Cvc5TermManager*>(state),
+                         cvc5_term_is_equal(input[0], input[1]));
+                   }),
+               "");
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   d_solver,
+                   "eq",
+                   sorts.size(),
+                   sorts.data(),
+                   nullptr,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_boolean(
+                         static_cast<Cvc5TermManager*>(state),
+                         cvc5_term_is_equal(input[0], input[1]));
+                   }),
+               "invalid sort");
+  // this won't die when declaring the function, only when the actual oracle
+  // fun is called
+  (void)cvc5_declare_oracle_fun(
+      d_solver,
+      "eq",
+      sorts.size(),
+      sorts.data(),
+      d_bool,
+      nullptr,
+      [](size_t size, const Cvc5Term* input, void* state) {
+        Assert(size == 2);
+        return cvc5_mk_boolean(static_cast<Cvc5TermManager*>(state),
+                               cvc5_term_is_equal(input[0], input[1]));
+      });
+  ASSERT_DEATH(
+      cvc5_declare_oracle_fun(
+          d_solver, "eq", sorts.size(), sorts.data(), d_bool, d_tm, nullptr),
+      "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, declare_oracle_fun_error2)
+{
+  std::vector<Cvc5Sort> sorts = {d_int};
+  // cannot declare without option
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   d_solver,
+                   "f",
+                   sorts.size(),
+                   sorts.data(),
+                   d_int,
+                   d_tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Assert(size == 2);
+                     return cvc5_mk_integer_int64(
+                         static_cast<Cvc5TermManager*>(state), 0);
+                   }),
+               "unless oracles is enabled");
+}
+
+TEST_F(TestCApiBlackSolver, get_interpolant)
+{
+  cvc5_set_logic(d_solver, "QF_LIA");
+  cvc5_set_option(d_solver, "produce-interpolants", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  Cvc5Term z = cvc5_mk_const(d_tm, d_int, "z");
+
+  // Assumptions for interpolation: x + y > 0 /\ x < 0
+  std::vector<Cvc5Term> args = {x, y};
+  Cvc5Term add = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {add, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {x, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_LT, args.size(), args.data()));
+
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
+  args = {y, z};
+  add = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {add, zero};
+  Cvc5Term gt = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  args = {z, zero};
+  Cvc5Term lt = cvc5_mk_term(d_tm, CVC5_KIND_LT, args.size(), args.data());
+  args = {gt, lt};
+  Cvc5Term conj = cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data());
+
+  // Call the interpolation api, while the resulting interpolant is the output
+  Cvc5Term output = cvc5_get_interpolant(d_solver, conj);
+  // We expect the resulting output to be a boolean formula
+  ASSERT_TRUE(cvc5_sort_is_boolean(cvc5_term_get_sort(output)));
+
+  ASSERT_DEATH(cvc5_get_interpolant(nullptr, conj), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_interpolant(d_solver, nullptr), "invalid term");
+
+  // try with a grammar, a simple grammar admitting true
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
+  std::vector<Cvc5Term> symbols = {start};
+  Cvc5Grammar g =
+      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+
+  args = {zero, zero};
+  Cvc5Term conj2 =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(d_solver, conj2, g),
+               "invalid grammar, must have at least one rule");
+  cvc5_grammar_add_rule(g, start, ttrue);
+
+  // Call the interpolation api, while the resulting interpolant is the output
+  Cvc5Term output2 = cvc5_get_interpolant_with_grammar(d_solver, conj2, g);
+  // interpolant must be true
+  ASSERT_TRUE(cvc5_term_is_equal(output2, ttrue));
+
+  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(nullptr, conj2, g),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(d_solver, nullptr, g),
+               "invalid term");
+  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(d_solver, conj2, nullptr),
+               "invalid grammar");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "produce-interpolants", "true");
+  // this will throw when NodeManager is not a singleton anymore
+  Cvc5Term zzero = cvc5_mk_integer_int64(tm, 0);
+  Cvc5Term sstart = cvc5_mk_var(tm, cvc5_get_boolean_sort(tm), "start");
+  std::vector<Cvc5Term> ssymbols = {sstart};
+  Cvc5Grammar gg =
+      cvc5_mk_grammar(slv, 0, nullptr, ssymbols.size(), ssymbols.data());
+  cvc5_grammar_add_rule(gg, sstart, cvc5_mk_true(tm));
+  std::vector<Cvc5Term> aargs = {zzero, zzero};
+  Cvc5Term cconj2 =
+      cvc5_mk_term(tm, CVC5_KIND_EQUAL, aargs.size(), aargs.data());
+  (void)cvc5_get_interpolant_with_grammar(slv, cconj2, gg);
+  // this will throw when NodeManager is not a singleton anymore
+  (void)cvc5_get_interpolant(slv, conj2);
+  (void)cvc5_get_interpolant_with_grammar(slv, conj2, gg);
+  (void)cvc5_get_interpolant_with_grammar(slv, cconj2, g);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_interpolant_next)
+{
+  cvc5_set_logic(d_solver, "QF_LIA");
+  cvc5_set_option(d_solver, "produce-interpolants", "true");
+  cvc5_set_option(d_solver, "incremental", "true");
+
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  Cvc5Term z = cvc5_mk_const(d_tm, d_int, "z");
+
+  // Assumptions for interpolation: x + y > 0 /\ x < 0
+  std::vector<Cvc5Term> args = {x, y};
+  Cvc5Term add = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {add, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  args = {x, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_LT, args.size(), args.data()));
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
+  args = {y, z};
+  add = cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {add, zero};
+  Cvc5Term gt = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  args = {z, zero};
+  Cvc5Term lt = cvc5_mk_term(d_tm, CVC5_KIND_LT, args.size(), args.data());
+  args = {gt, lt};
+  Cvc5Term conj = cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data());
+
+  Cvc5Term output = cvc5_get_interpolant(d_solver, conj);
+  Cvc5Term output2 = cvc5_get_interpolant_next(d_solver);
+
+  ASSERT_DEATH(cvc5_get_interpolant(nullptr, conj), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_interpolant(d_solver, nullptr), "invalid term");
+
+  ASSERT_DEATH(cvc5_get_interpolant_next(nullptr), "unexpected NULL argument");
+
+  // We expect the next output to be distinct
+  ASSERT_TRUE(cvc5_term_is_disequal(output, output2));
+}
+
+TEST_F(TestCApiBlackSolver, get_abduct)
+{
+  cvc5_set_logic(d_solver, "QF_LIA");
+  cvc5_set_option(d_solver, "produce-abducts", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+
+  // Assumptions for abduction: x > 0
+  std::vector<Cvc5Term> args = {x, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  // Conjecture for abduction: y > 0
+  args = {y, zero};
+  Cvc5Term conj = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  // Call the abduction api, while the resulting abduct is the output
+  Cvc5Term output = cvc5_get_abduct(d_solver, conj);
+  // We expect the resulting output to be a boolean formula
+  ASSERT_TRUE(cvc5_sort_is_boolean(cvc5_term_get_sort(output)));
+
+  ASSERT_DEATH(cvc5_get_abduct(nullptr, conj), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_abduct(d_solver, nullptr), "invalid term");
+
+  // try with a grammar, a simple grammar admitting true
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
+  std::vector<Cvc5Term> symbols = {start};
+  Cvc5Grammar g =
+      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+  args = {x, zero};
+  Cvc5Term conj2 = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  ASSERT_DEATH(cvc5_get_abduct_with_grammar(d_solver, conj2, g),
+               "invalid grammar, must have at least one rule");
+  cvc5_grammar_add_rule(g, start, ttrue);
+
+  // Call the abduction api, while the resulting abduct is the output
+  Cvc5Term output2 = cvc5_get_abduct_with_grammar(d_solver, conj2, g);
+  // abduct must be true
+  ASSERT_TRUE(cvc5_term_is_equal(output2, ttrue));
+
+  ASSERT_DEATH(cvc5_get_abduct_with_grammar(nullptr, conj2, g),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_abduct_with_grammar(d_solver, nullptr, g),
+               "invalid term");
+  ASSERT_DEATH(cvc5_get_abduct_with_grammar(d_solver, conj2, nullptr),
+               "invalid grammar");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "produce-abducts", "true");
+  Cvc5Sort int_sort = cvc5_get_integer_sort(tm);
+  // this will throw when NodeManager is not a singleton anymore
+  Cvc5Term zzero = cvc5_mk_integer_int64(tm, 0);
+  Cvc5Term xx = cvc5_mk_const(tm, int_sort, "x");
+  Cvc5Term yy = cvc5_mk_const(tm, int_sort, "y");
+  Cvc5Term sstart = cvc5_mk_var(tm, cvc5_get_boolean_sort(tm), "start");
+  args = {xx, yy};
+  Cvc5Term add = cvc5_mk_term(tm, CVC5_KIND_ADD, args.size(), args.data());
+  args = {add, zzero};
+  cvc5_assert_formula(slv,
+                      cvc5_mk_term(tm, CVC5_KIND_GT, args.size(), args.data()));
+  std::vector<Cvc5Term> ssymbols = {sstart};
+  Cvc5Grammar gg =
+      cvc5_mk_grammar(slv, 0, nullptr, ssymbols.size(), ssymbols.data());
+  cvc5_grammar_add_rule(gg, sstart, cvc5_mk_true(tm));
+  std::vector<Cvc5Term> aargs = {zzero, zzero};
+  Cvc5Term cconj2 =
+      cvc5_mk_term(tm, CVC5_KIND_EQUAL, aargs.size(), aargs.data());
+  (void)cvc5_get_abduct_with_grammar(slv, cconj2, gg);
+  // this will throw when NodeManager is not a singleton anymore
+  (void)cvc5_get_abduct(slv, conj2);
+  (void)cvc5_get_abduct_with_grammar(slv, conj2, gg);
+  (void)cvc5_get_abduct_with_grammar(slv, cconj2, g);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_abduct2)
+{
+  cvc5_set_logic(d_solver, "QF_LIA");
+  cvc5_set_option(d_solver, "incremental", "false");
+
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  // Assumptions for abduction: x > 0
+  std::vector<Cvc5Term> args = {x, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  // Conjecture for abduction: y > 0
+  args = {y, zero};
+  Cvc5Term conj = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  // Fails due to option not set
+  ASSERT_DEATH(cvc5_get_abduct(d_solver, conj), "unless abducts are enabled");
+}
+
+TEST_F(TestCApiBlackSolver, get_abduct_next)
+{
+  cvc5_set_logic(d_solver, "QF_LIA");
+  cvc5_set_option(d_solver, "produce-abducts", "true");
+  cvc5_set_option(d_solver, "incremental", "true");
+
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+
+  // Assumptions for abduction: x > 0
+  std::vector<Cvc5Term> args = {x, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  // Conjecture for abduction: y > 0
+  args = {y, zero};
+  Cvc5Term conj = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  // Call the abduction api, while the resulting abduct is the output
+  Cvc5Term output = cvc5_get_abduct(d_solver, conj);
+  Cvc5Term output2 = cvc5_get_abduct_next(d_solver);
+
+  ASSERT_DEATH(cvc5_get_abduct(nullptr, conj), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_abduct(d_solver, nullptr), "invalid term");
+
+  ASSERT_DEATH(cvc5_get_abduct_next(nullptr), "unexpected NULL argument");
+
+  // should produce a different output
+  ASSERT_TRUE(cvc5_term_is_disequal(output, output2));
+}
+
+TEST_F(TestCApiBlackSolver, block_model1)
+{
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  ASSERT_DEATH(cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS),
+               "cannot get value");
+}
+
+TEST_F(TestCApiBlackSolver, block_model2)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  ASSERT_DEATH(cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS),
+               "after SAT or UNKNOWN");
+}
+
+TEST_F(TestCApiBlackSolver, block_model3)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  cvc5_block_model(d_solver, CVC5_BLOCK_MODELS_MODE_LITERALS);
+  ASSERT_DEATH(cvc5_block_model(nullptr, CVC5_BLOCK_MODELS_MODE_LITERALS),
+               "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values1)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  args = {cvc5_mk_true(d_tm)};
+  cvc5_block_model_values(d_solver, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_block_model_values(nullptr, args.size(), args.data()),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_block_model_values(d_solver, 0, nullptr),
+               "unexpected NULL argument");
+  args = {nullptr};
+  ASSERT_DEATH(cvc5_block_model_values(d_solver, args.size(), args.data()),
+               "invalid term at index 0");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "produce-models", "true");
+  cvc5_check_sat(slv);
+  args = {cvc5_mk_true(d_tm)};
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_block_model_values(slv, args.size(), args.data());
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values2)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  args = {x};
+  cvc5_block_model_values(d_solver, args.size(), args.data());
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values3)
+{
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  args = {x};
+  ASSERT_DEATH(cvc5_block_model_values(d_solver, args.size(), args.data()),
+               "cannot get value");
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values4)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  args = {x};
+  ASSERT_DEATH(cvc5_block_model_values(d_solver, args.size(), args.data()),
+               "SAT or UNKNOWN response");
+}
+
+TEST_F(TestCApiBlackSolver, block_model_values5)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  std::vector<Cvc5Term> args = {x, x};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+  args = {x};
+  cvc5_block_model_values(d_solver, args.size(), args.data());
+}
+
+TEST_F(TestCApiBlackSolver, get_instantiations)
+{
+  std::vector<Cvc5Sort> sorts = {d_int};
+  Cvc5Term p =
+      cvc5_declare_fun(d_solver, "p", sorts.size(), sorts.data(), d_bool, true);
+  Cvc5Term x = cvc5_mk_var(d_tm, d_int, "x");
+  std::vector<Cvc5Term> args = {x};
+  Cvc5Term bvl =
+      cvc5_mk_term(d_tm, CVC5_KIND_VARIABLE_LIST, args.size(), args.data());
+  args = {p, x};
+  Cvc5Term app =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {bvl, app};
+  Cvc5Term q = cvc5_mk_term(d_tm, CVC5_KIND_FORALL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, q);
+  Cvc5Term five = cvc5_mk_integer_int64(d_tm, 5);
+  args = {p, five};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data())};
+  Cvc5Term app2 = cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
+  cvc5_assert_formula(d_solver, app2);
+  ASSERT_DEATH(cvc5_get_instantiations(d_solver),
+               "after a UNSAT, SAT or UNKNOWN response");
+  cvc5_check_sat(d_solver);
+  cvc5_get_instantiations(d_solver);
+  ASSERT_DEATH(cvc5_get_instantiations(nullptr), "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, add_sygus_constraint)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term tbool = cvc5_mk_true(d_tm);
+
+  cvc5_add_sygus_constraint(d_solver, tbool);
+  ASSERT_DEATH(cvc5_add_sygus_constraint(nullptr, tbool),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_add_sygus_constraint(d_solver, nullptr), "invalid term");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "sygus", "true");
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_add_sygus_constraint(d_solver, cvc5_mk_true(tm));
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_sygus_constraints)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term tfalse = cvc5_mk_false(d_tm);
+  cvc5_add_sygus_constraint(d_solver, ttrue);
+  cvc5_add_sygus_constraint(d_solver, tfalse);
+  size_t size;
+  const Cvc5Term* constraints = cvc5_get_sygus_constraints(d_solver, &size);
+  ASSERT_TRUE(cvc5_term_is_equal(ttrue, constraints[0]));
+  ASSERT_TRUE(cvc5_term_is_equal(tfalse, constraints[1]));
+  ASSERT_DEATH(cvc5_get_sygus_constraints(nullptr, &size),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_sygus_constraints(d_solver, nullptr),
+               "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, add_sygus_assume)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term tbool = cvc5_mk_false(d_tm);
+  Cvc5Term tint = cvc5_mk_integer_int64(d_tm, 1);
+
+  cvc5_add_sygus_assume(d_solver, tbool);
+  ASSERT_DEATH(cvc5_add_sygus_assume(nullptr, tbool),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_add_sygus_assume(d_solver, nullptr), "invalid term");
+  ASSERT_DEATH(cvc5_add_sygus_assume(d_solver, tint), "invalid argument");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "sygus", "true");
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_add_sygus_assume(slv, tbool);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, get_sygus_assumptions)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term tfalse = cvc5_mk_false(d_tm);
+  cvc5_add_sygus_assume(d_solver, ttrue);
+  cvc5_add_sygus_assume(d_solver, tfalse);
+  cvc5_add_sygus_assume(d_solver, ttrue);
+  cvc5_add_sygus_assume(d_solver, tfalse);
+  size_t size;
+  const Cvc5Term* assumptions = cvc5_get_sygus_assumptions(d_solver, &size);
+  ASSERT_TRUE(cvc5_term_is_equal(ttrue, assumptions[0]));
+  ASSERT_TRUE(cvc5_term_is_equal(tfalse, assumptions[1]));
+  ASSERT_DEATH(cvc5_get_sygus_assumptions(nullptr, &size),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_sygus_assumptions(d_solver, nullptr),
+               "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term tint = cvc5_mk_integer_int64(d_tm, 1);
+
+  std::vector<Cvc5Sort> domain = {d_real};
+  Cvc5Term inv = cvc5_declare_fun(
+      d_solver, "inv", domain.size(), domain.data(), d_bool, true);
+  Cvc5Term pre = cvc5_declare_fun(
+      d_solver, "pre", domain.size(), domain.data(), d_bool, true);
+  domain = {d_real, d_real};
+  Cvc5Term trans = cvc5_declare_fun(
+      d_solver, "trans", domain.size(), domain.data(), d_bool, true);
+  domain = {d_real};
+  Cvc5Term post = cvc5_declare_fun(
+      d_solver, "post", domain.size(), domain.data(), d_bool, true);
+
+  Cvc5Term inv1 = cvc5_declare_fun(
+      d_solver, "inv1", domain.size(), domain.data(), d_real, true);
+  domain = {d_bool, d_real};
+  Cvc5Term trans1 = cvc5_declare_fun(
+      d_solver, "trans1", domain.size(), domain.data(), d_bool, true);
+  domain = {d_real, d_bool};
+  Cvc5Term trans2 = cvc5_declare_fun(
+      d_solver, "trans2", domain.size(), domain.data(), d_bool, true);
+  domain = {d_real, d_real};
+  Cvc5Term trans3 = cvc5_declare_fun(
+      d_solver, "trans3", domain.size(), domain.data(), d_real, true);
+
+  cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, post);
+
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(nullptr, inv, pre, trans, post),
+               "unexpected NULL argument");
+  ASSERT_DEATH(
+      cvc5_add_sygus_inv_constraint(d_solver, nullptr, pre, trans, post),
+      "invalid term");
+  ASSERT_DEATH(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, nullptr, trans, post),
+      "invalid term");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, nullptr, post),
+               "invalid term");
+  ASSERT_DEATH(
+      cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, nullptr),
+      "invalid term");
+
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, tint, pre, trans, post),
+               "invalid argument");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv1, pre, trans, post),
+               "invalid argument");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, trans, trans, post),
+               "have the same sort");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, tint, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, pre, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans1, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans2, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans3, post),
+               "expected the sort of trans");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(d_solver, inv, pre, trans, trans),
+               "expected inv and post to have the same sort");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  cvc5_set_option(slv, "sygus", "true");
+  Cvc5Sort bool_sort = cvc5_get_boolean_sort(tm);
+  Cvc5Sort real_sort = cvc5_get_real_sort(tm);
+  std::vector<Cvc5Sort> domain2 = {real_sort};
+  Cvc5Term inv22 = cvc5_declare_fun(
+      slv, "inv", domain2.size(), domain2.data(), bool_sort, true);
+  Cvc5Term pre22 = cvc5_declare_fun(
+      slv, "pre", domain2.size(), domain2.data(), bool_sort, true);
+  domain2 = {real_sort, real_sort};
+  Cvc5Term trans22 = cvc5_declare_fun(
+      slv, "trans", domain2.size(), domain2.data(), bool_sort, true);
+  domain2 = {real_sort};
+  Cvc5Term post22 = cvc5_declare_fun(
+      slv, "post", domain2.size(), domain2.data(), bool_sort, true);
+  cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post22);
+  // this will throw when NodeManager is not a singleton anymore
+  cvc5_add_sygus_inv_constraint(slv, inv, pre22, trans22, post22);
+  cvc5_add_sygus_inv_constraint(slv, inv22, pre, trans22, post22);
+  cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans, post22);
+  cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackSolver, check_synth)
+{
+  // requires option to be set
+  ASSERT_DEATH(cvc5_check_synth(d_solver),
+               "cannot check for a synthesis solution");
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_check_synth(d_solver);
+  ASSERT_DEATH(cvc5_check_synth(nullptr), "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, get_synth_solution)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+
+  Cvc5Term x = cvc5_mk_false(d_tm);
+  Cvc5Term f = cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+
+  ASSERT_DEATH(cvc5_get_synth_solution(d_solver, f), "not in a state");
+
+  Cvc5SynthResult res = cvc5_check_synth(d_solver);
+  ASSERT_TRUE(cvc5_synth_result_has_solution(res));
+
+  cvc5_get_synth_solution(d_solver, f);
+  cvc5_get_synth_solution(d_solver, f);
+
+  ASSERT_DEATH(cvc5_get_synth_solution(nullptr, f), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_synth_solution(d_solver, nullptr), "invalid term");
+  ASSERT_DEATH(cvc5_get_synth_solution(d_solver, x),
+               "synthesis solution not found for given term");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  ASSERT_DEATH(cvc5_get_synth_solution(slv, f), "not in a state");
+}
+
+TEST_F(TestCApiBlackSolver, get_synth_solutions)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+
+  Cvc5Term x = cvc5_mk_false(d_tm);
+  Cvc5Term f = cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+
+  std::vector<Cvc5Term> args{f};
+  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
+               "not in a state");
+
+  cvc5_check_synth(d_solver);
+
+  cvc5_get_synth_solutions(d_solver, args.size(), args.data());
+  args = {f, f};
+  cvc5_get_synth_solutions(d_solver, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, 0, nullptr),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_synth_solutions(nullptr, args.size(), args.data()),
+               "unexpected NULL argument");
+  args = {nullptr};
+  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
+               "invalid term at index 0");
+  args = {x};
+  ASSERT_DEATH(cvc5_get_synth_solutions(d_solver, args.size(), args.data()),
+               "synthesis solution not found for term at index 0");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  ASSERT_DEATH(cvc5_get_synth_solutions(slv, args.size(), args.data()),
+               "not in a state");
+}
+
+TEST_F(TestCApiBlackSolver, check_synth_next)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "true");
+
+  Cvc5Term f = cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+
+  Cvc5SynthResult res = cvc5_check_synth(d_solver);
+  ASSERT_TRUE(cvc5_synth_result_has_solution(res));
+
+  std::vector<Cvc5Term> args{f};
+  cvc5_get_synth_solutions(d_solver, args.size(), args.data());
+
+  res = cvc5_check_synth_next(d_solver);
+  ASSERT_TRUE(cvc5_synth_result_has_solution(res));
+  cvc5_get_synth_solutions(d_solver, args.size(), args.data());
+
+  ASSERT_DEATH(cvc5_check_synth_next(nullptr), "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, check_synth_next2)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+  (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+  cvc5_check_synth(d_solver);
+  ASSERT_DEATH(cvc5_check_synth_next(d_solver),
+               "cannot check for a next synthesis solution");
+}
+
+TEST_F(TestCApiBlackSolver, check_synth_next3)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "true");
+  (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
+  ASSERT_DEATH(cvc5_check_synth_next(d_solver), "unless immediately preceded");
+}
+
+TEST_F(TestCApiBlackSolver, find_synth)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
+  std::vector<Cvc5Term> symbols = {start};
+  Cvc5Grammar g =
+      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+
+  ASSERT_DEATH(
+      cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g),
+      "invalid grammar");
+
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term tfalse = cvc5_mk_false(d_tm);
+  cvc5_grammar_add_rule(g, start, ttrue);
+  cvc5_grammar_add_rule(g, start, tfalse);
+  (void)cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g);
+
+  // should enumerate based on the grammar of the function to synthesize above
+  Cvc5Term t = cvc5_find_synth(d_solver, CVC5_FIND_SYNTH_TARGET_ENUM);
+  ASSERT_TRUE(t && cvc5_sort_is_boolean(cvc5_term_get_sort(t)));
+
+  ASSERT_DEATH(cvc5_find_synth(nullptr, CVC5_FIND_SYNTH_TARGET_ENUM),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_find_synth(d_solver, static_cast<Cvc5FindSynthTarget>(125)),
+               "invalid find synthesis target");
+
+  ASSERT_DEATH(
+      cvc5_find_synth_with_grammar(nullptr, CVC5_FIND_SYNTH_TARGET_ENUM, g),
+      "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_find_synth_with_grammar(
+                   d_solver, static_cast<Cvc5FindSynthTarget>(125), g),
+               "invalid find synthesis target");
+  ASSERT_DEATH(cvc5_find_synth_with_grammar(
+                   d_solver, CVC5_FIND_SYNTH_TARGET_ENUM, nullptr),
+               "invalid grammar");
+}
+
+TEST_F(TestCApiBlackSolver, find_synth2)
+{
+  cvc5_set_option(d_solver, "sygus", "true");
+  cvc5_set_option(d_solver, "incremental", "true");
+
+  Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
+  std::vector<Cvc5Term> symbols = {start};
+  Cvc5Grammar g =
+      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+  Cvc5Term ttrue = cvc5_mk_true(d_tm);
+  Cvc5Term tfalse = cvc5_mk_false(d_tm);
+  cvc5_grammar_add_rule(g, start, ttrue);
+  cvc5_grammar_add_rule(g, start, tfalse);
+
+  // should enumerate true/false
+  Cvc5Term t =
+      cvc5_find_synth_with_grammar(d_solver, CVC5_FIND_SYNTH_TARGET_ENUM, g);
+  ASSERT_TRUE(t && cvc5_sort_is_boolean(cvc5_term_get_sort(t)));
+  t = cvc5_find_synth_next(d_solver);
+  ASSERT_TRUE(t && cvc5_sort_is_boolean(cvc5_term_get_sort(t)));
+
+  ASSERT_DEATH(cvc5_find_synth_next(nullptr), "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackSolver, get_statistics)
+{
+  ASSERT_DEATH(cvc5_get_statistics(nullptr), "unexpected NULL argument");
+
+  // do some array reasoning to make sure we have a double statistics
+  {
+    Cvc5Sort s2 = cvc5_mk_array_sort(d_tm, d_int, d_int);
+    Cvc5Term t1 = cvc5_mk_const(d_tm, d_int, "i");
+    Cvc5Term t2 = cvc5_mk_const(d_tm, s2, "a");
+    std::vector<Cvc5Term> args = {t2, t1};
+    args = {cvc5_mk_term(d_tm, CVC5_KIND_SELECT, args.size(), args.data()), t1};
+    cvc5_assert_formula(
+        d_solver,
+        cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(d_solver);
+  }
+  Cvc5Statistics stats = cvc5_get_statistics(d_solver);
+  (void)cvc5_stats_to_string(stats);
+  {
+    Cvc5Stat stat = cvc5_stats_get(stats, "global::totalTime");
+    ASSERT_FALSE(cvc5_stat_is_internal(stat));
+    ASSERT_FALSE(cvc5_stat_is_default(stat));
+    ASSERT_TRUE(cvc5_stat_is_string(stat));
+    std::string time = cvc5_stat_get_string(stat);
+    ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
+    ASSERT_FALSE(cvc5_stat_is_double(stat));
+    stat = cvc5_stats_get(stats, "resource::resourceUnitsUsed");
+    ASSERT_TRUE(cvc5_stat_is_internal(stat));
+    ASSERT_FALSE(cvc5_stat_is_default(stat));
+    ASSERT_TRUE(cvc5_stat_is_int(stat));
+    ASSERT_TRUE(cvc5_stat_get_int(stat) >= 0);
+  }
+
+  ASSERT_DEATH(cvc5_stats_iter_init(nullptr, false, false),
+               "invalid statistics");
+  ASSERT_DEATH(cvc5_stats_iter_has_next(nullptr), "invalid statistics");
+  ASSERT_DEATH(cvc5_stats_iter_next(nullptr, nullptr), "invalid statistics");
+  ASSERT_DEATH(cvc5_stats_iter_has_next(stats), "iterator not initialized");
+  ASSERT_DEATH(cvc5_stats_iter_next(stats, nullptr),
+               "iterator not initialized");
+
+  cvc5_stats_iter_init(stats, true, true);
+  bool hasstats = false;
+  while (cvc5_stats_iter_has_next(stats))
+  {
+    hasstats = true;
+    const char* name;
+    Cvc5Stat stat = cvc5_stats_iter_next(stats, &name);
+    (void)cvc5_stat_to_string(stat);
+    if (name == std::string("theory::arrays::avgIndexListLength"))
+    {
+      ASSERT_TRUE(cvc5_stat_is_internal(stat));
+      ASSERT_TRUE(cvc5_stat_is_double(stat));
+      ASSERT_TRUE(std::isnan(cvc5_stat_get_double(stat)));
+    }
+  }
+  ASSERT_TRUE(hasstats);
+}
+
+TEST_F(TestCApiBlackSolver, print_statistics_safe)
+{
+  testing::internal::CaptureStdout();
+  cvc5_print_stats_safe(d_solver, STDOUT_FILENO);
+  testing::internal::GetCapturedStdout();
+}
+
+namespace {
+const Cvc5Term* plugin_unsat_check(size_t* size, void* state)
+{
+  static thread_local std::vector<Cvc5Term> lemmas;
+  // add the "false" lemma.
+  Cvc5Term flem = cvc5_mk_false(static_cast<Cvc5TermManager*>(state));
+  lemmas = {flem};
+  *size = lemmas.size();
+  return lemmas.data();
+}
+const char* plugin_unsat_get_name() { return "PluginUnsat"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_unsat)
+{
+  Cvc5Plugin plugin{&plugin_unsat_check,
+                    nullptr,
+                    nullptr,
+                    &plugin_unsat_get_name,
+                    d_tm,
+                    nullptr,
+                    nullptr};
+  cvc5_add_plugin(d_solver, &plugin);
+  ASSERT_TRUE(plugin.get_name() == std::string("PluginUnsat"));
+  // should be unsat since the plugin above asserts "false" as a lemma
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+}
+
+namespace {
+void plugin_listen_notify_sat_clause(const Cvc5Term clause, void* state)
+{
+  *static_cast<bool*>(state) = true;
+}
+void plugin_listen_notify_theory_lemma(const Cvc5Term lemma, void* state)
+{
+  *static_cast<bool*>(state) = true;
+}
+const char* plugin_listen_get_name() { return "PluginListen"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_listen)
+{
+  bool clause_seen, lemma_seen;
+  Cvc5Plugin plugin{nullptr,
+                    &plugin_listen_notify_sat_clause,
+                    &plugin_listen_notify_theory_lemma,
+                    &plugin_listen_get_name,
+                    nullptr,
+                    &clause_seen,
+                    &lemma_seen};
+
+  // NOTE: this shouldn't be necessary but ensures notify_sat_clause is called
+  // here.
+  cvc5_set_option(d_solver, "plugin-notify-sat-clause-in-solve", "false");
+  cvc5_add_plugin(d_solver, &plugin);
+  Cvc5Sort string_sort = cvc5_get_string_sort(d_tm);
+  Cvc5Term x = cvc5_mk_const(d_tm, string_sort, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, string_sort, "y");
+  std::vector<Cvc5Term> args{x, y};
+  Cvc5Term ctn1 =
+      cvc5_mk_term(d_tm, CVC5_KIND_STRING_CONTAINS, args.size(), args.data());
+  args = {y, x};
+  Cvc5Term ctn2 =
+      cvc5_mk_term(d_tm, CVC5_KIND_STRING_CONTAINS, args.size(), args.data());
+  args = {ctn1, ctn2};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data()));
+  args = {x};
+  Cvc5Term lx =
+      cvc5_mk_term(d_tm, CVC5_KIND_STRING_LENGTH, args.size(), args.data());
+  args = {y};
+  Cvc5Term ly =
+      cvc5_mk_term(d_tm, CVC5_KIND_STRING_LENGTH, args.size(), args.data());
+  args = {lx, ly};
+  Cvc5Term lc = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  cvc5_assert_formula(d_solver, lc);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  // above input formulas should induce a theory lemma and SAT clause learning
+  ASSERT_TRUE(lemma_seen);
+  ASSERT_TRUE(clause_seen);
+}
+
+TEST_F(TestCApiBlackSolver, tuple_project)
+{
+  std::vector<Cvc5Term> args = {cvc5_mk_string(d_tm, "Z", false)};
+  std::vector<Cvc5Term> elements = {
+      cvc5_mk_true(d_tm),
+      cvc5_mk_integer_int64(d_tm, 3),
+      cvc5_mk_string(d_tm, "C", false),
+      cvc5_mk_term(d_tm, CVC5_KIND_SET_SINGLETON, args.size(), args.data())};
+
+  Cvc5Term tuple = cvc5_mk_tuple(d_tm, elements.size(), elements.data());
+
+  std::vector<uint32_t> indices1 = {};
+  std::vector<uint32_t> indices2 = {0};
+  std::vector<uint32_t> indices3 = {0, 1};
+  std::vector<uint32_t> indices4 = {0, 0, 2, 2, 3, 3, 0};
+  std::vector<uint32_t> indices5 = {4};
+  std::vector<uint32_t> indices6 = {0, 4};
+
+  args = {tuple};
+  (void)cvc5_mk_term_from_op(
+      d_tm,
+      cvc5_mk_op(
+          d_tm, CVC5_KIND_TUPLE_PROJECT, indices1.size(), indices1.data()),
+      args.size(),
+      args.data());
+  (void)cvc5_mk_term_from_op(
+      d_tm,
+      cvc5_mk_op(
+          d_tm, CVC5_KIND_TUPLE_PROJECT, indices2.size(), indices2.data()),
+      args.size(),
+      args.data());
+  (void)cvc5_mk_term_from_op(
+      d_tm,
+      cvc5_mk_op(
+          d_tm, CVC5_KIND_TUPLE_PROJECT, indices3.size(), indices3.data()),
+      args.size(),
+      args.data());
+  (void)cvc5_mk_term_from_op(
+      d_tm,
+      cvc5_mk_op(
+          d_tm, CVC5_KIND_TUPLE_PROJECT, indices4.size(), indices4.data()),
+      args.size(),
+      args.data());
+
+  ASSERT_DEATH(
+      cvc5_mk_term_from_op(
+          d_tm,
+          cvc5_mk_op(
+              d_tm, CVC5_KIND_TUPLE_PROJECT, indices5.size(), indices5.data()),
+          args.size(),
+          args.data()),
+      "Project index 4");
+  ASSERT_DEATH(
+      cvc5_mk_term_from_op(
+          d_tm,
+          cvc5_mk_op(
+              d_tm, CVC5_KIND_TUPLE_PROJECT, indices6.size(), indices6.data()),
+          args.size(),
+          args.data()),
+      "Project index 4");
+
+  std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
+
+  Cvc5Op op =
+      cvc5_mk_op(d_tm, CVC5_KIND_TUPLE_PROJECT, indices.size(), indices.data());
+  Cvc5Term projection =
+      cvc5_mk_term_from_op(d_tm, op, args.size(), args.data());
+
+  Cvc5Datatype datatype = cvc5_sort_get_datatype(cvc5_term_get_sort(tuple));
+  Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(datatype, 0);
+
+  for (size_t i = 0; i < indices.size(); i++)
+  {
+    args = {cvc5_dt_sel_get_term(cvc5_dt_cons_get_selector(cons, indices[i])),
+            tuple};
+    Cvc5Term selected =
+        cvc5_mk_term(d_tm, CVC5_KIND_APPLY_SELECTOR, args.size(), args.data());
+    Cvc5Term simplified = cvc5_simplify(d_solver, selected, false);
+    ASSERT_TRUE(cvc5_term_is_equal(elements[indices[i]], simplified));
+  }
+
+  ASSERT_EQ(
+      std::string(
+          "((_ tuple.project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton "
+          "\"Z\")))"),
+      cvc5_term_to_string(projection));
+}
+
+TEST_F(TestCApiBlackSolver, vertical_bars)
+{
+  Cvc5Term a = cvc5_declare_fun(d_solver, "|a |", 0, nullptr, d_real, true);
+  ASSERT_EQ(std::string("|a |"), cvc5_term_to_string(a));
+}
+
+TEST_F(TestCApiBlackSolver, get_version)
+{
+  std::cout << cvc5_get_version(d_solver) << std::endl;
+}
+
+TEST_F(TestCApiBlackSolver, multiple_solvers)
+{
+  Cvc5Term zero, value1, value2;
+  Cvc5Term deffun;
+  {
+    Cvc5* s1 = cvc5_new(d_tm);
+    cvc5_set_logic(s1, "ALL");
+    cvc5_set_option(s1, "produce-models", "true");
+    Cvc5Term fun1 = cvc5_declare_fun(s1, "f1", 0, nullptr, d_int, true);
+    Cvc5Term x = cvc5_mk_var(d_tm, d_int, "x");
+    zero = cvc5_mk_integer_int64(d_tm, 0);
+    std::vector<Cvc5Term> args = {x};
+    deffun =
+        cvc5_define_fun(s1, "f", args.size(), args.data(), d_int, zero, true);
+    args = {fun1, zero};
+    cvc5_assert_formula(
+        s1, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(s1);
+    value1 = cvc5_get_value(s1, fun1);
+    cvc5_delete(s1);
+  }
+  ASSERT_TRUE(cvc5_term_is_equal(zero, value1));
+  {
+    Cvc5* s2 = cvc5_new(d_tm);
+    cvc5_set_logic(s2, "ALL");
+    cvc5_set_option(s2, "produce-models", "true");
+    Cvc5Term fun2 = cvc5_declare_fun(s2, "f2", 0, nullptr, d_int, true);
+    std::vector<Cvc5Term> args = {fun2, value1};
+    cvc5_assert_formula(
+        s2, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(s2);
+    value2 = cvc5_get_value(s2, fun2);
+    cvc5_delete(s2);
+  }
+  ASSERT_TRUE(cvc5_term_is_equal(value1, value2));
+  {
+    Cvc5* s3 = cvc5_new(d_tm);
+    cvc5_set_logic(s3, "ALL");
+    cvc5_set_option(s3, "produce-models", "true");
+    Cvc5Term fun3 = cvc5_declare_fun(s3, "f3", 0, nullptr, d_int, true);
+    std::vector<Cvc5Term> args = {deffun, zero};
+    Cvc5Term apply =
+        cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+    args = {fun3, apply};
+    cvc5_assert_formula(
+        s3, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(s3);
+    Cvc5Term value3 = cvc5_get_value(s3, fun3);
+    ASSERT_TRUE(cvc5_term_is_equal(value1, value3));
+  }
+}
+
+#ifdef CVC5_USE_COCOA
+
+TEST_F(TestCApiBlackSolver, basic_finite_field)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+
+  Cvc5Sort ff_sort = cvc5_mk_ff_sort(d_tm, "5", 10);
+  Cvc5Term a = cvc5_mk_const(d_tm, ff_sort, "a");
+  Cvc5Term b = cvc5_mk_const(d_tm, ff_sort, "b");
+  ASSERT_EQ(std::string("5"), cvc5_sort_ff_get_size(ff_sort));
+
+  std::vector<Cvc5Term> args = {a, b};
+  args = {
+      cvc5_mk_term(d_tm, CVC5_KIND_FINITE_FIELD_MULT, args.size(), args.data()),
+      cvc5_mk_ff_elem(d_tm, "1", ff_sort, 10)};
+  Cvc5Term inv = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  args = {a, cvc5_mk_ff_elem(d_tm, "2", ff_sort, 10)};
+  Cvc5Term a_is_two =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+
+  cvc5_assert_formula(d_solver, inv);
+  cvc5_assert_formula(d_solver, a_is_two);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  ASSERT_EQ(cvc5_term_get_ff_value(cvc5_get_value(d_solver, a)),
+            std::string("2"));
+  ASSERT_EQ(cvc5_term_get_ff_value(cvc5_get_value(d_solver, b)),
+            std::string("-2"));
+
+  args = {b, cvc5_mk_ff_elem(d_tm, "2", ff_sort, 10)};
+  Cvc5Term b_is_two =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, b_is_two);
+  ASSERT_FALSE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+}
+
+TEST_F(TestCApiBlackSolver, basic_finite_field_base)
+{
+  cvc5_set_option(d_solver, "produce-models", "true");
+
+  Cvc5Sort ff_sort = cvc5_mk_ff_sort(d_tm, "101", 2);
+  Cvc5Term a = cvc5_mk_const(d_tm, ff_sort, "a");
+  Cvc5Term b = cvc5_mk_const(d_tm, ff_sort, "b");
+  ASSERT_EQ(std::string("5"), cvc5_sort_ff_get_size(ff_sort));
+
+  std::vector<Cvc5Term> args = {a, b};
+  args = {
+      cvc5_mk_term(d_tm, CVC5_KIND_FINITE_FIELD_MULT, args.size(), args.data()),
+      cvc5_mk_ff_elem(d_tm, "1", ff_sort, 3)};
+  Cvc5Term inv = cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+
+  args = {a, cvc5_mk_ff_elem(d_tm, "10", ff_sort, 2)};
+  Cvc5Term a_is_two =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+
+  cvc5_assert_formula(d_solver, inv);
+  cvc5_assert_formula(d_solver, a_is_two);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  ASSERT_EQ(cvc5_term_get_ff_value(cvc5_get_value(d_solver, a)),
+            std::string("2"));
+  ASSERT_EQ(cvc5_term_get_ff_value(cvc5_get_value(d_solver, b)),
+            std::string("-2"));
+
+  args = {b, cvc5_mk_ff_elem(d_tm, "2", ff_sort, 10)};
+  Cvc5Term b_is_two =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  cvc5_assert_formula(d_solver, b_is_two);
+  ASSERT_FALSE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+}
+
+#endif  // CVC5_USE_COCOA
 }  // namespace cvc5::internal::test

@@ -207,4 +207,22 @@ TEST_F(TestCApiBlackProof, is_equal_disequal_hash)
   ASSERT_NE(cvc5_proof_hash(x), cvc5_proof_hash(y));
   ASSERT_DEATH(cvc5_proof_hash(nullptr), "invalid proof");
 }
+
+TEST_F(TestCApiBlackProof, copy_release)
+{
+  ASSERT_DEATH(cvc5_proof_copy(nullptr), "invalid proof");
+  ASSERT_DEATH(cvc5_proof_release(nullptr), "invalid proof");
+  Cvc5Proof proof = create_proof();
+  ASSERT_EQ(cvc5_proof_get_rule(proof), CVC5_PROOF_RULE_SCOPE);
+  Cvc5Proof proof2 = cvc5_proof_copy(proof);
+  ASSERT_EQ(cvc5_proof_get_rule(proof), CVC5_PROOF_RULE_SCOPE);
+  ASSERT_EQ(cvc5_proof_get_rule(proof2), CVC5_PROOF_RULE_SCOPE);
+  ASSERT_TRUE(cvc5_proof_is_equal(proof, proof2));
+  cvc5_proof_release(proof);
+  ASSERT_EQ(cvc5_proof_get_rule(proof), CVC5_PROOF_RULE_SCOPE);
+  ASSERT_EQ(cvc5_proof_get_rule(proof2), CVC5_PROOF_RULE_SCOPE);
+  cvc5_proof_release(proof);
+  // we cannot reliably check that querying on the (now freed) proof fails
+  // unless ASAN is enabled
+}
 }  // namespace cvc5::internal::test

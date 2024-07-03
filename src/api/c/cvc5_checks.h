@@ -181,10 +181,31 @@ class Cvc5CApiAbortStream
 #define CVC5_CAPI_CHECK_RESULT(res) \
   CVC5_API_CHECK(res != nullptr) << "invalid result"
 
+#define CVC5_CAPI_CHECK_SYNTH_RESULT(res) \
+  CVC5_API_CHECK(res != nullptr) << "invalid synthesis result"
+
 /* -------------------------------------------------------------------------- */
 
 #define CVC5_CAPI_CHECK_PROOF(proof) \
   CVC5_API_CHECK(proof != nullptr) << "invalid proof"
+
+/* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_GRAMMAR(grammar) \
+  CVC5_API_CHECK(grammar != nullptr) << "invalid grammar"
+
+/* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_STAT(stat) \
+  CVC5_API_CHECK(stat != nullptr) << "invalid statistic"
+
+#define CVC5_CAPI_CHECK_STATS(stat) \
+  CVC5_API_CHECK(stat != nullptr) << "invalid statistics"
+
+/* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_CMD(cmd) \
+  CVC5_API_CHECK(cmd != nullptr) << "invalid command"
 
 /* -------------------------------------------------------------------------- */
 }

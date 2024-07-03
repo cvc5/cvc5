@@ -48,12 +48,12 @@ int main()
   // equivalent by encoding the problem in the bit-vector theory.
 
   // Creating a bit-vector type of width 32
-  Sort bitvector32 = tm.mkBitVectorSort(32);
+  Sort bv32 = tm.mkBitVectorSort(32);
 
   // Variables
-  Term x = tm.mkConst(bitvector32, "x");
-  Term a = tm.mkConst(bitvector32, "a");
-  Term b = tm.mkConst(bitvector32, "b");
+  Term x = tm.mkConst(bv32, "x");
+  Term a = tm.mkConst(bv32, "a");
+  Term b = tm.mkConst(bv32, "b");
 
   // First encode the assumption that x must be equal to a or b
   Term x_eq_a = tm.mkTerm(Kind::EQUAL, {x, a});
@@ -64,9 +64,9 @@ int main()
   slv.assertFormula(assumption);
 
   // Introduce a new variable for the new value of x after assignment.
-  Term new_x = tm.mkConst(bitvector32, "new_x");  // x after executing code (0)
+  Term new_x = tm.mkConst(bv32, "new_x");  // x after executing code (0)
   Term new_x_ =
-      tm.mkConst(bitvector32, "new_x_");  // x after executing code (1) or (2)
+      tm.mkConst(bv32, "new_x_");  // x after executing code (1) or (2)
 
   // Encoding code (0)
   // new_x = x == a ? b : a;
@@ -74,7 +74,7 @@ int main()
   Term assignment0 = tm.mkTerm(Kind::EQUAL, {new_x, ite});
 
   // Assert the encoding of code (0)
-  cout << "Asserting " << assignment0 << " to cvc5 " << endl;
+  cout << "Asserting " << assignment0 << " to cvc5" << endl;
   slv.assertFormula(assignment0);
   cout << "Pushing a new context." << endl;
   slv.push();
@@ -85,14 +85,14 @@ int main()
   Term assignment1 = tm.mkTerm(Kind::EQUAL, {new_x_, a_xor_b_xor_x});
 
   // Assert encoding to cvc5 in current context;
-  cout << "Asserting " << assignment1 << " to cvc5 " << endl;
+  cout << "Asserting " << assignment1 << " to cvc5" << endl;
   slv.assertFormula(assignment1);
   Term new_x_eq_new_x_ = tm.mkTerm(Kind::EQUAL, {new_x, new_x_});
 
   cout << " Check sat assuming: " << new_x_eq_new_x_.notTerm() << endl;
-  cout << " Expect UNSAT. " << endl;
+  cout << " Expect UNSAT." << endl;
   cout << " cvc5: " << slv.checkSatAssuming(new_x_eq_new_x_.notTerm()) << endl;
-  cout << " Popping context. " << endl;
+  cout << " Popping context." << endl;
   slv.pop();
 
   // Encoding code (2)
@@ -102,18 +102,18 @@ int main()
   Term assignment2 = tm.mkTerm(Kind::EQUAL, {new_x_, a_plus_b_minus_x});
 
   // Assert encoding to cvc5 in current context;
-  cout << "Asserting " << assignment2 << " to cvc5 " << endl;
+  cout << "Asserting " << assignment2 << " to cvc5" << endl;
   slv.assertFormula(assignment2);
 
   cout << " Check sat assuming: " << new_x_eq_new_x_.notTerm() << endl;
-  cout << " Expect UNSAT. " << endl;
+  cout << " Expect UNSAT." << endl;
   cout << " cvc5: " << slv.checkSatAssuming(new_x_eq_new_x_.notTerm()) << endl;
 
-  Term x_neq_x = tm.mkTerm(Kind::EQUAL, {x, x}).notTerm();
+  Term x_neq_x = tm.mkTerm(Kind::DISTINCT, {x, x});
   std::vector<Term> v{new_x_eq_new_x_, x_neq_x};
   Term query = tm.mkTerm(Kind::AND, {v});
   cout << " Check sat assuming: " << query.notTerm() << endl;
-  cout << " Expect SAT. " << endl;
+  cout << " Expect SAT." << endl;
   cout << " cvc5: " << slv.checkSatAssuming(query.notTerm()) << endl;
 
   // Assert that a is odd
@@ -124,7 +124,7 @@ int main()
   cout << "Assert " << a_odd << endl;
   cout << "Check satisfiability." << endl;
   slv.assertFormula(a_odd);
-  cout << " Expect sat. " << endl;
+  cout << " Expect sat." << endl;
   cout << " cvc5: " << slv.checkSat() << endl;
   return 0;
 }

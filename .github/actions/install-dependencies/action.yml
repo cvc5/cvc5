@@ -6,8 +6,12 @@ inputs:
   windows-build:
     default: false
     type: boolean
+  wasm-build:
+    default: false
+    type: boolean
   shell:
     default: bash
+
 runs:
   using: composite
   steps:
@@ -56,6 +60,21 @@ runs:
         sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
         echo "::endgroup::"
+
+    - name: Install software for WebAssembly compilation
+      # Boolean inputs are actually strings:
+      # https://github.com/actions/runner/issues/1483
+      if: inputs.wasm-build == 'true'
+      shell: bash
+      run: |
+        echo "::group::Install software for WebAssembly compilation"
+        sudo apt-get update
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk/
+        ./emsdk install '3.1.18'
+        ./emsdk activate '3.1.18'
+        echo "$(pwd)" >> $GITHUB_PATH
+        echo "$(pwd)/upstream/emscripten" >> $GITHUB_PATH
 
     - name: Install Windows software
       if: runner.os == 'Windows' && inputs.windows-build == 'true'

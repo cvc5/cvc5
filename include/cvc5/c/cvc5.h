@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,8 @@
 
 #ifndef CVC5__C_API__CVC5_H
 #define CVC5__C_API__CVC5_H
+
+#include <cvc5/cvc5_export.h>
 
 #if __cplusplus
 extern "C" {
@@ -27,8 +29,9 @@ extern "C" {
 #include <cvc5/cvc5_types.h>
 #undef CVC5_API_USE_C_ENUMS
 
-#include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /* -------------------------------------------------------------------------- */
 
@@ -47,7 +50,7 @@ typedef struct cvc5_result_t* Cvc5Result;
  * which we call "synthesis queries".  This class indicates whether the
  * synthesis query has a solution, has no solution, or is unknown.
  */
-typedef struct Cvc5SynthResult Cvc5SynthResult;
+typedef struct cvc5_synth_result_t* Cvc5SynthResult;
 
 /**
  * The sort of a cvc5 term.
@@ -100,7 +103,7 @@ typedef struct cvc5_dt_decl_t* Cvc5DatatypeDecl;
  * of terms. Its interface coincides with the definition of grammars
  * (``GrammarDef``) in the SyGuS IF 2.1 standard.
  */
-typedef struct Cvc5Grammar Cvc5Grammar;
+typedef struct cvc5_grammar_t* Cvc5Grammar;
 
 /**
  * A cvc5 solver.
@@ -123,9 +126,14 @@ typedef struct Cvc5OptionInfo Cvc5OptionInfo;
 typedef struct cvc5_proof_t* Cvc5Proof;
 
 /**
+ * A cvc5 statistic.
+ */
+typedef struct cvc5_stat_t* Cvc5Stat;
+
+/**
  * A cvc5 statistics instance.
  */
-typedef struct Cvc5Statistics Cvc5Statistics;
+typedef struct cvc5_stats_t* Cvc5Statistics;
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Result                                                                 */
@@ -140,7 +148,7 @@ typedef struct Cvc5Statistics Cvc5Statistics;
  * @note This step is optional and allows users to manage resources in a more
  *       fine-grained manner.
  */
-Cvc5Result cvc5_result_copy(Cvc5Result result);
+CVC5_EXPORT Cvc5Result cvc5_result_copy(Cvc5Result result);
 
 /**
  * Release copy of result, decrements reference counter of `result`.
@@ -151,7 +159,7 @@ Cvc5Result cvc5_result_copy(Cvc5Result result);
  *       fine-grained manner. Further, any API function that returns a copy
  *       that is owned by the callee of the function and thus, can be released.
  */
-void cvc5_result_release(Cvc5Result result);
+CVC5_EXPORT void cvc5_result_release(Cvc5Result result);
 
 /**
  * Determine if a given result is empty (a nullary result) and not an actual
@@ -159,7 +167,7 @@ void cvc5_result_release(Cvc5Result result);
  * @param result The result.
  * @return True if the given result is a nullary result.
  */
-bool cvc5_result_is_null(const Cvc5Result result);
+CVC5_EXPORT bool cvc5_result_is_null(const Cvc5Result result);
 
 /**
  * Determine if given result is from a satisfiable `cvc5_check_sat()` or
@@ -167,7 +175,7 @@ bool cvc5_result_is_null(const Cvc5Result result);
  * @param result The result.
  * @return True if result is from a satisfiable query.
  */
-bool cvc5_result_is_sat(const Cvc5Result result);
+CVC5_EXPORT bool cvc5_result_is_sat(const Cvc5Result result);
 
 /**
  * Determine if given result is from an unsatisfiable `cvc5_check_sat()` or
@@ -175,7 +183,7 @@ bool cvc5_result_is_sat(const Cvc5Result result);
  * @param result The result.
  * @return True if result is from an unsatisfiable query.
  */
-bool cvc5_result_is_unsat(const Cvc5Result result);
+CVC5_EXPORT bool cvc5_result_is_unsat(const Cvc5Result result);
 
 /**
  * Determine if given result is from a `cvc5_check_sat()` or
@@ -185,7 +193,7 @@ bool cvc5_result_is_unsat(const Cvc5Result result);
  * @return True if result is from a query where cvc5 was not able to determine
  *         (un)satisfiability.
  */
-bool cvc5_result_is_unknown(const Cvc5Result result);
+CVC5_EXPORT bool cvc5_result_is_unknown(const Cvc5Result result);
 
 /**
  * Determine equality of two results.
@@ -193,7 +201,7 @@ bool cvc5_result_is_unknown(const Cvc5Result result);
  * @param b The second result to compare to for equality.
  * @return True if the results are equal.
  */
-bool cvc5_result_is_equal(const Cvc5Result a, const Cvc5Result b);
+CVC5_EXPORT bool cvc5_result_is_equal(const Cvc5Result a, const Cvc5Result b);
 
 /**
  * Operator overloading for disequality of two results.
@@ -201,15 +209,16 @@ bool cvc5_result_is_equal(const Cvc5Result a, const Cvc5Result b);
  * @param b The second result to compare to for disequality.
  * @return True if the results are disequal.
  */
-bool cvc5_result_is_disequal(const Cvc5Result a, const Cvc5Result b);
+CVC5_EXPORT bool cvc5_result_is_disequal(const Cvc5Result a,
+                                         const Cvc5Result b);
 
 /**
  * Get the explanation for an unknown result.
  * @param result The result.
  * @return An explanation for an unknown query result.
  */
-Cvc5UnknownExplanation cvc5_result_get_unknown_explanation(
-    const Cvc5Result result);
+CVC5_EXPORT Cvc5UnknownExplanation
+cvc5_result_get_unknown_explanation(const Cvc5Result result);
 
 /**
  * Get the string representation of a given result.
@@ -218,7 +227,14 @@ Cvc5UnknownExplanation cvc5_result_get_unknown_explanation(
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_result_to_string(const Cvc5Result result);
+CVC5_EXPORT const char* cvc5_result_to_string(const Cvc5Result result);
+
+/**
+ * Compute the hash value of a result.
+ * @param result The result.
+ * @return The hash value of the result.
+ */
+CVC5_EXPORT size_t cvc5_result_hash(Cvc5Result result);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5SynthResult                                                            */
@@ -230,14 +246,14 @@ const char* cvc5_result_to_string(const Cvc5Result result);
  * @param result The result.
  * @return True if the given result is a nullary result.
  */
-bool cvc5_synth_result_is_null(const Cvc5SynthResult* result);
+CVC5_EXPORT bool cvc5_synth_result_is_null(const Cvc5SynthResult result);
 
 /**
  * Determine if the given result is from a synthesis query that has a solution.
  * @param result The result.
  * @return True if the synthesis query has a solution.
  */
-bool cvc5_synth_result_has_solution(const Cvc5SynthResult* result);
+CVC5_EXPORT bool cvc5_synth_result_has_solution(const Cvc5SynthResult result);
 
 /**
  * Determine if the given result is from a synthesis query that has no solution.
@@ -245,7 +261,8 @@ bool cvc5_synth_result_has_solution(const Cvc5SynthResult* result);
  * @return True if the synthesis query has no solution. In this case, it
  *         was determined that there was no solution.
  */
-bool cvc5_synth_result_has_no_solution(const Cvc5SynthResult* result);
+CVC5_EXPORT bool cvc5_synth_result_has_no_solution(
+    const Cvc5SynthResult result);
 
 /**
  * Determine if the given result is from a synthesis query where its result
@@ -253,7 +270,25 @@ bool cvc5_synth_result_has_no_solution(const Cvc5SynthResult* result);
  * @param result The result.
  * @return True if the result of the synthesis query could not be determined.
  */
-bool cvc5_synth_result_is_unknown(const Cvc5SynthResult* result);
+CVC5_EXPORT bool cvc5_synth_result_is_unknown(const Cvc5SynthResult result);
+
+/**
+ * Determine equality of two synthesis results.
+ * @param a The first synthesis result to compare to for equality.
+ * @param b The second synthesis result to compare to for equality.
+ * @return True if the synthesis results are equal.
+ */
+CVC5_EXPORT bool cvc5_synth_result_is_equal(const Cvc5SynthResult a,
+                                            const Cvc5SynthResult b);
+
+/**
+ * Operator overloading for disequality of two synthesis results.
+ * @param a The first synthesis result to compare to for disequality.
+ * @param b The second synthesis result to compare to for disequality.
+ * @return True if the synthesis results are disequal.
+ */
+CVC5_EXPORT bool cvc5_synth_result_is_disequal(const Cvc5SynthResult a,
+                                               const Cvc5SynthResult b);
 
 /**
  * Get the string representation of a given result.
@@ -262,8 +297,37 @@ bool cvc5_synth_result_is_unknown(const Cvc5SynthResult* result);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_synth_result_to_string(const Cvc5SynthResult* result);
+CVC5_EXPORT const char* cvc5_synth_result_to_string(
+    const Cvc5SynthResult result);
 
+/**
+ * Compute the hash value of a synthesis result.
+ * @param result The synthesis result.
+ * @return The hash value of the synthesis result.
+ */
+CVC5_EXPORT size_t cvc5_synth_result_hash(Cvc5SynthResult result);
+
+/**
+ * Make copy of synthesis result, increases reference counter of `result`.
+ *
+ * @param result The synthesis  result to copy.
+ * @return The same result with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result);
+
+/**
+ * Release copy of synthesis result, decrements reference counter of `result`.
+ *
+ * @param result The result to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_synth_result_release(Cvc5SynthResult result);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Sort                                                                   */
@@ -278,7 +342,7 @@ const char* cvc5_synth_result_to_string(const Cvc5SynthResult* result);
  * @note This step is optional and allows users to manage resources in a more
  *       fine-grained manner.
  */
-Cvc5Sort cvc5_sort_copy(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_copy(Cvc5Sort sort);
 
 /**
  * Release copy of sort, decrements reference counter of `sort`.
@@ -290,7 +354,7 @@ Cvc5Sort cvc5_sort_copy(Cvc5Sort sort);
  *       Cvc5Sort returns a copy that is owned by the callee of the function
  *       and thus, can be released.
  */
-void cvc5_sort_release(Cvc5Sort sort);
+CVC5_EXPORT void cvc5_sort_release(Cvc5Sort sort);
 
 /**
  * Compare two sorts for structural equality.
@@ -298,7 +362,7 @@ void cvc5_sort_release(Cvc5Sort sort);
  * @param b The second sort.
  * @return True if the sorts are equal.
  */
-bool cvc5_sort_is_equal(Cvc5Sort a, Cvc5Sort b);
+CVC5_EXPORT bool cvc5_sort_is_equal(Cvc5Sort a, Cvc5Sort b);
 
 /**
  * Compare two sorts for structural disequality.
@@ -306,7 +370,7 @@ bool cvc5_sort_is_equal(Cvc5Sort a, Cvc5Sort b);
  * @param b The second sort.
  * @return True if the sorts are not equal.
  */
-bool cvc5_sort_is_disequal(Cvc5Sort a, Cvc5Sort b);
+CVC5_EXPORT bool cvc5_sort_is_disequal(Cvc5Sort a, Cvc5Sort b);
 
 /**
  * Compare two sorts for ordering.
@@ -315,7 +379,7 @@ bool cvc5_sort_is_disequal(Cvc5Sort a, Cvc5Sort b);
  * @return An integer value indicating the ordering: 0 if both sorts are equal,
  *         `-1` if `a < b`, and `1` if `b > a`.
  */
-int64_t cvc5_sort_compare(Cvc5Sort a, Cvc5Sort b);
+CVC5_EXPORT int64_t cvc5_sort_compare(Cvc5Sort a, Cvc5Sort b);
 
 /**
  * Get the kind of the given sort.
@@ -324,7 +388,7 @@ int64_t cvc5_sort_compare(Cvc5Sort a, Cvc5Sort b);
  *
  * @warning This function is experimental and may change in future versions.
  */
-Cvc5SortKind cvc5_sort_get_kind(Cvc5Sort sort);
+CVC5_EXPORT Cvc5SortKind cvc5_sort_get_kind(Cvc5Sort sort);
 
 /**
    * Determine if the given sort has a symbol (a name).
@@ -335,7 +399,7 @@ Cvc5SortKind cvc5_sort_get_kind(Cvc5Sort sort);
  * @param sort The sort.
  * @return True if the sort has a symbol.
  */
-bool cvc5_sort_has_symbol(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_has_symbol(Cvc5Sort sort);
 
 /**
  * Get the symbol of this Sort.
@@ -353,42 +417,42 @@ bool cvc5_sort_has_symbol(Cvc5Sort sort);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_sort_get_symbol(Cvc5Sort sort);
+CVC5_EXPORT const char* cvc5_sort_get_symbol(Cvc5Sort sort);
 
 /**
  * Determine if given sort is the Boolean sort (SMT-LIB: `Bool`).
  * @param sort The sort.
  * @return True if given sort is the Boolean sort.
  */
-bool cvc5_sort_is_boolean(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_boolean(Cvc5Sort sort);
 
 /**
  * Determine if given sort is the integer sort (SMT-LIB: `Int`).
  * @param sort The sort.
  * @return True if given sort is the integer sort.
  */
-bool cvc5_sort_is_integer(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_integer(Cvc5Sort sort);
 
 /**
  * Determine if given sort is the real sort (SMT-LIB: `Real`).
  * @param sort The sort.
  * @return True if given sort is the real sort.
  */
-bool cvc5_sort_is_real(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_real(Cvc5Sort sort);
 
 /**
  * Determine if given sort is the string sort (SMT-LIB: `String`).
  * @param sort The sort.
  * @return True if given sort is the string sort.
  */
-bool cvc5_sort_is_string(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_string(Cvc5Sort sort);
 
 /**
  * Determine if given sort is the regular expression sort (SMT-LIB: `RegLan`).
  * @param sort The sort.
  * @return True if given sort is the regular expression sort.
  */
-bool cvc5_sort_is_regexp(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_regexp(Cvc5Sort sort);
 
 /**
  * Determine if given sort is the rounding mode sort
@@ -396,14 +460,14 @@ bool cvc5_sort_is_regexp(Cvc5Sort sort);
  * @param sort The sort.
  * @return True if given sort is the rounding mode sort.
  */
-bool cvc5_sort_is_rm(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_rm(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a bit-vector sort (SMT-LIB: `(_ BitVec i)`).
  * @param sort The sort.
  * @return True if given sort is a bit-vector sort.
  */
-bool cvc5_sort_is_bv(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_bv(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a floatingpoint sort
@@ -411,49 +475,49 @@ bool cvc5_sort_is_bv(Cvc5Sort sort);
  * @param sort The sort.
  * @return True if given sort is a floating-point sort.
  */
-bool cvc5_sort_is_fp(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_fp(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a datatype sort.
  * @param sort The sort.
  * @return True if given sort is a datatype sort.
  */
-bool cvc5_sort_is_dt(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_dt(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a datatype constructor sort.
  * @param sort The sort.
  * @return True if given sort is a datatype constructor sort.
  */
-bool cvc5_sort_is_dt_constructor(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_dt_constructor(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a datatype selector sort.
  * @param sort The sort.
  * @return True if given sort is a datatype selector sort.
  */
-bool cvc5_sort_is_dt_selector(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_dt_selector(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a datatype tester sort.
  * @param sort The sort.
  * @return True if given sort is a datatype tester sort.
  */
-bool cvc5_sort_is_dt_tester(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_dt_tester(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a datatype updater sort.
  * @param sort The sort.
  * @return True if given sort is a datatype updater sort.
  */
-bool cvc5_sort_is_dt_updater(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_dt_updater(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a function sort.
  * @param sort The sort.
  * @return True if given sort is a function sort.
  */
-bool cvc5_sort_is_fun(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_fun(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a predicate sort.
@@ -464,21 +528,21 @@ bool cvc5_sort_is_fun(Cvc5Sort sort);
  * @param sort The sort.
  * @return True if given sort is a predicate sort.
  */
-bool cvc5_sort_is_predicate(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_predicate(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a tuple sort.
  * @param sort The sort.
  * @return True if given sort is a tuple sort.
  */
-bool cvc5_sort_is_tuple(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_tuple(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a nullable sort.
  * @param sort The sort.
  * @return True if given sort is a nullable sort.
  */
-bool cvc5_sort_is_nullable(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_nullable(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a record sort.
@@ -486,42 +550,42 @@ bool cvc5_sort_is_nullable(Cvc5Sort sort);
  * @param sort The sort.
  * @return True if the sort is a record sort.
  */
-bool cvc5_sort_is_record(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_record(Cvc5Sort sort);
 
 /**
  * Determine if given sort is an array sort.
  * @param sort The sort.
  * @return True if the sort is an array sort.
  */
-bool cvc5_sort_is_array(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_array(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a finite field sort.
  * @param sort The sort.
  * @return True if the sort is a finite field sort.
  */
-bool cvc5_sort_is_ff(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_ff(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a Set sort.
  * @param sort The sort.
  * @return True if the sort is a Set sort.
  */
-bool cvc5_sort_is_set(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_set(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a Bag sort.
  * @param sort The sort.
  * @return True if the sort is a Bag sort.
  */
-bool cvc5_sort_is_bag(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_bag(Cvc5Sort sort);
 
 /**
  * Determine if given sort is a Sequence sort.
  * @param sort The sort.
  * @return True if the sort is a Sequence sort.
  */
-bool cvc5_sort_is_sequence(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_sequence(Cvc5Sort sort);
 
 /**
  * Determine if given sort is an abstract sort.
@@ -530,14 +594,14 @@ bool cvc5_sort_is_sequence(Cvc5Sort sort);
  *
  * @warning This function is experimental and may change in future versions.
  */
-bool cvc5_sort_is_abstract(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_abstract(Cvc5Sort sort);
 
 /**
  * Determine if given sort is an uninterpreted sort.
  * @param sort The sort.
  * @return True if given sort is an uninterpreted sort.
  */
-bool cvc5_sort_is_uninterpreted_sort(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_uninterpreted_sort(Cvc5Sort sort);
 
 /**
  * Determine if given sort is an uninterpreted sort constructor.
@@ -548,7 +612,7 @@ bool cvc5_sort_is_uninterpreted_sort(Cvc5Sort sort);
  * @param sort The sort.
  * @return True if given sort is of sort constructor kind.
  */
-bool cvc5_sort_is_uninterpreted_sort_constructor(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_uninterpreted_sort_constructor(Cvc5Sort sort);
 
 /**
  * Determine if given sort is an instantiated (parametric datatype or
@@ -560,7 +624,7 @@ bool cvc5_sort_is_uninterpreted_sort_constructor(Cvc5Sort sort);
  * @param sort The sort.
  * @return True if given sort is an instantiated sort.
  */
-bool cvc5_sort_is_instantiated(Cvc5Sort sort);
+CVC5_EXPORT bool cvc5_sort_is_instantiated(Cvc5Sort sort);
 
 /**
  * Get the associated uninterpreted sort constructor of an instantiated
@@ -569,14 +633,15 @@ bool cvc5_sort_is_instantiated(Cvc5Sort sort);
  * @param sort The sort.
  * @return The uninterpreted sort constructor sort.
  */
-Cvc5Sort cvc5_sort_get_uninterpreted_sort_constructor(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort
+cvc5_sort_get_uninterpreted_sort_constructor(Cvc5Sort sort);
 
 /**
  * Get the underlying datatype of a datatype sort.
  * @param sort The sort.
  * @return The underlying datatype of a datatype sort.
  */
-Cvc5Datatype cvc5_sort_get_datatype(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Datatype cvc5_sort_get_datatype(Cvc5Sort sort);
 
 /**
  * Instantiate a parameterized datatype sort or uninterpreted sort
@@ -589,9 +654,9 @@ Cvc5Datatype cvc5_sort_get_datatype(Cvc5Sort sort);
  * @param params The list of sort parameters to instantiate with.
  * @return The instantiated sort.
  */
-Cvc5Sort cvc5_sort_instantiate(Cvc5Sort sort,
-                               size_t size,
-                               const Cvc5Sort params[]);
+CVC5_EXPORT Cvc5Sort cvc5_sort_instantiate(Cvc5Sort sort,
+                                           size_t size,
+                                           const Cvc5Sort params[]);
 
 /**
  * Get the sorts used to instantiate the sort parameters of a given parametric
@@ -603,8 +668,8 @@ Cvc5Sort cvc5_sort_instantiate(Cvc5Sort sort,
  * @return The sorts used to instantiate the sort parameters of a
  *         parametric sort
  */
-const Cvc5Sort* cvc5_sort_get_instantiated_parameters(Cvc5Sort sort,
-                                                      size_t* size);
+CVC5_EXPORT const Cvc5Sort* cvc5_sort_get_instantiated_parameters(Cvc5Sort sort,
+                                                                  size_t* size);
 
 /**
  * Substitution of Sorts.
@@ -622,7 +687,9 @@ const Cvc5Sort* cvc5_sort_get_instantiated_parameters(Cvc5Sort sort,
  * @param s    The subsort to be substituted within the given sort.
  * @param replacement The sort replacing the substituted subsort.
  */
-Cvc5Sort cvc5_sort_substitute(Cvc5Sort sort, Cvc5Sort s, Cvc5Sort replacement);
+CVC5_EXPORT Cvc5Sort cvc5_sort_substitute(Cvc5Sort sort,
+                                          Cvc5Sort s,
+                                          Cvc5Sort replacement);
 
 /**
  * Simultaneous substitution of Sorts.
@@ -639,10 +706,10 @@ Cvc5Sort cvc5_sort_substitute(Cvc5Sort sort, Cvc5Sort s, Cvc5Sort replacement);
  * @param replacements The sort replacing the substituted subsorts.
  * @param size The size of `sorts` and `replacements`.
  */
-Cvc5Sort cvc5_sort_substitute_sorts(Cvc5Sort sort,
-                                    size_t size,
-                                    const Cvc5Sort sorts[],
-                                    const Cvc5Sort replacements[]);
+CVC5_EXPORT Cvc5Sort cvc5_sort_substitute_sorts(Cvc5Sort sort,
+                                                size_t size,
+                                                const Cvc5Sort sorts[],
+                                                const Cvc5Sort replacements[]);
 
 /**
  * Get a string representation of a given sort.
@@ -651,14 +718,14 @@ Cvc5Sort cvc5_sort_substitute_sorts(Cvc5Sort sort,
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_sort_to_string(Cvc5Sort sort);
+CVC5_EXPORT const char* cvc5_sort_to_string(Cvc5Sort sort);
 
 /**
  * Compute the hash value of a sort.
  * @param sort The sort.
  * @return The hash value of the sort.
  */
-size_t cvc5_sort_hash(Cvc5Sort sort);
+CVC5_EXPORT size_t cvc5_sort_hash(Cvc5Sort sort);
 
 /* Datatype constructor sort ------------------------------------------- */
 
@@ -667,7 +734,7 @@ size_t cvc5_sort_hash(Cvc5Sort sort);
  * @param sort The sort.
  * @return The arity of a datatype constructor sort.
  */
-size_t cvc5_sort_dt_constructor_get_arity(Cvc5Sort sort);
+CVC5_EXPORT size_t cvc5_sort_dt_constructor_get_arity(Cvc5Sort sort);
 
 /**
  * Get the domain sorts of a datatype constructor sort.
@@ -675,15 +742,15 @@ size_t cvc5_sort_dt_constructor_get_arity(Cvc5Sort sort);
  * @param size The size of the resulting array of domain sorts.
  * @return The domain sorts of a datatype constructor sort.
  */
-const Cvc5Sort* cvc5_sort_dt_constructor_get_domain(Cvc5Sort sort,
-                                                    size_t* size);
+CVC5_EXPORT const Cvc5Sort* cvc5_sort_dt_constructor_get_domain(Cvc5Sort sort,
+                                                                size_t* size);
 
 /**
  * Get the codomain sort of a datatype constructor sort.
  * @param sort The sort.
  * @return The codomain sort of a constructor sort.
  */
-Cvc5Sort cvc5_sort_dt_constructor_get_codomain(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_dt_constructor_get_codomain(Cvc5Sort sort);
 
 /* Dataype Selector sort ------------------------------------------------ */
 
@@ -692,14 +759,14 @@ Cvc5Sort cvc5_sort_dt_constructor_get_codomain(Cvc5Sort sort);
  * @param sort The sort.
  * @return The domain sort of a datatype selector sort.
  */
-Cvc5Sort cvc5_sort_dt_selector_get_domain(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_dt_selector_get_domain(Cvc5Sort sort);
 
 /**
  * Get the codomain sort of a given datatype selector sort.
  * @param sort The sort.
  * @return The codomain sort of a datatype selector sort.
  */
-Cvc5Sort cvc5_sort_dt_selector_get_codomain(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_dt_selector_get_codomain(Cvc5Sort sort);
 
 /* Datatype Tester sort ------------------------------------------------ */
 
@@ -708,7 +775,7 @@ Cvc5Sort cvc5_sort_dt_selector_get_codomain(Cvc5Sort sort);
  * @param sort The sort.
  * @return The domain sort of a datatype tester sort.
  */
-Cvc5Sort cvc5_sort_dt_tester_get_domain(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_dt_tester_get_domain(Cvc5Sort sort);
 
 /**
  * Get the codomain dort of a given datatype tester sort (the Boolean sort).
@@ -718,7 +785,7 @@ Cvc5Sort cvc5_sort_dt_tester_get_domain(Cvc5Sort sort);
  * @note We mainly need this for the symbol table, which doesn't have
  *       access to the solver object.
  */
-Cvc5Sort cvc5_sort_dt_tester_get_codomain(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_dt_tester_get_codomain(Cvc5Sort sort);
 
 /* Function sort ------------------------------------------------------- */
 
@@ -727,7 +794,7 @@ Cvc5Sort cvc5_sort_dt_tester_get_codomain(Cvc5Sort sort);
  * @param sort The sort.
  * @return The arity of a function sort.
  */
-size_t cvc5_sort_fun_get_arity(Cvc5Sort sort);
+CVC5_EXPORT size_t cvc5_sort_fun_get_arity(Cvc5Sort sort);
 
 /**
  * Get the domain of a given function sort.
@@ -735,14 +802,15 @@ size_t cvc5_sort_fun_get_arity(Cvc5Sort sort);
  * @param size The size of the resulting array of domain sorts.
  * @return The domain sorts of a function sort.
  */
-const Cvc5Sort* cvc5_sort_fun_get_domain(Cvc5Sort sort, size_t* size);
+CVC5_EXPORT const Cvc5Sort* cvc5_sort_fun_get_domain(Cvc5Sort sort,
+                                                     size_t* size);
 
 /**
  * Get the codomain of a given function sort.
  * @param sort The sort.
  * @return The codomain sort of a function sort.
  */
-Cvc5Sort cvc5_sort_fun_get_codomain(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_fun_get_codomain(Cvc5Sort sort);
 
 /* Array sort ---------------------------------------------------------- */
 
@@ -751,14 +819,14 @@ Cvc5Sort cvc5_sort_fun_get_codomain(Cvc5Sort sort);
  * @param sort The sort.
  * @return The array index sort of an array sort.
  */
-Cvc5Sort cvc5_sort_array_get_index_sort(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_array_get_index_sort(Cvc5Sort sort);
 
 /**
  * Get the element sort of a given array sort.
  * @param sort The sort.
  * @return The array element sort of an array sort.
  */
-Cvc5Sort cvc5_sort_array_get_element_sort(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_array_get_element_sort(Cvc5Sort sort);
 
 /* Set sort ------------------------------------------------------------ */
 
@@ -767,7 +835,7 @@ Cvc5Sort cvc5_sort_array_get_element_sort(Cvc5Sort sort);
  * @param sort The sort.
  * @return The element sort of a set sort.
  */
-Cvc5Sort cvc5_sort_set_get_element_sort(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_set_get_element_sort(Cvc5Sort sort);
 
 /* Bag sort ------------------------------------------------------------ */
 
@@ -776,7 +844,7 @@ Cvc5Sort cvc5_sort_set_get_element_sort(Cvc5Sort sort);
  * @param sort The sort.
  * @return The element sort of a bag sort.
  */
-Cvc5Sort cvc5_sort_bag_get_element_sort(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_bag_get_element_sort(Cvc5Sort sort);
 
 /* Sequence sort ------------------------------------------------------- */
 
@@ -785,7 +853,7 @@ Cvc5Sort cvc5_sort_bag_get_element_sort(Cvc5Sort sort);
  * @param sort The sort.
  * @return The element sort of a sequence sort.
  */
-Cvc5Sort cvc5_sort_sequence_get_element_sort(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_sequence_get_element_sort(Cvc5Sort sort);
 
 /* Abstract sort ------------------------------------------------------- */
 
@@ -798,7 +866,7 @@ Cvc5Sort cvc5_sort_sequence_get_element_sort(Cvc5Sort sort);
  *
  * @warning This function is experimental and may change in future versions.
  */
-Cvc5SortKind cvc5_sort_abstract_get_kind(Cvc5Sort sort);
+CVC5_EXPORT Cvc5SortKind cvc5_sort_abstract_get_kind(Cvc5Sort sort);
 
 /* Uninterpreted sort constructor sort --------------------------------- */
 
@@ -807,7 +875,8 @@ Cvc5SortKind cvc5_sort_abstract_get_kind(Cvc5Sort sort);
  * @param sort The sort.
  * @return The arity of an uninterpreted sort constructor sort.
  */
-size_t cvc5_sort_uninterpreted_sort_constructor_get_arity(Cvc5Sort sort);
+CVC5_EXPORT size_t
+cvc5_sort_uninterpreted_sort_constructor_get_arity(Cvc5Sort sort);
 
 /* Bit-vector sort ----------------------------------------------------- */
 
@@ -816,7 +885,7 @@ size_t cvc5_sort_uninterpreted_sort_constructor_get_arity(Cvc5Sort sort);
  * @param sort The sort.
  * @return The bit-width of the bit-vector sort.
  */
-uint32_t cvc5_sort_bv_get_size(Cvc5Sort sort);
+CVC5_EXPORT uint32_t cvc5_sort_bv_get_size(Cvc5Sort sort);
 
 /* Finite field sort --------------------------------------------------- */
 
@@ -827,7 +896,7 @@ uint32_t cvc5_sort_bv_get_size(Cvc5Sort sort);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_sort_ff_get_size(Cvc5Sort sort);
+CVC5_EXPORT const char* cvc5_sort_ff_get_size(Cvc5Sort sort);
 
 /* Floating-point sort ------------------------------------------------- */
 
@@ -836,14 +905,14 @@ const char* cvc5_sort_ff_get_size(Cvc5Sort sort);
  * @param sort The sort.
  * @return The bit-width of the exponent of the floating-point sort.
  */
-uint32_t cvc5_sort_fp_get_exp_size(Cvc5Sort sort);
+CVC5_EXPORT uint32_t cvc5_sort_fp_get_exp_size(Cvc5Sort sort);
 
 /**
  * Get the significand size of a floating-point sort.
  * @param sort The sort.
  * @return The width of the significand of the floating-point sort.
  */
-uint32_t cvc5_sort_fp_get_sig_size(Cvc5Sort sort);
+CVC5_EXPORT uint32_t cvc5_sort_fp_get_sig_size(Cvc5Sort sort);
 
 /* Datatype sort ------------------------------------------------------- */
 
@@ -853,7 +922,7 @@ uint32_t cvc5_sort_fp_get_sig_size(Cvc5Sort sort);
  * @param sort The sort.
  * @return The arity of a datatype sort.
  */
-size_t cvc5_sort_dt_get_arity(Cvc5Sort sort);
+CVC5_EXPORT size_t cvc5_sort_dt_get_arity(Cvc5Sort sort);
 
 /* Tuple sort ---------------------------------------------------------- */
 
@@ -862,7 +931,7 @@ size_t cvc5_sort_dt_get_arity(Cvc5Sort sort);
  * @param sort The sort.
  * @return The length of a tuple sort.
  */
-size_t cvc5_sort_tuple_get_length(Cvc5Sort sort);
+CVC5_EXPORT size_t cvc5_sort_tuple_get_length(Cvc5Sort sort);
 
 /**
  * Get the element sorts of a tuple sort.
@@ -870,14 +939,15 @@ size_t cvc5_sort_tuple_get_length(Cvc5Sort sort);
  * @param size The size of the resulting array of tuple element sorts.
  * @return The element sorts of a tuple sort.
  */
-const Cvc5Sort* cvc5_sort_tuple_get_element_sorts(Cvc5Sort sort, size_t* size);
+CVC5_EXPORT const Cvc5Sort* cvc5_sort_tuple_get_element_sorts(Cvc5Sort sort,
+                                                              size_t* size);
 
 /**
  * Get the element sort of a nullable sort.
  * @param sort The sort.
  * @return The element sort of a nullable sort.
  */
-Cvc5Sort cvc5_sort_nullable_get_element_sort(Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_sort_nullable_get_element_sort(Cvc5Sort sort);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Op                                                                     */
@@ -892,7 +962,7 @@ Cvc5Sort cvc5_sort_nullable_get_element_sort(Cvc5Sort sort);
  * @note This step is optional and allows users to manage resources in a more
  *       fine-grained manner.
  */
-Cvc5Op cvc5_op_copy(Cvc5Op op);
+CVC5_EXPORT Cvc5Op cvc5_op_copy(Cvc5Op op);
 
 /**
  * Release copy of operator, decrements reference counter of `op`.
@@ -904,7 +974,8 @@ Cvc5Op cvc5_op_copy(Cvc5Op op);
  *       Cvc5Op returns a copy that is owned by the callee of the function
  *       and thus, can be released.
  */
-void cvc5_op_release(Cvc5Op op);
+CVC5_EXPORT void cvc5_op_release(Cvc5Op op);
+
 /**
  * Compare two operators for syntactic equality.
  *
@@ -912,7 +983,7 @@ void cvc5_op_release(Cvc5Op op);
  * @param b The second operator.
  * @return True if both operators are syntactically identical.
  */
-bool cvc5_op_is_equal(Cvc5Op a, Cvc5Op b);
+CVC5_EXPORT bool cvc5_op_is_equal(Cvc5Op a, Cvc5Op b);
 
 /**
  * Compare two operators for syntactic disequality.
@@ -921,28 +992,28 @@ bool cvc5_op_is_equal(Cvc5Op a, Cvc5Op b);
  * @param b The second operator.
  * @return True if both operators are syntactically disequal.
  */
-bool cvc5_op_is_disequal(Cvc5Op a, Cvc5Op b);
+CVC5_EXPORT bool cvc5_op_is_disequal(Cvc5Op a, Cvc5Op b);
 
 /**
  * Get the kind of a given operator.
  * @param op The operator.
  * @return The kind of the operator.
  */
-Cvc5Kind cvc5_op_get_kind(Cvc5Op op);
+CVC5_EXPORT Cvc5Kind cvc5_op_get_kind(Cvc5Op op);
 
 /**
  * Determine if a given operator is indexed.
  * @param op The operator.
  * @return True iff the operator is indexed.
  */
-bool cvc5_op_is_indexed(Cvc5Op op);
+CVC5_EXPORT bool cvc5_op_is_indexed(Cvc5Op op);
 
 /**
  * Get the number of indices of a given operator.
  * @param op The operator.
  * @return The number of indices of the operator.
  */
-size_t cvc5_op_get_num_indices(Cvc5Op op);
+CVC5_EXPORT size_t cvc5_op_get_num_indices(Cvc5Op op);
 
 /**
  * Get the index at position `i` of an indexed operator.
@@ -950,7 +1021,7 @@ size_t cvc5_op_get_num_indices(Cvc5Op op);
  * @param i  The position of the index to return.
  * @return The index at position i.
  */
-Cvc5Term cvc5_op_get_index(Cvc5Op op, size_t i);
+CVC5_EXPORT Cvc5Term cvc5_op_get_index(Cvc5Op op, size_t i);
 
 /**
  * Get a string representation of a given operator.
@@ -959,14 +1030,14 @@ Cvc5Term cvc5_op_get_index(Cvc5Op op, size_t i);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_op_to_string(Cvc5Op op);
+CVC5_EXPORT const char* cvc5_op_to_string(Cvc5Op op);
 
 /**
  * Compute the hash value of an operator.
  * @param op The operator.
  * @return The hash value of the operator.
  */
-size_t cvc5_op_hash(Cvc5Op op);
+CVC5_EXPORT size_t cvc5_op_hash(Cvc5Op op);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Term                                                                   */
@@ -981,7 +1052,7 @@ size_t cvc5_op_hash(Cvc5Op op);
  * @note This step is optional and allows users to manage resources in a more
  *       fine-grained manner.
  */
-Cvc5Term cvc5_term_copy(Cvc5Term term);
+CVC5_EXPORT Cvc5Term cvc5_term_copy(Cvc5Term term);
 
 /**
  * Release copy of term, decrements reference counter of `term`.
@@ -992,7 +1063,7 @@ Cvc5Term cvc5_term_copy(Cvc5Term term);
  *       fine-grained manner. Further, any API function that returns a copy
  *       that is owned by the callee of the function and thus, can be released.
  */
-void cvc5_term_release(Cvc5Term term);
+CVC5_EXPORT void cvc5_term_release(Cvc5Term term);
 
 /**
  * Compare two terms for syntactic equality.
@@ -1000,7 +1071,7 @@ void cvc5_term_release(Cvc5Term term);
  * @param b The second term.
  * @return True if both term are syntactically identical.
  */
-bool cvc5_term_is_equal(Cvc5Term a, Cvc5Term b);
+CVC5_EXPORT bool cvc5_term_is_equal(Cvc5Term a, Cvc5Term b);
 
 /**
  * Compare two terms for syntactic disequality.
@@ -1008,7 +1079,7 @@ bool cvc5_term_is_equal(Cvc5Term a, Cvc5Term b);
  * @param b The second term.
  * @return True if both term are syntactically disequal.
  */
-bool cvc5_term_is_disequal(Cvc5Term a, Cvc5Term b);
+CVC5_EXPORT bool cvc5_term_is_disequal(Cvc5Term a, Cvc5Term b);
 
 /**
  * Compare two terms for ordering.
@@ -1017,14 +1088,14 @@ bool cvc5_term_is_disequal(Cvc5Term a, Cvc5Term b);
  * @return An integer value indicating the ordering: 0 if both terms are equal,
  *         `-1` if `a < b`, and `1` if `b > a`.
  */
-int64_t cvc5_term_compare(Cvc5Term a, Cvc5Term b);
+CVC5_EXPORT int64_t cvc5_term_compare(Cvc5Term a, Cvc5Term b);
 
 /**
  * Get the number of children of a given term.
  * @param term The term.
  * @return The number of children of this term.
  */
-size_t cvc5_term_get_num_children(Cvc5Term term);
+CVC5_EXPORT size_t cvc5_term_get_num_children(Cvc5Term term);
 
 /**
  * Get the child term of a given term at a given index.
@@ -1032,28 +1103,28 @@ size_t cvc5_term_get_num_children(Cvc5Term term);
  * @param index The index of the child.
  * @return The child term at the given index.
  */
-Cvc5Term cvc5_term_get_child(Cvc5Term term, size_t index);
+CVC5_EXPORT Cvc5Term cvc5_term_get_child(Cvc5Term term, size_t index);
 
 /**
  * Get the id of a given term.
  * @param term The term.
  * @return The id of the term.
  */
-uint64_t cvc5_term_get_id(Cvc5Term term);
+CVC5_EXPORT uint64_t cvc5_term_get_id(Cvc5Term term);
 
 /**
  * Get the kind of a given term.
  * @param term The term.
  * @return The kind of the term.
  */
-Cvc5Kind cvc5_term_get_kind(Cvc5Term term);
+CVC5_EXPORT Cvc5Kind cvc5_term_get_kind(Cvc5Term term);
 
 /**
  * Get the sort of a given term.
  * @param term The term.
  * @return The sort of the term.
  */
-Cvc5Sort cvc5_term_get_sort(Cvc5Term term);
+CVC5_EXPORT Cvc5Sort cvc5_term_get_sort(Cvc5Term term);
 
 /**
  * Replace a given term `t` with term `replacement` in a given term.
@@ -1066,9 +1137,9 @@ Cvc5Sort cvc5_term_get_sort(Cvc5Term term);
  * @note This replacement is applied during a pre-order traversal and
  *       only once (it is not run until fixed point).
  */
-Cvc5Term cvc5_term_substitute_term(Cvc5Term term,
-                                   Cvc5Term t,
-                                   Cvc5Term replacement);
+CVC5_EXPORT Cvc5Term cvc5_term_substitute_term(Cvc5Term term,
+                                               Cvc5Term t,
+                                               Cvc5Term replacement);
 
 /**
  * Simultaneously replace given terms `terms` with terms `replacements` in a
@@ -1092,17 +1163,17 @@ Cvc5Term cvc5_term_substitute_term(Cvc5Term term,
  * @return The result of simultaneously replacing `terms` with `replacements`
  *         in the given term.
  */
-Cvc5Term cvc5_term_substitute_terms(Cvc5Term term,
-                                    size_t size,
-                                    const Cvc5Term terms[],
-                                    const Cvc5Term replacements[]);
+CVC5_EXPORT Cvc5Term cvc5_term_substitute_terms(Cvc5Term term,
+                                                size_t size,
+                                                const Cvc5Term terms[],
+                                                const Cvc5Term replacements[]);
 
 /**
  * Determine if a given term has an operator.
  * @param term The term.
  * @return True iff the term has an operator.
  */
-bool cvc5_term_has_op(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_has_op(Cvc5Term term);
 
 /**
  * Get the operator of a term with an operator.
@@ -1112,7 +1183,7 @@ bool cvc5_term_has_op(Cvc5Term term);
  * @param term        The term.
  * @return The Op used to create the term.
  */
-Cvc5Op cvc5_term_get_op(Cvc5Term term);
+CVC5_EXPORT Cvc5Op cvc5_term_get_op(Cvc5Term term);
 
 /**
  * Determine if a given term has a symbol (a name).
@@ -1122,7 +1193,7 @@ Cvc5Op cvc5_term_get_op(Cvc5Term term);
  * @param term The term.
  * @return True if the term has a symbol.
  */
-bool cvc5_term_has_symbol(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_has_symbol(Cvc5Term term);
 
 /**
  * Get the symbol of a given term with a symbol.
@@ -1137,7 +1208,7 @@ bool cvc5_term_has_symbol(Cvc5Term term);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_term_get_symbol(Cvc5Term term);
+CVC5_EXPORT const char* cvc5_term_get_symbol(Cvc5Term term);
 
 /**
  * Get a string representation of a given term.
@@ -1146,7 +1217,7 @@ const char* cvc5_term_get_symbol(Cvc5Term term);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_term_to_string(Cvc5Term term);
+CVC5_EXPORT const char* cvc5_term_to_string(Cvc5Term term);
 
 /**
  * Get the sign of a given integer or real value.
@@ -1155,7 +1226,7 @@ const char* cvc5_term_to_string(Cvc5Term term);
  * @return 0 if the term is zero, -1 if the term is a negative real or
  *         integer value, 1 if the term is a positive real or integer value.
  */
-int32_t cvc5_term_get_real_or_integer_value_sign(Cvc5Term term);
+CVC5_EXPORT int32_t cvc5_term_get_real_or_integer_value_sign(Cvc5Term term);
 /**
  * Determine if a given term is an int32 value.
  * @note This will return true for integer constants and real constants that
@@ -1163,7 +1234,7 @@ int32_t cvc5_term_get_real_or_integer_value_sign(Cvc5Term term);
  * @param term The term.
  * @return True if the term is an integer value that fits within int32_t.
  */
-bool cvc5_term_is_int32_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_int32_value(Cvc5Term term);
 /**
  * Get the `int32_t` representation of a given integral value.
  * @note Requires that the term is an int32 value (see
@@ -1171,14 +1242,14 @@ bool cvc5_term_is_int32_value(Cvc5Term term);
  * @param term The term.
  * @return The given term as `int32_t` value.
  */
-int32_t cvc5_term_get_int32_value(Cvc5Term term);
+CVC5_EXPORT int32_t cvc5_term_get_int32_value(Cvc5Term term);
 /**
  * Determine if a given term is an uint32 value.
  * @note This will return true for integer constants and real constants that
  *       have integral value.
  * @return True if the term is an integral value and fits within uint32_t.
  */
-bool cvc5_term_is_uint32_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_uint32_value(Cvc5Term term);
 /**
  * Get the `uint32_t` representation of a given integral value.
  * @note Requires that the term is an uint32 value (see
@@ -1186,7 +1257,7 @@ bool cvc5_term_is_uint32_value(Cvc5Term term);
  * @param term The term.
  * @return The term as `uint32_t` value.
  */
-uint32_t cvc5_term_get_uint32_value(Cvc5Term term);
+CVC5_EXPORT uint32_t cvc5_term_get_uint32_value(Cvc5Term term);
 /**
  * Determine if a given term is an int64 value.
  * @note This will return true for integer constants and real constants that
@@ -1194,7 +1265,7 @@ uint32_t cvc5_term_get_uint32_value(Cvc5Term term);
  * @param term The term.
  * @return True if the term is an integral value that fits within int64_t.
  */
-bool cvc5_term_is_int64_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_int64_value(Cvc5Term term);
 /**
  * Get the `int64_t` representation of a given integral value.
  * @note Requires that the term is an int64 value (see
@@ -1202,7 +1273,7 @@ bool cvc5_term_is_int64_value(Cvc5Term term);
  * @param term The term.
  * @return The term as `int64_t` value.
  */
-int64_t cvc5_term_get_int64_value(Cvc5Term term);
+CVC5_EXPORT int64_t cvc5_term_get_int64_value(Cvc5Term term);
 /**
  * Determine if a given term is an uint64 value.
  * @note This will return true for integer constants and real constants that
@@ -1210,7 +1281,7 @@ int64_t cvc5_term_get_int64_value(Cvc5Term term);
  * @param term The term.
  * @return True if the term is an integral value that fits within uint64_t.
  */
-bool cvc5_term_is_uint64_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_uint64_value(Cvc5Term term);
 /**
  * Get the `uint64_t` representation of a given integral value.
  * @note Requires that the term is an uint64 value (see
@@ -1218,14 +1289,14 @@ bool cvc5_term_is_uint64_value(Cvc5Term term);
  * @param term The term.
  * @return The term as `uint64_t` value.
  */
-uint64_t cvc5_term_get_uint64_value(Cvc5Term term);
+CVC5_EXPORT uint64_t cvc5_term_get_uint64_value(Cvc5Term term);
 /**
  * Determine if a given term is an integral value.
  * @param term The term.
  * @return True if the term is an integer constant or a real constant that
  *         has an integral value.
  */
-bool cvc5_term_is_integer_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_integer_value(Cvc5Term term);
 /**
  * Get a string representation of a given integral value.
  * @note Requires that the term is an integral value (see
@@ -1235,14 +1306,14 @@ bool cvc5_term_is_integer_value(Cvc5Term term);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_term_get_integer_value(Cvc5Term term);
+CVC5_EXPORT const char* cvc5_term_get_integer_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a string value.
  * @param term The term.
  * @return True if the term is a string value.
  */
-bool cvc5_term_is_string_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_string_value(Cvc5Term term);
 /**
  * Get the native string representation of a string value.
  * @note Requires that the term is a string value (see
@@ -1252,7 +1323,7 @@ bool cvc5_term_is_string_value(Cvc5Term term);
  * @param term The term.
  * @return The string term as a native string value.
  */
-const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
+CVC5_EXPORT const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a rational value whose numerator fits into an
@@ -1261,7 +1332,7 @@ const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
  * @return True if the term is a rational and its numerator and denominator
  *         fit into 32 bit integer values.
  */
-bool cvc5_term_is_real32_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_real32_value(Cvc5Term term);
 /**
  * Get the 32 bit integer representations of the numerator and denominator of
  * a rational value.
@@ -1272,7 +1343,9 @@ bool cvc5_term_is_real32_value(Cvc5Term term);
  * @param num  The resulting int32_t representation of the numerator.
  * @param den  The resulting uint32_t representation of the denominator.
  */
-void cvc5_term_get_real32_value(Cvc5Term term, int32_t* num, uint32_t* den);
+CVC5_EXPORT void cvc5_term_get_real32_value(Cvc5Term term,
+                                            int32_t* num,
+                                            uint32_t* den);
 /**
  * Determine if a given term is a rational value whose numerator fits into an
  * int64 value and its denominator fits into a uint64 value.
@@ -1280,7 +1353,7 @@ void cvc5_term_get_real32_value(Cvc5Term term, int32_t* num, uint32_t* den);
  * @return True if the term is a rational value whose numerator and
  *         denominator fit within int64_t and uint64_t, respectively.
  */
-bool cvc5_term_is_real64_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_real64_value(Cvc5Term term);
 /**
  * Get the 64 bit integer representations of the numerator and denominator of
  * a rational value.
@@ -1291,14 +1364,16 @@ bool cvc5_term_is_real64_value(Cvc5Term term);
  * @param num  The resulting int64_t representation of the numerator.
  * @param den  The resulting uint64_t representation of the denominator.
  */
-void cvc5_term_get_real64_value(Cvc5Term term, int64_t* num, uint64_t* den);
+CVC5_EXPORT void cvc5_term_get_real64_value(Cvc5Term term,
+                                            int64_t* num,
+                                            uint64_t* den);
 /**
  * Determine if a given term is a rational value.
  * @note A term of kind PI is not considered to be a real value.
  * @param term The term.
  * @return True if the term is a rational value.
  */
-bool cvc5_term_is_real_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_real_value(Cvc5Term term);
 /**
  * Get a string representation of a given rational value.
  * @note Requires that the term is a rational value (see
@@ -1308,42 +1383,42 @@ bool cvc5_term_is_real_value(Cvc5Term term);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_term_get_real_value(Cvc5Term term);
+CVC5_EXPORT const char* cvc5_term_get_real_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a constant array.
  * @param term The term.
  * @return True if the term is a constant array.
  */
-bool cvc5_term_is_const_array(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_const_array(Cvc5Term term);
 /**
  * Determine the base (element stored at all indices) of a constant array.
  * @note Requires that the term is a constant array (see isConstArray()).
  * @param term The term.
  * @return The base term.
  */
-Cvc5Term cvc5_term_get_const_array_base(Cvc5Term term);
+CVC5_EXPORT Cvc5Term cvc5_term_get_const_array_base(Cvc5Term term);
 
 /**
  * Determine if a given term is a Boolean value.
  * @param term The term.
  * @return True if the term is a Boolean value.
  */
-bool cvc5_term_is_boolean_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_boolean_value(Cvc5Term term);
 /**
  * Get the value of a Boolean term as a native Boolean value.
  * @note Asserts cvc5_term_is_boolean_value().
  * @param term The term.
  * @return The representation of a Boolean value as a native Boolean value.
  */
-bool cvc5_term_get_boolean_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_get_boolean_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a bit-vector value.
  * @param term The term.
  * @return True if the term is a bit-vector value.
  */
-bool cvc5_term_is_bv_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_bv_value(Cvc5Term term);
 /**
  * Get the string representation of a bit-vector value.
  * @note Asserts cvc5_term_is_bv_value().
@@ -1353,14 +1428,14 @@ bool cvc5_term_is_bv_value(Cvc5Term term);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_term_get_bv_value(Cvc5Term term, uint32_t base);
+CVC5_EXPORT const char* cvc5_term_get_bv_value(Cvc5Term term, uint32_t base);
 
 /**
  * Determine if a given term is a finite field value.
  * @param term The term.
  * @return True if the term is a finite field value.
  */
-bool cvc5_term_is_ff_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_ff_value(Cvc5Term term);
 /**
  * Get the string representation of a finite field value (base 10).
  *
@@ -1374,14 +1449,14 @@ bool cvc5_term_is_ff_value(Cvc5Term term);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_term_get_ff_value(Cvc5Term term);
+CVC5_EXPORT const char* cvc5_term_get_ff_value(Cvc5Term term);
 
 /**
  * Determine if a given term is an uninterpreted sort value.
  * @param term The term.
  * @return True if the term is an abstract value.
  */
-bool cvc5_term_is_uninterpreted_sort_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_uninterpreted_sort_value(Cvc5Term term);
 /**
  * Get a string representation of an uninterpreted sort value.
  * @note Asserts cvc5_term_is_uninterpreted_sort_value().
@@ -1390,14 +1465,14 @@ bool cvc5_term_is_uninterpreted_sort_value(Cvc5Term term);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_term_get_uninterpreted_sort_value(Cvc5Term term);
+CVC5_EXPORT const char* cvc5_term_get_uninterpreted_sort_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a tuple value.
  * @param term The term.
  * @return True if the term is a tuple value.
  */
-bool cvc5_term_is_tuple_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_tuple_value(Cvc5Term term);
 /**
  * Get a tuple value as an array of terms.
  * @note Asserts cvc5_term_is_tuple_value().
@@ -1405,21 +1480,22 @@ bool cvc5_term_is_tuple_value(Cvc5Term term);
  * @param size The size of the resulting array.
  * @return The representation of a tuple value as an array of terms.
  */
-const Cvc5Term* cvc5_term_get_tuple_value(Cvc5Term term, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_term_get_tuple_value(Cvc5Term term,
+                                                      size_t* size);
 
 /**
  * Determine if a given term is a floating-point rounding mode value.
  * @param term The term.
  * @return True if the term is a rounding mode value.
  */
-bool cvc5_term_is_rm_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_rm_value(Cvc5Term term);
 /**
  * Get the Cvc5RoundingMode value of a given rounding-mode value term.
  * @note Asserts cvc5_term_is_rounding_mode_value().
  * @param term The term.
  * @return The floating-point rounding mode value of the term.
  */
-Cvc5RoundingMode cvc5_term_get_rm_value(Cvc5Term term);
+CVC5_EXPORT Cvc5RoundingMode cvc5_term_get_rm_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a floating-point positive zero value
@@ -1427,39 +1503,39 @@ Cvc5RoundingMode cvc5_term_get_rm_value(Cvc5Term term);
  * @param term The term.
  * @return True if the term is the floating-point value for positive zero.
  */
-bool cvc5_term_is_fp_pos_zero(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_fp_pos_zero(Cvc5Term term);
 /**
  * Determine if a given term is a floating-point negative zero value (-zero).
  * @param term The term.
  * @return True if the term is the floating-point value for negative zero.
  */
-bool cvc5_term_is_fp_neg_zero(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_fp_neg_zero(Cvc5Term term);
 /**
  * Determine if a given term is a floating-point positive infinity value (+oo).
  * @param term The term.
  * @return True if the term is the floating-point value for positive.
  *         infinity.
  */
-bool cvc5_term_is_fp_pos_inf(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_fp_pos_inf(Cvc5Term term);
 /**
  * Determine if a given term is a floating-point negative infinity value (-oo).
  * @param term The term.
  * @return True if the term is the floating-point value for negative.
  *         infinity.
  */
-bool cvc5_term_is_fp_neg_inf(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_fp_neg_inf(Cvc5Term term);
 /**
  * Determine if a given term is a floating-point NaN value.
  * @param term The term.
  * @return True if the term is the floating-point value for not a number.
  */
-bool cvc5_term_is_fp_nan(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_fp_nan(Cvc5Term term);
 /**
  * Determine if a given term is a floating-point value.
  * @param term The term.
  * @return True if the term is a floating-point value.
  */
-bool cvc5_term_is_fp_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_fp_value(Cvc5Term term);
 /**
  * Get the representation of a floating-point value as its exponent width,
  * significand width and a bit-vector value term.
@@ -1469,10 +1545,10 @@ bool cvc5_term_is_fp_value(Cvc5Term term);
  * @param sw   The resulting significand width.
  * @param val  The resulting bit-vector value term.
  */
-void cvc5_term_get_fp_value(Cvc5Term term,
-                            uint32_t* ew,
-                            uint32_t* sw,
-                            Cvc5Term* val);
+CVC5_EXPORT void cvc5_term_get_fp_value(Cvc5Term term,
+                                        uint32_t* ew,
+                                        uint32_t* sw,
+                                        Cvc5Term* val);
 
 /**
  * Determine if a given term is a set value.
@@ -1495,7 +1571,7 @@ void cvc5_term_get_fp_value(Cvc5Term term,
  * @param term The term.
  * @return True if the term is a set value.
  */
-bool cvc5_term_is_set_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_set_value(Cvc5Term term);
 /**
  * Get a set value as an array of terms.
  * @note Asserts cvc5_term_is_set_value().
@@ -1503,7 +1579,8 @@ bool cvc5_term_is_set_value(Cvc5Term term);
  * @param size The size of the resulting array.
  * @return The representation of a set value as an array of terms.
  */
-const Cvc5Term* cvc5_term_get_set_value(Cvc5Term term, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_term_get_set_value(Cvc5Term term,
+                                                    size_t* size);
 
 /**
  * Determine if a given term is a sequence value.
@@ -1551,7 +1628,7 @@ const Cvc5Term* cvc5_term_get_set_value(Cvc5Term term, size_t* size);
  * @param term The term.
  * @return True if the term is a sequence value.
  */
-bool cvc5_term_is_sequence_value(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_sequence_value(Cvc5Term term);
 /**
  * Get a sequence value as an array of terms.
  * @note Asserts cvc5_term_is_sequence_value().
@@ -1559,14 +1636,15 @@ bool cvc5_term_is_sequence_value(Cvc5Term term);
  * @param size The size of the resulting array.
  * @return The representation of a sequence value as a vector of terms.
  */
-const Cvc5Term* cvc5_term_get_sequence_value(Cvc5Term term, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_term_get_sequence_value(Cvc5Term term,
+                                                         size_t* size);
 
 /**
  * Determine if a given term is a cardinality constraint.
  * @param term The term.
  * @return True if the term is a cardinality constraint.
  */
-bool cvc5_term_is_cardinality_constraint(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_cardinality_constraint(Cvc5Term term);
 /**
  * Get a cardinality constraint as a pair of its sort and upper bound.
  * @note Asserts cvc5_term_is_cardinality_constraint().
@@ -1575,16 +1653,16 @@ bool cvc5_term_is_cardinality_constraint(Cvc5Term term);
  * @param upper The resulting upper bound.
  * @return The sort the cardinality constraint is for and its upper bound.
  */
-void cvc5_term_get_cardinality_constraint(Cvc5Term term,
-                                          Cvc5Sort* sort,
-                                          uint32_t* upper);
+CVC5_EXPORT void cvc5_term_get_cardinality_constraint(Cvc5Term term,
+                                                      Cvc5Sort* sort,
+                                                      uint32_t* upper);
 
 /**
  * Determine if a given term is a real algebraic number.
  * @param term  The term.
  * @return True if the term is a real algebraic number.
  */
-bool cvc5_term_is_real_algebraic_number(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_real_algebraic_number(Cvc5Term term);
 /**
  * Get the defining polynomial for a real algebraic number term, expressed in
  * terms of the given variable.
@@ -1593,22 +1671,24 @@ bool cvc5_term_is_real_algebraic_number(Cvc5Term term);
  * @param v    The variable over which to express the polynomial.
  * @return The defining polynomial.
  */
-Cvc5Term cvc5_term_get_real_algebraic_number_defining_polynomial(Cvc5Term term,
-                                                                 Cvc5Term v);
+CVC5_EXPORT Cvc5Term cvc5_term_get_real_algebraic_number_defining_polynomial(
+    Cvc5Term term, Cvc5Term v);
 /**
  * Get the lower bound for a real algebraic number value.
  * @note Asserts cvc5_term_is_real_algebraic_number().
  * @param term The real algebraic number value.
  * @return The lower bound.
  */
-Cvc5Term cvc5_term_get_real_algebraic_number_lower_bound(Cvc5Term term);
+CVC5_EXPORT Cvc5Term
+cvc5_term_get_real_algebraic_number_lower_bound(Cvc5Term term);
 /**
  * Get the upper bound for a real algebraic number value.
  * @note Asserts cvc5_term_is_real_algebraic_number().
  * @param term The real algebraic number value.
  * @return The upper bound.
  */
-Cvc5Term cvc5_term_get_real_algebraic_number_upper_bound(Cvc5Term term);
+CVC5_EXPORT Cvc5Term
+cvc5_term_get_real_algebraic_number_upper_bound(Cvc5Term term);
 
 /**
  * Is the given term a skolem?
@@ -1616,7 +1696,7 @@ Cvc5Term cvc5_term_get_real_algebraic_number_upper_bound(Cvc5Term term);
  * @param term The skolem.
  * @return True if the term is a skolem function.
  */
-bool cvc5_term_is_skolem(Cvc5Term term);
+CVC5_EXPORT bool cvc5_term_is_skolem(Cvc5Term term);
 /**
  * Get skolem identifier of a term.
  * @note Asserts isSkolem().
@@ -1624,7 +1704,7 @@ bool cvc5_term_is_skolem(Cvc5Term term);
  * @param term The skolem.
  * @return The skolem identifier of the term.
  */
-Cvc5SkolemId cvc5_term_get_skolem_id(Cvc5Term term);
+CVC5_EXPORT Cvc5SkolemId cvc5_term_get_skolem_id(Cvc5Term term);
 /**
  * Get the skolem indices of a term.
  * @note Asserts isSkolem().
@@ -1635,18 +1715,55 @@ Cvc5SkolemId cvc5_term_get_skolem_id(Cvc5Term term);
  *         skolem function is indexed by. For example, the array diff skolem
  *         `Cvc5SkolemId::ARRAY_DEQ_DIFF` is indexed by two arrays.
  */
-const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term,
+                                                         size_t* size);
 
 /**
  * Compute the hash value of a term.
  * @param term The term.
  * @return The hash value of the term.
  */
-size_t cvc5_term_hash(Cvc5Term term);
+CVC5_EXPORT size_t cvc5_term_hash(Cvc5Term term);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeConstructorDecl                                                */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Make copy of datatype constructor declaration, increases reference counter
+ * of `decl`.
+ *
+ * @param decl The datatype constructor declaration to copy.
+ * @return The same datatype constructor declaration with its reference count
+ *         increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5DatatypeConstructorDecl
+cvc5_dt_cons_decl_copy(Cvc5DatatypeConstructorDecl decl);
+
+/**
+ * Release copy of datatype constructor declaration, decrements reference
+ * counter of `decl`.
+ *
+ * @param decl The datatype constructor declaration to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a
+ *       Cvc5DatatypeConstructorDecl returns a copy that is owned by the callee
+ *       of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_dt_cons_decl_release(Cvc5DatatypeConstructorDecl decl);
+
+/**
+ * Compare two datatype constructor declarations for structural equality.
+ * @param a The first datatype constructor declaration.
+ * @param b The second datatype constructor declaration.
+ * @return True if the datatype constructor declarations are equal.
+ */
+CVC5_EXPORT bool cvc5_dt_cons_decl_is_equal(Cvc5DatatypeConstructorDecl a,
+                                            Cvc5DatatypeConstructorDecl b);
 
 /**
  * Add datatype selector declaration to a given constructor declaration.
@@ -1654,17 +1771,16 @@ size_t cvc5_term_hash(Cvc5Term term);
  * @param name The name of the datatype selector declaration to add.
  * @param sort The codomain sort of the datatype selector declaration to add.
  */
-void cvc5_dt_cons_decl_add_selector(Cvc5DatatypeConstructorDecl decl,
-                                    const char* name,
-                                    Cvc5Sort sort);
+CVC5_EXPORT void cvc5_dt_cons_decl_add_selector(
+    Cvc5DatatypeConstructorDecl decl, const char* name, Cvc5Sort sort);
 /**
  * Add datatype selector declaration whose codomain type is the datatype
  * itself to a given constructor declaration.
  * @param decl The datatype constructor declaration.
  * @param name The name of the datatype selector declaration to add.
  */
-void cvc5_dt_cons_decl_add_selector_self(Cvc5DatatypeConstructorDecl decl,
-                                         const char* name);
+CVC5_EXPORT void cvc5_dt_cons_decl_add_selector_self(
+    Cvc5DatatypeConstructorDecl decl, const char* name);
 
 /**
  * Add datatype selector declaration whose codomain sort is an unresolved
@@ -1674,9 +1790,8 @@ void cvc5_dt_cons_decl_add_selector_self(Cvc5DatatypeConstructorDecl decl,
  * @param unres_name The name of the unresolved datatype. The codomain of the
  *                   selector will be the resolved datatype with the given name.
  */
-void cvc5_dt_cons_decl_add_selector_unresolved(Cvc5DatatypeConstructorDecl decl,
-                                               const char* name,
-                                               const char* unres_name);
+CVC5_EXPORT void cvc5_dt_cons_decl_add_selector_unresolved(
+    Cvc5DatatypeConstructorDecl decl, const char* name, const char* unres_name);
 /**
  * Get a string representation of a given constructor declaration.
  * @param decl The datatype constructor declaration.
@@ -1684,7 +1799,15 @@ void cvc5_dt_cons_decl_add_selector_unresolved(Cvc5DatatypeConstructorDecl decl,
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_cons_decl_to_string(Cvc5DatatypeConstructorDecl decl);
+CVC5_EXPORT const char* cvc5_dt_cons_decl_to_string(
+    Cvc5DatatypeConstructorDecl decl);
+
+/**
+ * Compute the hash value of a datatype constructor declaration.
+ * @param term The datatype constructor declaration.
+ * @return The hash value of the datatype constructor declaration.
+ */
+CVC5_EXPORT size_t cvc5_dt_cons_decl_hash(Cvc5DatatypeConstructorDecl decl);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeDecl                                                           */
@@ -1694,15 +1817,16 @@ const char* cvc5_dt_cons_decl_to_string(Cvc5DatatypeConstructorDecl decl);
  * Make copy of datatype declaration, increases reference counter of `decl`.
  *
  * @param decl The datatype declaration to copy.
- * @return The same datatype with its reference count increased by one.
+ * @return The same datatype declarationwith its reference count increased by
+ *         one.
  *
  * @note This step is optional and allows users to manage resources in a more
  *       fine-grained manner.
  */
-Cvc5DatatypeDecl cvc5_dt_decl_copy(Cvc5DatatypeDecl decl);
+CVC5_EXPORT Cvc5DatatypeDecl cvc5_dt_decl_copy(Cvc5DatatypeDecl decl);
 
 /**
- * Release copy of datatype declaration, decrements reference counter of `dt`.
+ * Release copy of datatype declaration, decrements reference counter of `decl`.
  *
  * @param decl The datatype declaration to release.
  *
@@ -1711,22 +1835,30 @@ Cvc5DatatypeDecl cvc5_dt_decl_copy(Cvc5DatatypeDecl decl);
  *       Cvc5DatatypeDecl returns a copy that is owned by the callee of the
  *       function and thus, can be released.
  */
-void cvc5_dt_decl_release(Cvc5DatatypeDecl decl);
+CVC5_EXPORT void cvc5_dt_decl_release(Cvc5DatatypeDecl decl);
+
+/**
+ * Compare two datatype declarations for structural equality.
+ * @param a The first datatype declaration.
+ * @param b The second datatype declaration.
+ * @return True if the datatype declarations are equal.
+ */
+CVC5_EXPORT bool cvc5_dt_decl_is_equal(Cvc5DatatypeDecl a, Cvc5DatatypeDecl b);
 
 /**
  * Add datatype constructor declaration.
  * @param decl The datatype declaration.
  * @param ctor The datatype constructor declaration to add.
  */
-void cvc5_dt_decl_add_constructor(Cvc5DatatypeDecl decl,
-                                  Cvc5DatatypeConstructorDecl ctor);
+CVC5_EXPORT void cvc5_dt_decl_add_constructor(Cvc5DatatypeDecl decl,
+                                              Cvc5DatatypeConstructorDecl ctor);
 
 /**
  * Get the number of constructors for a given Datatype declaration.
  * @param decl The datatype declaration.
  * @return The number of constructors.
  */
-size_t cvc5_dt_decl_get_num_constructors(Cvc5DatatypeDecl decl);
+CVC5_EXPORT size_t cvc5_dt_decl_get_num_constructors(Cvc5DatatypeDecl decl);
 
 /**
  * Determine if a given Datatype declaration is parametric.
@@ -1734,7 +1866,7 @@ size_t cvc5_dt_decl_get_num_constructors(Cvc5DatatypeDecl decl);
  * @param decl The datatype declaration.
  * @return True if the datatype declaration is parametric.
  */
-bool cvc5_dt_decl_is_parametric(Cvc5DatatypeDecl decl);
+CVC5_EXPORT bool cvc5_dt_decl_is_parametric(Cvc5DatatypeDecl decl);
 
 /**
  * Determine if a given datatype declaration is resolved (has already been
@@ -1742,7 +1874,7 @@ bool cvc5_dt_decl_is_parametric(Cvc5DatatypeDecl decl);
  * @param decl The datatype declaration.
  * @return True if the datatype declaration is resolved.
  */
-bool cvc5_dt_decl_is_resolved(Cvc5DatatypeDecl decl);
+CVC5_EXPORT bool cvc5_dt_decl_is_resolved(Cvc5DatatypeDecl decl);
 
 /**
  * Get a string representation of a given datatype declaration.
@@ -1751,7 +1883,7 @@ bool cvc5_dt_decl_is_resolved(Cvc5DatatypeDecl decl);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_decl_to_string(Cvc5DatatypeDecl decl);
+CVC5_EXPORT const char* cvc5_dt_decl_to_string(Cvc5DatatypeDecl decl);
 
 /**
  * Get the name of a given datatype declaration.
@@ -1760,7 +1892,14 @@ const char* cvc5_dt_decl_to_string(Cvc5DatatypeDecl decl);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_decl_get_name(Cvc5DatatypeDecl decl);
+CVC5_EXPORT const char* cvc5_dt_decl_get_name(Cvc5DatatypeDecl decl);
+
+/**
+ * Compute the hash value of a datatype declaration.
+ * @param term The datatype declaration.
+ * @return The hash value of the datatype declaration.
+ */
+CVC5_EXPORT size_t cvc5_dt_decl_hash(Cvc5DatatypeDecl decl);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeSelector                                                       */
@@ -1775,7 +1914,7 @@ const char* cvc5_dt_decl_get_name(Cvc5DatatypeDecl decl);
  * @note This step is optional and allows users to manage resources in a more
  *       fine-grained manner.
  */
-Cvc5DatatypeSelector cvc5_dt_sel_copy(Cvc5DatatypeSelector sel);
+CVC5_EXPORT Cvc5DatatypeSelector cvc5_dt_sel_copy(Cvc5DatatypeSelector sel);
 
 /**
  * Release copy of datatype selector, decrements reference counter of `sel`.
@@ -1787,7 +1926,15 @@ Cvc5DatatypeSelector cvc5_dt_sel_copy(Cvc5DatatypeSelector sel);
  *       Cvc5DatatypeSelector returns a copy that is owned by the callee of the
  *       function and thus, can be released.
  */
-void cvc5_dt_sel_release(Cvc5DatatypeSelector sel);
+CVC5_EXPORT void cvc5_dt_sel_release(Cvc5DatatypeSelector sel);
+/**
+ * Compare two datatype selectors for structural equality.
+ * @param a The first datatype selector.
+ * @param b The second datatype selector.
+ * @return True if the datatype selectors are equal.
+ */
+CVC5_EXPORT bool cvc5_dt_sel_is_equal(Cvc5DatatypeSelector a,
+                                      Cvc5DatatypeSelector b);
 
 /**
  * Get the name of a given datatype selector.
@@ -1796,7 +1943,7 @@ void cvc5_dt_sel_release(Cvc5DatatypeSelector sel);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_del_get_name(Cvc5DatatypeSelector sel);
+CVC5_EXPORT const char* cvc5_dt_sel_get_name(Cvc5DatatypeSelector sel);
 
 /**
  * Get the selector term of a given datatype selector.
@@ -1808,7 +1955,7 @@ const char* cvc5_dt_del_get_name(Cvc5DatatypeSelector sel);
  * @param sel The datatype selector.
  * @return The selector term.
  */
-Cvc5Term cvc5_dt_sel_get_term(Cvc5DatatypeSelector sel);
+CVC5_EXPORT Cvc5Term cvc5_dt_sel_get_term(Cvc5DatatypeSelector sel);
 
 /**
  * Get the updater term of a given datatype selector.
@@ -1820,14 +1967,14 @@ Cvc5Term cvc5_dt_sel_get_term(Cvc5DatatypeSelector sel);
  * @param sel The datatype selector.
  * @return The updater term.
  */
-Cvc5Term cvc5_dt_sel_get_updater_term(Cvc5DatatypeSelector sel);
+CVC5_EXPORT Cvc5Term cvc5_dt_sel_get_updater_term(Cvc5DatatypeSelector sel);
 
 /**
- * Get the codomain sort of a given selector.
+ * Get the codomain sort of a given datatype selector.
  * @param sel The datatype selector.
  * @return The codomain sort of the selector.
  */
-Cvc5Sort cvc5_dt_sel_get_codomain_sort(Cvc5DatatypeSelector sel);
+CVC5_EXPORT Cvc5Sort cvc5_dt_sel_get_codomain_sort(Cvc5DatatypeSelector sel);
 
 /**
  * Get the string representation of a given datatype selector.
@@ -1836,7 +1983,14 @@ Cvc5Sort cvc5_dt_sel_get_codomain_sort(Cvc5DatatypeSelector sel);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_sel_to_string(Cvc5DatatypeSelector sel);
+CVC5_EXPORT const char* cvc5_dt_sel_to_string(Cvc5DatatypeSelector sel);
+
+/**
+ * Compute the hash value of a datatype selector.
+ * @param term The datatype selector.
+ * @return The hash value of the datatype selector.
+ */
+CVC5_EXPORT size_t cvc5_dt_sel_hash(Cvc5DatatypeSelector sel);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeConstructor                                                    */
@@ -1852,7 +2006,8 @@ const char* cvc5_dt_sel_to_string(Cvc5DatatypeSelector sel);
  * @note This step is optional and allows users to manage resources in a more
  *       fine-grained manner.
  */
-Cvc5DatatypeConstructor cvc5_dt_cons_copy(Cvc5DatatypeConstructor cons);
+CVC5_EXPORT Cvc5DatatypeConstructor
+cvc5_dt_cons_copy(Cvc5DatatypeConstructor cons);
 
 /**
  * Release copy of datatype constructor, decrements reference counter of `cons`.
@@ -1864,7 +2019,16 @@ Cvc5DatatypeConstructor cvc5_dt_cons_copy(Cvc5DatatypeConstructor cons);
  *       Cvc5DatatypeConstructor returns a copy that is owned by the callee of
  *       the function and thus, can be released.
  */
-void cvc5_dt_cons_release(Cvc5DatatypeConstructor cons);
+CVC5_EXPORT void cvc5_dt_cons_release(Cvc5DatatypeConstructor cons);
+
+/**
+ * Compare two datatype constructors for structural equality.
+ * @param a The first datatype constructor.
+ * @param b The second datatype constructor.
+ * @return True if the datatype constructors are equal.
+ */
+CVC5_EXPORT bool cvc5_dt_cons_is_equal(Cvc5DatatypeConstructor a,
+                                       Cvc5DatatypeConstructor b);
 
 /**
  * Get the name of a given datatype constructor.
@@ -1873,7 +2037,7 @@ void cvc5_dt_cons_release(Cvc5DatatypeConstructor cons);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_cons_get_name(Cvc5DatatypeConstructor cons);
+CVC5_EXPORT const char* cvc5_dt_cons_get_name(Cvc5DatatypeConstructor cons);
 
 /**
  * Get the constructor term of a given datatype constructor.
@@ -1892,7 +2056,7 @@ const char* cvc5_dt_cons_get_name(Cvc5DatatypeConstructor cons);
  * @param cons The datatype constructor.
  * @return The constructor term.
  */
-Cvc5Term cvc5_dt_cons_get_term(Cvc5DatatypeConstructor cons);
+CVC5_EXPORT Cvc5Term cvc5_dt_cons_get_term(Cvc5DatatypeConstructor cons);
 
 /**
  * Get the constructor term of this datatype constructor whose return
@@ -1935,8 +2099,8 @@ Cvc5Term cvc5_dt_cons_get_term(Cvc5DatatypeConstructor cons);
  * @param sort The desired return sort of the constructor.
  * @return The constructor term.
  */
-Cvc5Term cvc5_dt_cons_get_instantiated_term(Cvc5DatatypeConstructor cons,
-                                            Cvc5Sort sort);
+CVC5_EXPORT Cvc5Term
+cvc5_dt_cons_get_instantiated_term(Cvc5DatatypeConstructor cons, Cvc5Sort sort);
 
 /**
  * Get the tester term of a given datatype constructor.
@@ -1948,22 +2112,22 @@ Cvc5Term cvc5_dt_cons_get_instantiated_term(Cvc5DatatypeConstructor cons,
  * @param cons The datatype constructor.
  * @return The tester term.
  */
-Cvc5Term cvc5_dt_cons_get_tester_term(Cvc5DatatypeConstructor cons);
+CVC5_EXPORT Cvc5Term cvc5_dt_cons_get_tester_term(Cvc5DatatypeConstructor cons);
 
 /**
  * Get the number of selectors of a given datatype constructor.
  * @param cons The datatype constructor.
  * @return The number of selectors.
  */
-size_t cvc5_dt_cons_get_num_selectors(Cvc5DatatypeConstructor cons);
+CVC5_EXPORT size_t cvc5_dt_cons_get_num_selectors(Cvc5DatatypeConstructor cons);
 
 /**
  * Get the selector at index `i` of a given datatype constructor.
  * @param cons The datatype constructor.
  * @return The i^th DatatypeSelector.
  */
-Cvc5DatatypeSelector cvc5_dt_cons_get_selector(Cvc5DatatypeConstructor cons,
-                                               size_t index);
+CVC5_EXPORT Cvc5DatatypeSelector
+cvc5_dt_cons_get_selector(Cvc5DatatypeConstructor cons, size_t index);
 /**
  * Get the datatype selector with the given name.
  * @note This is a linear search through the selectors, so in case of
@@ -1972,7 +2136,7 @@ Cvc5DatatypeSelector cvc5_dt_cons_get_selector(Cvc5DatatypeConstructor cons,
  * @param name The name of the datatype selector.
  * @return The first datatype selector with the given name.
  */
-Cvc5DatatypeSelector cvc5_dt_cons_get_selector_by_name(
+CVC5_EXPORT Cvc5DatatypeSelector cvc5_dt_cons_get_selector_by_name(
     Cvc5DatatypeConstructor cons, const char* name);
 
 /**
@@ -1982,7 +2146,14 @@ Cvc5DatatypeSelector cvc5_dt_cons_get_selector_by_name(
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_cons_to_string(Cvc5DatatypeConstructor cons);
+CVC5_EXPORT const char* cvc5_dt_cons_to_string(Cvc5DatatypeConstructor cons);
+
+/**
+ * Compute the hash value of a datatype constructor.
+ * @param term The datatype constructor.
+ * @return The hash value of the datatype constructor.
+ */
+CVC5_EXPORT size_t cvc5_dt_cons_hash(Cvc5DatatypeConstructor cons);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Datatype                                                               */
@@ -1997,7 +2168,7 @@ const char* cvc5_dt_cons_to_string(Cvc5DatatypeConstructor cons);
  * @note This step is optional and allows users to manage resources in a more
  *       fine-grained manner.
  */
-Cvc5Datatype cvc5_dt_copy(Cvc5Datatype dt);
+CVC5_EXPORT Cvc5Datatype cvc5_dt_copy(Cvc5Datatype dt);
 
 /**
  * Release copy of datatype, decrements reference counter of `dt`.
@@ -2009,7 +2180,15 @@ Cvc5Datatype cvc5_dt_copy(Cvc5Datatype dt);
  *       Cvc5Datatype returns a copy that is owned by the callee of the
  *       function and thus, can be released.
  */
-void cvc5_dt_release(Cvc5Datatype dt);
+CVC5_EXPORT void cvc5_dt_release(Cvc5Datatype dt);
+
+/**
+ * Compare two datatypes for structural equality.
+ * @param a The first datatype.
+ * @param b The second datatype.
+ * @return True if the datatypes are equal.
+ */
+CVC5_EXPORT bool cvc5_dt_is_equal(Cvc5Datatype a, Cvc5Datatype b);
 
 /**
  * Get the datatype constructor of a given datatype at a given index.
@@ -2017,7 +2196,8 @@ void cvc5_dt_release(Cvc5Datatype dt);
  * @param idx The index of the datatype constructor to return.
  * @return The datatype constructor with the given index.
  */
-Cvc5DatatypeConstructor cvc5_dt_get_constructor(Cvc5Datatype dt, size_t idx);
+CVC5_EXPORT Cvc5DatatypeConstructor cvc5_dt_get_constructor(Cvc5Datatype dt,
+                                                            size_t idx);
 
 /**
  * Get the datatype constructor of a given datatype with the given name.
@@ -2027,8 +2207,8 @@ Cvc5DatatypeConstructor cvc5_dt_get_constructor(Cvc5Datatype dt, size_t idx);
  * @param name The name of the datatype constructor.
  * @return The datatype constructor with the given name.
  */
-Cvc5DatatypeConstructor cvc5_dt_get_constructor_by_name(Cvc5Datatype dt,
-                                                        const char* name);
+CVC5_EXPORT Cvc5DatatypeConstructor
+cvc5_dt_get_constructor_by_name(Cvc5Datatype dt, const char* name);
 
 /**
  * Get the datatype selector of a given datatype with the given name.
@@ -2039,7 +2219,8 @@ Cvc5DatatypeConstructor cvc5_dt_get_constructor_by_name(Cvc5Datatype dt,
  * @param name The name of the datatype selector.
  * @return The datatype selector with the given name.
  */
-Cvc5DatatypeSelector cvc5_dt_get_selector(Cvc5Datatype dt, const char* name);
+CVC5_EXPORT Cvc5DatatypeSelector cvc5_dt_get_selector(Cvc5Datatype dt,
+                                                      const char* name);
 
 /**
  * Get the name of a given datatype.
@@ -2048,14 +2229,14 @@ Cvc5DatatypeSelector cvc5_dt_get_selector(Cvc5Datatype dt, const char* name);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_get_name(Cvc5Datatype dt);
+CVC5_EXPORT const char* cvc5_dt_get_name(Cvc5Datatype dt);
 
 /**
  * Get the number of constructors of a given datatype.
  * @param dt   The datatype.
  * @return The number of constructors.
  */
-size_t cvc5_dt_get_num_constructors(Cvc5Datatype dt);
+CVC5_EXPORT size_t cvc5_dt_get_num_constructors(Cvc5Datatype dt);
 
 /**
  * Get the parameters of a given datatype, if it is parametric.
@@ -2065,7 +2246,8 @@ size_t cvc5_dt_get_num_constructors(Cvc5Datatype dt);
  * @param size The size of the resulting array.
  * @return The parameters of this datatype.
  */
-const Cvc5Sort* cvc5_dt_get_parameters(Cvc5Datatype dt, size_t* size);
+CVC5_EXPORT const Cvc5Sort* cvc5_dt_get_parameters(Cvc5Datatype dt,
+                                                   size_t* size);
 
 /**
  * Determine if a given datatype is parametric.
@@ -2073,21 +2255,21 @@ const Cvc5Sort* cvc5_dt_get_parameters(Cvc5Datatype dt, size_t* size);
  * @param dt The datatype.
  * @return True if the datatype is parametric.
  */
-bool cvc5_dt_is_parametric(Cvc5Datatype dt);
+CVC5_EXPORT bool cvc5_dt_is_parametric(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype corresponds to a co-datatype.
  * @param dt The datatype.
  * @return True if the datatype corresponds to a co-datatype.
  */
-bool cvc5_dt_is_codatatype(Cvc5Datatype dt);
+CVC5_EXPORT bool cvc5_dt_is_codatatype(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype corresponds to a tuple.
  * @param dt The datatype.
  * @return True if this datatype corresponds to a tuple.
  */
-bool cvc5_dt_is_tuple(Cvc5Datatype dt);
+CVC5_EXPORT bool cvc5_dt_is_tuple(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype corresponds to a record.
@@ -2095,14 +2277,14 @@ bool cvc5_dt_is_tuple(Cvc5Datatype dt);
  * @param dt The datatype.
  * @return True if the datatype corresponds to a record.
  */
-bool cvc5_dt_is_record(Cvc5Datatype dt);
+CVC5_EXPORT bool cvc5_dt_is_record(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype is finite.
  * @param dt The datatype.
  * @return True if the datatype is finite.
  */
-bool cvc5_dt_is_finite(Cvc5Datatype dt);
+CVC5_EXPORT bool cvc5_dt_is_finite(Cvc5Datatype dt);
 
 /**
  * Determine if a given datatype is well-founded.
@@ -2113,7 +2295,7 @@ bool cvc5_dt_is_finite(Cvc5Datatype dt);
  * @param dt The datatype.
  * @return True if the datatype is well-founded.
  */
-bool cvc5_dt_is_well_founded(Cvc5Datatype dt);
+CVC5_EXPORT bool cvc5_dt_is_well_founded(Cvc5Datatype dt);
 
 /**
  * Get a string representation of a given datatype.
@@ -2121,7 +2303,14 @@ bool cvc5_dt_is_well_founded(Cvc5Datatype dt);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_dt_to_string(Cvc5Datatype dt);
+CVC5_EXPORT const char* cvc5_dt_to_string(Cvc5Datatype dt);
+
+/**
+ * Compute the hash value of a datatype.
+ * @param term The datatype.
+ * @return The hash value of the datatype.
+ */
+CVC5_EXPORT size_t cvc5_dt_hash(Cvc5Datatype dt);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Grammar                                                                */
@@ -2133,9 +2322,9 @@ const char* cvc5_dt_to_string(Cvc5Datatype dt);
  * @param symbol  The non-terminal to which the rule is added.
  * @param rule The rule to add.
  */
-void cvc5_grammar_add_rule(Cvc5Grammar* grammar,
-                           Cvc5Term symbol,
-                           Cvc5Term rule);
+CVC5_EXPORT void cvc5_grammar_add_rule(Cvc5Grammar grammar,
+                                       Cvc5Term symbol,
+                                       Cvc5Term rule);
 
 /**
  * Add `rules` to the set of rules corresponding to `symbol` of a given grammar.
@@ -2144,17 +2333,18 @@ void cvc5_grammar_add_rule(Cvc5Grammar* grammar,
  * @param size   The number of rules to add.
  * @param rules The rules to add.
  */
-void cvc5_grammar_add_rules(Cvc5Grammar* grammar,
-                            Cvc5Term symbol,
-                            size_t size,
-                            const Cvc5Term rules[]);
+CVC5_EXPORT void cvc5_grammar_add_rules(Cvc5Grammar grammar,
+                                        Cvc5Term symbol,
+                                        size_t size,
+                                        const Cvc5Term rules[]);
 
 /**
  * Allow `symbol` to be an arbitrary constant of a given grammar.
  * @param grammar The grammar.
  * @param symbol The non-terminal allowed to be any constant.
  */
-void cvc5_grammar_add_any_constant(Cvc5Grammar* grammar, Cvc5Term symbol);
+CVC5_EXPORT void cvc5_grammar_add_any_constant(Cvc5Grammar grammar,
+                                               Cvc5Term symbol);
 
 /**
  * Allow `symbol` to be any input variable of a given grammar to corresponding
@@ -2162,7 +2352,8 @@ void cvc5_grammar_add_any_constant(Cvc5Grammar* grammar, Cvc5Term symbol);
  * @param grammar The grammar.
  * @param symbol The non-terminal allowed to be any input variable.
  */
-void cvc5_grammar_add_any_variable(Cvc5Grammar* grammar, Cvc5Term symbol);
+CVC5_EXPORT void cvc5_grammar_add_any_variable(Cvc5Grammar grammar,
+                                               Cvc5Term symbol);
 
 /**
  * Get a string representation of a given grammar.
@@ -2171,7 +2362,54 @@ void cvc5_grammar_add_any_variable(Cvc5Grammar* grammar, Cvc5Term symbol);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_grammar_to_string(const Cvc5Grammar* grammar);
+CVC5_EXPORT const char* cvc5_grammar_to_string(const Cvc5Grammar grammar);
+
+/**
+ * Compare two grammars for referential equality.
+ * @param a The first grammar.
+ * @param b The second grammar.
+ * @return  True if both grammar pointers point to the same internal grammar
+ *          object.
+ */
+CVC5_EXPORT bool cvc5_grammar_is_equal(Cvc5Grammar a, Cvc5Grammar b);
+
+/**
+ * Compare two grammars for referential disequality.
+ * @param a The first grammar.
+ * @param b The second grammar.
+ * @return  True if both grammar pointers point to different internal grammar
+ *          objects.
+ */
+CVC5_EXPORT bool cvc5_grammar_is_disequal(Cvc5Grammar a, Cvc5Grammar b);
+
+/**
+ * Compute the hash value of a grammar.
+ * @param grammar The grammar.
+ * @return The hash value of the grammar.
+ */
+CVC5_EXPORT size_t cvc5_grammar_hash(Cvc5Grammar grammar);
+
+/**
+ * Make copy of grammar, increases reference counter of `grammar`.
+ *
+ * @param grammar The grammar to copy.
+ * @return The same grammar with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar);
+
+/**
+ * Release copy of grammar, decrements reference counter of `grammar`.
+ *
+ * @param grammar The grammar to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_grammar_release(Cvc5Grammar grammar);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5TermManager                                                            */
@@ -2181,13 +2419,13 @@ const char* cvc5_grammar_to_string(const Cvc5Grammar* grammar);
  * Construct a new instance of a cvc5 term manager.
  * @return The cvc5 term manager.
  */
-Cvc5TermManager* cvc5_term_manager_new();
+CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
 
 /**
  * Delete a cvc5 term manager instance.
  * @param tm The term manager instance.
  */
-void cvc5_term_manager_delete(Cvc5TermManager* tm);
+CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
 
 /**
  * Release all managed references.
@@ -2199,7 +2437,7 @@ void cvc5_term_manager_delete(Cvc5TermManager* tm);
  *
  * @param tm The term manager instance.
  */
-void cvc5_term_manager_release(Cvc5TermManager* tm);
+CVC5_EXPORT void cvc5_term_manager_release(Cvc5TermManager* tm);
 
 /* .................................................................... */
 /* Sorts Handling                                                       */
@@ -2210,42 +2448,42 @@ void cvc5_term_manager_release(Cvc5TermManager* tm);
  * @param cvc5 The solver instance.
  * @return Sort Boolean.
  */
-Cvc5Sort cvc5_get_boolean_sort(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Sort cvc5_get_boolean_sort(Cvc5TermManager* tm);
 
 /**
  * Get the Integer sort.
  * @param tm The term manager instance.
  * @return Sort Integer.
  */
-Cvc5Sort cvc5_get_integer_sort(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Sort cvc5_get_integer_sort(Cvc5TermManager* tm);
 
 /**
  * Get the Real sort.
  * @param tm The term manager instance.
  * @return Sort Real.
  */
-Cvc5Sort cvc5_get_real_sort(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Sort cvc5_get_real_sort(Cvc5TermManager* tm);
 
 /**
  * Get the regular expression sort.
  * @param tm The term manager instance.
  * @return Sort RegExp.
  */
-Cvc5Sort cvc5_get_regexp_sort(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Sort cvc5_get_regexp_sort(Cvc5TermManager* tm);
 
 /**
  * Get the rounding mode sort.
  * @param tm The term manager instance.
  * @return The rounding mode sort.
  */
-Cvc5Sort cvc5_get_rm_sort(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Sort cvc5_get_rm_sort(Cvc5TermManager* tm);
 
 /**
  * Get the string sort.
  * @param tm The term manager instance.
  * @return Sort String.
  */
-Cvc5Sort cvc5_get_string_sort(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Sort cvc5_get_string_sort(Cvc5TermManager* tm);
 
 /**
  * Create an array sort.
@@ -2254,7 +2492,9 @@ Cvc5Sort cvc5_get_string_sort(Cvc5TermManager* tm);
  * @param elem  The array element sort.
  * @return The array sort.
  */
-Cvc5Sort cvc5_mk_array_sort(Cvc5TermManager* tm, Cvc5Sort index, Cvc5Sort elem);
+CVC5_EXPORT Cvc5Sort cvc5_mk_array_sort(Cvc5TermManager* tm,
+                                        Cvc5Sort index,
+                                        Cvc5Sort elem);
 
 /**
  * Create a bit-vector sort.
@@ -2262,7 +2502,7 @@ Cvc5Sort cvc5_mk_array_sort(Cvc5TermManager* tm, Cvc5Sort index, Cvc5Sort elem);
  * @param size The bit-width of the bit-vector sort.
  * @return The bit-vector sort.
  */
-Cvc5Sort cvc5_mk_bv_sort(Cvc5TermManager* tm, uint32_t size);
+CVC5_EXPORT Cvc5Sort cvc5_mk_bv_sort(Cvc5TermManager* tm, uint32_t size);
 
 /**
  * Create a floating-point sort.
@@ -2270,7 +2510,9 @@ Cvc5Sort cvc5_mk_bv_sort(Cvc5TermManager* tm, uint32_t size);
  * @param exp The bit-width of the exponent of the floating-point sort.
  * @param sig The bit-width of the significand of the floating-point sort.
  */
-Cvc5Sort cvc5_mk_fp_sort(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
+CVC5_EXPORT Cvc5Sort cvc5_mk_fp_sort(Cvc5TermManager* tm,
+                                     uint32_t exp,
+                                     uint32_t sig);
 
 /**
  * Create a finite-field sort from a given string of
@@ -2280,7 +2522,9 @@ Cvc5Sort cvc5_mk_fp_sort(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
  * @param base The base of the string representation of `size`.
  * @return The finite-field sort.
  */
-Cvc5Sort cvc5_mk_ff_sort(Cvc5TermManager* tm, const char* size, uint32_t base);
+CVC5_EXPORT Cvc5Sort cvc5_mk_ff_sort(Cvc5TermManager* tm,
+                                     const char* size,
+                                     uint32_t base);
 
 /**
  * Create a datatype sort.
@@ -2288,7 +2532,8 @@ Cvc5Sort cvc5_mk_ff_sort(Cvc5TermManager* tm, const char* size, uint32_t base);
  * @param decl The datatype declaration from which the sort is created.
  * @return The datatype sort.
  */
-Cvc5Sort cvc5_mk_dt_sort(Cvc5TermManager* tm, Cvc5DatatypeDecl decl);
+CVC5_EXPORT Cvc5Sort cvc5_mk_dt_sort(Cvc5TermManager* tm,
+                                     Cvc5DatatypeDecl decl);
 
 /**
  * Create a vector of datatype sorts.
@@ -2298,9 +2543,9 @@ Cvc5Sort cvc5_mk_dt_sort(Cvc5TermManager* tm, Cvc5DatatypeDecl decl);
  * @param decls The datatype declarations from which the sort is created.
  * @return The datatype sorts.
  */
-const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
-                                 size_t size,
-                                 const Cvc5DatatypeDecl decls[]);
+CVC5_EXPORT const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
+                                             size_t size,
+                                             const Cvc5DatatypeDecl decls[]);
 /**
  * Create function sort.
  * @param tm The term manager instance.
@@ -2309,10 +2554,10 @@ const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
  * @param codomain The sort of the function return value.
  * @return The function sort.
  */
-Cvc5Sort cvc5_mk_fun_sort(Cvc5TermManager* tm,
-                          size_t size,
-                          const Cvc5Sort sorts[],
-                          Cvc5Sort codomain);
+CVC5_EXPORT Cvc5Sort cvc5_mk_fun_sort(Cvc5TermManager* tm,
+                                      size_t size,
+                                      const Cvc5Sort sorts[],
+                                      Cvc5Sort codomain);
 
 /**
  * Create a sort parameter.
@@ -2321,7 +2566,8 @@ Cvc5Sort cvc5_mk_fun_sort(Cvc5TermManager* tm,
  * @param symbol The name of the sort, may be NULL.
  * @return The sort parameter.
  */
-Cvc5Sort cvc5_mk_param_sort(Cvc5TermManager* tm, const char* symbol);
+CVC5_EXPORT Cvc5Sort cvc5_mk_param_sort(Cvc5TermManager* tm,
+                                        const char* symbol);
 
 /**
  * Create a predicate sort.
@@ -2332,9 +2578,9 @@ Cvc5Sort cvc5_mk_param_sort(Cvc5TermManager* tm, const char* symbol);
  * @param sorts The list of sorts of the predicate.
  * @return The predicate sort.
  */
-Cvc5Sort cvc5_mk_predicate_sort(Cvc5TermManager* tm,
-                                size_t size,
-                                const Cvc5Sort sorts[]);
+CVC5_EXPORT Cvc5Sort cvc5_mk_predicate_sort(Cvc5TermManager* tm,
+                                            size_t size,
+                                            const Cvc5Sort sorts[]);
 
 /**
  * Create a record sort
@@ -2344,17 +2590,17 @@ Cvc5Sort cvc5_mk_predicate_sort(Cvc5TermManager* tm,
  * @param sorts The sorts of the fields of the record.
  * @return The record sort.
  */
-Cvc5Sort cvc5_mk_record_sort(Cvc5TermManager* tm,
-                             size_t size,
-                             const char* names[],
-                             const Cvc5Sort sorts[]);
+CVC5_EXPORT Cvc5Sort cvc5_mk_record_sort(Cvc5TermManager* tm,
+                                         size_t size,
+                                         const char* names[],
+                                         const Cvc5Sort sorts[]);
 /**
  * Create a set sort.
  * @param tm The term manager instance.
  * @param sort The sort of the set elements.
  * @return The set sort.
  */
-Cvc5Sort cvc5_mk_set_sort(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_mk_set_sort(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a bag sort.
@@ -2362,7 +2608,7 @@ Cvc5Sort cvc5_mk_set_sort(Cvc5TermManager* tm, Cvc5Sort sort);
  * @param sort The sort of the bag elements.
  * @return The bag sort.
  */
-Cvc5Sort cvc5_mk_bag_sort(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_mk_bag_sort(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a sequence sort.
@@ -2370,7 +2616,7 @@ Cvc5Sort cvc5_mk_bag_sort(Cvc5TermManager* tm, Cvc5Sort sort);
  * @param elemSort The sort of the sequence elements.
  * @return The sequence sort.
  */
-Cvc5Sort cvc5_mk_sequence_sort(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_mk_sequence_sort(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create an abstract sort. An abstract sort represents a sort for a given
@@ -2397,7 +2643,7 @@ Cvc5Sort cvc5_mk_sequence_sort(Cvc5TermManager* tm, Cvc5Sort sort);
  * @param k The kind of the abstract sort
  * @return The abstract sort.
  */
-Cvc5Sort cvc5_mk_abstract_sort(Cvc5TermManager* tm, Cvc5SortKind k);
+CVC5_EXPORT Cvc5Sort cvc5_mk_abstract_sort(Cvc5TermManager* tm, Cvc5SortKind k);
 
 /**
  * Create an uninterpreted sort.
@@ -2405,7 +2651,8 @@ Cvc5Sort cvc5_mk_abstract_sort(Cvc5TermManager* tm, Cvc5SortKind k);
  * @param symbol The name of the sort, may be NULL.
  * @return The uninterpreted sort.
  */
-Cvc5Sort cvc5_mk_uninterpreted_sort(Cvc5TermManager* tm, const char* symbol);
+CVC5_EXPORT Cvc5Sort cvc5_mk_uninterpreted_sort(Cvc5TermManager* tm,
+                                                const char* symbol);
 
 /**
  * Create an unresolved datatype sort.
@@ -2420,9 +2667,9 @@ Cvc5Sort cvc5_mk_uninterpreted_sort(Cvc5TermManager* tm, const char* symbol);
  *
  * @warning This function is experimental and may change in future versions.
  */
-Cvc5Sort cvc5_mk_unresolved_dt_sort(Cvc5TermManager* tm,
-                                    const char* symbol,
-                                    size_t arity);
+CVC5_EXPORT Cvc5Sort cvc5_mk_unresolved_dt_sort(Cvc5TermManager* tm,
+                                                const char* symbol,
+                                                size_t arity);
 
 /**
  * Create an uninterpreted sort constructor sort.
@@ -2434,9 +2681,8 @@ Cvc5Sort cvc5_mk_unresolved_dt_sort(Cvc5TermManager* tm,
  * @param arity The arity of the sort (must be > 0)
  * @return The uninterpreted sort constructor sort.
  */
-Cvc5Sort cvc5_mk_uninterpreted_sort_constructor_sort(Cvc5TermManager* tm,
-                                                     size_t arity,
-                                                     const char* symbol);
+CVC5_EXPORT Cvc5Sort cvc5_mk_uninterpreted_sort_constructor_sort(
+    Cvc5TermManager* tm, size_t arity, const char* symbol);
 
 /**
  * Create a tuple sort.
@@ -2445,9 +2691,9 @@ Cvc5Sort cvc5_mk_uninterpreted_sort_constructor_sort(Cvc5TermManager* tm,
  * @param sorts The sorts of f the elements of the tuple.
  * @return The tuple sort.
  */
-Cvc5Sort cvc5_mk_tuple_sort(Cvc5TermManager* tm,
-                            size_t size,
-                            const Cvc5Sort sorts[]);
+CVC5_EXPORT Cvc5Sort cvc5_mk_tuple_sort(Cvc5TermManager* tm,
+                                        size_t size,
+                                        const Cvc5Sort sorts[]);
 
 /**
  * Create a nullable sort.
@@ -2455,7 +2701,7 @@ Cvc5Sort cvc5_mk_tuple_sort(Cvc5TermManager* tm,
  * @param sort The sort of the element of the nullable.
  * @return The nullable sort.
  */
-Cvc5Sort cvc5_mk_nullable_sort(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Sort cvc5_mk_nullable_sort(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /* .................................................................... */
 /* Create Terms                                                         */
@@ -2468,10 +2714,10 @@ Cvc5Sort cvc5_mk_nullable_sort(Cvc5TermManager* tm, Cvc5Sort sort);
  * @param size The number of childrens.
  * @param children The children of the term.
  * @return The Term */
-Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
-                      Cvc5Kind kind,
-                      size_t size,
-                      const Cvc5Term children[]);
+CVC5_EXPORT Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
+                                  Cvc5Kind kind,
+                                  size_t size,
+                                  const Cvc5Term children[]);
 
 /**
  * Create n-ary term of given kind from a given operator.
@@ -2482,10 +2728,10 @@ Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
  * @param children The children of the term.
  * @return The Term.
  */
-Cvc5Term cvc5_mk_term_from_op(Cvc5TermManager* tm,
-                              Cvc5Op op,
-                              size_t size,
-                              const Cvc5Term children[]);
+CVC5_EXPORT Cvc5Term cvc5_mk_term_from_op(Cvc5TermManager* tm,
+                                          Cvc5Op op,
+                                          size_t size,
+                                          const Cvc5Term children[]);
 
 /**
  * Create a tuple term.
@@ -2494,9 +2740,9 @@ Cvc5Term cvc5_mk_term_from_op(Cvc5TermManager* tm,
  * @param terms The elements.
  * @return The tuple Term.
  */
-Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm,
-                       size_t size,
-                       const Cvc5Term terms[]);
+CVC5_EXPORT Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm,
+                                   size_t size,
+                                   const Cvc5Term terms[]);
 
 /**
  * Create a nullable some term.
@@ -2504,7 +2750,7 @@ Cvc5Term cvc5_mk_tuple(Cvc5TermManager* tm,
  * @param term The element value.
  * @return the Element value wrapped in some constructor.
  */
-Cvc5Term cvc5_mk_nullable_some(Cvc5TermManager* tm, Cvc5Term term);
+CVC5_EXPORT Cvc5Term cvc5_mk_nullable_some(Cvc5TermManager* tm, Cvc5Term term);
 
 /**
  * Create a selector for nullable term.
@@ -2512,21 +2758,23 @@ Cvc5Term cvc5_mk_nullable_some(Cvc5TermManager* tm, Cvc5Term term);
  * @param term A nullable term.
  * @return The element value of the nullable term.
  */
-Cvc5Term cvc5_mk_nullable_val(Cvc5TermManager* tm, Cvc5Term term);
+CVC5_EXPORT Cvc5Term cvc5_mk_nullable_val(Cvc5TermManager* tm, Cvc5Term term);
 /**
  * Create a null tester for a nullable term.
  * @param tm The term manager instance.
  * @param term A nullable term.
  * @return A tester whether term is null.
  */
-Cvc5Term cvc5_mk_nullable_is_null(Cvc5TermManager* tm, Cvc5Term term);
+CVC5_EXPORT Cvc5Term cvc5_mk_nullable_is_null(Cvc5TermManager* tm,
+                                              Cvc5Term term);
 /**
  * Create a some tester for a nullable term.
  * @param tm The term manager instance.
  * @param term A nullable term.
  * @return A tester whether term is some.
  */
-Cvc5Term cvc5_mk_nullable_is_some(Cvc5TermManager* tm, Cvc5Term term);
+CVC5_EXPORT Cvc5Term cvc5_mk_nullable_is_some(Cvc5TermManager* tm,
+                                              Cvc5Term term);
 
 /**
  * Create a constant representing an null of the given sort.
@@ -2534,7 +2782,7 @@ Cvc5Term cvc5_mk_nullable_is_some(Cvc5TermManager* tm, Cvc5Term term);
  * @param sort The sort of the Nullable element.
  * @return The null constant.
  */
-Cvc5Term cvc5_mk_nullable_null(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Term cvc5_mk_nullable_null(Cvc5TermManager* tm, Cvc5Sort sort);
 /**
  * Create a term that lifts kind to nullable terms.
  *
@@ -2553,10 +2801,10 @@ Cvc5Term cvc5_mk_nullable_null(Cvc5TermManager* tm, Cvc5Sort sort);
  *         is a lambda expression, and the remaining children are
  *         the original arguments.
  */
-Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
-                               Cvc5Kind kind,
-                               size_t size,
-                               const Cvc5Term args[]);
+CVC5_EXPORT Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
+                                           Cvc5Kind kind,
+                                           size_t size,
+                                           const Cvc5Term args[]);
 
 /* .................................................................... */
 /* Create Operators                                                     */
@@ -2591,10 +2839,10 @@ Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
  * @note If `idxs` is empty, the Cvc5Op simply wraps the Cvc5Kind. The Cvc5Kind
  * can be used in cvc5_mk_term directly without creating a Cvc5Op first.
  */
-Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
-                  Cvc5Kind kind,
-                  size_t size,
-                  const uint32_t idxs[]);
+CVC5_EXPORT Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
+                              Cvc5Kind kind,
+                              size_t size,
+                              const uint32_t idxs[]);
 
 /**
  * Create operator of kind:
@@ -2606,7 +2854,9 @@ Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
  * @param kind The kind of the operator.
  * @param arg The string argument to this operator.
  */
-Cvc5Op cvc5_mk_op_from_str(Cvc5TermManager* tm, Cvc5Kind kind, const char* arg);
+CVC5_EXPORT Cvc5Op cvc5_mk_op_from_str(Cvc5TermManager* tm,
+                                       Cvc5Kind kind,
+                                       const char* arg);
 
 /* .................................................................... */
 /* Create Constants                                                     */
@@ -2617,14 +2867,14 @@ Cvc5Op cvc5_mk_op_from_str(Cvc5TermManager* tm, Cvc5Kind kind, const char* arg);
  * @param tm The term manager instance.
  * @return The true constant.
  */
-Cvc5Term cvc5_mk_true(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Term cvc5_mk_true(Cvc5TermManager* tm);
 
 /**
  * Create a Boolean false constant.
  * @param tm The term manager instance.
  * @return The false constant.
  */
-Cvc5Term cvc5_mk_false(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Term cvc5_mk_false(Cvc5TermManager* tm);
 
 /**
  * Create a Boolean constant.
@@ -2632,14 +2882,14 @@ Cvc5Term cvc5_mk_false(Cvc5TermManager* tm);
  * @return The Boolean constant.
  * @param val The value of the constant.
  */
-Cvc5Term cvc5_mk_boolean(Cvc5TermManager* tm, bool val);
+CVC5_EXPORT Cvc5Term cvc5_mk_boolean(Cvc5TermManager* tm, bool val);
 
 /**
  * Create a constant representing the number Pi.
  * @param tm The term manager instance.
  * @return A constant representing Pi.
  */
-Cvc5Term cvc5_mk_pi(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Term cvc5_mk_pi(Cvc5TermManager* tm);
 /**
  * Create an integer constant from a string.
  * @param tm The term manager instance.
@@ -2647,7 +2897,7 @@ Cvc5Term cvc5_mk_pi(Cvc5TermManager* tm);
  *          integer (e.g., "123").
  * @return A constant of sort Integer assuming `s` represents an integer)
  */
-Cvc5Term cvc5_mk_integer(Cvc5TermManager* tm, const char* s);
+CVC5_EXPORT Cvc5Term cvc5_mk_integer(Cvc5TermManager* tm, const char* s);
 
 /**
  * Create an integer constant from a c++ int.
@@ -2655,7 +2905,7 @@ Cvc5Term cvc5_mk_integer(Cvc5TermManager* tm, const char* s);
  * @param val The value of the constant.
  * @return A constant of sort Integer.
  */
-Cvc5Term cvc5_mk_integer_int64(Cvc5TermManager* tm, int64_t val);
+CVC5_EXPORT Cvc5Term cvc5_mk_integer_int64(Cvc5TermManager* tm, int64_t val);
 
 /**
  * Create a real constant from a string.
@@ -2664,7 +2914,7 @@ Cvc5Term cvc5_mk_integer_int64(Cvc5TermManager* tm, int64_t val);
  *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
  * @return A constant of sort Real.
  */
-Cvc5Term cvc5_mk_real(Cvc5TermManager* tm, const char* s);
+CVC5_EXPORT Cvc5Term cvc5_mk_real(Cvc5TermManager* tm, const char* s);
 
 /**
  * Create a real constant from an integer.
@@ -2672,7 +2922,7 @@ Cvc5Term cvc5_mk_real(Cvc5TermManager* tm, const char* s);
  * @param val The value of the constant.
  * @return A constant of sort Integer.
  */
-Cvc5Term cvc5_mk_real_int64(Cvc5TermManager* tm, int64_t val);
+CVC5_EXPORT Cvc5Term cvc5_mk_real_int64(Cvc5TermManager* tm, int64_t val);
 
 /**
  * Create a real constant from a rational.
@@ -2681,28 +2931,30 @@ Cvc5Term cvc5_mk_real_int64(Cvc5TermManager* tm, int64_t val);
  * @param den The value of the denominator.
  * @return A constant of sort Real.
  */
-Cvc5Term cvc5_mk_real_num_den(Cvc5TermManager* tm, int64_t num, int64_t den);
+CVC5_EXPORT Cvc5Term cvc5_mk_real_num_den(Cvc5TermManager* tm,
+                                          int64_t num,
+                                          int64_t den);
 
 /**
  * Create a regular expression all (re.all) term.
  * @param tm The term manager instance.
  * @return The all term.
  */
-Cvc5Term cvc5_mk_regexp_all(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Term cvc5_mk_regexp_all(Cvc5TermManager* tm);
 
 /**
  * Create a regular expression allchar (re.allchar) term.
  * @param tm The term manager instance.
  * @return The allchar term.
  */
-Cvc5Term cvc5_mk_regexp_allchar(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Term cvc5_mk_regexp_allchar(Cvc5TermManager* tm);
 
 /**
  * Create a regular expression none (re.none) term.
  * @param tm The term manager instance.
  * @return The none term.
  */
-Cvc5Term cvc5_mk_regexp_none(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Term cvc5_mk_regexp_none(Cvc5TermManager* tm);
 
 /**
  * Create a constant representing an empty set of the given sort.
@@ -2710,7 +2962,7 @@ Cvc5Term cvc5_mk_regexp_none(Cvc5TermManager* tm);
  * @param sort The sort of the set elements.
  * @return The empty set constant.
  */
-Cvc5Term cvc5_mk_empty_set(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Term cvc5_mk_empty_set(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a constant representing an empty bag of the given sort.
@@ -2718,7 +2970,7 @@ Cvc5Term cvc5_mk_empty_set(Cvc5TermManager* tm, Cvc5Sort sort);
  * @param sort The sort of the bag elements.
  * @return The empty bag constant.
  */
-Cvc5Term cvc5_mk_empty_bag(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Term cvc5_mk_empty_bag(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a separation logic empty term.
@@ -2728,7 +2980,7 @@ Cvc5Term cvc5_mk_empty_bag(Cvc5TermManager* tm, Cvc5Sort sort);
  * @param tm The term manager instance.
  * @return The separation logic empty term.
  */
-Cvc5Term cvc5_mk_sep_emp(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5Term cvc5_mk_sep_emp(Cvc5TermManager* tm);
 
 /**
  * Create a separation logic nil term.
@@ -2739,7 +2991,7 @@ Cvc5Term cvc5_mk_sep_emp(Cvc5TermManager* tm);
  * @param sort The sort of the nil term.
  * @return The separation logic nil term.
  */
-Cvc5Term cvc5_mk_sep_nil(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Term cvc5_mk_sep_nil(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a String constant from a regular character string which may contain
@@ -2751,7 +3003,9 @@ Cvc5Term cvc5_mk_sep_nil(Cvc5TermManager* tm, Cvc5Sort sort);
  * be converted to the corresponding unicode character
  * @return The String constant.
  */
-Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq);
+CVC5_EXPORT Cvc5Term cvc5_mk_string(Cvc5TermManager* tm,
+                                    const char* s,
+                                    bool use_esc_seq);
 
 /**
  * Create a String constant from a wide character string.
@@ -2761,7 +3015,8 @@ Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq);
  * @param s The string this constant represents.
  * @return The String constant.
  */
-Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s);
+CVC5_EXPORT Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm,
+                                               const wchar_t* s);
 
 /**
  * Create an empty sequence of the given element sort.
@@ -2769,7 +3024,7 @@ Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s);
  * @param sort The element sort of the sequence.
  * @return The empty sequence with given element sort.
  */
-Cvc5Term cvc5_mk_empty_sequence(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Term cvc5_mk_empty_sequence(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a universe set of the given sort.
@@ -2777,7 +3032,7 @@ Cvc5Term cvc5_mk_empty_sequence(Cvc5TermManager* tm, Cvc5Sort sort);
  * @param sort The sort of the set elements.
  * @return The universe set constant.
  */
-Cvc5Term cvc5_mk_universe_set(Cvc5TermManager* tm, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Term cvc5_mk_universe_set(Cvc5TermManager* tm, Cvc5Sort sort);
 
 /**
  * Create a bit-vector constant of given size and value.
@@ -2789,7 +3044,9 @@ Cvc5Term cvc5_mk_universe_set(Cvc5TermManager* tm, Cvc5Sort sort);
  * @param val The value of the constant.
  * @return The bit-vector constant.
  */
-Cvc5Term cvc5_mk_bv_uint64(Cvc5TermManager* tm, uint32_t size, uint64_t val);
+CVC5_EXPORT Cvc5Term cvc5_mk_bv_uint64(Cvc5TermManager* tm,
+                                       uint32_t size,
+                                       uint64_t val);
 
 /**
  * Create a bit-vector constant of a given bit-width from a given string of
@@ -2804,10 +3061,10 @@ Cvc5Term cvc5_mk_bv_uint64(Cvc5TermManager* tm, uint32_t size, uint64_t val);
  * decimal, and `16` for hexadecimal).
  * @return The bit-vector constant.
  */
-Cvc5Term cvc5_mk_bv(Cvc5TermManager* tm,
-                    uint32_t size,
-                    const char* s,
-                    uint32_t base);
+CVC5_EXPORT Cvc5Term cvc5_mk_bv(Cvc5TermManager* tm,
+                                uint32_t size,
+                                const char* s,
+                                uint32_t base);
 
 /**
  * Create a finite field constant in a given field from a given string
@@ -2822,10 +3079,10 @@ Cvc5Term cvc5_mk_bv(Cvc5TermManager* tm,
  * before being constructed.
  *
  */
-Cvc5Term cvc5_mk_ff_elem(Cvc5TermManager* tm,
-                         const char* value,
-                         Cvc5Sort sort,
-                         uint32_t base);
+CVC5_EXPORT Cvc5Term cvc5_mk_ff_elem(Cvc5TermManager* tm,
+                                     const char* value,
+                                     Cvc5Sort sort,
+                                     uint32_t base);
 /**
  * Create a constant array with the provided constant value stored at every
  * index.
@@ -2834,7 +3091,9 @@ Cvc5Term cvc5_mk_ff_elem(Cvc5TermManager* tm,
  * @param val The constant value to store (must match the sort's element sort).
  * @return The constant array term.
  */
-Cvc5Term cvc5_mk_const_array(Cvc5TermManager* tm, Cvc5Sort sort, Cvc5Term val);
+CVC5_EXPORT Cvc5Term cvc5_mk_const_array(Cvc5TermManager* tm,
+                                         Cvc5Sort sort,
+                                         Cvc5Term val);
 
 /**
  * Create a positive infinity floating-point constant (SMT-LIB: `+oo`).
@@ -2843,7 +3102,9 @@ Cvc5Term cvc5_mk_const_array(Cvc5TermManager* tm, Cvc5Sort sort, Cvc5Term val);
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_pos_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
+CVC5_EXPORT Cvc5Term cvc5_mk_fp_pos_inf(Cvc5TermManager* tm,
+                                        uint32_t exp,
+                                        uint32_t sig);
 
 /**
  * Create a negative infinity floating-point constant (SMT-LIB: `-oo`).
@@ -2852,7 +3113,9 @@ Cvc5Term cvc5_mk_fp_pos_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_neg_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
+CVC5_EXPORT Cvc5Term cvc5_mk_fp_neg_inf(Cvc5TermManager* tm,
+                                        uint32_t exp,
+                                        uint32_t sig);
 
 /**
  * Create a not-a-number floating-point constant (Cvc5TermManager* tm, SMT-LIB:
@@ -2862,7 +3125,9 @@ Cvc5Term cvc5_mk_fp_neg_inf(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_nan(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
+CVC5_EXPORT Cvc5Term cvc5_mk_fp_nan(Cvc5TermManager* tm,
+                                    uint32_t exp,
+                                    uint32_t sig);
 
 /**
  * Create a positive zero floating-point constant (Cvc5TermManager* tm, SMT-LIB:
@@ -2872,7 +3137,9 @@ Cvc5Term cvc5_mk_fp_nan(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_pos_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
+CVC5_EXPORT Cvc5Term cvc5_mk_fp_pos_zero(Cvc5TermManager* tm,
+                                         uint32_t exp,
+                                         uint32_t sig);
 
 /**
  * Create a negative zero floating-point constant (Cvc5TermManager* tm, SMT-LIB:
@@ -2882,7 +3149,9 @@ Cvc5Term cvc5_mk_fp_pos_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
  * @param sig Number of bits in the significand.
  * @return The floating-point constant.
  */
-Cvc5Term cvc5_mk_fp_neg_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
+CVC5_EXPORT Cvc5Term cvc5_mk_fp_neg_zero(Cvc5TermManager* tm,
+                                         uint32_t exp,
+                                         uint32_t sig);
 
 /**
  * Create a rounding mode value.
@@ -2890,7 +3159,7 @@ Cvc5Term cvc5_mk_fp_neg_zero(Cvc5TermManager* tm, uint32_t exp, uint32_t sig);
  * @param rm The floating point rounding mode this constant represents.
  * @return The rounding mode value.
  */
-Cvc5Term cvc5_mk_rm(Cvc5TermManager* tm, Cvc5RoundingMode rm);
+CVC5_EXPORT Cvc5Term cvc5_mk_rm(Cvc5TermManager* tm, Cvc5RoundingMode rm);
 
 /**
  * Create a floating-point value from a bit-vector given in IEEE-754 format.
@@ -2900,10 +3169,10 @@ Cvc5Term cvc5_mk_rm(Cvc5TermManager* tm, Cvc5RoundingMode rm);
  * @param val Value of the floating-point constant as a bit-vector term.
  * @return The floating-point value.
  */
-Cvc5Term cvc5_mk_fp(Cvc5TermManager* tm,
-                    uint32_t exp,
-                    uint32_t sig,
-                    Cvc5Term val);
+CVC5_EXPORT Cvc5Term cvc5_mk_fp(Cvc5TermManager* tm,
+                                uint32_t exp,
+                                uint32_t sig,
+                                Cvc5Term val);
 /**
  * Create a floating-point value from its three IEEE-754 bit-vector
  * value components (sign bit, exponent, significand).
@@ -2913,10 +3182,10 @@ Cvc5Term cvc5_mk_fp(Cvc5TermManager* tm,
  * @param sig The bit-vector representing the significand.
  * @return The floating-point value.
  */
-Cvc5Term cvc5_mk_fp_from_ieee(Cvc5TermManager* tm,
-                              Cvc5Term sign,
-                              Cvc5Term exp,
-                              Cvc5Term sig);
+CVC5_EXPORT Cvc5Term cvc5_mk_fp_from_ieee(Cvc5TermManager* tm,
+                                          Cvc5Term sign,
+                                          Cvc5Term exp,
+                                          Cvc5Term sig);
 
 /**
  * Create a cardinality constraint for an uninterpreted sort.
@@ -2928,9 +3197,9 @@ Cvc5Term cvc5_mk_fp_from_ieee(Cvc5TermManager* tm,
  * @param upperBound The upper bound on the cardinality of the sort.
  * @return The cardinality constraint.
  */
-Cvc5Term cvc5_mk_cardinality_constraint(Cvc5TermManager* tm,
-                                        Cvc5Sort sort,
-                                        uint32_t upperBound);
+CVC5_EXPORT Cvc5Term cvc5_mk_cardinality_constraint(Cvc5TermManager* tm,
+                                                    Cvc5Sort sort,
+                                                    uint32_t upperBound);
 
 /* .................................................................... */
 /* Create Variables                                                     */
@@ -2953,7 +3222,9 @@ Cvc5Term cvc5_mk_cardinality_constraint(Cvc5TermManager* tm,
  * @param symbol The name of the constant, may be NULL.
  * @return The constant.
  */
-Cvc5Term cvc5_mk_const(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol);
+CVC5_EXPORT Cvc5Term cvc5_mk_const(Cvc5TermManager* tm,
+                                   Cvc5Sort sort,
+                                   const char* symbol);
 
 /**
  * Create a bound variable to be used in a binder (i.e., a quantifier, a
@@ -2963,7 +3234,9 @@ Cvc5Term cvc5_mk_const(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol);
  * @param symbol The name of the variable, may be NULL.
  * @return The variable.
  */
-Cvc5Term cvc5_mk_var(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol);
+CVC5_EXPORT Cvc5Term cvc5_mk_var(Cvc5TermManager* tm,
+                                 Cvc5Sort sort,
+                                 const char* symbol);
 
 /* .................................................................... */
 /* Create datatype constructor declarations                             */
@@ -2975,8 +3248,8 @@ Cvc5Term cvc5_mk_var(Cvc5TermManager* tm, Cvc5Sort sort, const char* symbol);
  * @param name The name of the datatype constructor.
  * @return The DatatypeConstructorDecl.
  */
-Cvc5DatatypeConstructorDecl cvc5_mk_dt_cons_decl(Cvc5TermManager* tm,
-                                                 const char* name);
+CVC5_EXPORT Cvc5DatatypeConstructorDecl
+cvc5_mk_dt_cons_decl(Cvc5TermManager* tm, const char* name);
 
 /* .................................................................... */
 /* Create datatype declarations                                         */
@@ -2989,9 +3262,9 @@ Cvc5DatatypeConstructorDecl cvc5_mk_dt_cons_decl(Cvc5TermManager* tm,
  * @param is_codt True if a codatatype is to be constructed.
  * @return The Cvc5DatatypeDecl.
  */
-Cvc5DatatypeDecl cvc5_mk_dt_decl(Cvc5TermManager* tm,
-                                 const char* name,
-                                 bool is_codt);
+CVC5_EXPORT Cvc5DatatypeDecl cvc5_mk_dt_decl(Cvc5TermManager* tm,
+                                             const char* name,
+                                             bool is_codt);
 
 /**
  * Create a datatype declaration.
@@ -3006,17 +3279,18 @@ Cvc5DatatypeDecl cvc5_mk_dt_decl(Cvc5TermManager* tm,
  * @param is_codt True if a codatatype is to be constructed.
  * @return The Cvc5DatatypeDecl.
  */
-Cvc5DatatypeDecl cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
-                                             const char* name,
-                                             size_t size,
-                                             const Cvc5Sort params[],
-                                             bool is_codt);
+CVC5_EXPORT Cvc5DatatypeDecl
+cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
+                            const char* name,
+                            size_t size,
+                            const Cvc5Sort params[],
+                            bool is_codt);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5OptionInfo                                                             */
 /* -------------------------------------------------------------------------- */
 
-enum Cvc5OptionInfoKind
+typedef enum
 {
   CVC5_OPTION_INFO_VOID,
   CVC5_OPTION_INFO_BOOL,
@@ -3025,7 +3299,7 @@ enum Cvc5OptionInfoKind
   CVC5_OPTION_INFO_UINT64,
   CVC5_OPTION_INFO_DOUBLE,
   CVC5_OPTION_INFO_MODES,
-};
+} Cvc5OptionInfoKind;
 
 /**
  * \verbatim embed:rst:leading-asterisk
@@ -3060,7 +3334,7 @@ enum Cvc5OptionInfoKind
  *
  * \endverbatim
  */
-struct Cvc5OptionInfo
+struct CVC5_EXPORT Cvc5OptionInfo
 {
   /** The kind of the option info. */
   Cvc5OptionInfoKind kind;
@@ -3170,7 +3444,56 @@ struct Cvc5OptionInfo
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
+CVC5_EXPORT const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Plugin                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A cvc5 plugin.
+ */
+struct CVC5_EXPORT Cvc5Plugin
+{
+  /**
+   * Call to check, return list of lemmas to add to the SAT solver.
+   * This method is called periodically, roughly at every SAT decision.
+   * @param size  The size of the returned array of lemmas.
+   * @param state The state data for the function, may be NULL.
+   * @return The vector of lemmas to add to the SAT solver.
+   * @note This function pointer may be NULL to use the default implementation.
+   */
+  const Cvc5Term* (*check)(size_t* size, void* state);
+  /**
+   * Notify SAT clause, called when `clause` is learned by the SAT solver.
+   * @param clause The learned clause.
+   * @param state The state data for the function, may be NULL.
+   * @note This function pointer may be NULL to use the default implementation.
+   */
+  void (*notify_sat_clause)(const Cvc5Term clause, void* state);
+  /**
+   * Notify theory lemma, called when `lemma` is sent by a theory solver.
+   * @param lemma The theory lemma.
+   * @param state The state data for the function, may be NULL.
+   * @note This function pointer may be NULL to use the default implementation.
+   */
+  void (*notify_theory_lemma)(const Cvc5Term lemma, void* state);
+  /**
+   * Get the name of the plugin (for debugging).
+   * @return The name of the plugin.
+   * @note This function pointer may NOT be NULL.
+   */
+  const char* (*get_name)();
+
+  /** The state to pass into `check`. */
+  void* d_check_state;
+  /** The state to pass into `notify_sat_clause`. */
+  void* d_notify_sat_clause_state;
+  /** The state to pass into `notify_theory_lemma`. */
+  void* d_notify_theory_lemma_state;
+};
+
+typedef struct Cvc5Plugin Cvc5Plugin;
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Proof                                                                  */
@@ -3180,7 +3503,7 @@ const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
  * Get the proof rule used by the root step of a given proof.
  * @return The proof rule.
  */
-Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof);
+CVC5_EXPORT Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof);
 
 /**
  * Get the proof rewrite rule used  by the root step of the proof.
@@ -3192,14 +3515,14 @@ Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof);
  * @param proof The proof.
  * @return The proof rewrite rule.
  */
-Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof);
+CVC5_EXPORT Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof);
 
 /**
  * Get the conclusion of the root step of a given proof.
  * @param proof The proof.
  * @return The conclusion term.
  */
-Cvc5Term cvc5_proof_get_result(Cvc5Proof proof);
+CVC5_EXPORT Cvc5Term cvc5_proof_get_result(Cvc5Proof proof);
 
 /**
  * Get the premises of the root step of a given proof.
@@ -3210,7 +3533,8 @@ Cvc5Term cvc5_proof_get_result(Cvc5Proof proof);
  * @note The returned Cvc5Proof array pointer is only valid until the next call
  *       to this function.
  */
-const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof, size_t* size);
+CVC5_EXPORT const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof,
+                                                     size_t* size);
 
 /**
  * Get the arguments of the root step of a given proof.
@@ -3219,7 +3543,8 @@ const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof, size_t* size);
  *              terms.
  * @return The argument terms.
  */
-const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof,
+                                                     size_t* size);
 
 /**
  * Compare two proofs for referential equality.
@@ -3227,7 +3552,7 @@ const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size);
  * @param b The second proof.
  * @return  True if both proof pointers point to the same internal proof object.
  */
-bool cvc5_proof_is_equal(Cvc5Proof a, Cvc5Proof b);
+CVC5_EXPORT bool cvc5_proof_is_equal(Cvc5Proof a, Cvc5Proof b);
 
 /**
  * Compare two proofs for referential disequality.
@@ -3236,14 +3561,180 @@ bool cvc5_proof_is_equal(Cvc5Proof a, Cvc5Proof b);
  * @return  True if both proof pointers point to different internal proof
  *          objects.
  */
-bool cvc5_proof_is_disequal(Cvc5Proof a, Cvc5Proof b);
+CVC5_EXPORT bool cvc5_proof_is_disequal(Cvc5Proof a, Cvc5Proof b);
 
 /**
  * Compute the hash value of a proof.
  * @param proof The proof.
  * @return The hash value of the proof.
  */
-size_t cvc5_proof_hash(Cvc5Proof proof);
+CVC5_EXPORT size_t cvc5_proof_hash(Cvc5Proof proof);
+
+/**
+ * Make copy of proof, increases reference counter of `proof`.
+ *
+ * @param proof The proof to copy.
+ * @return The same proof with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Proof cvc5_proof_copy(Cvc5Proof proof);
+
+/**
+ * Release copy of proof, decrements reference counter of `proof`.
+ *
+ * @param proof The proof to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_proof_release(Cvc5Proof proof);
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Stat                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Determine if a given statistic is intended for internal use only.
+ * @param stat The statistic.
+ * @return True if this is an internal statistic.
+ */
+CVC5_EXPORT bool cvc5_stat_is_internal(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistics statistic holds the default value.
+ * @param stat The statistic.
+ * @return True if this is a defaulted statistic.
+ */
+CVC5_EXPORT bool cvc5_stat_is_default(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistic holds an integer value.
+ * @param stat The statistic.
+ * @return True if this value is an integer.
+ */
+CVC5_EXPORT bool cvc5_stat_is_int(Cvc5Stat stat);
+
+/**
+ * Get the value of an integer statistic.
+ * @param stat The statistic.
+ * @return The integer value.
+ */
+CVC5_EXPORT int64_t cvc5_stat_get_int(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistic holds a double value.
+ * @param stat The statistic.
+ * @return True if this value is a double.
+ */
+CVC5_EXPORT bool cvc5_stat_is_double(Cvc5Stat stat);
+
+/**
+ * Get the value of a double statistic.
+ * @param stat The statistic.
+ * @return The double value.
+ */
+double cvc5_stat_get_double(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistic holds a string value.
+ * @param stat The statistic.
+ * @return True if this value is a string.
+ */
+CVC5_EXPORT bool cvc5_stat_is_string(Cvc5Stat stat);
+
+/**
+ * Get value of a string statistic.
+ * @param stat The statistic.
+ * @return The string value.
+ * @note The returned char pointer is only valid until the next call
+ *       to this function.
+ */
+CVC5_EXPORT const char* cvc5_stat_get_string(Cvc5Stat stat);
+
+/**
+ * Determine if a given statistic holds a histogram.
+ * @param stat The statistic.
+ * @return True if this value is a histogram.
+ */
+CVC5_EXPORT bool cvc5_stat_is_histogram(Cvc5Stat stat);
+
+/**
+ * Get the value of a histogram statistic.
+ * @param stat The statistic.
+ * @return The histogram value.
+ */
+CVC5_EXPORT void cvc5_stat_get_histogram(Cvc5Stat stat,
+                                         const char** keys[],
+                                         uint64_t* values[],
+                                         size_t* size);
+
+/**
+ * Get a string representation of a given statistic.
+ * @param stat The statistic.
+ * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_stat_to_string(Cvc5Stat stat);
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Statistics                                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Initialize iteration over the statistics values.
+ * By default, only entries that are public and have been set
+ * are visible while the others are skipped.
+ * @param stat The statistics.
+ * @param internal If set to true, internal statistics are shown as well.
+ * @param dflt     If set to true, defaulted statistics are shown as well.
+ */
+CVC5_EXPORT void cvc5_stats_iter_init(Cvc5Statistics stat,
+                                      bool internal,
+                                      bool dflt);
+
+/**
+ * Determine if statistics iterator has more statitics to query.
+ * @note Requires that iterator was initialized with `cvc5_stats_iter_init()`.
+ * @param stat The statistics.
+ * @return True if the iterator has more statistics to query.
+ */
+CVC5_EXPORT bool cvc5_stats_iter_has_next(Cvc5Statistics stat);
+
+/**
+ * Get next statistic and increment iterator.
+ * @note Requires that iterator was initialized with `cvc5_stats_iter_init()`
+ *       and that `cvc5_stats_iter_has_next()`.
+ * @param stat The statistics.
+ * @param name The output parameter for the name of the returned statistic.
+ *             May be NULL to ignore.
+ * @note       The returned char* pointer are only valid until the next call to
+ *             this function.
+ * @return The next statistic.
+ */
+CVC5_EXPORT Cvc5Stat cvc5_stats_iter_next(Cvc5Statistics stat,
+                                          const char** name);
+
+/**
+ * Retrieve the statistic with the given name.
+ * @note Requires that a statistic with the given name actually exists.
+ * @param stat The statistics.
+ * @param name The name of the statistic.
+ * @return The statistic with the given name.
+ */
+CVC5_EXPORT Cvc5Stat cvc5_stats_get(Cvc5Statistics stat, const char* name);
+
+/**
+ * Get a string representation of a given statistics object.
+ * @param stat The statistics.
+ * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_stats_to_string(Cvc5Statistics stat);
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
@@ -3254,13 +3745,13 @@ size_t cvc5_proof_hash(Cvc5Proof proof);
  * @param tm The associated term manager instance.
  * @return The cvc5 solver instance.
  */
-Cvc5* cvc5_new(Cvc5TermManager* tm);
+CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
 
 /**
  * Delete a cvc5 solver instance.
  * @param cvc5 The solver instance.
  */
-void cvc5_delete(Cvc5* cvc5);
+CVC5_EXPORT void cvc5_delete(Cvc5* cvc5);
 
 /* .................................................................... */
 /* SMT-LIB-style Term/Sort Creation                                     */
@@ -3283,10 +3774,10 @@ void cvc5_delete(Cvc5* cvc5);
  * @param ctors The constructor declarations.
  * @return The datatype sort.
  */
-Cvc5Sort cvc5_declare_dt(Cvc5* cvc5,
-                         const char* symbol,
-                         size_t size,
-                         const Cvc5DatatypeConstructorDecl ctors[]);
+CVC5_EXPORT Cvc5Sort cvc5_declare_dt(Cvc5* cvc5,
+                                     const char* symbol,
+                                     size_t size,
+                                     const Cvc5DatatypeConstructorDecl ctors[]);
 
 /**
  * Declare n-ary function symbol.
@@ -3309,12 +3800,12 @@ Cvc5Sort cvc5_declare_dt(Cvc5* cvc5,
  *               the given sorts and symbol where fresh is false.
  * @return The function.
  */
-Cvc5Term cvc5_declare_fun(Cvc5* cvc5,
-                          const char* symbol,
-                          size_t size,
-                          const Cvc5Sort sorts[],
-                          Cvc5Sort sort,
-                          bool fresh);
+CVC5_EXPORT Cvc5Term cvc5_declare_fun(Cvc5* cvc5,
+                                      const char* symbol,
+                                      size_t size,
+                                      const Cvc5Sort sorts[],
+                                      Cvc5Sort sort,
+                                      bool fresh);
 
 /**
  * Declare uninterpreted sort.
@@ -3337,10 +3828,10 @@ Cvc5Term cvc5_declare_fun(Cvc5* cvc5,
  * @param fresh  If true, then this method always returns a new Sort.
  * @return The sort.
  */
-Cvc5Sort cvc5_declare_sort(Cvc5* cvc5,
-                           const char* symbol,
-                           uint32_t arity,
-                           bool fresh);
+CVC5_EXPORT Cvc5Sort cvc5_declare_sort(Cvc5* cvc5,
+                                       const char* symbol,
+                                       uint32_t arity,
+                                       bool fresh);
 
 /**
  * Define n-ary function.
@@ -3363,13 +3854,13 @@ Cvc5Sort cvc5_declare_sort(Cvc5* cvc5,
  *               when popping the context).
  * @return The function.
  */
-Cvc5Term cvc5_define_fun(Cvc5* cvc5,
-                         const char* symbol,
-                         size_t size,
-                         const Cvc5Term vars[],
-                         const Cvc5Sort sort,
-                         const Cvc5Term term,
-                         bool global);
+CVC5_EXPORT Cvc5Term cvc5_define_fun(Cvc5* cvc5,
+                                     const char* symbol,
+                                     size_t size,
+                                     const Cvc5Term vars[],
+                                     const Cvc5Sort sort,
+                                     const Cvc5Term term,
+                                     bool global);
 
 /**
  * Define recursive function.
@@ -3392,13 +3883,13 @@ Cvc5Term cvc5_define_fun(Cvc5* cvc5,
  *               when popping the context).
  * @return The function.
  */
-Cvc5Term cvc5_define_fun_rec(Cvc5* cvc5,
-                             const char* symbol,
-                             size_t size,
-                             const Cvc5Term vars[],
-                             const Cvc5Sort sort,
-                             const Cvc5Term term,
-                             bool global);
+CVC5_EXPORT Cvc5Term cvc5_define_fun_rec(Cvc5* cvc5,
+                                         const char* symbol,
+                                         size_t size,
+                                         const Cvc5Term vars[],
+                                         const Cvc5Sort sort,
+                                         const Cvc5Term term,
+                                         bool global);
 /**
  * Define recursive function.
  *
@@ -3421,12 +3912,12 @@ Cvc5Term cvc5_define_fun_rec(Cvc5* cvc5,
  *               when popping the context).
  * @return The function.
  */
-Cvc5Term cvc5_define_fun_rec_from_const(Cvc5* cvc5,
-                                        Cvc5Term fun,
-                                        size_t size,
-                                        const Cvc5Term vars[],
-                                        const Cvc5Term term,
-                                        bool global);
+CVC5_EXPORT Cvc5Term cvc5_define_fun_rec_from_const(Cvc5* cvc5,
+                                                    Cvc5Term fun,
+                                                    size_t size,
+                                                    const Cvc5Term vars[],
+                                                    const Cvc5Term term,
+                                                    bool global);
 /**
  * Define recursive functions.
  *
@@ -3452,13 +3943,13 @@ Cvc5Term cvc5_define_fun_rec_from_const(Cvc5* cvc5,
  * @param global Determines whether this definition is global (i.e., persists
  *               when popping the context).
  */
-void cvc5_define_funs_rec(Cvc5* cvc5,
-                          size_t nfuns,
-                          const Cvc5Term funs[],
-                          size_t nvars[],
-                          const Cvc5Term* vars[],
-                          const Cvc5Term terms[],
-                          bool global);
+CVC5_EXPORT void cvc5_define_funs_rec(Cvc5* cvc5,
+                                      size_t nfuns,
+                                      const Cvc5Term funs[],
+                                      size_t nvars[],
+                                      const Cvc5Term* vars[],
+                                      const Cvc5Term terms[],
+                                      bool global);
 
 /* .................................................................... */
 /* Other commands                                                       */
@@ -3478,7 +3969,7 @@ void cvc5_define_funs_rec(Cvc5* cvc5,
  * @param apply_subs True to apply substitutions for solved variables.
  * @return The simplified formula.
  */
-Cvc5Term cvc5_simplify(Cvc5* cvc5, Cvc5Term term, bool apply_subs);
+CVC5_EXPORT Cvc5Term cvc5_simplify(Cvc5* cvc5, Cvc5Term term, bool apply_subs);
 
 /**
  * Assert a formula.
@@ -3494,7 +3985,7 @@ Cvc5Term cvc5_simplify(Cvc5* cvc5, Cvc5Term term, bool apply_subs);
  * @param cvc5 The solver instance.
  * @param term The formula to assert.
  */
-void cvc5_assert_formula(Cvc5* cvc5, Cvc5Term term);
+CVC5_EXPORT void cvc5_assert_formula(Cvc5* cvc5, Cvc5Term term);
 
 /**
  * Check satisfiability.
@@ -3510,7 +4001,7 @@ void cvc5_assert_formula(Cvc5* cvc5, Cvc5Term term);
  * @param cvc5 The solver instance.
  * @return The result of the satisfiability check.
  */
-Cvc5Result cvc5_check_sat(Cvc5* cvc5);
+CVC5_EXPORT Cvc5Result cvc5_check_sat(Cvc5* cvc5);
 
 /**
  * Check satisfiability assuming the given formulas.
@@ -3528,9 +4019,9 @@ Cvc5Result cvc5_check_sat(Cvc5* cvc5);
  * @param assumptions The formulas to assume.
  * @return The result of the satisfiability check.
  */
-Cvc5Result cvc5_check_sat_assuming(Cvc5* cvc5,
-                                   size_t size,
-                                   const Cvc5Term assumptions[]);
+CVC5_EXPORT Cvc5Result cvc5_check_sat_assuming(Cvc5* cvc5,
+                                               size_t size,
+                                               const Cvc5Term assumptions[]);
 /**
  * Get the list of asserted formulas.
  *
@@ -3548,7 +4039,7 @@ Cvc5Result cvc5_check_sat_assuming(Cvc5* cvc5,
  * @note The returned Cvc5Term array pointer is only valid until the next call
  *       to this function.
  */
-const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t* size);
 
 /**
  * Get info from the solver.
@@ -3566,7 +4057,7 @@ const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t* size);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_get_info(Cvc5* cvc5, const char* flag);
+CVC5_EXPORT const char* cvc5_get_info(Cvc5* cvc5, const char* flag);
 
 /**
  * Get the value of a given option.
@@ -3585,7 +4076,7 @@ const char* cvc5_get_info(Cvc5* cvc5, const char* flag);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_get_option(Cvc5* cvc5, const char* option);
+CVC5_EXPORT const char* cvc5_get_option(Cvc5* cvc5, const char* option);
 
 /**
  * Get all option names that can be used with `cvc5_set_option()`,
@@ -3596,7 +4087,7 @@ const char* cvc5_get_option(Cvc5* cvc5, const char* option);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size);
+CVC5_EXPORT const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size);
 
 /**
  * Get some information about a given option.
@@ -3607,7 +4098,9 @@ const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size);
  * @note The returned Cvc5OptionInfo data is only valid until the next call
  *       to this function.
  */
-void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info);
+CVC5_EXPORT void cvc5_get_option_info(Cvc5* cvc5,
+                                      const char* option,
+                                      Cvc5OptionInfo* info);
 
 /**
  * Get the set of unsat ("failed") assumptions.
@@ -3630,7 +4123,8 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info);
  * @param size The number of the resulting unsat assumptions.
  * @return The set of unsat assumptions.
  */
-const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5,
+                                                       size_t* size);
 
 /**
  * Get the unsatisfiable core.
@@ -3660,7 +4154,7 @@ const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* size);
  * @param size The size of the resulting unsat core.
  * @return A set of terms representing the unsatisfiable core.
  */
-const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size);
 
 /**
  * Get the lemmas used to derive unsatisfiability.
@@ -3687,7 +4181,8 @@ const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size);
  * @return A set of terms representing the lemmas used to derive
  *         unsatisfiability.
  */
-const Cvc5Term* cvc5_get_unsat_core_lemmas(Cvc5* cvc5, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_unsat_core_lemmas(Cvc5* cvc5,
+                                                       size_t* size);
 
 /**
  * Get a difficulty estimate for an asserted formula. This function is
@@ -3707,10 +4202,10 @@ const Cvc5Term* cvc5_get_unsat_core_lemmas(Cvc5* cvc5, size_t* size);
  * @note The resulting `inputs` and `values` array pointers are only valid
  *       until the next call to this function.
  */
-void cvc5_get_difficulty(Cvc5* cvc5,
-                         size_t* size,
-                         Cvc5Term* inputs[],
-                         Cvc5Term* values[]);
+CVC5_EXPORT void cvc5_get_difficulty(Cvc5* cvc5,
+                                     size_t* size,
+                                     Cvc5Term* inputs[],
+                                     Cvc5Term* values[]);
 
 /**
  * Get a timeout core.
@@ -3751,9 +4246,9 @@ void cvc5_get_difficulty(Cvc5* cvc5,
  * @note The resulting `result` and term array pointer are only valid
  *       until the next call to this function.
  */
-const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
-                                      Cvc5Result* result,
-                                      size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
+                                                  Cvc5Result* result,
+                                                  size_t* size);
 
 /**
  * Get a timeout core of the given assumptions.
@@ -3795,11 +4290,12 @@ const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
  * @note The resulting `result` and term array pointer are only valid
  *       until the next call to this function.
  */
-const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
-                                               size_t size,
-                                               const Cvc5Term assumptions[],
-                                               Cvc5Result* result,
-                                               size_t* rsize);
+CVC5_EXPORT const Cvc5Term* cvc5_get_timeout_core_assuming(
+    Cvc5* cvc5,
+    size_t size,
+    const Cvc5Term assumptions[],
+    Cvc5Result* result,
+    size_t* rsize);
 
 /**
  * Get a proof associated with the most recent call to checkSat.
@@ -3827,7 +4323,9 @@ const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
  * @note The returned Cvc5Proof array pointer is only valid until the next call
  *       to this function.
  */
-const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c, size_t* size);
+CVC5_EXPORT const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5,
+                                            Cvc5ProofComponent c,
+                                            size_t* size);
 
 /**
  * Get a list of learned literals that are entailed by the current set of
@@ -3843,9 +4341,9 @@ const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c, size_t* size);
  * @note The resulting Cvc5Term array pointer is only valid until the next call
  *       to this function.
  */
-const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
-                                          Cvc5LearnedLitType type,
-                                          size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
+                                                      Cvc5LearnedLitType type,
+                                                      size_t* size);
 
 /**
  * Get the value of the given term in the current model.
@@ -3862,7 +4360,7 @@ const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
  * @param term The term for which the value is queried.
  * @return The value of the given term.
  */
-Cvc5Term cvc5_get_value(Cvc5* cvc5, Cvc5Term term);
+CVC5_EXPORT Cvc5Term cvc5_get_value(Cvc5* cvc5, Cvc5Term term);
 
 /**
  * Get the values of the given terms in the current model.
@@ -3881,10 +4379,10 @@ Cvc5Term cvc5_get_value(Cvc5* cvc5, Cvc5Term term);
  * @param rsize The resulting size of the timeout core.
  * @return The values of the given terms.
  */
-const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
-                                size_t size,
-                                const Cvc5Term terms[],
-                                size_t* rsize);
+CVC5_EXPORT const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
+                                            size_t size,
+                                            const Cvc5Term terms[],
+                                            size_t* rsize);
 
 /**
  * Get the domain elements of uninterpreted sort s in the current model. The
@@ -3896,9 +4394,9 @@ const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
  * @param size The size of the resulting domain elements array.
  * @return The domain elements of s in the current model.
  */
-const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
-                                               Cvc5Sort sort,
-                                               size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
+                                                           Cvc5Sort sort,
+                                                           size_t* size);
 
 /**
  * Determine if the model value of the given free constant was essential for
@@ -3916,7 +4414,7 @@ const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
  * @param v The term in question.
  * @return True if `v` was essential and is thus a model core symbol.
  */
-bool cvc5_is_model_core_symbol(Cvc5* cvc5, Cvc5Term v);
+CVC5_EXPORT bool cvc5_is_model_core_symbol(Cvc5* cvc5, Cvc5Term v);
 
 /**
  * Get the model
@@ -3947,11 +4445,11 @@ bool cvc5_is_model_core_symbol(Cvc5* cvc5, Cvc5Term v);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_get_model(Cvc5* cvc5,
-                           size_t nsorts,
-                           const Cvc5Sort sorts[],
-                           size_t nconsts,
-                           const Cvc5Term consts[]);
+CVC5_EXPORT const char* cvc5_get_model(Cvc5* cvc5,
+                                       size_t nsorts,
+                                       const Cvc5Sort sorts[],
+                                       size_t nconsts,
+                                       const Cvc5Term consts[]);
 
 /**
  * Do quantifier elimination.
@@ -3982,7 +4480,7 @@ const char* cvc5_get_model(Cvc5* cvc5,
  *         - @f$\phi@f$ is quantifier-free formula containing only free
  *           variables in @f$y_1...y_n@f$.
  */
-Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
+CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
 
 /**
  * Do partial quantifier elimination, which can be used for incrementally
@@ -4031,7 +4529,8 @@ Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
  *           In either case, we have that @f$(\phi \wedge Q_j)@f$ will
  *           eventually be true or false, for some finite j.
  */
-Cvc5Term cvc5_get_quantifier_elimination_disjunct(Cvc5* cvc5, Cvc5Term q);
+CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination_disjunct(Cvc5* cvc5,
+                                                              Cvc5Term q);
 
 /**
  * When using separation logic, this sets the location sort and the
@@ -4044,7 +4543,7 @@ Cvc5Term cvc5_get_quantifier_elimination_disjunct(Cvc5* cvc5, Cvc5Term q);
  * @param loc The location sort of the heap.
  * @param data The data sort of the heap.
  */
-void cvc5_declare_sep_heap(Cvc5* cvc5, Cvc5Sort loc, Cvc5Sort data);
+CVC5_EXPORT void cvc5_declare_sep_heap(Cvc5* cvc5, Cvc5Sort loc, Cvc5Sort data);
 
 /**
  * When using separation logic, obtain the term for the heap.
@@ -4054,7 +4553,7 @@ void cvc5_declare_sep_heap(Cvc5* cvc5, Cvc5Sort loc, Cvc5Sort data);
  * @param cvc5 The solver instance.
  * @return The term for the heap.
  */
-Cvc5Term cvc5_get_value_sep_heap(Cvc5* cvc5);
+CVC5_EXPORT Cvc5Term cvc5_get_value_sep_heap(Cvc5* cvc5);
 
 /**
  * When using separation logic, obtain the term for nil.
@@ -4064,7 +4563,7 @@ Cvc5Term cvc5_get_value_sep_heap(Cvc5* cvc5);
  * @param cvc5 The solver instance.
  * @return The term for nil.
  */
-Cvc5Term cvc5_get_value_sep_nil(Cvc5* cvc5);
+CVC5_EXPORT Cvc5Term cvc5_get_value_sep_nil(Cvc5* cvc5);
 
 /**
  * Declare a symbolic pool of terms with the given initial value.
@@ -4089,11 +4588,11 @@ Cvc5Term cvc5_get_value_sep_nil(Cvc5* cvc5);
  * @param init_value The initial value of the pool.
  * @return The pool symbol.
  */
-Cvc5Term cvc5_declare_pool(Cvc5* cvc5,
-                           const char* symbol,
-                           Cvc5Sort sort,
-                           size_t size,
-                           const Cvc5Term init_value[]);
+CVC5_EXPORT Cvc5Term cvc5_declare_pool(Cvc5* cvc5,
+                                       const char* symbol,
+                                       Cvc5Sort sort,
+                                       size_t size,
+                                       const Cvc5Term init_value[]);
 /**
  * Declare an oracle function with reference to an implementation.
  *
@@ -4114,20 +4613,35 @@ Cvc5Term cvc5_declare_pool(Cvc5* cvc5,
  *
  * @warning This function is experimental and may change in future versions.
  *
- * @param cvc5 The solver instance.
+ * @param cvc5   The solver instance.
  * @param symbol The name of the oracle
- * @param nsorts The number of domain sorts of the oracle function.
- * @param sorts The domain sorts.
- * @param sort The sort of the return value of this function.
- * @param fun The function that implements the oracle function.
- * @return The oracle function
+ * @param size   The number of domain sorts of the oracle function.
+ * @param sorts  The domain sorts.
+ * @param sort   The sort of the return value of this function.
+ * @param state  The state data for the oracle function, may be NULL.
+ * @param fun    The function that implements the oracle function, taking a
+ *               an array of term arguments and its size and a void pointer
+ *               to optionally capture any state data the function may need.
+ * @return The oracle function.
  */
-Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
-                                 const char* symbol,
-                                 size_t nsorts,
-                                 const Cvc5Sort sorts[],
-                                 Cvc5Sort sort,
-                                 Cvc5Term (*fun)(const Cvc5Term*));
+CVC5_EXPORT Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
+                                             const char* symbol,
+                                             size_t size,
+                                             const Cvc5Sort sorts[],
+                                             Cvc5Sort sort,
+                                             void* state,
+                                             Cvc5Term (*fun)(size_t,
+                                                             const Cvc5Term*,
+                                                             void*));
+/**
+ * Add plugin to this solver. Its callbacks will be called throughout the
+ * lifetime of this solver.
+ * @warning This function is experimental and may change in future versions.
+ * @param cvc5   The solver instance.
+ * @param plugin The plugin to add to this solver.
+ */
+CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
+
 /**
  * Get an interpolant
  *
@@ -4151,7 +4665,7 @@ Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
  *         current set of assertions and @f$B@f$ is given in the input by
  *         `conj`, or the null term if such a term cannot be found.
  */
-Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
+CVC5_EXPORT Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
 
 /**
  * Get an interpolant
@@ -4177,9 +4691,9 @@ Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
  *         current set of assertions and @f$B@f$ is given in the input by
  *         `conj`, or the null term if such a term cannot be found.
  */
-Cvc5Term cvc5_get_interpolant_with_grammar(Cvc5* cvc5,
-                                           Cvc5Term conj,
-                                           Cvc5Grammar* grammar);
+CVC5_EXPORT Cvc5Term cvc5_get_interpolant_with_grammar(Cvc5* cvc5,
+                                                       Cvc5Term conj,
+                                                       Cvc5Grammar grammar);
 
 /**
  * Get the next interpolant. Can only be called immediately after a successful
@@ -4206,7 +4720,7 @@ Cvc5Term cvc5_get_interpolant_with_grammar(Cvc5* cvc5,
  *         current set of assertions and @f$B@f$ is given in the input by
  *         `conj`, or the null term if such a term cannot be found.
  */
-Cvc5Term cvc5_get_interpolant_next(Cvc5* cvc5);
+CVC5_EXPORT Cvc5Term cvc5_get_interpolant_next(Cvc5* cvc5);
 
 /**
  * Get an abduct.
@@ -4232,7 +4746,7 @@ Cvc5Term cvc5_get_interpolant_next(Cvc5* cvc5);
  *         given in the input by ``conj``, or the null term if such a term
  *         cannot be found.
  */
-Cvc5Term cvc5_get_abduct(Cvc5* cvc5, Cvc5Term conj);
+CVC5_EXPORT Cvc5Term cvc5_get_abduct(Cvc5* cvc5, Cvc5Term conj);
 
 /**
  * Get an abduct.
@@ -4258,9 +4772,9 @@ Cvc5Term cvc5_get_abduct(Cvc5* cvc5, Cvc5Term conj);
  *        the current set of assertions and @f$B@f$ is given in the input by
  *        `conj`, or the null term if such a term cannot be found.
  */
-Cvc5Term cvc5_get_abduct_with_grammar(Cvc5* cvc5,
-                                      Cvc5Term conj,
-                                      Cvc5Grammar* grammar);
+CVC5_EXPORT Cvc5Term cvc5_get_abduct_with_grammar(Cvc5* cvc5,
+                                                  Cvc5Term conj,
+                                                  Cvc5Grammar grammar);
 
 /**
  * Get the next abduct. Can only be called immediately after a successful
@@ -4287,7 +4801,7 @@ Cvc5Term cvc5_get_abduct_with_grammar(Cvc5* cvc5,
  *        the last call to getAbduct(), or the null term if such a term
  *        cannot be found.
  */
-Cvc5Term cvc5_get_abduct_next(Cvc5* cvc5);
+CVC5_EXPORT Cvc5Term cvc5_get_abduct_next(Cvc5* cvc5);
 
 /**
  * Block the current model. Can be called only if immediately preceded by a
@@ -4309,7 +4823,7 @@ Cvc5Term cvc5_get_abduct_next(Cvc5* cvc5);
  * @param cvc5 The solver instance.
  * @param mode The mode to use for blocking.
  */
-void cvc5_block_model(Cvc5BlockModelsMode mode);
+CVC5_EXPORT void cvc5_block_model(Cvc5* cvc5, Cvc5BlockModelsMode mode);
 
 /**
  * Block the current model values of (at least) the values in terms. Can be
@@ -4331,7 +4845,9 @@ void cvc5_block_model(Cvc5BlockModelsMode mode);
  * @param size The number of values to block.
  * @param terms The values to block.
  */
-void cvc5_block_model_values(Cvc5* cvc5, size_t size, const Cvc5Term terms[]);
+CVC5_EXPORT void cvc5_block_model_values(Cvc5* cvc5,
+                                         size_t size,
+                                         const Cvc5Term terms[]);
 
 /**
  * @warning This function is experimental and may change in future versions.
@@ -4342,7 +4858,7 @@ void cvc5_block_model_values(Cvc5* cvc5, size_t size, const Cvc5Term terms[]);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_get_instantiations(Cvc5* cvc5);
+CVC5_EXPORT const char* cvc5_get_instantiations(Cvc5* cvc5);
 
 /**
  * Push (a) level(s) to the assertion stack.
@@ -4358,7 +4874,7 @@ const char* cvc5_get_instantiations(Cvc5* cvc5);
  * @param cvc5 The solver instance.
  * @param nscopes The number of levels to push.
  */
-void cvc5_push(Cvc5* cvc5, uint32_t nscopes);
+CVC5_EXPORT void cvc5_push(Cvc5* cvc5, uint32_t nscopes);
 
 /**
  * Pop (a) level(s) from the assertion stack.
@@ -4374,7 +4890,7 @@ void cvc5_push(Cvc5* cvc5, uint32_t nscopes);
  * @param cvc5 The solver instance.
  * @param nscopes The number of levels to pop.
  */
-void cvc5_pop(Cvc5* cvc5, uint32_t nscopes);
+CVC5_EXPORT void cvc5_pop(Cvc5* cvc5, uint32_t nscopes);
 
 /**
  * Remove all assertions.
@@ -4389,7 +4905,7 @@ void cvc5_pop(Cvc5* cvc5, uint32_t nscopes);
  *
  * @param cvc5 The solver instance.
  */
-void cvc5_reset_assertions(Cvc5* cvc5);
+CVC5_EXPORT void cvc5_reset_assertions(Cvc5* cvc5);
 
 /**
  * Set info.
@@ -4406,7 +4922,9 @@ void cvc5_reset_assertions(Cvc5* cvc5);
  * @param keyword The info flag.
  * @param value The value of the info flag.
  */
-void cvc5_set_info(Cvc5* cvc5, const char* keyword, const char* value);
+CVC5_EXPORT void cvc5_set_info(Cvc5* cvc5,
+                               const char* keyword,
+                               const char* value);
 
 /**
  * Set logic.
@@ -4422,7 +4940,7 @@ void cvc5_set_info(Cvc5* cvc5, const char* keyword, const char* value);
  * @param cvc5 The solver instance.
  * @param logic The logic to set.
  */
-void cvc5_set_logic(Cvc5* cvc5, const char* logic);
+CVC5_EXPORT void cvc5_set_logic(Cvc5* cvc5, const char* logic);
 
 /**
  * Determine if `cvc5_set_logic()` has been called.
@@ -4430,7 +4948,7 @@ void cvc5_set_logic(Cvc5* cvc5, const char* logic);
  * @return True if `setLogic()` has already been called for the given solver
  *         instance.
  */
-bool cvc5_is_logic_set(Cvc5* cvc5);
+CVC5_EXPORT bool cvc5_is_logic_set(Cvc5* cvc5);
 
 /**
  * Get the logic set the solver.
@@ -4439,7 +4957,7 @@ bool cvc5_is_logic_set(Cvc5* cvc5);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_get_logic(Cvc5* cvc5);
+CVC5_EXPORT const char* cvc5_get_logic(Cvc5* cvc5);
 
 /**
  * Set option.
@@ -4456,7 +4974,9 @@ const char* cvc5_get_logic(Cvc5* cvc5);
  * @param option The option name.
  * @param value The option value.
  */
-void cvc5_set_option(Cvc5* cvc5, const char* option, const char* value);
+CVC5_EXPORT void cvc5_set_option(Cvc5* cvc5,
+                                 const char* option,
+                                 const char* value);
 
 /**
  * Append \p symbol to the current list of universal variables.
@@ -4474,22 +4994,26 @@ void cvc5_set_option(Cvc5* cvc5, const char* option, const char* value);
  * @param symbol The name of the universal variable.
  * @return The universal variable.
  */
-Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5, const char* symbol, Cvc5Sort sort);
+CVC5_EXPORT Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5,
+                                            const char* symbol,
+                                            Cvc5Sort sort);
 
 /**
  * Create a Sygus grammar. The first non-terminal is treated as the starting
  * non-terminal, so the order of non-terminals matters.
  *
- * @param cvc5 The solver instance.
- * @param size The number of parameters.
- * @param bound_vars The parameters to corresponding synth-fun/synth-inv.
- * @param symbols The pre-declaration of the non-terminal symbols.
+ * @param cvc5        The solver instance.
+ * @param nbound_vars The number of bound variabls.
+ * @param bound_vars  The parameters to corresponding synth-fun/synth-inv.
+ * @param nsymbols    The number of symbols.
+ * @param symbols     The pre-declaration of the non-terminal symbols.
  * @return The grammar.
  */
-Cvc5Grammar* cvc5_mk_grammar(Cvc5* cvc5,
-                             size_t size,
-                             const Cvc5Term bound_vars[],
-                             Cvc5Term symbols);
+CVC5_EXPORT Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
+                                        size_t nbound_vars,
+                                        const Cvc5Term bound_vars[],
+                                        size_t nsymbols,
+                                        const Cvc5Term symbols[]);
 
 /**
  * Synthesize n-ary function.
@@ -4509,11 +5033,11 @@ Cvc5Grammar* cvc5_mk_grammar(Cvc5* cvc5,
  * @param sort The sort of the return value of this function.
  * @return The function.
  */
-Cvc5Term cvc5_synth_fun(Cvc5* cvc5,
-                        const char* symbol,
-                        size_t size,
-                        const Cvc5Term bound_vars[],
-                        Cvc5Sort sort);
+CVC5_EXPORT Cvc5Term cvc5_synth_fun(Cvc5* cvc5,
+                                    const char* symbol,
+                                    size_t size,
+                                    const Cvc5Term bound_vars[],
+                                    Cvc5Sort sort);
 
 /**
  * Synthesize n-ary function following specified syntactic constraints.
@@ -4534,12 +5058,12 @@ Cvc5Term cvc5_synth_fun(Cvc5* cvc5,
  * @param grammar The syntactic constraints.
  * @return The function.
  */
-Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
-                                     const char* symbol,
-                                     size_t size,
-                                     const Cvc5Term bound_vars[],
-                                     Cvc5Sort sort,
-                                     Cvc5Grammar* grammar);
+CVC5_EXPORT Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
+                                                 const char* symbol,
+                                                 size_t size,
+                                                 const Cvc5Term bound_vars[],
+                                                 Cvc5Sort sort,
+                                                 Cvc5Grammar grammar);
 
 /**
  * Add a forumla to the set of Sygus constraints.
@@ -4555,7 +5079,7 @@ Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
  * @param cvc5 The solver instance.
  * @param term The formula to add as a constraint.
  */
-void cvc5_add_sygus_constraint(Cvc5* cvc5, Cvc5Term term);
+CVC5_EXPORT void cvc5_add_sygus_constraint(Cvc5* cvc5, Cvc5Term term);
 
 /**
  * Get the list of sygus constraints.
@@ -4564,7 +5088,8 @@ void cvc5_add_sygus_constraint(Cvc5* cvc5, Cvc5Term term);
  * @param size The size of the resulting list of sygus constraints.
  * @return The list of sygus constraints.
  */
-const Cvc5Term* cvc5_get_sygus_constraints(Cvc5* cvc5, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_sygus_constraints(Cvc5* cvc5,
+                                                       size_t* size);
 
 /**
  * Add a forumla to the set of Sygus assumptions.
@@ -4580,7 +5105,7 @@ const Cvc5Term* cvc5_get_sygus_constraints(Cvc5* cvc5, size_t* size);
  * @param cvc5 The solver instance.
  * @param term The formula to add as an assumption.
  */
-void cvc5_add_sygus_assume(Cvc5* cvc5, Cvc5Term term);
+CVC5_EXPORT void cvc5_add_sygus_assume(Cvc5* cvc5, Cvc5Term term);
 
 /**
  * Get the list of sygus assumptions.
@@ -4589,7 +5114,8 @@ void cvc5_add_sygus_assume(Cvc5* cvc5, Cvc5Term term);
  * @param size The size of the resulting list of sygus assumptions.
  * @return The list of sygus assumptions.
  */
-const Cvc5Term* cvc5_get_sygus_assumptions(Cvc5* cvc5, size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_sygus_assumptions(Cvc5* cvc5,
+                                                       size_t* size);
 
 /**
  * Add a set of Sygus constraints to the current state that correspond to an
@@ -4609,7 +5135,7 @@ const Cvc5Term* cvc5_get_sygus_assumptions(Cvc5* cvc5, size_t* size);
  * @param trans The transition relation.
  * @param post The post-condition.
  */
-void cvc5_add_sygus_inv_constraint(
+CVC5_EXPORT void cvc5_add_sygus_inv_constraint(
     Cvc5* cvc5, Cvc5Term inv, Cvc5Term pre, Cvc5Term trans, Cvc5Term post);
 
 /**
@@ -4631,13 +5157,15 @@ void cvc5_add_sygus_inv_constraint(
  *         getSynthSolutions, "no solution" if it was determined there is no
  *         solution, or "unknown" otherwise.
  */
-Cvc5SynthResult* cvc5_check_synth(Cvc5* cvc5);
+CVC5_EXPORT Cvc5SynthResult cvc5_check_synth(Cvc5* cvc5);
 
 /**
  * Try to find a next solution for the synthesis conjecture corresponding to
  * the current list of functions-to-synthesize, universal variables and
  * constraints. Must be called immediately after a successful call to
- * check-synth or check-synth-next. Requires incremental mode.
+ * check-synth or check-synth-next.
+ *
+ * @note Requires incremental mode.
  *
  * SyGuS v2:
  *
@@ -4653,7 +5181,7 @@ Cvc5SynthResult* cvc5_check_synth(Cvc5* cvc5);
  *         getSynthSolutions, "no solution" if it was determined there is no
  *         solution, or "unknown" otherwise.
  */
-Cvc5SynthResult* cvc5_check_synth_next(Cvc5* cvc5);
+CVC5_EXPORT Cvc5SynthResult cvc5_check_synth_next(Cvc5* cvc5);
 
 /**
  * Get the synthesis solution of the given term. This function should be
@@ -4662,19 +5190,19 @@ Cvc5SynthResult* cvc5_check_synth_next(Cvc5* cvc5);
  * @param term The term for which the synthesis solution is queried.
  * @return The synthesis solution of the given term.
  */
-Cvc5Term cvc5_get_synth_solution(Cvc5Term term);
+CVC5_EXPORT Cvc5Term cvc5_get_synth_solution(Cvc5* cvc5, Cvc5Term term);
 
 /**
  * Get the synthesis solutions of the given terms. This function should be
  * called immediately after the solver answers unsat for sygus input.
- * @param cvc5 The solver instance.
+ * @param cvc5  The solver instance.
+ * @param size  The size of the terms array.
  * @param terms The terms for which the synthesis solutions is queried.
- * @param size The size of the resulting solutions array.
  * @return The synthesis solutions of the given terms.
  */
-const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
-                                         const Cvc5Term terms[],
-                                         size_t* size);
+CVC5_EXPORT const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
+                                                     size_t size,
+                                                     const Cvc5Term terms[]);
 
 /**
  * Find a target term of interest using sygus enumeration, with no provided
@@ -4692,13 +5220,14 @@ const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
  *     (find-synth :target)
  * \endverbatim
  *
- * @param cvc5 The solver instance.
- * @param fst The identifier specifying what kind of term to find
+ * @param cvc5   The solver instance.
+ * @param target The identifier specifying what kind of term to find
  * @return The result of the find, which is the null term if this call failed.
  *
  * @warning This function is experimental and may change in future versions.
  */
-Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget fst);
+CVC5_EXPORT Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget target);
+
 /**
  * Find a target term of interest using sygus enumeration with a provided
  * grammar.
@@ -4711,16 +5240,16 @@ Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget fst);
  *     (find-synth :target G)
  * \endverbatim
  *
- * @param cvc5 The solver instance.
- * @param fst The identifier specifying what kind of term to find
+ * @param cvc5    The solver instance.
+ * @param target  The identifier specifying what kind of term to find
  * @param grammar The grammar for the term
  * @return The result of the find, which is the null term if this call failed.
  *
  * @warning This function is experimental and may change in future versions.
  */
-Cvc5Term cvc5_find_synth_with_grammar(Cvc5* cvc5,
-                                      Cvc5FindSynthTarget fst,
-                                      Cvc5Grammar* grammar);
+CVC5_EXPORT Cvc5Term cvc5_find_synth_with_grammar(Cvc5* cvc5,
+                                                  Cvc5FindSynthTarget target,
+                                                  Cvc5Grammar grammar);
 /**
  * Try to find a next target term of interest using sygus enumeration. Must
  * be called immediately after a successful call to find-synth or
@@ -4739,30 +5268,35 @@ Cvc5Term cvc5_find_synth_with_grammar(Cvc5* cvc5,
  *
  * @warning This function is experimental and may change in future versions.
  */
-Cvc5Term cvc5_find_synth_next(Cvc5* cvc5);
+CVC5_EXPORT Cvc5Term cvc5_find_synth_next(Cvc5* cvc5);
 
 /**
  * Get a snapshot of the current state of the statistic values of this
  * solver. The returned object is completely decoupled from the solver and
  * will not change when the solver is used again.
+ * @param cvc5 The solver instance.
  * @return A snapshot of the current state of the statistic values.
  */
-Cvc5Statistics* cvc5_get_stats(Cvc5* cvc5);
+CVC5_EXPORT Cvc5Statistics cvc5_get_statistics(Cvc5* cvc5);
 
 /**
  * Print the statistics to the given file descriptor, suitable for usage in
  * signal handlers.
+ * @param cvc5 The solver instance.
  * @param fd The file descriptor.
  */
-void cvc5_print_stats_safe(Cvc5* cvc5, int fd);
+CVC5_EXPORT void cvc5_print_stats_safe(Cvc5* cvc5, int fd);
 
 /**
  * Determines if the output stream for the given tag is enabled. Tags can be
  * enabled with the `output` option (and `-o <tag>` on the command line).
- * Raises an exception when an invalid tag is given.
+ *
+ * @note Requires that a valid tag is given.
+ *
+ * @param cvc5 The solver instance.
  * @return True if the given tag is enabled.
  */
-bool cvc5_is_output_on(const char* tag);
+CVC5_EXPORT bool cvc5_is_output_on(Cvc5* cvc5, const char* tag);
 
 /**
  * Get a string representation of the version of this solver.
@@ -4771,7 +5305,7 @@ bool cvc5_is_output_on(const char* tag);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_get_version(Cvc5* cvc5);
+CVC5_EXPORT const char* cvc5_get_version(Cvc5* cvc5);
 
 /**
  * Prints a proof as a string in a selected proof format mode.
@@ -4795,12 +5329,12 @@ const char* cvc5_get_version(Cvc5* cvc5);
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
  */
-const char* cvc5_proof_to_string(Cvc5* cvc5,
-                                 Cvc5Proof proof,
-                                 Cvc5ProofFormat format,
-                                 size_t size,
-                                 const Cvc5Term assertions[],
-                                 const char* names[]);
+CVC5_EXPORT const char* cvc5_proof_to_string(Cvc5* cvc5,
+                                             Cvc5Proof proof,
+                                             Cvc5ProofFormat format,
+                                             size_t size,
+                                             const Cvc5Term assertions[],
+                                             const char* names[]);
 
 #if __cplusplus
 }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -350,6 +350,20 @@ class CVC5_EXPORT SynthResult
   bool isUnknown() const;
 
   /**
+   * Operator overloading for equality of two synthesis results.
+   * @param r The synthesis result to compare to for equality.
+   * @return True if the synthesis results are equal.
+   */
+  bool operator==(const SynthResult& r) const;
+
+  /**
+   * Operator overloading for disequality of two synthesis results.
+   * @param r The synthesis result to compare to for disequality.
+   * @return True if the synthesis results are disequal.
+   */
+  bool operator!=(const SynthResult& r) const;
+
+  /**
    * @return A string representation of this synthesis result.
    */
   std::string toString() const;
@@ -378,6 +392,21 @@ class CVC5_EXPORT SynthResult
  * @return The output stream.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const SynthResult& r);
+
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for synthesis results.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::SynthResult>
+{
+  size_t operator()(const cvc5::SynthResult& result) const;
+};
+}  // namespace std
+
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -3099,6 +3128,20 @@ class CVC5_EXPORT Grammar
   bool isNull() const;
 
   /**
+   * Operator overloading for referential equality of two grammars.
+   * @param grammar The grammarto compare to for equality.
+   * @return True if both grammars point to the same internal grammar object.
+   */
+  bool operator==(const Grammar& grammar) const;
+
+  /**
+   * Referential disequality operator.
+   * @param grammar The grammar to compare to for disequality.
+   * @return True if both grammars point to different internal grammar objects.
+   */
+  bool operator!=(const Grammar& grammar) const;
+
+  /**
    * Add `rule` to the set of rules corresponding to `ntSymbol`.
    * @param ntSymbol The non-terminal to which the rule is added.
    * @param rule The rule to add.
@@ -3378,6 +3421,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const OptionInfo& oi);
 class CVC5_EXPORT Stat
 {
   struct StatData;
+  friend struct std::hash<Stat>;
 
  public:
   friend class Statistics;
@@ -3398,56 +3442,76 @@ class CVC5_EXPORT Stat
   Stat& operator=(const Stat& s);
 
   /**
-   * Determine if this value is intended for internal use only.
+   * Determine if this statistic is intended for internal use only.
    * @return True if this is an internal statistic.
    */
   bool isInternal() const;
   /**
-   * Determine if this value holds the default value.
+   * Determine if this statistic holds the default value.
    * @return True if this is a defaulted statistic.
    */
   bool isDefault() const;
 
   /**
-   * Determine if  this value is an integer.
+   * Determine if this statistic holds an integer value.
    * @return True if this value is an integer.
    */
   bool isInt() const;
   /**
-   * Return the integer value.
+   * Get the value of an integer statistic.
    * @return The integer value.
    */
   int64_t getInt() const;
   /**
-   * Determine if this value is a double.
+   * Determine if this statistic holds a double value.
    * @return True if this value is a double.
    */
   bool isDouble() const;
   /**
-   * Return the double value.
+   * Get the value of a double statistic.
    * @return The double value.
    */
   double getDouble() const;
   /**
-   * Determine if this value is a string.
+   * Determine if this statistic holds a string value.
    * @return True if this value is a string.
    */
   bool isString() const;
   /**
-   * Return the string value.
+   * Get the value of a string statistic.
    * @return The string value.
    */
   const std::string& getString() const;
   /**
-   * Determine if this value is a histogram.
+   * Determine if this statistics holds a histogram.
    * @return True if this value is a histogram.
    */
   bool isHistogram() const;
   /**
-   * Return the histogram value.
+   * Get the value of a histogram statistic.
    * @return The histogram value.
    */
   const HistogramData& getHistogram() const;
+
+  /**
+   * Get a string represenation of this statistic.
+   * @return The string represenation.
+   */
+  std::string toString() const;
+
+  /**
+   * Operator overloading for referential equality of two statistics.
+   * @param stat The statistic to compare to for equality.
+   * @return True if both statistics are referentially equal.
+   */
+  bool operator==(const Stat& stat) const;
+
+  /**
+   * Referential disequality operator.
+   * @param stat The statistic to compare to for disequality.
+   * @return True if both statistics are referentially disequal.
+   */
+  bool operator!=(const Stat& stat) const;
 
  private:
   Stat(bool internal, bool def, StatData&& sd);
@@ -3461,7 +3525,22 @@ class CVC5_EXPORT Stat
 /**
  * Print a `Stat` object to an ``std::ostream``.
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& sv);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& stat);
+
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for statistic objects.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Stat>
+{
+  size_t operator()(const cvc5::Stat& stat) const;
+};
+}  // namespace std
+
+namespace cvc5 {
 
 /**
  * \verbatim embed:rst:leading-asterisk
@@ -3541,6 +3620,26 @@ class CVC5_EXPORT Statistics
   /** End iteration */
   iterator end() const;
 
+  /**
+   * Operator overloading for referential equality of two statistics objects.
+   * @param stat The statistics to compare to for equality.
+   * @return True if both statistics are referentially equal.
+   */
+  bool operator==(const Statistics& stat) const;
+
+  /**
+   * Referential disequality operator.
+   * @param stat The statistics to compare to for disequality.
+   * @return True if both statistics are referentially disequal.
+   */
+  bool operator!=(const Statistics& stat) const;
+
+  /**
+   * Get a string represenation of this statistics object.
+   * @return The string represenation.
+   */
+  std::string toString() const;
+
  private:
   Statistics(const internal::StatisticsRegistry& reg);
   /** Internal data */
@@ -3549,9 +3648,25 @@ class CVC5_EXPORT Statistics
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out,
                                      const Statistics& stats);
 
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for statistic objects.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Statistics>
+{
+  size_t operator()(const cvc5::Statistics& stat) const;
+};
+}  // namespace std
+
+namespace cvc5 {
+
 /* -------------------------------------------------------------------------- */
 /* Plugin                                                                     */
 /* -------------------------------------------------------------------------- */
+
 /**
  * A cvc5 plugin.
  */
@@ -3570,21 +3685,17 @@ class CVC5_EXPORT Plugin
    */
   virtual std::vector<Term> check();
   /**
-   * Notify SAT clause, called when cl is a clause learned by the SAT solver.
-   *
-   * @param cl The learned clause.
+   * Notify SAT clause, called when `clause` is learned by the SAT solver.
+   * @param clause The learned clause.
    */
-  virtual void notifySatClause(const Term& cl);
+  virtual void notifySatClause(const Term& clause);
   /**
-   * Notify theory lemma, called when lem is a theory lemma sent by a theory
-   * solver.
-   *
-   * @param lem The theory lemma.
+   * Notify theory lemma, called when `lemma` is sent by a theory solver.
+   * @param lemma The theory lemma.
    */
-  virtual void notifyTheoryLemma(const Term& lem);
+  virtual void notifyTheoryLemma(const Term& lemma);
   /**
    * Get the name of the plugin (for debugging).
-   *
    * @return The name of the plugin.
    */
   virtual std::string getName() = 0;
@@ -3624,7 +3735,10 @@ class CVC5_EXPORT Proof
    */
   bool isNull() const;
 
-  /** @return The proof rule used by the root step of the proof. */
+  /**
+   * Get the proof rule used by the root step of the proof.
+   * @return The proof rule.
+   */
   ProofRule getRule() const;
 
   /**
@@ -3653,14 +3767,14 @@ class CVC5_EXPORT Proof
   /**
    * Operator overloading for referential equality of two proofs.
    * @param p The proof to compare to for equality.
-   * @return `true` if both proofs point to the same internal proof object.
+   * @return True if both proofs point to the same internal proof object.
    */
   bool operator==(const Proof& p) const;
 
   /**
    * Referential disequality operator.
    * @param p The proof to compare to for disequality.
-   * @return `true` if proofs point to different internal proof objects.
+   * @return True if both proofs point to different internal proof objects.
    */
   bool operator!=(const Proof& p) const;
 
@@ -6319,7 +6433,7 @@ class CVC5_EXPORT Solver
   /**
    * Add plugin to this solver. Its callbacks will be called throughout the
    * lifetime of this solver.
-   *
+   * @warning This function is experimental and may change in future versions.
    * @param p The plugin to add to this solver.
    */
   void addPlugin(Plugin& p);
@@ -6903,7 +7017,9 @@ class CVC5_EXPORT Solver
   /**
    * Determines if the output stream for the given tag is enabled. Tags can be
    * enabled with the `output` option (and `-o <tag>` on the command line).
-   * Raises an exception when an invalid tag is given.
+   *
+   * Requires that a valid tag is given.
+   *
    * @return True if the given tag is enabled.
    */
   bool isOutputOn(const std::string& tag) const;
