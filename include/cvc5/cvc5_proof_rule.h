@@ -2534,7 +2534,6 @@ enum ENUM(ProofRewriteRule)
    */
   EVALUE(RE_LOOP_ELIM),
   /**
-   * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
    *
    * .. math::
@@ -2609,6 +2608,19 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(STR_IN_RE_SIGMA_STAR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - strings substring strip symbolic length**
+   *
+   * .. math::
+   *   (str.substr s n m) = t
+   *
+   * where :math:`t` is obtained by fully or partially stripping components of
+   * :math:`s` based on :math:`n` and :math:`m`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Sets - empty tester evaluation**
