@@ -120,17 +120,12 @@ bool InferenceManager::assertSetsFact(Node atom,
                                       Node exp)
 {
   Node conc = polarity ? atom : atom.notNode();
-  if (assertInternalFact(atom, polarity, id, {exp}, d_ipc.get()))
+  // notify before asserting below, since that call may induce a conflict which needs immediate explanation.
+  if (d_ipc)
   {
-    // only update the proof bookkeeping if the fact was successfully added (not
-    // redundant)
-    if (d_ipc)
-    {
-      d_ipc->notifyFact(conc, exp, id);
-    }
-    return true;
+    d_ipc->notifyFact(conc, exp, id);
   }
-  return false;
+  return assertInternalFact(atom, polarity, id, {exp}, d_ipc.get());
 }
 
 void InferenceManager::assertInference(Node fact,
