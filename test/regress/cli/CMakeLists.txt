@@ -1699,6 +1699,7 @@ set(regress_0_tests
   regress0/sets/proj-issue703.smt2
   regress0/sets/proj-issue720.smt2
   regress0/sets/proj-issue727.smt2
+  regress0/sets/proj-issue730-sets-ipc-fail.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/set_is_empty.smt2
   regress0/sets/setel-eq.smt2
