@@ -1589,15 +1589,17 @@ enum ENUM(ProofRule)
    *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_1) = n}
    *
-   * or alternatively for the reverse:
+   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
+   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * Or alternatively for the reverse:
    *
    * .. math::
    *
    *   \inferrule{\mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_2) = n}
    *
-   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
-   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)` and
+   * :math:`w_2` is the purification skolem for :math:`\mathit{suf}(t,n)`.
    * \endverbatim
    */
   EVALUE(STRING_DECOMPOSE),
@@ -1725,7 +1727,7 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t) \neq
-   *   \mathit{to\_code}(s) \vee t\neq s}
+   *   \mathit{to\_code}(s) \vee t = s}
    * \endverbatim
    */
   EVALUE(STRING_CODE_INJ),
@@ -2532,7 +2534,6 @@ enum ENUM(ProofRewriteRule)
    */
   EVALUE(RE_LOOP_ELIM),
   /**
-   * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
    *
    * .. math::
@@ -2607,6 +2608,19 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(STR_IN_RE_SIGMA_STAR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - strings substring strip symbolic length**
+   *
+   * .. math::
+   *   (str.substr s n m) = t
+   *
+   * where :math:`t` is obtained by fully or partially stripping components of
+   * :math:`s` based on :math:`n` and :math:`m`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Sets - empty tester evaluation**

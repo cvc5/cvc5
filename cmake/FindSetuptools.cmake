@@ -75,6 +75,12 @@ else()
 endif()
 
 if(INSTALL_SETUPTOOLS)
+  if(WIN32)
+    # Version 70.2.0 (the latest currently) triggers an error on Windows.
+    # This is a workaround that installs the previous version.
+    set(INSTALL_SETUPTOOLS_OPTION "==70.1.1")
+    set(INSTALL_SETUPTOOLS_MESSAGE "==70.1.1")
+  endif()
   message(STATUS "Installing setuptools${INSTALL_SETUPTOOLS_MESSAGE}")
   execute_process(
     COMMAND
