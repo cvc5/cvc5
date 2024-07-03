@@ -7,3 +7,4 @@ Theory of Floating-Points
     <examples>/api/java/FloatingPointArith.java
     <examples>/api/python/pythonic/floating_point.py
     <examples>/api/python/floating_point.py
+    <examples>/api/smtlib/floating_point_arith.smt2

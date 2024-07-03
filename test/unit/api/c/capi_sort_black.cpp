@@ -69,6 +69,23 @@ TEST_F(TestCApiBlackSort, hash)
 {
   ASSERT_DEATH(cvc5_sort_hash(nullptr), "invalid sort");
   (void)cvc5_sort_hash(d_int);
+  ASSERT_EQ(cvc5_sort_hash(d_int), cvc5_sort_hash(d_int));
+  ASSERT_NE(cvc5_sort_hash(d_int), cvc5_sort_hash(d_bool));
+}
+
+TEST_F(TestCApiBlackSort, copy_release)
+{
+  ASSERT_DEATH(cvc5_sort_copy(nullptr), "invalid sort");
+  ASSERT_DEATH(cvc5_sort_release(nullptr), "invalid sort");
+  size_t hash1 = cvc5_sort_hash(d_int);
+  Cvc5Sort int_copy = cvc5_sort_copy(d_int);
+  size_t hash2 = cvc5_sort_hash(int_copy);
+  ASSERT_EQ(hash1, hash2);
+  cvc5_sort_release(d_int);
+  ASSERT_EQ(hash1, cvc5_sort_hash(d_int));
+  cvc5_sort_release(d_int);
+  // we cannot reliably check that querying on the (now freed) sort fails
+  // unless ASAN is enabled
 }
 
 TEST_F(TestCApiBlackSort, compare)

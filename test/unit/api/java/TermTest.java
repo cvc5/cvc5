@@ -1093,6 +1093,32 @@ class TermTest
   }
 
   @Test
+  void testMkSkolem() throws CVC5ApiException
+  {
+    Sort integer = d_solver.getIntegerSort();
+    Sort arraySort = d_solver.mkArraySort(integer, integer);
+
+    Term a = d_solver.mkConst(arraySort, "a");
+    Term b = d_solver.mkConst(arraySort, "b");
+
+    Term sk = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {a, b});
+    Term sk2 = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {b, a});
+
+    assertTrue(sk.isSkolem());
+    assertEquals(sk.getSkolemId(), SkolemId.ARRAY_DEQ_DIFF);
+    assertEquals(Arrays.asList(new Term[] {a, b}), Arrays.asList(sk.getSkolemIndices()));
+    // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
+    assertEquals(Arrays.asList(new Term[] {a, b}), Arrays.asList(sk2.getSkolemIndices()));
+  }
+
+  @Test
+  void testGetNumIndices() throws CVC5ApiException
+  {
+    int numIndices = d_tm.getNumIndicesForSkolemId(SkolemId.ARRAY_DEQ_DIFF);
+    assertEquals(numIndices, 2);
+  }
+
+  @Test
   void substitute()
   {
     Term x = d_tm.mkConst(d_tm.getIntegerSort(), "x");

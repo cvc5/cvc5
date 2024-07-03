@@ -207,7 +207,29 @@
                 (and (= s (str.++ kp ks)) (= (str.len kp) n)))
                 (let ((kp (@purify ($str_prefix_wo_len s n)))
                       (ks (@purify ($str_suffix_w_len s n))))
-                (and (= s (str.++ kp ks)) (= (str.len ks) n))))
+                (and (= s (str.++ kp ks)) (= (str.len ks) n)))))
+
+; rule: string_code_inj
+; implements: ProofRule::STRING_CODE_INJ
+; args:
+; - t String: The first string.
+; - s String: The second string.
+; conclusion: >
+;   A disjunction of three cases, indicating that t is not a string of length
+;   one, its code point is different from that of s, or t and s are equal.
+(declare-rule string_code_inj ((t String) (s String))
+  :args (t s)
+  :conclusion (or (= (str.to_code t) -1) (not (= (str.to_code t) (str.to_code s))) (= t s))
+)
+
+; rule: string_seq_unit_inj
+; implements: ProofRule::STRING_SEQ_UNIT_INJ
+; premises:
+; - eq: An equality stating that the unit sequences of elements a and b are equal.
+; conclusion: That a and b are equal.
+(declare-rule string_seq_unit_inj ((U Type) (a U) (b U))
+  :premises ((= (seq.unit a) (seq.unit b)))
+  :conclusion (= a b)
 )
 
 ;;-------------------- Regular expressions
@@ -302,6 +324,22 @@
 (declare-rule str-in-re-eval ((s String) (r RegLan) (b Bool))
   :args ((= (str.in_re s r) b))
   :requires ((($str_eval_str_in_re s r) b))
+  :conclusion (= (str.in_re s r) b)
+)
+
+; rule: str-in-re-consume
+; implements: ProofRewriteRule::STR_IN_RE_CONSUME
+; args:
+; - eq Bool: The equality to prove whose left hand side is a regular expression membership.
+; requires: >
+;   Showing that consuming portions of the regular expression membership using the
+;   method $str_re_consume results in b, where b is either false or the result of
+;   stripping constant prefixes and suffixes from the arguments of the left hand side
+;   of the given equality.
+; conclusion: The given equality.
+(declare-rule str-in-re-consume ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_re_consume s r) b))
   :conclusion (= (str.in_re s r) b)
 )
 

@@ -1,6 +1,6 @@
 (include "../theories/Builtin.smt3")
 
-(declare-sort Array 2)
+(declare-type Array (Type Type))
 
 ; Core operators.
 (declare-const select (-> (! Type :var U :implicit) (! Type :var T :implicit)

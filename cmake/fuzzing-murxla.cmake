@@ -28,7 +28,7 @@ ExternalProject_Add(
   EXCLUDE_FROM_ALL ON
   ${COMMON_EP_CONFIG}
   URL https://github.com/murxla/murxla/archive/${Murxla_COMMIT}.tar.gz
-  URL_HASH SHA1=176e325344a94250c4f4f6df3a9d2d01d6529a26
+  URL_HASH SHA256=b3ae1042ff9887d91db1eee990c32be5cbebe809e0350f8b3b3e334a4c6bd0d9
   SOURCE_DIR ${CMAKE_BINARY_DIR}/murxla
   CMAKE_ARGS
     -DCMAKE_PREFIX_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/
