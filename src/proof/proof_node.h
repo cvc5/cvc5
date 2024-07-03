@@ -139,6 +139,17 @@ class ProofNode
   /** Was d_proven actually checked, or is it trusted? */
   bool d_provenChecked;
 };
+}  // namespace cvc5::internal
+
+namespace std {
+template <>
+struct hash<cvc5::internal::ProofNode>
+{
+  size_t operator()(const cvc5::internal::ProofNode& node) const;
+};
+}  // namespace std
+
+namespace cvc5::internal {
 
 inline size_t ProofNodeHashFunction::operator()(
     std::shared_ptr<ProofNode> pfn) const

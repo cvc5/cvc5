@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Mudathir Mohamed
+ *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +56,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(Kind) : int32_t
+enum ENUM(Kind)
 {
   /**
    * Internal kind.
@@ -5869,7 +5869,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(SortKind) : int32_t
+enum ENUM(SortKind)
 {
   /**
    * Internal kind.

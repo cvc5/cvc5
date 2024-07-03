@@ -915,7 +915,6 @@ TEST_F(TestApiBlackSolver, getUnsatCoreLemmas1)
   ASSERT_THROW(d_solver->getUnsatCoreLemmas(), CVC5ApiException);
 
   d_solver->assertFormula(d_tm.mkFalse());
-  d_solver->checkSat();
   ASSERT_TRUE(d_solver->checkSat().isUnsat());
   ASSERT_NO_THROW(d_solver->getUnsatCoreLemmas());
 }
@@ -977,21 +976,21 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Sort boolean = d_tm.getBooleanSort();
   Term truen = d_tm.mkBoolean(true);
   Term start = d_tm.mkVar(boolean);
-  Term output2;
   Grammar g = d_solver->mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::GT, {x, zero});
   ASSERT_THROW(d_solver->getAbduct(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the abduction api, while the resulting abduct is the output
-  output2 = d_solver->getAbduct(conj2, g);
+  Term output2 = d_solver->getAbduct(conj2, g);
   // abduct must be true
   ASSERT_EQ(output2, truen);
 
   TermManager tm;
   Solver slv(tm);
   slv.setOption("produce-abducts", "true");
-  Term xx = tm.mkConst(intSort, "x");
-  Term yy = tm.mkConst(intSort, "y");
+  Sort intSort2 = tm.getIntegerSort();
+  Term xx = tm.mkConst(intSort2, "x");
+  Term yy = tm.mkConst(intSort2, "y");
   Term zzero = tm.mkInteger(0);
   Term sstart = tm.mkVar(tm.getBooleanSort());
   slv.assertFormula(
@@ -1086,8 +1085,6 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   TermManager tm;
   Solver slv(tm);
   slv.setOption("produce-interpolants", "true");
-  Term xx = tm.mkConst(intSort, "x");
-  Term yy = tm.mkConst(intSort, "y");
   Term zzero = tm.mkInteger(0);
   Term sstart = tm.mkVar(tm.getBooleanSort());
   Grammar gg = slv.mkGrammar({}, {sstart});
@@ -1179,8 +1176,9 @@ TEST_F(TestApiBlackSolver, getStatistics)
     Sort s1 = d_tm.getIntegerSort();
     Sort s2 = d_tm.mkArraySort(s1, s1);
     Term t1 = d_tm.mkConst(s1, "i");
-    Term t2 = d_tm.mkVar(s2, "a");
+    Term t2 = d_tm.mkConst(s2, "a");
     Term t3 = d_tm.mkTerm(Kind::SELECT, {t2, t1});
+    d_solver->assertFormula(t3.eqTerm(t1));
     d_solver->checkSat();
   }
   cvc5::Statistics stats = d_solver->getStatistics();
@@ -1202,12 +1200,17 @@ TEST_F(TestApiBlackSolver, getStatistics)
     ASSERT_TRUE(s.isInt());
     ASSERT_TRUE(s.getInt() >= 0);
   }
+  bool hasstats = false;
   for (const auto& s : stats)
   {
+    hasstats = true;
     ASSERT_FALSE(s.first.empty());
   }
+  ASSERT_TRUE(hasstats);
+  hasstats = false;
   for (auto it = stats.begin(true, true); it != stats.end(); ++it)
   {
+    hasstats = true;
     {
       auto tmp1 = it, tmp2 = it;
       ++tmp1;
@@ -1230,6 +1233,7 @@ TEST_F(TestApiBlackSolver, getStatistics)
       ASSERT_TRUE(std::isnan(s.second.getDouble()));
     }
   }
+  ASSERT_TRUE(hasstats);
 }
 
 TEST_F(TestApiBlackSolver, printStatisticsSafe)
@@ -1275,6 +1279,7 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_FALSE(printedProof.empty());
   ASSERT_NO_THROW(printedProof = d_solver->proofToString(
                       proofs[0], modes::ProofFormat::ALETHE));
+  ASSERT_FALSE(printedProof.empty());
   ASSERT_NO_THROW(proofs = d_solver->getProof(modes::ProofComponent::SAT));
   ASSERT_NO_THROW(printedProof = d_solver->proofToString(
                       proofs[0], modes::ProofFormat::NONE));
@@ -1493,8 +1498,8 @@ TEST_F(TestApiBlackSolver, getModelDomainElements)
   Term f = d_tm.mkTerm(Kind::DISTINCT, {x, y, z});
   d_solver->assertFormula(f);
   d_solver->checkSat();
-  ASSERT_NO_THROW(d_solver->getModelDomainElements(uSort));
-  ASSERT_TRUE(d_solver->getModelDomainElements(uSort).size() >= 3);
+  auto elems = d_solver->getModelDomainElements(uSort);
+  ASSERT_TRUE(elems.size() >= 3);
   ASSERT_THROW(d_solver->getModelDomainElements(intSort), CVC5ApiException);
 
   TermManager tm;
@@ -1517,9 +1522,9 @@ TEST_F(TestApiBlackSolver, getModelDomainElements2)
   Term f = d_tm.mkTerm(Kind::FORALL, {bvl, eq});
   d_solver->assertFormula(f);
   d_solver->checkSat();
-  ASSERT_NO_THROW(d_solver->getModelDomainElements(uSort));
+  auto elems = d_solver->getModelDomainElements(uSort);
   // a model for the above must interpret u as size 1
-  ASSERT_TRUE(d_solver->getModelDomainElements(uSort).size() == 1);
+  ASSERT_TRUE(elems.size() == 1);
 }
 
 TEST_F(TestApiBlackSolver, isModelCoreSymbol)
@@ -1557,11 +1562,8 @@ TEST_F(TestApiBlackSolver, getModel)
   Term f = d_tm.mkTerm(Kind::NOT, {d_tm.mkTerm(Kind::EQUAL, {x, y})});
   d_solver->assertFormula(f);
   d_solver->checkSat();
-  std::vector<Sort> sorts;
-  sorts.push_back(uSort);
-  std::vector<Term> terms;
-  terms.push_back(x);
-  terms.push_back(y);
+  std::vector<Sort> sorts{uSort};
+  std::vector<Term> terms{x, y};
   ASSERT_NO_THROW(d_solver->getModel(sorts, terms));
   Term null;
   terms.push_back(null);
@@ -1602,15 +1604,9 @@ TEST_F(TestApiBlackSolver, getQuantifierElimination)
 
   TermManager tm;
   Solver slv(tm);
-  slv.setOption("produce-models", "true");
   slv.checkSat();
-  Term xx = tm.mkVar(tm.getBooleanSort(), "x");
-  Term fforall =
-      tm.mkTerm(Kind::FORALL,
-                {tm.mkTerm(Kind::VARIABLE_LIST, {xx}),
-                 tm.mkTerm(Kind::OR, {xx, tm.mkTerm(Kind::NOT, {xx})})});
   // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(slv.getQuantifierElimination(fforall));
+  ASSERT_NO_THROW(slv.getQuantifierElimination(forall));
 }
 
 TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
@@ -1629,15 +1625,9 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
 
   TermManager tm;
   Solver slv(tm);
-  slv.setOption("produce-models", "true");
   slv.checkSat();
-  Term xx = tm.mkVar(tm.getBooleanSort(), "x");
-  Term fforall =
-      tm.mkTerm(Kind::FORALL,
-                {tm.mkTerm(Kind::VARIABLE_LIST, {xx}),
-                 tm.mkTerm(Kind::OR, {xx, tm.mkTerm(Kind::NOT, {xx})})});
   // this will throw when NodeManager is not a singleton anymore
-  ASSERT_NO_THROW(slv.getQuantifierEliminationDisjunct(fforall));
+  ASSERT_NO_THROW(slv.getQuantifierEliminationDisjunct(forall));
 }
 
 TEST_F(TestApiBlackSolver, declareSepHeap)
@@ -2229,7 +2219,7 @@ TEST_F(TestApiBlackSolver, getSynthSolution)
   ASSERT_THROW(d_solver->getSynthSolution(f), CVC5ApiException);
 
   cvc5::SynthResult sr = d_solver->checkSynth();
-  ASSERT_EQ(sr.hasSolution(), true);
+  ASSERT_TRUE(sr.hasSolution());
 
   ASSERT_NO_THROW(d_solver->getSynthSolution(f));
   ASSERT_NO_THROW(d_solver->getSynthSolution(f));
@@ -2271,10 +2261,10 @@ TEST_F(TestApiBlackSolver, checkSynthNext)
   Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort());
 
   cvc5::SynthResult sr = d_solver->checkSynth();
-  ASSERT_EQ(sr.hasSolution(), true);
+  ASSERT_TRUE(sr.hasSolution());
   ASSERT_NO_THROW(d_solver->getSynthSolutions({f}));
   sr = d_solver->checkSynthNext();
-  ASSERT_EQ(sr.hasSolution(), true);
+  ASSERT_TRUE(sr.hasSolution());
   ASSERT_NO_THROW(d_solver->getSynthSolutions({f}));
 }
 
@@ -2282,8 +2272,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext2)
 {
   d_solver->setOption("sygus", "true");
   d_solver->setOption("incremental", "false");
-  Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort());
-
+  (void)d_solver->synthFun("f", {}, d_tm.getBooleanSort());
   d_solver->checkSynth();
   ASSERT_THROW(d_solver->checkSynthNext(), CVC5ApiException);
 }
@@ -2292,8 +2281,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext3)
 {
   d_solver->setOption("sygus", "true");
   d_solver->setOption("incremental", "true");
-  Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort());
-
+  (void)d_solver->synthFun("f", {}, d_tm.getBooleanSort());
   ASSERT_THROW(d_solver->checkSynthNext(), CVC5ApiException);
 }
 
@@ -2310,7 +2298,7 @@ TEST_F(TestApiBlackSolver, findSynth)
   Term falsen = d_tm.mkBoolean(false);
   g.addRule(start, truen);
   g.addRule(start, falsen);
-  Term f = d_solver->synthFun("f", {}, d_tm.getBooleanSort(), g);
+  (void)d_solver->synthFun("f", {}, d_tm.getBooleanSort(), g);
 
   // should enumerate based on the grammar of the function to synthesize above
   cvc5::Term t = d_solver->findSynth(modes::FindSynthTarget::ENUM);
@@ -2390,7 +2378,7 @@ TEST_F(TestApiBlackSolver, tupleProject)
       projection.toString());
 }
 
-TEST_F(TestApiBlackSolver, Output)
+TEST_F(TestApiBlackSolver, output)
 {
   ASSERT_THROW(d_solver->isOutputOn("foo-invalid"), CVC5ApiException);
   ASSERT_THROW(d_solver->getOutput("foo-invalid"), CVC5ApiException);
@@ -2701,7 +2689,6 @@ TEST_F(TestApiBlackSolver, basicFiniteField)
 
 TEST_F(TestApiBlackSolver, basicFiniteFieldBase)
 {
-  Solver slv(d_tm);
   d_solver->setOption("produce-models", "true");
 
   Sort F = d_tm.mkFiniteFieldSort("101", 2);

@@ -55,6 +55,24 @@ TEST_F(TestCApiBlackOp, hash)
   ASSERT_NE(cvc5_op_hash(op1), cvc5_op_hash(op2));
 }
 
+TEST_F(TestCApiBlackOp, copy_release)
+{
+  ASSERT_DEATH(cvc5_op_copy(nullptr), "invalid op");
+  ASSERT_DEATH(cvc5_op_release(nullptr), "invalid op");
+  std::vector<uint32_t> idxs = {4, 0};
+  Cvc5Op op =
+      cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, idxs.size(), idxs.data());
+  Cvc5Op op_copy = cvc5_op_copy(op);
+  size_t hash1 = cvc5_op_hash(op);
+  size_t hash2 = cvc5_op_hash(op_copy);
+  ASSERT_EQ(hash1, hash2);
+  cvc5_op_release(op);
+  ASSERT_EQ(cvc5_op_hash(op), cvc5_op_hash(op_copy));
+  cvc5_op_release(op);
+  // we cannot reliably check that querying on the (now freed) term fails
+  // unless ASAN is enabled
+}
+
 TEST_F(TestCApiBlackOp, get_kind)
 {
   ASSERT_DEATH(cvc5_op_get_kind(nullptr), "invalid operator");

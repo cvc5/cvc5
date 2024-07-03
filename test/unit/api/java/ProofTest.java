@@ -104,6 +104,19 @@ class ProofTest
   }
 
   @Test
+  void equalHash() throws CVC5ApiException
+  {
+    Proof x = createProof();
+    Proof y = x.getChildren()[0];
+    Proof n = new Proof();
+    assertTrue(x.equals(x));
+    assertFalse(x.equals(y));
+    assertFalse(x.equals(n));
+
+    assertTrue(x.hashCode() == x.hashCode());
+  }
+
+  @Test
   void getRule() throws CVC5ApiException
   {
     Proof proof = createProof();
@@ -151,22 +164,5 @@ class ProofTest
   {
     Proof proof = createProof();
     assertDoesNotThrow(() -> proof.getArguments());
-  }
-
-  @Test
-  void eq() throws CVC5ApiException
-  {
-    Proof x = createProof();
-    Proof y = x.getChildren()[0];
-    Proof z = new Proof();
-
-    assertTrue(x == x);
-    assertFalse(x != x);
-    assertFalse(x == y);
-    assertTrue(x != y);
-    assertFalse(x == z);
-    assertTrue(x != z);
-
-    assertTrue(x.hashCode() == x.hashCode());
   }
 }

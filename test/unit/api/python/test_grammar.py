@@ -27,6 +27,15 @@ def solver(tm):
     return cvc5.Solver(tm)
 
 
+def test_is_null(tm, solver):
+    solver.setOption("sygus", "true")
+    boolean = tm.getBooleanSort()
+    start = tm.mkVar(boolean)
+    nts = tm.mkVar(boolean)
+    g = solver.mkGrammar([nts], [start])
+    assert not g.isNull()
+
+
 def test_to_string(tm, solver):
     solver.setOption("sygus", "true")
     boolean = tm.getBooleanSort()
@@ -133,3 +142,45 @@ def test_add_any_variable(tm, solver):
 
     with pytest.raises(RuntimeError):
         g1.addAnyVariable(start)
+
+def tesT_hash(tm, solver):
+    solver.setOption("sygus", "true")
+    bool_sort = tm.getBooleanSort()
+    x = tm.mkVar(bool_sort, "x")
+    start1 = tm.mkVar(bool_sort, "start")
+    start2 = tm.mkVar(bool_sort, "start")
+
+    g1 = solver.mkGrammar({}, {start1})
+    g2 = solver.mkGrammar({}, {start1})
+    assert hash(g1) == hash(g1)
+    assert hash(g1) == hash(g2)
+
+    g1 = solver.mkGrammar({}, {start1})
+    g2 = solver.mkGrammar({x}, {start1})
+    assert hash(g1) != hash(g2)
+
+    g1 = solver.mkGrammar({x}, {start1})
+    g2 = solver.mkGrammar({x}, {start2})
+    assert hash(g1) == hash(g2)
+
+    g1 = solver.mkGrammar({x}, {start1})
+    g2 = solver.mkGrammar({x}, {start1})
+    g2.addAnyVariable(start1)
+    assert hash(g1) != hash(g2)
+
+    g1 = solver.mkGrammar({x}, {start1})
+    g2 = solver.mkGrammar({x}, {start1})
+    g1.addRules(start1, tm.mkFalse())
+    g2.addRules(start1, tm.mkFalse())
+    assert hash(g1) == hash(g2)
+
+    g1 = solver.mkGrammar({x}, {start1})
+    g2 = solver.mkGrammar({x}, {start1})
+    g2.addRules(start1, tm.mkFalse())
+    assert hash(g1) != hash(g2)
+
+    g1 = solver.mkGrammar({x}, {start1})
+    g2 = solver.mkGrammar({x}, {start1})
+    g1.addRules(start1, tm.mkTrue())
+    g2.addRules(start1, tm.mkFalse())
+    assert hash(g1) != hash(g2)
