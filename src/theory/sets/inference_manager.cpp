@@ -122,7 +122,8 @@ bool InferenceManager::assertSetsFact(Node atom,
   Node conc = polarity ? atom : atom.notNode();
   if (assertInternalFact(atom, polarity, id, {exp}, d_ipc.get()))
   {
-    // only update the proof bookkeeping if the fact was successfully added (not redundant)
+    // only update the proof bookkeeping if the fact was successfully added (not
+    // redundant)
     if (d_ipc)
     {
       d_ipc->notifyFact(conc, exp, id);
