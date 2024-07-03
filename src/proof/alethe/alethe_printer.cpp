@@ -61,7 +61,7 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       << "res: " << pn->getResult() << "\nid: " << pn->getRule();
   for (size_t i = 2, size = args.size(); i < size; ++i)
   {
-    Trace("alethe-printer") << "Process " << args[i] << "\n";
+    Trace("alethe-printer") << "Process " << args[i] << std::endl;
     // We do not share s-expressions, but rather their children
     if (args[i].getKind() == Kind::SEXPR)
     {
@@ -106,7 +106,7 @@ void AletheProofPrinter::printStepId(
     return;
   }
   Assert(pfMap.find(pfn) != pfMap.end())
-      << "Cannot find proof of " << pfn->getResult() << "\n";
+      << "Cannot find proof of " << pfn->getResult() << std::endl;
   out << pfMap.find(pfn)->second;
 }
 
@@ -128,7 +128,7 @@ void AletheProofPrinter::print(
     std::shared_ptr<ProofNode> pfn,
     const std::map<Node, std::string>& assertionNames)
 {
-  Trace("alethe-printer") << "- Print proof in Alethe format.\n";
+  Trace("alethe-printer") << "- Print proof in Alethe format." << std::endl;
   // ignore outer scope
   pfn = pfn->getChildren()[0];
   std::shared_ptr<ProofNode> innerPf = pfn->getChildren()[0];
@@ -142,7 +142,7 @@ void AletheProofPrinter::print(
     {
       out << "(define-fun " << skolem << " () " << skolem.getType() << " ";
       printTerm(out, choice);
-      out << ")\n";
+      out << ")" << std::endl;
     }
   }
   if (options().printer.dagThresh)
@@ -152,7 +152,7 @@ void AletheProofPrinter::print(
     // may apper just in them (if they are not used in the rest of the proof).
     // Otherwise repeated terms *only* in assumptions would not be letified.
     ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
-    Trace("alethe-printer") << "- letify.\n";
+    Trace("alethe-printer") << "- letify." << std::endl;
     updater.process(pfn);
 
     std::vector<Node> letList;
@@ -162,11 +162,11 @@ void AletheProofPrinter::print(
       for (TNode n : letList)
       {
         Trace("alethe-printer")
-            << "Term " << n << " has id " << d_lbind.getId(n) << "\n";
+            << "Term " << n << " has id " << d_lbind.getId(n) << std::endl;
       }
     }
   }
-  Trace("alethe-printer") << "- Print assumptions.\n";
+  Trace("alethe-printer") << "- Print assumptions." << std::endl;
   std::unordered_map<Node, std::string> assumptionsMap;
   const std::vector<Node>& args = pfn->getArguments();
   // Special handling for the first scope. Print assumptions and add them to the
@@ -192,7 +192,7 @@ void AletheProofPrinter::print(
       assumptionsMap[args[i]] = "a" + std::to_string(i);
     }
     printTerm(out, args[i]);
-    out << ")\n";
+    out << ")" << std::endl;
   }
   // Then, print the rest of the proof node
   std::unordered_map<std::shared_ptr<ProofNode>, std::string> pfMap;
@@ -221,7 +221,7 @@ void AletheProofPrinter::printInternal(
   {
     Trace("alethe-printer") << "... step is already printed t" << pfIt->second
                             << " " << pfn->getResult() << " "
-                            << getAletheRule(pfn->getArguments()[0]) << "\n";
+                            << getAletheRule(pfn->getArguments()[0]) << std::endl;
     return;
   }
   const std::vector<Node>& args = pfn->getArguments();
@@ -229,7 +229,7 @@ void AletheProofPrinter::printInternal(
   // Get the alethe proof rule
   AletheRule arule = getAletheRule(args[0]);
   Trace("alethe-printer") << "... print step " << arule << " : " << args[2]
-                          << "\n";
+                          << std::endl;
   // We special case printing anchors
   if (arule >= AletheRule::ANCHOR_SUBPROOF
       && arule <= AletheRule::ANCHOR_SKO_EX)
@@ -253,7 +253,7 @@ void AletheProofPrinter::printInternal(
     // if subproof, print assumptions, otherwise print arguments
     if (arule == AletheRule::ANCHOR_SUBPROOF)
     {
-      out << ")\n";
+      out << ")" << std::endl;
       Assert(args.size() >= 3);
       for (size_t i = 3, size = args.size(); i < size; ++i)
       {
@@ -262,7 +262,7 @@ void AletheProofPrinter::printInternal(
         std::string assumptionId = subproofPrefix + "a" + std::to_string(i - 3);
         out << "(assume " << assumptionId << " ";
         printTerm(out, args[i]);
-        out << ")\n";
+        out << ")" << std::endl;
         subproofAssumptionsMap[args[i]] = assumptionId;
         dischargeIds.push_back(assumptionId);
       }
@@ -284,7 +284,7 @@ void AletheProofPrinter::printInternal(
         Assert(args[i].getKind() == Kind::BOUND_VARIABLE) << args[i];
         out << "(" << args[i] << " " << args[i].getType() << ") ";
       }
-      out << "))\n";
+      out << "))" << std::endl;
     }
     size_t subproofId = 0;
     printInternal(out, subproofPrefix, subproofId, pfChildren[0], subproofAssumptionsMap, subproofPfMap);
@@ -303,7 +303,7 @@ void AletheProofPrinter::printInternal(
       }
       out << ")";
     }
-    out << ")\n";
+    out << ")" << std::endl;
     pfMap[pfn] = stepId;
     return;
   }
@@ -341,7 +341,7 @@ void AletheProofPrinter::printInternal(
     }
     out << ")";
   }
-  out << ")\n";
+  out << ")" << std::endl;
   pfMap[pfn] = stepId;
 }
 
