@@ -120,11 +120,15 @@ bool InferenceManager::assertSetsFact(Node atom,
                                       Node exp)
 {
   Node conc = polarity ? atom : atom.notNode();
-  if (d_ipc)
+  if (assertInternalFact(atom, polarity, id, {exp}, d_ipc.get()))
   {
-    d_ipc->notifyFact(conc, exp, id);
+    if (d_ipc)
+    {
+      d_ipc->notifyFact(conc, exp, id);
+    }
+    return true;
   }
-  return assertInternalFact(atom, polarity, id, {exp}, d_ipc.get());
+  return false;
 }
 
 void InferenceManager::assertInference(Node fact,
