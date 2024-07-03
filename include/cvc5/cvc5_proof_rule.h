@@ -1634,7 +1634,7 @@ enum ENUM(ProofRule)
    *
    * where :math:`w` is :math:`\texttt{strings::StringsPreprocess::reduce}(t, R,
    * \dots)`.  In other words, :math:`R` is the reduction predicate for extended
-   * term :math:`t`, and :math:`w` is :math:`skolem(t)`.
+   * term :math:`t`, and :math:`w` is the purification Skolem for :math:`t`.
    *
    * Notice that the free variables of :math:`R` are :math:`w` and the free
    * variables of :math:`t`.
@@ -2289,6 +2289,24 @@ enum ENUM(ProofRewriteRule)
    * **Arithmetic - strings predicate entailment**
    *
    * .. math::
+   *   (= s t) = false
+   *
+   * .. math::
+   *   (>= s t) = true
+   *
+   * This macro is elaborated by applications of :math:`EVALUATE`,
+   * :math:`ARITH_POLY_NORM`, :math:`ARITH_STRING_PRED_ENTAIL`,
+   * :math:`ARITH_STRING_PRED_SAFE_APPROX`, as well as other rewrites for
+   * normalizing arithmetic predicates.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_STRING_PRED_ENTAIL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic - strings predicate entailment**
+   *
+   * .. math::
    *   (>= n 0) = true
    *
    * Where :math:`n` can be shown to be greater than or equal to :math:`0` by
@@ -2473,7 +2491,6 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
-
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Unsigned multiplication overflow detection elimination**
@@ -2534,6 +2551,7 @@ enum ENUM(ProofRewriteRule)
    */
   EVALUE(RE_LOOP_ELIM),
   /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
    *
    * .. math::

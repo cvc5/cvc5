@@ -142,6 +142,16 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroArithStringPredEntail(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH.
    *
    * @param cdp The proof to add to.
