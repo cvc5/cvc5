@@ -27,7 +27,7 @@ namespace theory {
 namespace sets {
 
 InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
-    : EnvObj(env), d_tsr(tsr), d_imap(userContext()), d_expMap(userContext())
+    : EnvObj(env), d_tsr(tsr), d_imap(context()), d_expMap(context())
 {
   d_false = nodeManager()->mkConst(false);
   d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
