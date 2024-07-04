@@ -20,7 +20,7 @@ All binaries are built into ``<build_dir>/bin``, the cvc5 library is built into
 Supported Operating Systems
 ---------------------------
 
-cvc5 can be built natively on Linux and macOS. Native compilations on Windows are also
+cvc5 can be built natively on Linux and macOS. Native compilation on Windows is also
 possible using MSYS2. Additionally, cvc5 supports cross-compilation for x86_64 Windows
 using Mingw-w64 and for ARM64 on both Linux and macOS.
 We generally recommend a 64-bit operating system.
