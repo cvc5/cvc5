@@ -48,7 +48,7 @@
 ; - C Bool: The conclusion.
 ; return: >
 ;   The antecedant of F for conclusion C, calling $extract_antec_rec if necessary.
-;   Note that the singleton case is handled here to avoid constructing AND with
+;   Note that the singleton case is handled here to avoid constructing an and term with
 ;   single child.
 (program $extract_antec
    ((C Bool) (F Bool))
