@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Haniel Barbosa, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
     || (defined(CVC5_API_USE_C_ENUMS)               \
         && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
-#include <cstdint>
+#include <stdint.h>
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef ENUM
@@ -88,7 +88,7 @@ namespace cvc5 {
  * in post-processing.
  * \endverbatim
  */
-enum ENUM(ProofRule) : uint32_t
+enum ENUM(ProofRule)
 {
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1134,6 +1134,10 @@ enum ENUM(ProofRule) : uint32_t
    *
    * For example, this rule concludes :math:`f(x,y) = @(@(f,x),y)`, where
    * :math:`@` isthe ``HO_APPLY`` kind.
+   *
+   * Note this rule can be treated as a
+   * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
+   * external proof formats.
    *  \endverbatim
    */
   EVALUE(HO_APP_ENCODE),
@@ -1585,15 +1589,17 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_1) = n}
    *
-   * or alternatively for the reverse:
+   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
+   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * Or alternatively for the reverse:
    *
    * .. math::
    *
    *   \inferrule{\mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_2) = n}
    *
-   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
-   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)` and
+   * :math:`w_2` is the purification skolem for :math:`\mathit{suf}(t,n)`.
    * \endverbatim
    */
   EVALUE(STRING_DECOMPOSE),
@@ -1721,7 +1727,7 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t) \neq
-   *   \mathit{to\_code}(s) \vee t\neq s}
+   *   \mathit{to\_code}(s) \vee t = s}
    * \endverbatim
    */
   EVALUE(STRING_CODE_INJ),
@@ -2238,7 +2244,7 @@ enum ENUM(ProofRule) : uint32_t
  * proof rule.
  * \endverbatim
  */
-enum ENUM(ProofRewriteRule) : uint32_t
+enum ENUM(ProofRewriteRule)
 {
   EVALUE(NONE),
   // Custom theory rewrites.
@@ -2511,8 +2517,8 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * .. math::
    *    (a bvand c) \to (concat (bvand a[i0:j0] c0) ... (bvand a[in:jn] cn))
    *
-   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the constant c
-   * \endverbatim
+   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
+   * constant c \endverbatim
    */
   EVALUE(BV_BITWISE_SLICING),
   /**
@@ -2528,7 +2534,6 @@ enum ENUM(ProofRewriteRule) : uint32_t
    */
   EVALUE(RE_LOOP_ELIM),
   /**
-   * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
    *
    * .. math::
@@ -2542,11 +2547,26 @@ enum ENUM(ProofRewriteRule) : uint32_t
   EVALUE(STR_IN_RE_EVAL),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - regular expression loop elimination**
+   * **Strings - regular expression membership consume**
    *
    * .. math::
-   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) =
-   *   \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
+   *   \mathit{str.in_re}(s, R) = b
+   *
+   * where :math:`b` is either :math:`false` or the result of stripping
+   * entailed prefixes and suffixes off of :math:`s` and :math:`R`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_CONSUME),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - string in regular expression concatenation star character**
+   *
+   * .. math::
+   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n),
+   * \mathit{re}.\text{*}(R)) = \mathit{str.in\_re}(s_1,
+   * \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n,
+   * \mathit{re}.\text{*}(R))
    *
    * where all strings in :math:`R` have length one.
    *
@@ -2558,13 +2578,15 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Strings - string in regular expression sigma**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar})) =
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar})) =
    *   (\mathit{str.len}(s) = n)
    *
    * or alternatively:
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) =
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) =
    *   (\mathit{str.len}(s) \ge n)
    *
    * \endverbatim
@@ -2575,14 +2597,30 @@ enum ENUM(ProofRewriteRule) : uint32_t
    * **Strings - string in regular expression sigma star**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}))) =
+   *   \mathit{str.in\_re}(s,
+   * \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar}))) =
    *   (\mathit{str.len}(s) \ \% \ n = 0)
    *
-   * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to :math:`\mathit{re}.\text{++}`.
+   * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to
+   * :math:`\mathit{re}.\text{++}`.
    *
    * \endverbatim
    */
   EVALUE(STR_IN_RE_SIGMA_STAR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - strings substring strip symbolic length**
+   *
+   * .. math::
+   *   (str.substr s n m) = t
+   *
+   * where :math:`t` is obtained by fully or partially stripping components of
+   * :math:`s` based on :math:`n` and :math:`m`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Sets - empty tester evaluation**

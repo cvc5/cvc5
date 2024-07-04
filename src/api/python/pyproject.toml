@@ -1,5 +1,9 @@
 [build-system]
-requires = ["setuptools", "Cython>=3"]
+requires = [
+    "setuptools>=66.1.0",
+    "setuptools!=70.2.0; os_name == 'nt'",
+    "Cython>=3"
+]
 build-backend = "setuptools.build_meta"
 
 [project]

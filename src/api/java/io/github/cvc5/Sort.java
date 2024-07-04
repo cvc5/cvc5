@@ -50,9 +50,13 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public boolean equals(Object s)
   {
     if (this == s)
+    {
       return true;
+    }
     if (s == null || getClass() != s.getClass())
+    {
       return false;
+    }
     Sort sort = (Sort) s;
     if (this.pointer == sort.pointer)
     {

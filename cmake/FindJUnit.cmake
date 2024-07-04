@@ -38,7 +38,7 @@ if(NOT JUnit_FOUND_SYSTEM)
     JUnit-EP-jar
     PREFIX ${DEPS_PREFIX}
     URL https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/${JUNIT_VERSION}/junit-platform-console-standalone-${JUNIT_VERSION}.jar
-    URL_HASH SHA1=99245bde65d028a8b8ff604be26e929ab6ff2e58
+    URL_HASH SHA256=e588d4dab5c8898b241c2a25938bf0b933ab77518626f14028cce403df7ce33d
     DOWNLOAD_NO_EXTRACT ON
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""

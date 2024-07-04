@@ -1,6 +1,11 @@
 (include "../theories/Builtin.smt3")
 (include "../theories/Arith.smt3")
 
+; disclaimer: >
+;   The types of functions over Strings is generalized in this
+;   signature to support both strings and sequences. The SMT-LIB standard only
+;   accepts strings.
+
 ; The sequence type.
 ; disclaimer: This sort is not in SMT-LIB.
 (declare-type Seq (Type))
@@ -9,19 +14,15 @@
 ; Note that this is only for the purposes of simplifying the type rules below.
 ; Internally, cvc5 will never generate any proofs involving the Char type.
 ; disclaimer: This sort is not in SMT-LIB.
-(declare-sort Char 0)
+(declare-type Char ())
 ; disclaimer: >
 ;   This sort is declared to be an atomic sort in SMT-LIB. We
 ;   generalize it to be defined as a sequence of characters, for the purposes
 ;   of lifting the theory definition and proof rules for strings to sequences.
-; disclaimer: >
-;   The types of functions over Strings is generalized in this
-;   signature to support both strings and sequences. The SMT-LIB standard only
-;   accepts strings.
-(define-fun String () Type (Seq Char))
+(define String () (Seq Char))
 
 ; The regular expression type.
-(declare-sort RegLan 0)
+(declare-type RegLan ())
 
 ; String literals are strings.
 (declare-consts <string> String)
