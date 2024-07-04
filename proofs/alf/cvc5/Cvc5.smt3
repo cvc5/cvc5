@@ -267,14 +267,17 @@
   :conclusion (= a b)
 )
 
-; @rule trust
-; @premises P. A conjunction of the premises passed to this rule.
-; @args F : Bool. The proven formula, which should be implied by P.
-; @conclusion The given formula F.
-; @note This rule is not sound. Any proof involving this rule should be
-; considered incomplete. We use this rule when encountering ProofRule::TRUST,
-; ProofRule::TRUST_THEORY_REWRITE, or any other rule that is not currently
-; formalized in the ALF signature.
+; rule: trust
+; premsies:
+; - P: A conjunction of the premises passed to this rule.
+; args:
+; - F Bool: The proven formula, which should be implied by P.
+; conclusion: The given formula F.
+; note: >
+;   This rule is not sound. Any proof involving this rule should be
+;   considered incomplete. We use this rule when encountering ProofRule::TRUST,
+;   ProofRule::TRUST_THEORY_REWRITE, or any other rule that is not currently
+;   formalized in the ALF signature.
 (declare-rule trust ((P Bool) (F Bool))
     :premise-list P and
     :args (F)
