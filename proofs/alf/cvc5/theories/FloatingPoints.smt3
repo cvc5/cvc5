@@ -2,14 +2,14 @@
 (include "../theories/Arith.smt3")
 (include "../theories/BitVectors.smt3")
 
-; Note that we do not currently check whether the indices of this sort are positive.
+; note: We do not currently check whether the indices of this sort are positive.
 (declare-const FloatingPoint
   (-> Int Int Type)
 )
 (declare-type RoundingMode ())
 
 ; A floating point constant is a term having 3 bitvector children.
-; Note this is used for both FLOATINGPOINT_FP and CONST_FLOATINGPOINT
+; note: This is used for both FLOATINGPOINT_FP and CONST_FLOATINGPOINT.
 (declare-const fp
   (-> (! Int :var e :implicit) (! Int :var s :implicit)
       (BitVec 1) (BitVec e) (BitVec s) (FloatingPoint e (alf.add s 1))))

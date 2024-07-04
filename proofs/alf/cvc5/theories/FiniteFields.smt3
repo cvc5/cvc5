@@ -10,7 +10,7 @@
   (alf.match ((n Int)) T (((FiniteField n) n))))
 
 ; A finite field constant is a term having 2 integer children.
-; NOTE: we do not support the native syntax for finite field values.
+; note: we do not support the native syntax for finite field values.
 (declare-const ff.value
     (-> (! Int :var p) Int (FiniteField p)))
 
