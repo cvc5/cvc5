@@ -13,7 +13,6 @@
 ; note: >
 ;   Since this rule has an assumption, it is expected to be referenced in
 ;   a step-pop command.
-; note: >
 ;   Along with process_scope, this rule implements ProofRule::SCOPE for a
 ;   single assumption; using n applications of it is required for handling
 ;   an application of ProofRule::SCOPE with n assumptions, which proves
