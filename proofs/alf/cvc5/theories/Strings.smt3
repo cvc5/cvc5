@@ -24,8 +24,8 @@
 (declare-const seq.empty (-> (! Type :var T) T))
 
 ; program: mk_emptystr
-; args: >
-;   U Type: The string-like type.
+; args:
+; - U Type: The string-like type.
 ; return: The empty string of the given string-like sort U.
 (program mk_emptystr ((U Type))
   (Type) U
