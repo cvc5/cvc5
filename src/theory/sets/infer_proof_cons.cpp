@@ -29,7 +29,7 @@ namespace sets {
 InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
     : EnvObj(env),
       d_tsr(tsr),
-      d_imap(userContext()),
+      d_uimap(userContext()),
       d_fmap(context()),
       d_expMap(context())
 {
@@ -55,19 +55,19 @@ void InferProofCons::notifyConflict(const Node& conf, InferenceId id)
 {
   Trace("sets-ipc-debug") << "SetsIpc::conflict " << conf << " " << id
                           << std::endl;
-  d_imap[conf.notNode()] = id;
+  d_uimap[conf.notNode()] = id;
 }
 
 void InferProofCons::notifyLemma(const Node& lem, InferenceId id)
 {
   Trace("sets-ipc-debug") << "SetsIpc::lemma " << lem << " " << id << std::endl;
-  d_imap[lem] = id;
+  d_uimap[lem] = id;
 }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
-  NodeInferenceMap::iterator it = d_imap.find(fact);
-  if (it == d_imap.end())
+  NodeInferenceMap::iterator it = d_uimap.find(fact);
+  if (it == d_uimap.end())
   {
     // should be a fact
     it = d_fmap.find(fact);

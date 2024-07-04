@@ -100,7 +100,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * Maps lemma formulas to the inference id they were notified with. This is
    * user-context dependent.
    */
-  NodeInferenceMap d_imap;
+  NodeInferenceMap d_uimap;
   /**
    * Maps fact formulas to the inference id they were notified with. This is
    * SAT-context dependent.
