@@ -36,6 +36,7 @@
   :args (x)
   :conclusion (> (exp x) 0)
 )
+
 ; rule: arith_trans_exp_super_lin
 ; implements: ProofRule::ARITH_TRANS_EXP_SUPER_LIN
 ; args:
