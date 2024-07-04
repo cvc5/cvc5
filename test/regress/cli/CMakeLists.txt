@@ -1699,6 +1699,7 @@ set(regress_0_tests
   regress0/sets/proj-issue703.smt2
   regress0/sets/proj-issue720.smt2
   regress0/sets/proj-issue727.smt2
+  regress0/sets/proj-issue730-sets-ipc-fail.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/set_is_empty.smt2
   regress0/sets/setel-eq.smt2
@@ -2957,6 +2958,7 @@ set(regress_1_tests
   regress1/sets/choose2.smt2
   regress1/sets/choose3.smt2
   regress1/sets/choose4.smt2
+  regress1/sets/issue10941-open-pf.smt2
   regress1/sets/issue5705-cg-subtyping.smt2
   regress1/sets/issue8987-ho.smt2
   regress1/sets/issue8987-ho-exception.smt2

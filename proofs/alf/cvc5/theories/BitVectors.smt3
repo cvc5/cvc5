@@ -4,7 +4,10 @@
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
-; Returns the (integer value) bitwidth for a given bit-vector type.
+; define: $bv_bitwidth
+; args:
+; - T Type: The bitvector type.
+; return: The (integer value) bitwidth for a given bit-vector type.
 (define $bv_bitwidth ((T Type))
   (alf.match ((n Int)) T (((BitVec n) n)))
 )
@@ -25,7 +28,8 @@
     )
 )
 
-; used as the nil terminator for concat
+; define: @bv_empty
+; return: The empty bitvector.
 (define @bv_empty () (alf.to_bin 0 0))
 
 (declare-const concat (->
