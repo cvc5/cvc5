@@ -4,10 +4,14 @@
 ; The sequence type.
 (declare-type Seq (Type))
 
-; String is treated as a sequence of characters in the ALF signature.
-; Note that this is only for the purposes of simplifying the type rules below.
-; Internally, cvc5 will never generate any proofs involving the Char type.
 (declare-type Char ())
+
+; define: String
+; return: >
+;   The string type.
+;   Note that string is treated as a sequence of characters in this signature.
+;   This is only for the purposes of simplifying the type rules below.
+;   Internally, cvc5 will never generate any proofs involving the Char type.
 (define String () (Seq Char))
 
 ; The regular expression type.
@@ -19,7 +23,10 @@
 ; Empty sequence
 (declare-const seq.empty (-> (! Type :var T) T))
 
-; Make empty string of the given string-like sort U.
+; program: mk_emptystr
+; args:
+; - U Type: The string-like type.
+; return: The empty string of the given string-like sort U.
 (program mk_emptystr ((U Type))
   (Type) U
   (
@@ -75,7 +82,11 @@
 (declare-const re.none RegLan)
 (declare-const re.all RegLan)
 (declare-const str.to_re (-> String RegLan))
+
+; define: @re.empty
+; return: The regular expression containing only the empty string.
 (define @re.empty () (str.to_re ""))
+
 (declare-const re.* (-> RegLan RegLan))
 (declare-const re.+ (-> RegLan RegLan))
 (declare-const re.opt (-> RegLan RegLan))
