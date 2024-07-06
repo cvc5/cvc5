@@ -197,6 +197,10 @@
 ; requires: >
 ;   That the arithmetic/bitvector expressions a and b are equal up polynomial
 ;   normalization.
+; note: >
+;   The current implementation of $is_poly_norm does not support bitvectors.
+;   Therefore, cvc5 will not output this rule for bitvector proofs; instead, it
+;   will output a trust rule.
 ; conclusion: The given equality.
 (declare-rule arith_poly_norm ((U Type) (a U) (b U))
   :args ((= a b))
