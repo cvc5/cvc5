@@ -434,7 +434,7 @@ TEST_F(TestApiBlackUncovered, SkolemId)
 TEST_F(TestApiBlackUncovered, Parser)
 {
   parser::Command command;
-  Solver solver;
+  Solver solver(d_tm);
   parser::InputParser inputParser(&solver);
   std::stringstream ss;
   ss << command << std::endl;
