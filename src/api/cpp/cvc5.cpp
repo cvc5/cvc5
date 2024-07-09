@@ -619,6 +619,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_ITE, Kind::BITVECTOR_ITE},
         {internal::Kind::BITVECTOR_REDOR, Kind::BITVECTOR_REDOR},
         {internal::Kind::BITVECTOR_REDAND, Kind::BITVECTOR_REDAND},
+        {internal::Kind::BITVECTOR_BIT_OP, Kind::BITVECTOR_BIT},
         {internal::Kind::BITVECTOR_EXTRACT_OP, Kind::BITVECTOR_EXTRACT},
         {internal::Kind::BITVECTOR_REPEAT_OP, Kind::BITVECTOR_REPEAT},
         {internal::Kind::BITVECTOR_ZERO_EXTEND_OP, Kind::BITVECTOR_ZERO_EXTEND},
@@ -892,13 +893,13 @@ const static std::unordered_set<Kind> s_indexed_kinds(
  * Mapping from external (API) kind to the corresponding internal operator kind.
  */
 const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
+    {Kind::BITVECTOR_BIT, internal::Kind::BITVECTOR_BIT_OP},
     {Kind::BITVECTOR_EXTRACT, internal::Kind::BITVECTOR_EXTRACT_OP},
     {Kind::BITVECTOR_REPEAT, internal::Kind::BITVECTOR_REPEAT_OP},
     {Kind::BITVECTOR_ROTATE_LEFT, internal::Kind::BITVECTOR_ROTATE_LEFT_OP},
     {Kind::BITVECTOR_ROTATE_RIGHT, internal::Kind::BITVECTOR_ROTATE_RIGHT_OP},
     {Kind::BITVECTOR_SIGN_EXTEND, internal::Kind::BITVECTOR_SIGN_EXTEND_OP},
     {Kind::BITVECTOR_ZERO_EXTEND, internal::Kind::BITVECTOR_ZERO_EXTEND_OP},
-    {Kind::BITVECTOR_BIT, internal::Kind::BITVECTOR_BIT_OP},
     {Kind::DIVISIBLE, internal::Kind::DIVISIBLE_OP},
     {Kind::FLOATINGPOINT_TO_SBV, internal::Kind::FLOATINGPOINT_TO_SBV_OP},
     {Kind::FLOATINGPOINT_TO_UBV, internal::Kind::FLOATINGPOINT_TO_UBV_OP},
@@ -2206,8 +2207,8 @@ size_t Op::getNumIndicesHelper() const
     case Kind::BITVECTOR_SIGN_EXTEND: size = 1; break;
     case Kind::BITVECTOR_ROTATE_LEFT: size = 1; break;
     case Kind::BITVECTOR_ROTATE_RIGHT: size = 1; break;
-    case Kind::INT_TO_BITVECTOR: size = 1; break;
     case Kind::BITVECTOR_BIT: size = 1; break;
+    case Kind::INT_TO_BITVECTOR: size = 1; break;
     case Kind::IAND: size = 1; break;
     case Kind::FLOATINGPOINT_TO_UBV: size = 1; break;
     case Kind::FLOATINGPOINT_TO_SBV: size = 1; break;
