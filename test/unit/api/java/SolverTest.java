@@ -801,6 +801,7 @@ class SolverTest
         assertTrue(elem.getValue().isInternal());
         assertTrue(elem.getValue().isDouble());
         assertTrue(Double.isNaN(elem.getValue().getDouble()));
+        elem.getValue().toString();
       }
     }
   }

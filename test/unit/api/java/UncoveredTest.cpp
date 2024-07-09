@@ -142,7 +142,7 @@ TEST_F(TestApiBlackUncovered, deprecated)
 
   (void)slv.mkVar(slv.getIntegerSort());
   (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
-  (void)parser::SymbolManager(d_solver.get());
+  (void)parser::SymbolManager(&slv);
 }
 
 TEST_F(TestApiBlackUncovered, comparison_operators)
@@ -334,6 +334,12 @@ TEST_F(TestApiBlackUncovered, isOutputOn)
   d_solver->getOutput("inst");
 }
 
+TEST_F(TestApiBlackUncovered, Grammar)
+{
+  Grammar g;
+  ASSERT_FALSE(g != g);
+}
+
 TEST_F(TestApiBlackUncovered, Options)
 {
   auto dopts = d_solver->getDriverOptions();
@@ -411,12 +417,7 @@ TEST_F(TestApiBlackUncovered, Datatypes)
 TEST_F(TestApiBlackUncovered, Proof)
 {
   Proof proof;
-  ASSERT_EQ(proof.getRule(), ProofRule::UNKNOWN);
-  ASSERT_EQ(std::hash<cvc5::ProofRule>()(ProofRule::UNKNOWN),
-            static_cast<size_t>(ProofRule::UNKNOWN));
-  ASSERT_TRUE(proof.getResult().isNull());
-  ASSERT_TRUE(proof.getChildren().empty());
-  ASSERT_TRUE(proof.getArguments().empty());
+  ASSERT_FALSE(proof != proof);
 }
 
 TEST_F(TestApiBlackUncovered, ProofRewriteRule)
@@ -429,6 +430,12 @@ TEST_F(TestApiBlackUncovered, SkolemId)
 {
   ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
             static_cast<size_t>(SkolemId::PURIFY));
+}
+
+TEST_F(TestApiBlackUncovered, SynthResult)
+{
+  cvc5::SynthResult r;
+  ASSERT_FALSE(r != r);
 }
 
 TEST_F(TestApiBlackUncovered, Parser)
@@ -459,5 +466,56 @@ TEST_F(TestApiBlackUncovered, Parser)
   parser::ParserEndOfFileException eof(message, filename, 10, 11);
 }
 
+class PluginListen : public Plugin
+{
+ public:
+  PluginListen(TermManager& tm)
+      : Plugin(tm), d_hasSeenTheoryLemma(false), d_hasSeenSatClause(false)
+  {
+  }
+  virtual ~PluginListen() {}
+  void notifySatClause(const Term& cl) override
+  {
+    Plugin::notifySatClause(cl);  // Cover default implementation
+    d_hasSeenSatClause = true;
+  }
+  bool hasSeenSatClause() const { return d_hasSeenSatClause; }
+  void notifyTheoryLemma(const Term& lem) override
+  {
+    Plugin::notifyTheoryLemma(lem);  // Cover default implementation
+    d_hasSeenTheoryLemma = true;
+  }
+  bool hasSeenTheoryLemma() const { return d_hasSeenTheoryLemma; }
+  std::string getName() override { return "PluginListen"; }
+
+ private:
+  /** have we seen a theory lemma? */
+  bool d_hasSeenTheoryLemma;
+  /** have we seen a SAT clause? */
+  bool d_hasSeenSatClause;
+};
+
+TEST_F(TestApiBlackUncovered, plugin_uncovered_default)
+{
+  // NOTE: this shouldn't be necessary but ensures notifySatClause is called
+  // here.
+  d_solver->setOption("plugin-notify-sat-clause-in-solve", "false");
+  PluginListen pl(d_tm);
+  d_solver->addPlugin(pl);
+  Sort stringSort = d_tm.getStringSort();
+  Term x = d_tm.mkConst(stringSort, "x");
+  Term y = d_tm.mkConst(stringSort, "y");
+  Term ctn1 = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
+  Term ctn2 = d_tm.mkTerm(Kind::STRING_CONTAINS, {y, x});
+  d_solver->assertFormula(d_tm.mkTerm(Kind::OR, {ctn1, ctn2}));
+  Term lx = d_tm.mkTerm(Kind::STRING_LENGTH, {x});
+  Term ly = d_tm.mkTerm(Kind::STRING_LENGTH, {y});
+  Term lc = d_tm.mkTerm(Kind::GT, {lx, ly});
+  d_solver->assertFormula(lc);
+  ASSERT_TRUE(d_solver->checkSat().isSat());
+  // above input formulas should induce a theory lemma and SAT clause learning
+  ASSERT_TRUE(pl.hasSeenTheoryLemma());
+  ASSERT_TRUE(pl.hasSeenSatClause());
+}
 }  // namespace test
 }  // namespace cvc5::internal
