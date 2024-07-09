@@ -661,6 +661,15 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``E``
    */
   EVALUE(SETS_MAP_DOWN_ELEMENT),
+    /**
+   * A skolem variable that is unique per terms ``(set.some p A)``. 
+   * The skolem is constrained to be an element in A, and it satisfies predicate p
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` a some term of the form ``(set.some p A)`` where A of type ``(Set E)``.   
+   * - Sort: ``E``
+   */
+  EVALUE(SETS_SOME),
   /**
    * A skolem function that is unique per floating-point sort, introduced for
    * the undefined zero case of ``fp.min``.

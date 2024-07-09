@@ -571,7 +571,8 @@ TypeNode SetAllTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == Kind::SET_ALL);
+  Assert(n.getKind() == Kind::SET_ALL || n.getKind() == Kind::SET_SOME);
+  std::string op = n.getKind() == Kind::SET_ALL ? "set.all" : "set.some";
   TypeNode functionType = n[0].getTypeOrNull();
   TypeNode setType = n[1].getTypeOrNull();
   if (check)
@@ -580,7 +581,8 @@ TypeNode SetAllTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) << "set.all operator expects a set in the second "
+        (*errOut) << op
+                  << " operator expects a set in the second "
                      "argument, a non-set is found";
       }
       return TypeNode::null();
@@ -596,7 +598,8 @@ TypeNode SetAllTypeRule::computeType(NodeManager* nodeManager,
       {
         if (errOut)
         {
-          (*errOut) << "Operator set.all expects a function returning Bool.";
+          (*errOut) << "Operator " << op
+                    << " expects a function returning Bool.";
         }
         return TypeNode::null();
       }

@@ -379,6 +379,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   case Kind::SET_MAP: return postRewriteMap(node);
   case Kind::SET_FILTER: return postRewriteFilter(node);
   case Kind::SET_ALL: return postRewriteAll(node);
+  case Kind::SET_SOME: return postRewriteSome(node);
   case Kind::SET_FOLD: return postRewriteFold(node);
 
   case Kind::RELATION_TRANSPOSE:
@@ -855,6 +856,38 @@ RewriteResponse TheorySetsRewriter::postRewriteAll(TNode n)
       Node a = nm->mkNode(Kind::SET_ALL, n[0], n[1][0]);
       Node b = nm->mkNode(Kind::SET_ALL, n[0], n[1][1]);
       Node ret = a.andNode(b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteSome(TNode n)
+{
+  Assert(n.getKind() == Kind::SET_SOME);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // (set.some p (as set.empty (Set T)) = false)
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // (set.some p (set.singleton x)) = (p x)
+      Node ret = nm->mkNode(Kind::APPLY_UF, n[0], n[1][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case Kind::SET_UNION:
+    {
+      // (set.some p (set.union A B)) =
+      //   (or (set.some p A) (set.some p B))
+      Node a = nm->mkNode(Kind::SET_SOME, n[0], n[1][0]);
+      Node b = nm->mkNode(Kind::SET_SOME, n[0], n[1][1]);
+      Node ret = a.orNode(b);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
 

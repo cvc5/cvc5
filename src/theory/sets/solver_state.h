@@ -165,6 +165,8 @@ class SolverState : public TheoryState
   const std::vector<Node>& getFilterTerms() const;
   /** Get the list of all set.all terms */
   const std::vector<Node>& getPredicateAllTerms() const;
+  /** Get the map of all set.some terms */
+  const std::map<Node, Node>& getPredicateSomeTerms() const;
   /** Get the list of all set.map terms in the current user context */
   const context::CDHashSet<Node>& getMapTerms() const;
   /** Get the list of all rel.group terms in the current user context */
@@ -232,6 +234,9 @@ class SolverState : public TheoryState
   std::vector<Node> d_filterTerms;
   /** A list of set.all terms. It is initialized during full effort check */
   std::vector<Node> d_predicateAllTerms;
+  /** Map from set.some terms to their witnesses. It is initialized during full
+   * effort check */
+  std::map<Node, Node> d_predicateSomeTerms;
   /** User context collection of set.map terms */
   context::CDHashSet<Node> d_mapTerms;
   /** User context collection of rel.group terms */

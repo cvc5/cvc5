@@ -1284,6 +1284,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SET_MAP: return "set.map";
     case Kind::SET_FILTER: return "set.filter";
     case Kind::SET_ALL: return "set.all";
+    case Kind::SET_SOME: return "set.some";
     case Kind::SET_FOLD: return "set.fold";
     case Kind::RELATION_JOIN: return "rel.join";
     case Kind::RELATION_TABLE_JOIN: return "rel.table_join";

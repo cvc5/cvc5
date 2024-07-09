@@ -87,6 +87,10 @@ operator SET_FILTER        2  "set filter operator"
 # (set.all p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
 operator SET_ALL           2  "set all operator"
 
+# set.some operator is a predicate that holds iff at least one element in a given set satisfies the the given predicate.
+# (set.some p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
+operator SET_SOME           2  "set some operator"
+
 # set.fold operator combines elements of a set into a single value.
 # (set.fold f t A) folds the elements of set A starting with term t and using
 # the combining function f.
@@ -150,6 +154,7 @@ typerule SET_IS_EMPTY       ::cvc5::internal::theory::sets::IsSetTypeRule
 typerule SET_MAP            ::cvc5::internal::theory::sets::SetMapTypeRule
 typerule SET_FILTER         ::cvc5::internal::theory::sets::SetFilterTypeRule
 typerule SET_ALL            ::cvc5::internal::theory::sets::SetAllTypeRule
+typerule SET_SOME           ::cvc5::internal::theory::sets::SetAllTypeRule
 typerule SET_FOLD           ::cvc5::internal::theory::sets::SetFoldTypeRule
 
 typerule RELATION_JOIN 			::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule

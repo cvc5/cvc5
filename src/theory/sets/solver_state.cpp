@@ -16,6 +16,7 @@
 #include "theory/sets/solver_state.h"
 
 #include "expr/emptyset.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "theory/sets/theory_sets_private.h"
 
@@ -58,6 +59,7 @@ void SolverState::reset()
   d_allCompSets.clear();
   d_filterTerms.clear();
   d_predicateAllTerms.clear();
+  d_predicateSomeTerms.clear();
 }
 
 void SolverState::registerEqc(TypeNode tn, Node r)
@@ -71,20 +73,22 @@ void SolverState::registerEqc(TypeNode tn, Node r)
 void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
 {
   Kind nk = n.getKind();
+  int polarityIndex = r == d_true ? 0 : (r == d_false ? 1 : -1);
   if (nk == Kind::SET_MEMBER)
   {
     if (r.isConst())
     {
       Node s = d_ee->getRepresentative(n[1]);
       Node x = d_ee->getRepresentative(n[0]);
-      int pindex = r == d_true ? 0 : (r == d_false ? 1 : -1);
-      if (pindex != -1)
+      if (polarityIndex != -1)
       {
-        if (d_pol_mems[pindex][s].find(x) == d_pol_mems[pindex][s].end())
+        if (d_pol_mems[polarityIndex][s].find(x)
+            == d_pol_mems[polarityIndex][s].end())
         {
-          d_pol_mems[pindex][s][x] = n;
-          Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n
-                               << ", pindex = " << pindex << std::endl;
+          d_pol_mems[polarityIndex][s][x] = n;
+          Trace("sets-debug2")
+              << "Membership[" << x << "][" << s << "] : " << n
+              << ", polarityIndex = " << polarityIndex << std::endl;
         }
         if (d_members_index[s].find(x) == d_members_index[s].end())
         {
@@ -152,7 +156,39 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   }
   else if (nk == Kind::SET_ALL)
   {
-    d_predicateAllTerms.push_back(n);
+    if (polarityIndex == 0)
+    {
+      d_predicateAllTerms.push_back(n);
+    }
+    else if (polarityIndex == 1)
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      SkolemManager* sm = nm->getSkolemManager();
+      Node someSkolem = sm->mkSkolemFunction(SkolemId::SETS_SOME, {n});
+      d_predicateSomeTerms[n] = someSkolem;
+    }
+    else
+    {
+      Assert(false);
+    }
+  }
+  else if (nk == Kind::SET_SOME)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    if (polarityIndex == 0)
+    {
+      SkolemManager* sm = nm->getSkolemManager();
+      Node someSkolem = sm->mkSkolemFunction(SkolemId::SETS_SOME, {n});
+      d_predicateSomeTerms[n] = someSkolem;
+    }
+    else if (polarityIndex == 1)
+    {
+      d_predicateAllTerms.push_back(n);
+    }
+    else
+    {
+      Assert(false);
+    }
   }
   else if (nk == Kind::SET_MAP)
   {
@@ -499,6 +535,11 @@ const std::vector<Node>& SolverState::getFilterTerms() const { return d_filterTe
 const std::vector<Node>& SolverState::getPredicateAllTerms() const
 {
   return d_predicateAllTerms;
+}
+
+const std::map<Node, Node>& SolverState::getPredicateSomeTerms() const
+{
+  return d_predicateSomeTerms;
 }
 
 const context::CDHashSet<Node>& SolverState::getMapTerms() const { return d_mapTerms; }

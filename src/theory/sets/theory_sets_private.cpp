@@ -397,6 +397,13 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
+    // check set.some rules
+    checkPredicateSome();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
     // check map up rules
     checkMapUp();
     d_im.doPendingLemmas();
@@ -758,6 +765,7 @@ void TheorySetsPrivate::checkPredicateAll()
   {
     Node p = term[0];
     Node A = term[1];
+    Kind k = term.getKind();
     Node empty = nm->mkConst(EmptySet(A.getType()));
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(A));
@@ -769,6 +777,10 @@ void TheorySetsPrivate::checkPredicateAll()
       Node B = pair.second[1];
       d_state.addEqualityToExp(A, B, exp);
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
+      if (k == Kind::SET_SOME)
+      {
+        p_x = p_x.notNode();
+      }
       exp.push_back(term);
       d_im.assertInference(p_x, InferenceId::SETS_ALL, exp);
       if (d_state.isInConflict())
@@ -778,6 +790,45 @@ void TheorySetsPrivate::checkPredicateAll()
     }
     Node isEmpty = empty.eqNode(A);
     d_im.assertInference(term, InferenceId::SETS_ALL_EMPTY, {isEmpty});
+    if (d_state.isInConflict())
+    {
+      return;
+    }
+  }
+}
+
+void TheorySetsPrivate::checkPredicateSome()
+{
+  NodeManager* nm = nodeManager();
+  const std::map<Node, Node>& someTerms = d_state.getPredicateSomeTerms();
+
+  for (auto [some, skolem] : someTerms)
+  {
+    Kind k = some.getKind();
+    Node p = some[0];
+    Node A = some[1];
+    Node empty = nm->mkConst(EmptySet(A.getType()));
+    Node premise = k == Kind::SET_SOME ? some : some.notNode();
+    Node application = nm->mkNode(Kind::APPLY_UF, p, skolem);
+    if (k == Kind::SET_ALL)
+    {
+      application = application.notNode();
+    }
+    Node member = nm->mkNode(Kind::SET_MEMBER, skolem, A);
+    Node conclusion = member.andNode(application);
+    d_im.assertInference(conclusion, InferenceId::SETS_SOME, {premise});
+    if (d_state.isInConflict())
+    {
+      return;
+    }
+    Node isEmpty = empty.eqNode(A);
+
+    d_im.assertInference(
+        rewrite(premise.notNode()), InferenceId::SETS_SOME_EMPTY, {isEmpty});
+    if (d_state.isInConflict())
+    {
+      return;
+    }
   }
 }
 
@@ -1618,8 +1669,6 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
 }
 
 /********************** Helper functions ***************************/
-/********************** Helper functions ***************************/
-/********************** Helper functions ***************************/
 
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
@@ -1654,7 +1703,7 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
 bool TheorySetsPrivate::isHigherOrderKind(Kind k)
 {
   return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_ALL
-         || k == Kind::SET_FOLD;
+         || k == Kind::SET_SOME || k == Kind::SET_FOLD;
 }
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)
@@ -1671,6 +1720,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     case Kind::EQUAL:
     case Kind::SET_MEMBER:
     case Kind::SET_ALL:
+    case Kind::SET_SOME:
     {
       // add trigger predicate for equality and membership
       d_state.addEqualityEngineTriggerPredicate(node);
