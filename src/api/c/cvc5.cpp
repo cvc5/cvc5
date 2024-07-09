@@ -20,6 +20,7 @@ extern "C" {
 #include <cvc5/cvc5.h>
 
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <variant>
 
@@ -4470,6 +4471,53 @@ bool cvc5_is_output_on(Cvc5* cvc5, const char* tag)
   res = cvc5->d_solver.isOutputOn(tag);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
+}
+
+void cvc5_get_output(Cvc5* cvc5, const char* tag, const char* filename)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(tag);
+  CVC5_CAPI_CHECK_NOT_NULL(filename);
+  if (cvc5->d_solver.isOutputOn(tag))
+  {
+    std::ostream* out;
+    if (filename != std::string("<stdout>"))
+    {
+      if (cvc5->d_output_tag_file_stream.is_open())
+      {
+        cvc5->d_output_tag_file_stream.close();
+      }
+      cvc5->d_output_tag_file_stream.open(filename);
+      out = &cvc5->d_output_tag_file_stream;
+    }
+    else
+    {
+      out = &std::cout;
+    }
+    cvc5->d_output_tag_stream = &cvc5->d_solver.getOutput(tag);
+    cvc5->d_output_tag_streambuf = cvc5->d_output_tag_stream->rdbuf();
+    cvc5->d_output_tag_stream->rdbuf(out->rdbuf());
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_close_output(Cvc5* cvc5, const char* filename)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(filename);
+  if (cvc5->d_output_tag_file_stream.is_open())
+  {
+    cvc5->d_output_tag_file_stream.close();
+  }
+  // reset redirected output stream returned by Solver::getOutput()
+  if (cvc5->d_output_tag_stream)
+  {
+    Assert(cvc5->d_output_tag_streambuf);
+    cvc5->d_output_tag_stream->rdbuf(cvc5->d_output_tag_streambuf);
+  }
+  CVC5_CAPI_TRY_CATCH_END;
 }
 
 const char* cvc5_get_version(Cvc5* cvc5)

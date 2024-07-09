@@ -316,6 +316,20 @@ void Cvc5TermManager::release()
 /* Cvc5 struct                                                                */
 /* -------------------------------------------------------------------------- */
 
+Cvc5::~Cvc5()
+{
+  if (d_output_tag_file_stream.is_open())
+  {
+    d_output_tag_file_stream.close();
+  }
+  // reset redirected output stream returned by Solver::getOutput()
+  if (d_output_tag_stream)
+  {
+    Assert(d_output_tag_streambuf);
+    d_output_tag_stream->rdbuf(d_output_tag_streambuf);
+  }
+}
+
 Cvc5Result Cvc5::export_result(const cvc5::Result& result)
 {
   Assert(!result.isNull());
