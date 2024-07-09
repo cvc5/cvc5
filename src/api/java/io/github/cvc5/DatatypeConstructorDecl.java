@@ -32,6 +32,33 @@ public class DatatypeConstructorDecl extends AbstractPointer
   // endregion
 
   /**
+   * Syntactic equality operator.
+   *
+   * @param d The datatype constructor declaration to compare to for equality.
+   * @return True if the datatype constructor declarations are equal.
+   */
+  @Override
+  public boolean equals(Object d)
+  {
+    if (this == d)
+    {
+      return true;
+    }
+    if (d == null || getClass() != d.getClass())
+    {
+      return false;
+    }
+    DatatypeConstructorDecl decl = (DatatypeConstructorDecl) d;
+    if (this.pointer == decl.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, decl.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /**
    * Add datatype selector declaration.
    * @param name The name of the datatype selector declaration to add.
    * @param sort The codomain sort of the datatype selector declaration to add.
@@ -84,4 +111,16 @@ public class DatatypeConstructorDecl extends AbstractPointer
    * @return A String representation of this datatype constructor declaration
    */
   protected native String toString(long pointer);
+
+  /**
+   * Get the hash value of a datatype constructor declaration.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

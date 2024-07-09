@@ -33,6 +33,33 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
 
   // endregion
 
+  /**
+   * Syntactic equality operator.
+   *
+   * @param c The datatype constructor to compare to for equality.
+   * @return True if the datatype constructors are equal.
+   */
+  @Override
+  public boolean equals(Object c)
+  {
+    if (this == c)
+    {
+      return true;
+    }
+    if (c == null || getClass() != c.getClass())
+    {
+      return false;
+    }
+    DatatypeConstructor cons = (DatatypeConstructor) c;
+    if (this.pointer == cons.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, cons.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
   /** @return The name of this Datatype constructor. */
   public String getName()
   {
@@ -203,4 +230,16 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   {
     return new ConstIterator();
   }
+
+  /**
+   * Get the hash value of a datatype constructor.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }
