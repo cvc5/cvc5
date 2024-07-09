@@ -167,6 +167,15 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_TRUE(extb.getOp().isIndexed());
   ASSERT_EQ(extb.getOp(), ext);
 
+  Op bit = d_tm.mkOp(Kind::BITVECTOR_BIT, {4});
+  Term bitb = d_tm.mkTerm(bit, {b});
+  ASSERT_EQ(bitb.getKind(), Kind::BITVECTOR_BIT);
+  ASSERT_TRUE(bitb.hasOp());
+  ASSERT_EQ(bitb.getOp(), bit);
+  ASSERT_TRUE(bitb.getOp().isIndexed());
+  ASSERT_EQ(bit.getNumIndices(), 1);
+  ASSERT_EQ(bit[0], d_tm.mkInteger(4));
+
   Term f = d_tm.mkConst(funsort, "f");
   Term fx = d_tm.mkTerm(Kind::APPLY_UF, {f, x});
 
