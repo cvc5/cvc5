@@ -17,6 +17,8 @@ extern "C" {
 #include <cvc5/c/cvc5.h>
 }
 
+#include <cmath>
+
 #include "base/output.h"
 #include "gtest/gtest.h"
 
@@ -1513,6 +1515,62 @@ TEST_F(TestCApiBlackTermManager, mk_const)
   // this will throw when NodeManager is not a singleton anymore
   (void)cvc5_mk_const(tm, d_bool, nullptr);
   cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackTermManager, get_statistics)
+{
+  ASSERT_DEATH(cvc5_term_manager_get_statistics(nullptr),
+               "unexpected NULL argument");
+
+  // do some array reasoning to make sure we have a double statistics
+  {
+    Cvc5* solver = cvc5_new(d_tm);
+    Cvc5Sort s2 = cvc5_mk_array_sort(d_tm, d_int, d_int);
+    Cvc5Term t1 = cvc5_mk_const(d_tm, d_int, "i");
+    Cvc5Term t2 = cvc5_mk_const(d_tm, s2, "a");
+    std::vector<Cvc5Term> args = {t2, t1};
+    args = {cvc5_mk_term(d_tm, CVC5_KIND_SELECT, args.size(), args.data()), t1};
+    cvc5_assert_formula(
+        solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+    cvc5_check_sat(solver);
+  }
+  Cvc5Statistics stats = cvc5_term_manager_get_statistics(d_tm);
+  (void)cvc5_stats_to_string(stats);
+
+  cvc5_stats_iter_init(stats, true, true);
+  bool hasstats = false;
+  while (cvc5_stats_iter_has_next(stats))
+  {
+    hasstats = true;
+    const char* name;
+    Cvc5Stat stat = cvc5_stats_iter_next(stats, &name);
+    (void)cvc5_stat_to_string(stat);
+    if (name == std::string("cvc5::CONSTANT"))
+    {
+      ASSERT_FALSE(cvc5_stat_is_internal(stat));
+      ASSERT_FALSE(cvc5_stat_is_default(stat));
+      ASSERT_TRUE(cvc5_stat_is_histogram(stat));
+      const char** keys;
+      uint64_t* values;
+      size_t size;
+      cvc5_stat_get_histogram(stat, &keys, &values, &size);
+      ASSERT_NE(size, 0);
+      ASSERT_EQ(cvc5_stat_to_string(stat),
+                std::string("{ UNKNOWN_TYPE_CONSTANT: 1, integer type: 1 }"));
+    }
+  }
+  ASSERT_TRUE(hasstats);
+}
+
+TEST_F(TestCApiBlackTermManager, print_statistics_safe)
+{
+  testing::internal::CaptureStdout();
+  cvc5_term_manager_print_stats_safe(d_tm, STDOUT_FILENO);
+  std::stringstream expected;
+  expected << "cvc5::CONSTANT = { integer type: 1, UNKNOWN_TYPE_CONSTANT: 1 }"
+           << std::endl
+           << "cvc5::TERM = { <unsupported>: 1 }" << std::endl;
+  testing::internal::GetCapturedStdout();
 }
 
 }  // namespace cvc5::internal::test

@@ -2439,6 +2439,25 @@ CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
  */
 CVC5_EXPORT void cvc5_term_manager_release(Cvc5TermManager* tm);
 
+/**
+ * Print the term manager statistics to the given file descriptor, suitable for
+ * usage in signal handlers.
+ * @param tm The term manager instance.
+ * @param fd The file descriptor.
+ */
+CVC5_EXPORT void cvc5_term_manager_print_stats_safe(Cvc5TermManager* tm,
+                                                    int fd);
+
+/**
+ * Get a snapshot of the current state of the statistic values of this term
+ * manager. The returned object is completely decoupled from the term manager
+ * and will not change when the term manager is used again.
+ * @param tm The term manager instance.
+ * @return A snapshot of the current state of the statistic values.
+ */
+CVC5_EXPORT Cvc5Statistics
+cvc5_term_manager_get_statistics(Cvc5TermManager* tm);
+
 /* .................................................................... */
 /* Sorts Handling                                                       */
 /* .................................................................... */
@@ -3636,7 +3655,7 @@ CVC5_EXPORT bool cvc5_stat_is_double(Cvc5Stat stat);
  * @param stat The statistic.
  * @return The double value.
  */
-double cvc5_stat_get_double(Cvc5Stat stat);
+CVC5_EXPORT double cvc5_stat_get_double(Cvc5Stat stat);
 
 /**
  * Determine if a given statistic holds a string value.
