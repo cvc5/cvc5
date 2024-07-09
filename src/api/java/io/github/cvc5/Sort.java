@@ -858,4 +858,16 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native long getNullableElementSort(long pointer);
+
+  /**
+   * Get the hash value of a sort.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

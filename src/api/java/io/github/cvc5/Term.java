@@ -48,7 +48,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Syntactic equality operator.
    * Return true if both terms are syntactically identical.
-   * Both terms must belong to the same solver object.
    *
    * @param t The term to compare to for equality.
    * @return True if the terms are equal.
@@ -887,4 +886,16 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   {
     return new ConstIterator();
   }
+
+  /**
+   * Get the hash value of a term.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

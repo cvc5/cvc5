@@ -321,13 +321,6 @@ TEST_F(TestApiBlackUncovered, mkString)
   ASSERT_EQ(d_solver->mkString(s).getStringValue(), s);
 }
 
-TEST_F(TestApiBlackUncovered, hash)
-{
-  (void)std::hash<Op>()(Op());
-  (void)std::hash<Sort>()(Sort());
-  (void)std::hash<cvc5::Result>{}(cvc5::Result());
-}
-
 TEST_F(TestApiBlackUncovered, isOutputOn)
 {
   d_solver->isOutputOn("inst");
