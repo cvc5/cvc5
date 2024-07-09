@@ -3421,7 +3421,6 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const OptionInfo& oi);
 class CVC5_EXPORT Stat
 {
   struct StatData;
-  friend struct std::hash<Stat>;
 
  public:
   friend class Statistics;
@@ -3526,21 +3525,6 @@ class CVC5_EXPORT Stat
  * Print a `Stat` object to an ``std::ostream``.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& stat);
-
-}  // namespace cvc5
-
-namespace std {
-/**
- * Hash function for statistic objects.
- */
-template <>
-struct CVC5_EXPORT hash<cvc5::Stat>
-{
-  size_t operator()(const cvc5::Stat& stat) const;
-};
-}  // namespace std
-
-namespace cvc5 {
 
 /**
  * \verbatim embed:rst:leading-asterisk
@@ -3647,21 +3631,6 @@ class CVC5_EXPORT Statistics
 };
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out,
                                      const Statistics& stats);
-
-}  // namespace cvc5
-
-namespace std {
-/**
- * Hash function for statistic objects.
- */
-template <>
-struct CVC5_EXPORT hash<cvc5::Statistics>
-{
-  size_t operator()(const cvc5::Statistics& stat) const;
-};
-}  // namespace std
-
-namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Plugin                                                                     */

@@ -9098,16 +9098,4 @@ size_t hash<cvc5::Grammar>::operator()(const cvc5::Grammar& grammar) const
   return std::hash<cvc5::internal::SygusGrammar>{}(*grammar.d_grammar);
 }
 
-size_t hash<cvc5::Stat>::operator()(const cvc5::Stat& stat) const
-{
-  std::cout << "pointer: " << stat.d_data.get() << std::endl;
-  std::cout << "hash: " << std::hash<void*>{}(stat.d_data.get()) << std::endl;
-  return std::hash<void*>{}(stat.d_data.get());
-}
-
-size_t hash<cvc5::Statistics>::operator()(const cvc5::Statistics& stat) const
-{
-  return std::hash<const void*>{}(&stat);
-}
-
 }  // namespace std
