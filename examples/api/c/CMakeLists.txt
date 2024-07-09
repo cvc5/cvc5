@@ -29,7 +29,7 @@ set(CVC5_EXAMPLES_API_C
   sets
   strings
   transcendentals
-  #parser
+  parser
   #parser_sym_manager
   uf
 )
