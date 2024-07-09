@@ -239,8 +239,12 @@ TEST_F(TestCApiBlackInputParser, next_term2)
   cvc5_parser_set_inc_str_input(
       parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black");
   // parse a declaration command
-  cvc5_parser_append_inc_str_input(parser, "(declare-fun a () Int)\n");
+  cvc5_parser_append_inc_str_input(parser, "(set-logic ALL)\n");
   Cvc5Command cmd = cvc5_parser_next_command(parser, &error_msg);
+  ASSERT_NE(cmd, nullptr);
+  (void)cvc5_cmd_invoke(cmd, d_solver, d_sm);
+  cvc5_parser_append_inc_str_input(parser, "(declare-fun a () Int)\n");
+  cmd = cvc5_parser_next_command(parser, &error_msg);
   ASSERT_NE(cmd, nullptr);
   (void)cvc5_cmd_invoke(cmd, d_solver, d_sm);
   // now parse some terms
@@ -306,6 +310,9 @@ TEST_F(TestCApiBlackInputParser, multiple_parsers)
   cvc5_parser_delete(parser3);
   cvc5_parser_delete(parser2);
   cvc5_parser_delete(parser);
+  cvc5_delete(solver4);
+  cvc5_delete(solver3);
+  cvc5_delete(solver2);
 }
 
 TEST_F(TestCApiBlackInputParser, inc_set_Str)
