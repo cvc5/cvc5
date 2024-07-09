@@ -23,7 +23,7 @@ class TestApiBlackTerm : public TestApi
 {
 };
 
-TEST_F(TestApiBlackTerm, eq)
+TEST_F(TestApiBlackTerm, equalHash)
 {
   Sort uSort = d_tm.mkUninterpretedSort("u");
   Term x = d_tm.mkVar(uSort, "x");
@@ -36,6 +36,10 @@ TEST_F(TestApiBlackTerm, eq)
   ASSERT_TRUE(x != y);
   ASSERT_FALSE((x == z));
   ASSERT_TRUE(x != z);
+
+  ASSERT_EQ(std::hash<Term>{}(x), std::hash<Term>{}(x));
+  ASSERT_NE(std::hash<Term>{}(x), std::hash<Term>{}(y));
+  (void)std::hash<Term>{}(Term());
 }
 
 TEST_F(TestApiBlackTerm, getId)
@@ -162,6 +166,15 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_TRUE(extb.hasOp());
   ASSERT_TRUE(extb.getOp().isIndexed());
   ASSERT_EQ(extb.getOp(), ext);
+
+  Op bit = d_tm.mkOp(Kind::BITVECTOR_BIT, {4});
+  Term bitb = d_tm.mkTerm(bit, {b});
+  ASSERT_EQ(bitb.getKind(), Kind::BITVECTOR_BIT);
+  ASSERT_TRUE(bitb.hasOp());
+  ASSERT_EQ(bitb.getOp(), bit);
+  ASSERT_TRUE(bitb.getOp().isIndexed());
+  ASSERT_EQ(bit.getNumIndices(), 1);
+  ASSERT_EQ(bit[0], d_tm.mkInteger(4));
 
   Term f = d_tm.mkConst(funsort, "f");
   Term fx = d_tm.mkTerm(Kind::APPLY_UF, {f, x});

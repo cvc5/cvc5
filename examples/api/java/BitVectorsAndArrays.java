@@ -31,7 +31,7 @@ public class BitVectorsAndArrays
     {
       slv.setOption("produce-models", "true"); // Produce Models
       slv.setOption("output-language", "smtlib"); // output-language
-      slv.setLogic("QF_AUFBV"); // Set the logic
+      slv.setLogic("QF_ABV"); // Set the logic
 
       // Consider the following code (where size is some previously defined constant):
       //

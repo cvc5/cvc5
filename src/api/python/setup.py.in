@@ -85,7 +85,7 @@ else:
     }
 
     mod_name = "cvc5.cvc5_python_base"
-    mod_src_files = ["cvc5_python_base.pyx"]
+    mod_src_files = ["cvc5_python_base.pyx", "py_plugin.cpp"]
 
     ext_module = Extension(mod_name, mod_src_files, **ext_options)
     ext_module.cython_directives = {"embedsignature": True}

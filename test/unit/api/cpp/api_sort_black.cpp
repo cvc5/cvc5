@@ -49,8 +49,10 @@ class TestApiBlackSort : public TestApi
 
 TEST_F(TestApiBlackSort, hash)
 {
-  std::hash<cvc5::Sort> h;
-  ASSERT_NO_THROW(h(d_tm.getIntegerSort()));
+  std::hash<Sort> h;
+  ASSERT_EQ(h(d_tm.getIntegerSort()), h(d_tm.getIntegerSort()));
+  ASSERT_NE(h(d_tm.getIntegerSort()), h(d_tm.getStringSort()));
+  (void)std::hash<Sort>{}(Sort());
 }
 
 TEST_F(TestApiBlackSort, operators_comparison)

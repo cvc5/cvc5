@@ -116,7 +116,7 @@ void test(Solver& slv, Sort& consListSort)
 
   const Datatype& paramConsList = paramConsListSort.getDatatype();
 
-  std::cout << "parameterized datatype sort is " << std::endl;
+  std::cout << "parameterized datatype sort is" << std::endl;
   for (const DatatypeConstructor& ctor : paramConsList)
   {
     std::cout << "ctor: " << ctor << std::endl;
