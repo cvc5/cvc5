@@ -44,10 +44,6 @@
 (declare-const + (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      T U ($arith_typeunion T U)) :right-assoc-nil 0)
-; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-const - (-> (! Type :var T :implicit)
-                     (! Type :var U :implicit)
-                     T U ($arith_typeunion T U)) :left-assoc)
 ; disclaimer: >
 ;   This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 ;   This function is declared to be :left-assoc in SMT-LIB. We declare
@@ -110,11 +106,22 @@
                      (! Type :var U :implicit)
                      T U ($arith_typeunion T U)))
 
-; Unary negation, which is overloaded with binary subtraction. We distinguish
-; these two operators in ALFC based on their arity when applied, and with
-; alf.as when they are used in higher-order contexts, e.g. as an argument to
-; the cong proof rule.
+; note: >
+;   Unary negation, which is overloaded with binary subtraction. We distinguish
+;   these two operators in ALFC based on their arity when applied, and with
+;   alf.as when they are used in higher-order contexts, e.g. as an argument to
+;   the cong proof rule.
 ; disclaimer: This function is overloaded in SMT-LIB.
 (declare-const - (-> (! Type :var T :implicit)
                      (! T :requires ((is_arith_type T) true))
                      T))
+; note: >
+;   Binary subtraction. We require this operator to be declared after the one
+;   above. This is for disambiguating (- t), which is interpreted as the first
+;   declared symbol that type checks. Since we do not have support for restricting
+;   which operators can be partially applied, this term would type check using
+;   either - symbol. We order them in this way to force the expected disambiguation.
+; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
+(declare-const - (-> (! Type :var T :implicit)
+                     (! Type :var U :implicit)
+                     T U ($arith_typeunion T U)) :left-assoc)
