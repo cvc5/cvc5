@@ -1,0 +1,108 @@
+(include "../theories/Builtin.smt3")
+(include "../theories/Transcendentals.smt3")
+(include "../programs/Arith.smt3")
+(include "../programs/Utils.smt3")
+
+; Unhandled:
+; ProofRule::ARITH_TRANS_PI
+; ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS
+; ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG
+; ProofRule::ARITH_TRANS_EXP_APPROX_BELOW
+; ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG
+; ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS
+; ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS
+; ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG
+; Unhandled since it may need a new definition:
+; ProofRule::ARITH_TRANS_SINE_SHIFT
+
+; rule: arith_trans_exp_neg
+; implements: ProofRule::ARITH_TRANS_EXP_NEG
+; args:
+; - x Real: The argument to the exponential.
+; conclusion: Its argument is negative if and only if the exponential is less than one.
+(declare-rule arith_trans_exp_neg ((x Real))
+  :premises ()
+  :args (x)
+  :conclusion (= (< x 0) (< (exp x) 1))
+)
+
+; rule: arith_trans_exp_positivity
+; implements: ProofRule::ARITH_TRANS_EXP_POSITIVITY
+; args:
+; - x Real: The argument to the exponential.
+; conclusion: The exponential is positive.
+(declare-rule arith_trans_exp_positivity ((x Real))
+  :premises ()
+  :args (x)
+  :conclusion (> (exp x) 0)
+)
+
+; rule: arith_trans_exp_super_lin
+; implements: ProofRule::ARITH_TRANS_EXP_SUPER_LIN
+; args:
+; - x Real: The argument to the exponential.
+; conclusion: >
+;   The argument to the exponential is not positive, or the exponential is
+;   greater than its argument plus one.
+(declare-rule arith_trans_exp_super_lin ((x Real))
+  :args (x)
+  :conclusion (or (<= x 0) (> (exp x) (+ x 1)))
+)
+
+; rule: arith_trans_exp_zero
+; implements: ProofRule::ARITH_TRANS_EXP_ZERO
+; args:
+; - x Real: The argument to the exponential.
+; conclusion: >
+;   The argument to the exponential is zero if and only if the exponential
+;   is one.
+(declare-rule arith_trans_exp_zero ((x Real))
+  :args (x)
+  :conclusion (= (= x 0.0) (= (exp x) 1.0))
+)
+
+; rule: arith_trans_sine_bounds
+; implements: ProofRule::ARITH_TRANS_SINE_BOUNDS
+; args:
+; - x Real: The argument to the sine.
+; conclusion: The sine is within positive and negative one.
+(declare-rule arith_trans_sine_bounds ((x Real))
+  :args (x)
+  :conclusion (and (<= (sin x) 1) (>= (sin x) -1))
+)
+
+; rule: arith_trans_sine_symmetry
+; implements: ProofRule::ARITH_TRANS_SINE_SYMMETRY
+; args:
+; - x Real: The argument to the sine.
+; conclusion: >
+;   Adding sine of x to the sine of -x is zero. In other words,
+;   sine is symmetric wrt the point 0.
+(declare-rule arith_trans_sine_symmetry ((x Real))
+  :args (x)
+  :conclusion (= (+ (sin x) (sin (* -1 x))) 0)
+)
+
+; rule: arith_trans_sine_tangent_zero
+; implements: ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO
+; args:
+; - x Real: The argument to the sine.
+; conclusion: >
+;   When x is greater than zero, sin is less than x, and if
+;   x is less than zero, sin is greater than x.
+(declare-rule arith_trans_sine_tangent_zero ((x Real))
+  :args (x)
+  :conclusion (and (=> (> x 0) (< (sin x) x)) (=> (< x 0) (> (sin x) x)))
+)
+
+; rule: arith_trans_sine_tangent_pi
+; implements: ProofRule::ARITH_TRANS_SINE_TANGENT_PI
+; args:
+; - x Real: The argument to the sine.
+; conclusion: >
+;   When x is greater than negative pi, sin is greater than negative pi minus x,
+;   x is less than pi, sin is less than pi minus x.
+(declare-rule arith_trans_sine_tangent_pi ((x Real))
+  :args (x)
+  :conclusion (and (=> (> x (* -1 real.pi)) (> (sin x) (- (* -1 real.pi) x))) (=> (< x real.pi) (< (sin x) (- real.pi x))))
+)

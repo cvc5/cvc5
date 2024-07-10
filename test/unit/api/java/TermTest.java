@@ -193,6 +193,15 @@ class TermTest
     assertTrue(extb.getOp().isIndexed());
     assertEquals(extb.getOp(), ext);
 
+    Op bit = d_tm.mkOp(BITVECTOR_BIT, 4);
+    Term bitb = d_tm.mkTerm(bit, b);
+    assertEquals(bitb.getKind(), BITVECTOR_BIT);
+    assertTrue(bitb.hasOp());
+    assertEquals(bitb.getOp(), bit);
+    assertTrue(bitb.getOp().isIndexed());
+    assertEquals(bit.getNumIndices(), 1);
+    assertEquals(bit.get(0), d_tm.mkInteger(4));
+
     Term f = d_tm.mkConst(funsort, "f");
     Term fx = d_tm.mkTerm(APPLY_UF, f, x);
 

@@ -3109,6 +3109,7 @@ class CVC5_EXPORT Grammar
   friend class parser::Cmd;
   friend class Solver;
   friend struct std::hash<Grammar>;
+  friend std::ostream& operator<<(std::ostream& out, const Grammar& grammar);
 
  public:
   /**
@@ -3421,7 +3422,6 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const OptionInfo& oi);
 class CVC5_EXPORT Stat
 {
   struct StatData;
-  friend struct std::hash<Stat>;
 
  public:
   friend class Statistics;
@@ -3499,20 +3499,6 @@ class CVC5_EXPORT Stat
    */
   std::string toString() const;
 
-  /**
-   * Operator overloading for referential equality of two statistics.
-   * @param stat The statistic to compare to for equality.
-   * @return True if both statistics are referentially equal.
-   */
-  bool operator==(const Stat& stat) const;
-
-  /**
-   * Referential disequality operator.
-   * @param stat The statistic to compare to for disequality.
-   * @return True if both statistics are referentially disequal.
-   */
-  bool operator!=(const Stat& stat) const;
-
  private:
   Stat(bool internal, bool def, StatData&& sd);
   /** Whether this statistic is only meant for internal use */
@@ -3526,21 +3512,6 @@ class CVC5_EXPORT Stat
  * Print a `Stat` object to an ``std::ostream``.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& stat);
-
-}  // namespace cvc5
-
-namespace std {
-/**
- * Hash function for statistic objects.
- */
-template <>
-struct CVC5_EXPORT hash<cvc5::Stat>
-{
-  size_t operator()(const cvc5::Stat& stat) const;
-};
-}  // namespace std
-
-namespace cvc5 {
 
 /**
  * \verbatim embed:rst:leading-asterisk
@@ -3621,20 +3592,6 @@ class CVC5_EXPORT Statistics
   iterator end() const;
 
   /**
-   * Operator overloading for referential equality of two statistics objects.
-   * @param stat The statistics to compare to for equality.
-   * @return True if both statistics are referentially equal.
-   */
-  bool operator==(const Statistics& stat) const;
-
-  /**
-   * Referential disequality operator.
-   * @param stat The statistics to compare to for disequality.
-   * @return True if both statistics are referentially disequal.
-   */
-  bool operator!=(const Statistics& stat) const;
-
-  /**
    * Get a string represenation of this statistics object.
    * @return The string represenation.
    */
@@ -3647,21 +3604,6 @@ class CVC5_EXPORT Statistics
 };
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out,
                                      const Statistics& stats);
-
-}  // namespace cvc5
-
-namespace std {
-/**
- * Hash function for statistic objects.
- */
-template <>
-struct CVC5_EXPORT hash<cvc5::Statistics>
-{
-  size_t operator()(const cvc5::Statistics& stat) const;
-};
-}  // namespace std
-
-namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Plugin                                                                     */
@@ -3924,14 +3866,14 @@ class CVC5_EXPORT TermManager
       const std::vector<DatatypeDecl>& dtypedecls);
   /**
    * Create function sort.
-   * @param sorts The sort of the function arguments.
+   * @param sorts    The sort of the function arguments.
    * @param codomain The sort of the function return value.
    * @return The function sort.
    */
   Sort mkFunctionSort(const std::vector<Sort>& sorts, const Sort& codomain);
   /**
-   * Make a skolem.
-   * @param id The skolem identifier.
+   * Create a skolem.
+   * @param id      The skolem identifier.
    * @param indices The indices of the skolem.
    * @return The skolem.
    */
@@ -7025,9 +6967,14 @@ class CVC5_EXPORT Solver
   bool isOutputOn(const std::string& tag) const;
 
   /**
-   * Get an output stream for the given tag. Tags can be enabled with the
-   * `output` option (and `-o <tag>` on the command line). Raises an exception
-   * when an invalid tag is given.
+   * Get an output stream for the given tag.
+   *
+   * Tags can be enabled with the `output` option (and `-o <tag>` on the
+   * command line). Raises an exception when an invalid tag is given.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param tag The output tag.
    * @return The output stream.
    */
   std::ostream& getOutput(const std::string& tag) const;

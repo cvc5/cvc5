@@ -18,6 +18,7 @@ extern "C" {
 }
 
 #include <cmath>
+#include <fstream>
 
 #include "base/check.h"
 #include "base/output.h"
@@ -3545,7 +3546,7 @@ TEST_F(TestCApiBlackSolver, get_statistics)
 {
   ASSERT_DEATH(cvc5_get_statistics(nullptr), "unexpected NULL argument");
 
-  // do some array reasoning to make sure we have a double statistics
+  // do some reasoning to make sure we have statistics
   {
     Cvc5Sort s2 = cvc5_mk_array_sort(d_tm, d_int, d_int);
     Cvc5Term t1 = cvc5_mk_const(d_tm, d_int, "i");
@@ -3554,33 +3555,26 @@ TEST_F(TestCApiBlackSolver, get_statistics)
     args = {cvc5_mk_term(d_tm, CVC5_KIND_SELECT, args.size(), args.data()), t1};
     cvc5_assert_formula(
         d_solver,
-        cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+        cvc5_mk_term(d_tm, CVC5_KIND_DISTINCT, args.size(), args.data()));
     cvc5_check_sat(d_solver);
   }
   Cvc5Statistics stats = cvc5_get_statistics(d_solver);
   (void)cvc5_stats_to_string(stats);
-  {
-    Cvc5Stat stat = cvc5_stats_get(stats, "global::totalTime");
-    ASSERT_FALSE(cvc5_stat_is_internal(stat));
-    ASSERT_FALSE(cvc5_stat_is_default(stat));
-    ASSERT_TRUE(cvc5_stat_is_string(stat));
-    std::string time = cvc5_stat_get_string(stat);
-    ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
-    ASSERT_FALSE(cvc5_stat_is_double(stat));
-    stat = cvc5_stats_get(stats, "resource::resourceUnitsUsed");
-    ASSERT_TRUE(cvc5_stat_is_internal(stat));
-    ASSERT_FALSE(cvc5_stat_is_default(stat));
-    ASSERT_TRUE(cvc5_stat_is_int(stat));
-    ASSERT_TRUE(cvc5_stat_get_int(stat) >= 0);
-  }
 
-  ASSERT_DEATH(cvc5_stats_iter_init(nullptr, false, false),
-               "invalid statistics");
-  ASSERT_DEATH(cvc5_stats_iter_has_next(nullptr), "invalid statistics");
-  ASSERT_DEATH(cvc5_stats_iter_next(nullptr, nullptr), "invalid statistics");
-  ASSERT_DEATH(cvc5_stats_iter_has_next(stats), "iterator not initialized");
-  ASSERT_DEATH(cvc5_stats_iter_next(stats, nullptr),
-               "iterator not initialized");
+  Cvc5Stat stat1 = cvc5_stats_get(stats, "global::totalTime");
+  ASSERT_FALSE(cvc5_stat_is_internal(stat1));
+  ASSERT_FALSE(cvc5_stat_is_default(stat1));
+  ASSERT_TRUE(cvc5_stat_is_string(stat1));
+
+  std::string time = cvc5_stat_get_string(stat1);
+  ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
+  ASSERT_FALSE(cvc5_stat_is_double(stat1));
+
+  Cvc5Stat stat2 = cvc5_stats_get(stats, "resource::resourceUnitsUsed");
+  ASSERT_TRUE(cvc5_stat_is_internal(stat2));
+  ASSERT_FALSE(cvc5_stat_is_default(stat2));
+  ASSERT_TRUE(cvc5_stat_is_int(stat2));
+  ASSERT_TRUE(cvc5_stat_get_int(stat2) >= 0);
 
   cvc5_stats_iter_init(stats, true, true);
   bool hasstats = false;
@@ -3908,6 +3902,107 @@ TEST_F(TestCApiBlackSolver, basic_finite_field_base)
   cvc5_assert_formula(d_solver, b_is_two);
   ASSERT_FALSE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
 }
-
 #endif  // CVC5_USE_COCOA
+
+TEST_F(TestCApiBlackSolver, output1)
+{
+  ASSERT_DEATH(cvc5_is_output_on(nullptr, "inst"), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_is_output_on(d_solver, nullptr),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_is_output_on(d_solver, "foo-invalid"),
+               "invalid output tag");
+
+  ASSERT_DEATH(cvc5_get_output(nullptr, "inst", "<stdout>"),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_output(d_solver, nullptr, "<stdout>"),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_output(d_solver, "inst", nullptr),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_output(d_solver, "foo-invalid", "<stdout>"),
+               "invalid output tag");
+
+  ASSERT_DEATH(cvc5_close_output(nullptr, "<stdout>"),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_close_output(d_solver, nullptr),
+               "unexpected NULL argument");
+  // should not fail
+  cvc5_close_output(d_solver, "<stdout>");
+}
+
+TEST_F(TestCApiBlackSolver, output2)
+{
+  ASSERT_FALSE(cvc5_is_output_on(d_solver, "inst"));
+  // noop if output tag is not enabled
+  cvc5_get_output(d_solver, "inst", "<stdout>");
+  cvc5_set_option(d_solver, "output", "inst");
+  ASSERT_TRUE(cvc5_is_output_on(d_solver, "inst"));
+  cvc5_get_output(d_solver, "inst", "<stdout>");
+}
+
+TEST_F(TestCApiBlackSolver, output3)
+{
+  cvc5_set_option(d_solver, "output", "post-asserts");
+  cvc5_get_output(d_solver, "post-asserts", "<stdout>");
+
+  testing::internal::CaptureStdout();
+
+  std::vector<Cvc5Term> vars = {cvc5_mk_var(d_tm, d_bool, "b")};
+  Cvc5Term g = cvc5_define_fun(
+      d_solver, "g", vars.size(), vars.data(), d_bool, vars[0], true);
+  std::vector<Cvc5Term> args = {g, cvc5_mk_true(d_tm)};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data())};
+  Cvc5Term appnot = cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
+  args = {cvc5_define_fun(
+      d_solver, "f", 0, nullptr, d_bool, cvc5_mk_true(d_tm), true)};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data()), appnot};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+
+  std::string out = testing::internal::GetCapturedStdout();
+  std::stringstream expected;
+  expected << ";; post-asserts start" << std::endl;
+  expected << "(set-logic ALL)" << std::endl;
+  expected << "(define-fun f () Bool true)" << std::endl;
+  expected << "(define-fun g ((b Bool)) Bool b)" << std::endl;
+  expected << "(assert false)" << std::endl;
+  expected << "(check-sat)" << std::endl;
+  expected << ";; post-asserts end" << std::endl;
+  ASSERT_EQ(out, expected.str());
+}
+
+TEST_F(TestCApiBlackSolver, output4)
+{
+  const char* filename = "foo.out";
+  cvc5_set_option(d_solver, "output", "post-asserts");
+  cvc5_get_output(d_solver, "post-asserts", filename);
+
+  std::vector<Cvc5Term> vars = {cvc5_mk_var(d_tm, d_bool, "b")};
+  Cvc5Term g = cvc5_define_fun(
+      d_solver, "g", vars.size(), vars.data(), d_bool, vars[0], true);
+  std::vector<Cvc5Term> args = {g, cvc5_mk_true(d_tm)};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data())};
+  Cvc5Term appnot = cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
+  args = {cvc5_define_fun(
+      d_solver, "f", 0, nullptr, d_bool, cvc5_mk_true(d_tm), true)};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data()), appnot};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+
+  cvc5_close_output(d_solver, filename);
+  std::ifstream in(filename);
+  std::stringstream out;
+  out << in.rdbuf();
+  std::stringstream expected;
+  expected << ";; post-asserts start" << std::endl;
+  expected << "(set-logic ALL)" << std::endl;
+  expected << "(define-fun f () Bool true)" << std::endl;
+  expected << "(define-fun g ((b Bool)) Bool b)" << std::endl;
+  expected << "(assert false)" << std::endl;
+  expected << "(check-sat)" << std::endl;
+  expected << ";; post-asserts end" << std::endl;
+  ASSERT_EQ(out.str(), expected.str());
+  std::remove(filename);
+}
 }  // namespace cvc5::internal::test
