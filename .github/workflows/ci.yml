@@ -144,12 +144,16 @@ jobs:
             gpl-tag: -gpl
 
         exclude:
-          - build.name: ubuntu:production-gpl
-            has-tag: false
-          - build.name: macos:production-gpl
-            has-tag: false
-          - build.name: macos:production-arm64-gpl
-            has-tag: false
+          - has-tag: false
+            build:
+              name: ubuntu:production-gpl
+          - has-tag: false
+            build:
+              name: macos:production-gpl
+          - has-tag: false
+            build:
+              name: macos:production-arm64-gpl
+
 
     name: ${{ matrix.build.name }}
     runs-on: ${{ matrix.build.os }}
