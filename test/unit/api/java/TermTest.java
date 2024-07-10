@@ -49,19 +49,19 @@ class TermTest
   }
 
   @Test
-  void eq()
+  void equalHash()
   {
     Sort uSort = d_tm.mkUninterpretedSort("u");
     Term x = d_tm.mkVar(uSort, "x");
     Term y = d_tm.mkVar(uSort, "y");
     Term z = new Term();
 
-    assertTrue(x == x);
-    assertFalse(x != x);
-    assertFalse(x == y);
-    assertTrue(x != y);
-    assertFalse((x == z));
-    assertTrue(x != z);
+    assertTrue(x.equals(x));
+    assertFalse(x.equals(y));
+    assertFalse(x.equals(z));
+    assertEquals(x.hashCode(), x.hashCode());
+    assertNotEquals(x.hashCode(), y.hashCode());
+    assertNotEquals(x.hashCode(), z.hashCode());
   }
 
   @Test
