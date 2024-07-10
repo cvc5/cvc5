@@ -155,7 +155,7 @@ TEST_F(TestCApiBlackUncovered, deprecated)
   (void)cvc5::parser::SymbolManager(&slv);
 }
 
-TEST_F(TestCApiBlackUncovered, streaming_operators_to_string)
+TEST_F(TestCApiBlackUncovered, stream_operators)
 {
   std::stringstream ss;
   ss << cvc5::Kind::EQUAL << std::to_string(cvc5::Kind::EQUAL);
@@ -207,6 +207,9 @@ TEST_F(TestCApiBlackUncovered, streaming_operators_to_string)
   ss << ctor;
   DatatypeSelector head = ctor.getSelector("head");
   ss << head;
+
+  OptionInfo info = d_solver->getOptionInfo("verbose");
+  ss << info;
 }
 
 TEST_F(TestCApiBlackUncovered, default_constructors)
@@ -382,4 +385,42 @@ TEST_F(TestCApiBlackUncovered, plugin_uncovered_default)
   ASSERT_TRUE(pl.hasSeenTheoryLemma());
   ASSERT_TRUE(pl.hasSeenSatClause());
 }
+
+TEST_F(TestCApiBlackUncovered, parser)
+{
+  parser::Command command;
+  Solver solver(d_tm);
+  parser::InputParser parser(&solver);
+  (void)parser.getSolver();
+  std::stringstream ss;
+  ss << command << std::endl;
+  parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "Parser");
+  parser::ParserException defaultConstructor;
+  std::string message = "error";
+  const char* cMessage = "error";
+  std::string filename = "file.smt2";
+  parser::ParserException stringConstructor(message);
+  parser::ParserException cStringConstructor(cMessage);
+  parser::ParserException exception(message, filename, 10, 11);
+  exception.toStream(ss);
+  ASSERT_EQ(message, exception.getMessage());
+  ASSERT_EQ(message, exception.getMessage());
+  ASSERT_EQ(filename, exception.getFilename());
+  ASSERT_EQ(10, exception.getLine());
+  ASSERT_EQ(11, exception.getColumn());
+
+  parser::ParserEndOfFileException eofDefault;
+  parser::ParserEndOfFileException eofString(message);
+  parser::ParserEndOfFileException eofCMessage(cMessage);
+  parser::ParserEndOfFileException eof(message, filename, 10, 11);
+}
+
+TEST_F(TestCApiBlackUncovered, driver_options)
+{
+  auto dopts = d_solver->getDriverOptions();
+  dopts.err();
+  dopts.in();
+  dopts.out();
+}
+
 }  // namespace cvc5::internal::test

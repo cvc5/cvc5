@@ -195,6 +195,13 @@ CVC5_EXPORT void cvc5_parser_delete(Cvc5InputParser* parser);
 CVC5_EXPORT void cvc5_parser_release(Cvc5InputParser* parser);
 
 /**
+ * Get the associated solver instance of a given parser.
+ * @param parser The parser instance.
+ * @return The solver.
+ */
+Cvc5* cvc5_parser_get_solver(Cvc5InputParser* parser);
+
+/**
  * Get the associated symbol manager of a given parser.
  * @param parser The parser instance.
  * @return The symbol manager.
