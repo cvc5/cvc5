@@ -17,7 +17,8 @@ provides more details on the individual classes.
     :hidden:
 
     quickstart
-    API documentation <index>
+
+----
 
 Building cvc5 Java API
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -55,8 +56,13 @@ Building cvc5 Java API
        (< 0 b)
        (< (+ a b) 1)
 
+----
+
+`Javadoc API Documentation <index.html>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 `Package io.github.cvc5 <io/github/cvc5/package-summary.html>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...............................................................
 
   * class `Command <io/github/cvc5/Command.html>`_
   * class `Datatype <io/github/cvc5/Datatype.html>`_
@@ -91,10 +97,11 @@ Building cvc5 Java API
 
 
 `Package io.github.cvc5.modes <io/github/cvc5/modes/package-summary.html>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...........................................................................
 
   * enum `BlockModelsMode <io/github/cvc5/modes/BlockModelsMode.html>`_
   * enum `FindSynthTarget <io/github/cvc5/modes/FindSynthTarget.html>`_
   * enum `InputLanguage <io/github/cvc5/modes/InputLanguage.html>`_
   * enum `LearnedLitType <io/github/cvc5/modes/LearnedLitType.html>`_
   * enum `ProofComponent <io/github/cvc5/modes/ProofComponent.html>`_
+

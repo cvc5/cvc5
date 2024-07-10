@@ -15,6 +15,10 @@ If, however, a method fails with a :cpp:class:`CVC5ApiException
 <cvc5::CVC5ApiException>`, the associated object may be in an unsafe state
 and it should no longer be used.
 
+If the :cpp:class:`cvc5::parser::InputParser` encounters an error, it will
+throw a :cpp:class:`cvc5::parser::ParserException
+<cvc5::parser::ParserException>`.
+If thrown, API objects can still be used
 
 .. doxygenclass:: cvc5::CVC5ApiException
     :project: cvc5
@@ -22,6 +26,11 @@ and it should no longer be used.
     :undoc-members:
 
 .. doxygenclass:: cvc5::CVC5ApiRecoverableException
+    :project: cvc5
+    :members:
+    :undoc-members:
+
+.. doxygenclass:: cvc5::parser::ParserException
     :project: cvc5
     :members:
     :undoc-members:

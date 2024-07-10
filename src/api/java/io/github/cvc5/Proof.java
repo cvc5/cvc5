@@ -57,7 +57,7 @@ public class Proof implements IPointer
 
   /**
    * @return The proof rule used by the root step of the proof.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public ProofRule getRule() throws CVC5ApiException
   {
