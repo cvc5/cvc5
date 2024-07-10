@@ -128,18 +128,31 @@ class DatatypeTest
     DatatypeConstructor nilConstr2 = dt2.getConstructor(1);
     DatatypeSelector head2 = consConstr2.getSelector("head");
 
-    assertEquals(decl1, decl1);
-    assertFalse(decl1 == decl2);
-    assertEquals(cons1, cons1);
-    assertFalse(cons1 == cons2);
-    assertEquals(nil1, nil1);
-    assertFalse(nil1 == nil2);
-    assertEquals(consConstr1, consConstr1);
-    assertFalse(consConstr1 == consConstr2);
-    assertEquals(head1, head1);
-    assertFalse(head1 == head2);
-    assertEquals(dt1, dt1);
-    assertFalse(dt1 == dt2);
+    assertTrue(decl1.equals(decl1));
+    assertFalse(decl1.equals(decl2));
+    assertTrue(cons1.equals(cons1));
+    assertFalse(cons1.equals(cons2));
+    assertTrue(nil1.equals(nil1));
+    assertFalse(nil1.equals(nil2));
+    assertTrue(consConstr1.equals(consConstr1));
+    assertFalse(consConstr1.equals(consConstr2));
+    assertTrue(head1.equals(head1));
+    assertFalse(head1.equals(head2));
+    assertTrue(dt1.equals(dt1));
+    assertFalse(dt1.equals(dt2));
+
+    assertEquals(decl1.hashCode(), decl1.hashCode());
+    assertEquals(decl1.hashCode(), decl2.hashCode());
+    assertEquals(cons1.hashCode(), cons1.hashCode());
+    assertEquals(cons1.hashCode(), cons2.hashCode());
+    assertEquals(nil1.hashCode(), nil1.hashCode());
+    assertEquals(nil1.hashCode(), nil2.hashCode());
+    assertEquals(consConstr1.hashCode(), consConstr1.hashCode());
+    assertEquals(consConstr1.hashCode(), consConstr2.hashCode());
+    assertEquals(head1.hashCode(), head1.hashCode());
+    assertEquals(head1.hashCode(), head2.hashCode());
+    assertEquals(dt1.hashCode(), dt1.hashCode());
+    assertEquals(dt1.hashCode(), dt2.hashCode());
   }
 
   @Test
