@@ -277,6 +277,15 @@ void cvc5_parser_release(Cvc5InputParser* parser)
   CVC5_CAPI_TRY_CATCH_END;
 }
 
+Cvc5* cvc5_parser_get_solver(Cvc5InputParser* parser)
+{
+  Cvc5* res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  res = parser->d_cvc5;
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 Cvc5SymbolManager* cvc5_parser_get_sm(Cvc5InputParser* parser)
 {
   Cvc5SymbolManager* res = nullptr;

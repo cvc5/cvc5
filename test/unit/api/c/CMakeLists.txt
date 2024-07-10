@@ -24,6 +24,7 @@ cvc5_add_unit_test_black(capi_parametric_datatype_black api/c)
 cvc5_add_unit_test_black(capi_proof_black api/c)
 cvc5_add_unit_test_black(capi_proof_rule_black api/c)
 cvc5_add_unit_test_black(capi_result_black api/c)
+cvc5_add_unit_test_black(capi_skolem_id_black api/c)
 cvc5_add_unit_test_black(capi_solver_black api/c)
 cvc5_add_unit_test_black(capi_sort_black api/c)
 cvc5_add_unit_test_black(capi_sort_kind_black api/c)
@@ -33,3 +34,9 @@ cvc5_add_unit_test_black(capi_synth_result_black api/c)
 cvc5_add_unit_test_black(capi_term_black api/c)
 cvc5_add_unit_test_black(capi_term_manager_black api/c)
 cvc5_add_unit_test_black(capi_types_black api/c)
+
+# suppress deprecated warnings to not error in CI
+set_source_files_properties(capi_uncovered_black.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+cvc5_add_unit_test_black(capi_uncovered_black api/c)

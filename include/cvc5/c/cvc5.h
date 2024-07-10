@@ -2824,6 +2824,26 @@ CVC5_EXPORT Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
                                            Cvc5Kind kind,
                                            size_t size,
                                            const Cvc5Term args[]);
+/**
+ * Create a skolem.
+ * @param tm      The term manager instance.
+ * @param id      The skolem identifier.
+ * @param size    The number of arguments of the lifted operator.
+ * @param indices The indices of the skolem.
+ * @return The skolem.
+ */
+CVC5_EXPORT Cvc5Term cvc5_mk_skolem(Cvc5TermManager* tm,
+                                    Cvc5SkolemId id,
+                                    size_t size,
+                                    const Cvc5Term indices[]);
+
+/**
+ * Get the number of indices for a skolem id.
+ * @param id The skolem id.
+ * @return The number of indices for the skolem id.
+ */
+CVC5_EXPORT size_t cvc5_get_num_idxs_for_skolem_id(Cvc5TermManager* tm,
+                                                   Cvc5SkolemId id);
 
 /* .................................................................... */
 /* Create Operators                                                     */
@@ -5323,6 +5343,37 @@ CVC5_EXPORT void cvc5_print_stats_safe(Cvc5* cvc5, int fd);
  * @return True if the given tag is enabled.
  */
 CVC5_EXPORT bool cvc5_is_output_on(Cvc5* cvc5, const char* tag);
+
+/**
+ * Configure a file to write the output for a given tag.
+ *
+ * Tags can be enabled with the `output` option (and `-o <tag>` on the command
+ * line). Requires that the given tag is valid.
+ *
+ * @note Close file `filename` before reading via `cvc5_close_output()`.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param cvc5     The solver instance.
+ * @param tag      The output tag.
+ * @param filename The file to write the output to. Use `<stdout>` to configure
+ *                 to write to stdout.
+ */
+CVC5_EXPORT void cvc5_get_output(Cvc5* cvc5,
+                                 const char* tag,
+                                 const char* filename);
+
+/**
+ * Close output file configured for an output tag via `cvc5_get_output()`.
+ *
+ * @note This is required before reading the file.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param cvc5     The solver instance.
+ * @param filename The file to close.
+ */
+CVC5_EXPORT void cvc5_close_output(Cvc5* cvc5, const char* filename);
 
 /**
  * Get a string representation of the version of this solver.

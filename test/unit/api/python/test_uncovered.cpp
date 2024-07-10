@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Testing stuff that is not exposed by the python API to fix code coverage
+ * Testing functions that are not exposed by the Python API for code coverage.
  */
 
 #include <cvc5/cvc5_parser.h>
@@ -223,10 +223,7 @@ TEST_F(TestApiBlackUncovered, equalHash)
             std::hash<DatatypeSelector>{}(head2));
   ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt1));
   ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt2));
-}
 
-TEST_F(TestApiBlackUncovered, hash)
-{
   (void)std::hash<cvc5::Result>{}(cvc5::Result());
 }
 

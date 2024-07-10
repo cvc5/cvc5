@@ -33,6 +33,24 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Datatype_deletePointer(
 
 /*
  * Class:     io_github_cvc5_Datatype
+ * Method:    equals
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Datatype_equals(JNIEnv* env,
+                                                               jobject,
+                                                               jlong pointer1,
+                                                               jlong pointer2)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* dt1 = reinterpret_cast<Datatype*>(pointer1);
+  Datatype* dt2 = reinterpret_cast<Datatype*>(pointer2);
+  // We compare the actual terms, not their pointers.
+  return static_cast<jboolean>(*dt1 == *dt2);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Datatype
  * Method:    getConstructor
  * Signature: (JI)J
  */
@@ -227,4 +245,19 @@ Java_io_github_cvc5_Datatype_toString(JNIEnv* env, jobject, jlong pointer)
   Datatype* current = (Datatype*)pointer;
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Datatype
+ * Method:    hashCode
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Datatype_hashCode(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Datatype* result = reinterpret_cast<Datatype*>(pointer);
+  return static_cast<jint>(std::hash<cvc5::Datatype>()(*result));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

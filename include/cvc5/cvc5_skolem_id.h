@@ -730,17 +730,17 @@ typedef enum ENUM(SkolemId) ENUM(SkolemId);
 
 /**
  * Get a string representation of a Cvc5SkolemId.
- * @param rule The proof rule.
+ * @param id The skolem id.
  * @return The string representation.
  */
-const char* cvc5_skolem_id_to_string(Cvc5SkolemId kind);
+const char* cvc5_skolem_id_to_string(Cvc5SkolemId id);
 
 /**
  * Hash function for Cvc5SkolemId.
- * @param rule The proof rule.
+ * @param id The skolem id.
  * @return The hash value.
  */
-size_t cvc5_skolem_id_hash(Cvc5SkolemId rule);
+size_t cvc5_skolem_id_hash(Cvc5SkolemId id);
 
 #else
 

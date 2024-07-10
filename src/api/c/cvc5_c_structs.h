@@ -21,6 +21,8 @@ extern "C" {
 }
 #include <cvc5/cvc5.h>
 
+#include <fstream>
+
 /* -------------------------------------------------------------------------- */
 /* Wrapper structs (associated with Cvc5TermManager)                          */
 /* -------------------------------------------------------------------------- */
@@ -469,6 +471,9 @@ struct Cvc5
    */
   Cvc5(Cvc5TermManager* tm) : d_solver(tm->d_tm), d_tm(tm) {}
 
+  /** Destructor. */
+  ~Cvc5();
+
   /**
    * Export C++ result to C API.
    * @param result The result to export.
@@ -555,6 +560,20 @@ struct Cvc5
   std::unordered_map<cvc5::Proof, cvc5_proof_t> d_alloc_proofs;
   /** Cache of allocated grammars. */
   std::unordered_map<cvc5::Grammar, cvc5_grammar_t> d_alloc_grammars;
+  /** Out file stream for output tag (configured via `cvc5_get_output()`. */
+  std::ofstream d_output_tag_file_stream;
+  /**
+   * Out file stream for output tag returned by `Solver::getOutput()`. Cached
+   * to reset on `cvc5_output_close()` or on destruction of `Cvc5` to
+   * `d_output_tag_streambuf`.
+   */
+  std::ostream* d_output_tag_stream = nullptr;
+  /**
+   * Cache output stream buffer of the stream returned by `Solver::getOutput()`
+   * before it was redirected to the file configured via `cvc5_get_output()`.
+   * Cached to reset on `cvc5_output_close()` or on destruction of `Cvc5`.
+   */
+  std::streambuf* d_output_tag_streambuf = nullptr;
 
   /** The configured plugin. */
   class PluginCpp : public cvc5::Plugin

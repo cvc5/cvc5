@@ -18,6 +18,7 @@ extern "C" {
 }
 
 #include <cmath>
+#include <fstream>
 
 #include "base/check.h"
 #include "base/output.h"
@@ -3901,6 +3902,107 @@ TEST_F(TestCApiBlackSolver, basic_finite_field_base)
   cvc5_assert_formula(d_solver, b_is_two);
   ASSERT_FALSE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
 }
-
 #endif  // CVC5_USE_COCOA
+
+TEST_F(TestCApiBlackSolver, output1)
+{
+  ASSERT_DEATH(cvc5_is_output_on(nullptr, "inst"), "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_is_output_on(d_solver, nullptr),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_is_output_on(d_solver, "foo-invalid"),
+               "invalid output tag");
+
+  ASSERT_DEATH(cvc5_get_output(nullptr, "inst", "<stdout>"),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_output(d_solver, nullptr, "<stdout>"),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_output(d_solver, "inst", nullptr),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_get_output(d_solver, "foo-invalid", "<stdout>"),
+               "invalid output tag");
+
+  ASSERT_DEATH(cvc5_close_output(nullptr, "<stdout>"),
+               "unexpected NULL argument");
+  ASSERT_DEATH(cvc5_close_output(d_solver, nullptr),
+               "unexpected NULL argument");
+  // should not fail
+  cvc5_close_output(d_solver, "<stdout>");
+}
+
+TEST_F(TestCApiBlackSolver, output2)
+{
+  ASSERT_FALSE(cvc5_is_output_on(d_solver, "inst"));
+  // noop if output tag is not enabled
+  cvc5_get_output(d_solver, "inst", "<stdout>");
+  cvc5_set_option(d_solver, "output", "inst");
+  ASSERT_TRUE(cvc5_is_output_on(d_solver, "inst"));
+  cvc5_get_output(d_solver, "inst", "<stdout>");
+}
+
+TEST_F(TestCApiBlackSolver, output3)
+{
+  cvc5_set_option(d_solver, "output", "post-asserts");
+  cvc5_get_output(d_solver, "post-asserts", "<stdout>");
+
+  testing::internal::CaptureStdout();
+
+  std::vector<Cvc5Term> vars = {cvc5_mk_var(d_tm, d_bool, "b")};
+  Cvc5Term g = cvc5_define_fun(
+      d_solver, "g", vars.size(), vars.data(), d_bool, vars[0], true);
+  std::vector<Cvc5Term> args = {g, cvc5_mk_true(d_tm)};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data())};
+  Cvc5Term appnot = cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
+  args = {cvc5_define_fun(
+      d_solver, "f", 0, nullptr, d_bool, cvc5_mk_true(d_tm), true)};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data()), appnot};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+
+  std::string out = testing::internal::GetCapturedStdout();
+  std::stringstream expected;
+  expected << ";; post-asserts start" << std::endl;
+  expected << "(set-logic ALL)" << std::endl;
+  expected << "(define-fun f () Bool true)" << std::endl;
+  expected << "(define-fun g ((b Bool)) Bool b)" << std::endl;
+  expected << "(assert false)" << std::endl;
+  expected << "(check-sat)" << std::endl;
+  expected << ";; post-asserts end" << std::endl;
+  ASSERT_EQ(out, expected.str());
+}
+
+TEST_F(TestCApiBlackSolver, output4)
+{
+  const char* filename = "foo.out";
+  cvc5_set_option(d_solver, "output", "post-asserts");
+  cvc5_get_output(d_solver, "post-asserts", filename);
+
+  std::vector<Cvc5Term> vars = {cvc5_mk_var(d_tm, d_bool, "b")};
+  Cvc5Term g = cvc5_define_fun(
+      d_solver, "g", vars.size(), vars.data(), d_bool, vars[0], true);
+  std::vector<Cvc5Term> args = {g, cvc5_mk_true(d_tm)};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data())};
+  Cvc5Term appnot = cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
+  args = {cvc5_define_fun(
+      d_solver, "f", 0, nullptr, d_bool, cvc5_mk_true(d_tm), true)};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data()), appnot};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_OR, args.size(), args.data()));
+  cvc5_check_sat(d_solver);
+
+  cvc5_close_output(d_solver, filename);
+  std::ifstream in(filename);
+  std::stringstream out;
+  out << in.rdbuf();
+  std::stringstream expected;
+  expected << ";; post-asserts start" << std::endl;
+  expected << "(set-logic ALL)" << std::endl;
+  expected << "(define-fun f () Bool true)" << std::endl;
+  expected << "(define-fun g ((b Bool)) Bool b)" << std::endl;
+  expected << "(assert false)" << std::endl;
+  expected << "(check-sat)" << std::endl;
+  expected << ";; post-asserts end" << std::endl;
+  ASSERT_EQ(out.str(), expected.str());
+  std::remove(filename);
+}
 }  // namespace cvc5::internal::test

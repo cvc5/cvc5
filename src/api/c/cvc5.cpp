@@ -20,6 +20,7 @@ extern "C" {
 #include <cvc5/cvc5.h>
 
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <variant>
 
@@ -213,6 +214,30 @@ const char* cvc5_modes_input_language_to_string(Cvc5InputLanguage lang)
   str = std::to_string(static_cast<cvc5::modes::InputLanguage>(lang));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5Skolemid                                                               */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_skolem_id_to_string(Cvc5SkolemId id)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SKOLEM_ID(id);
+  str = std::to_string(static_cast<cvc5::SkolemId>(id));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+size_t cvc5_skolem_id_hash(Cvc5SkolemId id)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_SKOLEM_ID(id);
+  res = std::hash<cvc5::SkolemId>{}(static_cast<cvc5::SkolemId>(id));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1225,7 +1250,7 @@ bool cvc5_dt_decl_is_parametric(Cvc5DatatypeDecl decl)
   size_t res = 0;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_DT_DECL(decl);
-  res = decl->d_decl.getNumConstructors();
+  res = decl->d_decl.isParametric();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -3179,6 +3204,41 @@ Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
   return res;
 }
 
+Cvc5Term cvc5_mk_skolem(Cvc5TermManager* tm,
+                        Cvc5SkolemId id,
+                        size_t size,
+                        const Cvc5Term indices[])
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SKOLEM_ID(id);
+  std::vector<cvc5::Term> cindices;
+  if (indices)
+  {
+    for (size_t i = 0; i < size; ++i)
+    {
+      CVC5_CAPI_CHECK_TERM_AT_IDX(indices, i);
+      cindices.push_back(indices[i]->d_term);
+    }
+  }
+  res = tm->export_term(
+      tm->d_tm.mkSkolem(static_cast<cvc5::SkolemId>(id), cindices));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+size_t cvc5_get_num_idxs_for_skolem_id(Cvc5TermManager* tm, Cvc5SkolemId id)
+{
+  size_t res = 0;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_SKOLEM_ID(id);
+  res = tm->d_tm.getNumIndicesForSkolemId(static_cast<cvc5::SkolemId>(id));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 /* Create Operators ---------------------------------------------------- */
 
 Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
@@ -4411,6 +4471,53 @@ bool cvc5_is_output_on(Cvc5* cvc5, const char* tag)
   res = cvc5->d_solver.isOutputOn(tag);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
+}
+
+void cvc5_get_output(Cvc5* cvc5, const char* tag, const char* filename)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(tag);
+  CVC5_CAPI_CHECK_NOT_NULL(filename);
+  if (cvc5->d_solver.isOutputOn(tag))
+  {
+    std::ostream* out;
+    if (filename != std::string("<stdout>"))
+    {
+      if (cvc5->d_output_tag_file_stream.is_open())
+      {
+        cvc5->d_output_tag_file_stream.close();
+      }
+      cvc5->d_output_tag_file_stream.open(filename);
+      out = &cvc5->d_output_tag_file_stream;
+    }
+    else
+    {
+      out = &std::cout;
+    }
+    cvc5->d_output_tag_stream = &cvc5->d_solver.getOutput(tag);
+    cvc5->d_output_tag_streambuf = cvc5->d_output_tag_stream->rdbuf();
+    cvc5->d_output_tag_stream->rdbuf(out->rdbuf());
+  }
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_close_output(Cvc5* cvc5, const char* filename)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  CVC5_CAPI_CHECK_NOT_NULL(filename);
+  if (cvc5->d_output_tag_file_stream.is_open())
+  {
+    cvc5->d_output_tag_file_stream.close();
+  }
+  // reset redirected output stream returned by Solver::getOutput()
+  if (cvc5->d_output_tag_stream)
+  {
+    Assert(cvc5->d_output_tag_streambuf);
+    cvc5->d_output_tag_stream->rdbuf(cvc5->d_output_tag_streambuf);
+  }
+  CVC5_CAPI_TRY_CATCH_END;
 }
 
 const char* cvc5_get_version(Cvc5* cvc5)

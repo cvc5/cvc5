@@ -104,6 +104,7 @@ TEST_F(TestApiBlackInputParser, setAndAppendIncrementalStringInput)
   InputParser p(d_solver.get());
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
+  ASSERT_EQ(p.done(), false);
   Command cmd;
   p.appendIncrementalStringInput("(set-logic ALL)");
   p.appendIncrementalStringInput("(declare-fun a () Bool)");
@@ -117,6 +118,10 @@ TEST_F(TestApiBlackInputParser, setAndAppendIncrementalStringInput)
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
   ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
+  ASSERT_EQ(p.done(), false);
+  cmd = p.nextCommand();
+  ASSERT_TRUE(cmd.isNull());
+  ASSERT_EQ(p.done(), true);
 }
 
 TEST_F(TestApiBlackInputParser, setAndAppendIncrementalStringInputInterleave)
@@ -125,6 +130,7 @@ TEST_F(TestApiBlackInputParser, setAndAppendIncrementalStringInputInterleave)
   InputParser p(d_solver.get());
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
+  ASSERT_EQ(p.done(), false);
   Command cmd;
   p.appendIncrementalStringInput("(set-logic ALL)");
   cmd = p.nextCommand();
@@ -138,6 +144,10 @@ TEST_F(TestApiBlackInputParser, setAndAppendIncrementalStringInputInterleave)
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
   ASSERT_NO_THROW(cmd.invoke(d_solver.get(), d_symman.get(), out));
+  ASSERT_EQ(p.done(), false);
+  cmd = p.nextCommand();
+  ASSERT_TRUE(cmd.isNull());
+  ASSERT_EQ(p.done(), true);
 }
 
 TEST_F(TestApiBlackInputParser, appendIncrementalNoSet)

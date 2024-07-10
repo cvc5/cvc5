@@ -55,6 +55,13 @@ class TestCApiBlackInputParser : public ::testing::Test
   Cvc5SymbolManager* d_sm;
 };
 
+TEST_F(TestCApiBlackInputParser, get_solver)
+{
+  Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
+  ASSERT_EQ(cvc5_parser_get_solver(parser), d_solver);
+  cvc5_parser_delete(parser);
+}
+
 TEST_F(TestCApiBlackInputParser, set_file_input)
 {
   ASSERT_DEATH(cvc5_parser_new(nullptr, d_sm), "unexpected NULL argument");
@@ -86,6 +93,7 @@ TEST_F(TestCApiBlackInputParser, set_and_append_inc_str_input)
   Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
   cvc5_parser_set_inc_str_input(
       parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black");
+  ASSERT_FALSE(cvc5_parser_done(parser));
 
   ASSERT_DEATH(cvc5_parser_set_inc_str_input(
                    nullptr, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black"),
@@ -116,6 +124,10 @@ TEST_F(TestCApiBlackInputParser, set_and_append_inc_str_input)
   ASSERT_NE(cmd, nullptr);
   ASSERT_EQ(error_msg, nullptr);
   (void)cvc5_cmd_invoke(cmd, d_solver, d_sm);
+  ASSERT_FALSE(cvc5_parser_done(parser));
+  cmd = cvc5_parser_next_command(parser, &error_msg);
+  ASSERT_EQ(cmd, nullptr);
+  ASSERT_TRUE(cvc5_parser_done(parser));
 
   cvc5_parser_delete(parser);
 }
@@ -126,7 +138,7 @@ TEST_F(TestCApiBlackInputParser, set_and_append_inc_str_input_interleave)
   Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
   cvc5_parser_set_inc_str_input(
       parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black");
-
+  ASSERT_FALSE(cvc5_parser_done(parser));
   cvc5_parser_append_inc_str_input(parser, "(set-logic ALL)");
   Cvc5Command cmd = cvc5_parser_next_command(parser, &error_msg);
   ASSERT_NE(cmd, nullptr);
@@ -139,6 +151,10 @@ TEST_F(TestCApiBlackInputParser, set_and_append_inc_str_input_interleave)
   cmd = cvc5_parser_next_command(parser, &error_msg);
   ASSERT_NE(cmd, nullptr);
   (void)cvc5_cmd_invoke(cmd, d_solver, d_sm);
+  ASSERT_FALSE(cvc5_parser_done(parser));
+  cmd = cvc5_parser_next_command(parser, &error_msg);
+  ASSERT_EQ(cmd, nullptr);
+  ASSERT_TRUE(cvc5_parser_done(parser));
 
   cvc5_parser_delete(parser);
 }
