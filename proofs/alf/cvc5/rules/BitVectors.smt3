@@ -7,10 +7,10 @@
 ; - x T: The left hand side of the equality.
 ; - y T: The right hand side of the equality.
 ; return: the bitblasted term for (= x y).
-(program $bv_mk_bitblast_step_eq ((T Type) (U Type) (W Type) (b1 Bool) (b2 Bool) (a1 W :list) (a2 W :list))
+(program $bv_mk_bitblast_step_eq ((T Type) (W Type) (b1 Bool) (b2 Bool) (a1 W :list) (a2 W :list))
   (T T) Bool
   (
-  (($bv_mk_bitblast_step_eq @bv_empty @bv_empty)        true)
+  (($bv_mk_bitblast_step_eq @bv_empty @bv_empty)                      true)
   (($bv_mk_bitblast_step_eq (@from_bools b1 a1) (@from_bools b2 a2))  (alf.cons and (= b1 b2) ($bv_mk_bitblast_step_eq a1 a2)))
   )
 )
@@ -27,7 +27,10 @@
 ; program: $bv_mk_bitblast_step_concat_rec
 ; args:
 ; - a (BitVec n): The (reverse) of the bitvector concatenation term to process.
-; return: the bitblasted term for concatenation term a, reversed.
+; return: >
+;   The bitblasted term for concatenation term a, reversed. We require reversing
+;   the concatenation term to this method to match the bitblasted form that is
+;   generated.
 (program $bv_mk_bitblast_step_concat_rec ((n Int) (a1 (BitVec n)) (m Int) (a2 (BitVec m) :list))
   ((BitVec n)) (BitVec n)
   (
