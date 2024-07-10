@@ -55,7 +55,7 @@ jobs:
         #echo "release=latest" >> $GITHUB_OUTPUT
         echo "release=$GITHUB_REF_NAME" >> $GITHUB_OUTPUT
 
-    - name: Upload ZIP fileS
+    - name: Upload ZIP file
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
