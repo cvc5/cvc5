@@ -421,10 +421,9 @@ TEST_F(TestCApiBlackTermManager, mk_record_sort)
       "invalid sort at index 0");
 
   sorts = {d_bool, cvc5_mk_bv_sort(d_tm, 8), d_int};
-  // Cvc5Sort recsort =
-  cvc5_mk_record_sort(d_tm, names.size(), names.data(), sorts.data());
-
-  //(void)cvc5_sort_get_datatype(recsort);
+  Cvc5Sort recsort =
+      cvc5_mk_record_sort(d_tm, names.size(), names.data(), sorts.data());
+  (void)cvc5_sort_get_datatype(recsort);
   (void)cvc5_mk_record_sort(d_tm, names.size(), names.data(), sorts.data());
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
@@ -1393,10 +1392,13 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_some)
 
 TEST_F(TestCApiBlackTermManager, mk_nullable_val)
 {
-  // Cvc5Term value = cvc5_mk_nullable_val(
-  //     d_tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5)));
-  // value = cvc5_simplify(d_solver, value);
-  // ASSERT_EQ(5, cvc5_term_get_int64_value(value));
+  Cvc5* solver = cvc5_new(d_tm);
+  Cvc5Term value = cvc5_mk_nullable_val(
+      d_tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5)));
+  value = cvc5_simplify(solver, value, false);
+  cvc5_delete(solver);
+
+  ASSERT_EQ(5, cvc5_term_get_int64_value(value));
   ASSERT_DEATH(
       cvc5_mk_nullable_val(
           nullptr, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5))),
@@ -1412,10 +1414,13 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_val)
 
 TEST_F(TestCApiBlackTermManager, mk_nullable_is_null)
 {
-  // Cvc5Term value = cvc5_mk_nullable_is_null(
-  //     d_tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5)));
-  // value = cvc5_simplify(d_solver, value);
-  // ASSERT_EQ(false, cvc5_term_get_boolean_value(value));
+  Cvc5* solver = cvc5_new(d_tm);
+  Cvc5Term value = cvc5_mk_nullable_is_null(
+      d_tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5)));
+  value = cvc5_simplify(solver, value, false);
+  cvc5_delete(solver);
+
+  ASSERT_EQ(false, cvc5_term_get_boolean_value(value));
   ASSERT_DEATH(
       cvc5_mk_nullable_is_null(
           nullptr, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5))),
@@ -1431,10 +1436,13 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_is_null)
 
 TEST_F(TestCApiBlackTermManager, mk_nullable_is_some)
 {
-  // Cvc5Term value = cvc5_mk_nullable_is_some(
-  //     d_tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5)));
-  // value = cvc5_simplify(d_solver, value);
-  // ASSERT_EQ(true, cvc5_term_get_boolean_value(value));
+  Cvc5* solver = cvc5_new(d_tm);
+  Cvc5Term value = cvc5_mk_nullable_is_some(
+      d_tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5)));
+  value = cvc5_simplify(solver, value, false);
+  cvc5_delete(solver);
+
+  ASSERT_EQ(true, cvc5_term_get_boolean_value(value));
   ASSERT_DEATH(
       cvc5_mk_nullable_is_some(
           nullptr, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5))),
@@ -1450,11 +1458,14 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_is_some)
 
 TEST_F(TestCApiBlackTermManager, mk_nullable_null)
 {
+  Cvc5* solver = cvc5_new(d_tm);
   Cvc5Sort sort = cvc5_mk_nullable_sort(d_tm, d_bool);
-  // Cvc5Term null = cvc5_mk_nullable_null(d_tm, sort);
-  // Cvc5Term value = cvc5_mk_nullable_is_null(d_tm, null);
-  // value = cvc5_simplify(d_solver, value);
-  // ASSERT_EQ(true, cvc5_term_get_boolean_value(value));
+  Cvc5Term null = cvc5_mk_nullable_null(d_tm, sort);
+  Cvc5Term value = cvc5_mk_nullable_is_null(d_tm, null);
+  value = cvc5_simplify(solver, value, false);
+  ASSERT_EQ(true, cvc5_term_get_boolean_value(value));
+  cvc5_delete(solver);
+
   ASSERT_DEATH(cvc5_mk_nullable_null(nullptr, sort),
                "unexpected NULL argument");
   ASSERT_DEATH(cvc5_mk_nullable_null(d_tm, nullptr), "invalid sort");
@@ -1467,13 +1478,16 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_null)
 
 TEST_F(TestCApiBlackTermManager, mk_nullable_lift)
 {
+  Cvc5* solver = cvc5_new(d_tm);
   Cvc5Term some1 = cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 1));
   Cvc5Term some2 = cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 2));
   std::vector<Cvc5Term> args = {some1, some2};
-  // Cvc5Term lift =
-  cvc5_mk_nullable_lift(d_tm, CVC5_KIND_ADD, 2, args.data());
-  // Cvc5Term three = cvc5_simplify(d_solver, cvc5_mk_nullable_val(d_tm, lift));
-  // ASSERT_EQ(3, cvc5_term_get_int64_value(three));
+  Cvc5Term lift = cvc5_mk_nullable_lift(d_tm, CVC5_KIND_ADD, 2, args.data());
+  Cvc5Term three =
+      cvc5_simplify(solver, cvc5_mk_nullable_val(d_tm, lift), false);
+  cvc5_delete(solver);
+
+  ASSERT_EQ(3, cvc5_term_get_int64_value(three));
   ASSERT_DEATH(cvc5_mk_nullable_lift(nullptr, CVC5_KIND_ADD, 2, args.data()),
                "unexpected NULL argument");
   ASSERT_DEATH(cvc5_mk_nullable_lift(d_tm, CVC5_KIND_ADD, 0, {}),
