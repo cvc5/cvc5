@@ -19,10 +19,10 @@
 ; args:
 ; - u Int: The upper index of the extract.
 ; - l Int: The lower index of the extract.
-; - a1 (BitVec n): The argument of the extract.
-; return: the bitblasted term for (extract u l a1).
-(define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a1 (BitVec n)))
-  (nary.subsequence @from_bools @bv_empty l u a1))
+; - a (BitVec n): The argument of the extract.
+; return: the bitblasted term for (extract u l a).
+(define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a (BitVec n)))
+  (nary.subsequence @from_bools @bv_empty l u a))
 
 ; program: $bv_mk_bitblast_step_concat_rec
 ; args:
