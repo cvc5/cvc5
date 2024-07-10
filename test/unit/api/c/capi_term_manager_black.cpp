@@ -1567,17 +1567,16 @@ TEST_F(TestCApiBlackTermManager, get_statistics)
                "unexpected NULL argument");
 
   // do some array reasoning to make sure we have a double statistics
-  {
-    Cvc5* solver = cvc5_new(d_tm);
-    Cvc5Sort s2 = cvc5_mk_array_sort(d_tm, d_int, d_int);
-    Cvc5Term t1 = cvc5_mk_const(d_tm, d_int, "i");
-    Cvc5Term t2 = cvc5_mk_const(d_tm, s2, "a");
-    std::vector<Cvc5Term> args = {t2, t1};
-    args = {cvc5_mk_term(d_tm, CVC5_KIND_SELECT, args.size(), args.data()), t1};
-    cvc5_assert_formula(
-        solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
-    cvc5_check_sat(solver);
-  }
+  Cvc5* solver = cvc5_new(d_tm);
+  Cvc5Sort s2 = cvc5_mk_array_sort(d_tm, d_int, d_int);
+  Cvc5Term t1 = cvc5_mk_const(d_tm, d_int, "i");
+  Cvc5Term t2 = cvc5_mk_const(d_tm, s2, "a");
+  std::vector<Cvc5Term> args = {t2, t1};
+  args = {cvc5_mk_term(d_tm, CVC5_KIND_SELECT, args.size(), args.data()), t1};
+  cvc5_assert_formula(
+      solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  cvc5_check_sat(solver);
+
   Cvc5Statistics stats = cvc5_term_manager_get_statistics(d_tm);
   (void)cvc5_stats_to_string(stats);
 
@@ -1604,6 +1603,7 @@ TEST_F(TestCApiBlackTermManager, get_statistics)
     }
   }
   ASSERT_TRUE(hasstats);
+  cvc5_delete(solver);
 }
 
 TEST_F(TestCApiBlackTermManager, print_statistics_safe)
