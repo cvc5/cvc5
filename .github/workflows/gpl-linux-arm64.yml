@@ -52,7 +52,6 @@ jobs:
         mv install $PACKAGE_NAME
         zip -r $PACKAGE_NAME $PACKAGE_NAME
         echo "filepath=./$PACKAGE_NAME.zip" >> $GITHUB_OUTPUT
-        #echo "release=latest" >> $GITHUB_OUTPUT
         echo "release=$GITHUB_REF_NAME" >> $GITHUB_OUTPUT
 
     - name: Upload ZIP file
