@@ -7,27 +7,12 @@ env:
     HOMEBREW_NO_INSTALL_FROM_API: ""
 
 jobs:
-  build:
+  builds:
     strategy:
       matrix:
-        name:
-          - ubuntu:production
-          - ubuntu:production-arm64-cross
-          - macos:production
-          - macos:production-arm64
-          - macos:production-arm64-cross
-          - win64:production
-          - win64:production-cross
-          - wasm:production
-          - ubuntu:production-clang
-          - ubuntu:production-dbg
-          - ubuntu:production-dbg-clang
-          - ubuntu:production-gpl
-          - macos:production-gpl
-          - macos:production-arm64-gpl
         has-tag:
           - ${{ startsWith(github.ref, 'refs/tags/') }}
-        include:
+        build:
           - name: ubuntu:production
             os: ubuntu-20.04
             config: production --auto-download --all-bindings --editline --docs
@@ -159,19 +144,19 @@ jobs:
             gpl-tag: -gpl
 
         exclude:
-          - name: ubuntu:production-gpl
+          - build.name: ubuntu:production-gpl
             has-tag: false
-          - name: macos:production-gpl
+          - build.name: macos:production-gpl
             has-tag: false
-          - name: macos:production-arm64-gpl
+          - build.name: macos:production-arm64-gpl
             has-tag: false
 
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.build.name }}
+    runs-on: ${{ matrix.build.os }}
 
     # cancel already running jobs for the same branch/pr/tag
     concurrency:
-      group: build-${{ github.ref }}-${{ matrix.name }}-${{ github.ref != 'refs/heads/main' || github.run_id }}
+      group: build-${{ github.ref }}-${{ matrix.build.name }}-${{ github.ref != 'refs/heads/main' || github.run_id }}
       cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
 
     steps:
@@ -181,76 +166,76 @@ jobs:
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
       with:
-        with-documentation: ${{ matrix.build-documentation }}
-        windows-build: ${{ matrix.windows-build }}
-        wasm-build: ${{ matrix.wasm-build }}
-        shell: ${{ matrix.shell }}
+        with-documentation: ${{ matrix.build.build-documentation }}
+        windows-build: ${{ matrix.build.windows-build }}
+        wasm-build: ${{ matrix.build.wasm-build }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
       with:
-        cache-key: ${{ matrix.cache-key }}
-        shell: ${{ matrix.shell }}
+        cache-key: ${{ matrix.build.cache-key }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Configure and build
       id: configure-and-build
       uses: ./.github/actions/configure-and-build
       with:
-        configure-env: ${{ matrix.env }}
-        configure-config: ${{ matrix.config }}
-        macos-target: ${{ matrix.macos-target }}
-        build-shared: ${{ matrix.build-shared }}
-        build-static: ${{ matrix.build-static }}
-        strip-bin: ${{ matrix.strip-bin }}
-        shell: ${{ matrix.shell }}
+        configure-env: ${{ matrix.build.env }}
+        configure-config: ${{ matrix.build.config }}
+        macos-target: ${{ matrix.build.macos-target }}
+        build-shared: ${{ matrix.build.build-shared }}
+        build-static: ${{ matrix.build.build-static }}
+        strip-bin: ${{ matrix.build.strip-bin }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Run tests
-      if: matrix.run_regression_args
+      if: matrix.build.run_regression_args
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
-        check-examples: ${{ matrix.check-examples }}
-        check-python-bindings: ${{ matrix.python-bindings }}
-        regressions-args: ${{ matrix.run_regression_args }}
-        regressions-exclude: ${{ matrix.exclude_regress }}
-        shell: ${{ matrix.shell }}
+        check-examples: ${{ matrix.build.check-examples }}
+        check-python-bindings: ${{ matrix.build.python-bindings }}
+        regressions-args: ${{ matrix.build.run_regression_args }}
+        regressions-exclude: ${{ matrix.build.exclude_regress }}
+        shell: ${{ matrix.build.shell }}
   
     - name: Run tests
-      if: matrix.run_regression_args
+      if: matrix.build.run_regression_args
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         check-examples: false
         check-install: false
         check-python-bindings: false
-        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-args: ${{ matrix.build.run_regression_args }}
         regressions-exclude: 1-4
-        shell: ${{ matrix.shell }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Build documentation
-      if: matrix.build-documentation
+      if: matrix.build.build-documentation
       uses: ./.github/actions/build-documentation
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
     - name: Create and add shared package to latest and release
-      if: matrix.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      if: matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-package
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
-        package-name: ${{ matrix.package-name }}-shared${{ matrix.gpl-tag }}
+        package-name: ${{ matrix.build.package-name }}-shared${{ matrix.build.gpl-tag }}
         # when using GITHUB_TOKEN, no further workflows are triggered
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
-        shell: ${{ matrix.shell }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Create and add static package to latest and release
-      if: matrix.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      if: matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-package
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
-        package-name: ${{ matrix.package-name }}-static${{ matrix.gpl-tag }}
+        package-name: ${{ matrix.build.package-name }}-static${{ matrix.build.gpl-tag }}
         # when using GITHUB_TOKEN, no further workflows are triggered
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
-        shell: ${{ matrix.shell }}
+        shell: ${{ matrix.build.shell }}
