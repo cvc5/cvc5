@@ -6967,9 +6967,14 @@ class CVC5_EXPORT Solver
   bool isOutputOn(const std::string& tag) const;
 
   /**
-   * Get an output stream for the given tag. Tags can be enabled with the
-   * `output` option (and `-o <tag>` on the command line). Raises an exception
-   * when an invalid tag is given.
+   * Get an output stream for the given tag.
+   *
+   * Tags can be enabled with the `output` option (and `-o <tag>` on the
+   * command line). Raises an exception when an invalid tag is given.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param tag The output tag.
    * @return The output stream.
    */
   std::ostream& getOutput(const std::string& tag) const;
