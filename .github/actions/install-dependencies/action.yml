@@ -85,6 +85,7 @@ runs:
         path-type: inherit
         install: |
           make
+          mingw-w64-x86_64-autotools
           mingw-w64-x86_64-ccache
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-gcc
@@ -108,10 +109,12 @@ runs:
         brew config
         brew untap homebrew/core homebrew/cask
         brew config
-
-        brew install \
+        if [[ $RUNNER_ARCH == "ARM64" ]]; then
+          AUTOTOOLS="autoconf libtool"
+        fi
+        brew install $AUTOTOOLS \
+          automake \
           ccache \
-          pkgconfig \
           gnu-sed
         echo "SED=gsed" >> $GITHUB_ENV
         echo "CCACHE_CONFIGPATH=/Users/runner/Library/Preferences/ccache/ccache.conf" >> $GITHUB_ENV
