@@ -618,6 +618,7 @@ enum ENUM(Kind)
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   * \endrst
    */
   EVALUE(DIVISION_TOTAL),
   /**
@@ -656,6 +657,7 @@ enum ENUM(Kind)
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   * \endrst
    */
   EVALUE(INTS_DIVISION_TOTAL),
   /**
@@ -696,6 +698,7 @@ enum ENUM(Kind)
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   * \endrst
    */
   EVALUE(INTS_MODULUS_TOTAL),
   /**
@@ -4071,7 +4074,7 @@ enum ENUM(Kind)
    *              future versions.
    * \endrst
    */
-  EVALUE(BAG_CHOOSE),  
+  EVALUE(BAG_CHOOSE),
   /**
    * Bag map.
    *
@@ -5625,7 +5628,6 @@ enum ENUM(Kind)
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
-   * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
    *

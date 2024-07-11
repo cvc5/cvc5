@@ -8,6 +8,7 @@ This enum class represents the explanation for an unknown solver result
 
 - enum class :cpp:enum:`cvc5::UnknownExplanation`
 - :cpp:func:`std::ostream& cvc5::operator<< (std::ostream& out, UnknownExplanation e)`
+- :cpp:func:`std::string std::to_string(cvc5::UnknownExplanation ue)`
 
 ----
 
@@ -18,3 +19,7 @@ This enum class represents the explanation for an unknown solver result
 
 .. doxygenfunction:: cvc5::operator<<(std::ostream& out, UnknownExplanation e)
     :project: cvc5
+
+.. doxygenfunction:: std::to_string(cvc5::UnknownExplanation ue)
+    :project: cvc5
+

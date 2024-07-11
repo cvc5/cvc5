@@ -17,6 +17,7 @@ quantified formula has kind :cpp:enumerator:`FORALL <cvc5::Kind::FORALL>`.
 
 - enum class :cpp:enum:`cvc5::Kind`
 - :cpp:func:`std::ostream& cvc5::operator<< (std::ostream& out, Kind kind)`
+- :cpp:func:`std::string std::to_string(cvc5::Kind kind)`
 - :cpp:struct:`std::hash\<cvc5::Kind>`
 
 ----
@@ -27,6 +28,9 @@ quantified formula has kind :cpp:enumerator:`FORALL <cvc5::Kind::FORALL>`.
 ----
 
 .. doxygenfunction:: cvc5::operator<<(std::ostream& out, Kind kind)
+    :project: cvc5
+
+.. doxygenfunction:: std::to_string(cvc5::Kind kind)
     :project: cvc5
 
 ----
