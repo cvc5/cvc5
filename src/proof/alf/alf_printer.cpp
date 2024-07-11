@@ -220,6 +220,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   {
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::BETA_REDUCE:
+    case ProofRewriteRule::BV_BITWISE_SLICING:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
