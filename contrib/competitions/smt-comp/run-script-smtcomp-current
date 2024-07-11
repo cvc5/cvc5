@@ -144,9 +144,9 @@ QF_AUFBV)
   finishwith --decision=stoponly
   ;;
 QF_ABV)
-  trywith 50 --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
-  trywith 500 --arrays-weak-equiv
-  finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
+  trywith 50 --ite-simp --simp-with-care --repeat-simp
+  trywith 500
+  finishwith --ite-simp --simp-with-care --repeat-simp
   ;;
 QF_BV|QF_UFBV)
   finishwith --bitblast=eager --bv-assert-input
@@ -161,7 +161,7 @@ QF_AUFNIA)
   finishwith --decision=justification --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_ALIA)
-  trywith 140 --decision=justification --arrays-weak-equiv
+  trywith 140 --decision=justification
   finishwith --decision=stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_S|QF_SLIA)
