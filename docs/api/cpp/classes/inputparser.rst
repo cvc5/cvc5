@@ -1,8 +1,9 @@
 InputParser
 ===========
 
-This class is the main interface for retrieving commands and expressions
-from an input.
+This class is the main interface for retrieving :cpp:class:`commands
+<cvc5::parser::Command>` and :cpp:class:`expressions <cvc5::Term>` from an
+input.
 
 ----
 

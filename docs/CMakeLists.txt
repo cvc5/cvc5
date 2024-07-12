@@ -28,11 +28,12 @@ configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 
 add_custom_target(
   docs
-  DEPENDS docs-cpp docs-java docs-python gen-options cvc5-bin
+  DEPENDS docs-cpp docs-c docs-java docs-python gen-options cvc5-bin
   COMMAND
     ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output
     -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_DIR}
+    -Dbreathe_projects.cvc5_c=${C_DOXYGEN_XML_DIR}
     -Dbreathe_projects.std=${CPP_DOXYGEN_XML_DIR} ${SPHINX_INPUT_DIR}
     ${SPHINX_OUTPUT_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
