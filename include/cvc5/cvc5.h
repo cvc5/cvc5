@@ -3686,8 +3686,8 @@ class CVC5_EXPORT Proof
   /**
    * Get the proof rewrite rule used  by the root step of the proof.
    *
-   * Requires that `getRule()` does not return `DSL_REWRITE` or
-   * `THEORY_REWRITE`.
+   * Requires that `getRule()` does not return #DSL_REWRITE or
+   * #THEORY_REWRITE.
    *
    * @return The proof rewrite rule.
    *

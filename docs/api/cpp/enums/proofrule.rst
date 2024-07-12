@@ -1,8 +1,5 @@
-Proof Rules
-===========
-
-This section introduces two enumerations: :cpp:enum:`ProofRule
-<cvc5::ProofRule>` and :cpp:enum:`ProofRewriteRule <cvc5::ProofRewriteRule>`.
+ProofRule and ProofRewriteRule
+==============================
 
 Enum class :cpp:enum:`ProofRule <cvc5::ProofRule>` captures the reasoning steps
 performed by the SAT solver, the theory solvers and the preprocessor. It

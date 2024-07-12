@@ -30,8 +30,9 @@ entry point to cvc5.
     enums/modes
     classes/op
     classes/optioninfo
-    ../../proofs/proof_rules
     classes/plugin
+    classes/proof
+    enums/proofrule
     classes/result
     enums/roundingmode
     classes/solver
@@ -67,6 +68,7 @@ Class hierarchy
   * class :doc:`classes/grammar`
   * class :doc:`classes/op`
   * class :doc:`classes/optioninfo`
+  * class :doc:`classes/proof`
   * class :doc:`classes/result`
   * class :doc:`classes/plugin`
   * class :doc:`classes/termmanager`
