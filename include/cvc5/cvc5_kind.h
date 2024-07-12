@@ -5786,7 +5786,7 @@ typedef enum ENUM(Kind) ENUM(Kind);
  * @param kind The kind.
  * @return The string representation.
  */
-const char* cvc5_kind_to_string(Cvc5Kind kind);
+CVC5_EXPORT const char* cvc5_kind_to_string(Cvc5Kind kind);
 #else
 /**
  * Get the string representation of a given kind.
@@ -5813,7 +5813,7 @@ namespace std {
  * @param kind The kind
  * @return The string representation.
  */
-std::string to_string(cvc5::Kind kind);
+CVC5_EXPORT std::string to_string(cvc5::Kind kind);
 }
 #endif
 
@@ -5823,7 +5823,7 @@ std::string to_string(cvc5::Kind kind);
  * @param kind The kind.
  * @return The hash value.
  */
-size_t cvc5_kind_hash(Cvc5Kind kind);
+CVC5_EXPORT size_t cvc5_kind_hash(Cvc5Kind kind);
 #else
 namespace std {
 
@@ -6086,7 +6086,7 @@ typedef enum ENUM(SortKind) ENUM(SortKind);
  * @param kind The sort kind.
  * @return The string representation.
  */
-const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
+CVC5_EXPORT const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
 #else
 /**
  * Get the string representation of a given kind.
@@ -6114,7 +6114,7 @@ namespace std {
  * @param k the sort kind
  * @return the string representation of kind k
  */
-std::string to_string(cvc5::SortKind k);
+CVC5_EXPORT std::string to_string(cvc5::SortKind k);
 }
 #endif
 
@@ -6124,7 +6124,7 @@ std::string to_string(cvc5::SortKind k);
  * @param kind The kind.
  * @return The hash value.
  */
-size_t cvc5_sort_kind_hash(Cvc5SortKind kind);
+CVC5_EXPORT size_t cvc5_sort_kind_hash(Cvc5SortKind kind);
 #else
 namespace std {
 
