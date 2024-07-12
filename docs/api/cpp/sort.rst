@@ -10,10 +10,10 @@ A :cpp:class:`Sort <cvc5::Sort>` can be hashed (using
 (using :cpp:func:`cvc5::operator<<()`).
 
 Class :cpp:class:`cvc5::Sort` only provides the default constructor
-to create a null Sort. Class :cpp:class:`Solver <cvc5::Solver>`
+to create a null Sort. Class :cpp:class:`TermManager <cvc5::TermManager>`
 provides factory functions for all other sorts, e.g.,
-:cpp:func:`cvc5::Solver::getBooleanSort()` for the Boolean sort and
-:cpp:func:`cvc5::Solver::mkBitVectorSort()` for bit-vector
+:cpp:func:`cvc5::TermManager::getBooleanSort()` for the Boolean sort and
+:cpp:func:`cvc5::TermManager::mkBitVectorSort()` for bit-vector
 sorts.
 
 Sorts are defined as standardized in the SMT-LIB standard for standardized
@@ -22,20 +22,20 @@ theories:
 
 - *Bag* (:doc:`Theory of Bags <../../theories/bags>`)
 
-  - Created with :cpp:func:`cvc5::Solver::mkBagSort()`
+  - Created with :cpp:func:`cvc5::TermManager::mkBagSort()`
 
 - *Set* (:doc:`Theory of Sets and Relations <../../theories/sets-and-relations>`)
 
-  - Created with :cpp:func:`cvc5::Solver::mkSetSort()`
+  - Created with :cpp:func:`cvc5::TermManager::mkSetSort()`
 
 - *Relation* (:doc:`Theory of Sets and Relations <../../theories/sets-and-relations>`)
 
-  - Created with :cpp:func:`cvc5::Solver::mkSetSort()` as a set of tuple
+  - Created with :cpp:func:`cvc5::TermManager::mkSetSort()` as a set of tuple
     sorts
 
 - *Table*
 
-  - Created with :cpp:func:`cvc5::Solver::mkBagSort()` as a bag of tuple
+  - Created with :cpp:func:`cvc5::TermManager::mkBagSort()` as a bag of tuple
     sorts
 
 ----

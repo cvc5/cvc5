@@ -1,9 +1,13 @@
 C++ API
 =====================
 
-The C++ API is the primary interface for cvc5 and exposes the full functionality of cvc5.
-The :doc:`quickstart guide <quickstart>` gives a short introduction, while the following class hierarchy of the ``cvc5`` namespace provides more details on the individual classes.
-For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main entry point to cvc5.
+The C++ API is the primary interface for cvc5 and exposes the full
+functionality of cvc5.
+The :doc:`quickstart guide <quickstart>` gives a short introduction, while the
+following class hierarchy of the ``cvc5`` namespace provides more details on
+the individual classes.
+For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main
+entry point to cvc5.
 
 
 .. container:: hide-toctree
@@ -75,6 +79,8 @@ Class hierarchy
   * enum class :ref:`api/cpp/sortkind:sortkind`
   * enum class :ref:`api/cpp/roundingmode:roundingmode`
   * enum class :ref:`api/cpp/unknownexplanation:unknownexplanation`
+  * enum class :cpp:enum:`ProofRule <cvc5::ProofRule>`
+  * enum class :cpp:enum:`ProofRewriteRule <cvc5::ProofRewriteRule>`
 
 ``namespace modes {``
   * enum classes for :ref:`configuration modes<api/cpp/modes:modes>`
@@ -82,6 +88,7 @@ Class hierarchy
     * enum class for :cpp:enum:`cvc5::modes::BlockModelsMode`
     * enum class for :cpp:enum:`cvc5::modes::LearnedLitType`
     * enum class for :cpp:enum:`cvc5::modes::ProofComponent`
+    * enum class for :cpp:enum:`cvc5::modes::ProofFormat`
     * enum class for :cpp:enum:`cvc5::modes::FindSynthTarget`
 
 ``}``

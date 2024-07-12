@@ -1,15 +1,17 @@
 Java API
 ========
 
-The Java API for cvc5 mostly mirrors the :doc:`C++ API <../cpp/cpp>` and supports operator
-overloading, iterators, and exceptions.
-There are a few differences from the C++ API, such as using arbitrary-precision integer pairs,
-specifically, pairs of Java `BigInteger` objects, to represent rational numbers.
+The Java API of cvc5 mostly mirrors the :doc:`C++ API <../cpp/cpp>` and
+supports operator overloading, iterators, and exceptions.
+There are a few differences from the C++ API, such as using arbitrary-precision
+integer pairs, specifically, pairs of Java `BigInteger` objects, to represent
+rational numbers.
 The :doc:`quickstart guide <quickstart>` gives a short introduction,
 and more examples can be found `here <../../examples/examples.html>`_.
 
 
-For most applications, the `Solver <io/github/cvc5/Solver.html>`_ class is the main entry point to cvc5.
+For most applications, the `Solver <io/github/cvc5/Solver.html>`_ class is the
+main entry point to cvc5.
 The class hierarchy of `cvc5 package <io/github/cvc5/package-summary.html>`_
 provides more details on the individual classes.
 
@@ -93,7 +95,6 @@ Building cvc5 Java API
   * exception `CVC5ApiException <io/github/cvc5/CVC5ApiException.html>`_
   * exception `CVC5ApiOptionException <io/github/cvc5/CVC5ApiOptionException.html>`_
   * exception `CVC5ApiRecoverableException <io/github/cvc5/CVC5ApiRecoverableException.html>`_
-
 
 
 `Package io.github.cvc5.modes <io/github/cvc5/modes/package-summary.html>`_
