@@ -2,7 +2,7 @@ UnknownExplanation
 ==================
 
 This enum class represents the explanation for an unknown solver result
-(see :doc:`result`).
+(see :doc:`../classes/result`).
 
 ----
 

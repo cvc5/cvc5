@@ -5981,7 +5981,7 @@ class CVC5_EXPORT Solver
    *     (get-unsat-core-lemmas)
    *
    * Requires the SAT proof unsat core mode, so to enable option
-   * :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
+   * :ref:`unsat-cores-mode=sat-proof <lbl-option-unsat-cores-mode>`.
    *
    * \endverbatim
    *

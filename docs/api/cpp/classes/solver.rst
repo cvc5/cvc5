@@ -10,7 +10,7 @@ shared between solver instances.
 
 Solver options are configured via :cpp:func:`cvc5::Solver::setOption()`
 and queried via :cpp:func:`cvc5::Solver::getOption()`
-(for more information on configuration options, see :doc:`../../options`).
+(for more information on configuration options, see :doc:`../../../options`).
 Information about a specific option can be retrieved via
 :cpp:func:`cvc5::getOptionInfo()` (see :doc:`optioninfo`).
 
