@@ -20,15 +20,15 @@ Sorts are defined as standardized in the SMT-LIB standard for standardized
 theories. Additionally, we introduce the following sorts for non-standardized
 theories:
 
-- *Bag* (:doc:`Theory of Bags <../../theories/bags>`)
+- *Bag* (:doc:`Theory of Bags <../../../theories/bags>`)
 
   - Created with :cpp:func:`cvc5::TermManager::mkBagSort()`
 
-- *Set* (:doc:`Theory of Sets and Relations <../../theories/sets-and-relations>`)
+- *Set* (:doc:`Theory of Sets and Relations <../../../theories/sets-and-relations>`)
 
   - Created with :cpp:func:`cvc5::TermManager::mkSetSort()`
 
-- *Relation* (:doc:`Theory of Sets and Relations <../../theories/sets-and-relations>`)
+- *Relation* (:doc:`Theory of Sets and Relations <../../../theories/sets-and-relations>`)
 
   - Created with :cpp:func:`cvc5::TermManager::mkSetSort()` as a set of tuple
     sorts
