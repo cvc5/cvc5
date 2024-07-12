@@ -2534,6 +2534,7 @@ enum ENUM(ProofRewriteRule)
    */
   EVALUE(RE_LOOP_ELIM),
   /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
    *
    * .. math::

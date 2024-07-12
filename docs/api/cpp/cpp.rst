@@ -18,7 +18,9 @@ For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main 
     datatypedecl
     datatypeselector
     driveroptions
+    command
     grammar
+    inputparser
     kind
     modes
     op
@@ -29,6 +31,7 @@ For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main 
     sort
     sortkind
     statistics
+    symbolmanager
     synthresult
     term
     termmanager
@@ -80,6 +83,7 @@ Class hierarchy
     * enum class for :cpp:enum:`cvc5::modes::LearnedLitType`
     * enum class for :cpp:enum:`cvc5::modes::ProofComponent`
     * enum class for :cpp:enum:`cvc5::modes::FindSynthTarget`
+
 ``}``
 
 ``namespace parser {``
@@ -88,6 +92,7 @@ Class hierarchy
   * class :ref:`api/cpp/inputparser:inputparser`
   * class :cpp:class:`ParserException <cvc5::parser::ParserException>`
   * class :cpp:class:`SymbolManager <cvc5::parser::SymbolManager>`
+
 ``}``
 
 ``}``

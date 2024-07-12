@@ -2131,7 +2131,7 @@ class CVC5_EXPORT DatatypeConstructorDecl
  private:
   /**
    * Constructor.
-   * @param nm The associated node manager.
+   * @param tm   The associated term manager.
    * @param name The name of the datatype constructor.
    * @return The DatatypeConstructorDecl.
    */
@@ -2213,7 +2213,7 @@ class CVC5_EXPORT DatatypeDecl
    * @param decl The datatype declaration to compare to for equality.
    * @return True if the datatype declarations are equal.
    */
-  bool operator==(const DatatypeDecl& decll) const;
+  bool operator==(const DatatypeDecl& decl) const;
 
   /**
    * Add datatype constructor declaration.
@@ -3202,11 +3202,11 @@ class CVC5_EXPORT Grammar
 
 /**
  * Serialize a grammar to given stream.
- * @param out The output stream.
- * @param g The grammar to be serialized to the given output stream.
+ * @param out     The output stream.
+ * @param grammar The grammar to be serialized to the given output stream.
  * @return The output stream.
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Grammar& g);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Grammar& grammar);
 
 }  // namespace cvc5
 
@@ -4462,7 +4462,7 @@ class CVC5_EXPORT TermManager
   /**
    * Helper for calls to mkVar from the TermManager and Solver. Ensures that
    * API statistics are collected.
-   * @param sort   The internal type of the variable.
+   * @param type   The internal type of the variable.
    * @param symbol The symbol of the variable.
    */
   internal::Node mkVarHelper(
@@ -4471,7 +4471,7 @@ class CVC5_EXPORT TermManager
   /**
    * Helper for calls to mkConst from the TermManager and Solver. Ensures that
    * API statistics are collected.
-   * @param sort   The internal type of the const.
+   * @param type   The internal type of the const.
    * @param symbol The symbol of the const.
    * @param fresh  True to return a fresh variable. If false, it returns the
    *               same variable for the given type and name.
@@ -6995,6 +6995,7 @@ class CVC5_EXPORT Solver
   /**
    * Constructs a solver with the given original options. This should only be
    * used internally when the Solver is reset.
+   * @param tm       The associated term manager.
    * @param original The original set of configuration options.
    */
   Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original);

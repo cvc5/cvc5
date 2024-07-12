@@ -1,5 +1,5 @@
 Python API
-========================
+==========
 
 .. only:: not bindings_python
 
@@ -29,7 +29,7 @@ You can compare examples using the two APIs by visiting the :doc:`examples page 
 
 
 Installation (from PyPi)
-------------
+------------------------
 
 The base and pythonic Python API can be installed via `pip` as follows:
 
@@ -39,7 +39,7 @@ The base and pythonic Python API can be installed via `pip` as follows:
 
 
 Installation (from source)
-------------
+--------------------------
 
 The base and pythonic Python API can also be installed from source following these steps:
 
