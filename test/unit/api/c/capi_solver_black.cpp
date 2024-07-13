@@ -3831,6 +3831,7 @@ TEST_F(TestCApiBlackSolver, multiple_solvers)
     cvc5_check_sat(s3);
     Cvc5Term value3 = cvc5_get_value(s3, fun3);
     ASSERT_TRUE(cvc5_term_is_equal(value1, value3));
+    cvc5_delete(s3);
   }
 }
 
