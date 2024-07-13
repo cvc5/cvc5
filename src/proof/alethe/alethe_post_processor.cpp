@@ -780,7 +780,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           {},
+                           args,
                            *cdp);
     }
     // ======== And introduction
