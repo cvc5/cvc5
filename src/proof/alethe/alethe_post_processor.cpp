@@ -1506,7 +1506,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
     // comment uses variable names as introduced there.
     //
-    // ----- FORALL_INST, (= x1 t1) ... (= xn tn)
+    // ----- FORALL_INST, t1 ... tn
     //  VP1
     // ----- OR
     //  VP2              P
@@ -1519,16 +1519,15 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ^ the corresponding proof node is F*sigma
     case ProofRule::INSTANTIATE:
     {
-      for (size_t i = 0, size = children[0][0].getNumChildren(); i < size; i++)
-      {
-        new_args.push_back(
-            nm->mkNode(Kind::SEXPR, d_becomes, children[0][0][i], args[0][i]));
-      }
       Node vp1 = nm->mkNode(
           Kind::SEXPR, d_cl, nm->mkNode(Kind::OR, children[0].notNode(), res));
       Node vp2 = nm->mkNode(Kind::SEXPR, d_cl, children[0].notNode(), res);
-      return addAletheStep(
-                 AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
+      return addAletheStep(AletheRule::FORALL_INST,
+                           vp1,
+                           vp1,
+                           {},
+                           std::vector<Node>{args[0].begin(), args[0].end()},
+                           *cdp)
              && addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
