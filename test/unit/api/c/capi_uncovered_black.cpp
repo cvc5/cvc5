@@ -313,6 +313,7 @@ TEST_F(TestCApiBlackUncovered, stats_iterators)
   ASSERT_TRUE(stats.begin() != stats.end());
   std::stringstream ss;
   ss << stats;
+  ss << it->first;
 }
 
 TEST_F(TestCApiBlackUncovered, check_sat_assuming)

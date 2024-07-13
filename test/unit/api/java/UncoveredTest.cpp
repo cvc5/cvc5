@@ -290,6 +290,8 @@ TEST_F(TestApiBlackUncovered, Statistics)
   it--;
   ++it;
   --it;
+  std::stringstream ss;
+  ss << it->first;
   testing::internal::CaptureStdout();
   d_solver->printStatisticsSafe(STDOUT_FILENO);
   d_tm.printStatisticsSafe(STDOUT_FILENO);

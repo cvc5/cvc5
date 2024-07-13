@@ -784,10 +784,12 @@ class SolverTest
       assertTrue(s.isString());
       assertTrue(s.getString().endsWith("ms"));
       s = stats.get("resource::resourceUnitsUsed");
+      s.toString();
       assertTrue(s.isInternal());
       assertFalse(s.isDefault());
       assertTrue(s.isInt());
       assertTrue(s.getInt() >= 0);
+      s.toString();
     }
     for (Map.Entry<String, Stat> s : stats)
     {
