@@ -1150,13 +1150,13 @@ TEST_F(TestApiBlackSolver, getStatistics)
     std::string time = s.getString();
     ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
     ASSERT_FALSE(s.isDouble());
-    ss << s;
+    ss << s << s.toString();
     s = stats.get("resource::resourceUnitsUsed");
     ASSERT_TRUE(s.isInternal());
     ASSERT_FALSE(s.isDefault());
     ASSERT_TRUE(s.isInt());
     ASSERT_TRUE(s.getInt() >= 0);
-    ss << s;
+    ss << s << s.toString();
   }
   bool hasstats = false;
   for (const auto& s : stats)

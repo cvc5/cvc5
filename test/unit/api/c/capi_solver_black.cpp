@@ -3405,6 +3405,8 @@ TEST_F(TestCApiBlackSolver, get_synth_solution)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   ASSERT_DEATH(cvc5_get_synth_solution(slv, f), "not in a state");
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
 }
 
 TEST_F(TestCApiBlackSolver, get_synth_solutions)
@@ -3440,6 +3442,8 @@ TEST_F(TestCApiBlackSolver, get_synth_solutions)
   Cvc5* slv = cvc5_new(tm);
   ASSERT_DEATH(cvc5_get_synth_solutions(slv, args.size(), args.data()),
                "not in a state");
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
 }
 
 TEST_F(TestCApiBlackSolver, check_synth_next)
