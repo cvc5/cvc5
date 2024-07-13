@@ -3565,6 +3565,7 @@ TEST_F(TestCApiBlackSolver, get_statistics)
   ASSERT_FALSE(cvc5_stat_is_internal(stat1));
   ASSERT_FALSE(cvc5_stat_is_default(stat1));
   ASSERT_TRUE(cvc5_stat_is_string(stat1));
+  (void)cvc5_stat_to_string(stat1);
 
   std::string time = cvc5_stat_get_string(stat1);
   ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
@@ -3575,6 +3576,7 @@ TEST_F(TestCApiBlackSolver, get_statistics)
   ASSERT_FALSE(cvc5_stat_is_default(stat2));
   ASSERT_TRUE(cvc5_stat_is_int(stat2));
   ASSERT_TRUE(cvc5_stat_get_int(stat2) >= 0);
+  (void)cvc5_stat_to_string(stat2);
 
   cvc5_stats_iter_init(stats, true, true);
   bool hasstats = false;
