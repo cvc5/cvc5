@@ -1,3 +1,6 @@
+; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
+; DISABLE-TESTER: dsl-proof
 ; DISABLE-TESTER: alf
 ; DISABLE-TESTER: lfsc
 ; test name: testReduceConstantsDup2
