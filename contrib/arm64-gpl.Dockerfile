@@ -8,8 +8,6 @@ RUN apt-get update && apt-get install -y \
   automake \
   cmake \
   g++ \
-  libcln-dev \
-  libgmp-dev \
   libtool \
   openjdk-11-jdk \
   python3 \
