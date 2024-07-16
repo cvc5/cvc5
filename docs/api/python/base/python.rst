@@ -13,7 +13,7 @@ It is an almost exact copy of the :doc:`C++ API <../../cpp/cpp>`.
 See the :doc:`pythonic API <../pythonic/pythonic>` for a higher-level programming experience.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     quickstart
     datatype
@@ -29,7 +29,9 @@ See the :doc:`pythonic API <../pythonic/pythonic>` for a higher-level programmin
     roundingmode
     solver
     sort
+    sortkind
     statistics
     synthresult
     term
+    termmanager
     unknownexplanation
