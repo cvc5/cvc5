@@ -31,7 +31,7 @@ extern "C" {
  * assertions, declared functions, etc.).
  *
  * A symbol manager can be modified by invoking commands, see
- * `cvc5_command_invoke()`.
+ * `cvc5_cmd_invoke()`.
  *
  * A symbol manager can be provided when constructing a Cvc5InputParser, in
  * which case that input parser has symbols of this symbol manager preloaded.
@@ -49,15 +49,14 @@ typedef struct Cvc5SymbolManager Cvc5SymbolManager;
 typedef struct cvc5_cmd_t* Cvc5Command;
 
 /**
- * This class is the main interface for retrieving commands and expressions
+ * This struct is the main interface for retrieving commands and expressions
  * from an input using a parser.
  *
  * After construction, it is expected that an input is first configure via,
- * e.g., `cvc5_parser_set_file_input()`, `cvc5_parser_set_stream_input()`
- * `cvc5_parser_set_str_input()` or `cvc5_parser_set_inc_str_input()` and
- * `cvc5_parser_append_inc_str_input()`.
+ * e.g., `cvc5_parser_set_file_input()`, `cvc5_parser_set_str_input()` or
+ * `cvc5_parser_set_inc_str_input()` and `cvc5_parser_append_inc_str_input()`.
  * Then, functions `cvc5_parser_next_command()` and
- * `cvc5_parser_next_expression()` can be invoked to parse the input.
+ * `cvc5_parser_next_term()` can be invoked to parse the input.
  *
  * The input parser interacts with a symbol manager, which determines which
  * symbols are defined in the current context, based on the background logic
@@ -76,6 +75,10 @@ typedef struct cvc5_cmd_t* Cvc5Command;
 typedef struct Cvc5InputParser Cvc5InputParser;
 
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5symbolmanager
+ *  @{
+ */
 
 /**
  * Construct a new instance of a cvc5 symbol manager.
@@ -131,7 +134,13 @@ CVC5_EXPORT const Cvc5Sort* cvc5_sm_get_declared_sorts(Cvc5SymbolManager* sm,
 CVC5_EXPORT const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm,
                                                        size_t* size);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5command
+ *  @{
+ */
 
 /**
  * Invoke a given command on the solver and symbol manager sm and return any
@@ -163,7 +172,13 @@ CVC5_EXPORT const char* cvc5_cmd_to_string(const Cvc5Command cmd);
  */
 CVC5_EXPORT const char* cvc5_cmd_get_name(const Cvc5Command cmd);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5inputparser
+ *  @{
+ */
 
 /**
  * Construct a new instance of a cvc5 input parser.
@@ -240,7 +255,7 @@ CVC5_EXPORT void cvc5_parser_set_inc_str_input(Cvc5InputParser* parser,
                                                const char* name);
 /**
  * Append string to the input being parsed by this parser. Should be
- * called after calling `cvc5_set_inc_str_input()`.
+ * called after calling `cvc5_parser_set_inc_str_input()`.
  * @param parser The input parser instance.
  * @param input  The input string.
  */
@@ -277,6 +292,8 @@ CVC5_EXPORT Cvc5Term cvc5_parser_next_term(Cvc5InputParser* parser,
  * @return True if parser is done reading input.
  */
 CVC5_EXPORT bool cvc5_parser_done(Cvc5InputParser* parser);
+
+/** @} */
 
 #if __cplusplus
 }
