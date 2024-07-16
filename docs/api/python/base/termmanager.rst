@@ -8,13 +8,8 @@ This class represents a cvc5 term manager instance.
 but associated with a :py:obj:`cvc5.TermManager` instance, which can be
 shared between solver instances (and thus allows sharing of terms and sorts
 between solver instances).
-
 Term kinds are defined via enum class :doc:`cvc5.Kind <kind>`, and
 sort kinds via enum class :doc:`cvc5.SortKind <sortkind>`.
-
-Solver options are configured via :py:func:`cvc5.Solver.setOption()`
-and queried via :py:func:`cvc5.Solver.getOption()`
-(for more information on configuration options, see :doc:`../../../options`).
 
 ----
 
