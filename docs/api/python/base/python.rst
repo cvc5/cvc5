@@ -24,6 +24,7 @@ See the :doc:`pythonic API <../pythonic/pythonic>` for a higher-level programmin
     grammar
     kind
     op
+    proof
     proofrule
     result
     roundingmode
