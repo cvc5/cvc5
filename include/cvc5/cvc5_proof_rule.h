@@ -1705,18 +1705,18 @@ enum ENUM(ProofRule)
    *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{re.++}(r_2, \ldots, r_n)}
    *
    * where :math:`r_1` has fixed length :math:`L`.
-   * 
+   *
    * or alternatively for the reverse:
-   * 
+   *
    *
    * .. math::
    *
    *   \inferrule{t \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \top}{
    *   \mathit{suf}(t, str.len(t) - L) \not \in r_n \vee
    *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_{n-1})}
-   * 
+   *
    * where :math:`r_n` has fixed length :math:`L`.
-   * 
+   *
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
@@ -3476,28 +3476,29 @@ typedef enum ENUM(ProofRewriteRule) ENUM(ProofRewriteRule);
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_proof_rule_to_string(Cvc5ProofRule rule);
+CVC5_EXPORT const char* cvc5_proof_rule_to_string(Cvc5ProofRule rule);
 
 /**
  * Hash function for Cvc5ProofRule.
  * @param rule The proof rule.
  * @return The hash value.
  */
-size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
+CVC5_EXPORT size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
 
 /**
  * Get a string representation of a Cvc5ProofRewriteRule.
  * @param rule The proof rewrite rule.
  * @return The string representation.
  */
-const char* cvc5_proof_rewrite_rule_to_string(Cvc5ProofRewriteRule rule);
+CVC5_EXPORT const char* cvc5_proof_rewrite_rule_to_string(
+    Cvc5ProofRewriteRule rule);
 
 /**
  * Hash function for Cvc5ProofRewriteRule.
  * @param rule The proof rewrite rule.
  * @return The hash value.
  */
-size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
+CVC5_EXPORT size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
 
 #else
 
@@ -3510,7 +3511,7 @@ size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
  * @param rule The proof rule
  * @return The name of the proof rule
  */
-const char* toString(ProofRule rule);
+CVC5_EXPORT const char* toString(ProofRule rule);
 
 /**
  * Writes a proof rule name to a stream.
@@ -3530,7 +3531,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRule rule);
  * @param rule The proof rewrite rule
  * @return The name of the proof rewrite rule
  */
-const char* toString(ProofRewriteRule rule);
+CVC5_EXPORT const char* toString(ProofRewriteRule rule);
 
 /**
  * Writes a proof rewrite rule name to a stream.
@@ -3565,7 +3566,7 @@ struct CVC5_EXPORT hash<cvc5::ProofRule>
  * @param rule The proof rule
  * @return The name of the proof rule
  */
-std::string to_string(cvc5::ProofRule rule);
+CVC5_EXPORT std::string to_string(cvc5::ProofRule rule);
 
 /**
  * Hash function for ProofRewriteRules.
@@ -3587,7 +3588,7 @@ struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
  * @param rule The proof rewrite rule
  * @return The name of the proof rewrite rule
  */
-std::string to_string(cvc5::ProofRewriteRule rule);
+CVC5_EXPORT std::string to_string(cvc5::ProofRewriteRule rule);
 
 }  // namespace std
 
