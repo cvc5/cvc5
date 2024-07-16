@@ -31,6 +31,7 @@ entry point to cvc5.
     classes/op
     classes/optioninfo
     ../../proofs/proof_rules
+    classes/plugin
     classes/result
     enums/roundingmode
     classes/solver
@@ -67,6 +68,7 @@ Class hierarchy
   * class :doc:`classes/op`
   * class :doc:`classes/optioninfo`
   * class :doc:`classes/result`
+  * class :doc:`classes/plugin`
   * class :doc:`classes/termmanager`
   * class :doc:`classes/solver`
   * class :doc:`classes/sort`
