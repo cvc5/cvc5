@@ -23,6 +23,12 @@ add_subdirectory(api)
 
 set(SPHINX_INPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
+if(BUILD_DOCS_GA)
+  check_python_module(sphinxcontrib.googleanalytics sphinxcontrib.googleanalytics)
+  set(GOOGLE_ANALYTICS_ENABLE "True")
+else()
+  set(GOOGLE_ANALYTICS_ENABLE "False")
+endif()
 
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 
@@ -30,7 +36,7 @@ add_custom_target(
   docs
   DEPENDS docs-cpp docs-java docs-python gen-options cvc5-bin
   COMMAND
-    ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
+    ${Python_EXECUTABLE} ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output
     -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_DIR}
     -Dbreathe_projects.std=${CPP_DOXYGEN_XML_DIR} ${SPHINX_INPUT_DIR}
