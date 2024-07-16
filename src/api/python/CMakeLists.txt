@@ -243,7 +243,12 @@ else()
   # the default location designated by the Python interpreter used to
   # build them. Otherwise, install them in the specified prefix.
   if(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(INSTALL_CMD "${INSTALL_CMD} --prefix ${CMAKE_INSTALL_PREFIX}")
+    # We escape the CMAKE_INSTALL_PREFIX variable so that
+    # it is evaluated at installation time.
+    # This is important for component-specific installations
+    # where the prefix may change (e.g., using
+    # 'cmake --install build --component python-api --prefix ./new-prefix').
+    set(INSTALL_CMD "${INSTALL_CMD} --prefix \${CMAKE_INSTALL_PREFIX}")
   endif()
 
   install(CODE "execute_process(COMMAND \${CMAKE_COMMAND}
@@ -252,6 +257,7 @@ else()
     -DBUILD_DIR=${CMAKE_BINARY_DIR}
     -DDEPS_BASE=${DEPS_BASE}
     -DINSTALL_CMD=\"${INSTALL_CMD}\"
-    -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)")
+    -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)"
+    COMPONENT python-api)
 
 endif()

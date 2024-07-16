@@ -37,6 +37,9 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 # plugins.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Default component used in install() commands
+set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME cvc5)
+
 #-----------------------------------------------------------------------------#
 # Policies
 
