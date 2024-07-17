@@ -2206,7 +2206,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node conc =
               getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
-          Node lenConstraint = nm->mkNode(Kind::GT, uxLen, uyLen);
+          Node lenConstraint = nm->mkNode(Kind::GEQ, uxLen, uyLen);
           Node lenConstraintr = rewrite(lenConstraint);
           // If the length constraint rewrites to false, don't bother sending
           // the lemma. If it rewrites to true, then we include it as a

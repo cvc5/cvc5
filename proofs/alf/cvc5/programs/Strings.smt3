@@ -36,7 +36,7 @@
 
 ; Return true if n is a valid code point [0, 196607].
 (define $str_is_code_point ((n Int))
-  (alf.ite ($is_z_literal n)
+  (alf.ite (alf.is_z n)
   (alf.ite ($compare_geq 196608 n)
     (alf.not (alf.is_neg n))
     false)
@@ -131,7 +131,7 @@
 ; Returns true if s is in regular expression r.
 ; Does not evaluate if s is not a string literal.
 (define $str_eval_str_in_re ((s String) (r RegLan))
-  (alf.ite ($is_str_literal s)
+  (alf.ite (alf.is_str s)
     ($str_eval_str_in_re_rec s 0 r @re.null)
     (str.in_re s r)))
 
@@ -154,8 +154,13 @@
   (str.substr s n (- (str.len s) n))
 )
 
+; Get the term corresponding to the prefix of term s except for length n.
+(define $str_prefix_wo_len ((U Type :implicit) (s (Seq U)) (n Int))
+  (str.substr s 0 (- (str.len s) n))
+)
+
 ; Get the term corresponding to the suffix of term s of length n.
-(define $str_suffix_len ((U Type :implicit) (s (Seq U)) (n Int))
+(define $str_suffix_w_len ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s (- (str.len s) n) n)
 )
 
@@ -334,7 +339,7 @@
 )
 
 ; Compute the eager reduction predicate for (str.code s)
-(define-fun string_eager_reduction_to_code ((s String)) Bool
+(define string_eager_reduction_to_code ((s String))
   (let ((t (str.to_code s)))
   (ite
     (= (str.len s) 1)
@@ -406,7 +411,7 @@
   )
 )
 
-(define-fun re_unfold_pos_concat ((t String) (r RegLan)) (@Pair String Bool)
+(define re_unfold_pos_concat ((t String) (r RegLan))
   (re_unfold_pos_concat_rec t r r 0)
 )
 

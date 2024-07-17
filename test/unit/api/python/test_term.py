@@ -151,6 +151,15 @@ def test_get_op(tm):
     assert extb.getOp().isIndexed()
     assert extb.getOp() == ext
 
+    bit = tm.mkOp(Kind.BITVECTOR_BIT, 4)
+    bitb = tm.mkTerm(bit, b)
+    assert bitb.getKind() == Kind.BITVECTOR_BIT
+    assert bitb.hasOp()
+    assert bitb.getOp() == bit
+    assert bitb.getOp().isIndexed()
+    assert bit.getNumIndices() == 1
+    assert bit[0] == tm.mkInteger(4)
+
     f = tm.mkConst(funsort, "f")
     fx = tm.mkTerm(Kind.APPLY_UF, f, x)
 

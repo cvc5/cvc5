@@ -32,14 +32,19 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     NodeManager* nm = nodeManager();
     SkolemManager* skm = nm->getSkolemManager();
     std::vector<Node> nchildren(n.begin(), n.end());
-    Node exists = nm->mkNode(Kind::EXISTS, nchildren);
-    Node k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
-                                   {exists, n[0][0]});
-    d_exists.push_back(exists);
+    nchildren[1] = nchildren[1].notNode();
+    Node q = nm->mkNode(Kind::FORALL, nchildren);
+    Node qn = getNormalFormFor(q);
+    Node k =
+        skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {qn, n[0][0]});
+    d_exists.push_back(qn.notNode());
     return k;
   }
   return n;
 }
+
+Node ElimWitnessNodeConverter::getNormalFormFor(const Node& q) { return q; }
+
 const std::vector<Node>& ElimWitnessNodeConverter::getExistentials() const
 {
   return d_exists;

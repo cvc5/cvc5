@@ -2,14 +2,14 @@
 (include "../theories/Arith.smt3")
 (include "../theories/BitVectors.smt3")
 
+; note: We do not currently check whether the indices of this sort are positive.
 (declare-const FloatingPoint
-  ;(-> (! Int :var e) (! Int :var s) Type)
   (-> Int Int Type)
 )
-(declare-sort RoundingMode 0)
+(declare-type RoundingMode ())
 
 ; A floating point constant is a term having 3 bitvector children.
-; Note this is used for both FLOATINGPOINT_FP and CONST_FLOATINGPOINT
+; note: This is used for both FLOATINGPOINT_FP and CONST_FLOATINGPOINT.
 (declare-const fp
   (-> (! Int :var e :implicit) (! Int :var s :implicit)
       (BitVec 1) (BitVec e) (BitVec s) (FloatingPoint e (alf.add s 1))))
@@ -128,8 +128,10 @@
   (-> (! Type :var T :implicit)
       (! Int :var e) (! Int :var s) RoundingMode T (FloatingPoint e s)))
 
-; This operator uses a different syntax (to_fp_bv instead of to_tp) since it does not take RoundingMode.
-; This is done to disambiguate the overloading of to_fp from the SMT-LIB standard.
+; disclaimer: >
+;   This function uses a different syntax (to_fp_bv instead of to_tp)
+;   from the SMT-LIB standard since it does not take RoundingMode. This is don
+;   to disambiguate the overloading of to_fp from the SMT-LIB standard.
 (declare-const to_fp_bv
   (-> (! Int :var w :implicit)
       (! Int :var e) (! Int :var s) (BitVec w) (FloatingPoint e s)))

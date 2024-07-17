@@ -135,7 +135,7 @@
                 (let ((v (alf.add 1 ($str_overlap ($tail sc) (string_to_flat_form t2 rev)))))
                   (= tc
                     (alf.ite rev
-                      (let ((oc ($str_suffix_len s1 v)))
+                      (let ((oc ($str_suffix_w_len s1 v)))
                       (str.++ (@purify (skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
                       (let ((oc (skolem_prefix s1 v)))
                       (str.++ oc (@purify (skolem_suffix_rem tc (str.len oc)))))))
@@ -188,6 +188,50 @@
               false)))))
 )
 
+; rule: string_decompose
+; implements: ProofRule::STRING_DECOMPOSE
+; premises:
+; - a: An inequality between the length of some string term s and integer n.
+; args:
+; - b Bool: Whether we are the reverse variant of this inference.
+; conclusion: >
+;   A conjunction stating that s is equal to two purification skolems
+;   corresponding to decomposing s at position n, and that the decomposed term
+;   has length n.
+(declare-rule string_decompose ((U Type) (s (Seq U)) (n Int) (b Bool))
+  :premises ((>= (str.len s) n))
+  :args (b)
+  :conclusion (alf.ite b
+                (let ((kp (@purify (skolem_prefix s n)))
+                      (ks (@purify (skolem_suffix_rem s n))))
+                (and (= s (str.++ kp ks)) (= (str.len kp) n)))
+                (let ((kp (@purify ($str_prefix_wo_len s n)))
+                      (ks (@purify ($str_suffix_w_len s n))))
+                (and (= s (str.++ kp ks)) (= (str.len ks) n)))))
+
+; rule: string_code_inj
+; implements: ProofRule::STRING_CODE_INJ
+; args:
+; - t String: The first string.
+; - s String: The second string.
+; conclusion: >
+;   A disjunction of three cases, indicating that t is not a string of length
+;   one, its code point is different from that of s, or t and s are equal.
+(declare-rule string_code_inj ((t String) (s String))
+  :args (t s)
+  :conclusion (or (= (str.to_code t) -1) (not (= (str.to_code t) (str.to_code s))) (= t s))
+)
+
+; rule: string_seq_unit_inj
+; implements: ProofRule::STRING_SEQ_UNIT_INJ
+; premises:
+; - eq: An equality stating that the unit sequences of elements a and b are equal.
+; conclusion: That a and b are equal.
+(declare-rule string_seq_unit_inj ((U Type) (a U) (b U))
+  :premises ((= (seq.unit a) (seq.unit b)))
+  :conclusion (= a b)
+)
+
 ;;-------------------- Regular expressions
 
 ; ProofRule::RE_INTER
@@ -232,7 +276,7 @@
       (
         ((re.++ r1 r2) (let ((n ($str_fixed_len_re r1)))
                        (alf.ite rev
-                       (or (not (str.in_re ($str_suffix_len s n) r1)) 
+                       (or (not (str.in_re ($str_suffix_w_len s n) r1))
                            (not (str.in_re (skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
                        (or (not (str.in_re (skolem_prefix s n) r1))
                            (not (str.in_re (skolem_suffix_rem s n) ($singleton_elim r2)))))))

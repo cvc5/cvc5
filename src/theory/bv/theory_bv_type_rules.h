@@ -151,7 +151,7 @@ class BitVectorITETypeRule
 /* parameterized operator kinds                                               */
 /* -------------------------------------------------------------------------- */
 
-class BitVectorBitOfTypeRule
+class BitVectorBitTypeRule
 {
  public:
   static TypeNode preComputeType(NodeManager* nm, TNode n);

@@ -48,6 +48,7 @@ class GrammarTest
     Sort bool = d_tm.getBooleanSort();
     Term start = d_tm.mkVar(bool);
     Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    assertFalse(g.isNull());
     g.addRule(start, d_tm.mkBoolean(false));
     g.toString();
   }
@@ -151,5 +152,84 @@ class GrammarTest
     d_solver.synthFun("f", new Term[] {}, bool, g1);
 
     assertThrows(CVC5ApiException.class, () -> g1.addAnyVariable(start));
+  }
+
+  @Test
+  void equalHash()
+  {
+    d_solver.setOption("sygus", "true");
+
+    Sort bool = d_tm.getBooleanSort();
+    Term x = d_tm.mkVar(bool, "x");
+    Term start1 = d_tm.mkVar(bool, "start");
+    Term start2 = d_tm.mkVar(bool, "start");
+    Grammar g1, g2;
+
+    {
+      g1 = d_solver.mkGrammar(new Term[] {}, new Term[] {start1});
+      g2 = d_solver.mkGrammar(new Term[] {}, new Term[] {start1});
+      assertEquals(g1.hashCode(), g1.hashCode());
+      assertEquals(g1.hashCode(), g2.hashCode());
+      assertTrue(g1.equals(g1));
+      assertFalse(g1.equals(g2));
+    }
+
+    {
+      g1 = d_solver.mkGrammar(new Term[] {}, new Term[] {start1});
+      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      assertNotEquals(g1.hashCode(), g2.hashCode());
+      assertTrue(g1.equals(g1));
+      assertFalse(g1.equals(g2));
+    }
+
+    {
+      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
+      assertNotEquals(g1.hashCode(), g2.hashCode());
+      assertTrue(g1.equals(g1));
+      assertFalse(g1.equals(g2));
+    }
+
+    {
+      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2.addAnyVariable(start1);
+      assertNotEquals(g1.hashCode(), g2.hashCode());
+      assertTrue(g1.equals(g1));
+      assertFalse(g1.equals(g2));
+    }
+
+    {
+      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      Term[] rules = new Term[] {d_tm.mkFalse()};
+      g1.addRules(start1, rules);
+      g2.addRules(start1, rules);
+      assertEquals(g1.hashCode(), g2.hashCode());
+      assertTrue(g1.equals(g1));
+      assertFalse(g1.equals(g2));
+    }
+
+    {
+      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      Term[] rules2 = new Term[] {d_tm.mkFalse()};
+      g2.addRules(start1, rules2);
+      assertNotEquals(g1.hashCode(), g2.hashCode());
+      assertTrue(g1.equals(g1));
+      assertFalse(g1.equals(g2));
+    }
+
+    {
+      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      Term[] rules1 = new Term[] {d_tm.mkTrue()};
+      Term[] rules2 = new Term[] {d_tm.mkFalse()};
+      g1.addRules(start1, rules1);
+      g2.addRules(start1, rules2);
+      assertNotEquals(g1.hashCode(), g2.hashCode());
+      assertTrue(g1.equals(g1));
+      assertFalse(g1.equals(g2));
+    }
   }
 }

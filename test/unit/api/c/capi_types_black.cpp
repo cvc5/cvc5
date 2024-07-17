@@ -24,11 +24,11 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiTypes : public ::testing::Test
+class TestCApiBlackTypes : public ::testing::Test
 {
 };
 
-TEST_F(TestApiTypes, printEnum)
+TEST_F(TestCApiBlackTypes, printEnum)
 {
   ASSERT_DEATH(cvc5_kind_to_string(static_cast<Cvc5Kind>(-5)),
                "invalid term kind");
@@ -42,7 +42,7 @@ TEST_F(TestApiTypes, printEnum)
   ASSERT_DEATH(cvc5_modes_block_models_mode_to_string(
                    static_cast<Cvc5BlockModelsMode>(-5)),
                "invalid block models mode");
-  ASSERT_DEATH(cvc5_modes_find_synthesis_target_to_string(
+  ASSERT_DEATH(cvc5_modes_find_synth_target_to_string(
                    static_cast<Cvc5FindSynthTarget>(-5)),
                "invalid find synthesis target");
   ASSERT_DEATH(
@@ -72,7 +72,7 @@ TEST_F(TestApiTypes, printEnum)
   ss << cvc5_modes_learned_lit_type_to_string(CVC5_LEARNED_LIT_TYPE_PREPROCESS)
      << " ";
   ss << cvc5_modes_proof_component_to_string(CVC5_PROOF_COMPONENT_FULL) << " ";
-  ss << cvc5_modes_find_synthesis_target_to_string(CVC5_FIND_SYNTH_TARGET_ENUM)
+  ss << cvc5_modes_find_synth_target_to_string(CVC5_FIND_SYNTH_TARGET_ENUM)
      << " ";
   ss << cvc5_modes_input_language_to_string(CVC5_INPUT_LANGUAGE_SMT_LIB_2_6)
      << " ";
