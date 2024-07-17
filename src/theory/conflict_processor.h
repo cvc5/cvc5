@@ -53,6 +53,9 @@ class ConflictProcessor : protected EnvObj
    * to true. We also may drop literals that rewrite to the same this under this
    * substitution, or drop equalities from the lemma that are determined to be
    * irrelevant based on this reasoning.
+   * This method also may minimize the antecedant corresponding to a
+   * substituion, e.g. (=> (and (= x a) (= y b)) B) may be replaced by
+   * (=> (= x a) B) if B[a/x] rewrites to true.
    * 
    * @param lem The lemma.
    * @return A trust node for a lemma that implies lem.
