@@ -123,6 +123,14 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     case ProofRule::ARITH_TRICHOTOMY:
+    case ProofRule::ARITH_TRANS_EXP_NEG:
+    case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
+    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN:
+    case ProofRule::ARITH_TRANS_EXP_ZERO:
+    case ProofRule::ARITH_TRANS_SINE_BOUNDS:
+    case ProofRule::ARITH_TRANS_SINE_SYMMETRY:
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO:
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_PI:
     case ProofRule::INT_TIGHT_LB:
     case ProofRule::INT_TIGHT_UB:
     case ProofRule::SKOLEM_INTRO:
@@ -139,13 +147,21 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::RE_UNFOLD_POS:
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
     case ProofRule::RE_UNFOLD_NEG:
+    case ProofRule::STRING_CODE_INJ:
+    case ProofRule::STRING_SEQ_UNIT_INJ:
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_EQ_INTRO:
+    case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:
     case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::BV_BITBLAST_STEP:
+    {
+      return isHandledBitblastStep(pfn->getArguments()[0]);
+    }
+    break;
     case ProofRule::THEORY_REWRITE:
     {
       ProofRewriteRule id;
@@ -208,8 +224,29 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:
-    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return true;
+    case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
+    case ProofRewriteRule::STR_IN_RE_CONSUME: return true;
     default: break;
+  }
+  return false;
+}
+
+bool AlfPrinter::isHandledBitblastStep(const Node& eq) const
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  if (eq[0].isVar())
+  {
+    return true;
+  }
+  switch (eq[0].getKind())
+  {
+    case Kind::CONST_BITVECTOR:
+    case Kind::BITVECTOR_EXTRACT:
+    case Kind::BITVECTOR_CONCAT:
+    case Kind::EQUAL: return true;
+    default:
+      Trace("alf-printer-debug") << "Cannot bitblast  " << eq[0] << std::endl;
+      break;
   }
   return false;
 }
@@ -304,6 +341,7 @@ bool AlfPrinter::canEvaluate(Node n) const
 
 bool AlfPrinter::canEvaluateRegExp(Node r) const
 {
+  Assert(r.getType().isRegExp());
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
@@ -356,10 +394,10 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
   ProofRule r = pfn->getRule();
   if (r == ProofRule::DSL_REWRITE)
   {
-    ProofRewriteRule dr;
-    rewriter::getRewriteRule(pfn->getArguments()[0], dr);
+    ProofRewriteRule id;
+    rewriter::getRewriteRule(pfn->getArguments()[0], id);
     std::stringstream ss;
-    ss << dr;
+    ss << id;
     return ss.str();
   }
   else if (r == ProofRule::THEORY_REWRITE)
@@ -370,10 +408,12 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     ss << id;
     return ss.str();
   }
-  else if (r == ProofRule::ENCODE_EQ_INTRO)
+  else if (r == ProofRule::ENCODE_EQ_INTRO || r == ProofRule::HO_APP_ENCODE)
   {
     // ENCODE_EQ_INTRO proves (= t (convert t)) from argument t,
     // where (convert t) is indistinguishable from t according to the proof.
+    // Similarly, HO_APP_ENCODE proves an equality between a term of kind
+    // Kind::HO_APPLY and Kind::APPLY_UF, which denotes the same term in ALF.
     return "refl";
   }
   std::string name = toString(r);
@@ -557,7 +597,8 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       else
       {
         // [2] print the types
-        smt::PrintBenchmark pb(Printer::getPrinter(out), &d_tproc);
+        printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
+        smt::PrintBenchmark pb(&alfp, &d_tproc);
         std::stringstream outFuns;
         pb.printDeclarationsFrom(out, outFuns, definitions, assertions);
         // [3] print the universal variables
@@ -837,7 +878,15 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   {
     if (!options().proof.alfAllowTrust)
     {
-      Unreachable() << "An ALF proof equires a trust step for " << pn->getRule()
+      std::stringstream ss;
+      ss << pn->getRule();
+      if (pn->getRule() == ProofRule::THEORY_REWRITE)
+      {
+        ProofRewriteRule prid;
+        rewriter::getRewriteRule(pn->getArguments()[0], prid);
+        ss << " (" << prid << ")";
+      }
+      Unreachable() << "An ALF proof equires a trust step for " << ss.str()
                     << ", but --" << options::proof::longName::alfAllowTrust
                     << " is false" << std::endl;
     }

@@ -1,3 +1,4 @@
+cimport cpython.ref as cpy_ref
 # import dereference and increment operators
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
@@ -62,6 +63,18 @@ cdef extern from "<tuple>" namespace "std":
 cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
     cdef cppclass Options:
         pass
+
+
+cdef extern from "py_plugin.h" namespace "cvc5":
+    cdef cppclass PyPlugin:
+        PyPlugin(cpy_ref.PyObject *obj, TermManager& tm) except +
+        vector[Term] check() except +
+        vector[Term] plugin_check() except +
+        void notifySatClause(const Term& cl) except +
+        void plugin_notifySatClause(const Term& cl) except +
+        void notifyTheoryLemma(const Term& lem) except +
+        void plugin_notifyTheoryLemma(const Term& lem) except +
+        string getName() except +
 
 
 cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
@@ -212,6 +225,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint hasSolution() except +
         bint hasNoSolution() except +
         bint isUnknown() except +
+        bint operator==(const SynthResult& r) except +
+        bint operator!=(const SynthResult& r) except +
         string toString() except +
 
     cdef cppclass TermManager:
@@ -232,6 +247,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
+        Term mkSkolem(SkolemId id, const vector[Term]& indices) except +
+        size_t getNumIndicesForSkolemId(SkolemId id) except +
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
@@ -304,6 +321,13 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         # default value for symbol defined in cpp/cvc5.h
         Term mkVar(Sort sort) except +
 
+    cdef cppclass Plugin:
+        Plugin(TermManager& tm) except +
+        vector[Term] check() except +
+        void notifySatClause(const Term& cl) except +
+        void notifyTheoryLemma(const Term& lem) except +
+        string getName() except +
+
     cdef cppclass Solver:
         Solver(TermManager& tm) except +
         TermManager getTermManager() except +
@@ -322,6 +346,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort() except +
         Sort mkParamSort(const string& symbol) except +
+        Term mkSkolem(SkolemId id, const vector[Term]& indices) except +
+        size_t getNumIndicesForSkolemId(SkolemId id) except +
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
@@ -453,6 +479,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term getValueSepHeap() except +
         Term getValueSepNil() except +
         Term declarePool(const string& name, Sort sort, vector[Term]& initValue) except +
+        void addPlugin(Plugin& p) except +
         void pop(uint32_t nscopes) except +
         void push(uint32_t nscopes) except +
         void reset() except +
@@ -478,6 +505,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
     cdef cppclass Grammar:
         Grammar() except +
         Grammar(Solver* solver, vector[Term] boundVars, vector[Term] ntSymbols) except +
+        bint isNull() except +
         void addRule(Term ntSymbol, Term rule) except +
         void addAnyConstant(Term ntSymbol) except +
         void addAnyVariable(Term ntSymbol) except +
@@ -685,7 +713,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
 
 cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
     cdef cppclass SymbolManager:
-        SymbolManager(Solver* solver) except +
+        SymbolManager(TermManager& tm) except +
         bint isLogicSet() except +
         string getLogic() except +
         vector[Sort] getDeclaredSorts() except +

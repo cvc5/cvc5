@@ -120,6 +120,8 @@ bool InferenceManager::assertSetsFact(Node atom,
                                       Node exp)
 {
   Node conc = polarity ? atom : atom.notNode();
+  // notify before asserting below, since that call may induce a conflict which
+  // needs immediate explanation.
   if (d_ipc)
   {
     d_ipc->notifyFact(conc, exp, id);

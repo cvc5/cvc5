@@ -9,11 +9,18 @@ name: PyPi packaging
 
 jobs:
   build_wheels:
-    name: Build wheels for ${{ matrix.name }}
+    name: ${{ matrix.name }}${{ matrix.gpl && ' (GPL)' || '' }}
     runs-on: ${{ matrix.os }}
     if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
     strategy:
       matrix:
+        name:
+          - manylinux-x86_64
+          - manylinux-aarch64
+          - macos-x86_64
+          - macos-arm64
+          - windows-x86_64
+        gpl: [false, true]
         include:
           - name: manylinux-x86_64
             os: ubuntu-latest
@@ -34,6 +41,9 @@ jobs:
           - name: windows-x86_64
             os: windows-latest
             shell: 'msys2 {0}'
+        exclude:
+          - name: windows-x86_64
+            gpl: true
     defaults:
       run:
         shell: ${{ matrix.shell }}
@@ -75,7 +85,13 @@ jobs:
       run: |
         echo "::group::Create pyproject.toml"
         mkdir -p build/src/api/python
-        cp src/api/python/pyproject.toml build/src/api/python/
+        if [ "${{ matrix.gpl }}" == "true" ]; then
+          sed -e 's/^name="cvc5"$/name="cvc5-gpl"/' \
+              -e 's/^license = {text = "/license = {text = "GPL-2.0-or-later AND GPL-3.0-or-later AND /' \
+              ./src/api/python/pyproject.toml > ./build/src/api/python/pyproject.toml
+        else
+          cp src/api/python/pyproject.toml build/src/api/python/
+        fi
         echo "::endgroup::"
 
     - name: Store MinGW64 path
@@ -91,9 +107,9 @@ jobs:
       env:
         CIBW_SKIP: "cp36-* pp*-win* *-win32 *-manylinux_i686 *-musllinux_*"
         CIBW_ARCHS_LINUX: "${{ matrix.arch }}"
-        CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh
-        CIBW_BEFORE_ALL_MACOS: bash ./contrib/cibw/before_all_macos.sh
-        CIBW_BEFORE_ALL_WINDOWS: msys2 -c ./contrib/cibw/before_all_windows.sh
+        CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh ${{ matrix.gpl }}
+        CIBW_BEFORE_ALL_MACOS: bash ./contrib/cibw/before_all_macos.sh ${{ matrix.gpl }}
+        CIBW_BEFORE_ALL_WINDOWS: msys2 -c "./contrib/cibw/before_all_windows.sh ${{ matrix.gpl }}"
         # Use delvewheel on windows
         CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >

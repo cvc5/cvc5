@@ -49,19 +49,19 @@ class TermTest
   }
 
   @Test
-  void eq()
+  void equalHash()
   {
     Sort uSort = d_tm.mkUninterpretedSort("u");
     Term x = d_tm.mkVar(uSort, "x");
     Term y = d_tm.mkVar(uSort, "y");
     Term z = new Term();
 
-    assertTrue(x == x);
-    assertFalse(x != x);
-    assertFalse(x == y);
-    assertTrue(x != y);
-    assertFalse((x == z));
-    assertTrue(x != z);
+    assertTrue(x.equals(x));
+    assertFalse(x.equals(y));
+    assertFalse(x.equals(z));
+    assertEquals(x.hashCode(), x.hashCode());
+    assertNotEquals(x.hashCode(), y.hashCode());
+    assertNotEquals(x.hashCode(), z.hashCode());
   }
 
   @Test
@@ -192,6 +192,15 @@ class TermTest
     assertTrue(extb.hasOp());
     assertTrue(extb.getOp().isIndexed());
     assertEquals(extb.getOp(), ext);
+
+    Op bit = d_tm.mkOp(BITVECTOR_BIT, 4);
+    Term bitb = d_tm.mkTerm(bit, b);
+    assertEquals(bitb.getKind(), BITVECTOR_BIT);
+    assertTrue(bitb.hasOp());
+    assertEquals(bitb.getOp(), bit);
+    assertTrue(bitb.getOp().isIndexed());
+    assertEquals(bit.getNumIndices(), 1);
+    assertEquals(bit.get(0), d_tm.mkInteger(4));
 
     Term f = d_tm.mkConst(funsort, "f");
     Term fx = d_tm.mkTerm(APPLY_UF, f, x);
@@ -1090,6 +1099,32 @@ class TermTest
     assertFalse(x.isSkolem());
     assertThrows(CVC5ApiException.class, () ->x.getSkolemId());
     assertThrows(CVC5ApiException.class, () ->x.getSkolemIndices());
+  }
+
+  @Test
+  void testMkSkolem() throws CVC5ApiException
+  {
+    Sort integer = d_solver.getIntegerSort();
+    Sort arraySort = d_solver.mkArraySort(integer, integer);
+
+    Term a = d_solver.mkConst(arraySort, "a");
+    Term b = d_solver.mkConst(arraySort, "b");
+
+    Term sk = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {a, b});
+    Term sk2 = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {b, a});
+
+    assertTrue(sk.isSkolem());
+    assertEquals(sk.getSkolemId(), SkolemId.ARRAY_DEQ_DIFF);
+    assertEquals(Arrays.asList(new Term[] {a, b}), Arrays.asList(sk.getSkolemIndices()));
+    // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
+    assertEquals(Arrays.asList(new Term[] {a, b}), Arrays.asList(sk2.getSkolemIndices()));
+  }
+
+  @Test
+  void testGetNumIndices() throws CVC5ApiException
+  {
+    int numIndices = d_tm.getNumIndicesForSkolemId(SkolemId.ARRAY_DEQ_DIFF);
+    assertEquals(numIndices, 2);
   }
 
   @Test
