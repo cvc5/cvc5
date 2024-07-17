@@ -16,6 +16,7 @@
 #include "expr/elim_witness_converter.h"
 
 #include "expr/skolem_manager.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 
@@ -36,7 +37,7 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     Node q = nm->mkNode(Kind::FORALL, nchildren);
     Node qn = getNormalFormFor(q);
     Node k =
-        skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {qn, n[0][0]});
+        skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {qn, nm->mkConstInt(Rational(0))});
     d_exists.push_back(qn.notNode());
     return k;
   }
