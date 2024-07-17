@@ -1,13 +1,14 @@
 DatatypeConstructorDecl
 =======================
 
-This class encapsulates a datatype constructor declaration. A datatype
-constructor declaration is constructed via
-:cpp:func:`cvc5::Solver::mkDatatypeConstructorDecl()`. This is not a
-datatype itself (see :doc:`datatype`), but the representation of the
-specification for creating a datatype constructor of a datatype
-:cpp:class:`Sort <cvc5::Sort>` (see :cpp:func:`cvc5::Solver::mkDatatypeSort()`
-and :cpp:func:`cvc5::Solver::mkDatatypeSorts()`).
+This class encapsulates a datatype constructor declaration.
+A :cpp:class:`DatatypeConstructorDecl <cvc5::DatatypeConstructorDecl>`
+is constructed via :cpp:func:`cvc5::Solver::mkDatatypeConstructorDecl()`.
+This is not yet a :doc:`datatype constructor itself <datatypeconstructor>`,
+but the representation of the specification for creating a datatype constructor
+of a datatype :cpp:class:`Sort <cvc5::Sort>` via
+:cpp:func:`cvc5::Solver::mkDatatypeSort()` and
+:cpp:func:`cvc5::Solver::mkDatatypeSorts()`.
 
 ----
 

@@ -2,8 +2,10 @@ DatatypeSelector
 ================
 
 This class represents a datatype selector. Datatype selectors are
-specified via :cpp:func:`cvc5::DatatypeConstructorDecl::addSelector()` when
-constructing a datatype sort and can be retrieved from a
+specified via :cpp:func:`cvc5::DatatypeConstructorDecl::addSelector()`,
+:cpp:func:`cvc5::DatatypeConstructorDecl::addSelectorSelf()`
+and :cpp:func:`cvc5::DatatypeConstructorDecl::addSelectorUnresolved()`
+when constructing a datatype sort and can be retrieved from a
 :cpp:class:`cvc5::DatatypeConstructor` via
 :cpp:func:`cvc5::DatatypeConstructor::getSelector()`.
 

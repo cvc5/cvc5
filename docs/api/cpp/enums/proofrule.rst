@@ -1,11 +1,14 @@
-Proof Rules
-===========
+ProofRule and ProofRewriteRule
+==============================
 
-This section introduces two enumerations: :cpp:enum:`ProofRule <cvc5::ProofRule>` and :cpp:enum:`ProofRewriteRule <cvc5::ProofRewriteRule>`.
+Enum class :cpp:enum:`ProofRule <cvc5::ProofRule>` captures the reasoning steps
+performed by the SAT solver, the theory solvers and the preprocessor. It
+represents the inference rules used to derive conclusions within a proof.
 
-The :cpp:enum:`ProofRule <cvc5::ProofRule>` enumeration captures the reasoning steps performed by the SAT solver, the theory solvers or by the preprocessor. It represents the inference rules used to derive conclusions within a proof.
-
-The :cpp:enum:`ProofRewriteRule <cvc5::ProofRewriteRule>` enumeration pertains to rewrites performed on terms. These identifiers are arguments of the proof rules :cpp:enumerator:`THEORY_REWRITE <cvc5::ProofRule::THEORY_REWRITE>` and :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::DSL_REWRITE>`.
+Enum class :cpp:enum:`ProofRewriteRule <cvc5::ProofRewriteRule>` pertains to
+rewrites performed on terms. These identifiers are arguments of the proof rules
+:cpp:enumerator:`THEORY_REWRITE <cvc5::ProofRule::THEORY_REWRITE>` and
+:cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::DSL_REWRITE>`.
 
 ----
 

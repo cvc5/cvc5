@@ -4,6 +4,7 @@ Theory of Uninterpreted Functions
 
 .. api-examples::
     <examples>/api/cpp/uf.cpp
+    <examples>/api/c/uf.c
     <examples>/api/java/Uf.java
     <examples>/api/python/pythonic/uf.py
     <examples>/api/python/uf.py

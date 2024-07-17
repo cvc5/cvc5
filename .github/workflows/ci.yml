@@ -15,7 +15,7 @@ jobs:
         build:
           - name: ubuntu:production
             os: ubuntu-20.04
-            config: production --auto-download --all-bindings --editline --docs -DBUILD_GMP=1
+            config: production --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
             python-bindings: true
