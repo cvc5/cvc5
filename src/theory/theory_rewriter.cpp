@@ -20,6 +20,18 @@
 namespace cvc5::internal {
 namespace theory {
 
+std::ostream& operator<<(std::ostream& os, TheoryRewriteCtx trc)
+{
+  switch (trc)
+  {
+    case TheoryRewriteCtx::PRE_DSL: return os << "PRE_DSL";
+    case TheoryRewriteCtx::DSL_SUBCALL: return os << "DSL_SUBCALL";
+    case TheoryRewriteCtx::POST_DSL: return os << "POST_DSL";
+  }
+  Unreachable();
+  return os;
+}
+
 std::ostream& operator<<(std::ostream& os, RewriteStatus rs)
 {
   switch (rs)
@@ -103,6 +115,7 @@ void TheoryRewriter::registerProofRewriteRule(ProofRewriteRule id,
 {
   std::unordered_set<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
   rules.insert(id);
+  // theory rewrites marked DSL_SUBCALL are also tried at PRE_DSL effort.
   if (ctx == TheoryRewriteCtx::DSL_SUBCALL)
   {
     d_pfTheoryRewrites[TheoryRewriteCtx::PRE_DSL].insert(id);

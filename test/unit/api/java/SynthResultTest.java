@@ -85,4 +85,21 @@ class SynthResultTest
     assertFalse(res.hasNoSolution());
     assertFalse(res.isUnknown());
   }
+
+  @Test
+  void equalHash()
+  {
+    d_solver.setOption("sygus", "true");
+    d_solver.synthFun("f", new Term[] {}, d_tm.getBooleanSort());
+    Term tfalse = d_tm.mkFalse();
+    Term ttrue = d_tm.mkTrue();
+    d_solver.addSygusConstraint(ttrue);
+    SynthResult res1 = d_solver.checkSynth();
+    d_solver.addSygusConstraint(tfalse);
+    SynthResult res2 = d_solver.checkSynth();
+    assertTrue(res1.equals(res1));
+    assertFalse(res1.equals(res2));
+    assertEquals(res1.hashCode(), res1.hashCode());
+    assertNotEquals(res1.hashCode(), res2.hashCode());
+  }
 }

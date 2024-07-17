@@ -192,6 +192,16 @@ void SolverEngine::finishInit()
         *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
+  if (d_env->isOutputOn(OutputTag::RARE_DB))
+  {
+    if (!d_env->getOptions().smt.produceProofs
+        || options().proof.proofGranularityMode
+               != options::ProofGranularityMode::DSL_REWRITE)
+    {
+      Warning() << "WARNING: -o rare-db requires --produce-proofs and "
+                   "--proof-granularity=dsl-rewrite" << std::endl;
+    }
+  }
   // enable proof support in the environment/rewriter
   d_env->finishInit(pnm);
 
@@ -1880,6 +1890,8 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 {
   beginCall(true);
+  // Analogous to getAbduct, ensure that assertions are current.
+  d_smtDriver->refreshAssertions();
   std::vector<Node> axioms = getSubstitutedAssertions();
   // expand definitions in the conjecture as well
   Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
@@ -1916,6 +1928,8 @@ Node SolverEngine::getInterpolantNext()
 Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
 {
   beginCall(true);
+  // ensure that assertions are current
+  d_smtDriver->refreshAssertions();
   std::vector<Node> axioms = getSubstitutedAssertions();
   // expand definitions in the conjecture as well
   Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);

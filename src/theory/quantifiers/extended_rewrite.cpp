@@ -236,9 +236,9 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
     else if (ret[0].getType().isInteger())
     {
       theory::strings::ArithEntail ae(&d_rew);
-      if (ae.check(ret[0], ret[1], true) || ae.check(ret[1], ret[0], true))
+      new_ret = ae.rewritePredViaEntailment(ret);
+      if (!new_ret.isNull())
       {
-        new_ret = d_false;
         debugExtendedRewrite(ret, new_ret, "String EQUAL len entailment");
       }
     }
@@ -248,15 +248,10 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
     if (ret[0].getType().isInteger())
     {
       theory::strings::ArithEntail ae(&d_rew);
-      if (ae.check(ret[0], ret[1], false))
+      new_ret = ae.rewritePredViaEntailment(ret);
+      if (!new_ret.isNull())
       {
-        new_ret = d_true;
         debugExtendedRewrite(ret, new_ret, "String GEQ len entailment");
-      }
-      else if (ae.check(ret[1], ret[0], true))
-      {
-        new_ret = d_false;
-        debugExtendedRewrite(ret, new_ret, "String GEQ len strict entailment");
       }
     }
   }

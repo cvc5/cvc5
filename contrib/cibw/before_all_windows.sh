@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 
-./configure.sh production --auto-download --python-bindings --python-only-src --prefix=./install
+GPL="$1"
+
+COMMON_CMD="./configure.sh production --auto-download --python-bindings --python-only-src --prefix=./install"
+
+if [ "$GPL" = "true" ]; then
+  GPL_FLAGS="--gpl --cln --glpk --cocoa"
+else
+  GPL_FLAGS=""
+fi
+
+$COMMON_CMD $GPL_FLAGS
 
 SETUP_CFG=./build/src/api/python/setup.cfg
 echo "[build_ext]" > ${SETUP_CFG}

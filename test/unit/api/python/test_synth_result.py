@@ -35,6 +35,21 @@ def test_is_null(solver):
     assert not res_null.hasNoSolution()
     assert not res_null.isUnknown()
 
+
+def test_equal(tm, solver):
+    solver.setOption("sygus", "true")
+    solver.synthFun("f", {}, tm.getBooleanSort())
+    tfalse = tm.mkFalse()
+    ttrue = tm.mkTrue()
+    solver.addSygusConstraint(ttrue)
+    res1 = solver.checkSynth()
+    solver.addSygusConstraint(tfalse)
+    res2 = solver.checkSynth()
+    assert res1 == res1
+    assert res1 != res2
+    assert res1 != SynthResult()
+
+
 def test_has_solution(tm, solver):
     solver.setOption("sygus", "true")
     f = solver.synthFun("f", [], solver.getBooleanSort())
@@ -47,9 +62,11 @@ def test_has_solution(tm, solver):
     assert not res.isUnknown()
     assert str(res) == '(SOLUTION)'
 
+
 def test_has_no_solution(solver):
     res_null = SynthResult(solver)
     assert not res_null.hasNoSolution()
+
 
 def test_has_is_unknown(tm, solver):
     solver.setOption("sygus", "true")

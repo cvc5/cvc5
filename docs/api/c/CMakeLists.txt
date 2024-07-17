@@ -1,0 +1,61 @@
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
+#
+find_package(Doxygen REQUIRED)
+
+# basic parameters
+set(DOXYGEN_PROJECT_NAME "cvc5_c")
+set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/include/cvc5/c)
+set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
+set(DOXYGEN_INPUT "\
+${DOXYGEN_INPUT_DIR}/cvc5.h \
+${DOXYGEN_INPUT_DIR}/cvc5_parser.h \
+${DOXYGEN_INPUT_DIR}/../cvc5_kind.h \
+${DOXYGEN_INPUT_DIR}/../cvc5_types.h \
+${DOXYGEN_INPUT_DIR}/../cvc5_proof_rule.h \
+${DOXYGEN_INPUT_DIR}/../cvc5_skolem_id.h
+")
+set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
+set(DOXYGEN_PREDEFINED "CVC5_API_USE_C_ENUMS")
+
+# create doxygen config file
+set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/../Doxyfile.in)
+set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
+
+# make sure the outpur directory exists
+file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
+
+# add the doxygen target
+add_custom_command(
+  OUTPUT ${DOXYGEN_INDEX_FILE}
+  COMMAND Doxygen::doxygen ${DOXYFILE_OUT}
+  MAIN_DEPENDENCY ${DOXYFILE_OUT}
+  DEPENDS
+    ${DOXYGEN_INPUT_DIR}/cvc5.h
+    ${DOXYGEN_INPUT_DIR}/cvc5_parser.h
+    ${DOXYGEN_INPUT_DIR}/../cvc5_kind.h
+    ${DOXYGEN_INPUT_DIR}/../cvc5_types.h
+    ${DOXYGEN_INPUT_DIR}/../cvc5_proof_rule.h
+    ${DOXYGEN_INPUT_DIR}/../cvc5_skolem_id.h
+  COMMENT "Generating doxygen C API docs"
+)
+add_custom_target(docs-c DEPENDS ${DOXYGEN_INDEX_FILE})
+
+# tell parent scope where to find the output xml
+set(C_DOXYGEN_XML_DIR
+    "${DOXYGEN_OUTPUT_DIR}/xml"
+    PARENT_SCOPE
+)
+

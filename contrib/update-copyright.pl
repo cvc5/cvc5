@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #
 # update-copyright.pl
-# Copyright (c) 2009-2023  The cvc5 Project
+# Copyright (c) 2009-2024  The cvc5 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]

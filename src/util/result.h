@@ -72,7 +72,17 @@ class Result
 
   UnknownExplanation getUnknownExplanation() const;
 
+  /**
+   * Operator overloading for equality of two results.
+   * @param r The result to compare to for equality.
+   * @return True if the results are equal.
+   */
   bool operator==(const Result& r) const;
+  /**
+   * Operator overloading for disequality of two results.
+   * @param r The result to compare to for disequality.
+   * @return True if the results are disequal.
+   */
   bool operator!=(const Result& r) const;
 
   std::string toString() const;

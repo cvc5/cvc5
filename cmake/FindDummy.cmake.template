@@ -65,7 +65,7 @@ if(NOT Dummy_FOUND_SYSTEM)
         Dummy-EP
         ${COMMON_EP_CONFIG}
         URL https://dummy.org/download/dummy-${Dummy_VERSION}.tar.bz2
-        URL_HASH SHA1=abc123
+        URL_HASH SHA256=abc123
         CMAKE_ARGS
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
           -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}

@@ -2,7 +2,10 @@
 (include "../theories/Builtin.smt3")
 (include "../theories/Arith.smt3")
 
-(declare-sort Bag 1)
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further
+;   function symbols over this sort are also not part of the SMT-LIB standard.
+(declare-type Bag (Type))
 
 ; NOTE: permits non-set types
 (declare-const bag.empty (-> (! Type :var T) T))
@@ -24,17 +27,23 @@
 (declare-const bag.filter (-> (! Type :var T :implicit) (-> T Bool) (Bag T) (Bag T)))
 (declare-const bag.map (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) (Bag U)))
 (declare-const bag.fold (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U U) U (Bag T) U))
-(declare-const table.product (-> (! Type :var T :implicit) (! Type :var U :implicit) (Bag T) (Bag U) (Bag (alf.concat Tuple U T))))
+(declare-const table.product (-> (! Type :var T :implicit) (! Type :var U :implicit) (Bag T) (Bag U) (Bag (alf.list_concat Tuple U T))))
 (declare-const table.group (-> (! Type :var T :implicit) @List (Bag T) (Bag (Bag T))))
 
 ; Skolems for the theory of bags.
-(declare-const @bags_deq_diff (-> (! Type :var T :implicit) (Bag T) (Bag T) T))
-(declare-const @tables_group_part (-> (! Type :var T :implicit) (Bag (Bag T)) T (Bag T)))
-(declare-const @tables_group_part_element (-> (! Type :var T :implicit) (Bag (Bag T)) (Bag T) T))
-(declare-const @bags_map_sum (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U Int Int))
-(declare-const @bags_distinct_elements (-> (! Type :var T :implicit) (Bag T) Int T))
-(declare-const @bags_distinct_elements_size (-> (! Type :var T :implicit) (Bag T) Int))
-(declare-const @bags_map_preimage_injective (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) U T))
+(declare-const @bags_deq_diff (-> (! Type :var T :implicit) (! (Bag T) :opaque) (! (Bag T) :opaque) T))
+(declare-const @tables_group_part (-> (! Type :var T :implicit) (! (Bag (Bag T)) :opaque) T (Bag T)))
+(declare-const @tables_group_part_element (-> (! Type :var T :implicit) (! (Bag (Bag T)) :opaque) (! (Bag T) :opaque) T))
+(declare-const @bags_map_sum (->
+  (! Type :var T :implicit) (! Type :var U :implicit)
+  (! (-> T U) :opaque) (! (Bag T) :opaque) (! U :opaque) Int
+  Int))
+(declare-const @bags_distinct_elements (-> (! Type :var T :implicit) (! (Bag T) :opaque) Int T))
+(declare-const @bags_distinct_elements_size (-> (! Type :var T :implicit) (! (Bag T) :opaque) Int))
+(declare-const @bags_map_preimage_injective (->
+  (! Type :var T :implicit) (! Type :var U :implicit)
+  (! (-> T U) :opaque) (! (Bag T) :opaque) (! U :opaque)
+  T))
 
 ;(declare-const bag.from_set (# x term (apply f_bag.from_set x)))
 ;(declare-const bag.to_set (# x term (apply f_bag.to_set x)))

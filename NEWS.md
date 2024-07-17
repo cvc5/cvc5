@@ -1,5 +1,22 @@
 This file contains a summary of important user-visible changes.
 
+## Changes
+
+- **API**
+  * C++:
+    - Constructor `SymbolManager(cvc5::Solver*)` is now deprecated and replaced
+      by `SymbolManager(cvc5::TermManager&)`.
+  * Java:
+    - Constructor `SymbolManager(Solver)` is now deprecated and replaced
+      by `SymbolManager(TermManager)`.
+  * Python:
+    - Constructor `SymbolManager(Solver)` is now replaced
+      by `SymbolManager(TermManager)`.
+  * Pythonic:
+    - Unsat cores and proofs are now available via the `Solver` methods
+      `unsat_core()` and `proof()`, respectively.
+
+
 cvc5 1.1.2
 ==========
 
