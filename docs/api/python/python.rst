@@ -27,7 +27,6 @@ Which Python API should I use?
 
 If you are a new user, or already have an application that uses Z3's python
 API, use the :doc:`pythonic API <pythonic/pythonic>`.
-
 If you would like a more feature-complete---yet verbose---python API, with the
 ability to do almost everything that the cpp API allows, use the :doc:`base
 Python API <base/python>`.
