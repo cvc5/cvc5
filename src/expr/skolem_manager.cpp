@@ -457,12 +457,12 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     case SkolemId::QUANTIFIERS_SKOLEMIZE:
     {
       Assert(cacheVals.size() == 2);
-      Assert(cacheVals[0].getKind()==Kind::FORALL);
-      Assert(cacheVals[1].getKind()==Kind::CONST_INTEGER);
+      Assert(cacheVals[0].getKind() == Kind::FORALL);
+      Assert(cacheVals[1].getKind() == Kind::CONST_INTEGER);
       const Rational& r = cacheVals[1].getConst<Rational>();
       Assert(r.getNumerator().fitsUnsignedInt());
       size_t i = r.getNumerator().toUnsignedInt();
-      Assert (i<cacheVals[0][0].getNumChildren());
+      Assert(i < cacheVals[0][0].getNumChildren());
       return cacheVals[0][0][i].getType();
     }
     break;

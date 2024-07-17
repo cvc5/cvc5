@@ -36,8 +36,8 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     nchildren[1] = nchildren[1].notNode();
     Node q = nm->mkNode(Kind::FORALL, nchildren);
     Node qn = getNormalFormFor(q);
-    Node k =
-        skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, {qn, nm->mkConstInt(Rational(0))});
+    Node k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
+                                   {qn, nm->mkConstInt(Rational(0))});
     d_exists.push_back(qn.notNode());
     return k;
   }
