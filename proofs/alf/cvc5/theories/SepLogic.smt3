@@ -1,6 +1,8 @@
 
 ; NOTE: this signature does not enforce that the operators take into account the declared heap types.
 
+; disclaimer: All of the functions in this file are not in SMT-LIB.
+
 ; The distinguished nil element.
 (declare-const sep.nil (-> (! Type :var T) T))
 
@@ -17,4 +19,4 @@
 (declare-const pto (-> (! Type :var U :implicit) (! Type :var T :implicit) U T Bool))
 
 ; Internal functions.
-(declare-const SEP_LABEL (-> (! Type :var U :implicit) (! Type :var T :implicit) U (Set T) Bool))
+(declare-const @sep_label (-> (! Type :var U :implicit) (! Type :var T :implicit) U (Set T) Bool))

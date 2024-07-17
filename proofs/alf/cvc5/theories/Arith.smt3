@@ -1,29 +1,32 @@
 (include "../theories/Builtin.smt3")
 
-(declare-sort Int 0)
-(declare-sort Real 0)
+(declare-type Int ())
+(declare-type Real ())
 
 (declare-consts <numeral> Int)
 (declare-consts <rational> Real)
 
-; arith_typeunion
-;   @param x a type
-;   @param y a Type
-;   @return the "union" of x and y.
-; The returned type is the type of the result of mixed arithmetic operators taking arguments x and y.
-(program arith_typeunion ()
+; program: $arith_typeunion
+; args:
+; - T Type: An arithmetic type.
+; - U Type: An arithmetic type.
+; return: >
+;   The "type union" of T and U. This method is used for the type rules
+;   for operators that allow mixed arithmetic.
+(program $arith_typeunion ()
     (Type Type) Type
     (
-      ((arith_typeunion Int Int) Int)
-      ((arith_typeunion Real Real) Real)
-      ((arith_typeunion Real Int) Real)
-      ((arith_typeunion Int Real) Real)
+      (($arith_typeunion Int Int) Int)
+      (($arith_typeunion Real Real) Real)
+      (($arith_typeunion Real Int) Real)
+      (($arith_typeunion Int Real) Real)
     )
 )
 
-; is_arith_type
-;   @param x
-;   @returns true if x is Int or Real
+; program: is_arith_type
+; args:
+; - T Type: A type.
+; return: true if T is Int or Real
 (program is_arith_type ()
     (Type) Bool
     (
@@ -34,35 +37,48 @@
 
 ; Core operators of arithmetic, which are used in mixed Int/Real arithmetic.
 ; Using integer nil terminators ensures typing is accurate.
+; disclaimer: >
+;   This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
+;   This function is declared to be :left-assoc in SMT-LIB. We declare
+;   it with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-const + (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
-                     T U (arith_typeunion T U)) :right-assoc-nil 0)
+                     T U ($arith_typeunion T U)) :right-assoc-nil 0)
+; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 (declare-const - (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
-                     T U (arith_typeunion T U)) :left-assoc)
+                     T U ($arith_typeunion T U)) :left-assoc)
+; disclaimer: >
+;   This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
+;   This function is declared to be :left-assoc in SMT-LIB. We declare
+;   it with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-const * (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
-                     T U (arith_typeunion T U)) :right-assoc-nil 1)
+                     T U ($arith_typeunion T U)) :right-assoc-nil 1)
 
 ; Core arithmetic predicates
+; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 (declare-const < (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      (! T :requires ((is_arith_type T) true))
                      (! U :requires ((is_arith_type U) true))
                      Bool)
                      :chainable and)
+; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 (declare-const <= (-> (! Type :var T :implicit)
                       (! Type :var U :implicit)
                       (! T :requires ((is_arith_type T) true))
                       (! U :requires ((is_arith_type U) true))
                       Bool)
                       :chainable and)
+; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 (declare-const > (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      (! T :requires ((is_arith_type T) true))
                      (! U :requires ((is_arith_type U) true))
                      Bool)
                      :chainable and)
+; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 (declare-const >= (-> (! Type :var T :implicit)
                       (! Type :var U :implicit)
                       (! T :requires ((is_arith_type T) true))
@@ -71,28 +87,34 @@
                       :chainable and)
 
 ; Conversion functions.
+; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
 (declare-const to_real (-> (! Type :var T :implicit)
                            (! T :requires ((is_arith_type T) true))
                            Real))
+; disclaimer: The type of this function in SMT-LIB only accepts a Real as argument.
 (declare-const to_int (-> (! Type :var T :implicit)
                           (! T :requires ((is_arith_type T) true))
                           Int))
+; disclaimer: The type of this function in SMT-LIB only accepts a Real as argument.
 (declare-const is_int (-> (! Type :var T :implicit)
                           (! T :requires ((is_arith_type T) true))
                           Bool))
+; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
 (declare-const abs (-> (! Type :var T :implicit)
                        (! T :requires ((is_arith_type T) true))
                        T))
 
 ; Power function.
+; disclaimer: This function is not a function in SMT-LIB. 
 (declare-const ^ (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
-                     T U (arith_typeunion T U)))
+                     T U ($arith_typeunion T U)))
 
 ; Unary negation, which is overloaded with binary subtraction. We distinguish
 ; these two operators in ALFC based on their arity when applied, and with
 ; alf.as when they are used in higher-order contexts, e.g. as an argument to
 ; the cong proof rule.
+; disclaimer: This function is overloaded in SMT-LIB.
 (declare-const - (-> (! Type :var T :implicit)
                      (! T :requires ((is_arith_type T) true))
                      T))

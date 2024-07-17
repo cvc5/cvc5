@@ -38,7 +38,7 @@ if(NOT GTest_FOUND_SYSTEM)
         GTest-EP
         ${COMMON_EP_CONFIG}
         URL https://github.com/google/googletest/archive/refs/tags/release-${GTest_VERSION}.tar.gz
-        URL_HASH SHA1=7b100bb68db8df1060e178c495f3cbe941c9b058
+        URL_HASH SHA256=b4870bf121ff7795ba20d20bcdd8627b8e088f2d1dab299a031c1034eddc93d5
         DOWNLOAD_NAME gtest.tar.gz
         CMAKE_ARGS
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

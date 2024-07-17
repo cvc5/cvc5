@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,6 +62,10 @@ class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
   Node d_true;
   /** The rewrite database proof generator */
   rewriter::RewriteDbProofCons d_rdbPc;
+  /** The default mode for if/when to try theory rewrites */
+  rewriter::TheoryRewriteMode d_tmode;
+  /** The accumulated subgoals from calls to d_rdbPc */
+  std::vector<std::shared_ptr<ProofNode>> d_subgoals;
 };
 
 }  // namespace smt

@@ -35,8 +35,10 @@ const char* toString(TrustId id)
     case TrustId::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case TrustId::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
     case TrustId::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
+    case TrustId::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
+    case TrustId::ARITH_NL_COVERING_RECURSIVE:
+      return "ARITH_NL_COVERING_RECURSIVE";
     case TrustId::EXT_THEORY_REWRITE: return "EXT_THEORY_REWRITE";
-    case TrustId::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case TrustId::REWRITE_NO_ELABORATE: return "REWRITE_NO_ELABORATE";
     case TrustId::FLATTENING_REWRITE: return "FLATTENING_REWRITE";
     case TrustId::SUBS_NO_ELABORATE: return "SUBS_NO_ELABORATE";
@@ -45,6 +47,10 @@ const char* toString(TrustId id)
     case TrustId::ARITH_PRED_CAST_TYPE: return "ARITH_PRED_CAST_TYPE";
     case TrustId::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     case TrustId::SUBTYPE_ELIMINATION: return "SUBTYPE_ELIMINATION";
+    case TrustId::MACRO_THEORY_REWRITE_RCONS:
+      return "MACRO_THEORY_REWRITE_RCONS";
+    case TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE:
+      return "MACRO_THEORY_REWRITE_RCONS_SIMPLE";
     default: return "TrustId::Unknown";
   };
 }

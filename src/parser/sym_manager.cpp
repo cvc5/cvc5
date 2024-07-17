@@ -309,8 +309,8 @@ void SymManager::Implementation::resetAssertions()
 
 // ---------------------------------------------- SymManager
 
-SymManager::SymManager(cvc5::Solver* s)
-    : d_solver(s),
+SymManager::SymManager(cvc5::TermManager& tm)
+    : d_tm(tm),
       d_implementation(new SymManager::Implementation()),
       d_globalDeclarations(false),
       d_freshDeclarations(true),
@@ -340,7 +340,6 @@ void SymManager::bindType(const std::string& name, cvc5::Sort t)
 bool SymManager::bindMutualDatatypeTypes(
     const std::vector<cvc5::Sort>& datatypes, bool bindTesters)
 {
-  TermManager& tm = d_solver->getTermManager();
   for (size_t i = 0, ntypes = datatypes.size(); i < ntypes; ++i)
   {
     Sort t = datatypes[i];
@@ -366,7 +365,7 @@ bool SymManager::bindMutualDatatypeTypes(
       // constructor.
       if (ctor.getNumSelectors() == 0)
       {
-        constructor = tm.mkTerm(Kind::APPLY_CONSTRUCTOR, {constructor});
+        constructor = d_tm.mkTerm(Kind::APPLY_CONSTRUCTOR, {constructor});
       }
       // always do overloading
       if (!bind(constructorName, constructor, true))

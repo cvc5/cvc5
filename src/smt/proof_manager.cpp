@@ -36,6 +36,7 @@
 #include "smt/proof_post_processor.h"
 #include "smt/smt_solver.h"
 
+using namespace cvc5::internal::rewriter;
 namespace cvc5::internal {
 namespace smt {
 
@@ -48,9 +49,31 @@ PfManager::PfManager(Env& env)
 {
   // construct the rewrite db only if DSL rewrites are enabled
   if (options().proof.proofGranularityMode
-      == options::ProofGranularityMode::DSL_REWRITE)
+          == options::ProofGranularityMode::DSL_REWRITE
+      || options().proof.proofGranularityMode
+             == options::ProofGranularityMode::DSL_REWRITE_STRICT)
   {
-    d_rewriteDb.reset(new rewriter::RewriteDb);
+    d_rewriteDb.reset(new RewriteDb);
+    if (isOutputOn(OutputTag::RARE_DB))
+    {
+      if (options().proof.proofFormatMode != options::ProofFormatMode::ALF)
+      {
+        Warning()
+            << "WARNING: Assuming --proof-format=alf when printing the RARE "
+               "database with -o rare-db"
+            << std::endl;
+      }
+      proof::AlfNodeConverter atp(nodeManager());
+      proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
+      const std::map<ProofRewriteRule, RewriteProofRule>& rules =
+          d_rewriteDb->getAllRules();
+      std::stringstream ss;
+      for (const std::pair<const ProofRewriteRule, RewriteProofRule>& r : rules)
+      {
+        alfp.printDslRule(ss, r.first);
+      }
+      output(OutputTag::RARE_DB) << ss.str();
+    }
   }
   // enable the proof checker and the proof node manager
   d_pchecker.reset(
@@ -98,6 +121,7 @@ PfManager::PfManager(Env& env)
     {
       d_pfpp->setEliminateRule(ProofRule::SUBS);
       d_pfpp->setEliminateRule(ProofRule::MACRO_REWRITE);
+      // if in a DSL rewrite mode
       if (options().proof.proofGranularityMode
           != options::ProofGranularityMode::THEORY_REWRITE)
       {

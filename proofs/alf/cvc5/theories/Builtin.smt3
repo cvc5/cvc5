@@ -5,15 +5,26 @@
 (declare-const ite (-> (! Type :var A :implicit) Bool A A A))
 (declare-const not (-> Bool Bool))
 
+; disclaimer: >
+;   This function is declared in SMT-LIB to be :left-assoc. We
+;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
+;   functions.
 (declare-const or (-> Bool Bool Bool)
    :right-assoc-nil false
 )
+
+; disclaimer: >
+;   This function is declared in SMT-LIB to be :left-assoc. We
+;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
+;   functions.
 (declare-const and (-> Bool Bool Bool)
    :right-assoc-nil true
 )
+
 (declare-const => (-> Bool Bool Bool)
    :right-assoc
 )
+
 (declare-const xor (-> Bool Bool Bool)
    :left-assoc
 )
@@ -22,14 +33,23 @@
    :chainable and
 )
 
-(program get_lambda_type ((x @List) (xs @List :list) (B Type))
+; program: $get_lambda_type
+; args:
+; - L List: The list of variables of the lambda to process.
+; - B Type: The type of the body of the lambda.
+; return: >
+;   The type of a lambda having the list of variables L and
+;   body type B.
+(program $get_lambda_type ((x @List) (xs @List :list) (B Type))
   (@List Type) Type
   (
-    ((get_lambda_type (@list x xs) B) (-> (alf.typeof x) (get_lambda_type xs B)))
-    ((get_lambda_type @list.nil B)    B)
+    (($get_lambda_type (@list x xs) B) (-> (alf.typeof x) ($get_lambda_type xs B)))
+    (($get_lambda_type @list.nil B)    B)
   )
 )
-(declare-const lambda (-> (! Type :var B :implicit) (! @List :var L) B (get_lambda_type L B)) :binder @list)
+
+; disclaimer: this function is not in SMT-LIB.
+(declare-const lambda (-> (! Type :var B :implicit) (! @List :var L) B ($get_lambda_type L B)) :binder @list)
 
 (declare-const distinct (-> (! Type :var A :implicit) A A Bool) :pairwise and)
 
@@ -37,17 +57,5 @@
 ; NOTE: does not check that U is a numeral
 (declare-const const (-> (! Type :var U :implicit) U (! Type :var T) T))
 
-(declare-const skolem (-> (! Type :var A :implicit) A A))
-
-; We construct all skolems by wrapping them in an application of `skolem`.
-; The argument is either
-; (1) an application of an internal function symbol @ID where ID is the
-; skolem function id,
-; (2) a term t, in the case of purify skolems, where t is the term.
-
-; For example, the array diff skolem for arrays A and B is:
-;   (skolem (@array_deq_diff A B))
-; where we have:
-;   (declare-const @array_deq_diff
-;      (-> (! Type :var T :implicit) (! Type :var U :implicit) (Array T U) (Array T U) T))
-
+; The purification skolem.
+(declare-const @purify (-> (! Type :var A :implicit) (! A :opaque) A))

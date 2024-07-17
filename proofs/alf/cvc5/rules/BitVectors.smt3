@@ -1,0 +1,109 @@
+(include "../programs/BitVectors.smt3")
+
+; ---------------- ProofRewriteRule::BV_BITBLAST_STEP
+
+; program: $bv_mk_bitblast_step_eq
+; args:
+; - x T: The left hand side of the equality.
+; - y T: The right hand side of the equality.
+; return: the bitblasted term for (= x y).
+(program $bv_mk_bitblast_step_eq ((T Type) (W Type) (b1 Bool) (b2 Bool) (a1 W :list) (a2 W :list))
+  (T T) Bool
+  (
+  (($bv_mk_bitblast_step_eq @bv_empty @bv_empty)                      true)
+  (($bv_mk_bitblast_step_eq (@from_bools b1 a1) (@from_bools b2 a2))  (alf.cons and (= b1 b2) ($bv_mk_bitblast_step_eq a1 a2)))
+  )
+)
+
+; define: $bv_mk_bitblast_step_extract
+; args:
+; - u Int: The upper index of the extract.
+; - l Int: The lower index of the extract.
+; - a (BitVec n): The argument of the extract.
+; return: the bitblasted term for (extract u l a).
+(define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a (BitVec n)))
+  (nary.subsequence @from_bools @bv_empty l u a))
+
+; program: $bv_mk_bitblast_step_concat_rec
+; args:
+; - a (BitVec n): The (reverse) of the bitvector concatenation term to process.
+; return: >
+;   The bitblasted term for concatenation term a, reversed. We require reversing
+;   the concatenation term to this method to match the bitblasted form that is
+;   generated.
+(program $bv_mk_bitblast_step_concat_rec ((n Int) (a1 (BitVec n)) (m Int) (a2 (BitVec m) :list))
+  ((BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_concat_rec @bv_empty)      @bv_empty)
+  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (alf.list_concat @from_bools a1 ($bv_mk_bitblast_step_concat_rec a2)))
+  )
+)
+
+; define: $bv_mk_bitblast_step_concat
+; args:
+; - a (BitVec n): The bitvector concatenation term to process.
+; return: the bitblasted term for concatenation term a.
+(define $bv_mk_bitblast_step_concat ((n Int :implicit) (a (BitVec n)))
+  ($bv_mk_bitblast_step_concat_rec (nary.reverse a)))
+
+; define: $bv_mk_bitblast_step_const
+; args:
+; - a (BitVec n): The bitvector constant to bitblast.
+; return: the bitblasted term for a, which is its reverse bitlist.
+(define $bv_mk_bitblast_step_const ((n Int :implicit) (a (BitVec n)))
+  (nary.reverse ($bv_const_to_bitlist a)))
+
+; program: $bv_mk_bitblast_step_var_rec
+; args:
+; - a (BitVec n): The bitvector variable to bitblast.
+; - i Int: The index of the bit we are currently processing.
+; return: the bitblasted term for variable a.
+(program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int))
+  ((BitVec n) Int) (BitVec n)
+  (
+    (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
+    (($bv_mk_bitblast_step_var_rec a i)   (alf.cons @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (alf.add i -1))))
+  )
+)
+
+; define: $bv_mk_bitblast_step_var
+; args:
+; - a (BitVec n): The bitvector variable to bitblast.
+; return: the bitblasted term for variable a.
+(define $bv_mk_bitblast_step_var ((n Int :implicit) (a (BitVec n)))
+  (nary.reverse ($bv_mk_bitblast_step_var_rec a (alf.add ($bv_bitwidth (alf.typeof a)) -1))))
+
+; define: $bv_mk_bitblast_step
+; args: a : T. The bitvector term or predicate to bitblast.
+; return: the bitblasted term for a.
+(define $bv_mk_bitblast_step ((T Type :implicit) (a T))
+  (alf.match ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list))
+  a
+  (
+  ((= a1 a2)        ($singleton_elim ($bv_mk_bitblast_step_eq a1 a2)))
+  ((extract u l a1) ($bv_mk_bitblast_step_extract u l a1))
+  ((concat a1 a3)   ($bv_mk_bitblast_step_concat a))
+  (a1               (alf.ite (alf.is_bin a)
+                      ($bv_mk_bitblast_step_const a)
+                      ($bv_mk_bitblast_step_var a)))    ; otherwise assume a variable
+  ))
+)
+
+; rule: bv_bitblast_step
+; implements: ProofRule::BV_BITBLAST_STEP.
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   We require that $bv_mk_bitblast_step applied to the left hand side returns
+;   the right hand side.
+; conclusion: The given equality.
+; note: >
+;   The current implementation only covers some of the operators that may
+;   appear in ProofRule::BV_BITBLAST_STEP.
+(declare-rule bv_bitblast_step
+  ((n Int) (a (BitVec n)) (b (BitVec n)))
+  :args ((= a b))
+  :requires ((($bv_mk_bitblast_step a) b))
+  :conclusion (= a b)
+)
+
