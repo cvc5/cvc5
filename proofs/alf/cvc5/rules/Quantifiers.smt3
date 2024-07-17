@@ -38,7 +38,7 @@
 ;   introduced via $mk_skolems.
 (declare-rule skolemize ((x @List) (G Bool))
   :premises ((not (forall x G)))
-  :conclusion (substitute_list x ($mk_skolems x (forall x G)) (not G))
+  :conclusion ($substitute_list x ($mk_skolems x (forall x G)) (not G))
 )
 
 ; rule: skolem_intro
