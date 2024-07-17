@@ -68,7 +68,6 @@ SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkPurifySkolem(Node t)
 {
-  AlwaysAssert(!expr::hasFreeVar(t));
   // We do not recursively compute the original form of t here
   Node k = mkSkolemFunction(SkolemId::PURIFY, {t});
   Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
@@ -458,7 +457,13 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     case SkolemId::QUANTIFIERS_SKOLEMIZE:
     {
       Assert(cacheVals.size() == 2);
-      return cacheVals[1].getType();
+      Assert(cacheVals[0].getKind()==Kind::FORALL);
+      Assert(cacheVals[1].getKind()==Kind::CONST_INTEGER);
+      const Rational& r = cacheVals[1].getConst<Rational>();
+      Assert(r.getNumerator().fitsUnsignedInt());
+      size_t i = r.getNumerator().toUnsignedInt();
+      Assert (i<cacheVals[0][0].getNumChildren());
+      return cacheVals[0][0][i].getType();
     }
     break;
     // skolems that return the set element type
