@@ -1779,15 +1779,16 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{-\mid F,b}{F =
-   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
+   *   \inferrule{-\mid F,b}{F = F'}
    *
-   * where :math:`b` is a Boolean indicating whether we are using aggressive
+   * where :math:`F'` is the result of eliminating regular expressions from
+   * :math:`F` using the routine
+   * :math:`\texttt{strings::RegExpElimination::eliminate}(F, b)`.
+   * Here, :math:`b` is a Boolean indicating whether we are using aggressive
    * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
    * are performed for :math:`F`.
    *
-   * \rst
-   * .. note:: We do not currently support elaboration of this macro.
+   * We do not currently support elaboration of this macro.
    * \endverbatim
    */
   EVALUE(MACRO_RE_ELIM),
