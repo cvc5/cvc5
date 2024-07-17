@@ -175,7 +175,7 @@ enum ENUM(SkolemId)
    */
   EVALUE(SHARED_SELECTOR),
   /**
-   * The n^th skolem for quantified formula Q.
+   * The n^th skolem for the negation of universally quantified formula Q.
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The quantified formula Q.
