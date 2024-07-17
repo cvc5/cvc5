@@ -111,7 +111,9 @@ class PolyNorm
    * is a bitvector type, then the coefficients of pa and pb are taken
    * modulo 2 to the bitwidth.
    */
-  static bool areEqualPolyNormTyped(const TypeNode& t, PolyNorm& pa, PolyNorm& pb);
+  static bool areEqualPolyNormTyped(const TypeNode& t,
+                                    PolyNorm& pa,
+                                    PolyNorm& pb);
   /**
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.

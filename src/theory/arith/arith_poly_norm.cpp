@@ -443,7 +443,9 @@ bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
   return areEqualPolyNormTyped(at, pa, pb);
 }
 
-bool PolyNorm::areEqualPolyNormTyped(const TypeNode& t, PolyNorm& pa, PolyNorm& pb)
+bool PolyNorm::areEqualPolyNormTyped(const TypeNode& t,
+                                     PolyNorm& pa,
+                                     PolyNorm& pb)
 {
   // do modulus by 2^bitwidth if bitvectors
   if (t.isBitVector())
