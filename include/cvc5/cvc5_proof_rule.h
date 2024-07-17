@@ -60,7 +60,7 @@ namespace cvc5 {
  *
  * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
  * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
- * Alternatively, we can write the application of a proof rule as 
+ * Alternatively, we can write the application of a proof rule as
  * ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion
  * (since it can be uniquely determined from premises and arguments).
  * Note that premises are sometimes given as proofs, i.e., application of
@@ -77,11 +77,12 @@ namespace cvc5 {
  * theory, including the theory of equality.
  *
  * The "core rules" include two distinguished rules which have special status:
- * (1) :cpp:enumerator:`ASSUME <cvc5::ProofRule::ASSUME>`, which represents an open
- * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>`, which
- * encloses a scope (a subproof) with a set of scoped assumptions. The core rules
- * additionally correspond to generic operations that are done internally on nodes,
- * e.g., calling Rewriter::rewrite.
+ * (1) :cpp:enumerator:`ASSUME <cvc5::ProofRule::ASSUME>`, which represents an
+ * open leaf in a proof; and
+ * (2) :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>`, which encloses a scope
+ * (a subproof) with a set of scoped assumptions.
+ * The core rules additionally correspond to generic operations that are done
+ * internally on nodes, e.g., calling `Rewriter::rewrite()`.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
  * rules. These exist for convenience and can be replaced by their definition
@@ -1307,18 +1308,12 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{\exists x_1\dots x_n.\> F\mid -}{F\sigma}
-   *
-   * or
-   *
-   * .. math::
-   *
    *   \inferrule{\neg (\forall x_1\dots x_n.\> F)\mid -}{\neg F\sigma}
    *
    * where :math:`\sigma` maps :math:`x_1,\dots,x_n` to their representative
-   * skolems obtained by ``SkolemManager::mkSkolemize``, returned in the skolems
-   * argument of that method. The witness terms for the returned skolems can be
-   * obtained by ``SkolemManager::getWitnessForm``.
+   * skolems, which are skolems :math:`k_1,\dots,k_n`. For each :math:`k_i`,
+   * its skolem identifier is :cpp:enumerator:`QUANTIFIERS_SKOLEMIZE <cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE>`,
+   * and its indices are :math:`(\forall x_1\dots x_n.\> F)` and :math:`x_i`.
    * \endverbatim
    */
   EVALUE(SKOLEMIZE),
@@ -1705,18 +1700,18 @@ enum ENUM(ProofRule)
    *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{re.++}(r_2, \ldots, r_n)}
    *
    * where :math:`r_1` has fixed length :math:`L`.
-   * 
+   *
    * or alternatively for the reverse:
-   * 
+   *
    *
    * .. math::
    *
    *   \inferrule{t \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \top}{
    *   \mathit{suf}(t, str.len(t) - L) \not \in r_n \vee
    *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_{n-1})}
-   * 
+   *
    * where :math:`r_n` has fixed length :math:`L`.
-   * 
+   *
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
@@ -2549,6 +2544,7 @@ enum ENUM(ProofRewriteRule)
    */
   EVALUE(RE_LOOP_ELIM),
   /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
    *
    * .. math::
@@ -3490,28 +3486,29 @@ typedef enum ENUM(ProofRewriteRule) ENUM(ProofRewriteRule);
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_proof_rule_to_string(Cvc5ProofRule rule);
+CVC5_EXPORT const char* cvc5_proof_rule_to_string(Cvc5ProofRule rule);
 
 /**
  * Hash function for Cvc5ProofRule.
  * @param rule The proof rule.
  * @return The hash value.
  */
-size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
+CVC5_EXPORT size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
 
 /**
  * Get a string representation of a Cvc5ProofRewriteRule.
  * @param rule The proof rewrite rule.
  * @return The string representation.
  */
-const char* cvc5_proof_rewrite_rule_to_string(Cvc5ProofRewriteRule rule);
+CVC5_EXPORT const char* cvc5_proof_rewrite_rule_to_string(
+    Cvc5ProofRewriteRule rule);
 
 /**
  * Hash function for Cvc5ProofRewriteRule.
  * @param rule The proof rewrite rule.
  * @return The hash value.
  */
-size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
+CVC5_EXPORT size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
 
 #else
 
@@ -3524,7 +3521,7 @@ size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
  * @param rule The proof rule
  * @return The name of the proof rule
  */
-const char* toString(ProofRule rule);
+CVC5_EXPORT const char* toString(ProofRule rule);
 
 /**
  * Writes a proof rule name to a stream.
@@ -3544,7 +3541,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRule rule);
  * @param rule The proof rewrite rule
  * @return The name of the proof rewrite rule
  */
-const char* toString(ProofRewriteRule rule);
+CVC5_EXPORT const char* toString(ProofRewriteRule rule);
 
 /**
  * Writes a proof rewrite rule name to a stream.
@@ -3579,7 +3576,7 @@ struct CVC5_EXPORT hash<cvc5::ProofRule>
  * @param rule The proof rule
  * @return The name of the proof rule
  */
-std::string to_string(cvc5::ProofRule rule);
+CVC5_EXPORT std::string to_string(cvc5::ProofRule rule);
 
 /**
  * Hash function for ProofRewriteRules.
@@ -3601,7 +3598,7 @@ struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
  * @param rule The proof rewrite rule
  * @return The name of the proof rewrite rule
  */
-std::string to_string(cvc5::ProofRewriteRule rule);
+CVC5_EXPORT std::string to_string(cvc5::ProofRewriteRule rule);
 
 }  // namespace std
 

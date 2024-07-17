@@ -45,6 +45,32 @@ public class SynthResult extends AbstractPointer
   protected native void deletePointer(long pointer);
 
   /**
+   * Operator overloading for equality of two synthesis results.
+   * @param r The synthesis result to compare to for equality.
+   * @return True if the synthesis results are equal.
+   */
+  @Override
+  public boolean equals(Object r)
+  {
+    if (this == r)
+    {
+      return true;
+    }
+    if (r == null || getClass() != r.getClass())
+    {
+      return false;
+    }
+    SynthResult result = (SynthResult) r;
+    if (this.pointer == result.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, result.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /**
    * @return True if SynthResult is empty, i.e., a nullary SynthResult, and not
    * an actual result returned from a synthesis query.
    */
@@ -90,4 +116,16 @@ public class SynthResult extends AbstractPointer
    * @return A string representation of this result.
    */
   protected native String toString(long pointer);
+
+  /**
+   * Get the hash value of a synthesis result.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

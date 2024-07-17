@@ -1110,6 +1110,32 @@ TEST_F(TestApiBlackTermManager, mkConst)
   ASSERT_NO_THROW(tm.mkConst(boolSort));
 }
 
+TEST_F(TestApiBlackTermManager, mkSkolem)
+{
+  Sort integer = d_tm.getIntegerSort();
+  Sort arraySort = d_tm.mkArraySort(integer, integer);
+
+  Term a = d_tm.mkConst(arraySort, "a");
+  Term b = d_tm.mkConst(arraySort, "b");
+
+  Term sk = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {a, b});
+  Term sk2 = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {b, a});
+
+  ASSERT_THROW(d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {a}), CVC5ApiException);
+
+  ASSERT_TRUE(sk.isSkolem());
+  ASSERT_EQ(sk.getSkolemId(), SkolemId::ARRAY_DEQ_DIFF);
+  ASSERT_EQ(sk.getSkolemIndices(), std::vector<Term>({a, b}));
+  // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
+  ASSERT_EQ(sk2.getSkolemIndices(), std::vector<Term>({a, b}));
+}
+
+TEST_F(TestApiBlackTermManager, getNumIndicesForSkolemId)
+{
+  size_t numIndices = d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX);
+  ASSERT_EQ(numIndices, 5);
+}
+
 TEST_F(TestApiBlackTermManager, uFIteration)
 {
   Sort intSort = d_tm.getIntegerSort();
@@ -1133,13 +1159,14 @@ TEST_F(TestApiBlackTermManager, uFIteration)
 TEST_F(TestApiBlackTermManager, getStatistics)
 {
   ASSERT_NO_THROW(cvc5::Stat());
-  // do some array reasoning to make sure we have a double statistics
+  // do some array reasoning to make sure we have statistics
   {
     Sort s1 = d_tm.getIntegerSort();
     Sort s2 = d_tm.mkArraySort(s1, s1);
     Term t1 = d_tm.mkConst(s1, "i");
-    Term t2 = d_tm.mkVar(s2, "a");
+    Term t2 = d_tm.mkConst(s2, "a");
     Term t3 = d_tm.mkTerm(Kind::SELECT, {t2, t1});
+    d_solver->assertFormula(t3.eqTerm(t1));
     d_solver->checkSat();
   }
   cvc5::Statistics stats = d_tm.getStatistics();
@@ -1177,7 +1204,7 @@ TEST_F(TestApiBlackTermManager, getStatistics)
       ASSERT_FALSE(hist.empty());
       std::stringstream ss;
       ss << s.second;
-      ASSERT_EQ(ss.str(), "{ integer type: 1 }");
+      ASSERT_EQ(ss.str(), "{ UNKNOWN_TYPE_CONSTANT: 1, integer type: 1 }");
     }
     else if (s.first == "theory::arrays::avgIndexListLength")
     {
@@ -1190,9 +1217,24 @@ TEST_F(TestApiBlackTermManager, getStatistics)
 
 TEST_F(TestApiBlackTermManager, printStatisticsSafe)
 {
+  // do some array reasoning to make sure we have statistics
+  {
+    Sort s1 = d_tm.getIntegerSort();
+    Sort s2 = d_tm.mkArraySort(s1, s1);
+    Term t1 = d_tm.mkConst(s1, "i");
+    Term t2 = d_tm.mkConst(s2, "a");
+    Term t3 = d_tm.mkTerm(Kind::SELECT, {t2, t1});
+    d_solver->assertFormula(t3.eqTerm(t1));
+    d_solver->checkSat();
+  }
   testing::internal::CaptureStdout();
   d_tm.printStatisticsSafe(STDOUT_FILENO);
-  testing::internal::GetCapturedStdout();
+  std::string out = testing::internal::GetCapturedStdout();
+  std::stringstream expected;
+  expected << "cvc5::CONSTANT = { integer type: 1, UNKNOWN_TYPE_CONSTANT: 1 }"
+           << std::endl
+           << "cvc5::TERM = { <unsupported>: 1 }" << std::endl;
+  ASSERT_EQ(out, expected.str());
 }
 
 }  // namespace cvc5::internal::test

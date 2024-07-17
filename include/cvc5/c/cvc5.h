@@ -139,6 +139,10 @@ typedef struct cvc5_stats_t* Cvc5Statistics;
 /* Cvc5Result                                                                 */
 /* -------------------------------------------------------------------------- */
 
+/** \addtogroup c_cvc5result
+ *  @{
+ */
+
 /**
  * Make copy of result, increases reference counter of `result`.
  *
@@ -236,9 +240,15 @@ CVC5_EXPORT const char* cvc5_result_to_string(const Cvc5Result result);
  */
 CVC5_EXPORT size_t cvc5_result_hash(Cvc5Result result);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5SynthResult                                                            */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5synthresult
+ *  @{
+ */
 
 /**
  * Determine if a given synthesis result is empty (a nullary result) and not an
@@ -329,9 +339,15 @@ CVC5_EXPORT Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result);
  */
 CVC5_EXPORT void cvc5_synth_result_release(Cvc5SynthResult result);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Sort                                                                   */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5sort
+ *  @{
+ */
 
 /**
  * Make copy of sort, increases reference counter of `sort`.
@@ -949,9 +965,15 @@ CVC5_EXPORT const Cvc5Sort* cvc5_sort_tuple_get_element_sorts(Cvc5Sort sort,
  */
 CVC5_EXPORT Cvc5Sort cvc5_sort_nullable_get_element_sort(Cvc5Sort sort);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Op                                                                     */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5op
+ *  @{
+ */
 
 /**
  * Make copy of operator, increases reference counter of `op`.
@@ -1039,9 +1061,15 @@ CVC5_EXPORT const char* cvc5_op_to_string(Cvc5Op op);
  */
 CVC5_EXPORT size_t cvc5_op_hash(Cvc5Op op);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Term                                                                   */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5term
+ *  @{
+ */
 
 /**
  * Make copy of term, increases reference counter of `term`.
@@ -1565,7 +1593,7 @@ CVC5_EXPORT void cvc5_term_get_fp_value(Cvc5Term term,
  * where @f$c_1 ... c_n@f$ are values ordered by id such that
  * @f$c_1 > ... > c_n@f$.
  *
- * @note A universe set term (kind `CVC5_KIND_SET_UNIVERSE`) is not considered
+ * @note A universe set term (kind #CVC5_KIND_SET_UNIVERSE) is not considered
  *       to be a set value.
  *
  * @param term The term.
@@ -1725,9 +1753,15 @@ CVC5_EXPORT const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term,
  */
 CVC5_EXPORT size_t cvc5_term_hash(Cvc5Term term);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeConstructorDecl                                                */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5dtconsdecl
+ *  @{
+ */
 
 /**
  * Make copy of datatype constructor declaration, increases reference counter
@@ -1809,9 +1843,15 @@ CVC5_EXPORT const char* cvc5_dt_cons_decl_to_string(
  */
 CVC5_EXPORT size_t cvc5_dt_cons_decl_hash(Cvc5DatatypeConstructorDecl decl);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeDecl                                                           */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5dtdecl
+ *  @{
+ */
 
 /**
  * Make copy of datatype declaration, increases reference counter of `decl`.
@@ -1901,9 +1941,15 @@ CVC5_EXPORT const char* cvc5_dt_decl_get_name(Cvc5DatatypeDecl decl);
  */
 CVC5_EXPORT size_t cvc5_dt_decl_hash(Cvc5DatatypeDecl decl);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeSelector                                                       */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5dtsel
+ *  @{
+ */
 
 /**
  * Make copy of datatype selector, increases reference counter of `sel`.
@@ -1992,9 +2038,15 @@ CVC5_EXPORT const char* cvc5_dt_sel_to_string(Cvc5DatatypeSelector sel);
  */
 CVC5_EXPORT size_t cvc5_dt_sel_hash(Cvc5DatatypeSelector sel);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5DatatypeConstructor                                                    */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5dtcons
+ *  @{
+ */
 
 /**
  * Make copy of datatype constructor, increases reference counter of `cons`.
@@ -2155,9 +2207,15 @@ CVC5_EXPORT const char* cvc5_dt_cons_to_string(Cvc5DatatypeConstructor cons);
  */
 CVC5_EXPORT size_t cvc5_dt_cons_hash(Cvc5DatatypeConstructor cons);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Datatype                                                               */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5dt
+ *  @{
+ */
 
 /**
  * Make copy of datatype, increases reference counter of `dt`.
@@ -2312,9 +2370,15 @@ CVC5_EXPORT const char* cvc5_dt_to_string(Cvc5Datatype dt);
  */
 CVC5_EXPORT size_t cvc5_dt_hash(Cvc5Datatype dt);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Grammar                                                                */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5grammar
+ *  @{
+ */
 
 /**
  * Add `rule` to the set of rules corresponding to `symbol` of a given grammar.
@@ -2411,9 +2475,15 @@ CVC5_EXPORT Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar);
  */
 CVC5_EXPORT void cvc5_grammar_release(Cvc5Grammar grammar);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5TermManager                                                            */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5termmanager
+ *  @{
+ */
 
 /**
  * Construct a new instance of a cvc5 term manager.
@@ -2439,9 +2509,34 @@ CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
  */
 CVC5_EXPORT void cvc5_term_manager_release(Cvc5TermManager* tm);
 
+/**
+ * Print the term manager statistics to the given file descriptor, suitable for
+ * usage in signal handlers.
+ * @param tm The term manager instance.
+ * @param fd The file descriptor.
+ */
+CVC5_EXPORT void cvc5_term_manager_print_stats_safe(Cvc5TermManager* tm,
+                                                    int fd);
+
+/**
+ * Get a snapshot of the current state of the statistic values of this term
+ * manager. The returned object is completely decoupled from the term manager
+ * and will not change when the term manager is used again.
+ * @param tm The term manager instance.
+ * @return A snapshot of the current state of the statistic values.
+ */
+CVC5_EXPORT Cvc5Statistics
+cvc5_term_manager_get_statistics(Cvc5TermManager* tm);
+
+/** @} */
+
 /* .................................................................... */
 /* Sorts Handling                                                       */
 /* .................................................................... */
+
+/** \addtogroup c_sort_creation
+ *  @{
+ */
 
 /**
  * Get the Boolean sort.
@@ -2623,19 +2718,20 @@ CVC5_EXPORT Cvc5Sort cvc5_mk_sequence_sort(Cvc5TermManager* tm, Cvc5Sort sort);
  * kind whose parameters and arguments are unspecified.
  *
  * The kind `k` must be the kind of a sort that can be abstracted, i.e., a
- * sort that has indices or argument sorts. For example, #CVC5_KIND_ARRAY_SORT
- * and #CVC5_SORT_KIND_BITVECTOR_SORT can be passed as the kind `k` to this
- * function, while #CVC5_SORT_KIND_INTEGER_SORT and #CVC5_SORT_KIND_STRING_SORT
- * cannot.
+ * sort that has indices or argument sorts. For example,
+ * #CVC5_KIND_ARRAY_SORT and #CVC5_SORT_KIND_BITVECTOR_SORT can be passed as
+ * the kind `k` to this function, while #CVC5_SORT_KIND_INTEGER_SORT and
+ * #CVC5_SORT_KIND_STRING_SORT cannot.
  *
  * @note Providing the kind #CVC5_SORT_KIND_ABSTRACT_SORT as an argument to
- * this function returns the (fully) unspecified sort, denoted `?`.
+ *       this function returns the (fully) unspecified sort, denoted `?`.
  *
  * @note Providing a kind `k` that has no indices and a fixed arity
- * of argument sorts will return the sort of kind `k` whose arguments are the
- * unspecified sort. For example, `mkAbstractSort(CVC5_SORT_KIND_ARRAY_SORT)`
- * will return the sort `(ARRAY_SORT ? ?)` instead of the abstract sort whose
- * abstract kind is #ARRAY_SORT.
+ *       of argument sorts will return the sort of kind `k` whose arguments are
+ *       the unspecified sort. For example,
+ *       `cvc5_mk_abstract_sort(tm, CVC5_SORT_KIND_ARRAY_SORT)` will return the
+ *       sort `(ARRAY_SORT ? ?)` instead of the abstract sort whose abstract
+ *       kind is #CVC5_SORT_KIND_ARRAY_SORT.
  *
  * @warning This function is experimental and may change in future versions.
  *
@@ -2703,9 +2799,73 @@ CVC5_EXPORT Cvc5Sort cvc5_mk_tuple_sort(Cvc5TermManager* tm,
  */
 CVC5_EXPORT Cvc5Sort cvc5_mk_nullable_sort(Cvc5TermManager* tm, Cvc5Sort sort);
 
+/** @} */
+
+/* .................................................................... */
+/* Create Operators                                                     */
+/* .................................................................... */
+
+/** \addtogroup c_op_creation
+ *  @{
+ */
+
+/**
+ * Create operator of Kind:
+ *   - #CVC5_KIND_BITVECTOR_EXTRACT
+ *   - #CVC5_KIND_BITVECTOR_REPEAT
+ *   - #CVC5_KIND_BITVECTOR_ROTATE_LEFT
+ *   - #CVC5_KIND_BITVECTOR_ROTATE_RIGHT
+ *   - #CVC5_KIND_BITVECTOR_SIGN_EXTEND
+ *   - #CVC5_KIND_BITVECTOR_ZERO_EXTEND
+ *   - #CVC5_KIND_DIVISIBLE
+ *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_FP
+ *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+ *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_REAL
+ *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_SBV
+ *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_UBV
+ *   - #CVC5_KIND_FLOATINGPOINT_TO_SBV
+ *   - #CVC5_KIND_FLOATINGPOINT_TO_UBV
+ *   - #CVC5_KIND_INT_TO_BITVECTOR
+ *   - #CVC5_KIND_TUPLE_PROJECT
+ *
+ * See `Cvc5Kind` for a description of the parameters.
+ *
+ * @param tm The term manager instance.
+ * @param kind The kind of the operator.
+ * @param size The number of indices of the operator.
+ * @param idxs The indices.
+ *
+ * @note If `idxs` is empty, the Cvc5Op simply wraps the Cvc5Kind. The Cvc5Kind
+ * can be used in cvc5_mk_term directly without creating a Cvc5Op first.
+ */
+CVC5_EXPORT Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
+                              Cvc5Kind kind,
+                              size_t size,
+                              const uint32_t idxs[]);
+
+/**
+ * Create operator of kind:
+ *   - #CVC5_KIND_DIVISIBLE (to support arbitrary precision integers)
+ *
+ * See CKind for a description of the parameters.
+ *
+ * @param tm The term manager instance.
+ * @param kind The kind of the operator.
+ * @param arg The string argument to this operator.
+ */
+CVC5_EXPORT Cvc5Op cvc5_mk_op_from_str(Cvc5TermManager* tm,
+                                       Cvc5Kind kind,
+                                       const char* arg);
+
+/** @} */
+
 /* .................................................................... */
 /* Create Terms                                                         */
 /* .................................................................... */
+
+/** \addtogroup c_term_creation
+ *  @{
+ */
 
 /**
  * Create n-ary term of given kind.
@@ -2805,58 +2965,26 @@ CVC5_EXPORT Cvc5Term cvc5_mk_nullable_lift(Cvc5TermManager* tm,
                                            Cvc5Kind kind,
                                            size_t size,
                                            const Cvc5Term args[]);
-
-/* .................................................................... */
-/* Create Operators                                                     */
-/* .................................................................... */
+/**
+ * Create a skolem.
+ * @param tm      The term manager instance.
+ * @param id      The skolem identifier.
+ * @param size    The number of arguments of the lifted operator.
+ * @param indices The indices of the skolem.
+ * @return The skolem.
+ */
+CVC5_EXPORT Cvc5Term cvc5_mk_skolem(Cvc5TermManager* tm,
+                                    Cvc5SkolemId id,
+                                    size_t size,
+                                    const Cvc5Term indices[]);
 
 /**
- * Create operator of Kind:
- *   - #CVC5_KIND_BITVECTOR_EXTRACT
- *   - #CVC5_KIND_BITVECTOR_REPEAT
- *   - #CVC5_KIND_BITVECTOR_ROTATE_LEFT
- *   - #CVC5_KIND_BITVECTOR_ROTATE_RIGHT
- *   - #CVC5_KIND_BITVECTOR_SIGN_EXTEND
- *   - #CVC5_KIND_BITVECTOR_ZERO_EXTEND
- *   - #CVC5_KIND_DIVISIBLE
- *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_FP
- *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_IEEE_BV
- *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_REAL
- *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_SBV
- *   - #CVC5_KIND_FLOATINGPOINT_TO_FP_FROM_UBV
- *   - #CVC5_KIND_FLOATINGPOINT_TO_SBV
- *   - #CVC5_KIND_FLOATINGPOINT_TO_UBV
- *   - #CVC5_KIND_INT_TO_BITVECTOR
- *   - #CVC5_KIND_TUPLE_PROJECT
- *
- * See `Cvc5Kind` for a description of the parameters.
- *
- * @param tm The term manager instance.
- * @param kind The kind of the operator.
- * @param size The number of indices of the operator.
- * @param idxs The indices.
- *
- * @note If `idxs` is empty, the Cvc5Op simply wraps the Cvc5Kind. The Cvc5Kind
- * can be used in cvc5_mk_term directly without creating a Cvc5Op first.
+ * Get the number of indices for a skolem id.
+ * @param id The skolem id.
+ * @return The number of indices for the skolem id.
  */
-CVC5_EXPORT Cvc5Op cvc5_mk_op(Cvc5TermManager* tm,
-                              Cvc5Kind kind,
-                              size_t size,
-                              const uint32_t idxs[]);
-
-/**
- * Create operator of kind:
- *   - #CVC5_KIND_DIVISIBLE (to support arbitrary precision integers)
- *
- * See CKind for a description of the parameters.
- *
- * @param tm The term manager instance.
- * @param kind The kind of the operator.
- * @param arg The string argument to this operator.
- */
-CVC5_EXPORT Cvc5Op cvc5_mk_op_from_str(Cvc5TermManager* tm,
-                                       Cvc5Kind kind,
-                                       const char* arg);
+CVC5_EXPORT size_t cvc5_get_num_idxs_for_skolem_id(Cvc5TermManager* tm,
+                                                   Cvc5SkolemId id);
 
 /* .................................................................... */
 /* Create Constants                                                     */
@@ -3238,9 +3366,15 @@ CVC5_EXPORT Cvc5Term cvc5_mk_var(Cvc5TermManager* tm,
                                  Cvc5Sort sort,
                                  const char* symbol);
 
+/** @} */
+
 /* .................................................................... */
 /* Create datatype constructor declarations                             */
 /* .................................................................... */
+
+/** \addtogroup c_dt_cons_decl_creation
+ *  @{
+ */
 
 /**
  * Create a datatype constructor declaration.
@@ -3251,9 +3385,15 @@ CVC5_EXPORT Cvc5Term cvc5_mk_var(Cvc5TermManager* tm,
 CVC5_EXPORT Cvc5DatatypeConstructorDecl
 cvc5_mk_dt_cons_decl(Cvc5TermManager* tm, const char* name);
 
+/** @} */
+
 /* .................................................................... */
 /* Create datatype declarations                                         */
 /* .................................................................... */
+
+/** \addtogroup c_dt_decl_creation
+ *  @{
+ */
 
 /**
  * Create a datatype declaration.
@@ -3286,18 +3426,27 @@ cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
                             const Cvc5Sort params[],
                             bool is_codt);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5OptionInfo                                                             */
 /* -------------------------------------------------------------------------- */
 
 typedef enum
 {
+  /** The empty option info, does not hold value information. */
   CVC5_OPTION_INFO_VOID,
+  /** Information for option with boolean option value. */
   CVC5_OPTION_INFO_BOOL,
+  /** Information for option with string option value. */
   CVC5_OPTION_INFO_STR,
+  /** Information for option with int64 option value. */
   CVC5_OPTION_INFO_INT64,
+  /** Information for option with uint64 option value. */
   CVC5_OPTION_INFO_UINT64,
+  /** Information for option with double value. */
   CVC5_OPTION_INFO_DOUBLE,
+  /** Information for option with option modes. */
   CVC5_OPTION_INFO_MODES,
 } Cvc5OptionInfoKind;
 
@@ -3437,6 +3586,10 @@ struct CVC5_EXPORT Cvc5OptionInfo
   void* d_cpp_info;
 };
 
+/** \addtogroup c_cvc5optioninfo
+ *  @{
+ */
+
 /**
  * Get a string representation of a given option info.
  * @param info The option info.
@@ -3445,6 +3598,8 @@ struct CVC5_EXPORT Cvc5OptionInfo
  *       function.
  */
 CVC5_EXPORT const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
+
+/** @} */
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Plugin                                                                 */
@@ -3499,6 +3654,10 @@ typedef struct Cvc5Plugin Cvc5Plugin;
 /* Cvc5Proof                                                                  */
 /* -------------------------------------------------------------------------- */
 
+/** \addtogroup c_cvc5proof
+ *  @{
+ */
+
 /**
  * Get the proof rule used by the root step of a given proof.
  * @return The proof rule.
@@ -3509,8 +3668,7 @@ CVC5_EXPORT Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof);
  * Get the proof rewrite rule used  by the root step of the proof.
  *
  * Requires that `cvc5_proof_get_rule()` does not return
- * `CVC5_PROOF_REWRITE_RULE_DSL_REWRITE` or
- * `CVC5_PROOF_REWRITE_RULE_THEORY_REWRITE`.
+ * #CVC5_PROOF_RULE_DSL_REWRITE or #CVC5_PROOF_RULE_THEORY_REWRITE.
  *
  * @param proof The proof.
  * @return The proof rewrite rule.
@@ -3592,9 +3750,15 @@ CVC5_EXPORT Cvc5Proof cvc5_proof_copy(Cvc5Proof proof);
  */
 CVC5_EXPORT void cvc5_proof_release(Cvc5Proof proof);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Stat                                                                   */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5stat
+ *  @{
+ */
 
 /**
  * Determine if a given statistic is intended for internal use only.
@@ -3636,7 +3800,7 @@ CVC5_EXPORT bool cvc5_stat_is_double(Cvc5Stat stat);
  * @param stat The statistic.
  * @return The double value.
  */
-double cvc5_stat_get_double(Cvc5Stat stat);
+CVC5_EXPORT double cvc5_stat_get_double(Cvc5Stat stat);
 
 /**
  * Determine if a given statistic holds a string value.
@@ -3680,9 +3844,15 @@ CVC5_EXPORT void cvc5_stat_get_histogram(Cvc5Stat stat,
  */
 CVC5_EXPORT const char* cvc5_stat_to_string(Cvc5Stat stat);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Statistics                                                             */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5statistics
+ *  @{
+ */
 
 /**
  * Initialize iteration over the statistics values.
@@ -3736,9 +3906,15 @@ CVC5_EXPORT Cvc5Stat cvc5_stats_get(Cvc5Statistics stat, const char* name);
  */
 CVC5_EXPORT const char* cvc5_stats_to_string(Cvc5Statistics stat);
 
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
 /* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5
+ *  @{
+ */
 
 /**
  * Construct a new instance of a cvc5 solver.
@@ -3752,6 +3928,13 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
  * @param cvc5 The solver instance.
  */
 CVC5_EXPORT void cvc5_delete(Cvc5* cvc5);
+
+/**
+ * Get the associated term manager of a cvc5 solver instance.
+ * @param cvc5 The solver instance.
+ * @return The term manager.
+ */
+CVC5_EXPORT Cvc5TermManager* cvc5_get_tm(Cvc5* cvc5);
 
 /* .................................................................... */
 /* SMT-LIB-style Term/Sort Creation                                     */
@@ -4210,12 +4393,23 @@ CVC5_EXPORT void cvc5_get_difficulty(Cvc5* cvc5,
 /**
  * Get a timeout core.
  *
+ * \verbatim embed:rst:leading-asterisk
  * This function computes a subset of the current assertions that cause a
  * timeout. It may make multiple checks for satisfiability internally, each
  * limited by the timeout value given by
  * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
  *
- * @note it does not require being proceeded by a call to `cvc5_check_sat()`.
+ * If the result is unknown and the reason is timeout, then the list of
+ * formulas correspond to a subset of the current assertions that cause a
+ * timeout in the specified time :ref:`timeout-core-timeout
+ * <lbl-option-timeout-core-timeout>`. If the result is unsat, then the list of
+ * formulas correspond to an unsat core for the current assertions. Otherwise,
+ * the result is sat, indicating that the current assertions are satisfiable,
+ * and the returned set of assertions is empty.
+ * \endverbatim
+ *
+ * @note This command  does not require being preceeded by a call to
+ *       `cvc5_check_sat()`.
  *
  *
  * SMT-LIB:
@@ -4234,14 +4428,6 @@ CVC5_EXPORT void cvc5_get_difficulty(Cvc5* cvc5,
  *
  * @return The list of assertions determined to be the timeout core. The
  *         resulting result is stored in `result`.
- *         If `result` is unknown and the reason is timeout, then the list of
- *         formulas correspond to a subset of the current assertions that cause
- *         a timeout in the specified time :ref:`timeout-core-timeout
- *         <lbl-option-timeout-core-timeout>`.
- *         If the result is unsat, then the list of formulas correspond to an
- *         unsat core for the current assertions. Otherwise, the result is sat,
- *         indicating that the current assertions are satisfiable, and the
- *         returned set of assertions is empty.
  *
  * @note The resulting `result` and term array pointer are only valid
  *       until the next call to this function.
@@ -4256,7 +4442,19 @@ CVC5_EXPORT const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
  * This function computes a subset of the given assumptions that cause a
  * timeout when added to the current assertions.
  *
- * @note it does not require being proceeded by a call to `checkSat()`.
+ * \verbatim embed:rst:leading-asterisk
+ * If the result is unknown and the reason is timeout, then the set of
+ * assumptions corresponds to a subset of the given assumptions that cause a
+ * timeout when added to the current assertions in the specified time
+ * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`. If the result
+ * is unsat, then the set of assumptions together with the current assertions
+ * correspond to an unsat core for the current assertions. Otherwise, the
+ * result is sat, indicating that the given assumptions plus the current
+ * assertions are satisfiable, and the returned set of assumptions is empty.
+ * \endverbatim
+ *
+ * @note This command does not require being preceeded by a call to
+ *       `cvc5_check_sat()`.
  *
  * SMT-LIB:
  *
@@ -4276,16 +4474,6 @@ CVC5_EXPORT const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
  *
  * @return The list of assumptions determined to be the timeout core. The
  *         resulting result is stored in `result`.
- *         If the result is unknown and the reason is timeout, then the set
- *         of assumptions corresponds to a subset of the given assumptions
- *         that cause a timeout when added to the current assertions in the
- *         specified time
- *         :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
- *         If the result is unsat, then the set of assumptions together with
- *         the current assertions correspond to an unsat core for the current
- *         assertions. Otherwise, the result is sat, indicating that the
- *         given assumptions plus the current assertions are satisfiable, and
- *         the returned set of assumptions is empty.
  *
  * @note The resulting `result` and term array pointer are only valid
  *       until the next call to this function.
@@ -5299,6 +5487,37 @@ CVC5_EXPORT void cvc5_print_stats_safe(Cvc5* cvc5, int fd);
 CVC5_EXPORT bool cvc5_is_output_on(Cvc5* cvc5, const char* tag);
 
 /**
+ * Configure a file to write the output for a given tag.
+ *
+ * Tags can be enabled with the `output` option (and `-o <tag>` on the command
+ * line). Requires that the given tag is valid.
+ *
+ * @note Close file `filename` before reading via `cvc5_close_output()`.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param cvc5     The solver instance.
+ * @param tag      The output tag.
+ * @param filename The file to write the output to. Use `<stdout>` to configure
+ *                 to write to stdout.
+ */
+CVC5_EXPORT void cvc5_get_output(Cvc5* cvc5,
+                                 const char* tag,
+                                 const char* filename);
+
+/**
+ * Close output file configured for an output tag via `cvc5_get_output()`.
+ *
+ * @note This is required before reading the file.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param cvc5     The solver instance.
+ * @param filename The file to close.
+ */
+CVC5_EXPORT void cvc5_close_output(Cvc5* cvc5, const char* filename);
+
+/**
  * Get a string representation of the version of this solver.
  * @param cvc5 The solver instance.
  * @return The version string.
@@ -5335,6 +5554,7 @@ CVC5_EXPORT const char* cvc5_proof_to_string(Cvc5* cvc5,
                                              size_t size,
                                              const Cvc5Term assertions[],
                                              const char* names[]);
+/** @} */
 
 #if __cplusplus
 }

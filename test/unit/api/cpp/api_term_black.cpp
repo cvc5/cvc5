@@ -167,6 +167,15 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_TRUE(extb.getOp().isIndexed());
   ASSERT_EQ(extb.getOp(), ext);
 
+  Op bit = d_tm.mkOp(Kind::BITVECTOR_BIT, {4});
+  Term bitb = d_tm.mkTerm(bit, {b});
+  ASSERT_EQ(bitb.getKind(), Kind::BITVECTOR_BIT);
+  ASSERT_TRUE(bitb.hasOp());
+  ASSERT_EQ(bitb.getOp(), bit);
+  ASSERT_TRUE(bitb.getOp().isIndexed());
+  ASSERT_EQ(bit.getNumIndices(), 1);
+  ASSERT_EQ(bit[0], d_tm.mkInteger(4));
+
   Term f = d_tm.mkConst(funsort, "f");
   Term fx = d_tm.mkTerm(Kind::APPLY_UF, {f, x});
 
@@ -1220,30 +1229,6 @@ TEST_F(TestApiBlackTerm, getSkolem)
   ASSERT_FALSE(x.isSkolem());
   ASSERT_THROW(x.getSkolemId(), CVC5ApiException);
   ASSERT_THROW(x.getSkolemIndices(), CVC5ApiException);
-}
-
-TEST_F(TestApiBlackTerm, mkSkolem)
-{
-  Sort integer = d_tm.getIntegerSort();
-  Sort arraySort = d_tm.mkArraySort(integer, integer);
-
-  Term a = d_tm.mkConst(arraySort, "a");
-  Term b = d_tm.mkConst(arraySort, "b");
-
-  Term sk = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {a, b});
-  Term sk2 = d_tm.mkSkolem(SkolemId::ARRAY_DEQ_DIFF, {b, a});
-
-  ASSERT_TRUE(sk.isSkolem());
-  ASSERT_EQ(sk.getSkolemId(), SkolemId::ARRAY_DEQ_DIFF);
-  ASSERT_EQ(sk.getSkolemIndices(), std::vector<Term>({a, b}));
-  // ARRAY_DEQ_DIFF is commutative, so the order of the indices is sorted.
-  ASSERT_EQ(sk2.getSkolemIndices(), std::vector<Term>({a, b}));
-}
-
-TEST_F(TestApiBlackTerm, getNumIndicesForSkolemId)
-{
-  size_t numIndices = d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX);
-  ASSERT_EQ(numIndices, 5);
 }
 
 TEST_F(TestApiBlackTerm, termScopedToString)
