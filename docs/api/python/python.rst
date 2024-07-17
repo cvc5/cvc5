@@ -61,10 +61,18 @@ these steps:
   make # add -jN for parallel build using N threads
   make install
 
-For Windows, the steps above must be executed on a MINGW64 environment
-(see the `installation instructions <../../installation/installation>`).
+The last step installs both the cvc5 binary and the Python bindings.
+If you want to install only the Python bindings, run the following
+command instead of ``make install``:
 
-And to make sure that it works:
+.. code:: bash
+
+  cmake --install . --component python-api
+
+For Windows, the steps above must be executed on a MINGW64 environment
+(see the :doc:`installation instructions <../../installation/installation>`).
+
+Finally, you can make sure that it works by running:
 
 .. code:: bash
 
