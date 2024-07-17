@@ -440,6 +440,13 @@ bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
   // We impose no type requirements here.
   PolyNorm pa = PolyNorm::mkPolyNorm(a);
   PolyNorm pb = PolyNorm::mkPolyNorm(b);
+  // do modulus by 2^bitwidth if bitvectors
+  if (at.isBitVector())
+  {
+    Rational w = Rational(Integer(2).pow(at.getBitVectorSize()));
+    pa.modCoeffs(w);
+    pb.modCoeffs(w);
+  }
   return pa.isEqual(pb);
 }
 
