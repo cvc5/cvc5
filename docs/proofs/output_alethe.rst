@@ -1,13 +1,18 @@
 Proof format: Alethe
 ====================
 
-**WARNING: This format is experimental on the main branch of cvc5. To use this format, the option --proof-alethe-experimental must be used, or otherwise an execption is thrown.**
+.. warning::
+
+    This format is experimental on the main branch of cvc5. To use this
+    format, the option :ref:`--proof-alethe-experimental
+    <lbl-option-proof-alethe-experimental>` must be used, or otherwise
+    an exception is thrown.
 
 Using the flag :ref:`proof-format-mode=alethe <lbl-option-proof-format-mode>`,
 cvc5 outputs proofs in the `Alethe proof format
 <https://verit.loria.fr/documentation/alethe-spec.pdf>`_. Additonally, the
 following additional flags are currently required: :ref:`simplification=none
-<lbl-option-simplification>`, and :ref:`proof-alethe-experimental`.
+<lbl-option-simplification>`, and :ref:`proof-alethe-experimental <lbl-option-proof-alethe-experimental>`.
 The first requirement is due to not yet supporting proofs with non-detailed steps.
 
 The Alethe proof format is a flexible proof format for SMT solvers based on

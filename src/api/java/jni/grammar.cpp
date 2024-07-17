@@ -63,6 +63,24 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Grammar_isNull(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Grammar
+ * Method:    equals
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Grammar_equals(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer1,
+                                                              jlong pointer2)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Grammar* grammar1 = reinterpret_cast<Grammar*>(pointer1);
+  Grammar* grammar2 = reinterpret_cast<Grammar*>(pointer2);
+  // We compare the actual grammars, not their pointers.
+  return static_cast<jboolean>(*grammar1 == *grammar2);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Grammar
  * Method:    addRule
  * Signature: (JJJ)V
  */

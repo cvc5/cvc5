@@ -29,9 +29,9 @@ set(CVC5_EXAMPLES_API_C
   sets
   strings
   transcendentals
-  #parser
-  #parser_sym_manager
-  #uf
+  parser
+  parser_sym_manager
+  uf
 )
 
 # Add example target and create test to run example with ctest.

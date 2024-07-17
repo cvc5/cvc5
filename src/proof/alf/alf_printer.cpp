@@ -157,6 +157,11 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:
     case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::BV_BITBLAST_STEP:
+    {
+      return isHandledBitblastStep(pfn->getArguments()[0]);
+    }
+    break;
     case ProofRule::THEORY_REWRITE:
     {
       ProofRewriteRule id;
@@ -222,6 +227,26 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
     case ProofRewriteRule::STR_IN_RE_CONSUME: return true;
     default: break;
+  }
+  return false;
+}
+
+bool AlfPrinter::isHandledBitblastStep(const Node& eq) const
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  if (eq[0].isVar())
+  {
+    return true;
+  }
+  switch (eq[0].getKind())
+  {
+    case Kind::CONST_BITVECTOR:
+    case Kind::BITVECTOR_EXTRACT:
+    case Kind::BITVECTOR_CONCAT:
+    case Kind::EQUAL: return true;
+    default:
+      Trace("alf-printer-debug") << "Cannot bitblast  " << eq[0] << std::endl;
+      break;
   }
   return false;
 }
@@ -316,6 +341,7 @@ bool AlfPrinter::canEvaluate(Node n) const
 
 bool AlfPrinter::canEvaluateRegExp(Node r) const
 {
+  Assert(r.getType().isRegExp());
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
@@ -368,10 +394,10 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
   ProofRule r = pfn->getRule();
   if (r == ProofRule::DSL_REWRITE)
   {
-    ProofRewriteRule dr;
-    rewriter::getRewriteRule(pfn->getArguments()[0], dr);
+    ProofRewriteRule id;
+    rewriter::getRewriteRule(pfn->getArguments()[0], id);
     std::stringstream ss;
-    ss << dr;
+    ss << id;
     return ss.str();
   }
   else if (r == ProofRule::THEORY_REWRITE)
@@ -852,7 +878,15 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   {
     if (!options().proof.alfAllowTrust)
     {
-      Unreachable() << "An ALF proof equires a trust step for " << pn->getRule()
+      std::stringstream ss;
+      ss << pn->getRule();
+      if (pn->getRule() == ProofRule::THEORY_REWRITE)
+      {
+        ProofRewriteRule prid;
+        rewriter::getRewriteRule(pn->getArguments()[0], prid);
+        ss << " (" << prid << ")";
+      }
+      Unreachable() << "An ALF proof equires a trust step for " << ss.str()
                     << ", but --" << options::proof::longName::alfAllowTrust
                     << " is false" << std::endl;
     }

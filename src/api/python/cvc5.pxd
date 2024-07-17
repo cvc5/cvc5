@@ -225,6 +225,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint hasSolution() except +
         bint hasNoSolution() except +
         bint isUnknown() except +
+        bint operator==(const SynthResult& r) except +
+        bint operator!=(const SynthResult& r) except +
         string toString() except +
 
     cdef cppclass TermManager:

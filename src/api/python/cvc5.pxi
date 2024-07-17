@@ -1073,6 +1073,12 @@ cdef class SynthResult:
         # gets populated by solver
         self.cr = c_SynthResult()
 
+    def __eq__(self, SynthResult other):
+        return self.cr == other.cr
+
+    def __ne__(self, SynthResult other):
+        return self.cr != other.cr
+
     def isNull(self):
         """
             :return: True if SynthResult is null, i.e., not a SynthResult

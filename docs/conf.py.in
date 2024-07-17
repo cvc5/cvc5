@@ -57,6 +57,10 @@ extensions = [
         'run_command',
 ]
 
+# Google analytics
+if ${GOOGLE_ANALYTICS_ENABLE}:
+  extensions += ['sphinxcontrib.googleanalytics']
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -140,6 +144,10 @@ cpp_index_common_prefix = ["cvc5::"]
 
 bibtex_bibfiles = ['references.bib']
 
+# -- extension:: sphinxcontrib.googleanalytics -------------------------------
+
+googleanalytics_id = 'G-ML12X2V35B'
+googleanalytics_enabled = ${GOOGLE_ANALYTICS_ENABLE}
 
 # -- custom extension:: examples ---------------------------------------------
 
@@ -149,6 +157,11 @@ examples_types = {
                 'title': 'C++',
                 'lang': 'c++',
                 'group': 'c++'
+        },
+        '\.c$': {
+                'title': 'C',
+                'lang': 'c',
+                'group': 'c'
         },
         '\.h$': {
                 'title': 'C++ (header)',

@@ -115,6 +115,10 @@ else()
   add_dependencies(CoCoA CoCoA-EP)
   # Install static library only if it is a static build.
   if(NOT BUILD_SHARED_LIBS)
-    install(FILES ${CoCoA_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+    set(CoCoA_INSTALLED_LIBRARY
+      "${DEPS_BASE}/lib/libcocoa-${CoCoA_VERSION}.a"
+    )
+    install(FILES ${CoCoA_INSTALLED_LIBRARY} TYPE ${LIB_BUILD_TYPE}
+            RENAME "libcocoa.a")
   endif()
 endif()

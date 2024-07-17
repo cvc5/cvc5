@@ -15,7 +15,13 @@
 
 if(NOT ONLY_PYTHON_EXT_SRC)
   # Python modules for building:
-  find_package(Setuptools 66.1.0 REQUIRED)
+  if(WIN32)
+    # Version 70.2.0 is broken on Windows. Require 70.3.0
+    # See https://github.com/pypa/distutils/issues/268
+    find_package(Setuptools 70.3.0 REQUIRED)
+  else()
+    find_package(Setuptools 66.1.0 REQUIRED)
+  endif()
   find_package(Cython 3.0.0 REQUIRED)
   # Python modules for installing:
   find_package(Pip 23.0 REQUIRED)
@@ -243,7 +249,12 @@ else()
   # the default location designated by the Python interpreter used to
   # build them. Otherwise, install them in the specified prefix.
   if(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(INSTALL_CMD "${INSTALL_CMD} --prefix ${CMAKE_INSTALL_PREFIX}")
+    # We escape the CMAKE_INSTALL_PREFIX variable so that
+    # it is evaluated at installation time.
+    # This is important for component-specific installations
+    # where the prefix may change (e.g., using
+    # 'cmake --install build --component python-api --prefix ./new-prefix').
+    set(INSTALL_CMD "${INSTALL_CMD} --prefix \${CMAKE_INSTALL_PREFIX}")
   endif()
 
   install(CODE "execute_process(COMMAND \${CMAKE_COMMAND}
@@ -252,6 +263,7 @@ else()
     -DBUILD_DIR=${CMAKE_BINARY_DIR}
     -DDEPS_BASE=${DEPS_BASE}
     -DINSTALL_CMD=\"${INSTALL_CMD}\"
-    -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)")
+    -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)"
+    COMPONENT python-api)
 
 endif()
