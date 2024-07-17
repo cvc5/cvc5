@@ -15,7 +15,7 @@ jobs:
         build:
           - name: ubuntu:production
             os: ubuntu-20.04
-            config: production --auto-download --all-bindings --editline --docs --docs-ga
+            config: production --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
             python-bindings: true
@@ -119,7 +119,7 @@ jobs:
           # GPL versions
           - name: ubuntu:production-gpl
             os: ubuntu-20.04
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-gpl
             strip-bin: strip
             package-name: cvc5-Linux-x86_64
@@ -127,7 +127,7 @@ jobs:
 
           - name: macos:production-gpl
             os: macos-13
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-gpl
             strip-bin: strip
             package-name: cvc5-macOS-x86_64
@@ -136,7 +136,7 @@ jobs:
 
           - name: macos:production-arm64-gpl
             os: macos-14
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
