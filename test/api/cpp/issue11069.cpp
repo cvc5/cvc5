@@ -41,6 +41,9 @@ int main()
 
   // parse commands until finished
   Command cmd;
+    cmd = parser.nextCommand();
+    cmd = parser.nextCommand();
+    /*
   while (true)
   {
     cmd = parser.nextCommand();
@@ -50,6 +53,7 @@ int main()
     }
     cmd.invoke(&slv, &sm, std::cout);
   }
+  */
   Result result = slv.checkSat();
   std::cout << "Result:" << result << std::endl;
 
