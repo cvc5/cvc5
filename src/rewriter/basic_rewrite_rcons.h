@@ -171,6 +171,12 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool ensureProofMacroSubstrStripSymLength(CDProof* cdp, const Node& eq);
   /**
+   * @param cdp The proof to add to.
+   * @param eq The rewrite that can be proven by ProofRule::ARITH_POLY_NORM_REL.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofArithPolyNormRel(CDProof* cdp, const Node& eq);
+  /**
    * Try THEORY_REWRITE with theory::TheoryRewriteCtx ctx.
    */
   bool tryTheoryRewrite(CDProof* cdp,

@@ -328,7 +328,11 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     Node areq = approxGeq.eqNode(approxRewGeq);
     Trace("brc-macro") << "- prove " << areq << " via arith-poly-norm"
                        << std::endl;
-    cdp->addStep(areq, ProofRule::ARITH_POLY_NORM, {}, {areq});
+    if (!ensureProofArithPolyNormRel(cdp, areq))
+    {
+      Trace("brc-macro") << "...failed to show normalization" << std::endl;
+      return false;
+    }
     transEq.push_back(areq);
   }
   // (>= approx 0) = true
@@ -361,7 +365,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
   }
   Node retEq = lhs.eqNode(ret);
   if (!ret.getConst<bool>())
-  {
+  { 
     Trace("brc-macro") << "- false case, setting up conflict" << std::endl;
     cdp->addStep(geq, ProofRule::TRUE_ELIM, {teq}, {});
     Assert(exp.getKind() == Kind::SUB);
@@ -382,8 +386,8 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     Trace("brc-macro") << "- sum bound is " << sumBound << std::endl;
     if (sumBound.isNull())
     {
+      Trace("brc-macro") << "...failed to show normalization" << std::endl;
       AlwaysAssert(false);
-      Trace("brc-macro") << "...failed to add" << std::endl;
       return false;
     }
     Assert(sumBound.getNumChildren() == 2);
@@ -399,14 +403,13 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     }
     Node cpred = nodeManager()->mkNode(
         sumBound.getKind(), nodeManager()->mkConstInt(pyr), zero);
-    if (!theory::arith::PolyNorm::isArithPolyNormAtom(sumBound, cpred))
+    Node peq = sumBound.eqNode(cpred);
+    if (!ensureProofArithPolyNormRel(cdp, peq))
     {
       Trace("brc-macro") << "...failed to show normalization" << std::endl;
       AlwaysAssert(false);
       return false;
     }
-    Node peq = sumBound.eqNode(cpred);
-    cdp->addStep(peq, ProofRule::ARITH_POLY_NORM, {}, {peq});
     Node cceq = cpred.eqNode(ret);
     cdp->addStep(cceq, ProofRule::EVALUATE, {}, {cpred});
     Node sumEqFalse = sumBound.eqNode(ret);
@@ -423,15 +426,14 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     Trace("brc-macro") << "- true case, prove equal" << std::endl;
     Assert(lhs.getKind() == Kind::GEQ);
     // should be able to show equivalent by polynomial normalization
-    if (!theory::arith::PolyNorm::isArithPolyNormAtom(lhs, geq))
+    Node peq = lhs.eqNode(geq);
+    if (!ensureProofArithPolyNormRel(cdp, peq))
     {
       Trace("brc-macro") << "...failed to show normalization (true case) "
                          << lhs << " and " << geq << std::endl;
       AlwaysAssert(false);
       return false;
     }
-    Node peq = lhs.eqNode(geq);
-    cdp->addStep(peq, ProofRule::ARITH_POLY_NORM, {}, {peq});
     cdp->addStep(retEq, ProofRule::TRANS, {peq, teq}, {});
   }
   Trace("brc-macro") << "...success" << std::endl;
@@ -521,6 +523,31 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
   Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
   cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp, const Node& eq)
+{
+  Trace("brc-macro") << "Ensure arith poly norm rel: " << eq << std::endl;
+  Rational rx, ry;
+  if (!theory::arith::PolyNorm::isArithPolyNormRel(eq[0], eq[1], rx, ry))
+  {
+    Trace("brc-macro") << "...fail rule" << std::endl;
+    return false;
+  }
+  Node premise = theory::arith::PolyNorm::getArithPolyNormRelPremise(eq[0], eq[1], rx, ry);
+  Trace("brc-macro") << "Show " << premise << " by arith poly norm" << std::endl;
+  if (!cdp->addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise}))
+  {
+    Trace("brc-macro") << "...fail premise" << std::endl;
+    return false;
+  }
+  Node kn = ProofRuleChecker::mkKindNode(eq[0].getKind());
+  if (!cdp->addStep(eq, ProofRule::ARITH_POLY_NORM_REL, {premise}, {kn}))
+  {
+    Trace("brc-macro") << "...fail application" << std::endl;
+    return false;
+  }
   return true;
 }
 

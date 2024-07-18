@@ -32,7 +32,7 @@ void PolyNorm::addMonomial(TNode x, const Rational& c, bool isNeg)
   {
     return;
   }
-  std::unordered_map<Node, Rational>::iterator it = d_polyNorm.find(x);
+  std::map<Node, Rational>::iterator it = d_polyNorm.find(x);
   if (it == d_polyNorm.end())
   {
     d_polyNorm[x] = isNeg ? -c : c;
@@ -64,7 +64,7 @@ void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
   }
   else
   {
-    std::unordered_map<Node, Rational> ptmp = d_polyNorm;
+    std::map<Node, Rational> ptmp = d_polyNorm;
     d_polyNorm.clear();
     for (const std::pair<const Node, Rational>& m : ptmp)
     {
@@ -140,7 +140,7 @@ void PolyNorm::multiply(const PolyNorm& p)
   {
     // If multiplying by sum, must distribute; if multiplying by zero, clear.
     // First, remember the current state and clear.
-    std::unordered_map<Node, Rational> ptmp = d_polyNorm;
+    std::map<Node, Rational> ptmp = d_polyNorm;
     d_polyNorm.clear();
     for (const std::pair<const Node, Rational>& m : p.d_polyNorm)
     {
@@ -163,7 +163,7 @@ bool PolyNorm::isEqual(const PolyNorm& p) const
   {
     return false;
   }
-  std::unordered_map<Node, Rational>::const_iterator it;
+  std::map<Node, Rational>::const_iterator it;
   for (const std::pair<const Node, Rational>& m : d_polyNorm)
   {
     Assert(m.second.sgn() != 0);
@@ -202,7 +202,7 @@ bool PolyNorm::isEqualMod(const PolyNorm& p, Rational& c) const
   }
   bool firstTime = true;
   c = Rational(1);
-  std::unordered_map<Node, Rational>::const_iterator it;
+  std::map<Node, Rational>::const_iterator it;
   for (const std::pair<const Node, Rational>& m : d_polyNorm)
   {
     Assert(m.second.sgn() != 0);
@@ -527,6 +527,43 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
   Assert(cb.sgn() != 0);
   // if equal, can be negative. Notice this shortcuts symmetry of equality.
   return k == Kind::EQUAL || ca.sgn() == cb.sgn();
+}
+
+Node PolyNorm::getArithPolyNormRelPremise(TNode a, TNode b, const Rational& rx, const Rational& ry)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  Node lhs, rhs;
+  if (a[0].getType().isBitVector())
+  {
+    uint32_t wa = a[0].getType().getBitVectorSize();
+    uint32_t wb = b[0].getType().getBitVectorSize();
+    Node cx = nm->mkConst(BitVector(wa, rx.getNumerator()));
+    Node cy = nm->mkConst(BitVector(wb, ry.getNumerator()));
+    Node x = nm->mkNode(Kind::BITVECTOR_SUB, a[0], a[1]);
+    Node y = nm->mkNode(Kind::BITVECTOR_SUB, b[0], b[1]);
+    lhs = nm->mkNode(Kind::BITVECTOR_MULT, cx, x);
+    rhs = nm->mkNode(Kind::BITVECTOR_MULT, cy, y);
+  }
+  else
+  {
+    Node x = nm->mkNode(Kind::SUB, a[0], a[1]);
+    Node y = nm->mkNode(Kind::SUB, b[0], b[1]);
+    Node cx, cy;
+    // Equality does not support mixed arithmetic, so we eliminate it here.
+    if (x.getType().isInteger() && y.getType().isInteger())
+    {
+      cx = nm->mkConstInt(rx);
+      cy = nm->mkConstInt(ry);
+    }
+    else
+    {
+      cx = nm->mkConstReal(rx);
+      cy = nm->mkConstReal(ry);
+    }
+    lhs = nm->mkNode(Kind::MULT, cx, x);
+    rhs = nm->mkNode(Kind::MULT, cy, y);
+  }
+  return lhs.eqNode(rhs);
 }
 
 PolyNorm PolyNorm::mkDiff(TNode a, TNode b)
