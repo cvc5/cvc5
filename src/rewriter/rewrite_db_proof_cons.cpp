@@ -527,7 +527,6 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       {
         return false;
       }
-      NodeManager* nm = nodeManager();
       Node premise = theory::arith::PolyNorm::getArithPolyNormRelPremise(
           target[0], target[1], rx, ry);
       ProvenInfo ppremise;
