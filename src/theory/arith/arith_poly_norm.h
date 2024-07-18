@@ -107,6 +107,14 @@ class PolyNorm
    */
   static PolyNorm mkDiff(TNode a, TNode b);
   /**
+   * Are pa and pb equal polynomial normalizations of terms of type t? If t
+   * is a bitvector type, then the coefficients of pa and pb are taken
+   * modulo 2 to the bitwidth.
+   */
+  static bool areEqualPolyNormTyped(const TypeNode& t,
+                                    PolyNorm& pa,
+                                    PolyNorm& pb);
+  /**
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.
    */
