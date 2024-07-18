@@ -25,7 +25,7 @@
 (program $mk_skolems ((x @List) (xs @List :list) (F Bool) (i Int))
   (@List Bool Int) @List
   (
-    (($mk_skolems (@list x xs) F i) (alf.cons @list (@quantifiers_skolemize F i) ($mk_skolems xs F (alf.add i 0))))
+    (($mk_skolems (@list x xs) F i) (alf.cons @list (@quantifiers_skolemize F i) ($mk_skolems xs F (alf.add i 1))))
     (($mk_skolems @list.nil F i)    @list.nil)
   )
 )
