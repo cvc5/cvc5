@@ -372,6 +372,9 @@ void InputParser::appendIncrementalStringInput(const std::string& input)
          "appendIncrementalStringInput";
   //////// all checks before this line
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
+  // Since the parser is not notified here, we must manually mark the parser is not done. See issue #11069.
+  d_parser->markNotDone();
+  // append it to the input
   d_istringStream << input;
   ////////
   CVC5_API_TRY_CATCH_END;

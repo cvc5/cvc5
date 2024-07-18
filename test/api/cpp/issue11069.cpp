@@ -65,4 +65,5 @@ int main()
   result = slv.checkSat();
   std::cout << "Result:" << result << std::endl;
   Assert (result.isUnsat());
+  return 0;
 }

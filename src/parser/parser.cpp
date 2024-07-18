@@ -117,6 +117,11 @@ Term Parser::nextTerm()
 
 bool Parser::done() const { return d_done; }
 
+void Parser::markNotDone()
+{
+  d_done = false;
+}
+
 std::unique_ptr<Parser> Parser::mkParser(modes::InputLanguage lang,
                                          Solver* solver,
                                          SymManager* sm)
