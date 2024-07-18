@@ -529,9 +529,12 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
   return k == Kind::EQUAL || ca.sgn() == cb.sgn();
 }
 
-Node PolyNorm::getArithPolyNormRelPremise(TNode a, TNode b, const Rational& rx, const Rational& ry)
+Node PolyNorm::getArithPolyNormRelPremise(TNode a,
+                                          TNode b,
+                                          const Rational& rx,
+                                          const Rational& ry)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node lhs, rhs;
   if (a[0].getType().isBitVector())
   {
