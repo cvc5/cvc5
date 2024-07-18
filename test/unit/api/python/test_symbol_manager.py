@@ -23,7 +23,7 @@ def tm():
 def solver(tm):
     return cvc5.Solver(tm)
 
-def constructor(tm, solver):
+def test_constructor(tm, solver):
     SymbolManager(tm)
     SymbolManager(solver) # deprecated
 

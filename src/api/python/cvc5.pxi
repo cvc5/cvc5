@@ -199,7 +199,7 @@ cdef class SymbolManager:
         # backwards compatibility, deprecated
         elif isinstance(tm, Solver):
             self.csm = new c_SymbolManager(dereference((<Solver?>tm).tm.ctm))
-            self.tm = tm.tm
+            self.tm = (<Solver?>tm).tm
         else:
           raise ValueError("Expecting a non-negative integer or string")
 
