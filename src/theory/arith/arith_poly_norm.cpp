@@ -439,7 +439,8 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
 
 bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
 {
-  Assert(!a.getType().isBoolean());
+  TypeNode at = a.getType();
+  Assert(!at.isBoolean());
   if (a == b)
   {
     return true;
