@@ -527,39 +527,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       {
         return false;
       }
-      NodeManager* nm = nodeManager();
-      Node lhs, rhs;
-      if (target[0][0].getType().isBitVector())
-      {
-        uint32_t wa = target[0][0].getType().getBitVectorSize();
-        uint32_t wb = target[1][0].getType().getBitVectorSize();
-        Node cx = nm->mkConst(BitVector(wa, rx.getNumerator()));
-        Node cy = nm->mkConst(BitVector(wb, ry.getNumerator()));
-        Node x = nm->mkNode(Kind::BITVECTOR_SUB, target[0][0], target[0][1]);
-        Node y = nm->mkNode(Kind::BITVECTOR_SUB, target[1][0], target[1][1]);
-        lhs = nm->mkNode(Kind::BITVECTOR_MULT, cx, x);
-        rhs = nm->mkNode(Kind::BITVECTOR_MULT, cy, y);
-      }
-      else
-      {
-        Node x = nm->mkNode(Kind::SUB, target[0][0], target[0][1]);
-        Node y = nm->mkNode(Kind::SUB, target[1][0], target[1][1]);
-        Node cx, cy;
-        // Equality does not support mixed arithmetic, so we eliminate it here.
-        if (x.getType().isInteger() && y.getType().isInteger())
-        {
-          cx = nm->mkConstInt(rx);
-          cy = nm->mkConstInt(ry);
-        }
-        else
-        {
-          cx = nm->mkConstReal(rx);
-          cy = nm->mkConstReal(ry);
-        }
-        lhs = nm->mkNode(Kind::MULT, cx, x);
-        rhs = nm->mkNode(Kind::MULT, cy, y);
-      }
-      Node premise = lhs.eqNode(rhs);
+      Node premise = theory::arith::PolyNorm::getArithPolyNormRelPremise(
+          target[0], target[1], rx, ry);
       ProvenInfo ppremise;
       ppremise.d_id = id;
       d_pcache[premise] = ppremise;
