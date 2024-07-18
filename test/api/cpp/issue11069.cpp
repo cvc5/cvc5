@@ -15,6 +15,7 @@
 #include <cvc5/cvc5.h>
 
 #include <cassert>
+#include <iostream>
 
 using namespace cvc5;
 using namespace cvc5::parser;
@@ -65,5 +66,6 @@ int main()
   }
   result = slv.checkSat();
   std::cout << "Result:" << result << std::endl;
+  assert(result.isUnsat());
   return 0;
 }
