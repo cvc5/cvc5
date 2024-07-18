@@ -189,31 +189,68 @@
   :conclusion (= t (run_evaluate t))
 )
 
-(program $is_poly_norm ((T Type) (U Type) (a T) (b T) (a1 U) (a2 U) (b1 U) (b2 U))
-  (T T) Bool
-  (
-    (($is_poly_norm (> a1 a2) (> b1 b2))   ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    (($is_poly_norm (>= a1 a2) (>= b1 b2)) ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    (($is_poly_norm (<= a1 a2) (<= b1 b2)) ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    (($is_poly_norm (< a1 a2) (< b1 b2))   ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) true))
-    (($is_poly_norm (= a1 a2) (= b1 b2))   (alf.ite (is_arith_type (alf.typeof a1)) 
-                                           (alf.ite (is_arith_type (alf.typeof b1))
-                                             ($is_poly_norm_arith_mod_c (- a1 a2) (- b1 b2) false)
-                                             false)
-                                           false)) ; TODO: bv
-    (($is_poly_norm a b)                   (alf.ite (is_arith_type (alf.typeof a)) 
-                                           (alf.ite (is_arith_type (alf.typeof b))
-                                             ($is_poly_norm_arith a b)
-                                             false)
-                                           false)) ; TODO: bv
-  )
-)
-
-; ProofRule::ARITH_POLY_NORM
+; rule: arith_poly_norm
+; implements: ProofRule::ARITH_POLY_NORM
+; args:
+; - a U: The left-hand side of the equality.
+; - b U: The right-hand side of the equality.
+; requires: >
+;   That the arithmetic/bitvector terms a and b are equal up polynomial
+;   normalization.
+; note: >
+;   The current implementation of $is_poly_norm does not support bitvectors.
+;   Therefore, cvc5 will not output this rule for bitvector proofs; instead, it
+;   will output a trust rule.
+; conclusion: The given equality.
 (declare-rule arith_poly_norm ((U Type) (a U) (b U))
   :args ((= a b))
   :requires ((($is_poly_norm a b) true))
   :conclusion (= a b)
+)
+
+; define: $is_poly_norm_rel
+; args:
+; - b Bool: >
+;   a formula of the form (r cx cy) where r is a binary relation and cx and
+;   cy are scaling factors.
+; return: >
+;   The result of checking if r is a polynomial normalization relation for a
+;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
+;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
+;   scaling factors must have the same sign. For bitvectors, they must be set to
+;   1. Returns false for any other relation.
+(program $is_poly_norm_rel ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
+  (Bool) Bool
+  (
+    (($is_poly_norm_rel (< cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel (<= cx cy)) (alf.is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel (= cx cy))  (alf.ite (alf.and (alf.is_bin cx) (alf.is_bin cy))
+                                      (alf.and (= cx (alf.to_bin (alf.len cx) 1)) (= cy (alf.to_bin (alf.len cy) 1)))
+                                      (alf.and (is_arith_type (alf.typeof cx)) (is_arith_type (alf.typeof cy)))))
+    (($is_poly_norm_rel (>= cx cy)) (alf.is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel (> cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel b)          false)
+  )
+)
+
+; rule: arith_poly_norm_rel
+; implements: ProofRule::ARITH_POLY_NORM_REL
+; premises:
+; - eq Bool: >
+;   An equality stating that (- x1 x2) and (- y1 y2) are equal modulo polynomial
+;   normalization and scaling factors cx and cy.
+; args:
+; - r (-> U U Bool): The relation whose equivalence is proven by this rule.
+; requires: >
+;   That r is a polynomial normalization relation. If r is an arithmetic
+;   inequality, the scaling factors must have the same sign. For bitvectors,
+;   they must be set to 1.
+; conclusion: The given equality.
+(declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x1 U) (x2 U) (y1 U) (y2 U) (cx U) (cy U))
+  :premises ((= (* cx (- x1 x2)) (* cy (- y1 y2))))
+  :args (r)
+  :requires ((($is_poly_norm_rel (r cx cy)) true))
+  :conclusion (= (r x1 x2) (r y1 y2))
 )
 
 ; define: $get_aci_normal_form
