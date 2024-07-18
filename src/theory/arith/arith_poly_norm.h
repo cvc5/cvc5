@@ -95,6 +95,11 @@ class PolyNorm
    * or if a/b are bitvector and ~ is in {=}.
    */
   static bool isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb);
+  /**
+   * Get the premise for ProofRule::ARITH_POLY_NORM_REL for a == b, where
+   * ca and cb are the rationals returned by the above method.
+   */
+  static Node getArithPolyNormRelPremise(TNode a, TNode b, const Rational& ca, const Rational& cb);
 
   /**
    * Return the normalized form of (arithmetic) term a based on the techniques
@@ -123,7 +128,7 @@ class PolyNorm
   /** Get the list of variables whose product is m */
   static std::vector<TNode> getMonoVars(TNode m);
   /** The data, mapping monomial variables to coefficients */
-  std::unordered_map<Node, Rational> d_polyNorm;
+  std::map<Node, Rational> d_polyNorm;
 };
 
 }  // namespace arith
