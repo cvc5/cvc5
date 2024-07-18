@@ -33,7 +33,8 @@ int main()
 
   std::string input1("(declare-const x (_ BitVec 4))\n(assert (= x #b0001))\n");
 
-  parser.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "myInput");
+  parser.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                                   "myInput");
   parser.appendIncrementalStringInput(input1);
 
   // parse commands until finished
@@ -64,6 +65,6 @@ int main()
   }
   result = slv.checkSat();
   std::cout << "Result:" << result << std::endl;
-  Assert (result.isUnsat());
+  Assert(result.isUnsat());
   return 0;
 }
