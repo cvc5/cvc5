@@ -56,7 +56,7 @@ int main()
   std::string input2("(assert (= x #b0101))");
   parser.appendIncrementalStringInput(input2);
   cmd = parser.nextCommand();
-  assert (!cmd.null());
+  assert (!cmd.isNull());
   cmd.invoke(&slv, &sm, std::cout);
   
   result = slv.checkSat();
