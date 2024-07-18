@@ -15,13 +15,11 @@
 
 if(NOT ONLY_PYTHON_EXT_SRC)
   # Python modules for building:
-  if(WIN32)
-    # Version 70.2.0 is broken on Windows. Require 70.3.0
-    # See https://github.com/pypa/distutils/issues/268
-    find_package(Setuptools 70.3.0 REQUIRED)
-  else()
-    find_package(Setuptools 66.1.0 REQUIRED)
-  endif()
+  # Version 70.2.0 is broken on Windows.
+  #   See https://github.com/pypa/distutils/issues/268
+  # Version 71.0.1 is broken on all platforms.
+  # Install exact version 70.3.0 as a workaround.
+  find_package(Setuptools 70.3.0 EXACT REQUIRED)
   find_package(Cython 3.0.0 REQUIRED)
   # Python modules for installing:
   find_package(Pip 23.0 REQUIRED)
