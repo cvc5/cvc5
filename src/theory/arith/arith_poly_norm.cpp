@@ -440,6 +440,20 @@ bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
   // We impose no type requirements here.
   PolyNorm pa = PolyNorm::mkPolyNorm(a);
   PolyNorm pb = PolyNorm::mkPolyNorm(b);
+  return areEqualPolyNormTyped(at, pa, pb);
+}
+
+bool PolyNorm::areEqualPolyNormTyped(const TypeNode& t,
+                                     PolyNorm& pa,
+                                     PolyNorm& pb)
+{
+  // do modulus by 2^bitwidth if bitvectors
+  if (t.isBitVector())
+  {
+    Rational w = Rational(Integer(2).pow(t.getBitVectorSize()));
+    pa.modCoeffs(w);
+    pb.modCoeffs(w);
+  }
   return pa.isEqual(pb);
 }
 
@@ -487,15 +501,8 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   // if a non-arithmetic equality
   if (k == Kind::EQUAL && !eqtn.isRealOrInt())
   {
-    if (eqtn.isBitVector())
-    {
-      // for bitvectors, take modulo 2^w on coefficients
-      Rational w = Rational(Integer(2).pow(eqtn.getBitVectorSize()));
-      pa.modCoeffs(w);
-      pb.modCoeffs(w);
-    }
-    // Check for equality. notice that we don't insist on any type here.
-    return pa.isEqual(pb);
+    // Check for equality, taking modulo 2^w on coefficients.
+    return areEqualPolyNormTyped(eqtn, pa, pb);
   }
   // check if the two polynomials are equal modulo a constant coefficient
   // in other words, x ~ y is equivalent to z ~ w if
