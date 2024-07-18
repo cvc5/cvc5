@@ -491,6 +491,9 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
   // if a non-arithmetic equality
   if (k == Kind::EQUAL && !eqtn.isRealOrInt())
   {
+    // pa and pb must be equal with no scaling factors.
+    ca = Rational(1);
+    cb = Rational(1);
     if (eqtn.isBitVector())
     {
       // for bitvectors, take modulo 2^w on coefficients
@@ -513,7 +516,7 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
     return false;
   }
   Assert(ca.sgn() != 0);
-  Assert(ca.sgn() != 0);
+  Assert(cb.sgn() != 0);
   // if equal, can be negative. Notice this shortcuts symmetry of equality.
   return k == Kind::EQUAL || ca.sgn() == cb.sgn();
 }

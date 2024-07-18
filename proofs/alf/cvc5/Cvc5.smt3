@@ -195,7 +195,7 @@
 ; - a U: The left-hand side of the equality.
 ; - b U: The right-hand side of the equality.
 ; requires: >
-;   That the arithmetic/bitvector expressions a and b are equal up polynomial
+;   That the arithmetic/bitvector terms a and b are equal up polynomial
 ;   normalization.
 ; note: >
 ;   The current implementation of $is_poly_norm does not support bitvectors.
@@ -210,13 +210,15 @@
 
 ; define: $is_poly_norm_rel
 ; args:
-; - r (-> U U Bool): The binary relation to check.
-; - cx U: The scaling factor for (- x1 x2).
-; - cy U: The scaling factor for (- y1 y2).
+; - b Bool: >
+;   a formula of the form (r cx cy) where r is a binary relation and cx and
+;   cy are scaling factors.
 ; return: >
-;   The result of checking if r is a polynomial normalization relation. If r is
-;   any of '<', '<=', '>=', '>', the scaling factors must have the same sign.
-;   For bitvectors, they must be set to 1. Returns false for any other relation.
+;   The result of checking if r is a polynomial normalization relation for a
+;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
+;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
+;   scaling factors must have the same sign. For bitvectors, they must be set to
+;   1. Returns false for any other relation.
 (program $is_poly_norm_rel ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
   (Bool) Bool
   (

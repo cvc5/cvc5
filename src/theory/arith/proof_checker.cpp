@@ -426,13 +426,15 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       }
       Node l = children[0][0];
       Node r = children[0][1];
-      if (l.getKind() != Kind::MULT || r.getKind() != Kind::MULT)
+      if ((l.getKind() != Kind::MULT && l.getKind() != Kind::BITVECTOR_MULT)
+          || (r.getKind() != Kind::MULT && r.getKind() != Kind::BITVECTOR_MULT))
       {
         return Node::null();
       }
       Node lr = l[1];
       Node rr = r[1];
-      if (lr.getKind() != Kind::SUB || rr.getKind() != Kind::SUB)
+      if ((lr.getKind() != Kind::SUB && lr.getKind() != Kind::BITVECTOR_SUB)
+          || (rr.getKind() != Kind::SUB && rr.getKind() != Kind::BITVECTOR_SUB))
       {
         return Node::null();
       }
@@ -442,18 +444,10 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       Node cy = r[0];
       Node y1 = rr[0];
       Node y2 = rr[1];
-      if (cx.getKind() == Kind::CONST_RATIONAL
-          && cy.getKind() == Kind::CONST_RATIONAL)
-      {
-        Rational c1 = cx.getConst<Rational>();
-        Rational c2 = cy.getConst<Rational>();
-        if (k != Kind::EQUAL && c1.sgn() != c2.sgn())
-        {
-          return Node::null();
-        }
-      }
-      if (cx.getKind() == Kind::CONST_INTEGER
-          && cy.getKind() == Kind::CONST_INTEGER)
+      if ((cx.getKind() == Kind::CONST_INTEGER
+           || cx.getKind() == Kind::CONST_RATIONAL)
+          && (cy.getKind() == Kind::CONST_INTEGER
+              || cy.getKind() == Kind::CONST_RATIONAL))
       {
         Rational c1 = cx.getConst<Rational>();
         Rational c2 = cy.getConst<Rational>();
@@ -468,7 +462,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         BitVector c1 = cx.getConst<BitVector>();
         BitVector c2 = cy.getConst<BitVector>();
         BitVector one = BitVector::mkOne(c1.getSize());
-        if (c1 != one && c2 != one)
+        if (c1 != one || c2 != one)
         {
           return Node::null();
         }
