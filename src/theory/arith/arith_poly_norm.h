@@ -99,7 +99,10 @@ class PolyNorm
    * Get the premise for ProofRule::ARITH_POLY_NORM_REL for a == b, where
    * ca and cb are the rationals returned by the above method.
    */
-  static Node getArithPolyNormRelPremise(TNode a, TNode b, const Rational& ca, const Rational& cb);
+  static Node getArithPolyNormRelPremise(TNode a,
+                                         TNode b,
+                                         const Rational& ca,
+                                         const Rational& cb);
 
   /**
    * Return the normalized form of (arithmetic) term a based on the techniques

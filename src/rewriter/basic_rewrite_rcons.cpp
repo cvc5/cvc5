@@ -365,7 +365,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
   }
   Node retEq = lhs.eqNode(ret);
   if (!ret.getConst<bool>())
-  { 
+  {
     Trace("brc-macro") << "- false case, setting up conflict" << std::endl;
     cdp->addStep(geq, ProofRule::TRUE_ELIM, {teq}, {});
     Assert(exp.getKind() == Kind::SUB);
@@ -526,7 +526,8 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   return true;
 }
 
-bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp, const Node& eq)
+bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
+                                                    const Node& eq)
 {
   Trace("brc-macro") << "Ensure arith poly norm rel: " << eq << std::endl;
   Rational rx, ry;
@@ -535,8 +536,10 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp, const Node& eq
     Trace("brc-macro") << "...fail rule" << std::endl;
     return false;
   }
-  Node premise = theory::arith::PolyNorm::getArithPolyNormRelPremise(eq[0], eq[1], rx, ry);
-  Trace("brc-macro") << "Show " << premise << " by arith poly norm" << std::endl;
+  Node premise =
+      theory::arith::PolyNorm::getArithPolyNormRelPremise(eq[0], eq[1], rx, ry);
+  Trace("brc-macro") << "Show " << premise << " by arith poly norm"
+                     << std::endl;
   if (!cdp->addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise}))
   {
     Trace("brc-macro") << "...fail premise" << std::endl;
