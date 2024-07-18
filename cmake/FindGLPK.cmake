@@ -114,12 +114,12 @@ if(NOT GLPK_FOUND_SYSTEM)
             --prefix=<INSTALL_DIR> --disable-shared
             --enable-static --with-pic ${CONFIGURE_OPTS}
     BUILD_COMMAND ${MAKE_CMD} install
-    BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libglpk.a
+    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libglpk.a
                      <INSTALL_DIR>/include/glpk.h
   )
 
   set(GLPK_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(GLPK_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libglpk.a")
+  set(GLPK_LIBRARIES "${DEPS_BASE}/lib/libglpk.a")
 endif()
 
 set(GLPK_FOUND TRUE)

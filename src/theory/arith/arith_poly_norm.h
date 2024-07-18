@@ -50,6 +50,8 @@ class PolyNorm
   void subtract(const PolyNorm& p);
   /** Multiply this polynomial by p */
   void multiply(const PolyNorm& p);
+  /** Multiply the coefficients of this polynomial by constant c */
+  void mulCoeffs(const Rational& c);
   /**
    * Modulus the coefficients of this polynomial by constant c, where c must be
    * integral.
@@ -85,15 +87,14 @@ class PolyNorm
    */
   static bool isArithPolyNorm(TNode a, TNode b);
   /**
-   * Do atoms a and b normalize to an atom over the same polynomial?
-   * In particular, for relations a1 ~ a2 / b1 ~ b2, we return true
-   * if the normalization of (a1-a2) is equivalent to the normalization of
-   * (b1-b2).
+   * Do atoms a and b normalize to a relation over the same polynomial?
+   * In particular, for relations a1 ~ a2 / b1 ~ b2, we return true if the
+   * normalization of ca(a1-a2) is equivalent to the normalization of cb(b1-b2).
    *
    * This method can return true if a/b are Int/Real and ~ is in {=,>=,>,<=,<}
    * or if a/b are bitvector and ~ is in {=}.
    */
-  static bool isArithPolyNormAtom(TNode a, TNode b);
+  static bool isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb);
 
   /**
    * Return the normalized form of (arithmetic) term a based on the techniques
@@ -106,6 +107,14 @@ class PolyNorm
    * Make the difference of two nodes a and b, independent of their type.
    */
   static PolyNorm mkDiff(TNode a, TNode b);
+  /**
+   * Are pa and pb equal polynomial normalizations of terms of type t? If t
+   * is a bitvector type, then the coefficients of pa and pb are taken
+   * modulo 2 to the bitwidth.
+   */
+  static bool areEqualPolyNormTyped(const TypeNode& t,
+                                    PolyNorm& pa,
+                                    PolyNorm& pb);
   /**
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.

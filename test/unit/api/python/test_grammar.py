@@ -154,33 +154,47 @@ def tesT_hash(tm, solver):
     g2 = solver.mkGrammar({}, {start1})
     assert hash(g1) == hash(g1)
     assert hash(g1) == hash(g2)
+    assert g1 == g1
+    assert g1 != g2
 
     g1 = solver.mkGrammar({}, {start1})
     g2 = solver.mkGrammar({x}, {start1})
     assert hash(g1) != hash(g2)
+    assert g1 == g1
+    assert g1 != g2
 
     g1 = solver.mkGrammar({x}, {start1})
     g2 = solver.mkGrammar({x}, {start2})
     assert hash(g1) == hash(g2)
+    assert g1 == g1
+    assert g1 != g2
 
     g1 = solver.mkGrammar({x}, {start1})
     g2 = solver.mkGrammar({x}, {start1})
     g2.addAnyVariable(start1)
     assert hash(g1) != hash(g2)
+    assert g1 == g1
+    assert g1 != g2
 
     g1 = solver.mkGrammar({x}, {start1})
     g2 = solver.mkGrammar({x}, {start1})
     g1.addRules(start1, tm.mkFalse())
     g2.addRules(start1, tm.mkFalse())
     assert hash(g1) == hash(g2)
+    assert g1 == g1
+    assert g1 != g2
 
     g1 = solver.mkGrammar({x}, {start1})
     g2 = solver.mkGrammar({x}, {start1})
     g2.addRules(start1, tm.mkFalse())
     assert hash(g1) != hash(g2)
+    assert g1 == g1
+    assert g1 != g2
 
     g1 = solver.mkGrammar({x}, {start1})
     g2 = solver.mkGrammar({x}, {start1})
     g1.addRules(start1, tm.mkTrue())
     g2.addRules(start1, tm.mkFalse())
     assert hash(g1) != hash(g2)
+    assert g1 == g1
+    assert g1 != g2

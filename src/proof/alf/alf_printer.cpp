@@ -123,6 +123,14 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     case ProofRule::ARITH_TRICHOTOMY:
+    case ProofRule::ARITH_TRANS_EXP_NEG:
+    case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
+    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN:
+    case ProofRule::ARITH_TRANS_EXP_ZERO:
+    case ProofRule::ARITH_TRANS_SINE_BOUNDS:
+    case ProofRule::ARITH_TRANS_SINE_SYMMETRY:
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO:
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_PI:
     case ProofRule::INT_TIGHT_LB:
     case ProofRule::INT_TIGHT_UB:
     case ProofRule::SKOLEM_INTRO:
@@ -149,6 +157,11 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:
     case ProofRule::DSL_REWRITE: return true;
+    case ProofRule::BV_BITBLAST_STEP:
+    {
+      return isHandledBitblastStep(pfn->getArguments()[0]);
+    }
+    break;
     case ProofRule::THEORY_REWRITE:
     {
       ProofRewriteRule id;
@@ -160,11 +173,16 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     {
       // we don't support bitvectors yet
       Assert(pargs[0].getKind() == Kind::EQUAL);
-      if (pargs[0][0].getType().isBoolean())
-      {
-        return pargs[0][0][0].getType().isRealOrInt();
-      }
       return pargs[0][0].getType().isRealOrInt();
+    }
+    break;
+    case ProofRule::ARITH_POLY_NORM_REL:
+    {
+      // we don't support bitvectors yet
+      Node res = pfn->getResult();
+      Assert(res.getKind() == Kind::EQUAL);
+      Assert(res[0].getType().isBoolean());
+      return res[0][0].getType().isRealOrInt();
     }
     break;
     case ProofRule::STRING_REDUCTION:
@@ -214,6 +232,26 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
     case ProofRewriteRule::STR_IN_RE_CONSUME: return true;
     default: break;
+  }
+  return false;
+}
+
+bool AlfPrinter::isHandledBitblastStep(const Node& eq) const
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  if (eq[0].isVar())
+  {
+    return true;
+  }
+  switch (eq[0].getKind())
+  {
+    case Kind::CONST_BITVECTOR:
+    case Kind::BITVECTOR_EXTRACT:
+    case Kind::BITVECTOR_CONCAT:
+    case Kind::EQUAL: return true;
+    default:
+      Trace("alf-printer-debug") << "Cannot bitblast  " << eq[0] << std::endl;
+      break;
   }
   return false;
 }
@@ -308,6 +346,7 @@ bool AlfPrinter::canEvaluate(Node n) const
 
 bool AlfPrinter::canEvaluateRegExp(Node r) const
 {
+  Assert(r.getType().isRegExp());
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
@@ -360,10 +399,10 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
   ProofRule r = pfn->getRule();
   if (r == ProofRule::DSL_REWRITE)
   {
-    ProofRewriteRule dr;
-    rewriter::getRewriteRule(pfn->getArguments()[0], dr);
+    ProofRewriteRule id;
+    rewriter::getRewriteRule(pfn->getArguments()[0], id);
     std::stringstream ss;
-    ss << dr;
+    ss << id;
     return ss.str();
   }
   else if (r == ProofRule::THEORY_REWRITE)
@@ -563,7 +602,8 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       else
       {
         // [2] print the types
-        smt::PrintBenchmark pb(Printer::getPrinter(out), &d_tproc);
+        printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
+        smt::PrintBenchmark pb(&alfp, &d_tproc);
         std::stringstream outFuns;
         pb.printDeclarationsFrom(out, outFuns, definitions, assertions);
         // [3] print the universal variables
@@ -708,6 +748,7 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   {
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
+    case ProofRule::ARITH_POLY_NORM_REL:
     {
       Node op = d_tproc.getOperatorOfTerm(res[0], true);
       args.push_back(d_tproc.convert(op));
@@ -843,7 +884,15 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   {
     if (!options().proof.alfAllowTrust)
     {
-      Unreachable() << "An ALF proof equires a trust step for " << pn->getRule()
+      std::stringstream ss;
+      ss << pn->getRule();
+      if (pn->getRule() == ProofRule::THEORY_REWRITE)
+      {
+        ProofRewriteRule prid;
+        rewriter::getRewriteRule(pn->getArguments()[0], prid);
+        ss << " (" << prid << ")";
+      }
+      Unreachable() << "An ALF proof equires a trust step for " << ss.str()
                     << ", but --" << options::proof::longName::alfAllowTrust
                     << " is false" << std::endl;
     }

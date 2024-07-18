@@ -169,7 +169,7 @@ class CVC5_EXPORT Command
  private:
   /**
    * Constructor.
-   * @param n The internal command that is to be wrapped by this command.
+   * @param cmd The internal command that is to be wrapped by this command.
    * @return The Command.
    */
   Command(std::shared_ptr<Cmd> cmd);
@@ -259,7 +259,7 @@ class CVC5_EXPORT InputParser
    * @param input The input string.
    * @param name  The name to use as input stream name for error messages.
    */
-  void setStringInput(modes::InputLanguage,
+  void setStringInput(modes::InputLanguage lang,
                       const std::string& input,
                       const std::string& name);
 

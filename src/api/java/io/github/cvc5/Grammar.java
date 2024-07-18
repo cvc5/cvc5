@@ -53,6 +53,33 @@ public class Grammar extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
+   * Referential equality operator.
+   *
+   * @param g The grammar to compare to for equality.
+   * @return True if the gramamrs point to the same internal grammar object.
+   */
+  @Override
+  public boolean equals(Object g)
+  {
+    if (this == g)
+    {
+      return true;
+    }
+    if (g == null || getClass() != g.getClass())
+    {
+      return false;
+    }
+    Grammar grammar = (Grammar) g;
+    if (pointer == grammar.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, grammar.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /**
    * Add {@code rule} to the set of rules corresponding to {@code ntSymbol}.
    * @param ntSymbol the non-terminal to which the rule is added.
    * @param rule the rule to add.
@@ -106,7 +133,10 @@ public class Grammar extends AbstractPointer
    */
   protected native String toString(long pointer);
 
-  /** @return The hash value of the grammar. */
+  /**
+   * Get the hash value of a grammar.
+   * @return The hash value.
+   */
   @Override
   public int hashCode()
   {

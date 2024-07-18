@@ -20,8 +20,9 @@ All binaries are built into ``<build_dir>/bin``, the cvc5 library is built into
 Supported Operating Systems
 ---------------------------
 
-cvc5 can be built natively on Linux and macOS, cross-compilation is possible for
-Windows using Mingw-w64. cvc5 also supports cross-compilation for ARM64 systems.
+cvc5 can be built natively on Linux and macOS. Native compilation on Windows is also
+possible using MSYS2. Additionally, cvc5 supports cross-compilation for x86_64 Windows
+using Mingw-w64 and for ARM64 on both Linux and macOS.
 We generally recommend a 64-bit operating system.
 
 
@@ -36,6 +37,20 @@ Note that linking system libraries statically is
 on macOS. Using ``./configure.sh --static`` will thus produce a binary
 that uses static versions of all our dependencies, but is still a dynamically
 linked binary.
+
+
+Compilation on Windows
+^^^^^^^^^^^^^^^^^^^^^^
+
+Install `MSYS2 <https://www.msys2.org/>`_ and `Python <https://www.python.org/downloads/windows/>`_ on your system.
+Launch a `MINGW64 environment <https://www.msys2.org/docs/environments/>`_ and
+install the required packages for building cvc5:
+
+.. code:: bash
+
+  pacman -S git make mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-x86_64-gmp zip
+
+Clone the cvc5 repository and follow the general build steps above.
 
 
 Cross-compiling for Windows

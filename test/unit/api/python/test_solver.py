@@ -1042,6 +1042,7 @@ def test_get_statistics(tm, solver):
     assert len([s for s in stats]) > 0
 
     for s in stats:
+        str(s)
         if s[0] == 'theory::arrays::avgIndexListLength':
             assert s[1]['internal']
             assert s[1]['default']

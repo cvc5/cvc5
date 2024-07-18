@@ -1,9 +1,13 @@
 (include "../theories/Ints.smt3")
 
+; note: We do not currently check that the index of this sort is positive.
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
-; Returns the (integer value) bitwidth for a given bit-vector type.
+; define: $bv_bitwidth
+; args:
+; - T Type: The bitvector type.
+; return: The (integer value) bitwidth for a given bit-vector type.
 (define $bv_bitwidth ((T Type))
   (alf.match ((n Int)) T (((BitVec n) n)))
 )
@@ -24,7 +28,8 @@
     )
 )
 
-; used as the nil terminator for concat
+; define: @bv_empty
+; return: The empty bitvector.
 (define @bv_empty () (alf.to_bin 0 0))
 
 (declare-const concat (->
@@ -35,6 +40,9 @@
   (BitVec (alf.add n m))) :right-assoc-nil @bv_empty
 )
 
+; disclaimer: >
+;   The type of this function currently permits evaluatable terms as
+;   indices to support RARE.
 (declare-const extract (->
   (! Int :var n :implicit)
   (! Int :var h)
@@ -43,6 +51,9 @@
   (BitVec (alf.add ($eval_bv_sym h) (alf.neg ($eval_bv_sym l)) 1)))
 )
 
+; disclaimer: >
+;   The type of this function currently permits evaluatable terms as
+;   indices to support RARE.
 (declare-const repeat 
     (-> (! Int :var n :implicit)
         (! Int :var i)
@@ -56,11 +67,17 @@
         (BitVec m) (BitVec m))
 )
 
+; disclaimer: >
+;   This function is declared to be binary in SMT-LIB. We declare it
+;   with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvand ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.not (alf.to_bin m 0))
 )
 
+; disclaimer: >
+;   This function is declared to be binary in SMT-LIB. We declare it
+;   with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvor ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.to_bin m 0)
@@ -76,6 +93,9 @@
         (BitVec m) (BitVec m) (BitVec m)) 
 )
 
+; disclaimer: >
+;   This function is declared to be binary in SMT-LIB. We declare it
+;   with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvxor ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.to_bin m 0)
@@ -96,11 +116,17 @@
         (BitVec m) (BitVec m))
 )
 
+; disclaimer: >
+;   This function is declared to be binary in SMT-LIB. We declare it
+;   with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvadd ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.to_bin m 0)
 )
 
+; disclaimer: >
+;   This function is declared to be binary in SMT-LIB. We declare it
+;   with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const bvmul ((m Int))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (alf.to_bin m 1)
@@ -192,12 +218,18 @@
     (BitVec m) (BitVec m) (BitVec m))
 )
 
+; disclaimer: >
+;   The type of this function currently permits evaluatable terms as
+;   indices to support RARE.
 (declare-const zero_extend
     (-> (! Int :var m :implicit)
         (! Int :var i)
         (BitVec m) (BitVec (alf.add m ($eval_bv_sym i))))
 )
 
+; disclaimer: >
+;   The type of this function currently permits evaluatable terms as
+;   indices to support RARE.
 (declare-const sign_extend
     (-> (! Int :var m :implicit)
         (! Int :var i)
@@ -230,46 +262,55 @@
 )
 
 ; NOTE: does not require branches to be bitvector
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvite
   (-> (! Type :var T :implicit)
       (BitVec 1) T T T)
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bv1ult
     (-> (! Int :var m :implicit) 
         (BitVec m) (BitVec m) (BitVec 1))
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvuaddo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvsaddo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvumulo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvsmulo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvusubo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvssubo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvsdivo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)
@@ -286,21 +327,31 @@
         (BitVec m) (BitVec m) (BitVec 1))
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvredand
     (-> (! Int :var m :implicit)
         (BitVec m) (BitVec 1))
 )
 
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvredor
     (-> (! Int :var m :implicit)
         (BitVec m) (BitVec 1))
 )
 
+; disclaimer: >
+;   This function is not a function in SMT-LIB. Although it is used
+;   to describe semantics of bv operators, it is not a theory symbol.
+;   The type of this function currently permits evaluatable terms as
+;   indices to support RARE.
 (declare-const int2bv (->
   (! Int :var w)
   Int (BitVec ($eval_bv_sym w)))
 )
 
+; disclaimer: >
+;   This function is not a function in SMT-LIB. Although it is used
+;   to describe semantics of bv operators, it is not a theory symbol.
 (declare-const bv2nat (->
   (! Int :var m :implicit)
   (BitVec m) Int)
@@ -322,4 +373,7 @@
 )
 
 ; symbolic constant
+; disclaimer: >
+;   The type of this function currently permits evaluatable terms as
+;   indices to support RARE.
 (declare-const @bv (-> Int (! Int :var w) (BitVec ($eval_bv_sym w))))

@@ -36,7 +36,7 @@ class TestCApiBlackDatatype : public ::testing::Test
 
   void TearDown() override { cvc5_term_manager_delete(d_tm); }
 
-  Cvc5Datatype create_datatype()
+  Cvc5DatatypeDecl create_datatype_decl()
   {
     Cvc5DatatypeDecl decl = cvc5_mk_dt_decl(d_tm, "list", false);
     Cvc5DatatypeConstructorDecl cons = cvc5_mk_dt_cons_decl(d_tm, "cons");
@@ -45,6 +45,12 @@ class TestCApiBlackDatatype : public ::testing::Test
     cvc5_dt_decl_add_constructor(decl, cons);
     Cvc5DatatypeConstructorDecl nil = cvc5_mk_dt_cons_decl(d_tm, "nil");
     cvc5_dt_decl_add_constructor(decl, nil);
+    return decl;
+  }
+
+  Cvc5Datatype create_datatype()
+  {
+    Cvc5DatatypeDecl decl = create_datatype_decl();
     return cvc5_sort_get_datatype(cvc5_mk_dt_sort(d_tm, decl));
   }
 
@@ -282,6 +288,8 @@ TEST_F(TestCApiBlackDatatype, dt_cons_decl_to_string)
 {
   ASSERT_DEATH(cvc5_dt_cons_decl_to_string(nullptr),
                "invalid datatype constructor declaration");
+  Cvc5DatatypeConstructorDecl cons = cvc5_mk_dt_cons_decl(d_tm, "cons");
+  (void)cvc5_dt_cons_decl_to_string(cons);
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_decl_hash)
@@ -318,23 +326,31 @@ TEST_F(TestCApiBlackDatatype, dt_decl_get_num_constructors)
 {
   ASSERT_DEATH(cvc5_dt_decl_get_num_constructors(nullptr),
                "invalid datatype declaration");
+  Cvc5DatatypeDecl decl = create_datatype_decl();
+  ASSERT_EQ(cvc5_dt_decl_get_num_constructors(decl), 2);
 }
 
 TEST_F(TestCApiBlackDatatype, dt_decl_is_parametric)
 {
   ASSERT_DEATH(cvc5_dt_decl_is_parametric(nullptr),
                "invalid datatype declaration");
+  Cvc5DatatypeDecl decl = create_datatype_decl();
+  ASSERT_FALSE(cvc5_dt_decl_is_parametric(decl));
 }
 
 TEST_F(TestCApiBlackDatatype, dt_decl_is_resolved)
 {
   ASSERT_DEATH(cvc5_dt_decl_is_resolved(nullptr),
                "invalid datatype declaration");
+  Cvc5DatatypeDecl decl = create_datatype_decl();
+  ASSERT_FALSE(cvc5_dt_decl_is_resolved(decl));
 }
 
 TEST_F(TestCApiBlackDatatype, dt_decl_get_name)
 {
   ASSERT_DEATH(cvc5_dt_decl_get_name(nullptr), "invalid datatype declaration");
+  Cvc5DatatypeDecl decl = create_datatype_decl();
+  ASSERT_EQ(cvc5_dt_decl_get_name(decl), std::string("list"));
 }
 
 TEST_F(TestCApiBlackDatatype, dt_decl_to_string)
@@ -387,6 +403,10 @@ TEST_F(TestCApiBlackDatatype, dt_sel_get_codomain_sort)
 TEST_F(TestCApiBlackDatatype, dt_sel_to_string)
 {
   ASSERT_DEATH(cvc5_dt_sel_to_string(nullptr), "invalid datatype selector");
+  Cvc5Datatype dt = create_datatype();
+  Cvc5DatatypeSelector head =
+      cvc5_dt_cons_get_selector_by_name(cvc5_dt_get_constructor(dt, 0), "head");
+  ASSERT_EQ(cvc5_dt_sel_to_string(head), std::string("head: Int"));
 }
 
 TEST_F(TestCApiBlackDatatype, dt_sel_hash)
@@ -474,6 +494,10 @@ TEST_F(TestCApiBlackDatatype, dt_copy_release)
 TEST_F(TestCApiBlackDatatype, dt_cons_to_string)
 {
   ASSERT_DEATH(cvc5_dt_cons_to_string(nullptr), "invalid datatype constructor");
+  Cvc5Datatype dt = create_datatype();
+  Cvc5DatatypeConstructor cons = cvc5_dt_get_constructor(dt, 0);
+  ASSERT_EQ(cvc5_dt_cons_to_string(cons),
+            std::string("cons(head: Int, tail: list)"));
 }
 
 TEST_F(TestCApiBlackDatatype, dt_cons_hash)
@@ -823,52 +847,31 @@ TEST_F(TestCApiBlackDatatype, datatype_simply_rec)
    */
   // Make unresolved types as placeholders
 
-  // Sort unresWList = d_tm.mkUnresolvedDatatypeSort("wlist");
   Cvc5Sort unres_wlist = cvc5_mk_unresolved_dt_sort(d_tm, "wlist", 0);
-  // Sort unresList = d_tm.mkUnresolvedDatatypeSort("list");
   Cvc5Sort unres_list = cvc5_mk_unresolved_dt_sort(d_tm, "list", 0);
 
-  // DatatypeDecl wlist = d_tm.mkDatatypeDecl("wlist");
   Cvc5DatatypeDecl wlist = cvc5_mk_dt_decl(d_tm, "wlist", false);
-  // DatatypeConstructorDecl leaf = d_tm.mkDatatypeConstructorDecl("leaf");
   Cvc5DatatypeConstructorDecl leaf = cvc5_mk_dt_cons_decl(d_tm, "leaf");
-  // leaf.addSelector("data", unresList);
   cvc5_dt_cons_decl_add_selector(leaf, "data", unres_list);
-  // wlist.addConstructor(leaf);
   cvc5_dt_decl_add_constructor(wlist, leaf);
 
-  // DatatypeDecl list = d_tm.mkDatatypeDecl("list");
   Cvc5DatatypeDecl list = cvc5_mk_dt_decl(d_tm, "list", false);
-  // DatatypeConstructorDecl cons = d_tm.mkDatatypeConstructorDecl("cons");
   Cvc5DatatypeConstructorDecl cons = cvc5_mk_dt_cons_decl(d_tm, "cons");
-  // DatatypeConstructorDecl nil = d_tm.mkDatatypeConstructorDecl("nil");
   Cvc5DatatypeConstructorDecl nil = cvc5_mk_dt_cons_decl(d_tm, "nil");
-  // cons.addSelector("car", unresWList);
   cvc5_dt_cons_decl_add_selector(cons, "car", unres_wlist);
-  // cons.addSelector("cdr", unresList);
   cvc5_dt_cons_decl_add_selector(cons, "cdr", unres_list);
-  // list.addConstructor(cons);
   cvc5_dt_decl_add_constructor(list, cons);
-  // list.addConstructor(nil);
   cvc5_dt_decl_add_constructor(list, nil);
 
-  // DatatypeDecl ns = d_tm.mkDatatypeDecl("ns");
   Cvc5DatatypeDecl ns = cvc5_mk_dt_decl(d_tm, "ns", false);
-  // DatatypeConstructorDecl elem = d_tm.mkDatatypeConstructorDecl("elem");
   Cvc5DatatypeConstructorDecl elem = cvc5_mk_dt_cons_decl(d_tm, "elem");
-  // elem.addSelector("ndata", d_tm.mkSetSort(unresWList));
   cvc5_dt_cons_decl_add_selector(
       elem, "ndata", cvc5_mk_set_sort(d_tm, unres_wlist));
-  // ns.addConstructor(elem);
   cvc5_dt_decl_add_constructor(ns, elem);
-  // DatatypeConstructorDecl elemArray =
-  //     d_tm.mkDatatypeConstructorDecl("elemArray");
   Cvc5DatatypeConstructorDecl elem_array =
       cvc5_mk_dt_cons_decl(d_tm, "elem_array");
-  // elemArray.addSelector("ndata", d_tm.mkArraySort(unresList, unresList));
   cvc5_dt_cons_decl_add_selector(
       elem_array, "ndata", cvc5_mk_array_sort(d_tm, unres_list, unres_list));
-  // ns.addConstructor(elemArray);
   cvc5_dt_decl_add_constructor(ns, elem_array);
 
   std::vector<Cvc5DatatypeDecl> dtdecls{wlist, list, ns};
