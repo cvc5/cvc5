@@ -147,7 +147,7 @@ struct QAttributes
   int64_t d_qinstLevel;
   /**
    * Is this formula marked as preserving structure?
-   * This attribute is marked when computing (partial) quantifier elimination on a
+   * For example, this attribute is marked when computing (partial) quantifier elimination on a
    * quantified formula, but does not impact the solving method for it.
    */
   bool d_preserveStructure;
