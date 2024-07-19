@@ -390,8 +390,6 @@ Term Smt2TermParser::parseTerm()
             {
               d_state.defineVar(b.first, b.second);
             }
-            // done with the binders
-            letBinders.pop_back();
           }
         }
         break;
@@ -403,6 +401,8 @@ Term Smt2TermParser::parseTerm()
           tstack.pop_back();
           // pop scope
           d_state.popScope();
+          // Done with the binders now. We clear this only at this point since the let binders may to pertinent to avoid illegal substitutions from lets.
+          letBinders.pop_back();
         }
         break;
         // ------------------------- match terms
