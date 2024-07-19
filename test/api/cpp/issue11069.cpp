@@ -42,7 +42,9 @@ int main()
   // parse commands until finished
   Command cmd;
     cmd = parser.nextCommand();
+    cmd.invoke(&slv, &sm, std::cout);
     cmd = parser.nextCommand();
+    cmd.invoke(&slv, &sm, std::cout);
     /*
   while (true)
   {
