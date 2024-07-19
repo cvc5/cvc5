@@ -411,7 +411,6 @@ Node QuantAttributes::getQuantIdNumNode( Node q ) {
   }
 }
 
-
 Node QuantAttributes::mkAttrPreserveStructure()
 {
   Node nattr = mkAttrInternal(AttrType::ATTR_PRESERVE_STRUCTURE);
@@ -434,7 +433,9 @@ Node QuantAttributes::mkAttrInternal(AttrType at)
   // use internal skolem id so that this method is deterministic
   Node id = nm->mkConstInt(Rational(static_cast<uint32_t>(at)));
   Node nattr = sm->mkInternalSkolemFunction(
-      InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL, nm->booleanType(), {id});
+      InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL,
+      nm->booleanType(),
+      {id});
   nattr = nm->mkNode(Kind::INST_ATTRIBUTE, nattr);
   return nattr;
 }
