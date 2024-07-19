@@ -71,6 +71,7 @@
 (include "./rules/Quantifiers.smt3")
 (include "./theories/Datatypes.smt3")
 (include "./theories/SepLogic.smt3")
+(include "./rules/drat/Drat.smt3")
 
 ; disclaimer: >
 ;   All symbols prefixed by @ are not part of the SMT-LIB standard
