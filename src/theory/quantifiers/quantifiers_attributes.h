@@ -255,8 +255,14 @@ class QuantAttributes
   static void setInstantiationLevelAttr(Node n, Node qn, uint64_t level);
 
  private:
+  /** An identifier for the method below */
+  enum class AttrType
+  {
+    ATTR_PRESERVE_STRUCTURE,
+    ATTR_QUANT_ELIM
+  };
   /** Make attribute internal, helper for mkAttrX methods above. */
-  static Node mkAttrInternal();
+  static Node mkAttrInternal(AttrType at);
   /** cache of attributes */
   std::map< Node, QAttributes > d_qattr;
   /** function definitions */

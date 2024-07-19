@@ -411,28 +411,30 @@ Node QuantAttributes::getQuantIdNumNode( Node q ) {
   }
 }
 
-Node QuantAttributes::mkAttrQuantifierElimination()
-{
-  Node nattr = mkAttrInternal();
-  QuantElimAttribute qea;
-  nattr[0].setAttribute(qea, true);
-  return nattr;
-}
 
 Node QuantAttributes::mkAttrPreserveStructure()
 {
-  Node nattr = mkAttrInternal();
+  Node nattr = mkAttrInternal(AttrType::ATTR_PRESERVE_STRUCTURE);
   PreserveStructureAttribute psa;
   nattr[0].setAttribute(psa, true);
   return nattr;
 }
 
-Node QuantAttributes::mkAttrInternal()
+Node QuantAttributes::mkAttrQuantifierElimination()
+{
+  Node nattr = mkAttrInternal(AttrType::ATTR_QUANT_ELIM);
+  QuantElimAttribute qea;
+  nattr[0].setAttribute(qea, true);
+  return nattr;
+}
+Node QuantAttributes::mkAttrInternal(AttrType at)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node nattr = sm->mkDummySkolem(
-      "dummy", nm->booleanType(), "Auxiliary variable for mkAttr.");
+  // use internal skolem id so that this method is deterministic
+  Node id = nm->mkConstInt(Rational(static_cast<uint32_t>(at)));
+  Node nattr = sm->mkInternalSkolemFunction(
+      InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL, nm->booleanType(), {id});
   nattr = nm->mkNode(Kind::INST_ATTRIBUTE, nattr);
   return nattr;
 }

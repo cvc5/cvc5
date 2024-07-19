@@ -54,6 +54,7 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
+    case InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL: return "QUANTIFIERS_ATTRIBUTE_INTERNAL";
     default: return "?";
   }
 }
