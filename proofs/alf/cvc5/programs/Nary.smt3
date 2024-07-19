@@ -48,7 +48,7 @@
     ((L Type) (cons (-> L L L)) (x L) (xs L :list))
     (L) L
     (
-        ((nary.reverse (cons x xs)) (let ((nil (alf.nil cons x xs))) (nary.reverseRec cons nil (cons x xs) nil)))
+        ((nary.reverse (cons x xs)) (alf.define ((nil (alf.nil cons x xs))) (nary.reverseRec cons nil (cons x xs) nil)))
         ((nary.reverse x)           x)
     )
 )
