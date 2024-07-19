@@ -787,13 +787,17 @@
 ; return: >
 ;   true if the inclusion of r2 into r1 is not handled by one of the
 ;   three cases above (union or star on LHS, or intersection on RHS).
+;   We also require that one of r1 or r2 is a concatenation, or else
+;   we already checked for their inclusion directly.
 (program $str_re_includes_is_rec ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
   (RegLan RegLan) Bool
   (
   (($str_re_includes_is_rec r1 (re.inter r3 r2)) false)
   (($str_re_includes_is_rec (re.union r1 r2) r3) false)
   (($str_re_includes_is_rec (re.* r1) r3)        false)
-  (($str_re_includes_is_rec r1 r3)               true)
+  (($str_re_includes_is_rec (re.++ r1 r2) r3)    true)
+  (($str_re_includes_is_rec r3 (re.++ r1 r2))    true)
+  (($str_re_includes_is_rec r1 r3)               false)
   )
 )
 
