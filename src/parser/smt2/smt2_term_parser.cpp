@@ -217,8 +217,12 @@ Term Smt2TermParser::parseTerm()
               // If freshBinders is false, we set fresh to false here. This
               // means that (x Int) appearing in a quantified formula always
               // constructs the same variable.
+              // We use the context-dependent version of this method since we
+              // may have to account for variables that have appeared in let
+              // binders to ensure our let bindings do not lead to variable
+              // capturing.
               std::vector<Term> vs =
-                  d_state.bindBoundVars(sortedVarNames, freshBinders);
+                  d_state.bindBoundVarsCtx(sortedVarNames, letBinders, freshBinders);
               Term vl = tm.mkTerm(Kind::VARIABLE_LIST, vs);
               args.push_back(vl);
               xstack.emplace_back(ParseCtx::CLOSURE_NEXT_ARG);

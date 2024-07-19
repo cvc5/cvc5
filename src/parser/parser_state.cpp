@@ -204,6 +204,19 @@ std::vector<Term> ParserState::bindBoundVars(
   return vars;
 }
 
+std::vector<Term> ParserState::bindBoundVarsCtx(
+    std::vector<std::pair<std::string, Sort> >& sortedVarNames,
+    std::vector<std::vector<std::pair<std::string, Term>>>& letBinders,
+    bool fresh)
+{
+  std::vector<Term> vars;
+  for (std::pair<std::string, Sort>& i : sortedVarNames)
+  {
+    vars.push_back(bindBoundVar(i.first, i.second, fresh));
+  }
+  return vars;
+}
+
 std::vector<Term> ParserState::bindBoundVars(
     const std::vector<std::string> names, const Sort& type)
 {
