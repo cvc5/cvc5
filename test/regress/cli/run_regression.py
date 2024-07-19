@@ -313,7 +313,7 @@ class AlfTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if "success" not in output:
+            if ("correct" not in output) and ("incomplete" not in output):
                 print_error("Invalid proof")
                 print()
                 print_outputs(output, error)
