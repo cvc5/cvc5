@@ -45,6 +45,7 @@ int main()
     cmd.invoke(&slv, &sm, std::cout);
     cmd = parser.nextCommand();
     cmd.invoke(&slv, &sm, std::cout);
+    cmd = parser.nextCommand();
     /*
   while (true)
   {
