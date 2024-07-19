@@ -209,10 +209,30 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
     std::vector<std::vector<std::pair<std::string, Term>>>& letBinders,
     bool fresh)
 {
+  if (fresh || letBinders.empty())
+  {
+    // does not matter if let binders are empty or if we are constructing fresh
+    return bindBoundVars(sortedVarNames, fresh);
+  }
   std::vector<Term> vars;
   for (std::pair<std::string, Sort>& i : sortedVarNames)
   {
-    vars.push_back(bindBoundVar(i.first, i.second, fresh));
+    bool wasDecl = isDeclared(i.first);
+    Term v = bindBoundVar(i.first, i.second, fresh);
+    vars.push_back(v);
+    if (wasDecl)
+    {
+      // check if it is contained in a let binder, if so, we fail
+      for (std::vector<std::pair<std::string, Term>>& lbs : letBinders)
+      {
+        for (std::pair<std::string, Term>& lb : lbs)
+        {
+          std::stringstream ss;
+          ss << "Cannot use variable shadowing for " << i.first << " since this symbol occurs in a let term. Set fresh-binders to true to avoid this error";
+          parseError(ss.str());
+        }
+      }
+    }
   }
   return vars;
 }
