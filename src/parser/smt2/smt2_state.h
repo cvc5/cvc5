@@ -256,6 +256,12 @@ class Smt2State : public ParserState
    * grammar-specific token `Constant`.
    */
   bool hasGrammars() const;
+  /**
+   * Are we using fresh binders? If this returns true, then every binder
+   * is assumed to refer to fresh variables. If this returns false, then
+   * variables are assumed to be globally unique up to their name and type.
+   */
+  bool usingFreshBinders() const;
 
   void checkThatLogicIsSet();
 
@@ -469,6 +475,8 @@ class Smt2State : public ParserState
 
   /** Are we parsing a sygus file? */
   bool d_isSygus;
+  /** are we using fresh binders? */
+  bool d_freshBinders;
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
   /** Have we seen a set-logic command yet? */

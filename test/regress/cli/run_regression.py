@@ -281,6 +281,7 @@ class AlfTester(Tester):
                 "--proof-format=alf",
                 "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
+                "--no-fresh-binders",  #FIXME cvc5 wishue 156
             ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]
