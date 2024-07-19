@@ -1034,10 +1034,7 @@ bool Smt2State::hasGrammars() const
          || d_solver->getOption("produce-interpolants") == "true";
 }
 
-bool Smt2State::usingFreshBinders() const
-{
-  return d_freshBinders;
-}
+bool Smt2State::usingFreshBinders() const { return d_freshBinders; }
 
 void Smt2State::checkThatLogicIsSet()
 {
