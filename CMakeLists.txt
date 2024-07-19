@@ -394,10 +394,22 @@ set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
 
 macro(create_venv)
   message(STATUS "Creating Python virtual environment")
-  # Use packages installed in the base installation if they're already present
+  # Use packages installed in the base installation if they're already present...
+  if(BUILD_BINDINGS_PYTHON AND NOT ONLY_PYTHON_EXT_SRC)
+    #... unless we are building the Python bindings.
+    # Building the Python bindings currently requires a recent version of
+    # setuptools. On old systems with Python 3.8 or 3.9, upgrading to the latest
+    # version of setuptools without manually upgrading its dependencies
+    # can cause problems (see https://github.com/pypa/setuptools/issues/4478).
+    # Therefore, we start with a clean virtual environment so that
+    # all the latest dependencies of setuptools are installed.
+    set(VENV_SYSTEM_PACKAGES_FLAG "")
+  else()
+    set(VENV_SYSTEM_PACKAGES_FLAG "--system-site-packages")
+  endif()
   execute_process (
     COMMAND
-      "${Python_EXECUTABLE}" -m venv --system-site-packages "${VENV_PATH}"
+      "${Python_EXECUTABLE}" -m venv ${VENV_SYSTEM_PACKAGES_FLAG} "${VENV_PATH}"
     RESULT_VARIABLE VENV_CMD_EXIT_CODE
   )
   if(VENV_CMD_EXIT_CODE)
