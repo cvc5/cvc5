@@ -167,6 +167,7 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case ProofRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
+    case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";
     case ProofRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
     case ProofRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
     case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
