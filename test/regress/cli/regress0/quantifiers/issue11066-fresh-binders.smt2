@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --fresh-binders
 ; EXPECT: unsat
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: proof
 (set-logic ALL)
 (assert (exists ((x Real))
           (let ((?y x))

@@ -971,6 +971,12 @@ bool SetDefaults::usesInputConversion(const Options& opts,
 bool SetDefaults::incompatibleWithProofs(Options& opts,
                                          std::ostream& reason) const
 {
+  if (opts.parser.freshBinders)
+  {
+    // When fresh-binders is true, we do not support proof output.
+    reason << "fresh-binders";
+    return true;
+  }
   if (opts.quantifiers.globalNegate)
   {
     // When global negate answers "unsat", it is not due to showing a set of
