@@ -34,7 +34,7 @@ Smt2State::Smt2State(ParserStateCallback* psc,
       d_logicSet(false),
       d_seenSetLogic(false)
 {
-  d_solver->getOption("fresh-binders") == "true";
+  d_freshBinders = (d_solver->getOption("fresh-binders") == "true");
 }
 
 Smt2State::~Smt2State() {}
