@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; DISABLE-TESTER: alf
 (set-logic ALL)
 (assert (exists ((x Real))
           (let ((?y x))
