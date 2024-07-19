@@ -16,8 +16,8 @@
 #include "expr/elim_witness_converter.h"
 
 #include "expr/skolem_manager.h"
-#include "util/rational.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 
@@ -36,8 +36,8 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     std::vector<Node> nchildren(n.begin(), n.end());
     nchildren[1] = nchildren[1].notNode();
     // must mark that the quantified formula cannot be eliminated by rewriting,
-    // so that the form of the quantified formula is preserved for the introduction
-    // below.
+    // so that the form of the quantified formula is preserved for the
+    // introduction below.
     Node psan = theory::quantifiers::QuantAttributes::mkAttrPreserveStructure();
     Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, psan);
     nchildren.push_back(ipl);
@@ -45,7 +45,7 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     Node q = nm->mkNode(Kind::FORALL, nchildren);
     Node qn = getNormalFormFor(q);
     // should still be a FORALL due to above
-    Assert (qn.getKind()==Kind::FORALL);
+    Assert(qn.getKind() == Kind::FORALL);
     Node k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                    {qn, nm->mkConstInt(Rational(0))});
     d_exists.push_back(qn.notNode());

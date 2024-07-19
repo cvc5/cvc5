@@ -33,12 +33,18 @@ namespace theory {
 namespace quantifiers {
 
 /** Attribute true for quantifiers we are doing quantifier elimination on */
-struct QuantElimAttributeId {};
-using QuantElimAttribute = expr::Attribute< QuantElimAttributeId, bool >;
+struct QuantElimAttributeId
+{
+};
+using QuantElimAttribute = expr::Attribute<QuantElimAttributeId, bool>;
 
-/** Attribute true for quantifiers we which to preserve structure for, including those that we are doing quantifier elimination on */
-struct PreserveStructureAttributeId {};
-using PreserveStructureAttribute = expr::Attribute< PreserveStructureAttributeId, bool >;
+/** Attribute true for quantifiers we which to preserve structure for, including
+ * those that we are doing quantifier elimination on */
+struct PreserveStructureAttributeId
+{
+};
+using PreserveStructureAttribute =
+    expr::Attribute<PreserveStructureAttributeId, bool>;
 
 bool QAttributes::isStandard() const
 {
@@ -279,8 +285,10 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());
           Trace("quant-attr") << "Attribute : quant inst level " << qa.d_qinstLevel << " : " << q << std::endl;
         }
-        if( avar.getAttribute(PreserveStructureAttribute()) ){
-          Trace("quant-attr") << "Attribute : preserve structure : " << q << std::endl;
+        if (avar.getAttribute(PreserveStructureAttribute()))
+        {
+          Trace("quant-attr")
+              << "Attribute : preserve structure : " << q << std::endl;
           qa.d_preserveStructure = true;
         }
         if( avar.getAttribute(QuantElimAttribute()) ){
@@ -421,12 +429,10 @@ Node QuantAttributes::mkAttrPreserveStructure()
 
 Node QuantAttributes::mkAttrInternal()
 {
-  NodeManager * nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node nattr = sm->mkDummySkolem(
-      "dummy",
-      nm->booleanType(),
-      "Auxiliary variable for mkAttr.");
+      "dummy", nm->booleanType(), "Auxiliary variable for mkAttr.");
   nattr = nm->mkNode(Kind::INST_ATTRIBUTE, nattr);
   return nattr;
 }

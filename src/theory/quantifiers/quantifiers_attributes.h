@@ -147,8 +147,9 @@ struct QAttributes
   int64_t d_qinstLevel;
   /**
    * Is this formula marked as preserving structure?
-   * For example, this attribute is marked when computing (partial) quantifier elimination on a
-   * quantified formula, but does not impact the solving method for it.
+   * For example, this attribute is marked when computing (partial) quantifier
+   * elimination on a quantified formula, but does not impact the solving method
+   * for it.
    */
   bool d_preserveStructure;
   /**
@@ -158,8 +159,8 @@ struct QAttributes
   bool d_quant_elim;
   /**
    * Is this formula marked for partial quantifier elimination? This impacts the
-   * strategy used for instantiating it, e.g. we only invoke a single instantiation
-   * for it.
+   * strategy used for instantiating it, e.g. we only invoke a single
+   * instantiation for it.
    */
   bool d_quant_elim_partial;
   /** Is this formula internally generated and belonging to bounded integers? */
@@ -219,7 +220,7 @@ class QuantAttributes
   /** get fun def body */
   static Node getFunDefHead( Node q );
   /** get fun def body */
-  static Node getFunDefBody( Node q );
+  static Node getFunDefBody(Node q);
   /** does q have a user-provided pattern? */
   static bool hasPattern(Node q);
 
