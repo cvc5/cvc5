@@ -29,7 +29,7 @@
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const witness (-> (! @List :var L) Bool ($get_witness_type L)) :binder @list)
 
-; define: $get_qskolem_type
+; program: $get_qskolem_type
 ; args:
 ; - F Bool: The quantified formula.
 ; - i Int: The integer indicating the index of the variable.
