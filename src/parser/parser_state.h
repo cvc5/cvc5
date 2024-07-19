@@ -215,7 +215,7 @@ class CVC5_EXPORT ParserState
    * @param name The name of the variable
    * @param type The type of the variable
    * @param fresh If true, the variable is always new. If false, we lookup the
-   * variable in a cache and return a
+   * variable in a cache and return a.
    */
   Term bindBoundVar(const std::string& name,
                     const Sort& type,

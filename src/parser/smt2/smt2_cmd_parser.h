@@ -52,10 +52,6 @@ class Smt2CmdParser
   Smt2TermParser& d_tparser;
   /** Map strings to tokens */
   std::map<std::string, Token> d_table;
-  /** is strict */
-  bool d_isStrict;
-  /** is sygus */
-  bool d_isSygus;
 };
 
 }  // namespace parser

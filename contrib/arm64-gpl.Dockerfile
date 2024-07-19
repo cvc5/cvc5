@@ -25,3 +25,8 @@ WORKDIR /cvc5/build
 
 RUN make -j`nproc`
 RUN make install
+
+WORKDIR /cvc5
+
+RUN cp COPYING ./install/ && \
+    cp -r licenses ./install/
