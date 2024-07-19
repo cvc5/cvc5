@@ -1,6 +1,8 @@
-; COMMAND-LINE: --fresh-binders
-; EXPECT: unsat
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: dump
+; REQUIRES: no-competition
+; SCRUBBER: grep -o "Cannot use variable shadowing"
+; EXPECT: Cannot use variable shadowing
+; EXIT: 1
 (set-logic ALL)
 (assert (exists ((x Real))
           (let ((?y x))
