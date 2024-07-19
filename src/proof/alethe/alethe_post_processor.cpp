@@ -297,7 +297,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           vp2_i = nm->mkNode(Kind::SEXPR, d_cl, andNode.notNode(), args[i]);
           success &=
-              addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
+            addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, std::vector<Node>{nm->mkConstInt(i)}, *cdp);
           premisesVP2.push_back(vp2_i);
           notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
         }
@@ -832,7 +832,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           {},
+                           args,
                            *cdp);
     }
     // ======== Implication elimination
@@ -927,7 +927,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // The following rules are all translated according to the clause pattern.
     case ProofRule::CNF_AND_POS:
     {
-      return addAletheStepFromOr(AletheRule::AND_POS, res, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::AND_POS, res, children, std::vector<Node>{args.back()}, *cdp);
     }
     case ProofRule::CNF_AND_NEG:
     {
@@ -939,7 +939,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case ProofRule::CNF_OR_NEG:
     {
-      return addAletheStepFromOr(AletheRule::OR_NEG, res, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::OR_NEG, res, children, std::vector<Node>{args.back()}, *cdp);
     }
     case ProofRule::CNF_IMPLIES_POS:
     {
@@ -2236,15 +2236,16 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   std::vector<Node> resArgs;
   std::vector<Node> contractionPremiseChildren{d_cl};
   bool success = true;
-  for (const Node& n : premise)
+
+  for (size_t i = 0, size = premise.getNumChildren(); i < size; ++i)
   {
-    Node nNeg = n.notNode();
+    Node nNeg = premise[i].notNode();
     resPremises.push_back(nm->mkNode(Kind::SEXPR, d_cl, premise, nNeg));
     success &= addAletheStep(AletheRule::OR_NEG,
                              resPremises.back(),
                              resPremises.back(),
                              {},
-                             {},
+                             std::vector<Node>{nm->mkConstInt(i)},
                              *cdp);
     resArgs.push_back(nNeg[0]);
     resArgs.push_back(d_true);
