@@ -24,6 +24,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/subs.h"
 #include "options/main_options.h"
+#include "options/parser_options.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/alf/alf_dependent_type_converter.h"
@@ -152,7 +153,6 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
-    case ProofRule::ALPHA_EQUIV:
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:
@@ -200,6 +200,12 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       Kind k = pargs[0].getKind();
       return k == Kind::STRING_CONTAINS || k == Kind::STRING_TO_CODE
              || k == Kind::STRING_INDEXOF || k == Kind::STRING_IN_REGEXP;
+    }
+    break;
+    case ProofRule::ALPHA_EQUIV:
+    {
+      // only works in general if not using fresh binders
+      return !options().parser.freshBinders;
     }
     break;
     //
