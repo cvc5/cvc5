@@ -221,8 +221,8 @@ Term Smt2TermParser::parseTerm()
               // may have to account for variables that have appeared in let
               // binders to ensure our let bindings do not lead to variable
               // capturing.
-              std::vector<Term> vs =
-                  d_state.bindBoundVarsCtx(sortedVarNames, letBinders, freshBinders);
+              std::vector<Term> vs = d_state.bindBoundVarsCtx(
+                  sortedVarNames, letBinders, freshBinders);
               Term vl = tm.mkTerm(Kind::VARIABLE_LIST, vs);
               args.push_back(vl);
               xstack.emplace_back(ParseCtx::CLOSURE_NEXT_ARG);
@@ -401,7 +401,9 @@ Term Smt2TermParser::parseTerm()
           tstack.pop_back();
           // pop scope
           d_state.popScope();
-          // Done with the binders now. We clear this only at this point since the let binders may to pertinent to avoid illegal substitutions from lets.
+          // Done with the binders now. We clear this only at this point since
+          // the let binders may to pertinent to avoid illegal substitutions
+          // from lets.
           letBinders.pop_back();
         }
         break;

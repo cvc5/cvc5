@@ -205,7 +205,7 @@ std::vector<Term> ParserState::bindBoundVars(
 }
 
 std::vector<Term> ParserState::bindBoundVarsCtx(
-    std::vector<std::pair<std::string, Sort> >& sortedVarNames,
+    std::vector<std::pair<std::string, Sort>>& sortedVarNames,
     std::vector<std::vector<std::pair<std::string, Term>>>& letBinders,
     bool fresh)
 {
@@ -239,10 +239,13 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
           // we will throw an error. Thus, this does not
           // incur a performance penalty versus checking containment.
           Term slbt = lb.second.substitute({v}, {vr});
-          if (slbt!=lb.second)
+          if (slbt != lb.second)
           {
             std::stringstream ss;
-            ss << "Cannot use variable shadowing for " << i.first << " since this symbol occurs in a let term that is present in the current context. Set fresh-binders to true to avoid this error";
+            ss << "Cannot use variable shadowing for " << i.first
+               << " since this symbol occurs in a let term that is present in "
+                  "the current context. Set fresh-binders to true to avoid "
+                  "this error";
             parseError(ss.str());
           }
         }

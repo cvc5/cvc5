@@ -243,7 +243,7 @@ class CVC5_EXPORT ParserState
    * each variable in the cache.
    */
   std::vector<Term> bindBoundVarsCtx(
-      std::vector<std::pair<std::string, Sort> >& sortedVarNames,
+      std::vector<std::pair<std::string, Sort>>& sortedVarNames,
       std::vector<std::vector<std::pair<std::string, Term>>>& letBinders,
       bool fresh = true);
 
