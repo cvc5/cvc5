@@ -402,10 +402,12 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         d_state.pushScope();
       }
+      bool freshBinders = d_state.usingFreshBinders();
+      // If d_freshBinders is false,
       // Must use fresh=false here to ensure that variables introduced by
       // define-fun are accurate with respect to proofs, i.e. variables of
       // the same name and type are indeed the same variable.
-      std::vector<Term> terms = d_state.bindBoundVars(sortedVarNames, false);
+      std::vector<Term> terms = d_state.bindBoundVars(sortedVarNames, freshBinders);
       Term expr = d_tparser.parseTerm();
       if (!flattenVars.empty())
       {
