@@ -92,7 +92,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
                                         const Node& n,
                                         TConvProofGenerator* pg)
 {
-  Trace("ajr-temp") << "Compute NNF norm " << n << std::endl;
+  Trace("compute-nnf") << "Compute NNF norm " << n << std::endl;
   // at pre-order traversal, we store preKind and preChildren, which
   // determine the Kind and the children for the node to reconstruct.
   std::unordered_map<TNode, Kind> preKind;
