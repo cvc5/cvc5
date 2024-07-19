@@ -32,9 +32,17 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+/** Attribute true for quantifiers we are doing quantifier elimination on */
+struct QuantElimAttributeId {};
+using QuantElimAttribute = expr::Attribute< QuantElimAttributeId, bool >;
+
+/** Attribute true for quantifiers we which to preserve structure for, including those that we are doing quantifier elimination on */
+struct PreserveStructureAttributeId {};
+using PreserveStructureAttribute = expr::Attribute< PreserveStructureAttributeId, bool >;
+
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef() && !isOracleInterface()
+  return !d_sygus && !d_preserveStructure && !isFunDef() && !isOracleInterface()
          && !d_isQuantBounded && !d_hasPool;
 }
 
@@ -72,24 +80,6 @@ void QuantAttributes::setUserAttribute(const std::string& attr,
     QuantElimPartialAttribute qepa;
     n.setAttribute( qepa, true );
   }
-}
-
-bool QuantAttributes::checkFunDef( Node q ) {
-  return !getFunDefHead( q ).isNull();
-}
-
-bool QuantAttributes::checkFunDefAnnotation( Node ipl ) {
-  if( !ipl.isNull() ){
-    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
-      if (ipl[i].getKind() == Kind::INST_ATTRIBUTE)
-      {
-        if( ipl[i][0].getAttribute(FunDefAttribute()) ){
-          return true;
-        }
-      }
-    }
-  }
-  return false;
 }
 
 Node QuantAttributes::getFunDefHead( Node q ) {
@@ -159,21 +149,6 @@ bool QuantAttributes::checkSygusConjectureAnnotation( Node ipl ){
       {
         Node avar = ipl[i][0];
         if( avar.getAttribute(SygusAttribute()) ){
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
-  if( !ipl.isNull() ){
-    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
-      if (ipl[i].getKind() == Kind::INST_ATTRIBUTE)
-      {
-        Node avar = ipl[i][0];
-        if( avar.getAttribute(QuantElimAttribute()) ){
           return true;
         }
       }
@@ -304,13 +279,19 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());
           Trace("quant-attr") << "Attribute : quant inst level " << qa.d_qinstLevel << " : " << q << std::endl;
         }
+        if( avar.getAttribute(PreserveStructureAttribute()) ){
+          Trace("quant-attr") << "Attribute : preserve structure : " << q << std::endl;
+          qa.d_preserveStructure = true;
+        }
         if( avar.getAttribute(QuantElimAttribute()) ){
           Trace("quant-attr") << "Attribute : quantifier elimination : " << q << std::endl;
+          qa.d_preserveStructure = true;
           qa.d_quant_elim = true;
           //don't set owner, should happen naturally
         }
         if( avar.getAttribute(QuantElimPartialAttribute()) ){
           Trace("quant-attr") << "Attribute : quantifier elimination partial : " << q << std::endl;
+          qa.d_preserveStructure = true;
           qa.d_quant_elim = true;
           qa.d_quant_elim_partial = true;
           //don't set owner, should happen naturally
@@ -363,15 +344,6 @@ int64_t QuantAttributes::getQuantInstLevel(Node q)
     return -1;
   }else{
     return it->second.d_qinstLevel;
-  }
-}
-
-bool QuantAttributes::isQuantElim( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
-    return false;
-  }else{
-    return it->second.d_quant_elim;
   }
 }
 
@@ -429,6 +401,34 @@ Node QuantAttributes::getQuantIdNumNode( Node q ) {
   }else{
     return it->second.d_qid_num;
   }
+}
+
+Node QuantAttributes::mkAttrQuantifierElimination()
+{
+  Node nattr = mkAttrInternal();
+  QuantElimAttribute qea;
+  nattr[0].setAttribute(qea, true);
+  return nattr;
+}
+
+Node QuantAttributes::mkAttrPreserveStructure()
+{
+  Node nattr = mkAttrInternal();
+  PreserveStructureAttribute psa;
+  nattr[0].setAttribute(psa, true);
+  return nattr;
+}
+
+Node QuantAttributes::mkAttrInternal()
+{
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
+  Node nattr = sm->mkDummySkolem(
+      "dummy",
+      nm->booleanType(),
+      "Auxiliary variable for mkAttr.");
+  nattr = nm->mkNode(Kind::INST_ATTRIBUTE, nattr);
+  return nattr;
 }
 
 void QuantAttributes::setInstantiationLevelAttr(Node n, Node qn, uint64_t level)
