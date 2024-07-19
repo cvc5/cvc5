@@ -220,16 +220,31 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
     bool wasDecl = isDeclared(i.first);
     Term v = bindBoundVar(i.first, i.second, fresh);
     vars.push_back(v);
+    // If wasDecl, then:
+    // (1) we are not using fresh declarations
+    // (2) there are let binders present,
+    // (3) the current variable was shadowed.
+    // We must check whether the variable is present in the let bindings.
     if (wasDecl)
     {
+      // a dummy variable used for checking containment below
+      Term vr = d_tm.mkVar(v.getSort(), "dummy");
       // check if it is contained in a let binder, if so, we fail
       for (std::vector<std::pair<std::string, Term>>& lbs : letBinders)
       {
         for (std::pair<std::string, Term>& lb : lbs)
         {
-          std::stringstream ss;
-          ss << "Cannot use variable shadowing for " << i.first << " since this symbol occurs in a let term. Set fresh-binders to true to avoid this error";
-          parseError(ss.str());
+          // To test containment, we use Term::substitute.
+          // If the substitution does anything at all, then
+          // we will throw an error. Thus, this does not
+          // incur a performance penalty versus checking containment.
+          Term slbt = lb.second.substitute({v}, {vr});
+          if (slbt!=lb.second)
+          {
+            std::stringstream ss;
+            ss << "Cannot use variable shadowing for " << i.first << " since this symbol occurs in a let term that is present in the current context. Set fresh-binders to true to avoid this error";
+            parseError(ss.str());
+          }
         }
       }
     }
