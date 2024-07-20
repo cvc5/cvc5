@@ -232,6 +232,20 @@ class CVC5_EXPORT ParserState
   std::vector<Term> bindBoundVars(
       std::vector<std::pair<std::string, Sort> >& sortedVarNames,
       bool fresh = true);
+  /**
+   * Same as above, but ensure that the shadowing is compatible with current
+   * let bindings.
+   *
+   * @param sortedVarNames The names and types of the variables.
+   * @param letBinders The current let binders in scope that may contain
+   * the shadowed variables we bind in this call.
+   * @param fresh If true, the variables are always new. If false, we lookup
+   * each variable in the cache.
+   */
+  std::vector<Term> bindBoundVarsCtx(
+      std::vector<std::pair<std::string, Sort>>& sortedVarNames,
+      std::vector<std::vector<std::pair<std::string, Term>>>& letBinders,
+      bool fresh = true);
 
   /**
    * Create a set of new cvc5 bound variable expressions of the given type.
