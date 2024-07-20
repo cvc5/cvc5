@@ -167,6 +167,7 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case ProofRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
+    case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";
     case ProofRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
     case ProofRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
     case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
@@ -247,6 +248,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
     case ProofRewriteRule::RE_LOOP_ELIM:
       return "re-loop-elim";
+    case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
+      return "macro-substr-strip-sym-length";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
     case ProofRewriteRule::STR_IN_RE_CONSUME: return "str-in-re-consume";
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:

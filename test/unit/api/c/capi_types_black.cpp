@@ -24,11 +24,11 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiTypes : public ::testing::Test
+class TestCApiBlackTypes : public ::testing::Test
 {
 };
 
-TEST_F(TestApiTypes, printEnum)
+TEST_F(TestCApiBlackTypes, printEnum)
 {
   ASSERT_DEATH(cvc5_kind_to_string(static_cast<Cvc5Kind>(-5)),
                "invalid term kind");

@@ -27,7 +27,7 @@ jobs:
           git config --global user.email "docbot@cvc5"
           git config --global user.name "DocBot"
           git clone git@github.com:cvc5/docs-ci.git target/
-      
+
       - name: Remove stale docs
         run: |
           cd target
@@ -35,9 +35,9 @@ jobs:
             mod=`git log -1 HEAD --pretty="%ai" $file`
             touch -d "$mod" $file
           done
-          find ./ -maxdepth 1 -name "docs-*" -mtime +7 -exec git rm -r {} +
-          find ./ -maxdepth 1 -name "docs-*" -xtype l -exec git rm {} +
-          git commit -m "Prune docs" || echo "Nothing to prune"
+          find ./ -maxdepth 1 -name "docs-*" -mtime +7 -exec git rm --quiet -r {} +
+          find ./ -maxdepth 1 -name "docs-*" -xtype l -exec git rm --quiet {} +
+          git commit -m "Prune docs" --quiet || echo "Nothing to prune"
 
       - name: Squash old commits
         env:
@@ -51,15 +51,15 @@ jobs:
             git checkout $last
             ts=`git log -1 --format=%ct`
             git reset --soft $first
-            if git diff --cached --exit-code
+            if git diff --cached --quiet --exit-code
             then
               echo "Nothing to squash"
             else
-              git commit -m "Squash old history" --date=$ts
+              git commit -m "Squash old history" --date=$ts --quiet
             fi
-            git cherry-pick $last..main
+            git cherry-pick $last..main > /dev/null
           fi
-      
+
       - name: Push
         env:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock

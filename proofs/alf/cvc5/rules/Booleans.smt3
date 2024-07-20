@@ -67,8 +67,8 @@
 ;   that L is removed with the appropriate polarity in both clauses. We then
 ;   concatentate the results, converting back to a unit formula if necessary.
 (define $resolve ((C1 Bool) (C2 Bool) (pol Bool) (L Bool))
-    (let ((lp (alf.ite pol L (not L))))
-    (let ((ln (alf.ite pol (not L) L)))
+    (alf.define ((lp (alf.ite pol L (not L))))
+    (alf.define ((ln (alf.ite pol (not L) L)))
         ($from_clause (alf.list_concat or
             ($remove_maybe_self lp ($to_clause C1))
             ($remove_maybe_self ln ($to_clause C2))))))
@@ -112,8 +112,8 @@
         (($chain_resolve_rec C1 true @list.nil @list.nil)         ($from_clause C1))
         (($chain_resolve_rec C1 (and C2 Cs) (@list pol pols) (@list L lits))
             ($chain_resolve_rec
-                (let ((lp (alf.ite pol L (not L))))
-                (let ((ln (alf.ite pol (not L) L)))
+                (alf.define ((lp (alf.ite pol L (not L))))
+                (alf.define ((ln (alf.ite pol (not L) L)))
                     (alf.list_concat or
                         ($remove_maybe_self lp C1)
                         ($remove_maybe_self ln ($to_clause C2))))) Cs pols lits))
@@ -158,8 +158,8 @@
 (program $factor_literals ((xs Bool :list) (l Bool) (ls Bool :list))
     (Bool Bool) Bool
     (
-        (($factor_literals xs (or l ls)) (let ((cond (alf.is_neg (alf.list_find or xs l))))
-                                         (let ((ret ($factor_literals
+        (($factor_literals xs (or l ls)) (alf.define ((cond (alf.is_neg (alf.list_find or xs l))))
+                                         (alf.define ((ret ($factor_literals
                                                     (alf.ite cond (alf.cons or l xs) xs)
                                                     ls)))
                                             (alf.ite cond (alf.cons or l ret) ret))))

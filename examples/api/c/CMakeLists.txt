@@ -18,20 +18,20 @@ set(CVC5_EXAMPLES_API_C
   bitvectors
   bitvectors_and_arrays
   combination
-  #datatypes
+  datatypes
   extract
   floating_point_arith
   helloworld
   linear_arith
   quickstart
-  #relations
-  #sequences
-  #sets
-  #strings
-  #transcendentals
-  #parser
-  #parser_sym_manager
-  #uf
+  relations
+  sequences
+  sets
+  strings
+  transcendentals
+  parser
+  parser_sym_manager
+  uf
 )
 
 # Add example target and create test to run example with ctest.
@@ -73,12 +73,12 @@ endforeach()
 if(CVC5_USE_COCOA)
   cvc5_add_c_example(finite_field "")
 endif()
-#
-#set(SYGUS_EXAMPLES_API_C
-#  sygus-fun
-#  sygus-inv
-#)
-#
-#foreach(example ${SYGUS_EXAMPLES_API_C})
-#  cvc5_add_c_example(${example} "${example}.c utils.h utils.c")
-#endforeach()
+
+set(SYGUS_EXAMPLES_API_C
+  sygus-fun
+  sygus-inv
+)
+
+foreach(example ${SYGUS_EXAMPLES_API_C})
+  cvc5_add_c_example(${example} "${example}.c utils.h utils.c")
+endforeach()

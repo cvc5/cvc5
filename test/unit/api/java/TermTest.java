@@ -49,19 +49,19 @@ class TermTest
   }
 
   @Test
-  void eq()
+  void equalHash()
   {
     Sort uSort = d_tm.mkUninterpretedSort("u");
     Term x = d_tm.mkVar(uSort, "x");
     Term y = d_tm.mkVar(uSort, "y");
     Term z = new Term();
 
-    assertTrue(x == x);
-    assertFalse(x != x);
-    assertFalse(x == y);
-    assertTrue(x != y);
-    assertFalse((x == z));
-    assertTrue(x != z);
+    assertTrue(x.equals(x));
+    assertFalse(x.equals(y));
+    assertFalse(x.equals(z));
+    assertEquals(x.hashCode(), x.hashCode());
+    assertNotEquals(x.hashCode(), y.hashCode());
+    assertNotEquals(x.hashCode(), z.hashCode());
   }
 
   @Test
@@ -192,6 +192,15 @@ class TermTest
     assertTrue(extb.hasOp());
     assertTrue(extb.getOp().isIndexed());
     assertEquals(extb.getOp(), ext);
+
+    Op bit = d_tm.mkOp(BITVECTOR_BIT, 4);
+    Term bitb = d_tm.mkTerm(bit, b);
+    assertEquals(bitb.getKind(), BITVECTOR_BIT);
+    assertTrue(bitb.hasOp());
+    assertEquals(bitb.getOp(), bit);
+    assertTrue(bitb.getOp().isIndexed());
+    assertEquals(bit.getNumIndices(), 1);
+    assertEquals(bit.get(0), d_tm.mkInteger(4));
 
     Term f = d_tm.mkConst(funsort, "f");
     Term fx = d_tm.mkTerm(APPLY_UF, f, x);

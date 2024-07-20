@@ -38,7 +38,7 @@ public class SymbolManager extends AbstractPointer
 
   /**
    * Create symbol manager instance.
-   *
+   * @param solver The associated solver.
    * @deprecated
    * This function is deprecated and replaced by
    * {@link Solver#Solver(TermManager)}.

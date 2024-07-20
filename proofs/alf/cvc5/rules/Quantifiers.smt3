@@ -35,16 +35,10 @@
 ; - Q Bool: The quantified formula to skolemize. This is either an existential or a negated universal.
 ; conclusion: >
 ;   The skolemized body of Q, where its variables are replaced by skolems
-;   introduced via $mk_skolems,
-(declare-rule skolemize ((F Bool))
-  :premises (F)
-  :conclusion
-    (alf.match ((T Type) (x @List) (G Bool))
-        F
-        (
-          ((exists x G)       ($substitute_list x ($mk_skolems x F) G))
-          ((not (forall x G)) ($substitute_list x ($mk_skolems x (exists x (not G))) (not G)))
-        ))
+;   introduced via $mk_skolems.
+(declare-rule skolemize ((x @List) (G Bool))
+  :premises ((not (forall x G)))
+  :conclusion ($substitute_list x ($mk_skolems x (forall x G)) (not G))
 )
 
 ; rule: skolem_intro
