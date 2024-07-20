@@ -364,7 +364,8 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     children.push_back(geq);
     children.push_back(lhs);
     std::vector<Node> args;
-    // must flip signs to ensure it is <=, as required by MACRO_ARITH_SCALE_SUM_UB.
+    // must flip signs to ensure it is <=, as required by
+    // MACRO_ARITH_SCALE_SUM_UB.
     args.push_back(nodeManager()->mkConstInt(Rational(-1)));
     args.push_back(nodeManager()->mkConstInt(Rational(isLhs ? 1 : -1)));
     Trace("brc-macro") << "- compute sum bound for " << children << " " << args
