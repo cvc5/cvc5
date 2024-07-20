@@ -757,8 +757,8 @@
   (String Int Bool) Bool
   (
     (($str_arith_entail_is_approx_len (str.substr s n1 n2) n isUnder)
-        (let ((npm (+ n1 n2)))
-        (let ((lx (str.len s)))
+        (alf.define ((npm (+ n1 n2)))
+        (alf.define ((lx (str.len s)))
         (alf.ite (alf.is_eq n n2)
           (alf.ite isUnder
             (alf.and ($str_arith_entail_simple n1) ($str_arith_entail_simple_pred (>= lx npm)))
@@ -771,9 +771,9 @@
             ($str_arith_entail_simple_pred (>= lx n1)))
           false))))))
     (($str_arith_entail_is_approx_len (str.replace s t r) n isUnder)
-        (let ((ls (str.len s)))
-        (let ((lt (str.len t)))
-        (let ((lr (str.len r)))
+        (alf.define ((ls (str.len s)))
+        (alf.define ((lt (str.len t)))
+        (alf.define ((lr (str.len r)))
         (alf.ite (alf.is_eq n ls)
           (alf.ite isUnder
             (alf.or ($str_arith_entail_simple_pred (>= lr lt)) ($str_arith_entail_simple_pred (>= lr ls)))
@@ -807,8 +807,8 @@
 ;   Extended String Constraints in SMT", CAV 2019. When applicable, we also rely on calls
 ;   that reason that string length is non-negative and basic properties of arithmetic.
 (define $str_arith_entail_is_approx_indexof ((s String) (t String) (n Int) (m Int) (isUnder Bool))
-  (let ((ls (str.len s)))
-  (let ((lt (str.len t)))
+  (alf.define ((ls (str.len s)))
+  (alf.define ((lt (str.len t)))
   (alf.ite (alf.is_eq m -1)
     isUnder
   (alf.ite (alf.is_eq m ls)
