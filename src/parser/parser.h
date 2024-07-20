@@ -79,8 +79,6 @@ class Parser : public ParserStateCallback
 
   /** Is this parser done reading input? */
   bool done() const;
-  /** Mark that the parser is not done */
-  void markNotDone();
 
   /** Issue a warning to the user. */
   void warning(const std::string& msg) override;
