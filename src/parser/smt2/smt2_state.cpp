@@ -34,6 +34,7 @@ Smt2State::Smt2State(ParserStateCallback* psc,
       d_logicSet(false),
       d_seenSetLogic(false)
 {
+  d_freshBinders = (d_solver->getOption("fresh-binders") == "true");
 }
 
 Smt2State::~Smt2State() {}
@@ -1032,6 +1033,8 @@ bool Smt2State::hasGrammars() const
   return sygus() || d_solver->getOption("produce-abducts") == "true"
          || d_solver->getOption("produce-interpolants") == "true";
 }
+
+bool Smt2State::usingFreshBinders() const { return d_freshBinders; }
 
 void Smt2State::checkThatLogicIsSet()
 {

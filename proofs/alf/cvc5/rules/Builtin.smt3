@@ -103,6 +103,6 @@
 (declare-rule ite_eq ((T Type) (b Bool) (t1 T) (t2 T))
   :args ((ite b t1 t2))
   :conclusion
-    (let ((k (ite b t1 t2))) (ite b (= k t1) (= k t2)))
+    (alf.define ((k (ite b t1 t2))) (ite b (= k t1) (= k t2)))
 )
 
