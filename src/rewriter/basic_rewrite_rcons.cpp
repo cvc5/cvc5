@@ -310,7 +310,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
                               ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX);
     transEq.push_back(aeq);
   }
-  if (approxRew != approx)
+  if (approx != approxRew)
   {
     Node areq = approxGeq.eqNode(approxRewGeq);
     Trace("brc-macro") << "- prove " << areq << " via arith-poly-norm"
@@ -364,7 +364,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     children.push_back(geq);
     children.push_back(lhs);
     std::vector<Node> args;
-    // must flip signs to ensure it is <=, as required by MACRO_ARITH_SUM_UB.
+    // must flip signs to ensure it is <=, as required by MACRO_ARITH_SCALE_SUM_UB.
     args.push_back(nodeManager()->mkConstInt(Rational(-1)));
     args.push_back(nodeManager()->mkConstInt(Rational(isLhs ? 1 : -1)));
     Trace("brc-macro") << "- compute sum bound for " << children << " " << args
@@ -412,7 +412,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
   {
     Trace("brc-macro") << "- true case, prove equal" << std::endl;
     Assert(lhs.getKind() == Kind::GEQ);
-    // should be able to show equivalent by polynomial normalization
+    // should be able to show equivalence by polynomial normalization
     Node peq = lhs.eqNode(geq);
     if (!ensureProofArithPolyNormRel(cdp, peq))
     {
