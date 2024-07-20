@@ -80,7 +80,7 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
     {
-      // only matters if contains strings
+      // only matters if n contains strings
       if (!expr::hasSubtermKinds({Kind::STRING_LENGTH}, n))
       {
         return Node::null();
@@ -105,12 +105,9 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // first do basic length intro, which rewrites (str.len (str.++ x y))
       // to (+ (str.len x) (str.len y))
       Node nexp = ae.rewriteLengthIntro(tgt);
-      // Also must make this is a "simple" check (isSimple=true).
+      // Also must make this a "simple" check (isSimple = true).
       Node ret = ae.rewritePredViaEntailment(nexp, true);
-      if (!ret.isNull())
-      {
-        return ret;
-      }
+      return ret;
     }
     break;
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
