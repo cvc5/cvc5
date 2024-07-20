@@ -312,7 +312,7 @@ class CVC5_EXPORT InputParser
    * Set the input to incremental string input.
    */
   void setIncrementalStringInputInternal(modes::InputLanguage lang,
-                                 const std::string& name);
+                                         const std::string& name);
   /** Initialize this input parser, called during construction */
   void initialize();
   /**

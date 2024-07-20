@@ -347,7 +347,7 @@ void InputParser::setStringInputInternal(const std::string& input,
 }
 
 void InputParser::setIncrementalStringInputInternal(modes::InputLanguage lang,
-                                const std::string& name)
+                                                    const std::string& name)
 {
   // initialize the parser
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());

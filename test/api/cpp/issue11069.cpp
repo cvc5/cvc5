@@ -41,31 +41,31 @@ int main()
 
   // parse commands until finished
   Command cmd;
-    cmd = parser.nextCommand();
-    cmd.invoke(&slv, &sm, std::cout);
-    cmd = parser.nextCommand();
-    cmd.invoke(&slv, &sm, std::cout);
-    cmd = parser.nextCommand();
-    /*
-  while (true)
+  cmd = parser.nextCommand();
+  cmd.invoke(&slv, &sm, std::cout);
+  cmd = parser.nextCommand();
+  cmd.invoke(&slv, &sm, std::cout);
+  cmd = parser.nextCommand();
+  /*
+while (true)
+{
+  cmd = parser.nextCommand();
+  if (cmd.isNull())
   {
-    cmd = parser.nextCommand();
-    if (cmd.isNull())
-    {
-      break;
-    }
-    cmd.invoke(&slv, &sm, std::cout);
+    break;
   }
-  */
+  cmd.invoke(&slv, &sm, std::cout);
+}
+*/
   Result result = slv.checkSat();
   std::cout << "Result:" << result << std::endl;
 
   std::string input2("(assert (= x #b0101))");
   parser.appendIncrementalStringInput(input2);
   cmd = parser.nextCommand();
-  assert (!cmd.isNull());
+  assert(!cmd.isNull());
   cmd.invoke(&slv, &sm, std::cout);
-  
+
   result = slv.checkSat();
   std::cout << "Result:" << result << std::endl;
   assert(result.isUnsat());
