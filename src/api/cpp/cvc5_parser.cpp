@@ -181,7 +181,7 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm)
       d_allocSm(nullptr),
       d_sm(sm),
       d_usingIStringStream(false),
-      d_istringLang(SMT_LIB_2_6)
+      d_istringLang(modes::InputLanguage::SMT_LIB_2_6)
 {
   initialize();
 }
