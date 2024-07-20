@@ -180,7 +180,8 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm)
     : d_solver(solver),
       d_allocSm(nullptr),
       d_sm(sm),
-      d_usingIStringStream(false)
+      d_usingIStringStream(false),
+      d_istringLang(SMT_LIB_2_6)
 {
   initialize();
 }
@@ -365,8 +366,8 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   setIncrementalStringInputInternal(lang, name);
   // remember that we are using d_istringStream
   d_usingIStringStream = true;
-  d_istreamLang = lang;
-  d_istreamName = name;
+  d_istringLang = lang;
+  d_istringName = name;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -383,8 +384,7 @@ void InputParser::appendIncrementalStringInput(const std::string& input)
   // If the parser was done, we have to reinitialize it. See issue #11069.
   if (d_parser->done())
   {
-    // must reset if the parser was done
-    setIncrementalStringInputInternal(d_istreamLang, d_istreamName);
+    setIncrementalStringInputInternal(d_istringLang, d_istringName);
   }
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
   // append it to the input
