@@ -128,13 +128,14 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
       }
       else if (k == Kind::NOT)
       {
-        if (cur[0].getKind()==Kind::NOT)
+        if (cur[0].getKind() == Kind::NOT)
         {
           // double negation cancels
           preCur = cur[0][0];
           visited[cur] = preCur;
         }
-        else if (cur[0].getKind() == Kind::OR || cur[0].getKind() == Kind::IMPLIES)
+        else if (cur[0].getKind() == Kind::OR
+                 || cur[0].getKind() == Kind::IMPLIES)
         {
           k = Kind::AND;
           negAllCh = true;
@@ -185,7 +186,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
           pc.push_back(c);
           visit.push_back(c);
         }
-        if (pg !=nullptr)
+        if (pg != nullptr)
         {
           preCur = nm->mkNode(k, pc);
         }
