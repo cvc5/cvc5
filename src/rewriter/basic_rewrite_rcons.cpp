@@ -275,7 +275,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     }
     else
     {
-      Assert(theory::arith::isArithPolyNorm(eqii[0][0], eqii[0][1]));
+      Assert(theory::arith::PolyNorm::isArithPolyNorm(eqii[0][0], eqii[0][1]));
       // prove via ARITH_POLY_NORM.
       cdp->addStep(eqii[0], ProofRule::ARITH_POLY_NORM, {}, {eqii[0]});
     }
