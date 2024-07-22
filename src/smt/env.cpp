@@ -317,6 +317,7 @@ Node Env::getSharableFormula(const Node& n) const
     // note we only remove purify skolems if the above option is disabled
     on = SkolemManager::getOriginalForm(n);
   }
+  SkolemManager * skm = d_nm->getSkolemManager();
   std::vector<Node> toProcess;
   toProcess.push_back(on);
   size_t index = 0;
@@ -345,7 +346,7 @@ Node Env::getSharableFormula(const Node& n) const
         // must ensure that the indices of the skolem are also legal
         SkolemId id;
         Node cacheVal;
-        if (!SkoleManager::isSkolemFunction(s, id, cacheVal))
+        if (!skm->isSkolemFunction(s, id, cacheVal))
         {
           // kind SKOLEM should imply that it is a skolem function
           Assert(false);
