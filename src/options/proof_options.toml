@@ -258,9 +258,9 @@ name   = "Proof"
   help = "A sketch given by the SAT solver."
 
 [[option]]
-  name       = "alfAllowTrust"
+  name       = "proofAllowTrust"
   category   = "expert"
-  long       = "alf-allow-trust"
+  long       = "proof-allow-trust"
   type       = "bool"
   default    = "true"
   help       = "Whether to allow trust in the ALF printer"
