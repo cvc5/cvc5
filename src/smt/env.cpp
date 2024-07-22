@@ -345,7 +345,7 @@ Node Env::getSharableFormula(const Node& n) const
         // must ensure that the indices of the skolem are also legal
         SkolemId id;
         Node cacheVal;
-        if (!SkoleManager::isSkolemFunction(sk, id, cacheVal))
+        if (!SkoleManager::isSkolemFunction(s, id, cacheVal))
         {
           // kind SKOLEM should imply that it is a skolem function
           Assert(false);
