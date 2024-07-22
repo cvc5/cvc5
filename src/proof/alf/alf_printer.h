@@ -129,7 +129,10 @@ class AlfPrinter : protected EnvObj
   size_t d_pfIdCounter;
   /** Mapping proofs to identifiers */
   std::map<const ProofNode*, size_t> d_pletMap;
-  /** Context for d_passumeMap */
+  /**
+   * Context for d_passumeMap, which is pushed and popped when we encounter
+   * SCOPE proofs.
+   */
   context::Context d_passumeCtx;
   /** Mapping assumed formulas to identifiers */
   context::CDHashMap<Node, size_t> d_passumeMap;
