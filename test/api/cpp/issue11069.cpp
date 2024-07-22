@@ -54,8 +54,6 @@ int main()
   std::cout << "Result:" << result << std::endl;
 
   std::string input2("(assert (= x #b0101))");
-  parser.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
-                                   "myInput");
   parser.appendIncrementalStringInput(input2);
   cmd = parser.nextCommand();
   assert(!cmd.isNull());
