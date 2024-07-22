@@ -16,8 +16,6 @@ This file contains a summary of important user-visible changes.
     - Unsat cores and proofs are now available via the `Solver` methods
       `unsat_core()` and `proof()`, respectively.
 
-## Changes
-
 - The default proof format of cvc5 has been renamed to the **Cooperating Proof Calculus (CPC) proof format**
   (formerly called **AletheLF**). This proof format coincides with
   proof objects in our API.
