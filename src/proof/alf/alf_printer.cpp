@@ -654,7 +654,9 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
 {
   // the stack
   std::vector<const ProofNode*> visit;
-  // whether we have to process children
+  // Whether we have to process children.
+  // This map is dependent on the proof assumption context, e.g. subproofs of
+  // SCOPE are reprocessed if they happen to occur in different proof scopes.
   context::CDHashMap<const ProofNode*, bool> processingChildren(&d_passumeCtx);
   // helper iterators
   context::CDHashMap<const ProofNode*, bool>::iterator pit;
@@ -702,6 +704,8 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
   ProofRule r = pn->getRule();
   if (r == ProofRule::SCOPE)
   {
+    // The assumptions only are valid within the body of the SCOPE, thus
+    // we push a context scope.
     d_passumeCtx.push();
     const std::vector<Node>& args = pn->getArguments();
     for (const Node& a : args)
@@ -938,6 +942,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       pargs.push_back(d_tproc.convert(children[0]->getResult()));
       out->printStep("process_scope", conclusionPrint, id, premises, pargs);
     }
+    // We are done with the assumptions in scope, pop a context.
     d_passumeCtx.pop();
   }
   else
