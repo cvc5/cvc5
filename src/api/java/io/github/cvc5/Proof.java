@@ -57,7 +57,7 @@ public class Proof implements IPointer
 
   /**
    * @return The proof rule used by the root step of the proof.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public ProofRule getRule() throws CVC5ApiException
   {
@@ -112,10 +112,9 @@ public class Proof implements IPointer
 
   /**
    * Referential equality operator.
-   * Return `true` if both proofs point to the same internal proof object.
    *
    * @param p The proof to compare to for equality.
-   * @return `true` if the proofs are equal.
+   * @return True if the proofs point to the same internal proof object.
    */
   @Override
   public boolean equals(Object p)
@@ -138,7 +137,10 @@ public class Proof implements IPointer
 
   private native boolean equals(long pointer1, long pointer2);
 
-  /** @return The hash value of the proof. */
+  /**
+   * Get the hash value of a proof.
+   * @return The hash value.
+   */
   @Override
   public int hashCode()
   {

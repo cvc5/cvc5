@@ -86,7 +86,7 @@ class TestParserBlack : public TestInternal
   void tryGoodInput(const std::string goodInput)
   {
     d_solver.reset(new cvc5::Solver(d_tm));
-    d_symman.reset(new SymbolManager(d_solver.get()));
+    d_symman.reset(new SymbolManager(d_tm));
     InputParser parser(d_solver.get(), d_symman.get());
     std::stringstream ss;
     ss << goodInput;
@@ -113,7 +113,7 @@ class TestParserBlack : public TestInternal
   {
     d_solver.reset(new cvc5::Solver(d_tm));
     d_solver->setOption("strict-parsing", strictMode ? "true" : "false");
-    d_symman.reset(new SymbolManager(d_solver.get()));
+    d_symman.reset(new SymbolManager(d_tm));
     InputParser parser(d_solver.get(), d_symman.get());
     std::stringstream ss;
     ss << badInput;
@@ -140,7 +140,7 @@ class TestParserBlack : public TestInternal
   void tryGoodExpr(const std::string goodExpr)
   {
     d_solver.reset(new cvc5::Solver(d_tm));
-    d_symman.reset(new SymbolManager(d_solver.get()));
+    d_symman.reset(new SymbolManager(d_tm));
     InputParser parser(d_solver.get(), d_symman.get());
     setupContext(parser);
 
@@ -169,7 +169,7 @@ class TestParserBlack : public TestInternal
   {
     d_solver.reset(new cvc5::Solver(d_tm));
     d_solver->setOption("strict-parsing", strictMode ? "true" : "false");
-    d_symman.reset(new SymbolManager(d_solver.get()));
+    d_symman.reset(new SymbolManager(d_tm));
     InputParser parser(d_solver.get(), d_symman.get());
     setupContext(parser);
     std::stringstream ss;

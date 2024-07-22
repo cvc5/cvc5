@@ -17,7 +17,6 @@
 
 #include <cvc5/cvc5.h>
 
-#include <cmath>
 #include <iostream>
 
 using namespace std;
@@ -27,9 +26,8 @@ int main()
 {
   TermManager tm;
   Solver slv(tm);
-  slv.setOption("produce-models", "true");      // Produce Models
-  slv.setOption("output-language", "smtlib"); // output-language
-  slv.setLogic("QF_AUFBV");                   // Set the logic
+  slv.setOption("produce-models", "true");    // Produce Models
+  slv.setLogic("QF_ABV");                     // Set the logic
 
   // Consider the following code (where size is some previously defined constant):
   //
@@ -44,9 +42,8 @@ int main()
   // throughout the loop.
 
   // Setting up the problem parameters
-  unsigned k = 4;                // number of unrollings (should be a power of 2)
-  unsigned index_size = log2(k); // size of the index
-
+  uint32_t k = 4;           // number of unrollings (should be a power of 2)
+  uint32_t index_size = 2;  // size of the index, must be log2(k)
 
   // Sorts
   Sort elementSort = tm.mkBitVectorSort(32);
@@ -71,7 +68,8 @@ int main()
   Term two = tm.mkBitVector(32, 2u);
 
   std::vector<Term> assertions;
-  for (unsigned i = 1; i < k; ++i) {
+  for (uint32_t i = 1; i < k; ++i)
+  {
     index = tm.mkBitVector(index_size, i);
     Term new_current = tm.mkTerm(Kind::BITVECTOR_MULT, {two, old_current});
     // current[i] = 2 * current[i-1]
@@ -87,13 +85,13 @@ int main()
 
   Term query = tm.mkTerm(Kind::NOT, {tm.mkTerm(Kind::AND, assertions)});
 
-  cout << "Asserting " << query << " to cvc5 " << endl;
+  cout << "Asserting " << query << " to cvc5" << endl;
   slv.assertFormula(query);
-  cout << "Expect sat. " << endl;
-  cout << "cvc5: " << slv.checkSatAssuming(tm.mkTrue()) << endl;
+  cout << "Expect sat." << endl;
+  cout << "cvc5: " << slv.checkSat() << endl;
 
   // Getting the model
-  cout << "The satisfying model is: " << endl;
+  cout << "The satisfying model is:" << endl;
   cout << "  current_array = " << slv.getValue(current_array) << endl;
   cout << "  current_array[0] = " << slv.getValue(current_array0) << endl;
   return 0;

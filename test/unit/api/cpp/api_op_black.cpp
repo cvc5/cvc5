@@ -25,8 +25,12 @@ class TestApiBlackOp : public TestApi
 
 TEST_F(TestApiBlackOp, hash)
 {
-  std::hash<cvc5::Op> h;
-  ASSERT_NO_THROW(h(d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1})));
+  std::hash<Op> h;
+  ASSERT_EQ(h(d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1})),
+            h(d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1})));
+  ASSERT_NE(h(d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1})),
+            h(d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {31, 2})));
+  (void)std::hash<Op>{}(Op());
 }
 
 TEST_F(TestApiBlackOp, getKind)

@@ -1,3 +1,58 @@
+diff --git a/configuration/cxx14.sh b/configuration/cxx14.sh
+index a5472cd..2a3e608 100755
+--- a/configuration/cxx14.sh
++++ b/configuration/cxx14.sh
+@@ -51,7 +51,7 @@ int main() {
+ EOF
+ 
+ # First try with no compiler flag...
+-"$CXX"  language-version.C  -o language-version  >> LogFile  2>& 1 
++"$CXX" $CXXFLAGS language-version.C  -o language-version  >> LogFile  2>& 1 
+ if [ $? -ne 0 ]
+ then
+     echo "ERROR: compilation unexpectedly failed; is $CXX a c++ compiler?   $SCRIPT_NAME" > /dev/stderr
+@@ -74,7 +74,7 @@ fi
+ # Compilation without flag is not C++14 standard; try with -std=c++14
+ 
+ CXX14="-std=c++14"
+-"$CXX"  $CXX14  language-version.C  -o language-version  >> LogFile  2>& 1 
++"$CXX" $CXXFLAGS  $CXX14  language-version.C  -o language-version  >> LogFile  2>& 1 
+ if [ $? -ne 0 ]
+ then
+     echo "ERROR: compilation with flag $CXX14 failed   $SCRIPT_NAME" > /dev/stderr
+diff --git a/configuration/gmp-version.sh b/configuration/gmp-version.sh
+index ebd85c7..5693280 100755
+--- a/configuration/gmp-version.sh
++++ b/configuration/gmp-version.sh
+@@ -73,7 +73,7 @@ int main()
+ EOF
+ 
+ # Use c++ compiler specified in CXX; no need to specify libgmp as all info is in header file!!
+-$CXX -I"$COCOA_EXTLIB_DIR/include"  test-gmp-version.C  -o test-gmp-version  > LogFile 2>&1
++$CXX $CXXFLAGS -I"$COCOA_EXTLIB_DIR/include"  test-gmp-version.C  -o test-gmp-version  > LogFile 2>&1
+ 
+ # Check whether compilation failed; if so, complain.
+ if [ $? -ne 0 ]
+diff --git a/configuration/verify-compiler.sh b/configuration/verify-compiler.sh
+index 7a70933..c752e34 100755
+--- a/configuration/verify-compiler.sh
++++ b/configuration/verify-compiler.sh
+@@ -55,15 +55,6 @@ int main()
+ }
+ EOF
+ 
+-# Try plain compiler (without CXXFLAGS):
+-$CXX test-compiler-gnu.C -o test-compiler-gnu  > LogFile  2>&1
+-if [ $? -ne 0 -o \! -f test-compiler-gnu -o \! -x test-compiler-gnu ]
+-then
+-  echo "ERROR: Are you sure \"$CXX\" is a C++ compiler?   $SCRIPT_NAME"  > /dev/stderr
+-  exit 1
+-fi
+-/bin/rm test-compiler-gnu  # not necessary, just being tidy :-)
+-
+ # Try compiler with CXXFLAGS:
+ $CXX $CXXFLAGS test-compiler-gnu.C -o test-compiler-gnu  > LogFile  2>&1
+ if [ $? -ne 0 -o \! -f test-compiler-gnu -o \! -x test-compiler-gnu ]
 diff --git a/configuration/shell-fns.sh b/configuration/shell-fns.sh
 index 190dbb4..c8d281f 100755
 --- a/configuration/shell-fns.sh

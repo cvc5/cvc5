@@ -23,28 +23,33 @@ def tm():
 def solver(tm):
     return cvc5.Solver(tm)
 
+def test_constructor(tm, solver):
+    SymbolManager(tm)
+    SymbolManager(solver) # deprecated
+
 def parse_and_set_logic(solver, sm, logic):
     parser = InputParser(solver, sm)
-    parser.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_symbol_manager_parser")
+    parser.setIncrementalStringInput(
+            cvc5.InputLanguage.SMT_LIB_2_6, "test_symbol_manager_parser")
     parser.appendIncrementalStringInput("(set-logic " + logic + ")" + '\n')
     cmd = parser.nextCommand()
     assert cmd.isNull() is not True
     cmd.invoke(solver, sm)
 
-def test_is_logic_set(solver):
-    sm = SymbolManager(solver)
+def test_is_logic_set(tm, solver):
+    sm = SymbolManager(tm)
     assert sm.isLogicSet() is False
     parse_and_set_logic(solver, sm, "QF_LIA")
     assert sm.isLogicSet() is True
 
-def test_get_logic(solver):
-    sm = SymbolManager(solver)
+def test_get_logic(tm, solver):
+    sm = SymbolManager(tm)
     with pytest.raises(RuntimeError):
         sm.getLogic()
     parse_and_set_logic(solver, sm, "QF_LIA")
     assert sm.getLogic() == "QF_LIA"
 
-def test_get_declared_terms_and_sorts(solver):
-    sm = SymbolManager(solver)
+def test_get_declared_terms_and_sorts(tm, solver):
+    sm = SymbolManager(tm)
     assert len(sm.getDeclaredSorts()) == 0
     assert len(sm.getDeclaredTerms()) == 0

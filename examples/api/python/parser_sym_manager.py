@@ -21,7 +21,7 @@ if __name__ == "__main__":
     tm = cvc5.TermManager()
     slv = cvc5.Solver(tm)
 
-    sm = cvc5.SymbolManager(slv)
+    sm = cvc5.SymbolManager(tm)
 
     # construct an input parser associated the solver above
     parser = cvc5.InputParser(slv, sm)
