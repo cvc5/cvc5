@@ -279,7 +279,8 @@ TheoryEngine::TheoryEngine(Env& env)
   if (options().theory.conflictProcessMode
       != options::ConflictProcessMode::NONE)
   {
-    d_cp.reset(new ConflictProcessor(env, this));
+    bool useExtRewriter = (options().theory.conflictProcessMode == options::ConflictProcessMode::MINIMIZE_EXT);
+    d_cp.reset(new ConflictProcessor(env, useExtRewriter));
   }
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
