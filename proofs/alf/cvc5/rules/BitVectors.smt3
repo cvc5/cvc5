@@ -98,7 +98,6 @@
   )
 )
 
-
 ; define: $bv_mk_bitblast_step_extract
 ; args:
 ; - u Int: The upper index of the extract.
