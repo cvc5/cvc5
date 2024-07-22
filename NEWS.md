@@ -1,6 +1,13 @@
 This file contains a summary of important user-visible changes.
 
-## New Features
+cvc5 1.2.0
+==========
+
+- New **C API**, implemented as a thin wrapper around the C++ API.
+   - Documentation: https://cvc5.github.io/docs-ci/docs-main/api/c/c.html
+   - Examples: https://github.com/cvc5/cvc5/tree/main/examples/api/c
+
+- Exposed creation and maintenance of **Skolem functions** to the API.
 
 - Adds a new strategy `--mbqi-fast-sygus` (disabled by default) for **quantifier
   instantiation** which uses SyGuS enumeration to augment instantiations from
@@ -8,13 +15,15 @@ This file contains a summary of important user-visible changes.
 
 ## Changes
 
+- We now require CMake >= 3.16.
+
 - **API**
-  * C++:
-    - Constructor `SymbolManager(cvc5::Solver*)` is now deprecated and replaced
-      by `SymbolManager(cvc5::TermManager&)`.
-  * Java:
-    - Constructor `SymbolManager(Solver)` is now deprecated and replaced
-      by `SymbolManager(TermManager)`.
+  All APIs have been refactored to expose a TermManager to the API. A term
+  manager manages creation and maintenance of all terms and sorts (across
+  potentially several solver instances within a thread).
+  Corresponding functions that were previously associated with a solver
+  instance and are now associated with a term manager are now deprecated
+  and will be removed in a future release.
   * Python:
     - Constructor `SymbolManager(Solver)` is now deprecated and replaced
       by `SymbolManager(TermManager)`.
@@ -27,8 +36,9 @@ cvc5 1.1.2
 
 ## New Features
 
-- Added support for **nullable** sorts and lift operator to the theory of **datatypes**.
-- Adds a new strategy `--sub-cbqi` (disabled by default) for **quantifier
+- Added support for **nullable** sorts and lift operator to the theory of
+  **datatypes**.
+- Added a new strategy `--sub-cbqi` (disabled by default) for **quantifier
   instantiation** which uses subsolvers to compute unsat cores of instantiations
   that are used in proofs of unsatisfiability.
 
@@ -101,9 +111,10 @@ cvc5 1.1.0
     SMT-LIB command `get-timeout-core-assuming`, which accept a list of
     formulas to assume, while all current assertions are implicitly included
     in the core.
-  * Add new method `Solver::getUnsatCoreLemmas` which returns the set of theory
-    lemmas that were relevant to showing the last query was unsatisfiable. This
-    is also avialable via the SMT-LIB command `get-unsat-core-lemmas`.
+  * Added new method `Solver::getUnsatCoreLemmas` which returns the set of
+    theory lemmas that were relevant to showing the last query was
+    unsatisfiable. This is also avialable via the SMT-LIB command
+    `get-unsat-core-lemmas`.
 
 - Support for the **AletheLF (ALF) proof format**. This format combines the
   strengths of the Alethe and LFSC proof formats, namely it borrows much of the
@@ -133,7 +144,7 @@ Note: This is a pre-release version for the upcoming version 1.1.0.
 ## New Features
 
 - **API**
-  + Add the ability to query the logic that has been set in the solver via
+  + Added the ability to query the logic that has been set in the solver via
     `Solver::isLogicSet` and `Solver::getLogic`.
 
 ## Changes
