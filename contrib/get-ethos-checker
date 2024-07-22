@@ -44,25 +44,25 @@ popd
 SIG_DIR="$CVC_DIR/proofs/eo/cpc"
 
 # install scripts
-cat << EOF > $BASE_DIR/bin/ethos_gen_and_check.sh
+cat << EOF > $BASE_DIR/bin/cpc_gen_and_check.sh
 #!/usr/bin/env bash
 
 echo "=== Generate proof: \$@"
-$BASE_DIR/bin/ethos_gen.sh \$@ > ethos.proof.smt3
+$BASE_DIR/bin/cpc_gen.sh \$@ > ethos.proof.cpc
 
-echo "=== Check proof with EO"
-$BASE_DIR/bin/ethos_check.sh ethos.proof.smt3
+echo "=== Check proof with ethos"
+$BASE_DIR/bin/ethos_check.sh ethos.proof.cpc
 EOF
-chmod +x $BASE_DIR/bin/ethos_gen_and_check.sh
+chmod +x $BASE_DIR/bin/cpc_gen_and_check.sh
 
-cat << EOF > $BASE_DIR/bin/ethos_gen.sh
+cat << EOF > $BASE_DIR/bin/cpc_gen.sh
 #!/usr/bin/env bash
 
 # call cvc5 and remove the first line of the output (should be "unsat")
 echo "(include \"$SIG_DIR/Cvc5.smt3\")"
 \$@ --dump-proofs --proof-format=cpc --proof-granularity=dsl-rewrite | tail -n +2
 EOF
-chmod +x $BASE_DIR/bin/ethos_gen.sh
+chmod +x $BASE_DIR/bin/cpc_gen.sh
 
 cat << EOF > $BASE_DIR/bin/ethos_check.sh
 #!/usr/bin/env bash
@@ -79,10 +79,10 @@ chmod +x $BASE_DIR/bin/ethos_check.sh
 popd
 
 echo ""
-echo "========== How to use EO =========="
-echo "Generate a EO proof with cvc5:"
-echo "  $CVC_DIR/deps/bin/ethos_gen.sh cvc5 <options> <input file>"
+echo "========== How to use Ethos =========="
+echo "Generate a CPC proof with cvc5:"
+echo "  $CVC_DIR/deps/bin/cpc_gen.sh cvc5 <options> <input file>"
 echo "Check a generated proof:"
 echo "  $CVC_DIR/deps/bin/ethos_check.sh <proof file>"
 echo "Run cvc5 and check the generated proof:"
-echo "  $CVC_DIR/deps/bin/ethos_gen_and_check.sh cvc5 <options> <input file>"
+echo "  $CVC_DIR/deps/bin/cpc_gen_and_check.sh cvc5 <options> <input file>"

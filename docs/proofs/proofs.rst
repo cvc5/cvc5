@@ -13,7 +13,8 @@ cvc5 supports retrieving a proof object via the API
 Proof Rules
 ^^^^^^^^^^^
 
-A comprehensive description of the **proof rules** of the Cooperating Proof Calculus can be found here:
+A comprehensive description of the **proof rules** of the Cooperating Proof
+Calculus can be found here:
 
 * :doc:`C++ API <../api/cpp/enums/proofrule>`
 
