@@ -6,7 +6,7 @@ name   = "Proof"
   category   = "expert"
   long       = "proof-format-mode=MODE"
   type       = "ProofFormatMode"
-  default    = "ALF"
+  default    = "CPC"
   help       = "select language of proof output"
   help_mode  = "Proof format modes."
 [[option.mode.NONE]]
@@ -21,9 +21,9 @@ name   = "Proof"
 [[option.mode.ALETHE]]
   name       = "alethe"
   help       = "Output Alethe proof"
-[[option.mode.ALF]]
+[[option.mode.CPC]]
   name       = "alf"
-  help       = "Output AletheLF proof"
+  help       = "Output Cooperating Proof Calculus proof"
 
 [[option]]
   name       = "proofAletheExperimental"
@@ -216,9 +216,9 @@ name   = "Proof"
   help       = "Flatten steps in the LFSC proof"
 
 [[option]]
-  name       = "alfPrintReference"
+  name       = "proofPrintReference"
   category   = "expert"
-  long       = "alf-print-reference"
+  long       = "proof-print-reference"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"

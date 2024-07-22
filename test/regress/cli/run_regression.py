@@ -262,10 +262,10 @@ class LfscTester(Tester):
             print_ok("OK")
         return exit_code
 
-class AlfTester(Tester):
+class CpcTester(Tester):
 
     def __init__(self):
-        super().__init__("alf")
+        super().__init__("cpc")
 
     def applies(self, benchmark_info):
         return (
@@ -278,7 +278,7 @@ class AlfTester(Tester):
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
-                "--proof-format=alf",
+                "--proof-format=cpc",
                 "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
             ] + benchmark_info.command_line_args
@@ -453,7 +453,7 @@ g_testers = {
     "abduct": AbductTester(),
     "dump": DumpTester(),
     "dsl-proof": DslProofTester(),
-    "alf": AlfTester()
+    "cpc": CpcTester()
 }
 
 g_default_testers = [
