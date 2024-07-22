@@ -354,7 +354,16 @@ Node builtinVarToSygus(Node v)
   return Node::null();
 }
 
-void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
+/**
+ * Get free symbols or variables in a sygus datatype type.
+ * @param sdt The sygus datatype.
+ * @param sym The symbols to add to.
+ * @param isVar If we are looking for variables (if not, we are looking for
+ * symbols).
+ */
+void getFreeSymbolsSygusTypeInternal(TypeNode sdt,
+                                     std::unordered_set<Node>& syms,
+                                     bool isVar)
 {
   // datatype types we need to process
   std::vector<TypeNode> typeToProcess;
@@ -372,7 +381,14 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
       {
         // collect the symbols from the operator
         Node op = dtc[j].getSygusOp();
-        expr::getSymbols(op, syms);
+        if (isVar)
+        {
+          expr::getVariables(op, syms);
+        }
+        else
+        {
+          expr::getSymbols(op, syms);
+        }
         // traverse the argument types
         for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
         {
@@ -395,6 +411,16 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
                          typeNextToProcess.begin(),
                          typeNextToProcess.end());
   }
+}
+
+void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
+{
+  getFreeSymbolsSygusTypeInternal(sdt, syms, false);
+}
+
+void getFreeVariablesSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
+{
+  getFreeSymbolsSygusTypeInternal(sdt, syms, true);
 }
 
 TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,

@@ -3,8 +3,10 @@
 (include "../theories/Arith.smt3")
 (include "../theories/Datatypes.smt3")
 
-; The set type
-(declare-sort Set 1)
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further
+;   function symbols over this sort are also not part of the SMT-LIB standard.
+(declare-type Set (Type))
 
 ; Constants for the theory of sets.
 ; NOTE: empty and universe permits non-set types
@@ -21,6 +23,7 @@
 (declare-const set.subset (-> (! Type :var T :implicit) (Set T) (Set T) Bool))
 (declare-const set.card (-> (! Type :var T :implicit) (Set T) Int))
 (declare-const set.choose (-> (! Type :var T :implicit) (Set T) T))
+(declare-const set.is_empty (-> (! Type :var T :implicit) (Set T) Bool))
 (declare-const set.is_singleton (-> (! Type :var T :implicit) (Set T) Bool))
 
 ; Higher-order sets operators.
@@ -34,8 +37,8 @@
 
 ; Relation operators.
 (declare-const rel.tclosure (-> (! Type :var T :implicit) (Set (Tuple T T)) (Set (Tuple T T))))
-(declare-const rel.transpose (-> (! Type :var T :implicit) (Set T) (Set (nary.reverse Tuple UnitTuple T))))
-(declare-const rel.product (-> (! Type :var T :implicit) (! Type :var U :implicit) (Set T) (Set U) (Set (alf.concat Tuple T U))))
+(declare-const rel.transpose (-> (! Type :var T :implicit) (Set T) (Set (nary.reverse T))))
+(declare-const rel.product (-> (! Type :var T :implicit) (! Type :var U :implicit) (Set T) (Set U) (Set (alf.list_concat Tuple T U))))
 (declare-const rel.join (-> (! Type :var T :implicit) (! Type :var U :implicit) (Set T) (Set U) (Set (nary.join Tuple UnitTuple T U))))
 (declare-const rel.group (-> (! Type :var T :implicit) @List (Set T) (Set (Set T))))
 
@@ -44,9 +47,9 @@
 (declare-const rel.join_image (-> (! Type :var T :implicit) (Set (Tuple T T)) Int (Set (Tuple T))))
 
 ; Skolems for the theory of sets.
-(declare-const @sets_deq_diff (-> (! Type :var T :implicit) (Set T) (Set T) T))
-(declare-const @relations_group_part (-> (! Type :var T :implicit) (Set (Set T)) T (Set T)))
-(declare-const @relations_group_part_element (-> (! Type :var T :implicit) (Set (Set T)) (Set T) T))
+(declare-const @sets_deq_diff (-> (! Type :var T :implicit) (! (Set T) :opaque) (! (Set T) :opaque) T))
+(declare-const @relations_group_part (-> (! Type :var T :implicit) (! (Set (Set T)) :opaque) T (Set T)))
+(declare-const @relations_group_part_element (-> (! Type :var T :implicit) (! (Set (Set T)) :opaque) (! (Set T) :opaque) T))
 
 ; The following skolems are not yet incorporated into the signature:
 ;SETS_CHOOSE

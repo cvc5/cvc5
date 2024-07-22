@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Testing stuff that is not exposed by the Java API to fix code coverage
+ * Testing functions that are not exposed by the Java API for code coverage.
  */
 
 #include <cvc5/cvc5_parser.h>
@@ -142,6 +142,7 @@ TEST_F(TestApiBlackUncovered, deprecated)
 
   (void)slv.mkVar(slv.getIntegerSort());
   (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
+  (void)parser::SymbolManager(&slv);
 }
 
 TEST_F(TestApiBlackUncovered, comparison_operators)
@@ -160,67 +161,8 @@ TEST_F(TestApiBlackUncovered, comparison_operators)
   ASSERT_TRUE(term <= term);
   ASSERT_TRUE(term >= term);
   ASSERT_FALSE(term > term);
-}
-
-TEST_F(TestApiBlackUncovered, equalHash)
-{
-  DatatypeDecl decl1 = d_tm.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons1 = d_tm.mkDatatypeConstructorDecl("cons");
-  cons1.addSelector("head", d_tm.getIntegerSort());
-  decl1.addConstructor(cons1);
-  DatatypeConstructorDecl nil1 = d_tm.mkDatatypeConstructorDecl("nil");
-  decl1.addConstructor(nil1);
-  Sort list1 = d_tm.mkDatatypeSort(decl1);
-  Datatype dt1 = list1.getDatatype();
-  DatatypeConstructor consConstr1 = dt1[0];
-  DatatypeConstructor nilConstr1 = dt1[1];
-  DatatypeSelector head1 = consConstr1.getSelector("head");
-
-  DatatypeDecl decl2 = d_tm.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons2 = d_tm.mkDatatypeConstructorDecl("cons");
-  cons2.addSelector("head", d_tm.getIntegerSort());
-  decl2.addConstructor(cons2);
-  DatatypeConstructorDecl nil2 = d_tm.mkDatatypeConstructorDecl("nil");
-  decl2.addConstructor(nil2);
-  Sort list2 = d_tm.mkDatatypeSort(decl2);
-  Datatype dt2 = list2.getDatatype();
-  DatatypeConstructor consConstr2 = dt2[0];
-  DatatypeConstructor nilConstr2 = dt2[1];
-  DatatypeSelector head2 = consConstr2.getSelector("head");
-
-  ASSERT_EQ(decl1, decl1);
-  ASSERT_FALSE(decl1 == decl2);
-  ASSERT_EQ(cons1, cons1);
-  ASSERT_FALSE(cons1 == cons2);
-  ASSERT_EQ(nil1, nil1);
-  ASSERT_FALSE(nil1 == nil2);
-  ASSERT_EQ(consConstr1, consConstr1);
-  ASSERT_FALSE(consConstr1 == consConstr2);
-  ASSERT_EQ(head1, head1);
-  ASSERT_FALSE(head1 == head2);
-  ASSERT_EQ(dt1, dt1);
-  ASSERT_FALSE(dt1 == dt2);
-
-  ASSERT_EQ(std::hash<DatatypeDecl>{}(decl1), std::hash<DatatypeDecl>{}(decl1));
-  ASSERT_EQ(std::hash<DatatypeDecl>{}(decl1), std::hash<DatatypeDecl>{}(decl2));
-  ASSERT_EQ(std::hash<DatatypeConstructorDecl>{}(cons1),
-            std::hash<DatatypeConstructorDecl>{}(cons1));
-  ASSERT_EQ(std::hash<DatatypeConstructorDecl>{}(cons1),
-            std::hash<DatatypeConstructorDecl>{}(cons2));
-  ASSERT_EQ(std::hash<DatatypeConstructorDecl>{}(nil1),
-            std::hash<DatatypeConstructorDecl>{}(nil1));
-  ASSERT_EQ(std::hash<DatatypeConstructorDecl>{}(nil1),
-            std::hash<DatatypeConstructorDecl>{}(nil2));
-  ASSERT_EQ(std::hash<DatatypeConstructor>{}(consConstr1),
-            std::hash<DatatypeConstructor>{}(consConstr1));
-  ASSERT_EQ(std::hash<DatatypeConstructor>{}(consConstr1),
-            std::hash<DatatypeConstructor>{}(consConstr2));
-  ASSERT_EQ(std::hash<DatatypeSelector>{}(head1),
-            std::hash<DatatypeSelector>{}(head1));
-  ASSERT_EQ(std::hash<DatatypeSelector>{}(head1),
-            std::hash<DatatypeSelector>{}(head2));
-  ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt1));
-  ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt2));
+  cvc5::Proof proof;
+  ASSERT_FALSE(proof != proof);
 }
 
 TEST_F(TestApiBlackUncovered, exception_getmessage)
@@ -318,16 +260,16 @@ TEST_F(TestApiBlackUncovered, mkString)
   ASSERT_EQ(d_solver->mkString(s).getStringValue(), s);
 }
 
-TEST_F(TestApiBlackUncovered, hash)
-{
-  std::hash<Op>()(Op());
-  std::hash<Sort>()(Sort());
-}
-
 TEST_F(TestApiBlackUncovered, isOutputOn)
 {
   d_solver->isOutputOn("inst");
   d_solver->getOutput("inst");
+}
+
+TEST_F(TestApiBlackUncovered, Grammar)
+{
+  Grammar g;
+  ASSERT_FALSE(g != g);
 }
 
 TEST_F(TestApiBlackUncovered, Options)
@@ -348,6 +290,8 @@ TEST_F(TestApiBlackUncovered, Statistics)
   it--;
   ++it;
   --it;
+  std::stringstream ss;
+  ss << it->first;
   testing::internal::CaptureStdout();
   d_solver->printStatisticsSafe(STDOUT_FILENO);
   d_tm.printStatisticsSafe(STDOUT_FILENO);
@@ -407,12 +351,7 @@ TEST_F(TestApiBlackUncovered, Datatypes)
 TEST_F(TestApiBlackUncovered, Proof)
 {
   Proof proof;
-  ASSERT_EQ(proof.getRule(), ProofRule::UNKNOWN);
-  ASSERT_EQ(std::hash<cvc5::ProofRule>()(ProofRule::UNKNOWN),
-            static_cast<size_t>(ProofRule::UNKNOWN));
-  ASSERT_TRUE(proof.getResult().isNull());
-  ASSERT_TRUE(proof.getChildren().empty());
-  ASSERT_TRUE(proof.getArguments().empty());
+  ASSERT_FALSE(proof != proof);
 }
 
 TEST_F(TestApiBlackUncovered, ProofRewriteRule)
@@ -427,10 +366,16 @@ TEST_F(TestApiBlackUncovered, SkolemId)
             static_cast<size_t>(SkolemId::PURIFY));
 }
 
+TEST_F(TestApiBlackUncovered, SynthResult)
+{
+  cvc5::SynthResult r;
+  ASSERT_FALSE(r != r);
+}
+
 TEST_F(TestApiBlackUncovered, Parser)
 {
   parser::Command command;
-  Solver solver;
+  Solver solver(d_tm);
   parser::InputParser inputParser(&solver);
   std::stringstream ss;
   ss << command << std::endl;
@@ -455,5 +400,56 @@ TEST_F(TestApiBlackUncovered, Parser)
   parser::ParserEndOfFileException eof(message, filename, 10, 11);
 }
 
+class PluginListen : public Plugin
+{
+ public:
+  PluginListen(TermManager& tm)
+      : Plugin(tm), d_hasSeenTheoryLemma(false), d_hasSeenSatClause(false)
+  {
+  }
+  virtual ~PluginListen() {}
+  void notifySatClause(const Term& cl) override
+  {
+    Plugin::notifySatClause(cl);  // Cover default implementation
+    d_hasSeenSatClause = true;
+  }
+  bool hasSeenSatClause() const { return d_hasSeenSatClause; }
+  void notifyTheoryLemma(const Term& lem) override
+  {
+    Plugin::notifyTheoryLemma(lem);  // Cover default implementation
+    d_hasSeenTheoryLemma = true;
+  }
+  bool hasSeenTheoryLemma() const { return d_hasSeenTheoryLemma; }
+  std::string getName() override { return "PluginListen"; }
+
+ private:
+  /** have we seen a theory lemma? */
+  bool d_hasSeenTheoryLemma;
+  /** have we seen a SAT clause? */
+  bool d_hasSeenSatClause;
+};
+
+TEST_F(TestApiBlackUncovered, plugin_uncovered_default)
+{
+  // NOTE: this shouldn't be necessary but ensures notifySatClause is called
+  // here.
+  d_solver->setOption("plugin-notify-sat-clause-in-solve", "false");
+  PluginListen pl(d_tm);
+  d_solver->addPlugin(pl);
+  Sort stringSort = d_tm.getStringSort();
+  Term x = d_tm.mkConst(stringSort, "x");
+  Term y = d_tm.mkConst(stringSort, "y");
+  Term ctn1 = d_tm.mkTerm(Kind::STRING_CONTAINS, {x, y});
+  Term ctn2 = d_tm.mkTerm(Kind::STRING_CONTAINS, {y, x});
+  d_solver->assertFormula(d_tm.mkTerm(Kind::OR, {ctn1, ctn2}));
+  Term lx = d_tm.mkTerm(Kind::STRING_LENGTH, {x});
+  Term ly = d_tm.mkTerm(Kind::STRING_LENGTH, {y});
+  Term lc = d_tm.mkTerm(Kind::GT, {lx, ly});
+  d_solver->assertFormula(lc);
+  ASSERT_TRUE(d_solver->checkSat().isSat());
+  // above input formulas should induce a theory lemma and SAT clause learning
+  ASSERT_TRUE(pl.hasSeenTheoryLemma());
+  ASSERT_TRUE(pl.hasSeenSatClause());
+}
 }  // namespace test
 }  // namespace cvc5::internal

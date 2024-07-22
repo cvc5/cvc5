@@ -1,0 +1,10 @@
+; EXPECT: unsat
+(set-logic ALL)
+(set-option :sets-ext true)
+(set-option :debug-check-models true)
+(declare-const x (Set Bool))
+(declare-const _x6 (Set Bool))
+(declare-const _x8 (Set Bool))
+(assert (set.is_singleton (set.complement (set.complement x))))
+(assert (set.subset (as set.universe (Set Bool)) (set.minus (set.minus _x6 _x8) (as set.universe (Set Bool)))))
+(check-sat)

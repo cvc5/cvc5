@@ -108,6 +108,7 @@ include(UseJava)
 # specify java source files
 set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/AbstractPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/AbstractPlugin.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Command.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Context.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/CVC5ApiException.java
@@ -196,6 +197,8 @@ message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 set(jni_files
+  jni/api_plugin.cpp
+  jni/api_plugin.h
   jni/api_utilities.cpp
   jni/datatype.cpp
   jni/command.cpp
@@ -227,29 +230,49 @@ target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
 
+# Java on Windows expects the JNI libraries without the prefix
+if (WIN32)
+  set_target_properties(cvc5jni PROPERTIES PREFIX "")
+  set_target_properties(cvc5jni PROPERTIES IMPORT_PREFIX "")
+endif()
+
 set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")
 
-# create cvc5.jar file
-add_jar(cvc5jar
-  SOURCES
-  ${JAVA_FILES}
-  VERSION ${CVC5_VERSION}
-  OUTPUT_NAME cvc5
-)
+# Create cvc5.jar file
+if (WIN32)
+  # CMake creates a symbolic link pointing to the jar with
+  # the version info when the VERSION attribute is provided.
+  # This fails on Windows so we don't provide it.
+  add_jar(cvc5jar
+    SOURCES
+    ${JAVA_FILES}
+    OUTPUT_NAME cvc5
+  )
+else()
+  add_jar(cvc5jar
+    SOURCES
+    ${JAVA_FILES}
+    VERSION ${CVC5_VERSION}
+    OUTPUT_NAME cvc5
+  )
+endif()
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5 cvc5parser)
 
-# install in the same directory of cvc5-targets
-install(TARGETS cvc5jni
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+# Install in the same directory of cvc5-targets.
+# On Windows, CMake's default install action places
+# DLLs into the runtime path (by default "bin")
+install(TARGETS cvc5jni COMPONENT java-api)
 
-install_jar(cvc5jar DESTINATION share/java)
+install_jar(cvc5jar
+  DESTINATION share/java
+  COMPONENT java-api
+)
 
 install_jar_exports(
   TARGETS cvc5jar
   NAMESPACE cvc5::
   FILE cvc5JavaTargets.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
+  COMPONENT java-api
 )

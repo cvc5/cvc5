@@ -784,10 +784,12 @@ class SolverTest
       assertTrue(s.isString());
       assertTrue(s.getString().endsWith("ms"));
       s = stats.get("resource::resourceUnitsUsed");
+      s.toString();
       assertTrue(s.isInternal());
       assertFalse(s.isDefault());
       assertTrue(s.isInt());
       assertTrue(s.getInt() >= 0);
+      s.toString();
     }
     for (Map.Entry<String, Stat> s : stats)
     {
@@ -801,6 +803,7 @@ class SolverTest
         assertTrue(elem.getValue().isInternal());
         assertTrue(elem.getValue().isDouble());
         assertTrue(Double.isNaN(elem.getValue().getDouble()));
+        elem.getValue().toString();
       }
     }
   }
@@ -1595,6 +1598,21 @@ class SolverTest
   }
 
   @Test
+  void simplifyApplySubs() throws CVC5ApiException
+  {
+    d_solver.setOption("incremental", "true");
+    Sort intSort = d_tm.getIntegerSort();
+    Term x = d_solver.mkConst(intSort, "x");
+    Term zero = d_solver.mkInteger(0);
+    Term eq = d_solver.mkTerm(EQUAL, x, zero);
+    d_solver.assertFormula(eq);
+    assertDoesNotThrow(() -> d_solver.checkSat());
+
+    assertEquals(d_solver.simplify(x, false), x);
+    assertEquals(d_solver.simplify(x, true), zero);
+  }
+
+  @Test
   void simplify() throws CVC5ApiException
   {
     assertThrows(CVC5ApiException.class, () -> d_solver.simplify(new Term()));
@@ -2295,6 +2313,112 @@ class SolverTest
     Term xval = d_solver.getValue(x);
     Term yval = d_solver.getValue(y);
     assertFalse(xval.equals(yval));
+  }
+
+  class PluginUnsat extends AbstractPlugin
+  {
+    public PluginUnsat(TermManager tm)
+    {
+      super(tm);
+    }
+
+    @Override
+    public Term[] check()
+    {
+      // add the "false" lemma.
+      Term flem = d_tm.mkBoolean(false);
+      return new Term[] {flem};
+    }
+    @Override
+    public void notifySatClause(Term cl)
+    {
+    }
+
+    @Override
+    public void notifyTheoryLemma(Term lem)
+    {
+    }
+    @Override
+    public String getName()
+    {
+      return "PluginUnsat";
+    }
+  }
+
+  @Test
+  void pluginUnsat()
+  {
+    PluginUnsat pu = new PluginUnsat(d_tm);
+    d_solver.addPlugin(pu);
+    assertTrue(pu.getName().equals("PluginUnsat"));
+    // should be unsat since the plugin above asserts "false" as a lemma
+    assertTrue(d_solver.checkSat().isUnsat());
+  }
+
+  class PluginListen extends AbstractPlugin
+  {
+    public PluginListen(TermManager tm)
+    {
+      super(tm);
+    }
+    @Override
+    public Term[] check()
+    {
+      return new Term[0];
+    }
+    @Override
+    public void notifySatClause(Term cl)
+    {
+      d_hasSeenSatClause = true;
+    }
+    public boolean hasSeenSatClause()
+    {
+      return d_hasSeenSatClause;
+    }
+    @Override
+    public void notifyTheoryLemma(Term lem)
+    {
+      d_hasSeenTheoryLemma = true;
+    }
+    public boolean hasSeenTheoryLemma()
+    {
+      return d_hasSeenTheoryLemma;
+    }
+    @Override
+    public String getName()
+    {
+      return "PluginListen";
+    }
+
+    /** Reference to the term manager */
+    private TermManager d_tm;
+    /** have we seen a theory lemma? */
+    private boolean d_hasSeenTheoryLemma;
+    /** have we seen a SAT clause? */
+    private boolean d_hasSeenSatClause;
+  };
+
+  @Test
+  void pluginListen()
+  {
+    // NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
+    d_solver.setOption("plugin-notify-sat-clause-in-solve", "false");
+    PluginListen pl = new PluginListen(d_tm);
+    d_solver.addPlugin(pl);
+    Sort stringSort = d_tm.getStringSort();
+    Term x = d_tm.mkConst(stringSort, "x");
+    Term y = d_tm.mkConst(stringSort, "y");
+    Term ctn1 = d_tm.mkTerm(Kind.STRING_CONTAINS, new Term[] {x, y});
+    Term ctn2 = d_tm.mkTerm(Kind.STRING_CONTAINS, new Term[] {y, x});
+    d_solver.assertFormula(d_tm.mkTerm(Kind.OR, new Term[] {ctn1, ctn2}));
+    Term lx = d_tm.mkTerm(Kind.STRING_LENGTH, new Term[] {x});
+    Term ly = d_tm.mkTerm(Kind.STRING_LENGTH, new Term[] {y});
+    Term lc = d_tm.mkTerm(Kind.GT, new Term[] {lx, ly});
+    d_solver.assertFormula(lc);
+    assertTrue(d_solver.checkSat().isSat());
+    // above input formulas should induce a theory lemma and SAT clause learning
+    assertTrue(pl.hasSeenTheoryLemma());
+    assertTrue(pl.hasSeenSatClause());
   }
 
   @Test

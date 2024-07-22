@@ -24,8 +24,13 @@
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
+    
+class SolverEngine;
+
 namespace theory {
 namespace quantifiers {
+
+class MbqiFastSygus;
 
 /**
  * InstStrategyMbqi
@@ -40,6 +45,7 @@ namespace quantifiers {
  */
 class InstStrategyMbqi : public QuantifiersModule
 {
+  friend class MbqiFastSygus;
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,
@@ -103,10 +109,29 @@ class InstStrategyMbqi : public QuantifiersModule
    * which can lead to logic exceptions in subsolvers.
    */
   Node mkMbqiSkolem(const Node& t);
+  /**
+   * Return the model value for term t from the solver, possibly post-processing
+   * it with modules maintained by this class (e.g. d_msenum).
+   * @param q The quantified formula we are instantiating.
+   * @param query The query used to find the model-based instantiation.
+   * @param smt The subsolver the query was made on.
+   * @param vars The variables we are instantiating.
+   * @param mvs The model values found for vars by the subsolver. This vector
+   * may be modified based on modules maintained by this class.
+   * @param mvToFreshVar Used for representing values for uninterpreted sorts.
+   */
+  void modelValueFromQuery(const Node& q,
+                           const Node& query,
+                           SolverEngine& smt,
+                           const std::vector<Node>& vars,
+                           std::vector<Node>& mvs,
+                           const std::map<Node, Node>& mvToFreshVar);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
+  /** Submodule for sygus enum */
+  std::unique_ptr<MbqiFastSygus> d_msenum;
 };
 
 }  // namespace quantifiers

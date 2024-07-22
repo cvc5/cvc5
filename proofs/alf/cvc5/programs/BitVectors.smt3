@@ -1,0 +1,45 @@
+(include "../theories/BitVectors.smt3")
+
+; define: $bv_bit_set
+; args:
+; - a (BitVec n): The bitvector to inspect, in little endian form.
+; - i Int: The index of the bit.
+; return: true if the i^th bit of a is set.
+(define $bv_bit_set ((n Int :implicit) (a (BitVec n)) (i Int))
+  (alf.is_eq (alf.extract a i i) #b1))
+
+; program: $bv_const_to_bitlist_rec
+; args:
+; - c (BitVec n): The bitvector constant to process.
+; - i Int: The index we are currently processing.
+; return: the bitlist for a starting with index i.
+(program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int))
+  ((BitVec n) Int) (BitVec n)
+  (
+    (($bv_const_to_bitlist_rec c -1)  @bv_empty)
+    (($bv_const_to_bitlist_rec c i)   (alf.cons @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (alf.add i -1))))
+  )
+)
+
+; define: $bv_const_to_bitlist
+; args:
+; - c (BitVec n): The bitvector constant to process.
+; return: >
+;   The bitlist for c, which is a term of the form
+;   (@from_bools a1 ...(@from_bools an @bv_empty)) where a1...an are
+;   the bits of c, considered in little endian form.
+(define $bv_const_to_bitlist ((n Int :implicit) (c (BitVec n)))
+  ($bv_const_to_bitlist_rec c (alf.add (alf.len c) -1)))
+  
+; define: $nary_app
+; args:
+; - f (-> T U V): The function to apply, which is assumed to be
+; right-associative with a nil terminator.
+; - a T: The first argument.
+; - b U: The second argument.
+; return: the term (f a b).
+; note: >
+;   This is a helpful method for constructing n-ary terms with exactly two
+;   children.
+(define $nary_app ((T Type :implicit) (U Type :implicit) (V Type :implicit) (f (-> T U V)) (a T) (b U))
+  (f a (f b (alf.nil f a b))))

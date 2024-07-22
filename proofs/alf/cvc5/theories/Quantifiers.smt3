@@ -1,17 +1,33 @@
 (include "../programs/Utils.smt3")
 
+; disclaimer: >
+;   This function is a builtin function symbol of SMT-LIB denoting
+;   universal quantification. We represent it as an ordinary function taking a
+;   list as the first child to model cvc5's treatment of quantified formulas.
 (declare-const forall (-> @List Bool Bool) :binder @list)
 
+; disclaimer: >
+;   This function is a builtin function symbol of SMT-LIB denoting
+;   existential quantification. We represent it as an ordinary function taking a
+;   list as the first child to model cvc5's treatment of quantified formulas.
 (declare-const exists (-> @List Bool Bool) :binder @list)
 
 ; returns the type of the element in the list, if the list is a singleton.
-(program get_witness_type ((x @List))
+
+; program: $get_witness_type
+; args:
+; - L List: The list of variables of the witness to process.
+; return: >
+;   The type of a witness having the singleton list of variables L.
+(program $get_witness_type ((x @List))
   (@List) Type
   (
-    ((get_witness_type (@list x)) (alf.typeof x))
+    (($get_witness_type (@list x)) (alf.typeof x))
   )
 )
-(declare-const witness (-> (! @List :var L) Bool (get_witness_type L)) :binder @list)
+
+; disclaimer: This function is not in SMT-LIB.
+(declare-const witness (-> (! @List :var L) Bool ($get_witness_type L)) :binder @list)
 
 ; skolems
-(declare-const @quantifiers_skolemize (-> (! Type :var T :implicit) Bool T T))
+(declare-const @quantifiers_skolemize (-> (! Type :var T :implicit) (! Bool :opaque) (! T :opaque) T))

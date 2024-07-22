@@ -42,6 +42,8 @@ class GenericOp
 
   /** Is k a kind that is an indexed operator? */
   static bool isIndexedOperatorKind(Kind k);
+  /** Is k a kind that is an indexed operator? */
+  static bool isNumeralIndexedOperatorKind(Kind k);
   /**
    * Return the list of nodes corresponding to the indices of n, which is
    * an operator for an application of kind k.
@@ -62,8 +64,6 @@ class GenericOp
   GenericOp();
   /** The kind of indexed operator this operator represents */
   Kind d_kind;
-  /** Is k a kind that is an indexed operator? */
-  static bool isNumeralIndexedOperatorKind(Kind k);
 };
 
 std::ostream& operator<<(std::ostream& out, const GenericOp& op);

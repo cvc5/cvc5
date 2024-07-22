@@ -70,6 +70,8 @@ operator SET_COMPREHENSION 3 "set comprehension specified by a bound variable li
 # If the set has cardinality > 1, then (choose A) will deterministically return an element in A.
 operator SET_CHOOSE        1  "return an element in the set given as a parameter"
 
+# The operator set.is_empty returns whether the given set is empty
+operator SET_IS_EMPTY  1  "return whether the given set is empty"
 # The operator is_singleton returns whether the given set is a singleton
 operator SET_IS_SINGLETON  1  "return whether the given set is a singleton"
 
@@ -139,7 +141,8 @@ typerule SET_COMPLEMENT     ::cvc5::internal::theory::sets::ComplementTypeRule
 typerule SET_UNIVERSE       ::cvc5::internal::theory::sets::UniverseSetTypeRule
 typerule SET_COMPREHENSION  ::cvc5::internal::theory::sets::ComprehensionTypeRule
 typerule SET_CHOOSE         ::cvc5::internal::theory::sets::ChooseTypeRule
-typerule SET_IS_SINGLETON   ::cvc5::internal::theory::sets::IsSingletonTypeRule
+typerule SET_IS_SINGLETON   ::cvc5::internal::theory::sets::IsSetTypeRule
+typerule SET_IS_EMPTY       ::cvc5::internal::theory::sets::IsSetTypeRule
 typerule SET_MAP            ::cvc5::internal::theory::sets::SetMapTypeRule
 typerule SET_FILTER         ::cvc5::internal::theory::sets::SetFilterTypeRule
 typerule SET_FOLD           ::cvc5::internal::theory::sets::SetFoldTypeRule

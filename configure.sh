@@ -27,6 +27,7 @@ General options;
   --win64-native           natively compile for Windows 64 bit
   --ninja                  use Ninja build system
   --docs                   build Api documentation
+  --docs-ga                build API documentation with Google Analytics
 
 
 Features:
@@ -115,6 +116,7 @@ cryptominisat=default
 debug_context_mm=default
 debug_symbols=default
 docs=default
+docs_ga=default
 glpk=default
 gpl=default
 kissat=default
@@ -125,6 +127,7 @@ ninja=default
 profiling=default
 python_bindings=default
 python_only_src=default
+pyvenv=default
 java_bindings=default
 editline=default
 build_shared=ON
@@ -243,6 +246,9 @@ do
     --docs) docs=ON;;
     --no-docs) docs=OFF;;
 
+    --docs-ga) docs_ga=ON;;
+    --no-docs-ga) docs_ga=OFF;;
+
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
 
@@ -263,6 +269,9 @@ do
 
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
+
+    --pyvenv) pyvenv=ON;;
+    --no-pyvenv) pyvenv=OFF;;
 
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
@@ -348,6 +357,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
 [ $auto_download != default ] \
   && cmake_opts="$cmake_opts -DENABLE_AUTO_DOWNLOAD=$auto_download"
+[ $pyvenv != default ] \
+  && cmake_opts="$cmake_opts -DUSE_PYTHON_VENV=$pyvenv"
 [ $ubsan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
 [ $tsan != default ] \
@@ -388,6 +399,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
 [ $docs != default ] \
   && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
+[ $docs_ga != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_DOCS_GA=$docs_ga"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
 [ $python_only_src != default ] \

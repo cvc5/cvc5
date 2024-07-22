@@ -197,7 +197,9 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
         // instead of (= (f values) result) here. The latter may be more
         // compact, but we require introducing literals for (= args values)
         // so that they can be preferred by the decision strategy.
-        std::vector<Node> ant;
+        std::vector<Node> disj;
+        Node conc = nm->mkNode(Kind::EQUAL, fapp, result);
+        disj.push_back(conc);
         for (size_t i = 0, nchild = fapp.getNumChildren(); i < nchild; i++)
         {
           Node eqa = fapp[i].eqNode(arguments[i + 1]);
@@ -206,11 +208,9 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
           // true first. This is to ensure that the value of the oracle can be
           // used.
           d_dstrat.addLiteral(eqa);
-          ant.push_back(eqa);
+          disj.push_back(eqa.notNode());
         }
-        Node antn = nm->mkAnd(ant);
-        Node conc = nm->mkNode(Kind::EQUAL, fapp, result);
-        Node lem = nm->mkNode(Kind::OR, conc, antn.notNode());
+        Node lem = nm->mkOr(disj);
         learnedLemmas.push_back(lem);
         allFappsConsistent = false;
       }
