@@ -592,7 +592,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       {
         printDslRule(out, r);
       }
-      if (options().proof.alfPrintReference)
+      if (options().proof.proofPrintReference)
       {
         // [2] print only the universal variables
         out << outVars.str();
