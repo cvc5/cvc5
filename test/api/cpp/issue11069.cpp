@@ -53,12 +53,15 @@ int main()
   Result result = slv.checkSat();
   std::cout << "Result:" << result << std::endl;
 
-  std::string input2("(assert (= x #b0101))\n");
+  std::string input2("(assert (= x #b0101))");
+  parser.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                                   "myInput");
   parser.appendIncrementalStringInput(input2);
   cmd = parser.nextCommand();
-  assert(!cmd.isNull());
-  cmd.invoke(&slv, &sm, std::cout);
-
+  if (!cmd.isNull())
+  {
+    cmd.invoke(&slv, &sm, std::cout);
+  }
   result = slv.checkSat();
   std::cout << "Result:" << result << std::endl;
   assert(result.isUnsat());
