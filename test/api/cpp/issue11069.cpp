@@ -58,10 +58,8 @@ int main()
                                    "myInput");
   parser.appendIncrementalStringInput(input2);
   cmd = parser.nextCommand();
-  if (!cmd.isNull())
-  {
-    cmd.invoke(&slv, &sm, std::cout);
-  }
+  assert(!cmd.isNull());
+  cmd.invoke(&slv, &sm, std::cout);
   result = slv.checkSat();
   std::cout << "Result:" << result << std::endl;
   assert(result.isUnsat());
