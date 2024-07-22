@@ -646,19 +646,18 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       aout->printStep("refl", f.eqNode(lam), id, {}, {lam});
     }
     // [7] print proof body
-    std::unordered_map<const ProofNode*, bool> processingChildren;
-    printProofInternal(aout, pnBody, processingChildren);
+    printProofInternal(aout, pnBody);
   }
 }
 
-void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn, 
-    std::unordered_map<const ProofNode*, bool>& processingChildren)
+void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
 {
   // the stack
   std::vector<const ProofNode*> visit;
   // whether we have to process children
+  context::CDHashMap<const ProofNode*, bool> processingChildren(&d_passumeCtx);
   // helper iterators
-  std::unordered_map<const ProofNode*, bool>::iterator pit;
+  context::CDHashMap<const ProofNode*, bool>::iterator pit;
   const ProofNode* cur;
   visit.push_back(pn);
   do
@@ -672,13 +671,6 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn,
       {
         // ignore
         visit.pop_back();
-        continue;
-      }
-      else if (pn!=cur && r==ProofRule::SCOPE)
-      {
-        visit.pop_back();
-        std::unordered_map<const ProofNode*, bool> spc = processingChildren;
-        printProofInternal(out, cur, spc);
         continue;
       }
       // print preorder traversal

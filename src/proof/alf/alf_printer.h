@@ -94,8 +94,7 @@ class AlfPrinter : protected EnvObj
    * Helper for print. Prints the proof node using the print channel out. This
    * may either write the proof to an output stream or preprocess it.
    */
-  void printProofInternal(AlfPrintChannel* out, const ProofNode* pn, 
-    std::unordered_map<const ProofNode*, bool>& processingChildren);
+  void printProofInternal(AlfPrintChannel* out, const ProofNode* pn);
   /**
    * Called at preorder traversal of proof node pn. Prints (if necessary) to
    * out.
