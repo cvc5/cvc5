@@ -347,6 +347,7 @@ Node Env::getSharableFormula(const Node& n) const
         Node cacheVal;
         if (!SkoleManager::isSkolemFunction(sk, id, cacheVal))
         {
+          // kind SKOLEM should imply that it is a skolem function
           Assert(false);
           return Node::null();
         }
@@ -354,7 +355,7 @@ Node Env::getSharableFormula(const Node& n) const
             && std::find(toProcess.begin(), toProcess.end(), cacheVal)
                    == toProcess.end())
         {
-          // add to process vector
+          // if we have a cache value, add it to process vector
           toProcess.push_back(cacheVal);
         }
       }
