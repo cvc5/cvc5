@@ -34,7 +34,7 @@ mkdir -p build && cd build
 cmake -DCMAKE_INSTALL_PREFIX="$BASE_DIR" ..
 make -j$(nproc)
 mkdir -p $BASE_DIR/bin
-cp ./src/ethos $BASE_DIR/bin/ethos
+cp ./src/alfc $BASE_DIR/bin/ethos
 popd
 
 ##### signatures

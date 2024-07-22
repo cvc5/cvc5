@@ -22,7 +22,7 @@ name   = "Proof"
   name       = "alethe"
   help       = "Output Alethe proof"
 [[option.mode.CPC]]
-  name       = "alf"
+  name       = "cpc"
   help       = "Output Cooperating Proof Calculus proof"
 
 [[option]]

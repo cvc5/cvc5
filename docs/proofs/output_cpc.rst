@@ -21,7 +21,8 @@ A trust step proves an arbitrary formula with no provided justification.
 The resulting proof contains warnings for trust steps that indicate which internal proof rules were recorded as trust steps in the proof.
 Moreover, `ethos` will return the output `incomplete` upon a successful exit if any trust step is used in the proof, indicating that the reasoning in the proof was incomplete.
 
-To get more fine-grained proofs, the additional option :ref:`proof-granularity=dsl-rewrite <lbl-option-proof-granularity>` can be passed to cvc5. This often will result in proofs with more detail.
+To get more fine-grained proofs, the additional option :ref:`proof-granularity=dsl-rewrite <lbl-option-proof-granularity>` can be passed to cvc5.
+This will result in proofs with more detail.
 
 A simple example of cvc5 producing a proof in CPC proof format:
 
