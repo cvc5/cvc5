@@ -19,18 +19,18 @@
 (program $bv_mk_bitwise_slicing_rec
   ((n Int) (m Int)
    (f (-> (BitVec n) (BitVec n) (BitVec n))) (a (BitVec n)) (c (BitVec n))
-   (b Bool) (bn Bool) (b2 (BitVec m) :list) (start Int) (end Int))
+   (b Bool) (bn Bool) (bs (BitVec m) :list) (start Int) (end Int))
   ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec n) (BitVec n) (BitVec m) Bool Int Int) (BitVec n)
   (
-  (($bv_mk_bitwise_slicing_rec f c a b2 bn start -1)
+  (($bv_mk_bitwise_slicing_rec f c a bs bn start -1)
       (alf.cons concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
-  (($bv_mk_bitwise_slicing_rec f c a (@from_bools b b2) bn start end)
+  (($bv_mk_bitwise_slicing_rec f c a (@from_bools b bs) bn start end)
         (let ((em1 (alf.add end -1)) (ep1 (alf.add end 1)))
         (alf.ite (alf.is_eq b bn)
-          ($bv_mk_bitwise_slicing_rec f c a b2 b start em1)
+          ($bv_mk_bitwise_slicing_rec f c a bs b start em1)
           (alf.cons concat
             ($nary_app f (extract start ep1 c) (extract start ep1 a))
-            ($bv_mk_bitwise_slicing_rec f c a b2 b end em1)))))
+            ($bv_mk_bitwise_slicing_rec f c a bs b end em1)))))
   )
 )
 
@@ -44,7 +44,8 @@
   (alf.or (alf.is_eq f bvand) (alf.is_eq f bvor) (alf.is_eq f bvxor)))
 
 ; program: $bv_mk_bitwise_slicing
-; - a : (BitVec n). The term to apply bitwise slicing to.
+; args:
+; - a (BitVec n): The term to apply bitwise slicing to.
 ; return: >
 ;   The result of applying bitwise slicing to a. For example, given
 ;   (bvand x #b0011) as a, this program will return
@@ -55,7 +56,7 @@
     a
     (
     ((f a1 a2)    ($singleton_elim
-                  (let ((c ($bv_get_const_child a)))
+                  (let ((c ($bv_get_first_const_child a)))
                   (alf.requires ($bv_is_bitwise_slicing_op f) true
                   (alf.requires (alf.is_eq c @bv_empty) false
                   (let ((wm1 (alf.add (alf.len c) -1)))
@@ -97,7 +98,6 @@
   (($bv_mk_bitblast_step_eq (@from_bools b1 a1) (@from_bools b2 a2))  (alf.cons and (= b1 b2) ($bv_mk_bitblast_step_eq a1 a2)))
   )
 )
-
 
 ; define: $bv_mk_bitblast_step_extract
 ; args:
