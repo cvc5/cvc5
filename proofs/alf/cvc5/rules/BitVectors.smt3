@@ -25,7 +25,7 @@
   (($bv_mk_bitwise_slicing_rec f c a bs bn start -1)
       (alf.cons concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
   (($bv_mk_bitwise_slicing_rec f c a (@from_bools b bs) bn start end)
-        (let ((em1 (alf.add end -1)) (ep1 (alf.add end 1)))
+        (alf.define ((em1 (alf.add end -1)) (ep1 (alf.add end 1)))
         (alf.ite (alf.is_eq b bn)
           ($bv_mk_bitwise_slicing_rec f c a bs b start em1)
           (alf.cons concat
@@ -56,14 +56,14 @@
     a
     (
     ((f a1 a2)    ($singleton_elim
-                  (let ((c ($bv_get_first_const_child a)))
+                  (alf.define ((c ($bv_get_first_const_child a)))
                   (alf.requires ($bv_is_bitwise_slicing_op f) true
                   (alf.requires (alf.is_eq c @bv_empty) false
-                  (let ((wm1 (alf.add (alf.len c) -1)))
+                  (alf.define ((wm1 (alf.add (alf.len c) -1)))
                   ($bv_mk_bitwise_slicing_rec
                     f
                     c
-                    (let ((nil (alf.nil f a1 a2)))
+                    (alf.define ((nil (alf.nil f a1 a2)))
                       ($singleton_elim (nary.diff f nil a (alf.cons f c nil))))  ; remove the constant and recollect
                     ($bv_const_to_bitlist c)               ; convert the constant to a bitlist
                     ($bv_bit_set c wm1) wm1 wm1)))))))
