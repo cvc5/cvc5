@@ -38,7 +38,7 @@ name   = "Parser"
   category   = "expert"
   long       = "fresh-binders"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "construct fresh variables always when parsing binders"
 
 # this is to support security in the online version, and in other similar
