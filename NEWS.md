@@ -1,5 +1,11 @@
 This file contains a summary of important user-visible changes.
 
+## New Features
+
+- Adds a new strategy `--mbqi-fast-sygus` (disabled by default) for **quantifier
+  instantiation** which uses SyGuS enumeration to augment instantiations from
+  model-based quantifier instantiation.
+
 ## Changes
 
 - **API**
@@ -15,7 +21,6 @@ This file contains a summary of important user-visible changes.
   * Pythonic:
     - Unsat cores and proofs are now available via the `Solver` methods
       `unsat_core()` and `proof()`, respectively.
-
 
 cvc5 1.1.2
 ==========
