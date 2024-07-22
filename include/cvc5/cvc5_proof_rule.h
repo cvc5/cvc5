@@ -2563,6 +2563,29 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_LOOP_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings - regular expression intersection/union inclusion**
+   *
+   * .. math::
+   *   (re.inter R) = (re.inter re.none R_0)
+   *
+   * where :math:`R` is a list of regular expressions containing `r_1`,
+   * `(re.comp r_2)` and the list :math:`R_0` where `r_2` is a superset of
+   * `r_1`.
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   (re.union R) = (re.union (re.* re.allchar) R_0)
+   *
+   * where :math:`R` is a list of regular expressions containing `r_1`,
+   * `(re.comp r_2)` and the list :math:`R_0`, where `r_1` is a superset of
+   * `r_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_INTER_UNION_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
    *
    * .. math::
