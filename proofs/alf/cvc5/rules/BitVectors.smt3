@@ -44,7 +44,7 @@
   (alf.or (alf.is_eq f bvand) (alf.is_eq f bvor) (alf.is_eq f bvxor)))
 
 ; program: $bv_mk_bitwise_slicing
-; - a : (BitVec n). The term to apply bitwise slicing to.
+; - a (BitVec n): The term to apply bitwise slicing to.
 ; return: >
 ;   The result of applying bitwise slicing to a. For example, given
 ;   (bvand x #b0011) as a, this program will return
