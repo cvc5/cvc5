@@ -28,6 +28,8 @@ All proofs in the cpc format are closed refutations of the input, in that the pr
 For more fine-grained proofs, the additional option :ref:`proof-granularity=dsl-rewrite <lbl-option-proof-granularity>` can be passed to cvc5.
 This will result in proofs with more detail.
 
-A simple example of cvc5 producing a proof in CPC proof format:
+A simple example of cvc5 producing a proof in CPC proof format is shown below.
+Notice that the concrete syntax of CPC is very similar to the Alethe format.
+However, the proof rules used by these two formats are different.
 
 .. run-command:: bin/cvc5 --dump-proofs --proof-format-mode=cpc --proof-granularity=dsl-rewrite ../test/regress/cli/regress0/proofs/qgu-fuzz-1-bool-sat.smt2
