@@ -353,6 +353,7 @@ void InputParser::setIncrementalStringInputInternal(modes::InputLanguage lang,
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
   d_istringStream.str("");
+  d_istringStream.clear();
   d_parser->setStreamInput(d_istringStream, name);
 }
 
