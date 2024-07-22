@@ -326,7 +326,7 @@ Node Env::getSharableFormula(const Node& n) const
     index++;
     // get the symbols contained in n
     std::unordered_set<Node> syms;
-    expr::getSymbols(on, syms);
+    expr::getSymbols(nn, syms);
     for (const Node& s : syms)
     {
       Kind sk = s.getKind();
