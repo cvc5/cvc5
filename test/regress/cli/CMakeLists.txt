@@ -1431,6 +1431,8 @@ set(regress_0_tests
   regress0/quantifiers/is-even-pred.smt2
   regress0/quantifiers/is-int.smt2
   regress0/quantifiers/issue1805.smt2
+  regress0/quantifiers/issue11066-fresh-binders.smt2
+  regress0/quantifiers/issue11066-fresh-binders-err.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2

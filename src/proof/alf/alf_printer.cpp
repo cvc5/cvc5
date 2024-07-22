@@ -173,11 +173,16 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     {
       // we don't support bitvectors yet
       Assert(pargs[0].getKind() == Kind::EQUAL);
-      if (pargs[0][0].getType().isBoolean())
-      {
-        return pargs[0][0][0].getType().isRealOrInt();
-      }
       return pargs[0][0].getType().isRealOrInt();
+    }
+    break;
+    case ProofRule::ARITH_POLY_NORM_REL:
+    {
+      // we don't support bitvectors yet
+      Node res = pfn->getResult();
+      Assert(res.getKind() == Kind::EQUAL);
+      Assert(res[0].getType().isBoolean());
+      return res[0][0].getType().isRealOrInt();
     }
     break;
     case ProofRule::STRING_REDUCTION:
@@ -743,6 +748,7 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   {
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
+    case ProofRule::ARITH_POLY_NORM_REL:
     {
       Node op = d_tproc.getOperatorOfTerm(res[0], true);
       args.push_back(d_tproc.convert(op));
