@@ -311,7 +311,7 @@ bool Env::isBooleanTermSkolem(const Node& k) const
 
 Node Env::getSharableFormula(const Node& n) const
 {
-  Node on = n; 
+  Node on = n;
   if (!d_options.base.pluginShareSkolems)
   {
     // note we only remove purify skolems if the above option is disabled
@@ -330,12 +330,12 @@ Node Env::getSharableFormula(const Node& n) const
     for (const Node& s : syms)
     {
       Kind sk = s.getKind();
-      if (sk==Kind::INST_CONSTANT || sk==Kind::DUMMY_SKOLEM)
+      if (sk == Kind::INST_CONSTANT || sk == Kind::DUMMY_SKOLEM)
       {
         // these kinds are never sharable
         return Node::null();
       }
-      if (sk==Kind::SKOLEM)
+      if (sk == Kind::SKOLEM)
       {
         if (!d_options.base.pluginShareSkolems)
         {
@@ -347,17 +347,19 @@ Node Env::getSharableFormula(const Node& n) const
         Node cacheVal;
         if (!SkoleManager::isSkolemFunction(sk, id, cacheVal))
         {
-          Assert (false);
+          Assert(false);
           return Node::null();
         }
-        if (!cacheVal.isNull() && std::find(toProcess.begin(), toProcess.end(), cacheVal)==toProcess.end())
+        if (!cacheVal.isNull()
+            && std::find(toProcess.begin(), toProcess.end(), cacheVal)
+                   == toProcess.end())
         {
           // add to process vector
           toProcess.push_back(cacheVal);
         }
       }
     }
-  }while (index<toProcess.size());
+  } while (index < toProcess.size());
   // If we didn't encounter an illegal term, we now eliminate subtyping
   SubtypeElimNodeConverter senc(d_nm);
   on = senc.convert(on);
