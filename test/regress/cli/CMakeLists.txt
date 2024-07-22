@@ -1838,6 +1838,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-benchmark-489.smt2
   regress0/strings/norn-simp-rew.smt2
+  regress0/strings/nterm-pc-zalig.smt2
   regress0/strings/parser-syms.cvc.smt2
   regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/proj-issue390-update-rev-rewrite.smt2
