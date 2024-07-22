@@ -41,6 +41,7 @@ AlfPrinter::AlfPrinter(Env& env,
                        rewriter::RewriteDb* rdb)
     : EnvObj(env),
       d_tproc(atp),
+      d_passumeMap(&d_passumeCtx),
       d_termLetPrefix("@t"),
       d_ltproc(nodeManager(), atp),
       d_rdb(rdb)
@@ -550,7 +551,6 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
 
   d_pletMap.clear();
-  d_passumeMap.clear();
 
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
@@ -646,16 +646,17 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       aout->printStep("refl", f.eqNode(lam), id, {}, {lam});
     }
     // [7] print proof body
-    printProofInternal(aout, pnBody);
+    std::unordered_map<const ProofNode*, bool> processingChildren;
+    printProofInternal(aout, pnBody, processingChildren);
   }
 }
 
-void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
+void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn, 
+    std::unordered_map<const ProofNode*, bool>& processingChildren)
 {
   // the stack
   std::vector<const ProofNode*> visit;
   // whether we have to process children
-  std::unordered_map<const ProofNode*, bool> processingChildren;
   // helper iterators
   std::unordered_map<const ProofNode*, bool>::iterator pit;
   const ProofNode* cur;
@@ -671,6 +672,13 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
       {
         // ignore
         visit.pop_back();
+        continue;
+      }
+      else if (pn!=cur && r==ProofRule::SCOPE)
+      {
+        visit.pop_back();
+        std::unordered_map<const ProofNode*, bool> spc = processingChildren;
+        printProofInternal(out, cur, spc);
         continue;
       }
       // print preorder traversal
@@ -702,6 +710,7 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
   ProofRule r = pn->getRule();
   if (r == ProofRule::SCOPE)
   {
+    d_passumeCtx.push();
     const std::vector<Node>& args = pn->getArguments();
     for (const Node& a : args)
     {
@@ -859,7 +868,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   size_t id = allocateProofId(pn, wasAlloc);
   std::vector<size_t> premises;
   // get the premises
-  std::map<Node, size_t>::iterator ita;
+  context::CDHashMap<Node, size_t>::iterator ita;
   std::map<const ProofNode*, size_t>::iterator itp;
   for (const std::shared_ptr<ProofNode>& c : children)
   {
@@ -937,6 +946,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       pargs.push_back(d_tproc.convert(children[0]->getResult()));
       out->printStep("process_scope", conclusionPrint, id, premises, pargs);
     }
+    d_passumeCtx.pop();
   }
   else
   {
@@ -947,12 +957,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
 size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
 {
   std::pair<const ProofNode*, Node> key(pn, a);
-  std::map<std::pair<const ProofNode*, Node>, size_t>::iterator it =
-      d_ppushMap.find(key);
-  if (it != d_ppushMap.end())
-  {
-    return it->second;
-  }
+
   bool wasAlloc = false;
   size_t aid = allocateAssumeId(a, wasAlloc);
   // if we assigned an id to the assumption
@@ -962,13 +967,12 @@ size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
     d_pfIdCounter++;
     aid = d_pfIdCounter;
   }
-  d_ppushMap[key] = aid;
   return aid;
 }
 
 size_t AlfPrinter::allocateAssumeId(const Node& n, bool& wasAlloc)
 {
-  std::map<Node, size_t>::iterator it = d_passumeMap.find(n);
+  context::CDHashMap<Node, size_t>::iterator it = d_passumeMap.find(n);
   if (it != d_passumeMap.end())
   {
     wasAlloc = false;
