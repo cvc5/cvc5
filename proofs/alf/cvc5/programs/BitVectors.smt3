@@ -1,16 +1,16 @@
 (include "../theories/BitVectors.smt3")
 
-; program: $bv_get_const_child
+; program: $bv_get_first_const_child
 ; args:
 ; - a (BitVec n): The term to find a constant child in.
 ; return: >
-;   A direct child of a that it is a bitvector constant if one exists, or
-;   the term @bv_empty otherwise.
-(program $bv_get_const_child ((n Int) (m Int) (k Int) (f (-> (BitVec n) (BitVec m) (BitVec k))) (a (BitVec n)) (b (BitVec m) :list))
-  ((BitVec n)) (BitVec n)
+;   The first direct child of a that it is a bitvector constant if one exists,
+;   or the term @bv_empty otherwise.
+(program $bv_get_first_const_child ((n Int) (m Int) (k Int) (f (-> (BitVec n) (BitVec m) (BitVec k))) (a (BitVec n)) (b (BitVec m) :list))
+  ((BitVec k)) (BitVec n)
   (
-    (($bv_get_const_child (f a b))  (alf.ite (alf.is_bin a) a ($bv_get_const_child b)))
-    (($bv_get_const_child a)        @bv_empty)    ; indicates no child
+    (($bv_get_first_const_child (f a b))  (alf.ite (alf.is_bin a) a ($bv_get_first_const_child b)))
+    (($bv_get_first_const_child a)        @bv_empty)    ; indicates no child
   )
 )
 
