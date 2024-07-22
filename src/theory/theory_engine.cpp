@@ -236,9 +236,11 @@ void TheoryEngine::finishInit()
 TheoryEngine::TheoryEngine(Env& env)
     : EnvObj(env),
       d_propEngine(nullptr),
-      d_lazyProof(env.isTheoryProofProducing() ? new LazyCDProof(
-                      env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
-                                               : nullptr),
+      d_lazyProof(
+          env.isTheoryProofProducing()
+              ? new LazyCDProof(
+                    env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
+              : nullptr),
       d_tepg(new TheoryEngineProofGenerator(env, userContext())),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
@@ -279,7 +281,8 @@ TheoryEngine::TheoryEngine(Env& env)
   if (options().theory.conflictProcessMode
       != options::ConflictProcessMode::NONE)
   {
-    bool useExtRewriter = (options().theory.conflictProcessMode == options::ConflictProcessMode::MINIMIZE_EXT);
+    bool useExtRewriter = (options().theory.conflictProcessMode
+                           == options::ConflictProcessMode::MINIMIZE_EXT);
     d_cp.reset(new ConflictProcessor(env, useExtRewriter));
   }
 
