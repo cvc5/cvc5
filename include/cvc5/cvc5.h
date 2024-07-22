@@ -2131,7 +2131,7 @@ class CVC5_EXPORT DatatypeConstructorDecl
  private:
   /**
    * Constructor.
-   * @param nm The associated node manager.
+   * @param tm   The associated term manager.
    * @param name The name of the datatype constructor.
    * @return The DatatypeConstructorDecl.
    */
@@ -2213,7 +2213,7 @@ class CVC5_EXPORT DatatypeDecl
    * @param decl The datatype declaration to compare to for equality.
    * @return True if the datatype declarations are equal.
    */
-  bool operator==(const DatatypeDecl& decll) const;
+  bool operator==(const DatatypeDecl& decl) const;
 
   /**
    * Add datatype constructor declaration.
@@ -3202,11 +3202,11 @@ class CVC5_EXPORT Grammar
 
 /**
  * Serialize a grammar to given stream.
- * @param out The output stream.
- * @param g The grammar to be serialized to the given output stream.
+ * @param out     The output stream.
+ * @param grammar The grammar to be serialized to the given output stream.
  * @return The output stream.
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Grammar& g);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Grammar& grammar);
 
 }  // namespace cvc5
 
@@ -3686,8 +3686,8 @@ class CVC5_EXPORT Proof
   /**
    * Get the proof rewrite rule used  by the root step of the proof.
    *
-   * Requires that `getRule()` does not return `DSL_REWRITE` or
-   * `THEORY_REWRITE`.
+   * Requires that `getRule()` does not return #DSL_REWRITE or
+   * #THEORY_REWRITE.
    *
    * @return The proof rewrite rule.
    *
@@ -4462,7 +4462,7 @@ class CVC5_EXPORT TermManager
   /**
    * Helper for calls to mkVar from the TermManager and Solver. Ensures that
    * API statistics are collected.
-   * @param sort   The internal type of the variable.
+   * @param type   The internal type of the variable.
    * @param symbol The symbol of the variable.
    */
   internal::Node mkVarHelper(
@@ -4471,7 +4471,7 @@ class CVC5_EXPORT TermManager
   /**
    * Helper for calls to mkConst from the TermManager and Solver. Ensures that
    * API statistics are collected.
-   * @param sort   The internal type of the const.
+   * @param type   The internal type of the const.
    * @param symbol The symbol of the const.
    * @param fresh  True to return a fresh variable. If false, it returns the
    *               same variable for the given type and name.
@@ -5981,7 +5981,7 @@ class CVC5_EXPORT Solver
    *     (get-unsat-core-lemmas)
    *
    * Requires the SAT proof unsat core mode, so to enable option
-   * :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
+   * :ref:`unsat-cores-mode=sat-proof <lbl-option-unsat-cores-mode>`.
    *
    * \endverbatim
    *
@@ -6007,10 +6007,20 @@ class CVC5_EXPORT Solver
   /**
    * Get a timeout core.
    *
+   * \verbatim embed:rst:leading-asterisk
    * This function computes a subset of the current assertions that cause a
    * timeout. It may make multiple checks for satisfiability internally, each
    * limited by the timeout value given by
    * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   *
+   * If the result is unknown and the reason is timeout, then returned the set
+   * of assertions corresponds to a subset of the current assertions that cause
+   * a timeout in the specified time :ref:`timeout-core-timeout
+   * <lbl-option-timeout-core-timeout>`. If the result is unsat, then the list
+   * of formulas correspond to an unsat core for the current assertions.
+   * Otherwise, the result is sat, indicating that the current assertions are
+   * satisfiable, and the returned set of assertions is empty.
+   * \endverbatim
    *
    * SMT-LIB:
    *
@@ -6024,14 +6034,6 @@ class CVC5_EXPORT Solver
    *
    * @return The result of the timeout core computation. This is a pair
    *         containing a result and a set of assertions.
-   *         If the result is unknown and the reason is timeout, then returned
-   *         the set of assertions corresponds to a subset of the current
-   *         assertions that cause a timeout in the specified time
-   *         :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-   *         If the result is unsat, then the list of formulas correspond to an
-   *         unsat core for the current assertions. Otherwise, the result is
-   *         sat, indicating that the current assertions are satisfiable, and
-   *         the returned set of assertions is empty.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
@@ -6041,7 +6043,20 @@ class CVC5_EXPORT Solver
    * This function computes a subset of the given assumptions that cause a
    * timeout when added to the current assertions.
    *
-   * @note it does not require being proceeded by a call to `checkSat()`.
+   * \verbatim embed:rst:leading-asterisk
+   * If the result is unknown and the reason is timeout, then the set of
+   * assumptions corresponds to a subset of the given assumptions that cause a
+   * timeout when added to the current assertions in the specified time
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`. If the
+   * result is unsat, then the set of assumptions together with the current
+   * assertions correspond to an unsat core for the current assertions.
+   * Otherwise, the result is sat, indicating that the given assumptions plus
+   * the current assertions are satisfiable, and the returned set of
+   * assumptions is empty.
+   * \endverbatim
+   *
+   * @note This command does not require being preceeded by a call to
+   *       `checkSat()`.
    *
    * SMT-LIB:
    *
@@ -6057,16 +6072,6 @@ class CVC5_EXPORT Solver
    *
    * @return The result of the timeout core computation. This is a pair
    *         containing a result and a set of assumptions.
-   *         If the result is unknown and the reason is timeout, then the set
-   *         of assumptions corresponds to a subset of the given assumptions
-   *         that cause a timeout when added to the current assertions in the
-   *         specified time
-   *         :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-   *         If the result is unsat, then the set of assumptions together with
-   *         the current assertions correspond to an unsat core for the current
-   *         assertions. Otherwise, the result is sat, indicating that the
-   *         given assumptions plus the current assertions are satisfiable, and
-   *         the returned set of assumptions is empty.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCoreAssuming(
       const std::vector<Term>& assumptions) const;
@@ -6995,6 +7000,7 @@ class CVC5_EXPORT Solver
   /**
    * Constructs a solver with the given original options. This should only be
    * used internally when the Solver is reset.
+   * @param tm       The associated term manager.
    * @param original The original set of configuration options.
    */
   Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original);

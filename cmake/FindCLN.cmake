@@ -18,8 +18,10 @@
 
 include(deps-helper)
 
-find_path(CLN_INCLUDE_DIR NAMES cln/cln.h)
-find_library(CLN_LIBRARIES NAMES cln)
+if (NOT BUILD_CLN)
+  find_path(CLN_INCLUDE_DIR NAMES cln/cln.h)
+  find_library(CLN_LIBRARIES NAMES cln)
+endif()
 
 set(CLN_FOUND_SYSTEM FALSE)
 if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
@@ -61,7 +63,6 @@ if(NOT CLN_FOUND_SYSTEM)
   set(CLN_SO_VERSION
     "${CLN_SO_MAJOR_VER}.${CLN_SO_MINOR_VER}.${CLN_SO_PATCH_VER}"
   )
-  string(REPLACE "." "-" CLN_TAG ${CLN_VERSION})
 
   find_program(AUTORECONF autoreconf)
   if(NOT AUTORECONF)
@@ -116,7 +117,7 @@ if(NOT CLN_FOUND_SYSTEM)
   ExternalProject_Add(
     CLN-EP
     ${COMMON_EP_CONFIG}
-    URL "https://www.ginac.de/CLN/cln-1.3.7.tar.bz2"
+    URL "https://www.ginac.de/CLN/cln-${CLN_VERSION}.tar.bz2"
     URL_HASH SHA256=7c7ed8474958337e4df5bb57ea5176ad0365004cbb98b621765bc4606a10d86b
     DOWNLOAD_NAME cln.tar.bz2
     CONFIGURE_COMMAND

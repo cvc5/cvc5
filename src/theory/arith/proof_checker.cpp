@@ -23,6 +23,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/operator_elim.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::internal::kind;
 
@@ -52,6 +53,7 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ARITH_MULT_POS, this);
   pc->registerChecker(ProofRule::ARITH_MULT_NEG, this);
   pc->registerChecker(ProofRule::ARITH_POLY_NORM, this);
+  pc->registerChecker(ProofRule::ARITH_POLY_NORM_REL, this);
   // register the extended proof checkers
   d_extChecker.registerTo(pc);
   d_trChecker.registerTo(pc);
@@ -406,6 +408,66 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         return Node::null();
       }
       return args[0];
+    }
+    case ProofRule::ARITH_POLY_NORM_REL:
+    {
+      Assert(children.size() == 1);
+      Assert(args.size() == 1);
+      Kind k;
+      if (!getKind(args[0], k)
+          || (k != Kind::LT && k != Kind::LEQ && k != Kind::EQUAL
+              && k != Kind::GT && k != Kind::GEQ))
+      {
+        return Node::null();
+      }
+      if (children[0].getKind() != Kind::EQUAL)
+      {
+        return Node::null();
+      }
+      Node l = children[0][0];
+      Node r = children[0][1];
+      if ((l.getKind() != Kind::MULT && l.getKind() != Kind::BITVECTOR_MULT)
+          || (r.getKind() != Kind::MULT && r.getKind() != Kind::BITVECTOR_MULT))
+      {
+        return Node::null();
+      }
+      Node lr = l[1];
+      Node rr = r[1];
+      if ((lr.getKind() != Kind::SUB && lr.getKind() != Kind::BITVECTOR_SUB)
+          || (rr.getKind() != Kind::SUB && rr.getKind() != Kind::BITVECTOR_SUB))
+      {
+        return Node::null();
+      }
+      Node cx = l[0];
+      Node x1 = lr[0];
+      Node x2 = lr[1];
+      Node cy = r[0];
+      Node y1 = rr[0];
+      Node y2 = rr[1];
+      if ((cx.getKind() == Kind::CONST_INTEGER
+           || cx.getKind() == Kind::CONST_RATIONAL)
+          && (cy.getKind() == Kind::CONST_INTEGER
+              || cy.getKind() == Kind::CONST_RATIONAL))
+      {
+        Rational c1 = cx.getConst<Rational>();
+        Rational c2 = cy.getConst<Rational>();
+        if (k != Kind::EQUAL && c1.sgn() != c2.sgn())
+        {
+          return Node::null();
+        }
+      }
+      if (cx.getKind() == Kind::CONST_BITVECTOR
+          && cy.getKind() == Kind::CONST_BITVECTOR)
+      {
+        BitVector c1 = cx.getConst<BitVector>();
+        BitVector c2 = cy.getConst<BitVector>();
+        BitVector one = BitVector::mkOne(c1.getSize());
+        if (c1 != one || c2 != one)
+        {
+          return Node::null();
+        }
+      }
+      return nm->mkNode(k, x1, x2).eqNode(nm->mkNode(k, y1, y2));
     }
     default: return Node::null();
   }

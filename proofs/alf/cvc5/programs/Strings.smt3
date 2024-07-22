@@ -56,11 +56,11 @@
   (($str_fixed_len_re re.allchar)       1)
   (($str_fixed_len_re (re.range s1 s2)) 1)
   (($str_fixed_len_re (str.to_re s1))   (alf.len s1))
-  (($str_fixed_len_re (re.union r r1))  (let ((n ($str_fixed_len_re r)))
+  (($str_fixed_len_re (re.union r r1))  (alf.define ((n ($str_fixed_len_re r)))
                                           (alf.ite (alf.is_eq r1 re.none)
                                             n
                                             (alf.requires ($str_fixed_len_re r1) n n))))
-  (($str_fixed_len_re (re.inter r r1))  (let ((n ($str_fixed_len_re r)))
+  (($str_fixed_len_re (re.inter r r1))  (alf.define ((n ($str_fixed_len_re r)))
                                           (alf.ite (alf.is_eq r1 re.all)
                                             n
                                             (alf.requires ($str_fixed_len_re r1) n n))))
@@ -99,7 +99,7 @@
                                                               ; to make progress, first component must be non-empty
                                                               ($str_eval_str_in_re_rec s 1 r1 (re.* r1))))
   (($str_eval_str_in_re_rec s 0 (str.to_re sr) @re.null)    (alf.is_eq s sr))
-  (($str_eval_str_in_re_rec s 0 (re.range s1 s2) @re.null)  (let ((cs (alf.to_z s)))
+  (($str_eval_str_in_re_rec s 0 (re.range s1 s2) @re.null)  (alf.define ((cs (alf.to_z s)))
                                                             (alf.requires (alf.len s1) 1
                                                             (alf.requires (alf.len s2) 1
                                                             (alf.ite (alf.is_eq (alf.len s) 1)
@@ -110,10 +110,10 @@
   (($str_eval_str_in_re_rec s 0 re.all @re.null)            true)
   (($str_eval_str_in_re_rec s 0 re.none @re.null)           false)
   (($str_eval_str_in_re_rec s 0 (re.comp r1) @re.null)      (alf.not ($str_eval_str_in_re_rec s 0 r1 @re.null)))
-  (($str_eval_str_in_re_rec s n r1 r2)                      (let ((ls (alf.len s)))
-                                                            (let ((ss1 (alf.extract s 0 (alf.add n -1))))
-                                                            (let ((ss2 (alf.extract s n ls)))
-                                                            (let ((res (alf.ite ($str_eval_str_in_re_rec ss1 0 r1 @re.null)
+  (($str_eval_str_in_re_rec s n r1 r2)                      (alf.define ((ls (alf.len s)))
+                                                            (alf.define ((ss1 (alf.extract s 0 (alf.add n -1))))
+                                                            (alf.define ((ss2 (alf.extract s n ls)))
+                                                            (alf.define ((res (alf.ite ($str_eval_str_in_re_rec ss1 0 r1 @re.null)
                                                                        (alf.ite ($str_eval_str_in_re_rec ss2 0 r2 @re.null)
                                                                          true false)
                                                                        false)))
@@ -198,7 +198,7 @@
     ((Seq T)) (Seq T)
     (
         (($str_nary_intro (str.++ t ss)) (str.++ t ss))
-        (($str_nary_intro t)             (let ((nil (mk_emptystr (alf.typeof t))))
+        (($str_nary_intro t)             (alf.define ((nil (mk_emptystr (alf.typeof t))))
                                             (alf.ite (alf.is_eq t nil) t ($str_cons t nil))))
     )
 )
@@ -222,7 +222,7 @@
     ((T Type) (t (Seq T)) (ss (Seq T) :list))
     ((Seq T)) (Seq T)
     (
-        (($str_nary_elim (str.++ t ss)) (let ((nil (mk_emptystr (alf.typeof t))))
+        (($str_nary_elim (str.++ t ss)) (alf.define ((nil (mk_emptystr (alf.typeof t))))
                                            (alf.ite (alf.is_eq ss nil) t (str.++ t ss))))
         (($str_nary_elim t)             ($str_self_if_empty t))
     )
@@ -249,10 +249,10 @@
   ((Seq U) Int Int) Bool
   (
     ((string_reduction_substr x n m)
-      (let ((k (@purify (str.substr x n m))))
-      (let ((npm (+ n m)))
-      (let ((k1 (@purify (skolem_prefix x n))))
-      (let ((k2 (@purify (skolem_suffix_rem x npm))))
+      (alf.define ((k (@purify (str.substr x n m))))
+      (alf.define ((npm (+ n m)))
+      (alf.define ((k1 (@purify (skolem_prefix x n))))
+      (alf.define ((k2 (@purify (skolem_suffix_rem x npm))))
       (ite
         ; condition
         (and (>= n 0)(> (str.len x) n) (> m 0))
@@ -273,10 +273,10 @@
   ((Seq U) (Seq U) Int) Bool
   (
     ((string_reduction_indexof x y n)
-      (let ((k (@purify (str.indexof x y n))))
-      (let ((xn (str.substr x n (- (str.len x) n))))
-      (let ((k1 (@purify (skolem_first_ctn_pre xn y))))
-      (let ((k2 (@purify (skolem_first_ctn_post xn y))))
+      (alf.define ((k (@purify (str.indexof x y n))))
+      (alf.define ((xn (str.substr x n (- (str.len x) n))))
+      (alf.define ((k1 (@purify (skolem_first_ctn_pre xn y))))
+      (alf.define ((k2 (@purify (skolem_first_ctn_post xn y))))
       (ite
         (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
         (= k (alf.neg 1))
@@ -319,8 +319,8 @@
   ((Seq U) (Seq U)) Bool
   (
     ((string_eager_reduction_contains t r)
-        (let ((k1 (@purify (skolem_first_ctn_pre t r))))
-        (let ((k2 (@purify (skolem_first_ctn_post t r))))
+        (alf.define ((k1 (@purify (skolem_first_ctn_pre t r))))
+        (alf.define ((k2 (@purify (skolem_first_ctn_post t r))))
         (ite
           (str.contains t r)
           (= t (str.++ k1 r k2))
@@ -331,7 +331,7 @@
 
 ; Compute the eager reduction predicate for (str.code s)
 (define string_eager_reduction_to_code ((s String))
-  (let ((t (str.to_code s)))
+  (alf.define ((t (str.to_code s)))
   (ite
     (= (str.len s) 1)
     (and (>= t 0) (< t 196608))
@@ -343,7 +343,7 @@
   (U U Int) Bool
   (
     ((string_eager_reduction_indexof x y n)
-        (let ((t (str.indexof x y n)))
+        (alf.define ((t (str.indexof x y n)))
         (and (or (= t (alf.neg 1)) (>= t n))
              (<= t (str.len x)))))
   )
@@ -392,7 +392,7 @@
               ; a constant regular expression, append s
               ((str.to_re s) (@pair (str.++ s c) M))
               ; otherwise, make the skolem and append with constraint
-              (r            (let ((k (@re_unfold_pos_component t ro i)))
+              (r            (alf.define ((k (@re_unfold_pos_component t ro i)))
                             (@pair (str.++ k c) (and (str.in_re k r) M))))
             )
           )
@@ -711,6 +711,150 @@
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
 )
 
+; program: $str_arith_entail_simple
+; args:
+; - n Int: An integer term to process.
+; return: >
+;   true if we can show n is greater than or equal 0 using the fact that length
+;   is non-negative and basic properties of arithmetic.
+(program $str_arith_entail_simple ((s String) (n1 Int) (n2 Int :list))
+  (Int) Bool
+  (
+    (($str_arith_entail_simple (str.len s)) true)
+    (($str_arith_entail_simple (+ n1 n2))   (alf.ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
+    (($str_arith_entail_simple (* n1 n2))   (alf.ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
+    (($str_arith_entail_simple n1)          (alf.not (alf.is_neg n1)))
+  )
+)
+
+; program: $str_arith_entail_simple_pred
+; args:
+; - F Bool: A relation over integer terms.
+; return: >
+;   true if we can show that F holds using the fact that length
+;   is non-negative and basic properties of arithmetic. We first
+;   normalize the polynomial corresponding to F and check this
+;   using the $str_arith_entail_simple program above.
+(program $str_arith_entail_simple_pred ((n Int) (m Int))
+  (Bool) Int
+  (
+    (($str_arith_entail_simple_pred (>= n m))  ($str_arith_entail_simple ($arith_poly_to_term (- n m))))
+    (($str_arith_entail_simple_pred (> n m))   ($str_arith_entail_simple ($arith_poly_to_term (- n (+ m 1)))))
+  )
+)
+
+; program: $str_arith_entail_is_approx_len
+; args:
+; - s String: The string whose length we are considering.
+; - n Int: An integer that may under (resp. over) approximate the length of s when b is true (resp. false).
+; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; return: >
+;   true if we can show that (>= (str.len s) n) (or <= if b is false) holds using approximation
+;   cases as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
+;   in SMT", CAV 2019. When applicable, we also rely on calls that reason that string
+;   length is non-negative and basic properties of arithmetic.
+(program $str_arith_entail_is_approx_len ((s String) (t String) (r String) (n1 Int) (n2 Int) (n Int) (isUnder Bool))
+  (String Int Bool) Bool
+  (
+    (($str_arith_entail_is_approx_len (str.substr s n1 n2) n isUnder)
+        (alf.define ((npm (+ n1 n2)))
+        (alf.define ((lx (str.len s)))
+        (alf.ite (alf.is_eq n n2)
+          (alf.ite isUnder
+            (alf.and ($str_arith_entail_simple n1) ($str_arith_entail_simple_pred (>= lx npm)))
+            ($str_arith_entail_simple n2))
+        (alf.ite (alf.is_eq n lx)
+          (alf.not isUnder)
+        (alf.ite (alf.is_eq n (- lx n1))
+          (alf.ite isUnder
+            (alf.and ($str_arith_entail_simple n1) ($str_arith_entail_simple_pred (>= npm lx)))
+            ($str_arith_entail_simple_pred (>= lx n1)))
+          false))))))
+    (($str_arith_entail_is_approx_len (str.replace s t r) n isUnder)
+        (alf.define ((ls (str.len s)))
+        (alf.define ((lt (str.len t)))
+        (alf.define ((lr (str.len r)))
+        (alf.ite (alf.is_eq n ls)
+          (alf.ite isUnder
+            (alf.or ($str_arith_entail_simple_pred (>= lr lt)) ($str_arith_entail_simple_pred (>= lr ls)))
+            ($str_arith_entail_simple_pred (>= lt lr)))
+        (alf.ite (alf.is_eq n (+ ls lr))
+          (alf.not isUnder)
+        (alf.ite (alf.is_eq n (- ls lt))
+          isUnder
+          false)))))))
+    (($str_arith_entail_is_approx_len (str.from_int n1) n isUnder)
+        (alf.ite (alf.is_eq n (+ n1 1))
+          (alf.and (alf.not isUnder) ($str_arith_entail_simple n1))
+        (alf.ite (alf.is_eq n n1)
+          (alf.and (alf.not isUnder) ($str_arith_entail_simple_pred (> n1 0)))
+        (alf.ite (alf.is_eq n 1)
+          (alf.and isUnder ($str_arith_entail_simple n1))
+          false))))
+  )
+)
+
+; program: $str_arith_entail_is_approx_indexof
+; args:
+; - s String: The first string argument to str.indexof.
+; - t String: The second string argument to str.indexof.
+; - n Int: The third argument of str.indexof.
+; - m Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
+; - b Bool: Whether we are checking that m is an under (resp. over) approximation.
+; return: >
+;   true if we can show that (>= (str.indexof s t n) m) (or <= if b is false) holds using
+;   approximation cases as defined by Figure 2 of "High-Level Abstractions for Simplifying
+;   Extended String Constraints in SMT", CAV 2019. When applicable, we also rely on calls
+;   that reason that string length is non-negative and basic properties of arithmetic.
+(define $str_arith_entail_is_approx_indexof ((s String) (t String) (n Int) (m Int) (isUnder Bool))
+  (alf.define ((ls (str.len s)))
+  (alf.define ((lt (str.len t)))
+  (alf.ite (alf.is_eq m -1)
+    isUnder
+  (alf.ite (alf.is_eq m ls)
+    (alf.not isUnder)
+  (alf.ite (alf.is_eq m (- ls lt))
+    (alf.and (alf.not isUnder) ($str_arith_entail_simple_pred (>= ls lt)))
+    false))))))
+
+; define: $str_arith_entail_is_approx_to_int
+; args:
+; - s String: The first string argument to str.to_int.
+; - n Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
+; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; return: >
+;   true if we can show that (>= (str.to_int s) n) (or <= if b is false) holds using approximation cases
+;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
+;   in SMT", CAV 2019.
+(define $str_arith_entail_is_approx_to_int ((s String) (n Int) (isUnder Bool))
+  (alf.ite (alf.is_eq n -1) isUnder false)
+)
+
+; define: $str_arith_entail_is_approx
+; args:
+; - n Int: The first integer term.
+; - m Int: The second integer term.
+; - b Bool: Whether we are checking that n is an under (resp. over) approximation of m.
+; return: >
+;   true if we can show that (>= n m) (resp (<= n m) when b is false) holds using approximation cases
+;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
+;   in SMT", CAV 2019.
+(program $str_arith_entail_is_approx ((s String) (t String) (n1 Int) (n2 Int :list) (n3 Int) (n4 Int :list) (n5 Int) (isUnder Bool))
+  (Int Int Bool) Bool
+  (
+    (($str_arith_entail_is_approx n1 n1 isUnder)                    true)
+    (($str_arith_entail_is_approx (str.len s) n1 isUnder)           ($str_arith_entail_is_approx_len s n1 isUnder))
+    (($str_arith_entail_is_approx (str.indexof s t n3) n1 isUnder)  ($str_arith_entail_is_approx_indexof s t n3 n1 isUnder))
+    (($str_arith_entail_is_approx (str.to_int s) n1 isUnder)        ($str_arith_entail_is_approx_to_int s n1 isUnder))
+    (($str_arith_entail_is_approx (+ n1 n2) (+ n3 n4) isUnder)      (alf.and
+                                                                      ($str_arith_entail_is_approx n1 n3 isUnder)
+                                                                      ($str_arith_entail_is_approx n2 n4 isUnder)))
+    (($str_arith_entail_is_approx (* n1 n3) (* n1 n5) isUnder)      (alf.ite (alf.is_neg n1)
+                                                                      ($str_arith_entail_is_approx n3 n5 (alf.not isUnder))
+                                                                      ($str_arith_entail_is_approx n3 n5 isUnder)))
+  )
+)
+
 ; program: $str_re_consume_rec
 ; args:
 ; - s String: The string argument of the membership to rewrite.
@@ -787,7 +931,7 @@
     (($str_re_consume_rec s1 (re.++ @re.empty r2) @result.null rev)
       ($str_re_consume_rec s1 r2 @result.null rev)) ; finished current component
     ; Intersection reports conflicts eagerly, and otherwise combines the results
-    (($str_re_consume_rec s1 (re.inter r1 r2) b rev)   (let ((r1r ($re_to_flat_form r1 rev)))
+    (($str_re_consume_rec s1 (re.inter r1 r2) b rev)   (alf.define ((r1r ($re_to_flat_form r1 rev)))
                                                        (alf.match ((bb Bool))
                                                           ($str_re_consume_rec s1 r1r @result.null rev)
                                                           (
@@ -798,7 +942,7 @@
     (($str_re_consume_rec s1 re.all @result.null rev)  (str.in_re "" @re.empty)) ; only used if re.all appears in unexpected position
     (($str_re_consume_rec s1 re.all b rev)             b)                        ; end of re.inter
     ; Union ignores conflicts, and otherwise combines the results. We report a conflict if all children give conflicts.
-    (($str_re_consume_rec s1 (re.union r1 r2) b rev)   (let ((r1r ($re_to_flat_form r1 rev)))
+    (($str_re_consume_rec s1 (re.union r1 r2) b rev)   (alf.define ((r1r ($re_to_flat_form r1 rev)))
                                                        (alf.match ((bb Bool))
                                                           ($str_re_consume_rec s1 r1r @result.null rev)
                                                           (
@@ -824,13 +968,13 @@
 ;   them again and consume from the beginning of the remainder. Finally, we convert
 ;   back from flat form when applicable.
 (define $str_re_consume ((s String) (r RegLan))
-  (let ((ss (string_to_flat_form s true)))  
-  (let ((rr ($re_to_flat_form r true)))
+  (alf.define ((ss (string_to_flat_form s true)))  
+  (alf.define ((rr ($re_to_flat_form r true)))
   (alf.match ((s1 String) (r1 RegLan))
       ($str_re_consume_rec ss rr @result.null true)
       (
         (false              false)
-        ((str.in_re s1 r1)  (let ((s1r ($str_rev true s1)) (r1r ($re_to_flat_form r1 true)))
+        ((str.in_re s1 r1)  (alf.define ((s1r ($str_rev true s1)) (r1r ($re_to_flat_form r1 true)))
                             (alf.match ((s2 String) (r2 RegLan))
                               ($str_re_consume_rec s1r r1r @result.null false)
                               (

@@ -3405,6 +3405,8 @@ TEST_F(TestCApiBlackSolver, get_synth_solution)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   ASSERT_DEATH(cvc5_get_synth_solution(slv, f), "not in a state");
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
 }
 
 TEST_F(TestCApiBlackSolver, get_synth_solutions)
@@ -3440,6 +3442,8 @@ TEST_F(TestCApiBlackSolver, get_synth_solutions)
   Cvc5* slv = cvc5_new(tm);
   ASSERT_DEATH(cvc5_get_synth_solutions(slv, args.size(), args.data()),
                "not in a state");
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
 }
 
 TEST_F(TestCApiBlackSolver, check_synth_next)
@@ -3565,6 +3569,7 @@ TEST_F(TestCApiBlackSolver, get_statistics)
   ASSERT_FALSE(cvc5_stat_is_internal(stat1));
   ASSERT_FALSE(cvc5_stat_is_default(stat1));
   ASSERT_TRUE(cvc5_stat_is_string(stat1));
+  (void)cvc5_stat_to_string(stat1);
 
   std::string time = cvc5_stat_get_string(stat1);
   ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
@@ -3575,6 +3580,7 @@ TEST_F(TestCApiBlackSolver, get_statistics)
   ASSERT_FALSE(cvc5_stat_is_default(stat2));
   ASSERT_TRUE(cvc5_stat_is_int(stat2));
   ASSERT_TRUE(cvc5_stat_get_int(stat2) >= 0);
+  (void)cvc5_stat_to_string(stat2);
 
   cvc5_stats_iter_init(stats, true, true);
   bool hasstats = false;
@@ -3831,6 +3837,7 @@ TEST_F(TestCApiBlackSolver, multiple_solvers)
     cvc5_check_sat(s3);
     Cvc5Term value3 = cvc5_get_value(s3, fun3);
     ASSERT_TRUE(cvc5_term_is_equal(value1, value3));
+    cvc5_delete(s3);
   }
 }
 

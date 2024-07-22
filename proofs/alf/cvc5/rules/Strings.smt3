@@ -33,9 +33,9 @@
 
 ; returns true if s1 is a prefix of s, taking into account flattening
 (define string_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
-  (let ((sf (string_to_flat_form s rev)))
-  (let ((sf1 (string_to_flat_form s1 rev)))
-  (let ((U (alf.typeof s)))
+  (alf.define ((sf (string_to_flat_form s rev)))
+  (alf.define ((sf1 (string_to_flat_form s1 rev)))
+  (alf.define ((U (alf.typeof s)))
   (nary.is_prefix str.++ (mk_emptystr U) sf1 sf))))
 )
 
@@ -79,7 +79,7 @@
             (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (let ((k (@purify (skolem_unify_split t1 s1 rev))))
+                (alf.define ((k (@purify (skolem_unify_split t1 s1 rev))))
                 (and 
                   (or 
                     (= t1
@@ -108,7 +108,7 @@
             (string_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (let ((k (@purify (skolem_unify_split t1 s1 rev))))
+                (alf.define ((k (@purify (skolem_unify_split t1 s1 rev))))
                   (and
                     (= t1
                       (alf.ite rev
@@ -131,13 +131,13 @@
           (alf.match ((s1 (Seq U)) (s2 (Seq U) :list))
             ($str_rev rev ($str_nary_intro s))  ; must do nary intro when s is just a constant
             (((str.++ s1 s2)
-                (let ((sc (string_to_flat_form s1 rev)))
-                (let ((v (alf.add 1 ($str_overlap ($tail sc) (string_to_flat_form t2 rev)))))
+                (alf.define ((sc (string_to_flat_form s1 rev)))
+                (alf.define ((v (alf.add 1 ($str_overlap ($tail sc) (string_to_flat_form t2 rev)))))
                   (= tc
                     (alf.ite rev
-                      (let ((oc ($str_suffix_w_len s1 v)))
+                      (alf.define ((oc ($str_suffix_w_len s1 v)))
                       (str.++ (@purify (skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
-                      (let ((oc (skolem_prefix s1 v)))
+                      (alf.define ((oc (skolem_prefix s1 v)))
                       (str.++ oc (@purify (skolem_suffix_rem tc (str.len oc)))))))
                 )))))))))
 )
@@ -153,8 +153,8 @@
            (string_to_flat_form s rev)
            (string_to_flat_form t rev))
       (((@pair ss ts)
-          (let ((cs (string_head_or_empty ss)))
-          (let ((ct (string_head_or_empty ts)))
+          (alf.define ((cs (string_head_or_empty ss)))
+          (alf.define ((ct (string_head_or_empty ts)))
             ; ensure they are disequal, return false
             (alf.requires
               (alf.ite ($str_is_empty cs)
@@ -202,10 +202,10 @@
   :premises ((>= (str.len s) n))
   :args (b)
   :conclusion (alf.ite b
-                (let ((kp (@purify (skolem_prefix s n)))
+                (alf.define ((kp (@purify (skolem_prefix s n)))
                       (ks (@purify (skolem_suffix_rem s n))))
                 (and (= s (str.++ kp ks)) (= (str.len kp) n)))
-                (let ((kp (@purify ($str_prefix_wo_len s n)))
+                (alf.define ((kp (@purify ($str_prefix_wo_len s n)))
                       (ks (@purify ($str_suffix_w_len s n))))
                 (and (= s (str.++ kp ks)) (= (str.len ks) n)))))
 
@@ -262,7 +262,7 @@
             (alf.match ((tk String) (M Bool :list))
             (re_unfold_pos_concat t r)
             (((@pair tk M)
-                (let ((teq (= t tk))) (alf.ite (alf.is_eq M true) teq (and teq M)))))))
+                (alf.define ((teq (= t tk))) (alf.ite (alf.is_eq M true) teq (and teq M)))))))
     ))
 )
 
@@ -274,7 +274,7 @@
     (alf.match ((r1 RegLan) (r2 RegLan :list))
       ($str_rev rev r)
       (
-        ((re.++ r1 r2) (let ((n ($str_fixed_len_re r1)))
+        ((re.++ r1 r2) (alf.define ((n ($str_fixed_len_re r1)))
                        (alf.ite rev
                        (or (not (str.in_re ($str_suffix_w_len s n) r1))
                            (not (str.in_re (skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
@@ -320,6 +320,33 @@
 )
 
 ;;-------------------- Instances of THEORY_REWRITE
+
+; rule: arith-string-pred-entail
+; implements: ProofRewriteRule::ARITH_STRING_PRED_ENTAIL
+; args:
+; - eq Bool: The equality to prove between an integer inequality and true.
+; requires: showing that n is entailed to be greater than 0 using $str_arith_entail_simple.
+; conclusion: The given equality.
+(declare-rule arith-string-pred-entail ((n Int))
+  :args ((= (>= n 0) true))
+  :requires ((($str_arith_entail_simple n) true))
+  :conclusion (= (>= n 0) true)
+)
+
+; rule: arith-string-pred-entail
+; implements: ProofRewriteRule::ARITH_STRING_SAFE_APPROX
+; args:
+; - eq Bool: The equality to prove between integer inequalities.
+; requires:
+; - showing that the right hand side is a valid under-approximation of the left hand side. In other words (>= n m) is entailed.
+; - showing that the right hand side is entailed to be true, that is, (>= m 0) is true and thus (>= n 0) is true.
+; conclusion: The given equality.
+(declare-rule arith-string-pred-safe-approx ((n Int) (m Int))
+  :args ((= (>= n 0) (>= m 0)))
+  :requires ((($str_arith_entail_is_approx n m true) true)
+             (($str_arith_entail_simple_pred (>= m 0)) true))
+  :conclusion (= (>= n 0) (>= m 0))
+)
 
 (declare-rule str-in-re-eval ((s String) (r RegLan) (b Bool))
   :args ((= (str.in_re s r) b))
