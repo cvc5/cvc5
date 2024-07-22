@@ -324,7 +324,7 @@ Node Env::getSharableFormula(const Node& n) const
   {
     Node nn = toProcess[index];
     index++;
-    // get the symbols contained in n
+    // get the symbols contained in nn
     std::unordered_set<Node> syms;
     expr::getSymbols(nn, syms);
     for (const Node& s : syms)
