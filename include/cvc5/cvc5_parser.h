@@ -310,8 +310,8 @@ class CVC5_EXPORT InputParser
                               const std::string& name);
   /**
    * Set the input to incremental string input.
-   * @param lang the input language
-   * @param name the name of the stream, for use in error messages
+   * @param lang The input language.
+   * @param name The name of the stream, for use in error messages.
    */
   void setIncrementalStringInputInternal(modes::InputLanguage lang,
                                          const std::string& name);
