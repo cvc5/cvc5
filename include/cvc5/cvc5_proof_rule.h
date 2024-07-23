@@ -2577,7 +2577,9 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \mathit{re.union}(R) = \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}), R_0)
    *
-   * where :math:`r \subseteq \{r_i}` and :math:`r_k = \bar{r}`.
+   * where :math:`R` is a list of regular expressions containing `r_1`,
+   * `(re.comp r_2)` and the list :math:`R_0`, where `r_1` is a superset of
+   * `r_2`.
    *
    * \endverbatim
    */
