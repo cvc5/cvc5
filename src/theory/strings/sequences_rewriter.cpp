@@ -1267,30 +1267,10 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
   }
   // use inclusion tests
-  for (const Node& negMem : polRegExp[1])
+  Node retNode = rewriteViaReInterUnionInclusion(node);
+  if (!retNode.isNull())
   {
-    for (const Node& posMem : polRegExp[0])
-    {
-      Node m1 = nk == Kind::REGEXP_INTER ? negMem : posMem;
-      Node m2 = nk == Kind::REGEXP_INTER ? posMem : negMem;
-      // inclusion test for conflicting case m1 contains m2
-      // (re.inter (re.comp R1) R2) --> re.none where R1 includes R2
-      // (re.union R1 (re.comp R2)) --> (re.* re.allchar) where R1 includes R2
-      if (RegExpEntail::regExpIncludes(m1, m2))
-      {
-        Node retNode;
-        if (nk == Kind::REGEXP_INTER)
-        {
-          retNode = nm->mkNode(Kind::REGEXP_NONE);
-        }
-        else
-        {
-          retNode =
-              nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
-        }
-        return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
-      }
-    }
+    return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
   }
   Node retNode;
   if (node_vec.empty())
