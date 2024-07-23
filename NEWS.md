@@ -12,9 +12,7 @@ cvc5 1.2.0
   They are formalized via an identifier (see
   https://cvc5.github.io/docs-ci/docs-main/skolem-ids.html for details) as well
   as a (possibly empty) set of indices.
-  + The methods
-    `Term::isSkolem()`,
-    `Term::getSkolemId()`, and
+  + The **API** methods `Term::isSkolem()`, `Term::getSkolemId()`, and
     `Term::getSkolemIndices()`may now be used to identify terms corresponding
     to skolems.
 
@@ -22,7 +20,7 @@ cvc5 1.2.0
   negation overflow detection.
 
 - We now export kinds `BITVECTOR_FROM_BOOLS`, `BITVECTOR_BIT`, `DIVISION_TOTAL`,
-  `INTS_DIVISION_TOTAL`, `INTS_MODULUS_TOTAL`, which may appear in terms
+  `INTS_DIVISION_TOTAL`, `INTS_MODULUS_TOTAL` which may appear in terms
   resulting from simplification or terms appearing in proofs.
 
 - Adds a new strategy `--mbqi-fast-sygus` (disabled by default) for **quantifier
@@ -31,6 +29,11 @@ cvc5 1.2.0
 
 - Proof rules corresponding to rewrite rules are now exported in the API via
   the enum `ProofRewriteRule`.
+
+- A new `Plugin` class is available in our API. This class allows a user
+  to be notified when SAT clauses or theory lemmas are learned internally
+  by cvc5. The plugin class also contains a callback for the user to introduce
+  new learned clauses into the state of cvc5 during solving.
 
 ## Changes
 
