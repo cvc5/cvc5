@@ -163,8 +163,8 @@ enum ENUM(SkolemId)
   /**
    * Argument used to reason about the phase shift of arguments to sine.
    * In particular, this is an integral rational indicating the number of times
-   * ``2*pi`` is added a real value between ``-pi`` and ``pi`` to obtain the
-   * value of argument to sine.
+   * :math:`2\pi` is added to a real value between :math:`-\pi` and :math:`\pi`
+   * to obtain the value of argument to sine.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The argument to sine.

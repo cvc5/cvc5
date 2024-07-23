@@ -2066,10 +2066,12 @@ enum ENUM(ProofRule)
    *
    * where :math:`x` is the argument to sine, :math:`y` is a new real skolem
    * that is :math:`x` shifted into :math:`-\pi \dots \pi` and :math:`s` is a
-   * new integer slolem that is the number of phases :math:`y` is shifted.
-   * In particular, :math:`y` is the :math:`\texttt{TRANSCENDENTAL_PURIFY_ARG}`
-   * skolem for :math:`\sin(x)` and :math:`z` is the
-   * :math:`\texttt{TRANSCENDENTAL_SINE_PHASE_SHIFT}` skolem for :math:`x`.
+   * new integer skolem that is the number of phases :math:`y` is shifted.
+   * In particular, :math:`y` is the
+   * :cpp:enumerator:`TRANSCENDENTAL_PURIFY_ARG <cvc5::SkolemId::TRANSCENDENTAL_PURIFY_ARG>`
+   * skolem for :math:`\sin(x)` and :math:`s` is the
+   * :cpp:enumerator:`TRANSCENDENTAL_SINE_PHASE_SHIFT <cvc5::SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT>`
+   * skolem for :math:`x`.
    * \endverbatim
    */
   EVALUE(ARITH_TRANS_SINE_SHIFT),
