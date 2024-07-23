@@ -2566,7 +2566,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - regular expression intersection/union inclusion**
    *
    * .. math::
-   *   (re.inter R) = (re.inter re.none R_0)
+   *   \mathit{re.inter}(R) = \mathit{re.inter}(\mathit{re.none}, R_0)
    *
    * where :math:`R` is a list of regular expressions containing `r_1`,
    * `(re.comp r_2)` and the list :math:`R_0` where `r_2` is a superset of
@@ -2575,11 +2575,9 @@ enum ENUM(ProofRewriteRule)
    * or alternatively:
    *
    * .. math::
-   *   (re.union R) = (re.union (re.* re.allchar) R_0)
+   *   \mathit{re.union}(R) = \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}), R_0)
    *
-   * where :math:`R` is a list of regular expressions containing `r_1`,
-   * `(re.comp r_2)` and the list :math:`R_0`, where `r_1` is a superset of
-   * `r_2`.
+   * where :math:`r \subseteq \{r_i}` and :math:`r_k = \bar{r}`.
    *
    * \endverbatim
    */
