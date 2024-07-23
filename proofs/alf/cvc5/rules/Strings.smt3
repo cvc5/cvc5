@@ -377,6 +377,21 @@
   :conclusion (= (re.loop l u r1) r2)
 )
 
+; rule: re-inter-union-inclusion
+; implements: ProofRewriteRule::RE_INTER_UNION_INCLUSION
+; args:
+; - eq Bool: The equality between regular expressions to prove.
+; requires: >
+;   showing that the right hand side of the equality is the result of
+;   decomposing the left hand side into a result of a regular expression
+;   inclusion and a remainder.
+; conclusion: The given equality.
+(declare-rule re-inter-union-inclusion ((r1 RegLan) (r2 RegLan))
+  :args ((= r1 r2))
+  :requires ((($str_decompose_and_check_re_inter_union_inclusion r1 r2) true))
+  :conclusion (= r1 r2)
+)
+
 (declare-rule str-in-re-concat-star-char ((s1 String) (s2 String :list) (r RegLan) (b Bool))
   :args ((= (str.in_re (str.++ s1 s2) (re.* r)) b))
   :requires ((($str_fixed_len_re r) 1) 
