@@ -1272,7 +1272,6 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
   {
     return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
   }
-  Node retNode;
   if (node_vec.empty())
   {
     if (nk == Kind::REGEXP_INTER)
