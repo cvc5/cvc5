@@ -332,9 +332,9 @@ class CVC5_EXPORT InputParser
   std::stringstream d_istringStream;
   /** Are we initialized to use the above string stream? */
   bool d_usingIStringStream;
-  /** The last language argument passed to setIncrementalStringInput */
+  /** The last language argument passed to setIncrementalStringInput(). */
   modes::InputLanguage d_istringLang;
-  /** The last name arg passed to setIncrementalStringInput */
+  /** The last name argument passed to setIncrementalStringInput(). */
   std::string d_istringName;
   /** The parser */
   std::shared_ptr<Parser> d_parser;
