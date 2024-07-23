@@ -106,7 +106,7 @@
 ; - a (BitVec n): The argument of the extract.
 ; return: the bitblasted term for (extract u l a).
 (define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a (BitVec n)))
-  (nary.subsequence @from_bools @bv_empty l u a))
+  ($nary_subsequence @from_bools @bv_empty l u a))
 
 ; program: $bv_mk_bitblast_step_concat_rec
 ; args:
@@ -128,14 +128,14 @@
 ; - a (BitVec n): The bitvector concatenation term to process.
 ; return: the bitblasted term for concatenation term a.
 (define $bv_mk_bitblast_step_concat ((n Int :implicit) (a (BitVec n)))
-  ($bv_mk_bitblast_step_concat_rec (nary.reverse a)))
+  ($bv_mk_bitblast_step_concat_rec ($nary_reverse a)))
 
 ; define: $bv_mk_bitblast_step_const
 ; args:
 ; - a (BitVec n): The bitvector constant to bitblast.
 ; return: the bitblasted term for a, which is its reverse bitlist.
 (define $bv_mk_bitblast_step_const ((n Int :implicit) (a (BitVec n)))
-  (nary.reverse ($bv_const_to_bitlist a)))
+  ($nary_reverse ($bv_const_to_bitlist a)))
 
 ; program: $bv_mk_bitblast_step_var_rec
 ; args:
@@ -155,7 +155,7 @@
 ; - a (BitVec n): The bitvector variable to bitblast.
 ; return: the bitblasted term for variable a.
 (define $bv_mk_bitblast_step_var ((n Int :implicit) (a (BitVec n)))
-  (nary.reverse ($bv_mk_bitblast_step_var_rec a (alf.add ($bv_bitwidth (alf.typeof a)) -1))))
+  ($nary_reverse ($bv_mk_bitblast_step_var_rec a (alf.add ($bv_bitwidth (alf.typeof a)) -1))))
 
 ; define: $bv_mk_bitblast_step
 ; args:
