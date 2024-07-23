@@ -23,10 +23,6 @@ cvc5 1.2.0
   `INTS_DIVISION_TOTAL`, `INTS_MODULUS_TOTAL` which may appear in terms
   resulting from simplification or terms appearing in proofs.
 
-- Adds a new strategy `--mbqi-fast-sygus` (disabled by default) for **quantifier
-  instantiation** which uses SyGuS enumeration to augment instantiations from
-  model-based quantifier instantiation.
-
 - Proof rules corresponding to rewrite rules are now exported in the API via
   the enum `ProofRewriteRule`.
 
@@ -34,6 +30,10 @@ cvc5 1.2.0
   to be notified when SAT clauses or theory lemmas are learned internally
   by cvc5. The plugin class also contains a callback for the user to introduce
   new learned clauses into the state of cvc5 during solving.
+
+- Adds a new strategy `--mbqi-fast-sygus` (disabled by default) for **quantifier
+  instantiation** which uses SyGuS enumeration to augment instantiations from
+  model-based quantifier instantiation.
 
 ## Changes
 
