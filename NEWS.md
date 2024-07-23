@@ -7,11 +7,30 @@ cvc5 1.2.0
    - Documentation: https://cvc5.github.io/docs-ci/docs-main/api/c/c.html
    - Examples: https://github.com/cvc5/cvc5/tree/main/examples/api/c
 
-- Exposed creation and maintenance of **Skolem functions** to the API.
+- Exposed creation and maintenance of **Skolem functions** to the API. Skolem
+  functions are symbols that are internally introduced by cvc5 during solving.
+  They are formalized via an identifier (see
+  https://cvc5.github.io/docs-ci/docs-main/skolem-ids.html for details) as well
+  as a (possibly empty) set of indices.
+  + The methods
+    `Term::isSkolem()`,
+    `Term::getSkolemId()`, and
+    `Term::getSkolemIndices()`may now be used to identify terms corresponding
+    to skolems.
+
+- Add support for the kind `BITVECTOR_NEGO` corresponding to bitvector
+  negation overflow detection.
+
+- We now export kinds `BITVECTOR_FROM_BOOLS`, `BITVECTOR_BIT`, `DIVISION_TOTAL`,
+  `INTS_DIVISION_TOTAL`, `INTS_MODULUS_TOTAL`, which may appear in terms
+  resulting from simplification or terms appearing in proofs.
 
 - Adds a new strategy `--mbqi-fast-sygus` (disabled by default) for **quantifier
   instantiation** which uses SyGuS enumeration to augment instantiations from
   model-based quantifier instantiation.
+
+- Proof rules corresponding to rewrite rules are now exported in the API via
+  the enum `ProofRewriteRule`.
 
 ## Changes
 
@@ -30,6 +49,8 @@ cvc5 1.2.0
   * Pythonic:
     - Unsat cores and proofs are now available via the `Solver` methods
       `unsat_core()` and `proof()`, respectively.
+
+- The semantics of `SQRT` was changed to assume the result is positive.
 
 cvc5 1.1.2
 ==========
