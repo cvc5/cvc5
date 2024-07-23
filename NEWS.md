@@ -3,6 +3,8 @@ This file contains a summary of important user-visible changes.
 cvc5 1.2.0
 ==========
 
+## New Features
+
 - New **C API**, implemented as a thin wrapper around the C++ API.
    - Documentation: https://cvc5.github.io/docs-ci/docs-main/api/c/c.html
    - Examples: https://github.com/cvc5/cvc5/tree/main/examples/api/c
