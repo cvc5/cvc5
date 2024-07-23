@@ -807,7 +807,7 @@ void Smt2State::setLogic(std::string name)
         addOperator(Kind::INTS_MODULUS, "mod");
         addOperator(Kind::ABS, "abs");
       }
-      if (!strictModeEnabled()
+      if (!strictModeEnabled())
       {
         addOperator(Kind::INTS_DIVISION_TOTAL, "div_total");
         addOperator(Kind::INTS_MODULUS_TOTAL, "mod_total");
