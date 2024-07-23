@@ -134,3 +134,26 @@
         ((nary.join cons nil (cons x xs) y)            (cons x (nary.join cons nil xs y)))
     )
 )
+
+; program: nary.diff
+; args:
+; - cons (-> L L L): The n-ary function symbol.
+; - nil L: The nil terminator of cons.
+; - t1 L: The first term.
+; - t2 L: The second term.
+; return >
+;   The result of subtracting t2 from t1, where these terms are in nary form
+;   for the operator cons with nil terminator nil.
+;   For example, (nary.diff or false (or a b c d) (or a c)) = (or b d).
+;   This is not the same as set difference. We remove a single occurrence of
+;   each of the terms from t2, assuming they occur in order in t1.
+(program nary.diff
+    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
+    ((-> L L L) L L L) Bool
+    (
+        ((nary.diff cons nil (cons c1 xs1) (cons c2 xs2)) (alf.ite (alf.is_eq c1 c2) 
+                                                            (nary.diff cons nil xs1 xs2)
+                                                            (alf.cons cons c1 (nary.diff cons nil xs1 (cons c2 xs2)))))
+        ((nary.diff cons nil t nil)                       t)
+    )
+)
