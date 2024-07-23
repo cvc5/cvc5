@@ -159,4 +159,3 @@
         (($nary_diff cons nil c1 nil)                       c1)
     )
 )
-
