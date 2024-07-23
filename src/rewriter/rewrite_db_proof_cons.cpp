@@ -23,6 +23,7 @@
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::internal::kind;
 
@@ -518,11 +519,30 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   }
   else if (id == RewriteProofStatus::ARITH_POLY_NORM)
   {
-    if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
+    if (target[0].getType().isBoolean())
     {
-      return false;
+      Rational rx, ry;
+      if (!theory::arith::PolyNorm::isArithPolyNormRel(
+              target[0], target[1], rx, ry))
+      {
+        return false;
+      }
+      Node premise = theory::arith::PolyNorm::getArithPolyNormRelPremise(
+          target[0], target[1], rx, ry);
+      ProvenInfo ppremise;
+      ppremise.d_id = id;
+      d_pcache[premise] = ppremise;
+      pic.d_id = id;
+      pic.d_vars.push_back(premise);
     }
-    pic.d_id = id;
+    else
+    {
+      if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
+      {
+        return false;
+      }
+      pic.d_id = id;
+    }
   }
   else if (id == RewriteProofStatus::THEORY_REWRITE)
   {
@@ -1007,7 +1027,19 @@ bool RewriteDbProofCons::ensureProofInternal(
       }
       else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
       {
-        cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
+        if (pcur.d_vars.empty())
+        {
+          cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
+        }
+        else
+        {
+          cdp->addStep(
+              pcur.d_vars[0], ProofRule::ARITH_POLY_NORM, {}, {pcur.d_vars[0]});
+          cdp->addStep(cur,
+                       ProofRule::ARITH_POLY_NORM_REL,
+                       {pcur.d_vars[0]},
+                       {ProofRuleChecker::mkKindNode(cur[0].getKind())});
+        }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL
                || pcur.d_id == RewriteProofStatus::THEORY_REWRITE)

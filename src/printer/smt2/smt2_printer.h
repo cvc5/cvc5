@@ -30,17 +30,17 @@ class DType;
 namespace printer {
 namespace smt2 {
 
-enum Variant
+enum class Variant
 {
   no_variant,
-  smt2_6_variant,  // new-style 2.6 syntax, when it makes a difference, with
-                   // support for the string standard
-};                 /* enum Variant */
+  // A variant used for printing commands in the preamble of ALF proofs. This is used by the ALF printer.
+  alf_variant
+};
 
 class Smt2Printer : public cvc5::internal::Printer
 {
  public:
-  Smt2Printer(Variant variant = no_variant) : d_variant(variant) {}
+  Smt2Printer(Variant variant = Variant::no_variant) : d_variant(variant) {}
   using cvc5::internal::Printer::toStream;
   void toStream(std::ostream& out, TNode n) const override;
   void toStream(std::ostream& out, TNode n, int toDepth, size_t dag) const;

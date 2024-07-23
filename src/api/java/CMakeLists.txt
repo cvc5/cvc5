@@ -262,13 +262,17 @@ add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5 cvc5parser)
 # Install in the same directory of cvc5-targets.
 # On Windows, CMake's default install action places
 # DLLs into the runtime path (by default "bin")
-install(TARGETS cvc5jni)
+install(TARGETS cvc5jni COMPONENT java-api)
 
-install_jar(cvc5jar DESTINATION share/java)
+install_jar(cvc5jar
+  DESTINATION share/java
+  COMPONENT java-api
+)
 
 install_jar_exports(
   TARGETS cvc5jar
   NAMESPACE cvc5::
   FILE cvc5JavaTargets.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
+  COMPONENT java-api
 )

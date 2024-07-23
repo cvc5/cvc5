@@ -58,9 +58,10 @@ TEST_F(TestCApiBlackGrammar, to_string)
   std::vector<Cvc5Term> symbols = {start};
   Cvc5Grammar g = cvc5_mk_grammar(
       d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  ASSERT_EQ(cvc5_grammar_to_string(g), std::string(""));
   cvc5_grammar_add_rule(g, start, cvc5_mk_false(d_tm));
   ASSERT_DEATH(cvc5_grammar_to_string(nullptr), "invalid grammar");
-  (void)cvc5_grammar_to_string(g);
+  ASSERT_NE(cvc5_grammar_to_string(g), std::string(""));
 }
 
 TEST_F(TestCApiBlackGrammar, add_rule)
@@ -189,7 +190,7 @@ TEST_F(TestCApiBlackGrammar, add_any_variable)
   ASSERT_DEATH(cvc5_grammar_add_any_variable(g1, start), "cannot be modified");
 }
 
-TEST_F(TestCApiBlackGrammar, hash)
+TEST_F(TestCApiBlackGrammar, equal_hash)
 {
   cvc5_set_option(d_solver, "sygus", "true");
 
@@ -208,6 +209,9 @@ TEST_F(TestCApiBlackGrammar, hash)
         d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
     ASSERT_EQ(cvc5_grammar_hash(g1), cvc5_grammar_hash(g1));
     ASSERT_EQ(cvc5_grammar_hash(g1), cvc5_grammar_hash(g2));
+    ASSERT_TRUE(cvc5_grammar_is_equal(g1, g1));
+    ASSERT_FALSE(cvc5_grammar_is_equal(g1, g2));
+    ASSERT_TRUE(cvc5_grammar_is_disequal(g1, g2));
   }
 
   {
@@ -219,6 +223,9 @@ TEST_F(TestCApiBlackGrammar, hash)
     g2 = cvc5_mk_grammar(
         d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
     ASSERT_NE(cvc5_grammar_hash(g1), cvc5_grammar_hash(g2));
+    ASSERT_TRUE(cvc5_grammar_is_equal(g1, g1));
+    ASSERT_FALSE(cvc5_grammar_is_equal(g1, g2));
+    ASSERT_TRUE(cvc5_grammar_is_disequal(g1, g2));
   }
 
   {
@@ -230,6 +237,9 @@ TEST_F(TestCApiBlackGrammar, hash)
     g2 = cvc5_mk_grammar(
         d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
     ASSERT_NE(cvc5_grammar_hash(g1), cvc5_grammar_hash(g2));
+    ASSERT_TRUE(cvc5_grammar_is_equal(g1, g1));
+    ASSERT_FALSE(cvc5_grammar_is_equal(g1, g2));
+    ASSERT_TRUE(cvc5_grammar_is_disequal(g1, g2));
   }
 
   {
@@ -241,6 +251,9 @@ TEST_F(TestCApiBlackGrammar, hash)
         d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
     cvc5_grammar_add_any_variable(g2, start1);
     ASSERT_NE(cvc5_grammar_hash(g1), cvc5_grammar_hash(g2));
+    ASSERT_TRUE(cvc5_grammar_is_equal(g1, g1));
+    ASSERT_FALSE(cvc5_grammar_is_equal(g1, g2));
+    ASSERT_TRUE(cvc5_grammar_is_disequal(g1, g2));
   }
 
   {
@@ -254,6 +267,9 @@ TEST_F(TestCApiBlackGrammar, hash)
     cvc5_grammar_add_rules(g1, start1, rules.size(), rules.data());
     cvc5_grammar_add_rules(g2, start1, rules.size(), rules.data());
     ASSERT_EQ(cvc5_grammar_hash(g1), cvc5_grammar_hash(g2));
+    ASSERT_TRUE(cvc5_grammar_is_equal(g1, g1));
+    ASSERT_FALSE(cvc5_grammar_is_equal(g1, g2));
+    ASSERT_TRUE(cvc5_grammar_is_disequal(g1, g2));
   }
 
   {
@@ -266,6 +282,9 @@ TEST_F(TestCApiBlackGrammar, hash)
     std::vector<Cvc5Term> rules2 = {cvc5_mk_false(d_tm)};
     cvc5_grammar_add_rules(g2, start1, rules2.size(), rules2.data());
     ASSERT_NE(cvc5_grammar_hash(g1), cvc5_grammar_hash(g2));
+    ASSERT_TRUE(cvc5_grammar_is_equal(g1, g1));
+    ASSERT_FALSE(cvc5_grammar_is_equal(g1, g2));
+    ASSERT_TRUE(cvc5_grammar_is_disequal(g1, g2));
   }
 
   {
@@ -280,6 +299,9 @@ TEST_F(TestCApiBlackGrammar, hash)
     cvc5_grammar_add_rules(g1, start1, rules1.size(), rules1.data());
     cvc5_grammar_add_rules(g2, start1, rules2.size(), rules2.data());
     ASSERT_NE(cvc5_grammar_hash(g1), cvc5_grammar_hash(g2));
+    ASSERT_TRUE(cvc5_grammar_is_equal(g1, g1));
+    ASSERT_FALSE(cvc5_grammar_is_equal(g1, g2));
+    ASSERT_TRUE(cvc5_grammar_is_disequal(g1, g2));
   }
   ASSERT_DEATH(cvc5_grammar_hash(nullptr), "invalid grammar");
 }

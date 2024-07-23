@@ -37,6 +37,9 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 # plugins.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Default component used in install() commands
+set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME cvc5)
+
 #-----------------------------------------------------------------------------#
 # Policies
 
@@ -140,8 +143,10 @@ option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 # Api documentation
 option(BUILD_DOCS "Build Api documentation")
+option(BUILD_DOCS_GA "Build API documentation with Google Analytics")
 
-option(BUILD_GMP "Build GMP from sources")
+option(BUILD_GMP "Build GMP from source")
+option(BUILD_CLN "Build CLN from source")
 
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \

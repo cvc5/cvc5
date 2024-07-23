@@ -90,6 +90,10 @@
 ; conclusion: >
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
+; disclaimer: >
+;   This proof rule takes only the function to do congruence over,
+;   whereas the internal proof calculus takes an internal value denoting its
+;   cvc5::Kind along with an (optional) function if the kind if parameterized.
 (declare-rule cong ((T Type) (U Type) (E Bool) (f (-> T U)))
     :premise-list E and
     :args (f)
@@ -120,10 +124,10 @@
 ; program: $mk_nary_cong_rhs
 ; args:
 ; - f (-> U U U): The function we are applying congruence over.
-; - E Bool: A conjunction of the remaining equalities we have left to
-; process.
-; return: the right hand side of the equality proven by nary_cong for f and
-; the given premises E.
+; - E Bool: A conjunction of the remaining equalities we have left to process.
+; return: >
+;   The right hand side of the equality proven by nary_cong for f and
+;   the given premises E.
 ; note: This program is analogous to $mk_nary_cong_lhs.
 (program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (tail Bool :list))
     ((-> U U U) Bool) Bool
@@ -145,6 +149,10 @@
 ; conclusion: >
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
+; disclaimer: >
+;   This proof rule takes as argument the function to do congruence
+;   over, whereas the internal proof calculus takes an internal value denoting its
+;   cvc5::Kind.
 (declare-rule nary_cong ((U Type) (E Bool) (f (-> U U)) (nil U))
     :premise-list E and
     :args (f)

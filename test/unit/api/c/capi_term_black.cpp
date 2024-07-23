@@ -219,24 +219,36 @@ TEST_F(TestCApiBlackTerm, get_op)
 
   std::vector<Cvc5Term> args = {a, b};
   Cvc5Term ab = cvc5_mk_term(d_tm, CVC5_KIND_SELECT, args.size(), args.data());
+  ASSERT_TRUE(cvc5_term_has_op(ab));
+  ASSERT_FALSE(cvc5_op_is_indexed(cvc5_term_get_op(ab)));
+
   std::vector<uint32_t> idxs = {4, 0};
   Cvc5Op ext =
       cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, idxs.size(), idxs.data());
   args = {b};
   Cvc5Term extb = cvc5_mk_term_from_op(d_tm, ext, args.size(), args.data());
-
-  ASSERT_TRUE(cvc5_term_has_op(ab));
-  ASSERT_FALSE(cvc5_op_is_indexed(cvc5_term_get_op(ab)));
+  ASSERT_EQ(cvc5_term_get_kind(extb), CVC5_KIND_BITVECTOR_EXTRACT);
   // can compare directly to a Kind (will invoke Op constructor)
   ASSERT_TRUE(cvc5_term_has_op(extb));
   ASSERT_TRUE(cvc5_op_is_indexed(cvc5_term_get_op(extb)));
   ASSERT_TRUE(cvc5_op_is_equal(cvc5_term_get_op(extb), ext));
 
+  idxs = {4};
+  Cvc5Op bit =
+      cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_BIT, idxs.size(), idxs.data());
+  Cvc5Term bitb = cvc5_mk_term_from_op(d_tm, bit, args.size(), args.data());
+  ASSERT_EQ(cvc5_term_get_kind(bitb), CVC5_KIND_BITVECTOR_BIT);
+  ASSERT_TRUE(cvc5_term_has_op(bitb));
+  ASSERT_TRUE(cvc5_op_is_equal(cvc5_term_get_op(bitb), bit));
+  ASSERT_TRUE(cvc5_op_is_indexed(cvc5_term_get_op(bitb)));
+  ASSERT_EQ(cvc5_op_get_num_indices(bit), 1);
+  ASSERT_TRUE(cvc5_term_is_equal(cvc5_op_get_index(bit, 0),
+                                 cvc5_mk_integer_int64(d_tm, 4)));
+
   Cvc5Term f = cvc5_mk_const(d_tm, fun_sort, "f");
   args = {f, x};
   Cvc5Term fx =
       cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
-
   ASSERT_FALSE(cvc5_term_has_op(f));
   ASSERT_DEATH(cvc5_term_get_op(f), "expected Term to have an Op");
   ASSERT_TRUE(cvc5_term_has_op(fx));

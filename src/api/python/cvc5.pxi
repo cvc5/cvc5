@@ -186,9 +186,22 @@ cdef class SymbolManager:
     cdef c_SymbolManager* csm
     cdef TermManager tm
 
-    def __cinit__(self, TermManager tm):
-        self.csm = new c_SymbolManager(dereference(tm.ctm))
-        self.tm = tm
+    def __cinit__(self, tm):
+        """
+            Constructor.
+            Initialize with associated Solver or TermManager instance.
+            .. warning:: Initializing with associated solver instance is
+                         deprecated and will be removed in a future release.
+        """
+        if isinstance(tm, TermManager):
+            self.csm = new c_SymbolManager(dereference((<TermManager?>tm).ctm))
+            self.tm = tm
+        # backwards compatibility, deprecated
+        elif isinstance(tm, Solver):
+            self.csm = new c_SymbolManager(dereference((<Solver?>tm).tm.ctm))
+            self.tm = (<Solver?>tm).tm
+        else:
+          raise ValueError("Expecting a TermManager or Solver argument")
 
     def __dealloc__(self):
         del self.csm
@@ -1072,6 +1085,12 @@ cdef class SynthResult:
     def __cinit__(self):
         # gets populated by solver
         self.cr = c_SynthResult()
+
+    def __eq__(self, SynthResult other):
+        return self.cr == other.cr
+
+    def __ne__(self, SynthResult other):
+        return self.cr != other.cr
 
     def isNull(self):
         """

@@ -214,7 +214,7 @@
 (program $greatest_int_lt ((R Type) (c R))
   (R) Int
   (
-    (($greatest_int_lt c) (let ((ci (alf.to_z c)))
+    (($greatest_int_lt c) (alf.define ((ci (alf.to_z c)))
                                (alf.ite (alf.is_eq (alf.to_q c) (alf.to_q ci))
                                  (alf.add -1 ci)
                                  ci)))

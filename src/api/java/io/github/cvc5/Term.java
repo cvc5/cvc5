@@ -48,7 +48,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Syntactic equality operator.
    * Return true if both terms are syntactically identical.
-   * Both terms must belong to the same solver object.
    *
    * @param t The term to compare to for equality.
    * @return True if the terms are equal.
@@ -100,7 +99,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    *
    * @param index The index of the child term to return.
    * @return The child term with the given index.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term getChild(int index) throws CVC5ApiException
   {
@@ -123,7 +122,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * @return The kind of this term.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Kind getKind() throws CVC5ApiException
   {
@@ -495,7 +494,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * Asserts isBitVectorValue().
    * @return The representation of a bit-vector value in bit string
    *         representation.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public String getBitVectorValue() throws CVC5ApiException
   {
@@ -513,7 +512,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @param base {@code 2} for binary, {@code 10} for decimal, and {@code 16}
    *             for hexadecimal.
    * @return The string representation of a bit-vector value.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public String getBitVectorValue(int base) throws CVC5ApiException
   {
@@ -539,7 +538,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @api.note Asserts {@code Term#isFiniteFieldValue()}.
    *
    * @return The string representation of a finite field value.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public String getFiniteFieldValue() throws CVC5ApiException
   {
@@ -582,7 +581,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Asserts isRoundingModeValue().
    * @return The floating-point rounding mode value held by the term.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public RoundingMode getRoundingModeValue() throws CVC5ApiException
   {
@@ -818,7 +817,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @api.note Asserts isSkolem().
    * @api.note This method is experimental and may change in future versions.
    * @return The skolem identifier of this term.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public SkolemId getSkolemId() throws CVC5ApiException
   {
@@ -835,7 +834,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @return The skolem indices of this term. This a list of terms that the
    * skolem function is indexed by. For example, the array diff skolem
    * {@link SkolemId#ARRAY_DEQ_DIFF} is indexed by two arrays.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term[] getSkolemIndices() throws CVC5ApiException
   {
@@ -887,4 +886,16 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   {
     return new ConstIterator();
   }
+
+  /**
+   * Get the hash value of a term.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

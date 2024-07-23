@@ -23,9 +23,14 @@ def tm():
 def solver(tm):
     return cvc5.Solver(tm)
 
+def test_constructor(tm, solver):
+    SymbolManager(tm)
+    SymbolManager(solver) # deprecated
+
 def parse_and_set_logic(solver, sm, logic):
     parser = InputParser(solver, sm)
-    parser.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_symbol_manager_parser")
+    parser.setIncrementalStringInput(
+            cvc5.InputLanguage.SMT_LIB_2_6, "test_symbol_manager_parser")
     parser.appendIncrementalStringInput("(set-logic " + logic + ")" + '\n')
     cmd = parser.nextCommand()
     assert cmd.isNull() is not True

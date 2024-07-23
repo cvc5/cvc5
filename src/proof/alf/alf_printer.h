@@ -22,6 +22,7 @@
 
 #include <iostream>
 
+#include "context/cdhashmap.h"
 #include "expr/node_algorithm.h"
 #include "proof/alf/alf_list_node_converter.h"
 #include "proof/alf/alf_node_converter.h"
@@ -61,6 +62,8 @@ class AlfPrinter : protected EnvObj
   bool isHandled(const ProofNode* pfn) const;
   /** Return true if id is handled as a theory rewrite for term n */
   bool isHandledTheoryRewrite(ProofRewriteRule id, const Node& n) const;
+  /** Return if the equality is handled as a bitblast step */
+  bool isHandledBitblastStep(const Node& eq) const;
   /**
    * Return true if it is possible to evaluate n using the evaluation side
    * condition in the ALF signature. Notice this requires that all subterms of n
@@ -124,14 +127,15 @@ class AlfPrinter : protected EnvObj
   BaseAlfNodeConverter& d_tproc;
   /** Assume id counter */
   size_t d_pfIdCounter;
-  /** Mapping scope proofs to identifiers */
-  std::map<std::pair<const ProofNode*, Node>, size_t> d_ppushMap;
   /** Mapping proofs to identifiers */
   std::map<const ProofNode*, size_t> d_pletMap;
+  /**
+   * Context for d_passumeMap, which is pushed and popped when we encounter
+   * SCOPE proofs.
+   */
+  context::Context d_passumeCtx;
   /** Mapping assumed formulas to identifiers */
-  std::map<Node, size_t> d_passumeMap;
-  /** Maps proof identifiers to nodes */
-  std::map<size_t, Node> d_passumeNodeMap;
+  context::CDHashMap<Node, size_t> d_passumeMap;
   /** The (dummy) type used for proof terms */
   TypeNode d_pfType;
   /** term prefix */
