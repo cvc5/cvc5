@@ -1095,6 +1095,11 @@ Node SequencesRewriter::rewriteViaReInterUnionInclusion(const Node& node)
         // Now go back and include all the remaining children that were
         // not involved. This simplifies proof checking, since we can isolate
         // which children led to the conflict.
+        // In particular, if Ri includes Rj, then we rewrite
+        //    (re.inter R1 ... (re.comp Ri) ... Rj ... Rn)
+        // to
+        //    (re.inter re.none {R1...R{i-1} R{i+1} ... R{j-1} R{j} .. Rn)
+        // where the latter will be rewritten to re.none.
         bool foundPos = false;
         bool foundNeg = false;
         for (const Node& nc : node)
