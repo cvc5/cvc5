@@ -858,8 +858,13 @@ RewriteResponse TheorySetsRewriter::postRewriteAll(TNode n)
       Node ret = a.andNode(b);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
-
-    default: return RewriteResponse(REWRITE_DONE, n);
+    default:
+    {
+      // (set.all p A) is rewritten as (set.filter p A) = A
+      Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
+      Node all = filter.eqNode(n[1]);
+      return RewriteResponse(REWRITE_DONE, all);
+    }
   }
 }
 
@@ -890,8 +895,14 @@ RewriteResponse TheorySetsRewriter::postRewriteSome(TNode n)
       Node ret = a.orNode(b);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
-
-    default: return RewriteResponse(REWRITE_DONE, n);
+    default:
+    {
+      // (set.some p A) is rewritten as (distinct (set.filter p A) set.empty))
+      Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
+      Node empty = nm->mkConst(EmptySet(n[1].getType()));
+      Node some = filter.eqNode(empty).notNode();
+      return RewriteResponse(REWRITE_DONE, some);
+    }
   }
 }
 

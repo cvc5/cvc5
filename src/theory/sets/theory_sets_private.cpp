@@ -390,20 +390,20 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
-    // check set.all rules
-    checkPredicateAll();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    // check set.some rules
-    checkPredicateSome();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
+    // // check set.all rules
+    // checkPredicateAll();
+    // d_im.doPendingLemmas();
+    // if (d_im.hasSent())
+    // {
+    //   continue;
+    // }
+    // // check set.some rules
+    // checkPredicateSome();
+    // d_im.doPendingLemmas();
+    // if (d_im.hasSent())
+    // {
+    //   continue;
+    // }
     // check map up rules
     checkMapUp();
     d_im.doPendingLemmas();
