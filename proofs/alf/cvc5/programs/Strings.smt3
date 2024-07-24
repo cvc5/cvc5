@@ -45,7 +45,7 @@
 ; Return t if it corresponds to the empty string, otherwise evaluates
 ; to an unevaluated alf.requires term.
 (define $str_self_if_empty ((T Type :implicit) (t T))
-  (alf.requires t (mk_emptystr (alf.typeof t)) t)
+  (alf.requires t ($mk_emptystr (alf.typeof t)) t)
 )
 
 ; Return the fixed length for the regular expression if it can be inferred.
@@ -203,7 +203,7 @@
     ((Seq T)) (Seq T)
     (
         (($str_nary_intro (str.++ t ss)) (str.++ t ss))
-        (($str_nary_intro t)             (alf.define ((nil (mk_emptystr (alf.typeof t))))
+        (($str_nary_intro t)             (alf.define ((nil ($mk_emptystr (alf.typeof t))))
                                             (alf.ite (alf.is_eq t nil) t ($str_cons t nil))))
     )
 )
@@ -231,7 +231,7 @@
     ((T Type) (t (Seq T)) (ss (Seq T) :list))
     ((Seq T)) (Seq T)
     (
-        (($str_nary_elim (str.++ t ss)) (alf.define ((nil (mk_emptystr (alf.typeof t))))
+        (($str_nary_elim (str.++ t ss)) (alf.define ((nil ($mk_emptystr (alf.typeof t))))
                                            (alf.ite (alf.is_eq ss nil) t (str.++ t ss))))
         (($str_nary_elim t)             ($str_self_if_empty t))
     )
@@ -272,7 +272,7 @@
                 (= (str.len k2) 0))
             (<= (str.len k) m))
         ; else branch
-        (= k (mk_emptystr (alf.typeof x)))
+        (= k ($mk_emptystr (alf.typeof x)))
         ))))))
   )
 )
@@ -290,7 +290,7 @@
         (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
         (= k (alf.neg 1))
         (ite
-          (= y (mk_emptystr (alf.typeof x)))
+          (= y ($mk_emptystr (alf.typeof x)))
           (= k n)
           (and (= xn (str.++ k1 y k2))
               (not (str.contains
@@ -424,7 +424,7 @@
   (U) Bool
   (
     ((non_empty_concats t)             ($str_self_if_empty t))
-    ((non_empty_concats (str.++ t s))  (alf.cons and (not (= t (mk_emptystr (alf.typeof t)))) (non_empty_concats s)))
+    ((non_empty_concats (str.++ t s))  (alf.cons and (not (= t ($mk_emptystr (alf.typeof t)))) (non_empty_concats s)))
   )
 )
 
@@ -584,7 +584,7 @@
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
 ; Expects s and t to be in nary (flattened) form.
 (define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)))
-  ($str_overlap_rec (mk_emptystr (alf.typeof s)) s t))
+  ($str_overlap_rec ($mk_emptystr (alf.typeof s)) s t))
 
 ; Helper for $str_mk_re_loop_elim.
 ; When we call `$str_mk_re_loop_elim n d r rr`, we first decrement n until it
