@@ -6,14 +6,14 @@
 (declare-const / (-> (! Type :var T :implicit)
                      (! Type :var U :implicit)
                      T U
-                     (! Real :requires ((is_arith_type T) true) :requires ((is_arith_type U) true))) :left-assoc)
+                     (! Real :requires (($is_arith_type T) true) :requires (($is_arith_type U) true))) :left-assoc)
 
 ; Internally generated terms.
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const /_total (-> (! Type :var T :implicit)
                            (! Type :var U :implicit)
                            T U
-                           (! Real :requires ((is_arith_type T) true) :requires ((is_arith_type U) true))) :left-assoc)
+                           (! Real :requires (($is_arith_type T) true) :requires (($is_arith_type U) true))) :left-assoc)
 
 (declare-const @indexed_root_predicate (-> Int Bool Real Bool))
 
