@@ -57,12 +57,12 @@
 ; - acc L: The current accumulated reversal of elements we have processed.
 ; return: >
 ;   The result of prepending the reverse of c to acc.
-(program $nary_reverseRec
+(program $nary_reverse_rec
     ((L Type) (cons (-> L L L)) (nil L) (x L) (xs L :list) (l L :list))
     ((-> L L L) L L L) L
     (
-        (($nary_reverseRec cons nil (cons x xs) l) ($nary_reverseRec cons nil xs (alf.cons cons x l)))
-        (($nary_reverseRec cons nil nil l)         l)
+        (($nary_reverse_rec cons nil (cons x xs) l) ($nary_reverse_rec cons nil xs (alf.cons cons x l)))
+        (($nary_reverse_rec cons nil nil l)         l)
     )
 )
 
@@ -76,7 +76,7 @@
     ((L Type) (cons (-> L L L)) (x L) (xs L :list))
     (L) L
     (
-        (($nary_reverse (cons x xs)) (alf.define ((nil (alf.nil cons x xs))) ($nary_reverseRec cons nil (cons x xs) nil)))
+        (($nary_reverse (cons x xs)) (alf.define ((nil (alf.nil cons x xs))) ($nary_reverse_rec cons nil (cons x xs) nil)))
         (($nary_reverse x)           x)
     )
 )
