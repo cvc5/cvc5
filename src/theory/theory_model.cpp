@@ -275,6 +275,8 @@ Node TheoryModel::getModelValue(TNode n) const
     // Note that we discard the evaluation of the arguments here
     Trace("model-getvalue-debug") << "Failed to evaluate " << ret << std::endl;
   }
+  // We revert to the original rewritten form of n here.
+  ret = rewrite(n);
   Trace("model-getvalue-debug")
       << "Look up " << ret << " in equality engine" << std::endl;
   // return the representative of the term in the equality engine, if it exists
