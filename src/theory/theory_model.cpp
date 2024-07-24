@@ -899,7 +899,6 @@ Node TheoryModel::evaluateSemiEvalTerm(TNode n) const
         Node op = t.getOperator();
         std::vector<Node> targs = getModelValueArgs(t);
         NodeTrie& nt = d_semiEvalCache[op];
-        Assert(!nt.existsTerm(targs));
         nt.addOrGetTerm(eqcv, targs);
         Trace("semi-eval") << "Semi-eval: SET " << targs << " = " << eqcv
                            << std::endl;
