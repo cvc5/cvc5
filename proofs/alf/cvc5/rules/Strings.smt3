@@ -4,8 +4,8 @@
 
 ;;-------------------- Core
 
-; rule:
-; implements: ProofRule::
+; rule: string_length_pos
+; implements: ProofRule::STRING_LENGTH_POS
 ; premises:
 ; -  
 ; args:
@@ -17,8 +17,8 @@
     (or (and (= (str.len s) 0) (= s ($mk_emptystr (alf.typeof s)))) (> (str.len s) 0))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: string_length_non_empty
+; implements: ProofRule::STRING_LENGTH_NON_EMPTY
 ; premises:
 ; -  
 ; args:
@@ -30,14 +30,13 @@
   :conclusion (not (= (str.len s) 0))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: concat_eq
+; implements: ProofRule::CONCAT_EQ
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; the ProofRule::CONCAT_EQ rule
 (declare-rule concat_eq ((U Type) (s U) (t U) (rev Bool))
   :premises ((= s t))
   :args (rev)
@@ -52,22 +51,13 @@
           ($str_from_flat_form ts rev)))))
 )
 
-; returns true if s1 is a prefix of s, taking into account flattening
-(define $str_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
-  (alf.define ((sf ($str_to_flat_form s rev)))
-  (alf.define ((sf1 ($str_to_flat_form s1 rev)))
-  (alf.define ((U (alf.typeof s)))
-  ($nary_is_prefix str.++ ($mk_emptystr U) sf1 sf))))
-)
-
-; rule:
-; implements: ProofRule::
+; rule: concat_unify
+; implements: ProofRule::CONCAT_UNIFY
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::CONCAT_UNIFY
 (declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
   :premises ((= s t) (= (str.len s1) (str.len t1)))
   :args (rev)
@@ -75,14 +65,13 @@
   :conclusion (= s1 t1)
 )
 
-; rule:
-; implements: ProofRule::
+; rule: concat_csplit
+; implements: ProofRule::CONCAT_CSPLIT
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::CONCAT_CSPLIT
 (declare-rule concat_csplit ((U Type) (t (Seq U)) (s (Seq U)) (u (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len u) 0)))
   :args (rev)
@@ -101,14 +90,13 @@
                     (str.++ s1 (@purify ($str_skolem_suffix_rem u 1)))))))))))))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: concat_split
+; implements: ProofRule::CONCAT_SPLIT
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::CONCAT_SPLIT
 (declare-rule concat_split ((U Type) (t (Seq U)) (s (Seq U)) (tc (Seq U)) (sc (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len tc) (str.len sc))))
   :args (rev)
@@ -137,14 +125,13 @@
                 ))))))))))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: concat_lprop
+; implements: ProofRule::CONCAT_LPROP
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::CONCAT_LPROP
 (declare-rule concat_lprop ((U Type) (t (Seq U)) (s (Seq U)) (tc (Seq U)) (sc (Seq U)) (rev Bool))
   :premises ((= t s) (> (str.len tc) (str.len sc)))
   :args (rev)
@@ -168,14 +155,13 @@
                 )))))))))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: concat_cprop
+; implements: ProofRule::CONCAT_CPROP
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::CONCAT_CPROP
 (declare-rule concat_cprop ((U Type) (t (Seq U)) (tc (Seq U)) (s (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len tc) 0)))
   :args (rev)
@@ -198,14 +184,14 @@
                 )))))))))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: concat_conflict
+; implements: ProofRule::CONCAT_CONFLICT
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::CONCAT_CONFLICT, for strings only
+; note: This rule is used for strings only, not sequences.
 (declare-rule concat_conflict ((s String) (t String) (rev Bool))
   :premises ((= s t))
   :args (rev)
@@ -234,14 +220,14 @@
     )
 )
 
-; rule:
-; implements: ProofRule::
+; rule: concat_conflict_deq
+; implements: ProofRule::CONCAT_CONFLICT_DEQ
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::CONCAT_CONFLICT_DEQ, for sequences only
+; note: This rule is used for sequences only, not strings.
 (declare-rule concat_conflict_deq ((U Type) (s (Seq U)) (t (Seq U)) (x U) (y U) (rev Bool))
   :premises ((= s t) (not (= (seq.unit x) (seq.unit y))))
   :args (rev)
@@ -304,27 +290,25 @@
 
 ;;-------------------- Regular expressions
 
-; rule:
-; implements: ProofRule::
+; rule: re_inter
+; implements: ProofRule::RE_INTER
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::RE_INTER
 (declare-rule re_inter ((x String) (s RegLan) (t RegLan))
   :premises ((str.in_re x s) (str.in_re x t))
   :conclusion (str.in_re x (re.inter s t))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: re_unfold_pos
+; implements: ProofRule::RE_UNFOLD_POS
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::RE_UNFOLD_POS
 (declare-rule re_unfold_pos ((t String) (r RegLan))
   :premises ((str.in_re t r))
   :conclusion
@@ -350,14 +334,13 @@
     ))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: re_unfold_neg_concat_fixed
+; implements: ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
 (declare-rule re_unfold_neg_concat_fixed ((s String) (r RegLan) (rev Bool))
   :premises ((not (str.in_re s r)))
   :args (rev)
@@ -374,14 +357,13 @@
     ))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: re_unfold_neg
+; implements: ProofRule::RE_UNFOLD_NEG
 ; premises:
 ; -  
 ; args:
 ; -
 ; conclusion:
-; ProofRule::RE_UNFOLD_NEG
 (declare-rule re_unfold_neg ((t String) (r RegLan))
   :premises ((not (str.in_re t r)))
   :conclusion
@@ -407,8 +389,8 @@
 
 ;;-------------------- Extended functions 
 
-; rule:
-; implements: ProofRule::
+; rule: string_reduction
+; implements: ProofRule::STRING_REDUCTION
 ; premises:
 ; -  
 ; args:
@@ -419,8 +401,8 @@
   :conclusion (and ($str_reduction_pred s) (= s (@purify s)))
 )
 
-; rule:
-; implements: ProofRule::
+; rule: string_eager_reduction
+; implements: ProofRule::STRING_EAGER_REDUCTION
 ; premises:
 ; -  
 ; args:
@@ -460,8 +442,8 @@
   :conclusion (= (>= n 0) (>= m 0))
 )
 
-; rule:
-; implements: ProofRewriteRule::
+; rule: str-in-re-eval
+; implements: ProofRewriteRule::STR_IN_RE_EVAL
 ; args:
 ; -
 ; conclusion:
@@ -487,8 +469,8 @@
   :conclusion (= (str.in_re s r) b)
 )
 
-; rule:
-; implements: ProofRewriteRule::
+; rule: re-loop-elim
+; implements: ProofRewriteRule::RE_LOOP_ELIM
 ; args:
 ; -
 ; conclusion:
@@ -514,8 +496,8 @@
   :conclusion (= r1 r2)
 )
 
-; rule:
-; implements: ProofRewriteRule::
+; rule: str-in-re-concat-star-char
+; implements: ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR
 ; args:
 ; -
 ; conclusion:
@@ -526,8 +508,8 @@
   :conclusion (= (str.in_re (str.++ s1 s2) (re.* r)) b)
 )
 
-; rule:
-; implements: ProofRewriteRule::
+; rule: str-in-re-sigma
+; implements: ProofRewriteRule::STR_IN_RE_SIGMA
 ; args:
 ; -
 ; conclusion:
@@ -537,8 +519,8 @@
   :conclusion (= (str.in_re s r) b)
 )
 
-; rule:
-; implements: ProofRewriteRule::
+; rule: str-in-re-sigma-star
+; implements: ProofRewriteRule::STR_IN_RE_SIGMA_STAR
 ; args:
 ; -
 ; conclusion:
