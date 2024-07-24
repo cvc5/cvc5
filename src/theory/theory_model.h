@@ -21,13 +21,13 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "expr/node_trie.h"
 #include "smt/env_obj.h"
 #include "theory/ee_setup_info.h"
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
-#include "expr/node_trie.h"
 
 namespace cvc5::internal {
 
