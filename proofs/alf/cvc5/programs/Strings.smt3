@@ -8,7 +8,7 @@
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence.
 
-; program: 
+; program: $str_is_empty
 ; args:
 ; -
 ; return:
@@ -22,7 +22,7 @@
   )
 )
 
-; define: 
+; define: $char_type_of
 ; args:
 ; -
 ; return:
@@ -31,7 +31,7 @@
   (alf.match ((U Type)) T (((Seq U) U)))
 )
 
-; define: 
+; define: $str_concat
 ; args:
 ; -
 ; return:
@@ -40,7 +40,7 @@
   (alf.list_concat str.++ x y)
 )
 
-; define: 
+; define: $str_cons
 ; args:
 ; -
 ; return:
@@ -50,7 +50,7 @@
   (alf.cons str.++ x y)
 )
 
-; define: 
+; define: $str_is_code_point
 ; args:
 ; -
 ; return:
@@ -62,7 +62,7 @@
     false)
   false))
 
-; define: 
+; define: $str_is_prefix
 ; args:
 ; -
 ; return:
@@ -74,7 +74,7 @@
   ($nary_is_prefix str.++ ($mk_emptystr U) sf1 sf))))
 )
 
-; define: 
+; define: $str_self_if_empty
 ; args:
 ; -
 ; return:
@@ -84,7 +84,7 @@
   (alf.requires t ($mk_emptystr (alf.typeof t)) t)
 )
 
-; program: 
+; program: $str_fixed_len_re
 ; args:
 ; -
 ; return:
@@ -123,7 +123,7 @@
 ; note: used to represent an invalid regular expression below.
 (declare-const @re.null RegLan)
 
-; program: 
+; program: $str_eval_str_in_re_rec
 ; args:
 ; -
 ; return:
@@ -172,7 +172,7 @@
   )
 )
 
-; define: 
+; define: $str_eval_str_in_re
 ; args:
 ; -
 ; return:
@@ -192,7 +192,7 @@
 ; for computing the original form of a term in the ALF signature, which
 ; naively is exponential.
 
-; define: 
+; define: $str_skolem_prefix
 ; args:
 ; -
 ; return:
@@ -201,7 +201,7 @@
   (str.substr s 0 n)
 )
 
-; define: 
+; define: $str_skolem_suffix_rem
 ; args:
 ; -
 ; return:
@@ -210,7 +210,7 @@
   (str.substr s n (- (str.len s) n))
 )
 
-; define: 
+; define: $str_prefix_rem
 ; args:
 ; -
 ; return:
@@ -219,7 +219,7 @@
   (str.substr s 0 (- (str.len s) n))
 )
 
-; define: 
+; define: $str_suffix
 ; args:
 ; -
 ; return:
@@ -228,7 +228,7 @@
   (str.substr s (- (str.len s) n) n)
 )
 
-; program: 
+; program: $str_skolem_unify_split
 ; args:
 ; -
 ; return:
@@ -247,7 +247,7 @@
   )
 )
 
-; define: 
+; define: $str_skolem_first_ctn_pre
 ; args:
 ; -
 ; return:
@@ -256,7 +256,7 @@
 (define $str_skolem_first_ctn_pre ((U Type :implicit) (s (Seq U)) (t (Seq U)))
   ($str_skolem_prefix s (str.indexof s t 0)))
 
-; define: 
+; define: $str_skolem_first_ctn_post
 ; args:
 ; -
 ; return:
@@ -267,7 +267,7 @@
 
 ;;-------------------- Utilities
 
-; define: 
+; define: $str_rev
 ; args:
 ; -
 ; return:
@@ -275,7 +275,7 @@
 (define $str_rev ((U Type :implicit) (rev Bool) (t U)) 
   (alf.ite rev ($nary_reverse t) t))
 
-; program: 
+; program: $str_nary_intro
 ; args:
 ; -
 ; return:
@@ -308,7 +308,7 @@
     )
 )
 
-; program: 
+; program: $str_nary_elim
 ; args:
 ; -
 ; return:
@@ -325,7 +325,7 @@
     )
 )
 
-; program: 
+; program: $re_nary_elim
 ; args:
 ; -
 ; return:
@@ -345,7 +345,7 @@
 ; In the following, a "reduction predicate" refers to a formula that is used
 ; to axiomatize an extended string program in terms of (simpler) programs.
 
-; program: 
+; program: $str_reduction_substr
 ; args:
 ; -
 ; return:
@@ -373,7 +373,7 @@
   )
 )
 
-; program: 
+; program: $str_reduction_indexof
 ; args:
 ; -
 ; return:
@@ -399,7 +399,7 @@
   )
 )
 
-; program: 
+; program: $str_reduction_pred
 ; args:
 ; -
 ; return:
@@ -424,7 +424,7 @@
   )
 )
 
-; program: 
+; program: $str_eager_reduction_contains
 ; args:
 ; -
 ; return:
@@ -446,7 +446,7 @@
   )
 )
 
-; define: 
+; define: $str_eager_reduction_to_code
 ; args:
 ; -
 ; return:
@@ -459,7 +459,7 @@
     (= t (alf.neg 1))))
 )
 
-; program: 
+; program: $str_eager_reduction_indexof
 ; args:
 ; -
 ; return:
@@ -474,7 +474,7 @@
   )
 )
 
-; program: 
+; program: $str_eager_reduction_in_re
 ; args:
 ; -
 ; return:
@@ -485,7 +485,7 @@
   )
 )
 
-; program: 
+; program: $mk_str_eager_reduction
 ; args:
 ; -
 ; return:
@@ -500,7 +500,7 @@
   )
 )
 
-; program: 
+; program: $re_unfold_pos_concat_rec
 ; args:
 ; -
 ; return:
@@ -539,7 +539,7 @@
   )
 )
 
-; define: 
+; define: $re_unfold_pos_concat
 ; args:
 ; -
 ; return:
@@ -547,7 +547,7 @@
   ($re_unfold_pos_concat_rec t r r 0)
 )
 
-; program: 
+; program: $non_empty_concats
 ; args:
 ; -
 ; return:
@@ -564,21 +564,21 @@
   )
 )
 
-; define: 
+; define: $str_check_length_one
 ; args:
 ; -
 ; return:
 ; Returns true if the length of s evaluates to one, false otherwise.
 (define $str_check_length_one ((s String)) (alf.is_eq (alf.len s) 1))
 
-; define: 
+; define: $str_check_len_gt_one
 ; args:
 ; -
 ; return:
 ; Returns true if the length of s evaluates to greater than one, false otherwise.
 (define $str_check_len_gt_one ((s String)) (alf.is_eq (alf.is_neg (alf.add 1 (alf.neg (alf.len s)))) true))
 
-; program: 
+; program: $str_head_or_empty
 ; args:
 ; -
 ; return:
@@ -615,7 +615,7 @@
 ; This rule may fail if s is not a str.++ application corresponding to a term
 ; in cvc5 rewritten form.
 
-; program: 
+; program: $str_flatten_word
 ; args:
 ; -
 ; return:
@@ -631,7 +631,7 @@
   )
 )
 
-; program: 
+; program: $str_flatten
 ; args:
 ; -
 ; return:
@@ -652,7 +652,7 @@
   )
 )
 
-; program: 
+; program: $str_collect_acc
 ; args:
 ; -
 ; return:
@@ -683,7 +683,7 @@
   )
 )
 
-; program: 
+; program: $str_collect
 ; args:
 ; -
 ; return:
@@ -714,7 +714,7 @@
   )
 )
 
-; program: 
+; program: $str_strip_prefix
 ; args:
 ; -
 ; return:
@@ -733,7 +733,7 @@
   )
 )
 
-; program: 
+; program: $str_overlap_rec
 ; args:
 ; -
 ; return:
@@ -748,7 +748,7 @@
   )
 )
 
-; define: 
+; define: $str_overlap
 ; args:
 ; -
 ; return:
@@ -763,7 +763,7 @@
 (define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)))
   ($str_overlap_rec ($mk_emptystr (alf.typeof s)) s t))
 
-; program: 
+; program: $str_mk_re_loop_elim_rec
 ; args:
 ; -
 ; return:
@@ -781,7 +781,7 @@
   )
 )
 
-; define: 
+; define: $str_mk_re_loop_elim
 ; args:
 ; -
 ; return:
@@ -795,7 +795,7 @@
   ($singleton_elim ($str_mk_re_loop_elim_rec n d r @re.empty))
 )
 
-; program: 
+; program: $str_mk_str_in_re_concat_star_char
 ; args:
 ; -
 ; return:
@@ -809,7 +809,7 @@
   )
 )
 
-; program: 
+; program: $str_mk_str_in_re_sigma_rec
 ; args:
 ; -
 ; return:
@@ -826,7 +826,7 @@
   )
 )
 
-; define: 
+; define: $str_mk_str_in_re_sigma
 ; args:
 ; -
 ; return:
@@ -834,7 +834,7 @@
 (define $str_mk_str_in_re_sigma ((s String) (r RegLan))
   ($str_mk_str_in_re_sigma_rec s r 0 true))
 
-; program: 
+; program: $str_mk_str_in_re_sigma_star_rec
 ; args:
 ; -
 ; return:
@@ -849,7 +849,7 @@
   )
 )
 
-; define: 
+; define: $str_mk_str_in_re_sigma_star
 ; args:
 ; -
 ; return:
@@ -857,7 +857,7 @@
 (define $str_mk_str_in_re_sigma_star ((s String) (r RegLan))
   ($str_mk_str_in_re_sigma_star_rec s r 0))
 
-; define: 
+; define: $str_to_flat_form
 ; args:
 ; -
 ; return:
@@ -871,7 +871,7 @@
   ($str_rev rev ($str_flatten ($str_nary_intro s)))
 )
 
-; program: 
+; program: $re_str_to_flat_form
 ; args:
 ; -
 ; return:
@@ -887,7 +887,7 @@
   )
 )
 
-; define: 
+; define: $re_to_flat_form
 ; args:
 ; -
 ; return:
@@ -902,7 +902,7 @@
   ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
 )
 
-; define: 
+; define: $str_from_flat_form
 ; args:
 ; -
 ; return:
@@ -917,7 +917,7 @@
   ($str_nary_elim ($str_collect ($str_rev rev s)))
 )
 
-; program: 
+; program: $re_str_from_flat_form
 ; args:
 ; -
 ; return:
@@ -933,7 +933,7 @@
   )
 )
 
-; define: 
+; define: $re_from_flat_form
 ; args:
 ; -
 ; return:
