@@ -27,6 +27,7 @@
 #include "theory/type_enumerator.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
+#include "expr/node_trie.h"
 
 namespace cvc5::internal {
 
@@ -404,10 +405,20 @@ class TheoryModel : protected EnvObj
   bool isBaseModelValue(TNode n) const;
   /** Is assignable function. This returns true if n is not a lambda. */
   bool isAssignableUf(const Node& n) const;
+  /**
+   */
+  Node evaluateSemiEvalTerm(TNode n) const;
+  /**
+   */
+  std::vector<Node> getModelValueArgs(TNode n) const;
 
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node> d_modelCache;
+  /** */
+  mutable bool d_semiEvalCacheSet;
+  /** */
+  mutable std::unordered_map<Node, NodeTrie> d_semiEvalCache;
 
   //---------------------------- separation logic
   /** the value of the heap */

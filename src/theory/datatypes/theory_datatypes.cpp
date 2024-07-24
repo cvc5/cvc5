@@ -123,7 +123,7 @@ void TheoryDatatypes::finishInit()
   d_valuation.setIrrelevantKind(Kind::APPLY_TESTER);
   d_valuation.setIrrelevantKind(Kind::DT_SYGUS_BOUND);
   // selectors don't always evaluate
-  d_valuation.setUnevaluatedKind(Kind::APPLY_SELECTOR);
+  d_valuation.setSemiEvaluatedKind(Kind::APPLY_SELECTOR);
 }
 
 TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMake ){
