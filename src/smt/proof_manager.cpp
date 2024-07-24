@@ -113,8 +113,12 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
-    d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION_TRUST);
-    d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION);
+    // Alethe does not require macro resolution to be expanded
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
+    {
+      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION_TRUST);
+      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION);
+    }
     d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)
@@ -297,8 +301,7 @@ void PfManager::printProof(std::ostream& out,
     std::string reasonForConversionFailure;
     proof::AletheNodeConverter anc(nodeManager());
 
-    proof::AletheProofPostprocess vpfpp(
-        d_env, anc, options().proof.proofAletheResPivots);
+    proof::AletheProofPostprocess vpfpp(d_env, anc);
     if (vpfpp.process(fp, reasonForConversionFailure))
     {
       // print using ALF printer
@@ -316,8 +319,7 @@ void PfManager::printProof(std::ostream& out,
     d_pnm->getChecker()->setProofCheckMode(options::ProofCheckMode::NONE);
     std::string reasonForConversionFailure;
     proof::AletheNodeConverter anc(nodeManager(), options().proof.proofDefineSkolems);
-    proof::AletheProofPostprocess vpfpp(
-        d_env, anc, options().proof.proofAletheResPivots);
+    proof::AletheProofPostprocess vpfpp(d_env, anc);
     if (vpfpp.process(fp, reasonForConversionFailure))
     {
       proof::AletheProofPrinter vpp(d_env, anc);

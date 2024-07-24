@@ -73,11 +73,7 @@ Node AletheNodeConverter::postConvert(Node n)
     }
     case Kind::BITVECTOR_EAGER_ATOM:
     {
-      std::stringstream ss;
-      ss << "Proof uses eager bit-blasting, which does not have support for "
-            "Alethe proofs.";
-      d_error = ss.str();
-      return Node::null();
+      return n[0];
     }
     case Kind::SKOLEM:
     {

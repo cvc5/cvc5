@@ -18,8 +18,10 @@
 #ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
 #define CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
 
-#include "proof/alethe/alethe_node_converter.h"
+#include "context/cdhashset.h"
 #include "proof/alethe/alethe_let_binding.h"
+#include "proof/alethe/alethe_node_converter.h"
+#include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_updater.h"
 #include "smt/env_obj.h"
@@ -77,6 +79,13 @@ class AletheProofPrinter : protected EnvObj
              const std::map<Node, std::string>& assertionNames);
 
  private:
+  /** The printing context */
+  context::Context d_context;
+  /** Assumptions in context */
+  context::CDHashMap<Node, std::string> d_assumptionsMap;
+  /** Printed steps in context */
+  context::CDHashMap<ProofNode*, std::string> d_pfMap;
+
   /** Prints an Alethe proof node
    *
    * The printing is parameterized by a prefix to be used in the step ids, as
@@ -93,14 +102,10 @@ class AletheProofPrinter : protected EnvObj
    * names), the map ranges over strings
    * @param pfMap Map from proof nodes to their ids
    */
-  void printInternal(
-      std::ostream& out,
-      const std::string& prefix,
-      size_t& id,
-      std::shared_ptr<ProofNode> pfn,
-      std::unordered_map<Node, std::string>& assumptionsMap,
-      std::unordered_map<std::shared_ptr<ProofNode>, std::string>& pfMap);
-
+  void printInternal(std::ostream& out,
+                     const std::string& prefix,
+                     size_t& id,
+                     std::shared_ptr<ProofNode> pfn);
 
   /** Print term into stream
    *
@@ -120,11 +125,22 @@ class AletheProofPrinter : protected EnvObj
    * @param assumptionsMap Map from assumptions to their ids
    * @param pfMap Map from proof nodes to their ids
    */
-  void printStepId(
-      std::ostream& out,
-      std::shared_ptr<ProofNode> pfn,
-      std::unordered_map<Node, std::string>& assumptionsMap,
-      std::unordered_map<std::shared_ptr<ProofNode>, std::string>& pfMap);
+  void printStepId(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+
+  /** Print the step with respective id, premises and arguments.
+   *
+   * @param out The stream to write to
+   * @param stepId The id of the step
+   * @param pfArgs The arguments of this step
+   * @param pfChildren The premises of this step
+   * @param assumptionsMap Map from assumptions to their ids
+   * @param pfMap Map from proof nodes to their ids
+   */
+  void printStep(std::ostream& out,
+                 const std::string& stepId,
+                 AletheRule arule,
+                 const std::vector<Node>& pfArgs,
+                 const std::vector<std::shared_ptr<ProofNode>>& pfChildren);
 
   /** The let binder for printing with sharing. */
   AletheLetBinding d_lbind;

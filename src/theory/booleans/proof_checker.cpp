@@ -311,79 +311,79 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     NodeManager* nm = nodeManager();
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
-    std::vector<Node> clauseNodes;
-    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize;
-         ++i)
+    std::vector<Node> lhsClause, rhsClause;
+    Node lhsElim, rhsElim;
+    std::vector<Node> pols, lits;
+    for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
     {
-      std::unordered_set<Node> elim;
-      // literals to be removed from "first" clause
-      if (i < childrenSize - 1)
+      pols.push_back(args[i]);
+      lits.push_back(args[i + 1]);
+    }
+
+    if (children[0].getKind() != Kind::OR
+        || (pols[0] == trueNode && children[0] == lits[0])
+        || (pols[0] == falseNode && children[0] == lits[0].notNode()))
+    {
+      lhsClause.push_back(children[0]);
+    }
+    else
+    {
+      lhsClause.insert(lhsClause.end(), children[0].begin(), children[0].end());
+    }
+    // Traverse the links, which amounts to for each pair of args removing a
+    // literal from the lhs and a literal from the lhs.
+    for (size_t i = 0, argsSize = pols.size(); i < argsSize; i++)
+    {
+      // Polarity determines how the pivot occurs in lhs and rhs
+      if (pols[i] == trueNode)
       {
-        for (std::size_t j = (2 * i) + 1, argsSize = args.size(); j < argsSize;
-             j = j + 2)
-        {
-          // whether pivot should occur as is or negated depends on the polarity
-          // of each step in the macro
-          if (args[j] == trueNode)
-          {
-            elim.insert(args[j + 1]);
-          }
-          else
-          {
-            Assert(args[j] == falseNode);
-            elim.insert(args[j + 1].notNode());
-          }
-        }
-      }
-      // literal to be removed from "second" clause. They will be negated
-      if (i > 0)
-      {
-        std::size_t index = 2 * (i - 1) + 1;
-        Node pivot = args[index] == trueNode ? args[index + 1].notNode()
-                                             : args[index + 1];
-        elim.insert(pivot);
-      }
-      Trace("bool-pfcheck") << i << ": elimination set: " << elim << "\n";
-      // only add to conclusion nodes that are not in elimination set. First get
-      // the nodes.
-      //
-      // Since a Node cannot hold an OR with a single child we need to
-      // disambiguate singleton clauses that are OR nodes from non-singleton
-      // clauses (i.e. unit clauses in the SAT solver).
-      //
-      // If the child is not an OR, it is a singleton clause and we take the
-      // child itself as the clause. Otherwise the child can only be a singleton
-      // clause if the child itself is used as a resolution literal, i.e. if the
-      // child is in lhsElim or is equal to rhsElim (which means that the
-      // negation of the child is in lhsElim).
-      std::vector<Node> lits;
-      if (children[i].getKind() == Kind::OR && !elim.count(children[i]))
-      {
-        lits.insert(lits.end(), children[i].begin(), children[i].end());
+        lhsElim = lits[i];
+        rhsElim = lits[i].notNode();
       }
       else
       {
-        lits.push_back(children[i]);
+        Assert(pols[i] == falseNode);
+        lhsElim = lits[i].notNode();
+        rhsElim = lits[i];
       }
-      Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
-      std::vector<Node> added;
-      for (std::size_t j = 0, size = lits.size(); j < size; ++j)
+      // The index of the child corresponding to the current rhs clause
+      size_t childIndex = i + 1;
+      // Get rhs clause. It's a singleton if not an OR node or if equal to
+      // rhsElim
+      if (children[childIndex].getKind() != Kind::OR
+          || children[childIndex] == rhsElim)
+      {
+        rhsClause.push_back(children[childIndex]);
+      }
+      else
+      {
+        rhsClause = {children[childIndex].begin(), children[childIndex].end()};
+      }
+      Trace("bool-pfcheck") << i << "-th res link:\n";
+      Trace("bool-pfcheck") << "\t - lhsClause: " << lhsClause << "\n";
+      Trace("bool-pfcheck") << "\t\t - lhsElim: " << lhsElim << "\n";
+      Trace("bool-pfcheck") << "\t - rhsClause: " << rhsClause << "\n";
+      Trace("bool-pfcheck") << "\t\t - rhsElim: " << rhsElim << "\n";
+      // Compute the resulting clause, which will be the next lhsClause, as
+      // follows:
+      //   - remove all lhsElim from lhsClause
+      //   - remove all rhsElim from rhsClause and add the lits to lhsClause
+      lhsClause.erase(std::remove(lhsClause.begin(), lhsClause.end(), lhsElim), lhsClause.end());
+      for (const Node& l : rhsClause)
       {
         // only add if literal does not occur in elimination set
-        if (elim.count(lits[j]) == 0)
+        if (rhsElim != l)
         {
-          clauseNodes.push_back(lits[j]);
-          added.push_back(lits[j]);
-          // eliminate duplicates
-          elim.insert(lits[j]);
+          lhsClause.push_back(l);
         }
       }
-      Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
+      rhsClause.clear();
     }
-    Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n";
+
+    Trace("bool-pfcheck") << "clause: " << lhsClause << "\n";
     // check that set representation is the same as of the given conclusion
-    std::unordered_set<Node> clauseComputed{clauseNodes.begin(),
-                                            clauseNodes.end()};
+    std::unordered_set<Node> clauseComputed{lhsClause.begin(),
+                                            lhsClause.end()};
     Trace("bool-pfcheck") << "clauseSet: " << clauseComputed << "\n" << pop;
     if (clauseComputed.empty())
     {
@@ -403,10 +403,9 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       }
       return args[0];
     }
-    // At this point, should amount to them differing only on order. So the
-    // original result can't be a singleton clause
-    if (args[0].getKind() != Kind::OR
-        || clauseComputed.size() != args[0].getNumChildren())
+    // At this point, should amount to them differing only on order or in
+    // repetitions. So the original result can't be a singleton clause.
+    if (args[0].getKind() != Kind::OR)
     {
       return Node::null();
     }
