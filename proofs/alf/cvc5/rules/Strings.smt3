@@ -86,8 +86,8 @@
               (alf.requires ($str_check_length_one s1) true    ; checks if char
                 (= u
                   (alf.ite rev
-                    (str.++ (@purify ($str_skolem_prefix u (- (str.len u) 1))) s1)
-                    (str.++ s1 (@purify ($str_skolem_suffix_rem u 1)))))))))))))
+                    (str.++ (@purify ($str_prefix u (- (str.len u) 1))) s1)
+                    (str.++ s1 (@purify ($str_suffix_rem u 1)))))))))))))
 )
 
 ; rule: concat_split
@@ -109,7 +109,7 @@
             ($str_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (alf.define ((k (@purify ($str_skolem_unify_split t1 s1 rev))))
+                (alf.define ((k (@purify ($str_unify_split t1 s1 rev))))
                 (and 
                   (or 
                     (= t1
@@ -144,7 +144,7 @@
             ($str_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (alf.define ((k (@purify ($str_skolem_unify_split t1 s1 rev))))
+                (alf.define ((k (@purify ($str_unify_split t1 s1 rev))))
                   (and
                     (= t1
                       (alf.ite rev
@@ -178,9 +178,9 @@
                   (= tc
                     (alf.ite rev
                       (alf.define ((oc ($str_suffix s1 v)))
-                      (str.++ (@purify ($str_skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
-                      (alf.define ((oc ($str_skolem_prefix s1 v)))
-                      (str.++ oc (@purify ($str_skolem_suffix_rem tc (str.len oc)))))))
+                      (str.++ (@purify ($str_prefix tc (- (str.len tc) (str.len oc)))) oc))
+                      (alf.define ((oc ($str_prefix s1 v)))
+                      (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))
                 )))))))))
 )
 
@@ -258,8 +258,8 @@
   :premises ((>= (str.len s) n))
   :args (b)
   :conclusion (alf.ite b
-                (alf.define ((kp (@purify ($str_skolem_prefix s n)))
-                      (ks (@purify ($str_skolem_suffix_rem s n))))
+                (alf.define ((kp (@purify ($str_prefix s n)))
+                      (ks (@purify ($str_suffix_rem s n))))
                 (and (= s (str.++ kp ks)) (= (str.len kp) n)))
                 (alf.define ((kp (@purify ($str_prefix_rem s n)))
                       (ks (@purify ($str_suffix s n))))
@@ -351,9 +351,9 @@
         ((re.++ r1 r2) (alf.define ((n ($str_fixed_len_re r1)))
                        (alf.ite rev
                        (or (not (str.in_re ($str_suffix s n) r1))
-                           (not (str.in_re ($str_skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
-                       (or (not (str.in_re ($str_skolem_prefix s n) r1))
-                           (not (str.in_re ($str_skolem_suffix_rem s n) ($singleton_elim r2)))))))
+                           (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
+                       (or (not (str.in_re ($str_prefix s n) r1))
+                           (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
     ))
 )
 
@@ -376,14 +376,14 @@
             (forall ((@var.str_index Int))
               (or (<= @var.str_index 0)
                   (< (str.len t) @var.str_index)
-                  (not (str.in_re ($str_skolem_prefix t @var.str_index) r1))
-                  (not (str.in_re ($str_skolem_suffix_rem t @var.str_index) r))))))
+                  (not (str.in_re ($str_prefix t @var.str_index) r1))
+                  (not (str.in_re ($str_suffix_rem t @var.str_index) r))))))
         ((re.++ r1 r2)
           (forall ((@var.str_index Int))
             (or (< @var.str_index 0)
                 (< (str.len t) @var.str_index)
-                (not (str.in_re ($str_skolem_prefix t @var.str_index) r1))
-                (not (str.in_re ($str_skolem_suffix_rem t @var.str_index) ($singleton_elim r2))))))
+                (not (str.in_re ($str_prefix t @var.str_index) r1))
+                (not (str.in_re ($str_suffix_rem t @var.str_index) ($singleton_elim r2))))))
     ))
 )
 

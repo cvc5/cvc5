@@ -6,13 +6,13 @@
 (include "../theories/Strings.smt3")
 
 ; This signature is used for both strings and sequences, where we often
-; write "string" in the documentation to refer to a string or sequence.
+; write "string" in the documentation to refer to a string or sequence,
+; or "string-like type" to refer to a string or sequence type.
 
 ; program: $str_is_empty
 ; args:
-; -
-; return:
-; Return true if s is the empty string or sequence.
+; - s U: a string term.
+; return: true if s is the empty string or sequence.
 (program $str_is_empty ((U Type) (x U))
   (U) Bool
   (
@@ -24,37 +24,36 @@
 
 ; define: $char_type_of
 ; args:
-; -
-; return:
-; Return the character type of the string-like type T
+; - T Type: The string-like type to check.
+; return: the character type of the string-like type T
 (define $char_type_of ((T Type)) 
   (alf.match ((U Type)) T (((Seq U) U)))
 )
 
 ; define: $str_concat
 ; args:
-; -
-; return:
-; Return the concatenation of strings x and y, treated as lists.
+; - x (Seq T): The first string.
+; - y (Seq T): The second string.
+; return: the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
   (alf.list_concat str.++ x y)
 )
 
 ; define: $str_cons
 ; args:
-; -
-; return:
-; Return the result of prepending of string x to string y where the latter is
-; treated as a list.
+; - x (Seq T): The first string.
+; - y (Seq T): The second string.
+; return: >
+;   The result of prepending string x to string y where the former is treated
+;   as an element and the latter is treated as a list.
 (define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
   (alf.cons str.++ x y)
 )
 
 ; define: $str_is_code_point
 ; args:
-; -
-; return:
-; Return true if n is a valid code point [0, 196607].
+; - n Int: the integer to inspect.
+; return: true if n is a valid code point [0, 196607].
 (define $str_is_code_point ((n Int))
   (alf.ite (alf.is_z n)
   (alf.ite ($compare_geq 196608 n)
@@ -62,33 +61,22 @@
     false)
   false))
 
-; define: $str_is_prefix
-; args:
-; -
-; return:
-; returns true if s1 is a prefix of s, taking into account flattening
-(define $str_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
-  (alf.define ((sf ($str_to_flat_form s rev)))
-  (alf.define ((sf1 ($str_to_flat_form s1 rev)))
-  (alf.define ((U (alf.typeof s)))
-  ($nary_is_prefix str.++ ($mk_emptystr U) sf1 sf))))
-)
-
 ; define: $str_self_if_empty
 ; args:
-; -
-; return:
-; Return t if it corresponds to the empty string, otherwise evaluates
-; to an unevaluated alf.requires term.
+; - t T: a string term.
+; return: >
+;   t if it corresponds to the empty string for its type, otherwise evaluates
+;   to an unevaluated alf.requires term.
 (define $str_self_if_empty ((T Type :implicit) (t T))
   (alf.requires t ($mk_emptystr (alf.typeof t)) t)
 )
 
 ; program: $str_fixed_len_re
 ; args:
-; -
-; return:
-; Return the fixed length for the regular expression if it can be inferred.
+; - r RegLan: the regular expression to inspect.
+; return: >
+;   The fixed length for the regular expression r if it can be inferred.
+;   Otherwise results in an unevaluated term.
 (program $str_fixed_len_re ((r RegLan) (s1 String) (s2 String) (r1 RegLan :list))
   (RegLan) Int
   (
@@ -125,15 +113,19 @@
 
 ; program: $str_eval_str_in_re_rec
 ; args:
-; -
-; return:
-; *** NOTE: This method has an exponential runtime. It is a placeholder for a
-; more efficient algorithm (via NFAs) to be written later.
-; The call ($str_eval_str_in_re_rec s 0 r1 @re.null) returns true if s is in r1.
-; The call ($str_eval_str_in_re_rec s n r1 r2) returns true if s = s1 ++ s2 for some s1, s2 such that:
-; - s1 in r1
-; - s2 in r2
-; - s1 contains at least n characters.
+; - s String: The string to inspect.
+; - n Int: The number of characters that must be consumed in s.
+; - r1 RegLan: The regular expression to inspect.
+; - r2 RegLan: The remaining regular expression to be processed after r1, if it exists.
+; return: >
+;   The call ($str_eval_str_in_re_rec s 0 r1 @re.null) returns true if s is in r1.
+;   The call ($str_eval_str_in_re_rec s n r1 r2) returns true if s = s1 ++ s2 for some s1, s2 such that:
+;   - s1 in r1
+;   - s2 in r2
+;   - s1 contains at least n characters.
+; note: >
+;   This method has an exponential runtime. It is a placeholder for a
+;   more efficient algorithm (via NFAs) to be written later.
 (program $str_eval_str_in_re_rec ((s String) (s1 String) (s2 String) (n Int) (r1 RegLan) (rr RegLan :list) (r2 RegLan) (sr String))
   (String Int RegLan RegLan) Bool
   (
@@ -174,10 +166,11 @@
 
 ; define: $str_eval_str_in_re
 ; args:
-; -
-; return:
-; Returns true if s is in regular expression r.
-; Does not evaluate if s is not a string literal.
+; - s String: The string to inspect.
+; - r RegLan: The regular expression to inspect.
+; return: >
+;   true if s is in regular expression r. Does not evaluate if s is not a string
+;   literal.
 (define $str_eval_str_in_re ((s String) (r RegLan))
   (alf.ite (alf.is_str s)
     ($str_eval_str_in_re_rec s 0 r @re.null)
@@ -192,21 +185,22 @@
 ; for computing the original form of a term in the ALF signature, which
 ; naively is exponential.
 
-; define: $str_skolem_prefix
+; define: $str_prefix
 ; args:
 ; -
 ; return:
 ; Get the term corresponding to the prefix of term s of fixed length n.
-(define $str_skolem_prefix ((U Type :implicit) (s (Seq U)) (n Int))
+(define $str_prefix ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s 0 n)
 )
 
-; define: $str_skolem_suffix_rem
+; define: $str_suffix_rem
 ; args:
-; -
-; return:
-; Get the term corresponding to the suffix of term s starting from position n.
-(define $str_skolem_suffix_rem ((U Type :implicit) (s (Seq U)) (n Int))
+; - s (Seq U): The sequence.
+; - n Int: Th
+; return: >
+;   The term corresponding to the suffix of term s starting from position n.
+(define $str_suffix_rem ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s n (- (str.len s) n))
 )
 
@@ -228,42 +222,42 @@
   (str.substr s (- (str.len s) n) n)
 )
 
-; program: $str_skolem_unify_split
+; program: $str_unify_split
 ; args:
 ; -
 ; return:
 ; The unified splitting term for t and s, which is the term that denotes the
 ; prefix (or suffix if rev is true) remainder of t (resp. s) in the case that
 ; t (resp. s) is the longer string.
-(program $str_skolem_unify_split ((U Type) (t (Seq U)) (s (Seq U)) (rev Bool))
+(program $str_unify_split ((U Type) (t (Seq U)) (s (Seq U)) (rev Bool))
   ((Seq U) (Seq U) Bool) (Seq U)
   (
-    (($str_skolem_unify_split t s true)  (ite (>= (str.len t) (str.len s))
-                                      ($str_skolem_prefix t (- (str.len t) (str.len s)))
-                                      ($str_skolem_prefix s (- (str.len s) (str.len t)))))
-    (($str_skolem_unify_split t s false) (ite (>= (str.len t) (str.len s))
-                                      ($str_skolem_suffix_rem t (str.len s))
-                                      ($str_skolem_suffix_rem s (str.len t))))
+    (($str_unify_split t s true)  (ite (>= (str.len t) (str.len s))
+                                      ($str_prefix t (- (str.len t) (str.len s)))
+                                      ($str_prefix s (- (str.len s) (str.len t)))))
+    (($str_unify_split t s false) (ite (>= (str.len t) (str.len s))
+                                      ($str_suffix_rem t (str.len s))
+                                      ($str_suffix_rem s (str.len t))))
   )
 )
 
-; define: $str_skolem_first_ctn_pre
+; define: $str_first_ctn_pre
 ; args:
 ; -
 ; return:
 ; Get the term corresponding to the prefix of s before the first occurrence of
 ; t in s.
-(define $str_skolem_first_ctn_pre ((U Type :implicit) (s (Seq U)) (t (Seq U)))
-  ($str_skolem_prefix s (str.indexof s t 0)))
+(define $str_first_ctn_pre ((U Type :implicit) (s (Seq U)) (t (Seq U)))
+  ($str_prefix s (str.indexof s t 0)))
 
-; define: $str_skolem_first_ctn_post
+; define: $str_first_ctn_post
 ; args:
 ; -
 ; return:
 ; Get the term corresponding to the suffix of s after the first occurrence of
 ; t in s.
-(define $str_skolem_first_ctn_post ((U Type :implicit) (s (Seq U)) (t (Seq U)))
-  ($str_skolem_suffix_rem s (+ (str.len (@purify ($str_skolem_first_ctn_pre s t))) (str.len t))))
+(define $str_first_ctn_post ((U Type :implicit) (s (Seq U)) (t (Seq U)))
+  ($str_suffix_rem s (+ (str.len (@purify ($str_first_ctn_pre s t))) (str.len t))))
 
 ;;-------------------- Utilities
 
@@ -356,8 +350,8 @@
     (($str_reduction_substr x n m)
       (alf.define ((k (@purify (str.substr x n m))))
       (alf.define ((npm (+ n m)))
-      (alf.define ((k1 (@purify ($str_skolem_prefix x n))))
-      (alf.define ((k2 (@purify ($str_skolem_suffix_rem x npm))))
+      (alf.define ((k1 (@purify ($str_prefix x n))))
+      (alf.define ((k2 (@purify ($str_suffix_rem x npm))))
       (ite
         ; condition
         (and (>= n 0)(> (str.len x) n) (> m 0))
@@ -384,8 +378,8 @@
     (($str_reduction_indexof x y n)
       (alf.define ((k (@purify (str.indexof x y n))))
       (alf.define ((xn (str.substr x n (- (str.len x) n))))
-      (alf.define ((k1 (@purify ($str_skolem_first_ctn_pre xn y))))
-      (alf.define ((k2 (@purify ($str_skolem_first_ctn_post xn y))))
+      (alf.define ((k1 (@purify ($str_first_ctn_pre xn y))))
+      (alf.define ((k2 (@purify ($str_first_ctn_post xn y))))
       (ite
         (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
         (= k (alf.neg 1))
@@ -436,8 +430,8 @@
   ((Seq U) (Seq U)) Bool
   (
     (($str_eager_reduction_contains t r)
-        (alf.define ((k1 (@purify ($str_skolem_first_ctn_pre t r))))
-        (alf.define ((k2 (@purify ($str_skolem_first_ctn_post t r))))
+        (alf.define ((k1 (@purify ($str_first_ctn_pre t r))))
+        (alf.define ((k2 (@purify ($str_first_ctn_post t r))))
         (ite
           (str.contains t r)
           (= t (str.++ k1 r k2))
@@ -946,6 +940,21 @@
 (define $re_from_flat_form ((r RegLan) (rev Bool))
   ; (un?)flatten, reverse, elim
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
+)
+
+; define: $str_is_prefix
+; args:
+; - s U: The first string.
+; - s1 U: The second string.
+; - rev Bool: Whether the two arguments should be reversed.
+; return:
+;   true if s1 is a prefix of s, taking into account flattening, and reversing
+;   the strings if rev is true.
+(define $str_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
+  (alf.define ((sf ($str_to_flat_form s rev)))
+  (alf.define ((sf1 ($str_to_flat_form s1 rev)))
+  (alf.define ((U (alf.typeof s)))
+  ($nary_is_prefix str.++ ($mk_emptystr U) sf1 sf))))
 )
 
 ; note: This is a forward declaration of $str_re_includes below.
