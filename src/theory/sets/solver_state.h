@@ -163,10 +163,6 @@ class SolverState : public TheoryState
   const std::map<Kind, std::vector<Node> >& getOperatorList() const;
   /** Get the list of all set.filter terms */
   const std::vector<Node>& getFilterTerms() const;
-  /** Get the list of all set.all terms */
-  const std::vector<Node>& getPredicateAllTerms() const;
-  /** Get the map of all set.some terms */
-  const std::map<Node, Node>& getPredicateSomeTerms() const;
   /** Get the list of all set.map terms in the current user context */
   const context::CDHashSet<Node>& getMapTerms() const;
   /** Get the list of all rel.group terms in the current user context */
