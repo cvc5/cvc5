@@ -6,11 +6,11 @@
 
 ; rule: string_length_pos
 ; implements: ProofRule::STRING_LENGTH_POS
-; premises:
-; -  
 ; args:
-; -
-; conclusion:
+; - s String: The string term.
+; conclusion: >
+;   The length of s is zero and it is the empty string, or its length is
+;   strictly greater than zero.
 (declare-rule string_length_pos ((U Type) (s U))
   :args (s)
   :conclusion
@@ -20,11 +20,10 @@
 ; rule: string_length_non_empty
 ; implements: ProofRule::STRING_LENGTH_NON_EMPTY
 ; premises:
-; -  
-; args:
-; -
-; conclusion:
-(declare-rule string_length_non_empty ((U Type) (s Type) (t Type))
+; - deq: A disequality between strings s and t.
+; requires: t is the empty string.
+; conclusion: The length of s is not zero.
+(declare-rule string_length_non_empty ((U Type) (s (Seq U)) (t (Seq U)))
   :premises ((not (= s t)))
   :requires ((($str_is_empty t) true))
   :conclusion (not (= (str.len s) 0))
@@ -33,10 +32,12 @@
 ; rule: concat_eq
 ; implements: ProofRule::CONCAT_EQ
 ; premises:
-; -  
+; - eq: An equality between strings s and t.
 ; args:
-; -
-; conclusion:
+; - rev Bool: Whether we are reasoning about the end of strings s and t.
+; conclusion: >
+;   An equality between the components of s and t beyond their equal components.
+;   For example, from (= (str.++ x y) (str.++ x z)), we conclude (= y z).
 (declare-rule concat_eq ((U Type) (s U) (t U) (rev Bool))
   :premises ((= s t))
   :args (rev)
@@ -54,10 +55,12 @@
 ; rule: concat_unify
 ; implements: ProofRule::CONCAT_UNIFY
 ; premises:
-; -  
+; - eq: An equality between strings s and t.
+; - leq: An equality between the lengths of child strings of s and t.
 ; args:
-; -
-; conclusion:
+; - rev Bool: Whether we are reasoning about the end of strings s and t.
+; requires: leq refers to children that are prefixes (resp. suffixes) of s and t.
+; conclusion: an equality between the given children of s and t. 
 (declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
   :premises ((= s t) (= (str.len s1) (str.len t1)))
   :args (rev)
@@ -68,10 +71,14 @@
 ; rule: concat_csplit
 ; implements: ProofRule::CONCAT_CSPLIT
 ; premises:
-; -  
+; - eq: An equality between strings t and s.
+; - leq: A disequality stating that the length of u is non-zero.
 ; args:
-; -
-; conclusion:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   Assuming u is the first (resp. last) child of t and the string s begins with
+;   a string literal, this constructs an equality that decomposes u based on
+;   its first character.
 (declare-rule concat_csplit ((U Type) (t (Seq U)) (s (Seq U)) (u (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len u) 0)))
   :args (rev)
@@ -93,10 +100,12 @@
 ; rule: concat_split
 ; implements: ProofRule::CONCAT_SPLIT
 ; premises:
-; -  
+; - eq: An equality between strings t and s.
+; - leq: An disequality between the lengths of child strings of t and s.
 ; args:
-; -
-; conclusion:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   A splitting lemma based on the children referred to in leq.
 (declare-rule concat_split ((U Type) (t (Seq U)) (s (Seq U)) (tc (Seq U)) (sc (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len tc) (str.len sc))))
   :args (rev)
@@ -128,7 +137,7 @@
 ; rule: concat_lprop
 ; implements: ProofRule::CONCAT_LPROP
 ; premises:
-; -  
+; - 
 ; args:
 ; -
 ; conclusion:
@@ -158,7 +167,7 @@
 ; rule: concat_cprop
 ; implements: ProofRule::CONCAT_CPROP
 ; premises:
-; -  
+; - 
 ; args:
 ; -
 ; conclusion:
@@ -187,7 +196,7 @@
 ; rule: concat_conflict
 ; implements: ProofRule::CONCAT_CONFLICT
 ; premises:
-; -  
+; - 
 ; args:
 ; -
 ; conclusion:
@@ -223,7 +232,7 @@
 ; rule: concat_conflict_deq
 ; implements: ProofRule::CONCAT_CONFLICT_DEQ
 ; premises:
-; -  
+; - 
 ; args:
 ; -
 ; conclusion:
@@ -293,10 +302,11 @@
 ; rule: re_inter
 ; implements: ProofRule::RE_INTER
 ; premises:
-; -  
-; args:
-; -
-; conclusion:
+; - m1: The first membership
+; - m2: The second membership, for the same string.
+; conclusion: >
+;   The string is in the intersection of the regular expressions referred to in 
+;   the premises.
 (declare-rule re_inter ((x String) (s RegLan) (t RegLan))
   :premises ((str.in_re x s) (str.in_re x t))
   :conclusion (str.in_re x (re.inter s t))
@@ -305,10 +315,11 @@
 ; rule: re_unfold_pos
 ; implements: ProofRule::RE_UNFOLD_POS
 ; premises:
-; -  
-; args:
-; -
-; conclusion:
+; - m: A regular expression membership (str.in_re t r).
+; conclusion: >
+;   The single step reduction of m. At a high level, this either reasons about
+;   unfolding a regular expression star, or decomposes the components of t in
+;   r if the latter is a regular expression concatenation.
 (declare-rule re_unfold_pos ((t String) (r RegLan))
   :premises ((str.in_re t r))
   :conclusion
@@ -337,10 +348,14 @@
 ; rule: re_unfold_neg_concat_fixed
 ; implements: ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
 ; premises:
-; -  
+; - m: The negation of a regular expression membership.
 ; args:
-; -
-; conclusion:
+; - rev Bool: Whether we are looking at the end of a regular expression concatenation.
+; conclusion: >
+;   A split based on the information that the first (resp. last) child of the
+;   regular expression in question has a fixed length. This is an optimized
+;   version of ProofRule::RE_UNFOLD_NEG that does not introduce a quantified
+;   formula for reasoning about length.
 (declare-rule re_unfold_neg_concat_fixed ((s String) (r RegLan) (rev Bool))
   :premises ((not (str.in_re s r)))
   :args (rev)
@@ -360,10 +375,11 @@
 ; rule: re_unfold_neg
 ; implements: ProofRule::RE_UNFOLD_NEG
 ; premises:
-; -  
-; args:
-; -
-; conclusion:
+; - m: A negated regular expression membership (not (str.in_re t r)).
+; conclusion: >
+;   The single step reduction of m. At a high level, this introduces a bounded
+;   quantified formula stating that no decomposition of t occurs in the
+;   corresponding decomposition of r.
 (declare-rule re_unfold_neg ((t String) (r RegLan))
   :premises ((not (str.in_re t r)))
   :conclusion
@@ -391,8 +407,6 @@
 
 ; rule: string_reduction
 ; implements: ProofRule::STRING_REDUCTION
-; premises:
-; -  
 ; args:
 ; -
 ; conclusion:
@@ -404,7 +418,7 @@
 ; rule: string_eager_reduction
 ; implements: ProofRule::STRING_EAGER_REDUCTION
 ; premises:
-; -  
+; - 
 ; args:
 ; -
 ; conclusion:

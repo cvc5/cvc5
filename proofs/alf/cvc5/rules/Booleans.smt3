@@ -77,8 +77,8 @@
 ; rule: resolution
 ; implements: ProofRule::RESOLUTION.
 ; premises:
-; - C1 Bool: The first formula in the resolution step.
-; - C2 Bool: The second formula in the resolution step.
+; - C1: The first formula in the resolution step.
+; - C2: The second formula in the resolution step.
 ; args:
 ; - pol Bool: >
 ;   The polarity (true of false) of the literal L in C1. Its
