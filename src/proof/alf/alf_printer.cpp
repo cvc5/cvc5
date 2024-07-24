@@ -150,6 +150,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::RE_UNFOLD_NEG:
     case ProofRule::STRING_CODE_INJ:
     case ProofRule::STRING_SEQ_UNIT_INJ:
+    case ProofRule::STRING_DECOMPOSE:
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
@@ -226,13 +227,19 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   {
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::BETA_REDUCE:
-    case ProofRewriteRule::BV_BITWISE_SLICING:
+    case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
+    case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
-    case ProofRewriteRule::STR_IN_RE_CONSUME: return true;
+    case ProofRewriteRule::STR_IN_RE_CONSUME:
+    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+    case ProofRewriteRule::BV_BITWISE_SLICING: return true;
+    case ProofRewriteRule::STR_IN_RE_EVAL:
+      Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
+      return canEvaluateRegExp(n[0][1]);
     default: break;
   }
   return false;
@@ -349,6 +356,7 @@ bool AlfPrinter::canEvaluate(Node n) const
 bool AlfPrinter::canEvaluateRegExp(Node r) const
 {
   Assert(r.getType().isRegExp());
+  Trace("alf-printer-debug") << "canEvaluateRegExp? " << r << std::endl;
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
@@ -373,12 +381,14 @@ bool AlfPrinter::canEvaluateRegExp(Node r) const
         case Kind::REGEXP_RANGE:
           if (!theory::strings::utils::isCharacterRange(cur))
           {
+            Trace("alf-printer-debug") << "Non-char range" << std::endl;
             return false;
           }
           continue;
         case Kind::STRING_TO_REGEXP:
           if (!canEvaluate(cur[0]))
           {
+            Trace("alf-printer-debug") << "Non-evaluatable string" << std::endl;
             return false;
           }
           continue;
@@ -898,6 +908,14 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
         rewriter::getRewriteRule(pn->getArguments()[0], prid);
         ss << " (" << prid << ")";
       }
+      else if (pn->getRule() == ProofRule::TRUST)
+      {
+        TrustId tid;
+        getTrustId(pn->getArguments()[0], tid);
+        ss << " (" << tid << ")";
+      }
+      Trace("alf-pf-hole") << "Proof rule " << ss.str() << ": "
+                           << pn->getResult() << std::endl;
       Unreachable() << "An ALF proof equires a trust step for " << ss.str()
                     << ", but --" << options::proof::longName::alfAllowTrust
                     << " is false" << std::endl;
