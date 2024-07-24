@@ -805,10 +805,13 @@
 
 ; program: $str_mk_str_in_re_concat_star_char
 ; args:
-; -
-; return:
-; Helper for ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR.
-; Note that we do not require a singleton elimination step since the original input should be a concatenation term.
+; - s String: The string term to process.
+; - r RegLan: The regular expression to process.
+; return: >
+;   The conclusion for ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR for
+;   (str.in_re s r), where r is assumed to be a re.* whose body has fixed length
+;   of one. Note that we do not require a singleton elimination step for and
+;   since the original input should be a concatenation term.
 (program $str_mk_str_in_re_concat_star_char ((s1 String) (s2 String :list) (r RegLan))
   (String RegLan) Bool
   (
@@ -819,12 +822,13 @@
 
 ; program: $str_mk_str_in_re_sigma_rec
 ; args:
-; -
-; return:
-; Helper for $str_mk_str_in_re_sigma.
-; Calling `$str_mk_str_in_re_sigma_rec s r n b` means we have s in r, we have stripped
-; off n re.allchar from r so far. If `b` is false, then we have stripped off
-; a (re.* re.allchar).
+; - s String: The string term to process.
+; - r RegLan: The regular expression to process, assumed to be a re.++ list.
+; - n Int: The number of re.allchar we have seen.
+; - b Bool: false if we have seen a (re.* re.allchar).
+; return: >
+;   The conclusion used for ProofRewriteRule::STR_IN_RE_SIGMA on the membership
+;   s in r, tracking information on the children of r we have already seen.
 (program $str_mk_str_in_re_sigma_rec ((s String) (r RegLan :list) (n Int) (b Bool))
   (String RegLan Int Bool) Bool
   (
@@ -836,9 +840,10 @@
 
 ; define: $str_mk_str_in_re_sigma
 ; args:
-; -
-; return:
-; Helper for ProofRewriteRule::STR_IN_RE_SIGMA.
+; - s String: The string term to process.
+; - r RegLan: The regular expression to process.
+; return: >
+;   The conclusion used for ProofRewriteRule::STR_IN_RE_SIGMA for s in r.
 (define $str_mk_str_in_re_sigma ((s String) (r RegLan))
   ($str_mk_str_in_re_sigma_rec s r 0 true))
 
