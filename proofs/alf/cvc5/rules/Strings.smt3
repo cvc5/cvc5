@@ -72,7 +72,7 @@
 ; implements: ProofRule::CONCAT_CSPLIT
 ; premises:
 ; - eq: An equality between strings t and s.
-; - leq: A disequality stating that the length of u is non-zero.
+; - ldeq: A disequality stating that the length of u is non-zero.
 ; args:
 ; - rev Bool: Whether we are reasoning about the end of strings t and s.
 ; conclusion: >
@@ -101,11 +101,12 @@
 ; implements: ProofRule::CONCAT_SPLIT
 ; premises:
 ; - eq: An equality between strings t and s.
-; - leq: An disequality between the lengths of child strings of t and s.
+; - lieq: An disequality between the lengths of child strings of t and s.
 ; args:
 ; - rev Bool: Whether we are reasoning about the end of strings t and s.
 ; conclusion: >
-;   A splitting lemma based on the children referred to in leq.
+;   A splitting lemma based on the children referred to in leq. In particular,
+;   we case split based on which string is longer.
 (declare-rule concat_split ((U Type) (t (Seq U)) (s (Seq U)) (tc (Seq U)) (sc (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len tc) (str.len sc))))
   :args (rev)
@@ -137,10 +138,13 @@
 ; rule: concat_lprop
 ; implements: ProofRule::CONCAT_LPROP
 ; premises:
-; - 
+; - eq: An equality between strings t and s.
+; - leq: An inequality stating that the first (resp. last) child of t is longer than the child of s.
 ; args:
-; -
-; conclusion:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   An equality that decomposes the first (resp. last) child of t based on the
+;   length of the corresponding child in s.
 (declare-rule concat_lprop ((U Type) (t (Seq U)) (s (Seq U)) (tc (Seq U)) (sc (Seq U)) (rev Bool))
   :premises ((= t s) (> (str.len tc) (str.len sc)))
   :args (rev)
@@ -167,10 +171,14 @@
 ; rule: concat_cprop
 ; implements: ProofRule::CONCAT_CPROP
 ; premises:
-; - 
+; - eq: An equality between strings t and s.
+; - ldeq: A disequality stating the first (resp. last) child of t is non-empty.
 ; args:
-; -
-; conclusion:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   An equality involving the given child of t. In particular, we infer what
+;   portion of the prefix (resp. suffix) it is entailed to be based on
+;   reasoning about adjacent constants.
 (declare-rule concat_cprop ((U Type) (t (Seq U)) (tc (Seq U)) (s (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len tc) 0)))
   :args (rev)
@@ -196,10 +204,12 @@
 ; rule: concat_conflict
 ; implements: ProofRule::CONCAT_CONFLICT
 ; premises:
-; - 
+; - eq: An equality between strings t and s.
 ; args:
-; -
-; conclusion:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   false if the prefix (resp. suffix) involves clashing characters at the same
+;   position.
 ; note: This rule is used for strings only, not sequences.
 (declare-rule concat_conflict ((s String) (t String) (rev Bool))
   :premises ((= s t))
@@ -232,10 +242,12 @@
 ; rule: concat_conflict_deq
 ; implements: ProofRule::CONCAT_CONFLICT_DEQ
 ; premises:
-; - 
+; - eq: An equality between strings s and t.
+; - cdeq: A disequality between two unit terms corresponding to children of s and t.
 ; args:
-; -
-; conclusion:
+; - rev Bool: Whether we are reasoning about the end of strings s and t.
+; conclusion: >
+;   false if we can show that cdeq indeed refers to a prefix (resp. suffix) of s and t.
 ; note: This rule is used for sequences only, not strings.
 (declare-rule concat_conflict_deq ((U Type) (s (Seq U)) (t (Seq U)) (x U) (y U) (rev Bool))
   :premises ((= s t) (not (= (seq.unit x) (seq.unit y))))
@@ -408,8 +420,8 @@
 ; rule: string_reduction
 ; implements: ProofRule::STRING_REDUCTION
 ; args:
-; -
-; conclusion:
+; - s (Seq U): The term to reduce.
+; conclusion: The reduction predicate for s.
 (declare-rule string_reduction ((U Type) (s U))
   :args (s)
   :conclusion (and ($str_reduction_pred s) (= s (@purify s)))
@@ -417,11 +429,9 @@
 
 ; rule: string_eager_reduction
 ; implements: ProofRule::STRING_EAGER_REDUCTION
-; premises:
-; - 
 ; args:
-; -
-; conclusion:
+; - s (Seq U): The term to reduce.
+; conclusion: The eager reduction predicate for s.
 (declare-rule string_eager_reduction ((U Type) (s U))
   :args (s)
   :conclusion ($mk_str_eager_reduction s)
@@ -459,8 +469,10 @@
 ; rule: str-in-re-eval
 ; implements: ProofRewriteRule::STR_IN_RE_EVAL
 ; args:
-; -
-; conclusion:
+; - eq Bool: The equality to prove whose left hand side is a regular expression membership.
+; requires: >
+;   Showing that the regular expression membership evaluates to the right hand side.
+; conclusion: The given equality.
 (declare-rule str-in-re-eval ((s String) (r RegLan) (b Bool))
   :args ((= (str.in_re s r) b))
   :requires ((($str_eval_str_in_re s r) b))
@@ -486,8 +498,11 @@
 ; rule: re-loop-elim
 ; implements: ProofRewriteRule::RE_LOOP_ELIM
 ; args:
-; -
-; conclusion:
+; - eq Bool: The equality to prove whose left hand side is a regular expression loop.
+; requires: >
+;   Showing that the right hand side of the equality is the result of
+;   eliminating the regular expression loop term.
+; conclusion: The given equality.
 (declare-rule re-loop-elim ((l Int) (u Int) (r1 RegLan) (r2 RegLan))
   :args ((= (re.loop l u r1) r2))
   :requires (((alf.is_neg (alf.add (alf.neg l) u)) false)
@@ -513,8 +528,11 @@
 ; rule: str-in-re-concat-star-char
 ; implements: ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR
 ; args:
-; -
-; conclusion:
+; - eq Bool: The equality between regular expression membership and a formula.
+; requires:
+; - The regular expression we are considering is of the form (re.* r) where r has fixed length one.
+; - The right hand side of the equality is the result of rewriting the membership.
+; conclusion: The given equality.
 (declare-rule str-in-re-concat-star-char ((s1 String) (s2 String :list) (r RegLan) (b Bool))
   :args ((= (str.in_re (str.++ s1 s2) (re.* r)) b))
   :requires ((($str_fixed_len_re r) 1) 
@@ -525,8 +543,11 @@
 ; rule: str-in-re-sigma
 ; implements: ProofRewriteRule::STR_IN_RE_SIGMA
 ; args:
-; -
-; conclusion:
+; - eq Bool: The equality between regular expression membership and a formula.
+; requires: >
+;   The right hand side of the equality is the result of rewriting the
+;   membership.
+; conclusion: The given equality.
 (declare-rule str-in-re-sigma ((s String) (r RegLan) (b Bool))
   :args ((= (str.in_re s r) b))
   :requires ((($str_mk_str_in_re_sigma s r) b))
@@ -536,8 +557,11 @@
 ; rule: str-in-re-sigma-star
 ; implements: ProofRewriteRule::STR_IN_RE_SIGMA_STAR
 ; args:
-; -
-; conclusion:
+; - eq Bool: The equality between regular expression membership and a formula.
+; requires: >
+;   The right hand side of the equality is the result of rewriting the
+;   membership.
+; conclusion: The given equality.
 (declare-rule str-in-re-sigma-star ((s String) (r RegLan) (b Bool))
   :args ((= (str.in_re s (re.* r)) b))
   :requires ((($str_mk_str_in_re_sigma_star s r) b))
