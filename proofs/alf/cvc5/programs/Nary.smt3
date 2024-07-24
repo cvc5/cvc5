@@ -49,12 +49,12 @@
 )
 
 ; Helper for reverse
-; program: $nary_
+; program: $nary_reverse_rec
 ; args:
 ; - cons (-> L L L): The n-ary function symbol.
 ; - nil L: The nil terminator of cons.
 ; - c L: The term to reverse, assumed to be a cons-list.
-; - acc L: The current accumulated reversal the elements we have processed.
+; - acc L: The current accumulated reversal of elements we have processed.
 ; return: >
 ;   The result of prepending the reverse of c to acc.
 (program $nary_reverseRec
@@ -159,9 +159,9 @@
 ; - c1 L: The first term, assumed to be a cons-list.
 ; - c2 L: The second term, assumed to be a cons-list.
 ; return: >
-;   The "join" of c1 and c2, that is, if the last child is the same as the first
-;   child of c2, then those 2 children are dropped and c1 and c2 are appended
-;   together. Otherwise, this program does not evaluate.
+;   The "join" of c1 and c2, that is, if the last child of c1 is the same as the
+;   first child of c2, then those 2 children are dropped and c1 and c2 are
+;   appended together. Otherwise, this program does not evaluate.
 (program $nary_join
     ((L Type) (cons (-> L L L)) (nil L) (elim-nil L) (c L) (x L) (xs L :list) (y L) (ys L :list))
     ((-> L L L) L L L) L
