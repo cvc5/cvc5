@@ -8,6 +8,10 @@
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence.
 
+; program: 
+; args:
+; -
+; return:
 ; Return true if s is the empty string or sequence.
 (program $str_is_empty ((U Type) (x U))
   (U) Bool
@@ -18,22 +22,38 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Return the character type of the string-like type T
 (define $char_type_of ((T Type)) 
   (alf.match ((U Type)) T (((Seq U) U)))
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Return the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
   (alf.list_concat str.++ x y)
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Return the result of prepending of string x to string y where the latter is
 ; treated as a list.
 (define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
   (alf.cons str.++ x y)
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Return true if n is a valid code point [0, 196607].
 (define $str_is_code_point ((n Int))
   (alf.ite (alf.is_z n)
@@ -42,12 +62,20 @@
     false)
   false))
 
+; define: 
+; args:
+; -
+; return:
 ; Return t if it corresponds to the empty string, otherwise evaluates
 ; to an unevaluated alf.requires term.
 (define $str_self_if_empty ((T Type :implicit) (t T))
   (alf.requires t ($mk_emptystr (alf.typeof t)) t)
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Return the fixed length for the regular expression if it can be inferred.
 (program $str_fixed_len_re ((r RegLan) (s1 String) (s2 String) (r1 RegLan :list))
   (RegLan) Int
@@ -80,8 +108,13 @@
 
 ;;-------------------- RE evaluation
 
+; note: used to represent an invalid regular expression below.
 (declare-const @re.null RegLan)
 
+; program: 
+; args:
+; -
+; return:
 ; *** NOTE: This method has an exponential runtime. It is a placeholder for a
 ; more efficient algorithm (via NFAs) to be written later.
 ; The call ($str_eval_str_in_re_rec s 0 r1 @re.null) returns true if s is in r1.
@@ -127,6 +160,10 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Returns true if s is in regular expression r.
 ; Does not evaluate if s is not a string literal.
 (define $str_eval_str_in_re ((s String) (r RegLan))
@@ -143,26 +180,46 @@
 ; for computing the original form of a term in the ALF signature, which
 ; naively is exponential.
 
+; define: 
+; args:
+; -
+; return:
 ; Get the term corresponding to the prefix of term s of fixed length n.
 (define $str_skolem_prefix ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s 0 n)
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Get the term corresponding to the suffix of term s starting from position n.
 (define $str_skolem_suffix_rem ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s n (- (str.len s) n))
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Get the term corresponding to the prefix of term s except for length n.
 (define $str_prefix_rem ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s 0 (- (str.len s) n))
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Get the term corresponding to the suffix of term s of length n.
 (define $str_suffix ((U Type :implicit) (s (Seq U)) (n Int))
   (str.substr s (- (str.len s) n) n)
 )
 
+; program: 
+; args:
+; -
+; return:
 ; The unified splitting term for t and s, which is the term that denotes the
 ; prefix (or suffix if rev is true) remainder of t (resp. s) in the case that
 ; t (resp. s) is the longer string.
@@ -178,11 +235,19 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Get the term corresponding to the prefix of s before the first occurrence of
 ; t in s.
 (define $str_skolem_first_ctn_pre ((U Type :implicit) (s (Seq U)) (t (Seq U)))
   ($str_skolem_prefix s (str.indexof s t 0)))
 
+; define: 
+; args:
+; -
+; return:
 ; Get the term corresponding to the suffix of s after the first occurrence of
 ; t in s.
 (define $str_skolem_first_ctn_post ((U Type :implicit) (s (Seq U)) (t (Seq U)))
@@ -190,10 +255,18 @@
 
 ;;-------------------- Utilities
 
+; define: 
+; args:
+; -
+; return:
 ; Return reverse of t if rev = true, return t unchanged otherwise.
 (define $str_rev ((U Type :implicit) (rev Bool) (t U)) 
   (alf.ite rev ($nary_reverse t) t))
 
+; program: 
+; args:
+; -
+; return:
 ; String nary-intro, which ensures that the input t is a str.++ application.
 ; In particular, if it is not a str.++ and not the empty string, then we return
 ; (str.++ t empty) where empty is the empty string for the type of t.
@@ -223,6 +296,10 @@
     )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; String nary-elimination, which ensures that the input t is not a str.++
 ; application. In particular, if t is of the form (str.++ t1 empty) where empty
 ; is the empty string for the type of t, we return t1.
@@ -236,6 +313,10 @@
     )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Regular expression nary-elimination, which ensures that the input t is not a
 ; re.++ application. In particular, if t is of the form (re.++ t1 @re.empty),
 ; we return t1.
@@ -252,6 +333,10 @@
 ; In the following, a "reduction predicate" refers to a formula that is used
 ; to axiomatize an extended string program in terms of (simpler) programs.
 
+; program: 
+; args:
+; -
+; return:
 ; Compute the reduction predicate for (str.substr x n m) of sort U.
 (program $str_reduction_substr ((U Type) (x (Seq U)) (n Int) (m Int))
   ((Seq U) Int Int) Bool
@@ -276,6 +361,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Compute the reduction predicate for (str.indexof x y n) of sort U.
 (program $str_reduction_indexof ((U Type) (x (Seq U)) (y (Seq U)) (n Int))
   ((Seq U) (Seq U) Int) Bool
@@ -298,6 +387,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Compute the reduction predicate for term t of sort s. Note that the operators
 ; listed in comments are missing from the signature currently.
 (program $str_reduction_pred ((U Type) (x (Seq U)) (y (Seq U)) (n Int) (m Int))
@@ -319,6 +412,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Compute the eager reduction predicate for (str.contains t r) where s
 ; is the sort of t and r.
 ; This is the formula:
@@ -337,6 +434,10 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Compute the eager reduction predicate for (str.code s)
 (define $str_eager_reduction_to_code ((s String))
   (alf.define ((t (str.to_code s)))
@@ -346,6 +447,10 @@
     (= t (alf.neg 1))))
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Compute the eager reduction predicate for (str.indexof x y n)
 (program $str_eager_reduction_indexof ((U Type) (x U) (y U) (n Int))
   (U U Int) Bool
@@ -357,6 +462,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 (program $str_eager_reduction_in_re ((U Type) (x (Seq U)) (r RegLan))
   (U RegLan) Bool
   (
@@ -364,6 +473,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Compute the eager reduction predicate of term t of type U.
 (program $mk_str_eager_reduction ((U Type) (x U) (y U) (r RegLan) (n Int) (m Int))
   (U) Bool
@@ -375,6 +488,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
 ; For a regular expression (re.++ R1 ... Rn), $re_unfold_pos_concat returns a pair of terms
 ; where the first term is a concatenation (str.++ t1 ... tn) and the second
@@ -384,14 +501,14 @@
 ;   (and (= x (str.++ t1 ... tn)) M)
 ; We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
 ; application of the unfolding skolem program @re_unfold_pos_component.
-(program $$re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
+(program $re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
   (String RegLan RegLan Int) (@Pair String Bool)
   (
-    (($$re_unfold_pos_concat_rec t @re.empty ro i)       (@pair "" true))
-    (($$re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
+    (($re_unfold_pos_concat_rec t @re.empty ro i)       (@pair "" true))
+    (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
       ; match recursive call
       (alf.match ((c String :list) (M Bool :list))
-        ($$re_unfold_pos_concat_rec t r2 ro (alf.add i 1))
+        ($re_unfold_pos_concat_rec t r2 ro (alf.add i 1))
         (((@pair c M)
           ; match on what r1 is
           (alf.match ((s String) (r RegLan))
@@ -410,10 +527,18 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 (define $re_unfold_pos_concat ((t String) (r RegLan))
-  ($$re_unfold_pos_concat_rec t r r 0)
+  ($re_unfold_pos_concat_rec t r r 0)
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Returns a formula corresponding to a conjunction saying that each of the
 ; elements of str.++ application t is empty. For example for
 ;   (str.++ x (str.++ y ""))
@@ -427,12 +552,24 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Returns true if the length of s evaluates to one, false otherwise.
 (define $str_check_length_one ((s String)) (alf.is_eq (alf.len s) 1))
 
+; define: 
+; args:
+; -
+; return:
 ; Returns true if the length of s evaluates to greater than one, false otherwise.
 (define $str_check_len_gt_one ((s String)) (alf.is_eq (alf.is_neg (alf.add 1 (alf.neg (alf.len s)))) true))
 
+; program: 
+; args:
+; -
+; return:
 ; Get first character or empty string from term t.
 ; If t is of the form (str.++ s ...), return t.
 ; If t is an empty string, return t.
@@ -466,6 +603,10 @@
 ; This rule may fail if s is not a str.++ application corresponding to a term
 ; in cvc5 rewritten form.
 
+; program: 
+; args:
+; -
+; return:
 ; Helper for below, assumes t is a non-empty word constant.
 ; For example, given "AB", this returns (str.++ "A" (str.++ "B" "")).
 (program $str_flatten_word ((t String))
@@ -477,6 +618,11 @@
         ($str_cons (alf.extract t 0 0) ($str_flatten_word (alf.extract t 1 (alf.len t))))))
   )
 )
+
+; program: 
+; args:
+; -
+; return:
 (program $str_flatten ((U Type) (t (Seq U)) (tail (Seq U) :list) (tail2 (Seq U) :list))
   ((Seq U)) (Seq U)
   (
@@ -494,6 +640,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Helper for collecting adjacent constants. This side condition takes as input
 ; a str.++ application s. It returns a pair whose concatenation is equal to s,
 ; whose first component corresponds to a word constant, and whose second
@@ -521,6 +671,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Collect adjacent constants for the prefix of string s. For example:
 ;    (str.++ "A" (str.++ "B" (str.++ x "")))
 ; we return:
@@ -548,6 +702,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Strip equal prefix of s and t. This returns the pair corresponding to s and
 ; t after dropping the maximal equal prefix removed. For example, for:
 ;   (str.++ x (str.++ y (str.++ z "")))
@@ -563,6 +721,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Helper for $str_overlap.
 (program $str_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
   ((Seq U) (Seq U) (Seq U)) Int
@@ -574,6 +736,10 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Returns the minimum number of characters that must be skipped in s before
 ; string t can be compatible with it. For example:
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "C" "D" "") = 1
@@ -585,6 +751,10 @@
 (define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)))
   ($str_overlap_rec ($mk_emptystr (alf.typeof s)) s t))
 
+; program: 
+; args:
+; -
+; return:
 ; Helper for $str_mk_re_loop_elim.
 ; When we call `$str_mk_re_loop_elim n d r rr`, we first decrement n until it
 ; is zero, while accumulating rr. When it is zero, then rr is r^n.
@@ -599,6 +769,10 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; `$str_mk_re_loop_elim n d r` returns the reduction of the regular expression
 ;   (re.loop n n+d r)
 ; where d>0. This is the regular expression:
@@ -609,6 +783,10 @@
   ($singleton_elim ($str_mk_re_loop_elim_rec n d r @re.empty))
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Helper for ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR.
 ; Note that we do not require a singleton elimination step since the original input should be a concatenation term.
 (program $str_mk_str_in_re_concat_star_char ((s1 String) (s2 String :list) (r RegLan))
@@ -619,6 +797,10 @@
   )
 )
 
+; program: 
+; args:
+; -
+; return:
 ; Helper for $str_mk_str_in_re_sigma.
 ; Calling `$str_mk_str_in_re_sigma_rec s r n b` means we have s in r, we have stripped
 ; off n re.allchar from r so far. If `b` is false, then we have stripped off
@@ -632,10 +814,18 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Helper for ProofRewriteRule::STR_IN_RE_SIGMA.
 (define $str_mk_str_in_re_sigma ((s String) (r RegLan))
   ($str_mk_str_in_re_sigma_rec s r 0 true))
 
+; program: 
+; args:
+; -
+; return:
 ; Helper for $str_mk_str_in_re_sigma.
 ; Calling `$str_mk_str_in_re_sigma_star_rec s r n` means we have s in r, we have
 ; stripped off n re.allchar from r so far.
@@ -647,10 +837,18 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Helper for ProofRewriteRule::STR_IN_RE_SIGMA_STAR, r is the body of the star.
 (define $str_mk_str_in_re_sigma_star ((s String) (r RegLan))
   ($str_mk_str_in_re_sigma_star_rec s r 0))
 
+; define: 
+; args:
+; -
+; return:
 ; Converts a str.++ application into "flat form" so that we are ready to
 ; process its prefix. This consists of the following steps:
 ; (1) convert s to n-ary form if it is not already a str.++ application,
@@ -661,6 +859,10 @@
   ($str_rev rev ($str_flatten ($str_nary_intro s)))
 )
 
+; program: 
+; args:
+; -
+; return:
 ; `$re_str_to_flat_form rev r` convert the strings s occurring as direct
 ; children (str.to_re s) of regular expression concatenation r to their flat
 ; form, reversing if rev is true.
@@ -673,6 +875,10 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Converts a regular expression term to "flat form". This consists of the
 ; following steps:
 ; (1) convert r to n-ary form if it not already a re.++ application,
@@ -684,6 +890,10 @@
   ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Converts a term in "flat form" to a term that is in a form that corresponds
 ; to one in cvc5 rewritten form. This is the dual method to
 ; $str_to_flat_form. This consists of the following steps:
@@ -695,6 +905,10 @@
   ($str_nary_elim ($str_collect ($str_rev rev s)))
 )
 
+; program: 
+; args:
+; -
+; return:
 ; `$re_str_from_flat_form rev r` convert the strings s occurring as direct
 ; children (str.to_re s) of regular expression concatenation r from their flat
 ; form, reversing if rev is true.
@@ -707,6 +921,10 @@
   )
 )
 
+; define: 
+; args:
+; -
+; return:
 ; Converts a regular expression term in "flat form" to a term that is in a form
 ; that corresponds to one in cvc5 rewritten form. This is the dual method to
 ; $re_to_flat_form. This consists of the following steps:
@@ -815,7 +1033,6 @@
   )
 )
 
-; Helper for `$str_re_includes`
 ; program: $str_re_includes_rec
 ; args:
 ; - r1 RegLan: The first regular expression.
@@ -887,7 +1104,7 @@
   )
 )
 
-; program: $str_check_re_union_inclusion
+; define: $str_check_re_union_inclusion
 ; args:
 ; - r RegLan: The regular expression to check.
 ; return: >
@@ -902,7 +1119,7 @@
   ))
 )
 
-; program: $str_check_re_inter_inclusion
+; define: $str_check_re_inter_inclusion
 ; args:
 ; - r RegLan: The regular expression to check.
 ; return: >
@@ -1021,7 +1238,7 @@
   )
 )
 
-; program: $str_arith_entail_is_approx_indexof
+; define: $str_arith_entail_is_approx_indexof
 ; args:
 ; - s String: The first string argument to str.indexof.
 ; - t String: The second string argument to str.indexof.
@@ -1057,7 +1274,7 @@
   (alf.ite (alf.is_eq n -1) isUnder false)
 )
 
-; define: $str_arith_entail_is_approx
+; program: $str_arith_entail_is_approx
 ; args:
 ; - n Int: The first integer term.
 ; - m Int: The second integer term.
@@ -1183,7 +1400,7 @@
   )
 )
 
-; `$str_re_consume
+; define: $str_re_consume
 ; args:
 ; - s String: The string argument of the membership to rewrite.
 ; - r RegLan: The regular expression argument of the membership to rewrite.
