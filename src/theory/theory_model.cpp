@@ -309,14 +309,14 @@ Node TheoryModel::getModelValue(TNode n) const
   Kind rk = ret.getKind();
   // If we are a ground term that is *not* unevaluated, we assign an arbitrary
   // value.
-  if (d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end() && !expr::hasBoundVar(ret))
+  if (d_unevaluated_kinds.find(rk) == d_unevaluated_kinds.end() && !expr::hasBoundVar(ret))
   {
     // If we are a semi-evaluated kind, then we need to check whether we are
     // entailed equal to an existing term. For example, if we are a datatype
     // selector S(x), x is equal to y, and S(y) is a term in the equality
     // engine of this model, then the value of S(x) must be equal to the value
     // of S(y).
-    if (d_semi_evaluated_kinds.find(nk)!=d_semi_evaluated_kinds.end())
+    if (d_semi_evaluated_kinds.find(rk)!=d_semi_evaluated_kinds.end())
     {
       Node retSev = evaluateSemiEvalTerm(ret);
       // if the result was entailed, return it
