@@ -876,7 +876,7 @@ bool TheoryModel::isAssignableUf(const Node& n) const
 Node TheoryModel::evaluateSemiEvalTerm(TNode n) const
 {
   Assert(d_semi_evaluated_kinds.find(n.getKind())
-         == d_semi_evaluated_kinds.end());
+         != d_semi_evaluated_kinds.end());
   if (!d_semiEvalCacheSet)
   {
     d_semiEvalCacheSet = true;
