@@ -657,11 +657,10 @@
 ; - t (Seq U): The string term, assumed to be a flattened str.++ list.
 ; return: >
 ;   The result of collecting adjacent constants in a flattened string t.
-;   Helper for collecting adjacent constants. This side condition takes as input
-;   a str.++ application s. It returns a pair whose concatenation is equal to s,
-;   whose first component corresponds to a word constant, and whose second
-;   component is a str.++ application whose first element is not a character.
-;   For example, for:
+;   This side condition takes as input a str.++ application s. It returns a
+;   pair whose concatenation is equal to s, whose first component corresponds
+;   to a word constant, and whose second component is a str.++ application whose
+;   first element is not a character. For example, for:
 ;     (str.++ "A" (str.++ "B" (str.++ x "")))
 ;   We return:
 ;     (@pair "AB" (str.++ x ""))
@@ -843,17 +842,18 @@
 ; - s String: The string term to process.
 ; - r RegLan: The regular expression to process.
 ; return: >
-;   The conclusion used for ProofRewriteRule::STR_IN_RE_SIGMA for s in r.
+;   The conclusion for ProofRewriteRule::STR_IN_RE_SIGMA for s in r.
 (define $str_mk_str_in_re_sigma ((s String) (r RegLan))
   ($str_mk_str_in_re_sigma_rec s r 0 true))
 
 ; program: $str_mk_str_in_re_sigma_star_rec
 ; args:
-; -
+; - s String: The string term to process.
+; - r RegLan: The body of the regular expression to process.
+; - n Int: The number of re.allchar we have seen.
 ; return:
-; Helper for $str_mk_str_in_re_sigma.
-; Calling `$str_mk_str_in_re_sigma_star_rec s r n` means we have s in r, we have
-; stripped off n re.allchar from r so far.
+;   Calling $str_mk_str_in_re_sigma_star_rec s r n means we have s in r, we have
+;   stripped off n re.allchar from r so far.
 (program $str_mk_str_in_re_sigma_star_rec ((s String) (r RegLan :list) (n Int))
   (String RegLan Int) Bool
   (
@@ -864,21 +864,23 @@
 
 ; define: $str_mk_str_in_re_sigma_star
 ; args:
-; -
+; - s String: The string term to process.
+; - r RegLan: The body of the regular expression to process.
 ; return:
-; Helper for ProofRewriteRule::STR_IN_RE_SIGMA_STAR, r is the body of the star.
+;   The conclusion for ProofRewriteRule::STR_IN_RE_SIGMA_STAR for s in (re.* r).
 (define $str_mk_str_in_re_sigma_star ((s String) (r RegLan))
   ($str_mk_str_in_re_sigma_star_rec s r 0))
 
 ; define: $str_to_flat_form
 ; args:
-; -
-; return:
-; Converts a str.++ application into "flat form" so that we are ready to
-; process its prefix. This consists of the following steps:
-; (1) convert s to n-ary form if it is not already a str.++ application,
-; (2) flatten so that its constant prefix,
-; (3) (optionally) reverse.
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a str.++ application into "flat form" so that we are ready to
+;   process its prefix. This consists of the following steps:
+;   (1) convert s to n-ary form if it is not already a str.++ application,
+;   (2) flatten so that its constant prefix,
+;   (3) (optionally) reverse.
 (define $str_to_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; intro, flatten, reverse
   ($str_rev rev ($str_flatten ($str_nary_intro s)))
@@ -886,11 +888,12 @@
 
 ; program: $re_str_to_flat_form
 ; args:
-; -
-; return:
-; `$re_str_to_flat_form rev r` convert the strings s occurring as direct
-; children (str.to_re s) of regular expression concatenation r to their flat
-; form, reversing if rev is true.
+; - rev Bool: Whether to reverse the strings that occur in r.
+; - r RegLan: The regular expression to process.
+; return: 
+;   The result of converting the strings s occurring as direct
+;   children (str.to_re s) of regular expression concatenation r to their flat
+;   form, reversing if rev is true.
 (program $re_str_to_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
   (Bool RegLan) RegLan
   (
@@ -902,29 +905,31 @@
 
 ; define: $re_to_flat_form
 ; args:
-; -
-; return:
-; Converts a regular expression term to "flat form". This consists of the
-; following steps:
-; (1) convert r to n-ary form if it not already a re.++ application,
-; (2) (optionally) reverse,
-; (3) convert the strings s occurring as direct children (str.to_re s) of the
-; result to their flat form. Note that other strings in r, i.e. those that
-; occur benath other children remain unchanged.
+; - r RegLan: The regular expression to process.
+; - rev Bool: Whether to reverse the content of r.
+; return: >
+;   Converts a regular expression term to "flat form". This consists of the
+;   following steps:
+;   (1) convert r to n-ary form if it not already a re.++ application,
+;   (2) (optionally) reverse,
+;   (3) convert the strings s occurring as direct children (str.to_re s) of the
+;   result to their flat form. Note that other strings in r, i.e. those that
+;   occur benath other children remain unchanged.
 (define $re_to_flat_form ((r RegLan) (rev Bool))
   ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
 )
 
 ; define: $str_from_flat_form
 ; args:
-; -
-; return:
-; Converts a term in "flat form" to a term that is in a form that corresponds
-; to one in cvc5 rewritten form. This is the dual method to
-; $str_to_flat_form. This consists of the following steps:
-; (1) (optionally) reverse,
-; (2) collect constants
-; (3) eliminate n-ary form to its element if the term is a singleton list.
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a term in "flat form" to a term that is in a form that corresponds
+;   to one in cvc5 rewritten form. This is the dual method to
+;   $str_to_flat_form. This consists of the following steps:
+;   (1) (optionally) reverse,
+;   (2) collect constants
+;   (3) eliminate n-ary form to its element if the term is a singleton list.
 (define $str_from_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; reverse, collect, elim
   ($str_nary_elim ($str_collect ($str_rev rev s)))
@@ -932,11 +937,12 @@
 
 ; program: $re_str_from_flat_form
 ; args:
-; -
+; - rev Bool: Whether to reverse the strings that occur in r.
+; - r RegLan: The regular expression to process.
 ; return:
-; `$re_str_from_flat_form rev r` convert the strings s occurring as direct
-; children (str.to_re s) of regular expression concatenation r from their flat
-; form, reversing if rev is true.
+;   The result of converting the strings s occurring as direct
+;   children (str.to_re s) of regular expression concatenation r from their flat
+;   form, reversing if rev is true.
 (program $re_str_from_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
   (Bool RegLan) RegLan
   (
@@ -948,14 +954,15 @@
 
 ; define: $re_from_flat_form
 ; args:
-; -
-; return:
-; Converts a regular expression term in "flat form" to a term that is in a form
-; that corresponds to one in cvc5 rewritten form. This is the dual method to
-; $re_to_flat_form. This consists of the following steps:
-; (1) convert the strings s occurring as direct children (str.to_re s) from their flat form,
-; (2) (optionally) reverse,
-; (3) eliminate n-ary form to its element if the term is a singleton list.
+; - r RegLan: The regular expression to process.
+; - rev Bool: Whether to reverse the content of r.
+; return: >
+;   Converts a regular expression term in "flat form" to a term that is in a form
+;   that corresponds to one in cvc5 rewritten form. This is the dual method to
+;   $re_to_flat_form. This consists of the following steps:
+;   (1) convert the strings s occurring as direct children (str.to_re s) from their flat form,
+;   (2) (optionally) reverse,
+;   (3) eliminate n-ary form to its element if the term is a singleton list.
 (define $re_from_flat_form ((r RegLan) (rev Bool))
   ; (un?)flatten, reverse, elim
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
