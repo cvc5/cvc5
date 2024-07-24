@@ -307,20 +307,27 @@ Node TheoryModel::getModelValue(TNode n) const
   }
 
   Kind rk = ret.getKind();
-  // if we are a evaluated or semi-evaluated kind, return an arbitrary value
-  // if we are not in the d_unevaluated_kinds map, we are evaluated
-  if (d_unevaluated_kinds.find(rk) == d_unevaluated_kinds.end())
+  // If we are a ground term that is *not* unevaluated, we assign an arbitrary
+  // value.
+  if (d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end() && !expr::hasBoundVar(ret))
   {
-    if (d_semi_evaluated_kinds.find(rk)!=d_semi_evaluated_kinds.end())
+    // If we are a semi-evaluated kind, then we need to check whether we are
+    // entailed equal to an existing term. For example, if we are a datatype
+    // selector S(x), x is equal to y, and S(y) is a term in the equality
+    // engine of this model, then the value of S(x) must be equal to the value
+    // of S(y).
+    if (d_semi_evaluated_kinds.find(nk)!=d_semi_evaluated_kinds.end())
     {
       Node retSev = evaluateSemiEvalTerm(ret);
       // if the result was entailed, return it
       if (!retSev.isNull())
       {
         d_modelCache[n] = retSev;
-        Trace("model-getvalue-debug") << "...semi-evaluated is " << retSev << std::endl;
+        Trace("model-getvalue-debug") << "...semi-evaluated entailed is " << retSev << std::endl;
         return retSev;
       }
+      // otherwise we return an arbtirary value below.
+      Trace("model-getvalue-debug") << "...not semi-evaluated entailed" << std::endl;
     }
     if (t.isFunction() || t.isPredicate())
     {
@@ -890,14 +897,17 @@ Node TheoryModel::evaluateSemiEvalTerm(TNode n) const
         NodeTrie& nt = d_semiEvalCache[op];
         Assert (!nt.existsTerm(targs));
         nt.addOrGetTerm(eqcv, targs);
+        Trace("semi-eval") << "Semi-eval: SET " << targs << " = " << eqcv << std::endl;
       }
     }
   }
+  Trace("semi-eval") << "Semi-eval: EVALUATE " << n << "..." << std::endl;
   Node op = n.getOperator();
   std::unordered_map<Node, NodeTrie>::iterator it = d_semiEvalCache.find(op);
   if (it!=d_semiEvalCache.end())
   {
     std::vector<Node> nargs = getModelValueArgs(n);
+    Trace("semi-eval") << "Semi-eval: lookup " << nargs << std::endl;
     return it->second.existsTerm(nargs);
   }
   return Node::null();
