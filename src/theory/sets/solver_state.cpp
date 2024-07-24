@@ -58,8 +58,6 @@ void SolverState::reset()
   d_op_list.clear();
   d_allCompSets.clear();
   d_filterTerms.clear();
-  d_predicateAllTerms.clear();
-  d_predicateSomeTerms.clear();
 }
 
 void SolverState::registerEqc(TypeNode tn, Node r)
@@ -153,42 +151,6 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   else if (nk == Kind::SET_FILTER)
   {
     d_filterTerms.push_back(n);
-  }
-  else if (nk == Kind::SET_ALL)
-  {
-    if (polarityIndex == 0)
-    {
-      d_predicateAllTerms.push_back(n);
-    }
-    else if (polarityIndex == 1)
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      SkolemManager* sm = nm->getSkolemManager();
-      Node someSkolem = sm->mkSkolemFunction(SkolemId::SETS_SOME, {n});
-      d_predicateSomeTerms[n] = someSkolem;
-    }
-    else
-    {
-      Assert(false);
-    }
-  }
-  else if (nk == Kind::SET_SOME)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    if (polarityIndex == 0)
-    {
-      SkolemManager* sm = nm->getSkolemManager();
-      Node someSkolem = sm->mkSkolemFunction(SkolemId::SETS_SOME, {n});
-      d_predicateSomeTerms[n] = someSkolem;
-    }
-    else if (polarityIndex == 1)
-    {
-      d_predicateAllTerms.push_back(n);
-    }
-    else
-    {
-      Assert(false);
-    }
   }
   else if (nk == Kind::SET_MAP)
   {
@@ -531,16 +493,6 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 }
 
 const std::vector<Node>& SolverState::getFilterTerms() const { return d_filterTerms; }
-
-const std::vector<Node>& SolverState::getPredicateAllTerms() const
-{
-  return d_predicateAllTerms;
-}
-
-const std::map<Node, Node>& SolverState::getPredicateSomeTerms() const
-{
-  return d_predicateSomeTerms;
-}
 
 const context::CDHashSet<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
 

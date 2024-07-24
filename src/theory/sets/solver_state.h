@@ -232,11 +232,6 @@ class SolverState : public TheoryState
   std::map<Node, std::vector<Node> > d_nvar_sets;
   /** A list of filter terms. It is initialized during full effort check */
   std::vector<Node> d_filterTerms;
-  /** A list of set.all terms. It is initialized during full effort check */
-  std::vector<Node> d_predicateAllTerms;
-  /** Map from set.some terms to their witnesses. It is initialized during full
-   * effort check */
-  std::map<Node, Node> d_predicateSomeTerms;
   /** User context collection of set.map terms */
   context::CDHashSet<Node> d_mapTerms;
   /** User context collection of rel.group terms */

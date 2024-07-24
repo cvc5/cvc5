@@ -97,31 +97,6 @@ class TheorySetsPrivate : protected EnvObj
    * )
    */
   void checkFilterDown();
-
-  /**
-   * Apply the following rules for set.all terms (set.all p A):
-   * 1. (=>
-   *     (and (set.member x A) (set.all p A))
-   *     (p x))
-   * 2. (=>
-   *      (set.isEmpty A)
-   *      (set.all p A))
-   */
-  void checkPredicateAll();
-  /**
-   * Apply the following rules for set.some terms (set.some p A):
-   * 1. (=>
-   *     (set.some p A)
-   *     (and
-   *       (set.member skolem A)
-   *       (p skolem)))
-   *     where skolem is a fresh variable
-   * 2. (=>
-   *      (set.isEmpty A)
-   *      (not (set.some p A)))
-   */
-  void checkPredicateSome();
-
   /**
    * Apply the following rule for map terms (set.map f A):
    * Positive member rule:

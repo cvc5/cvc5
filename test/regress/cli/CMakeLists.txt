@@ -2957,8 +2957,7 @@ set(regress_1_tests
   regress1/seq/issue8936-nth-eager-red.smt2
   regress1/sets/all1.smt2
   regress1/sets/all2.smt2
-  regress1/sets/all3.smt2
-  regress1/sets/all4.smt2
+  regress1/sets/all3.smt2  
   regress1/sets/choose.cvc.smt2
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2
@@ -3061,6 +3060,7 @@ set(regress_1_tests
   regress1/sets/set-map-test.smt2
   regress1/sets/set-map-test2.smt2
   regress1/sets/sharingbug.smt2
+  regress1/sets/some1.smt2
   regress1/sets/univ-set-uf-elim.smt2
   regress1/sets/univ-semantics.smt2
   regress1/simplification_bug4.smt2
