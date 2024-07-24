@@ -22,19 +22,19 @@
   :args (rev)
   :conclusion
     (alf.match ((ss U) (ts U))
-      (strip_prefix
-           (string_to_flat_form s rev)
-           (string_to_flat_form t rev))
+      ($str_strip_prefix
+           ($str_to_flat_form s rev)
+           ($str_to_flat_form t rev))
       (((@pair ss ts)
         (= 
-          (string_from_flat_form ss rev)
-          (string_from_flat_form ts rev)))))
+          ($str_from_flat_form ss rev)
+          ($str_from_flat_form ts rev)))))
 )
 
 ; returns true if s1 is a prefix of s, taking into account flattening
-(define string_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
-  (alf.define ((sf (string_to_flat_form s rev)))
-  (alf.define ((sf1 (string_to_flat_form s1 rev)))
+(define $str_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
+  (alf.define ((sf ($str_to_flat_form s rev)))
+  (alf.define ((sf1 ($str_to_flat_form s1 rev)))
   (alf.define ((U (alf.typeof s)))
   ($nary_is_prefix str.++ ($mk_emptystr U) sf1 sf))))
 )
@@ -43,7 +43,7 @@
 (declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
   :premises ((= s t) (= (str.len s1) (str.len t1)))
   :args (rev)
-  :requires (((string_is_prefix s s1 rev) true) ((string_is_prefix t t1 rev) true))
+  :requires ((($str_is_prefix s s1 rev) true) (($str_is_prefix t t1 rev) true))
   :conclusion (= s1 t1)
 )
 
@@ -53,17 +53,17 @@
   :args (rev)
   :conclusion
     (alf.match ((t1 (Seq U)) (t2 (Seq U) :list))
-      (string_to_flat_form t rev)
+      ($str_to_flat_form t rev)
       (((str.++ t1 t2)
         (alf.requires t1 u
           (alf.match ((s1 (Seq U)) (s2 (Seq U) :list))
-            (string_to_flat_form s rev)
+            ($str_to_flat_form s rev)
             (((str.++ s1 s2)
-              (alf.requires (string_check_length_one s1) true    ; checks if char
+              (alf.requires ($str_check_length_one s1) true    ; checks if char
                 (= u
                   (alf.ite rev
-                    (str.++ (@purify (skolem_prefix u (- (str.len u) 1))) s1)
-                    (str.++ s1 (@purify (skolem_suffix_rem u 1)))))))))))))
+                    (str.++ (@purify ($str_skolem_prefix u (- (str.len u) 1))) s1)
+                    (str.++ s1 (@purify ($str_skolem_suffix_rem u 1)))))))))))))
 )
 
 ; ProofRule::CONCAT_SPLIT
@@ -72,14 +72,14 @@
   :args (rev)
   :conclusion
     (alf.match ((t1 (Seq U)) (t2 (Seq U) :list))
-      (string_to_flat_form t rev)
+      ($str_to_flat_form t rev)
       (((str.++ t1 t2)
         (alf.requires t1 tc
           (alf.match ((s1 (Seq U)) (s2 (Seq U) :list))
-            (string_to_flat_form s rev)
+            ($str_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (alf.define ((k (@purify (skolem_unify_split t1 s1 rev))))
+                (alf.define ((k (@purify ($str_skolem_unify_split t1 s1 rev))))
                 (and 
                   (or 
                     (= t1
@@ -101,14 +101,14 @@
   :args (rev)
   :conclusion
     (alf.match ((t1 (Seq U)) (t2 (Seq U) :list))
-      (string_to_flat_form t rev)
+      ($str_to_flat_form t rev)
       (((str.++ t1 t2)
         (alf.requires t1 tc
           (alf.match ((s1 (Seq U)) (s2 (Seq U) :list))
-            (string_to_flat_form s rev)
+            ($str_to_flat_form s rev)
             (((str.++ s1 s2)
               (alf.requires s1 sc
-                (alf.define ((k (@purify (skolem_unify_split t1 s1 rev))))
+                (alf.define ((k (@purify ($str_skolem_unify_split t1 s1 rev))))
                   (and
                     (= t1
                       (alf.ite rev
@@ -131,14 +131,14 @@
           (alf.match ((s1 (Seq U)) (s2 (Seq U) :list))
             ($str_rev rev ($str_nary_intro s))  ; must do nary intro when s is just a constant
             (((str.++ s1 s2)
-                (alf.define ((sc (string_to_flat_form s1 rev)))
-                (alf.define ((v (alf.add 1 ($str_overlap ($tail sc) (string_to_flat_form t2 rev)))))
+                (alf.define ((sc ($str_to_flat_form s1 rev)))
+                (alf.define ((v (alf.add 1 ($str_overlap ($tail sc) ($str_to_flat_form t2 rev)))))
                   (= tc
                     (alf.ite rev
-                      (alf.define ((oc ($str_suffix_w_len s1 v)))
-                      (str.++ (@purify (skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
-                      (alf.define ((oc (skolem_prefix s1 v)))
-                      (str.++ oc (@purify (skolem_suffix_rem tc (str.len oc)))))))
+                      (alf.define ((oc ($str_suffix s1 v)))
+                      (str.++ (@purify ($str_skolem_prefix tc (- (str.len tc) (str.len oc)))) oc))
+                      (alf.define ((oc ($str_skolem_prefix s1 v)))
+                      (str.++ oc (@purify ($str_skolem_suffix_rem tc (str.len oc)))))))
                 )))))))))
 )
 
@@ -149,20 +149,20 @@
   :conclusion
     ; strip the prefix of the equality
     (alf.match ((ss String) (ts String))
-      (strip_prefix
-           (string_to_flat_form s rev)
-           (string_to_flat_form t rev))
+      ($str_strip_prefix
+           ($str_to_flat_form s rev)
+           ($str_to_flat_form t rev))
       (((@pair ss ts)
-          (alf.define ((cs (string_head_or_empty ss)))
-          (alf.define ((ct (string_head_or_empty ts)))
+          (alf.define ((cs ($str_head_or_empty ss)))
+          (alf.define ((ct ($str_head_or_empty ts)))
             ; ensure they are disequal, return false
             (alf.requires
               (alf.ite ($str_is_empty cs)
-                (string_check_length_one ct)
-                (alf.ite (string_check_length_one cs)
+                ($str_check_length_one ct)
+                (alf.ite ($str_check_length_one cs)
                   (alf.ite ($str_is_empty ct)
                     true
-                    (alf.ite (string_check_length_one ct)
+                    (alf.ite ($str_check_length_one ct)
                       (alf.not (alf.is_eq cs ct))
                       false))
                   false))
@@ -178,13 +178,13 @@
   :conclusion
     ; strip the prefix of the equality
     (alf.match ((ss (Seq U)) (ts (Seq U)))
-      (strip_prefix
-           (string_to_flat_form s rev)
-           (string_to_flat_form t rev))
+      ($str_strip_prefix
+           ($str_to_flat_form s rev)
+           ($str_to_flat_form t rev))
       (((@pair ss ts)
           ; take the first character from each side, should give x and y
-          (alf.requires (string_head_or_empty ss) (seq.unit x)
-          (alf.requires (string_head_or_empty ts) (seq.unit y)
+          (alf.requires ($str_head_or_empty ss) (seq.unit x)
+          (alf.requires ($str_head_or_empty ts) (seq.unit y)
               false)))))
 )
 
@@ -202,11 +202,11 @@
   :premises ((>= (str.len s) n))
   :args (b)
   :conclusion (alf.ite b
-                (alf.define ((kp (@purify (skolem_prefix s n)))
-                      (ks (@purify (skolem_suffix_rem s n))))
+                (alf.define ((kp (@purify ($str_skolem_prefix s n)))
+                      (ks (@purify ($str_skolem_suffix_rem s n))))
                 (and (= s (str.++ kp ks)) (= (str.len kp) n)))
-                (alf.define ((kp (@purify ($str_prefix_wo_len s n)))
-                      (ks (@purify ($str_suffix_w_len s n))))
+                (alf.define ((kp (@purify ($str_prefix_rem s n)))
+                      (ks (@purify ($str_suffix s n))))
                 (and (= s (str.++ kp ks)) (= (str.len ks) n)))))
 
 ; rule: string_code_inj
@@ -249,7 +249,7 @@
       (
         ((re.* r1)
             (alf.match ((k1 String) (k2 String) (k3 String) (M Bool :list))
-            (re_unfold_pos_concat t (re.++ r1 r r1))
+            ($re_unfold_pos_concat t (re.++ r1 r r1))
             (((@pair (str.++ k1 k2 k3) M)
                 (or 
                 (= t "") 
@@ -260,7 +260,7 @@
                     (not (= k3 ""))))))))
         ((re.++ r1 r2)
             (alf.match ((tk String) (M Bool :list))
-            (re_unfold_pos_concat t r)
+            ($re_unfold_pos_concat t r)
             (((@pair tk M)
                 (alf.define ((teq (= t tk))) (alf.ite (alf.is_eq M true) teq (and teq M)))))))
     ))
@@ -276,10 +276,10 @@
       (
         ((re.++ r1 r2) (alf.define ((n ($str_fixed_len_re r1)))
                        (alf.ite rev
-                       (or (not (str.in_re ($str_suffix_w_len s n) r1))
-                           (not (str.in_re (skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
-                       (or (not (str.in_re (skolem_prefix s n) r1))
-                           (not (str.in_re (skolem_suffix_rem s n) ($singleton_elim r2)))))))
+                       (or (not (str.in_re ($str_suffix s n) r1))
+                           (not (str.in_re ($str_skolem_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
+                       (or (not (str.in_re ($str_skolem_prefix s n) r1))
+                           (not (str.in_re ($str_skolem_suffix_rem s n) ($singleton_elim r2)))))))
     ))
 )
 
@@ -296,14 +296,14 @@
             (forall ((@var.str_index Int))
               (or (<= @var.str_index 0)
                   (< (str.len t) @var.str_index)
-                  (not (str.in_re (skolem_prefix t @var.str_index) r1))
-                  (not (str.in_re (skolem_suffix_rem t @var.str_index) r))))))
+                  (not (str.in_re ($str_skolem_prefix t @var.str_index) r1))
+                  (not (str.in_re ($str_skolem_suffix_rem t @var.str_index) r))))))
         ((re.++ r1 r2)
           (forall ((@var.str_index Int))
             (or (< @var.str_index 0)
                 (< (str.len t) @var.str_index)
-                (not (str.in_re (skolem_prefix t @var.str_index) r1))
-                (not (str.in_re (skolem_suffix_rem t @var.str_index) ($singleton_elim r2))))))
+                (not (str.in_re ($str_skolem_prefix t @var.str_index) r1))
+                (not (str.in_re ($str_skolem_suffix_rem t @var.str_index) ($singleton_elim r2))))))
     ))
 )
 
@@ -311,12 +311,12 @@
 
 (declare-rule string_reduction ((U Type) (s U))
   :args (s)
-  :conclusion (and (string_reduction_pred s) (= s (@purify s)))
+  :conclusion (and ($str_reduction_pred s) (= s (@purify s)))
 )
 
 (declare-rule string_eager_reduction ((U Type) (s U))
   :args (s)
-  :conclusion (mk_string_eager_reduction s)
+  :conclusion ($mk_str_eager_reduction s)
 )
 
 ;;-------------------- Instances of THEORY_REWRITE
