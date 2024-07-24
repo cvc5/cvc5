@@ -706,6 +706,7 @@ set(regress_0_tests
   regress0/datatypes/list-bool.smt2
   regress0/datatypes/list-update.smt2
   regress0/datatypes/list-update-sat.smt2
+  regress0/datatypes/model-semi-eval.smt2
   regress0/datatypes/model-subterms-min.smt2
   regress0/datatypes/mutual-rec-param-dt.smt2
   regress0/datatypes/mutually-recursive.cvc.smt2
