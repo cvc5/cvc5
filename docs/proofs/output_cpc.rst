@@ -1,7 +1,7 @@
 Proof format: Cooperating Proof Calculus
 ========================================
 
-Using the flag :ref:`proof-format-mode=cpc <lbl-option-proof-format-mode>`, cvc5
+Using option :ref:`proof-format-mode=cpc <lbl-option-proof-format-mode>`, cvc5
 outputs proofs in the Cooperating Proof Calculus proof format.
 
 This calculus was designed to faithfully represent cvc5's internal reasoning.
@@ -12,11 +12,10 @@ can appear together.
 A comprehensive list of these differences can be found in the Eunoia definition
 of CPC, as described below.
 
-An efficient C++ proof checker (Ethos) is available
-`here <https://github.com/cvc5/ethos>`_ which can check proofs in the CPC
-format.
+`Ethos <https://github.com/cvc5/ethos>`_, an efficient proof checker written in C++
+allows to check proofs in the CPC format.
 For a quick start, the cvc5 repository contains a
-:cvc5repo:`script <contrib/get-ethos-checker>` which will download and install
+:cvc5repo:`script <contrib/get-ethos-checker>` to download and install
 the Ethos checker, and create scripts for generating proofs with cvc5 and
 checking them with the Ethos proof checker.
 
