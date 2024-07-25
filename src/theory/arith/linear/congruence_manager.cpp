@@ -363,10 +363,10 @@ bool ArithCongruenceManager::propagate(TNode x){
     Node conf = expC.andNode(neg);
     Node finalPf = flattenAnd(conf);
 
-    ++(d_statistics.d_conflicts);      
+    ++(d_statistics.d_conflicts);
     if (isProofEnabled())
     {
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> conj(finalPf.begin(), finalPf.end());
       CDProof cdp(d_env);
       Node falsen = nm->mkConst(false);
@@ -379,7 +379,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       cdp.addStep(proven[1], ProofRule::MODUS_PONENS, {antec, proven}, {});
       std::shared_ptr<ProofNode> pf;
       bool success = false;
-      if (neg.getKind()==Kind::NOT && neg[0]==proven[1])
+      if (neg.getKind() == Kind::NOT && neg[0] == proven[1])
       {
         cdp.addStep(falsen, ProofRule::CONTRA, {proven[1], neg}, {});
         success = true;
@@ -387,12 +387,16 @@ bool ArithCongruenceManager::propagate(TNode x){
       else
       {
         Node peq;
-        if (proven[1].getKind()==Kind::EQUAL)
+        if (proven[1].getKind() == Kind::EQUAL)
         {
-          peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0]) : proven[1];
+          peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
+                                       : proven[1];
           if (peq[1].isConst())
           {
-            cdp.addStep(falsen, ProofRule::MACRO_SR_PRED_TRANSFORM, {neg, peq}, {falsen});
+            cdp.addStep(falsen,
+                        ProofRule::MACRO_SR_PRED_TRANSFORM,
+                        {neg, peq},
+                        {falsen});
             success = true;
           }
         }
@@ -402,14 +406,15 @@ bool ArithCongruenceManager::propagate(TNode x){
         cdp.addStep(finalPfNeg, ProofRule::SCOPE, {falsen}, conj);
         pf = cdp.getProofFor(finalPfNeg);
       }
-      AlwaysAssert(pf!=nullptr) << "Failed from " << neg << " " << proven[1];
+      AlwaysAssert(pf != nullptr) << "Failed from " << neg << " " << proven[1];
       raiseConflict(finalPf, pf);
     }
     else
     {
       raiseConflict(finalPf);
     }
-    Trace("arith::congruenceManager") << "congruenceManager found a conflict " << finalPf << std::endl;
+    Trace("arith::congruenceManager")
+        << "congruenceManager found a conflict " << finalPf << std::endl;
     return false;
   }
 
