@@ -210,11 +210,10 @@ void TheoryDatatypes::postCheck(Effort level)
       {
         return;
       }
-    } while (d_im.hasSentFact());
-
-    //check for splits
-    Trace("datatypes-debug") << "Check for splits " << endl;
-    do {
+      else if (d_im.hasSentFact())
+      {
+        continue;
+      }
       d_im.reset();
       // check for splits
       checkSplit();
