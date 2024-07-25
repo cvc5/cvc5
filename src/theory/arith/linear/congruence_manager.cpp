@@ -393,13 +393,11 @@ bool ArithCongruenceManager::propagate(TNode x){
         // otherwise typically proven[1] is of the form (= t c) or (= c t) where
         // neg is of the form (not (>= t c')).
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
-                                      : proven[1];
+                                          : proven[1];
         if (peq[1].isConst())
         {
-          cdp.addStep(falsen,
-                      ProofRule::MACRO_SR_PRED_TRANSFORM,
-                      {neg, peq},
-                      {falsen});
+          cdp.addStep(
+              falsen, ProofRule::MACRO_SR_PRED_TRANSFORM, {neg, peq}, {falsen});
           success = true;
         }
       }
