@@ -366,6 +366,9 @@ bool ArithCongruenceManager::propagate(TNode x){
     ++(d_statistics.d_conflicts);
     if (isProofEnabled())
     {
+      // we have a proof of (=> C L1) and need a proof of
+      // (not (and C L2)), where L1 and L2 are contradictory literals,
+      // stored in proven[1] and neg respectively below.
       NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> conj(finalPf.begin(), finalPf.end());
       CDProof cdp(d_env);
@@ -381,24 +384,23 @@ bool ArithCongruenceManager::propagate(TNode x){
       bool success = false;
       if (neg.getKind() == Kind::NOT && neg[0] == proven[1])
       {
+        // L1 and L2 are negation of one another, just use CONTRA
         cdp.addStep(falsen, ProofRule::CONTRA, {proven[1], neg}, {});
         success = true;
       }
-      else
+      else if (proven[1].getKind() == Kind::EQUAL)
       {
-        Node peq;
-        if (proven[1].getKind() == Kind::EQUAL)
+        // otherwise typically proven[1] is of the form (= t c) or (= c t) where
+        // neg is of the form (not (>= t c')).
+        Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
+                                      : proven[1];
+        if (peq[1].isConst())
         {
-          peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
-                                       : proven[1];
-          if (peq[1].isConst())
-          {
-            cdp.addStep(falsen,
-                        ProofRule::MACRO_SR_PRED_TRANSFORM,
-                        {neg, peq},
-                        {falsen});
-            success = true;
-          }
+          cdp.addStep(falsen,
+                      ProofRule::MACRO_SR_PRED_TRANSFORM,
+                      {neg, peq},
+                      {falsen});
+          success = true;
         }
       }
       if (success)
@@ -406,7 +408,7 @@ bool ArithCongruenceManager::propagate(TNode x){
         cdp.addStep(finalPfNeg, ProofRule::SCOPE, {falsen}, conj);
         pf = cdp.getProofFor(finalPfNeg);
       }
-      AlwaysAssert(pf != nullptr) << "Failed from " << neg << " " << proven[1];
+      Assert(pf != nullptr) << "Failed from " << neg << " " << proven[1];
       raiseConflict(finalPf, pf);
     }
     else
