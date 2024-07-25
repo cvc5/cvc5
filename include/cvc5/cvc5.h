@@ -3753,6 +3753,9 @@ namespace cvc5 {
 /* TermManager                                                                */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * A cvc5 term manager.
+ */
 class CVC5_EXPORT TermManager
 {
   friend class Sort;

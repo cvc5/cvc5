@@ -250,6 +250,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
+    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+      return "re-inter-union-inclusion";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
     case ProofRewriteRule::STR_IN_RE_CONSUME: return "str-in-re-consume";
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:

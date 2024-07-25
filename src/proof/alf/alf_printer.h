@@ -22,6 +22,7 @@
 
 #include <iostream>
 
+#include "context/cdhashmap.h"
 #include "expr/node_algorithm.h"
 #include "proof/alf/alf_list_node_converter.h"
 #include "proof/alf/alf_node_converter.h"
@@ -126,14 +127,15 @@ class AlfPrinter : protected EnvObj
   BaseAlfNodeConverter& d_tproc;
   /** Assume id counter */
   size_t d_pfIdCounter;
-  /** Mapping scope proofs to identifiers */
-  std::map<std::pair<const ProofNode*, Node>, size_t> d_ppushMap;
   /** Mapping proofs to identifiers */
   std::map<const ProofNode*, size_t> d_pletMap;
+  /**
+   * Context for d_passumeMap, which is pushed and popped when we encounter
+   * SCOPE proofs.
+   */
+  context::Context d_passumeCtx;
   /** Mapping assumed formulas to identifiers */
-  std::map<Node, size_t> d_passumeMap;
-  /** Maps proof identifiers to nodes */
-  std::map<size_t, Node> d_passumeNodeMap;
+  context::CDHashMap<Node, size_t> d_passumeMap;
   /** The (dummy) type used for proof terms */
   TypeNode d_pfType;
   /** term prefix */

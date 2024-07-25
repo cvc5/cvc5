@@ -82,8 +82,11 @@
 (declare-type @ho-elim-sort (Type))
 (declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
 
-; evaluate, for all theories
-(program run_evaluate ((T Type) (S Type) 
+; program: $run_evaluate
+; args:
+; - t S: The term to evaluate.
+; conclusion: The result of evaluating t.
+(program $run_evaluate ((T Type) (S Type) 
                        (x T) (y T) (z S) (ys S :list)
                        (b Bool) (n Int) (m Int)
                        (xb (BitVec m)) (ybs (BitVec m) :list)
@@ -91,102 +94,106 @@
     (S) S
     (
       ; core
-      ((run_evaluate (= x y))             (alf.define ((ex (run_evaluate x)))
-                                          (alf.define ((ey (run_evaluate y)))
-                                          (alf.define ((res (alf.is_eq ex ey)))
-                                          (alf.ite (alf.and (alf.is_q ex) (alf.is_q ey)) res
-                                          (alf.ite (alf.and (alf.is_z ex) (alf.is_z ey)) res
-                                          (alf.ite (alf.and (alf.is_bin ex) (alf.is_bin ey)) res
-                                          (alf.ite (alf.and (alf.is_str ex) (alf.is_str ey)) res
-                                          (alf.ite (alf.and (alf.is_bool ex) (alf.is_bool ey)) res
-                                            (= ex ey))))))))))
-      ((run_evaluate (not b))             (alf.not (run_evaluate b)))
-      ((run_evaluate (ite b x y))         (alf.ite (run_evaluate b) (run_evaluate x) (run_evaluate y)))
-      ((run_evaluate (or x ys))           (alf.or (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (and x ys))          (alf.and (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (xor x y))           (alf.xor (run_evaluate x) (run_evaluate y)))
+      (($run_evaluate (= x y))             (alf.define ((ex ($run_evaluate x)))
+                                           (alf.define ((ey ($run_evaluate y)))
+                                           (alf.define ((res (alf.is_eq ex ey)))
+                                           (alf.ite (alf.and (alf.is_q ex) (alf.is_q ey)) res
+                                           (alf.ite (alf.and (alf.is_z ex) (alf.is_z ey)) res
+                                           (alf.ite (alf.and (alf.is_bin ex) (alf.is_bin ey)) res
+                                           (alf.ite (alf.and (alf.is_str ex) (alf.is_str ey)) res
+                                           (alf.ite (alf.and (alf.is_bool ex) (alf.is_bool ey)) res
+                                             (= ex ey))))))))))
+      (($run_evaluate (not b))             (alf.not ($run_evaluate b)))
+      (($run_evaluate (ite b x y))         (alf.ite ($run_evaluate b) ($run_evaluate x) ($run_evaluate y)))
+      (($run_evaluate (or x ys))           (alf.or ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (and x ys))          (alf.and ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (xor x y))           (alf.xor ($run_evaluate x) ($run_evaluate y)))
   
       ; arithmetic
-      ((run_evaluate (< x z))             (alf.is_neg ($arith_eval_qsub (run_evaluate x) (run_evaluate z))))
-      ((run_evaluate (<= x z))            (alf.define ((d ($arith_eval_qsub (run_evaluate x) (run_evaluate z))))
-                                            (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
-      ((run_evaluate (> x z))             (alf.is_neg ($arith_eval_qsub (run_evaluate z) (run_evaluate x))))
-      ((run_evaluate (>= x z))            (alf.define ((d ($arith_eval_qsub (run_evaluate z) (run_evaluate x))))
-                                            (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
-      ((run_evaluate (+ x ys))            ($arith_eval_add (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (- x z))             ($arith_eval_sub (run_evaluate x) (run_evaluate z)))
-      ((run_evaluate (* x ys))            ($arith_eval_mul (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (- x))               (alf.neg (run_evaluate x)))
-      ((run_evaluate (/ x y))             (alf.qdiv (alf.to_q (run_evaluate x)) (alf.to_q (run_evaluate y))))
-      ((run_evaluate (/_total x y))       (alf.define ((d (alf.to_q (run_evaluate y))))
-                                            (alf.ite (alf.is_eq d 0/1) 0/1 (alf.qdiv (alf.to_q (run_evaluate x)) d))))
-      ((run_evaluate (div x y))           (alf.zdiv (run_evaluate x) (run_evaluate y)))
-      ((run_evaluate (div_total x y))     (alf.define ((d (run_evaluate y)))
-                                            (alf.ite (alf.is_eq d 0) 0 (alf.zdiv (run_evaluate x) d))))
-      ((run_evaluate (mod x y))           (alf.zmod (run_evaluate x) (run_evaluate y)))
-      ((run_evaluate (mod_total x y))     (alf.define ((d (run_evaluate y)))
-                                            (alf.ite (alf.is_eq d 0) 0 (alf.zmod (run_evaluate x) d))))
-      ((run_evaluate (to_real x))         (alf.to_q (run_evaluate x)))
-      ((run_evaluate (to_int x))          (alf.to_z (run_evaluate x)))
-      ((run_evaluate (is_int x))          (alf.is_eq (alf.to_q (alf.to_z x)) (alf.to_q x)))
+      (($run_evaluate (< x z))             (alf.is_neg ($arith_eval_qsub ($run_evaluate x) ($run_evaluate z))))
+      (($run_evaluate (<= x z))            (alf.define ((d ($arith_eval_qsub ($run_evaluate x) ($run_evaluate z))))
+                                             (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
+      (($run_evaluate (> x z))             (alf.is_neg ($arith_eval_qsub ($run_evaluate z) ($run_evaluate x))))
+      (($run_evaluate (>= x z))            (alf.define ((d ($arith_eval_qsub ($run_evaluate z) ($run_evaluate x))))
+                                             (alf.or (alf.is_neg d) (alf.is_eq d 0/1))))
+      (($run_evaluate (+ x ys))            ($arith_eval_add ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (- x z))             ($arith_eval_sub ($run_evaluate x) ($run_evaluate z)))
+      (($run_evaluate (* x ys))            ($arith_eval_mul ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (- x))               (alf.neg ($run_evaluate x)))
+      (($run_evaluate (/ x y))             (alf.qdiv (alf.to_q ($run_evaluate x)) (alf.to_q ($run_evaluate y))))
+      (($run_evaluate (/_total x y))       (alf.define ((d (alf.to_q ($run_evaluate y))))
+                                            (alf.ite (alf.is_eq d 0/1) 0/1 (alf.qdiv (alf.to_q ($run_evaluate x)) d))))
+      (($run_evaluate (div x y))           (alf.zdiv ($run_evaluate x) ($run_evaluate y)))
+      (($run_evaluate (div_total x y))     (alf.define ((d ($run_evaluate y)))
+                                             (alf.ite (alf.is_eq d 0) 0 (alf.zdiv ($run_evaluate x) d))))
+      (($run_evaluate (mod x y))           (alf.zmod ($run_evaluate x) ($run_evaluate y)))
+      (($run_evaluate (mod_total x y))     (alf.define ((d ($run_evaluate y)))
+                                             (alf.ite (alf.is_eq d 0) 0 (alf.zmod ($run_evaluate x) d))))
+      (($run_evaluate (to_real x))         (alf.to_q ($run_evaluate x)))
+      (($run_evaluate (to_int x))          (alf.to_z ($run_evaluate x)))
+      (($run_evaluate (is_int x))          (alf.is_eq (alf.to_q (alf.to_z x)) (alf.to_q x)))
 
 
       ; strings
-      ((run_evaluate (str.++ xs yss))     (alf.concat (run_evaluate xs) (run_evaluate yss)))
-      ((run_evaluate (str.len x))         (alf.len (run_evaluate x)))
-      ((run_evaluate (str.substr x n m))  (alf.define ((r (run_evaluate n)))
-                                            (alf.extract (run_evaluate x) r (alf.add r (run_evaluate m) -1))))
-      ((run_evaluate (str.contains x y))  (alf.not (alf.is_neg (alf.find (run_evaluate x) (run_evaluate y)))))
-      ((run_evaluate (str.replace x y z)) (alf.define ((ex (run_evaluate x)))
-                                          (alf.define ((ey (run_evaluate y)))
-                                          (alf.define ((r (alf.find (alf.to_str ex) (alf.to_str ey)))) ; ensure string literals
-                                            (alf.ite (alf.is_neg r)
-                                              ex
-                                              (alf.concat 
-                                                (alf.extract ex 0 (alf.add r -1)) 
-                                                (run_evaluate z) 
-                                                (alf.extract ex (alf.add r (alf.len ey)) (alf.len ex)))
-                                            )
-                                          ))))
-      ((run_evaluate (str.indexof x y n)) (alf.define ((en (run_evaluate n)))
-                                          (alf.ite (alf.is_neg en) -1
-                                            (alf.define ((ex (run_evaluate x)))
-                                            (alf.define ((exl (alf.len ex)))
-                                            (alf.ite (alf.gt en exl) -1
-                                              (alf.define ((exs (alf.extract ex n exl)))
-                                              (alf.define ((ey (run_evaluate y)))
-                                              (alf.define ((r (alf.find (alf.to_str exs) (alf.to_str ey))))
-                                              (alf.ite (alf.is_neg r) r (alf.add n r)))))))))))
-      ((run_evaluate (str.to_code x))     (alf.define ((ex (run_evaluate x)))
-                                          (alf.ite (alf.is_eq (alf.len ex) 1) (alf.to_z ex) -1)))
-      ((run_evaluate (str.from_code x))   (alf.define ((ex (run_evaluate x)))
-                                          (alf.ite ($str_is_code_point ex) (alf.to_str x) "")))
+      (($run_evaluate (str.++ xs yss))     (alf.concat ($run_evaluate xs) ($run_evaluate yss)))
+      (($run_evaluate (str.len x))         (alf.len ($run_evaluate x)))
+      (($run_evaluate (str.substr x n m))  (alf.define ((r ($run_evaluate n)))
+                                             (alf.extract ($run_evaluate x) r (alf.add r ($run_evaluate m) -1))))
+      (($run_evaluate (str.contains x y))  (alf.not (alf.is_neg (alf.find ($run_evaluate x) ($run_evaluate y)))))
+      (($run_evaluate (str.replace x y z)) (alf.define ((ex ($run_evaluate x)))
+                                           (alf.define ((ey ($run_evaluate y)))
+                                           (alf.define ((r (alf.find (alf.to_str ex) (alf.to_str ey)))) ; ensure string literals
+                                             (alf.ite (alf.is_neg r)
+                                               ex
+                                               (alf.concat 
+                                                 (alf.extract ex 0 (alf.add r -1)) 
+                                                 ($run_evaluate z) 
+                                                 (alf.extract ex (alf.add r (alf.len ey)) (alf.len ex)))
+                                             )
+                                           ))))
+      (($run_evaluate (str.indexof x y n)) (alf.define ((en ($run_evaluate n)))
+                                           (alf.ite (alf.is_neg en) -1
+                                             (alf.define ((ex ($run_evaluate x)))
+                                             (alf.define ((exl (alf.len ex)))
+                                             (alf.ite (alf.gt en exl) -1
+                                               (alf.define ((exs (alf.extract ex n exl)))
+                                               (alf.define ((ey ($run_evaluate y)))
+                                               (alf.define ((r (alf.find (alf.to_str exs) (alf.to_str ey))))
+                                               (alf.ite (alf.is_neg r) r (alf.add n r)))))))))))
+      (($run_evaluate (str.to_code x))     (alf.define ((ex ($run_evaluate x)))
+                                             (alf.ite (alf.is_eq (alf.len ex) 1) (alf.to_z ex) -1)))
+      (($run_evaluate (str.from_code x))   (alf.define ((ex ($run_evaluate x)))
+                                             (alf.ite ($str_is_code_point ex) (alf.to_str x) "")))
 
       ; bitvectors
-      ((run_evaluate (bvnot xb))          (alf.not (run_evaluate xb)))
-      ((run_evaluate (bvneg xb))          (alf.neg (run_evaluate xb)))
-      ((run_evaluate (bvadd xb ybs))      (alf.add (run_evaluate xb) (run_evaluate ybs)))
-      ((run_evaluate (bvmul xb ybs))      (alf.mul (run_evaluate xb) (run_evaluate ybs)))
-      ((run_evaluate (bvand xb ybs))      (alf.and (run_evaluate xb) (run_evaluate ybs)))
-      ((run_evaluate (bvor xb ybs))       (alf.or (run_evaluate xb) (run_evaluate ybs)))
-      ((run_evaluate (concat x ys))       (alf.concat (run_evaluate x) (run_evaluate ys)))
-      ((run_evaluate (bvsub x y))         (alf.add (run_evaluate x) (alf.neg (run_evaluate y))))
-      ((run_evaluate (extract m n x))     (alf.extract (run_evaluate x) n m)) ; note swap n/m
-      ((run_evaluate (bvult x y))         (run_evaluate (< (alf.to_z x) (alf.to_z y))))
-      ((run_evaluate (bvule x y))         (run_evaluate (<= (alf.to_z x) (alf.to_z y))))
-      ((run_evaluate (bvugt x y))         (run_evaluate (> (alf.to_z x) (alf.to_z y))))
-      ((run_evaluate (bvuge x y))         (run_evaluate (>= (alf.to_z x) (alf.to_z y))))
-      ((run_evaluate (@bv n m))           (alf.to_bin (run_evaluate m) (run_evaluate n)))
-      ((run_evaluate (@bvsize x))         ($bv_bitwidth (alf.typeof x)))
+      (($run_evaluate (bvnot xb))          (alf.not ($run_evaluate xb)))
+      (($run_evaluate (bvneg xb))          (alf.neg ($run_evaluate xb)))
+      (($run_evaluate (bvadd xb ybs))      (alf.add ($run_evaluate xb) ($run_evaluate ybs)))
+      (($run_evaluate (bvmul xb ybs))      (alf.mul ($run_evaluate xb) ($run_evaluate ybs)))
+      (($run_evaluate (bvand xb ybs))      (alf.and ($run_evaluate xb) ($run_evaluate ybs)))
+      (($run_evaluate (bvor xb ybs))       (alf.or ($run_evaluate xb) ($run_evaluate ybs)))
+      (($run_evaluate (concat x ys))       (alf.concat ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (bvsub x y))         (alf.add ($run_evaluate x) (alf.neg ($run_evaluate y))))
+      (($run_evaluate (extract m n x))     (alf.extract ($run_evaluate x) n m)) ; note swap n/m
+      (($run_evaluate (bvult x y))         ($run_evaluate (< (alf.to_z x) (alf.to_z y))))
+      (($run_evaluate (bvule x y))         ($run_evaluate (<= (alf.to_z x) (alf.to_z y))))
+      (($run_evaluate (bvugt x y))         ($run_evaluate (> (alf.to_z x) (alf.to_z y))))
+      (($run_evaluate (bvuge x y))         ($run_evaluate (>= (alf.to_z x) (alf.to_z y))))
+      (($run_evaluate (@bv n m))           (alf.to_bin ($run_evaluate m) ($run_evaluate n)))
+      (($run_evaluate (@bvsize x))         ($bv_bitwidth (alf.typeof x)))
   
-      ((run_evaluate z)                   z)
+      (($run_evaluate z)                   z)
     )
 )
 
-; ProofRule::EVALUATE
+; rule: evaluate
+; implements: ProofRule::EVALUATE
+; args:
+; - t U: The term to evaluate.
+; conclusion: The term t is equal to what it evaluates to.
 (declare-rule evaluate ((U Type) (t U))
   :args (t)
-  :conclusion (= t (run_evaluate t))
+  :conclusion (= t ($run_evaluate t))
 )
 
 ; rule: arith_poly_norm
@@ -226,7 +233,7 @@
     (($is_poly_norm_rel (<= cx cy)) (alf.is_eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel (= cx cy))  (alf.ite (alf.and (alf.is_bin cx) (alf.is_bin cy))
                                       (alf.and (= cx (alf.to_bin (alf.len cx) 1)) (= cy (alf.to_bin (alf.len cy) 1)))
-                                      (alf.and (is_arith_type (alf.typeof cx)) (is_arith_type (alf.typeof cy)))))
+                                      (alf.and ($is_arith_type (alf.typeof cx)) ($is_arith_type (alf.typeof cy)))))
     (($is_poly_norm_rel (>= cx cy)) (alf.is_eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel (> cx cy))  (alf.is_eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel b)          false)
@@ -319,4 +326,5 @@
     :premise-list P and
     :args (F)
     :conclusion F
+    :sorry
 )
