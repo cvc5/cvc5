@@ -509,7 +509,7 @@
 ;     (and (= x (str.++ t1 ... tn)) M)
 ;   We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
 ;   application of the unfolding skolem program @re_unfold_pos_component.
-; note:  A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
+; note: A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
 (program $re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
   (String RegLan RegLan Int) (@Pair String Bool)
   (
@@ -734,7 +734,7 @@
 
 ; program: $str_overlap_rec
 ; args:
-; - nil (Seq U): The empty strnig.
+; - nil (Seq U): The empty string.
 ; - s (Seq U): The first string, expected to be in flattened form.
 ; - t (Seq U): The second string, expected to be in flattened form.
 ; return: >
@@ -914,7 +914,7 @@
 ;   (2) (optionally) reverse,
 ;   (3) convert the strings s occurring as direct children (str.to_re s) of the
 ;   result to their flat form. Note that other strings in r, i.e. those that
-;   occur benath other children remain unchanged.
+;   occur beneath other children remain unchanged.
 (define $re_to_flat_form ((r RegLan) (rev Bool))
   ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
 )
