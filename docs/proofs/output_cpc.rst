@@ -12,8 +12,8 @@ can appear together.
 A comprehensive list of these differences can be found in the Eunoia definition
 of CPC, as described below.
 
-`Ethos <https://github.com/cvc5/ethos>`_, an efficient proof checker written in C++
-allows to check proofs in the CPC format.
+`Ethos <https://github.com/cvc5/ethos>`_ is an efficient proof checker written
+in C++ which can check proofs in the CPC format.
 For a quick start, the cvc5 repository contains a
 :cvc5repo:`script <contrib/get-ethos-checker>` to download and install
 the Ethos checker, and create scripts for generating proofs with cvc5 and
