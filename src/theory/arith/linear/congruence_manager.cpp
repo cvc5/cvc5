@@ -361,11 +361,55 @@ bool ArithCongruenceManager::propagate(TNode x){
     ConstraintCP negC = c->getNegation();
     Node neg = Constraint::externalExplainByAssertions({negC});
     Node conf = expC.andNode(neg);
-    Node final = flattenAnd(conf);
+    Node finalPf = flattenAnd(conf);
 
-    ++(d_statistics.d_conflicts);
-    raiseConflict(final);
-    Trace("arith::congruenceManager") << "congruenceManager found a conflict " << final << std::endl;
+    ++(d_statistics.d_conflicts);      
+    if (isProofEnabled())
+    {
+      NodeManager * nm = NodeManager::currentNM();
+      std::vector<Node> conj(finalPf.begin(), finalPf.end());
+      CDProof cdp(d_env);
+      Node falsen = nm->mkConst(false);
+      Node finalPfNeg = finalPf.notNode();
+      cdp.addProof(texpC.toProofNode());
+      Node proven = texpC.getProven();
+      Node antec = proven[0];
+      std::vector<Node> antecc(antec.begin(), antec.end());
+      cdp.addStep(antec, ProofRule::AND_INTRO, antecc, {});
+      cdp.addStep(proven[1], ProofRule::MODUS_PONENS, {antec, proven}, {});
+      std::shared_ptr<ProofNode> pf;
+      bool success = false;
+      if (neg.getKind()==Kind::NOT && neg[0]==proven[1])
+      {
+        cdp.addStep(falsen, ProofRule::CONTRA, {proven[1], neg}, {});
+        success = true;
+      }
+      else
+      {
+        Node peq;
+        if (proven[1].getKind()==Kind::EQUAL)
+        {
+          peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0]) : proven[1];
+          if (peq[1].isConst())
+          {
+            cdp.addStep(falsen, ProofRule::MACRO_SR_PRED_TRANSFORM, {neg, peq}, {falsen});
+            success = true;
+          }
+        }
+      }
+      if (success)
+      {
+        cdp.addStep(finalPfNeg, ProofRule::SCOPE, {falsen}, conj);
+        pf = cdp.getProofFor(finalPfNeg);
+      }
+      AlwaysAssert(pf!=nullptr) << "Failed from " << neg << " " << proven[1];
+      raiseConflict(finalPf, pf);
+    }
+    else
+    {
+      raiseConflict(finalPf);
+    }
+    Trace("arith::congruenceManager") << "congruenceManager found a conflict " << finalPf << std::endl;
     return false;
   }
 
