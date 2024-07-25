@@ -29,9 +29,8 @@ cvc5 1.2.0
     - Unsat cores and proofs are now available via the `Solver` methods
       `unsat_core()` and `proof()`, respectively.
 
-- The default proof format of cvc5 has been renamed to the **Cooperating Proof Calculus (CPC) proof format**
-  (formerly called **AletheLF**). This proof format coincides with
-  proof objects in our API.
+- The default proof format of cvc5 has been renamed to the **Cooperating Proof Calculus (CPC) proof format**.
+  This proof format coincides with proof objects in our API.
   * **API**
     + The option `--proof-format=cpc` prints proofs in the CPC format.
       This option is now enabled by default.
@@ -39,7 +38,7 @@ cvc5 1.2.0
     `./contrib/get-ethos-checker`, which can check proofs in this format.
     This checker is the second generation of the the AletheLF checker (`alfc`).
     Ethos inherits the code base of alfc and is based on a logical
-    framework called Eunoia.
+    framework called Eunoia (formerly called **AletheLF**).
   * The rules of this format have been formalized in Eunoia and are available
     in the cvc5 repository under the directory `./proofs/eo/cpc/`.
 
