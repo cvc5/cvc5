@@ -391,7 +391,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       else if (proven[1].getKind() == Kind::EQUAL)
       {
         // otherwise typically proven[1] is of the form (= t c) or (= c t) where
-        // neg is of the form (not (>= t c')).
+        // neg is the (negation of) a relation involving t.
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
                                           : proven[1];
         if (peq[1].isConst())
