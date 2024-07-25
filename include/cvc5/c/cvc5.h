@@ -3483,7 +3483,7 @@ typedef enum
  *
  * \endverbatim
  */
-struct CVC5_EXPORT Cvc5OptionInfo
+struct Cvc5OptionInfo
 {
   /** The kind of the option info. */
   Cvc5OptionInfoKind kind;
@@ -3608,7 +3608,7 @@ CVC5_EXPORT const char* cvc5_option_info_to_string(const Cvc5OptionInfo* info);
 /**
  * A cvc5 plugin.
  */
-struct CVC5_EXPORT Cvc5Plugin
+struct Cvc5Plugin
 {
   /**
    * Call to check, return list of lemmas to add to the SAT solver.
