@@ -65,17 +65,6 @@ TrustNode Skolemize::process(Node q)
     // if using proofs and not using induction, we use the justified
     // skolemization
     NodeManager* nm = NodeManager::currentNM();
-    if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
-    {
-      // given how skolems are built in Alethe, we need to be able to
-      // retrieve the Skolem from a quantifier and in the post-processing
-      // the quantifier being skolemized may not have attributes that would
-      // be present here still. So to define the Skolem, we do it in terms
-      // only of the logical formula, excluding extra-logical information.
-      std::vector<Node> qchildren(q.begin(), q.begin() + 2);
-      qchildren[1] = qchildren[1].notNode();
-      q = nm->mkNode(Kind::FORALL, qchildren);
-    }
     // cache the skolems in d_skolem_constants[q]
     std::vector<Node>& skolems = d_skolem_constants[q];
     skolems = getSkolemConstants(q);

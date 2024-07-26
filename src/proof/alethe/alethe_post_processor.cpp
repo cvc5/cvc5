@@ -1402,28 +1402,15 @@ bool AletheProofPostprocessCallback::update(Node res,
       bool success = true;
       AletheRule skoRule;
       bool isExists;
-      Node quant, skolemized;
-      if (children[0].getKind() == Kind::EXISTS)
-      {
-        isExists = true;
-        skoRule = AletheRule::ANCHOR_SKO_EX;
-        quant = children[0];
-        skolemized = res;
-      }
-      else
-      {
-        isExists = false;
-        skoRule = AletheRule::ANCHOR_SKO_FORALL;
-        quant = children[0][0];
-        skolemized = res[0];
-      }
-      // add rfl step for final replacement
+      Node quant = children[0][0], skolemized = res[0];
+      Assert(children[0].getKind() == Kind::NOT && children[0][0].getKind() == Kind::FORALL);
       Node conv = d_anc.maybeConvert(quant[1].eqNode(skolemized));
       if (conv.isNull())
       {
         *d_reasonForConversionFailure = d_anc.getError();
         return false;
       }
+      // add rfl step for final replacement
       Node premise = nm->mkNode(Kind::SEXPR, d_cl, conv);
       success &=
           addAletheStep(AletheRule::REFL, premise, premise, {}, {}, *cdp);
@@ -1436,9 +1423,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         // Make the Skolem corresponding to this variable and retrieve its
         // conversion from the node converter
         Node v = quant[0][i];
-        Node q = nm->mkNode(
-            Kind::EXISTS, quant[0], isExists ? quant[1] : quant[1].notNode());
-        std::vector<Node> cacheVals{q, v};
+        std::vector<Node> cacheVals{quant, v};
         Node sk =
             sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, cacheVals);
         Assert(!sk.isNull());
@@ -1456,7 +1441,7 @@ bool AletheProofPostprocessCallback::update(Node res,
           Kind::SEXPR, d_cl, d_anc.convert(quant.eqNode(skolemized)));
       // add the sko step
       success &= addAletheStep(
-          skoRule, conclusion, conclusion, {premise}, skoSubstitutions, *cdp);
+          AletheRule::ANCHOR_SKO_FORALL, conclusion, conclusion, {premise}, skoSubstitutions, *cdp);
       // add congruence step with NOT for the forall case
       if (!isExists)
       {
