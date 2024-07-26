@@ -216,6 +216,7 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_EXTF_D_N:
     case InferenceId::STRINGS_I_CONST_CONFLICT:
     case InferenceId::STRINGS_UNIT_CONST_CONFLICT:
+    case InferenceId::STRINGS_ARITH_BOUND_CONFLICT:
     {
       if (!ps.d_children.empty())
       {
@@ -647,6 +648,13 @@ void InferProofCons::convert(InferenceId infer,
           Trace("strings-ipc-deq")
               << "...main conclusion is " << mainConc << std::endl;
           useBuffer = (mainConc == conc);
+          if (!useBuffer)
+          {
+            // Should be made equal by transformation. This step is necessary
+            // if rewriting was used to change the skolem introduced in the
+            // conclusion.
+            useBuffer = psb.applyPredTransform(mainConc, conc, {});
+          }
           Trace("strings-ipc-deq")
               << "...success is " << useBuffer << std::endl;
         }
@@ -842,6 +850,7 @@ void InferProofCons::convert(InferenceId infer,
     break;
     // ========================== prefix conflict
     case InferenceId::STRINGS_PREFIX_CONFLICT:
+    case InferenceId::STRINGS_PREFIX_CONFLICT_MIN:
     {
       Trace("strings-ipc-prefix") << "Prefix conflict..." << std::endl;
       std::vector<Node> eqs;
@@ -904,13 +913,26 @@ void InferProofCons::convert(InferenceId infer,
       }
       // connect via transitivity
       Node curr = eqs[0];
+      std::vector<Node> subs;
       for (size_t i = 1, esize = eqs.size(); i < esize; i++)
       {
         Node prev = curr;
-        curr = convertTrans(curr, eqs[1], psb);
+        curr = convertTrans(curr, eqs[i], psb);
+        // if it is not a transitive step, it corresponds to a substitution
         if (curr.isNull())
         {
-          break;
+          curr = prev;
+          // orient the substitution properly
+          if (!eqs[i][1].isConst()
+              && eqs[i][1].getKind() != Kind::STRING_CONCAT)
+          {
+            subs.push_back(eqs[i][1].eqNode(eqs[i][0]));
+          }
+          else
+          {
+            subs.push_back(eqs[i]);
+          }
+          continue;
         }
         Trace("strings-ipc-prefix") << "- Via trans: " << curr << std::endl;
       }
@@ -918,14 +940,16 @@ void InferProofCons::convert(InferenceId infer,
       {
         break;
       }
+      // substitution is applied in reverse order
+      AlwaysAssert(false);
+      std::reverse(subs.begin(), subs.end());
       Trace("strings-ipc-prefix")
           << "- Possible conflicting equality : " << curr << std::endl;
-      std::vector<Node> emp;
       Node concE = psb.applyPredElim(curr,
-                                     emp,
+                                     subs,
                                      MethodId::SB_DEFAULT,
                                      MethodId::SBA_SEQUENTIAL,
-                                     MethodId::RW_REWRITE_EQ_EXT);
+                                     MethodId::RW_EXT_REWRITE);
       Trace("strings-ipc-prefix")
           << "- After pred elim: " << concE << std::endl;
       if (concE == conc)
