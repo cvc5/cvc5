@@ -178,9 +178,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
     if (opts.proof.proofGranularityMode
         < options::ProofGranularityMode::THEORY_REWRITE)
     {
-      SET_AND_NOTIFY(proof, proofGranularityMode,
-                        options::ProofGranularityMode::THEORY_REWRITE,
-                        "enabling proofs");
+      SET_AND_NOTIFY(proof,
+                     proofGranularityMode,
+                     options::ProofGranularityMode::THEORY_REWRITE,
+                     "enabling proofs");
     }
     // unsat cores are available due to proofs being enabled
     if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
