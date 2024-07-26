@@ -940,8 +940,13 @@ void InferProofCons::convert(InferenceId infer,
       {
         break;
       }
-      // substitution is applied in reverse order
-      AlwaysAssert(false);
+      // Substitution is applied in reverse order
+      // An example of this inference that uses a substituion is the conflict:
+      //  (str.in_re w (re.++ (re.* re.allchar) (str.to_re "ABC")))
+      //  (= w (str.++ z y x))
+      //  (= x "D")
+      // where we apply w -> (str.++ z y x), then x -> "D" to the first
+      // predicate to obtain a conflict by rewriting (predicate elim).
       std::reverse(subs.begin(), subs.end());
       Trace("strings-ipc-prefix")
           << "- Possible conflicting equality : " << curr << std::endl;
