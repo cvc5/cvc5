@@ -75,6 +75,18 @@ Node AletheNodeConverter::postConvert(Node n)
     {
       return n[0];
     }
+    case Kind::DIVISION_TOTAL:
+    {
+      return nm->mkNode(Kind::DIVISION, n[0], n[1]);
+    }
+    case Kind::INTS_DIVISION_TOTAL:
+    {
+      return nm->mkNode(Kind::INTS_DIVISION, n[0], n[1]);
+    }
+    case Kind::INTS_MODULUS_TOTAL:
+    {
+      return nm->mkNode(Kind::INTS_MODULUS, n[0], n[1]);
+    }
     case Kind::SKOLEM:
     {
       Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
