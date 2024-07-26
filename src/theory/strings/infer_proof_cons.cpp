@@ -1179,7 +1179,7 @@ Node InferProofCons::convertTrans(Node eqa,
     Node eqaSym = i == 0 ? eqa[1].eqNode(eqa[0]) : eqa;
     for (uint32_t j = 0; j < 2; j++)
     {
-      Node eqbSym = j == 0 ? eqb : eqb[1].eqNode(eqb[1]);
+      Node eqbSym = j == 0 ? eqb : eqb[1].eqNode(eqb[0]);
       if (eqa[i] == eqb[j])
       {
         std::vector<Node> children;
