@@ -326,8 +326,7 @@ void EqEngineManagerCentral::eqNotifyConstantTermMerge(TNode t1, TNode t2)
   }
   Trace("eem-central") << "...explained conflict of " << lit << " ... "
                        << conflict << std::endl;
-  d_sharedSolver.sendConflict(conflict,
-                              InferenceId::EQ_CONSTANT_MERGE);
+  d_sharedSolver.sendConflict(conflict, InferenceId::EQ_CONSTANT_MERGE);
   return;
 }
 
