@@ -1369,38 +1369,34 @@ bool AletheProofPostprocessCallback::update(Node res,
     // See proof_rule.h for documentation on the SKOLEMIZE rule. This
     // comment uses variable names as introduced there.
     //
-    // Either a positive existential or a negative forall is Skolemized. First
-    // step is to build the Alethe skolemization step which introduces a valid
-    // equality:
+    // In cvc5 this is applied solely to terms (not (forall (...)  F)),
+    // concluding (not F*sigma'), where sigma' is the cumulative substitution
+    // built from sigma1...sigma_n, and each sigma_i replaces xi by the choice
+    // term (epsilon ((xi Ti)) (forall ((xi+1 Ti+1) ... (xn+1 Tn+1)) (not
+    // F))). The resulting Alethe Skolemization step is:
     //
-    //                      ---------------- refl
-    //                       (= F F*sigma')
-    //  ----------------------------------------------- anchor_sko_ex, sigma_1,
-    //  sigma_2, ..., sigma_n
-    //   (= (exists ((x1 T1) ... (xn Tn)) F) F*sigma')
+    //            ---------------- refl
+    //             (= F F*sigma')
+    //  ------------------------- anchor_sko_forall, sigma_1, ..., sigma_n
+    //  (= (forall ((x1 T1) ... (xn Tn)) F) F*sigma')
+    // ----------------------------------------------- cong
+    //  (= (not (forall ((x1 T1) ... (xn Tn)) F)) (not F*sigma'))
     //
-    // where sigma' is the cumulative substitution built from sigma1...sigma_n,
-    // and each sigma_i replaces xi by the choice term (epsilon ((xi Ti))
-    // (exists ((xi+1 Ti+1) ... (xn+1 Tn+1)) F)).
-    //
-    // Then, we apply the equivalence elimination reasoning to obtain F*sigma
-    // from the premise:
+    // Then, we eliminate the equality to obtain (not F*sigma) from the premise:
     //
     //  ---------------- equiv_pos2
-    //     VP1              (= (exists (...) F) F*sigma')       (exists (...) F)
+    //     VP1              (= (not (forall (...) F)) (not F*sigma'))    (not (forall (...) F))
     //  ------------------------------------------------------------- resolution
-    //                           F*sigma'
+    //                           (not F*sigma')
     //
     // VP1 :
-    //  (cl (not (= (exists (...) F) F*sigma')) (not (exists (...) F)) F*sigma')
+    //  (cl
+    //    (not (= (not (forall (...) F)) (not F*sigma')))
+    //    (not (not (forall (...) F)))
+    //    (not F*sigma'))
     //
     // Note that F*sigma' is equivalent to F*sigma once its Skolem terms are
     // lifted to choice terms by the node converter.
-    //
-    // The case for negative forall is analagous except the rules are
-    // anchor_sko_forall and the one concluding the desired equivalence is
-    // followed by a congruence step to wrap the equality terms under a
-    // negation, i.e., (not ...).
     case ProofRule::SKOLEMIZE:
     {
       bool success = true;
@@ -1446,7 +1442,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         Node sk =
             sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, cacheVals);
         Assert(!sk.isNull());
-        if (options().proof.proofDefineSkolems)
+        if (options().proof.proofAletheDefineSkolems)
         {
           skoSubstitutions.push_back(quant[0][i].eqNode(sk));
           continue;
