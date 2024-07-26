@@ -1400,8 +1400,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::SKOLEMIZE:
     {
       bool success = true;
-      AletheRule skoRule;
-      bool isExists;
       Node quant = children[0][0], skolemized = res[0];
       Assert(children[0].getKind() == Kind::NOT && children[0][0].getKind() == Kind::FORALL);
       Node conv = d_anc.maybeConvert(quant[1].eqNode(skolemized));
@@ -1443,18 +1441,15 @@ bool AletheProofPostprocessCallback::update(Node res,
       success &= addAletheStep(
           AletheRule::ANCHOR_SKO_FORALL, conclusion, conclusion, {premise}, skoSubstitutions, *cdp);
       // add congruence step with NOT for the forall case
-      if (!isExists)
-      {
-        Node newConclusion = nm->mkNode(
-            Kind::SEXPR, d_cl, (quant.notNode()).eqNode(skolemized.notNode()));
-        success &= addAletheStep(AletheRule::CONG,
-                                 newConclusion,
-                                 newConclusion,
-                                 {conclusion},
-                                 {},
-                                 *cdp);
-        conclusion = newConclusion;
-      }
+      Node newConclusion = nm->mkNode(
+          Kind::SEXPR, d_cl, (quant.notNode()).eqNode(skolemized.notNode()));
+      success &= addAletheStep(AletheRule::CONG,
+                               newConclusion,
+                               newConclusion,
+                               {conclusion},
+                               {},
+                               *cdp);
+      conclusion = newConclusion;
       // now equality resolution reasoning
       Node vp1 = nm->mkNode(
           Kind::SEXPR,

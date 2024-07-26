@@ -122,7 +122,6 @@ Node AletheNodeConverter::postConvert(Node n)
         Assert(cacheVal.getKind() == Kind::SEXPR
                && cacheVal.getNumChildren() == 2);
         Node quant = cacheVal[0];
-        Assert(quant.getKind() == Kind::EXISTS);
         Node var = cacheVal[1];
         uint32_t index = -1;
         for (size_t i = 0, size = quant[0].getNumChildren(); i < size; ++i)
@@ -141,17 +140,16 @@ Node AletheNodeConverter::postConvert(Node n)
         // Skolemization cvc5 will have negated the body of the original
         // quantifier, we need to revert that as well.
         Assert(index < quant[0].getNumChildren());
-        Assert(quant[1].getKind() == Kind::NOT);
         Node body =
-            index == quant[0].getNumChildren() - 1
-                ? quant[1]
-                : nm->mkNode(Kind::FORALL,
-                             nm->mkNode(
-                                 Kind::BOUND_VAR_LIST,
-                                 std::vector<Node>{quant[0].begin() + index + 1,
-                                                   quant[0].end()}),
-                             quant[1][0])
-                      .notNode();
+            (index == quant[0].getNumChildren() - 1
+                 ? quant[1]
+                 : nm->mkNode(
+                     Kind::FORALL,
+                     nm->mkNode(Kind::BOUND_VAR_LIST,
+                                std::vector<Node>{quant[0].begin() + index + 1,
+                                                  quant[0].end()}),
+                     quant[1]))
+                .notNode();
         // we need to replace in the body all the free variables (i.e., from 0
         // to index) by their respective choice terms. To do this, we get
         // the skolems for each of these variables, retrieve their
