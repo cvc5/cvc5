@@ -25,7 +25,7 @@ mkdir -p $EO_DIR
 
 # download and unpack ethos
 ETHOS_VERSION="204968e8cdd884782335481e4e7e967dc5becad9"
-download "https://github.com/cvc5/alfc/archive/$ETHOS_VERSION.tar.gz" $BASE_DIR/tmp/ethos.tgz
+download "https://github.com/cvc5/ethos/archive/$ETHOS_VERSION.tar.gz" $BASE_DIR/tmp/ethos.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/ethos.tgz -C $EO_DIR
 
 # build and install Ethos
