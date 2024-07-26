@@ -100,7 +100,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-granularity=MODE"
   type       = "ProofGranularityMode"
-  default    = "THEORY_REWRITE"
+  default    = "MACRO"
   help       = "modes for proof granularity"
   help_mode  = "Modes for proof granularity."
 [[option.mode.MACRO]]
