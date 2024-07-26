@@ -16,14 +16,14 @@
 (declare pair (! first term (! second term termPair)))
 
 ; Bits, used to represent bit-vectors
-(declare bit type)
-(declare b0 bit)
-(declare b1 bit)
+(declare bvbit type)
+(declare b0 bvbit)
+(declare b1 bvbit)
 
-; A bit-vector, which is a list of bits. Used to represent a value of bit-vector type.
+; A bit-vector, which is a list of bvbit. Used to represent a value of bit-vector type.
 (declare bitvec type)
 (declare bvn bitvec)
-(declare bvc (! b bit (! v bitvec bitvec)))
+(declare bvc (! b bvbit (! v bitvec bitvec)))
 
 ; Returns term t if v1 = v2, and term s otherwise.
 (function mpz_ifequal ((v1 mpz) (v2 mpz) (t term) (s term)) term

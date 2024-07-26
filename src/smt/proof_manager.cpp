@@ -318,7 +318,7 @@ void PfManager::printProof(std::ostream& out,
     options::ProofCheckMode oldMode = options().proof.proofCheck;
     d_pnm->getChecker()->setProofCheckMode(options::ProofCheckMode::NONE);
     std::string reasonForConversionFailure;
-    proof::AletheNodeConverter anc(nodeManager(), options().proof.proofDefineSkolems);
+    proof::AletheNodeConverter anc(nodeManager(), options().proof.proofAletheDefineSkolems);
     proof::AletheProofPostprocess vpfpp(d_env, anc);
     if (vpfpp.process(fp, reasonForConversionFailure))
     {

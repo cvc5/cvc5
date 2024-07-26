@@ -626,7 +626,7 @@ void Constraint::printProofTree(std::ostream& out, size_t depth) const
       bool first = true;
       for (const auto& coeff : *rule.d_farkasCoefficients)
       {
-        if (not first)
+        if (!first)
         {
           out << ", ";
         }

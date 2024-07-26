@@ -40,7 +40,7 @@ class APIExamples(SphinxDirective):
     has_content = True
 
     logger = logging.getLogger(__name__)
-    
+
     srcdir = None
 
     def run(self):

@@ -10,14 +10,6 @@ name   = "Sets Theory"
   help       = "introduce proxy variables eagerly to shorten lemmas"
 
 [[option]]
-  name       = "setsInferAsLemmas"
-  category   = "expert"
-  long       = "sets-infer-as-lemmas"
-  type       = "bool"
-  default    = "true"
-  help       = "send inferences as lemmas"
-
-[[option]]
   name       = "setsExt"
   category   = "regular"
   long       = "sets-ext"

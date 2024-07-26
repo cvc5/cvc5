@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Testing stuff that is not exposed by the python API to fix code coverage
+ * Testing functions that are not exposed by the Python API for code coverage.
  */
 
 #include <cvc5/cvc5_parser.h>
@@ -142,6 +142,8 @@ TEST_F(TestApiBlackUncovered, deprecated)
 
   (void)slv.mkVar(slv.getIntegerSort());
   (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
+
+  (void)parser::SymbolManager(d_solver.get());
 }
 
 TEST_F(TestApiBlackUncovered, exception_getmessage)
@@ -221,7 +223,10 @@ TEST_F(TestApiBlackUncovered, equalHash)
             std::hash<DatatypeSelector>{}(head2));
   ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt1));
   ASSERT_EQ(std::hash<Datatype>{}(dt1), std::hash<Datatype>{}(dt2));
+
+  (void)std::hash<cvc5::Result>{}(cvc5::Result());
 }
+
 TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
 {
   std::stringstream ss;
@@ -259,6 +264,19 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
   ss << std::vector<Term>{x, x};
   ss << std::set<Term>{x, x};
   ss << std::unordered_set<Term>{x, x};
+}
+
+TEST_F(TestApiBlackUncovered, grammar)
+{
+  d_solver->setOption("sygus", "true");
+
+  Term x = d_tm.mkVar(d_bool, "x");
+  Term start1 = d_tm.mkVar(d_bool, "start");
+  Term start2 = d_tm.mkVar(d_bool, "start");
+  Grammar g1 = d_solver->mkGrammar({}, {start1});
+  ASSERT_EQ(g1, g1);
+  ASSERT_FALSE(g1 != g1);
+  ASSERT_EQ(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g1));
 }
 
 TEST_F(TestApiBlackUncovered, datatypeApi)
@@ -415,8 +433,9 @@ TEST_F(TestApiBlackUncovered, Statistics)
     d_solver->assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "x"));
     d_solver->checkSat();
     Statistics stats = d_solver->getStatistics();
+    auto s = stats.get("global::totalTime");
     std::stringstream ss;
-    ss << stats;
+    ss << stats << s.toString();
     auto it = stats.begin();
     ASSERT_NE(it, stats.end());
     it++;
@@ -430,6 +449,20 @@ TEST_F(TestApiBlackUncovered, Statistics)
     d_solver->printStatisticsSafe(STDOUT_FILENO);
     d_tm.printStatisticsSafe(STDOUT_FILENO);
     testing::internal::GetCapturedStdout();
+}
+
+TEST_F(TestApiBlackUncovered, SynthResult)
+{
+  d_solver->setOption("sygus", "true");
+  (void)d_solver->synthFun("f", {}, d_bool);
+  Term tfalse = d_tm.mkFalse();
+  Term ttrue = d_tm.mkTrue();
+  d_solver->addSygusConstraint(ttrue);
+  cvc5::SynthResult res1 = d_solver->checkSynth();
+  d_solver->addSygusConstraint(tfalse);
+  cvc5::SynthResult res2 = d_solver->checkSynth();
+  ASSERT_EQ(std::hash<cvc5::SynthResult>{}(res1),
+            std::hash<cvc5::SynthResult>{}(res1));
 }
 
 // Copied from api/cpp/solver_black.cpp

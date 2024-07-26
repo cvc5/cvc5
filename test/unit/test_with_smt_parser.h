@@ -41,7 +41,7 @@ class TestWithSmtParser : public TestInternal
   {
     d_solver.reset(new cvc5::Solver(d_tm));
     d_solver->setLogic("ALL");
-    d_symman.reset(new parser::SymbolManager(d_solver.get()));
+    d_symman.reset(new parser::SymbolManager(d_tm));
     d_ip.reset(new parser::InputParser(d_solver.get(), d_symman.get()));
   }
 

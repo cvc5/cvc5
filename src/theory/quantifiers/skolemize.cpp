@@ -65,26 +65,26 @@ TrustNode Skolemize::process(Node q)
     // if using proofs and not using induction, we use the justified
     // skolemization
     NodeManager* nm = NodeManager::currentNM();
-    std::vector<Node> echildren(
-        q.begin(),
-        // given how skolems are built in Alethe, we need to be able to retrieve
-        // the Skolem from a quantifier and in the post-processing the
-        // quantifier being skolemized may not have attributes that would be
-        // present here still. So to define the Skolem, we do it in terms only
-        // of the logical formula, excluding extra-logical information.
-        options().proof.proofFormatMode == options::ProofFormatMode::ALETHE
-            ? q.begin() + 2
-            : q.end());
-    echildren[1] = echildren[1].notNode();
-    Node existsq = nm->mkNode(Kind::EXISTS, echildren);
-    std::vector<Node> vars(existsq[0].begin(), existsq[0].end());
+    if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
+    {
+      // given how skolems are built in Alethe, we need to be able to
+      // retrieve the Skolem from a quantifier and in the post-processing
+      // the quantifier being skolemized may not have attributes that would
+      // be present here still. So to define the Skolem, we do it in terms
+      // only of the logical formula, excluding extra-logical information.
+      std::vector<Node> qchildren(q.begin(), q.begin() + 2);
+      qchildren[1] = qchildren[1].notNode();
+      q = nm->mkNode(Kind::FORALL, qchildren);
+    }
     // cache the skolems in d_skolem_constants[q]
     std::vector<Node>& skolems = d_skolem_constants[q];
-    skolems = getSkolemConstants(existsq);
-    Node res = existsq[1].substitute(
+    skolems = getSkolemConstants(q);
+    std::vector<Node> vars(q[0].begin(), q[0].end());
+    Node res = q[1].substitute(
         vars.begin(), vars.end(), skolems.begin(), skolems.end());
     Node qnot = q.notNode();
     CDProof cdp(d_env);
+    res = res.notNode();
     cdp.addStep(res, ProofRule::SKOLEMIZE, {qnot}, {});
     std::shared_ptr<ProofNode> pf = cdp.getProofFor(res);
     std::vector<Node> assumps;
@@ -116,15 +116,7 @@ TrustNode Skolemize::process(Node q)
 
 std::vector<Node> Skolemize::getSkolemConstants(const Node& q)
 {
-  if (q.getKind()==Kind::FORALL)
-  {
-    std::vector<Node> echildren(q.begin(), q.end());
-    echildren[1] = echildren[1].notNode();
-    NodeManager* nm = NodeManager::currentNM();
-    Node existsq = nm->mkNode(Kind::EXISTS, echildren);
-    return getSkolemConstants(existsq);
-  }
-  Assert(q.getKind() == Kind::EXISTS);
+  Assert(q.getKind() == Kind::FORALL);
   std::vector<Node> skolems;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
@@ -135,7 +127,7 @@ std::vector<Node> Skolemize::getSkolemConstants(const Node& q)
 
 Node Skolemize::getSkolemConstant(const Node& q, size_t i)
 {
-  Assert(q.getKind() == Kind::EXISTS);
+  Assert(q.getKind() == Kind::FORALL);
   Assert(i < q[0].getNumChildren());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();

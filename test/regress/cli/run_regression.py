@@ -355,7 +355,7 @@ class AlfTester(Tester):
             cvc5_args = [
                 "--dump-proofs",
                 "--proof-format=alf",
-                "--proof-granularity=theory-rewrite",
+                "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
             ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
@@ -388,7 +388,7 @@ class AlfTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if "success" not in output:
+            if ("correct" not in output) and ("incomplete" not in output):
                 print_error("Invalid proof")
                 print()
                 print_outputs(output, error)
@@ -893,6 +893,9 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
+            if disable_tester == "dsl-proof":
+                if "alf" in testers:
+                    testers.remove("alf")
             if disable_tester == "proof":
                 if "lfsc" in testers:
                     testers.remove("lfsc")

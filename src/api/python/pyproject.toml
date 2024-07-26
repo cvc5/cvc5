@@ -1,16 +1,28 @@
 [build-system]
-requires = ["setuptools", "Cython>=3"]
+requires = [
+    "setuptools>=66.1.0",
+    "setuptools!=70.2.0; os_name == 'nt'",
+    "Cython>=3"
+]
 build-backend = "setuptools.build_meta"
 
 [project]
 name="cvc5"
 description="Python bindings for cvc5"
 dynamic = ["version"]
-urls = {Homepage = "https://github.com/cvc5/cvc5"}
 license = {text = "BSD-3-Clause AND LGPL-3.0-or-later AND MIT"}
 # BSD-3-Clause      : cvc5 library and Python API
+# GPL-2.0-or-later  : CLN (only in GPL version)
+# GPL-3.0-or-later  : GLPK/glpk-cut-log and CoCoA (only in GPL version)
 # LGPL-3.0-or-later : LibPoly and GMP
 # MIT               : Pythonic API
+
+[project.urls]
+Homepage = "https://cvc5.github.io/"
+Documentation = "https://cvc5.github.io/docs/"
+Repository = "https://github.com/cvc5/cvc5"
+Issues = "https://github.com/cvc5/cvc5/issues"
+Changelog = "https://github.com/cvc5/cvc5/blob/main/NEWS.md"
 
 [tool.setuptools.dynamic]
 version = {attr = "cvc5.__version__"}
