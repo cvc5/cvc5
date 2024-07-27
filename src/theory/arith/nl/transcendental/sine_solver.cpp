@@ -145,11 +145,15 @@ void SineSolver::doReductions()
   }
 }
 
-Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
+Node SineSolver::getPhaseShiftLemma(const Node& x)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node xr = (x.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, x) : x);
-  Node yr = (y.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, y) : y);
+  SkolemManager* sm = nm->getSkolemManager();
+  Node sinex = nm->mkNode(Kind::SINE, x);
+  Node y = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY_ARG, {sinex});
+  Node s = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT, {x});
+  Assert(x.getType().isReal());
+  Assert(y.getType().isReal());
   Node mone = nm->mkConstReal(Rational(-1));
   Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   return nm->mkAnd(std::vector<Node>{
@@ -161,8 +165,8 @@ Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
                      nm->mkNode(Kind::GEQ, x, nm->mkNode(Kind::MULT, mone, pi)),
                      nm->mkNode(Kind::LEQ, x, pi),
                  }),
-                 xr.eqNode(yr),
-                 xr.eqNode(nm->mkNode(
+                 x.eqNode(y),
+                 x.eqNode(nm->mkNode(
                      Kind::ADD,
                      y,
                      nm->mkNode(Kind::MULT, nm->mkConstReal(2), s, pi)))),
@@ -172,7 +176,6 @@ Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
 void SineSolver::doPhaseShift(TNode a, TNode new_a)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   Assert(a.getKind() == Kind::SINE);
   CDProof* proof = nullptr;
   Node lem;
@@ -191,15 +194,13 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a)
   }
   else
   {
-    Node shift = sm->mkDummySkolem("s", nm->realType(), "number of shifts");
     // TODO (cvc4-projects #47) : do not introduce shift here, instead needs
     // model-based refinement for constant shifts (cvc4-projects #1284)
-    lem = getPhaseShiftLemma(a[0], new_a[0], shift);
+    lem = getPhaseShiftLemma(a[0]);
     if (d_data->isProofEnabled())
     {
       proof = d_data->getProof();
-      proof->addStep(
-          lem, ProofRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], new_a[0], shift});
+      proof->addStep(lem, ProofRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0]});
     }
     iid = InferenceId::ARITH_NL_T_PURIFY_ARG_PHASE_SHIFT;
   }

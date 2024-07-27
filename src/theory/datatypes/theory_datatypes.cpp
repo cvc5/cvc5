@@ -202,20 +202,20 @@ void TheoryDatatypes::postCheck(Effort level)
     Assert(!d_im.hasPendingFact());
     do {
       d_im.reset();
-      Trace("datatypes-proc") << "Check cycles..." << std::endl;
+      Trace("datatypes-check") << "Check cycles..." << std::endl;
       checkCycles();
-      Trace("datatypes-proc") << "...finish check cycles" << std::endl;
+      Trace("datatypes-check") << "...finish check cycles" << std::endl;
       d_im.process();
       if (d_state.isInConflict() || d_im.hasSentLemma())
       {
         return;
       }
-    } while (d_im.hasSentFact());
-
-    //check for splits
-    Trace("datatypes-debug") << "Check for splits " << endl;
-    do {
+      else if (d_im.hasSentFact())
+      {
+        continue;
+      }
       d_im.reset();
+      Trace("datatypes-check") << "Check for splits " << endl;
       // check for splits
       checkSplit();
       if (d_im.hasSentLemma())
@@ -231,6 +231,7 @@ void TheoryDatatypes::postCheck(Effort level)
         Trace("datatypes-debug") << "Flush pending facts..." << std::endl;
         d_im.process();
       }
+      Trace("datatypes-check") << "...finish check splits" << std::endl;
     } while (!d_state.isInConflict() && !d_im.hasSentLemma()
              && d_im.hasSentFact());
     Trace("datatypes-debug")

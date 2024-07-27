@@ -35,15 +35,15 @@
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const seq.empty (-> (! Type :var T) T))
 
-; program: mk_emptystr
+; program: $mk_emptystr
 ; args:
 ; - U Type: The string-like type.
 ; return: The empty string of the given string-like sort U.
-(program mk_emptystr ((U Type))
+(program $mk_emptystr ((U Type))
   (Type) U
   (
-    ((mk_emptystr String)  "")
-    ((mk_emptystr (Seq U)) (seq.empty (Seq U)))
+    (($mk_emptystr String)  "")
+    (($mk_emptystr (Seq U)) (seq.empty (Seq U)))
   )
 )
 
@@ -57,7 +57,7 @@
 ;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
 ;   functions.
 (declare-parameterized-const str.++ ((T Type))
-  (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil (mk_emptystr (Seq T)))
+  (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil ($mk_emptystr (Seq T)))
 
 ; Extended functions for strings.
 (declare-const str.substr (-> (! Type :var T :implicit)

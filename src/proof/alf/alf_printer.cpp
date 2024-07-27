@@ -41,6 +41,7 @@ AlfPrinter::AlfPrinter(Env& env,
                        rewriter::RewriteDb* rdb)
     : EnvObj(env),
       d_tproc(atp),
+      d_passumeMap(&d_passumeCtx),
       d_termLetPrefix("@t"),
       d_ltproc(nodeManager(), atp),
       d_rdb(rdb)
@@ -149,6 +150,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::RE_UNFOLD_NEG:
     case ProofRule::STRING_CODE_INJ:
     case ProofRule::STRING_SEQ_UNIT_INJ:
+    case ProofRule::STRING_DECOMPOSE:
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
@@ -225,12 +227,19 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   {
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::BETA_REDUCE:
+    case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
+    case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
-    case ProofRewriteRule::STR_IN_RE_CONSUME: return true;
+    case ProofRewriteRule::STR_IN_RE_CONSUME:
+    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+    case ProofRewriteRule::BV_BITWISE_SLICING: return true;
+    case ProofRewriteRule::STR_IN_RE_EVAL:
+      Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
+      return canEvaluateRegExp(n[0][1]);
     default: break;
   }
   return false;
@@ -347,6 +356,7 @@ bool AlfPrinter::canEvaluate(Node n) const
 bool AlfPrinter::canEvaluateRegExp(Node r) const
 {
   Assert(r.getType().isRegExp());
+  Trace("alf-printer-debug") << "canEvaluateRegExp? " << r << std::endl;
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
@@ -371,12 +381,14 @@ bool AlfPrinter::canEvaluateRegExp(Node r) const
         case Kind::REGEXP_RANGE:
           if (!theory::strings::utils::isCharacterRange(cur))
           {
+            Trace("alf-printer-debug") << "Non-char range" << std::endl;
             return false;
           }
           continue;
         case Kind::STRING_TO_REGEXP:
           if (!canEvaluate(cur[0]))
           {
+            Trace("alf-printer-debug") << "Non-evaluatable string" << std::endl;
             return false;
           }
           continue;
@@ -550,7 +562,6 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
 
   d_pletMap.clear();
-  d_passumeMap.clear();
 
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
@@ -654,10 +665,12 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
 {
   // the stack
   std::vector<const ProofNode*> visit;
-  // whether we have to process children
-  std::unordered_map<const ProofNode*, bool> processingChildren;
+  // Whether we have to process children.
+  // This map is dependent on the proof assumption context, e.g. subproofs of
+  // SCOPE are reprocessed if they happen to occur in different proof scopes.
+  context::CDHashMap<const ProofNode*, bool> processingChildren(&d_passumeCtx);
   // helper iterators
-  std::unordered_map<const ProofNode*, bool>::iterator pit;
+  context::CDHashMap<const ProofNode*, bool>::iterator pit;
   const ProofNode* cur;
   visit.push_back(pn);
   do
@@ -702,6 +715,9 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
   ProofRule r = pn->getRule();
   if (r == ProofRule::SCOPE)
   {
+    // The assumptions only are valid within the body of the SCOPE, thus
+    // we push a context scope.
+    d_passumeCtx.push();
     const std::vector<Node>& args = pn->getArguments();
     for (const Node& a : args)
     {
@@ -859,7 +875,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   size_t id = allocateProofId(pn, wasAlloc);
   std::vector<size_t> premises;
   // get the premises
-  std::map<Node, size_t>::iterator ita;
+  context::CDHashMap<Node, size_t>::iterator ita;
   std::map<const ProofNode*, size_t>::iterator itp;
   for (const std::shared_ptr<ProofNode>& c : children)
   {
@@ -892,6 +908,14 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
         rewriter::getRewriteRule(pn->getArguments()[0], prid);
         ss << " (" << prid << ")";
       }
+      else if (pn->getRule() == ProofRule::TRUST)
+      {
+        TrustId tid;
+        getTrustId(pn->getArguments()[0], tid);
+        ss << " (" << tid << ")";
+      }
+      Trace("alf-pf-hole") << "Proof rule " << ss.str() << ": "
+                           << pn->getResult() << std::endl;
       Unreachable() << "An ALF proof equires a trust step for " << ss.str()
                     << ", but --" << options::proof::longName::alfAllowTrust
                     << " is false" << std::endl;
@@ -937,6 +961,8 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       pargs.push_back(d_tproc.convert(children[0]->getResult()));
       out->printStep("process_scope", conclusionPrint, id, premises, pargs);
     }
+    // We are done with the assumptions in scope, pop a context.
+    d_passumeCtx.pop();
   }
   else
   {
@@ -947,12 +973,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
 size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
 {
   std::pair<const ProofNode*, Node> key(pn, a);
-  std::map<std::pair<const ProofNode*, Node>, size_t>::iterator it =
-      d_ppushMap.find(key);
-  if (it != d_ppushMap.end())
-  {
-    return it->second;
-  }
+
   bool wasAlloc = false;
   size_t aid = allocateAssumeId(a, wasAlloc);
   // if we assigned an id to the assumption
@@ -962,13 +983,12 @@ size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn, const Node& a)
     d_pfIdCounter++;
     aid = d_pfIdCounter;
   }
-  d_ppushMap[key] = aid;
   return aid;
 }
 
 size_t AlfPrinter::allocateAssumeId(const Node& n, bool& wasAlloc)
 {
-  std::map<Node, size_t>::iterator it = d_passumeMap.find(n);
+  context::CDHashMap<Node, size_t>::iterator it = d_passumeMap.find(n);
   if (it != d_passumeMap.end())
   {
     wasAlloc = false;

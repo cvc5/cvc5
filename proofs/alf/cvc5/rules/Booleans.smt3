@@ -51,7 +51,7 @@
 ;   The result of removing l from C, where additionally if C itself is
 ;   l, then we return the empty or-list false.
 (define $remove_maybe_self ((l Bool) (C Bool))
-    (alf.ite (alf.is_eq l C) false (nary.remove or false l C)))
+    (alf.ite (alf.is_eq l C) false ($nary_remove or false l C)))
 
 ; define: $resolve
 ; args:
@@ -76,9 +76,10 @@
 
 ; rule: resolution
 ; implements: ProofRule::RESOLUTION.
+; premises:
+; - C1: The first formula in the resolution step.
+; - C2: The second formula in the resolution step.
 ; args:
-; - C1 Bool: The first formula in the resolution step.
-; - C2 Bool: The second formula in the resolution step.
 ; - pol Bool: >
 ;   The polarity (true of false) of the literal L in C1. Its
 ;   negation must appear in C2.
@@ -190,7 +191,7 @@
 (declare-rule reordering ((C1 Bool) (C2 Bool))
     :premises (C1)
     :args (C2)
-    :requires (((nary.is_subset or false C1 C2) true))
+    :requires ((($nary_is_subset or false C1 C2) true))
     :conclusion C2
 )
 
