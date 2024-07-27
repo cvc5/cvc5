@@ -16,7 +16,6 @@
 #include <cvc5/c/cvc5.h>
 #include <cvc5/c/cvc5_parser.h>
 
-#include <cassert>
 #include <iostream>
 
 int main()
