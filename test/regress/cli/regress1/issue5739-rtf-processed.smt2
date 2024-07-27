@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --cegqi-full
 ; EXPECT: unsat
+;; introduces quantifiers Skolem in an illegal way
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (assert

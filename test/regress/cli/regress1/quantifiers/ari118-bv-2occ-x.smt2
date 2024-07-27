@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --cegqi-bv
 ; EXPECT: unsat
+;; introduces quantifiers Skolem in an illegal way
+; DISABLE-TESTER: alethe
 (set-logic BV)
 (set-info :status unsat)
 ; two occurrences of x

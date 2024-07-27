@@ -122,6 +122,7 @@ Node AletheNodeConverter::postConvert(Node n)
         Assert(cacheVal.getKind() == Kind::SEXPR
                && cacheVal.getNumChildren() == 2);
         Node quant = cacheVal[0];
+        Assert(quant.getKind() == Kind::FORALL);
         Node var = cacheVal[1];
         uint32_t index = -1;
         for (size_t i = 0, size = quant[0].getNumChildren(); i < size; ++i)
