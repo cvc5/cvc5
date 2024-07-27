@@ -13,16 +13,11 @@
  * Test for issue #11069.
  */
 
-extern "C" {
 #include <cvc5/c/cvc5.h>
 #include <cvc5/cvc5_parser.h>
-}
 
 #include <cassert>
 #include <iostream>
-
-using namespace cvc5;
-using namespace cvc5::parser;
 
 int main()
 {
