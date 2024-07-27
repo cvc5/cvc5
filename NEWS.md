@@ -18,9 +18,6 @@ cvc5 1.2.0
     `Term::getSkolemIndices()`may now be used to identify terms corresponding
     to skolems.
 
-- Add support for the kind `BITVECTOR_NEGO` corresponding to bitvector
-  negation overflow detection.
-
 - We now export kinds `BITVECTOR_FROM_BOOLS`, `BITVECTOR_BIT`, `DIVISION_TOTAL`,
   `INTS_DIVISION_TOTAL`, `INTS_MODULUS_TOTAL` which may appear in terms
   resulting from simplification or terms appearing in proofs.
@@ -57,6 +54,8 @@ cvc5 1.2.0
 
 - The semantics of `SQRT` was changed to assume the result is positive.
 
+- Fixes a bug involving how sequence terms are printed in model values.
+
 cvc5 1.1.2
 ==========
 
@@ -64,9 +63,13 @@ cvc5 1.1.2
 
 - Added support for **nullable** sorts and lift operator to the theory of
   **datatypes**.
+
 - Added a new strategy `--sub-cbqi` (disabled by default) for **quantifier
   instantiation** which uses subsolvers to compute unsat cores of instantiations
   that are used in proofs of unsatisfiability.
+
+- Add support for the kind `BITVECTOR_NEGO` corresponding to bitvector
+  negation overflow detection.
 
 ## Changes
 
