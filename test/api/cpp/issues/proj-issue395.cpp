@@ -26,5 +26,5 @@ int main(void)
   Sort s1 = tm.getBooleanSort();
   Sort s2 = tm.getIntegerSort();
   Sort s5 = tm.mkFunctionSort({s2}, s1);
-  (void) s5.substitute({s1}, {s1});
+  (void)s5.substitute({s1}, {s1});
 }
