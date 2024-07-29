@@ -16,24 +16,25 @@
 #include <cvc5/c/cvc5.h>
 #include <cvc5/c/cvc5_parser.h>
 
-#include <iostream>
+#include <stdio.h>
+#include <assert.h>
 
 int main()
 {
   Cvc5TermManager* tm = cvc5_term_manager_new();
-  Cvc5Solver* slv = cvc5_new(d_tm);
+  Cvc5* slv = cvc5_new(tm);
 
-  Cvc5SymbolManager* sm = cvc5_symbol_manager_new(d_tm);
+  Cvc5SymbolManager* sm = cvc5_symbol_manager_new(tm);
 
   cvc5_set_logic(slv, "QF_BV");
 
   // construct an input parser associated the solver above
-  Cvc5InputParser* parser = cvc5_parser_new(d_solver, d_sm);
+  Cvc5InputParser* parser = cvc5_parser_new(slv, sm);
 
-  std::string input1("(declare-const x (_ BitVec 4))\n(assert (= x #b0001))\n");
+  const char* input1 = "(declare-const x (_ BitVec 4))\n(assert (= x #b0001))\n";
   cvc5_parser_set_inc_str_input(
           parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "myInput");
-  cvc5_parser_append_inc_str_input(parser, input1.c_str());
+  cvc5_parser_append_inc_str_input(parser, input1);
 
   // parse commands until finished
   Cvc5Command cmd;
@@ -41,23 +42,23 @@ int main()
   {
     const char* error_msg;
     cmd = cvc5_parser_next_command(parser, &error_msg);
-    if (cmd.isNull())
+    if (cmd == NULL)
     {
       break;
     }
-    (void)cvc5_cmd_invoke(cmd, &slv, &sm);
+    (void)cvc5_cmd_invoke(cmd, slv, sm);
   }
-  Cvc5Result result = cvc5_check_sat(d_solver);
-  std::cout << "Result:" << result << std::endl;
+  Cvc5Result result = cvc5_check_sat(slv);
+  printf("Result: %s\n", cvc5_result_to_string(result));
 
-  std::string input2("(assert (= x #b0101))");
-  cvc5_parser_append_inc_str_input(parser, input2.c_str());
+  const char* input2 = "(assert (= x #b0101))";
+  cvc5_parser_append_inc_str_input(parser, input2);
   const char* error_msg;
   cmd = cvc5_parser_next_command(parser, &error_msg);
-  assert(!cmd.isNull());
-  (void)cvc5_cmd_invoke(cmd, &slv, &sm);
-  result = cvc5_check_sat(d_solver);
-  std::cout << "Result:" << result << std::endl;
+  assert(cmd != NULL);
+  (void)cvc5_cmd_invoke(cmd, slv, sm);
+  result = cvc5_check_sat(slv);
+  printf("Result: %s\n", cvc5_result_to_string(result));
   assert(cvc5_result_is_unsat(result));
   return 0;
 }
