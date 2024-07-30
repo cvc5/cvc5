@@ -186,6 +186,17 @@ enum ENUM(SkolemId)
    */
   EVALUE(SHARED_SELECTOR),
   /**
+   * The higher-roder diff skolem, which is the witness k for the inference
+   * ``(=> (not (= A B)) (not (= (A k1 ... kn) (B k1 ... kn))))``.
+   *
+   * - Number of skolem indices: ``2``
+   *   - ``1:`` The first function of sort ``(-> T1 ... Tn T)``.
+   *   - ``2:`` The second function of sort ``(-> T1 ... Tn T)``.
+   *   - ``3:`` The argument index i.
+   * - Sort: ``Ti``
+   */
+  EVALUE(HO_DEQ_DIFF),
+  /**
    * The n^th skolem for the negation of universally quantified formula Q.
    *
    * - Number of skolem indices: ``2``
