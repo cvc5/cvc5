@@ -18,11 +18,11 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/uf_options.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_model.h"
 #include "theory/uf/function_const.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/smt_engine_subsolver.h"
 #include "util/rational.h"
 
 using namespace std;

@@ -562,7 +562,7 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(r.getNumerator().fitsUnsignedInt());
       size_t i = r.getNumerator().toUnsignedInt();
       std::vector<TypeNode> argTypes = cacheVals[0].getType().getArgTypes();
-      Assert (i<argTypes.size());
+      Assert(i < argTypes.size());
       return argTypes[i];
     }
     // fp skolems
