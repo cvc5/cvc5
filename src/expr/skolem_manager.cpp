@@ -54,6 +54,8 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
+    case InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL:
+      return "QUANTIFIERS_ATTRIBUTE_INTERNAL";
     default: return "?";
   }
 }
@@ -458,7 +460,13 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     case SkolemId::QUANTIFIERS_SKOLEMIZE:
     {
       Assert(cacheVals.size() == 2);
-      return cacheVals[1].getType();
+      Assert(cacheVals[0].getKind() == Kind::FORALL);
+      Assert(cacheVals[1].getKind() == Kind::CONST_INTEGER);
+      const Rational& r = cacheVals[1].getConst<Rational>();
+      Assert(r.getNumerator().fitsUnsignedInt());
+      size_t i = r.getNumerator().toUnsignedInt();
+      Assert(i < cacheVals[0][0].getNumChildren());
+      return cacheVals[0][0][i].getType();
     }
     break;
     // skolems that return the set element type
