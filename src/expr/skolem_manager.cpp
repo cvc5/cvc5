@@ -125,7 +125,6 @@ bool SkolemManager::isCommutativeSkolemId(SkolemId id)
   switch (id)
   {
     case cvc5::SkolemId::ARRAY_DEQ_DIFF:
-    case cvc5::SkolemId::HO_DEQ_DIFF:
     case cvc5::SkolemId::BAGS_DEQ_DIFF:
     case cvc5::SkolemId::SETS_DEQ_DIFF:
     case cvc5::SkolemId::STRINGS_DEQ_DIFF: return true;
@@ -561,6 +560,7 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       const Rational& r = cacheVals[2].getConst<Rational>();
       Assert(r.getNumerator().fitsUnsignedInt());
       size_t i = r.getNumerator().toUnsignedInt();
+      Assert(cacheVals[0].getType().isFunction());
       std::vector<TypeNode> argTypes = cacheVals[0].getType().getArgTypes();
       Assert(i < argTypes.size());
       return argTypes[i];
