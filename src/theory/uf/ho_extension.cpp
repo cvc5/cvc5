@@ -282,7 +282,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       // if not during collect model, must have a finite type
       // we consider the cardinality of tn's range type (as opposed to tn)
       // since the model construction will enumerate values of this type.
-      if (d_env.isFiniteType(tn.getRangeType()) != isCollectModel)
+      if (d_env.isFiniteType(tn) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -338,9 +338,13 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 return 1;
               }
             }
+            TypeEnumerator te(edeq[0][0].getType());
+            Node v1 = *te;
+            te++;
+            Node v2 = *te;
             Trace("uf-ho-debug")
                 << "Add extensionality deq to model : " << edeq << std::endl;
-            if (!m->assertEquality(edeq[0][0], edeq[0][1], false))
+            if (!m->assertEquality(edeq[0][0], v1, true) || !m->assertEquality(edeq[0][1], v2, true))
             {
               Node eq = edeq[0][0].eqNode(edeq[0][1]);
               Node lem = nm->mkNode(Kind::OR, deq.negate(), eq);
