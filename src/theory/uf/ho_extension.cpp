@@ -343,15 +343,17 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
             bool success = false;
             TypeNode tn = edeq[0][0].getType();
             Trace("uf-ho-debug")
-                  << "Add extensionality deq to model for : " << edeq << std::endl;
+                << "Add extensionality deq to model for : " << edeq
+                << std::endl;
             if (d_env.isFiniteType(tn))
             {
               TypeEnumerator te(tn);
               Node v1 = *te;
               te++;
               Node v2 = *te;
-              Assert (!v2.isNull() && v2!=v1);
-              success = m->assertEquality(edeq[0][0], v1, true) && m->assertEquality(edeq[0][1], v2, true);
+              Assert(!v2.isNull() && v2 != v1);
+              success = m->assertEquality(edeq[0][0], v1, true)
+                        && m->assertEquality(edeq[0][1], v2, true);
             }
             else
             {
