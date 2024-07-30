@@ -34,7 +34,30 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm)
+{
+  // Needs to be a subcall in DSL reconstruction since set.is_empty is used
+  // as a premise to test emptiness of a set.
+  registerProofRewriteRule(ProofRewriteRule::SETS_IS_EMPTY_EVAL,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+}
+
+Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    {
+      if (n.getKind() == Kind::SET_IS_EMPTY && n[0].isConst())
+      {
+        return nodeManager()->mkConst(n[0].getKind() == Kind::SET_EMPTY);
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
+}
 
 bool TheorySetsRewriter::checkConstantMembership(TNode elementTerm, TNode setTerm)
 {
@@ -92,21 +115,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                || node[1].getKind() == Kind::SET_INTER
                || node[1].getKind() == Kind::SET_MINUS)
       {
-        std::vector<Node> children;
-        for (unsigned i = 0; i < node[1].getNumChildren(); i++)
-        {
-          Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
-          if (node[1].getKind() == Kind::SET_MINUS && i == 1)
-          {
-            nc = nc.negate();
-          }
-          children.push_back(nc);
-        }
-        return RewriteResponse(
-            REWRITE_AGAIN_FULL,
-            nm->mkNode(
-                node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
-                children));
+        Node ret = rewriteMembershipBinaryOp(node);
+        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
       break;
     }  // Kind::SET_MEMBER
@@ -330,6 +340,23 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     break;
   }  // Kind::SET_CHOOSE
+  case Kind::SET_IS_EMPTY:
+  {
+    if (node[0].isConst())
+    {
+      // (set.is_empty c) ---> true if c is emptyset
+      // (set.is_empty c) ---> false if c is a constant that is not the emptyset
+      return RewriteResponse(
+          REWRITE_DONE,
+          nodeManager()->mkConst(node[0].getKind() == Kind::SET_EMPTY));
+    }
+    // (set.is_empty x) ----> (= x (as set.empty (Set T))).
+    Node eq = nodeManager()->mkNode(
+        Kind::EQUAL,
+        node[0],
+        nodeManager()->mkConst(EmptySet(node[0].getType())));
+    return RewriteResponse(REWRITE_AGAIN, eq);
+  }
   case Kind::SET_IS_SINGLETON:
   {
     Kind nk = node[0].getKind();
@@ -617,6 +644,26 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   return RewriteResponse(REWRITE_DONE, node);
 }
 
+Node TheorySetsRewriter::rewriteMembershipBinaryOp(const Node& node)
+{
+  Assert(node.getKind() == Kind::SET_MEMBER);
+  Assert(node[1].getKind() == Kind::SET_UNION
+         || node[1].getKind() == Kind::SET_INTER
+         || node[1].getKind() == Kind::SET_MINUS);
+  NodeManager* nm = nodeManager();
+  std::vector<Node> children;
+  for (size_t i = 0, nchild = node[1].getNumChildren(); i < nchild; i++)
+  {
+    Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
+    if (node[1].getKind() == Kind::SET_MINUS && i == 1)
+    {
+      nc = nc.negate();
+    }
+    children.push_back(nc);
+  }
+  return nm->mkNode(node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
+                    children);
+}
 
 // static
 RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {

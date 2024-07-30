@@ -1,6 +1,12 @@
 (include "../programs/Nary.smt3")
 
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
 (declare-const UnitTuple Type)
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
 (declare-const Tuple (-> Type Type Type) :right-assoc-nil UnitTuple)
 
 (declare-const tuple.unit UnitTuple)
@@ -8,12 +14,15 @@
                          T U (alf.cons Tuple T U)) :right-assoc-nil tuple.unit)
 (declare-const tuple.select
     (-> (! Type :var T :implicit)
-        (! Int :var i) T (alf.extract Tuple T i)))
+        (! Int :var i) T (alf.list_nth Tuple T i)))
 (declare-const tuple.update
     (-> (! Type :var T :implicit) (! Type :var S :implicit)
         Int T S T))
 (declare-const is-tuple (-> (! Type :var T :implicit) T Bool))
 
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
 (declare-const Nullable (-> Type Type))
 (declare-const nullable.null (-> (! Type :var T) (Nullable T)))
 (declare-const nullable.some (-> (! Type :var T :implicit) T (Nullable T)))
@@ -21,14 +30,23 @@
 (declare-const nullable.is_null (-> (! Type :var T :implicit) (Nullable T) Bool))
 (declare-const nullable.val (-> (! Type :var T :implicit) (Nullable T) T))
 
-(program get_type_nullable.lift ((T Type) (U Type))
+; program: $get_type_nullable_lift
+; args:
+; - T Type: The (function) type of the function we are lifting.
+; return: >
+;   The type of the nullable.lift for the given function. This
+;   consists of lifting each argument and return type T to
+;   (Nullable T).
+(program $get_type_nullable_lift ((T Type) (U Type))
     (Type) Type
     (
-      ((get_type_nullable.lift (-> T U)) (-> (Nullable T) (get_type_nullable.lift U)))
-      ((get_type_nullable.lift U)        (Nullable U))
+      (($get_type_nullable_lift (-> T U)) (-> (Nullable T) ($get_type_nullable_lift U)))
+      (($get_type_nullable_lift U)        (Nullable U))
     )
 )
-(declare-const nullable.lift (-> (! Type :var F :implicit) F (get_type_nullable.lift F)))
+
+; disclaimer: This function is not in the SMT-LIB standard.
+(declare-const nullable.lift (-> (! Type :var F :implicit) F ($get_type_nullable_lift F)))
 
 ; skolems
 ;SHARED_SELECTOR

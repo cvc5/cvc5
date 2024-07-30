@@ -15,6 +15,8 @@ Thanks to:
 
 - Simon Dierl for fixing the ENABLE_BEST option in the build system in 2019.
 
+- Florian Frohn for fixing the compilation of cvc5 with musl-libc in 2023.
+
 - Finn Haedicke of University of Bremen, Germany for fixing namespace specifiers
   in CVC4's version of minisat in 2015.
 
@@ -22,6 +24,8 @@ Thanks to:
 
 - Thomas Hunger for some important patches to CVC4's SWIG interfaces in March
   2014.
+
+- Jerry James for multiple bugfixes in 2023.
 
 - Andrew V. Jones (now Teylu) for several fixes, refactoring the GLPK-based
   approximating Simplex solver, and working towards a native Windows build
@@ -34,19 +38,37 @@ Thanks to:
 - Cristian Mattarei of Stanford University for fixing an issue with parsing
   floating point numbers in 2017.
 
+- José Neto for improvements to build system and web version of cvc5 in
+  2023 and 2024.
+
+- Tobias Nießen for a correction to the API documentation in 2023.
+
 - Jordy Ruiz of University of Toulouse for fixing throw specifiers on the theory
   output channels in 2015.
 
+- Áron Ricardo Perez-Lopez for solving an issue with static compilation in 2023.
+
 - Clement Pit-Claudel of MIT for improving the signal handling support for
   Windows builds in 2017.
+
+- Sorawee Porncharoenwase for fixing an issue related to compiling cvc5 with
+  CoCoA on M1/M2 CPUs.
+
+- sarkoxed for extending the finite fields API to allow custom bases for string
+  representations in 2023.
 
 - Florian Schanda for improving the readability of output of get-model in 2018.
 
 - Tom Smeding for a fix in the contrib/get-antlr-3.4 script in 2018.
 
+- Scott Talbert for improvements to the build systems and correcting spelling
+  errors in the documentation in 2023 and 2024.
+
 - Piotr Troja for several fixes in 2019.
 
 - Arjun Viswanathan for improvements in the CVC and the SMT2 parser.
+
+- Anjiang-Wei for fixing a typo in the Python API documentation in 2023.
 
 - Fabian Wolff in 2016 for fixing several spelling mistakes.
 

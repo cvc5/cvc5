@@ -30,8 +30,8 @@ def parse_command(solver, sm, cmd_str):
     return parser.nextCommand()
 
 
-def test_invoke(solver):
-    sm = SymbolManager(solver)
+def test_invoke(tm, solver):
+    sm = SymbolManager(tm)
     cmd = parse_command(solver, sm, "(set-logic QF_LIA)")
     assert cmd.isNull() is not True
     cmd.invoke(solver, sm)
@@ -43,15 +43,15 @@ def test_invoke(solver):
     with pytest.raises(RuntimeError):
         parse_command(solver, sm, "(set-logic QF_LRA)")
 
-def test_to_string(solver):
-    sm = SymbolManager(solver)
+def test_to_string(tm, solver):
+    sm = SymbolManager(tm)
     cmd = parse_command(solver, sm, "(set-logic QF_LIA )")
     assert cmd.isNull() is not True
     # note normalizes wrt whitespace
     assert cmd.toString() == "(set-logic QF_LIA)"
 
-def test_get_command_name(solver):
-    sm = SymbolManager(solver)
+def test_get_command_name(tm, solver):
+    sm = SymbolManager(tm)
     cmd = parse_command(solver, sm, "(get-model)")
     assert cmd.isNull() is not True
     assert cmd.getCommandName() == "get-model"

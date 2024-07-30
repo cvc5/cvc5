@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -40,7 +41,7 @@ namespace ff {
 /**
  * Find a common zero for all poynomials in this ideal. Figure 5 from [OKTB23].
  */
-std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& ideal);
+std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& ideal, const Env& env);
 
 /**
  * Enumerates **assignment**s: monic, degree-one, univariate polynomials.

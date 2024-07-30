@@ -62,10 +62,15 @@ std::vector<Node> UnsatCoreManager::getUnsatCoreLemmas(bool isInternal)
     {
       // also must compute the unsat core of input
       std::vector<Node> core = getUnsatCore(true);
-      core.insert(core.end(), coreLemmas.begin(), coreLemmas.end());
+      std::vector<Node> coreAsserts;
+      std::vector<Node> coreDefs;
+      partitionUnsatCore(core, coreDefs, coreAsserts);
+      coreAsserts.insert(
+          coreAsserts.end(), coreLemmas.begin(), coreLemmas.end());
       std::stringstream ss;
       smt::PrintBenchmark pb(Printer::getPrinter(ss));
-      pb.printBenchmark(ss, logicInfo().getLogicString(), {}, core);
+      pb.printBenchmark(
+          ss, logicInfo().getLogicString(), coreDefs, coreAsserts);
       output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; unsat core + lemmas" << std::endl;
       output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ss.str();
       output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; end unsat core + lemmas" << std::endl;
@@ -119,9 +124,12 @@ void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
   // output benchmark if specified
   if (isOutputOn(OutputTag::UNSAT_CORE_BENCHMARK))
   {
+    std::vector<Node> coreAsserts;
+    std::vector<Node> coreDefs;
+    partitionUnsatCore(core, coreDefs, coreAsserts);
     std::stringstream ss;
     smt::PrintBenchmark pb(Printer::getPrinter(ss));
-    pb.printBenchmark(ss, logicInfo().getLogicString(), {}, core);
+    pb.printBenchmark(ss, logicInfo().getLogicString(), coreDefs, coreAsserts);
     output(OutputTag::UNSAT_CORE_BENCHMARK) << ";; unsat core" << std::endl;
     output(OutputTag::UNSAT_CORE_BENCHMARK) << ss.str();
     output(OutputTag::UNSAT_CORE_BENCHMARK) << ";; end unsat core" << std::endl;
@@ -271,6 +279,25 @@ std::vector<Node> UnsatCoreManager::reduceUnsatCore(
     }
   }
   return newUcAssertions;
+}
+
+void UnsatCoreManager::partitionUnsatCore(const std::vector<Node>& core,
+                                          std::vector<Node>& coreDefs,
+                                          std::vector<Node>& coreAsserts)
+{
+  const Assertions& as = d_slv.getAssertions();
+  std::unordered_set<Node> defs = as.getCurrentAssertionListDefitions();
+  for (const Node& c : core)
+  {
+    if (defs.find(c) != defs.end())
+    {
+      coreDefs.push_back(c);
+    }
+    else
+    {
+      coreAsserts.push_back(c);
+    }
+  }
 }
 
 std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(

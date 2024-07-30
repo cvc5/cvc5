@@ -927,15 +927,15 @@ Node RegExpOpr::simplify(Node t, bool polarity)
     if (r.getKind() == Kind::REGEXP_CONCAT)
     {
       // the index we are removing from the RE concatenation
-      size_t index = 0;
+      bool isRev;
       // As an optimization to the reduction, if we can determine that
       // all strings in the language of R1 have the same length, say n,
       // then the conclusion of the reduction is quantifier-free:
-      //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
-      Node reLen = getRegExpConcatFixed(r, index);
+      //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,len(s)-n,n) in R2)
+      Node reLen = getRegExpConcatFixed(r, isRev);
       if (!reLen.isNull())
       {
-        conc = reduceRegExpNegConcatFixed(tlit, reLen, index);
+        conc = reduceRegExpNegConcatFixed(tlit, reLen, isRev);
       }
     }
     if (conc.isNull())
@@ -949,10 +949,10 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   return conc;
 }
 
-Node RegExpOpr::getRegExpConcatFixed(Node r, size_t& index)
+Node RegExpOpr::getRegExpConcatFixed(Node r, bool& isRev)
 {
   Assert(r.getKind() == Kind::REGEXP_CONCAT);
-  index = 0;
+  isRev = false;
   Node reLen = RegExpEntail::getFixedLengthForRegexp(r[0]);
   if (!reLen.isNull())
   {
@@ -963,7 +963,7 @@ Node RegExpOpr::getRegExpConcatFixed(Node r, size_t& index)
   reLen = RegExpEntail::getFixedLengthForRegexp(r[indexE]);
   if (!reLen.isNull())
   {
-    index = indexE;
+    isRev = true;
     return reLen;
   }
   return Node::null();
@@ -983,22 +983,20 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
   {
     // do not use length entailment, call regular expression concat
     Node reLen;
-    size_t i = 0;
-    conc = reduceRegExpNegConcatFixed(mem, reLen, i);
+    conc = reduceRegExpNegConcatFixed(mem, reLen, false);
   }
   else if (k == Kind::REGEXP_STAR)
   {
     Node emp = Word::mkEmptyWord(s.getType());
     Node lens = nm->mkNode(Kind::STRING_LENGTH, s);
     Node sne = s.eqNode(emp).negate();
-    Node b1 = nm->mkBoundVar(nm->integerType());
+    Node b1 = SkolemCache::mkIndexVar(mem);
     Node b1v = nm->mkNode(Kind::BOUND_VAR_LIST, b1);
-    Node g11n = nm->mkNode(Kind::GT, b1, zero).notNode();
-    Node g12n = nm->mkNode(Kind::GEQ, lens, b1).notNode();
+    Node g11n = nm->mkNode(Kind::LEQ, b1, zero);
+    Node g12n = nm->mkNode(Kind::LT, lens, b1);
     // internal
-    Node s1 = nm->mkNode(Kind::STRING_SUBSTR, s, zero, b1);
-    Node s2 =
-        nm->mkNode(Kind::STRING_SUBSTR, s, b1, nm->mkNode(Kind::SUB, lens, b1));
+    Node s1 = utils::mkPrefix(s, b1);
+    Node s2 = utils::mkSuffix(s, b1);
     Node s1r1 = nm->mkNode(Kind::STRING_IN_REGEXP, s1, r[0]).negate();
     Node s2r2 = nm->mkNode(Kind::STRING_IN_REGEXP, s2, r).negate();
 
@@ -1014,7 +1012,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
+Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, bool isRev)
 {
   Assert(mem.getKind() == Kind::NOT
          && mem[0].getKind() == Kind::STRING_IN_REGEXP);
@@ -1031,7 +1029,6 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   //        ~(substr(s,0,x) in R1) OR ~(substr(s,x,len(s)-x) in R2 ++ ... ++ Rn)
   // Index is the child index of r that we are stripping off, which is either
   // from the beginning or the end.
-  Assert(index == 0 || index == r.getNumChildren() - 1);
   Node lens = nm->mkNode(Kind::STRING_LENGTH, s);
   Node b1;
   Node b1v;
@@ -1040,9 +1037,8 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   {
     b1 = SkolemCache::mkIndexVar(mem);
     b1v = nm->mkNode(Kind::BOUND_VAR_LIST, b1);
-    guard1n = nm->mkNode(Kind::GEQ, b1, zero).notNode();
-    guard2n =
-        nm->mkNode(Kind::GEQ, nm->mkNode(Kind::STRING_LENGTH, s), b1).notNode();
+    guard1n = nm->mkNode(Kind::LT, b1, zero);
+    guard2n = nm->mkNode(Kind::LT, nm->mkNode(Kind::STRING_LENGTH, s), b1);
   }
   else
   {
@@ -1050,19 +1046,17 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   }
   Node s1;
   Node s2;
-  if (index == 0)
+  if (!isRev)
   {
-    s1 = nm->mkNode(Kind::STRING_SUBSTR, s, zero, b1);
-    s2 =
-        nm->mkNode(Kind::STRING_SUBSTR, s, b1, nm->mkNode(Kind::SUB, lens, b1));
+    s1 = utils::mkPrefix(s, b1);
+    s2 = utils::mkSuffix(s, b1);
   }
   else
   {
-    s1 =
-        nm->mkNode(Kind::STRING_SUBSTR, s, nm->mkNode(Kind::SUB, lens, b1), b1);
-    s2 = nm->mkNode(
-        Kind::STRING_SUBSTR, s, zero, nm->mkNode(Kind::SUB, lens, b1));
+    s1 = utils::mkSuffixOfLen(s, b1);
+    s2 = utils::mkPrefix(s, nm->mkNode(Kind::SUB, lens, b1));
   }
+  size_t index = isRev ? r.getNumChildren() - 1 : 0;
   Node s1r1 = nm->mkNode(Kind::STRING_IN_REGEXP, s1, r[index]).negate();
   std::vector<Node> nvec;
   for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; i++)

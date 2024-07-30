@@ -90,6 +90,13 @@ bool isFfFact(const Node& n)
              && n[0][0].getType().isFiniteField());
 }
 
+FfTimeoutException::FfTimeoutException(const std::string& where)
+    : Exception(std::string("finite field solver timeout in ") + where)
+{
+}
+
+FfTimeoutException::~FfTimeoutException() {}
+
 bool isFfLeaf(const Node& n, const FfSize& field)
 {
   return n.getType().isFiniteField() && Theory::isLeafOf(n, THEORY_FF)

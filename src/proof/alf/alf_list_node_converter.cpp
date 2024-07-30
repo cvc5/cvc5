@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +68,7 @@ Node AlfListNodeConverter::postConvert(Node n)
   // if less than 2 non-list children, it might collapse to a single element
   if (nlistChildren < 2)
   {
-    return d_tproc.mkInternalApp("$dsl.singleton_elim", {n}, n.getType());
+    return d_tproc.mkInternalApp("$singleton_elim", {n}, n.getType());
   }
   return n;
 }

@@ -60,7 +60,6 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_rels_enabled(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
-      d_rewriter(nodeManager()),
       d_cpacb(cpacb)
 {
   d_true = nodeManager()->mkConst(true);
@@ -124,7 +123,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             Trace("sets-prop")
                 << "Propagate conflict : " << s1 << " == " << s2 << std::endl;
             Node eqs = s1.eqNode(s2);
-            d_im.conflict(eqs, InferenceId::SETS_EQ_CONFLICT);
+            d_im.assertSetsConflict(eqs, InferenceId::SETS_EQ_CONFLICT);
             return;
           }
         }
@@ -150,7 +149,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(facts.size() == 1);
       Trace("sets-prop") << "Propagate eq-mem conflict : " << facts[0]
                          << std::endl;
-      d_im.conflict(facts[0], InferenceId::SETS_EQ_MEM_CONFLICT);
+      d_im.assertSetsConflict(facts[0], InferenceId::SETS_EQ_MEM_CONFLICT);
       return;
     }
     for (const Node& f : facts)
@@ -494,15 +493,15 @@ void TheorySetsPrivate::checkDownwardsClosure()
                   nodeManager()->mkNode(Kind::SET_MEMBER, mem[0], eq_set);
               nmem = rewrite(nmem);
               std::vector<Node> exp;
-              if (d_state.areEqual(mem, pmem))
+              exp.push_back(pmem);
+              int inferType = 0;
+              if (!d_state.areEqual(mem, pmem))
               {
-                exp.push_back(pmem);
+                // force sending as a lemma
+                inferType = 1;
               }
-              else
-              {
-                nmem = nodeManager()->mkNode(Kind::OR, pmem.negate(), nmem);
-              }
-              d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
+              d_im.assertInference(
+                  nmem, InferenceId::SETS_DOWN_CLOSURE, exp, inferType);
             }
           }
         }
@@ -1229,7 +1228,7 @@ Node TheorySetsPrivate::registerAndAssertSkolemLemma(Node& n)
   SkolemManager* sm = nm->getSkolemManager();
   Node skolem = sm->mkPurifySkolem(n);
   Node lemma = n.eqNode(skolem);
-  d_im.addPendingLemma(lemma, InferenceId::SETS_SKOLEM);
+  d_im.assertInference(lemma, InferenceId::SETS_SKOLEM, d_true, 1);
   Trace("sets-skolems") << "sets-skolems:  " << skolem << " = " << n
                         << std::endl;
   return skolem;
@@ -1276,10 +1275,8 @@ void TheorySetsPrivate::checkDisequalities()
     Node x = sm->mkSkolemFunction(SkolemId::SETS_DEQ_DIFF, {deq[0], deq[1]});
     Node mem1 = nm->mkNode(Kind::SET_MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(Kind::SET_MEMBER, x, deq[1]);
-    Node lem =
-        nm->mkNode(Kind::OR, deq, nm->mkNode(Kind::EQUAL, mem1, mem2).negate());
-    lem = rewrite(lem);
-    d_im.assertInference(lem, InferenceId::SETS_DEQ, d_true, 1);
+    Node mdeq = nm->mkNode(Kind::EQUAL, mem1, mem2).negate();
+    d_im.assertInference(mdeq, InferenceId::SETS_DEQ, deq.notNode(), 1);
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -1384,7 +1381,7 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
         {
           Trace("sets-prop")
               << "Propagate mem-eq conflict : " << pexp << std::endl;
-          d_im.conflict(pexp, InferenceId::SETS_MEM_EQ_CONFLICT);
+          d_im.assertSetsConflict(pexp, InferenceId::SETS_MEM_EQ_CONFLICT);
         }
       }
     }
@@ -1713,40 +1710,15 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 {
   Assert(node.getKind() == Kind::SET_IS_SINGLETON);
+  Assert(rewrite(node) == node);
 
-  // we call the rewriter here to handle the pattern
-  // (is_singleton (singleton x)) because the rewriter is called after expansion
-  Node rewritten = rewrite(node);
-  if (rewritten.getKind() != Kind::SET_IS_SINGLETON)
-  {
-    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
-  }
-
-  // (is_singleton A) is expanded as
-  // (exists ((x: T)) (= A (singleton x)))
-  // where T is the sort of elements of A
+  // (is_singleton A) is expanded as (= A (set.singleton (set.choose A)))
 
   NodeManager* nm = nodeManager();
-  Node set = rewritten[0];
-
-  std::map<Node, Node>::iterator it = d_isSingletonNodes.find(rewritten);
-
-  if (it != d_isSingletonNodes.end())
-  {
-    return TrustNode::mkTrustRewrite(rewritten, it->second, nullptr);
-  }
-
-  TypeNode setType = set.getType();
-  ensureFirstClassSetType(setType);
-  Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkNode(Kind::SET_SINGLETON, boundVar);
-  Node equal = set.eqNode(singleton);
-  std::vector<Node> variables = {boundVar};
-  Node boundVars = nm->mkNode(Kind::BOUND_VAR_LIST, variables);
-  Node exists = nm->mkNode(Kind::EXISTS, boundVars, equal);
-  d_isSingletonNodes[rewritten] = exists;
-
-  return TrustNode::mkTrustRewrite(node, exists, nullptr);
+  Node choose = nm->mkNode(Kind::SET_CHOOSE, node[0]);
+  Node ss = nm->mkNode(Kind::SET_SINGLETON, choose);
+  Node ret = nm->mkNode(Kind::EQUAL, node[0], ss);
+  return TrustNode::mkTrustRewrite(node, ret, nullptr);
 }
 
 void TheorySetsPrivate::ensureFirstClassSetType(TypeNode tn) const

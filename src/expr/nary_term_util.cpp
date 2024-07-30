@@ -16,6 +16,7 @@
 #include "expr/nary_term_util.h"
 
 #include "expr/attribute.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
@@ -223,6 +224,12 @@ Node narySubstitute(Node src,
     it = visited.find(cur);
     if (it == visited.end())
     {
+      if (!expr::hasBoundVar(cur))
+      {
+        visited[cur] = cur;
+        visit.pop_back();
+        continue;
+      }
       // if it is a non-list variable, do the replacement
       itv = std::find(vars.begin(), vars.end(), cur);
       if (itv != vars.end())

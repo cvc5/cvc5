@@ -93,7 +93,7 @@ class InstStrategyCegqi : public QuantifiersModule
   /** check ownership */
   void checkOwnership(Node q) override;
   /** identify */
-  std::string identify() const override { return std::string("Cegqi"); }
+  std::string identify() const override;
   /** get instantiator for quantifier */
   CegInstantiator* getInstantiator(Node q);
   /** pre-register quantifier */

@@ -29,90 +29,93 @@ if __name__ == "__main__":
     # single 32-bit precision
     fp32 = tm.mkFloatingPointSort(8, 24)
 
-    # the standard rounding mode
+    # rounding mode
     rm = tm.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN)
 
     # create a few single-precision variables
-    x = tm.mkConst(fp32, 'x')
-    y = tm.mkConst(fp32, 'y')
-    z = tm.mkConst(fp32, 'z')
+    a = tm.mkConst(fp32, 'a')
+    b = tm.mkConst(fp32, 'b')
+    c = tm.mkConst(fp32, 'c')
+    d = tm.mkConst(fp32, 'd')
+    e = tm.mkConst(fp32, 'e')
 
-    # check floating-point arithmetic is commutative, i.e. x + y == y + x
-    commutative = tm.mkTerm(
-            Kind.FLOATINGPOINT_EQ,
-            tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, x, y),
-            tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, y, x))
-
+    print("Show that fused multiplication and addition `(fp.fma RM a b c)`")
+    print("is different from `(fp.add RM (fp.mul a b) c)`:")
     slv.push()
-    slv.assertFormula(tm.mkTerm(Kind.NOT, commutative))
-    print("Checking floating-point commutativity")
-    print("Expect SAT (property does not hold for NaN and Infinities).")
-    print("cvc5:", slv.checkSat())
-    print("Model for x:", slv.getValue(x))
-    print("Model for y:", slv.getValue(y))
-
-    # disallow NaNs and Infinities
-    slv.assertFormula(tm.mkTerm(
-        Kind.NOT, tm.mkTerm(Kind.FLOATINGPOINT_IS_NAN, x)))
-    slv.assertFormula(tm.mkTerm(
-        Kind.NOT, tm.mkTerm(Kind.FLOATINGPOINT_IS_INF, x)))
-    slv.assertFormula(tm.mkTerm(
-        Kind.NOT, tm.mkTerm(Kind.FLOATINGPOINT_IS_NAN, y)))
-    slv.assertFormula(tm.mkTerm(
-        Kind.NOT, tm.mkTerm(Kind.FLOATINGPOINT_IS_INF, y)))
-
-    print("Checking floating-point commutativity assuming x and y are not NaN or Infinity")
-    print("Expect UNSAT.")
-    print("cvc5:", slv.checkSat())
-
-    # check floating-point arithmetic is not associative
-    slv.pop()
-
-    # constrain x, y, z between -3.14 and 3.14 (also disallows NaN and infinity)
-    a = tm.mkFloatingPoint(
-            8,
-            24,
-            tm.mkBitVector(32, "11000000010010001111010111000011", 2)) # -3.14
-    b = tm.mkFloatingPoint(
-            8,
-            24,
-            tm.mkBitVector(32, "01000000010010001111010111000011", 2))  # 3.14
-
-    bounds_x = tm.mkTerm(
-            Kind.AND,
-            tm.mkTerm(Kind.FLOATINGPOINT_LEQ, a, x),
-            tm.mkTerm(Kind.FLOATINGPOINT_LEQ, x, b))
-    bounds_y = tm.mkTerm(
-            Kind.AND,
-            tm.mkTerm(Kind.FLOATINGPOINT_LEQ, a, y),
-            tm.mkTerm(Kind.FLOATINGPOINT_LEQ, y, b))
-    bounds_z = tm.mkTerm(
-            Kind.AND,
-            tm.mkTerm(Kind.FLOATINGPOINT_LEQ, a, z),
-            tm.mkTerm(Kind.FLOATINGPOINT_LEQ, z, b))
-    slv.assertFormula(tm.mkTerm(
-        Kind.AND, tm.mkTerm(Kind.AND, bounds_x, bounds_y), bounds_z))
-
-    # (x + y) + z == x + (y + z)
-    lhs = tm.mkTerm(
-            Kind.FLOATINGPOINT_ADD,
-            rm,
-            tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, x, y),
-            z)
-    rhs = tm.mkTerm(
-            Kind.FLOATINGPOINT_ADD,
-            rm,
-            x,
-            tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, y, z))
-    associative = tm.mkTerm(
-            Kind.NOT,
-            tm.mkTerm(Kind.FLOATINGPOINT_EQ, lhs, rhs))
-
-    slv.assertFormula(associative)
-
-    print("Checking floating-point associativity")
+    fma = tm.mkTerm(Kind.FLOATINGPOINT_FMA, rm, a, b, c)
+    mul = tm.mkTerm(Kind.FLOATINGPOINT_MULT, rm, a, b)
+    add = tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, mul, c)
+    slv.assertFormula(tm.mkTerm(Kind.DISTINCT, fma, add))
     print("Expect SAT.")
     print("cvc5:", slv.checkSat())
-    print("Model for x:", slv.getValue(x))
-    print("Model for y:", slv.getValue(y))
-    print("Model for z:", slv.getValue(z))
+    print(f'Value of `a`: {slv.getValue(a)}')
+    print(f'Value of `b`: {slv.getValue(b)}')
+    print(f'Value of `c`: {slv.getValue(c)}')
+    print(f'Value of `(fp.fma RNE a b c)`: {slv.getValue(fma)}')
+    print(f'Value of `(fp.add RNE (fp.mul a b) c)`: {slv.getValue(add)}')
+    print();
+    slv.pop();
+
+    print("Show that floating-point addition is not associative:")
+    print("(a + (b + c)) != ((a + b) + c)")
+    slv.push()
+    slv.assertFormula(tm.mkTerm(
+      Kind.DISTINCT,
+      tm.mkTerm(Kind.FLOATINGPOINT_ADD,
+                 rm, a, tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, b, c)),
+       tm.mkTerm(Kind.FLOATINGPOINT_ADD,
+                 rm, tm.mkTerm(Kind.FLOATINGPOINT_ADD, rm, a, b), c)))
+    print("Expect SAT.")
+    print("cvc5:", slv.checkSat())
+
+    print(f'Value of `a`: {slv.getValue(a)}')
+    print(f'Value of `b`: {slv.getValue(b)}')
+    print(f'Value of `c`: {slv.getValue(c)}')
+    print()
+
+    print("Now, restrict `a` to be either NaN or positive infinity:")
+    nan = tm.mkFloatingPointNaN(8, 24)
+    inf = tm.mkFloatingPointPosInf(8, 24)
+    slv.assertFormula(tm.mkTerm(
+        Kind.OR, tm.mkTerm(Kind.EQUAL, a, inf), tm.mkTerm(Kind.EQUAL, a, nan)))
+    print("Expect SAT.")
+    print("cvc5:", slv.checkSat())
+
+    print(f'Value of `a`: {slv.getValue(a)}')
+    print(f'Value of `b`: {slv.getValue(b)}')
+    print(f'Value of `c`: {slv.getValue(c)}')
+    print()
+    slv.pop(1)
+
+    print("Now, try to find a (normal) floating-point number that rounds")
+    print("to different integer values for different rounding modes:")
+    slv.push()
+    rtp = tm.mkRoundingMode(RoundingMode.ROUND_TOWARD_POSITIVE)
+    rtn = tm.mkRoundingMode(RoundingMode.ROUND_TOWARD_NEGATIVE)
+    op = tm.mkOp(Kind.FLOATINGPOINT_TO_UBV, 16)  # (_ fp.to_ubv 16)
+    lhs = tm.mkTerm(op, rtp, d)
+    rhs = tm.mkTerm(op, rtn, d)
+    slv.assertFormula(tm.mkTerm(Kind.FLOATINGPOINT_IS_NORMAL, d))
+    slv.assertFormula(tm.mkTerm(Kind.NOT, tm.mkTerm(Kind.EQUAL, lhs, rhs)))
+
+    print("Expect SAT.")
+    print("cvc5:", slv.checkSat())
+
+    print("Get value of `d` as floating-point, bit-vector and real:")
+    val = slv.getValue(d)
+    print(f'Value of `d`: {val}')
+    print(f'Value of `((_ fp.to_ubv 16) RTP d)`: {slv.getValue(lhs)}')
+    print(f'Value of `((_ fp.to_ubv 16) RTN d)`: {slv.getValue(rhs)}')
+    print(f'Value of `(fp.to_real d)`: {slv.getValue(tm.mkTerm(Kind.FLOATINGPOINT_TO_REAL, val))}')
+    print()
+    slv.pop()
+
+    print("Finally, try to find a floating-point number between positive")
+    print("zero and the smallest positive floating-point number:")
+    zero = tm.mkFloatingPointPosZero(8, 24)
+    smallest = tm.mkFloatingPoint(8, 24, tm.mkBitVector(32, 0b001))
+    slv.assertFormula(tm.mkTerm(
+        Kind.AND, tm.mkTerm(Kind.FLOATINGPOINT_LT, zero, e),
+                  tm.mkTerm(Kind.FLOATINGPOINT_LT, e, smallest)))
+    print("Expect UNSAT.")
+    print("cvc5:", slv.checkSat())

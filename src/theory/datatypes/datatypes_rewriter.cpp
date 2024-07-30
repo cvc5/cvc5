@@ -41,9 +41,13 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                                      const Options& opts)
     : TheoryRewriter(nm), d_sygusEval(sygusEval), d_opts(opts)
 {
+  registerProofRewriteRule(ProofRewriteRule::DT_INST,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_SELECTOR,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
                            TheoryRewriteCtx::PRE_DSL);
@@ -53,6 +57,21 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::DT_INST:
+    {
+      if (n.getKind() != Kind::APPLY_TESTER)
+      {
+        return Node::null();
+      }
+      Node t = n[0];
+      TypeNode tn = t.getType();
+      Assert(tn.isDatatype());
+      const DType& dt = tn.getDType();
+      size_t i = utils::indexOf(n.getOperator());
+      bool sharedSel = d_opts.datatypes.dtSharedSelectors;
+      Node ticons = utils::getInstCons(t, dt, i, sharedSel);
+      return t.eqNode(ticons);
+    }
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
     {
       if (n.getKind() != Kind::APPLY_SELECTOR
@@ -83,6 +102,20 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
           utils::indexOf(n.getOperator()) == utils::indexOf(n[0].getOperator());
       NodeManager* nm = nodeManager();
       return nm->mkConst(result);
+    }
+    break;
+    case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
+    {
+      if (n.getKind() != Kind::APPLY_TESTER)
+      {
+        return Node::null();
+      }
+      const DType& dt = n[0].getType().getDType();
+      if (dt.getNumConstructors() == 1)
+      {
+        NodeManager* nm = nodeManager();
+        return nm->mkConst(true);
+      }
     }
     break;
     case ProofRewriteRule::DT_CONS_EQ:
@@ -495,24 +528,39 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
 
 RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
 {
+  size_t i = utils::indexOf(in.getOperator());
   if (in[0].getKind() == Kind::APPLY_CONSTRUCTOR)
   {
-    bool result =
-        utils::indexOf(in.getOperator()) == utils::indexOf(in[0].getOperator());
+    bool result = (i == utils::indexOf(in[0].getOperator()));
     Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                << "Rewrite trivial tester " << in << " "
                                << result << std::endl;
     return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(result));
   }
-  const DType& dt = in[0].getType().getDType();
-  if (dt.getNumConstructors() == 1 && !dt.isSygus())
+  TypeNode tn = in[0].getType();
+  const DType& dt = tn.getDType();
+  // the rewrites below aren't applied to sygus datatypes, which rely on
+  // always getting testers asserted.
+  if (!dt.isSygus())
   {
-    // only one constructor, so it must be
-    Trace("datatypes-rewrite")
-        << "DatatypesRewriter::postRewrite: "
-        << "only one ctor for " << dt.getName() << " and that is "
-        << dt[0].getName() << std::endl;
-    return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
+    if (dt[i].getNumArgs() == 0)
+    {
+      // If a constant, then e.g. ((_ is nil) x) ---> (= x nil).
+      // This is only done for constant constructors since it does not
+      // introduce any new (selector) terms.
+      Node cc = utils::mkApplyCons(tn, dt, i, {});
+      Node eq = nodeManager()->mkNode(Kind::EQUAL, in[0], cc);
+      return RewriteResponse(REWRITE_AGAIN_FULL, eq);
+    }
+    if (dt.getNumConstructors() == 1)
+    {
+      // only one constructor, so it must be
+      Trace("datatypes-rewrite")
+          << "DatatypesRewriter::postRewrite: "
+          << "only one ctor for " << dt.getName() << " and that is "
+          << dt[0].getName() << std::endl;
+      return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
+    }
   }
   // could try dt.getNumConstructors()==2 && indexOf(in.getOperator())==1 ?
   return RewriteResponse(REWRITE_DONE, in);

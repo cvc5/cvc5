@@ -35,6 +35,7 @@
 #include "smt/logic_exception.h"
 #include "smt/solver_engine_state.h"
 #include "theory/combination_care_graph.h"
+#include "theory/conflict_processor.h"
 #include "theory/decision_manager.h"
 #include "theory/ee_manager_central.h"
 #include "theory/partition_generator.h"
@@ -235,9 +236,11 @@ void TheoryEngine::finishInit()
 TheoryEngine::TheoryEngine(Env& env)
     : EnvObj(env),
       d_propEngine(nullptr),
-      d_lazyProof(env.isTheoryProofProducing() ? new LazyCDProof(
-                      env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
-                                               : nullptr),
+      d_lazyProof(
+          env.isTheoryProofProducing()
+              ? new LazyCDProof(
+                    env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
+              : nullptr),
       d_tepg(new TheoryEngineProofGenerator(env, userContext())),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
@@ -261,7 +264,8 @@ TheoryEngine::TheoryEngine(Env& env)
       d_false(),
       d_interrupted(false),
       d_inPreregister(false),
-      d_factsAsserted(context(), false)
+      d_factsAsserted(context(), false),
+      d_cp(nullptr)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
@@ -273,6 +277,13 @@ TheoryEngine::TheoryEngine(Env& env)
   if (options().smt.sortInference)
   {
     d_sortInfer.reset(new SortInference(env));
+  }
+  if (options().theory.conflictProcessMode
+      != options::ConflictProcessMode::NONE)
+  {
+    bool useExtRewriter = (options().theory.conflictProcessMode
+                           == options::ConflictProcessMode::MINIMIZE_EXT);
+    d_cp.reset(new ConflictProcessor(env, useExtRewriter));
   }
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -1487,6 +1498,17 @@ void TheoryEngine::lemma(TrustNode tlemma,
   // spendResource();
   Assert(tlemma.getKind() == TrustNodeKind::LEMMA
          || tlemma.getKind() == TrustNodeKind::CONFLICT);
+
+  // minimize or generalize conflict
+  if (d_cp)
+  {
+    TrustNode tproc = d_cp->processLemma(tlemma);
+    if (!tproc.isNull())
+    {
+      tlemma = tproc;
+    }
+  }
+
   // get the node
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
@@ -1634,16 +1656,21 @@ void TheoryEngine::conflict(TrustNode tconflict,
       {
         if (!CDProof::isSame(fullConflict, conflict))
         {
-          // ------------------------- explained  ---------- from theory
-          // fullConflict => conflict              ~conflict
-          // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+          // ------------------------- explained  
+          // fullConflict => conflict             
+          // ------------------------- IMPLIES_ELIM  ---------- from theory
+          // ~fullConflict V conflict                ~conflict
+          // -------------------------------------------------- RESOLUTION
           // ~fullConflict
-          children.push_back(conflict.notNode());
-          args.push_back(mkMethodId(MethodId::SB_LITERAL));
+          Node provenOr = nodeManager()->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
+          d_lazyProof->addStep(provenOr,
+                               ProofRule::IMPLIES_ELIM,
+                               {proven},
+                               {});
           d_lazyProof->addStep(fullConflictNeg,
-                               ProofRule::MACRO_SR_PRED_TRANSFORM,
-                               children,
-                               args);
+                               ProofRule::RESOLUTION,
+                               {provenOr, conflict.notNode()},
+                               {d_true, conflict});
         }
       }
     }

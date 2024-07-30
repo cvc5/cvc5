@@ -24,24 +24,27 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiProofRule : public ::testing::Test
+class TestApiBlackProofRule : public ::testing::Test
 {
 };
 
-TEST_F(TestApiProofRule, proofRuleToString)
+TEST_F(TestApiBlackProofRule, proofRuleToString)
 {
   for (int32_t r = static_cast<int32_t>(ProofRule::ASSUME);
        r <= static_cast<int32_t>(ProofRule::UNKNOWN);
        ++r)
   {
     ProofRule rule = static_cast<ProofRule>(r);
-    auto rulestr = toString(rule);
     // If this assertion fails, the switch is missing rule r.
-    ASSERT_NE(rulestr, "?");
+    ASSERT_NE(toString(rule), "?");
+    ASSERT_NE(std::to_string(rule), "?");
+    std::stringstream ss;
+    ss << rule;
+    ASSERT_NE(ss.str(), "?");
   }
 }
 
-TEST_F(TestApiProofRule, ProofRuleHash)
+TEST_F(TestApiBlackProofRule, ProofRuleHash)
 {
   ASSERT_EQ(std::hash<cvc5::ProofRule>()(ProofRule::UNKNOWN),
             static_cast<size_t>(ProofRule::UNKNOWN));
@@ -57,9 +60,13 @@ TEST_F(TestApiProofRewriteRule, ProofRewriteRuleToString)
        r <= static_cast<int32_t>(ProofRewriteRule::DISTINCT_BINARY_ELIM);
        ++r)
   {
-    auto rulestr = std::to_string(static_cast<ProofRewriteRule>(r));
     // If this assertion fails, the switch is missing rule r.
-    ASSERT_NE(rulestr, "?");
+    auto rule = static_cast<ProofRewriteRule>(r);
+    ASSERT_NE(toString(rule), "?");
+    ASSERT_NE(std::to_string(rule), "?");
+    std::stringstream ss;
+    ss << rule;
+    ASSERT_NE(ss.str(), "?");
   }
 }
 

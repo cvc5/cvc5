@@ -21,10 +21,13 @@ import io.github.cvc5.modes.InputLanguage;
  * This class is the main interface for retrieving commands and expressions
  * from an input using a parser.
  *
- * After construction, it is expected that an input is first set via e.g.
- * setFileInput, setStringInput, or setIncrementalStringInput and
- * appendIncrementalStringInput. Then, the methods nextCommand and
- * nextExpression can be invoked to parse the input.
+ * After construction, it is expected that an input is first set via
+ * {@link InputParser#setFileInput(InputLanguage, String)},
+ * {@link InputParser#setStringInput(InputLanguage, String, String)},
+ * or {@link InputParser#setIncrementalStringInput(InputLanguage, String)} and
+ * {@link InputParser#appendIncrementalStringInput(String)}. Then, the methods
+ * {@link InputParser#nextCommand()} and {@link InputParser#nextTerm()} can be
+ * invoked to parse the input.
  *
  * The input parser interacts with a symbol manager, which determines which
  * symbols are defined in the current context, based on the background logic
@@ -33,7 +36,7 @@ import io.github.cvc5.modes.InputLanguage;
  *
  * If provided, the symbol manager must have a logic that is compatible
  * with the provided solver. That is, if both the solver and symbol
- * manager have their logics set (SymbolManager.isLogicSet and
+ * manager have their logics set ({@link SymbolManager#isLogicSet()} and
  * {@link Solver#isLogicSet()}, then their logics must be the same.
  *
  * Upon setting an input source, if either the solver (resp. symbol
@@ -66,7 +69,8 @@ public class InputParser extends AbstractPointer
   {
     // unlike cpp api, here we create a symbol manager first and then
     // we call the corresponding constructor in cpp api
-    super(newInputParser(solver.getPointer(), new SymbolManager(solver).getPointer()));
+    super(newInputParser(
+        solver.getPointer(), new SymbolManager(solver.getTermManager()).getPointer()));
   }
 
   private static native long newInputParser(long solverPointer);
@@ -170,6 +174,7 @@ public class InputParser extends AbstractPointer
   /**
    * Parse and return the next term. Requires setting the logic prior
    * to this point.
+   * @return The parsed term.
    */
   public Term nextTerm()
   {

@@ -29,6 +29,7 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/parallel_options.h"
+#include "options/parser_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/prop_options.h"
@@ -172,6 +173,16 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     // if the user requested proofs, proof mode is full
     SET_AND_NOTIFY(smt, proofMode, options::ProofMode::FULL, "enabling proofs");
+    // Default granularity is theory rewrite if we are intentionally using
+    // proofs, otherwise it is MACRO (e.g. if produce unsat cores is true)
+    if (opts.proof.proofGranularityMode
+        < options::ProofGranularityMode::THEORY_REWRITE)
+    {
+      SET_AND_NOTIFY(proof,
+                     proofGranularityMode,
+                     options::ProofGranularityMode::THEORY_REWRITE,
+                     "enabling proofs");
+    }
     // unsat cores are available due to proofs being enabled
     if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
@@ -382,7 +393,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     if (logic.isTheoryEnabled(THEORY_BV))
     {
       logic = logic.getUnlockedCopy();
-      logic.enableTheory(THEORY_ARITH);
+      logic.enableIntegers();
       logic.arithNonLinear();
       logic.lock();
     }
@@ -656,7 +667,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // Turn off array eager index splitting for QF_AUFLIA
   if (!opts.arrays.arraysEagerIndexSplittingWasSetByUser)
   {
-    if (not logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
+    if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
         && logic.isTheoryEnabled(THEORY_UF)
         && logic.isTheoryEnabled(THEORY_ARITH))
     {
@@ -971,6 +982,12 @@ bool SetDefaults::usesInputConversion(const Options& opts,
 bool SetDefaults::incompatibleWithProofs(Options& opts,
                                          std::ostream& reason) const
 {
+  if (opts.parser.freshBinders)
+  {
+    // When fresh-binders is true, we do not support proof output.
+    reason << "fresh-binders";
+    return true;
+  }
   if (opts.quantifiers.globalNegate)
   {
     // When global negate answers "unsat", it is not due to showing a set of
@@ -1335,7 +1352,7 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
       || (logic.isTheoryEnabled(THEORY_ARITH)
           && logic.isTheoryEnabled(THEORY_BV))
       // FP requires UF since there are multiple operators that are partially
-      // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
+      // defined (see http://smt-lib.org/papers/BTRW15.pdf for more
       // details).
       || logic.isTheoryEnabled(THEORY_FP))
   {
@@ -1390,6 +1407,11 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.instMaxLevel != -1)
   {
     SET_AND_NOTIFY(quantifiers, cegqi, false, "instMaxLevel");
+  }
+  // enable MBQI if --mbqi-fast-sygus is provided
+  if (opts.quantifiers.mbqiFastSygus)
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(quantifiers, mbqi, true, "mbqiFastSygus");
   }
   if (opts.quantifiers.mbqi)
   {
@@ -1674,51 +1696,49 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
       usesSygus(opts) ? options::DecisionMode::INTERNAL :
                       // ALL or its supersets
           logic.hasEverything()
-              ? options::DecisionMode::JUSTIFICATION
-              : (  // QF_BV
-                    (not logic.isQuantified() && logic.isPure(THEORY_BV)) ||
-                            // QF_AUFBV or QF_ABV or QF_UFBV
-                            (not logic.isQuantified()
-                             && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                                 || logic.isTheoryEnabled(THEORY_UF))
-                             && logic.isTheoryEnabled(THEORY_BV))
-                            ||
-                            // QF_AUFLIA (and may be ends up enabling
-                            // QF_AUFLRA?)
-                            (not logic.isQuantified()
-                             && logic.isTheoryEnabled(THEORY_ARRAYS)
-                             && logic.isTheoryEnabled(THEORY_UF)
-                             && logic.isTheoryEnabled(THEORY_ARITH))
-                            ||
-                            // QF_LRA
-                            (not logic.isQuantified()
-                             && logic.isPure(THEORY_ARITH) && logic.isLinear()
-                             && !logic.isDifferenceLogic()
-                             && !logic.areIntegersUsed())
-                            ||
-                            // Quantifiers
-                            logic.isQuantified() ||
-                            // Strings
-                            logic.isTheoryEnabled(THEORY_STRINGS)
-                        ? options::DecisionMode::JUSTIFICATION
-                        : options::DecisionMode::INTERNAL);
+          ? options::DecisionMode::JUSTIFICATION
+          : (  // QF_BV
+              (!logic.isQuantified() && logic.isPure(THEORY_BV)) ||
+                      // QF_AUFBV or QF_ABV or QF_UFBV
+                      (!logic.isQuantified()
+                       && (logic.isTheoryEnabled(THEORY_ARRAYS)
+                           || logic.isTheoryEnabled(THEORY_UF))
+                       && logic.isTheoryEnabled(THEORY_BV))
+                      ||
+                      // QF_AUFLIA (and may be ends up enabling
+                      // QF_AUFLRA?)
+                      (!logic.isQuantified()
+                       && logic.isTheoryEnabled(THEORY_ARRAYS)
+                       && logic.isTheoryEnabled(THEORY_UF)
+                       && logic.isTheoryEnabled(THEORY_ARITH))
+                      ||
+                      // QF_LRA
+                      (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
+                       && logic.isLinear() && !logic.isDifferenceLogic()
+                       && !logic.areIntegersUsed())
+                      ||
+                      // Quantifiers
+                      logic.isQuantified() ||
+                      // Strings
+                      logic.isTheoryEnabled(THEORY_STRINGS)
+                  ? options::DecisionMode::JUSTIFICATION
+                  : options::DecisionMode::INTERNAL);
 
   bool stoponly =
       // ALL or its supersets
       logic.hasEverything() || logic.isTheoryEnabled(THEORY_STRINGS)
           ? false
           : (  // QF_AUFLIA
-                (not logic.isQuantified()
-                 && logic.isTheoryEnabled(THEORY_ARRAYS)
-                 && logic.isTheoryEnabled(THEORY_UF)
-                 && logic.isTheoryEnabled(THEORY_ARITH))
-                        ||
-                        // QF_LRA
-                        (not logic.isQuantified() && logic.isPure(THEORY_ARITH)
-                         && logic.isLinear() && !logic.isDifferenceLogic()
-                         && !logic.areIntegersUsed())
-                    ? true
-                    : false);
+              (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
+               && logic.isTheoryEnabled(THEORY_UF)
+               && logic.isTheoryEnabled(THEORY_ARITH))
+                      ||
+                      // QF_LRA
+                      (!logic.isQuantified() && logic.isPure(THEORY_ARITH)
+                       && logic.isLinear() && !logic.isDifferenceLogic()
+                       && !logic.areIntegersUsed())
+                  ? true
+                  : false);
 
   if (stoponly)
   {

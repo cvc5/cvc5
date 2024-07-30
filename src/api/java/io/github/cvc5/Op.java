@@ -43,7 +43,6 @@ public class Op extends AbstractPointer
 
   /**
    * Syntactic equality operator.
-   * @api.note Both operators must belong to the same solver object.
    * @param t The operator to compare to for equality.
    * @return True if the operators are syntactically identical.
    */
@@ -51,9 +50,13 @@ public class Op extends AbstractPointer
   public boolean equals(Object t)
   {
     if (this == t)
+    {
       return true;
+    }
     if (t == null || getClass() != t.getClass())
+    {
       return false;
+    }
     return equals(pointer, ((Op) t).getPointer());
   }
 
@@ -112,7 +115,7 @@ public class Op extends AbstractPointer
    * Get the index at position {@code i}.
    * @param i The position of the index to return.
    * @return The index at position {@code i}.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term get(int i) throws CVC5ApiException
   {
@@ -127,4 +130,16 @@ public class Op extends AbstractPointer
    * @return A string representation of this operator.
    */
   protected native String toString(long pointer);
+
+  /**
+   * Get the hash value of an operator.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }
