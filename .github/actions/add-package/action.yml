@@ -27,6 +27,17 @@ runs:
         # They are built for testing purposes, but
         # only work for the specific CI Python version.
         rm -rf ${{ inputs.build-dir }}/install/lib/python*
+        rm -rf ${{ inputs.build-dir }}/install/lib/site-packages
+
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          if [ -f ${{ inputs.build-dir }}/install/bin/libcvc5.dll ]; then
+            cp /mingw64/bin/libgcc_s_seh-1.dll ${{ inputs.build-dir }}/install/bin/
+            cp /mingw64/bin/libstdc++-6.dll ${{ inputs.build-dir }}/install/bin/
+            cp /mingw64/bin/libwinpthread-1.dll ${{ inputs.build-dir }}/install/bin/
+          else
+            cp /mingw64/lib/libgmp.a ${{ inputs.build-dir }}/install/lib/
+          fi
+        fi
 
         # Copy COPYING file and licenses directory to install directory
         cp COPYING ${{ inputs.build-dir }}/install/
@@ -34,6 +45,23 @@ runs:
 
         # Create ZIP file
         pushd ${{ inputs.build-dir }}
+        if [[ "$RUNNER_OS" == "macOS" ]]; then
+          # Temporary workaround to make the cvc5 library included in release relocatable (see issue #10681)
+          if [ -f ./install/lib/libcvc5.dylib ]; then
+            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libpoly.0.dylib" @rpath/libpoly.0.dylib ./install/lib/libcvc5.dylib
+            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libpoly.0.dylib" @rpath/libpoly.0.dylib ./install/lib/libcvc5.1.dylib
+            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libpolyxx.0.dylib" @rpath/libpolyxx.0.dylib ./install/lib/libcvc5.dylib
+            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libpolyxx.0.dylib" @rpath/libpolyxx.0.dylib ./install/lib/libcvc5.1.dylib
+            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcvc5.dylib
+            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcvc5.1.dylib
+            if [ -f ./install/lib/libcln.dylib ]; then
+              install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libcln.6.dylib" @rpath/libcln.6.dylib ./install/lib/libcvc5.dylib
+              install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libcln.6.dylib" @rpath/libcln.6.dylib ./install/lib/libcvc5.1.dylib
+              install_name_tool -change "/usr/local/opt/gmp/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcln.dylib
+              install_name_tool -change "/usr/local/opt/gmp/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcln.6.dylib
+            fi
+          fi
+        fi
         mv install ${{ inputs.package-name }}
         zip -r ${{ inputs.package-name }} ${{ inputs.package-name }}
         popd
@@ -96,7 +124,7 @@ runs:
         for cnt,asset in enumerate(assets):
           delete = False
           # We generate 10 artifacts per build:
-          # {Linux, Linux-arm64, macOS, macOS-arm64, Windows} * {static, shared}
+          # {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64} * {static, shared}
           if cnt >= 20: # Keep at most 2 builds
             delete = True
           if asset.name.startswith(samedayprefix):

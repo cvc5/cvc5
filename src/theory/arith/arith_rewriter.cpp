@@ -53,8 +53,11 @@ ArithRewriter::ArithRewriter(NodeManager* nm, OperatorElim& oe)
 {
   registerProofRewriteRule(ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  // we don't register ARITH_STRING_PRED_ENTAIL or ARITH_STRING_PRED_SAFE_APPROX,
-  // as these are subsumed by MACRO_ARITH_STRING_PRED_ENTAIL.
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+  // we don't register ARITH_STRING_PRED_ENTAIL or
+  // ARITH_STRING_PRED_SAFE_APPROX, as these are subsumed by
+  // MACRO_ARITH_STRING_PRED_ENTAIL.
 }
 
 Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -73,6 +76,38 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
           return nm->mkNode(Kind::MULT, n[0], nm->mkConstReal(rinv));
         }
       }
+    }
+    break;
+    case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
+    {
+      // only matters if n contains strings
+      if (!expr::hasSubtermKinds({Kind::STRING_LENGTH}, n))
+      {
+        return Node::null();
+      }
+      // Note that we do *not* pass a rewriter here, since the proof rule
+      // cannot depend on the rewriter. This makes this rule capture most
+      // but not all cases of this kind of reasoning.
+      theory::strings::ArithEntail ae(nullptr);
+      Node tgt;
+      if (n.getKind() == Kind::EQUAL)
+      {
+        tgt = n;
+      }
+      else
+      {
+        tgt = ae.normalizeGeq(n);
+      }
+      if (tgt.isNull() || !tgt[0].getType().isInteger())
+      {
+        return Node::null();
+      }
+      // first do basic length intro, which rewrites (str.len (str.++ x y))
+      // to (+ (str.len x) (str.len y))
+      Node nexp = ae.rewriteLengthIntro(tgt);
+      // Also must make this a "simple" check (isSimple = true).
+      Node ret = ae.rewritePredViaEntailment(nexp, true);
+      return ret;
     }
     break;
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:

@@ -56,6 +56,8 @@ AlfNodeConverter::AlfNodeConverter(NodeManager* nm) : BaseAlfNodeConverter(nm)
   d_sortType = nm->mkSort("sortType");
 }
 
+AlfNodeConverter::~AlfNodeConverter() {}
+
 Node AlfNodeConverter::preConvert(Node n)
 {
   // match is not supported in ALF syntax, we eliminate it at pre-order
@@ -243,7 +245,7 @@ Node AlfNodeConverter::postConvert(Node n)
     std::vector<Node> newArgs;
     newArgs.push_back(nm->mkConstInt(irp.d_index));
     newArgs.insert(newArgs.end(), n.begin(), n.end());
-    return mkInternalApp("INDEXED_ROOT_PREDICATE", newArgs, tn);
+    return mkInternalApp("@indexed_root_predicate", newArgs, tn);
   }
   else if (k == Kind::FLOATINGPOINT_COMPONENT_NAN
            || k == Kind::FLOATINGPOINT_COMPONENT_INF
@@ -375,18 +377,11 @@ size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
   return k == Kind::SET_COMPREHENSION ? 3 : 2;
 }
 
-Node AlfNodeConverter::mkNil(TypeNode tn)
-{
-  return mkInternalSymbol("alf.nil", tn);
-}
 
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
 {
+  Assert(!args.empty());
   TypeNode tn = NodeManager::currentNM()->booleanType();
-  if (args.empty())
-  {
-    return mkNil(tn);
-  }
   // singleton lists are handled due to (@list x) ---> (@list x alf.nil)
   return mkInternalApp("@list", args, tn);
 }
@@ -607,11 +602,6 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     else
     {
       opName << printer::smt2::Smt2Printer::smtKindString(k);
-      if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-          || k == Kind::INTS_MODULUS_TOTAL)
-      {
-        opName << "_total";
-      }
     }
   }
   std::vector<Node> args(n.begin(), n.end());

@@ -23,6 +23,9 @@
 #include "expr/node.h"
 
 namespace cvc5::internal {
+
+class TConvProofGenerator;
+
 namespace theory {
 
 class Rewriter;
@@ -48,6 +51,28 @@ class ArithEntail
    * ArithPolyNorm utility (arith/arith_poly_norm.h) otherwise.
    */
   Node rewriteArith(Node a);
+  /**
+   * Normalize the integer relation n to a GEQ, if possible.
+   * For example, (> t s) becomes (>= t (+ s 1)). Returns null if n is
+   * not an arithmetic relation {>,>=,<,<=} over integers.
+   * @param n The relation to normalize.
+   * @return a GEQ term equivalent to n, if one exists.
+   */
+  Node normalizeGeq(const Node& n) const;
+  /**
+   * Do basic length intro rewrites in all subterms of n.
+   * For example, calling this method on
+   *   (= (str.len (str.++ x "A")) 4)
+   * returns:
+   *   (= (+ (str.len x) 1) 4)
+   * @param n The term to rewrite.
+   * @param pg If provided, we add small step rewrites that were performed to n
+   * such that pg can provide a proof of (= n n'), where n' is the term returned
+   * by this class.
+   * @return The result of rewriting length terms in n.
+   */
+  Node rewriteLengthIntro(const Node& n,
+                          TConvProofGenerator* pg = nullptr) const;
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */

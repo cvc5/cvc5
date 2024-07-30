@@ -59,7 +59,9 @@ enum class InternalSkolemId
   /** abstract value for a term t */
   ABSTRACT_VALUE,
   /** Input variables for quantifier elimination of closed formulas */
-  QE_CLOSED_INPUT
+  QE_CLOSED_INPUT,
+  /** Skolem used for marking a quantified attribute */
+  QUANTIFIERS_ATTRIBUTE_INTERNAL
 };
 /** Converts an internal skolem function name to a string. */
 const char* toString(InternalSkolemId id);
@@ -143,14 +145,9 @@ class SkolemManager
    * will return two different Skolems.
    *
    * @param t The term to purify
-   * @param pg The proof generator for the skolemization of t. This should
-   * only be provided if t is a witness term (witness ((x T)) P). If non-null,
-   * this proof generator must respond to a call to getProofFor on
-   * (exists ((x T)) P) during the lifetime of the current node manager.
    * @return The purification skolem for t
    */
-  Node mkPurifySkolem(Node t,
-                      ProofGenerator* pg = nullptr);
+  Node mkPurifySkolem(Node t);
   /**
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the forms described in SkolemId. The user of this
@@ -231,11 +228,6 @@ class SkolemManager
                      const TypeNode& type,
                      const std::string& comment = "",
                      int flags = SKOLEM_DEFAULT);
-  /**
-   * Get proof generator for existentially quantified formula q. This returns
-   * the proof generator that was provided in a call to `mkSkolemize` above.
-   */
-  ProofGenerator* getProofGenerator(Node q) const;
   /** Returns true if n is a skolem that stands for an abstract value */
   bool isAbstractValue(TNode n) const;
   /**
@@ -257,16 +249,18 @@ class SkolemManager
    * @return the unpurified form of k.
    */
   static Node getUnpurifiedForm(Node k);
+  /**
+   * Get the number of indices for a skolem id.
+   * @param id The skolem id.
+   * @return The number of indices for the skolem id.
+   */
+  size_t getNumIndicesForSkolemId(SkolemId id) const;
 
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */
   std::map<std::tuple<SkolemId, TypeNode, Node>, Node> d_skolemFuns;
   /** Backwards mapping of above */
   std::map<Node, std::tuple<SkolemId, TypeNode, Node>> d_skolemFunMap;
-  /**
-   * Mapping from witness terms to proof generators.
-   */
-  std::map<Node, ProofGenerator*> d_gens;
 
   /**
    * A counter used to produce unique skolem names.

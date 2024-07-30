@@ -23,6 +23,7 @@
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "util/bitvector.h"
 
 using namespace cvc5::internal::kind;
 
@@ -58,12 +59,12 @@ bool RewriteDbProofCons::prove(
     CDProof* cdp,
     const Node& a,
     const Node& b,
-    theory::TheoryId tid,
-    MethodId mid,
     int64_t recLimit,
     int64_t stepLimit,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+    std::vector<std::shared_ptr<ProofNode>>& subgoals,
+    TheoryRewriteMode tmode)
 {
+  d_tmode = tmode;
   // clear the proof caches
   d_pcache.clear();
   // clear the evaluate cache
@@ -115,7 +116,7 @@ bool RewriteDbProofCons::prove(
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
   bool success = false;
-  if (d_trrc.prove(cdp, eq[0], eq[1], tid, mid, subgoals))
+  if (d_trrc.prove(cdp, eq[0], eq[1], subgoals, tmode))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
@@ -155,7 +156,7 @@ bool RewriteDbProofCons::prove(
   if (!success)
   {
     // now try the "post-prove" method as a last resort
-    if (d_trrc.postProve(cdp, eq[0], eq[1], tid, mid, subgoals))
+    if (d_trrc.postProve(cdp, eq[0], eq[1], subgoals, tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
@@ -257,10 +258,13 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   }
   // Maybe holds via a THEORY_REWRITE that has been marked with
   // TheoryRewriteCtx::DSL_SUBCALL.
-  if (proveWithRule(
-          RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+  if (d_tmode==TheoryRewriteMode::STANDARD)
   {
-    return RewriteProofStatus::THEORY_REWRITE;
+    if (proveWithRule(
+            RewriteProofStatus::THEORY_REWRITE, eqi, {}, {}, false, false, true))
+    {
+      return RewriteProofStatus::THEORY_REWRITE;
+    }
   }
   Trace("rpc-debug2") << "...not proved via builtin tactic" << std::endl;
   d_currRecLimit--;
@@ -515,11 +519,30 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   }
   else if (id == RewriteProofStatus::ARITH_POLY_NORM)
   {
-    if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
+    if (target[0].getType().isBoolean())
     {
-      return false;
+      Rational rx, ry;
+      if (!theory::arith::PolyNorm::isArithPolyNormRel(
+              target[0], target[1], rx, ry))
+      {
+        return false;
+      }
+      Node premise = theory::arith::PolyNorm::getArithPolyNormRelPremise(
+          target[0], target[1], rx, ry);
+      ProvenInfo ppremise;
+      ppremise.d_id = id;
+      d_pcache[premise] = ppremise;
+      pic.d_id = id;
+      pic.d_vars.push_back(premise);
     }
-    pic.d_id = id;
+    else
+    {
+      if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
+      {
+        return false;
+      }
+      pic.d_id = id;
+    }
   }
   else if (id == RewriteProofStatus::THEORY_REWRITE)
   {
@@ -1004,7 +1027,19 @@ bool RewriteDbProofCons::ensureProofInternal(
       }
       else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
       {
-        cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
+        if (pcur.d_vars.empty())
+        {
+          cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
+        }
+        else
+        {
+          cdp->addStep(
+              pcur.d_vars[0], ProofRule::ARITH_POLY_NORM, {}, {pcur.d_vars[0]});
+          cdp->addStep(cur,
+                       ProofRule::ARITH_POLY_NORM_REL,
+                       {pcur.d_vars[0]},
+                       {ProofRuleChecker::mkKindNode(cur[0].getKind())});
+        }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL
                || pcur.d_id == RewriteProofStatus::THEORY_REWRITE)
@@ -1176,6 +1211,8 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
   std::unordered_map<TNode, TNode> parent;
   std::vector<Node> congs;
   parent[context] = TNode::null();
+  std::unordered_map<TNode, Node> visitedSrc;
+  std::unordered_map<TNode, Node> visitedTgt;
   while (!toVisit.empty())
   {
     TNode curr = toVisit.back();
@@ -1186,8 +1223,10 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
       TNode currp;
       while ((currp = parent[curr]) != Node::null())
       {
-        Node lhs = currp.substitute(placeholder, source);
-        Node rhs = currp.substitute(placeholder, target);
+        Node lhs =
+            expr::narySubstitute(currp, {placeholder}, {source}, visitedSrc);
+        Node rhs =
+            expr::narySubstitute(currp, {placeholder}, {target}, visitedTgt);
         congs.emplace_back(lhs.eqNode(rhs));
         curr = currp;
       }

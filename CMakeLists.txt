@@ -37,6 +37,9 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 # plugins.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Default component used in install() commands
+set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME cvc5)
+
 #-----------------------------------------------------------------------------#
 # Policies
 
@@ -140,8 +143,10 @@ option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 # Api documentation
 option(BUILD_DOCS "Build Api documentation")
+option(BUILD_DOCS_GA "Build API documentation with Google Analytics")
 
-option(BUILD_GMP "Build GMP from sources")
+option(BUILD_GMP "Build GMP from source")
+option(BUILD_CLN "Build CLN from source")
 
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \
@@ -232,6 +237,7 @@ add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wshadow")
+add_check_c_cxx_flag("-fno-operator-names")
 
 # Assume no dynamic initialization of thread-local variables in non-defining
 # translation units. This option should result in better performance and works
@@ -386,19 +392,43 @@ endif()
 set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
     CACHE STRING "Base Python executable")
 
+macro(create_venv)
+  message(STATUS "Creating Python virtual environment")
+  # Use packages installed in the base installation if they're already present...
+  if(BUILD_BINDINGS_PYTHON AND NOT ONLY_PYTHON_EXT_SRC)
+    #... unless we are building the Python bindings.
+    # Building the Python bindings currently requires a recent version of
+    # setuptools. On old systems with Python 3.8 or 3.9, upgrading to the latest
+    # version of setuptools without manually upgrading its dependencies
+    # can cause problems (see https://github.com/pypa/setuptools/issues/4478).
+    # Therefore, we start with a clean virtual environment so that
+    # all the latest dependencies of setuptools are installed.
+    set(VENV_SYSTEM_PACKAGES_FLAG "")
+  else()
+    set(VENV_SYSTEM_PACKAGES_FLAG "--system-site-packages")
+  endif()
+  execute_process (
+    COMMAND
+      "${Python_EXECUTABLE}" -m venv ${VENV_SYSTEM_PACKAGES_FLAG} "${VENV_PATH}"
+    RESULT_VARIABLE VENV_CMD_EXIT_CODE
+  )
+  if(VENV_CMD_EXIT_CODE)
+    message(FATAL_ERROR "Could not create Python virtual environment")
+  endif()
+endmacro()
+
 if(ENABLE_AUTO_DOWNLOAD AND USE_PYTHON_VENV)
   # Set up Python venv if one doesn't exist already
   set(VENV_PATH "${CMAKE_BINARY_DIR}/venv-${Python_VERSION}")
   if(NOT EXISTS ${VENV_PATH})
-    message(STATUS "Creating Python virtual environment")
-    # Use packages installed in the base installation if they're already present
-    execute_process (
-      COMMAND
-        "${Python_EXECUTABLE}" -m venv --system-site-packages "${VENV_PATH}"
-      RESULT_VARIABLE VENV_CMD_EXIT_CODE
-    )
-    if(VENV_CMD_EXIT_CODE)
-      message(FATAL_ERROR "Could not create Python virtual environment")
+    find_package(Pip REQUIRED)
+    create_venv()
+  else()
+    if(NOT (EXISTS ${VENV_PATH}/bin/pip OR EXISTS ${VENV_PATH}/Scripts/pip.exe))
+      # This situation may be possible if cvc5 was built before 715f649
+      execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${VENV_PATH})
+      find_package(Pip REQUIRED)
+      create_venv()
     endif()
   endif()
 
@@ -537,6 +567,7 @@ else()
 endif()
 
 if(USE_COCOA)
+  set(GPL_LIBS "${GPL_LIBS} cocoa")
   find_package(CoCoA REQUIRED 0.99711)
   add_definitions(-DCVC5_USE_COCOA)
 endif()
@@ -555,7 +586,8 @@ if(GPL_LIBS)
   if(NOT ENABLE_GPL)
     message(FATAL_ERROR
       "Bad configuration detected: BSD-licensed code only, but also requested "
-      "GPLed libraries: ${GPL_LIBS}")
+      "GPLed libraries: ${GPL_LIBS}. (Configure with --gpl to allow GPLed "
+      "libraries.)")
   endif()
   set(CVC5_GPL_DEPS 1)
 endif()
