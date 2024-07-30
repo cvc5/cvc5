@@ -182,7 +182,7 @@
 ; Skolems, which are used in reductions. Notice that Skolem terms may use
 ; terms that are not in original form, meaning that the definitions of Skolems
 ; may themselves contain Skolems. This is to avoid the use of a side condition
-; for computing the original form of a term in the ALF signature, which
+; for computing the original form of a term in the Eunoia signature, which
 ; naively is exponential.
 
 ; define: $str_prefix

@@ -1,6 +1,6 @@
 ; =============================================================================
 ;
-; This is the official development version of the ALF signature for cvc5's
+; This is the official development version of the Eunoia signature for cvc5's
 ; internal proof calculus. It is a faithful formalization of cvc5's theory
 ; signatures and proof rules.
 ;
@@ -12,7 +12,7 @@
 ; For examples of the latter:
 ; - Many arithmetic symbols in cvc5 such as +, *, >= operate on *mixed*
 ; arithmetic. That is, they can be applied to mixtures of Real and Int.
-; - Most associative operators are modelled as variadic (modelled in ALF as
+; - Most associative operators are modelled as variadic (modelled in Eunoia as
 ; :left-assoc-nil and :right-assoc-nil) instead of being seen as syntax sugar
 ; for an associative chain that does not distinguish a nil terminator (e.g.
 ; :left-assoc and :right-assoc). Examples of these operators include or, bvand,
@@ -41,17 +41,18 @@
 ; the preamble of the proof that is output by cvc5.
 ;
 ; The rules ProofRule::TRUST and ProofRule::TRUST_THEORY_REWRITE are output in
-; ALF proofs using a catch-all rule trust defined at the end of this file. This
-; rule is also used for any ProofRule which the ALF signature does not
-; currently support. In cvc5's proof ouput, an ALF comment will be displayed
+; proofs using a catch-all rule trust defined at the end of this file. This
+; rule is also used for any ProofRule which the Eunoia signature does not
+; currently support. In cvc5's proof ouput, an Eunoia comment will be displayed
 ; above an application of this rule to indicate diagnostic information on the
 ; source of this inference, in the format of a TrustId, tracked internally in
 ; cvc5 to classify the source of the incompleteness.
 ;
-; !!! NOTE: proofs using any instance of the trust rule should be considered incomplete
-; and not having a formal justification.
+; !!! NOTE: proofs using any instance of the trust rule should be considered
+; incomplete and not having a formal justification. The Ethos checker will
+; output "incomplete" if any trust step appears in a proof.
 ;
-; Discrepancies between cvc5's Proof API and the formal ALF definition are
+; Discrepancies between cvc5's Proof API and the formal Eunoia definition are
 ; also noted when applicable by disclaimer:.
 ; 
 ; =============================================================================
@@ -322,7 +323,7 @@
 ;   This rule is not sound. Any proof involving this rule should be
 ;   considered incomplete. We use this rule when encountering ProofRule::TRUST,
 ;   ProofRule::TRUST_THEORY_REWRITE, or any other rule that is not currently
-;   formalized in the ALF signature.
+;   formalized in the Eunoia signature.
 (declare-rule trust ((P Bool) (F Bool))
     :premise-list P and
     :args (F)

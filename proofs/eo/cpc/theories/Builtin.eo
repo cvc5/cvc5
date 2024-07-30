@@ -1,6 +1,6 @@
 (include "../programs/Utils.eo")
 
-; Note that the Bool sort is native to ALF
+; Note that the Bool sort is native to Eunoia
 
 (declare-const ite (-> (! Type :var A :implicit) Bool A A A))
 (declare-const not (-> Bool Bool))
