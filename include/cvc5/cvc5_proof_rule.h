@@ -3487,10 +3487,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_STRIP_CHAR_REV),
   /** Auto-generated from RARE rule str-in-re-strip-char-s-single-rev */
   EVALUE(STR_IN_RE_STRIP_CHAR_S_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-no-prefix */
-  EVALUE(STR_IN_RE_NO_PREFIX),
-  /** Auto-generated from RARE rule str-in-re-no-prefix-rev */
-  EVALUE(STR_IN_RE_NO_PREFIX_REV),
   /** Auto-generated from RARE rule str-in-re-req-unfold */
   EVALUE(STR_IN_RE_REQ_UNFOLD),
   /** Auto-generated from RARE rule str-in-re-req-unfold-rev */
