@@ -338,13 +338,26 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 return 1;
               }
             }
-            TypeEnumerator te(edeq[0][0].getType());
-            Node v1 = *te;
-            te++;
-            Node v2 = *te;
+            // Enumerate the first two values for this sort, there must be
+            // at least two values since this is an infinite sort.
+            bool success = false;
+            TypeNode tn = edeq[0][0].getType();
             Trace("uf-ho-debug")
-                << "Add extensionality deq to model : " << edeq << std::endl;
-            if (!m->assertEquality(edeq[0][0], v1, true) || !m->assertEquality(edeq[0][1], v2, true))
+                  << "Add extensionality deq to model for : " << edeq << std::endl;
+            if (d_env.isFiniteType(tn))
+            {
+              TypeEnumerator te(tn);
+              Node v1 = *te;
+              te++;
+              Node v2 = *te;
+              Assert (!v2.isNull() && v2!=v1);
+              success = m->assertEquality(edeq[0][0], v1, true) && m->assertEquality(edeq[0][1], v2, true);
+            }
+            else
+            {
+              success = m->assertEquality(edeq[0][0], edeq[0][1], false);
+            }
+            if (!success)
             {
               Node eq = edeq[0][0].eqNode(edeq[0][1]);
               Node lem = nm->mkNode(Kind::OR, deq.negate(), eq);
