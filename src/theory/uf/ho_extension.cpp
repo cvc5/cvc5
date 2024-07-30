@@ -343,8 +343,6 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 return 1;
               }
             }
-            // Enumerate the first two values for this sort, there must be
-            // at least two values since this is an infinite sort.
             bool success = false;
             TypeNode tn = edeq[0][0].getType();
             Trace("uf-ho-debug")
@@ -352,6 +350,14 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 << std::endl;
             if (d_env.isFiniteType(tn))
             {
+              // We are an infinite function type with a finite range sort.
+              // Model construction assigns the first value for all
+              // unconstrained variables for such sorts, which does not
+              // suffice in this context since we are trying to make the
+              // functions disequal. Thus, for such case we enumerate the first
+              // two values for this sort and set the extensionality index to
+              // be equal to these two distinct values.  There must be at least
+              // two values since this is an infinite function sort.
               TypeEnumerator te(tn);
               Node v1 = *te;
               te++;
