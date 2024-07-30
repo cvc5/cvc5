@@ -922,6 +922,8 @@ void InferProofCons::convert(InferenceId infer,
         if (curr.isNull())
         {
           curr = prev;
+          // This is an equality between a variable and a concatention or
+          // constant term (for example see below).
           // orient the substitution properly
           if (!eqs[i][1].isConst()
               && eqs[i][1].getKind() != Kind::STRING_CONCAT)
