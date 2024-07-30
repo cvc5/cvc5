@@ -283,10 +283,10 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     if (tn.isFunction() && d_lambdaEqc.find(eqc) == d_lambdaEqc.end())
     {
       hasFunctions = true;
-      // if during collect model, must have an infinite type
-      // if not during collect model, must have a finite type
-      // we consider the cardinality of tn's range type (as opposed to tn)
-      // since the model construction will enumerate values of this type.
+      // If during collect model, must have an infinite function type, since
+      // such function are not necessary to be handled during solving.
+      // If not during collect model, must have a finite function type, since
+      // such function symbols must be handled during solving.
       if (d_env.isFiniteType(tn) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
