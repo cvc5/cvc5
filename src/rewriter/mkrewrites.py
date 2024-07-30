@@ -163,10 +163,6 @@ def validate_rule(rule):
             used_vars.add(curr)
         to_visit.extend(curr.children)
 
-    unused_vars = set(rule.bvars) - used_vars
-    if unused_vars:
-        die(f'Variables {unused_vars} are not matched in {rule.name}')
-
     # Check that list variables are always used within the same operators
     var_to_op = dict()
     to_visit = [rule.cond, rule.lhs, rule.rhs]
