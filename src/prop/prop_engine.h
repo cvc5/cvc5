@@ -452,6 +452,10 @@ class PropEngine : protected EnvObj
    * cores are enabled.
    */
   context::CDList<Node> d_assumptions;
+  /**
+   * Local lemmas
+   */
+  context::CDHashSet<Node> d_localLemmas;
   /** Statistics */
   struct Statistics
   {

@@ -77,7 +77,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
-      d_assumptions(d_env.getUserContext()),
+      d_assumptions(userContext()),
+      d_localLemmas(userContext()),
       d_stats(statisticsRegistry())
 {
   Trace("prop") << "Constructing the PropEngine" << std::endl;
@@ -224,11 +225,16 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
                                             bool removable,
                                             bool local)
 {
+  Node node = trn.getNode();
   if (local)
   {
-    // if local, filter here FIXME
+    // if local, filter here
+    if (d_localLemmas.find(node)!=d_localLemmas.end())
+    {
+      return;
+    }
+    d_localLemmas.insert(node);
   }
-  Node node = trn.getNode();
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   if (isOutputOn(OutputTag::LEMMAS))
   {
