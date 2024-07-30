@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --produce-models
 ; EXPECT: sat
-; EXPECT: (((seq.nth (seq.unit (- x 1)) 4))
+; EXPECT: (((seq.nth (seq.unit (- x 1) z) 4))
 (set-logic ALL)
 (declare-fun x () Int)
 (declare-fun y () Int)

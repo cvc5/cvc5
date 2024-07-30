@@ -209,9 +209,9 @@ class TheoryModel : protected EnvObj
    * itself.
    *
    * [3] "Semi-evaluated"
-   * This includes kinds like BITVECTOR_ACKERMANNIZE_UDIV and APPLY_SELECTOR.
-   * Like unevaluated kinds, these kinds do not have an evaluator for (some)
-   * inputs. In contrast to unevaluated kinds, we interpret a term
+   * This includes kinds like BITVECTOR_ACKERMANNIZE_UDIV, APPLY_SELECTOR and.
+   * SEQ_NTH. Like unevaluated kinds, these kinds do not have an evaluator for
+   * (some) inputs. In contrast to unevaluated kinds, we interpret a term
    * <k>( t1...tn ) not appearing in the equality engine as an arbitrary value
    * instead of the term itself.
    *
