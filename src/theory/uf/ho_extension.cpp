@@ -23,6 +23,7 @@
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -132,10 +133,14 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
   std::vector<Node> skolems;
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
+  std::vector<Node> cacheVals;
+  cacheVals.push_back(deq[0][0]);
+  cacheVals.push_back(deq[0][1]);
+  cacheVals.push_back(Node::null());
   for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
   {
-    Node k = sm->mkDummySkolem(
-        "k", argTypes[i], "skolem created for extensionality.");
+    cacheVals[2] = nm->mkConstInt(Rational(i));
+    Node k = sm->mkSkolemFunction(SkolemId::HO_DEQ_DIFF, cacheVals);
     skolems.push_back(k);
   }
   Node t[2];
@@ -362,7 +367,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
             if (!success)
             {
               Node eq = edeq[0][0].eqNode(edeq[0][1]);
-              Node lem = nm->mkNode(Kind::OR, deq.negate(), eq);
+              Node lem = nm->mkNode(Kind::OR, deq.negate(), eq.negate());
               Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
                              << std::endl;
               d_im.lemma(lem, InferenceId::UF_HO_MODEL_EXTENSIONALITY);
