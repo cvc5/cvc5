@@ -16,11 +16,9 @@
 #include "theory/theory_inference_manager.h"
 
 #include "options/proof_options.h"
-#include "proof/annotation_proof_generator.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/trust_id.h"
 #include "theory/builtin/proof_checker.h"
-#include "theory/inference_id_proof_annotator.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -68,12 +66,6 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
     ProofNodeManager* pnm = env.getProofNodeManager();
     d_defaultPg.reset(
         new EagerProofGenerator(env, u, statsName + "EagerProofGenerator"));
-    if (options().proof.proofAnnotate)
-    {
-      d_iipa.reset(new InferenceIdProofAnnotator(pnm, u));
-      d_apg.reset(new AnnotationProofGenerator(
-          pnm, u, statsName + "AnnotationProofGenerator"));
-    }
   }
 }
 

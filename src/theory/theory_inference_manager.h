@@ -32,7 +32,6 @@
 namespace cvc5::internal {
 
 class ProofNodeManager;
-class AnnotationProofGenerator;
 class EagerProofGenerator;
 
 namespace theory {
@@ -40,7 +39,6 @@ namespace theory {
 class Theory;
 class TheoryState;
 class DecisionManager;
-class InferenceIdProofAnnotator;
 namespace eq {
 class EqualityEngine;
 class ProofEqEngine;
@@ -468,10 +466,6 @@ class TheoryInferenceManager : protected EnvObj
   std::unique_ptr<eq::ProofEqEngine> d_pfeeAlloc;
   /** Proof generator for trusted THEORY_LEMMA steps */
   std::unique_ptr<EagerProofGenerator> d_defaultPg;
-  /** The inference id proof annotator */
-  std::unique_ptr<InferenceIdProofAnnotator> d_iipa;
-  /** The annotation proof generator */
-  std::unique_ptr<AnnotationProofGenerator> d_apg;
   /** Whether this manager caches lemmas */
   bool d_cacheLemmas;
   /**
