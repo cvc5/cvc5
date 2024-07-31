@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "expr/node_trie.h"
 #include "smt/env_obj.h"
 #include "theory/ee_setup_info.h"
 #include "theory/rep_set.h"
@@ -208,11 +209,11 @@ class TheoryModel : protected EnvObj
    * itself.
    *
    * [3] "Semi-evaluated"
-   * This includes kinds like BITVECTOR_ACKERMANNIZE_UDIV and others, typically
-   * those that correspond to abstractions. Like unevaluated kinds, these
-   * kinds do not have an evaluator. In contrast to unevaluated kinds, we
-   * interpret a term <k>( t1...tn ) not appearing in the equality engine as an
-   * arbitrary value instead of the term itself.
+   * This includes kinds like BITVECTOR_ACKERMANNIZE_UDIV, APPLY_SELECTOR and.
+   * SEQ_NTH. Like unevaluated kinds, these kinds do not have an evaluator for
+   * (some) inputs. In contrast to unevaluated kinds, we interpret a term
+   * <k>( t1...tn ) not appearing in the equality engine as an arbitrary value
+   * instead of the term itself.
    *
    * [4] APPLY_UF, where getting the model value depends on an internally
    * constructed representation of a lambda model value (d_uf_models).
@@ -404,10 +405,27 @@ class TheoryModel : protected EnvObj
   bool isBaseModelValue(TNode n) const;
   /** Is assignable function. This returns true if n is not a lambda. */
   bool isAssignableUf(const Node& n) const;
+  /**
+   * Evaluate semi-evaluated term. This determines if there is a term n' that is
+   * in the equality engine of this model that is congruent to n, if so, it
+   * returns the model value of n', otherwise this returns the null term.
+   * @param n The term to evaluate. We assume it is in rewritten form and
+   * has a semi-evaluated kind (e.g. APPLY_SELECTOR).
+   * @return The entailed model value for n, if it exists.
+   */
+  Node evaluateSemiEvalTerm(TNode n) const;
+  /**
+   * @return The model values of the arguments of n.
+   */
+  std::vector<Node> getModelValueArgs(TNode n) const;
 
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node> d_modelCache;
+  /** whether we have computed d_semiEvalCache yet */
+  mutable bool d_semiEvalCacheSet;
+  /** cache used for evaluateSemiEvalTerm */
+  mutable std::unordered_map<Node, NodeTrie> d_semiEvalCache;
 
   //---------------------------- separation logic
   /** the value of the heap */

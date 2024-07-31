@@ -482,8 +482,8 @@ enum ENUM(ProofFormat)
   EVALUE(LFSC),
   /** Output Alethe proof. */
   EVALUE(ALETHE),
-  /** Output AletheLF proof using the cvc5 signatures. */
-  EVALUE(ALF),
+  /** Output Cooperating Proof Calculus proof based on Eunoia signatures. */
+  EVALUE(CPC),
   /** Use the proof format mode set in the solver options. */
   EVALUE(DEFAULT),
 #ifdef CVC5_API_USE_C_ENUMS
