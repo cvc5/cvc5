@@ -1140,7 +1140,7 @@ enum ENUM(ProofRule)
    *   \inferrule{-\mid t}{t=t'}
    *
    * where `t'` is the higher-order application that is equivalent to `t`,
-   * as implemented by `\texttt{TheoryUfRewriter::getHoApplyForApplyUf}(t)`.
+   * as implemented by `\texttt{uf::TheoryUfRewriter::getHoApplyForApplyUf}(t)`.
    * For details see :cvc5src:`theory/uf/theory_uf_rewriter.h`
    * 
    * For example, this rule concludes :math:`f(x,y) = _( _(f,x), y)`, where
