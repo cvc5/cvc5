@@ -140,11 +140,6 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   resourceManager()->spendResource(id);
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
-  // annotate if the annotation proof generator is active
-  if (d_apg != nullptr)
-  {
-    tconf = annotateId(tconf, id, true);
-  }
   d_out.trustedConflict(tconf, id);
   ++d_numConflicts;
 }
@@ -281,16 +276,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   // shouldn't send trivially true or false lemmas
   Assert(!rewrite(tlem.getProven()).isConst());
   d_numCurrentLemmas++;
-  // annotate if the annotation proof generator is active
-  if (d_apg != nullptr)
-  {
-    TrustNode tlema = annotateId(tlem, id);
-    d_out.trustedLemma(tlema, id, p);
-  }
-  else
-  {
-    d_out.trustedLemma(tlem, id, p);
-  }
+  d_out.trustedLemma(tlem, id, p);
   return true;
 }
 
@@ -573,26 +559,6 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
   }
   d_lemmasSent.insert(rewritten);
   return true;
-}
-
-TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
-                                             InferenceId id,
-                                             bool isConflict)
-{
-  Assert(d_iipa != nullptr && d_apg != nullptr);
-  Node lemma = trn.getProven();
-  TrustNode trna = trn;
-  // ensure we have a proof generator, make trusted theory lemma if not
-  if (trn.getGenerator() == nullptr)
-  {
-    Node tid = mkTrustId(TrustId::THEORY_LEMMA);
-    Node tidn =
-        builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_theory.getId());
-    trna = d_defaultPg->mkTrustNode(
-        trn.getNode(), ProofRule::TRUST, {}, {tid, lemma, tidn}, isConflict);
-  }
-  d_iipa->setAnnotation(lemma, id);
-  return d_apg->transform(trna, d_iipa.get());
 }
 
 DecisionManager* TheoryInferenceManager::getDecisionManager()

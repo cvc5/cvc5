@@ -442,14 +442,6 @@ class TheoryInferenceManager : protected EnvObj
    * override this method to take the lemma property into account as needed.
    */
   virtual bool cacheLemma(TNode lem, LemmaProperty p);
-  /**
-   * Return the trust node that is equivalent to trn, but its proof (if asked
-   * for) will be wrapped in (ANNOTATE ... :args id). We return a trust
-   * node of trust node kind CONFLICT if isConflict is true.
-   */
-  TrustNode annotateId(const TrustNode& trn,
-                       InferenceId id,
-                       bool isConflict = false);
   /** The theory object */
   Theory& d_theory;
   /** Reference to the state of theory */
