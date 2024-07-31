@@ -117,11 +117,11 @@ class PropPfManager : protected EnvObj
 
   /** Return lemmas used in the SAT proof. */
   std::vector<Node> getUnsatCoreLemmas();
-  
-  /** 
+
+  /**
    * Get inference id for a lemma, e.g. one that appears in the return of
    * getUnsatCoreLemmas.
-    */
+   */
   theory::InferenceId getInferenceIdFor(const Node& lem) const;
 
   /**

@@ -89,7 +89,7 @@ void PropPfManager::convertAndAssert(theory::InferenceId id,
 {
   d_currLemmaId = id;
   d_pfCnfStream.convertAndAssert(node, negated, removable, input, pg);
-  d_currLemmaId  = theory::InferenceId::NONE;
+  d_currLemmaId = theory::InferenceId::NONE;
   // if input, register the assertion in the proof manager
   if (input)
   {
@@ -145,10 +145,7 @@ std::vector<Node> PropPfManager::getUnsatCoreLemmas()
   return usedLemmas;
 }
 
-theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem) const
-{
-  
-}
+theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem) const {}
 
 std::vector<Node> PropPfManager::getMinimizedAssumptions()
 {
