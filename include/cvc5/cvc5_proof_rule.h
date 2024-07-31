@@ -2332,10 +2332,11 @@ enum ENUM(ProofRewriteRule)
    *   (>= s t) = c
    *
    * where :math:`c` is a Boolean constant.
-   * This macro is elaborated by applications of :math:`EVALUATE`,
-   * :math:`ARITH_POLY_NORM`, :math:`ARITH_STRING_PRED_ENTAIL`,
-   * :math:`ARITH_STRING_PRED_SAFE_APPROX`, as well as other rewrites for
-   * normalizing arithmetic predicates.
+   * This macro is elaborated by applications of :cpp:enumerator:`EVALUATE <cvc5::ProofRule::EVALUATE>`,
+   * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_ENTAIL <cvc5::ProofRewriteRule::ARITH_STRING_PRED_ENTAIL>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_SAFE_APPROX <cvc5::ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX>`, 
+   * as well as other rewrites for normalizing arithmetic predicates.
    *
    * \endverbatim
    */
@@ -2560,7 +2561,7 @@ enum ENUM(ProofRewriteRule)
    * **Bitvectors - Extract negations from multiplicands**
    *
    * .. math::
-   *    (-a bvmul b bvmul c) \to -(a bvmul b c)
+   *    (bvmul\ (bvneg\ a)\ b\ c) = (bvneg\ (bvmul\ a\ b\ c))
    *
    * \endverbatim
    */
@@ -2570,7 +2571,7 @@ enum ENUM(ProofRewriteRule)
    * **Bitvectors - Extract continuous substrings of bitvectors**
    *
    * .. math::
-   *    (a bvand c) \to (concat (bvand a[i0:j0] c0) ... (bvand a[in:jn] cn))
+   *    (bvand\ a\ c) = (concat\ (bvand\ a[i0:j0]\ c0) ... (bvand\ a[in:jn]\ cn))
    *
    * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
    * constant c \endverbatim
@@ -2593,7 +2594,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - regular expression intersection/union inclusion**
    *
    * .. math::
-   *   \mathit{re.inter}(R) = \mathit{re.inter}(\mathit{re.none}, R_0)
+   *   (re.inter\ R) = \mathit{re.inter}(\mathit{re.none}, R_0)
    *
    * where :math:`R` is a list of regular expressions containing `r_1`,
    * `(re.comp r_2)` and the list :math:`R_0` where `r_2` is a superset of
@@ -2642,10 +2643,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression concatenation star character**
    *
    * .. math::
-   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n),
-   * \mathit{re}.\text{*}(R)) = \mathit{str.in\_re}(s_1,
-   * \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n,
-   * \mathit{re}.\text{*}(R))
+   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) = \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
    *
    * where all strings in :math:`R` have length one.
    *
@@ -2657,16 +2655,12 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression sigma**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
-   * \mathit{re.allchar})) =
-   *   (\mathit{str.len}(s) = n)
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar})) = (\mathit{str.len}(s) = n)
    *
    * or alternatively:
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
-   * \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) =
-   *   (\mathit{str.len}(s) \ge n)
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) = (\mathit{str.len}(s) \ge n)
    *
    * \endverbatim
    */
@@ -2676,10 +2670,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression sigma star**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s,
-   * \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
-   * \mathit{re.allchar}))) =
-   *   (\mathit{str.len}(s) \ \% \ n = 0)
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}))) = (\mathit{str.len}(s) \ \% \ n = 0)
    *
    * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to
    * :math:`\mathit{re}.\text{++}`.
@@ -2705,8 +2696,7 @@ enum ENUM(ProofRewriteRule)
    * **Sets - empty tester evaluation**
    *
    * .. math::
-   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) =
-   * \top
+   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) = \top
    *
    * or alternatively:
    *
