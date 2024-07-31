@@ -120,7 +120,9 @@ class PropPfManager : protected EnvObj
 
   /**
    * Get inference id for a lemma, e.g. one that appears in the return of
-   * getUnsatCoreLemmas.
+   * getUnsatCoreLemmas. Note that the inference id will be InferenceId::NONE
+   * if lem is not an unsat core lemma, or if it corresponded e.g. to a lemma
+   * learned via theory propagation.
    */
   theory::InferenceId getInferenceIdFor(const Node& lem) const;
 
