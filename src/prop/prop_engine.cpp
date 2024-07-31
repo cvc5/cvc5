@@ -776,19 +776,22 @@ std::vector<Node> PropEngine::getUnsatCoreLemmas()
   std::vector<Node> lems = d_ppm->getUnsatCoreLemmas();
   if (isOutputOn(OutputTag::UNSAT_CORE_LEMMAS))
   {
-    output(OutputTag::UNSAT_CORE_LEMMAS) << ";; unsat core lemmas start" << std::endl;
+    output(OutputTag::UNSAT_CORE_LEMMAS)
+        << ";; unsat core lemmas start" << std::endl;
     for (const Node& lem : lems)
     {
       output(OutputTag::UNSAT_CORE_LEMMAS) << "(unsat-core-lemma ";
-      output(OutputTag::UNSAT_CORE_LEMMAS) << SkolemManager::getOriginalForm(lem);
+      output(OutputTag::UNSAT_CORE_LEMMAS)
+          << SkolemManager::getOriginalForm(lem);
       InferenceId id = d_ppm->getInferenceIdFor(lem);
-      if (id!=theory::InferenceId::NONE)
+      if (id != theory::InferenceId::NONE)
       {
         output(OutputTag::UNSAT_CORE_LEMMAS) << " :source " << id;
       }
       output(OutputTag::UNSAT_CORE_LEMMAS) << ")" << std::endl;
     }
-    output(OutputTag::UNSAT_CORE_LEMMAS) << ";; unsat core lemmas end" << std::endl;
+    output(OutputTag::UNSAT_CORE_LEMMAS)
+        << ";; unsat core lemmas end" << std::endl;
   }
   return lems;
 }
