@@ -706,6 +706,7 @@ set(regress_0_tests
   regress0/datatypes/list-bool.smt2
   regress0/datatypes/list-update.smt2
   regress0/datatypes/list-update-sat.smt2
+  regress0/datatypes/model-semi-eval.smt2
   regress0/datatypes/model-subterms-min.smt2
   regress0/datatypes/mutual-rec-param-dt.smt2
   regress0/datatypes/mutually-recursive.cvc.smt2
@@ -1417,6 +1418,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-10.smt2
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
+  regress0/quantifiers/dd_german169_semi_eval.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
   regress0/quantifiers/dd.german169-lemma-inp.smt2
   regress0/quantifiers/dd.ho-matching-enum.smt2
@@ -1603,6 +1605,7 @@ set(regress_0_tests
   regress0/seq/issue9696-unit-type-cmi.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/mixed-types-seq-nth.smt2
+  regress0/seq/nth-model-semi-eval.smt2
   regress0/seq/nth-oob.smt2
   regress0/seq/nth-unit.smt2
   regress0/seq/nth-update.smt2
@@ -3917,7 +3920,7 @@ set(testers
   abduct
   dump
   dsl-proof
-  alf
+  cpc
 )
 
 foreach(tester ${testers})
@@ -3959,8 +3962,8 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
-    --alfc-binary ${CMAKE_SOURCE_DIR}/deps/bin/alfc
-    --alf-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
+    --ethos-binary ${CMAKE_SOURCE_DIR}/deps/bin/ethos
+    --cpc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})

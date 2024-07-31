@@ -33,7 +33,6 @@ ConflictProcessor::ConflictProcessor(Env& env, bool useExtRewriter)
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  d_useExtRewriter = false;
 }
 
 TrustNode ConflictProcessor::processLemma(const TrustNode& lem)

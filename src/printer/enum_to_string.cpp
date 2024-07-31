@@ -41,6 +41,7 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:
       return "transcendental_sine_phase_shift";
     case cvc5::SkolemId::SHARED_SELECTOR: return "shared_selector";
+    case cvc5::SkolemId::HO_DEQ_DIFF: return "ho_deq_diff";
     case cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE:
       return "quantifiers_skolemize";
     case cvc5::SkolemId::STRINGS_NUM_OCCUR: return "strings_num_occur";

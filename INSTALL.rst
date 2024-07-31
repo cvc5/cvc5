@@ -146,7 +146,7 @@ versions; more recent versions should be compatible.
 - `CMake >= 3.16 <https://cmake.org>`_
 - `GNU Make <https://www.gnu.org/software/make/>`_
   or `Ninja <https://ninja-build.org/>`_
-- `Python >= 3.6 <https://www.python.org>`_
+- `Python >= 3.7 <https://www.python.org>`_
   + module `tomli <https://pypi.org/project/tomli/>`_ (Python < 3.11)
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_

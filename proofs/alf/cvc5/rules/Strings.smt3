@@ -279,12 +279,12 @@
   :premises ((>= (str.len s) n))
   :args (b)
   :conclusion (alf.ite b
-                (alf.define ((kp (@purify ($str_prefix s n)))
-                      (ks (@purify ($str_suffix_rem s n))))
-                (and (= s (str.++ kp ks)) (= (str.len kp) n)))
                 (alf.define ((kp (@purify ($str_prefix_rem s n)))
                       (ks (@purify ($str_suffix s n))))
-                (and (= s (str.++ kp ks)) (= (str.len ks) n)))))
+                (and (= s (str.++ kp ks)) (= (str.len ks) n)))
+                (alf.define ((kp (@purify ($str_prefix s n)))
+                      (ks (@purify ($str_suffix_rem s n))))
+                (and (= s (str.++ kp ks)) (= (str.len kp) n)))))
 
 ; rule: string_code_inj
 ; implements: ProofRule::STRING_CODE_INJ
