@@ -1,0 +1,61 @@
+(include "../programs/Utils.eo")
+
+; Note that the Bool sort is native to Eunoia
+
+(declare-const ite (-> (! Type :var A :implicit) Bool A A A))
+(declare-const not (-> Bool Bool))
+
+; disclaimer: >
+;   This function is declared in SMT-LIB to be :left-assoc. We
+;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
+;   functions.
+(declare-const or (-> Bool Bool Bool)
+   :right-assoc-nil false
+)
+
+; disclaimer: >
+;   This function is declared in SMT-LIB to be :left-assoc. We
+;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
+;   functions.
+(declare-const and (-> Bool Bool Bool)
+   :right-assoc-nil true
+)
+
+(declare-const => (-> Bool Bool Bool)
+   :right-assoc
+)
+
+(declare-const xor (-> Bool Bool Bool)
+   :left-assoc
+)
+
+(declare-const = (-> (! Type :var A :implicit) A A Bool)
+   :chainable and
+)
+
+; program: $get_lambda_type
+; args:
+; - L List: The list of variables of the lambda to process.
+; - B Type: The type of the body of the lambda.
+; return: >
+;   The type of a lambda having the list of variables L and
+;   body type B.
+(program $get_lambda_type ((x @List) (xs @List :list) (B Type))
+  (@List Type) Type
+  (
+    (($get_lambda_type (@list x xs) B) (-> (eo::typeof x) ($get_lambda_type xs B)))
+    (($get_lambda_type @list.nil B)    B)
+  )
+)
+
+; disclaimer: this function is not in SMT-LIB.
+(declare-const lambda (-> (! Type :var B :implicit) (! @List :var L) B ($get_lambda_type L B)) :binder @list)
+
+(declare-const distinct (-> (! Type :var A :implicit) A A Bool) :pairwise and)
+
+; generic variables
+; NOTE: does not check that U is a numeral
+(declare-const const (-> (! Type :var U :implicit) U (! Type :var T) T))
+
+; The purification skolem.
+(declare-const @purify (-> (! Type :var A :implicit) (! A :opaque) A))

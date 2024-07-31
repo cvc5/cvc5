@@ -22,7 +22,7 @@ checking them with the Ethos proof checker.
 The Ethos checker is based on the logical framework Eunoia.
 The Cooperating Proof Calculus has been formalized in a Eunoia signature, which
 is contained within the cvc5 repository in this
-:cvc5repo:`file <proofs/alf/cvc5/Cvc5.smt3>`.
+:cvc5repo:`file <proofs/eo/cpc/Cvc5.eo>`.
 Based on this signature, Ethos can check CPC proofs over all theories that are
 formalized in this signature.
 For more details on Eunoia and a comprehensive overview of the language

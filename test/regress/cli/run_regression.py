@@ -290,7 +290,7 @@ class CpcTester(Tester):
                 benchmark_info.timeout,
             )
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
-            tmpf.write(("(include \"" + cpc_sig_dir + "/cvc5/Cvc5.smt3\")").encode())
+            tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cvc5.eo\")").encode())
             tmpf.write(output.strip("unsat\n".encode()))
             tmpf.flush()
             output, error = output.decode(), error.decode()
