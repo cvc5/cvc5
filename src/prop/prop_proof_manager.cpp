@@ -146,10 +146,11 @@ std::vector<Node> PropPfManager::getUnsatCoreLemmas()
   return usedLemmas;
 }
 
-theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem) const {
-
-  context::CDHashMap<Node, theory::InferenceId>::const_iterator it = d_lemmaClauseIds.find(lem);
-  if (it!=d_lemmaClauseIds.end())
+theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem) const
+{
+  context::CDHashMap<Node, theory::InferenceId>::const_iterator it =
+      d_lemmaClauseIds.find(lem);
+  if (it != d_lemmaClauseIds.end())
   {
     return it->second;
   }
