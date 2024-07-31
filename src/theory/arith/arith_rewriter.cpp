@@ -1004,10 +1004,9 @@ RewriteResponse ArithRewriter::postRewriteIntsLog2(TNode t)
     // pow2 is only supported for integers
     Assert(t[0].getType().isInteger());
     const Rational& r = t[0].getConst<Rational>();
-    if (r.sgn()<0)
+    if (r.sgn() < 0)
     {
-      return RewriteResponse(REWRITE_DONE,
-                           rewriter::mkConst(Integer(0)));
+      return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(0)));
     }
     Integer i = r.getNumerator();
     size_t const length = i.length();

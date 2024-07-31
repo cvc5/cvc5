@@ -630,7 +630,7 @@ EvalResult Evaluator::evalInternal(
         case Kind::INTS_LOG2:
         {
           const Rational& x = results[currNode[0]].d_rat;
-          if (x.sgn()<0)
+          if (x.sgn() < 0)
           {
             results[currNode] = EvalResult(Rational(0));
           }
