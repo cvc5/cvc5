@@ -11,8 +11,8 @@
 ;   can each be integer or real. This method returns an integer value if x and y
 ;   are both integer, or a rational value otherwise.
 (define $arith_eval_add ((T Type :implicit) (U Type :implicit) (x T) (y U))
-  (let ((xq (alf.to_q x)))
-  (let ((yq (alf.to_q y)))
+  (alf.define ((xq (alf.to_q x)))
+  (alf.define ((yq (alf.to_q y)))
     (alf.ite (alf.is_eq x xq)
       (alf.add xq yq)
       (alf.ite (alf.is_eq y yq)
@@ -41,8 +41,8 @@
 ;   can each be integer or real. This method returns an integer value if x and y
 ;   are both integer, or a rational value otherwise.
 (define $arith_eval_mul ((T Type :implicit) (U Type :implicit) (x T) (y U))
-  (let ((xq (alf.to_q x)))
-  (let ((yq (alf.to_q y)))
+  (alf.define ((xq (alf.to_q x)))
+  (alf.define ((yq (alf.to_q y)))
     (alf.ite (alf.is_eq x xq)
       (alf.mul xq yq)
       (alf.ite (alf.is_eq y yq)
@@ -115,7 +115,7 @@
   (@Polynomial @Polynomial) @Polynomial
   (
     (($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) (alf.ite (alf.is_eq a1 a2)
-                                                                  (let ((ca (alf.add c1 c2)) (pa ($poly_add p1 p2)))
+                                                                  (alf.define ((ca (alf.add c1 c2)) (pa ($poly_add p1 p2)))
                                                                   ; check if cancels
                                                                   (alf.ite (alf.is_eq ca 0.0) pa (alf.cons @poly (@mon a1 ca) pa)))
                                                                 (alf.ite ($compare_var a1 a2)
@@ -148,7 +148,7 @@
 ; - a @Monomial: The first monomial to multiply.
 ; - b @Monomial: The second monomial to multiply.
 ; return: the multiplication of the given monomials.
-(program $mon_mul_mon ((T Type) (U Type) (V Type) (W Type) (a1 T) (a2 U) (b1 V) (b2 W) (c1 Real) (c2 Real))
+(program $mon_mul_mon ((T Type) (U Type) (a1 T) (a2 U) (c1 Real) (c2 Real))
   (@Monomial @Monomial) @Monomial
   (
     (($mon_mul_mon (@mon a1 c1) (@mon a2 c2))  (@mon ($mvar_mul_mvar a1 a2) (alf.mul c1 c2)))
@@ -194,7 +194,7 @@
     (($get_poly_norm (- a1 a2))    ($poly_add ($get_poly_norm a1) ($poly_neg ($get_poly_norm a2))))
     (($get_poly_norm (* a1 a2))    ($poly_mul ($get_poly_norm a1) ($get_poly_norm a2)))
     (($get_poly_norm (to_real a1)) ($get_poly_norm a1))
-    (($get_poly_norm a)            (let ((aq (alf.to_q a)))
+    (($get_poly_norm a)            (alf.define ((aq (alf.to_q a)))
                                   ; if it is a constant, which can be tested if to_q is idempotent after the first
                                   (alf.ite (alf.is_eq aq (alf.to_q aq))
                                     ; if it is zero, it cancels, otherwise it is 1 with itself as coefficient
@@ -205,55 +205,33 @@
   )
 )
 
-; program: $poly_is_equal_mod_c_rec
-; args:
-; - c Real: The coefficient.
-; - p1 @Polynomial: The first polynomial.
-; - p2 @Polynomial: The second polynomial.
-; return: true if p2 is equal to p1 multiplied by the coefficient c.
-(program $poly_is_equal_mod_c_rec ((c Real) (T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list))
-  (Real @Polynomial @Polynomial) Bool
-  (
-    (($poly_is_equal_mod_c_rec c @poly.zero @poly.zero)                          true)
-    (($poly_is_equal_mod_c_rec c (@poly (@mon a c1) p1) (@poly (@mon a c2) p2))  (alf.requires c (alf.qdiv c2 c1) ($poly_is_equal_mod_c_rec c p1 p2)))
-  )
-)
-
-; define: $is_poly_norm_arith
+; define: $is_poly_norm
 ; args:
 ; - a T: The first arithmetic term to process, of type Int or Real.
 ; - b T: The second arithmetic term to process, of type Int or Real.
 ; return: true if a and b normalize to the same polynomial
-(define $is_poly_norm_arith ((T Type :implicit) (a T) (b T))
+(define $is_poly_norm ((T Type :implicit) (a T) (b T))
   (alf.is_eq ($get_poly_norm a) ($get_poly_norm b))
 )
 
-; program: $poly_is_equal_mod_c
+; program: $arith_poly_to_term_rec
 ; args:
-; - p1 @Polynomial: The first polynomial.
-; - p2 @Polynomial: The second polynomial.
-; - reqPos Bool: Whether we require the ratio between p1 and p2 to be a positive numeral.
-; return: >
-;   true if the two given polynomials are equivalent up to modulus by a
-;   (non-zero, positive if reqPos is true) coefficient.
-(program $poly_is_equal_mod_c ((T Type) (c1 Real) (a T) (c2 Real) (p1 @Polynomial :list) (p2 @Polynomial :list) (reqPos Bool))
-  (@Polynomial @Polynomial Bool) Bool
+; - p @Polynomial: The polynomial to convert to a term.
+; return: The term corresponding to the polynomial p.
+; note: This is a helper for $arith_poly_to_term below.
+(program $arith_poly_to_term_rec ((T Type) (p @Polynomial :list) (a T) (c Real))
+  (@Polynomial) T
   (
-    (($poly_is_equal_mod_c @poly.zero @poly.zero reqPos)                         true)
-    (($poly_is_equal_mod_c (@poly (@mon a c1) p1) (@poly (@mon a c2) p2) reqPos) (let ((c (alf.qdiv c2 c1))) 
-                                                                                (alf.requires (alf.and reqPos (alf.is_neg c)) false
-                                                                                ($poly_is_equal_mod_c_rec c p1 p2))))
+    (($arith_poly_to_term_rec @poly.zero) 0)
+    (($arith_poly_to_term_rec (@poly (@mon a c) p)) (+ (* c a) ($arith_poly_to_term_rec p)))
   )
 )
 
-; define: $is_poly_norm_arith_mod_c
+; define: $arith_poly_to_term
 ; args:
-; - a T: The first arithmetic term to process, of type Int or Real.
-; - b T: The second arithmetic term to process, of type Int or Real.
-; - reqPos Bool: Whether we require the ratio between a and b to be a positive numeral.
+; - t T: The term to normalize. This is expected to be a term whose type is Int or Real.
 ; return: >
-;   true if a and b normalize to polynomials that are the same up to modulus
-;   by a (non-zero, positive if reqPos is true) coefficient.
-(define $is_poly_norm_arith_mod_c ((T Type :implicit) (a T) (b T) (reqPos Bool))
-  ($poly_is_equal_mod_c ($get_poly_norm a) ($get_poly_norm b) reqPos)
-)
+;   a term corresponding to the polynomial obtained by converting t to a polynomial.
+;   This can be used for normalizing terms according to arithmetic.
+(define $arith_poly_to_term ((T Type :implicit) (t T))
+  ($arith_poly_to_term_rec ($get_poly_norm t)))

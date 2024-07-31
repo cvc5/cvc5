@@ -18,14 +18,15 @@
 ; args:
 ; - arg1 @List: The bound variable list to process.
 ; - arg2 Bool: The body of the quantified formula. This impacts the definition of the introduced skolems.
+; - arg3 Int: The number of indices we have already processed in arg1.
 ; return: >
 ;   The list of skolem variables for the quantified formula whose bound variable list
 ;   is arg1 and whose body is arg2.
-(program $mk_skolems ((x @List) (xs @List :list) (F Bool))
-  (@List Bool) @List
+(program $mk_skolems ((x @List) (xs @List :list) (F Bool) (i Int))
+  (@List Bool Int) @List
   (
-    (($mk_skolems (@list x xs) F) (alf.cons @list (@quantifiers_skolemize F x) ($mk_skolems xs F)))
-    (($mk_skolems @list.nil F)    @list.nil)
+    (($mk_skolems (@list x xs) F i) (alf.cons @list (@quantifiers_skolemize F i) ($mk_skolems xs F (alf.add i 1))))
+    (($mk_skolems @list.nil F i)    @list.nil)
   )
 )
 
@@ -35,16 +36,10 @@
 ; - Q Bool: The quantified formula to skolemize. This is either an existential or a negated universal.
 ; conclusion: >
 ;   The skolemized body of Q, where its variables are replaced by skolems
-;   introduced via $mk_skolems,
-(declare-rule skolemize ((F Bool))
-  :premises (F)
-  :conclusion
-    (alf.match ((T Type) (x @List) (G Bool))
-        F
-        (
-          ((exists x G)       ($substitute_list x ($mk_skolems x F) G))
-          ((not (forall x G)) ($substitute_list x ($mk_skolems x (exists x (not G))) (not G)))
-        ))
+;   introduced via $mk_skolems.
+(declare-rule skolemize ((x @List) (G Bool))
+  :premises ((not (forall x G)))
+  :conclusion ($substitute_list x ($mk_skolems x (forall x G) 0) (not G))
 )
 
 ; rule: skolem_intro

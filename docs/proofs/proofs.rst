@@ -1,8 +1,9 @@
 Proof Production
 ================
 
-cvc5 produces proofs in an internal proof calculus that faithfully reflects its
-reasoning. cvc5 supports retrieving a proof object via the API
+cvc5 produces proofs in a proof calculus that faithfully reflects its
+reasoning. The calculus is called the Cooperating Proof Calculus (CPC).
+cvc5 supports retrieving a proof object via the API
 (see how these objects are defined in :doc:`C++ <../api/cpp/classes/proof>`,
 :doc:`C <../api/c/types/cvc5proof>`,
 `Java <../api/../api/java/io/github/cvc5/Proof.html>`_,
@@ -12,7 +13,8 @@ reasoning. cvc5 supports retrieving a proof object via the API
 Proof Rules
 ^^^^^^^^^^^
 
-A comprehensive description of the **proof rules** is found here:
+A comprehensive description of the **proof rules** of the Cooperating Proof
+Calculus can be found here:
 
 * :doc:`C++ API <../api/cpp/enums/proofrule>`
 
@@ -42,7 +44,7 @@ following external formats.
 .. toctree::
    :maxdepth: 1
 
-   AletheLF <output_alf>
+   CPC <output_cpc>
    Alethe <output_alethe>
    LFSC <output_lfsc>
    DOT <output_dot>

@@ -1308,18 +1308,12 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{\exists x_1\dots x_n.\> F\mid -}{F\sigma}
-   *
-   * or
-   *
-   * .. math::
-   *
    *   \inferrule{\neg (\forall x_1\dots x_n.\> F)\mid -}{\neg F\sigma}
    *
    * where :math:`\sigma` maps :math:`x_1,\dots,x_n` to their representative
-   * skolems obtained by ``SkolemManager::mkSkolemize``, returned in the skolems
-   * argument of that method. The witness terms for the returned skolems can be
-   * obtained by ``SkolemManager::getWitnessForm``.
+   * skolems, which are skolems :math:`k_1,\dots,k_n`. For each :math:`k_i`,
+   * its skolem identifier is :cpp:enumerator:`QUANTIFIERS_SKOLEMIZE <cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE>`,
+   * and its indices are :math:`(\forall x_1\dots x_n.\> F)` and :math:`x_i`.
    * \endverbatim
    */
   EVALUE(SKOLEMIZE),
@@ -1635,7 +1629,7 @@ enum ENUM(ProofRule)
    *
    * where :math:`w` is :math:`\texttt{strings::StringsPreprocess::reduce}(t, R,
    * \dots)`.  In other words, :math:`R` is the reduction predicate for extended
-   * term :math:`t`, and :math:`w` is :math:`skolem(t)`.
+   * term :math:`t`, and :math:`w` is the purification Skolem for :math:`t`.
    *
    * Notice that the free variables of :math:`R` are :math:`w` and the free
    * variables of :math:`t`.
@@ -1867,11 +1861,26 @@ enum ENUM(ProofRule)
    *   \inferrule{- \mid t = s}{t = s}
    *
    * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
-   * method normalizes polynomials over arithmetic or bitvectors.
+   * method normalizes polynomials :math:`s` and :math:`t` over arithmetic or
+   * bitvectors.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Polynomial normalization for relations**
+   *
+   * .. math::
+   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid \diamond}
+   *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
+   *
+   * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
+   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:c_y` are
+   * scaling factors. For :math:`<, \leq, \geq, >`, the scaling factors have the
+   * same sign. For bitvectors, they are set to :math:`1`.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POLY_NORM_REL),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sign inference**
@@ -2062,12 +2071,17 @@ enum ENUM(ProofRule)
    * **Arithmetic -- Transcendentals -- Sine is shifted to -pi...pi**
    *
    * .. math::
-   *   \inferrule{- \mid x, y, s}{-\pi \leq y \leq \pi \land \sin(y) = \sin(x)
+   *   \inferrule{- \mid x}{-\pi \leq y \leq \pi \land \sin(y) = \sin(x)
    *   \land (\ite{-\pi \leq x \leq \pi}{x = y}{x = y + 2 \pi s})}
    *
    * where :math:`x` is the argument to sine, :math:`y` is a new real skolem
    * that is :math:`x` shifted into :math:`-\pi \dots \pi` and :math:`s` is a
-   * new integer slolem that is the number of phases :math:`y` is shifted.
+   * new integer skolem that is the number of phases :math:`y` is shifted.
+   * In particular, :math:`y` is the
+   * :cpp:enumerator:`TRANSCENDENTAL_PURIFY_ARG <cvc5::SkolemId::TRANSCENDENTAL_PURIFY_ARG>`
+   * skolem for :math:`\sin(x)` and :math:`s` is the
+   * :cpp:enumerator:`TRANSCENDENTAL_SINE_PHASE_SHIFT <cvc5::SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT>`
+   * skolem for :math:`x`.
    * \endverbatim
    */
   EVALUE(ARITH_TRANS_SINE_SHIFT),
@@ -2290,6 +2304,25 @@ enum ENUM(ProofRewriteRule)
    * **Arithmetic - strings predicate entailment**
    *
    * .. math::
+   *   (= s t) = c
+   *
+   * .. math::
+   *   (>= s t) = c
+   *
+   * where :math:`c` is a Boolean constant.
+   * This macro is elaborated by applications of :math:`EVALUATE`,
+   * :math:`ARITH_POLY_NORM`, :math:`ARITH_STRING_PRED_ENTAIL`,
+   * :math:`ARITH_STRING_PRED_SAFE_APPROX`, as well as other rewrites for
+   * normalizing arithmetic predicates.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_STRING_PRED_ENTAIL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic - strings predicate entailment**
+   *
+   * .. math::
    *   (>= n 0) = true
    *
    * Where :math:`n` can be shown to be greater than or equal to :math:`0` by
@@ -2474,7 +2507,6 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
-
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Unsigned multiplication overflow detection elimination**
@@ -2534,6 +2566,29 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(RE_LOOP_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - regular expression intersection/union inclusion**
+   *
+   * .. math::
+   *   \mathit{re.inter}(R) = \mathit{re.inter}(\mathit{re.none}, R_0)
+   *
+   * where :math:`R` is a list of regular expressions containing `r_1`,
+   * `(re.comp r_2)` and the list :math:`R_0` where `r_2` is a superset of
+   * `r_1`.
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   \mathit{re.union}(R) = \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}), R_0)
+   *
+   * where :math:`R` is a list of regular expressions containing `r_1`,
+   * `(re.comp r_2)` and the list :math:`R_0`, where `r_1` is a superset of
+   * `r_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_INTER_UNION_INCLUSION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
@@ -3432,10 +3487,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_STRIP_CHAR_REV),
   /** Auto-generated from RARE rule str-in-re-strip-char-s-single-rev */
   EVALUE(STR_IN_RE_STRIP_CHAR_S_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-no-prefix */
-  EVALUE(STR_IN_RE_NO_PREFIX),
-  /** Auto-generated from RARE rule str-in-re-no-prefix-rev */
-  EVALUE(STR_IN_RE_NO_PREFIX_REV),
   /** Auto-generated from RARE rule str-in-re-req-unfold */
   EVALUE(STR_IN_RE_REQ_UNFOLD),
   /** Auto-generated from RARE rule str-in-re-req-unfold-rev */

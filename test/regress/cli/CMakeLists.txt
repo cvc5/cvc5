@@ -706,6 +706,7 @@ set(regress_0_tests
   regress0/datatypes/list-bool.smt2
   regress0/datatypes/list-update.smt2
   regress0/datatypes/list-update-sat.smt2
+  regress0/datatypes/model-semi-eval.smt2
   regress0/datatypes/model-subterms-min.smt2
   regress0/datatypes/mutual-rec-param-dt.smt2
   regress0/datatypes/mutually-recursive.cvc.smt2
@@ -743,6 +744,7 @@ set(regress_0_tests
   regress0/datatypes/v3l60006.cvc.smt2
   regress0/datatypes/v5l30058.cvc.smt2
   regress0/datatypes/wrong-sel-simp.cvc.smt2
+  regress0/datatypes/yoni-cyclic.smt2
   regress0/dd.bad-conv-rewrite.smt2
   regress0/decision/aufbv-fuzz01.smtv1.smt2
   regress0/decision/bitvec0.delta01.smtv1.smt2
@@ -1416,6 +1418,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-10.smt2
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
+  regress0/quantifiers/dd_german169_semi_eval.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
   regress0/quantifiers/dd.german169-lemma-inp.smt2
   regress0/quantifiers/dd.ho-matching-enum.smt2
@@ -1431,6 +1434,8 @@ set(regress_0_tests
   regress0/quantifiers/is-even-pred.smt2
   regress0/quantifiers/is-int.smt2
   regress0/quantifiers/issue1805.smt2
+  regress0/quantifiers/issue11066-fresh-binders.smt2
+  regress0/quantifiers/issue11066-fresh-binders-err.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
@@ -1600,6 +1605,7 @@ set(regress_0_tests
   regress0/seq/issue9696-unit-type-cmi.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/mixed-types-seq-nth.smt2
+  regress0/seq/nth-model-semi-eval.smt2
   regress0/seq/nth-oob.smt2
   regress0/seq/nth-unit.smt2
   regress0/seq/nth-update.smt2
@@ -1766,6 +1772,7 @@ set(regress_0_tests
   regress0/strings/code-sat-neg-one.smt2
   regress0/strings/complement-simple.smt2
   regress0/strings/delta-trust-subs.smt2
+  regress0/strings/denghan-instance56567.smt2
   regress0/strings/distinct-witness-id.smt2
   regress0/strings/escchar_25.smt2
   regress0/strings/escchar.smt2
@@ -1779,6 +1786,8 @@ set(regress_0_tests
   regress0/strings/indexof-sym-simp.smt2
   regress0/strings/indexof_re.smt2
   regress0/strings/indexof_re-start-index.smt2
+  regress0/strings/instance13131.smt2
+  regress0/strings/instance15449.smt2
   regress0/strings/is_digit_simple.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
@@ -1825,12 +1834,15 @@ set(regress_0_tests
   regress0/strings/leq.smt2
   regress0/strings/loop-wrong-sem.smt2
   regress0/strings/loop001.smt2
+  regress0/strings/min-norn-re-include.smt2
   regress0/strings/model-code-point.smt2
   regress0/strings/model-friendly.smt2
   regress0/strings/model001.smt2
   regress0/strings/ncontrib-rewrites.smt2
   regress0/strings/norn-31.smt2
+  regress0/strings/norn-benchmark-489.smt2
   regress0/strings/norn-simp-rew.smt2
+  regress0/strings/nterm-pc-zalig.smt2
   regress0/strings/parser-syms.cvc.smt2
   regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/proj-issue390-update-rev-rewrite.smt2
@@ -1843,6 +1855,7 @@ set(regress_0_tests
   regress0/strings/re-consume-sym.smt2
   regress0/strings/re-consume-sym-sigma.smt2
   regress0/strings/re-include-union.smt2
+  regress0/strings/re-inclusion-am-pf.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-mem-eval-large.smt2
@@ -1864,6 +1877,7 @@ set(regress_0_tests
   regress0/strings/simple-nth-fail.smt2
   regress0/strings/std2.6.1.smt2
   regress0/strings/str_unsound_ext_rew_eq.smt2
+  regress0/strings/str-in-re-mixed-include.smt2
   regress0/strings/str-rev-simple.smt2
   regress0/strings/str003.smt2
   regress0/strings/str004.smt2
@@ -3910,7 +3924,7 @@ set(testers
   abduct
   dump
   dsl-proof
-  alf
+  cpc
 )
 
 foreach(tester ${testers})
@@ -3952,8 +3966,8 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
-    --alfc-binary ${CMAKE_SOURCE_DIR}/deps/bin/alfc
-    --alf-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
+    --ethos-binary ${CMAKE_SOURCE_DIR}/deps/bin/ethos
+    --cpc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
