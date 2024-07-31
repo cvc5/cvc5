@@ -59,7 +59,7 @@ cat << EOF > $BASE_DIR/bin/cpc_gen.sh
 #!/usr/bin/env bash
 
 # call cvc5 and remove the first line of the output (should be "unsat")
-echo "(include \"$SIG_DIR/Cvc5.smt3\")"
+echo "(include \"$SIG_DIR/Cpc.eo\")"
 \$@ --dump-proofs --proof-format=cpc --proof-granularity=dsl-rewrite | tail -n +2
 EOF
 chmod +x $BASE_DIR/bin/cpc_gen.sh
