@@ -603,7 +603,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
       {
         printDslRule(out, r);
       }
-      if (options().proof.alfPrintReference)
+      if (options().proof.proofPrintReference)
       {
         // [2] print only the universal variables
         out << outVars.str();
@@ -898,7 +898,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   // if we don't handle the rule, print trust
   if (!handled)
   {
-    if (!options().proof.alfAllowTrust)
+    if (!options().proof.proofAllowTrust)
     {
       std::stringstream ss;
       ss << pn->getRule();
@@ -917,7 +917,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       Trace("alf-pf-hole") << "Proof rule " << ss.str() << ": "
                            << pn->getResult() << std::endl;
       Unreachable() << "An ALF proof equires a trust step for " << ss.str()
-                    << ", but --" << options::proof::longName::alfAllowTrust
+                    << ", but --" << options::proof::longName::proofAllowTrust
                     << " is false" << std::endl;
     }
     out->printTrustStep(pn->getRule(),
