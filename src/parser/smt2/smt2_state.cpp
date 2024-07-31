@@ -807,6 +807,11 @@ void Smt2State::setLogic(std::string name)
         addOperator(Kind::INTS_MODULUS, "mod");
         addOperator(Kind::ABS, "abs");
       }
+      if (!strictModeEnabled())
+      {
+        addOperator(Kind::INTS_DIVISION_TOTAL, "div_total");
+        addOperator(Kind::INTS_MODULUS_TOTAL, "mod_total");
+      }
       addIndexedOperator(Kind::DIVISIBLE, "divisible");
     }
 
@@ -818,6 +823,7 @@ void Smt2State::setLogic(std::string name)
       if (!strictModeEnabled())
       {
         addOperator(Kind::ABS, "abs");
+        addOperator(Kind::DIVISION_TOTAL, "/_total");
       }
     }
 

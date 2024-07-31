@@ -161,6 +161,17 @@ enum ENUM(SkolemId)
    */
   EVALUE(TRANSCENDENTAL_PURIFY_ARG),
   /**
+   * Argument used to reason about the phase shift of arguments to sine.
+   * In particular, this is an integral rational indicating the number of times
+   * :math:`2\pi` is added to a real value between :math:`-\pi` and :math:`\pi`
+   * to obtain the value of argument to sine.
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` The argument to sine.
+   * - Sort: ``Real``
+   */
+  EVALUE(TRANSCENDENTAL_SINE_PHASE_SHIFT),
+  /** 
    * A shared datatype selector, see Reynolds et. al. "Datatypes with Shared
    * Selectors", IJCAR 2018. Represents a selector that can extract fields
    * of multiple constructors.
@@ -175,12 +186,23 @@ enum ENUM(SkolemId)
    */
   EVALUE(SHARED_SELECTOR),
   /**
+   * The higher-roder diff skolem, which is the witness k for the inference
+   * ``(=> (not (= A B)) (not (= (A k1 ... kn) (B k1 ... kn))))``.
+   *
+   * - Number of skolem indices: ``2``
+   *   - ``1:`` The first function of sort ``(-> T1 ... Tn T)``.
+   *   - ``2:`` The second function of sort ``(-> T1 ... Tn T)``.
+   *   - ``3:`` The argument index i.
+   * - Sort: ``Ti``
+   */
+  EVALUE(HO_DEQ_DIFF),
+  /**
    * The n^th skolem for the negation of universally quantified formula Q.
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The quantified formula Q.
-   *   - ``2:`` The variable in the binder of Q to skolemize.
-   * - Sort: The type of the second index.
+   *   - ``2:`` The index of the variable in the binder of Q to skolemize.
+   * - Sort: The type of the variable referenced by the second index.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
   /**

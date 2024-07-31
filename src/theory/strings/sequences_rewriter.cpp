@@ -51,6 +51,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::RE_INTER_UNION_INCLUSION,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
                            TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_CONSUME,
@@ -69,8 +71,9 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
-    case ProofRewriteRule::RE_LOOP_ELIM:
-      return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::RE_LOOP_ELIM: return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+      return rewriteViaReInterUnionInclusion(n);
     case ProofRewriteRule::STR_IN_RE_EVAL: return rewriteViaStrInReEval(n);
     case ProofRewriteRule::STR_IN_RE_CONSUME:
       return rewriteViaStrInReConsume(n);
@@ -1050,6 +1053,75 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
   return node;
 }
 
+Node SequencesRewriter::rewriteViaReInterUnionInclusion(const Node& node)
+{
+  Kind nk = node.getKind();
+  if (nk != Kind::REGEXP_UNION && nk != Kind::REGEXP_INTER)
+  {
+    return Node::null();
+  }
+  std::vector<Node> polRegExp[2];
+  for (const Node& ni : node)
+  {
+    Kind nik = ni.getKind();
+    uint32_t pindex = nik == Kind::REGEXP_COMPLEMENT ? 1 : 0;
+    Node nia = pindex == 1 ? ni[0] : ni;
+    polRegExp[pindex].push_back(nia);
+  }
+  for (const Node& negMem : polRegExp[1])
+  {
+    for (const Node& posMem : polRegExp[0])
+    {
+      Node m1 = nk == Kind::REGEXP_INTER ? negMem : posMem;
+      Node m2 = nk == Kind::REGEXP_INTER ? posMem : negMem;
+      // inclusion test for conflicting case m1 contains m2
+      // (re.inter (re.comp R1) R2) --> re.none where R1 includes R2
+      // (re.union R1 (re.comp R2)) --> (re.* re.allchar) where R1 includes R2
+      if (RegExpEntail::regExpIncludes(m1, m2))
+      {
+        NodeManager* nm = nodeManager();
+        Node retNode = nk == Kind::REGEXP_INTER
+                           ? nm->mkNode(Kind::REGEXP_NONE)
+                           : nm->mkNode(Kind::REGEXP_STAR,
+                                        nm->mkNode(Kind::REGEXP_ALLCHAR));
+        std::vector<Node> newChildren;
+        newChildren.push_back(retNode);
+        // Now go back and include all the remaining children that were
+        // not involved. This simplifies proof checking, since we can isolate
+        // which children led to the conflict.
+        // In particular, if Ri includes Rj, then we rewrite
+        //    (re.inter R1 ... (re.comp Ri) ... Rj ... Rn)
+        // to
+        //    (re.inter re.none R1...R{i-1} R{i+1} ... R{j-1} R{j+1} .. Rn)
+        // where the latter will be rewritten to re.none.
+        bool foundPos = false;
+        bool foundNeg = false;
+        for (const Node& nc : node)
+        {
+          if (!foundPos && nc == posMem)
+          {
+            foundPos = true;
+            continue;
+          }
+          if (!foundNeg && nc.getKind() == Kind::REGEXP_COMPLEMENT
+              && nc[0] == negMem)
+          {
+            foundNeg = true;
+            continue;
+          }
+          newChildren.push_back(nc);
+        }
+        if (newChildren.size() > 1)
+        {
+          retNode = nm->mkNode(nk, newChildren);
+        }
+        return retNode;
+      }
+    }
+  }
+  return Node::null();
+}
+
 Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
 {
   Kind nk = node.getKind();
@@ -1194,32 +1266,11 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
   }
   // use inclusion tests
-  for (const Node& negMem : polRegExp[1])
+  Node retNode = rewriteViaReInterUnionInclusion(node);
+  if (!retNode.isNull())
   {
-    for (const Node& posMem : polRegExp[0])
-    {
-      Node m1 = nk == Kind::REGEXP_INTER ? negMem : posMem;
-      Node m2 = nk == Kind::REGEXP_INTER ? posMem : negMem;
-      // inclusion test for conflicting case m1 contains m2
-      // (re.inter (re.comp R1) R2) --> re.none where R1 includes R2
-      // (re.union R1 (re.comp R2)) --> (re.* re.allchar) where R1 includes R2
-      if (RegExpEntail::regExpIncludes(m1, m2))
-      {
-        Node retNode;
-        if (nk == Kind::REGEXP_INTER)
-        {
-          retNode = nm->mkNode(Kind::REGEXP_NONE);
-        }
-        else
-        {
-          retNode =
-              nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
-        }
-        return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
-      }
-    }
+    return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
   }
-  Node retNode;
   if (node_vec.empty())
   {
     if (nk == Kind::REGEXP_INTER)

@@ -210,20 +210,14 @@ Result CegSingleInv::solve()
   }
   Trace("sygus-si") << "Solve using single invocation..." << std::endl;
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   // Mark the quantified formula with the quantifier elimination attribute to
   // ensure its structure is preserved in the query below.
   Node siq = d_single_inv;
   Node n_attr;
   if (siq.getKind() == Kind::FORALL)
   {
-    n_attr = sm->mkDummySkolem(
-        "qe_si",
-        nm->booleanType(),
-        "Auxiliary variable for qe attr for single invocation.");
-    QuantElimAttribute qea;
-    n_attr.setAttribute(qea, true);
-    n_attr = nm->mkNode(Kind::INST_ATTRIBUTE, n_attr);
+    // get the INST_ATTRIBUTE term marking quantifier elimination
+    n_attr = QuantAttributes::mkAttrQuantifierElimination();
     n_attr = nm->mkNode(Kind::INST_PATTERN_LIST, n_attr);
     siq = nm->mkNode(Kind::FORALL, siq[0], siq[1], n_attr);
   }

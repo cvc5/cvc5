@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --produce-proofs
 ; DISABLE-TESTER: dump
 ; DISABLE-TESTER: unsat-core
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: lfsc
 ; REQUIRES: no-competition
 ; SCRUBBER: grep -o "unsat"

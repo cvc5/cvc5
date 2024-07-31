@@ -312,23 +312,57 @@ bool Env::isBooleanTermSkolem(const Node& k) const
 Node Env::getSharableFormula(const Node& n) const
 {
   Node on = n;
-  // these kinds are never sharable
-  std::unordered_set<Kind, kind::KindHashFunction> ks = {Kind::INST_CONSTANT,
-                                                         Kind::DUMMY_SKOLEM};
   if (!d_options.base.pluginShareSkolems)
   {
     // note we only remove purify skolems if the above option is disabled
     on = SkolemManager::getOriginalForm(n);
-    // SKOLEM is additionally unsharable if option is set.
-    ks.insert(Kind::SKOLEM);
   }
-  if (expr::hasSubtermKinds(ks, on))
+  SkolemManager * skm = d_nm->getSkolemManager();
+  std::vector<Node> toProcess;
+  toProcess.push_back(on);
+  size_t index = 0;
+  do
   {
-    // We cannot share formulas with skolems currently.
-    // We should never share formulas with instantiation constants.
-    return Node::null();
-  }
-  // also eliminate subtyping
+    Node nn = toProcess[index];
+    index++;
+    // get the symbols contained in nn
+    std::unordered_set<Node> syms;
+    expr::getSymbols(nn, syms);
+    for (const Node& s : syms)
+    {
+      Kind sk = s.getKind();
+      if (sk == Kind::INST_CONSTANT || sk == Kind::DUMMY_SKOLEM)
+      {
+        // these kinds are never sharable
+        return Node::null();
+      }
+      if (sk == Kind::SKOLEM)
+      {
+        if (!d_options.base.pluginShareSkolems)
+        {
+          // not shared if option is false
+          return Node::null();
+        }
+        // must ensure that the indices of the skolem are also legal
+        SkolemId id;
+        Node cacheVal;
+        if (!skm->isSkolemFunction(s, id, cacheVal))
+        {
+          // kind SKOLEM should imply that it is a skolem function
+          Assert(false);
+          return Node::null();
+        }
+        if (!cacheVal.isNull()
+            && std::find(toProcess.begin(), toProcess.end(), cacheVal)
+                   == toProcess.end())
+        {
+          // if we have a cache value, add it to process vector
+          toProcess.push_back(cacheVal);
+        }
+      }
+    }
+  } while (index < toProcess.size());
+  // If we didn't encounter an illegal term, we now eliminate subtyping
   SubtypeElimNodeConverter senc(d_nm);
   on = senc.convert(on);
   return on;

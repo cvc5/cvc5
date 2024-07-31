@@ -18,11 +18,12 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/uf_options.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_model.h"
 #include "theory/uf/function_const.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/smt_engine_subsolver.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -132,10 +133,14 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
   std::vector<Node> skolems;
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
+  std::vector<Node> cacheVals;
+  cacheVals.push_back(deq[0][0]);
+  cacheVals.push_back(deq[0][1]);
+  cacheVals.push_back(Node::null());
   for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
   {
-    Node k = sm->mkDummySkolem(
-        "k", argTypes[i], "skolem created for extensionality.");
+    cacheVals[2] = nm->mkConstInt(Rational(i));
+    Node k = sm->mkSkolemFunction(SkolemId::HO_DEQ_DIFF, cacheVals);
     skolems.push_back(k);
   }
   Node t[2];
@@ -278,11 +283,11 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     if (tn.isFunction() && d_lambdaEqc.find(eqc) == d_lambdaEqc.end())
     {
       hasFunctions = true;
-      // if during collect model, must have an infinite type
-      // if not during collect model, must have a finite type
-      // we consider the cardinality of tn's range type (as opposed to tn)
-      // since the model construction will enumerate values of this type.
-      if (d_env.isFiniteType(tn.getRangeType()) != isCollectModel)
+      // If during collect model, must have an infinite function type, since
+      // such function are not necessary to be handled during solving.
+      // If not during collect model, must have a finite function type, since
+      // such function symbols must be handled during solving.
+      if (d_env.isFiniteType(tn) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -338,12 +343,37 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 return 1;
               }
             }
+            bool success = false;
+            TypeNode tn = edeq[0][0].getType();
             Trace("uf-ho-debug")
-                << "Add extensionality deq to model : " << edeq << std::endl;
-            if (!m->assertEquality(edeq[0][0], edeq[0][1], false))
+                << "Add extensionality deq to model for : " << edeq
+                << std::endl;
+            if (d_env.isFiniteType(tn))
+            {
+              // We are an infinite function type with a finite range sort.
+              // Model construction assigns the first value for all
+              // unconstrained variables for such sorts, which does not
+              // suffice in this context since we are trying to make the
+              // functions disequal. Thus, for such case we enumerate the first
+              // two values for this sort and set the extensionality index to
+              // be equal to these two distinct values.  There must be at least
+              // two values since this is an infinite function sort.
+              TypeEnumerator te(tn);
+              Node v1 = *te;
+              te++;
+              Node v2 = *te;
+              Assert(!v2.isNull() && v2 != v1);
+              success = m->assertEquality(edeq[0][0], v1, true)
+                        && m->assertEquality(edeq[0][1], v2, true);
+            }
+            else
+            {
+              success = m->assertEquality(edeq[0][0], edeq[0][1], false);
+            }
+            if (!success)
             {
               Node eq = edeq[0][0].eqNode(edeq[0][1]);
-              Node lem = nm->mkNode(Kind::OR, deq.negate(), eq);
+              Node lem = nm->mkNode(Kind::OR, deq.negate(), eq.negate());
               Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
                              << std::endl;
               d_im.lemma(lem, InferenceId::UF_HO_MODEL_EXTENSIONALITY);
