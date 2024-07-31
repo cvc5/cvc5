@@ -167,6 +167,7 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case ProofRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
+    case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";
     case ProofRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
     case ProofRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
     case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
@@ -225,6 +226,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "arith-string-pred-entail";
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
       return "arith-string-pred-safe-approx";
+    case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
+      return "macro-arith-string-pred-entail";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";
@@ -242,17 +245,21 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
     case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
     case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
-    case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS: return "bv-add-combine-like-terms";
+    case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS:
+      return "bv-add-combine-like-terms";
     case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
-    case ProofRewriteRule::RE_LOOP_ELIM:
-      return "re-loop-elim";
+    case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
+    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+      return "re-inter-union-inclusion";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
     case ProofRewriteRule::STR_IN_RE_CONSUME: return "str-in-re-consume";
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
       return "str-in-re-concat-star-char";
     case ProofRewriteRule::STR_IN_RE_SIGMA: return "str-in-re-sigma";
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
+    case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
+      return "macro-substr-strip-sym-length";
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
       return "sets-is-empty-eval";
       //================================================= RARE rules

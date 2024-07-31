@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -40,7 +40,7 @@ class BaseAlfNodeConverter : public NodeConverter
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
    * @param reqCast Will the operator be printed in a context where it needs
-   * disambiguation (alf.as)? This makes a difference e.g. for symbols with
+   * disambiguation (eo::as)? This makes a difference e.g. for symbols with
    * overloading.
    * @return the operator.
    */
@@ -88,7 +88,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * f could be interpreted or uninterpreted.
    * @param n The term whose operator we wish to retrieve.
    * @param reqCast Will the operator be printed in a context where it needs
-   * disambiguation (alf.as)? This makes a difference e.g. for symbols with
+   * disambiguation (eo::as)? This makes a difference e.g. for symbols with
    * overloading.
    * @return the operator.
    */

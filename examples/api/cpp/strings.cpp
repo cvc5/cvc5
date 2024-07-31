@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of reasoning about strings with cvc5 via C++ API.
+ * A simple demonstration of reasoning about strings via the C++ API.
  */
 
 #include <cvc5/cvc5.h>
@@ -30,8 +30,6 @@ int main()
   slv.setOption("produce-models", "true");
   // The option strings-exp is needed
   slv.setOption("strings-exp", "true");
-  // Set output language to SMTLIB2
-  slv.setOption("output-language", "smt2");
 
   // String type
   Sort string = tm.getStringSort();

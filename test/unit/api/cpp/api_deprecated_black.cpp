@@ -15,6 +15,7 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include "gtest/gtest.h"
 
@@ -158,6 +159,7 @@ TEST_F(TestApiDeprecated, solver)
 
   (void)slv.mkVar(slv.getIntegerSort());
   (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
+  (void)parser::SymbolManager(&slv);
 }
 
 }  // namespace cvc5::internal::test

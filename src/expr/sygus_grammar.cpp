@@ -23,6 +23,7 @@
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "util/hash.h"
 
 namespace cvc5::internal {
 
@@ -281,6 +282,18 @@ Node SygusGrammar::getLambdaForRule(const Node& r,
   return r;
 }
 
+bool SygusGrammar::hasRules() const
+{
+  for (const auto& r : d_rules)
+  {
+    if (r.second.size() > 0)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 TypeNode SygusGrammar::resolve(bool allowAny)
 {
   if (!isResolved())
@@ -358,3 +371,35 @@ std::string SygusGrammar::toString() const
 }
 
 }  // namespace cvc5::internal
+
+namespace std {
+size_t hash<cvc5::internal::SygusGrammar>::operator()(
+    const cvc5::internal::SygusGrammar& grammar) const
+{
+  uint64_t ret = cvc5::internal::fnv1a::offsetBasis;
+  for (const auto& v : grammar.d_sygusVars)
+  {
+    ret = cvc5::internal::fnv1a::fnv1a_64(ret,
+                                          std::hash<cvc5::internal::Node>{}(v));
+  }
+  for (const auto& nts : grammar.d_ntSyms)
+  {
+    ret = cvc5::internal::fnv1a::fnv1a_64(
+        ret, std::hash<cvc5::internal::Node>{}(nts));
+  }
+  for (const auto& r : grammar.d_rules)
+  {
+    uint64_t rhash = cvc5::internal::fnv1a::offsetBasis;
+    for (const auto& n : r.second)
+    {
+      rhash = cvc5::internal::fnv1a::fnv1a_64(
+          rhash, std::hash<cvc5::internal::Node>{}(n));
+    }
+    rhash = cvc5::internal::fnv1a::fnv1a_64(
+        rhash, std::hash<cvc5::internal::Node>{}(r.first));
+    ret = cvc5::internal::fnv1a::fnv1a_64(ret, rhash);
+  }
+  return cvc5::internal::fnv1a::fnv1a_64(
+      ret, std::hash<cvc5::internal::TypeNode>{}(grammar.d_datatype));
+}
+}  // namespace std

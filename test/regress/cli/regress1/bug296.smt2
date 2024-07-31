@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: cpc
 (set-logic QF_ALL)
 (set-info :status unsat)
 (declare-datatypes

@@ -44,9 +44,8 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Stat_toString(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
 
   Stat* current = reinterpret_cast<Stat*>(pointer);
-  std::stringstream ss;
-  ss << *current;
-  return env->NewStringUTF(ss.str().c_str());
+  std::string str = current->toString();
+  return env->NewStringUTF(str.c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 

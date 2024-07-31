@@ -51,6 +51,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::RE_INTER_UNION_INCLUSION,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
                            TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_CONSUME,
@@ -61,14 +63,17 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_SIGMA_STAR,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH,
+                           TheoryRewriteCtx::POST_DSL);
 }
 
 Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
-    case ProofRewriteRule::RE_LOOP_ELIM:
-      return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::RE_LOOP_ELIM: return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+      return rewriteViaReInterUnionInclusion(n);
     case ProofRewriteRule::STR_IN_RE_EVAL: return rewriteViaStrInReEval(n);
     case ProofRewriteRule::STR_IN_RE_CONSUME:
       return rewriteViaStrInReConsume(n);
@@ -77,6 +82,15 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_IN_RE_SIGMA: return rewriteViaStrInReSigma(n);
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
       return rewriteViaStrInReSigmaStar(n);
+    case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
+    {
+      // Rewrite without using the rewriter as a subutility, which ensures
+      // that we can reconstruct the reasoning in a proof.
+      Rewrite rule;
+      ArithEntail ae(nullptr);
+      StringsEntail sent(nullptr, ae, nullptr);
+      return rewriteViaMacroSubstrStripSymLength(n, rule, sent);
+    }
     default: break;
   }
   return Node::null();
@@ -1039,6 +1053,75 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
   return node;
 }
 
+Node SequencesRewriter::rewriteViaReInterUnionInclusion(const Node& node)
+{
+  Kind nk = node.getKind();
+  if (nk != Kind::REGEXP_UNION && nk != Kind::REGEXP_INTER)
+  {
+    return Node::null();
+  }
+  std::vector<Node> polRegExp[2];
+  for (const Node& ni : node)
+  {
+    Kind nik = ni.getKind();
+    uint32_t pindex = nik == Kind::REGEXP_COMPLEMENT ? 1 : 0;
+    Node nia = pindex == 1 ? ni[0] : ni;
+    polRegExp[pindex].push_back(nia);
+  }
+  for (const Node& negMem : polRegExp[1])
+  {
+    for (const Node& posMem : polRegExp[0])
+    {
+      Node m1 = nk == Kind::REGEXP_INTER ? negMem : posMem;
+      Node m2 = nk == Kind::REGEXP_INTER ? posMem : negMem;
+      // inclusion test for conflicting case m1 contains m2
+      // (re.inter (re.comp R1) R2) --> re.none where R1 includes R2
+      // (re.union R1 (re.comp R2)) --> (re.* re.allchar) where R1 includes R2
+      if (RegExpEntail::regExpIncludes(m1, m2))
+      {
+        NodeManager* nm = nodeManager();
+        Node retNode = nk == Kind::REGEXP_INTER
+                           ? nm->mkNode(Kind::REGEXP_NONE)
+                           : nm->mkNode(Kind::REGEXP_STAR,
+                                        nm->mkNode(Kind::REGEXP_ALLCHAR));
+        std::vector<Node> newChildren;
+        newChildren.push_back(retNode);
+        // Now go back and include all the remaining children that were
+        // not involved. This simplifies proof checking, since we can isolate
+        // which children led to the conflict.
+        // In particular, if Ri includes Rj, then we rewrite
+        //    (re.inter R1 ... (re.comp Ri) ... Rj ... Rn)
+        // to
+        //    (re.inter re.none R1...R{i-1} R{i+1} ... R{j-1} R{j+1} .. Rn)
+        // where the latter will be rewritten to re.none.
+        bool foundPos = false;
+        bool foundNeg = false;
+        for (const Node& nc : node)
+        {
+          if (!foundPos && nc == posMem)
+          {
+            foundPos = true;
+            continue;
+          }
+          if (!foundNeg && nc.getKind() == Kind::REGEXP_COMPLEMENT
+              && nc[0] == negMem)
+          {
+            foundNeg = true;
+            continue;
+          }
+          newChildren.push_back(nc);
+        }
+        if (newChildren.size() > 1)
+        {
+          retNode = nm->mkNode(nk, newChildren);
+        }
+        return retNode;
+      }
+    }
+  }
+  return Node::null();
+}
+
 Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
 {
   Kind nk = node.getKind();
@@ -1183,32 +1266,11 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
   }
   // use inclusion tests
-  for (const Node& negMem : polRegExp[1])
+  Node retNode = rewriteViaReInterUnionInclusion(node);
+  if (!retNode.isNull())
   {
-    for (const Node& posMem : polRegExp[0])
-    {
-      Node m1 = nk == Kind::REGEXP_INTER ? negMem : posMem;
-      Node m2 = nk == Kind::REGEXP_INTER ? posMem : negMem;
-      // inclusion test for conflicting case m1 contains m2
-      // (re.inter (re.comp R1) R2) --> re.none where R1 includes R2
-      // (re.union R1 (re.comp R2)) --> (re.* re.allchar) where R1 includes R2
-      if (RegExpEntail::regExpIncludes(m1, m2))
-      {
-        Node retNode;
-        if (nk == Kind::REGEXP_INTER)
-        {
-          retNode = nm->mkNode(Kind::REGEXP_NONE);
-        }
-        else
-        {
-          retNode =
-              nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
-        }
-        return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
-      }
-    }
+    return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
   }
-  Node retNode;
   if (node_vec.empty())
   {
     if (nk == Kind::REGEXP_INTER)
@@ -1400,6 +1462,19 @@ Node SequencesRewriter::rewriteViaStrInReSigmaStar(const Node& n)
   Node lenx = nm->mkNode(Kind::STRING_LENGTH, n[0]);
   Node t = nm->mkNode(Kind::INTS_MODULUS, lenx, num);
   return nm->mkNode(Kind::EQUAL, t, zero);
+}
+
+Node SequencesRewriter::rewriteViaMacroSubstrStripSymLength(const Node& node,
+                                                            Rewrite& rule,
+                                                            StringsEntail& sent)
+{
+  if (node.getKind() != Kind::STRING_SUBSTR)
+  {
+    return Node::null();
+  }
+  std::vector<Node> ch1;
+  std::vector<Node> ch2;
+  return sent.rewriteViaMacroSubstrStripSymLength(node, rule, ch1, ch2);
 }
 
 Node SequencesRewriter::rewriteRepeatRegExp(TNode node)
@@ -2155,26 +2230,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     }
   }
 
-  std::vector<Node> n1;
-  utils::getConcat(node[0], n1);
   TypeNode stype = node.getType();
-
-  // definite inclusion
-  if (node[1] == zero)
-  {
-    Node curr = node[2];
-    std::vector<Node> childrenr;
-    if (d_stringsEntail.stripSymbolicLength(n1, childrenr, 1, curr))
-    {
-      if (curr != zero && !n1.empty())
-      {
-        childrenr.push_back(nm->mkNode(
-            Kind::STRING_SUBSTR, utils::mkConcat(n1, stype), node[1], curr));
-      }
-      Node ret = utils::mkConcat(childrenr, stype);
-      return returnRewrite(node, ret, Rewrite::SS_LEN_INCLUDE);
-    }
-  }
 
   // (str.substr s x x) ---> "" if (str.len s) <= 1
   if (node[1] == node[2] && d_stringsEntail.checkLengthOne(node[0]))
@@ -2183,64 +2239,28 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     return returnRewrite(node, ret, Rewrite::SS_LEN_ONE_Z_Z);
   }
 
-  // symbolic length analysis
-  for (unsigned r = 0; r < 2; r++)
+  Node slenRew =
+      d_arithEntail.rewriteArith(nm->mkNode(Kind::STRING_LENGTH, node[0]));
+  if (node[2] != slenRew)
   {
-    // the amount of characters we can strip
-    Node curr;
-    if (r == 0)
+    if (d_arithEntail.check(node[2], slenRew))
     {
-      if (node[1] != zero)
-      {
-        // strip up to start point off the start of the string
-        curr = node[1];
-      }
+      // end point beyond end point of string, map to slenRew
+      Node ret = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[1], slenRew);
+      return returnRewrite(node, ret, Rewrite::SS_END_PT_NORM);
     }
-    else if (r == 1)
-    {
-      Node tot_len =
-          d_arithEntail.rewriteArith(nm->mkNode(Kind::STRING_LENGTH, node[0]));
-      Node end_pt =
-          d_arithEntail.rewriteArith(nm->mkNode(Kind::ADD, node[1], node[2]));
-      if (node[2] != tot_len)
-      {
-        if (d_arithEntail.check(node[2], tot_len))
-        {
-          // end point beyond end point of string, map to tot_len
-          Node ret = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[1], tot_len);
-          return returnRewrite(node, ret, Rewrite::SS_END_PT_NORM);
-        }
-        else
-        {
-          // strip up to ( str.len(node[0]) - end_pt ) off the end of the string
-          curr = d_arithEntail.rewriteArith(
-              nm->mkNode(Kind::SUB, tot_len, end_pt));
-        }
-      }
-    }
-    if (!curr.isNull())
-    {
-      // strip off components while quantity is entailed positive
-      int dir = r == 0 ? 1 : -1;
-      std::vector<Node> childrenr;
-      if (d_stringsEntail.stripSymbolicLength(n1, childrenr, dir, curr))
-      {
-        if (r == 0)
-        {
-          Node ret = nm->mkNode(
-              Kind::STRING_SUBSTR, utils::mkConcat(n1, stype), curr, node[2]);
-          return returnRewrite(node, ret, Rewrite::SS_STRIP_START_PT);
-        }
-        else
-        {
-          Node ret = nm->mkNode(Kind::STRING_SUBSTR,
-                                utils::mkConcat(n1, stype),
-                                node[1],
-                                node[2]);
-          return returnRewrite(node, ret, Rewrite::SS_STRIP_END_PT);
-        }
-      }
-    }
+  }
+
+  // Rewrite based on symbolic length analysis, using the strings entailment
+  // utility that is owned by this rewriter. This handles three rewrite rules
+  // that are also included as part of the macro proof rewrite rule
+  // MACRO_SUBSTR_STRIP_SYM_LENGTH.
+  Rewrite ruleSymLen;
+  Node retSymLen =
+      rewriteViaMacroSubstrStripSymLength(node, ruleSymLen, d_stringsEntail);
+  if (!retSymLen.isNull())
+  {
+    return returnRewrite(node, retSymLen, ruleSymLen);
   }
   // combine substr
   if (node[0].getKind() == Kind::STRING_SUBSTR)

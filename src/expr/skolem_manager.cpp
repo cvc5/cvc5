@@ -54,6 +54,8 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
+    case InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL:
+      return "QUANTIFIERS_ATTRIBUTE_INTERNAL";
     default: return "?";
   }
 }
@@ -407,7 +409,8 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       return nm->mkFunctionType(rtype, rtype);
     }
     // real skolems
-    case SkolemId::TRANSCENDENTAL_PURIFY_ARG: return nm->realType();
+    case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
+    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT: return nm->realType();
     // int -> int function
     case SkolemId::INT_DIV_BY_ZERO:
     case SkolemId::MOD_BY_ZERO:
@@ -457,7 +460,13 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     case SkolemId::QUANTIFIERS_SKOLEMIZE:
     {
       Assert(cacheVals.size() == 2);
-      return cacheVals[1].getType();
+      Assert(cacheVals[0].getKind() == Kind::FORALL);
+      Assert(cacheVals[1].getKind() == Kind::CONST_INTEGER);
+      const Rational& r = cacheVals[1].getConst<Rational>();
+      Assert(r.getNumerator().fitsUnsignedInt());
+      size_t i = r.getNumerator().toUnsignedInt();
+      Assert(i < cacheVals[0][0].getNumChildren());
+      return cacheVals[0][0][i].getType();
     }
     break;
     // skolems that return the set element type
@@ -546,6 +555,16 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       TypeNode t = cacheVals[1].getConst<SortToTerm>().getType();
       return nm->mkSelectorType(dtt, t);
     }
+    case SkolemId::HO_DEQ_DIFF:
+    {
+      const Rational& r = cacheVals[2].getConst<Rational>();
+      Assert(r.getNumerator().fitsUnsignedInt());
+      size_t i = r.getNumerator().toUnsignedInt();
+      Assert(cacheVals[0].getType().isFunction());
+      std::vector<TypeNode> argTypes = cacheVals[0].getType().getArgTypes();
+      Assert(i < argTypes.size());
+      return argTypes[i];
+    }
     // fp skolems
     case SkolemId::FP_MIN_ZERO:
     case SkolemId::FP_MAX_ZERO:
@@ -597,6 +616,7 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::GROUND_TERM:
     case SkolemId::TRANSCENDENTAL_PURIFY:
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
+    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:
     case SkolemId::STRINGS_ITOS_RESULT:
     case SkolemId::STRINGS_STOI_RESULT:

@@ -1,12 +1,56 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.2.0
+==========
+
+## New Features
+
+- New **C API**, implemented as a thin wrapper around the C++ API.
+   - Documentation: https://cvc5.github.io/docs-ci/docs-main/api/c/c.html
+   - Examples: https://github.com/cvc5/cvc5/tree/main/examples/api/c
+
+- Exposed creation and maintenance of **Skolem functions** to the API.
+
+## Changes
+
+- We now require CMake >= 3.16.
+
+- **API**
+  All APIs have been refactore to expose a TermManager to the API. A term
+  manager manages creation and maintenance of all terms and sorts (across
+  potentially several solver instances within a thread).
+  Corresponding functions that were previously associated with a solver
+  instance and are now associated with a term manager are now deprecated
+  and will be removed in a future release.
+  * Python:
+    - Constructor `SymbolManager(Solver)` is now deprecated and replaced
+      by `SymbolManager(TermManager)`.
+  * Pythonic:
+    - Unsat cores and proofs are now available via the `Solver` methods
+      `unsat_core()` and `proof()`, respectively.
+
+- The default proof format of cvc5 has been renamed to the **Cooperating Proof Calculus (CPC) proof format**.
+  This proof format coincides with proof objects in our API.
+  * **API**
+    + The option `--proof-format=cpc` prints proofs in the CPC format.
+      This option is now enabled by default.
+  * The Ethos checker is available for download via the script
+    `./contrib/get-ethos-checker`, which can check proofs in this format.
+    This checker is the second generation of the the AletheLF checker (`alfc`).
+    Ethos inherits the code base of alfc and is based on a logical
+    framework called Eunoia (formerly called **AletheLF**).
+  * The rules of this format have been formalized in Eunoia and are available
+    in the cvc5 repository under the directory `./proofs/eo/cpc/`.
+
+
 cvc5 1.1.2
 ==========
 
 ## New Features
 
-- Added support for **nullable** sorts and lift operator to the theory of **datatypes**.
-- Adds a new strategy `--sub-cbqi` (disabled by default) for **quantifier
+- Added support for **nullable** sorts and lift operator to the theory of
+  **datatypes**.
+- Added a new strategy `--sub-cbqi` (disabled by default) for **quantifier
   instantiation** which uses subsolvers to compute unsat cores of instantiations
   that are used in proofs of unsatisfiability.
 
@@ -79,9 +123,10 @@ cvc5 1.1.0
     SMT-LIB command `get-timeout-core-assuming`, which accept a list of
     formulas to assume, while all current assertions are implicitly included
     in the core.
-  * Add new method `Solver::getUnsatCoreLemmas` which returns the set of theory
-    lemmas that were relevant to showing the last query was unsatisfiable. This
-    is also avialable via the SMT-LIB command `get-unsat-core-lemmas`.
+  * Added new method `Solver::getUnsatCoreLemmas` which returns the set of
+    theory lemmas that were relevant to showing the last query was
+    unsatisfiable. This is also avialable via the SMT-LIB command
+    `get-unsat-core-lemmas`.
 
 - Support for the **AletheLF (ALF) proof format**. This format combines the
   strengths of the Alethe and LFSC proof formats, namely it borrows much of the
@@ -111,7 +156,7 @@ Note: This is a pre-release version for the upcoming version 1.1.0.
 ## New Features
 
 - **API**
-  + Add the ability to query the logic that has been set in the solver via
+  + Added the ability to query the logic that has been set in the solver via
     `Solver::isLogicSet` and `Solver::getLogic`.
 
 ## Changes

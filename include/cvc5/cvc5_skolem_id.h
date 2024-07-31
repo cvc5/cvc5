@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -47,57 +47,57 @@ namespace cvc5 {
  * uninterpreted internally. We track their definition for the purposes of
  * formal bookkeeping for the user of features like proofs, lemma exporting,
  * simplification and so on.
- * 
+ *
  * A skolem has an identifier and a set of "skolem indices". The skolem
  * indices are *not* children of the skolem function, but rather should
  * be seen as the way of distinguishing skolems from the same family.
  *
  * For example, the family of "array diff" skolems ``ARRAY_DEQ_DIFF`` witness
  * the disequality between two arrays, which are its skolem indices.
- * 
+ *
  * Say that skolem k witnesses the disequality between two arrays A and B
  * of type ``(Array Int Int)``. Then, k is a term whose skolem identifier is
  * ``ARRAY_DEQ_DIFF``, skolem indices are A and B, and whose type is ``Int``.
- * 
+ *
  * Note the type of k is not ``(-> (Array Int Int) (Array Int Int) Int)``.
  * Intuitively, this is due to the fact that cvc5 does not reason about array
  * diff skolem as a function symbol. Furthermore, the array diff skolem that
  * witnesses the disequality of arrays C and D is a separate skolem function k2
  * from this family, also of type ``Int``, where internally k2 has no relation
  * to k apart from having the same skolem identifier.
- * 
+ *
  * In contrast, cvc5 reasons about division-by-zero using a single skolem
  * function whose identifier is ``DIV_BY_ZERO``. This means its skolem indices
  * are empty and the skolem has a functional type ``(-> Real Real)``.
  *
  * \internal
- * 
+ *
  */
-enum ENUM(SkolemId) : uint32_t
+enum ENUM(SkolemId)
 {
   /**
    * The identifier of the skolem is not exported. These skolems should not
    * appear in any user-level API calls.
    */
   EVALUE(INTERNAL),
-  /** 
+  /**
    * The purification skolem for a term. This is a variable that is semantically
    * equivalent to the indexed term t.
-   * 
+   *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The term t that this skolem purifies.
    * - Sort: The sort of t.
    */
   EVALUE(PURIFY),
-  /** 
+  /**
    * An arbitrary ground term of a given sort.
-   * 
+   *
    * - Number of skolem indices: ``1``
    *   - ``1:`` A term that represents the sort of the term.
    * - Sort: The sort given by the index.
    */
   EVALUE(GROUND_TERM),
-  /** 
+  /**
    * The array diff skolem, which is the witness k for the inference
    * ``(=> (not (= A B)) (not (= (select A k) (select B k))))``.
    *
@@ -107,14 +107,14 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``T1``
    */
   EVALUE(ARRAY_DEQ_DIFF),
-  /** 
+  /**
    * The empty bitvector.
    *
    * - Number of skolem indices: ``0``
    * - Type: ``(_ BitVec 0)``
    */
   EVALUE(BV_EMPTY),
-  /** 
+  /**
    * The function for division by zero. This is semantically equivalent to the
    * SMT-LIB term ``(lambda ((x Real)) (/ x 0.0))``.
    *
@@ -122,7 +122,7 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``(-> Real Real)``
    */
   EVALUE(DIV_BY_ZERO),
-  /** 
+  /**
    * The function for integer division by zero. This is semantically equivalent
    * to the SMT-LIB term ``(lambda ((x Int)) (div x 0))``.
    *
@@ -130,7 +130,7 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``(-> Int Int)``
    */
   EVALUE(INT_DIV_BY_ZERO),
-  /** 
+  /**
    * The function for integer modulus by zero. This is semantically equivalent
    * to the SMT-LIB term ``(lambda ((x Int)) (mod x 0))``.
    *
@@ -138,14 +138,14 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``(-> Int Int)``
    */
   EVALUE(MOD_BY_ZERO),
-  /** 
+  /**
    * A function introduced to eliminate extended trancendental functions.
    * Transcendental functions like sqrt, arccos, arcsin, etc. are replaced
    * during processing with uninterpreted functions that are unique to
    * each function.
    *
    * - Number of skolem indices: ``1``
-   *   - ``1:`` A lambda corresponding to the function, e.g. 
+   *   - ``1:`` A lambda corresponding to the function, e.g.,
    *   `(lambda ((x Real)) (sqrt x))`.
    * - Sort: ``(-> Real Real)``
    */
@@ -160,6 +160,17 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``Real``
    */
   EVALUE(TRANSCENDENTAL_PURIFY_ARG),
+  /**
+   * Argument used to reason about the phase shift of arguments to sine.
+   * In particular, this is an integral rational indicating the number of times
+   * :math:`2\pi` is added to a real value between :math:`-\pi` and :math:`\pi`
+   * to obtain the value of argument to sine.
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` The argument to sine.
+   * - Sort: ``Real``
+   */
+  EVALUE(TRANSCENDENTAL_SINE_PHASE_SHIFT),
   /** 
    * A shared datatype selector, see Reynolds et. al. "Datatypes with Shared
    * Selectors", IJCAR 2018. Represents a selector that can extract fields
@@ -175,25 +186,36 @@ enum ENUM(SkolemId) : uint32_t
    */
   EVALUE(SHARED_SELECTOR),
   /**
-   * The n^th skolem for quantified formula Q.
+   * The higher-roder diff skolem, which is the witness k for the inference
+   * ``(=> (not (= A B)) (not (= (A k1 ... kn) (B k1 ... kn))))``.
+   *
+   * - Number of skolem indices: ``2``
+   *   - ``1:`` The first function of sort ``(-> T1 ... Tn T)``.
+   *   - ``2:`` The second function of sort ``(-> T1 ... Tn T)``.
+   *   - ``3:`` The argument index i.
+   * - Sort: ``Ti``
+   */
+  EVALUE(HO_DEQ_DIFF),
+  /**
+   * The n^th skolem for the negation of universally quantified formula Q.
    *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The quantified formula Q.
-   *   - ``2:`` The variable in the binder of Q to skolemize.
-   * - Sort: The type of the second index.
+   *   - ``2:`` The index of the variable in the binder of Q to skolemize.
+   * - Sort: The type of the variable referenced by the second index.
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
-  /** 
+  /**
    * An integer corresponding to the number of times a string occurs in another
    * string. This is used to reason about str.replace_all.
-   * 
+   *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The first string.
    *   - ``2:`` The second string.
    * - Sort: ``Int``
    */
   EVALUE(STRINGS_NUM_OCCUR),
-  /** 
+  /**
    * A function k such that for x = 0...n, (k x) is the end
    * index of the x^th occurrence of a string b in string a, where n is the
    * number of occurrences of b in a, and ``(= (k 0) 0)``. This is used to
@@ -209,14 +231,14 @@ enum ENUM(SkolemId) : uint32_t
    * Analogous to STRINGS_NUM_OCCUR, but for regular expressions.
    * An integer corresponding to the number of times a regular expression can
    * be matched in a string.  This is used to reason about str.replace_all_re.
-   * 
+   *
    * - Number of skolem indices: ``2``
    *   - ``1:`` The string to match.
    *   - ``2:`` The regular expression to find.
    * - Sort: ``Int``
    */
   EVALUE(STRINGS_NUM_OCCUR_RE),
-  /** 
+  /**
    * Analogous to STRINGS_OCCUR_INDEX, but for regular expressions.
    * A function k such that for x = 0...n, (k x) is the end
    * index of the x^th occurrence of a regular expression R in string a, where
@@ -259,7 +281,7 @@ enum ENUM(SkolemId) : uint32_t
    * result of processing the string or sequence after processing the n^th
    * occurrence of string or match of the regular expression in the given
    * replace_all term.
-   * 
+   *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The application of replace_all or replace_all_re.
    * - Sort: ``(-> Int S)`` where S is either ``String`` or ``(Seq T)`` for
@@ -368,11 +390,11 @@ enum ENUM(SkolemId) : uint32_t
    */
   EVALUE(BAGS_CARD_COMBINE),
   /**
-   * An uninterpreted function for the union of distinct elements 
-   * in a bag (Bag T). To compute operators like bag.card, 
+   * An uninterpreted function for the union of distinct elements
+   * in a bag (Bag T). To compute operators like bag.card,
    * we need a function for distinct elements in A of type (-> Int T)
    * (see ``BAGS_DISTINCT_ELEMENTS``).
-   * We also need to restrict the range [1, n] to only elements in the bag 
+   * We also need to restrict the range [1, n] to only elements in the bag
    * as follows:
    * unionDisjoint(0) = bag.empty.
    * unionDisjoint(i) = disjoint union of {<elements(i), m(elements(i), A)>}
@@ -516,7 +538,7 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``(-> Int Int)``
    */
   EVALUE(BAGS_MAP_SUM),
-  /** 
+  /**
    * The bag diff skolem, which is the witness k for the inference
    * ``(=> (not (= A B)) (not (= (bag.count k A) (bag.count k B))))``.
    *
@@ -550,7 +572,7 @@ enum ENUM(SkolemId) : uint32_t
   /**
    * Given a group term ``((_ rel.group n1 ... nk) A)`` of type
    * ``(Set (Relation T))`` this skolem maps elements of A to their parts in the
-   * resulting partition. 
+   * resulting partition.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` a relation of the form ``((_ rel.group n1 ... nk) A)``.
@@ -580,7 +602,7 @@ enum ENUM(SkolemId) : uint32_t
    * - Sort: ``(-> (Set E) E)``
    */
   EVALUE(SETS_CHOOSE),
-  /** 
+  /**
    * The set diff skolem, which is the witness k for the inference
    * ``(=> (not (= A B)) (not (= (set.member k A) (set.member k B))))``.
    *
@@ -730,17 +752,17 @@ typedef enum ENUM(SkolemId) ENUM(SkolemId);
 
 /**
  * Get a string representation of a Cvc5SkolemId.
- * @param rule The proof rule.
+ * @param id The skolem id.
  * @return The string representation.
  */
-const char* cvc5_skolem_id_to_string(Cvc5SkolemId kind);
+CVC5_EXPORT const char* cvc5_skolem_id_to_string(Cvc5SkolemId id);
 
 /**
  * Hash function for Cvc5SkolemId.
- * @param rule The proof rule.
+ * @param id The skolem id.
  * @return The hash value.
  */
-size_t cvc5_skolem_id_hash(Cvc5SkolemId rule);
+CVC5_EXPORT size_t cvc5_skolem_id_hash(Cvc5SkolemId id);
 
 #else
 
@@ -773,7 +795,7 @@ struct CVC5_EXPORT hash<cvc5::SkolemId>
  * @param id The skolem identifier
  * @return The string representation.
  */
-std::string to_string(cvc5::SkolemId id);
+CVC5_EXPORT std::string to_string(cvc5::SkolemId id);
 
 }  // namespace std
 

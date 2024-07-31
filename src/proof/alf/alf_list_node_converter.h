@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,7 +47,7 @@ namespace proof {
  *   (S) S
  *   (
  *     (($singleton_elim (f x1 x2))
- *        (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
+ *        (eo::ite (eo::is_eq x2 (eo::nil f x1 x2)) x1 (f x1 x2)))
  *     (($singleton_elim x)
  *        x)
  *   )
