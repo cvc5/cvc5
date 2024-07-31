@@ -783,7 +783,7 @@ std::vector<Node> PropEngine::getUnsatCoreLemmas()
       output(OutputTag::UNSAT_CORE_LEMMAS) << "(unsat-core-lemma ";
       output(OutputTag::UNSAT_CORE_LEMMAS)
           << SkolemManager::getOriginalForm(lem);
-      InferenceId id = d_ppm->getInferenceIdFor(lem);
+      theory::InferenceId id = d_ppm->getInferenceIdFor(lem);
       if (id != theory::InferenceId::NONE)
       {
         output(OutputTag::UNSAT_CORE_LEMMAS) << " :source " << id;

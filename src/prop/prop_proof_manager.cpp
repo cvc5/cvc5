@@ -16,6 +16,7 @@
 #include "prop/prop_proof_manager.h"
 
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "printer/printer.h"
 #include "proof/proof_ensure_closed.h"
@@ -75,7 +76,7 @@ PropPfManager::PropPfManager(Env& env,
   // literal), which leads to adding True as its explanation, since for creating
   // a learned clause we need at least two literals.
   d_assertions.push_back(nodeManager()->mkConst(true));
-  d_debugLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS)
+  d_debugLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
 }
 
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
@@ -145,7 +146,15 @@ std::vector<Node> PropPfManager::getUnsatCoreLemmas()
   return usedLemmas;
 }
 
-theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem) const {}
+theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem) const {
+
+  context::CDHashMap<Node, theory::InferenceId>::const_iterator it = d_lemmaClauseIds.find(lem);
+  if (it!=d_lemmaClauseIds.end())
+  {
+    return it->second;
+  }
+  return theory::InferenceId::NONE;
+}
 
 std::vector<Node> PropPfManager::getMinimizedAssumptions()
 {
