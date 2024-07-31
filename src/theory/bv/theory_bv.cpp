@@ -283,6 +283,35 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
     }
   }
 
+  if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF) {
+    std::cout << "panda hey" << std::endl;
+    if (RewriteRule<NegoEliminate>::applies(t))
+    {
+      res = RewriteRule<NegoEliminate>::run<false>(t);
+    } else if (RewriteRule<UaddoEliminate>::applies(t))
+    {
+      res = RewriteRule<UaddoEliminate>::run<false>(t);
+    } else if (RewriteRule<SaddoEliminate>::applies(t))
+    {
+      res = RewriteRule<SaddoEliminate>::run<false>(t);
+    } else if (RewriteRule<UmuloEliminate>::applies(t))
+    {
+      res = RewriteRule<UmuloEliminate>::run<false>(t);
+    } else if (RewriteRule<SmuloEliminate>::applies(t))
+    {
+      res = RewriteRule<SmuloEliminate>::run<false>(t);
+    } else if (RewriteRule<UsuboEliminate>::applies(t))
+    {
+      res = RewriteRule<UsuboEliminate>::run<false>(t);
+    } else if (RewriteRule<SsuboEliminate>::applies(t))
+    {
+      res = RewriteRule<SsuboEliminate>::run<false>(t);
+    } else if (RewriteRule<SdivoEliminate>::applies(t))
+    {
+      res = RewriteRule<SdivoEliminate>::run<false>(t);
+    }
+  }
+
   Trace("theory-bv-pp-rewrite") << "to   " << res << "\n";
   if (res != t)
   {

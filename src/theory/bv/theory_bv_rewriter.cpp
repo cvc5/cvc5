@@ -839,14 +839,14 @@ void TheoryBVRewriter::initializeRewrites()
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ULTBV)] = RewriteUltBv;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SLTBV)] = RewriteSltBv;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ITE)] = RewriteITEBv;
-  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_NEGO)] = RewriteNego;
-  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UADDO)] = RewriteUaddo;
-  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SADDO)] = RewriteSaddo;
-  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UMULO)] = RewriteUmulo;
-  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SMULO)] = RewriteSmulo;
-  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_USUBO)] = RewriteUsubo;
-  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SSUBO)] = RewriteSsubo;
-  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SDIVO)] = RewriteSdivo;
+  // d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_NEGO)] = RewriteNego;
+  // d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UADDO)] = RewriteUaddo;
+  // d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SADDO)] = RewriteSaddo;
+  // d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UMULO)] = RewriteUmulo;
+  // d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SMULO)] = RewriteSmulo;
+  // d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_USUBO)] = RewriteUsubo;
+  // d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SSUBO)] = RewriteSsubo;
+  // d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SDIVO)] = RewriteSdivo;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_EAGER_ATOM)] =
       RewriteEagerAtom;
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SIZE)] = RewriteSize;
