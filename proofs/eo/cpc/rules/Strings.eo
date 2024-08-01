@@ -1,0 +1,569 @@
+(include "../theories/Strings.eo")
+(include "../theories/Quantifiers.eo")
+(include "../programs/Strings.eo")
+
+;;-------------------- Core
+
+; rule: string_length_pos
+; implements: ProofRule::STRING_LENGTH_POS
+; args:
+; - s String: The string term.
+; conclusion: >
+;   The length of s is zero and it is the empty string, or its length is
+;   strictly greater than zero.
+(declare-rule string_length_pos ((U Type) (s U))
+  :args (s)
+  :conclusion
+    (or (and (= (str.len s) 0) (= s ($mk_emptystr (eo::typeof s)))) (> (str.len s) 0))
+)
+
+; rule: string_length_non_empty
+; implements: ProofRule::STRING_LENGTH_NON_EMPTY
+; premises:
+; - deq: A disequality between strings s and t.
+; requires: t is the empty string.
+; conclusion: The length of s is not zero.
+(declare-rule string_length_non_empty ((U Type) (s (Seq U)) (t (Seq U)))
+  :premises ((not (= s t)))
+  :requires ((($str_is_empty t) true))
+  :conclusion (not (= (str.len s) 0))
+)
+
+; rule: concat_eq
+; implements: ProofRule::CONCAT_EQ
+; premises:
+; - eq: An equality between strings s and t.
+; args:
+; - rev Bool: Whether we are reasoning about the end of strings s and t.
+; conclusion: >
+;   An equality between the components of s and t beyond their equal components.
+;   For example, from (= (str.++ x y) (str.++ x z)), we conclude (= y z).
+(declare-rule concat_eq ((U Type) (s U) (t U) (rev Bool))
+  :premises ((= s t))
+  :args (rev)
+  :conclusion
+    (eo::match ((ss U) (ts U))
+      ($str_strip_prefix
+           ($str_to_flat_form s rev)
+           ($str_to_flat_form t rev))
+      (((@pair ss ts)
+        (= 
+          ($str_from_flat_form ss rev)
+          ($str_from_flat_form ts rev)))))
+)
+
+; rule: concat_unify
+; implements: ProofRule::CONCAT_UNIFY
+; premises:
+; - eq: An equality between strings s and t.
+; - leq: An equality between the lengths of child strings of s and t.
+; args:
+; - rev Bool: Whether we are reasoning about the end of strings s and t.
+; requires: leq refers to children that are prefixes (resp. suffixes) of s and t.
+; conclusion: an equality between the given children of s and t. 
+(declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
+  :premises ((= s t) (= (str.len s1) (str.len t1)))
+  :args (rev)
+  :requires ((($str_is_prefix s s1 rev) true) (($str_is_prefix t t1 rev) true))
+  :conclusion (= s1 t1)
+)
+
+; rule: concat_csplit
+; implements: ProofRule::CONCAT_CSPLIT
+; premises:
+; - eq: An equality between strings t and s.
+; - ldeq: A disequality stating that the length of u is non-zero.
+; args:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   Assuming u is the first (resp. last) child of t and the string s begins with
+;   a string literal, this constructs an equality that decomposes u based on
+;   its first character.
+(declare-rule concat_csplit ((U Type) (t (Seq U)) (s (Seq U)) (u (Seq U)) (rev Bool))
+  :premises ((= t s) (not (= (str.len u) 0)))
+  :args (rev)
+  :conclusion
+    (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
+      ($str_to_flat_form t rev)
+      (((str.++ t1 t2)
+        (eo::requires t1 u
+          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
+            ($str_to_flat_form s rev)
+            (((str.++ s1 s2)
+              (eo::requires ($str_check_length_one s1) true    ; checks if char
+                (= u
+                  (eo::ite rev
+                    (str.++ (@purify ($str_prefix u (- (str.len u) 1))) s1)
+                    (str.++ s1 (@purify ($str_suffix_rem u 1)))))))))))))
+)
+
+; rule: concat_split
+; implements: ProofRule::CONCAT_SPLIT
+; premises:
+; - eq: An equality between strings t and s.
+; - lieq: An disequality between the lengths of child strings of t and s.
+; args:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   A splitting lemma based on the children referred to in leq. In particular,
+;   we case split based on which string is longer.
+(declare-rule concat_split ((U Type) (t (Seq U)) (s (Seq U)) (tc (Seq U)) (sc (Seq U)) (rev Bool))
+  :premises ((= t s) (not (= (str.len tc) (str.len sc))))
+  :args (rev)
+  :conclusion
+    (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
+      ($str_to_flat_form t rev)
+      (((str.++ t1 t2)
+        (eo::requires t1 tc
+          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
+            ($str_to_flat_form s rev)
+            (((str.++ s1 s2)
+              (eo::requires s1 sc
+                (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
+                (and 
+                  (or 
+                    (= t1
+                      (eo::ite rev
+                        (str.++ k s1)
+                        (str.++ s1 k)))
+                    (= s1
+                      (eo::ite rev
+                        (str.++ k t1)
+                        (str.++ t1 k))))
+                    (not (= k ($mk_emptystr (eo::typeof k))))
+                    (> (str.len k) 0)
+                ))))))))))
+)
+
+; rule: concat_lprop
+; implements: ProofRule::CONCAT_LPROP
+; premises:
+; - eq: An equality between strings t and s.
+; - leq: An inequality stating that the first (resp. last) child of t is longer than the child of s.
+; args:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   An equality that decomposes the first (resp. last) child of t based on the
+;   length of the corresponding child in s.
+(declare-rule concat_lprop ((U Type) (t (Seq U)) (s (Seq U)) (tc (Seq U)) (sc (Seq U)) (rev Bool))
+  :premises ((= t s) (> (str.len tc) (str.len sc)))
+  :args (rev)
+  :conclusion
+    (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
+      ($str_to_flat_form t rev)
+      (((str.++ t1 t2)
+        (eo::requires t1 tc
+          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
+            ($str_to_flat_form s rev)
+            (((str.++ s1 s2)
+              (eo::requires s1 sc
+                (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
+                  (and
+                    (= t1
+                      (eo::ite rev
+                        (str.++ k s1)
+                        (str.++ s1 k)))
+                    (not (= k ($mk_emptystr (eo::typeof k))))
+                    (> (str.len k) 0))
+                )))))))))
+)
+
+; rule: concat_cprop
+; implements: ProofRule::CONCAT_CPROP
+; premises:
+; - eq: An equality between strings t and s.
+; - ldeq: A disequality stating the first (resp. last) child of t is non-empty.
+; args:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   An equality involving the given child of t. In particular, we infer what
+;   portion of the prefix (resp. suffix) it is entailed to be based on
+;   reasoning about adjacent constants.
+(declare-rule concat_cprop ((U Type) (t (Seq U)) (tc (Seq U)) (s (Seq U)) (rev Bool))
+  :premises ((= t s) (not (= (str.len tc) 0)))
+  :args (rev)
+  :conclusion
+    (eo::match ((t1 (Seq U)) (t2 (Seq U)) (t3 (Seq U) :list))
+      ($str_rev rev t)
+      (((str.++ t1 t2 t3)
+        (eo::requires t1 tc
+          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
+            ($str_rev rev ($str_nary_intro s))  ; must do nary intro when s is just a constant
+            (((str.++ s1 s2)
+                (eo::define ((sc ($str_to_flat_form s1 rev)))
+                (eo::define ((v (eo::add 1 ($str_overlap ($tail sc) ($str_to_flat_form t2 rev)))))
+                  (= tc
+                    (eo::ite rev
+                      (eo::define ((oc ($str_suffix s1 v)))
+                      (str.++ (@purify ($str_prefix tc (- (str.len tc) (str.len oc)))) oc))
+                      (eo::define ((oc ($str_prefix s1 v)))
+                      (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))
+                )))))))))
+)
+
+; rule: concat_conflict
+; implements: ProofRule::CONCAT_CONFLICT
+; premises:
+; - eq: An equality between strings t and s.
+; args:
+; - rev Bool: Whether we are reasoning about the end of strings t and s.
+; conclusion: >
+;   false if the prefix (resp. suffix) involves clashing characters at the same
+;   position.
+; note: This rule is used for strings only, not sequences.
+(declare-rule concat_conflict ((s String) (t String) (rev Bool))
+  :premises ((= s t))
+  :args (rev)
+  :conclusion
+    ; strip the prefix of the equality
+    (eo::match ((ss String) (ts String))
+      ($str_strip_prefix
+           ($str_to_flat_form s rev)
+           ($str_to_flat_form t rev))
+      (((@pair ss ts)
+          (eo::define ((cs ($str_head_or_empty ss)))
+          (eo::define ((ct ($str_head_or_empty ts)))
+            ; ensure they are disequal, return false
+            (eo::requires
+              (eo::ite ($str_is_empty cs)
+                ($str_check_length_one ct)
+                (eo::ite ($str_check_length_one cs)
+                  (eo::ite ($str_is_empty ct)
+                    true
+                    (eo::ite ($str_check_length_one ct)
+                      (eo::not (eo::is_eq cs ct))
+                      false))
+                  false))
+              true
+              false)))))
+    )
+)
+
+; rule: concat_conflict_deq
+; implements: ProofRule::CONCAT_CONFLICT_DEQ
+; premises:
+; - eq: An equality between strings s and t.
+; - cdeq: A disequality between two unit terms corresponding to children of s and t.
+; args:
+; - rev Bool: Whether we are reasoning about the end of strings s and t.
+; conclusion: >
+;   false if we can show that cdeq indeed refers to a prefix (resp. suffix) of s and t.
+; note: This rule is used for sequences only, not strings.
+(declare-rule concat_conflict_deq ((U Type) (s (Seq U)) (t (Seq U)) (x U) (y U) (rev Bool))
+  :premises ((= s t) (not (= (seq.unit x) (seq.unit y))))
+  :args (rev)
+  :conclusion
+    ; strip the prefix of the equality
+    (eo::match ((ss (Seq U)) (ts (Seq U)))
+      ($str_strip_prefix
+           ($str_to_flat_form s rev)
+           ($str_to_flat_form t rev))
+      (((@pair ss ts)
+          ; take the first character from each side, should give x and y
+          (eo::requires ($str_head_or_empty ss) (seq.unit x)
+          (eo::requires ($str_head_or_empty ts) (seq.unit y)
+              false)))))
+)
+
+; rule: string_decompose
+; implements: ProofRule::STRING_DECOMPOSE
+; premises:
+; - a: An inequality between the length of some string term s and integer n.
+; args:
+; - b Bool: Whether we are the reverse variant of this inference.
+; conclusion: >
+;   A conjunction stating that s is equal to two purification skolems
+;   corresponding to decomposing s at position n, and that the decomposed term
+;   has length n.
+(declare-rule string_decompose ((U Type) (s (Seq U)) (n Int) (b Bool))
+  :premises ((>= (str.len s) n))
+  :args (b)
+  :conclusion (eo::ite b
+                (eo::define ((kp (@purify ($str_prefix_rem s n)))
+                      (ks (@purify ($str_suffix s n))))
+                (and (= s (str.++ kp ks)) (= (str.len ks) n)))
+                (eo::define ((kp (@purify ($str_prefix s n)))
+                      (ks (@purify ($str_suffix_rem s n))))
+                (and (= s (str.++ kp ks)) (= (str.len kp) n)))))
+
+; rule: string_code_inj
+; implements: ProofRule::STRING_CODE_INJ
+; args:
+; - t String: The first string.
+; - s String: The second string.
+; conclusion: >
+;   A disjunction of three cases, indicating that t is not a string of length
+;   one, its code point is different from that of s, or t and s are equal.
+(declare-rule string_code_inj ((t String) (s String))
+  :args (t s)
+  :conclusion (or (= (str.to_code t) -1) (not (= (str.to_code t) (str.to_code s))) (= t s))
+)
+
+; rule: string_seq_unit_inj
+; implements: ProofRule::STRING_SEQ_UNIT_INJ
+; premises:
+; - eq: An equality stating that the unit sequences of elements a and b are equal.
+; conclusion: That a and b are equal.
+(declare-rule string_seq_unit_inj ((U Type) (a U) (b U))
+  :premises ((= (seq.unit a) (seq.unit b)))
+  :conclusion (= a b)
+)
+
+;;-------------------- Regular expressions
+
+; rule: re_inter
+; implements: ProofRule::RE_INTER
+; premises:
+; - m1: The first membership
+; - m2: The second membership, for the same string.
+; conclusion: >
+;   The string is in the intersection of the regular expressions referred to in 
+;   the premises.
+(declare-rule re_inter ((x String) (s RegLan) (t RegLan))
+  :premises ((str.in_re x s) (str.in_re x t))
+  :conclusion (str.in_re x (re.inter s t))
+)
+
+; rule: re_unfold_pos
+; implements: ProofRule::RE_UNFOLD_POS
+; premises:
+; - m: A regular expression membership (str.in_re t r).
+; conclusion: >
+;   The single step reduction of m. At a high level, this either reasons about
+;   unfolding a regular expression star, or decomposes the components of t in
+;   r if the latter is a regular expression concatenation.
+(declare-rule re_unfold_pos ((t String) (r RegLan))
+  :premises ((str.in_re t r))
+  :conclusion
+    (eo::match ((r1 RegLan) (r2 RegLan :list))
+      r
+      (
+        ((re.* r1)
+            (eo::match ((k1 String) (k2 String) (k3 String) (M Bool :list))
+            ($re_unfold_pos_concat t (re.++ r1 r r1))
+            (((@pair (str.++ k1 k2 k3) M)
+                (or 
+                (= t "") 
+                (str.in_re t r1)
+                (and
+                    (eo::cons and (= t (str.++ k1 k2 k3)) M)
+                    (not (= k1 ""))
+                    (not (= k3 ""))))))))
+        ((re.++ r1 r2)
+            (eo::match ((tk String) (M Bool :list))
+            ($re_unfold_pos_concat t r)
+            (((@pair tk M)
+                (eo::define ((teq (= t tk))) (eo::ite (eo::is_eq M true) teq (and teq M)))))))
+    ))
+)
+
+; rule: re_unfold_neg_concat_fixed
+; implements: ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
+; premises:
+; - m: The negation of a regular expression membership.
+; args:
+; - rev Bool: Whether we are looking at the end of a regular expression concatenation.
+; conclusion: >
+;   A split based on the information that the first (resp. last) child of the
+;   regular expression in question has a fixed length. This is an optimized
+;   version of ProofRule::RE_UNFOLD_NEG that does not introduce a quantified
+;   formula for reasoning about length.
+(declare-rule re_unfold_neg_concat_fixed ((s String) (r RegLan) (rev Bool))
+  :premises ((not (str.in_re s r)))
+  :args (rev)
+  :conclusion
+    (eo::match ((r1 RegLan) (r2 RegLan :list))
+      ($str_rev rev r)
+      (
+        ((re.++ r1 r2) (eo::define ((n ($str_fixed_len_re r1)))
+                       (eo::ite rev
+                       (or (not (str.in_re ($str_suffix s n) r1))
+                           (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
+                       (or (not (str.in_re ($str_prefix s n) r1))
+                           (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
+    ))
+)
+
+; rule: re_unfold_neg
+; implements: ProofRule::RE_UNFOLD_NEG
+; premises:
+; - m: A negated regular expression membership (not (str.in_re t r)).
+; conclusion: >
+;   The single step reduction of m. At a high level, this introduces a bounded
+;   quantified formula stating that no decomposition of t occurs in the
+;   corresponding decomposition of r.
+(declare-rule re_unfold_neg ((t String) (r RegLan))
+  :premises ((not (str.in_re t r)))
+  :conclusion
+    (eo::match ((r1 RegLan) (r2 RegLan :list))
+      r
+      (
+        ((re.* r1)
+          (and
+            (not (= t ""))
+            (forall ((@var.str_index Int))
+              (or (<= @var.str_index 0)
+                  (< (str.len t) @var.str_index)
+                  (not (str.in_re ($str_prefix t @var.str_index) r1))
+                  (not (str.in_re ($str_suffix_rem t @var.str_index) r))))))
+        ((re.++ r1 r2)
+          (forall ((@var.str_index Int))
+            (or (< @var.str_index 0)
+                (< (str.len t) @var.str_index)
+                (not (str.in_re ($str_prefix t @var.str_index) r1))
+                (not (str.in_re ($str_suffix_rem t @var.str_index) ($singleton_elim r2))))))
+    ))
+)
+
+;;-------------------- Extended functions 
+
+; rule: string_reduction
+; implements: ProofRule::STRING_REDUCTION
+; args:
+; - s (Seq U): The term to reduce.
+; conclusion: The reduction predicate for s.
+(declare-rule string_reduction ((U Type) (s U))
+  :args (s)
+  :conclusion (and ($str_reduction_pred s) (= s (@purify s)))
+)
+
+; rule: string_eager_reduction
+; implements: ProofRule::STRING_EAGER_REDUCTION
+; args:
+; - s (Seq U): The term to reduce.
+; conclusion: The eager reduction predicate for s.
+(declare-rule string_eager_reduction ((U Type) (s U))
+  :args (s)
+  :conclusion ($mk_str_eager_reduction s)
+)
+
+;;-------------------- Instances of THEORY_REWRITE
+
+; rule: arith-string-pred-entail
+; implements: ProofRewriteRule::ARITH_STRING_PRED_ENTAIL
+; args:
+; - eq Bool: The equality to prove between an integer inequality and true.
+; requires: showing that n is entailed to be greater than 0 using $str_arith_entail_simple.
+; conclusion: The given equality.
+(declare-rule arith-string-pred-entail ((n Int))
+  :args ((= (>= n 0) true))
+  :requires ((($str_arith_entail_simple n) true))
+  :conclusion (= (>= n 0) true)
+)
+
+; rule: arith-string-pred-entail
+; implements: ProofRewriteRule::ARITH_STRING_SAFE_APPROX
+; args:
+; - eq Bool: The equality to prove between integer inequalities.
+; requires:
+; - showing that the right hand side is a valid under-approximation of the left hand side. In other words (>= n m) is entailed.
+; - showing that the right hand side is entailed to be true, that is, (>= m 0) is true and thus (>= n 0) is true.
+; conclusion: The given equality.
+(declare-rule arith-string-pred-safe-approx ((n Int) (m Int))
+  :args ((= (>= n 0) (>= m 0)))
+  :requires ((($str_arith_entail_is_approx n m true) true)
+             (($str_arith_entail_simple_pred (>= m 0)) true))
+  :conclusion (= (>= n 0) (>= m 0))
+)
+
+; rule: str-in-re-eval
+; implements: ProofRewriteRule::STR_IN_RE_EVAL
+; args:
+; - eq Bool: The equality to prove whose left hand side is a regular expression membership.
+; requires: >
+;   Showing that the regular expression membership evaluates to the right hand side.
+; conclusion: The given equality.
+(declare-rule str-in-re-eval ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_eval_str_in_re s r) b))
+  :conclusion (= (str.in_re s r) b)
+)
+
+; rule: str-in-re-consume
+; implements: ProofRewriteRule::STR_IN_RE_CONSUME
+; args:
+; - eq Bool: The equality to prove whose left hand side is a regular expression membership.
+; requires: >
+;   Showing that consuming portions of the regular expression membership using the
+;   method $str_re_consume results in b, where b is either false or the result of
+;   stripping constant prefixes and suffixes from the arguments of the left hand side
+;   of the given equality.
+; conclusion: The given equality.
+(declare-rule str-in-re-consume ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_re_consume s r) b))
+  :conclusion (= (str.in_re s r) b)
+)
+
+; rule: re-loop-elim
+; implements: ProofRewriteRule::RE_LOOP_ELIM
+; args:
+; - eq Bool: The equality to prove whose left hand side is a regular expression loop.
+; requires: >
+;   Showing that the right hand side of the equality is the result of
+;   eliminating the regular expression loop term.
+; conclusion: The given equality.
+(declare-rule re-loop-elim ((l Int) (u Int) (r1 RegLan) (r2 RegLan))
+  :args ((= (re.loop l u r1) r2))
+  :requires (((eo::is_neg (eo::add (eo::neg l) u)) false)
+             (($str_mk_re_loop_elim l (eo::add (eo::neg l) u) r1) r2))
+  :conclusion (= (re.loop l u r1) r2)
+)
+
+; rule: re-inter-union-inclusion
+; implements: ProofRewriteRule::RE_INTER_UNION_INCLUSION
+; args:
+; - eq Bool: The equality between regular expressions to prove.
+; requires: >
+;   showing that the right hand side of the equality is the result of
+;   decomposing the left hand side into a result of a regular expression
+;   inclusion and a remainder.
+; conclusion: The given equality.
+(declare-rule re-inter-union-inclusion ((r1 RegLan) (r2 RegLan))
+  :args ((= r1 r2))
+  :requires ((($str_decompose_and_check_re_inter_union_inclusion r1 r2) true))
+  :conclusion (= r1 r2)
+)
+
+; rule: str-in-re-concat-star-char
+; implements: ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR
+; args:
+; - eq Bool: The equality between regular expression membership and a formula.
+; requires:
+; - The regular expression we are considering is of the form (re.* r) where r has fixed length one.
+; - The right hand side of the equality is the result of rewriting the membership.
+; conclusion: The given equality.
+(declare-rule str-in-re-concat-star-char ((s1 String) (s2 String :list) (r RegLan) (b Bool))
+  :args ((= (str.in_re (str.++ s1 s2) (re.* r)) b))
+  :requires ((($str_fixed_len_re r) 1) 
+             (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) (re.* r)) b))
+  :conclusion (= (str.in_re (str.++ s1 s2) (re.* r)) b)
+)
+
+; rule: str-in-re-sigma
+; implements: ProofRewriteRule::STR_IN_RE_SIGMA
+; args:
+; - eq Bool: The equality between regular expression membership and a formula.
+; requires: >
+;   The right hand side of the equality is the result of rewriting the
+;   membership.
+; conclusion: The given equality.
+(declare-rule str-in-re-sigma ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s r) b))
+  :requires ((($str_mk_str_in_re_sigma s r) b))
+  :conclusion (= (str.in_re s r) b)
+)
+
+; rule: str-in-re-sigma-star
+; implements: ProofRewriteRule::STR_IN_RE_SIGMA_STAR
+; args:
+; - eq Bool: The equality between regular expression membership and a formula.
+; requires: >
+;   The right hand side of the equality is the result of rewriting the
+;   membership.
+; conclusion: The given equality.
+(declare-rule str-in-re-sigma-star ((s String) (r RegLan) (b Bool))
+  :args ((= (str.in_re s (re.* r)) b))
+  :requires ((($str_mk_str_in_re_sigma_star s r) b))
+  :conclusion (= (str.in_re s (re.* r)) b)
+)
