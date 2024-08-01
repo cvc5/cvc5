@@ -2,5 +2,5 @@
 (set-logic QF_BV)
 (declare-const u (_ BitVec 6))
 (declare-const v (_ BitVec 6))
-(assert (and (bvsgt v u) (not (bvssubo u v))))
+(assert (and (bvsgt v u) (bvslt u #b101011)  (bvsgt v #b010101) (not (bvssubo u v))))
 (check-sat)
