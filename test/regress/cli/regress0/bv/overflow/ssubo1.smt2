@@ -1,5 +1,6 @@
 ; EXPECT: unsat
 (set-logic QF_BV)
+(declare-const u (_ BitVec 6))
 (declare-const v (_ BitVec 6))
-(assert (and (= (bvsub v v) (_ bv53 6)) (not (bvssubo v v))))
+(assert (and (bvsgt v u) (not (bvssubo u v))))
 (check-sat)
