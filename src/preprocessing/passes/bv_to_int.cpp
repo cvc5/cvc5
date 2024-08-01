@@ -55,6 +55,8 @@ PreprocessingPassResult BVToInt::applyInternal(
   // also include bitwise assertion constraints
   std::vector<Node> additionalConstraints;
   std::map<Node, Node> skolems;
+
+  Trace("bv-to-int-debug") << "number of assertions to preprocess: " << assertionsToPreprocess->size() << std::endl;
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     Node bvNode = (*assertionsToPreprocess)[i];

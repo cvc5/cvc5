@@ -156,7 +156,9 @@ Node IntBlaster::intBlast(Node n,
                           std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
+  Trace("int-blaster-debug") << "n before rewriting: " << n << std::endl;
   n = rewrite(n);
+  Trace("int-blaster-debug") << "n after rewriting: " << n << std::endl;
 
   // helper vector for traversal.
   std::vector<Node> toVisit;
