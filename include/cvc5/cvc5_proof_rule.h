@@ -1143,8 +1143,8 @@ enum ENUM(ProofRule)
    * as implemented by ``uf::TheoryUfRewriter::getHoApplyForApplyUf``.
    * For details see :cvc5src:`theory/uf/theory_uf_rewriter.h`
    * 
-   * For example, this rule concludes :math:`f(x,y) = _( _(f,x), y)`, where
-   * :math:`_` isthe ``HO_APPLY`` kind.
+   * For example, this rule concludes :math:`f(x,y) = @( @(f,x), y)`, where
+   * :math:`@` is the ``HO_APPLY`` kind.
    *
    * Note this rule can be treated as a
    * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
@@ -2561,7 +2561,7 @@ enum ENUM(ProofRewriteRule)
    * **Bitvectors - Extract negations from multiplicands**
    *
    * .. math::
-   *    (bvmul\ (bvneg\ a)\ b\ c) = (bvneg\ (bvmul\ a\ b\ c))
+   *    bvmul(bvneg(a),\ b,\ c) = bvneg(bvmul(a,\ b,\ c))
    *
    * \endverbatim
    */
@@ -2571,7 +2571,7 @@ enum ENUM(ProofRewriteRule)
    * **Bitvectors - Extract continuous substrings of bitvectors**
    *
    * .. math::
-   *    (bvand\ a\ c) = (concat\ (bvand\ a[i0:j0]\ c0) ... (bvand\ a[in:jn]\ cn))
+   *    bvand(a,\ c) = concat(bvand(a[i_0:j_0],\ c_0) ... bvand(a[i_n:j_n],\ c_n))
    *
    * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
    * constant c \endverbatim
@@ -2582,7 +2582,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - regular expression loop elimination**
    *
    * .. math::
-   *   ((\_\ re.loop\ l\ u)\ R) = (re.union\ R^l \ldots R^u)
+   *   re.loop_{l,u}(R) = re.union(R^l, \ldots, R^u)
    *
    * where :math:`u \geq l`.
    *
@@ -2597,16 +2597,16 @@ enum ENUM(ProofRewriteRule)
    *   (re.inter\ R) = \mathit{re.inter}(\mathit{re.none}, R_0)
    *
    * where :math:`R` is a list of regular expressions containing `r_1`,
-   * `(re.comp r_2)` and the list :math:`R_0` where `r_2` is a superset of
+   * `re.comp(r_2)` and the list :math:`R_0` where `r_2` is a superset of
    * `r_1`.
    *
    * or alternatively:
    *
    * .. math::
-   *   \mathit{re.union}(R) = \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}), R_0)
+   *   \mathit{re.union}(R) = \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}),\ R_0)
    *
    * where :math:`R` is a list of regular expressions containing `r_1`,
-   * `(re.comp r_2)` and the list :math:`R_0`, where `r_1` is a superset of
+   * `re.comp(r_2)` and the list :math:`R_0`, where `r_1` is a superset of
    * `r_2`.
    *
    * \endverbatim
@@ -2683,7 +2683,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - strings substring strip symbolic length**
    *
    * .. math::
-   *   (str.substr s n m) = t
+   *   str.substr(s, n, m) = t
    *
    * where :math:`t` is obtained by fully or partially stripping components of
    * :math:`s` based on :math:`n` and :math:`m`.
@@ -2696,9 +2696,9 @@ enum ENUM(ProofRewriteRule)
    * **Sets - empty tester evaluation**
    *
    * .. math::
-   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) = \top
+   *   \mathit{sets.is\_empty}(\epsilon) = \top
    *
-   * or alternatively:
+   * where :math:`\epsilon` is the empty set, or alternatively:
    *
    * .. math::
    *   \mathit{sets.is\_empty}(c) = \bot
