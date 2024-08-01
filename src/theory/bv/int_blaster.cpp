@@ -156,10 +156,7 @@ Node IntBlaster::intBlast(Node n,
                           std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
-  std::cout << " panda before rr: " << n << std::endl;
   n = rewrite(n);
-  std::cout << " panda after rr: " << n << std::endl;
-
 
   // helper vector for traversal.
   std::vector<Node> toVisit;
