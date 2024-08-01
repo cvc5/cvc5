@@ -119,7 +119,7 @@ Node Skolemize::getSkolemConstant(const Node& q, size_t i)
   Assert(i < q[0].getNumChildren());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  std::vector<Node> cacheVals{q, q[0][i]};
+  std::vector<Node> cacheVals{q, nm->mkConstInt(Rational(i))};
   return sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, cacheVals);
 }
 

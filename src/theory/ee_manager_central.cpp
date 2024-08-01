@@ -314,11 +314,19 @@ bool EqEngineManagerCentral::eqNotifyTriggerTermEquality(TheoryId tag,
 void EqEngineManagerCentral::eqNotifyConstantTermMerge(TNode t1, TNode t2)
 {
   Node lit = t1.eqNode(t2);
-  Node conflict = d_centralEqualityEngine.mkExplainLit(lit);
+  TrustNode conflict;
+  if (d_centralPfee != nullptr)
+  {
+    conflict = d_centralPfee->assertConflict(lit);
+  }
+  else
+  {
+    Node conf = d_centralEqualityEngine.mkExplainLit(lit);
+    conflict = TrustNode::mkTrustConflict(conf);
+  }
   Trace("eem-central") << "...explained conflict of " << lit << " ... "
                        << conflict << std::endl;
-  d_sharedSolver.sendConflict(TrustNode::mkTrustConflict(conflict),
-                              InferenceId::EQ_CONSTANT_MERGE);
+  d_sharedSolver.sendConflict(conflict, InferenceId::EQ_CONSTANT_MERGE);
   return;
 }
 

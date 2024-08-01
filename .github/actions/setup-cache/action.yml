@@ -60,7 +60,7 @@ runs:
     - name: Install contrib dependencies
       if: steps.contrib-cache.outputs.cache-hit != 'true'
       shell: ${{ inputs.shell }}
-      run: ./contrib/get-alf-checker
+      run: ./contrib/get-ethos-checker
 
     - name: Setup dependencies cache
       uses: actions/cache@v4
