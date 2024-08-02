@@ -1486,12 +1486,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::BV_BITBLAST_STEP:
     {
       Kind k = res[0].getKind();
-      Node conv = d_anc.maybeConvert(res);
-      if (conv.isNull())
-      {
-        *d_reasonForConversionFailure = d_anc.getError();
-        return false;
-      }
       // no checking for those yet in Carcara or Isabelle, so we produce holes
       if (k == Kind::BITVECTOR_UDIV || k == Kind::BITVECTOR_UREM
           || k == Kind::BITVECTOR_SHL || k == Kind::BITVECTOR_LSHR
@@ -1499,7 +1493,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         return addAletheStep(AletheRule::HOLE,
                              res,
-                             nm->mkNode(Kind::SEXPR, d_cl, conv),
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
                              children,
                              {},
                              *cdp);
@@ -1511,7 +1505,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                ? AletheRule::BV_BITBLAST_STEP_VAR
                                : it->second,
                            res,
-                           nm->mkNode(Kind::SEXPR, d_cl, conv),
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
                            {},
                            *cdp);
