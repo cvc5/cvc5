@@ -320,7 +320,11 @@ Node Env::getSharableFormula(const Node& n) const
   SkolemManager * skm = d_nm->getSkolemManager();
   std::vector<Node> toProcess;
   toProcess.push_back(on);
-  const std::unordered_set<Kind> excludeKinds = {Kind::INST_CONSTANT, Kind::DUMMY_SKOLEM, Kind::CARDINALITY_CONSTRAINT, Kind::COMBINED_CARDINALITY_CONSTRAINT};
+  const std::unordered_set<Kind> excludeKinds = {
+      Kind::INST_CONSTANT,
+      Kind::DUMMY_SKOLEM,
+      Kind::CARDINALITY_CONSTRAINT,
+      Kind::COMBINED_CARDINALITY_CONSTRAINT};
   size_t index = 0;
   do
   {
@@ -332,7 +336,7 @@ Node Env::getSharableFormula(const Node& n) const
     for (const Node& s : syms)
     {
       Kind sk = s.getKind();
-      if (excludeKinds.find(sk)!=excludeKinds.end())
+      if (excludeKinds.find(sk) != excludeKinds.end())
       {
         // these kinds are never sharable
         return Node::null();
