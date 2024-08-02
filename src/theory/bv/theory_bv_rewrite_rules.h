@@ -341,14 +341,12 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case CompEliminate :            out << "CompEliminate";             return out;
   case XnorEliminate :            out << "XnorEliminate";             return out;
   case SignExtendEliminate :            out << "SignExtendEliminate";             return out;
-  case NegoEliminate:            out << "NegoEliminate";             return out;
   case UaddoEliminate:            out << "UaddoEliminate";             return out;
   case SaddoEliminate:            out << "SaddoEliminate";             return out;
   case UmuloEliminate:            out << "UmuloEliminate";             return out;
   case SmuloEliminate:            out << "SmuloEliminate";             return out;
   case UsuboEliminate:            out << "SsuboEliminate";             return out;
   case SsuboEliminate:            out << "SsuboEliminate";             return out;
-  case SdivoEliminate:            out << "SdivoEliminate";             return out;
   case NotIdemp :                  out << "NotIdemp"; return out;
   case UleSelf:                    out << "UleSelf"; return out; 
   case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out;
@@ -626,14 +624,12 @@ struct AllRewriteRules {
   RewriteRule<SmodEliminate> rule145;
   RewriteRule<UgtUrem> rule146;
   RewriteRule<UltOnes> rule147;
-  RewriteRule<NegoEliminate> rule148;
-  RewriteRule<UaddoEliminate> rule149;
-  RewriteRule<SaddoEliminate> rule150;
-  RewriteRule<UmuloEliminate> rule151;
-  RewriteRule<SmuloEliminate> rule152;
-  RewriteRule<UsuboEliminate> rule153;
-  RewriteRule<SsuboEliminate> rule154;
-  RewriteRule<SdivoEliminate> rule155;
+  RewriteRule<UaddoEliminate> rule148;
+  RewriteRule<SaddoEliminate> rule149;
+  RewriteRule<UmuloEliminate> rule150;
+  RewriteRule<SmuloEliminate> rule151;
+  RewriteRule<UsuboEliminate> rule152;
+  RewriteRule<SsuboEliminate> rule153;
 };
 
 template<> inline

@@ -285,10 +285,7 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
   }
 
    if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF) {
-     if (RewriteRule<NegoEliminate>::applies(t))
-     {
-       res = RewriteRule<NegoEliminate>::run<false>(t);
-     } else if (RewriteRule<UaddoEliminate>::applies(t))
+     if (RewriteRule<UaddoEliminate>::applies(t))
      {
        res = RewriteRule<UaddoEliminate>::run<false>(t);
      } else if (RewriteRule<SaddoEliminate>::applies(t))
@@ -306,10 +303,7 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
      } else if (RewriteRule<SsuboEliminate>::applies(t))
      {
        res = RewriteRule<SsuboEliminate>::run<false>(t);
-     } else if (RewriteRule<SdivoEliminate>::applies(t))
-     {
-       res = RewriteRule<SdivoEliminate>::run<false>(t);
-     }
+     } 
    }
 
   Trace("theory-bv-pp-rewrite") << "to   " << res << "\n";
