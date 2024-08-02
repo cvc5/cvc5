@@ -612,11 +612,11 @@ Node IntBlaster::translateWithChildren(
 
 Node IntBlaster::uts(Node x, uint32_t bvsize)
 {
-  Node powNode = pow2(bvsize - 1);
-  Node modNode = d_nm->mkNode(Kind::INTS_MODULUS_TOTAL, x, powNode);
-  Node two = d_nm->mkConstInt(Rational(2));
-  Node twoTimesNode = d_nm->mkNode(Kind::MULT, two, modNode);
-  return d_nm->mkNode(Kind::SUB, twoTimesNode, x);
+  Node signedMin = pow2(bvsize - 1);
+  Node msbOne = d_nm->mkNode(Kind::LT, x, signedMin);
+  Node ite = d_nm->mkNode(Kind::ITE, msbOne, d_zero, pow2(bvsize));
+  Node result = d_nm->mkNode(Kind::SUB, x, ite);
+  return result;
 }
 
 Node IntBlaster::createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount)
