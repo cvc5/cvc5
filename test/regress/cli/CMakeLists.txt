@@ -706,6 +706,7 @@ set(regress_0_tests
   regress0/datatypes/list-bool.smt2
   regress0/datatypes/list-update.smt2
   regress0/datatypes/list-update-sat.smt2
+  regress0/datatypes/model-semi-eval.smt2
   regress0/datatypes/model-subterms-min.smt2
   regress0/datatypes/mutual-rec-param-dt.smt2
   regress0/datatypes/mutually-recursive.cvc.smt2
@@ -743,6 +744,7 @@ set(regress_0_tests
   regress0/datatypes/v3l60006.cvc.smt2
   regress0/datatypes/v5l30058.cvc.smt2
   regress0/datatypes/wrong-sel-simp.cvc.smt2
+  regress0/datatypes/yoni-cyclic.smt2
   regress0/dd.bad-conv-rewrite.smt2
   regress0/decision/aufbv-fuzz01.smtv1.smt2
   regress0/decision/bitvec0.delta01.smtv1.smt2
@@ -932,9 +934,9 @@ set(regress_0_tests
   regress0/ho/lambda-test-deps.smt2
   regress0/ho/lambda-test-deps-simple.smt2
   regress0/ho/lazy-lambda-model.smt2
-  regress0/ho/m-enum-bug1.smt2 
-  regress0/ho/m-enum-bug2.smt2 
-  regress0/ho/m-enum-bug3.smt2 
+  regress0/ho/m-enum-bug1.smt2
+  regress0/ho/m-enum-bug2.smt2
+  regress0/ho/m-enum-bug3.smt2
   regress0/ho/match-middle.smt2
   regress0/ho/model-lam-simple.smt2
   regress0/ho/modulo-func-equality.smt2
@@ -1416,6 +1418,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-10.smt2
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
+  regress0/quantifiers/dd_german169_semi_eval.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
   regress0/quantifiers/dd.german169-lemma-inp.smt2
   regress0/quantifiers/dd.ho-matching-enum.smt2
@@ -1602,6 +1605,7 @@ set(regress_0_tests
   regress0/seq/issue9696-unit-type-cmi.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/mixed-types-seq-nth.smt2
+  regress0/seq/nth-model-semi-eval.smt2
   regress0/seq/nth-oob.smt2
   regress0/seq/nth-unit.smt2
   regress0/seq/nth-update.smt2
@@ -1840,6 +1844,7 @@ set(regress_0_tests
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/nterm-pc-zalig.smt2
   regress0/strings/parser-syms.cvc.smt2
+  regress0/strings/prefix-simple-no-pf.smt2
   regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/proj-issue390-update-rev-rewrite.smt2
   regress0/strings/proj-issue409-re-loop-none.smt2
@@ -3371,7 +3376,7 @@ set(regress_1_tests
   regress1/sygus/interpol_from_pono_1.smt2
   regress1/sygus/interpol_from_pono_2.smt2
   regress1/sygus/interpolant-conj-simple.smt2
-  regress1/sygus/issue10708-unconstrained-int.sy 
+  regress1/sygus/issue10708-unconstrained-int.sy
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
   regress1/sygus/issue3109-share-sel.sy
@@ -3916,7 +3921,7 @@ set(testers
   abduct
   dump
   dsl-proof
-  alf
+  cpc
 )
 
 foreach(tester ${testers})
@@ -3958,9 +3963,9 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
-    --alfc-binary ${CMAKE_SOURCE_DIR}/deps/bin/alfc
-    --alf-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
-    --carcara-binary ${CMAKE_SOURCE_DIR}/deps/bin/carcara
+    --carcara-binary /home/hbarbosa/carcara/wt-cvc5/target/release/carcara
+    --ethos-binary ${CMAKE_SOURCE_DIR}/deps/bin/ethos
+    --cpc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/eo
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})

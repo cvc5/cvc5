@@ -1,4 +1,4 @@
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: cpc
 ;; introduces fresh Skolem in a trusted step
 ; DISABLE-TESTER: alethe
 (set-logic ALL)

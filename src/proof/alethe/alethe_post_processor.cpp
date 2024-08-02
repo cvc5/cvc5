@@ -1420,8 +1420,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         // Make the Skolem corresponding to this variable and retrieve its
         // conversion from the node converter
-        Node v = quant[0][i];
-        std::vector<Node> cacheVals{quant, v};
+        std::vector<Node> cacheVals{quant, nm->mkConstInt(Rational(i))};
         Node sk =
             sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, cacheVals);
         Assert(!sk.isNull());

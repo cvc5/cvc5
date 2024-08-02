@@ -46,7 +46,11 @@ if (Setuptools_VERSION_CHECK_RESULT EQUAL 0)
         set(INSTALL_SETUPTOOLS_MESSAGE "==${Setuptools_FIND_VERSION}")
       endif()
     else()
-      if (Setuptools_VERSION VERSION_LESS ${Setuptools_FIND_VERSION})
+      # Setuptools v70.2.0 is broken on Windows.
+      #   See https://github.com/pypa/distutils/issues/268
+      # If v70.2.0 is installed, upgrade it to a newer version.
+      if (Setuptools_VERSION VERSION_LESS ${Setuptools_FIND_VERSION} OR
+          (WIN32 AND Setuptools_VERSION VERSION_EQUAL 70.2.0))
         set(INSTALL_SETUPTOOLS TRUE)
         set(INSTALL_SETUPTOOLS_OPTION ";-U")
         set(INSTALL_SETUPTOOLS_MESSAGE ">=${Setuptools_FIND_VERSION}")

@@ -1,4 +1,4 @@
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: lfsc
 ; Bags not supported in Alethe
 ; DISABLE-TESTER: alethe

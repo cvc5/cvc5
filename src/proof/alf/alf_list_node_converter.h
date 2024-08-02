@@ -47,7 +47,7 @@ namespace proof {
  *   (S) S
  *   (
  *     (($singleton_elim (f x1 x2))
- *        (alf.ite (alf.is_eq x2 (alf.nil f x1 x2)) x1 (f x1 x2)))
+ *        (eo::ite (eo::is_eq x2 (eo::nil f x1 x2)) x1 (f x1 x2)))
  *     (($singleton_elim x)
  *        x)
  *   )

@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --cegqi-bv --cegqi-bv-ineq=keep --no-cegqi-full
 ; EXPECT: unsat
+;; introduces unsupported Skolem
+; DISABLE-TESTER: alethe
 (set-logic BV)
 (set-info :status unsat)
 (declare-fun a () (_ BitVec 8))

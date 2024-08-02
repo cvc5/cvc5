@@ -1,4 +1,4 @@
-; COMMAND-LINE: --mbqi --ho-elim
+; COMMAND-LINE: --mbqi
 ; EXPECT: unsat
 ;; HO not supported in Alethe
 ; DISABLE-TESTER: alethe

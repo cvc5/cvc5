@@ -123,16 +123,10 @@ Node AletheNodeConverter::postConvert(Node n)
                && cacheVal.getNumChildren() == 2);
         Node quant = cacheVal[0];
         Assert(quant.getKind() == Kind::FORALL);
-        Node var = cacheVal[1];
         uint32_t index = -1;
-        for (size_t i = 0, size = quant[0].getNumChildren(); i < size; ++i)
-        {
-          if (var == quant[0][i])
-          {
-            index = i;
-            break;
-          }
-        }
+        ProofRuleChecker::getUInt32(cacheVal[1], index);
+        Assert(index < quant[0].getNumChildren());
+        Node var = quant[0][index];
         // Since cvc5 *always* skolemize FORALLs, we generate the choice term
         // assuming it is gonna be introduced via a sko_forall rule, in which
         // case the body of the choice is negated, which means to have
@@ -140,7 +134,6 @@ Node AletheNodeConverter::postConvert(Node n)
         // body, and the whole thing negated. Likewise, since during
         // Skolemization cvc5 will have negated the body of the original
         // quantifier, we need to revert that as well.
-        Assert(index < quant[0].getNumChildren());
         Node body =
             (index == quant[0].getNumChildren() - 1
                  ? quant[1]
@@ -160,8 +153,7 @@ Node AletheNodeConverter::postConvert(Node n)
           std::vector<Node> subs;
           for (size_t i = 0; i < index; ++i)
           {
-            Node v = quant[0][i];
-            std::vector<Node> cacheVals{quant, v};
+            std::vector<Node> cacheVals{quant, nm->mkConstInt(Rational(i))};
             Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                            cacheVals);
             Assert(!sk.isNull());
@@ -185,8 +177,8 @@ Node AletheNodeConverter::postConvert(Node n)
                 << "....populate map from aux : " << d_skolemsAux << "\n";
             for (size_t i = index + 1; i > 0; --i)
             {
-              Node v = quant[0][i - 1];
-              std::vector<Node> cacheVals{quant, v};
+              std::vector<Node> cacheVals{quant,
+                                          nm->mkConstInt(Rational(i - 1))};
               Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                              cacheVals);
               Assert(!sk.isNull());

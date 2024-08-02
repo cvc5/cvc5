@@ -1,4 +1,4 @@
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: cpc
 ;; Nullables are not supported in Alethe
 ; DISABLE-TESTER: alethe
 (set-logic ALL)

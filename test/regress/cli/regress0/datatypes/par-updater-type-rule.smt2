@@ -1,4 +1,4 @@
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: cpc
 ;; Datatypes are not supported in Alethe
 ; DISABLE-TESTER: alethe
 (set-option :global-declarations true)
