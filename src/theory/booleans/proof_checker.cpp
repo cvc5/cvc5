@@ -368,7 +368,8 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       // follows:
       //   - remove all lhsElim from lhsClause
       //   - remove all rhsElim from rhsClause and add the lits to lhsClause
-      lhsClause.erase(std::remove(lhsClause.begin(), lhsClause.end(), lhsElim), lhsClause.end());
+      lhsClause.erase(std::remove(lhsClause.begin(), lhsClause.end(), lhsElim),
+                      lhsClause.end());
       for (const Node& l : rhsClause)
       {
         // only add if literal does not occur in elimination set
@@ -382,8 +383,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
 
     Trace("bool-pfcheck") << "clause: " << lhsClause << "\n";
     // check that set representation is the same as of the given conclusion
-    std::unordered_set<Node> clauseComputed{lhsClause.begin(),
-                                            lhsClause.end()};
+    std::unordered_set<Node> clauseComputed{lhsClause.begin(), lhsClause.end()};
     Trace("bool-pfcheck") << "clauseSet: " << clauseComputed << "\n" << pop;
     if (clauseComputed.empty())
     {
