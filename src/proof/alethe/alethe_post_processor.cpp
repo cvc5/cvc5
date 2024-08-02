@@ -1402,14 +1402,9 @@ bool AletheProofPostprocessCallback::update(Node res,
       bool success = true;
       Node quant = children[0][0], skolemized = res[0];
       Assert(children[0].getKind() == Kind::NOT && children[0][0].getKind() == Kind::FORALL);
-      Node conv = d_anc.maybeConvert(quant[1].eqNode(skolemized));
-      if (conv.isNull())
-      {
-        *d_reasonForConversionFailure = d_anc.getError();
-        return false;
-      }
+      Node eq = quant[1].eqNode(skolemized);
       // add rfl step for final replacement
-      Node premise = nm->mkNode(Kind::SEXPR, d_cl, conv);
+      Node premise = nm->mkNode(Kind::SEXPR, d_cl, eq);
       success &=
           addAletheStep(AletheRule::REFL, premise, premise, {}, {}, *cdp);
       std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
