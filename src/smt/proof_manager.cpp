@@ -293,12 +293,22 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
-    proof::AletheNodeConverter anc(nodeManager());
-    proof::AletheProofPostprocess vpfpp(
-        d_env, anc, options().proof.proofAletheResPivots);
-    vpfpp.process(fp);
-    proof::AletheProofPrinter vpp(d_env, anc);
-    vpp.print(out, fp, assertionNames);
+    options::ProofCheckMode oldMode = options().proof.proofCheck;
+    d_pnm->getChecker()->setProofCheckMode(options::ProofCheckMode::NONE);
+    std::string reasonForConversionFailure;
+    proof::AletheNodeConverter anc(nodeManager(),
+                                   options().proof.proofAletheDefineSkolems);
+    proof::AletheProofPostprocess vpfpp(d_env, anc);
+    if (vpfpp.process(fp, reasonForConversionFailure))
+    {
+      proof::AletheProofPrinter vpp(d_env, anc);
+      vpp.print(out, fp, assertionNames);
+    }
+    else
+    {
+      out << "(error " << reasonForConversionFailure << ")";
+    }
+    d_pnm->getChecker()->setProofCheckMode(oldMode);
   }
   else if (mode == options::ProofFormatMode::LFSC)
   {
