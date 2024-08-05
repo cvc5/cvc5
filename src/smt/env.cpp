@@ -320,6 +320,13 @@ Node Env::getSharableFormula(const Node& n) const
   SkolemManager * skm = d_nm->getSkolemManager();
   std::vector<Node> toProcess;
   toProcess.push_back(on);
+  // The set of kinds that we never want to share. Any kind that can appear
+  // in lemmas but we don't have API support for should go in this list.
+  const std::unordered_set<Kind> excludeKinds = {
+      Kind::INST_CONSTANT,
+      Kind::DUMMY_SKOLEM,
+      Kind::CARDINALITY_CONSTRAINT,
+      Kind::COMBINED_CARDINALITY_CONSTRAINT};
   size_t index = 0;
   do
   {
@@ -331,7 +338,7 @@ Node Env::getSharableFormula(const Node& n) const
     for (const Node& s : syms)
     {
       Kind sk = s.getKind();
-      if (sk == Kind::INST_CONSTANT || sk == Kind::DUMMY_SKOLEM)
+      if (excludeKinds.find(sk) != excludeKinds.end())
       {
         // these kinds are never sharable
         return Node::null();
