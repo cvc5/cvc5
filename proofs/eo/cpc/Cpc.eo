@@ -1,7 +1,7 @@
 ; =============================================================================
 ;
-; This is the official development version of the Eunoia signature for cvc5's
-; internal proof calculus. It is a faithful formalization of cvc5's theory
+; This is the official development version of the Eunoia signature for the
+; Cooperating Proof Calculus. It is a faithful formalization of cvc5's theory
 ; signatures and proof rules.
 ;
 ; NOTE: cvc5 does not strictly follow the SMT-LIB version 2.6 standard. In
