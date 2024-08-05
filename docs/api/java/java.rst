@@ -66,6 +66,7 @@ Building cvc5 Java API
 `Package io.github.cvc5 <io/github/cvc5/package-summary.html>`_
 ...............................................................
 
+  * class `AbstractPlugin <io/github/cvc5/AbstractPlugin.html>`_
   * class `Command <io/github/cvc5/Command.html>`_
   * class `Datatype <io/github/cvc5/Datatype.html>`_
   * class `DatatypeConstructor <io/github/cvc5/DatatypeConstructor.html>`_
@@ -77,6 +78,7 @@ Building cvc5 Java API
   * class `Op <io/github/cvc5/Op.html>`_
   * class `OptionInfo <io/github/cvc5/OptionInfo.html>`_
   * class `Pair<K,V> <io/github/cvc5/Pair.html>`_
+  * class `Proof <io/github/cvc5/Proof.html>`_
   * class `Result <io/github/cvc5/Result.html>`_
   * class `Solver <io/github/cvc5/Solver.html>`_
   * class `Sort <io/github/cvc5/Sort.html>`_
@@ -105,4 +107,5 @@ Building cvc5 Java API
   * enum `InputLanguage <io/github/cvc5/modes/InputLanguage.html>`_
   * enum `LearnedLitType <io/github/cvc5/modes/LearnedLitType.html>`_
   * enum `ProofComponent <io/github/cvc5/modes/ProofComponent.html>`_
+  * enum `ProofFormat <io/github/cvc5/modes/ProofFormat.html>`_
 

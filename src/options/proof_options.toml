@@ -6,7 +6,7 @@ name   = "Proof"
   category   = "expert"
   long       = "proof-format-mode=MODE"
   type       = "ProofFormatMode"
-  default    = "ALF"
+  default    = "CPC"
   help       = "select language of proof output"
   help_mode  = "Proof format modes."
 [[option.mode.NONE]]
@@ -21,9 +21,9 @@ name   = "Proof"
 [[option.mode.ALETHE]]
   name       = "alethe"
   help       = "Output Alethe proof"
-[[option.mode.ALF]]
-  name       = "alf"
-  help       = "Output AletheLF proof"
+[[option.mode.CPC]]
+  name       = "cpc"
+  help       = "Output Cooperating Proof Calculus proof"
 
 [[option]]
   name       = "proofAletheExperimental"
@@ -160,6 +160,14 @@ name   = "Proof"
   help       = "Prune unused input assumptions from final scope"
 
 [[option]]
+  name       = "proofAletheDefineSkolems"
+  category   = "expert"
+  long       = "proof-alethe-define-skolems"
+  type       = "bool"
+  default    = "false"
+  help       = "In Alethe proofs, use define-funs in proof preamble for Skolemization terms"
+
+[[option]]
   name       = "proofAletheResPivots"
   category   = "expert"
   long       = "proof-alethe-res-pivots"
@@ -208,9 +216,9 @@ name   = "Proof"
   help       = "Flatten steps in the LFSC proof"
 
 [[option]]
-  name       = "alfPrintReference"
+  name       = "proofPrintReference"
   category   = "expert"
-  long       = "alf-print-reference"
+  long       = "proof-print-reference"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"
@@ -250,9 +258,9 @@ name   = "Proof"
   help = "A sketch given by the SAT solver."
 
 [[option]]
-  name       = "alfAllowTrust"
+  name       = "proofAllowTrust"
   category   = "expert"
-  long       = "alf-allow-trust"
+  long       = "proof-allow-trust"
   type       = "bool"
   default    = "true"
-  help       = "Whether to allow trust in the ALF printer"
+  help       = "Whether to allow trust in the proof printer (when applicable)"

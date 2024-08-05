@@ -18,8 +18,10 @@
 
 include(deps-helper)
 
-find_path(CLN_INCLUDE_DIR NAMES cln/cln.h)
-find_library(CLN_LIBRARIES NAMES cln)
+if (NOT BUILD_CLN)
+  find_path(CLN_INCLUDE_DIR NAMES cln/cln.h)
+  find_library(CLN_LIBRARIES NAMES cln)
+endif()
 
 set(CLN_FOUND_SYSTEM FALSE)
 if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)

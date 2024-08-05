@@ -1,5 +1,6 @@
 ; REQUIRES: glpk
 ; COMMAND-LINE: --use-approx
+; DISABLE-TESTER: cpc
 (set-logic UFNIA)
 (set-info :source "Reduced from regression 'bug812.smt2' using ddSMT to exercise GLPK")
 (set-info :smt-lib-version 2.6)

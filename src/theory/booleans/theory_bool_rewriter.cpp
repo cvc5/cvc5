@@ -92,6 +92,7 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
                                         const Node& n,
                                         TConvProofGenerator* pg)
 {
+  Trace("compute-nnf") << "Compute NNF norm " << n << std::endl;
   // at pre-order traversal, we store preKind and preChildren, which
   // determine the Kind and the children for the node to reconstruct.
   std::unordered_map<TNode, Kind> preKind;
@@ -113,6 +114,8 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
       bool negCh1 = false;
       // the new formula we should traverse
       TNode ncur = cur;
+      // the result of rewriting cur after pre-rewrite
+      Node preCur;
       if (k == Kind::IMPLIES)
       {
         k = Kind::OR;
@@ -125,9 +128,14 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
       }
       else if (k == Kind::NOT)
       {
-        // double negation should already be eliminated
-        Assert(cur[0].getKind() != Kind::NOT);
-        if (cur[0].getKind() == Kind::OR || cur[0].getKind() == Kind::IMPLIES)
+        if (cur[0].getKind() == Kind::NOT)
+        {
+          // double negation cancels
+          preCur = cur[0][0];
+          visited[cur] = preCur;
+        }
+        else if (cur[0].getKind() == Kind::OR
+                 || cur[0].getKind() == Kind::IMPLIES)
         {
           k = Kind::AND;
           negAllCh = true;
@@ -165,21 +173,27 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
         visited[cur] = cur;
         continue;
       }
-      preKind[cur] = k;
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      std::vector<Node>& pc = preChildren[cur];
-      for (size_t i = 0, nchild = ncur.getNumChildren(); i < nchild; ++i)
+      if (preCur.isNull())
       {
-        Node c =
-            (i == 0 && negCh1) != negAllCh ? ncur[i].negate() : Node(ncur[i]);
-        pc.push_back(c);
-        visit.push_back(c);
+        preKind[cur] = k;
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        std::vector<Node>& pc = preChildren[cur];
+        for (size_t i = 0, nchild = ncur.getNumChildren(); i < nchild; ++i)
+        {
+          Node c =
+              (i == 0 && negCh1) != negAllCh ? ncur[i].negate() : Node(ncur[i]);
+          pc.push_back(c);
+          visit.push_back(c);
+        }
+        if (pg != nullptr)
+        {
+          preCur = nm->mkNode(k, pc);
+        }
       }
       // if proof producing, possibly add a pre-rewrite step
       if (pg != nullptr)
       {
-        Node preCur = nm->mkNode(k, pc);
         if (preCur != cur)
         {
           pg->addRewriteStep(

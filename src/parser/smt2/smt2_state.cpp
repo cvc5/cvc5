@@ -34,6 +34,7 @@ Smt2State::Smt2State(ParserStateCallback* psc,
       d_logicSet(false),
       d_seenSetLogic(false)
 {
+  d_freshBinders = (d_solver->getOption("fresh-binders") == "true");
 }
 
 Smt2State::~Smt2State() {}
@@ -806,6 +807,11 @@ void Smt2State::setLogic(std::string name)
         addOperator(Kind::INTS_MODULUS, "mod");
         addOperator(Kind::ABS, "abs");
       }
+      if (!strictModeEnabled())
+      {
+        addOperator(Kind::INTS_DIVISION_TOTAL, "div_total");
+        addOperator(Kind::INTS_MODULUS_TOTAL, "mod_total");
+      }
       addIndexedOperator(Kind::DIVISIBLE, "divisible");
     }
 
@@ -817,6 +823,7 @@ void Smt2State::setLogic(std::string name)
       if (!strictModeEnabled())
       {
         addOperator(Kind::ABS, "abs");
+        addOperator(Kind::DIVISION_TOTAL, "/_total");
       }
     }
 
@@ -1032,6 +1039,8 @@ bool Smt2State::hasGrammars() const
   return sygus() || d_solver->getOption("produce-abducts") == "true"
          || d_solver->getOption("produce-interpolants") == "true";
 }
+
+bool Smt2State::usingFreshBinders() const { return d_freshBinders; }
 
 void Smt2State::checkThatLogicIsSet()
 {

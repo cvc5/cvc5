@@ -15,7 +15,6 @@
 
 #include <cvc5/cvc5.h>
 
-#include <iostream>
 #include <sstream>
 
 using namespace cvc5;
@@ -26,7 +25,7 @@ int main()
   TermManager tm;
   Solver s1(tm);
   Solver s2(tm);
-  Result r = s1.checkSatAssuming(tm.mkBoolean(false));
-  Result r2 = s2.checkSatAssuming(tm.mkBoolean(false));
-  return r.isUnsat() && r2.isUnsat() ? 0 : 1;
+  Result res1 = s1.checkSatAssuming(tm.mkBoolean(false));
+  Result res2 = s2.checkSatAssuming(tm.mkBoolean(false));
+  return res1.isUnsat() && res2.isUnsat() ? 0 : 1;
 }

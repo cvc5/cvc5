@@ -29,6 +29,7 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/parallel_options.h"
+#include "options/parser_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/prop_options.h"
@@ -172,6 +173,16 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     // if the user requested proofs, proof mode is full
     SET_AND_NOTIFY(smt, proofMode, options::ProofMode::FULL, "enabling proofs");
+    // Default granularity is theory rewrite if we are intentionally using
+    // proofs, otherwise it is MACRO (e.g. if produce unsat cores is true)
+    if (opts.proof.proofGranularityMode
+        < options::ProofGranularityMode::THEORY_REWRITE)
+    {
+      SET_AND_NOTIFY(proof,
+                     proofGranularityMode,
+                     options::ProofGranularityMode::THEORY_REWRITE,
+                     "enabling proofs");
+    }
     // unsat cores are available due to proofs being enabled
     if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
@@ -382,7 +393,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     if (logic.isTheoryEnabled(THEORY_BV))
     {
       logic = logic.getUnlockedCopy();
-      logic.enableTheory(THEORY_ARITH);
+      logic.enableIntegers();
       logic.arithNonLinear();
       logic.lock();
     }
@@ -971,6 +982,12 @@ bool SetDefaults::usesInputConversion(const Options& opts,
 bool SetDefaults::incompatibleWithProofs(Options& opts,
                                          std::ostream& reason) const
 {
+  if (opts.parser.freshBinders)
+  {
+    // When fresh-binders is true, we do not support proof output.
+    reason << "fresh-binders";
+    return true;
+  }
   if (opts.quantifiers.globalNegate)
   {
     // When global negate answers "unsat", it is not due to showing a set of

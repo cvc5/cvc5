@@ -152,8 +152,7 @@ Node AletheNodeConverter::postConvert(Node n)
           std::vector<Node> subs;
           for (size_t i = 0; i < index; ++i)
           {
-            Node v = quant[0][i];
-            std::vector<Node> cacheVals{quant, v};
+            std::vector<Node> cacheVals{quant, nm->mkConstInt(Rational(i))};
             Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                            cacheVals);
             Assert(!sk.isNull());
@@ -177,8 +176,8 @@ Node AletheNodeConverter::postConvert(Node n)
                 << "....populate map from aux : " << d_skolemsAux << "\n";
             for (size_t i = index + 1; i > 0; --i)
             {
-              Node v = quant[0][i - 1];
-              std::vector<Node> cacheVals{quant, v};
+              std::vector<Node> cacheVals{quant,
+                                          nm->mkConstInt(Rational(i - 1))};
               Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                              cacheVals);
               Assert(!sk.isNull());
@@ -258,7 +257,7 @@ Node AletheNodeConverter::getOriginalAssumption(Node n)
   {
     return it->second;
   }
-  return Node::null();
+  return n;
 }
 
 const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions()

@@ -18,6 +18,8 @@ The kinds below directly correspond to the enum values of the C++
 
 ----
 
+----
+
 .. autoclass:: cvc5.Kind
     :members:
     :undoc-members:
