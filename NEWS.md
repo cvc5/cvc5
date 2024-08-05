@@ -30,7 +30,7 @@ cvc5 1.2.0
   by cvc5. The plugin class also contains a callback for the user to introduce
   new learned clauses into the state of cvc5 during solving.
 
-- Adds a new strategy `--mbqi-fast-sygus` (disabled by default) for **quantifier
+- Added a new strategy `--mbqi-fast-sygus` (disabled by default) for **quantifier
   instantiation** which uses SyGuS enumeration to augment instantiations from
   model-based quantifier instantiation.
 
@@ -67,7 +67,7 @@ cvc5 1.2.0
 
 - The semantics of `SQRT` was changed to assume the result is positive.
 
-- Fixes a bug involving how sequence terms are printed in model values.
+- Fixed a bug involving how sequence terms are printed in model values.
 
 
 cvc5 1.1.2
