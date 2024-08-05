@@ -778,6 +778,7 @@ std::vector<Node> PropEngine::getUnsatCoreLemmas()
   {
     output(OutputTag::UNSAT_CORE_LEMMAS)
         << ";; unsat core lemmas start" << std::endl;
+    std::stringstream ss;
     for (const Node& lem : lems)
     {
       output(OutputTag::UNSAT_CORE_LEMMAS) << "(unsat-core-lemma ";
@@ -790,10 +791,13 @@ std::vector<Node> PropEngine::getUnsatCoreLemmas()
         output(OutputTag::UNSAT_CORE_LEMMAS) << " :source " << id;
       }
       output(OutputTag::UNSAT_CORE_LEMMAS) << " :timestamp " << timestamp;
+      ss << id << ", " << timestamp << std::endl;
       output(OutputTag::UNSAT_CORE_LEMMAS) << ")" << std::endl;
     }
     output(OutputTag::UNSAT_CORE_LEMMAS)
         << ";; unsat core lemmas end" << std::endl;
+    Trace("ajr-temp") << "TIMESTAMPS" << std::endl;
+    Trace("ajr-temp") << ss.str() << std::endl;
   }
   return lems;
 }
