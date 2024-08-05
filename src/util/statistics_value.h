@@ -184,6 +184,10 @@ struct StatisticHistogramValue : StatisticBaseValue
     }
     d_hist[v - d_offset]++;
   }
+  uint64_t getValue(Integral val)
+  {
+    return d_hist[static_cast<size_t>(val)];
+  }
 
   /** Actual data */
   std::vector<uint64_t> d_hist;

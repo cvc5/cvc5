@@ -124,7 +124,7 @@ class PropPfManager : protected EnvObj
    * if lem is not an unsat core lemma, or if it corresponded e.g. to a lemma
    * learned via theory propagation.
    */
-  theory::InferenceId getInferenceIdFor(const Node& lem) const;
+  theory::InferenceId getInferenceIdFor(const Node& lem, size_t& timestamp) const;
 
   /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and
@@ -282,6 +282,8 @@ class PropPfManager : protected EnvObj
   bool d_debugLemmaClauseIds;
   /** Mapping lemma clauses to inference identifiers */
   context::CDHashMap<Node, theory::InferenceId> d_lemmaClauseIds;
+  /** */
+  context::CDHashMap<Node, uint64_t> d_lemmaClauseTimestamp;
   /** The current identifier */
   theory::InferenceId d_currLemmaId;
   /** The current propagation being processed via this class. */
