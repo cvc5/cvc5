@@ -5,7 +5,10 @@ Base Python API
 
     .. warning::
 
-        This documentation was built while python bindings were disabled. This part of the documentation is likely either empty or outdated. Please enable :code:`BUILD_BINDINGS_PYTHON` in :code:`cmake` and build the documentation again.
+        This documentation was built while python bindings were disabled.
+        This part of the documentation is likely either empty or outdated.
+        Please enable :code:`BUILD_BINDINGS_PYTHON` in :code:`cmake` and
+        build the documentation again.
 
 This is the base Python API.
 It is implemented on top of the C++ API and mirrors the :doc:`C++ API
@@ -15,7 +18,7 @@ For a higher-level, more pythonic programming experience, cvc5 provides the
 :doc:`pythonic API <../pythonic/pythonic>`.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :hidden:
 
     quickstart
@@ -36,10 +39,12 @@ For a higher-level, more pythonic programming experience, cvc5 provides the
     roundingmode
     solver
     sort
+    sortkind
     statistics
     symbolmanager
     synthresult
     term
+    termmanager
     unknownexplanation
 
 ----

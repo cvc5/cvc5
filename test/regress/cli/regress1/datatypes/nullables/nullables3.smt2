@@ -1,4 +1,4 @@
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: cpc
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun x () (Nullable Int))

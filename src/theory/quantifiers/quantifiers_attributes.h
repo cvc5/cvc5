@@ -28,10 +28,6 @@ namespace theory {
 struct FunDefAttributeId {};
 typedef expr::Attribute< FunDefAttributeId, bool > FunDefAttribute;
 
-/** Attribute true for quantifiers that we are doing quantifier elimination on */
-struct QuantElimAttributeId {};
-typedef expr::Attribute< QuantElimAttributeId, bool > QuantElimAttribute;
-
 /** Attribute true for quantifiers that we are doing partial quantifier elimination on */
 struct QuantElimPartialAttributeId {};
 typedef expr::Attribute< QuantElimPartialAttributeId, bool > QuantElimPartialAttribute;
@@ -126,6 +122,7 @@ struct QAttributes
         d_hasPool(false),
         d_sygus(false),
         d_qinstLevel(-1),
+        d_preserveStructure(false),
         d_quant_elim(false),
         d_quant_elim_partial(false),
         d_isQuantBounded(false)
@@ -148,9 +145,23 @@ struct QAttributes
   /** stores the maximum instantiation level allowed for this quantified formula
    * (-1 means allow any) */
   int64_t d_qinstLevel;
-  /** is this formula marked for quantifier elimination? */
+  /**
+   * Is this formula marked as preserving structure?
+   * For example, this attribute is marked when computing (partial) quantifier
+   * elimination on a quantified formula, but does not impact the solving method
+   * for it.
+   */
+  bool d_preserveStructure;
+  /**
+   * Is this formula marked for quantifier elimination? This impacts the
+   * strategy used for instantiating it, e.g. we always use CEGQI.
+   */
   bool d_quant_elim;
-  /** is this formula marked for partial quantifier elimination? */
+  /**
+   * Is this formula marked for partial quantifier elimination? This impacts the
+   * strategy used for instantiating it, e.g. we only invoke a single
+   * instantiation for it.
+   */
   bool d_quant_elim_partial;
   /** Is this formula internally generated and belonging to bounded integers? */
   bool d_isQuantBounded;
@@ -202,10 +213,6 @@ class QuantAttributes
   /** compute the attributes for q */
   void computeAttributes(Node q);
 
-  /** is fun def */
-  static bool checkFunDef( Node q );
-  /** is fun def */
-  static bool checkFunDefAnnotation( Node ipl );
   /** is sygus conjecture */
   static bool checkSygusConjecture( Node q );
   /** is sygus conjecture */
@@ -213,9 +220,7 @@ class QuantAttributes
   /** get fun def body */
   static Node getFunDefHead( Node q );
   /** get fun def body */
-  static Node getFunDefBody( Node q );
-  /** is quant elim annotation */
-  static bool checkQuantElimAnnotation( Node ipl );
+  static Node getFunDefBody(Node q);
   /** does q have a user-provided pattern? */
   static bool hasPattern(Node q);
 
@@ -227,8 +232,6 @@ class QuantAttributes
   bool isOracleInterface(Node q);
   /** get instantiation level */
   int64_t getQuantInstLevel(Node q);
-  /** is quant elim */
-  bool isQuantElim( Node q );
   /** is quant elim partial */
   bool isQuantElimPartial( Node q );
   /** is internal quantifier */
@@ -242,12 +245,24 @@ class QuantAttributes
   /** get (internal)quant id num */
   Node getQuantIdNumNode( Node q );
 
+  /** Make the instantiation attribute that marks "quantifier elimination" */
+  static Node mkAttrQuantifierElimination();
+  /** Make the instantiation attribute that marks to perserve its structure */
+  static Node mkAttrPreserveStructure();
   /** set instantiation level attr */
   static void setInstantiationLevelAttr(Node n, uint64_t level);
   /** set instantiation level attr */
   static void setInstantiationLevelAttr(Node n, Node qn, uint64_t level);
 
  private:
+  /** An identifier for the method below */
+  enum class AttrType
+  {
+    ATTR_PRESERVE_STRUCTURE,
+    ATTR_QUANT_ELIM
+  };
+  /** Make attribute internal, helper for mkAttrX methods above. */
+  static Node mkAttrInternal(AttrType at);
   /** cache of attributes */
   std::map< Node, QAttributes > d_qattr;
   /** function definitions */

@@ -60,7 +60,7 @@ namespace cvc5 {
  *
  * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
  * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
- * Alternatively, we can write the application of a proof rule as 
+ * Alternatively, we can write the application of a proof rule as
  * ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion
  * (since it can be uniquely determined from premises and arguments).
  * Note that premises are sometimes given as proofs, i.e., application of
@@ -77,11 +77,12 @@ namespace cvc5 {
  * theory, including the theory of equality.
  *
  * The "core rules" include two distinguished rules which have special status:
- * (1) :cpp:enumerator:`ASSUME <cvc5::ProofRule::ASSUME>`, which represents an open
- * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>`, which
- * encloses a scope (a subproof) with a set of scoped assumptions. The core rules
- * additionally correspond to generic operations that are done internally on nodes,
- * e.g., calling Rewriter::rewrite.
+ * (1) :cpp:enumerator:`ASSUME <cvc5::ProofRule::ASSUME>`, which represents an
+ * open leaf in a proof; and
+ * (2) :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>`, which encloses a scope
+ * (a subproof) with a set of scoped assumptions.
+ * The core rules additionally correspond to generic operations that are done
+ * internally on nodes, e.g., calling `Rewriter::rewrite()`.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
  * rules. These exist for convenience and can be replaced by their definition
@@ -151,7 +152,7 @@ enum ENUM(ProofRule)
    * **Builtin theory -- Rewrite**
    *
    * .. math::
-   *   \inferrule{- \mid t, idr}{t = \texttt{Rewriter}_{idr}(t)}
+   *   \inferrule{- \mid t, idr}{t = \texttt{rewrite}_{idr}(t)}
    *
    * where :math:`idr` is a MethodId identifier, which determines the kind of
    * rewriter to apply, e.g. Rewriter::rewrite. \endverbatim
@@ -162,8 +163,11 @@ enum ENUM(ProofRule)
    * **Builtin theory -- Evaluate**
    *
    * .. math::
-   *   \inferrule{- \mid t}{t = \texttt{Evaluator::evaluate}(t)}
+   *   \inferrule{- \mid t}{t = \texttt{evaluate}(t)}
    *
+   * where \texttt{evaluate} is implemented by calling the method
+   * \texttt{Evalutor::evaluate} in :cvc5src:`theory/evaluator.h` with an
+   * empty substitution.
    * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
    * \endverbatim
    */
@@ -175,8 +179,9 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
    *
-   * where :math:`\texttt{expr::isACNorm(t, s)} = \top`. This
-   * method normalizes currently based on two kinds of operators:
+   * where :math:`\texttt{expr::isACNorm(t, s)} = \top`. For details, see
+   * :cvc5src:`expr/nary_term_util.h`.
+   * This method normalizes currently based on two kinds of operators:
    * (1) those that are associative, commutative, idempotent, and have an
    * identity element (examples are or, and, bvand),
    * (2) those that are associative and have an identity element (examples
@@ -193,7 +198,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid t, (ids (ida (idr)?)?)?}{t =
-   *   \texttt{Rewriter}_{idr}(t \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ
+   *   \texttt{rewrite}_{idr}(t \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ
    *   \sigma_{ids, ida}(F_1))}
    *
    * In other words, from the point of view of Skolem forms, this rule
@@ -215,7 +220,7 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid F, (ids (ida (idr)?)?)?}{F}
    *
-   * where :math:`\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
+   * where :math:`\texttt{rewrite}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
    * \cdots \circ \sigma_{ids, ida}(F_1)) = \top` and :math:`ids` and
    * :math:`idr` are method identifiers.
    *
@@ -241,7 +246,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *   \inferrule{F, F_1 \dots F_n \mid (ids (ida
-   *   (idr)?)?)?}{\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
+   *   (idr)?)?)?}{\texttt{rewrite}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
    *   \cdots \circ \sigma_{ids, ida}(F_1))}
    *
    * where :math:`ids` and :math:`idr` are method identifiers.
@@ -258,8 +263,8 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{F, F_1 \dots F_n \mid G, (ids (ida (idr)?)?)?}{G}
    *
-   * where :math:`\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
-   * \cdots \circ \sigma_{ids, ida}(F_1)) = \texttt{Rewriter}_{idr}(G \circ
+   * where :math:`\texttt{rewrite}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
+   * \cdots \circ \sigma_{ids, ida}(F_1)) = \texttt{rewrite}_{idr}(G \circ
    * \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))`.
    *
    * More generally, this rule also holds when:
@@ -308,8 +313,10 @@ enum ENUM(ProofRule)
    * Notice that the application of the substitution takes into account the
    * possible list semantics of variables :math:`x_1 \ldots x_n`. If
    * :math:`x_i` is a variable with list semantics, then :math:`t_i` denotes a
-   * list of terms. The substitution implemented by `expr::narySubstitute`
-   * replaces each :math:`x_i` with the list :math:`t_i` in its place.
+   * list of terms. The substitution implemented by
+   * `\texttt{expr::narySubstitute}` (for details, see
+   * :cvc5src:`expr/nary_term_util.h`) which replaces each :math:`x_i` with the
+   * list :math:`t_i` in its place.
    * \endverbatim
    */
   EVALUE(DSL_REWRITE),
@@ -461,12 +468,12 @@ enum ENUM(ProofRule)
    * where
    *
    * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined above
-   * - let :math:`C_1 \diamond_{L,\mathit{pol}} C_2` represent the resolution of
+   * - let :math:`C_1 \diamond_{L,pol} C_2` represent the resolution of
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined above
    * - let :math:`C_1' = C_1`,
    * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond{L_{i-1},
-   *   \mathit{pol}_{i-1}} C_i'`
+   *   pol_{i-1}} C_i'`
    *
    * Note the list of polarities and pivots are provided as s-expressions.
    *
@@ -1049,8 +1056,8 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k, f?}{k(f?)(t_1,\dots, t_n) =
-   *   k(f?)(s_1,\dots, s_n)}
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k, f?}{k(f?, t_1,\dots, t_n) =
+   *   k(f?, s_1,\dots, s_n)}
    *
    * where :math:`k` is the application kind. Notice that :math:`f` must be
    * provided iff :math:`k` is a parameterized kind, e.g. 
@@ -1130,10 +1137,14 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{t= \texttt{TheoryUfRewriter::getHoApplyForApplyUf}(t)}
+   *   \inferrule{-\mid t}{t=t'}
    *
-   * For example, this rule concludes :math:`f(x,y) = @(@(f,x),y)`, where
-   * :math:`@` isthe ``HO_APPLY`` kind.
+   * where `t'` is the higher-order application that is equivalent to `t`,
+   * as implemented by ``uf::TheoryUfRewriter::getHoApplyForApplyUf``.
+   * For details see :cvc5src:`theory/uf/theory_uf_rewriter.h`
+   * 
+   * For example, this rule concludes :math:`f(x,y) = @( @(f,x), y)`, where
+   * :math:`@` is the ``HO_APPLY`` kind.
    *
    * Note this rule can be treated as a
    * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
@@ -1210,8 +1221,8 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{-\mid t}{t = \texttt{bitblast}(t)}
    *
-   * where ``bitblast()`` represents the result of the bit-blasted term as a
-   * bit-vector consisting of the output bits of the bit-blasted circuit
+   * where `\texttt{bitblast}` represents the result of the bit-blasted term as
+   * a bit-vector consisting of the output bits of the bit-blasted circuit
    * representation of the term. Terms are bit-blasted according to the
    * strategies defined in ``theory/bv/bitblast/bitblast_strategies_template.h``.
    * \endverbatim
@@ -1307,18 +1318,12 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{\exists x_1\dots x_n.\> F\mid -}{F\sigma}
-   *
-   * or
-   *
-   * .. math::
-   *
    *   \inferrule{\neg (\forall x_1\dots x_n.\> F)\mid -}{\neg F\sigma}
    *
    * where :math:`\sigma` maps :math:`x_1,\dots,x_n` to their representative
-   * skolems obtained by ``SkolemManager::mkSkolemize``, returned in the skolems
-   * argument of that method. The witness terms for the returned skolems can be
-   * obtained by ``SkolemManager::getWitnessForm``.
+   * skolems, which are skolems :math:`k_1,\dots,k_n`. For each :math:`k_i`,
+   * its skolem identifier is :cpp:enumerator:`QUANTIFIERS_SKOLEMIZE <cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE>`,
+   * and its indices are :math:`(\forall x_1\dots x_n.\> F)` and :math:`x_i`.
    * \endverbatim
    */
   EVALUE(SKOLEMIZE),
@@ -1396,7 +1401,7 @@ enum ENUM(ProofRule)
    * Notice that :math:`t` or :math:`s` may be empty, in which case they are
    * implicit in the concatenation above. For example, if the premise is
    * :math:`x\cdot z = x`, then this rule, with argument :math:`\bot`, concludes
-   * :math:`z = ''`.
+   * :math:`z = \epsilon`.
    *
    * Also note that constants are split, such that for :math:`(\mathsf{'abc'}
    * \cdot x) = (\mathsf{'a'} \cdot y)`, this rule, with argument :math:`\bot`,
@@ -1412,9 +1417,15 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\, \mathit{len}(t_1) =
-   *   \mathit{len}(s_1)\mid b}{t_1 = s_1}
+   *   \mathit{len}(s_1)\mid \bot}{t_1 = s_1}
    *
-   * where :math:`b` indicates if the direction is reversed.
+   * Alternatively for the reverse:
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\, \mathit{len}(t_2) =
+   *   \mathit{len}(s_2)\mid \top}{t_2 = s_2}
+   * 
    * \endverbatim
    */
   EVALUE(CONCAT_UNIFY),
@@ -1445,8 +1456,8 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \neq s_1 \mid b}{\bot}
    *
-   * where $t_1$ and $s_1$ are constants of length one, or otherwise one side
-   * of the equality is the empty sequence and $t_1$ or $s_1$ corresponding to
+   * where :math:`t_1` and :math:`s_1` are constants of length one, or otherwise one side
+   * of the equality is the empty sequence and :math:`t_1` or :math:`s_1` corresponding to
    * that side is the empty sequence.
    * 
    * This rule is used exclusively for sequences.
@@ -1464,12 +1475,12 @@ enum ENUM(ProofRule)
    *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{((t_1 = s_1\cdot r)
    *   \vee (s_1 = t_1\cdot r)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}{if $b=\bot$}
    *
-   * where :math:`r` is
-   * :math:`\mathit{skolem}(\mathit{ite}(
+   * where :math:`r` is the purification skolem for
+   * :math:`\mathit{ite}(
    * \mathit{len}(t_1) >= \mathit{len}(s_1),
    * \mathit{suf}(t_1,\mathit{len}(s_1)),
-   * \mathit{suf}(s_1,\mathit{len}(t_1))))`
-   * and `\epsilon` is the empty string (or sequence).
+   * \mathit{suf}(s_1,\mathit{len}(t_1)))`
+   * and :math:`\epsilon` is the empty string (or sequence).
    *
    * .. math::
    *
@@ -1482,7 +1493,7 @@ enum ENUM(ProofRule)
    * \mathit{len}(t_2) >= \mathit{len}(s_2),
    * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
    * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))`
-   * and `\epsilon` is the empty string (or sequence).
+   * and :math:`\epsilon` is the empty string (or sequence).
    *
    * Above, :math:`\mathit{suf}(x,n)` is shorthand for
    * :math:`\mathit{substr}(x,n, \mathit{len}(x) - n)` and
@@ -1499,7 +1510,7 @@ enum ENUM(ProofRule)
    *   \inferrule{(t_1\cdot t_2) = (c \cdot s_2),\,
    *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = c\cdot r)}
    *
-   * where :math:`r` is :math:`\mathit{skolem}(\mathit{suf}(t_1,1))`.
+   * where :math:`r` is the purification skolem for :math:`\mathit{suf}(t_1,1)`.
    *
    * Alternatively for the reverse:
    *
@@ -1508,8 +1519,8 @@ enum ENUM(ProofRule)
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot c),\,
    *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot c)}
    *
-   * where :math:`r` is
-   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) - 1))`.
+   * where :math:`r` is the purification skolem for
+   * :math:`\mathit{pre}(t_2,\mathit{len}(t_2) - 1)`.
    * \endverbatim
    */
   EVALUE(CONCAT_CSPLIT),
@@ -1523,10 +1534,10 @@ enum ENUM(ProofRule)
    *   \mathit{len}(t_1) > \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r)}
    *
    * where :math:`r` is the purification Skolem for
-   * :math:`\mathit{skolem}(\mathit{ite}(
+   * :math:`\mathit{ite}(
    * \mathit{len}(t_1) >= \mathit{len}(s_1),
    * \mathit{suf}(t_1,\mathit{len}(s_1)),
-   * \mathit{suf}(s_1,\mathit{len}(t_1))))`.
+   * \mathit{suf}(s_1,\mathit{len}(t_1)))`.
    *
    * Alternatively for the reverse:
    *
@@ -1555,7 +1566,8 @@ enum ENUM(ProofRule)
    * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
    * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
-   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(w_3)))`.  Note that
+   * the purification skolem for 
+   * :math:`\mathit{suf}(t_1,\mathit{len}(w_3))`.  Note that
    * :math:`\mathit{suf}(w_2,p)` is the largest suffix of
    * :math:`\mathit{suf}(w_2,1)` that can contain a prefix of :math:`w_1`; since
    * :math:`t_1` is non-empty, :math:`w_3` must therefore be contained in
@@ -1571,8 +1583,8 @@ enum ENUM(ProofRule)
    * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
    * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
-   * w_1)`, and :math:`r` is :math:`\mathit{skolem}(\mathit{pre}(t_2,
-   * \mathit{len}(t_2) - \mathit{len}(w_3)))`.  Note that
+   * w_1)`, and :math:`r` is the purification skolem for
+   * :math:`\mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(w_3))`.  Note that
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - p)` is the largest prefix of
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - 1)` that can contain a suffix
    * of :math:`w_1`; since :math:`t_2` is non-empty, :math:`w_3` must therefore
@@ -1589,8 +1601,8 @@ enum ENUM(ProofRule)
    *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_1) = n}
    *
-   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
-   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)`
+   * and :math:`w_2` is the purification skolem for :math:`\mathit{suf}(t,n)`.
    * Or alternatively for the reverse:
    *
    * .. math::
@@ -1609,7 +1621,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{(\mathit{len}(t) = 0\wedge t= '')\vee \mathit{len}(t)
+   *   \inferrule{-\mid t}{(\mathit{len}(t) = 0\wedge t= \epsilon)\vee \mathit{len}(t)
    *   > 0}
    * \endverbatim
    */
@@ -1620,7 +1632,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t\neq ''\mid -}{\mathit{len}(t) \neq 0}
+   *   \inferrule{t\neq \epsilon\mid -}{\mathit{len}(t) \neq 0}
    * \endverbatim
    */
   EVALUE(STRING_LENGTH_NON_EMPTY),
@@ -1632,9 +1644,11 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{-\mid t}{R\wedge t = w}
    *
-   * where :math:`w` is :math:`\texttt{strings::StringsPreprocess::reduce}(t, R,
-   * \dots)`.  In other words, :math:`R` is the reduction predicate for extended
-   * term :math:`t`, and :math:`w` is :math:`skolem(t)`.
+   * where :math:`w` is :math:`\texttt{StringsPreprocess::reduce}(t, R,
+   * \dots)`. For details, see
+   * :cvc5src:`theory/strings/theory_strings_preprocess.h`.
+   * In other words, :math:`R` is the reduction predicate for extended
+   * term :math:`t`, and :math:`w` is the purification skolem for :math:`t`.
    *
    * Notice that the free variables of :math:`R` are :math:`w` and the free
    * variables of :math:`t`.
@@ -1649,7 +1663,8 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{-\mid t}{R}
    *
-   * where :math:`R` is :math:`\texttt{strings::TermRegistry::eagerReduce}(t)`.
+   * where :math:`R` is :math:`\texttt{TermRegistry::eagerReduce}(t)`.
+   * For details, see :cvc5src:`theory/strings/term_registry.h`.
    * \endverbatim
    */
   EVALUE(STRING_EAGER_REDUCTION),
@@ -1659,7 +1674,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t\in R_1,\,t\in R_2\mid -}{t\in \mathit{inter}(R_1,R_2)}
+   *   \inferrule{t\in R_1,\,t\in R_2\mid -}{t\in \mathit{re.inter}(R_1,R_2)}
    * \endverbatim
    */
   EVALUE(RE_INTER),
@@ -1669,9 +1684,10 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t\in R\mid -}{\texttt{RegExpOpr::reduceRegExpPos}(t\in R)}
-   *
-   * corresponding to the one-step unfolding of the premise.
+   *   \inferrule{t\in R\mid -}{F}
+   * 
+   * where :math:`F` corresponds to the one-step unfolding of the premise.
+   * This is implemented by :math:`\texttt{RegExpOpr::reduceRegExpPos}(t\in R)`.
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_POS),
@@ -1681,7 +1697,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t \not \in \mathit{re}.\text{*}(R) \mid -}{t \neq \ '' \ \wedge \forall L. L \leq 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{*}(R)}
+   *   \inferrule{t \not \in \mathit{re}.\text{*}(R) \mid -}{t \neq \ \epsilon \ \wedge \forall L. L \leq 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{*}(R)}
    * 
    * Or alternatively for regular expression concatenation:
    * 
@@ -1763,15 +1779,16 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{-\mid F,b}{F =
-   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
+   *   \inferrule{-\mid F,b}{F = F'}
    *
-   * where :math:`b` is a Boolean indicating whether we are using aggressive
+   * where :math:`F'` is the result of eliminating regular expressions from
+   * :math:`F` using the routine
+   * :math:`\texttt{strings::RegExpElimination::eliminate}(F, b)`.
+   * Here, :math:`b` is a Boolean indicating whether we are using aggressive
    * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
    * are performed for :math:`F`.
    *
-   * \rst
-   * .. note:: We do not currently support elaboration of this macro.
+   * We do not currently support elaboration of this macro.
    * \endverbatim
    */
   EVALUE(MACRO_RE_ELIM),
@@ -1866,11 +1883,26 @@ enum ENUM(ProofRule)
    *   \inferrule{- \mid t = s}{t = s}
    *
    * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
-   * method normalizes polynomials over arithmetic or bitvectors.
+   * method normalizes polynomials :math:`s` and :math:`t` over arithmetic or
+   * bitvectors.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Polynomial normalization for relations**
+   *
+   * .. math::
+   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid \diamond}
+   *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
+   *
+   * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
+   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:c_y` are
+   * scaling factors. For :math:`<, \leq, \geq, >`, the scaling factors have the
+   * same sign. For bitvectors, they are set to :math:`1`.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POLY_NORM_REL),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sign inference**
@@ -2061,12 +2093,17 @@ enum ENUM(ProofRule)
    * **Arithmetic -- Transcendentals -- Sine is shifted to -pi...pi**
    *
    * .. math::
-   *   \inferrule{- \mid x, y, s}{-\pi \leq y \leq \pi \land \sin(y) = \sin(x)
+   *   \inferrule{- \mid x}{-\pi \leq y \leq \pi \land \sin(y) = \sin(x)
    *   \land (\ite{-\pi \leq x \leq \pi}{x = y}{x = y + 2 \pi s})}
    *
    * where :math:`x` is the argument to sine, :math:`y` is a new real skolem
    * that is :math:`x` shifted into :math:`-\pi \dots \pi` and :math:`s` is a
-   * new integer slolem that is the number of phases :math:`y` is shifted.
+   * new integer skolem that is the number of phases :math:`y` is shifted.
+   * In particular, :math:`y` is the
+   * :cpp:enumerator:`TRANSCENDENTAL_PURIFY_ARG <cvc5::SkolemId::TRANSCENDENTAL_PURIFY_ARG>`
+   * skolem for :math:`\sin(x)` and :math:`s` is the
+   * :cpp:enumerator:`TRANSCENDENTAL_SINE_PHASE_SHIFT <cvc5::SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT>`
+   * skolem for :math:`x`.
    * \endverbatim
    */
   EVALUE(ARITH_TRANS_SINE_SHIFT),
@@ -2289,6 +2326,26 @@ enum ENUM(ProofRewriteRule)
    * **Arithmetic - strings predicate entailment**
    *
    * .. math::
+   *   (= s t) = c
+   *
+   * .. math::
+   *   (>= s t) = c
+   *
+   * where :math:`c` is a Boolean constant.
+   * This macro is elaborated by applications of :cpp:enumerator:`EVALUATE <cvc5::ProofRule::EVALUATE>`,
+   * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_ENTAIL <cvc5::ProofRewriteRule::ARITH_STRING_PRED_ENTAIL>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_SAFE_APPROX <cvc5::ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX>`, 
+   * as well as other rewrites for normalizing arithmetic predicates.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_STRING_PRED_ENTAIL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic - strings predicate entailment**
+   *
+   * .. math::
    *   (>= n 0) = true
    *
    * Where :math:`n` can be shown to be greater than or equal to :math:`0` by
@@ -2473,7 +2530,6 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
-
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Unsigned multiplication overflow detection elimination**
@@ -2505,7 +2561,7 @@ enum ENUM(ProofRewriteRule)
    * **Bitvectors - Extract negations from multiplicands**
    *
    * .. math::
-   *    (-a bvmul b bvmul c) \to -(a bvmul b c)
+   *    bvmul(bvneg(a),\ b,\ c) = bvneg(bvmul(a,\ b,\ c))
    *
    * \endverbatim
    */
@@ -2515,7 +2571,7 @@ enum ENUM(ProofRewriteRule)
    * **Bitvectors - Extract continuous substrings of bitvectors**
    *
    * .. math::
-   *    (a bvand c) \to (concat (bvand a[i0:j0] c0) ... (bvand a[in:jn] cn))
+   *    bvand(a,\ c) = concat(bvand(a[i_0:j_0],\ c_0) ... bvand(a[i_n:j_n],\ c_n))
    *
    * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
    * constant c \endverbatim
@@ -2526,13 +2582,36 @@ enum ENUM(ProofRewriteRule)
    * **Strings - regular expression loop elimination**
    *
    * .. math::
-   *   ((\_\ re.loop\ l\ u)\ R) = (re.union\ R^l \ldots R^u)
+   *   re.loop_{l,u}(R) = re.union(R^l, \ldots, R^u)
    *
    * where :math:`u \geq l`.
    *
    * \endverbatim
    */
   EVALUE(RE_LOOP_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings - regular expression intersection/union inclusion**
+   *
+   * .. math::
+   *   (re.inter\ R) = \mathit{re.inter}(\mathit{re.none}, R_0)
+   *
+   * where :math:`R` is a list of regular expressions containing `r_1`,
+   * `re.comp(r_2)` and the list :math:`R_0` where `r_2` is a superset of
+   * `r_1`.
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   \mathit{re.union}(R) = \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}),\ R_0)
+   *
+   * where :math:`R` is a list of regular expressions containing `r_1`,
+   * `re.comp(r_2)` and the list :math:`R_0`, where `r_1` is a superset of
+   * `r_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_INTER_UNION_INCLUSION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings - regular expression membership evaluation**
@@ -2564,10 +2643,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression concatenation star character**
    *
    * .. math::
-   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n),
-   * \mathit{re}.\text{*}(R)) = \mathit{str.in\_re}(s_1,
-   * \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n,
-   * \mathit{re}.\text{*}(R))
+   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) = \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
    *
    * where all strings in :math:`R` have length one.
    *
@@ -2579,16 +2655,12 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression sigma**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
-   * \mathit{re.allchar})) =
-   *   (\mathit{str.len}(s) = n)
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar})) = (\mathit{str.len}(s) = n)
    *
    * or alternatively:
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
-   * \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) =
-   *   (\mathit{str.len}(s) \ge n)
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) = (\mathit{str.len}(s) \ge n)
    *
    * \endverbatim
    */
@@ -2598,10 +2670,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression sigma star**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s,
-   * \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
-   * \mathit{re.allchar}))) =
-   *   (\mathit{str.len}(s) \ \% \ n = 0)
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}))) = (\mathit{str.len}(s) \ \% \ n = 0)
    *
    * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to
    * :math:`\mathit{re}.\text{++}`.
@@ -2614,7 +2683,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - strings substring strip symbolic length**
    *
    * .. math::
-   *   (str.substr s n m) = t
+   *   str.substr(s, n, m) = t
    *
    * where :math:`t` is obtained by fully or partially stripping components of
    * :math:`s` based on :math:`n` and :math:`m`.
@@ -2627,10 +2696,9 @@ enum ENUM(ProofRewriteRule)
    * **Sets - empty tester evaluation**
    *
    * .. math::
-   *   \mathit{sets.is\_empty}(as \ \mathit{set.empty} \ (\mathit{Set} \ T)) =
-   * \top
+   *   \mathit{sets.is\_empty}(\epsilon) = \top
    *
-   * or alternatively:
+   * where :math:`\epsilon` is the empty set, or alternatively:
    *
    * .. math::
    *   \mathit{sets.is\_empty}(c) = \bot
@@ -3431,10 +3499,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_STRIP_CHAR_REV),
   /** Auto-generated from RARE rule str-in-re-strip-char-s-single-rev */
   EVALUE(STR_IN_RE_STRIP_CHAR_S_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-no-prefix */
-  EVALUE(STR_IN_RE_NO_PREFIX),
-  /** Auto-generated from RARE rule str-in-re-no-prefix-rev */
-  EVALUE(STR_IN_RE_NO_PREFIX_REV),
   /** Auto-generated from RARE rule str-in-re-req-unfold */
   EVALUE(STR_IN_RE_REQ_UNFOLD),
   /** Auto-generated from RARE rule str-in-re-req-unfold-rev */

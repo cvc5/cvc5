@@ -4,6 +4,7 @@ SyGuS: Functions
 
 .. api-examples::
     <examples>/api/cpp/sygus-fun.cpp
+    <examples>/api/c/sygus-fun.c
     <examples>/api/java/SygusFun.java
     <examples>/api/python/sygus-fun.py
     <examples>/api/smtlib/sygus-fun.sy
@@ -14,5 +15,7 @@ above is defined separately in the ``utils`` module:
 .. api-examples::
     <examples>/api/cpp/utils.h
     <examples>/api/cpp/utils.cpp
+    <examples>/api/c/utils.h
+    <examples>/api/c/utils.c
     <examples>/api/java/Utils.java
     <examples>/api/python/utils.py

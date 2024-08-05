@@ -8,8 +8,6 @@ RUN apt-get update && apt-get install -y \
   automake \
   cmake \
   g++ \
-  libcln-dev \
-  libgmp-dev \
   libtool \
   openjdk-11-jdk \
   python3 \
@@ -27,3 +25,8 @@ WORKDIR /cvc5/build
 
 RUN make -j`nproc`
 RUN make install
+
+WORKDIR /cvc5
+
+RUN cp COPYING ./install/ && \
+    cp -r licenses ./install/

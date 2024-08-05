@@ -1,9 +1,8 @@
 SymbolManager
 =============
 
-This class manages a symbol table and other
-meta-information pertaining to SMT2 file inputs (e.g. named assertions,
-declared functions, etc.).
+This class manages a symbol table and other meta-information pertaining to
+SMT-LIB v2 inputs (e.g., named assertions, declared functions, etc.).
 
 ----
 

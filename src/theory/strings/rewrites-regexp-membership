@@ -159,15 +159,6 @@
   (str.in_re s (re.++ r1 r2 re.allchar))
   (str.in_re "" (re.++ r1 r2)))
 
-(define-cond-rule str-in-re-no-prefix ((s1 String) (s2 String :list) (r RegLan))
-  (not (str.in_re s1 (re.++ r (re.* re.allchar))))
-  (str.in_re (str.++ s1 s2) r)
-  false)
-(define-cond-rule str-in-re-no-prefix-rev ((s1 String :list) (s2 String) (r RegLan))
-  (not (str.in_re s2 (re.++ (re.* re.allchar) r)))
-  (str.in_re (str.++ s1 s2) r)
-  false)
-
 (define-cond-rule str-in-re-req-unfold ((s String) (r1 RegLan) (r2 RegLan) (r3 RegLan :list))
   (not (str.in_re s (re.++ r2 r3)))
   (str.in_re s (re.++ (re.* r1) r2 r3))

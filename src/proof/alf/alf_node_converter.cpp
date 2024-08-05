@@ -382,7 +382,7 @@ Node AlfNodeConverter::mkList(const std::vector<Node>& args)
 {
   Assert(!args.empty());
   TypeNode tn = NodeManager::currentNM()->booleanType();
-  // singleton lists are handled due to (@list x) ---> (@list x alf.nil)
+  // singleton lists are handled due to (@list x) ---> (@list x eo::nil)
   return mkInternalApp("@list", args, tn);
 }
 
@@ -554,7 +554,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     {
       // If the operator is a parameterized constant and reqCast is true,
       // then we must apply the parameters of the operator, e.g. such that
-      // bvor becomes (alf._ bvor 32) where 32 is the bitwidth of the first
+      // bvor becomes (eo::_ bvor 32) where 32 is the bitwidth of the first
       // argument.
       if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
           || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND
@@ -593,7 +593,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     }
     if (isParameterized)
     {
-      opName << "alf._";
+      opName << "eo::_";
       std::stringstream oppName;
       oppName << printer::smt2::Smt2Printer::smtKindString(k);
       Node opp = mkInternalSymbol(oppName.str(), n.getType());
@@ -627,13 +627,13 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   }
   if (reqCast)
   {
-    // - prints as e.g. (alf.as - (-> Int Int)).
+    // - prints as e.g. (eo::as - (-> Int Int)).
     if (k == Kind::NEG || k == Kind::SUB)
     {
       std::vector<Node> asChildren;
       asChildren.push_back(ret);
       asChildren.push_back(typeAsNode(ret.getType()));
-      ret = mkInternalApp("alf.as", asChildren, n.getType());
+      ret = mkInternalApp("eo::as", asChildren, n.getType());
     }
   }
   Trace("alf-term-process-debug2") << "...return " << ret << std::endl;

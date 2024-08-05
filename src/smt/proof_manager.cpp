@@ -56,10 +56,10 @@ PfManager::PfManager(Env& env)
     d_rewriteDb.reset(new RewriteDb);
     if (isOutputOn(OutputTag::RARE_DB))
     {
-      if (options().proof.proofFormatMode != options::ProofFormatMode::ALF)
+      if (options().proof.proofFormatMode != options::ProofFormatMode::CPC)
       {
         Warning()
-            << "WARNING: Assuming --proof-format=alf when printing the RARE "
+            << "WARNING: Assuming --proof-format=cpc when printing the RARE "
                "database with -o rare-db"
             << std::endl;
       }
@@ -272,7 +272,7 @@ void PfManager::printProof(std::ostream& out,
   // user asks for the proof again (in non-incremental mode). We don't need to
   // clone if the printing below does not modify the proof, which is the case
   // for proof formats ALF and NONE.
-  if (mode != options::ProofFormatMode::ALF
+  if (mode != options::ProofFormatMode::CPC
       && mode != options::ProofFormatMode::NONE)
   {
     fp = fp->clone();
@@ -284,7 +284,7 @@ void PfManager::printProof(std::ostream& out,
     proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
-  else if (mode == options::ProofFormatMode::ALF)
+  else if (mode == options::ProofFormatMode::CPC)
   {
     Assert(fp->getRule() == ProofRule::SCOPE);
     proof::AlfNodeConverter atp(nodeManager());
@@ -297,7 +297,7 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
-    proof::AletheProofPrinter vpp(d_env);
+    proof::AletheProofPrinter vpp(d_env, anc);
     vpp.print(out, fp, assertionNames);
   }
   else if (mode == options::ProofFormatMode::LFSC)
