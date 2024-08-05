@@ -180,7 +180,8 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm)
     : d_solver(solver),
       d_allocSm(nullptr),
       d_sm(sm),
-      d_usingIStringStream(false)
+      d_usingIStringStream(false),
+      d_istringLang(modes::InputLanguage::SMT_LIB_2_6)
 {
   initialize();
 }
@@ -345,6 +346,17 @@ void InputParser::setStringInputInternal(const std::string& input,
   d_parser->setStringInput(input, name);
 }
 
+void InputParser::setIncrementalStringInputInternal(modes::InputLanguage lang,
+                                                    const std::string& name)
+{
+  // initialize the parser
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  initializeInternal();
+  d_istringStream.str("");
+  d_istringStream.clear();
+  d_parser->setStreamInput(d_istringStream, name);
+}
+
 void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
                                             const std::string& name)
 {
@@ -352,16 +364,15 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   //////// all checks before this line
   Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name
                   << ")" << std::endl;
-  // initialize the parser
-  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
-  initializeInternal();
-  d_istringStream.str("");
-  d_parser->setStreamInput(d_istringStream, name);
+  setIncrementalStringInputInternal(lang, name);
   // remember that we are using d_istringStream
   d_usingIStringStream = true;
+  d_istringLang = lang;
+  d_istringName = name;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
+
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -371,7 +382,13 @@ void InputParser::appendIncrementalStringInput(const std::string& input)
       << "Must call setIncrementalStringInput prior to using "
          "appendIncrementalStringInput";
   //////// all checks before this line
+  // If the parser was done, we have to reinitialize it. See issue #11069.
+  if (d_parser->done())
+  {
+    setIncrementalStringInputInternal(d_istringLang, d_istringName);
+  }
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
+  // append it to the input
   d_istringStream << input;
   ////////
   CVC5_API_TRY_CATCH_END;
