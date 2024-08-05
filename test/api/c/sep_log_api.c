@@ -60,10 +60,10 @@ int main(void)
 
   /* Constraints on x and y */
   Cvc5Term args[2] = {x, random_constant};
-  Cvc5Term x_eq_const = cvc5_mk_term(tm, CVC5_KIND_GT, 2, args);
+  Cvc5Term x_eq_const = cvc5_mk_term(tm, CVC5_KIND_EQUAL, 2, args);
   args[0] = y;
   args[1] = x;
-  Cvc5Term y_gt_x = cvc5_mk_term(tm, CVC5_KIND_EQUAL, 2, args);
+  Cvc5Term y_gt_x = cvc5_mk_term(tm, CVC5_KIND_GT, 2, args);
 
   /* Points-to expressions */
   args[0] = p1;
