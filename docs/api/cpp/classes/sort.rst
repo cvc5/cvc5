@@ -7,7 +7,8 @@ Its kind is represented as enum class :cpp:enum:`cvc5::SortKind`.
 
 A :cpp:class:`Sort <cvc5::Sort>` can be hashed (using
 :cpp:class:`std::hash\<cvc5::Sort>`) and serialized to an output stream
-(using :cpp:func:`cvc5::operator<<()`).
+(using function
+:cpp:func:`std::ostream& cvc5::operator<< (std::ostream& out, const Sort& s)`).
 
 Class :cpp:class:`cvc5::Sort` only provides the default constructor
 to create a null Sort. Class :cpp:class:`TermManager <cvc5::TermManager>`
