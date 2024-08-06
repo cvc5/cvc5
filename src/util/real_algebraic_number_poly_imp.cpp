@@ -31,6 +31,15 @@
 
 namespace cvc5::internal {
 
+RealAlgebraicNumber::RealAlgebraicNumber()
+    :
+#ifdef CVC5_POLY_IMP
+      d_isRational(true),
+#endif
+      d_rat()
+{
+}
+
 #ifdef CVC5_POLY_IMP
 RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
     : d_isRational(false), d_value(std::move(an))
