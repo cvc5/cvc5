@@ -113,6 +113,8 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
         // We print terms non-flattened and with lambda applications in
         // non-curried manner
         options::ioutils::applyDagThresh(ss, 0);
+        // Guarantee we print reals as expected
+        options::ioutils::applyPrintArithLitToken(ss, true);
         options::ioutils::applyFlattenHOChains(ss, true);
         cur.toStream(ss);
         ss << " :named " << prefix << id << ")";
@@ -204,6 +206,8 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
         // We print terms non-flattened and with lambda applications in
         // non-curried manner
         options::ioutils::applyDagThresh(ss, 0);
+        // Guarantee we print reals as expected
+        options::ioutils::applyPrintArithLitToken(ss, true);
         options::ioutils::applyFlattenHOChains(ss, true);
         ret.toStream(ss);
         ssVar << prefix << id;
