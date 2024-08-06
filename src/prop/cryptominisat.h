@@ -43,8 +43,10 @@ class CryptoMinisatSolver : public SatSolver
  public:
   ~CryptoMinisatSolver() override;
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
+  ClauseId addClause(const SatClause& clause, bool removable) override;
+  ClauseId addXorClause(const SatClause& clause,
+                        bool rhs,
+                        bool removable) override;
 
   bool nativeXor() override { return true; }
 

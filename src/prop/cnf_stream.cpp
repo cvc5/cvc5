@@ -53,40 +53,11 @@ CnfStream::CnfStream(Env& env,
 {
 }
 
-bool CnfStream::assertClause(TNode node, SatClause& c)
+bool CnfStream::assertClause(TNode node, const SatClause& c)
 {
   Trace("cnf") << "Inserting into stream " << c << " node = " << node << "\n";
-
   ClauseId clauseId = d_satSolver->addClause(c, d_removable);
-
   return clauseId != ClauseIdUndef;
-}
-
-bool CnfStream::assertClause(TNode node, SatLiteral a)
-{
-  SatClause clause(1);
-  clause[0] = a;
-  return assertClause(node, clause);
-}
-
-bool CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b)
-{
-  SatClause clause(2);
-  clause[0] = a;
-  clause[1] = b;
-  return assertClause(node, clause);
-}
-
-bool CnfStream::assertClause(TNode node,
-                             SatLiteral a,
-                             SatLiteral b,
-                             SatLiteral c)
-{
-  SatClause clause(3);
-  clause[0] = a;
-  clause[1] = b;
-  clause[2] = c;
-  return assertClause(node, clause);
 }
 
 bool CnfStream::hasLiteral(TNode n) const {
@@ -217,26 +188,37 @@ SatLiteral CnfStream::newLiteral(TNode node,
   return lit;
 }
 
+bool CnfStream::hasNode(const SatLiteral& literal) const
+{
+  LiteralToNodeMap::const_iterator find = d_literalToNodeMap.find(literal);
+  return find != d_literalToNodeMap.end();
+}
+
 TNode CnfStream::getNode(const SatLiteral& literal)
 {
-  Assert(d_literalToNodeMap.find(literal) != d_literalToNodeMap.end());
+  Assert(hasNode(literal));
   Trace("cnf") << "getNode(" << literal << ")\n";
   Trace("cnf") << "getNode(" << literal << ") => "
                << d_literalToNodeMap[literal] << "\n";
   return d_literalToNodeMap[literal];
 }
 
-const CnfStream::NodeToLiteralMap& CnfStream::getTranslationCache() const
+void CnfStream::traceSatisfyingAssignment(std::string trace) const
 {
-  return d_nodeToLiteralMap;
+  Trace(trace) << "Literal | Value | Expr\n------------------"
+               << "----------------------------------------\n";
+  for(auto const& [n, l] : d_nodeToLiteralMap)
+  {
+    if(!l.isNegated())
+    {
+      SatValue value = d_satSolver->modelValue(l);
+      Trace(trace) << "'" << l << "' " << value << " " << n << "\n";
+    }
+  }
 }
 
-const CnfStream::LiteralToNodeMap& CnfStream::getNodeCache() const
+void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const
 {
-  return d_literalToNodeMap;
-}
-
-void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
   outputVariables.insert(outputVariables.end(),
                          d_booleanVariables.begin(),
                          d_booleanVariables.end());
@@ -316,10 +298,10 @@ void CnfStream::handleXor(TNode xorNode)
 
   SatLiteral xorLit = newLiteral(xorNode);
 
-  assertClause(xorNode.negate(), a, b, ~xorLit);
-  assertClause(xorNode.negate(), ~a, ~b, ~xorLit);
-  assertClause(xorNode, a, ~b, xorLit);
-  assertClause(xorNode, ~a, b, xorLit);
+  assertClause(xorNode.negate(), {a, b, ~xorLit});
+  assertClause(xorNode.negate(), {~a, ~b, ~xorLit});
+  assertClause(xorNode, {a, ~b, xorLit});
+  assertClause(xorNode, {~a, b, xorLit});
 }
 
 void CnfStream::handleOr(TNode orNode)
@@ -345,7 +327,7 @@ void CnfStream::handleOr(TNode orNode)
     // lit <- (a_1 | a_2 | a_3 | ... | a_n)
     // lit | ~(a_1 | a_2 | a_3 | ... | a_n)
     // (lit | ~a_1) & (lit | ~a_2) & (lit & ~a_3) & ... & (lit & ~a_n)
-    assertClause(orNode, orLit, ~clause[i]);
+    assertClause(orNode, {orLit, ~clause[i]});
   }
 
   // lit -> (a_1 | a_2 | a_3 | ... | a_n)
@@ -378,7 +360,7 @@ void CnfStream::handleAnd(TNode andNode)
     // lit -> (a_1 & a_2 & a_3 & ... & a_n)
     // ~lit | (a_1 & a_2 & a_3 & ... & a_n)
     // (~lit | a_1) & (~lit | a_2) & ... & (~lit | a_n)
-    assertClause(andNode.negate(), ~andLit, ~clause[i]);
+    assertClause(andNode.negate(), {~andLit, ~clause[i]});
   }
 
   // lit <- (a_1 & a_2 & a_3 & ... a_n)
@@ -406,13 +388,13 @@ void CnfStream::handleImplies(TNode impliesNode)
 
   // lit -> (a->b)
   // ~lit | ~ a | b
-  assertClause(impliesNode.negate(), ~impliesLit, ~a, b);
+  assertClause(impliesNode.negate(), {~impliesLit, ~a, b});
 
   // (a->b) -> lit
   // ~(~a | b) | lit
   // (a | l) & (~b | l)
-  assertClause(impliesNode, a, impliesLit);
-  assertClause(impliesNode, ~b, impliesLit);
+  assertClause(impliesNode, {a, impliesLit});
+  assertClause(impliesNode, {~b, impliesLit});
 }
 
 void CnfStream::handleIff(TNode iffNode)
@@ -433,16 +415,16 @@ void CnfStream::handleIff(TNode iffNode)
   // lit -> ((a-> b) & (b->a))
   // ~lit | ((~a | b) & (~b | a))
   // (~a | b | ~lit) & (~b | a | ~lit)
-  assertClause(iffNode.negate(), ~a, b, ~iffLit);
-  assertClause(iffNode.negate(), a, ~b, ~iffLit);
+  assertClause(iffNode.negate(), {~a, b, ~iffLit});
+  assertClause(iffNode.negate(), {a, ~b, ~iffLit});
 
   // (a<->b) -> lit
   // ~((a & b) | (~a & ~b)) | lit
   // (~(a & b)) & (~(~a & ~b)) | lit
   // ((~a | ~b) & (a | b)) | lit
   // (~a | ~b | lit) & (a | b | lit)
-  assertClause(iffNode, ~a, ~b, iffLit);
-  assertClause(iffNode, a, b, iffLit);
+  assertClause(iffNode, {~a, ~b, iffLit});
+  assertClause(iffNode, {a, b, iffLit});
 }
 
 void CnfStream::handleIte(TNode iteNode)
@@ -466,9 +448,9 @@ void CnfStream::handleIte(TNode iteNode)
   // lit -> (t | e) & (b -> t) & (!b -> e)
   // lit -> (t | e) & (!b | t) & (b | e)
   // (!lit | t | e) & (!lit | !b | t) & (!lit | b | e)
-  assertClause(iteNode.negate(), ~iteLit, thenLit, elseLit);
-  assertClause(iteNode.negate(), ~iteLit, ~condLit, thenLit);
-  assertClause(iteNode.negate(), ~iteLit, condLit, elseLit);
+  assertClause(iteNode.negate(), {~iteLit, thenLit, elseLit});
+  assertClause(iteNode.negate(), {~iteLit, ~condLit, thenLit});
+  assertClause(iteNode.negate(), {~iteLit, condLit, elseLit});
 
   // If ITE is false then one of the branches is false and the condition
   // implies which one
@@ -476,9 +458,9 @@ void CnfStream::handleIte(TNode iteNode)
   // !lit -> (!t | !e) & (b -> !t) & (!b -> !e)
   // !lit -> (!t | !e) & (!b | !t) & (b | !e)
   // (lit | !t | !e) & (lit | !b | !t) & (lit | b | !e)
-  assertClause(iteNode, iteLit, ~thenLit, ~elseLit);
-  assertClause(iteNode, iteLit, ~condLit, ~thenLit);
-  assertClause(iteNode, iteLit, condLit, ~elseLit);
+  assertClause(iteNode, {iteLit, ~thenLit, ~elseLit});
+  assertClause(iteNode, {iteLit, ~condLit, ~thenLit});
+  assertClause(iteNode, {iteLit, condLit, ~elseLit});
 }
 
 SatLiteral CnfStream::toCNF(TNode node, bool negated)
@@ -763,7 +745,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
         nnode = node.negate();
       }
       // Atoms
-      assertClause(nnode, toCNF(node, negated));
+      assertClause(nnode, {toCNF(node, negated)});
   }
     break;
   }
