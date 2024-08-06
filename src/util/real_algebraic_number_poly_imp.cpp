@@ -34,8 +34,9 @@ namespace cvc5::internal {
 RealAlgebraicNumber::RealAlgebraicNumber()
     :
 #ifdef CVC5_POLY_IMP
-      d_isRational(true)
+      d_isRational(true),
 #endif
+      d_rat()
 {
 }
 
