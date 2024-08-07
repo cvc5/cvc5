@@ -59,8 +59,8 @@ cvc5 1.2.0
     + The option `--proof-format=cpc` prints proofs in the CPC format.
       This option is now enabled by default.
   * The **Ethos** proof checker is available, which can check proofs in this
-    format. In particular, the 0.1.0 release of Ethos can check proofs from
-    this release of cvc5. This checker is the second generation of the the
+    format. In particular, the 0.1.0 release of Ethos can check proofs generated
+    by this version of cvc5. This checker is the second generation of the
     AletheLF checker (`alfc`). Ethos inherits the code base of alfc and is based
     on a logical framework called **Eunoia** (formerly called AletheLF).
     See https://github.com/cvc5/ethos for more details. Note that the
