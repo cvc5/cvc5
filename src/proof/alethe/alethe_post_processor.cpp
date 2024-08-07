@@ -1470,22 +1470,23 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Alpha Equivalence
-    // See proof_rule.h for documentation on the ALPHA_EQUIV rule. This
-    // comment uses variable names as introduced there.
     //
-    // Let F = (forall ((y1 A1) ... (yn An)) G) and F*sigma = (forall ((z1 A1)
-    // ... (zn An)) G*sigma)
-    //
+    // Given the formula F = (forall ((y1 A1) ... (yn An)) G) and the
+    // substitution sigma = {y1 -> z1, ..., yn -> zn}, the step is represented
+    // as
     //
     //  ------------------ refl
     //  (cl (= G G*sigma))
     // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
     //  (= F F*sigma)
     //
+    // In case the sigma is the identity this step is merely converted to
+    //
+    //  ------------------ refl
+    //  (cl (= F F))
     case ProofRule::ALPHA_EQUIV:
     {
       std::vector<Node> varEqs;
-      // performance optimization
       // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
       bool allSame = true;
       for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
