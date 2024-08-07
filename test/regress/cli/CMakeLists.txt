@@ -939,6 +939,7 @@ set(regress_0_tests
   regress0/ho/m-enum-bug2.smt2 
   regress0/ho/m-enum-bug3.smt2 
   regress0/ho/match-middle.smt2
+  regress0/ho/model-dep-arg.smt2
   regress0/ho/model-lam-simple.smt2
   regress0/ho/modulo-func-equality.smt2
   regress0/ho/qgu-fuzz-ho-1-dd.smt2
