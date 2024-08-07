@@ -49,7 +49,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SUBS, this);
   pc->registerChecker(ProofRule::EVALUATE, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
-  pc->registerChecker(ProofRule::ANNOTATION, this);
   pc->registerChecker(ProofRule::ITE_EQ, this);
   pc->registerChecker(ProofRule::ENCODE_EQ_INTRO, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
@@ -425,11 +424,6 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     // run a single (small) step conversion
     Node ac = rconv.postConvert(args[0]);
     return args[0].eqNode(ac);
-  }
-  else if (id == ProofRule::ANNOTATION)
-  {
-    Assert(children.size() == 1);
-    return children[0];
   }
   else if (id == ProofRule::DSL_REWRITE)
   {

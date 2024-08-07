@@ -347,12 +347,6 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
     }
     break;
-    case ProofRule::ANNOTATION:
-      if (i == 0)
-      {
-        return ArgFormat::INFERENCE_ID;
-      }
-      break;
     case ProofRule::TRUST:
     {
       if (i == 0)

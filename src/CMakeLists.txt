@@ -158,8 +158,6 @@ libcvc5_add_sources(
   proof/alf/alf_print_channel.h
   proof/alf/alf_printer.cpp
   proof/alf/alf_printer.h
-  proof/annotation_proof_generator.cpp
-  proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
@@ -759,8 +757,6 @@ libcvc5_add_sources(
   theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
-  theory/inference_id_proof_annotator.cpp
-  theory/inference_id_proof_annotator.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
   theory/lemma_property.cpp

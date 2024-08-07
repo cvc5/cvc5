@@ -32,7 +32,6 @@
 namespace cvc5::internal {
 
 class ProofNodeManager;
-class AnnotationProofGenerator;
 class EagerProofGenerator;
 
 namespace theory {
@@ -40,7 +39,6 @@ namespace theory {
 class Theory;
 class TheoryState;
 class DecisionManager;
-class InferenceIdProofAnnotator;
 namespace eq {
 class EqualityEngine;
 class ProofEqEngine;
@@ -444,14 +442,6 @@ class TheoryInferenceManager : protected EnvObj
    * override this method to take the lemma property into account as needed.
    */
   virtual bool cacheLemma(TNode lem, LemmaProperty p);
-  /**
-   * Return the trust node that is equivalent to trn, but its proof (if asked
-   * for) will be wrapped in (ANNOTATE ... :args id). We return a trust
-   * node of trust node kind CONFLICT if isConflict is true.
-   */
-  TrustNode annotateId(const TrustNode& trn,
-                       InferenceId id,
-                       bool isConflict = false);
   /** The theory object */
   Theory& d_theory;
   /** Reference to the state of theory */
@@ -468,10 +458,6 @@ class TheoryInferenceManager : protected EnvObj
   std::unique_ptr<eq::ProofEqEngine> d_pfeeAlloc;
   /** Proof generator for trusted THEORY_LEMMA steps */
   std::unique_ptr<EagerProofGenerator> d_defaultPg;
-  /** The inference id proof annotator */
-  std::unique_ptr<InferenceIdProofAnnotator> d_iipa;
-  /** The annotation proof generator */
-  std::unique_ptr<AnnotationProofGenerator> d_apg;
   /** Whether this manager caches lemmas */
   bool d_cacheLemmas;
   /**
