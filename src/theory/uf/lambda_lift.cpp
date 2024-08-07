@@ -122,6 +122,9 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   bool shouldLift = true;
   if (options().uf.ufHoLazyLambdaLift)
   {
+    // We never lift eagerly. Lambdas that may induce inconsistencies based
+    // on the symbols in their bodies are lifted lazily if/when they become
+    // equal to ordinary function symbols. This is handled in the ho extension.
     shouldLift = false;
   }
   if (shouldLift)

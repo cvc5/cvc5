@@ -649,7 +649,8 @@ unsigned HoExtension::checkLazyLambda()
       // handle conflicts like f = (lambda ((x Int)) (+ 1 (f x))).
       if (doLift)
       {
-        TrustNode tlift = d_ll.lift(lamRep);
+        TrustNode tlift = d_ll.lift(lamRepLam);
+        Assert(!tlift.isNull());
         d_im.trustedLemma(tlift, InferenceId::UF_HO_LAMBDA_LAZY_LIFT);
       }
     }
