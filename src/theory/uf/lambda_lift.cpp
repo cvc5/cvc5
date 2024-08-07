@@ -63,6 +63,10 @@ bool LambdaLift::needsLift(const Node& lam)
 {
   Assert(lam.getKind() == Kind::LAMBDA);
   std::map<Node, bool>::iterator it = d_needsLift.find(lam);
+  if (it!=d_needsLift.end())
+  {
+    return it->second;
+  }
   // Model construction considers types in order of their type size
   // (SortTypeSize::getTypeSize). If the lambda has a free variable, that
   // comes later in the model construction, it must be lifted eagerly.
