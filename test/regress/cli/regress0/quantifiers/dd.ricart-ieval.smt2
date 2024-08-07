@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ieval=use
+; COMMAND-LINE: --ieval=use --term-db-mode=all
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const x9 Bool)
