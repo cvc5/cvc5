@@ -51,14 +51,8 @@ std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
 };
 
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    Env& env,
-    AletheNodeConverter& anc,
-    bool resPivots,
-    std::string* reasonForConversionFailure)
-    : EnvObj(env),
-      d_anc(anc),
-      d_resPivots(resPivots),
-      d_reasonForConversionFailure(reasonForConversionFailure)
+    Env& env, AletheNodeConverter& anc, bool resPivots)
+    : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
 {
   NodeManager* nm = nodeManager();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());
@@ -66,18 +60,20 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
   d_false = nm->mkConst(false);
 }
 
+const std::string& AletheProofPostprocessCallback::getError() { return d_reasonForConversionFailure; }
+
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                   const std::vector<Node>& fa,
                                                   bool& continueUpdate)
 {
-  return d_reasonForConversionFailure->empty()
+  return d_reasonForConversionFailure.empty()
          && pn->getRule() != ProofRule::ALETHE_RULE;
 }
 
 bool AletheProofPostprocessCallback::shouldUpdatePost(
     std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
 {
-  if (!d_reasonForConversionFailure->empty() || pn->getArguments().empty())
+  if (!d_reasonForConversionFailure.empty() || pn->getArguments().empty())
   {
     return false;
   }
@@ -2265,7 +2261,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   conclusion = d_anc.maybeConvert(conclusion);
   if (conclusion.isNull())
   {
-    *d_reasonForConversionFailure = d_anc.getError();
+    d_reasonForConversionFailure = d_anc.getError();
     return false;
   }
   newArgs.push_back(conclusion);
@@ -2274,7 +2270,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
     Node conv = d_anc.maybeConvert(arg);
     if (conv.isNull())
     {
-      *d_reasonForConversionFailure = d_anc.getError();
+      d_reasonForConversionFailure = d_anc.getError();
       return false;
     }
     newArgs.push_back(conv);
@@ -2300,18 +2296,15 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
 
 AletheProofPostprocess::AletheProofPostprocess(Env& env,
                                                AletheNodeConverter& anc)
-    : EnvObj(env),
-      d_cb(env,
-           anc,
-           options().proof.proofAletheResPivots,
-           &d_reasonForConversionFailure)
+    : EnvObj(env), d_cb(env, anc, options().proof.proofAletheResPivots)
 {
 }
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf,
-                                     std::string& reasonForConversionFailure)
+const std::string& AletheProofPostprocess::getError() { return d_reasonForConversionFailure; }
+
+bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // first two nodes are scopes for definitions and other assumptions. We
   // process only the internal proof node. And we merge these two scopes
@@ -2350,9 +2343,9 @@ bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     Trace("pf-process-debug") << "...update node finished." << std::endl;
   }
   // Since the final step may also lead to issues, need to test here again
-  if (!d_reasonForConversionFailure.empty())
+  if (!d_cb.getError().empty())
   {
-    reasonForConversionFailure = d_reasonForConversionFailure;
+    d_reasonForConversionFailure = d_cb.getError();
     return false;
   }
   return true;
