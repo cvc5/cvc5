@@ -61,7 +61,7 @@ TrustNode LambdaLift::lift(Node node)
 
 bool LambdaLift::needsLift(const Node& lam)
 {
-  Assert (lam.getKind()==Kind::LAMBDA);
+  Assert(lam.getKind() == Kind::LAMBDA);
   std::map<Node, bool>::iterator it = d_needsLift.find(lam);
   // Model construction considers types in order of their type size
   // (SortTypeSize::getTypeSize). If the lambda has a free variable, that
@@ -90,7 +90,7 @@ bool LambdaLift::needsLift(const Node& lam)
       continue;
     }
     size_t vsize = sts.getTypeSize(tn);
-    if (vsize>=lsize)
+    if (vsize >= lsize)
     {
       shouldLift = true;
       Trace("uf-lazy-ll") << "...yes due to " << v << std::endl;

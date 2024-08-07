@@ -50,7 +50,7 @@ class LambdaLift : protected EnvObj
    * the lambda lifting lemma has already been generated in this context.
    */
   TrustNode lift(Node node);
-  /** 
+  /**
    * Do we need to lift the given lambda? This is true if the body of the
    * lambda may induce circular dependencies in model construction.
    */
