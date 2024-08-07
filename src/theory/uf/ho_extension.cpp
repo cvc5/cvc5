@@ -104,6 +104,23 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
             << "Beta reduce: " << node << " -> " << app << std::endl;
         return TrustNode::mkTrustRewrite(node, app, nullptr);
       }
+      // If an unlifted lambda occurs in an argument to APPLY_UF, it must be
+      // lifted.
+      for (const Node& nc : node)
+      {
+        if (nc.getType().isFunction())
+        {
+          Node lam = d_ll.getLambdaFor(nc);
+          if (!lam.isNull() && d_ll.needsLift(lam))
+          {
+            TrustNode trn = d_ll.lift(lam);
+            if (!trn.isNull())
+            {
+              lems.push_back(SkolemLemma(trn, nc));
+            }
+          }
+        }
+      }
     }
   }
   else if (k == Kind::LAMBDA || k == Kind::FUNCTION_ARRAY_CONST)
