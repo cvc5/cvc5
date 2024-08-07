@@ -60,7 +60,10 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
   d_false = nm->mkConst(false);
 }
 
-const std::string& AletheProofPostprocessCallback::getError() { return d_reasonForConversionFailure; }
+const std::string& AletheProofPostprocessCallback::getError()
+{
+  return d_reasonForConversionFailure;
+}
 
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                   const std::vector<Node>& fa,
@@ -2302,7 +2305,10 @@ AletheProofPostprocess::AletheProofPostprocess(Env& env,
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-const std::string& AletheProofPostprocess::getError() { return d_reasonForConversionFailure; }
+const std::string& AletheProofPostprocess::getError()
+{
+  return d_reasonForConversionFailure;
+}
 
 bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
