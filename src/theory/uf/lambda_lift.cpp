@@ -69,7 +69,7 @@ bool LambdaLift::needsLift(const Node& lam)
   }
   // Model construction considers types in order of their type size
   // (SortTypeSize::getTypeSize). If the lambda has a free variable, that
-  // comes later in the model construction, it must be lifted eagerly.
+  // comes later in the model construction, it may need to be lifted eagerly.
   // As an example, say f : Int -> Int, g : Int x Int -> Int
   // The following lambdas require eager lifting:
   // - (lambda ((x Int)) (g x x))
@@ -79,6 +79,9 @@ bool LambdaLift::needsLift(const Node& lam)
   // - (lambda ((x Int) (y Int)) (f x)), since its free symbol f has a type
   // Int -> Int which is processed before the type of the lambda, i.e.
   // Int x Int -> Int.
+  // Note that we only eagerly lift lambdas that furthermore impact model
+  // construction, which is only the case if the lambda occurs as an argument
+  // to a APPLY_UF or is equated to another function symbol.
   bool shouldLift = false;
   std::unordered_set<Node> syms;
   expr::getSymbols(lam[1], syms);
