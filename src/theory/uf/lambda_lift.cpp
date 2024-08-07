@@ -63,7 +63,7 @@ bool LambdaLift::needsLift(const Node& lam)
 {
   Assert(lam.getKind() == Kind::LAMBDA);
   std::map<Node, bool>::iterator it = d_needsLift.find(lam);
-  if (it!=d_needsLift.end())
+  if (it != d_needsLift.end())
   {
     return it->second;
   }
