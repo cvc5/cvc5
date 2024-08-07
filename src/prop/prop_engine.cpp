@@ -394,25 +394,6 @@ bool PropEngine::isFixed(TNode lit) const
   return false;
 }
 
-void PropEngine::printSatisfyingAssignment(){
-  const CnfStream::NodeToLiteralMap& transCache =
-    d_cnfStream->getTranslationCache();
-  Trace("prop-value") << "Literal | Value | Expr" << std::endl
-                      << "----------------------------------------"
-                      << "-----------------" << std::endl;
-  for(CnfStream::NodeToLiteralMap::const_iterator i = transCache.begin(),
-      end = transCache.end();
-      i != end;
-      ++i) {
-    std::pair<Node, SatLiteral> curr = *i;
-    SatLiteral l = curr.second;
-    if(!l.isNegated()) {
-      Node n = curr.first;
-      SatValue value = d_satSolver->modelValue(l);
-      Trace("prop-value") << "'" << l << "' " << value << " " << n << std::endl;
-    }
-  }
-}
 void PropEngine::outputIncompleteReason(UnknownExplanation uexp,
                                         theory::IncompleteId iid)
 {
@@ -428,7 +409,8 @@ void PropEngine::outputIncompleteReason(UnknownExplanation uexp,
   }
 }
 
-Result PropEngine::checkSat() {
+Result PropEngine::checkSat()
+{
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Trace("prop") << "PropEngine::checkSat()" << std::endl;
 
@@ -466,23 +448,19 @@ Result PropEngine::checkSat() {
 
   d_theoryProxy->postsolve(result);
 
-  if( result == SAT_VALUE_UNKNOWN ) {
+  if (result == SAT_VALUE_UNKNOWN)
+  {
     ResourceManager* rm = resourceManager();
     UnknownExplanation why = UnknownExplanation::INTERRUPTED;
-    if (rm->outOfTime())
-    {
-      why = UnknownExplanation::TIMEOUT;
-    }
-    if (rm->outOfResources())
-    {
-      why = UnknownExplanation::RESOURCEOUT;
-    }
+    if (rm->outOfTime()) why = UnknownExplanation::TIMEOUT;
+    if (rm->outOfResources()) why = UnknownExplanation::RESOURCEOUT;
     outputIncompleteReason(why);
     return Result(Result::UNKNOWN, why);
   }
 
-  if( result == SAT_VALUE_TRUE && TraceIsOn("prop") ) {
-    printSatisfyingAssignment();
+  if (result == SAT_VALUE_TRUE && TraceIsOn("prop-value"))
+  {
+    d_cnfStream->traceSatisfyingAssignment("prop-value");
   }
 
   Trace("prop") << "PropEngine::checkSat() => " << result << std::endl;

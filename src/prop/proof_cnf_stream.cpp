@@ -99,7 +99,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       Node nnode = negated ? node.negate() : static_cast<Node>(node);
       // Atoms
       SatLiteral lit = toCNF(node, negated);
-      bool added = d_cnfStream.assertClause(nnode, lit);
+      bool added = d_cnfStream.assertClause(nnode, {lit});
       if (negated && added && nnode != node.notNode())
       {
         // track double negation elimination
@@ -604,7 +604,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
   for (unsigned i = 0; i < size; ++i)
   {
     Trace("cnf") << push;
-    added = d_cnfStream.assertClause(node.negate(), ~lit, ~clause[i]);
+    added = d_cnfStream.assertClause(node.negate(), {~lit, ~clause[i]});
     Trace("cnf") << pop;
     if (added)
     {
@@ -665,7 +665,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
   // (lit | ~a_1) & (lit | ~a_2) & (lit & ~a_3) & ... & (lit & ~a_n)
   for (unsigned i = 0; i < size; ++i)
   {
-    added = d_cnfStream.assertClause(node, lit, ~clause[i]);
+    added = d_cnfStream.assertClause(node, {lit, ~clause[i]});
     if (added)
     {
       Node clauseNode = nm->mkNode(Kind::OR, node, node[i].notNode());
@@ -709,7 +709,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   SatLiteral b = toCNF(node[1]);
   SatLiteral lit = d_cnfStream.newLiteral(node);
   bool added;
-  added = d_cnfStream.assertClause(node.negate(), a, b, ~lit);
+  added = d_cnfStream.assertClause(node.negate(), {a, b, ~lit});
   if (added)
   {
     Node clauseNode =
@@ -719,7 +719,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node.negate(), ~a, ~b, ~lit);
+  added = d_cnfStream.assertClause(node.negate(), {~a, ~b, ~lit});
   if (added)
   {
     Node clauseNode = nodeManager()->mkNode(
@@ -729,7 +729,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node, a, ~b, lit);
+  added = d_cnfStream.assertClause(node, {a, ~b, lit});
   if (added)
   {
     Node clauseNode =
@@ -739,7 +739,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node, ~a, b, lit);
+  added = d_cnfStream.assertClause(node, {~a, b, lit});
   if (added)
   {
     Node clauseNode =
@@ -768,7 +768,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
   // lit -> ((a-> b) & (b->a))
   // ~lit | ((~a | b) & (~b | a))
   // (~a | b | ~lit) & (~b | a | ~lit)
-  added = d_cnfStream.assertClause(node.negate(), ~a, b, ~lit);
+  added = d_cnfStream.assertClause(node.negate(), {~a, b, ~lit});
   if (added)
   {
     Node clauseNode =
@@ -778,7 +778,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node.negate(), a, ~b, ~lit);
+  added = d_cnfStream.assertClause(node.negate(), {a, ~b, ~lit});
   if (added)
   {
     Node clauseNode =
@@ -793,7 +793,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
   // (~(a & b)) & (~(~a & ~b)) | lit
   // ((~a | ~b) & (a | b)) | lit
   // (~a | ~b | lit) & (a | b | lit)
-  added = d_cnfStream.assertClause(node, ~a, ~b, lit);
+  added = d_cnfStream.assertClause(node, {~a, ~b, lit});
   if (added)
   {
     Node clauseNode =
@@ -803,7 +803,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node, a, b, lit);
+  added = d_cnfStream.assertClause(node, {a, b, lit});
   if (added)
   {
     Node clauseNode = nm->mkNode(Kind::OR, node, node[0], node[1]);
@@ -831,7 +831,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   NodeManager* nm = nodeManager();
   // lit -> (a->b)
   // ~lit | ~ a | b
-  added = d_cnfStream.assertClause(node.negate(), ~lit, ~a, b);
+  added = d_cnfStream.assertClause(node.negate(), {~lit, ~a, b});
   if (added)
   {
     Node clauseNode =
@@ -844,7 +844,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   // (a->b) -> lit
   // ~(~a | b) | lit
   // (a | l) & (~b | l)
-  added = d_cnfStream.assertClause(node, a, lit);
+  added = d_cnfStream.assertClause(node, {a, lit});
   if (added)
   {
     Node clauseNode = nm->mkNode(Kind::OR, node, node[0]);
@@ -853,7 +853,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node, ~b, lit);
+  added = d_cnfStream.assertClause(node, {~b, lit});
   if (added)
   {
     Node clauseNode = nm->mkNode(Kind::OR, node, node[1].notNode());
@@ -887,7 +887,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   // lit -> (t | e) & (b -> t) & (!b -> e)
   // lit -> (t | e) & (!b | t) & (b | e)
   // (!lit | t | e) & (!lit | !b | t) & (!lit | b | e)
-  added = d_cnfStream.assertClause(node.negate(), ~lit, thenLit, elseLit);
+  added = d_cnfStream.assertClause(node.negate(), {~lit, thenLit, elseLit});
   if (added)
   {
     Node clauseNode = nm->mkNode(Kind::OR, node.notNode(), node[1], node[2]);
@@ -896,7 +896,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node.negate(), ~lit, ~condLit, thenLit);
+  added = d_cnfStream.assertClause(node.negate(), {~lit, ~condLit, thenLit});
   if (added)
   {
     Node clauseNode =
@@ -906,7 +906,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node.negate(), ~lit, condLit, elseLit);
+  added = d_cnfStream.assertClause(node.negate(), {~lit, condLit, elseLit});
   if (added)
   {
     Node clauseNode = nm->mkNode(Kind::OR, node.notNode(), node[0], node[2]);
@@ -921,7 +921,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   // !lit -> (!t | !e) & (b -> !t) & (!b -> !e)
   // !lit -> (!t | !e) & (!b | !t) & (b | !e)
   // (lit | !t | !e) & (lit | !b | !t) & (lit | b | !e)
-  added = d_cnfStream.assertClause(node, lit, ~thenLit, ~elseLit);
+  added = d_cnfStream.assertClause(node, {lit, ~thenLit, ~elseLit});
   if (added)
   {
     Node clauseNode =
@@ -931,7 +931,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node, lit, ~condLit, ~thenLit);
+  added = d_cnfStream.assertClause(node, {lit, ~condLit, ~thenLit});
   if (added)
   {
     Node clauseNode =
@@ -941,7 +941,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
                  << clauseNode << "\n";
     d_ppm->normalizeAndRegister(clauseNode, d_input);
   }
-  added = d_cnfStream.assertClause(node, lit, condLit, ~elseLit);
+  added = d_cnfStream.assertClause(node, {lit, condLit, ~elseLit});
   if (added)
   {
     Node clauseNode = nm->mkNode(Kind::OR, node, node[0], node[2].notNode());

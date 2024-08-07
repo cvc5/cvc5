@@ -91,7 +91,7 @@ void SatProofManager::startResChain(const Minisat::Clause& start)
 void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
-  Node litNode = d_cnfStream->getNodeCache()[satLit];
+  Node litNode = d_cnfStream->getNode(satLit);
   bool negated = satLit.isNegated();
   Assert(!negated || litNode.getKind() == Kind::NOT);
   if (!redundant)
@@ -102,7 +102,7 @@ void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
     // if lit is negated then the chain resolution construction will use it as a
     // pivot occurring as is in the second clause and the node under the
     // negation in the first clause
-    d_resLinks.emplace_back(d_cnfStream->getNodeCache()[~satLit],
+    d_resLinks.emplace_back(d_cnfStream->getNode(~satLit),
                             negated ? litNode[0] : litNode,
                             !satLit.isNegated());
   }
@@ -118,7 +118,7 @@ void SatProofManager::addResolutionStep(const Minisat::Clause& clause,
                                         Minisat::Lit lit)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
-  Node litNode = d_cnfStream->getNodeCache()[satLit];
+  Node litNode = d_cnfStream->getNode(satLit);
   bool negated = satLit.isNegated();
   Assert(!negated || litNode.getKind() == Kind::NOT);
   Node clauseNode = getClauseNode(clause);
@@ -211,7 +211,7 @@ void SatProofManager::endResChain(Node conclusion,
     if (i > 0)
     {
       Trace("sat-proof") << "{" << posFirst << "} ["
-                         << d_cnfStream->getTranslationCache()[pivot] << "] ";
+                         << d_cnfStream->getLiteral(pivot) << "] ";
     }
     // special case for clause (or l1 ... ln) being a single literal
     // corresponding itself to a clause, which is indicated by the pivot being
@@ -222,7 +222,7 @@ void SatProofManager::endResChain(Node conclusion,
     {
       for (unsigned j = 0, sizeJ = clause.getNumChildren(); j < sizeJ; ++j)
       {
-        Trace("sat-proof") << d_cnfStream->getTranslationCache()[clause[j]];
+        Trace("sat-proof") << d_cnfStream->getLiteral(clause[j]);
         if (j < sizeJ - 1)
         {
           Trace("sat-proof") << ", ";
@@ -231,11 +231,10 @@ void SatProofManager::endResChain(Node conclusion,
     }
     else
     {
-      Assert(d_cnfStream->getTranslationCache().find(clause)
-             != d_cnfStream->getTranslationCache().end())
+      Assert(d_cnfStream->hasLiteral(clause))
           << "clause node " << clause
           << " treated as unit has no literal. Pivot is " << pivot << "\n";
-      Trace("sat-proof") << d_cnfStream->getTranslationCache()[clause];
+      Trace("sat-proof") << d_cnfStream->getLiteral(clause);
     }
     Trace("sat-proof") << " : ";
     if (i > 0)
@@ -311,12 +310,12 @@ void SatProofManager::processRedundantLit(
                        << "\n"
                        << pop;
     visited.insert(lit);
-    Node litNode = d_cnfStream->getNodeCache()[lit];
+    Node litNode = d_cnfStream->getNode(lit);
     bool negated = lit.isNegated();
     Assert(!negated || litNode.getKind() == Kind::NOT);
 
     d_resLinks.emplace(d_resLinks.begin() + pos,
-                       d_cnfStream->getNodeCache()[~lit],
+                       d_cnfStream->getNode(~lit),
                        negated ? litNode[0] : litNode,
                        !negated);
     return;
@@ -359,7 +358,7 @@ void SatProofManager::processRedundantLit(
   // reason, not only with ~lit, since the learned clause is built under the
   // assumption that the redundant literal is removed via the resolution with
   // the explanation of its negation
-  Node litNode = d_cnfStream->getNodeCache()[lit];
+  Node litNode = d_cnfStream->getNode(lit);
   bool negated = lit.isNegated();
   Assert(!negated || litNode.getKind() == Kind::NOT);
   d_resLinks.emplace(d_resLinks.begin() + pos,
@@ -443,7 +442,7 @@ void SatProofManager::explainLit(SatLiteral lit,
     AlwaysAssert(size == static_cast<unsigned>(reloadedReason.size()));
     AlwaysAssert(children[0] == getClauseNode(reloadedReason));
 #endif
-    SatLiteral currLit = d_cnfStream->getTranslationCache()[toExplain[i]];
+    SatLiteral currLit = d_cnfStream->getLiteral(toExplain[i]);
     // ignore the lit we are trying to explain...
     if (currLit == lit)
     {
@@ -452,10 +451,9 @@ void SatProofManager::explainLit(SatLiteral lit,
     std::unordered_set<TNode> childPremises;
     explainLit(~currLit, childPremises);
     // save to resolution chain premises / arguments
-    Assert(d_cnfStream->getNodeCache().find(currLit)
-           != d_cnfStream->getNodeCache().end());
-    children.push_back(d_cnfStream->getNodeCache()[~currLit]);
-    Node currLitNode = d_cnfStream->getNodeCache()[currLit];
+    Assert(d_cnfStream->hasNode(currLit));
+    children.push_back(d_cnfStream->getNode(~currLit));
+    Node currLitNode = d_cnfStream->getNode(currLit);
     bool negated = currLit.isNegated();
     Assert(!negated || currLitNode.getKind() == Kind::NOT);
     // note this is the opposite of what is done in addResolutionStep. This is
@@ -465,7 +463,7 @@ void SatProofManager::explainLit(SatLiteral lit,
     args.push_back(negated ? currLitNode[0] : currLitNode);
     // add child premises and the child itself
     premises.insert(childPremises.begin(), childPremises.end());
-    premises.insert(d_cnfStream->getNodeCache()[~currLit]);
+    premises.insert(d_cnfStream->getNode(~currLit));
   }
   if (TraceIsOn("sat-proof"))
   {
@@ -526,11 +524,11 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       {
         continue;
       }
-      auto it = d_cnfStream->getTranslationCache().find(link.first);
-      if (it != d_cnfStream->getTranslationCache().end())
+      if (d_cnfStream->hasLiteral(link.first))
       {
         Trace("sat-proof-debug2")
-            << "SatProofManager::finalizeProof:  " << it->second;
+            << "SatProofManager::finalizeProof:  "
+            << d_cnfStream->getLiteral(link.first);
       }
       // a refl step added due to double elim negation, ignore
       else if (link.second->getRule() == ProofRule::REFL)
@@ -544,9 +542,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         Assert(link.first.getKind() == Kind::OR) << link.first;
         for (const Node& n : link.first)
         {
-          it = d_cnfStream->getTranslationCache().find(n);
-          Assert(it != d_cnfStream->getTranslationCache().end());
-          Trace("sat-proof-debug2") << it->second << " ";
+          Assert(d_cnfStream->hasLiteral(n));
+          Trace("sat-proof-debug2") << d_cnfStream->getLiteral(n) << " ";
         }
       }
       Trace("sat-proof-debug2") << "\n";
@@ -574,19 +571,17 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       for (const Node& fa : fassumps)
       {
         Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:   - ";
-        it = d_cnfStream->getTranslationCache().find(fa);
-        if (it != d_cnfStream->getTranslationCache().end())
+        if (d_cnfStream->hasLiteral(fa))
         {
-          Trace("sat-proof-debug2") << it->second << "\n";
+          Trace("sat-proof-debug2") << d_cnfStream->getLiteral(fa) << "\n";
           continue;
         }
         // then it's a clause
         Assert(fa.getKind() == Kind::OR);
         for (const Node& n : fa)
         {
-          it = d_cnfStream->getTranslationCache().find(n);
-          Assert(it != d_cnfStream->getTranslationCache().end());
-          Trace("sat-proof-debug2") << it->second << " ";
+          Assert(d_cnfStream->hasLiteral(n));
+          Trace("sat-proof-debug2") << d_cnfStream->getLiteral(n) << " ";
         }
         Trace("sat-proof-debug2") << "\n";
       }
@@ -606,14 +601,13 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   std::unordered_set<TNode> premises;
   for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
   {
-    Assert(d_cnfStream->getNodeCache().find(inConflict[i])
-           != d_cnfStream->getNodeCache().end());
+    Assert(d_cnfStream->hasNode(inConflict[i]));
     std::unordered_set<TNode> childPremises;
     explainLit(~inConflict[i], childPremises);
-    Node negatedLitNode = d_cnfStream->getNodeCache()[~inConflict[i]];
+    Node negatedLitNode = d_cnfStream->getNode(~inConflict[i]);
     // save to resolution chain premises / arguments
     children.push_back(negatedLitNode);
-    Node litNode = d_cnfStream->getNodeCache()[inConflict[i]];
+    Node litNode = d_cnfStream->getNode(inConflict[i]);
     bool negated = inConflict[i].isNegated();
     Assert(!negated || litNode.getKind() == Kind::NOT);
     // note this is the opposite of what is done in addResolutionStep. This is
@@ -667,10 +661,9 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     {
       for (const Node& fa : fassumps)
       {
-        auto it = d_cnfStream->getTranslationCache().find(fa);
-        if (it != d_cnfStream->getTranslationCache().end())
+        if (d_cnfStream->hasLiteral(fa))
         {
-          Trace("sat-proof") << "- " << it->second << "\n";
+          Trace("sat-proof") << "- " << d_cnfStream->getLiteral(fa) << "\n";
           Trace("sat-proof") << "  - " << fa << "\n";
           continue;
         }
@@ -679,9 +672,8 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         Assert(fa.getKind() == Kind::OR);
         for (const Node& n : fa)
         {
-          it = d_cnfStream->getTranslationCache().find(n);
-          Assert(it != d_cnfStream->getTranslationCache().end());
-          ss << it->second << " ";
+          Assert(d_cnfStream->hasLiteral(n));
+          ss << d_cnfStream->getLiteral(n) << " ";
         }
         Trace("sat-proof") << "- " << ss.str() << "\n";
         Trace("sat-proof") << "  - " << fa << "\n";
@@ -709,20 +701,19 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         continue;
       }
       // ignore non-literals
-      auto it = d_cnfStream->getTranslationCache().find(fa);
-      if (it == d_cnfStream->getTranslationCache().end())
+      if (!d_cnfStream->hasLiteral(fa))
       {
         Trace("sat-proof") << "no lit assumption " << fa << "\n";
         premises.insert(fa);
         continue;
       }
-      Trace("sat-proof") << "lit assumption (" << it->second << "), " << fa
-                         << "\n";
+      auto lit = d_cnfStream->getLiteral(fa);
+      Trace("sat-proof") << "lit assumption (" << lit << "), " << fa << "\n";
       // mark another iteration for the loop, as some resolution link may be
       // connected because of the new justifications
       expanded = true;
       std::unordered_set<TNode> childPremises;
-      explainLit(it->second, childPremises);
+      explainLit(lit, childPremises);
       // add the premises used in the justification. We know they will have
       // been as expanded as possible
       premises.insert(childPremises.begin(), childPremises.end());
