@@ -105,7 +105,8 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
         return TrustNode::mkTrustRewrite(node, app, nullptr);
       }
       // If an unlifted lambda occurs in an argument to APPLY_UF, it must be
-      // lifted.
+      // lifted. We do this only if the lambda needs lifting, i.e. it is one
+      // that may induce circular model dependencies.
       for (const Node& nc : node)
       {
         if (nc.getType().isFunction())
