@@ -1469,6 +1469,55 @@ bool AletheProofPostprocessCallback::update(Node res,
                                   : std::vector<Node>(),
                               *cdp);
     }
+    // ======== Alpha Equivalence
+    //
+    // Given the formula F = (forall ((y1 A1) ... (yn An)) G) and the
+    // substitution sigma = {y1 -> z1, ..., yn -> zn}, the step is represented
+    // as
+    //
+    //  ------------------ refl
+    //  (cl (= G G*sigma))
+    // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
+    //  (= F F*sigma)
+    //
+    // In case the sigma is the identity this step is merely converted to
+    //
+    //  ------------------ refl
+    //  (cl (= F F))
+    case ProofRule::ALPHA_EQUIV:
+    {
+      std::vector<Node> varEqs;
+      // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
+      bool allSame = true;
+      for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
+      {
+        Node v0 = res[0][0][i], v1 = res[1][0][i];
+        allSame = allSame && v0 == v1;
+        varEqs.push_back(v0.eqNode(v1));
+      }
+      if (allSame)
+      {
+        return addAletheStep(AletheRule::REFL,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             {},
+                             {},
+                             *cdp);
+      }
+      // Reflexivity over the quantified bodies
+      Node vp = nm->mkNode(
+          Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[0][1], res[1][1]));
+      addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
+      // collect variables first
+      new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
+      new_args.insert(new_args.end(), varEqs.begin(), varEqs.end());
+      return addAletheStep(AletheRule::ANCHOR_BIND,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {vp},
+                           new_args,
+                           *cdp);
+    }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
     //
