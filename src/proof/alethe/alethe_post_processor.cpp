@@ -170,6 +170,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // * the corresponding proof node is (or G1 ... Gn)
     //
+    // The documentation for each translation below will use variable names as
+    // defined in the original documentation of the rules in proof_rule.h.
     //================================================= Core rules
     //======================== Assume and Scope
     case ProofRule::ASSUME:
