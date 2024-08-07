@@ -52,8 +52,9 @@ cvc5 1.2.0
     - Unsat cores and proofs are now available via the `Solver` methods
       `unsat_core()` and `proof()`, respectively.
 
-- The default proof format of cvc5 has been renamed to the **Cooperating Proof Calculus (CPC) proof format**.
-  This proof format coincides with proof objects in our API.
+- The default proof format of cvc5 has been renamed to the
+  **Cooperating Proof Calculus (CPC) proof format**. This proof format coincides
+  with proof objects in our API.
   * **API**
     + The option `--proof-format=cpc` prints proofs in the CPC format.
       This option is now enabled by default.
