@@ -52,7 +52,7 @@ class RealAlgebraicNumber
 
  public:
   /** Construct as zero. */
-  RealAlgebraicNumber() = default;
+  RealAlgebraicNumber();
 #ifdef CVC5_POLY_IMP
   /** Move from a poly::AlgebraicNumber type. */
   RealAlgebraicNumber(poly::AlgebraicNumber&& an);

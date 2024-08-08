@@ -18,7 +18,7 @@ terms within standard containers like :code:`std::map`, :code:`std::set`, or
 
 The :cpp:class:`Term <cvc5::Term>` only offers the default constructor to
 create a null term. Instead, the :cpp:class:`TermManager <cvc5::TermManager>`
-class provides factory functions for all other terms, e.g.,
+class provides factory functions to create terms, e.g.,
 :cpp:func:`TermManager::mkTerm() <cvc5::TermManager::mkTerm()>` for generic
 terms and :code:`TermManager::mk<Type>()` for constants, variables and values
 of a given type.

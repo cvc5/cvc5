@@ -383,13 +383,60 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
-    case ProofRule::TRUST_THEORY_REWRITE:
+    // If the trusted rule is a theory lemma from arithmetic, we try to phrase
+    // it with "lia_generic".
+    case ProofRule::TRUST:
     {
-      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+      // check for case where the trust step is introducing an equality between
+      // a term and another whose Alethe conversion is itself, in which case we
+      // justify this as a REFL step. This happens with trusted purification
+      // steps, for example.
+      Node resConv = d_anc.maybeConvert(res);
+      if (!resConv.isNull() && resConv.getKind() == Kind::EQUAL && resConv[0] == resConv[1])
+      {
+        return addAletheStep(AletheRule::REFL,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             children,
+                             {},
+                             *cdp);
+      }
+      TrustId tid;
+      if (getTrustId(args[0], tid) && tid == TrustId::THEORY_LEMMA)
+      {
+        // if we are in the arithmetic case, we rather add a LIA_GENERIC step
+        if (res.getKind() == Kind::NOT && res[0].getKind() == Kind::AND)
+        {
+          Trace("alethe-proof") << "... test each arg if ineq\n";
+          bool allIneqs = true;
+          for (const Node& arg : res[0])
+          {
+            Node toTest = arg.getKind() == Kind::NOT ? arg[0] : arg;
+            Kind k = toTest.getKind();
+            if (k != Kind::LT && k != Kind::LEQ && k != Kind::GT
+                && k != Kind::GEQ && k != Kind::EQUAL)
+            {
+              Trace("alethe-proof") << "... arg " << arg << " not ineq\n";
+              allIneqs = false;
+              break;
+            }
+          }
+          if (allIneqs)
+          {
+            return addAletheStep(AletheRule::LIA_GENERIC,
+                                 res,
+                                 nm->mkNode(Kind::SEXPR, d_cl, res),
+                                 children,
+                                 {},
+                                 *cdp);
+          }
+        }
+      }
+      return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           {},
+                           args,
                            *cdp);
     }
     // ======== Resolution and N-ary Resolution
@@ -1437,7 +1484,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
     // comment uses variable names as introduced there.
     //
-    // ----- FORALL_INST, (= x1 t1) ... (= xn tn)
+    // ----- FORALL_INST, t1 ... tn
     //  VP1
     // ----- OR
     //  VP2              P
@@ -1450,15 +1497,15 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ^ the corresponding proof node is F*sigma
     case ProofRule::INSTANTIATE:
     {
-      for (size_t i = 0, size = children[0][0].getNumChildren(); i < size; i++)
-      {
-        new_args.push_back(children[0][0][i].eqNode(args[0][i]));
-      }
       Node vp1 = nm->mkNode(
           Kind::SEXPR, d_cl, nm->mkNode(Kind::OR, children[0].notNode(), res));
       Node vp2 = nm->mkNode(Kind::SEXPR, d_cl, children[0].notNode(), res);
-      return addAletheStep(
-                 AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
+      return addAletheStep(AletheRule::FORALL_INST,
+                           vp1,
+                           vp1,
+                           {},
+                           std::vector<Node>{args[0].begin(), args[0].end()},
+                           *cdp)
              && addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1468,6 +1515,55 @@ bool AletheProofPostprocessCallback::update(Node res,
                                   ? std::vector<Node>{children[0], d_false}
                                   : std::vector<Node>(),
                               *cdp);
+    }
+    // ======== Alpha Equivalence
+    //
+    // Given the formula F = (forall ((y1 A1) ... (yn An)) G) and the
+    // substitution sigma = {y1 -> z1, ..., yn -> zn}, the step is represented
+    // as
+    //
+    //  ------------------ refl
+    //  (cl (= G G*sigma))
+    // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
+    //  (= F F*sigma)
+    //
+    // In case the sigma is the identity this step is merely converted to
+    //
+    //  ------------------ refl
+    //  (cl (= F F))
+    case ProofRule::ALPHA_EQUIV:
+    {
+      std::vector<Node> varEqs;
+      // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
+      bool allSame = true;
+      for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
+      {
+        Node v0 = res[0][0][i], v1 = res[1][0][i];
+        allSame = allSame && v0 == v1;
+        varEqs.push_back(v0.eqNode(v1));
+      }
+      if (allSame)
+      {
+        return addAletheStep(AletheRule::REFL,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             {},
+                             {},
+                             *cdp);
+      }
+      // Reflexivity over the quantified bodies
+      Node vp = nm->mkNode(
+          Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[0][1], res[1][1]));
+      addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
+      // collect variables first
+      new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
+      new_args.insert(new_args.end(), varEqs.begin(), varEqs.end());
+      return addAletheStep(AletheRule::ANCHOR_BIND,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {vp},
+                           new_args,
+                           *cdp);
     }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
