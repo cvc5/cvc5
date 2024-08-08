@@ -1633,8 +1633,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   {
     case Kind::EQUAL:
     case Kind::SET_MEMBER:
-    case Kind::SET_ALL:
-    case Kind::SET_SOME:
     {
       // add trigger predicate for equality and membership
       d_state.addEqualityEngineTriggerPredicate(node);
