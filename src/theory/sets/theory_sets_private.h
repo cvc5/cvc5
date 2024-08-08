@@ -89,7 +89,7 @@ class TheorySetsPrivate : protected EnvObj
   /**
    * Apply the following rule for filter terms (set.filter p A):
    * (=>
-   *   (bag.member x (set.filter p A))
+   *   (set.member x (set.filter p A))
    *   (and
    *    (p x)
    *    (set.member x A)
@@ -97,7 +97,6 @@ class TheorySetsPrivate : protected EnvObj
    * )
    */
   void checkFilterDown();
-
   /**
    * Apply the following rule for map terms (set.map f A):
    * Positive member rule:

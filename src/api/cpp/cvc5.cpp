@@ -342,6 +342,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::SET_IS_SINGLETON, internal::Kind::SET_IS_SINGLETON),
         KIND_ENUM(Kind::SET_MAP, internal::Kind::SET_MAP),
         KIND_ENUM(Kind::SET_FILTER, internal::Kind::SET_FILTER),
+        KIND_ENUM(Kind::SET_ALL, internal::Kind::SET_ALL),
+        KIND_ENUM(Kind::SET_SOME, internal::Kind::SET_SOME),
         KIND_ENUM(Kind::SET_FOLD, internal::Kind::SET_FOLD),
         /* Relations -------------------------------------------------------- */
         KIND_ENUM(Kind::RELATION_JOIN, internal::Kind::RELATION_JOIN),
@@ -744,6 +746,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SET_IS_SINGLETON, Kind::SET_IS_SINGLETON},
         {internal::Kind::SET_MAP, Kind::SET_MAP},
         {internal::Kind::SET_FILTER, Kind::SET_FILTER},
+        {internal::Kind::SET_ALL, Kind::SET_ALL},
+        {internal::Kind::SET_SOME, Kind::SET_SOME},
         {internal::Kind::SET_FOLD, Kind::SET_FOLD},
         /* Relations ------------------------------------------------------- */
         {internal::Kind::RELATION_JOIN, Kind::RELATION_JOIN},

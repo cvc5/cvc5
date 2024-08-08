@@ -898,6 +898,8 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::SET_IS_SINGLETON, "set.is_singleton");
     addOperator(Kind::SET_MAP, "set.map");
     addOperator(Kind::SET_FILTER, "set.filter");
+    addOperator(Kind::SET_ALL, "set.all");
+    addOperator(Kind::SET_SOME, "set.some");
     addOperator(Kind::SET_FOLD, "set.fold");
     addOperator(Kind::RELATION_JOIN, "rel.join");
     addOperator(Kind::RELATION_TABLE_JOIN, "rel.table_join");

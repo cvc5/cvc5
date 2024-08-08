@@ -79,6 +79,16 @@ class SetReduction
    * @return (set.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
    */
   static Node reduceProjectOperator(Node n);
+  /**
+   * @param n has the form (set.all p A)
+   * @return is rewritten as (= (set.filter p A) A)
+   */
+  static Node reducePredicateAllOperator(Node n);
+  /**
+   * @param n has the form (set.some p A) where A has type (Set T)
+   * @return is rewritten as (distinct (set.filter p A) (as set.empty (Set T)))
+   */
+  static Node reducePredicateSomeOperator(Node n);
 };
 
 }  // namespace sets

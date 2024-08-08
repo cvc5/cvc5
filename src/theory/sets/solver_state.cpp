@@ -16,6 +16,7 @@
 #include "theory/sets/solver_state.h"
 
 #include "expr/emptyset.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "theory/sets/theory_sets_private.h"
 
@@ -70,20 +71,22 @@ void SolverState::registerEqc(TypeNode tn, Node r)
 void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
 {
   Kind nk = n.getKind();
+  int polarityIndex = r == d_true ? 0 : (r == d_false ? 1 : -1);
   if (nk == Kind::SET_MEMBER)
   {
     if (r.isConst())
     {
       Node s = d_ee->getRepresentative(n[1]);
       Node x = d_ee->getRepresentative(n[0]);
-      int pindex = r == d_true ? 0 : (r == d_false ? 1 : -1);
-      if (pindex != -1)
+      if (polarityIndex != -1)
       {
-        if (d_pol_mems[pindex][s].find(x) == d_pol_mems[pindex][s].end())
+        if (d_pol_mems[polarityIndex][s].find(x)
+            == d_pol_mems[polarityIndex][s].end())
         {
-          d_pol_mems[pindex][s][x] = n;
-          Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n
-                               << ", pindex = " << pindex << std::endl;
+          d_pol_mems[polarityIndex][s][x] = n;
+          Trace("sets-debug2")
+              << "Membership[" << x << "][" << s << "] : " << n
+              << ", polarityIndex = " << polarityIndex << std::endl;
         }
         if (d_members_index[s].find(x) == d_members_index[s].end())
         {
