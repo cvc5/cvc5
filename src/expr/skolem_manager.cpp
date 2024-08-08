@@ -487,13 +487,6 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(stype.getNumChildren() == 1);
       return nm->mkFunctionType(stype, stype[0]);
     }
-    case SkolemId::SETS_SOME:
-    {
-      Assert(cacheVals.size() > 0);
-      TypeNode stype = cacheVals[0][1].getType();
-      Assert(stype.getNumChildren() == 1);
-      return stype[0];
-    }
     case SkolemId::TABLES_GROUP_PART:
     case SkolemId::RELATIONS_GROUP_PART:
     {

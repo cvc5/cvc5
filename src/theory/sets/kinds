@@ -153,8 +153,8 @@ typerule SET_IS_SINGLETON   ::cvc5::internal::theory::sets::IsSetTypeRule
 typerule SET_IS_EMPTY       ::cvc5::internal::theory::sets::IsSetTypeRule
 typerule SET_MAP            ::cvc5::internal::theory::sets::SetMapTypeRule
 typerule SET_FILTER         ::cvc5::internal::theory::sets::SetFilterTypeRule
-typerule SET_ALL            ::cvc5::internal::theory::sets::SetAllTypeRule
-typerule SET_SOME           ::cvc5::internal::theory::sets::SetAllTypeRule
+typerule SET_ALL            ::cvc5::internal::theory::sets::SetAllSomeTypeRule
+typerule SET_SOME           ::cvc5::internal::theory::sets::SetAllSomeTypeRule
 typerule SET_FOLD           ::cvc5::internal::theory::sets::SetFoldTypeRule
 
 typerule RELATION_JOIN 			::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule

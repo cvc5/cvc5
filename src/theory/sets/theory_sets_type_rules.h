@@ -221,10 +221,11 @@ struct SetFilterTypeRule
 }; /* struct SetFilterTypeRule */
 
 /**
- * Type rule for (set.all p A) to make sure p is a unary predicate of type
+ * Type rule for (set.all p A) and (set.some p A) to make sure p is
+ * a unary predicate of type
  * (-> T Bool) where A is a set of type (Set T)
  */
-struct SetAllTypeRule
+struct SetAllSomeTypeRule
 {
   static TypeNode preComputeType(NodeManager* nm, TNode n);
 
@@ -232,7 +233,7 @@ struct SetAllTypeRule
                               TNode n,
                               bool check,
                               std::ostream* errOut);
-}; /* struct SetAllTypeRule */
+}; /* struct SetAllSomeTypeRule */
 
 /**
  * Type rule for (set.fold f t A) to make sure f is a binary operation of type

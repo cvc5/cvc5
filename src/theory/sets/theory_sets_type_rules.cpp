@@ -561,15 +561,15 @@ TypeNode SetFilterTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
-TypeNode SetAllTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode SetAllSomeTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->booleanType();
 }
 
-TypeNode SetAllTypeRule::computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check,
-                                     std::ostream* errOut)
+TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
+                                         TNode n,
+                                         bool check,
+                                         std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::SET_ALL || n.getKind() == Kind::SET_SOME);
   std::string op = n.getKind() == Kind::SET_ALL ? "set.all" : "set.some";
