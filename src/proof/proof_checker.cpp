@@ -141,6 +141,11 @@ Node ProofChecker::checkDebug(ProofRule id,
   return res;
 }
 
+void ProofChecker::setProofCheckMode(options::ProofCheckMode pcMode)
+{
+  d_pcMode = pcMode;
+}
+
 Node ProofChecker::checkInternal(ProofRule id,
                                  const std::vector<Node>& cchildren,
                                  const std::vector<Node>& args,
