@@ -774,7 +774,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           {},
+                           args,
                            *cdp);
     }
     // ======== And introduction
@@ -826,7 +826,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           {},
+                           args,
                            *cdp);
     }
     // ======== Implication elimination
@@ -921,7 +921,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     // The following rules are all translated according to the clause pattern.
     case ProofRule::CNF_AND_POS:
     {
-      return addAletheStepFromOr(AletheRule::AND_POS, res, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::AND_POS,
+                                 res,
+                                 children,
+                                 std::vector<Node>{args.back()},
+                                 *cdp);
     }
     case ProofRule::CNF_AND_NEG:
     {
@@ -933,7 +937,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case ProofRule::CNF_OR_NEG:
     {
-      return addAletheStepFromOr(AletheRule::OR_NEG, res, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::OR_NEG,
+                                 res,
+                                 children,
+                                 std::vector<Node>{args.back()},
+                                 *cdp);
     }
     case ProofRule::CNF_IMPLIES_POS:
     {
