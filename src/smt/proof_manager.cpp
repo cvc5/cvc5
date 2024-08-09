@@ -267,7 +267,7 @@ void PfManager::printProof(std::ostream& out,
                            ProofScopeMode scopeMode,
                            const std::map<Node, std::string>& assertionNames)
 {
-  Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
+  Trace("smt-proof") << "PfManager::printProof: start " << mode << std::endl;
   // We don't want to invalidate the proof nodes in fp, since these may be
   // reused in further check-sat calls, or they may be used again if the
   // user asks for the proof again (in non-incremental mode). We don't need to
@@ -287,7 +287,6 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::CPC)
   {
-    Assert(fp->getRule() == ProofRule::SCOPE);
     proof::AlfNodeConverter atp(nodeManager());
     proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
     alfp.print(out, fp, scopeMode);

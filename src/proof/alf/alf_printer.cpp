@@ -559,15 +559,15 @@ void AlfPrinter::print(std::ostream& out,
   else if (psm == ProofScopeMode::UNIFIED)
   {
     ascope = pfn.get();
-    Assert(ascope == Kind::SCOPE);
+    Assert(ascope->getRule() == ProofRule::SCOPE);
     pnBody = pfn->getChildren()[0].get();
   }
   else if (psm == ProofScopeMode::DEFINITIONS_AND_ASSERTIONS)
   {
     dscope = pfn.get();
-    Assert(dscope == Kind::SCOPE);
+    Assert(dscope->getRule() == ProofRule::SCOPE);
     ascope = pfn->getChildren()[0].get();
-    Assert(ascope == Kind::SCOPE);
+    Assert(ascope->getRule() == ProofRule::SCOPE);
     pnBody = pfn->getChildren()[0]->getChildren()[0].get();
   }
 

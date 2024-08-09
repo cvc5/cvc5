@@ -142,10 +142,10 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
     for (const Node& a : asserts)
     {
       std::shared_ptr<ProofNode> pf = pnm->mkAssume(a);
-      pm->connectProofToAssertions(pf, *this, ProofScopeMode::NONE);
+      std::shared_ptr<ProofNode> pfs = pm->connectProofToAssertions(pf, *this, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
       std::stringstream ss;
-      pm->printProof(ss, pf, fm);
-      std::cout << "; proof for " << a << std::endl;
+      pm->printProof(ss, pfs, fm, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+      std::cout << ";;;;;;;;;;;; proof for " << a << std::endl;
       std::cout << ss.str() << std::endl;
     }
   }
