@@ -104,6 +104,24 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
             << "Beta reduce: " << node << " -> " << app << std::endl;
         return TrustNode::mkTrustRewrite(node, app, nullptr);
       }
+      // If an unlifted lambda occurs in an argument to APPLY_UF, it must be
+      // lifted. We do this only if the lambda needs lifting, i.e. it is one
+      // that may induce circular model dependencies.
+      for (const Node& nc : node)
+      {
+        if (nc.getType().isFunction())
+        {
+          Node lam = d_ll.getLambdaFor(nc);
+          if (!lam.isNull() && d_ll.needsLift(lam))
+          {
+            TrustNode trn = d_ll.lift(lam);
+            if (!trn.isNull())
+            {
+              lems.push_back(SkolemLemma(trn, nc));
+            }
+          }
+        }
+      }
     }
   }
   else if (k == Kind::LAMBDA || k == Kind::FUNCTION_ARRAY_CONST)
@@ -531,6 +549,8 @@ unsigned HoExtension::checkLazyLambda()
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
     Node lamRep;  // the first lambda function we encounter in the equivalence
                   // class
+    bool needsLift = false;
+    bool doLift = false;
     Node lamRepLam;
     std::unordered_set<Node> normalEqFunWait;
     while (!eqc_i.isFinished())
@@ -545,6 +565,7 @@ unsigned HoExtension::checkLazyLambda()
           // if we are equal to a lambda function, we must beta-reduce
           // applications of this
           normalEqFuns.insert(n);
+          doLift = needsLift;
         }
         else
         {
@@ -558,6 +579,8 @@ unsigned HoExtension::checkLazyLambda()
         // there is a lambda function in this equivalence class
         lamRep = n;
         lamRepLam = lam;
+        needsLift = d_ll.needsLift(lam) && !d_ll.isLifted(lam);
+        doLift = needsLift && !normalEqFunWait.empty();
         // must consider all normal functions we've seen so far
         normalEqFuns.insert(normalEqFunWait.begin(), normalEqFunWait.end());
         normalEqFunWait.clear();
@@ -638,6 +661,16 @@ unsigned HoExtension::checkLazyLambda()
     if (!lamRep.isNull())
     {
       d_lambdaEqc[eqc] = lamRep;
+      // Do the lambda lifting lemma if needed. This happens if a lambda
+      // needs lifting based on the symbols in its body and is equated to an
+      // ordinary function symbol. For example, this is what ensures we
+      // handle conflicts like f = (lambda ((x Int)) (+ 1 (f x))).
+      if (doLift)
+      {
+        TrustNode tlift = d_ll.lift(lamRepLam);
+        Assert(!tlift.isNull());
+        d_im.trustedLemma(tlift, InferenceId::UF_HO_LAMBDA_LAZY_LIFT);
+      }
     }
   }
   Trace("uf-ho-debug")
