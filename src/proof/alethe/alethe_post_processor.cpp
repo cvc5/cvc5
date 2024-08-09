@@ -23,6 +23,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/resolution_proofs_util.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
@@ -391,6 +392,75 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
 
       return success;
+    }
+    // The conversion is into a "rare_rewrite" step where the first argument is
+    // a string literal with the name of the rewrite, followed by the arguments,
+    // where lists are built using the Alethe operator "rare-list", which takes
+    // 0 or more arguments.
+    case ProofRule::DSL_REWRITE:
+    {
+      // get the name
+      ProofRewriteRule di;
+      Node rule;
+      if (rewriter::getRewriteRule(args[0], di))
+      {
+        std::stringstream ss;
+        ss << "\"" << di << "\"";
+        rule = nm->mkRawSymbol(ss.str(), nm->sExprType());
+      }
+      else
+      {
+        Unreachable();
+      }
+      new_args.push_back(rule);
+      for (int i = 1, size = args.size(); i < size; i++)
+      {
+        if (!args[i].isNull())
+        {
+          if (args[i].toString() == "")
+          {  // TODO: better way
+            new_args.push_back(nm->mkBoundVar("rare-list", nm->sExprType()));
+          }
+          else if (args[i].getKind() == Kind::SEXPR)
+          {
+            std::vector<Node> list_arg{
+                nm->mkBoundVar("rare-list", nm->sExprType())};
+            list_arg.insert(list_arg.end(), args[i].begin(), args[i].end());
+            new_args.push_back(nm->mkNode(Kind::SEXPR, list_arg));
+          }
+          else
+          {
+            new_args.push_back(args[i]);
+          }
+        }
+      }
+      return addAletheStep(AletheRule::RARE_REWRITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           new_args,
+                           *cdp);
+    }
+    // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
+    // elaboration, are captured by the "rare_rewrite" rule.
+    case ProofRule::ARITH_POLY_NORM:
+    {
+      return addAletheStep(
+          AletheRule::RARE_REWRITE,
+          res,
+          nm->mkNode(Kind::SEXPR, d_cl, res),
+          children,
+          {nm->mkRawSymbol("\"arith-poly-norm\"", nm->sExprType())},
+          *cdp);
+    }
+    case ProofRule::EVALUATE:
+    {
+      return addAletheStep(AletheRule::RARE_REWRITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {nm->mkRawSymbol("\"evaluate\"", nm->sExprType())},
+                           *cdp);
     }
     // If the trusted rule is a theory lemma from arithmetic, we try to phrase
     // it with "lia_generic".
