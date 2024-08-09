@@ -104,7 +104,7 @@
 ;   true iff x is a power of two. If x is not a numeral value, we return
 ;   the term (int.ispow2 x).
 (define $arith_eval_is_pow_2 ((x Int))
-  (eo::ite (eo::is_q x) 
+  (eo::ite (eo::is_z x) 
     (eo::ite (eo::is_neg x) false ($arith_eval_is_pow_2_rec x))
     (int.ispow2 x)))
 
