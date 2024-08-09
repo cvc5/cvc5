@@ -180,7 +180,6 @@ void SolverEngine::finishInit()
   SetDefaults sdefaults(*d_env, d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
-  ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
@@ -190,7 +189,6 @@ void SolverEngine::finishInit()
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager(
         *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
-    pnm = d_pfManager->getProofNodeManager();
   }
   if (d_env->isOutputOn(OutputTag::RARE_DB))
   {
@@ -203,7 +201,7 @@ void SolverEngine::finishInit()
     }
   }
   // enable proof support in the environment/rewriter
-  d_env->finishInit(pnm);
+  d_env->finishInit(d_pfManager.get());
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
   d_smtSolver->finishInit();
@@ -1418,7 +1416,7 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
-  d_pfManager->printProof(out, fp, mode, assertionNames);
+  d_pfManager->printProof(out, fp, mode, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS, assertionNames);
   out << std::endl;
 }
 

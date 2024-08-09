@@ -540,17 +540,38 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
   }
 }
 
-void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
+void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn, ProofScopeMode psm)
 {
   // ensures options are set once and for all
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   options::ioutils::applyPrintArithLitToken(out, true);
   d_pfIdCounter = 0;
 
+  const ProofNode* ascope = nullptr;
+  const ProofNode* dscope = nullptr;
+  const ProofNode* pnBody = nullptr;
+  if (psm==ProofScopeMode::NONE)
+  {
+    pnBody = pfn.get();
+  }
+  else if (psm==ProofScopeMode::UNIFIED)
+  {
+    ascope = pfn.get();
+    Assert (ascope==Kind::SCOPE);
+    pnBody = pfn->getChildren()[0].get();
+  }
+  else if (psm==ProofScopeMode::DEFINITIONS_AND_ASSERTIONS)
+  {
+    dscope = pfn.get();
+    Assert (dscope==Kind::SCOPE);
+    ascope = pfn->getChildren()[0].get();
+    Assert (ascope==Kind::SCOPE);
+    pnBody = pfn->getChildren()[0]->getChildren()[0].get();
+  }
+
   // Get the definitions and assertions and print the declarations from them
-  const std::vector<Node>& definitions = pfn->getArguments();
-  const std::vector<Node>& assertions = pfn->getChildren()[0]->getArguments();
-  const ProofNode* pnBody = pfn->getChildren()[0]->getChildren()[0].get();
+  const std::vector<Node>& definitions = dscope!=nullptr ? dscope->getArguments() : d_emptyVec;
+  const std::vector<Node>& assertions = ascope!=nullptr ? ascope->getArguments() : d_emptyVec;
 
   // Use a let binding if proofDagGlobal is true.
   // We can traverse binders due to the way we print global declare-var, since

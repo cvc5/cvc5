@@ -264,3 +264,11 @@ name   = "Proof"
   type       = "bool"
   default    = "true"
   help       = "Whether to allow trust in the proof printer (when applicable)"
+
+[[option]]
+  name       = "dumpProofEagerPre"
+  category   = "expert"
+  long       = "dump-proof-eager-pre"
+  type       = "bool"
+  default    = "false"
+  help       = "output proofs of preprocessing for all input formulas immediately after preprocessing"

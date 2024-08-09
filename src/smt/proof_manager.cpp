@@ -264,6 +264,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
 void PfManager::printProof(std::ostream& out,
                            std::shared_ptr<ProofNode> fp,
                            options::ProofFormatMode mode,
+                           ProofScopeMode scopeMode,
                            const std::map<Node, std::string>& assertionNames)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
@@ -289,7 +290,7 @@ void PfManager::printProof(std::ostream& out,
     Assert(fp->getRule() == ProofRule::SCOPE);
     proof::AlfNodeConverter atp(nodeManager());
     proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
-    alfp.print(out, fp);
+    alfp.print(out, fp, scopeMode);
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {

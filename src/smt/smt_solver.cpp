@@ -28,6 +28,7 @@
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
+#include "smt/proof_manager.h"
 
 using namespace std;
 
@@ -128,7 +129,27 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
   d_pp.process(ap);
 
   // end: INVARIANT to maintain: no reordering of assertions or
-  // introducing new ones
+  // introducing new ones  
+  
+  // debug: dump preprocessing proof
+  if (options().proof.dumpProofEagerPre)
+  {
+    smt::PfManager * pm = d_env.getProofManager();
+    ProofNodeManager * pnm = pm->getProofNodeManager();
+    Assert (pm!=nullptr);
+    const std::vector<Node>& asserts = ap.ref();
+    options::ProofFormatMode fm =
+        options().proof.proofFormatMode;
+    for (const Node& a : asserts)
+    {
+      std::shared_ptr<ProofNode> pf = pnm->mkAssume(a);
+      pm->connectProofToAssertions(pf, *this, ProofScopeMode::NONE);
+      std::stringstream ss;
+      pm->printProof(ss, pf, fm);
+      std::cout << "; proof for " << a << std::endl;
+      std::cout << ss.str() << std::endl;
+    }
+  }
 }
 
 void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)

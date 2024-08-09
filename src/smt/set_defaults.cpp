@@ -162,7 +162,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
   // enabled is implied
-  if (opts.smt.checkProofs || opts.driver.dumpProofs
+  if (opts.smt.checkProofs || opts.driver.dumpProofs || opts.proof.dumpProofEagerPre
       || opts.smt.proofMode == options::ProofMode::FULL)
   {
     SET_AND_NOTIFY(smt, produceProofs, true, "option requiring proofs");
