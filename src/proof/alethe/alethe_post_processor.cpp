@@ -543,8 +543,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                  *cdp);
     }
     // ======== Equality resolution
-    // See proof_rule.h for documentation on the EQ_RESOLVE rule. This
-    // comment uses variable names as introduced there.
     //
     //  ------ EQUIV_POS2
     //   VP1                P2    P1
@@ -565,7 +563,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       // of children[0], if it is for (or t1 ... tn), may actually conclude  (cl
       // t1 ... tn). Using RESOLUTION_OR will guarantee that in post-visit time
       // the resolution step is fixed if need be
-      return success &= addAletheStep(
+      return success
+             && addAletheStep(
                  AletheRule::RESOLUTION_OR,
                  res,
                  nm->mkNode(Kind::SEXPR, d_cl, res),
