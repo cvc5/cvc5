@@ -139,15 +139,24 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
     Assert(pm != nullptr);
     const std::vector<Node>& asserts = ap.ref();
     options::ProofFormatMode fm = options().proof.proofFormatMode;
-    for (const Node& a : asserts)
+    std::shared_ptr<ProofNode> pf;
+    if (asserts.size()==1)
     {
-      std::shared_ptr<ProofNode> pf = pnm->mkAssume(a);
-      std::shared_ptr<ProofNode> pfs = pm->connectProofToAssertions(pf, *this, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
-      std::stringstream ss;
-      pm->printProof(ss, pfs, fm, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
-      std::cout << ";;;;;;;;;;;; proof for " << a << std::endl;
-      std::cout << ss.str() << std::endl;
+      pf = pnm->mkAssume(asserts[0]);
     }
+    else
+    {
+      Node conclusion = nodeManager()->mkAnd(asserts);
+      CDProof cdp(d_env);
+      cdp.addStep(conclusion, ProofRule::AND_INTRO, asserts, {});
+      pf = cdp.getProofFor(conclusion);
+    }
+    std::shared_ptr<ProofNode> pfs = pm->connectProofToAssertions(pf, *this, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+    std::stringstream ss;
+    pm->printProof(ss, pfs, fm, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+    std::cout << ";;;;;;;;;;;; preprocess proof start" << std::endl;
+    std::cout << ss.str();
+    std::cout << ";;;;;;;;;;;; preprocess proof end" << std::endl;
   }
 }
 
