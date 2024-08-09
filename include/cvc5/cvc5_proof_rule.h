@@ -165,8 +165,8 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{- \mid t}{t = \texttt{evaluate}(t)}
    *
-   * where \texttt{evaluate} is implemented by calling the method
-   * \texttt{Evalutor::evaluate} in :cvc5src:`theory/evaluator.h` with an
+   * where :math:`\texttt{evaluate}` is implemented by calling the method
+   * :math:`\texttt{Evalutor::evaluate}` in :cvc5src:`theory/evaluator.h` with an
    * empty substitution.
    * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
    * \endverbatim
@@ -263,9 +263,10 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{F, F_1 \dots F_n \mid G, (ids (ida (idr)?)?)?}{G}
    *
-   * where :math:`\texttt{rewrite}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
-   * \cdots \circ \sigma_{ids, ida}(F_1)) = \texttt{rewrite}_{idr}(G \circ
-   * \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))`.
+   * where
+   *
+   * .. math::
+   *   \texttt{rewrite}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ\cdots \circ \sigma_{ids, ida}(F_1)) =\\ \texttt{rewrite}_{idr}(G \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))
    *
    * More generally, this rule also holds when:
    * :math:`\texttt{Rewriter::rewrite}(\texttt{toOriginal}(F')) = \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))`
@@ -281,7 +282,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *   \inferrule{- \mid t}{t=t'}
-   * 
+   *
    * where :math:`t` and :math:`t'` are equivalent up to their encoding in an
    * external proof format.
    *
@@ -303,18 +304,18 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
-   * 
+   *
    * where `id` is a :cpp:enum:`ProofRewriteRule` whose definition in the
    * RARE DSL is :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
    * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
    * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
    * :math:`\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}`.
-   * 
+   *
    * Notice that the application of the substitution takes into account the
    * possible list semantics of variables :math:`x_1 \ldots x_n`. If
    * :math:`x_i` is a variable with list semantics, then :math:`t_i` denotes a
    * list of terms. The substitution implemented by
-   * `\texttt{expr::narySubstitute}` (for details, see
+   * :math:`\texttt{expr::narySubstitute}` (for details, see
    * :cvc5src:`expr/nary_term_util.h`) which replaces each :math:`x_i` with the
    * list :math:`t_i` in its place.
    * \endverbatim
@@ -329,7 +330,7 @@ enum ENUM(ProofRule)
    *
    * where `id` is the :cpp:enum:`ProofRewriteRule` of the theory rewrite
    * rule which transforms :math:`t` to :math:`t'`.
-   * 
+   *
    * In contrast to :cpp:enumerator:`DSL_REWRITE`, theory rewrite rules used by
    * this proof rule are not necessarily expressible in RARE. Each rule that can
    * be used in this proof rule are documented explicitly in cases within the
@@ -472,8 +473,7 @@ enum ENUM(ProofRule)
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined above
    * - let :math:`C_1' = C_1`,
-   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond{L_{i-1},
-   *   pol_{i-1}} C_i'`
+   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond_{L_{i-1}, pol_{i-1}} C_i'`
    *
    * Note the list of polarities and pivots are provided as s-expressions.
    *
@@ -517,13 +517,13 @@ enum ENUM(ProofRule)
    *
    * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in
    *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
-   * - let :math:`C_1 \diamond{L,\mathit{pol}} C_2` represent the resolution of
+   * - let :math:`C_1 \diamond_{L,\mathit{pol}} C_2` represent the resolution of
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined in
    *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, in its set
-   *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
+   *   representation, to :math:`C_{i-1} \diamond_{L_{i-1},\mathit{pol}_{i-1}}
    *   C_i'`
    *
    * The result of the chain resolution is :math:`C`, which is equal, in its set
@@ -1060,7 +1060,7 @@ enum ENUM(ProofRule)
    *   k(f?, s_1,\dots, s_n)}
    *
    * where :math:`k` is the application kind. Notice that :math:`f` must be
-   * provided iff :math:`k` is a parameterized kind, e.g. 
+   * provided iff :math:`k` is a parameterized kind, e.g.
    * `cvc5::Kind::APPLY_UF`. The actual node for
    * :math:`k` is constructible via ``ProofRuleChecker::mkKindNode``.
    * If :math:`k` is a binder kind (e.g. ``cvc5::Kind::FORALL``) then :math:`f`
@@ -1142,7 +1142,7 @@ enum ENUM(ProofRule)
    * where `t'` is the higher-order application that is equivalent to `t`,
    * as implemented by ``uf::TheoryUfRewriter::getHoApplyForApplyUf``.
    * For details see :cvc5src:`theory/uf/theory_uf_rewriter.h`
-   * 
+   *
    * For example, this rule concludes :math:`f(x,y) = @( @(f,x), y)`, where
    * :math:`@` is the ``HO_APPLY`` kind.
    *
@@ -1221,10 +1221,10 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{-\mid t}{t = \texttt{bitblast}(t)}
    *
-   * where `\texttt{bitblast}` represents the result of the bit-blasted term as
+   * where :math:`\texttt{bitblast}` represents the result of the bit-blasted term as
    * a bit-vector consisting of the output bits of the bit-blasted circuit
    * representation of the term. Terms are bit-blasted according to the
-   * strategies defined in ``theory/bv/bitblast/bitblast_strategies_template.h``.
+   * strategies defined in :cvc5src:`theory/bv/bitblast/bitblast_strategies_template.h`.
    * \endverbatim
    */
   EVALUE(MACRO_BV_BITBLAST),
@@ -1425,7 +1425,7 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\, \mathit{len}(t_2) =
    *   \mathit{len}(s_2)\mid \top}{t_2 = s_2}
-   * 
+   *
    * \endverbatim
    */
   EVALUE(CONCAT_UNIFY),
@@ -1442,7 +1442,7 @@ enum ENUM(ProofRule)
    * \mathit{index},b)` is null, in other words, neither is a prefix of the
    * other. Note it may be the case that one side of the equality denotes the
    * empty string.
-   * 
+   *
    * This rule is used exclusively for strings.
    *
    * \endverbatim
@@ -1459,7 +1459,7 @@ enum ENUM(ProofRule)
    * where :math:`t_1` and :math:`s_1` are constants of length one, or otherwise one side
    * of the equality is the empty sequence and :math:`t_1` or :math:`s_1` corresponding to
    * that side is the empty sequence.
-   * 
+   *
    * This rule is used exclusively for sequences.
    *
    * \endverbatim
@@ -1566,7 +1566,7 @@ enum ENUM(ProofRule)
    * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
    * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
-   * the purification skolem for 
+   * the purification skolem for
    * :math:`\mathit{suf}(t_1,\mathit{len}(w_3))`.  Note that
    * :math:`\mathit{suf}(w_2,p)` is the largest suffix of
    * :math:`\mathit{suf}(w_2,1)` that can contain a prefix of :math:`w_1`; since
@@ -1685,7 +1685,7 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{t\in R\mid -}{F}
-   * 
+   *
    * where :math:`F` corresponds to the one-step unfolding of the premise.
    * This is implemented by :math:`\texttt{RegExpOpr::reduceRegExpPos}(t\in R)`.
    * \endverbatim
@@ -1698,9 +1698,9 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{t \not \in \mathit{re}.\text{*}(R) \mid -}{t \neq \ \epsilon \ \wedge \forall L. L \leq 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{*}(R)}
-   * 
+   *
    * Or alternatively for regular expression concatenation:
-   * 
+   *
    * .. math::
    *
    *   \inferrule{t \not \in \mathit{re}.\text{++}(R_1, \ldots, R_n)\mid -}{\forall L. L < 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(R_2, \ldots, R_n)}
@@ -2335,7 +2335,7 @@ enum ENUM(ProofRewriteRule)
    * This macro is elaborated by applications of :cpp:enumerator:`EVALUATE <cvc5::ProofRule::EVALUATE>`,
    * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`,
    * :cpp:enumerator:`ARITH_STRING_PRED_ENTAIL <cvc5::ProofRewriteRule::ARITH_STRING_PRED_ENTAIL>`,
-   * :cpp:enumerator:`ARITH_STRING_PRED_SAFE_APPROX <cvc5::ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX>`, 
+   * :cpp:enumerator:`ARITH_STRING_PRED_SAFE_APPROX <cvc5::ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX>`,
    * as well as other rewrites for normalizing arithmetic predicates.
    *
    * \endverbatim
@@ -2643,7 +2643,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression concatenation star character**
    *
    * .. math::
-   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) = \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
+   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) =\\ \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
    *
    * where all strings in :math:`R` have length one.
    *
