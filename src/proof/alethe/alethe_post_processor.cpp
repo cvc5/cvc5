@@ -60,17 +60,26 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
   d_false = nm->mkConst(false);
 }
 
+const std::string& AletheProofPostprocessCallback::getError()
+{
+  return d_reasonForConversionFailure;
+}
+
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                   const std::vector<Node>& fa,
                                                   bool& continueUpdate)
 {
-  return pn->getRule() != ProofRule::ALETHE_RULE;
+  return d_reasonForConversionFailure.empty()
+         && pn->getRule() != ProofRule::ALETHE_RULE;
 }
 
 bool AletheProofPostprocessCallback::shouldUpdatePost(
     std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
 {
-  Assert(!pn->getArguments().empty());
+  if (!d_reasonForConversionFailure.empty() || pn->getArguments().empty())
+  {
+    return false;
+  }
   AletheRule rule = getAletheRule(pn->getArguments()[0]);
   return rule == AletheRule::RESOLUTION_OR || rule == AletheRule::REORDERING
          || rule == AletheRule::CONTRACTION;
@@ -2356,10 +2365,22 @@ bool AletheProofPostprocessCallback::addAletheStep(
   std::vector<Node> newArgs{
       nodeManager()->mkConstInt(Rational(static_cast<uint32_t>(rule)))};
   newArgs.push_back(res);
-  newArgs.push_back(d_anc.convert(conclusion));
+  conclusion = d_anc.maybeConvert(conclusion);
+  if (conclusion.isNull())
+  {
+    d_reasonForConversionFailure = d_anc.getError();
+    return false;
+  }
+  newArgs.push_back(conclusion);
   for (const Node& arg : args)
   {
-    newArgs.push_back(d_anc.convert(arg));
+    Node conv = d_anc.maybeConvert(arg);
+    if (conv.isNull())
+    {
+      d_reasonForConversionFailure = d_anc.getError();
+      return false;
+    }
+    newArgs.push_back(conv);
   }
   Trace("alethe-proof") << "... add alethe step " << res << " / " << conclusion
                         << " " << rule << " " << children << " / " << newArgs
@@ -2381,15 +2402,19 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
 }
 
 AletheProofPostprocess::AletheProofPostprocess(Env& env,
-                                               AletheNodeConverter& anc,
-                                               bool resPivots)
-    : EnvObj(env), d_cb(env, anc, resPivots)
+                                               AletheNodeConverter& anc)
+    : EnvObj(env), d_cb(env, anc, options().proof.proofAletheResPivots)
 {
 }
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
+const std::string& AletheProofPostprocess::getError()
+{
+  return d_reasonForConversionFailure;
+}
+
+bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // first two nodes are scopes for definitions and other assumptions. We
   // process only the internal proof node. And we merge these two scopes
@@ -2427,8 +2452,14 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
     d_env.getProofNodeManager()->updateNode(pf.get(), npn.get());
     Trace("pf-process-debug") << "...update node finished." << std::endl;
   }
+  // Since the final step may also lead to issues, need to test here again
+  if (!d_cb.getError().empty())
+  {
+    d_reasonForConversionFailure = d_cb.getError();
+    return false;
+  }
+  return true;
 }
 
 }  // namespace proof
-
 }  // namespace cvc5::internal
