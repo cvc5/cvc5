@@ -1214,7 +1214,13 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
   std::map<Node, Node>::iterator itMap = d_constantReps.find(r);
   if (itMap != d_constantReps.end())
   {
-    return (*itMap).second;
+    r = (*itMap).second;
+    // if d_constantReps stores a constant, we are done, otherwise we process
+    // it below.
+    if (r.isConst())
+    {
+      return r;
+    }
   }
   NodeMap::iterator it = d_normalizedCache.find(r);
   if (it != d_normalizedCache.end())
@@ -1244,7 +1250,8 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
           {
             ri = (*itMap).second;
             Trace("model-builder-debug") << i << ": const child " << ri << std::endl;
-            recurse = false;
+            // need to recurse if d_constantReps stores a non-constant
+            recurse = !ri.isConst();
           }
           else if (!evalOnly)
           {
