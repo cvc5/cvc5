@@ -1317,7 +1317,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       bool success = true;
       Node quant = children[0][0], skolemized = res[0];
-      Assert(children[0].getKind() == Kind::NOT && children[0][0].getKind() == Kind::FORALL);
+      Assert(children[0].getKind() == Kind::NOT && quant.getKind() == Kind::FORALL);
       Node eq = quant[1].eqNode(skolemized);
       // add rfl step for final replacement
       Node premise = nm->mkNode(Kind::SEXPR, d_cl, eq);
