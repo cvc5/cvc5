@@ -1355,8 +1355,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Then, we eliminate the equality to obtain (not F*sigma) from the premise:
     //
-    //  ---------------- equiv_pos2
-    //     VP1              (= (not (forall (...) F)) (not F*sigma'))    (not (forall (...) F))
+    //  ---- equiv_pos2
+    //  VP1   (= (not (forall (...) F)) (not F*sigma'))   (not (forall (...) F))
     //  ------------------------------------------------------------- resolution
     //                           (not F*sigma')
     //
@@ -1372,7 +1372,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       bool success = true;
       Node quant = children[0][0], skolemized = res[0];
-      Assert(children[0].getKind() == Kind::NOT && children[0][0].getKind() == Kind::FORALL);
+      Assert(children[0].getKind() == Kind::NOT
+             && children[0][0].getKind() == Kind::FORALL);
       Node eq = quant[1].eqNode(skolemized);
       // add rfl step for final replacement
       Node premise = nm->mkNode(Kind::SEXPR, d_cl, eq);
@@ -1403,8 +1404,12 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node conclusion = nm->mkNode(
           Kind::SEXPR, d_cl, d_anc.convert(quant.eqNode(skolemized)));
       // add the sko step
-      success &= addAletheStep(
-          AletheRule::ANCHOR_SKO_FORALL, conclusion, conclusion, {premise}, skoSubstitutions, *cdp);
+      success &= addAletheStep(AletheRule::ANCHOR_SKO_FORALL,
+                               conclusion,
+                               conclusion,
+                               {premise},
+                               skoSubstitutions,
+                               *cdp);
       // add congruence step with NOT for the forall case
       Node newConclusion = nm->mkNode(
           Kind::SEXPR, d_cl, (quant.notNode()).eqNode(skolemized.notNode()));
