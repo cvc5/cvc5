@@ -28,6 +28,7 @@
 #include "options/strings_options.h"
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
+#include "smt/proof_manager.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/oracle_checker.h"
@@ -36,7 +37,6 @@
 #include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
-#include "smt/proof_manager.h"
 
 using namespace cvc5::internal::smt;
 
@@ -108,7 +108,7 @@ context::Context* Env::getContext() { return d_context.get(); }
 context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
 smt::PfManager* Env::getProofManager() { return d_pfManager; }
-  
+
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
 bool Env::isSatProofProducing() const

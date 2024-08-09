@@ -24,11 +24,11 @@
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
+#include "smt/proof_manager.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
-#include "smt/proof_manager.h"
 
 using namespace std;
 
@@ -129,17 +129,16 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
   d_pp.process(ap);
 
   // end: INVARIANT to maintain: no reordering of assertions or
-  // introducing new ones  
-  
+  // introducing new ones
+
   // debug: dump preprocessing proof
   if (options().proof.dumpProofEagerPre)
   {
-    smt::PfManager * pm = d_env.getProofManager();
-    ProofNodeManager * pnm = pm->getProofNodeManager();
-    Assert (pm!=nullptr);
+    smt::PfManager* pm = d_env.getProofManager();
+    ProofNodeManager* pnm = pm->getProofNodeManager();
+    Assert(pm != nullptr);
     const std::vector<Node>& asserts = ap.ref();
-    options::ProofFormatMode fm =
-        options().proof.proofFormatMode;
+    options::ProofFormatMode fm = options().proof.proofFormatMode;
     for (const Node& a : asserts)
     {
       std::shared_ptr<ProofNode> pf = pnm->mkAssume(a);

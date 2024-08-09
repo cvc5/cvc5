@@ -1416,7 +1416,11 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
-  d_pfManager->printProof(out, fp, mode, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS, assertionNames);
+  d_pfManager->printProof(out,
+                          fp,
+                          mode,
+                          ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
+                          assertionNames);
   out << std::endl;
 }
 

@@ -48,7 +48,9 @@ class AlfPrinter : protected EnvObj
    * @param out The output stream.
    * @param pfn The proof node.
    */
-  void print(std::ostream& out, std::shared_ptr<ProofNode> pfn, ProofScopeMode psm=ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+  void print(std::ostream& out,
+             std::shared_ptr<ProofNode> pfn,
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
 
   /**
    * Print proof rewrite rule name r to output stream out
