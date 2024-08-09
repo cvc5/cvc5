@@ -140,7 +140,7 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
     const std::vector<Node>& asserts = ap.ref();
     options::ProofFormatMode fm = options().proof.proofFormatMode;
     std::shared_ptr<ProofNode> pf;
-    if (asserts.size()==1)
+    if (asserts.size() == 1)
     {
       pf = pnm->mkAssume(asserts[0]);
     }
@@ -151,7 +151,8 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
       cdp.addStep(conclusion, ProofRule::AND_INTRO, asserts, {});
       pf = cdp.getProofFor(conclusion);
     }
-    std::shared_ptr<ProofNode> pfs = pm->connectProofToAssertions(pf, *this, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+    std::shared_ptr<ProofNode> pfs = pm->connectProofToAssertions(
+        pf, *this, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
     std::stringstream ss;
     pm->printProof(ss, pfs, fm, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
     std::cout << ";;;;;;;;;;;; preprocess proof start" << std::endl;
