@@ -45,6 +45,5 @@ int main(void)
   Term t785 = tm.mkTerm(Kind::FLOATINGPOINT_DIV, {t201, t436, t436});
   Term t788 = tm.mkTerm(Kind::FLOATINGPOINT_IS_NAN, {t785});
   slv.assertFormula({t788});
-  (void) slv.simplify(t450);
+  (void)slv.simplify(t450);
 }
-

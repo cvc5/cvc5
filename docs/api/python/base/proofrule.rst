@@ -16,6 +16,8 @@ rewrites performed on terms. These identifiers are arguments of the proof rules
     :members:
     :undoc-members:
 
+----
+
 .. autoclass:: cvc5.ProofRewriteRule
     :members:
     :undoc-members:
