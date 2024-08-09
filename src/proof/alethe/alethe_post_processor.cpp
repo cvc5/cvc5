@@ -453,6 +453,62 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {nm->mkRawSymbol("\"evaluate\"", nm->sExprType())},
                            *cdp);
     }
+    // If the trusted rule is a theory lemma from arithmetic, we try to phrase
+    // it with "lia_generic".
+    case ProofRule::TRUST:
+    {
+      // check for case where the trust step is introducing an equality between
+      // a term and another whose Alethe conversion is itself, in which case we
+      // justify this as a REFL step. This happens with trusted purification
+      // steps, for example.
+      Node resConv = d_anc.maybeConvert(res);
+      if (!resConv.isNull() && resConv.getKind() == Kind::EQUAL && resConv[0] == resConv[1])
+      {
+        return addAletheStep(AletheRule::REFL,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             children,
+                             {},
+                             *cdp);
+      }
+      TrustId tid;
+      if (getTrustId(args[0], tid) && tid == TrustId::THEORY_LEMMA)
+      {
+        // if we are in the arithmetic case, we rather add a LIA_GENERIC step
+        if (res.getKind() == Kind::NOT && res[0].getKind() == Kind::AND)
+        {
+          Trace("alethe-proof") << "... test each arg if ineq\n";
+          bool allIneqs = true;
+          for (const Node& arg : res[0])
+          {
+            Node toTest = arg.getKind() == Kind::NOT ? arg[0] : arg;
+            Kind k = toTest.getKind();
+            if (k != Kind::LT && k != Kind::LEQ && k != Kind::GT
+                && k != Kind::GEQ && k != Kind::EQUAL)
+            {
+              Trace("alethe-proof") << "... arg " << arg << " not ineq\n";
+              allIneqs = false;
+              break;
+            }
+          }
+          if (allIneqs)
+          {
+            return addAletheStep(AletheRule::LIA_GENERIC,
+                                 res,
+                                 nm->mkNode(Kind::SEXPR, d_cl, res),
+                                 children,
+                                 {},
+                                 *cdp);
+          }
+        }
+      }
+      return addAletheStep(AletheRule::HOLE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           args,
+                           *cdp);
+    }
     // ======== Resolution and N-ary Resolution
     // See proof_rule.h for documentation on the RESOLUTION and CHAIN_RESOLUTION
     // rule. This comment uses variable names as introduced there.
@@ -788,7 +844,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           {},
+                           args,
                            *cdp);
     }
     // ======== And introduction
@@ -840,7 +896,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           {},
+                           args,
                            *cdp);
     }
     // ======== Implication elimination
@@ -935,7 +991,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     // The following rules are all translated according to the clause pattern.
     case ProofRule::CNF_AND_POS:
     {
-      return addAletheStepFromOr(AletheRule::AND_POS, res, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::AND_POS,
+                                 res,
+                                 children,
+                                 std::vector<Node>{args.back()},
+                                 *cdp);
     }
     case ProofRule::CNF_AND_NEG:
     {
@@ -947,7 +1007,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case ProofRule::CNF_OR_NEG:
     {
-      return addAletheStepFromOr(AletheRule::OR_NEG, res, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::OR_NEG,
+                                 res,
+                                 children,
+                                 std::vector<Node>{args.back()},
+                                 *cdp);
     }
     case ProofRule::CNF_IMPLIES_POS:
     {
