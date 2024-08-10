@@ -35,8 +35,10 @@ namespace cvc5::internal {
 namespace proof {
 
 std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
+    {Kind::BITVECTOR_COMP, AletheRule::BV_BITBLAST_STEP_BVCOMP},
     {Kind::BITVECTOR_ULT, AletheRule::BV_BITBLAST_STEP_BVULT},
-    {Kind::VARIABLE, AletheRule::BV_BITBLAST_STEP_VAR},
+    {Kind::BITVECTOR_ULE, AletheRule::BV_BITBLAST_STEP_BVULE},
+    {Kind::BITVECTOR_SLT, AletheRule::BV_BITBLAST_STEP_BVSLT},
     {Kind::BITVECTOR_AND, AletheRule::BV_BITBLAST_STEP_BVAND},
     {Kind::BITVECTOR_OR, AletheRule::BV_BITBLAST_STEP_BVOR},
     {Kind::BITVECTOR_XOR, AletheRule::BV_BITBLAST_STEP_BVXOR},
@@ -48,6 +50,7 @@ std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
     {Kind::BITVECTOR_CONCAT, AletheRule::BV_BITBLAST_STEP_CONCAT},
     {Kind::CONST_BITVECTOR, AletheRule::BV_BITBLAST_STEP_CONST},
     {Kind::BITVECTOR_EXTRACT, AletheRule::BV_BITBLAST_STEP_EXTRACT},
+    {Kind::BITVECTOR_SIGN_EXTEND, AletheRule::BV_BITBLAST_STEP_SIGN_EXTEND},
     {Kind::EQUAL, AletheRule::BV_BITBLAST_STEP_BVEQUAL},
 };
 
@@ -1442,12 +1445,40 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // ------------------------ BV_BITBLAST_STEP_BV<KIND>
     //  (cl (= t bitblast(t)))
+    case ProofRule::BV_EAGER_ATOM:
+    {
+      Assert(res.getKind() == Kind::EQUAL && res[0][0] == res[1]);
+      Node newRes = res[0][0].eqNode(res[1]);
+      return addAletheStep(AletheRule::REFL,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, newRes),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ------------------------ BV_BITBLAST_STEP_BV<KIND>
+    //  (cl (= t bitblast(t)))
     case ProofRule::BV_BITBLAST_STEP:
     {
-      Assert(s_bvKindToAletheRule.find(res[0].getKind())
-             != s_bvKindToAletheRule.end())
-          << "Bit-blasted kind not supported in Alethe post-processing.";
-      return addAletheStep(s_bvKindToAletheRule.at(res[0].getKind()),
+      Kind k = res[0].getKind();
+      // no checking for those yet in Carcara or Isabelle, so we produce holes
+      if (k == Kind::BITVECTOR_UDIV || k == Kind::BITVECTOR_UREM
+          || k == Kind::BITVECTOR_SHL || k == Kind::BITVECTOR_LSHR
+          || k == Kind::BITVECTOR_ASHR)
+      {
+        return addAletheStep(AletheRule::HOLE,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             children,
+                             {},
+                             *cdp);
+      }
+      // if the term being bitblasted is a variable or a nonbv term, then this
+      // is a "bitblast var" step
+      auto it = s_bvKindToAletheRule.find(k);
+      return addAletheStep(it == s_bvKindToAletheRule.end()
+                               ? AletheRule::BV_BITBLAST_STEP_VAR
+                               : it->second,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
