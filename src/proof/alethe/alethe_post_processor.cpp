@@ -576,11 +576,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       else if (id == ProofRule::MACRO_RESOLUTION
                || id == ProofRule::MACRO_RESOLUTION_TRUST)
       {
-        for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
-        {
-          cargs.push_back(args[i]);
-          cargs.push_back(args[i + 1]);
-        }
+        cargs.insert(cargs.end(), args.begin() + 1, args.end());
       }
       else
       {
