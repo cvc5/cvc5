@@ -228,6 +228,18 @@ void InferProofCons::convert(InferenceId infer,
         {
           useBuffer = true;
         }
+        else
+        {
+          // more aggressive: lift to original form and use extended rewriting
+          Node psrco = SkolemManager::getOriginalForm(psrc);
+          if (psb.applyPredTransform(psrco, conc, exps,
+                                   MethodId::SB_DEFAULT,
+                                   MethodId::SBA_SEQUENTIAL,
+                                   MethodId::RW_EXT_REWRITE))
+          {
+            useBuffer = psb.applyPredTransform(psrc, psrco, {});
+          }
+        }
       }
       else
       {
