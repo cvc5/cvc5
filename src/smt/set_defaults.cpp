@@ -175,8 +175,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(smt, proofMode, options::ProofMode::FULL, "enabling proofs");
     // Default granularity is theory rewrite if we are intentionally using
     // proofs, otherwise it is MACRO (e.g. if produce unsat cores is true)
-    if (opts.proof.proofGranularityMode
-        < options::ProofGranularityMode::THEORY_REWRITE)
+    if (!opts.proof.proofGranularityModeWasSetByUser
+        && opts.proof.proofGranularityMode
+               < options::ProofGranularityMode::THEORY_REWRITE)
     {
       SET_AND_NOTIFY(proof,
                      proofGranularityMode,
