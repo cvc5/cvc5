@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ieval=use
+; COMMAND-LINE: --ieval=use --term-db-mode=all
 ; EXPECT: unsat
 ;; Unary OR is not supported in Alethe
 ; DISABLE-TESTER: alethe

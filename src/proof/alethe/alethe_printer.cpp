@@ -19,8 +19,8 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "options/proof_options.h"
 #include "options/printer_options.h"
+#include "options/proof_options.h"
 #include "proof/alethe/alethe_proof_rule.h"
 #include "util/smt2_quote_string.h"
 

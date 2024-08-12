@@ -37,13 +37,10 @@ class AletheProofPostprocessCallback : protected EnvObj,
    * @param env The environment
    * @param anc The Alethe node converter
    * @param resPivots Whether pivots should be used in resolution
-   * @param reasonForConversionFailure The reason to be set for conversion
-   * failure, if any
    */
   AletheProofPostprocessCallback(Env& env,
                                  AletheNodeConverter& anc,
-                                 bool resPivots,
-                                 std::string* reasonForConversionFailure);
+                                 bool resPivots);
 
   ~AletheProofPostprocessCallback() {}
 
@@ -93,9 +90,15 @@ class AletheProofPostprocessCallback : protected EnvObj,
                        const std::vector<Node>& args,
                        CDProof* cdp);
 
+  /** Retrieve the saved error message, if any. */
+  const std::string& getError();
+
  private:
   /** The Alethe node converter */
   AletheNodeConverter& d_anc;
+  /** Error message saved during failed conversion. */
+  std::string d_reasonForConversionFailure;
+
   /** Whether to keep the pivots in the arguments of the resolution rule. */
   bool d_resPivots;
   /** The cl operator. */
@@ -151,9 +154,6 @@ class AletheProofPostprocessCallback : protected EnvObj,
   /** Nodes corresponding to the Boolean values. */
   Node d_true;
   Node d_false;
-
-  /** The reason for conversion failure, if any. */
-  std::string* d_reasonForConversionFailure;
 };
 
 /**
@@ -170,12 +170,11 @@ class AletheProofPostprocess : protected EnvObj
    * If the conversion is possible, true is returned. Otherwise, false. The
    * conversion may fail if the proof contains unsupported elements in the
    * Alethe proof calculus, such as uncategorized Skolems.
-   *
-   * The argument reasonForConversionFailure will be set with the reason for
-   * failure, if any.
    */
-  bool process(std::shared_ptr<ProofNode> pf,
-               std::string& reasonForConversionFailure);
+  bool process(std::shared_ptr<ProofNode> pf);
+
+  /** Retrieve the saved error message, if any. */
+  const std::string& getError();
 
  private:
   /** The post process callback */

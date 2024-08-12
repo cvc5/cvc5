@@ -9,14 +9,37 @@ cvc5 1.2.0
    - Documentation: https://cvc5.github.io/docs-ci/docs-main/api/c/c.html
    - Examples: https://github.com/cvc5/cvc5/tree/main/examples/api/c
 
-- Exposed creation and maintenance of **Skolem functions** to the API.
+- Exposed creation and maintenance of **Skolem functions** to the API. Skolem
+  functions are symbols that are internally introduced by cvc5 during solving.
+  They are formalized via an identifier (see
+  https://cvc5.github.io/docs-ci/docs-main/skolem-ids.html for details) as well
+  as a (possibly empty) set of indices.
+  + The **API** methods `Term::isSkolem()`, `Term::getSkolemId()`, and
+    `Term::getSkolemIndices()`may now be used to identify terms corresponding
+    to skolems.
+
+- We now export kinds `BITVECTOR_FROM_BOOLS`, `BITVECTOR_BIT`, `DIVISION_TOTAL`,
+  `INTS_DIVISION_TOTAL`, `INTS_MODULUS_TOTAL` which may appear in terms
+  resulting from simplification or terms appearing in proofs.
+
+- Proof rules corresponding to rewrite rules are now exported in the API via
+  the enum `ProofRewriteRule`.
+
+- A new `Plugin` class is available in our API. This class allows a user
+  to be notified when SAT clauses or theory lemmas are learned internally
+  by cvc5. The plugin class also contains a callback for the user to introduce
+  new learned clauses into the state of cvc5 during solving.
+
+- Added a new strategy `--mbqi-fast-sygus` (disabled by default) for **quantifier
+  instantiation** which uses SyGuS enumeration to augment instantiations from
+  model-based quantifier instantiation.
 
 ## Changes
 
 - We now require CMake >= 3.16.
 
 - **API**
-  All APIs have been refactore to expose a TermManager to the API. A term
+  All APIs have been refactored to expose a TermManager to the API. A term
   manager manages creation and maintenance of all terms and sorts (across
   potentially several solver instances within a thread).
   Corresponding functions that were previously associated with a solver
@@ -29,18 +52,27 @@ cvc5 1.2.0
     - Unsat cores and proofs are now available via the `Solver` methods
       `unsat_core()` and `proof()`, respectively.
 
-- The default proof format of cvc5 has been renamed to the **Cooperating Proof Calculus (CPC) proof format**.
-  This proof format coincides with proof objects in our API.
+- The default proof format of cvc5 has been renamed to the
+  **Cooperating Proof Calculus (CPC) proof format**. This proof format coincides
+  with proof objects in our API.
   * **API**
     + The option `--proof-format=cpc` prints proofs in the CPC format.
       This option is now enabled by default.
-  * The Ethos checker is available for download via the script
-    `./contrib/get-ethos-checker`, which can check proofs in this format.
-    This checker is the second generation of the the AletheLF checker (`alfc`).
-    Ethos inherits the code base of alfc and is based on a logical
-    framework called Eunoia (formerly called **AletheLF**).
+  * The **Ethos** proof checker is available, which can check proofs in this
+    format. In particular, the 0.1.0 release of Ethos can check proofs generated
+    by this version of cvc5. This checker is the second generation of the
+    AletheLF checker (`alfc`). Ethos inherits the code base of alfc and is based
+    on a logical framework called **Eunoia** (formerly called AletheLF).
+    See https://github.com/cvc5/ethos for more details. Note that the
+    development version of Ethos is available for download via the script
+    `./contrib/get-ethos-checker`, which will be kept in sync with further
+    development versions of cvc5.
   * The rules of this format have been formalized in Eunoia and are available
     in the cvc5 repository under the directory `./proofs/eo/cpc/`.
+
+- The semantics of `SQRT` was changed to assume the result is positive.
+
+- Fixed a bug involving how sequence terms are printed in model values.
 
 
 cvc5 1.1.2
@@ -50,9 +82,13 @@ cvc5 1.1.2
 
 - Added support for **nullable** sorts and lift operator to the theory of
   **datatypes**.
+
 - Added a new strategy `--sub-cbqi` (disabled by default) for **quantifier
   instantiation** which uses subsolvers to compute unsat cores of instantiations
   that are used in proofs of unsatisfiability.
+
+- Add support for the kind `BITVECTOR_NEGO` corresponding to bitvector
+  negation overflow detection.
 
 ## Changes
 

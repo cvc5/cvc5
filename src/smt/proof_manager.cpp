@@ -298,11 +298,10 @@ void PfManager::printProof(std::ostream& out,
   else if (mode == options::ProofFormatMode::ALETHE_ALF)
   {
     // convert using Alethe post-processor
-    std::string reasonForConversionFailure;
     proof::AletheNodeConverter anc(nodeManager());
 
     proof::AletheProofPostprocess vpfpp(d_env, anc);
-    if (vpfpp.process(fp, reasonForConversionFailure))
+    if (vpfpp.process(fp))
     {
       // print using ALF printer
       proof::AlfPrinter alfp(d_env, anc, d_rewriteDb.get());
@@ -310,24 +309,24 @@ void PfManager::printProof(std::ostream& out,
     }
     else
     {
-      out << "(error \"" << reasonForConversionFailure << "\")";
+      out << "(error \"" << vpfpp.getError() << "\")";
     }
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
     options::ProofCheckMode oldMode = options().proof.proofCheck;
     d_pnm->getChecker()->setProofCheckMode(options::ProofCheckMode::NONE);
-    std::string reasonForConversionFailure;
-    proof::AletheNodeConverter anc(nodeManager(), options().proof.proofAletheDefineSkolems);
+    proof::AletheNodeConverter anc(nodeManager(),
+                                   options().proof.proofAletheDefineSkolems);
     proof::AletheProofPostprocess vpfpp(d_env, anc);
-    if (vpfpp.process(fp, reasonForConversionFailure))
+    if (vpfpp.process(fp))
     {
       proof::AletheProofPrinter vpp(d_env, anc);
       vpp.print(out, fp, assertionNames);
     }
     else
     {
-      out << "(error " << reasonForConversionFailure << ")";
+      out << "(error " << vpfpp.getError() << ")";
     }
     d_pnm->getChecker()->setProofCheckMode(oldMode);
   }

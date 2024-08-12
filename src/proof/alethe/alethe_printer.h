@@ -97,10 +97,6 @@ class AletheProofPrinter : protected EnvObj
    * @param prefix The prefix to be used in step ids.
    * @param id The current id being used for printing step ids
    * @param pfn The proof node to be printed
-   * @param assumptionsMap Map from assumptions to their ids. Since these ids
-   * are arbitrary symbols for assumptions (which could be defined using user
-   * names), the map ranges over strings
-   * @param pfMap Map from proof nodes to their ids
    */
   void printInternal(std::ostream& out,
                      const std::string& prefix,
@@ -127,14 +123,13 @@ class AletheProofPrinter : protected EnvObj
    */
   void printStepId(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
-  /** Print the step with respective id, premises and arguments.
+  /** Print the step with respective id, rule, premises and arguments.
    *
    * @param out The stream to write to
    * @param stepId The id of the step
+   * @param rule The Alethe rule of the step
    * @param pfArgs The arguments of this step
    * @param pfChildren The premises of this step
-   * @param assumptionsMap Map from assumptions to their ids
-   * @param pfMap Map from proof nodes to their ids
    */
   void printStep(std::ostream& out,
                  const std::string& stepId,

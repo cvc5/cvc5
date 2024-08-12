@@ -59,12 +59,10 @@ std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     Env& env,
     AletheNodeConverter& anc,
-    bool resPivots,
-    std::string* reasonForConversionFailure)
+    bool resPivots)
     : EnvObj(env),
       d_anc(anc),
-      d_resPivots(resPivots),
-      d_reasonForConversionFailure(reasonForConversionFailure)
+      d_resPivots(resPivots)
 {
   NodeManager* nm = nodeManager();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());
@@ -72,18 +70,23 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
   d_false = nm->mkConst(false);
 }
 
+const std::string& AletheProofPostprocessCallback::getError()
+{
+  return d_reasonForConversionFailure;
+}
+
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                   const std::vector<Node>& fa,
                                                   bool& continueUpdate)
 {
-  return d_reasonForConversionFailure->empty()
+  return d_reasonForConversionFailure.empty()
          && pn->getRule() != ProofRule::ALETHE_RULE;
 }
 
 bool AletheProofPostprocessCallback::shouldUpdatePost(
     std::shared_ptr<ProofNode> pn, const std::vector<Node>& fa)
 {
-  if (!d_reasonForConversionFailure->empty() || pn->getArguments().empty())
+  if (!d_reasonForConversionFailure.empty() || pn->getArguments().empty())
   {
     return false;
   }
@@ -183,6 +186,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // * the corresponding proof node is (or G1 ... Gn)
     //
+    // The documentation for each translation below will use variable names as
+    // defined in the original documentation of the rules in proof_rule.h.
     //================================================= Core rules
     //======================== Assume and Scope
     // nothing happens
@@ -573,11 +578,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       else if (id == ProofRule::MACRO_RESOLUTION
                || id == ProofRule::MACRO_RESOLUTION_TRUST)
       {
-        for (size_t i = 1, nargs = args.size(); i < nargs; i = i + 2)
-        {
-          cargs.push_back(args[i]);
-          cargs.push_back(args[i + 1]);
-        }
+        cargs.insert(cargs.end(), args.begin() + 1, args.end());
       }
       else
       {
@@ -690,8 +691,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                  *cdp);
     }
     // ======== Equality resolution
-    // See proof_rule.h for documentation on the EQ_RESOLVE rule. This
-    // comment uses variable names as introduced there.
     //
     //  ------ EQUIV_POS2
     //   VP1                P2    P1
@@ -712,7 +711,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       // of children[0], if it is for (or t1 ... tn), may actually conclude  (cl
       // t1 ... tn). Using RESOLUTION_OR will guarantee that in post-visit time
       // the resolution step is fixed if need be
-      return success &= addAletheStep(
+      return success
+             && addAletheStep(
                  AletheRule::RESOLUTION_OR,
                  res,
                  nm->mkNode(Kind::SEXPR, d_cl, res),
@@ -1148,32 +1148,17 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Congruence
     // In the case that the kind of the function symbol f? is FORALL or
-    // EXISTS, the cong rule needs to be converted into a bind rule. The first
-    // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+    // EXISTS, the cong rule needs to be converted into a bind rule:
     //
-    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-    //  (BOUND_VARIABLE LIST (v1 A1) ... (vn vn)).
+    //  (cl (= F G))
+    // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
+    //  (= (Q ((y1 T1) ... (yn Tn)) F) (Q ((z1 T1) ... (zn Tn)) G))
     //
-    //  ----- REFL ... ----- REFL
-    //   VP1            VPn             P2
-    //  --------------------------------------- bind,
-    //                                          ((:= (v1 A1) v1) ...
-    //                                          (:= (vn An) vn))
-    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
-    //   (forall ((v1 B1)...(vn Bn)) s2)))**
-    //
-    //  VPi: (cl (= vi vi))*
-    //
-    //  * the corresponding proof node is (or (= vi vi))
-    //
-    // Otherwise, the rule follows the singleton pattern, i.e.:
+    // Otherwise, the rule is regular congruence:
     //
     //    P1 ... Pn
     //  -------------------------------------------------------- cong
-    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
-    //
-    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
-    // s1 ... sn))
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
     {
@@ -1384,8 +1369,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Then, we eliminate the equality to obtain (not F*sigma) from the premise:
     //
-    //  ---------------- equiv_pos2
-    //     VP1              (= (not (forall (...) F)) (not F*sigma'))    (not (forall (...) F))
+    //  ---- equiv_pos2
+    //  VP1   (= (not (forall (...) F)) (not F*sigma'))   (not (forall (...) F))
     //  ------------------------------------------------------------- resolution
     //                           (not F*sigma')
     //
@@ -1401,7 +1386,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       bool success = true;
       Node quant = children[0][0], skolemized = res[0];
-      Assert(children[0].getKind() == Kind::NOT && children[0][0].getKind() == Kind::FORALL);
+      Assert(children[0].getKind() == Kind::NOT
+             && children[0][0].getKind() == Kind::FORALL);
       Node eq = quant[1].eqNode(skolemized);
       // add rfl step for final replacement
       Node premise = nm->mkNode(Kind::SEXPR, d_cl, eq);
@@ -1432,8 +1418,12 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node conclusion = nm->mkNode(
           Kind::SEXPR, d_cl, d_anc.convert(quant.eqNode(skolemized)));
       // add the sko step
-      success &= addAletheStep(
-          AletheRule::ANCHOR_SKO_FORALL, conclusion, conclusion, {premise}, skoSubstitutions, *cdp);
+      success &= addAletheStep(AletheRule::ANCHOR_SKO_FORALL,
+                               conclusion,
+                               conclusion,
+                               {premise},
+                               skoSubstitutions,
+                               *cdp);
       // add congruence step with NOT for the forall case
       Node newConclusion = nm->mkNode(
           Kind::SEXPR, d_cl, (quant.notNode()).eqNode(skolemized.notNode()));
@@ -1543,22 +1533,23 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Alpha Equivalence
-    // See proof_rule.h for documentation on the ALPHA_EQUIV rule. This
-    // comment uses variable names as introduced there.
     //
-    // Let F = (forall ((y1 A1) ... (yn An)) G) and F*sigma = (forall ((z1 A1)
-    // ... (zn An)) G*sigma)
-    //
+    // Given the formula F = (forall ((y1 A1) ... (yn An)) G) and the
+    // substitution sigma = {y1 -> z1, ..., yn -> zn}, the step is represented
+    // as
     //
     //  ------------------ refl
     //  (cl (= G G*sigma))
     // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
     //  (= F F*sigma)
     //
+    // In case the sigma is the identity this step is merely converted to
+    //
+    //  ------------------ refl
+    //  (cl (= F F))
     case ProofRule::ALPHA_EQUIV:
     {
       std::vector<Node> varEqs;
-      // performance optimization
       // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
       bool allSame = true;
       for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
@@ -2457,15 +2448,18 @@ bool AletheProofPostprocessCallback::updatePost(
           }
         }
       }
-      if (hasUpdated)
+      if (TraceIsOn("alethe-proof"))
       {
-        Trace("alethe-proof")
-            << "... update alethe step in finalizer " << res << " "
-            << newChildren << " / " << args << std::endl;
-      }
-      else
-      {
-        Trace("alethe-proof") << "... no update\n";
+        if (hasUpdated)
+        {
+          Trace("alethe-proof")
+              << "... update alethe step in finalizer " << res << " "
+              << newChildren << " / " << args << std::endl;
+        }
+        else
+        {
+          Trace("alethe-proof") << "... no update\n";
+        }
       }
       success &= addAletheStep(
           AletheRule::RESOLUTION,
@@ -2599,7 +2593,7 @@ bool AletheProofPostprocessCallback::ensureFinalStep(
     Node conv = d_anc.maybeConvert(a, true);
     if (conv.isNull())
     {
-      *d_reasonForConversionFailure = d_anc.getError();
+      d_reasonForConversionFailure = d_anc.getError();
       success = false;
       break;
     }
@@ -2629,7 +2623,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   conclusion = d_anc.maybeConvert(conclusion);
   if (conclusion.isNull())
   {
-    *d_reasonForConversionFailure = d_anc.getError();
+    d_reasonForConversionFailure = d_anc.getError();
     return false;
   }
   newArgs.push_back(conclusion);
@@ -2638,7 +2632,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
     Node conv = d_anc.maybeConvert(arg);
     if (conv.isNull())
     {
-      *d_reasonForConversionFailure = d_anc.getError();
+      d_reasonForConversionFailure = d_anc.getError();
       return false;
     }
     newArgs.push_back(conv);
@@ -2665,18 +2659,18 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
 
 AletheProofPostprocess::AletheProofPostprocess(Env& env,
                                                AletheNodeConverter& anc)
-    : EnvObj(env),
-      d_cb(env,
-           anc,
-           options().proof.proofAletheResPivots,
-           &d_reasonForConversionFailure)
+    : EnvObj(env), d_cb(env, anc, options().proof.proofAletheResPivots)
 {
 }
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf,
-                                     std::string& reasonForConversionFailure)
+const std::string& AletheProofPostprocess::getError()
+{
+  return d_reasonForConversionFailure;
+}
+
+bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // first two nodes are scopes for definitions and other assumptions. We
   // process only the internal proof node. And we merge these two scopes
@@ -2718,9 +2712,9 @@ bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     }
   }
   // Since the final step may also lead to issues, need to test here again
-  if (!d_reasonForConversionFailure.empty())
+  if (!d_cb.getError().empty())
   {
-    reasonForConversionFailure = d_reasonForConversionFailure;
+    d_reasonForConversionFailure = d_cb.getError();
     return false;
   }
   return true;
