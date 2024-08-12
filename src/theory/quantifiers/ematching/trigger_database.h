@@ -70,13 +70,15 @@ class TriggerDatabase : protected EnvObj
                      const std::vector<Node>& nodes,
                      bool keepAll = true,
                      int trOption = TR_MAKE_NEW,
-                     size_t useNVars = 0);
+                     size_t useNVars = 0,
+                     bool isUser = false);
   /** single trigger version that calls the above function */
   Trigger* mkTrigger(Node q,
                      Node n,
                      bool keepAll = true,
                      int trOption = TR_MAKE_NEW,
-                     size_t useNVars = 0);
+                     size_t useNVars = 0,
+                     bool isUser = false);
 
   /** make trigger terms
    *

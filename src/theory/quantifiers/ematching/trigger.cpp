@@ -49,7 +49,8 @@ Trigger::Trigger(Env& env,
                  QuantifiersRegistry& qr,
                  TermRegistry& tr,
                  Node q,
-                 std::vector<Node>& nodes)
+                 std::vector<Node>& nodes,
+          bool isUser)
     : EnvObj(env),
       d_qstate(qs),
       d_qim(qim),
@@ -88,8 +89,16 @@ Trigger::Trigger(Env& env,
   d_trNode = NodeManager::currentNM()->mkNode(Kind::SEXPR, extNodes);
   if (isOutputOn(OutputTag::TRIGGER))
   {
+    if (isUser)
+    {
+      output(OutputTag::TRIGGER) << "(user-trigger ";
+    }
+    else
+    {
+      output(OutputTag::TRIGGER) << "(trigger ";
+    }
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    output(OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q) << " "
+    output(OutputTag::TRIGGER) << qa.quantToString(q) << " "
                                << d_trNode << ")" << std::endl;
   }
   QuantifiersStatistics& stats = qs.getStats();

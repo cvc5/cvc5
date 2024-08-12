@@ -87,7 +87,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     for (size_t i = 0, usize = ugw.size(); i < usize; i++)
     {
       Trigger* t =
-          d_td.mkTrigger(q, ugw[i], true, TriggerDatabase::TR_RETURN_NULL);
+          d_td.mkTrigger(q, ugw[i], true, TriggerDatabase::TR_RETURN_NULL, 0, true);
       if (t)
       {
         d_user_gen[q].push_back(t);
@@ -149,7 +149,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
     d_user_gen_wait[q].push_back(nodes);
     return;
   }
-  Trigger* t = d_td.mkTrigger(q, nodes, true, TriggerDatabase::TR_MAKE_NEW);
+  Trigger* t = d_td.mkTrigger(q, nodes, true, TriggerDatabase::TR_MAKE_NEW, 0, true);
   if (t)
   {
     d_user_gen[q].push_back(t);

@@ -109,7 +109,8 @@ class Trigger : protected EnvObj
           QuantifiersRegistry& qr,
           TermRegistry& tr,
           Node q,
-          std::vector<Node>& nodes);
+          std::vector<Node>& nodes,
+          bool isUser = false);
   virtual ~Trigger();
   /** get the generator associated with this trigger */
   IMGenerator* getGenerator() { return d_mg; }
