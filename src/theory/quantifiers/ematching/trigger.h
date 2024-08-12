@@ -102,7 +102,16 @@ class Trigger : protected EnvObj
   friend class IMGenerator;
 
  public:
-  /** trigger constructor */
+  /** trigger constructor 
+   * 
+   * @param env Reference to the environment.
+   * @param qs Reference to quantifiers state.
+   * @param qr Reference to quantifiers registry.
+   * @param tr Reference to term registry.
+   * @param q The quantified formula this is a trigger for.
+   * @param node The nodes comprising the trigger.
+   * @param isUser Whether this was a user trigger (for output trace).
+   */
   Trigger(Env& env,
           QuantifiersState& qs,
           QuantifiersInferenceManager& qim,
