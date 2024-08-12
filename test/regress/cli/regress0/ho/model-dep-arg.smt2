@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --simplification=none
 ; EXPECT: unsat
+;; introduces fresh Skolem in a trusted step
+; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-fun f ((-> Int Int)) Int)
 (declare-fun g (Int) Int)
