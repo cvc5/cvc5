@@ -278,8 +278,8 @@ class PropPfManager : protected EnvObj
   context::CDHashSet<Node> d_inputClauses;
   /** Asserted clauses derived from lemmas */
   context::CDHashSet<Node> d_lemmaClauses;
-  /** Are we debugging inference identifiers? */
-  bool d_debugLemmaClauseIds;
+  /** Are we tracking inference identifiers? */
+  bool d_trackLemmaClauseIds;
   /** Mapping lemma clauses to inference identifiers */
   context::CDHashMap<Node, theory::InferenceId> d_lemmaClauseIds;
   /** The current identifier */

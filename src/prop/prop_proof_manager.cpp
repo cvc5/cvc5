@@ -64,7 +64,7 @@ PropPfManager::PropPfManager(Env& env,
       d_assumptions(assumptions),
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
-      d_debugLemmaClauseIds(false),
+      d_trackLemmaClauseIds(false),
       d_lemmaClauseIds(userContext()),
       d_currLemmaId(theory::InferenceId::NONE),
       d_satPm(nullptr)
@@ -76,7 +76,7 @@ PropPfManager::PropPfManager(Env& env,
   // literal), which leads to adding True as its explanation, since for creating
   // a learned clause we need at least two literals.
   d_assertions.push_back(nodeManager()->mkConst(true));
-  d_debugLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
+  d_trackLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
 }
 
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
@@ -462,7 +462,7 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   else
   {
     d_lemmaClauses.insert(normClauseNode);
-    if (d_debugLemmaClauseIds)
+    if (d_trackLemmaClauseIds)
     {
       d_lemmaClauseIds[normClauseNode] = d_currLemmaId;
     }
