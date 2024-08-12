@@ -473,6 +473,7 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
     {
       d_lemmaClauseIds[normClauseNode] = d_currLemmaId;
       uint64_t currTimestamp = d_env.getResourceManager()->getResource(Resource::TheoryFullCheckStep);
+      std::cout << "Timestamp " << currTimestamp << std::endl;
       d_lemmaClauseTimestamp[normClauseNode] = currTimestamp;
     }
   }
