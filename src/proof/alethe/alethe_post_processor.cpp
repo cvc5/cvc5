@@ -183,6 +183,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // * the corresponding proof node is (or G1 ... Gn)
     //
+    // The documentation for each translation below will use variable names as
+    // defined in the original documentation of the rules in proof_rule.h.
     //================================================= Core rules
     //======================== Assume and Scope
     case ProofRule::ASSUME:
@@ -1146,58 +1148,49 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Congruence
     // In the case that the kind of the function symbol f? is FORALL or
-    // EXISTS, the cong rule needs to be converted into a bind rule. The first
-    // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+    // EXISTS, the cong rule needs to be converted into a bind rule:
     //
-    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-    //  (BOUND_VARIABLE LIST (v1 A1) ... (vn vn)).
+    //  (cl (= F G))
+    // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
+    //  (= (Q ((y1 T1) ... (yn Tn)) F) (Q ((z1 T1) ... (zn Tn)) G))
     //
-    //  ----- REFL ... ----- REFL
-    //   VP1            VPn             P2
-    //  --------------------------------------- bind,
-    //                                          ((:= (v1 A1) v1) ...
-    //                                          (:= (vn An) vn))
-    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
-    //   (forall ((v1 B1)...(vn Bn)) s2)))**
-    //
-    //  VPi: (cl (= vi vi))*
-    //
-    //  * the corresponding proof node is (or (= vi vi))
-    //
-    // Otherwise, the rule follows the singleton pattern, i.e.:
+    // Otherwise, the rule is regular congruence:
     //
     //    P1 ... Pn
     //  -------------------------------------------------------- cong
-    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
-    //
-    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
-    // s1 ... sn))
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
     {
       if (res[0].isClosure())
       {
-        std::vector<Node> vpis;
-        bool success = true;
-        for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
-             i++)
+        // collect rhs variables
+        new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
+        for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
         {
-          Node vpi = children[0][0][i].eqNode(children[0][1][i]);
-          new_args.push_back(vpi);
-          vpi = nm->mkNode(Kind::SEXPR, d_cl, vpi);
-          vpis.push_back(vpi);
-          success &= addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
+          new_args.push_back(res[0][0][i].eqNode(res[1][0][i]));
         }
-        vpis.push_back(children[1]);
-        return success
-               && addAletheStep(AletheRule::ANCHOR_BIND,
-                                res,
-                                nm->mkNode(Kind::SEXPR, d_cl, res),
-                                vpis,
-                                new_args,
-                                *cdp);
+        Kind k = res[0].getKind();
+        return addAletheStep(AletheRule::ANCHOR_BIND,
+                             res,
+                             nm->mkNode(Kind::SEXPR, d_cl, res),
+                             // be sure to ignore premise for pattern
+                             (k == Kind::FORALL || k == Kind::EXISTS)
+                                 ? std::vector<Node>{children[0]}
+                                 : children,
+                             new_args,
+                             *cdp);
       }
       return addAletheStep(AletheRule::CONG,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    case ProofRule::HO_CONG:
+    {
+      return addAletheStep(AletheRule::HO_CONG,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
