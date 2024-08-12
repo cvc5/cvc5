@@ -395,20 +395,17 @@ bool ArithCongruenceManager::propagate(TNode x){
         // neg is the (negation of) a relation involving t.
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
                                           : proven[1];
-        if (peq[1].isConst())
+        ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+        Node res = pc->checkDebug(
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {neg, peq}, {falsen}, falsen);
+        Assert(!res.isNull());
+        if (!res.isNull())
         {
-          ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-          Node res = pc->checkDebug(
-              ProofRule::MACRO_SR_PRED_TRANSFORM, {neg, peq}, {falsen}, falsen);
-          Assert(!res.isNull());
-          if (!res.isNull())
-          {
             cdp.addStep(falsen,
                         ProofRule::MACRO_SR_PRED_TRANSFORM,
                         {neg, peq},
                         {falsen});
             success = true;
-          }
         }
       }
       if (success)
