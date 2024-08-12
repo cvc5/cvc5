@@ -55,8 +55,11 @@ class TriggerDatabase : protected EnvObj
    * @param q The quantified formula we are making a trigger for
    * @param nodes The nodes comprising the (multi-)trigger
    * @param keepAll Don't remove unneeded patterns;
-   * @param trOption Policy for dealing with triggers that already exist (see below)
-   * @param useNVars Number of variables that should be bound by the trigger typically, the number of variables in q (0 defaults to the number of variables in q).
+   * @param trOption Policy for dealing with triggers that already exist (see
+   * below)
+   * @param useNVars Number of variables that should be bound by the trigger
+   * typically, the number of variables in q (0 defaults to the number of
+   * variables in q).
    * @param isUser Whether this is a user trigger (for output trace).
    */
   enum
