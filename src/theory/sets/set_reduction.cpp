@@ -152,25 +152,6 @@ Node SetReduction::reduceProjectOperator(Node n)
   return setMap;
 }
 
-Node SetReduction::reducePredicateAllOperator(Node n)
-{
-  Assert(n.getKind() == Kind::SET_ALL);
-  NodeManager* nm = NodeManager::currentNM();
-  Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
-  Node all = filter.eqNode(n[1]);
-  return all;
-}
-
-Node SetReduction::reducePredicateSomeOperator(Node n)
-{
-  Assert(n.getKind() == Kind::SET_SOME);
-  NodeManager* nm = NodeManager::currentNM();
-  Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
-  Node empty = nm->mkConst(EmptySet(n[1].getType()));
-  Node some = filter.eqNode(empty).notNode();
-  return some;
-}
-
 }  // namespace sets
 }  // namespace theory
 }  // namespace cvc5::internal

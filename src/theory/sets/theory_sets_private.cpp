@@ -712,14 +712,12 @@ void TheorySetsPrivate::checkUpwardsClosure()
 void TheorySetsPrivate::checkFilterUp()
 {
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   const std::vector<Node>& filterTerms = d_state.getFilterTerms();
 
   for (const Node& term : filterTerms)
   {
     Node p = term[0];
     Node A = term[1];
-    p = sm->getUnpurifiedForm(p);
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
@@ -748,13 +746,11 @@ void TheorySetsPrivate::checkFilterUp()
 void TheorySetsPrivate::checkFilterDown()
 {
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   const std::vector<Node>& filterTerms = d_state.getFilterTerms();
   for (const Node& term : filterTerms)
   {
     Node p = term[0];
     Node A = term[1];
-    p = sm->getUnpurifiedForm(p);
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(term));
     for (const std::pair<const Node, Node>& pair : positiveMembers)

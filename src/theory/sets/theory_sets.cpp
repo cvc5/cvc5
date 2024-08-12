@@ -190,16 +190,6 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     Node ret = SetReduction::reduceProjectOperator(n);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
-  if (nk == Kind::SET_ALL)
-  {
-    Node ret = SetReduction::reducePredicateAllOperator(n);
-    return TrustNode::mkTrustRewrite(n, ret, nullptr);
-  }
-  if (nk == Kind::SET_SOME)
-  {
-    Node ret = SetReduction::reducePredicateSomeOperator(n);
-    return TrustNode::mkTrustRewrite(n, ret, nullptr);
-  }
   return d_internal->ppRewrite(n, lems);
 }
 
