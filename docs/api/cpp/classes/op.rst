@@ -12,10 +12,8 @@ instantiating a corresponding :cpp:class:`cvc5::Op`, even if the operator does
 not require additional parameters.
 Terms with operators that require additional parameters, e.g.,
 :cpp:enumerator:`cvc5::Kind::BITVECTOR_EXTRACT`, must be created via
-:cpp:func:`cvc5::Solver::mkOp(Kind kind, const std::vector\<uint32_t> args) <cvc5::Solver::mkOp()>` and
-:cpp:func:`cvc5::Solver::mkTerm(const Op& op, const std::vector\<Term>& children) <Term cvc5::Solver::mkTerm(const Op& op, const std::vector\<Term>& children) const>`.
-
-
+:cpp:func:`cvc5::TermManager::mkOp()` and
+:cpp:func:`cvc5::TermManager::mkTerm(const Op& op, const std::vector\<Term>& children) <Term cvc5::TermManager::mkTerm(const Op& op, const std::vector\<Term>& children)>`.
 
 
 ----

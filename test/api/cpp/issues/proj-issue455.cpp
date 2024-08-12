@@ -64,7 +64,8 @@ int main(void)
   Term t26 = tm.mkVar(s1, "_f19_2");
   Term t27 = tm.mkVar(s2, "_f19_3");
   Term t28 = tm.mkVar(s1, "_f19_4");
-  Term t29 = slv.defineFun("_f19", {t24, t25, t26, t27, t28}, t24.getSort(), t24);
+  Term t29 =
+      slv.defineFun("_f19", {t24, t25, t26, t27, t28}, t24.getSort(), t24);
   Term t30 = tm.mkTerm(Kind::DISTINCT, {t19, t20, t16});
   Term t31 = tm.mkTerm(Kind::ITE, {t30, t9, t22});
   Term t32 = tm.mkTerm(Kind::DIVISION, {t11, t6, t10});

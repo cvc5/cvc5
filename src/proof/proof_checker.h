@@ -125,6 +125,9 @@ class ProofChecker
    */
   bool isPedanticFailure(ProofRule id, std::ostream* out) const;
 
+  /** Assigns argument pcMode to d_pcMode. */
+  void setProofCheckMode(options::ProofCheckMode pcMode);
+
  private:
   /** statistics class */
   ProofCheckerStatistics d_stats;
