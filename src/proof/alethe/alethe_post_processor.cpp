@@ -1578,9 +1578,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Trichotomy of the reals
-    // See proof_rule.h for documentation on the ARITH_TRICHOTOMY rule. This
-    // comment uses variable names as introduced there.
-    //
     // C is always of the format (= x c), (> x c) or (< x c). It has to be
     // concluded from A, B, which are (=> x c), (<= x c), or (not (= x
     // c)).
