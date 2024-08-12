@@ -132,8 +132,16 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-rewrite-rcons-step-limit=N"
   type       = "uint64_t"
-  default    = "1000"
+  default    = "5000"
   help       = "the limit of steps considered for reconstructing proofs of theory rewrites"
+
+[[option]]
+  name       = "proofRewriteRconsStratify"
+  category   = "expert"
+  long       = "proof-rewrite-rcons-stratify"
+  type       = "bool"
+  default    = "true"
+  help       = "use bounded stratification of recursion limits when reconstructing proofs of theory rewrites"
 
 [[option]]
   name       = "optResReconSize"
