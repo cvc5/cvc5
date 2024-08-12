@@ -124,7 +124,7 @@ class PropPfManager : protected EnvObj
    * if lem is not an unsat core lemma, or if it corresponded e.g. to a lemma
    * learned via theory propagation.
    */
-  theory::InferenceId getInferenceIdFor(const Node& lem, size_t& timestamp) const;
+  theory::InferenceId getInferenceIdFor(const Node& lem, uint64_t& timestamp) const;
 
   /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and
