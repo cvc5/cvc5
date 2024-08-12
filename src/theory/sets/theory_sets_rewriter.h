@@ -122,6 +122,27 @@ class TheorySetsRewriter : public TheoryRewriter
   RewriteResponse postRewriteFilter(TNode n);
   /**
    *  rewrites for n include:
+   *  - (set.all p (as set.empty (Set T)) is rewritten as true
+   *  - (set.all p (set.singleton x)) is rewritten as (p x)
+   *  - (set.all p (set.union A B)) is rewritten as
+   *       (and (set.all p A) (set.all p B))
+   *  - otherwise (set.all p A) is rewritten as (= (set.filter p A) A)
+   *  where p: T -> Bool
+   */
+  RewriteResponse postRewriteAll(TNode n);
+  /**
+   *  rewrites for n include:
+   *  - (set.some p (as set.empty (Set T)) is rewritten as false
+   *  - (set.some p (set.singleton x)) is rewritten as  (p x)
+   *  - (set.some p (set.union A B)) is rewritten as
+   *       (or (set.some p A) (set.some p B))
+   *  - otherwise (set.some p A) is rewritten as
+   *       (distinct (set.filter p A) (as set.empty (Set T)))
+   *  where p: T -> Bool
+   */
+  RewriteResponse postRewriteSome(TNode n);
+  /**
+   *  rewrites for n include:
    *  - (set.fold f t (as set.empty (Set T))) = t
    *  - (set.fold f t (set.singleton x)) = (f t x)
    *  - (set.fold f t (set.union A B)) = (set.fold f (set.fold f t A) B))
