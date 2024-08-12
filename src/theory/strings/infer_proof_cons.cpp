@@ -230,7 +230,10 @@ void InferProofCons::convert(InferenceId infer,
         }
         else
         {
-          // more aggressive: lift to original form and use extended rewriting
+          // More aggressive: lift to original form and use extended rewriting.
+          // A common case that this covers is arithmetic bound conflicts like
+          // (= (str.len @purifyN) 5) where @purifyN is the purification skolem
+          // for (str.++ "ABCDEF" x).
           Node psrco = SkolemManager::getOriginalForm(psrc);
           if (psb.applyPredTransform(psrco,
                                      conc,
