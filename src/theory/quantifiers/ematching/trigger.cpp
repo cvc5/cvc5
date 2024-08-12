@@ -89,14 +89,7 @@ Trigger::Trigger(Env& env,
   d_trNode = NodeManager::currentNM()->mkNode(Kind::SEXPR, extNodes);
   if (isOutputOn(OutputTag::TRIGGER))
   {
-    if (isUser)
-    {
-      output(OutputTag::TRIGGER) << "(user-trigger ";
-    }
-    else
-    {
-      output(OutputTag::TRIGGER) << "(trigger ";
-    }
+    output(OutputTag::TRIGGER) << isUser ? "(user-trigger " : "(trigger ";
     QuantAttributes& qa = d_qreg.getQuantAttributes();
     output(OutputTag::TRIGGER)
         << qa.quantToString(q) << " " << d_trNode;
