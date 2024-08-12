@@ -39,7 +39,7 @@ Trigger* TriggerDatabase::mkTrigger(Node q,
                                     bool keepAll,
                                     int trOption,
                                     size_t useNVars,
-                     bool isUser)
+                                    bool isUser)
 {
   std::vector<Node> trNodes;
   if (!keepAll)
@@ -92,8 +92,7 @@ Trigger* TriggerDatabase::mkTrigger(Node q,
 }
 
 Trigger* TriggerDatabase::mkTrigger(
-    Node q, Node n, bool keepAll, int trOption, size_t useNVars,
-                     bool isUser)
+    Node q, Node n, bool keepAll, int trOption, size_t useNVars, bool isUser)
 {
   std::vector<Node> nodes;
   nodes.push_back(n);

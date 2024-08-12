@@ -43,7 +43,7 @@ HigherOrderTrigger::HigherOrderTrigger(
     Node q,
     std::vector<Node>& nodes,
     std::map<Node, std::vector<Node> >& ho_apps,
-          bool isUser)
+    bool isUser)
     : Trigger(env, qs, qim, qr, tr, q, nodes, isUser), d_ho_var_apps(ho_apps)
 {
   NodeManager* nm = NodeManager::currentNM();

@@ -50,7 +50,7 @@ Trigger::Trigger(Env& env,
                  TermRegistry& tr,
                  Node q,
                  std::vector<Node>& nodes,
-          bool isUser)
+                 bool isUser)
     : EnvObj(env),
       d_qstate(qs),
       d_qim(qim),
@@ -98,8 +98,8 @@ Trigger::Trigger(Env& env,
       output(OutputTag::TRIGGER) << "(trigger ";
     }
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    output(OutputTag::TRIGGER) << qa.quantToString(q) << " "
-                               << d_trNode << ")" << std::endl;
+    output(OutputTag::TRIGGER)
+        << qa.quantToString(q) << " " << d_trNode << ")" << std::endl;
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){
