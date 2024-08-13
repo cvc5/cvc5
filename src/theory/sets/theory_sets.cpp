@@ -138,11 +138,11 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   if (nk == Kind::SET_UNIVERSE || nk == Kind::SET_COMPLEMENT
       || nk == Kind::RELATION_JOIN_IMAGE || nk == Kind::SET_COMPREHENSION)
   {
-    if (!options().sets.setsExt)
+    if (!options().sets.setsExp)
     {
       std::stringstream ss;
       ss << "Extended set operators are not supported in default mode, try "
-            "--sets-ext.";
+            "--sets-exp.";
       throw LogicException(ss.str());
     }
   }

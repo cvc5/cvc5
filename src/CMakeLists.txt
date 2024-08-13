@@ -1315,6 +1315,7 @@ endif()
 set(options_toml_files
   options/arith_options.toml
   options/arrays_options.toml
+  options/bags_options.toml
   options/base_options.toml
   options/booleans_options.toml
   options/builtin_options.toml

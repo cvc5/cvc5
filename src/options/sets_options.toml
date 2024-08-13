@@ -11,7 +11,7 @@ name   = "Sets Theory"
 
 [[option]]
   name       = "setsExp"
-  category   = "regular"
+  category   = "expert"
   long       = "sets-exp"
   type       = "bool"
   default    = "false"
