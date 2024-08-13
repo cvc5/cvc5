@@ -29,6 +29,8 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/parallel_options.h"
+#include "options/bags_options.h"
+#include "options/ff_options.h"
 #include "options/parser_options.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
@@ -116,6 +118,16 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+  // safe options
+  if (options().base.safeOptions)
+  {
+    // all theory options that are enabled by default should be disabled here
+    SET_AND_NOTIFY_IF_NOT_USER(uf, hoExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(arith, arithExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(sep, sepExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(bags, bagsExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(ff, ffExp, false, "safe options");
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
