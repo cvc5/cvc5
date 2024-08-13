@@ -1552,15 +1552,20 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   if (modelUninterpPrint == options::ModelUninterpPrintMode::Datatype)
   {
     out << "(declare-datatype " << tn << " (";
-    for (const Node& trn : elements)
+    for (size_t i=0, nelements=elements.size(); i<nelements; i++)
     {
+      Node trn = elements[i];
+      if (i>0)
+      {
+        out << " ";
+      }
       Assert (trn.getKind() == Kind::UNINTERPRETED_SORT_VALUE);
       // prints as raw symbol
       const UninterpretedSortValue& av =
           trn.getConst<UninterpretedSortValue>();
       out << "(" << av << ")";
     }
-    out << "))";
+    out << "))" << std::endl;
     return;
   }
   // print the cardinality
