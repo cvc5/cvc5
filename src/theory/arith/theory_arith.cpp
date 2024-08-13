@@ -130,7 +130,8 @@ void TheoryArith::preRegisterTerm(TNode n)
     if (!options().arith.arithExp)
     {
       std::stringstream ss;
-      ss << "Support for arithmetic extensions (required for " << k << ") not available in this configuration, try "
+      ss << "Support for arithmetic extensions (required for " << k
+         << ") not available in this configuration, try "
             "--arith-exp.";
       throw LogicException(ss.str());
     }

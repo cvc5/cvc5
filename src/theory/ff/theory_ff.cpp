@@ -176,7 +176,7 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
     Assert(node.getKind() == Kind::EQUAL);
     fieldTy = node[0].getType();
   }
-  else  if (!options().ff.ffExp)
+  else if (!options().ff.ffExp)
   {
     std::stringstream ss;
     ss << "Finite fields not available in this configuration, try "
