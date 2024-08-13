@@ -536,9 +536,9 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
     // if selecting from abstract, we don't know the type
     return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
+  // must check sequence here to ensure not a string
   if (!t.isSequence())
   {
-    AlwaysAssert(false);
     if (errOut)
     {
       (*errOut) << "expecting a sequence term in nth";
