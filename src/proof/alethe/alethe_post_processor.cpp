@@ -2338,48 +2338,38 @@ bool AletheProofPostprocessCallback::updatePost(
   return false;
 }
 
-// If the second-last step of the proof was:
-//
-// Children:  (P1:C1) ... (Pn:Cn)
-// Arguments: (AletheRule::VRULE,false,(cl false))
-// ---------------------
-// Conclusion: (false)
-//
-// In Alethe:
-//
-//  P1 ... Pn
-// ------------------- VRULE   ---------------------- FALSE
-//  (VP1:(cl false))*           (VP2:(cl (not true)))
-// -------------------------------------------------- RESOLUTION
-//                       (cl)**
-//
-// *  the corresponding proof node is ((false))
-// ** the corresponding proof node is (false)
-//
-// This method also handles the case where the internal proof is "empty", i.e.,
-// it consists only of "false" as an assumption.
-bool AletheProofPostprocessCallback::finalStep(Node res,
-                                               ProofRule id,
-                                               std::vector<Node>& children,
-                                               const std::vector<Node>& args,
-                                               CDProof* cdp)
+bool AletheProofPostprocessCallback::ensureFinalStep(
+    Node res,
+    ProofRule id,
+    std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp)
 {
+  bool success = true;
   NodeManager* nm = nodeManager();
   std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
 
   // convert inner proof, i.e., children[0], if its conclusion is (cl false) or
   // if it's a false assumption
-  if (childPf->getRule() == ProofRule::ALETHE_RULE
-      && ((childPf->getArguments()[2].getNumChildren() == 2
-           && childPf->getArguments()[2][1] == d_false)
-          || childPf->getArguments()[2] == d_false))
+  //
+  //   ...
+  // -------------------    ---------------------- false
+  //  (cl false)             (cl (not false))
+  // -------------------------------------------------- resolution
+  //                       (cl)
+  if ((childPf->getRule() == ProofRule::ALETHE_RULE
+       && childPf->getArguments()[2].getNumChildren() == 2
+       && childPf->getArguments()[2][1] == d_false)
+      || (childPf->getRule() == ProofRule::ASSUME
+          && childPf->getResult() == d_false))
   {
     Node notFalse =
         nm->mkNode(Kind::SEXPR, d_cl, d_false.notNode());  // (cl (not false))
     Node newChild = nm->mkNode(Kind::SEXPR, d_cl);         // (cl)
 
-    addAletheStep(AletheRule::FALSE, notFalse, notFalse, {}, {}, *cdp);
-    addAletheStep(
+    success &=
+        addAletheStep(AletheRule::FALSE, notFalse, notFalse, {}, {}, *cdp);
+    success &= addAletheStep(
         AletheRule::RESOLUTION,
         newChild,
         newChild,
@@ -2389,16 +2379,29 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
     children[0] = newChild;
   }
 
-  // Sanitize original assumptions and create a placeholder proof step to hold
-  // them.
-  Assert(id == ProofRule::SCOPE);
-  std::vector<Node> sanitizedArgs{
-      nm->mkConstInt(static_cast<uint32_t>(AletheRule::UNDEFINED)), res, res};
-  for (const Node& arg : args)
+  // Sanitize original assumptions and create a double scope to hold them, where
+  // the first scope is empty. This is needed because of the expected form a
+  // proof node to be printed.
+  std::vector<Node> sanitizedArgs;
+  for (const Node& a : args)
   {
-    sanitizedArgs.push_back(d_anc.convert(arg, false));
+    Node conv = d_anc.maybeConvert(a, true);
+    if (conv.isNull())
+    {
+      d_reasonForConversionFailure = d_anc.getError();
+      success = false;
+      break;
+    }
+    // avoid repeated assumptions
+    if (std::find(sanitizedArgs.begin(), sanitizedArgs.end(), conv)
+        == sanitizedArgs.end())
+    {
+      sanitizedArgs.push_back(conv);
+    }
   }
-  return cdp->addStep(res, ProofRule::ALETHE_RULE, children, sanitizedArgs);
+  Node placeHolder = nm->mkNode(Kind::SEXPR, res);
+  cdp->addStep(placeHolder, ProofRule::SCOPE, children, sanitizedArgs);
+  return success && cdp->addStep(res, ProofRule::SCOPE, {placeHolder}, {});
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
@@ -2473,31 +2476,34 @@ bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   // Translate proof node
   ProofNodeUpdater updater(d_env, d_cb, false, false);
   updater.process(internalProof);
-
-  // In the Alethe proof format the final step has to be (cl). However, after
-  // the translation it might be (cl false). In that case additional steps are
-  // required.
-  // The function has the additional purpose of sanitizing the attributes of the
-  // outer SCOPEs
-  CDProof cpf(
-      d_env, nullptr, "AletheProofPostProcess::finalStep::CDProof", true);
-  std::vector<Node> ccn{internalProof->getResult()};
-  cpf.addProof(internalProof);
-  std::vector<Node> args{definitionsScope->getArguments().begin(),
-                         definitionsScope->getArguments().end()};
-  args.insert(args.end(),
-              assumptionsScope->getArguments().begin(),
-              assumptionsScope->getArguments().end());
-  if (d_cb.finalStep(
-          definitionsScope->getResult(), ProofRule::SCOPE, ccn, args, &cpf))
+  if (d_reasonForConversionFailure.empty())
   {
-    std::shared_ptr<ProofNode> npn =
-        cpf.getProofFor(definitionsScope->getResult());
+    // In the Alethe proof format the final step has to be (cl). However, after
+    // the translation, the final step might still be (cl false). In that case
+    // additional steps are required.  The function has the additional purpose
+    // of sanitizing the arguments of the outer SCOPEs
+    CDProof cpf(d_env,
+                nullptr,
+                "AletheProofPostProcess::ensureFinalStep::CDProof",
+                true);
+    std::vector<Node> ccn{internalProof->getResult()};
+    cpf.addProof(internalProof);
+    std::vector<Node> args{definitionsScope->getArguments().begin(),
+                           definitionsScope->getArguments().end()};
+    args.insert(args.end(),
+                assumptionsScope->getArguments().begin(),
+                assumptionsScope->getArguments().end());
+    if (d_cb.ensureFinalStep(
+            definitionsScope->getResult(), ProofRule::SCOPE, ccn, args, &cpf))
+    {
+      std::shared_ptr<ProofNode> npn =
+          cpf.getProofFor(definitionsScope->getResult());
 
-    // then, update the original proof node based on this one
-    Trace("pf-process-debug") << "Update node..." << std::endl;
-    d_env.getProofNodeManager()->updateNode(pf.get(), npn.get());
-    Trace("pf-process-debug") << "...update node finished." << std::endl;
+      // then, update the original proof node based on this one
+      Trace("pf-process-debug") << "Update node..." << std::endl;
+      d_env.getProofNodeManager()->updateNode(pf.get(), npn.get());
+      Trace("pf-process-debug") << "...update node finished." << std::endl;
+    }
   }
   // Since the final step may also lead to issues, need to test here again
   if (!d_cb.getError().empty())
