@@ -121,7 +121,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // safe options
   if (options().base.safeOptions)
   {
-    // all theory options that are enabled by default should be disabled here
+    // all "experimental" theories that are enabled by default should be
+    // disabled here
     SET_AND_NOTIFY_IF_NOT_USER(uf, hoExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(arith, arithExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(sep, sepExp, false, "safe options");
