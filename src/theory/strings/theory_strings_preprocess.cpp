@@ -1128,7 +1128,8 @@ Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
   if (x.getType().isString())
   {
     Node one = nm->mkConstInt(Rational(1));
-    return nm->mkNode(Kind::STRING_TO_CODE, nm->mkNode(Kind::STRING_SUBSTR, {x, i, one}));
+    return nm->mkNode(Kind::STRING_TO_CODE,
+                      nm->mkNode(Kind::STRING_SUBSTR, {x, i, one}));
   }
   return nm->mkNode(Kind::SEQ_NTH, x, i);
 }
