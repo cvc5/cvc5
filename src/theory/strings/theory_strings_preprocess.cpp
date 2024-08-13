@@ -1125,6 +1125,11 @@ Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
   // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1)) here. The former may be
   // converted to the latter during preprocessing based on our options.
   NodeManager* nm = NodeManager::currentNM();
+  if (x.getType().isString())
+  {
+    Node one = nm->mkConstInt(Rational(1));
+    return nm->mkNode(Kind::STRING_TO_CODE, nm->mkNode(Kind::STRING_SUBSTR, {x, i, one}));
+  }
   return nm->mkNode(Kind::SEQ_NTH, x, i);
 }
 
