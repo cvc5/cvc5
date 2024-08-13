@@ -411,12 +411,12 @@ name   = "Arithmetic Theory"
   help       = "interleave tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
-  name       = "nratExp"
+  name       = "arithExp"
   category   = "expert"
-  long       = "nrat-exp"
+  long       = "arith-exp"
   type       = "bool"
   default    = "true"
-  help       = "enables the non-linear transcendental solver, true by default"
+  help       = "enables non-standard extensions of the arithmetic solver, true by default"
 
 [[option]]
   name       = "nlExtTfTangentPlanes"
