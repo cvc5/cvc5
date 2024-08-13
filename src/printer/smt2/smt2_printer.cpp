@@ -1549,6 +1549,20 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
     return;
   }
   auto modelUninterpPrint = options::ioutils::getModelUninterpPrint(out);
+  if (modelUninterpPrint == options::ModelUninterpPrintMode::Datatype)
+  {
+    out << "(declare-datatype " << tn << " (";
+    for (const Node& trn : elements)
+    {
+      Assert (trn.getKind() == Kind::UNINTERPRETED_SORT_VALUE);
+      // prints as raw symbol
+      const UninterpretedSortValue& av =
+          trn.getConst<UninterpretedSortValue>();
+      out << "(" << av << ")";
+    }
+    out << "))";
+    return;
+  }
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
   if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun)
