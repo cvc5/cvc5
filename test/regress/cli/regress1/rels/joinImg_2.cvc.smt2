@@ -1,7 +1,7 @@
 ; EXPECT: unsat
 (set-option :incremental false)
 (set-logic ALL)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-sort Atom 0)
 (declare-fun x () (Relation Atom Atom))
 (declare-fun y () (Relation Atom Atom))
