@@ -368,6 +368,14 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       // follows:
       //   - remove all lhsElim from lhsClause
       //   - remove all rhsElim from rhsClause and add the lits to lhsClause
+      //
+      // Note that to remove the elements from lhsClaus we use the
+      // "erase-remove" idiom in C++: the std::remove call shuffles the elements
+      // different from lhsElim to the beginning of the container, returning an
+      // iterator to the beginning of the "rest" of the container (with
+      // occurrences of lhsElim). Then the call to erase removes the range from
+      // there to the end. Once C++ 20 is allowed in the cvc5 code base, this
+      // could be done with a single call to std::erase.
       lhsClause.erase(std::remove(lhsClause.begin(), lhsClause.end(), lhsElim),
                       lhsClause.end());
       for (const Node& l : rhsClause)
