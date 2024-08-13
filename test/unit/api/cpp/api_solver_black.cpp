@@ -1250,6 +1250,37 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_FALSE(printedProof.empty());
 }
 
+TEST_F(TestApiBlackSolver, proofToStringAssertionNames)
+{
+  d_solver->setOption("produce-proofs", "true");
+
+  std::vector<Proof> proofs;
+
+  Term x = d_tm.mkConst(d_uninterpreted, "x");
+  Term y = d_tm.mkConst(d_uninterpreted, "y");
+
+  Term x_eq_y = d_tm.mkTerm(Kind::EQUAL, {x, y});
+  Term not_x_eq_y = d_tm.mkTerm(Kind::NOT, {x_eq_y});
+
+  std::map<cvc5::Term, std::string> assertionNames;
+  assertionNames.emplace(x_eq_y, "as1");
+  assertionNames.emplace(not_x_eq_y, "as2");
+
+  d_solver->assertFormula(x_eq_y);
+  d_solver->assertFormula(not_x_eq_y);
+
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+
+  std::string printedProof;
+  ASSERT_NO_THROW(proofs = d_solver->getProof());
+  ASSERT_FALSE(proofs.empty());
+  ASSERT_NO_THROW(printedProof = d_solver->proofToString(
+                      proofs[0], modes::ProofFormat::ALETHE, assertionNames));
+  ASSERT_FALSE(printedProof.empty());
+  ASSERT_LT(printedProof.find("as1"), std::string::npos);
+  ASSERT_LT(printedProof.find("as2"), std::string::npos);
+}
+
 TEST_F(TestApiBlackSolver, getDifficulty)
 {
   d_solver->setOption("produce-difficulty", "true");
