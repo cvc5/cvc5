@@ -28,6 +28,8 @@
 
 ; Higher-order sets operators.
 (declare-const set.filter (-> (! Type :var T :implicit) (-> T Bool) (Set T) (Set T)))
+(declare-const set.all (-> (! Type :var T :implicit) (-> T Bool) (Set T) Bool))
+(declare-const set.some (-> (! Type :var T :implicit) (-> T Bool) (Set T) Bool))
 (declare-const set.map (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Set T) (Set U)))
 (declare-const set.fold (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U U) U (Set T) U))
 

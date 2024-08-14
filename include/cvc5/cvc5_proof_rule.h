@@ -340,18 +340,6 @@ enum ENUM(ProofRule)
   EVALUE(THEORY_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- Annotation**
-   *
-   * .. math::
-   *   \inferrule{F \mid a_1 \dots a_n}{F}
-   *
-   * The terms :math:`a_1 \dots a_n` can be anything used to annotate the proof
-   * node, one example is where :math:`a_1` is a theory::InferenceId.
-   * \endverbatim
-   */
-  EVALUE(ANNOTATION),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Processing rules -- If-then-else equivalence**
    *
    * .. math::

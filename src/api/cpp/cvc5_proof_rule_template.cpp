@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Jörg Schurr, Andrew Reynolds
+ *   Hans-Joerg Schurr, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -35,7 +35,6 @@ const char* toString(ProofRule rule)
     case ProofRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case ProofRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
     case ProofRule::ENCODE_EQ_INTRO: return "ENCODE_EQ_INTRO";
-    case ProofRule::ANNOTATION: return "ANNOTATION";
     case ProofRule::DSL_REWRITE: return "DSL_REWRITE";
     case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case ProofRule::ITE_EQ: return "ITE_EQ";
