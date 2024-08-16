@@ -630,8 +630,15 @@ EvalResult Evaluator::evalInternal(
         case Kind::INTS_LOG2:
         {
           const Rational& x = results[currNode[0]].d_rat;
-          results[currNode] =
-              EvalResult(Rational(x.getNumerator().length() - 1));
+          if (x.sgn() < 0)
+          {
+            results[currNode] = EvalResult(Rational(0));
+          }
+          else
+          {
+            results[currNode] =
+                EvalResult(Rational(x.getNumerator().length() - 1));
+          }
           break;
         }
         case Kind::CONST_STRING:

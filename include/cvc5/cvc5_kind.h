@@ -3570,6 +3570,60 @@ enum ENUM(Kind)
    */
    EVALUE(SET_FILTER),
    /**
+   * Set all.
+   *
+   * \rst
+   * This operator checks whether all elements of a set satisfy a predicate. 
+   * (set.all :math:`p \; A`) takes a predicate :math:`p` of Sort
+   * :math:`(\rightarrow T \; Bool)` as a first argument, and a set :math:`A`
+   * of Sort (Set :math:`T`) as a second argument, and returns true iff all 
+   * elements of :math:`A` satisfy predicate :math:`p`. 
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \; Bool)`
+   *   - ``2:`` Term of bag Sort (Set :math:`T`)
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+   EVALUE(SET_ALL),
+   /**
+   * Set some.
+   *
+   * \rst
+   * This operator checks whether at least one element of a set satisfies a predicate. 
+   * (set.some :math:`p \; A`) takes a predicate :math:`p` of Sort
+   * :math:`(\rightarrow T \; Bool)` as a first argument, and a set :math:`A`
+   * of Sort (Set :math:`T`) as a second argument, and returns true iff at least  
+   * one element of :math:`A` satisfies predicate :math:`p`. 
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \; Bool)`
+   *   - ``2:`` Term of bag Sort (Set :math:`T`)
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+   EVALUE(SET_SOME),
+   /**
    * Set fold.
    *
    * \rst
