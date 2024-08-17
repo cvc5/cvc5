@@ -38,7 +38,8 @@ Trigger* TriggerDatabase::mkTrigger(Node q,
                                     const std::vector<Node>& nodes,
                                     bool keepAll,
                                     int trOption,
-                                    size_t useNVars)
+                                    size_t useNVars,
+                                    bool isUser)
 {
   std::vector<Node> trNodes;
   if (!keepAll)
@@ -80,22 +81,22 @@ Trigger* TriggerDatabase::mkTrigger(Node q,
   if (!hoApps.empty())
   {
     t = new HigherOrderTrigger(
-        d_env, d_qs, d_qim, d_qreg, d_treg, q, trNodes, hoApps);
+        d_env, d_qs, d_qim, d_qreg, d_treg, q, trNodes, hoApps, isUser);
   }
   else
   {
-    t = new Trigger(d_env, d_qs, d_qim, d_qreg, d_treg, q, trNodes);
+    t = new Trigger(d_env, d_qs, d_qim, d_qreg, d_treg, q, trNodes, isUser);
   }
   d_trie.addTrigger(trNodes, t);
   return t;
 }
 
 Trigger* TriggerDatabase::mkTrigger(
-    Node q, Node n, bool keepAll, int trOption, size_t useNVars)
+    Node q, Node n, bool keepAll, int trOption, size_t useNVars, bool isUser)
 {
   std::vector<Node> nodes;
   nodes.push_back(n);
-  return mkTrigger(q, nodes, keepAll, trOption, useNVars);
+  return mkTrigger(q, nodes, keepAll, trOption, useNVars, isUser);
 }
 
 bool TriggerDatabase::mkTriggerTerms(Node q,

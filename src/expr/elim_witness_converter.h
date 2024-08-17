@@ -45,6 +45,12 @@ class ElimWitnessNodeConverter : protected EnvObj, public NodeConverter
    */
   const std::vector<Node>& getExistentials() const;
 
+  /**
+   * Get the normal form of a quantified formula for which we are introducing
+   * a skolem variable based on eliminating a witness term.
+   */
+  virtual Node getNormalFormFor(const Node& q);
+
  private:
   /** The list of existentials introduced by eliminating witness */
   std::vector<Node> d_exists;

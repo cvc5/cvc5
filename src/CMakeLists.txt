@@ -16,6 +16,8 @@
 # Collect libcvc5 source files
 libcvc5_add_sources(
   api/c/cvc5.cpp
+  api/c/cvc5_c_structs.h
+  api/c/cvc5_c_structs.cpp
   api/c/cvc5_checks.h
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
@@ -156,8 +158,6 @@ libcvc5_add_sources(
   proof/alf/alf_print_channel.h
   proof/alf/alf_printer.cpp
   proof/alf/alf_printer.h
-  proof/annotation_proof_generator.cpp
-  proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
@@ -666,6 +666,8 @@ libcvc5_add_sources(
   theory/combination_care_graph.h
   theory/combination_engine.cpp
   theory/combination_engine.h
+  theory/conflict_processor.cpp
+  theory/conflict_processor.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
   theory/datatypes/inference.cpp
@@ -755,8 +757,6 @@ libcvc5_add_sources(
   theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
-  theory/inference_id_proof_annotator.cpp
-  theory/inference_id_proof_annotator.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
   theory/lemma_property.cpp
@@ -1295,6 +1295,9 @@ libcvc5_add_sources(
 set_source_files_properties(api/cpp/cvc5.cpp
   PROPERTIES COMPILE_OPTIONS
   "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+set_source_files_properties(api/cpp/cvc5_parser.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 
 #-----------------------------------------------------------------------------#
 # Add required include paths for this and all subdirectories.
@@ -1500,7 +1503,7 @@ target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CaDiCaL> $<INSTALL_INTERFAC
 if(USE_CLN)
   add_dependencies(cvc5-obj CLN)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${CLN_INCLUDE_DIR})
-  target_link_libraries(cvc5 PRIVATE CLN)
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CLN> $<INSTALL_INTERFACE:cln>)
 endif()
 if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
@@ -1514,8 +1517,9 @@ if(USE_KISSAT)
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Kissat> $<INSTALL_INTERFACE:kissat>)
 endif()
 if(USE_GLPK)
+  add_dependencies(cvc5-obj GLPK)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${GLPK_INCLUDE_DIR})
-  target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GLPK> $<INSTALL_INTERFACE:glpk>)
 endif()
 if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx)
@@ -1538,7 +1542,7 @@ add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
 
 # GMP has to be included at the end because of linker ordering issues when 
-# generating a static library. 
+# generating a static library.
 add_dependencies(cvc5-obj GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 if(BUILD_SHARED_LIBS)

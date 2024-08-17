@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Aina Niemetz
+ *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -323,8 +323,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     }
     SkolemCache skc(nullptr);
     std::vector<Node> newSkolems;
-    Node conc = CoreSolver::getConclusion(
-        atom[0][0], atom[1], id, isRev, &skc, newSkolems);
+    Node conc = CoreSolver::getDecomposeConclusion(
+        atom[0][0], atom[1], isRev, &skc, newSkolems);
     return conc;
   }
   else if (id == ProofRule::STRING_REDUCTION

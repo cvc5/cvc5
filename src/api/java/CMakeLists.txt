@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Andres Noetzli, Hans-Jörg Schurr
+#   Mudathir Mohamed, Andres Noetzli, Hans-Joerg Schurr
 #
 # This file is part of the cvc5 project.
 #
@@ -108,6 +108,7 @@ include(UseJava)
 # specify java source files
 set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/AbstractPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/AbstractPlugin.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Command.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Context.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/CVC5ApiException.java
@@ -183,12 +184,32 @@ add_custom_command(
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
 add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules generate-java-skolemfunids)
 
+if(NOT DEFINED JAVA_HOME AND NOT WIN32)
+  # If there are multiple versions of Java on the system,
+  # CMake might find a version of JNI that differs from
+  # the version of the Java executable. To address this,
+  # we retrieve the java.home from the JVM settings and
+  # set the JAVA_HOME variable.
+  # This approach works properly on Unix systems but
+  # not on Windows.
+  execute_process(
+    COMMAND ${Java_JAVA_EXECUTABLE} -XshowSettings:runtime -version
+    OUTPUT_VARIABLE java_settings
+    ERROR_VARIABLE java_settings
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  # Extract the line containing "java.home"
+  string(REGEX MATCH "java.home = [^\r\n]+" java_home_line "${java_settings}")
+  # Extract the path from the line
+  string(REPLACE "java.home = " "" JAVA_HOME "${java_home_line}")
+  message(STATUS "JAVA_HOME: ${JAVA_HOME}")
+endif()
+
 # find jni package
 find_package(JNI REQUIRED)
-message(STATUS "JAVA_AWT_LIBRARY     : ${JAVA_AWT_LIBRARY}")
+message(STATUS "JNI_FOUND            : ${JNI_FOUND}")
 message(STATUS "JNI_INCLUDE_DIRS     : ${JNI_INCLUDE_DIRS}")
 message(STATUS "JNI_LIBRARIES        : ${JNI_LIBRARIES} ")
-message(STATUS "JNI_FOUND            : ${JNI_FOUND}")
 message(STATUS "JAVA_AWT_LIBRARY     : ${JAVA_AWT_LIBRARY}")
 message(STATUS "JAVA_JVM_LIBRARY     : ${JAVA_JVM_LIBRARY}")
 message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")
@@ -196,6 +217,8 @@ message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 set(jni_files
+  jni/api_plugin.cpp
+  jni/api_plugin.h
   jni/api_utilities.cpp
   jni/datatype.cpp
   jni/command.cpp
@@ -259,13 +282,17 @@ add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5 cvc5parser)
 # Install in the same directory of cvc5-targets.
 # On Windows, CMake's default install action places
 # DLLs into the runtime path (by default "bin")
-install(TARGETS cvc5jni)
+install(TARGETS cvc5jni COMPONENT java-api)
 
-install_jar(cvc5jar DESTINATION share/java)
+install_jar(cvc5jar
+  DESTINATION share/java
+  COMPONENT java-api
+)
 
 install_jar_exports(
   TARGETS cvc5jar
   NAMESPACE cvc5::
   FILE cvc5JavaTargets.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
+  COMPONENT java-api
 )

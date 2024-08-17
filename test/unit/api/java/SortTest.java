@@ -77,6 +77,14 @@ class SortTest
   }
 
   @Test
+  void hash()
+  {
+    assertEquals(d_tm.getIntegerSort().hashCode(), d_tm.getIntegerSort().hashCode());
+    assertNotEquals(d_tm.getIntegerSort().hashCode(), d_tm.getStringSort().hashCode());
+    assertNotEquals(d_tm.getIntegerSort().hashCode(), (new Sort()).hashCode());
+  }
+
+  @Test
   void getKind() throws CVC5ApiException
   {
     Sort b = d_tm.getBooleanSort();

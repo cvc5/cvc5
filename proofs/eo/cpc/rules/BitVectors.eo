@@ -1,0 +1,194 @@
+(include "../programs/BitVectors.eo")
+
+; ---------------- ProofRewriteRule::BV_BITWISE_SLICING
+
+; program: $bv_mk_bitwise_slicing_rec
+; args:
+; - f (-> (BitVec n) (BitVec n) (BitVec n)): The function we are applying bitwise slicing to.
+; - c (BitVec n): The bitvector constant we are basing the slicing on.
+; - a (BitVec n): The non-constant porition that is being sliced.
+; - b (BitVec m): The bitlist representation of c that we have yet to process.
+; - bit Bool: The value of the last bit we saw.
+; - start Int: The start index from which all bits from c we processed each had the same value as bit.
+; - end Int: The end index, which is the current bit of c we are processing.
+; return: >
+;   The result of the bitwise slicing. For example this program will return
+;   (concat (bvand ((_ extract 3 2) #b0011) ((_ extract 3 2) x))
+;           (bvand ((_ extract 1 0) #b0011) ((_ extract 1 0) x)))
+;   given input where f is bvand, c is #b0011, and a is x.
+(program $bv_mk_bitwise_slicing_rec
+  ((n Int) (m Int)
+   (f (-> (BitVec n) (BitVec n) (BitVec n))) (a (BitVec n)) (c (BitVec n))
+   (b Bool) (bn Bool) (bs (BitVec m) :list) (start Int) (end Int))
+  ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec n) (BitVec n) (BitVec m) Bool Int Int) (BitVec n)
+  (
+  (($bv_mk_bitwise_slicing_rec f c a bs bn start -1)
+      (eo::cons concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
+  (($bv_mk_bitwise_slicing_rec f c a (@from_bools b bs) bn start end)
+        (eo::define ((em1 (eo::add end -1)) (ep1 (eo::add end 1)))
+        (eo::ite (eo::is_eq b bn)
+          ($bv_mk_bitwise_slicing_rec f c a bs b start em1)
+          (eo::cons concat
+            ($nary_app f (extract start ep1 c) (extract start ep1 a))
+            ($bv_mk_bitwise_slicing_rec f c a bs b end em1)))))
+  )
+)
+
+; define: $bv_is_bitwise_slicing_op
+; args:
+; - f : (-> (BitVec n) (BitVec n) (BitVec n)). The function to inspect.
+; return: >
+;   true if we can apply bitwise slicing to f. This is the case if f
+;   is either bvand, bvor, or bvxor.
+(define $bv_is_bitwise_slicing_op ((n Int :implicit) (f (-> (BitVec n) (BitVec n) (BitVec n))))
+  (eo::or (eo::is_eq f bvand) (eo::is_eq f bvor) (eo::is_eq f bvxor)))
+
+; program: $bv_mk_bitwise_slicing
+; args:
+; - a (BitVec n): The term to apply bitwise slicing to.
+; return: >
+;   The result of applying bitwise slicing to a. For example, given
+;   (bvand x #b0011) as a, this program will return
+;   (concat (bvand ((_ extract 3 2) #b0011) ((_ extract 3 2) x))
+;           (bvand ((_ extract 1 0) #b0011) ((_ extract 1 0) x))).
+(define $bv_mk_bitwise_slicing ((n Int :implicit) (a (BitVec n)))
+  (eo::match ((m Int) (f (-> (BitVec m) (BitVec m) (BitVec m))) (a1 (BitVec m)) (a2 (BitVec m) :list))
+    a
+    (
+    ((f a1 a2)    ($singleton_elim
+                  (eo::define ((c ($bv_get_first_const_child a)))
+                  (eo::requires ($bv_is_bitwise_slicing_op f) true
+                  (eo::requires (eo::is_eq c @bv_empty) false
+                  (eo::define ((wm1 (eo::add (eo::len c) -1)))
+                  ($bv_mk_bitwise_slicing_rec
+                    f
+                    c
+                    (eo::define ((nil (eo::nil f a1 a2)))
+                      ($singleton_elim ($nary_diff f nil a (eo::cons f c nil))))  ; remove the constant and recollect
+                    ($bv_const_to_bitlist c)               ; convert the constant to a bitlist
+                    ($bv_bit_set c wm1) wm1 wm1)))))))
+    )
+  )
+)
+
+; rule: bv-bitwise-slicing
+; implements: ProofRewriteRule::BV_BITWISE_SLICING
+; args:
+; - eq Bool: The equality to prove with this rule.
+; requires: We require that applying $bv_mk_bitwise_slicing to a gives b.
+; conclusion: the equality between a and b.
+(declare-rule bv-bitwise-slicing
+  ((n Int) (a (BitVec n)) (b (BitVec n)))
+  :args ((= a b))
+  :requires ((($bv_mk_bitwise_slicing a) b))
+  :conclusion (= a b)
+)
+
+; ---------------- ProofRewriteRule::BV_BITBLAST_STEP
+
+; program: $bv_mk_bitblast_step_eq
+; args:
+; - x T: The left hand side of the equality.
+; - y T: The right hand side of the equality.
+; return: the bitblasted term for (= x y).
+(program $bv_mk_bitblast_step_eq ((T Type) (W Type) (b1 Bool) (b2 Bool) (a1 W :list) (a2 W :list))
+  (T T) Bool
+  (
+  (($bv_mk_bitblast_step_eq @bv_empty @bv_empty)                      true)
+  (($bv_mk_bitblast_step_eq (@from_bools b1 a1) (@from_bools b2 a2))  (eo::cons and (= b1 b2) ($bv_mk_bitblast_step_eq a1 a2)))
+  )
+)
+
+; define: $bv_mk_bitblast_step_extract
+; args:
+; - u Int: The upper index of the extract.
+; - l Int: The lower index of the extract.
+; - a (BitVec n): The argument of the extract.
+; return: the bitblasted term for (extract u l a).
+(define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a (BitVec n)))
+  ($nary_subsequence @from_bools @bv_empty l u a))
+
+; program: $bv_mk_bitblast_step_concat_rec
+; args:
+; - a (BitVec n): The (reverse) of the bitvector concatenation term to process.
+; return: >
+;   The bitblasted term for concatenation term a, reversed. We require reversing
+;   the concatenation term to this method to match the bitblasted form that is
+;   generated.
+(program $bv_mk_bitblast_step_concat_rec ((n Int) (a1 (BitVec n)) (m Int) (a2 (BitVec m) :list))
+  ((BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_concat_rec @bv_empty)      @bv_empty)
+  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (eo::list_concat @from_bools a1 ($bv_mk_bitblast_step_concat_rec a2)))
+  )
+)
+
+; define: $bv_mk_bitblast_step_concat
+; args:
+; - a (BitVec n): The bitvector concatenation term to process.
+; return: the bitblasted term for concatenation term a.
+(define $bv_mk_bitblast_step_concat ((n Int :implicit) (a (BitVec n)))
+  ($bv_mk_bitblast_step_concat_rec ($nary_reverse a)))
+
+; define: $bv_mk_bitblast_step_const
+; args:
+; - a (BitVec n): The bitvector constant to bitblast.
+; return: the bitblasted term for a, which is its reverse bitlist.
+(define $bv_mk_bitblast_step_const ((n Int :implicit) (a (BitVec n)))
+  ($nary_reverse ($bv_const_to_bitlist a)))
+
+; program: $bv_mk_bitblast_step_var_rec
+; args:
+; - a (BitVec n): The bitvector variable to bitblast.
+; - i Int: The index of the bit we are currently processing.
+; return: the bitblasted term for variable a.
+(program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int))
+  ((BitVec n) Int) (BitVec n)
+  (
+    (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
+    (($bv_mk_bitblast_step_var_rec a i)   (eo::cons @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (eo::add i -1))))
+  )
+)
+
+; define: $bv_mk_bitblast_step_var
+; args:
+; - a (BitVec n): The bitvector variable to bitblast.
+; return: the bitblasted term for variable a.
+(define $bv_mk_bitblast_step_var ((n Int :implicit) (a (BitVec n)))
+  ($nary_reverse ($bv_mk_bitblast_step_var_rec a (eo::add ($bv_bitwidth (eo::typeof a)) -1))))
+
+; define: $bv_mk_bitblast_step
+; args:
+; - a T: The bitvector term or predicate to bitblast.
+; return: the bitblasted term for a.
+(define $bv_mk_bitblast_step ((T Type :implicit) (a T))
+  (eo::match ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list))
+  a
+  (
+  ((= a1 a2)        ($singleton_elim ($bv_mk_bitblast_step_eq a1 a2)))
+  ((extract u l a1) ($bv_mk_bitblast_step_extract u l a1))
+  ((concat a1 a3)   ($bv_mk_bitblast_step_concat a))
+  (a1               (eo::ite (eo::is_bin a)
+                      ($bv_mk_bitblast_step_const a)
+                      ($bv_mk_bitblast_step_var a)))    ; otherwise assume a variable
+  ))
+)
+
+; rule: bv_bitblast_step
+; implements: ProofRule::BV_BITBLAST_STEP.
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   We require that $bv_mk_bitblast_step applied to the left hand side returns
+;   the right hand side.
+; conclusion: The given equality.
+; note: >
+;   The current implementation only covers some of the operators that may
+;   appear in ProofRule::BV_BITBLAST_STEP.
+(declare-rule bv_bitblast_step
+  ((n Int) (a (BitVec n)) (b (BitVec n)))
+  :args ((= a b))
+  :requires ((($bv_mk_bitblast_step a) b))
+  :conclusion (= a b)
+)
+

@@ -15,7 +15,9 @@
 
 if(NOT ONLY_PYTHON_EXT_SRC)
   # Python modules for building:
-  check_python_module("setuptools")
+  # v68.0.0 is the last version of setuptools that is
+  # compatible with Python 3.7
+  find_package(Setuptools 66.1.0 REQUIRED)
   find_package(Cython 3.0.0 REQUIRED)
   # Python modules for installing:
   find_package(Pip 23.0 REQUIRED)
@@ -23,7 +25,7 @@ if(NOT ONLY_PYTHON_EXT_SRC)
   # a directory within the Python wheel package so that
   # the package is self-contained. It works on Linux,
   # macOS, and Windows.
-  find_package(Repairwheel 0.2.9 REQUIRED)
+  find_package(Repairwheel 0.3.1 REQUIRED)
 endif()
 
 configure_file(genenums.py.in genenums.py)
@@ -110,6 +112,8 @@ add_custom_target(cvc5types DEPENDS ${GENERATED_TYPES_FILES})
 copy_file_from_src(cvc5.pxi)
 copy_file_from_src(cvc5.pxd)
 copy_file_from_src(cvc5_python_base.pyx)
+copy_file_from_src(py_plugin.h)
+copy_file_from_src(py_plugin.cpp)
 copy_file_from_src(pyproject.toml)
 
 # Set include_dirs and library_dirs variables that are used in setup.cfg.in
@@ -140,6 +144,8 @@ set(PYTHON_EXT_SRC_FILES
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxi
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5.pxd
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5_python_base.pyx
+  ${CMAKE_CURRENT_BINARY_DIR}/py_plugin.h
+  ${CMAKE_CURRENT_BINARY_DIR}/py_plugin.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml
   ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg
   ${CMAKE_CURRENT_BINARY_DIR}/setup.py
@@ -232,15 +238,6 @@ else()
       ${LICENSE_FILES}
   )
 
-  set(BUILD_WHEEL_CMD
-      "${Python_EXECUTABLE} -m pip wheel ${CMAKE_CURRENT_BINARY_DIR} "
-      "${BUILD_WHEEL_CMD} --wheel-dir=${CMAKE_BINARY_DIR}/unrepaired-wheel")
-
-  set(REPAIR_WHEEL_CMD
-      "${Repairwheel_EXECUTABLE} -o ${CMAKE_BINARY_DIR}/repaired-wheel "
-      "-l ${CMAKE_BINARY_DIR}/src -l ${CMAKE_BINARY_DIR}/src/parser "
-      "-l ${DEPS_BASE}/bin")
-
   set(INSTALL_CMD
       "${Python_BASE_EXECUTABLE} -m pip install")
 
@@ -248,31 +245,21 @@ else()
   # the default location designated by the Python interpreter used to
   # build them. Otherwise, install them in the specified prefix.
   if(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(INSTALL_CMD "${INSTALL_CMD} --prefix ${CMAKE_INSTALL_PREFIX}")
+    # We escape the CMAKE_INSTALL_PREFIX variable so that
+    # it is evaluated at installation time.
+    # This is important for component-specific installations
+    # where the prefix may change (e.g., using
+    # 'cmake --install build --component python-api --prefix ./new-prefix').
+    set(INSTALL_CMD "${INSTALL_CMD} --prefix \${CMAKE_INSTALL_PREFIX}")
   endif()
 
-  set(UNREPAIRED_WHEEL_DIR ${CMAKE_BINARY_DIR}/unrepaired-wheel)
-  set(REPAIRED_WHEEL_DIR ${CMAKE_BINARY_DIR}/repaired-wheel)
-
-  # Remove previous wheel directories
-  install(CODE "execute_process(COMMAND \${CMAKE_COMMAND} -E remove_directory
-          ${UNREPAIRED_WHEEL_DIR} ${REPAIRED_WHEEL_DIR})"
-          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
-
-  # Build wheel
-  install(CODE "execute_process(COMMAND ${BUILD_WHEEL_CMD})"
-          FILE_PERMISSIONS OWNER_WRITE OWNER_READ)
-
-  # Repair wheel (include required libraries)
-  install(CODE
-          "file(GLOB WHL_FILE ${UNREPAIRED_WHEEL_DIR}/cvc5*.whl)
-           execute_process(COMMAND ${REPAIR_WHEEL_CMD} \${WHL_FILE})"
-          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
-
-  # Install wheel
-  install(CODE
-          "file(GLOB WHL_FILE ${REPAIRED_WHEEL_DIR}/cvc5*.whl)
-          execute_process(COMMAND ${INSTALL_CMD} \${WHL_FILE})"
-          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+  install(CODE "execute_process(COMMAND \${CMAKE_COMMAND}
+    -DPython_EXECUTABLE=${Python_EXECUTABLE}
+    -DRepairwheel_EXECUTABLE=${Repairwheel_EXECUTABLE}
+    -DBUILD_DIR=${CMAKE_BINARY_DIR}
+    -DDEPS_BASE=${DEPS_BASE}
+    -DINSTALL_CMD=\"${INSTALL_CMD}\"
+    -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)"
+    COMPONENT python-api)
 
 endif()

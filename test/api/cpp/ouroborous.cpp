@@ -20,7 +20,7 @@
  *
  * To add a new test, simply add a call to runTestString() under
  * runTest(), below.  If you don't specify an input language,
- * LANG_SMTLIB_V2 is used.  If your example depends on variables,
+ * LANG_SMTLIB_V2 is used.  If your example depends on symbolic constants,
  * you'll need to declare them in the "declarations" global, just
  * below, in SMT-LIBv2 form (but they're good for all languages).
  */
@@ -62,25 +62,23 @@ std::string parse(std::string instr,
   assert(input_language == "smt2");
   assert(output_language == "smt2");
 
-  std::string declarations;
-
-  declarations =
-      "\
-  (declare-sort U 0)\n\
-  (declare-fun f (U) U)\n\
-  (declare-fun x () U)\n\
-  (declare-fun y () U)\n\
-  (assert (= (f x) x))\n\
-  (declare-fun a () (Array U (Array U U)))\n\
-  ";
+  std::string declarations =
+      "(set-logic ALL)\n"
+      "(declare-sort U 0)\n"
+      "(declare-fun f (U) U)\n"
+      "(declare-fun x () U)\n"
+      "(declare-fun y () U)\n"
+      "(assert (= (f x) x))\n"
+      "(declare-fun a () (Array U (Array U U)))\n";
 
   cvc5::TermManager tm;
   cvc5::Solver solver(tm);
+
   modes::InputLanguage ilang = modes::InputLanguage::SMT_LIB_2_6;
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);
-  SymbolManager symman(&solver);
+  SymbolManager symman(tm);
   InputParser parser(&solver, &symman);
   std::stringstream ss;
   ss << declarations;

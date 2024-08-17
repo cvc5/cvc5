@@ -16,6 +16,8 @@
 #include "expr/elim_witness_converter.h"
 
 #include "expr/skolem_manager.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 
@@ -32,14 +34,28 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     NodeManager* nm = nodeManager();
     SkolemManager* skm = nm->getSkolemManager();
     std::vector<Node> nchildren(n.begin(), n.end());
-    Node exists = nm->mkNode(Kind::EXISTS, nchildren);
+    nchildren[1] = nchildren[1].notNode();
+    // must mark that the quantified formula cannot be eliminated by rewriting,
+    // so that the form of the quantified formula is preserved for the
+    // introduction below.
+    Node psan = theory::quantifiers::QuantAttributes::mkAttrPreserveStructure();
+    Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, psan);
+    nchildren.push_back(ipl);
+    // make the quantified formula
+    Node q = nm->mkNode(Kind::FORALL, nchildren);
+    Node qn = getNormalFormFor(q);
+    // should still be a FORALL due to above
+    Assert(qn.getKind() == Kind::FORALL);
     Node k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
-                                   {exists, n[0][0]});
-    d_exists.push_back(exists);
+                                   {qn, nm->mkConstInt(Rational(0))});
+    d_exists.push_back(qn.notNode());
     return k;
   }
   return n;
 }
+
+Node ElimWitnessNodeConverter::getNormalFormFor(const Node& q) { return q; }
+
 const std::vector<Node>& ElimWitnessNodeConverter::getExistentials() const
 {
   return d_exists;

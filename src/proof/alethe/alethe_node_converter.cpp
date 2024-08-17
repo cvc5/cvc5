@@ -45,17 +45,17 @@ Node AletheNodeConverter::postConvert(Node n)
   Kind k = n.getKind();
   switch (k)
   {
-    case Kind::BITVECTOR_BITOF:
+    case Kind::BITVECTOR_BIT:
     {
       std::stringstream ss;
-      ss << "(_ @bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex
+      ss << "(_ @bitOf " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
          << ")";
       TypeNode fType = nm->mkFunctionType(n[0].getType(), n.getType());
       Node op = mkInternalSymbol(ss.str(), fType, true);
       Node converted = nm->mkNode(Kind::APPLY_UF, op, n[0]);
       return converted;
     }
-    case Kind::BITVECTOR_BB_TERM:
+    case Kind::BITVECTOR_FROM_BOOLS:
     {
       std::vector<Node> children;
       std::vector<TypeNode> childrenTypes;
@@ -72,11 +72,19 @@ Node AletheNodeConverter::postConvert(Node n)
     }
     case Kind::BITVECTOR_EAGER_ATOM:
     {
-      std::stringstream ss;
-      ss << "Proof uses eager bit-blasting, which does not have support for "
-            "Alethe proofs.";
-      d_error = ss.str();
-      return Node::null();
+      return n[0];
+    }
+    case Kind::DIVISION_TOTAL:
+    {
+      return nm->mkNode(Kind::DIVISION, n[0], n[1]);
+    }
+    case Kind::INTS_DIVISION_TOTAL:
+    {
+      return nm->mkNode(Kind::INTS_DIVISION, n[0], n[1]);
+    }
+    case Kind::INTS_MODULUS_TOTAL:
+    {
+      return nm->mkNode(Kind::INTS_MODULUS, n[0], n[1]);
     }
     case Kind::SKOLEM:
     {
@@ -113,17 +121,11 @@ Node AletheNodeConverter::postConvert(Node n)
         Assert(cacheVal.getKind() == Kind::SEXPR
                && cacheVal.getNumChildren() == 2);
         Node quant = cacheVal[0];
-        Assert(quant.getKind() == Kind::EXISTS);
-        Node var = cacheVal[1];
+        Assert(quant.getKind() == Kind::FORALL);
         uint32_t index = -1;
-        for (size_t i = 0, size = quant[0].getNumChildren(); i < size; ++i)
-        {
-          if (var == quant[0][i])
-          {
-            index = i;
-            break;
-          }
-        }
+        ProofRuleChecker::getUInt32(cacheVal[1], index);
+        Assert(index < quant[0].getNumChildren());
+        Node var = quant[0][index];
         // Since cvc5 *always* skolemize FORALLs, we generate the choice term
         // assuming it is gonna be introduced via a sko_forall rule, in which
         // case the body of the choice is negated, which means to have
@@ -131,18 +133,16 @@ Node AletheNodeConverter::postConvert(Node n)
         // body, and the whole thing negated. Likewise, since during
         // Skolemization cvc5 will have negated the body of the original
         // quantifier, we need to revert that as well.
-        Assert(index < quant[0].getNumChildren());
-        Assert(quant[1].getKind() == Kind::NOT);
         Node body =
-            index == quant[0].getNumChildren() - 1
-                ? quant[1]
-                : nm->mkNode(Kind::FORALL,
-                             nm->mkNode(
-                                 Kind::BOUND_VAR_LIST,
-                                 std::vector<Node>{quant[0].begin() + index + 1,
-                                                   quant[0].end()}),
-                             quant[1][0])
-                      .notNode();
+            (index == quant[0].getNumChildren() - 1
+                 ? quant[1]
+                 : nm->mkNode(
+                     Kind::FORALL,
+                     nm->mkNode(Kind::BOUND_VAR_LIST,
+                                std::vector<Node>{quant[0].begin() + index + 1,
+                                                  quant[0].end()}),
+                     quant[1]))
+                .notNode();
         // we need to replace in the body all the free variables (i.e., from 0
         // to index) by their respective choice terms. To do this, we get
         // the skolems for each of these variables, retrieve their
@@ -152,8 +152,7 @@ Node AletheNodeConverter::postConvert(Node n)
           std::vector<Node> subs;
           for (size_t i = 0; i < index; ++i)
           {
-            Node v = quant[0][i];
-            std::vector<Node> cacheVals{quant, v};
+            std::vector<Node> cacheVals{quant, nm->mkConstInt(Rational(i))};
             Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                            cacheVals);
             Assert(!sk.isNull());
@@ -177,8 +176,8 @@ Node AletheNodeConverter::postConvert(Node n)
                 << "....populate map from aux : " << d_skolemsAux << "\n";
             for (size_t i = index + 1; i > 0; --i)
             {
-              Node v = quant[0][i - 1];
-              std::vector<Node> cacheVals{quant, v};
+              std::vector<Node> cacheVals{quant,
+                                          nm->mkConstInt(Rational(i - 1))};
               Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                              cacheVals);
               Assert(!sk.isNull());
@@ -258,7 +257,7 @@ Node AletheNodeConverter::getOriginalAssumption(Node n)
   {
     return it->second;
   }
-  return Node::null();
+  return n;
 }
 
 const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions()

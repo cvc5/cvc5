@@ -1,0 +1,59 @@
+(include "../theories/BitVectors.eo")
+
+; program: $bv_get_first_const_child
+; args:
+; - a (BitVec n): The term to find a constant child in.
+; return: >
+;   The first direct child of a that it is a bitvector constant if one exists,
+;   or the term @bv_empty otherwise.
+(program $bv_get_first_const_child ((n Int) (m Int) (k Int) (f (-> (BitVec n) (BitVec m) (BitVec k))) (a (BitVec n)) (b (BitVec m) :list))
+  ((BitVec k)) (BitVec n)
+  (
+    (($bv_get_first_const_child (f a b))  (eo::ite (eo::is_bin a) a ($bv_get_first_const_child b)))
+    (($bv_get_first_const_child a)        @bv_empty)    ; indicates no child
+  )
+)
+
+; define: $bv_bit_set
+; args:
+; - a (BitVec n): The bitvector to inspect, in little endian form.
+; - i Int: The index of the bit.
+; return: true if the i^th bit of a is set.
+(define $bv_bit_set ((n Int :implicit) (a (BitVec n)) (i Int))
+  (eo::is_eq (eo::extract a i i) #b1))
+
+; program: $bv_const_to_bitlist_rec
+; args:
+; - c (BitVec n): The bitvector constant to process.
+; - i Int: The index we are currently processing.
+; return: the bitlist for a starting with index i.
+(program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int))
+  ((BitVec n) Int) (BitVec n)
+  (
+    (($bv_const_to_bitlist_rec c -1)  @bv_empty)
+    (($bv_const_to_bitlist_rec c i)   (eo::cons @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (eo::add i -1))))
+  )
+)
+
+; define: $bv_const_to_bitlist
+; args:
+; - c (BitVec n): The bitvector constant to process.
+; return: >
+;   The bitlist for c, which is a term of the form
+;   (@from_bools a1 ...(@from_bools an @bv_empty)) where a1...an are
+;   the bits of c, considered in little endian form.
+(define $bv_const_to_bitlist ((n Int :implicit) (c (BitVec n)))
+  ($bv_const_to_bitlist_rec c (eo::add (eo::len c) -1)))
+  
+; define: $nary_app
+; args:
+; - f (-> T U V): The function to apply, which is assumed to be
+; right-associative with a nil terminator.
+; - a T: The first argument.
+; - b U: The second argument.
+; return: the term (f a b).
+; note: >
+;   This is a helpful method for constructing n-ary terms with exactly two
+;   children.
+(define $nary_app ((T Type :implicit) (U Type :implicit) (V Type :implicit) (f (-> T U V)) (a T) (b U))
+  (f a (f b (eo::nil f a b))))

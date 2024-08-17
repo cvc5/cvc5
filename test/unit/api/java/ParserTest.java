@@ -33,7 +33,7 @@ class ParserTest
     d_tm = new TermManager();
     d_solver = new Solver(d_tm);
     d_solver.setOption("parse-only", "true");
-    d_symman = new SymbolManager(d_solver);
+    d_symman = new SymbolManager(d_tm);
   }
 
   @AfterEach

@@ -142,6 +142,8 @@ class SequencesRewriter : public TheoryRewriter
   //-------------------- ProofRewriteRule
   /** Rewrite based on RE_LOOP_ELIM */
   Node rewriteViaReLoopElim(const Node& n);
+  /** Rewrite based on RE_INTER_UNION_INCLUSION */
+  Node rewriteViaReInterUnionInclusion(const Node& n);
   /** Rewrite based on STR_IN_RE_EVAL */
   Node rewriteViaStrInReEval(const Node& n);
   /** Rewrite based on STR_IN_RE_CONSUME */
@@ -152,6 +154,10 @@ class SequencesRewriter : public TheoryRewriter
   Node rewriteViaStrInReSigma(const Node& n);
   /** Rewrite based on STR_IN_RE_SIGMA_STAR */
   Node rewriteViaStrInReSigmaStar(const Node& n);
+  /** Rewrite based on MACRO_SUBSTR_STRIP_SYM_LENGTH */
+  Node rewriteViaMacroSubstrStripSymLength(const Node& n,
+                                           Rewrite& rule,
+                                           StringsEntail& sent);
 
  public:
   RewriteResponse postRewrite(TNode node) override;

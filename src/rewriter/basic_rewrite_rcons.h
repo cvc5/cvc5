@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr
+ *   Andrew Reynolds, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -137,15 +137,45 @@ class BasicRewriteRCons : protected EnvObj
    *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by ProofRewriteRule::MACRO_BOOL_NNF_NORM.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps. These are small step rewrites corresponding to NNF
-   * flattening of operators, and other simple inferences.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofMacroBoolNnfNorm(
-      CDProof* cdp,
-      const Node& eq,
-      std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL.
+   *
+   * This takes an equality of the form (r t1 t2) = c, where r is an arithmetic
+   * relation and c is a Boolean constant. This elaboration consists of several
+   * steps, roughly in five steps:
+   * - Normalize the relation r to >= or =.
+   * - Unfold str.len applications in t1 and t2.
+   * - Normalize the relation to one comparing with zero, e.g. (- t1 t2) >= 0.
+   * - Find an approximation for e.g. (- t1 t2) based on Noetzli et al CAV 2019,
+   *   using ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX.
+   * - Prove the approximation using ProofRewriteRule::ARITH_STRING_PRED_ENTAIL.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroArithStringPredEntail(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroSubstrStripSymLength(CDProof* cdp, const Node& eq);
+  /**
+   * @param cdp The proof to add to.
+   * @param eq The rewrite that can be proven by ProofRule::ARITH_POLY_NORM_REL.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofArithPolyNormRel(CDProof* cdp, const Node& eq);
   /**
    * Try THEORY_REWRITE with theory::TheoryRewriteCtx ctx.
    */

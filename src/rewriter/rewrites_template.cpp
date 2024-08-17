@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Leni Aniva
+ *   Andrew Reynolds, Hans-Joerg Schurr, Leni Aniva
  *
  * This file is part of the cvc5 project.
  *
