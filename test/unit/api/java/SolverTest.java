@@ -944,6 +944,35 @@ class SolverTest
   }
 
   @Test
+  void proofToStringAssertionNames()
+  {
+    d_solver.setOption("produce-proofs", "true");
+
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+
+    Term x_eq_y = d_solver.mkTerm(Kind.EQUAL, x, y);
+    Term not_x_eq_y = d_solver.mkTerm(Kind.NOT, x_eq_y);
+
+    Map<Term, String> assertionNames = new HashMap();
+    assertionNames.put(x_eq_y, "as1");
+    assertionNames.put(not_x_eq_y, "as2");
+
+    d_solver.assertFormula(x_eq_y);
+    d_solver.assertFormula(not_x_eq_y);
+    assertTrue(d_solver.checkSat().isUnsat());
+
+    Proof[] proofs = d_solver.getProof();
+    assertNotEquals(0, proofs.length);
+    String printedProof = d_solver.proofToString(proofs[0], ProofFormat.ALETHE, assertionNames);
+    assertFalse(printedProof.isEmpty());
+    assertTrue(printedProof.contains("as1"));
+    assertTrue(printedProof.contains("as2"));
+  }
+
+  @Test
   void getUnsatCoreLemmas1()
   {
     d_solver.assertFormula(d_solver.mkFalse());
