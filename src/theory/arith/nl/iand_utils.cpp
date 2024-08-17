@@ -32,7 +32,7 @@ namespace nl {
 
 static Rational intpow2(uint32_t b)
 {
-  // b must be <= to prevent a failure when using gmp.
+  // b must be <= max-int to prevent a failure when using gmp.
   Assert(b <= static_cast<uint32_t>(std::numeric_limits<int32_t>::max()));
   return Rational(Integer(2).pow(b), Integer(1));
 }
