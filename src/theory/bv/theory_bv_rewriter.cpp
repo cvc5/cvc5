@@ -15,8 +15,8 @@
 
 #include "theory/bv/theory_bv_rewriter.h"
 
-#include "options/smt_options.h"
 #include "options/bv_options.h"
+#include "options/smt_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_rewrite_rules_constant_evaluation.h"
 #include "theory/bv/theory_bv_rewrite_rules_core.h"
@@ -28,7 +28,7 @@
 using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::theory::bv;
-using namespace cvc5::context;
+
 
 TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
 {
@@ -100,13 +100,16 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 }
 
 TrustNode TheoryBVRewriter::expandDefinition(Node node) {
-  Node expanded = eliminateOverflows(node);
-    return TrustNode::mkTrustRewrite(node, expanded, nullptr);
+  Node expanded = node;
+  if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF) {
+    expanded = eliminateOverflows(node);
+  } 
+  return TrustNode::mkTrustRewrite(node, expanded, nullptr);
 }
 
 Node TheoryBVRewriter::eliminateOverflows(Node node) {
-  Node res = node;
-   if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF) {
+   Node res = node;
+   if (true) {
      if (RewriteRule<UaddoEliminate>::applies(node))
      {
        res = RewriteRule<UaddoEliminate>::run<false>(node);
