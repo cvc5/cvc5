@@ -41,6 +41,11 @@ class TheoryBVRewriter : public TheoryRewriter
    * cannot be rewritten.
    */
   Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
+  TrustNode expandDefinition(Node node) override;
+
+  Node eliminateOverflows(Node node);
+
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
   static RewriteResponse UndefinedRewrite(TNode node, bool prerewrite = false);

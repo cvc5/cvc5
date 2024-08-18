@@ -283,28 +283,7 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
       res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
     }
   }
-
-   if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF) {
-     if (RewriteRule<UaddoEliminate>::applies(t))
-     {
-       res = RewriteRule<UaddoEliminate>::run<false>(t);
-     } else if (RewriteRule<SaddoEliminate>::applies(t))
-     {
-       res = RewriteRule<SaddoEliminate>::run<false>(t);
-     } else if (RewriteRule<UmuloEliminate>::applies(t))
-     {
-       res = RewriteRule<UmuloEliminate>::run<false>(t);
-     } else if (RewriteRule<SmuloEliminate>::applies(t))
-     {
-       res = RewriteRule<SmuloEliminate>::run<false>(t);
-     } else if (RewriteRule<UsuboEliminate>::applies(t))
-     {
-       res = RewriteRule<UsuboEliminate>::run<false>(t);
-     } else if (RewriteRule<SsuboEliminate>::applies(t))
-     {
-       res = RewriteRule<SsuboEliminate>::run<false>(t);
-     } 
-   }
+  res = d_rewriter.eliminateOverflows(res);
 
   Trace("theory-bv-pp-rewrite") << "to   " << res << "\n";
   if (res != t)

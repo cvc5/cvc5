@@ -15,6 +15,7 @@
 
 #include "theory/bv/theory_bv_rewriter.h"
 
+#include "options/smt_options.h"
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_rewrite_rules_constant_evaluation.h"
@@ -27,6 +28,7 @@
 using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::theory::bv;
+using namespace cvc5::context;
 
 TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
 {
@@ -95,6 +97,37 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     default: break;
   }
   return Node::null();
+}
+
+TrustNode TheoryBVRewriter::expandDefinition(Node node) {
+  Node expanded = eliminateOverflows(node);
+    return TrustNode::mkTrustRewrite(node, expanded, nullptr);
+}
+
+Node TheoryBVRewriter::eliminateOverflows(Node node) {
+  Node res = node;
+   if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF) {
+     if (RewriteRule<UaddoEliminate>::applies(node))
+     {
+       res = RewriteRule<UaddoEliminate>::run<false>(node);
+     } else if (RewriteRule<SaddoEliminate>::applies(node))
+     {
+       res = RewriteRule<SaddoEliminate>::run<false>(node);
+     } else if (RewriteRule<UmuloEliminate>::applies(node))
+     {
+       res = RewriteRule<UmuloEliminate>::run<false>(node);
+     } else if (RewriteRule<SmuloEliminate>::applies(node))
+     {
+       res = RewriteRule<SmuloEliminate>::run<false>(node);
+     } else if (RewriteRule<UsuboEliminate>::applies(node))
+     {
+       res = RewriteRule<UsuboEliminate>::run<false>(node);
+     } else if (RewriteRule<SsuboEliminate>::applies(node))
+     {
+       res = RewriteRule<SsuboEliminate>::run<false>(node);
+     } 
+   }
+  return res;
 }
 
 RewriteResponse TheoryBVRewriter::RewriteBit(TNode node, bool prerewrite)
