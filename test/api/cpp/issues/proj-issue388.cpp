@@ -28,7 +28,7 @@ int main(void)
   {
     return 0;
   }
-  { // Original
+  {  // Original
     TermManager tm;
     Solver slv(tm);
     slv.setLogic("QF_NRA");
@@ -45,7 +45,7 @@ int main(void)
     slv.assertFormula(t9);
     slv.checkSat();
   }
-  { // Minimized
+  {  // Minimized
     TermManager tm;
     Solver slv(tm);
     slv.setOption("nl-cov", "true");

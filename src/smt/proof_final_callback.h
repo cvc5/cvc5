@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
@@ -58,11 +58,6 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    * marked with the given inference id.
    */
   HistogramStat<theory::InferenceId> d_instRuleIds;
-  /**
-   * Counts number of postprocessed proof nodes of rule ANNOTATION that were
-   * marked with the given inference id.
-   */
-  HistogramStat<theory::InferenceId> d_annotationRuleIds;
   /**
    * Counts number of postprocessed proof nodes for each kind of DSL proof rule
    */

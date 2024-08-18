@@ -181,12 +181,12 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   if (nk == Kind::RELATION_AGGREGATE)
   {
     Node ret = SetReduction::reduceAggregateOperator(n);
-    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
   if (nk == Kind::RELATION_PROJECT)
   {
     Node ret = SetReduction::reduceProjectOperator(n);
-    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
   return d_internal->ppRewrite(n, lems);
 }

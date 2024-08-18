@@ -802,6 +802,7 @@ set(regress_0_tests
   regress0/ff/multicheck.smt2
   regress0/ff/negneg.smt2
   regress0/ff/issue10937.smt2
+  regress0/ff/issue11107.smt2
   regress0/ff/proj-issue705.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
   regress0/ff/randcompile-sound-3i-5t-zokcirc.smt2
@@ -940,6 +941,7 @@ set(regress_0_tests
   regress0/ho/m-enum-bug2.smt2 
   regress0/ho/m-enum-bug3.smt2 
   regress0/ho/match-middle.smt2
+  regress0/ho/model-dep-arg.smt2
   regress0/ho/model-lam-simple.smt2
   regress0/ho/modulo-func-equality.smt2
   regress0/ho/qgu-fuzz-ho-1-dd.smt2
@@ -2972,6 +2974,9 @@ set(regress_1_tests
   regress1/seq/issue8148-2-const-mv.smt2
   regress1/seq/issue8148-const-mv.smt2
   regress1/seq/issue8936-nth-eager-red.smt2
+  regress1/sets/all1.smt2
+  regress1/sets/all2.smt2
+  regress1/sets/all3.smt2  
   regress1/sets/choose.cvc.smt2
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2
@@ -3001,6 +3006,7 @@ set(regress_1_tests
   regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
+  regress1/sets/filter-no-lift-red_2.smt2
   regress1/sets/finite-type/bug3663.smt2
   regress1/sets/finite-type/sets-card-arrcolor.smt2
   regress1/sets/finite-type/sets-card-arrunit.smt2
@@ -3074,6 +3080,7 @@ set(regress_1_tests
   regress1/sets/set-map-test.smt2
   regress1/sets/set-map-test2.smt2
   regress1/sets/sharingbug.smt2
+  regress1/sets/some1.smt2
   regress1/sets/univ-set-uf-elim.smt2
   regress1/sets/univ-semantics.smt2
   regress1/simplification_bug4.smt2

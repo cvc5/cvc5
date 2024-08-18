@@ -223,7 +223,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "term-db-mode=MODE"
   type       = "TermDbMode"
-  default    = "ALL"
+  default    = "RELEVANT"
   help       = "which ground terms to consider for instantiation"
   help_mode  = "Modes for terms included in the quantifiers term database."
 [[option.mode.ALL]]

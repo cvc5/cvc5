@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr
+ *   Andrew Reynolds, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -124,6 +124,9 @@ class ProofChecker
    * output stream out if enableOutput is true.
    */
   bool isPedanticFailure(ProofRule id, std::ostream* out) const;
+
+  /** Assigns argument pcMode to d_pcMode. */
+  void setProofCheckMode(options::ProofCheckMode pcMode);
 
  private:
   /** statistics class */

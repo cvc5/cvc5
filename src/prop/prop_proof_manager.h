@@ -119,6 +119,14 @@ class PropPfManager : protected EnvObj
   std::vector<Node> getUnsatCoreLemmas();
 
   /**
+   * Get inference id for a lemma, e.g. one that appears in the return of
+   * getUnsatCoreLemmas. Note that the inference id will be InferenceId::NONE
+   * if lem is not an unsat core lemma, or if it corresponded e.g. to a lemma
+   * learned via theory propagation.
+   */
+  theory::InferenceId getInferenceIdFor(const Node& lem) const;
+
+  /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and
    * previously registered assertions in d_assertions.
    *
@@ -270,6 +278,12 @@ class PropPfManager : protected EnvObj
   context::CDHashSet<Node> d_inputClauses;
   /** Asserted clauses derived from lemmas */
   context::CDHashSet<Node> d_lemmaClauses;
+  /** Are we tracking inference identifiers? */
+  bool d_trackLemmaClauseIds;
+  /** Mapping lemma clauses to inference identifiers */
+  context::CDHashMap<Node, theory::InferenceId> d_lemmaClauseIds;
+  /** The current identifier */
+  theory::InferenceId d_currLemmaId;
   /** The current propagation being processed via this class. */
   Node d_currPropagationProcessed;
   /** Temporary, pointer to SAT proof manager */
