@@ -340,13 +340,13 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case SubEliminate :            out << "SubEliminate";             return out;
   case CompEliminate :            out << "CompEliminate";             return out;
   case XnorEliminate :            out << "XnorEliminate";             return out;
-  case SignExtendEliminate :            out << "SignExtendEliminate";             return out;
+  case SignExtendEliminate: out << "SignExtendEliminate"; return out;
   case UaddoEliminate:            out << "UaddoEliminate";             return out;
   case SaddoEliminate:            out << "SaddoEliminate";             return out;
   case UmuloEliminate:            out << "UmuloEliminate";             return out;
   case SmuloEliminate:            out << "SmuloEliminate";             return out;
   case UsuboEliminate:            out << "SsuboEliminate";             return out;
-  case SsuboEliminate:            out << "SsuboEliminate";             return out;
+  case SsuboEliminate: out << "SsuboEliminate"; return out;
   case NotIdemp :                  out << "NotIdemp"; return out;
   case UleSelf:                    out << "UleSelf"; return out; 
   case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out;

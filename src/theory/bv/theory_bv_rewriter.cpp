@@ -29,7 +29,6 @@ using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::theory::bv;
 
-
 TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
 {
   initializeRewrites();
@@ -99,35 +98,43 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   return Node::null();
 }
 
-TrustNode TheoryBVRewriter::expandDefinition(Node node) {
+TrustNode TheoryBVRewriter::expandDefinition(Node node)
+{
   Node expanded = node;
   expanded = eliminateOverflows(node);
   return TrustNode::mkTrustRewrite(node, expanded, nullptr);
 }
 
-Node TheoryBVRewriter::eliminateOverflows(Node node) {
-   Node res = node;
-   if (true) {
-     if (RewriteRule<UaddoEliminate>::applies(node))
-     {
-       res = RewriteRule<UaddoEliminate>::run<false>(node);
-     } else if (RewriteRule<SaddoEliminate>::applies(node))
-     {
-       res = RewriteRule<SaddoEliminate>::run<false>(node);
-     } else if (RewriteRule<UmuloEliminate>::applies(node))
-     {
-       res = RewriteRule<UmuloEliminate>::run<false>(node);
-     } else if (RewriteRule<SmuloEliminate>::applies(node))
-     {
-       res = RewriteRule<SmuloEliminate>::run<false>(node);
-     } else if (RewriteRule<UsuboEliminate>::applies(node))
-     {
-       res = RewriteRule<UsuboEliminate>::run<false>(node);
-     } else if (RewriteRule<SsuboEliminate>::applies(node))
-     {
-       res = RewriteRule<SsuboEliminate>::run<false>(node);
-     } 
-   }
+Node TheoryBVRewriter::eliminateOverflows(Node node)
+{
+  Node res = node;
+  if (true)
+  {
+    if (RewriteRule<UaddoEliminate>::applies(node))
+    {
+      res = RewriteRule<UaddoEliminate>::run<false>(node);
+    }
+    else if (RewriteRule<SaddoEliminate>::applies(node))
+    {
+      res = RewriteRule<SaddoEliminate>::run<false>(node);
+    }
+    else if (RewriteRule<UmuloEliminate>::applies(node))
+    {
+      res = RewriteRule<UmuloEliminate>::run<false>(node);
+    }
+    else if (RewriteRule<SmuloEliminate>::applies(node))
+    {
+      res = RewriteRule<SmuloEliminate>::run<false>(node);
+    }
+    else if (RewriteRule<UsuboEliminate>::applies(node))
+    {
+      res = RewriteRule<UsuboEliminate>::run<false>(node);
+    }
+    else if (RewriteRule<SsuboEliminate>::applies(node))
+    {
+      res = RewriteRule<SsuboEliminate>::run<false>(node);
+    }
+  }
   return res;
 }
 

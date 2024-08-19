@@ -544,7 +544,8 @@ Node IntBlaster::translateWithChildren(
     case Kind::BITVECTOR_UADDO:
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
-      Node sum = d_nm->mkNode(Kind::ADD, translated_children[0], translated_children[1]);
+      Node sum = d_nm->mkNode(
+          Kind::ADD, translated_children[0], translated_children[1]);
       returnNode = d_nm->mkNode(Kind::GEQ, sum, pow2(bvsize));
       break;
     }
@@ -555,14 +556,16 @@ Node IntBlaster::translateWithChildren(
       Node signed1 = uts(translated_children[1], bvsize);
       Node sum = d_nm->mkNode(Kind::ADD, signed0, signed1);
       Node disj1 = d_nm->mkNode(Kind::GEQ, sum, pow2(bvsize - 1));
-      Node disj2 = d_nm->mkNode(Kind::LT, sum, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
+      Node disj2 = d_nm->mkNode(
+          Kind::LT, sum, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
       returnNode = d_nm->mkNode(Kind::OR, disj1, disj2);
       break;
     }
     case Kind::BITVECTOR_UMULO:
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
-      Node mul = d_nm->mkNode(Kind::MULT, translated_children[0], translated_children[1]);
+      Node mul = d_nm->mkNode(
+          Kind::MULT, translated_children[0], translated_children[1]);
       returnNode = d_nm->mkNode(Kind::GEQ, mul, pow2(bvsize));
       break;
     }
@@ -573,13 +576,15 @@ Node IntBlaster::translateWithChildren(
       Node signed1 = uts(translated_children[1], bvsize);
       Node mul = d_nm->mkNode(Kind::MULT, signed0, signed1);
       Node disj1 = d_nm->mkNode(Kind::GEQ, mul, pow2(bvsize - 1));
-      Node disj2 = d_nm->mkNode(Kind::LT, mul, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
+      Node disj2 = d_nm->mkNode(
+          Kind::LT, mul, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
       returnNode = d_nm->mkNode(Kind::OR, disj1, disj2);
       break;
     }
     case Kind::BITVECTOR_USUBO:
     {
-      returnNode = d_nm->mkNode(Kind::LT, translated_children[0], translated_children[1]);
+      returnNode = d_nm->mkNode(
+          Kind::LT, translated_children[0], translated_children[1]);
       break;
     }
     case Kind::BITVECTOR_SSUBO:
@@ -589,7 +594,8 @@ Node IntBlaster::translateWithChildren(
       Node signed1 = uts(translated_children[1], bvsize);
       Node sub = d_nm->mkNode(Kind::SUB, signed0, signed1);
       Node disj1 = d_nm->mkNode(Kind::GEQ, sub, pow2(bvsize - 1));
-      Node disj2 = d_nm->mkNode(Kind::LT, sub, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
+      Node disj2 = d_nm->mkNode(
+          Kind::LT, sub, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
       returnNode = d_nm->mkNode(Kind::OR, disj1, disj2);
       break;
     }

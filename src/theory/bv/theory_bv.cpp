@@ -282,8 +282,9 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
       res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
     }
   }
-  if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF) {
-   res = d_rewriter.eliminateOverflows(res);
+  if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF)
+  {
+    res = d_rewriter.eliminateOverflows(res);
   }
 
   Trace("theory-bv-pp-rewrite") << "to   " << res << "\n";
