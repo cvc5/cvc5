@@ -235,9 +235,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP6: (cl (=> (and F1 ... Fn) F) (not F))
     // VP7: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
     //
-    // Note that if n = 1, then the "subprof" step yields (cl (not F1) F), which
-    // is the same as VP3. Since VP1 = VP3, the steps for that transformation
-    // are not generated.
+    // Note that if n = 1, then the "subproof" step yields (cl (not F1) F),
+    // which is the same as VP3. Since VP1 = VP3, the steps for that
+    // transformation are not generated.
     //
     //
     // If F = false:
