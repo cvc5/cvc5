@@ -1,0 +1,99 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+[theory]
+id                 = "THEORY_BOOL"
+base_class         = "::cvc5::internal::theory::booleans::TheoryBool"
+base_class_header  = "theory/booleans/theory_bool.h"
+properties         = ["finite"]
+typechecker_header = "theory/booleans/theory_bool_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::booleans::TheoryBoolRewriter"
+header = "theory/booleans/theory_bool_rewriter.h"
+
+[[sorts]]
+name = BOOLEAN_TYPE
+cardinality   = 2
+well_founded  = true
+ground-term   = "NodeManager::currentNM()->mkConst(false)"
+header        = "expr/node_manager.h"
+comment       = "Boolean type"
+
+[[constants]]
+name    = "CONST_BOOLEAN"
+F       = "skip"
+T       = "bool"
+hasher  = "::cvc5::internal::BoolHashFunction"
+header  = "util/bool.h"
+comment = "truth and falsity; payload is a (C++) bool"
+
+[[enumerators]]
+name   = "BOOLEAN_TYPE"
+class  = "::cvc5::internal::theory::booleans::BooleanEnumerator"
+header = "theory/booleans/type_enumerator.h"
+
+[[operators]]
+name     = "NOT"
+children = 1
+comment  = "logical not"
+
+[[operators]]
+name     = "AND"
+children = 2
+comment  = "logical and (N-ary)"
+
+[[operators]]
+name     = "IMPLIES"
+children = 2
+comment  = "logical implication (exactly two parameters)"
+
+[[operators]]
+name     = "OR"
+children = 2
+comment  = "logical or (N-ary)"
+
+[[operators]]
+name     = "XOR"
+children = 2
+comment  = "exclusive or (exactly two parameters)"
+
+[[operators]]
+name     = "ITE"
+children = 3
+comment  = "if-then-else, used for both Boolean and term ITE constructs; first parameter is (Boolean-sorted) condition, second is 'then', third is 'else' and these two parameters must have same base sort"
+
+[[typerules]]
+name               = "CONST_BOOLEAN"
+type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[typerules]]
+name               = "CONST_BOOLEAN"
+type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[typerules]]
+name               = "NOT"
+type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[typerules]]
+name               = "AND"
+type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[typerules]]
+name               = "IMPLIES"
+type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[typerules]]
+name               = "OR"
+type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[typerules]]
+name               = "XOR"
+type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[typerules]]
+name               = "ITE"
+type_checker_class = "::cvc5::internal::theory::boolean::IteTypeRule"
