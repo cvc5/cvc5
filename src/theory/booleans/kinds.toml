@@ -16,7 +16,7 @@ class  = "::cvc5::internal::theory::booleans::TheoryBoolRewriter"
 header = "theory/booleans/theory_bool_rewriter.h"
 
 [[sorts]]
-name = BOOLEAN_TYPE
+name = "BOOLEAN_TYPE"
 cardinality   = 2
 well_founded  = true
 ground-term   = "NodeManager::currentNM()->mkConst(false)"
