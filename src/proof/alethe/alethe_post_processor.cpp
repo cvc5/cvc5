@@ -187,40 +187,39 @@ bool AletheProofPostprocessCallback::update(Node res,
     // defined in the original documentation of the rules in proof_rule.h.
     //================================================= Core rules
     //======================== Assume and Scope
+    // nothing happens
     case ProofRule::ASSUME:
     {
-      return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
+      return false;
     }
-    // See proof_rule.h for documentation on the SCOPE rule. This comment uses
-    // variable names as introduced there. Since the SCOPE rule originally
-    // concludes
-    // (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) but the ANCHOR rule
-    // concludes (cl (not F1) ... (not Fn) F), to keep the original shape of the
-    // proof node it is necessary to rederive the original conclusion. The
-    // transformation is described below, depending on the form of SCOPE's
-    // conclusion.
+    // The SCOPE rule is translated into Alethe using the "subproof" rule. The
+    // conclusion is either (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)), so
+    // it must be converted into (cl (not F1) ... (not Fn) F), and extra steps
+    // must be added to derive the original conclusion, which is the one to be
+    // used in the steps depending on this one.
     //
-    // Note that after the original conclusion is rederived the new proof node
-    // will actually have to be printed, respectively, (cl (=> (and F1 ... Fn)
-    // F)) or (cl (not (and F1 ... Fn))).
-    //
-    // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
-    // Fn)) for i times.
+    // The following transformation is applied. Let (not (and F1 ... Fn))^i
+    // denote the repetition of (not (and F1 ...  Fn)) for i times.
     //
     // T1:
     //
-    //   P
-    // ----- ANCHOR    ------- ... ------- AND_POS
-    //  VP1             VP2_1  ...  VP2_n
-    // ------------------------------------ RESOLUTION
+    // -------------------------------- anchor
+    // ---- assume         ---- assume
+    //  F1            ...   Fn
+    //        ...
+    // -----
+    //   F
+    // ----- subproof    ------- ... ------- and_pos
+    //  VP1               VP2_1  ...  VP2_n
+    // ------------------------------------ resolution
     //               VP2a
-    // ------------------------------------ REORDERING
+    // ------------------------------------ reordering
     //  VP2b
-    // ------ CONTRACTION           ------- IMPLIES_NEG1
+    // ------ contraction           ------- implies_neg1
     //   VP3                          VP4
-    // ------------------------------------  RESOLUTION    ------- IMPLIES_NEG2
+    // ------------------------------------ resolution    ------- implies_neg2
     //    VP5                                                VP6
-    // ----------------------------------------------------------- RESOLUTION
+    // ----------------------------------------------------------- resolution
     //                               VP7
     //
     // VP1: (cl (not F1) ... (not Fn) F)
@@ -233,18 +232,18 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP6: (cl (=> (and F1 ... Fn) F) (not F))
     // VP7: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
     //
-    // Note that if n = 1, then the ANCHOR step yields (cl (not F1) F), which is
-    // the same as VP3. Since VP1 = VP3, the steps for that transformation are
-    // not generated.
+    // Note that if n = 1, then the "subproof" step yields (cl (not F1) F),
+    // which is the same as VP3. Since VP1 = VP3, the steps for that
+    // transformation are not generated.
     //
     //
     // If F = false:
     //
-    //                                    --------- IMPLIES_SIMPLIFY
+    //                                    --------- implies_simplify
     //    T1                                 VP9
-    // --------- CONTRACTION              --------- EQUIV_1
+    // --------- contraction              --------- equiv_1
     //    VP8                                VP10
-    // -------------------------------------------- RESOLUTION
+    // -------------------------------------------- resolution
     //          (cl (not (and F1 ... Fn)))*
     //
     // VP8: (cl (=> (and F1 ... Fn) false))
@@ -253,7 +252,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Otherwise,
     //                T1
-    //  ------------------------------ CONTRACTION
+    //  ------------------------------ contraction
     //   (cl (=> (and F1 ... Fn) F))**
     //
     //
@@ -265,20 +264,14 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       // Build vp1
       std::vector<Node> negNode{d_cl};
-      std::vector<Node> sanitized_args;
       for (const Node& arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
-        sanitized_args.push_back(d_anc.convert(arg));
       }
       negNode.push_back(children[0]);  // (cl (not F1) ... (not Fn) F)
       Node vp1 = nm->mkNode(Kind::SEXPR, negNode);
-      success &= addAletheStep(AletheRule::ANCHOR_SUBPROOF,
-                               vp1,
-                               vp1,
-                               children,
-                               sanitized_args,
-                               *cdp);
+      success &= addAletheStep(
+          AletheRule::ANCHOR_SUBPROOF, vp1, vp1, children, args, *cdp);
 
       Node andNode, vp3;
       if (args.size() == 1)
@@ -296,8 +289,12 @@ bool AletheProofPostprocessCallback::update(Node res,
         for (size_t i = 0, size = args.size(); i < size; i++)
         {
           vp2_i = nm->mkNode(Kind::SEXPR, d_cl, andNode.notNode(), args[i]);
-          success &=
-              addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
+          success &= addAletheStep(AletheRule::AND_POS,
+                                   vp2_i,
+                                   vp2_i,
+                                   {},
+                                   std::vector<Node>{nm->mkConstInt(i)},
+                                   *cdp);
           premisesVP2.push_back(vp2_i);
           notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
         }
