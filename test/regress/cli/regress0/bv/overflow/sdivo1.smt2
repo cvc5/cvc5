@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; COMMAND-LINE: --solve-bv-as-int=sum
 ; COMMAND-LINE: 
 (set-logic QF_BV)
 (declare-const v (_ BitVec 6))
