@@ -3611,7 +3611,6 @@ cdef class Solver:
 
             :return: The proof printed in the current format.
         """
-        #    assertionMap[(<Term?> k).cterm] = assertionNames[k]
         cdef map[c_Term, string] assertionMap
         for k in assertionNames:
             assertionMap[(<Term> k).cterm] = assertionNames[k].encode('utf-8')
