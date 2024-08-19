@@ -101,9 +101,7 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 
 TrustNode TheoryBVRewriter::expandDefinition(Node node) {
   Node expanded = node;
-  if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF) {
-    expanded = eliminateOverflows(node);
-  } 
+  expanded = eliminateOverflows(node);
   return TrustNode::mkTrustRewrite(node, expanded, nullptr);
 }
 
