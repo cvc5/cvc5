@@ -1578,9 +1578,11 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Trichotomy of the reals
+    //
     // C is always of the format (= x c), (> x c) or (< x c). It has to be
-    // concluded from A, B, which are (=> x c), (<= x c), or (not (= x
-    // c)).
+    // concluded from A, B, which are (=> x c), (<= x c), or (not (= x c)). In
+    // some cases, rather than (=> x c) we can actually have its negation, i.e.,
+    // (not (< x c)), which is accounted for below.
     //
     // The convertion into Alethe is based on la_disequality, which has much
     // the same semantics as ARITH_TRICHOTOMY. The following subproof is
