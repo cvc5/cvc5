@@ -42,8 +42,26 @@ class TheoryBVRewriter : public TheoryRewriter
    */
   Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
 
+  /**
+   * Override TheoryRewriter::expandDefinition in order to
+   * eliminate overflow operators
+   */
   TrustNode expandDefinition(Node node) override;
 
+  /**
+   * This function is called when int-blasting is disabled.
+   * It eliminates the following operators:
+   * uaddo, saddo, umulo, smulo, usubu, ssubo.
+   *
+   * When int-blasting is on, we do not want to eliminate them,
+   * but instead translate them directly.
+   *
+   * The other overflow operators, namely
+   * nego and sdivo, are eliminated by the rewriter,
+   * regradless of whether int-blasting is enabled
+   * or disabled, because their elimination
+   * produces simple equalities.
+   */
   Node eliminateOverflows(Node node);
 
  private:
