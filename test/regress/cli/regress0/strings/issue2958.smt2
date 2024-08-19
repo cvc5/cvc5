@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --strings-exp
+; COMMAND-LINE: --conflict-process=min
 ;; introduces RE Skolem
 ; DISABLE-TESTER: alethe
 (set-info :smt-lib-version 2.6)

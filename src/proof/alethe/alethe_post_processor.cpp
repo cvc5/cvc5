@@ -1690,12 +1690,11 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Trichotomy of the reals
-    // See proof_rule.h for documentation on the ARITH_TRICHOTOMY rule. This
-    // comment uses variable names as introduced there.
     //
     // C is always of the format (= x c), (> x c) or (< x c). It has to be
-    // concluded from A, B, which are (=> x c), (<= x c), or (not (= x
-    // c)).
+    // concluded from A, B, which are (=> x c), (<= x c), or (not (= x c)). In
+    // some cases, rather than (=> x c) we can actually have its negation, i.e.,
+    // (not (< x c)), which is accounted for below.
     //
     // The convertion into Alethe is based on la_disequality, which has much
     // the same semantics as ARITH_TRICHOTOMY. The following subproof is
@@ -1742,8 +1741,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           //   with @p1: (=> x c)
           //   with @p2: (<= c x)
           //
-          // ----- comp_simp  -------------------equiv_pos2   --- geq
-          //  @p0             (cl (not @p0) (not @p1) @p2)    @p1
+          // ----- comp_simplify  -------------------equiv_pos2   --- geq
+          //  @p0                 (cl (not @p0) (not @p1) @p2)    @p1
           // ---------------------------------------------------- resolution
           //                     @p2
           //
@@ -1838,8 +1837,8 @@ bool AletheProofPostprocessCallback::update(Node res,
             //
             // PI_a:
             //
-            // ----- comp_simp  --------------------- equiv_pos1     ---- notLT
-            //  @pa             (cl (not @pa) @pb (not (not @pc)))   (not @pb)
+            // --- comp_simplify --------------------- equiv_pos1    ----- notLT
+            // @pa               (cl (not @pa) @pb (not (not @pc)))  (not @pb)
             // ------------------------------------------------------ resolution
             //              (cl (not (not @pc)))
             //
@@ -1855,8 +1854,8 @@ bool AletheProofPostprocessCallback::update(Node res,
             //
             //  @pd: (= (>= x c) (<= c x))
             //
-            // ----- comp_simp  -------------------------- equiv_pos1  --- PI_b
-            //  @pd             (cl (not @pd) (>= x c) (not @pc))      @pc
+            // --- comp_simplify -------------------------- equiv_pos1  --- PI_b
+            // @pd               (cl (not @pd) (>= x c) (not @pc))      @pc
             // ------------------------------------------------------ resolution
             //              (cl (>= x c))
             //
@@ -1936,9 +1935,9 @@ bool AletheProofPostprocessCallback::update(Node res,
           //   with @p4: (> x c)
           //   with @p5: (<= x c)
           //
-          // ----- comp_simp  ----------------------------------- equiv_pos1
-          //  @p3             (cl (not @p3) @p4 (not (not @p5)))
-          // --------------------------------------------------- resolution
+          // ----- comp_simplify  ----------------------------------- equiv_pos1
+          //  @p3                 (cl (not @p3) @p4 (not (not @p5)))
+          // ------------------------------------------------------- resolution
           //              (cl @p4 (not (not @p5)))
           //
           // Then we combine the proofs PI_0, the premise for "notEq", and
@@ -2056,9 +2055,9 @@ bool AletheProofPostprocessCallback::update(Node res,
           //   with @p7: (< x c)
           //   with @p8: (<= c x)
           //
-          // ----- comp_simp  ----------------------------------- equiv_pos1
-          //  @p6             (cl (not @p6) @p7 (not (not @p8)))
-          // --------------------------------------------------- resolution
+          // ----- comp_simplify  ----------------------------------- equiv_pos1
+          //  @p6                  (cl (not @p6) @p7 (not (not @p8)))
+          // -------------------------------------------------------- resolution
           //              (cl @p7 (not (not @p8)))
           //
           // Then we combine the proofs PI_0, the premise for "notEq", the

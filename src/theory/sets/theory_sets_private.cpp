@@ -390,6 +390,7 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
+
     // check map up rules
     checkMapUp();
     d_im.doPendingLemmas();
@@ -750,7 +751,6 @@ void TheorySetsPrivate::checkFilterDown()
   {
     Node p = term[0];
     Node A = term[1];
-
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(term));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
@@ -1579,8 +1579,6 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
 }
 
 /********************** Helper functions ***************************/
-/********************** Helper functions ***************************/
-/********************** Helper functions ***************************/
 
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
@@ -1614,7 +1612,8 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
 
 bool TheorySetsPrivate::isHigherOrderKind(Kind k)
 {
-  return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_FOLD;
+  return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_ALL
+         || k == Kind::SET_SOME || k == Kind::SET_FOLD;
 }
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)
