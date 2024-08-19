@@ -1,0 +1,153 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+[theory]
+id                 = "THEORY_UF"
+base_class         = "::cvc5::internal::theory::uf::TheoryUF"
+base_class_header  = "theory/uf/theory_uf.h"
+properties         = ["stable-infinite", "parametric", "check", "ppStaticLearn", "presolve"]
+typechecker_header = "theory/uf/theory_uf_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::uf::TheoryUfRewriter"
+header = "theory/uf/theory_uf_rewriter.h"
+
+[[parametrized]]
+K1       = "APPLY_UF"
+K2       = "VARIABLE" 
+children = "1:"
+comment  = "application of an uninterpreted function; first parameter is the function, remaining ones are parameters to that function"
+
+[[typerules]]
+name               = "APPLY_UF"
+type_checker_class = "::cvc5::internal::theory::uf::UfTypeRule"
+
+[[operators]]
+name     = "FUNCTION_TYPE"
+children = "2:"
+comment  = "a function type"
+
+[[cardinalities]]
+name     = "FUNCTION_TYPE"
+computer = "::cvc5::internal::theory::uf::FunctionProperties::computeCardinality(%TYPE%)"
+header   = "theory/uf/theory_uf_type_rules.h"
+
+[[well-founded]]
+name                     = "FUNCTION_TYPE"
+wellfoundedness-computer = "::cvc5::internal::theory::uf::FunctionProperties::isWellFounded(%TYPE%)"
+ground-term-computer     = "::cvc5::internal::theory::uf::FunctionProperties::mkGroundTerm(%TYPE%)"
+header                   = "theory/uf/theory_uf_type_rules.h"
+
+[[enumerators]]
+name   = "FUNCTION_TYPE"
+class  = "::cvc5::internal::theory::uf::FunctionEnumerator"
+header = "theory/uf/type_enumerator.h"
+
+[[operators]]
+name     = "LAMBDA"
+children = 2
+comment  = "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
+
+[[typerules]]
+name               = "LAMBDA"
+type_checker_class = "::cvc5::internal::theory::uf::LambdaTypeRule"
+
+[[operators]]
+name     = "HO_APPLY"
+children = 2
+comment  = "higher-order (partial) function application"
+
+[[typerules]]
+name               = "HO_APPLY" 
+type_checker_class = "::cvc5::internal::theory::uf::HoApplyTypeRule"
+
+[[constants]]
+name    = "CARDINALITY_CONSTRAINT_OP" 
+F       = "class"
+T       = "CardinalityConstraint"
+hasher  = "::cvc5::internal::CardinalityConstraintHashFunction"
+header  = "expr/cardinality_constraint.h"
+comment = "the cardinality constraint operator; payload is an instance of the cvc5::internal::CardinalityConstraint class"
+
+[[parameterized]]
+K1       = "CARDINALITY_CONSTRAINT"
+K2       = "CARDINALITY_CONSTRAINT_OP"
+children = 0
+comment  = "a fixed upper bound on the cardinality of an uninterpreted sort"
+
+[[typerules]]
+name               = "CARDINALITY_CONSTRAINT_OP"
+type_checker_class = "::cvc5::internal::theory::uf::CardinalityConstraintOpTypeRule"
+
+[[typerules]]
+name               = "CARDINALITY_CONSTRAINT"
+type_checker_class = "SimpleTypeRule<RBool>"
+
+[[constants]]
+name    = "COMBINED_CARDINALITY_CONSTRAINT_OP"
+F       = "class"
+T       = "CombinedCardinalityConstraint"
+hasher  = "::cvc5::internal::CombinedCardinalityConstraintHashFunction"
+header  = "expr/cardinality_constraint.h"
+comment = "the combined cardinality constraint operator; payload is an instance of the cvc5::internal::CombinedCardinalityConstraint class"
+
+[[parameterized]]
+K1       = "COMBINED_CARDINALITY_CONSTRAINT"
+K2       = "COMBINED_CARDINALITY_CONSTRAINT_OP"
+children = 0
+comment  = "a fixed upper bound on the sum of cardinalities of uninterpreted sorts"
+
+[[typerules]]
+name               = "COMBINED_CARDINALITY_CONSTRAINT_OP"
+type_checker_class = "::cvc5::internal::theory::uf::CombinedCardinalityConstraintOpTypeRule"
+
+[[typerules]]
+name               = "COMBINED_CARDINALITY_CONSTRAINT"
+type_checker_class = "SimpleTypeRule<RBool>"
+
+[[constants]]
+name    = "FUNCTION_ARRAY_CONST"
+F       = "class"
+T       = "FunctionArrayConst"
+hasher  = "::cvc5::internal::FunctionArrayConstHashFunction"
+header  = "expr/function_array_const.h"
+comment = "the function constant; payload is an instance of the cvc5::internal::FunctionArrayConst class"
+[[typerules]]
+name               = "FUNCTION_ARRAY_CONST"
+type_checker_class = "::cvc5::internal::theory::uf::FunctionArrayConstTypeRule"
+
+## conversion kinds
+[[operators]]
+name     = "BITVECTOR_TO_NAT"
+children = 1
+comment  = "bit-vector conversion to (nonnegative) integer; parameter is a bit-vector"
+
+[[constants]]
+name    = "INT_TO_BITVECTOR_OP"
+F       = "struct"
+T       = "IntToBitVector"
+hasher  = "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::IntToBitVector >"
+header  = "util/bitvector.h"
+comment = "operator for the integer conversion to bit-vector; payload is an instance of the cvc5::internal::IntToBitVector class"
+
+[[parameterized]]
+K1       = "INT_TO_BITVECTOR"
+K2       = "INT_TO_BITVECTOR_OP"
+children = 1
+comment  = "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
+
+## conversion kinds
+[[typerules]]
+name               = "BITVECTOR_TO_NAT"
+type_checker_class = "::cvc5::internal::theory::uf::BitVectorConversionTypeRule"
+
+[[typerules]]
+name               = "INT_TO_BITVECTOR_OP"
+type_checker_class = "::cvc5::internal::theory::uf::IntToBitVectorOpTypeRule"
+
+[[typerules]]
+name               = "INT_TO_BITVECTOR"
+type_checker_class = "::cvc5::internal::theory::uf::BitVectorConversionTypeRule"
