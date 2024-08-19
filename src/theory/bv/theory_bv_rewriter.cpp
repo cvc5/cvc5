@@ -16,7 +16,6 @@
 #include "theory/bv/theory_bv_rewriter.h"
 
 #include "options/bv_options.h"
-#include "options/smt_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_rewrite_rules_constant_evaluation.h"
 #include "theory/bv/theory_bv_rewrite_rules_core.h"
