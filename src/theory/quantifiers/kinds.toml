@@ -1,0 +1,131 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+[theory]
+id                 = "THEORY_QUANTIFIERS"
+base_class         = "::cvc5::internal::theory::quantifiers::TheoryQuantifiers"
+base_class_header  = "theory/quantifiers/theory_quantifiers.h"
+properties         = ["check", "presolve"]
+typechecker_header = "theory/quantifiers/theory_quantifiers_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::quantifiers::QuantifiersRewriter"
+header = "theory/quantifiers/quantifiers_rewriter.h"
+
+[[operators]]
+name     = "FORALL"
+children = "2:3"
+comment  = "universally quantified formula; first parameter is an BOUND_VAR_LIST, second is quantifier body, and an optional third parameter is an INST_PATTERN_LIST"
+
+[[operators]]
+name     = "EXISTS"
+children = "2:3"
+comment  = "existentially quantified formula; first parameter is an BOUND_VAR_LIST, second is quantifier body, and an optional third parameter is an INST_PATTERN_LIST"
+
+[[variables]]
+name    = "INST_CONSTANT"
+comment = "instantiation constant"
+
+[[variables]]
+name    = "ORACLE"
+comment = "oracle"
+
+[[sorts]]
+name         = "BOUND_VAR_LIST_TYPE"
+cardinality  = "Cardinality::INTEGERS"
+well_founded = false
+comment      = "the type of bound variable lists"
+
+[[operators]]
+name     = "BOUND_VAR_LIST"
+children = "1:"
+comment  = "a list of bound variables (used to bind variables under a quantifier)"
+
+[[sorts]]
+name         = "INST_PATTERN_TYPE"
+cardinality  = "Cardinality::INTEGERS"
+well_founded = false
+comment      = "instantiation pattern type"
+
+# Instantiation pattern, also called trigger.
+# This node is used for specifying hints for quantifier instantiation.
+# An instantiation pattern may have more than 1 child, in which case it specifies a multi-trigger.
+[[operators]]
+name     = "INST_PATTERN"
+children = "1:"
+comment  = "instantiation pattern"
+[[operators]]
+name     = "INST_NO_PATTERN"
+children = 1
+comment  = "instantiation no-pattern"
+[[operators]]
+name     = "INST_ATTRIBUTE"
+children = "1:"
+comment  = "instantiation attribute"
+[[operators]]
+name     = "INST_POOL"
+children = "1:"
+comment  = "instantiation pool"
+[[operators]]
+name     = "INST_ADD_TO_POOL"
+children = 2
+comment  = "instantiation add to pool"
+[[operators]]
+name     = "SKOLEM_ADD_TO_POOL"
+children = 2
+comment  = "skolemization add to pool"
+# oracle formula generator is a pair (assumption generator, constraint generator)
+[[operators]]
+name     = "ORACLE_FORMULA_GEN"
+children = 2
+comment  = "oracle interface"
+
+[[sorts]]
+name         = "INST_PATTERN_LIST_TYPE"
+cardinality  = "Cardinality::INTEGERS"
+well_founded = false
+comment      = "the type of instantiation pattern lists"
+
+# a list of instantiation patterns
+[[operators]]
+name     = "INST_PATTERN_LIST"
+children = "1:"
+comment  = "a list of instantiation patterns"
+
+[[typerules]]
+name               = "FORALL"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
+[[typerules]]
+name               = "EXISTS"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
+[[typerules]]
+name               = "BOUND_VAR_LIST"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierBoundVarListTypeRule"
+[[typerules]]
+name               = "INST_PATTERN_LIST"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierInstPatternListTypeRule"
+[[typerules]]
+name               = "ORACLE_FORMULA_GEN"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierOracleFormulaGenTypeRule"
+
+[[typerules]]
+name               = "INST_PATTERN"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierInstPatternTypeRule"
+[[typerules]]
+name               = "INST_NO_PATTERN"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
+[[typerules]]
+name               = "INST_ATTRIBUTE"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
+[[typerules]]
+name               = "INST_POOL"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
+[[typerules]]
+name               = "INST_ADD_TO_POOL"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
+[[typerules]]
+name               = "typerule SKOLEM_ADD_TO_POOL"
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
