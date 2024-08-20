@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Jörg Schurr, Mudathir Mohamed, Andres Noetzli
+ *   Hans-Joerg Schurr, Mudathir Mohamed, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -22,6 +22,16 @@ import java.math.BigInteger;
  */
 public class Proof implements IPointer
 {
+  /**
+   * Null proof
+   */
+  public Proof()
+  {
+    this(getNullProof());
+  }
+
+  private static native long getNullProof();
+
   Proof(long pointer)
   {
     this.pointer = pointer;
@@ -47,7 +57,7 @@ public class Proof implements IPointer
 
   /**
    * @return The proof rule used by the root step of the proof.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public ProofRule getRule() throws CVC5ApiException
   {
@@ -99,4 +109,43 @@ public class Proof implements IPointer
   }
 
   private native long[] getArguments(long pointer);
+
+  /**
+   * Referential equality operator.
+   *
+   * @param p The proof to compare to for equality.
+   * @return True if the proofs point to the same internal proof object.
+   */
+  @Override
+  public boolean equals(Object p)
+  {
+    if (this == p)
+    {
+      return true;
+    }
+    if (p == null || getClass() != p.getClass())
+    {
+      return false;
+    }
+    Proof proof = (Proof) p;
+    if (pointer == proof.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, proof.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /**
+   * Get the hash value of a proof.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

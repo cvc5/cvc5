@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Mudathir Mohamed
+ *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +56,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(Kind) : int32_t
+enum ENUM(Kind)
 {
   /**
    * Internal kind.
@@ -618,6 +618,7 @@ enum ENUM(Kind) : int32_t
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   * \endrst
    */
   EVALUE(DIVISION_TOTAL),
   /**
@@ -656,6 +657,7 @@ enum ENUM(Kind) : int32_t
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   * \endrst
    */
   EVALUE(INTS_DIVISION_TOTAL),
   /**
@@ -677,7 +679,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(INTS_MODULUS),
   /**
-   * Integer modulus, modulus by 0 defined to be 0.
+   * Integer modulus, t modulus by 0 defined to be t.
    *
    * - Arity: ``2``
    *
@@ -696,6 +698,7 @@ enum ENUM(Kind) : int32_t
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
+   * \endrst
    */
   EVALUE(INTS_MODULUS_TOTAL),
   /**
@@ -2049,6 +2052,38 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_TO_NAT),
+  /**
+   * Converts a list of Bool terms to a bit-vector.
+   *
+   * - Arity: ``n > 0``
+   *
+   *   - ``1..n:`` Terms of Sort Bool
+   *
+   * \rst
+   * .. note:: May be returned as the result of an API call, but terms of this
+   *           kind may not be created explicitly via the API and may not
+   *           appear in assertions.
+   * \endrst
+   */
+  EVALUE(BITVECTOR_FROM_BOOLS),
+  /**
+   * Retrieves the bit at the given index from a bit-vector as a Bool term.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of bit-vector Sort
+   *
+   * - Indices: ``1``
+   *
+   *   - ``1:`` The bit index
+   *
+   * \rst
+   * .. note:: May be returned as the result of an API call, but terms of this
+   *           kind may not be created explicitly via the API and may not
+   *           appear in assertions.
+   * \endrst
+   */
+  EVALUE(BITVECTOR_BIT),
 
   /* Finite Fields --------------------------------------------------------- */
 
@@ -3535,6 +3570,60 @@ enum ENUM(Kind) : int32_t
    */
    EVALUE(SET_FILTER),
    /**
+   * Set all.
+   *
+   * \rst
+   * This operator checks whether all elements of a set satisfy a predicate. 
+   * (set.all :math:`p \; A`) takes a predicate :math:`p` of Sort
+   * :math:`(\rightarrow T \; Bool)` as a first argument, and a set :math:`A`
+   * of Sort (Set :math:`T`) as a second argument, and returns true iff all 
+   * elements of :math:`A` satisfy predicate :math:`p`. 
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \; Bool)`
+   *   - ``2:`` Term of bag Sort (Set :math:`T`)
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+   EVALUE(SET_ALL),
+   /**
+   * Set some.
+   *
+   * \rst
+   * This operator checks whether at least one element of a set satisfies a predicate. 
+   * (set.some :math:`p \; A`) takes a predicate :math:`p` of Sort
+   * :math:`(\rightarrow T \; Bool)` as a first argument, and a set :math:`A`
+   * of Sort (Set :math:`T`) as a second argument, and returns true iff at least  
+   * one element of :math:`A` satisfies predicate :math:`p`. 
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \; Bool)`
+   *   - ``2:`` Term of bag Sort (Set :math:`T`)
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+   EVALUE(SET_SOME),
+   /**
    * Set fold.
    *
    * \rst
@@ -4039,7 +4128,7 @@ enum ENUM(Kind) : int32_t
    *              future versions.
    * \endrst
    */
-  EVALUE(BAG_CHOOSE),  
+  EVALUE(BAG_CHOOSE),
   /**
    * Bag map.
    *
@@ -5593,7 +5682,6 @@ enum ENUM(Kind) : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
-   * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
    *              future versions.
    *
@@ -5752,7 +5840,7 @@ typedef enum ENUM(Kind) ENUM(Kind);
  * @param kind The kind.
  * @return The string representation.
  */
-const char* cvc5_kind_to_string(Cvc5Kind kind);
+CVC5_EXPORT const char* cvc5_kind_to_string(Cvc5Kind kind);
 #else
 /**
  * Get the string representation of a given kind.
@@ -5779,7 +5867,7 @@ namespace std {
  * @param kind The kind
  * @return The string representation.
  */
-std::string to_string(cvc5::Kind kind);
+CVC5_EXPORT std::string to_string(cvc5::Kind kind);
 }
 #endif
 
@@ -5789,7 +5877,7 @@ std::string to_string(cvc5::Kind kind);
  * @param kind The kind.
  * @return The hash value.
  */
-size_t cvc5_kind_hash(Cvc5Kind kind);
+CVC5_EXPORT size_t cvc5_kind_hash(Cvc5Kind kind);
 #else
 namespace std {
 
@@ -5837,7 +5925,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum ENUM(SortKind) : int32_t
+enum ENUM(SortKind)
 {
   /**
    * Internal kind.
@@ -6052,7 +6140,7 @@ typedef enum ENUM(SortKind) ENUM(SortKind);
  * @param kind The sort kind.
  * @return The string representation.
  */
-const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
+CVC5_EXPORT const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
 #else
 /**
  * Get the string representation of a given kind.
@@ -6080,7 +6168,7 @@ namespace std {
  * @param k the sort kind
  * @return the string representation of kind k
  */
-std::string to_string(cvc5::SortKind k);
+CVC5_EXPORT std::string to_string(cvc5::SortKind k);
 }
 #endif
 
@@ -6090,7 +6178,7 @@ std::string to_string(cvc5::SortKind k);
  * @param kind The kind.
  * @return The hash value.
  */
-size_t cvc5_sort_kind_hash(Cvc5SortKind kind);
+CVC5_EXPORT size_t cvc5_sort_kind_hash(Cvc5SortKind kind);
 #else
 namespace std {
 

@@ -7,19 +7,21 @@ env:
     HOMEBREW_NO_INSTALL_FROM_API: ""
 
 jobs:
-  build:
+  builds:
     strategy:
       matrix:
-        include:
+        has-tag:
+          - ${{ startsWith(github.ref, 'refs/tags/') }}
+        build:
           - name: ubuntu:production
             os: ubuntu-20.04
-            config: production --auto-download --all-bindings --editline --docs
+            config: production --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
             python-bindings: true
             build-documentation: true
             check-examples: true
-            package-name: cvc5-Linux
+            package-name: cvc5-Linux-x86_64
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -37,7 +39,7 @@ jobs:
             strip-bin: strip
             python-bindings: true
             check-examples: true
-            package-name: cvc5-macOS
+            package-name: cvc5-macOS-x86_64
             macos-target: 10.13
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
@@ -63,13 +65,14 @@ jobs:
 
           - name: win64:production
             os: windows-latest
-            config: production --auto-download --java-bindings
+            config: production --auto-download --all-bindings
             cache-key: production-win64-native
             strip-bin: strip
+            python-bindings: true
             windows-build: true
             shell: 'msys2 {0}'
             check-examples: true
-            package-name: cvc5-Win64
+            package-name: cvc5-Win64-x86_64
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -79,6 +82,14 @@ jobs:
             cache-key: production-win64-cross
             strip-bin: x86_64-w64-mingw32-strip
             windows-build: true
+
+          - name: wasm:production
+            os: ubuntu-20.04
+            config: production --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE'
+            cache-key: productionwasm
+            wasm-build: true
+            build-shared: false
+            build-static: true
 
           - name: ubuntu:production-clang
             os: ubuntu-20.04
@@ -91,7 +102,7 @@ jobs:
 
           - name: ubuntu:production-dbg
             os: ubuntu-20.04
-            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa
+            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa --gpl
             cache-key: dbg
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
@@ -103,14 +114,53 @@ jobs:
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
-            run_regression_args: --tester alf --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
+            run_regression_args: --tester cpc --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+          # GPL versions
+          - name: ubuntu:production-gpl
+            os: ubuntu-20.04
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
+            cache-key: production-gpl
+            strip-bin: strip
+            package-name: cvc5-Linux-x86_64
+            gpl-tag: -gpl
+
+          - name: macos:production-gpl
+            os: macos-13
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
+            cache-key: production-gpl
+            strip-bin: strip
+            package-name: cvc5-macOS-x86_64
+            macos-target: 10.13
+            gpl-tag: -gpl
+
+          - name: macos:production-arm64-gpl
+            os: macos-14
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
+            cache-key: production-arm64-gpl
+            strip-bin: strip
+            package-name: cvc5-macOS-arm64
+            macos-target: 11.0
+            gpl-tag: -gpl
+
+        exclude:
+          - has-tag: false
+            build:
+              name: ubuntu:production-gpl
+          - has-tag: false
+            build:
+              name: macos:production-gpl
+          - has-tag: false
+            build:
+              name: macos:production-arm64-gpl
+
+
+    name: ${{ matrix.build.name }}
+    runs-on: ${{ matrix.build.os }}
 
     # cancel already running jobs for the same branch/pr/tag
     concurrency:
-      group: build-${{ github.ref }}-${{ matrix.name }}-${{ github.ref != 'refs/heads/main' || github.run_id }}
+      group: build-${{ github.ref }}-${{ matrix.build.name }}-${{ github.ref != 'refs/heads/main' || github.run_id }}
       cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
 
     steps:
@@ -120,90 +170,76 @@ jobs:
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
       with:
-        with-documentation: ${{ matrix.build-documentation }}
-        windows-build: ${{ matrix.windows-build }}
-        shell: ${{ matrix.shell }}
+        with-documentation: ${{ matrix.build.build-documentation }}
+        windows-build: ${{ matrix.build.windows-build }}
+        wasm-build: ${{ matrix.build.wasm-build }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
       with:
-        cache-key: ${{ matrix.cache-key }}
-        shell: ${{ matrix.shell }}
+        cache-key: ${{ matrix.build.cache-key }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Configure and build
       id: configure-and-build
       uses: ./.github/actions/configure-and-build
       with:
-        configure-env: ${{ matrix.env }}
-        configure-config: ${{ matrix.config }}
-        macos-target: ${{ matrix.macos-target }}
-        build-shared: ${{ matrix.build-shared }}
-        build-static: ${{ matrix.build-static }}
-        strip-bin: ${{ matrix.strip-bin }}
-        shell: ${{ matrix.shell }}
+        configure-env: ${{ matrix.build.env }}
+        configure-config: ${{ matrix.build.config }}
+        macos-target: ${{ matrix.build.macos-target }}
+        build-shared: ${{ matrix.build.build-shared }}
+        build-static: ${{ matrix.build.build-static }}
+        strip-bin: ${{ matrix.build.strip-bin }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Run tests
-      if: matrix.run_regression_args
+      if: matrix.build.run_regression_args
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
-        check-examples: ${{ matrix.check-examples }}
-        check-python-bindings: ${{ matrix.python-bindings }}
-        regressions-args: ${{ matrix.run_regression_args }}
-        regressions-exclude: ${{ matrix.exclude_regress }}
-        shell: ${{ matrix.shell }}
+        check-examples: ${{ matrix.build.check-examples }}
+        check-python-bindings: ${{ matrix.build.python-bindings }}
+        regressions-args: ${{ matrix.build.run_regression_args }}
+        regressions-exclude: ${{ matrix.build.exclude_regress }}
+        shell: ${{ matrix.build.shell }}
   
     - name: Run tests
-      if: matrix.run_regression_args
+      if: matrix.build.run_regression_args
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         check-examples: false
         check-install: false
         check-python-bindings: false
-        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-args: ${{ matrix.build.run_regression_args }}
         regressions-exclude: 1-4
-        shell: ${{ matrix.shell }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Build documentation
-      if: matrix.build-documentation
+      if: matrix.build.build-documentation
       uses: ./.github/actions/build-documentation
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
     - name: Create and add shared package to latest and release
-      if: matrix.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      if: matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-package
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
-        package-name: ${{ matrix.package-name }}-shared
+        package-name: ${{ matrix.build.package-name }}-shared${{ matrix.build.gpl-tag }}
         # when using GITHUB_TOKEN, no further workflows are triggered
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
-        shell: ${{ matrix.shell }}
+        shell: ${{ matrix.build.shell }}
 
     - name: Create and add static package to latest and release
-      if: matrix.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      if: matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-package
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
-        package-name: ${{ matrix.package-name }}-static
+        package-name: ${{ matrix.build.package-name }}-static${{ matrix.build.gpl-tag }}
         # when using GITHUB_TOKEN, no further workflows are triggered
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
-        shell: ${{ matrix.shell }}
-
-  update-pr:
-    runs-on: ubuntu-latest
-    if: github.repository == 'cvc5/cvc5' && github.event_name == 'push' && github.ref == 'refs/heads/main'
-    concurrency:
-      group: update-pr
-    steps:
-      - name: Automatically update PR
-        uses: adRise/update-pr-branch@v0.7.2
-        with:
-          token: ${{ secrets.ACTION_USER_TOKEN }}
-          base: 'main'
-          sort: 'created'
-          direction: 'asc'
-          required_approval_count: 1
+        shell: ${{ matrix.build.shell }}

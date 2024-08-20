@@ -42,7 +42,7 @@ QF_AUFBV)
   finishwith --decision=stoponly
   ;;
 QF_ABV)
-  finishwith --arrays-weak-equiv
+  finishwith
   ;;
 QF_UFBV)
   finishwith

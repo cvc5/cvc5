@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Aina Niemetz
+ *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -285,7 +285,7 @@ bool CDProof::addTheoryRewriteStep(Node expected,
   }
   std::vector<Node> sargs;
   sargs.push_back(rewriter::mkRewriteRuleNode(id));
-  sargs.push_back(expected[0]);
+  sargs.push_back(expected);
   return addStep(
       expected, ProofRule::THEORY_REWRITE, {}, sargs, ensureChildren, opolicy);
 }

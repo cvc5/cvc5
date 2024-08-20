@@ -346,6 +346,8 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_GT_PURIFY: return "QUANTIFIERS_GT_PURIFY";
     case InferenceId::QUANTIFIERS_TDB_DEQ_CONG:
       return "QUANTIFIERS_TDB_DEQ_CONG";
+    case InferenceId::QUANTIFIERS_CEGQI_WITNESS:
+      return "QUANTIFIERS_CEGQI_WITNESS";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
@@ -556,6 +558,7 @@ const char* toString(InferenceId i)
       return "UF_HO_MODEL_EXTENSIONALITY";
     case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
+    case InferenceId::UF_HO_LAMBDA_LAZY_LIFT: return "UF_HO_LAMBDA_LAZY_LIFT";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
     case InferenceId::UF_ARITH_BV_CONV_VALUE_REFINE:

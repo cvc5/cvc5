@@ -57,7 +57,7 @@ class ResultTest
   }
 
   @Test
-  void eq()
+  void equalHash()
   {
     Sort u_sort = d_tm.mkUninterpretedSort();
     Term x = d_tm.mkConst(u_sort, "x");
@@ -65,11 +65,12 @@ class ResultTest
     Result res = null;
     Result res2 = d_solver.checkSat();
     Result res3 = d_solver.checkSat();
-    assertTrue(res != res2);
     res = res2;
-    assertEquals(res, res2);
-    assertEquals(res3, res2);
+    assertTrue(res.equals(res2));
+    assertTrue(res3.equals(res2));
     assertEquals(res.toString(), "sat");
+    assertEquals(res.hashCode(), res2.hashCode());
+    assertEquals(res3.hashCode(), res2.hashCode());
   }
 
   @Test

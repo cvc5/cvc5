@@ -56,6 +56,8 @@ AlfNodeConverter::AlfNodeConverter(NodeManager* nm) : BaseAlfNodeConverter(nm)
   d_sortType = nm->mkSort("sortType");
 }
 
+AlfNodeConverter::~AlfNodeConverter() {}
+
 Node AlfNodeConverter::preConvert(Node n)
 {
   // match is not supported in ALF syntax, we eliminate it at pre-order
@@ -243,7 +245,7 @@ Node AlfNodeConverter::postConvert(Node n)
     std::vector<Node> newArgs;
     newArgs.push_back(nm->mkConstInt(irp.d_index));
     newArgs.insert(newArgs.end(), n.begin(), n.end());
-    return mkInternalApp("INDEXED_ROOT_PREDICATE", newArgs, tn);
+    return mkInternalApp("@indexed_root_predicate", newArgs, tn);
   }
   else if (k == Kind::FLOATINGPOINT_COMPONENT_NAN
            || k == Kind::FLOATINGPOINT_COMPONENT_INF
@@ -326,14 +328,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
   TypeNode tn = k.getType();
   if (sm->isSkolemFunction(k, sfi, cacheVal))
   {
-    Node app;
-    if (sfi == SkolemId::PURIFY)
-    {
-      Assert(cacheVal.getType() == k.getType());
-      // special case: just use self
-      app = convert(cacheVal);
-    }
-    else if (isHandledSkolemId(sfi))
+    if (isHandledSkolemId(sfi))
     {
       // convert every skolem function to its name applied to arguments
       std::stringstream ss;
@@ -351,18 +346,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
         args.push_back(convert(cacheVal));
       }
       // must convert all arguments
-      app = mkInternalApp(ss.str(), args, k.getType());
-    }
-    if (!app.isNull())
-    {
-      // If it has no children, then we don't wrap in `(skolem ...)`, since it
-      // makes no difference for substitution. Moreover, it is important not
-      // to do this since bitvector concat uses @bv_empty as its nil terminator.
-      if (sfi == SkolemId::PURIFY || app.getNumChildren() > 0)
-      {
-        // wrap in "skolem" operator
-        return mkInternalApp("skolem", {app}, k.getType());
-      }
+      Node app = mkInternalApp(ss.str(), args, k.getType());
       return app;
     }
   }
@@ -393,19 +377,12 @@ size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
   return k == Kind::SET_COMPREHENSION ? 3 : 2;
 }
 
-Node AlfNodeConverter::mkNil(TypeNode tn)
-{
-  return mkInternalSymbol("alf.nil", tn);
-}
 
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
 {
+  Assert(!args.empty());
   TypeNode tn = NodeManager::currentNM()->booleanType();
-  if (args.empty())
-  {
-    return mkNil(tn);
-  }
-  // singleton lists are handled due to (@list x) ---> (@list x alf.nil)
+  // singleton lists are handled due to (@list x) ---> (@list x eo::nil)
   return mkInternalApp("@list", args, tn);
 }
 
@@ -577,7 +554,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     {
       // If the operator is a parameterized constant and reqCast is true,
       // then we must apply the parameters of the operator, e.g. such that
-      // bvor becomes (alf._ bvor 32) where 32 is the bitwidth of the first
+      // bvor becomes (eo::_ bvor 32) where 32 is the bitwidth of the first
       // argument.
       if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
           || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND
@@ -616,7 +593,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     }
     if (isParameterized)
     {
-      opName << "alf._";
+      opName << "eo::_";
       std::stringstream oppName;
       oppName << printer::smt2::Smt2Printer::smtKindString(k);
       Node opp = mkInternalSymbol(oppName.str(), n.getType());
@@ -625,11 +602,6 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     else
     {
       opName << printer::smt2::Smt2Printer::smtKindString(k);
-      if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-          || k == Kind::INTS_MODULUS_TOTAL)
-      {
-        opName << "_total";
-      }
     }
   }
   std::vector<Node> args(n.begin(), n.end());
@@ -655,13 +627,13 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   }
   if (reqCast)
   {
-    // - prints as e.g. (alf.as - (-> Int Int)).
+    // - prints as e.g. (eo::as - (-> Int Int)).
     if (k == Kind::NEG || k == Kind::SUB)
     {
       std::vector<Node> asChildren;
       asChildren.push_back(ret);
       asChildren.push_back(typeAsNode(ret.getType()));
-      ret = mkInternalApp("alf.as", asChildren, n.getType());
+      ret = mkInternalApp("eo::as", asChildren, n.getType());
     }
   }
   Trace("alf-term-process-debug2") << "...return " << ret << std::endl;

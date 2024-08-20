@@ -34,6 +34,7 @@ set(EXAMPLES_API_JAVA
    SygusInv
    Transcendentals
    UnsatCores
+   Uf
 )
 
 function(add_java_example example)

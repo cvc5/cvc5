@@ -49,6 +49,7 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj);
  * when n = str.++( x, y ), c is { x, y }
  * when n = str.++( x, str.++( y, z ), w ), c is { x, str.++( y, z ), w )
  * when n = x, c is { x }
+ * when n = "", c is { "" }
  *
  * Also applies to regular expressions (re.++ above).
  */
@@ -71,7 +72,11 @@ Node mkPrefix(Node t, Node n);
 Node mkSuffix(Node t, Node n);
 
 /**
- * Returns (suf t n), which is (str.substr t (- (str.len t) n) n).
+ * Returns (str.substr t 0 (- (str.len t) n)).
+ */
+Node mkPrefixExceptLen(Node t, Node n);
+/**
+ * Returns (str.substr t (- (str.len t) n) n).
  */
 Node mkSuffixOfLen(Node t, Node n);
 

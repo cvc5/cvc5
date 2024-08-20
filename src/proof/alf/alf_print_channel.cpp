@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -23,6 +23,10 @@
 
 namespace cvc5::internal {
 namespace proof {
+
+AlfPrintChannel::AlfPrintChannel() {}
+
+AlfPrintChannel::~AlfPrintChannel() {}
 
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
                                        const LetBinding* lbind,
@@ -178,6 +182,11 @@ void AlfPrintChannelPre::printNode(TNode n)
   {
     d_lbind->process(n);
   }
+}
+
+void AlfPrintChannelPre::printTypeNode(TypeNode tn)
+{
+  // current do nothing
 }
 
 void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)

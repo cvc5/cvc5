@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr
+ *   Andrew Reynolds, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -91,6 +91,8 @@ class RewriteDb
   const std::vector<ProofRewriteRule>& getRuleIdsForHead(const Node& h) const;
   /** Return the union of free variables in all rules */
   const std::unordered_set<Node>& getAllFreeVariables() const;
+  /** Return all rewrite rules */
+  const std::map<ProofRewriteRule, RewriteProofRule>& getAllRules() const;
 
  private:
   /** common constants */

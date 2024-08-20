@@ -319,6 +319,12 @@ void CocoaEncoder::encodeFact(const Node& f)
     Poly diff = d_cache.at(f[0][0]) - d_cache.at(f[0][1]);
     p = diff * symPoly(d_diseqSyms.at(f)) - 1;
   }
+  if (!CoCoA::IsZero(p))
+  {
+    // normalize; if we don't do it, CoCoA will in GB input, confusing our
+    // tracer.
+    p = p / CoCoA::LC(p);
+  }
   d_cache.insert({f, p});
   d_polyFacts.insert({extractStr(p), f});
 }

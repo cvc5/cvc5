@@ -1,0 +1,249 @@
+(include "../theories/Builtin.eo")
+
+; rule: refl
+; implements: ProofRule::REFL
+; args:
+; - t T: The term to apply reflexivity to.
+; conclusion: The equality between t and itself.
+(declare-rule refl ((T Type) (t T))
+    :args (t)
+    :conclusion (= t t)
+)
+
+; rule: symm
+; implements: ProofRule::SYMM
+; args:
+; - F Bool: The (dis)equality to apply symmetry to.
+; conclusion: The inverted version of the (dis)equality F.
+(declare-rule symm ((F Bool))
+    :premises (F)
+    :conclusion
+        (eo::match ((T Type) (t1 T) (t2 T))
+            F
+            (
+                ((= t1 t2)       (= t2 t1))
+                ((not (= t1 t2)) (not (= t2 t1)))
+            ))
+)
+
+; program: $mk_trans
+; args:
+; - t1 U: The current left hand side of the equality we have proven.
+; - t2 U: The current right hand side of the equality we have proven.
+; - E Bool: A conjunction of the remaining equalities we have left to process.
+; return: >
+;   An equality between the original left hand side and the final right
+;   hand side. Each additional equality checks that its left hand side matches
+;   the current right hand side.
+(program $mk_trans ((U Type) (t1 U) (t2 U) (t3 U) (t4 U) (tail Bool :list))
+    (U U Bool) Bool
+    (
+        (($mk_trans t1 t2 (and (= t3 t4) tail))
+            (eo::requires t2 t3 ($mk_trans t1 t4 tail)))
+        (($mk_trans t1 t2 true)              (= t1 t2))
+    )
+)
+
+; rule: trans
+; implements: ProofRule::TRANS
+; premises:
+; - E [:list]: A conjunction of equalities to apply transitivity to.
+; conclusion: >
+;   An equality between the left hand side of the first equality
+;   and the right hand side of the last equality, assuming that the right hand
+;   side of each equality matches the left hand side of the one that follows it.
+(declare-rule trans ((T Type) (U Type) (E Bool) (f (-> T U)))
+    :premise-list E and
+    :conclusion
+        (eo::match ((t1 U) (t2 U) (tail Bool :list))
+        E
+        (((and (= t1 t2) tail) ($mk_trans t1 t2 tail))))
+)
+
+
+; program: $mk_cong
+; args:
+; - t1 U: The current left hand side of the equality we have proven.
+; - t2 U: The current right hand side of the equality we have proven.
+; - E Bool: A conjunction of the remaining equalities we have left to process.
+; return: >
+;   An equality where the original terms are applied to the left and
+;   right hand sides of the equalities given by E.
+(program $mk_cong ((T Type) (U Type) (f1 (-> T U)) (f2 (-> T U)) (t1 U) (t2 U) (tail Bool :list))
+    (U U Bool) Bool
+    (
+        (($mk_cong f1 f2 (and (= t1 t2) tail)) ($mk_cong (f1 t1) (f2 t2) tail))
+        (($mk_cong t1 t2 true)                 (= t1 t2))
+        (($mk_cong f1 f2 (= t1 t2))            (= (f1 t1) (f2 t2)))
+    )
+)
+
+; rule: cong
+; implements: ProofRule::CONG
+; premises:
+; - E [:list]: A conjunction of equalities to apply congruence to.
+; args:
+; - f (-> T U): >
+;   The function to apply congruence to. This is assumed to be
+;   a function that is not n-ary, e.g. it is not marked :right-assoc-nil.
+;   Congruence for n-ary operators requires a different rule (nary_cong) below.
+; conclusion: >
+;   An equality between applications of f whose arguments are given
+;   by the equalities in E.
+; disclaimer: >
+;   This proof rule takes only the function to do congruence over,
+;   whereas the internal proof calculus takes an internal value denoting its
+;   cvc5::Kind along with an (optional) function if the kind if parameterized.
+(declare-rule cong ((T Type) (U Type) (E Bool) (f (-> T U)))
+    :premise-list E and
+    :args (f)
+    :conclusion ($mk_cong f f E)
+)
+
+; program: $mk_nary_cong_lhs
+; args:
+; - f (-> U U U): >
+;   The function we are applying congruence over. This is
+;   assumed to be a right-associative n-ary operator with nil terminator, i.e.
+;   marked with :right-assoc-nil.
+; - E Bool: A conjunction of the remaining equalities we have left to process.
+; return: >
+;   The left hand side of the equality proven by nary_cong for f and
+;   the given premises E.
+; note: >
+;   We use two side conditions for computing each side of the returned
+;   equality. This avoids constructing equalities between intermediate terms.
+(program $mk_nary_cong_lhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (tail Bool :list))
+    ((-> U U U) Bool) Bool
+    (
+        (($mk_nary_cong_lhs f (and (= s1 s2) tail)) (eo::cons f s1 ($mk_nary_cong_lhs f tail)))
+        (($mk_nary_cong_lhs f true)                 (eo::nil f))
+    )
+)
+
+; program: $mk_nary_cong_rhs
+; args:
+; - f (-> U U U): The function we are applying congruence over.
+; - E Bool: A conjunction of the remaining equalities we have left to process.
+; return: >
+;   The right hand side of the equality proven by nary_cong for f and
+;   the given premises E.
+; note: This program is analogous to $mk_nary_cong_lhs.
+(program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (tail Bool :list))
+    ((-> U U U) Bool) Bool
+    (
+        (($mk_nary_cong_rhs f (and (= s1 s2) tail)) (eo::cons f s2 ($mk_nary_cong_rhs f tail)))
+        (($mk_nary_cong_rhs f true)                 (eo::nil f))
+    )
+)
+
+; rule: nary_cong
+; implements: ProofRule::NARY_CONG
+; premises:
+; - E [:list]: A conjunction of equalities to apply nary-congruence to.
+; args:
+; - f (-> T U): >
+;   The function to apply congruence to. This is assumed to be
+;   a function that is right-associative n-ary operator with nil terminator, e.g.
+;   it is marked :right-assoc-nil.
+; conclusion: >
+;   An equality between applications of f whose arguments are given
+;   by the equalities in E.
+; disclaimer: >
+;   This proof rule takes as argument the function to do congruence
+;   over, whereas the internal proof calculus takes an internal value denoting its
+;   cvc5::Kind.
+(declare-rule nary_cong ((U Type) (E Bool) (f (-> U U)) (nil U))
+    :premise-list E and
+    :args (f)
+    :conclusion (= ($mk_nary_cong_lhs f E) ($mk_nary_cong_rhs f E))
+)
+
+; rule: true_intro
+; implements: ProofRule::TRUE_INTRO
+; premises:
+; - F: A formula.
+; conclusion: The equality between F and true.
+(declare-rule true_intro ((F Bool))
+    :premises (F)
+    :conclusion (= F true)
+)
+
+; rule: true_elim
+; implements: ProofRule::TRUE_ELIM
+; premises:
+; - F1: The formula, which is an equality whose right hand side is true.
+; conclusion: The left hand side of the premise.
+(declare-rule true_elim ((F Bool))
+    :premises ((= F true))
+    :conclusion F
+)
+
+; rule: false_intro
+; implements: ProofRule::FALSE_INTRO
+; premises:
+; - F1: The formula, which is a negation.
+; conclusion: The equality between the formula the premise negates and false.
+(declare-rule false_intro ((F Bool))
+    :premises ((not F))
+    :conclusion (= F false)
+)
+
+
+; rule: false_elim
+; implements: ProofRule::FALSE_ELIM
+; premises:
+; - F1: The formula, which is an equality whose right hand side is false.
+; conclusion: The negation of the left hand side of the premise.
+(declare-rule false_elim ((F Bool))
+    :premises ((= F false))
+    :conclusion (not F)
+)
+
+; rule: ho_cong
+; implements: ProofRule::HO_CONG
+; premises:
+; - E [:list]: A conjunction of equalities to apply congruence to.
+; conclusion: >
+;   An equality between a function application that is given by
+;   the premises E. Note that the first equality in E should be an equality
+;   between the functions that are respectively applied to the arguments given by
+;   the remaining equalities.
+(declare-rule ho_cong ((T Type) (U Type) (E Bool) (f (-> T U)))
+    :premise-list E and
+    :args ()
+    :conclusion
+        (eo::match ((t1 U) (t2 U) (tail Bool :list))
+        E
+        (((and (= t1 t2) tail) ($mk_cong t1 t2 tail))))
+)
+
+;;-------------------- Instances of THEORY_REWRITE
+
+; program: $mk_distinct-elim
+; args:
+; - F Bool: The application of distinct to eliminate.
+; return: The result of converting the operator "distinct" in F to negated equalities.
+; note: >
+;   The distinct function is already treated as pairwise, thus we only need to convert from
+;   binary distinct to disequalities.
+(program $mk_distinct-elim ((T Type) (x T) (y T) (b Bool :list))
+  (Bool) Bool
+  (
+  (($mk_distinct-elim (and (distinct x y) b))   (eo::cons and (not (= x y)) ($mk_distinct-elim b)))
+  (($mk_distinct-elim true)                     true)
+  (($mk_distinct-elim (distinct x y))           (eo::cons and (not (= x y)) true))
+  )
+)
+
+; rule: distinct-elim
+; implements: ProofRewriteRule::DISTINCT_ELIM.
+; args:
+; - eq Bool: The equality between formulas b1 and b2 to prove.
+; requires: Showing that eliminating the operator "distinct" from b1 results in b2.
+; conclusion: The equality (= b1 b2).
+(declare-rule distinct-elim ((b1 Bool) (b2 Bool))
+  :args ((= b1 b2))
+  :requires ((($singleton_elim ($mk_distinct-elim b1)) b2))
+  :conclusion (= b1 b2)
+)

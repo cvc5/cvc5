@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Abdalrhman Mohamed
+ *   Andrew Reynolds, Hans-Joerg Schurr, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -541,7 +541,7 @@ void LfscPrinter::printProofInternal(
           Assert(passumeIt != passumeMap.end());
           out->printId(passumeIt->second, d_assumpPrefix);
         }
-        else if (r == ProofRule::ENCODE_PRED_TRANSFORM)
+        else if (r == ProofRule::ENCODE_EQ_INTRO)
         {
           // just add child
           visit.push_back(PExpr(cur->getChildren()[0].get()));

@@ -77,7 +77,7 @@ string Configuration::getVersionString() { return CVC5_FULL_VERSION; }
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2023 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2024 by the authors and their institutional\n"
      << "affiliations listed at https://cvc5.github.io/people.html\n\n";
 
   if (Configuration::licenseIsGpl()) {

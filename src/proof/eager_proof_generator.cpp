@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Alex Ozdemir
+ *   Andrew Reynolds, Hans-Joerg Schurr, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
@@ -132,7 +132,7 @@ TrustNode EagerProofGenerator::mkTrustNodeRewrite(const Node& a,
 {
   std::vector<Node> args;
   args.push_back(rewriter::mkRewriteRuleNode(id));
-  args.push_back(a);
+  args.push_back(a.eqNode(b));
   return mkTrustedRewrite(a, b, ProofRule::THEORY_REWRITE, args);
 }
 

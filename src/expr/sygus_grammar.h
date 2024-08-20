@@ -30,6 +30,8 @@ namespace cvc5::internal {
  */
 class SygusGrammar
 {
+  friend struct std::hash<SygusGrammar>;
+
  public:
   /**
    * Constructor.
@@ -120,6 +122,12 @@ class SygusGrammar
    */
   Node getLambdaForRule(const Node& r, std::map<Node, Node>& ntSymMap) const;
 
+  /**
+   * Determine if any rules have been added to this grammar.
+   * @return True if rules have been added.
+   */
+  bool hasRules() const;
+
  private:
   /** Input variables to the corresponding function/invariant to synthesize.*/
   std::vector<Node> d_sygusVars;
@@ -133,4 +141,11 @@ class SygusGrammar
 
 }  // namespace cvc5::internal
 
+namespace std {
+template <>
+struct hash<cvc5::internal::SygusGrammar>
+{
+  size_t operator()(const cvc5::internal::SygusGrammar& grammar) const;
+};
+}  // namespace std
 #endif

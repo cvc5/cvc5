@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Jörg Schurr, Mudathir Mohamed, Aina Niemetz
+ *   Hans-Joerg Schurr, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -47,7 +47,7 @@ class ProofTest
     Context.deletePointers();
   }
 
-  Proof create_proof() throws CVC5ApiException
+  Proof createProof() throws CVC5ApiException
   {
     d_solver.setOption("produce-proofs", "true");
 
@@ -93,9 +93,33 @@ class ProofTest
   }
 
   @Test
+  void nullProof() throws CVC5ApiException
+  {
+    Proof proof = new Proof();
+    assertEquals(proof.getRule(), ProofRule.UNKNOWN);
+    assertEquals(ProofRule.UNKNOWN.hashCode(), ProofRule.UNKNOWN.hashCode());
+    assertTrue(proof.getResult().isNull());
+    assertTrue(proof.getChildren().length == 0);
+    assertTrue(proof.getArguments().length == 0);
+  }
+
+  @Test
+  void equalHash() throws CVC5ApiException
+  {
+    Proof x = createProof();
+    Proof y = x.getChildren()[0];
+    Proof n = new Proof();
+    assertTrue(x.equals(x));
+    assertFalse(x.equals(y));
+    assertFalse(x.equals(n));
+
+    assertTrue(x.hashCode() == x.hashCode());
+  }
+
+  @Test
   void getRule() throws CVC5ApiException
   {
-    Proof proof = create_proof();
+    Proof proof = createProof();
     assertEquals(ProofRule.SCOPE, proof.getRule());
   }
 
@@ -123,14 +147,14 @@ class ProofTest
   @Test
   void getResult() throws CVC5ApiException
   {
-    Proof proof = create_proof();
+    Proof proof = createProof();
     assertDoesNotThrow(() -> proof.getResult());
   }
 
   @Test
   void getChildren() throws CVC5ApiException
   {
-    Proof proof = create_proof();
+    Proof proof = createProof();
     Proof[] children = proof.getChildren();
     assertNotEquals(0, children.length);
   }
@@ -138,8 +162,21 @@ class ProofTest
   @Test
   void getArguments() throws CVC5ApiException
   {
-    Proof proof = create_proof();
+    Proof proof = createProof();
     assertDoesNotThrow(() -> proof.getArguments());
   }
 
+  @Test
+  void eq() throws CVC5ApiException
+  {
+    Proof x = createProof();
+    Proof y = x.getChildren()[0];
+    Proof z = new Proof();
+
+    assertTrue(x.equals(x));
+    assertFalse(x.equals(y));
+    assertFalse(x.equals(z));
+
+    assertTrue(x.hashCode() == x.hashCode());
+  }
 }

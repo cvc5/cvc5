@@ -145,7 +145,7 @@ public class TermManager extends AbstractPointer
   /**
    * Get the floating-point rounding mode sort.
    * @return Sort RoundingMode.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort getRoundingModeSort() throws CVC5ApiException
   {
@@ -184,7 +184,7 @@ public class TermManager extends AbstractPointer
    * Create a bit-vector sort.
    * @param size The bit-width of the bit-vector sort.
    * @return The bit-vector sort.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort mkBitVectorSort(int size) throws CVC5ApiException
   {
@@ -200,7 +200,7 @@ public class TermManager extends AbstractPointer
    * @param size The size of the finite field sort.
    * @param base The base of the string representation.
    * @return The finite field sort.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort mkFiniteFieldSort(String size, int base) throws CVC5ApiException
   {
@@ -215,7 +215,7 @@ public class TermManager extends AbstractPointer
    * @param exp The bit-width of the exponent of the floating-point sort.
    * @param sig The bit-width of the significand of the floating-point sort.
    * @return The floating-point sort.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
   {
@@ -231,7 +231,7 @@ public class TermManager extends AbstractPointer
    * Create a datatype sort.
    * @param dtypedecl The datatype declaration from which the sort is created.
    * @return The datatype sort.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
   {
@@ -249,7 +249,7 @@ public class TermManager extends AbstractPointer
    *
    * @param dtypedecls The datatype declarations from which the sort is created.
    * @return The datatype sorts.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
@@ -316,6 +316,40 @@ public class TermManager extends AbstractPointer
   }
 
   private native long mkParamSort(long pointer);
+
+  /**
+   * Create a skolem
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param skolemId The id of the skolem.
+   * @param indices The indices of the skolem.
+   * @return The skolem.
+   */
+  public Term mkSkolem(SkolemId skolemId, Term[] indices)
+  {
+    long skolemPointer = mkSkolem(pointer, skolemId.getValue(), Utils.getPointers(indices));
+    return new Term(skolemPointer);
+  }
+
+  private native long mkSkolem(long pointer, int skolemId, long[] indices);
+
+  /**
+   * Get the number of indices for a given skolem id.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param id The skolem id.
+   * @return The number of indices for the given skolem id.
+   */
+
+  public int getNumIndicesForSkolemId(SkolemId id)
+  {
+    int numIndices = getNumIndicesForSkolemId(pointer, id.getValue());
+    return numIndices;
+  }
+
+  private native int getNumIndicesForSkolemId(long pointer, int skolemId);
 
   /**
    * Create a predicate sort.
@@ -452,7 +486,7 @@ public class TermManager extends AbstractPointer
    * @param symbol The symbol of the sort.
    * @param arity The number of sort parameters of the sort.
    * @return The unresolved sort.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort mkUnresolvedDatatypeSort(String symbol, int arity) throws CVC5ApiException
   {
@@ -471,7 +505,7 @@ public class TermManager extends AbstractPointer
    *
    * @param symbol The symbol of the sort.
    * @return The unresolved sort.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort mkUnresolvedDatatypeSort(String symbol) throws CVC5ApiException
   {
@@ -487,7 +521,7 @@ public class TermManager extends AbstractPointer
    * @param arity The arity of the sort (must be &gt; 0)
    * @param symbol The symbol of the sort.
    * @return The sort constructor sort.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort mkUninterpretedSortConstructorSort(int arity, String symbol) throws CVC5ApiException
   {
@@ -506,7 +540,7 @@ public class TermManager extends AbstractPointer
    *
    * @param arity The arity of the sort (must be &gt; 0)
    * @return The sort constructor sort.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Sort mkUninterpretedSortConstructorSort(int arity) throws CVC5ApiException
   {
@@ -870,7 +904,7 @@ public class TermManager extends AbstractPointer
    * @param kind The kind of the operator.
    * @param arg The unsigned int argument to this operator.
    * @return The operator.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
   {
@@ -896,7 +930,7 @@ public class TermManager extends AbstractPointer
    * @param arg1 The first unsigned int argument to this operator.
    * @param arg2 The second unsigned int argument to this operator.
    * @return The operator.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
   {
@@ -917,7 +951,7 @@ public class TermManager extends AbstractPointer
    * @param kind The kind of the operator.
    * @param args The arguments (indices) of the operator.
    * @return The operator.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
   {
@@ -983,7 +1017,7 @@ public class TermManager extends AbstractPointer
    *          integer (e.g., "123").
    * @return A constant of sort Integer assuming {@code s} represents an
    *         integer).
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkInteger(String s) throws CVC5ApiException
   {
@@ -1011,7 +1045,7 @@ public class TermManager extends AbstractPointer
    *          integer (e.g., "123") or real constant (e.g., "12.34" or
    * "12/34").
    * @return A constant of sort Real.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkReal(String s) throws CVC5ApiException
   {
@@ -1170,7 +1204,7 @@ public class TermManager extends AbstractPointer
    * @param s A list of unsigned (unicode) values this constant represents
    *          as string.
    * @return The String constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkString(int[] s) throws CVC5ApiException
   {
@@ -1211,7 +1245,7 @@ public class TermManager extends AbstractPointer
    * Create a bit-vector constant of given size and value = 0.
    * @param size The bit-width of the bit-vector sort.
    * @return The bit-vector constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkBitVector(int size) throws CVC5ApiException
   {
@@ -1226,7 +1260,7 @@ public class TermManager extends AbstractPointer
    * @param size The bit-width of the bit-vector sort.
    * @param val The value of the constant.
    * @return The bit-vector constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkBitVector(int size, long val) throws CVC5ApiException
   {
@@ -1248,7 +1282,7 @@ public class TermManager extends AbstractPointer
    * @param s The string representation of the constant.
    * @param base The base of the string representation (2, 10, or 16)
    * @return The bit-vector constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkBitVector(int size, String s, int base) throws CVC5ApiException
   {
@@ -1269,7 +1303,7 @@ public class TermManager extends AbstractPointer
    * @param sort The sort of the finite field.
    * @param base The base of the string representation.
    * @return The finite field constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkFiniteFieldElem(String val, Sort sort, int base) throws CVC5ApiException
   {
@@ -1299,7 +1333,7 @@ public class TermManager extends AbstractPointer
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkFloatingPointPosInf(int exp, int sig) throws CVC5ApiException
   {
@@ -1315,7 +1349,7 @@ public class TermManager extends AbstractPointer
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkFloatingPointNegInf(int exp, int sig) throws CVC5ApiException
   {
@@ -1331,7 +1365,7 @@ public class TermManager extends AbstractPointer
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkFloatingPointNaN(int exp, int sig) throws CVC5ApiException
   {
@@ -1348,7 +1382,7 @@ public class TermManager extends AbstractPointer
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkFloatingPointPosZero(int exp, int sig) throws CVC5ApiException
   {
@@ -1365,7 +1399,7 @@ public class TermManager extends AbstractPointer
    * @param exp Number of bits in the exponent.
    * @param sig Number of bits in the significand.
    * @return The floating-point constant.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkFloatingPointNegZero(int exp, int sig) throws CVC5ApiException
   {
@@ -1397,7 +1431,7 @@ public class TermManager extends AbstractPointer
    * @param sig Size of the significand.
    * @param val Value of the floating-point constant as a bit-vector term.
    * @return The floating-point value.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
   {
@@ -1416,7 +1450,7 @@ public class TermManager extends AbstractPointer
    * @param exp  The bit-vector representing the exponent.
    * @param sig The bit-vector representing the significand.
    * @return The floating-point value.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkFloatingPoint(Term sign, Term exp, Term sig) throws CVC5ApiException
   {
@@ -1436,7 +1470,7 @@ public class TermManager extends AbstractPointer
    * @param sort The sort the cardinality constraint is for.
    * @param upperBound The upper bound on the cardinality of the sort.
    * @return The cardinality constraint.
-   * @throws CVC5ApiException
+   * @throws CVC5ApiException on error
    */
   public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
   {

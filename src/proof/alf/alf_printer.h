@@ -22,6 +22,7 @@
 
 #include <iostream>
 
+#include "context/cdhashmap.h"
 #include "expr/node_algorithm.h"
 #include "proof/alf/alf_list_node_converter.h"
 #include "proof/alf/alf_node_converter.h"
@@ -43,14 +44,26 @@ class AlfPrinter : protected EnvObj
 
   /**
    * Print the full proof of assertions => false by pfn.
+   * @param out The output stream.
+   * @param pfn The proof node.
    */
   void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+
+  /**
+   * Print proof rewrite rule name r to output stream out
+   * @param out The output stream.
+   * @param r The proof rewrite rule. This should be one of the proof rewrite
+   * rules that corresponds to a RARE rewrite.
+   */
+  void printDslRule(std::ostream& out, ProofRewriteRule r);
 
  private:
   /** Return true if it is possible to trust the topmost application in pfn */
   bool isHandled(const ProofNode* pfn) const;
   /** Return true if id is handled as a theory rewrite for term n */
   bool isHandledTheoryRewrite(ProofRewriteRule id, const Node& n) const;
+  /** Return if the equality is handled as a bitblast step */
+  bool isHandledBitblastStep(const Node& eq) const;
   /**
    * Return true if it is possible to evaluate n using the evaluation side
    * condition in the ALF signature. Notice this requires that all subterms of n
@@ -108,22 +121,21 @@ class AlfPrinter : protected EnvObj
    * Allocate (if necessary) the identifier for step
    */
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
-  /** Print DSL rule name r to output stream out */
-  void printDslRule(std::ostream& out, ProofRewriteRule r);
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
   /** Reference to the term processor */
   BaseAlfNodeConverter& d_tproc;
   /** Assume id counter */
   size_t d_pfIdCounter;
-  /** Mapping scope proofs to identifiers */
-  std::map<std::pair<const ProofNode*, Node>, size_t> d_ppushMap;
   /** Mapping proofs to identifiers */
   std::map<const ProofNode*, size_t> d_pletMap;
+  /**
+   * Context for d_passumeMap, which is pushed and popped when we encounter
+   * SCOPE proofs.
+   */
+  context::Context d_passumeCtx;
   /** Mapping assumed formulas to identifiers */
-  std::map<Node, size_t> d_passumeMap;
-  /** Maps proof identifiers to nodes */
-  std::map<size_t, Node> d_passumeNodeMap;
+  context::CDHashMap<Node, size_t> d_passumeMap;
   /** The (dummy) type used for proof terms */
   TypeNode d_pfType;
   /** term prefix */

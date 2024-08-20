@@ -77,6 +77,8 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 
 void TheoryModel::reset(){
   d_modelCache.clear();
+  d_semiEvalCacheSet = false;
+  d_semiEvalCache.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
   d_reps.clear();
@@ -174,25 +176,20 @@ bool TheoryModel::isModelCoreSymbol(Node s) const
   return d_model_core.find(s) != d_model_core.end();
 }
 
-Cardinality TheoryModel::getCardinality(TypeNode tn) const
+size_t TheoryModel::getCardinality(const TypeNode& tn) const
 {
   //for now, we only handle cardinalities for uninterpreted sorts
-  if (!tn.isUninterpretedSort())
-  {
-    Trace("model-getvalue-debug")
-        << "Get cardinality other sort, unknown." << std::endl;
-    return Cardinality( CardinalityUnknown() );
-  }
+  Assert(tn.isUninterpretedSort());
   if (d_rep_set.hasType(tn))
   {
     Trace("model-getvalue-debug")
         << "Get cardinality sort, #rep : "
         << d_rep_set.getNumRepresentatives(tn) << std::endl;
-    return Cardinality(d_rep_set.getNumRepresentatives(tn));
+    return d_rep_set.getNumRepresentatives(tn);
   }
   Trace("model-getvalue-debug")
       << "Get cardinality sort, unconstrained, return 1." << std::endl;
-  return Cardinality(1);
+  return 1;
 }
 
 Node TheoryModel::getModelValue(TNode n) const
@@ -250,7 +247,7 @@ Node TheoryModel::getModelValue(TNode n) const
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
     }
-    ret = nm->mkNode(n.getKind(), children);
+    ret = nm->mkNode(nk, children);
     Trace("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
     ret = rewrite(ret);
     Trace("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
@@ -261,8 +258,9 @@ Node TheoryModel::getModelValue(TNode n) const
           ret.getOperator().getConst<CardinalityConstraint>();
       Trace("model-getvalue-debug")
           << "get cardinality constraint " << cc.getType() << std::endl;
-      ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
-                        <= cc.getUpperBound());
+      size_t cval = getCardinality(cc.getType());
+      Assert(cval > 0);
+      ret = nm->mkConst(Integer(cval) <= cc.getUpperBound());
     }
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we are an evaluated kind. This can occur if the
@@ -277,7 +275,7 @@ Node TheoryModel::getModelValue(TNode n) const
     // Note that we discard the evaluation of the arguments here
     Trace("model-getvalue-debug") << "Failed to evaluate " << ret << std::endl;
   }
-  // must rewrite the term at this point
+  // We revert to the original rewritten form of n here.
   ret = rewrite(n);
   Trace("model-getvalue-debug")
       << "Look up " << ret << " in equality engine" << std::endl;
@@ -308,10 +306,32 @@ Node TheoryModel::getModelValue(TNode n) const
     }
   }
 
-  // if we are a evaluated or semi-evaluated kind, return an arbitrary value
-  // if we are not in the d_unevaluated_kinds map, we are evaluated
-  if (d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end())
+  Kind rk = ret.getKind();
+  // If we are a ground term that is *not* unevaluated, we assign an arbitrary
+  // value.
+  if (d_unevaluated_kinds.find(rk) == d_unevaluated_kinds.end()
+      && !expr::hasBoundVar(ret))
   {
+    // If we are a semi-evaluated kind, then we need to check whether we are
+    // entailed equal to an existing term. For example, if we are a datatype
+    // selector S(x), x is equal to y, and S(y) is a term in the equality
+    // engine of this model, then the value of S(x) must be equal to the value
+    // of S(y).
+    if (d_semi_evaluated_kinds.find(rk) != d_semi_evaluated_kinds.end())
+    {
+      Node retSev = evaluateSemiEvalTerm(ret);
+      // if the result was entailed, return it
+      if (!retSev.isNull())
+      {
+        d_modelCache[n] = retSev;
+        Trace("model-getvalue-debug")
+            << "...semi-evaluated entailed is " << retSev << std::endl;
+        return retSev;
+      }
+      // otherwise we return an arbtirary value below.
+      Trace("model-getvalue-debug")
+          << "...not semi-evaluated entailed" << std::endl;
+    }
     if (t.isFunction() || t.isPredicate())
     {
       if (d_enableFuncModels)
@@ -851,6 +871,60 @@ bool TheoryModel::isBaseModelValue(TNode n) const
 bool TheoryModel::isAssignableUf(const Node& n) const
 {
   return n.getKind() != Kind::LAMBDA;
+}
+
+Node TheoryModel::evaluateSemiEvalTerm(TNode n) const
+{
+  Assert(d_semi_evaluated_kinds.find(n.getKind())
+         != d_semi_evaluated_kinds.end());
+  if (!d_semiEvalCacheSet)
+  {
+    d_semiEvalCacheSet = true;
+    // traverse
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
+    for (; !eqcs_i.isFinished(); ++eqcs_i)
+    {
+      Node eqc = (*eqcs_i);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
+      for (; !eqc_i.isFinished(); ++eqc_i)
+      {
+        Node t = (*eqc_i);
+        Kind k = t.getKind();
+        if (d_semi_evaluated_kinds.find(k) == d_semi_evaluated_kinds.end())
+        {
+          continue;
+        }
+        Node eqcv = getModelValue(eqc);
+        Assert(t.hasOperator());
+        Node op = t.getOperator();
+        std::vector<Node> targs = getModelValueArgs(t);
+        NodeTrie& nt = d_semiEvalCache[op];
+        nt.addOrGetTerm(eqcv, targs);
+        Trace("semi-eval") << "Semi-eval: SET " << targs << " = " << eqcv
+                           << std::endl;
+      }
+    }
+  }
+  Trace("semi-eval") << "Semi-eval: EVALUATE " << n << "..." << std::endl;
+  Node op = n.getOperator();
+  std::unordered_map<Node, NodeTrie>::iterator it = d_semiEvalCache.find(op);
+  if (it != d_semiEvalCache.end())
+  {
+    std::vector<Node> nargs = getModelValueArgs(n);
+    Trace("semi-eval") << "Semi-eval: lookup " << nargs << std::endl;
+    return it->second.existsTerm(nargs);
+  }
+  return Node::null();
+}
+
+std::vector<Node> TheoryModel::getModelValueArgs(TNode n) const
+{
+  std::vector<Node> args;
+  for (const Node& nc : n)
+  {
+    args.emplace_back(getModelValue(nc));
+  }
+  return args;
 }
 
 bool TheoryModel::isValue(TNode n) const

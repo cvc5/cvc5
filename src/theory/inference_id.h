@@ -486,6 +486,9 @@ enum class InferenceId
   // when term indexing discovers disequal congruent terms in the master
   // equality engine
   QUANTIFIERS_TDB_DEQ_CONG,
+  // An existential corresponding to a witness term generated based on BV
+  // invertibility conditions.
+  QUANTIFIERS_CEGQI_WITNESS,
   //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory
@@ -966,6 +969,8 @@ enum class InferenceId
   // This is applied when lamda function f and ordinary function h are in the
   // same eq class.
   UF_HO_LAMBDA_APP_REDUCE,
+  // Lazy lambda lifting
+  UF_HO_LAMBDA_LAZY_LIFT,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
   //-------------------- UF arith/bv conversions solver

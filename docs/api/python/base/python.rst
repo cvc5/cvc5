@@ -5,30 +5,84 @@ Base Python API
 
     .. warning::
 
-        This documentation was built while python bindings were disabled. This part of the documentation is likely either empty or outdated. Please enable :code:`BUILD_BINDINGS_PYTHON` in :code:`cmake` and build the documentation again.
+        This documentation was built while python bindings were disabled.
+        This part of the documentation is likely either empty or outdated.
+        Please enable :code:`BUILD_BINDINGS_PYTHON` in :code:`cmake` and
+        build the documentation again.
 
 This is the base Python API.
-It is an almost exact copy of the :doc:`C++ API <../../cpp/cpp>`.
+It is implemented on top of the C++ API and mirrors the :doc:`C++ API
+<../../cpp/cpp>`.
 
-See the :doc:`pythonic API <../pythonic/pythonic>` for a higher-level programming experience.
+For a higher-level, more pythonic programming experience, cvc5 provides the
+:doc:`pythonic API <../pythonic/pythonic>`.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
+    :hidden:
 
     quickstart
+    command
     datatype
     datatypeconstructor
     datatypeconstructordecl
     datatypedecl
     datatypeselector
     grammar
+    inputparser
     kind
     op
+    plugin
+    proof
+    proofrule
     result
     roundingmode
     solver
     sort
+    sortkind
     statistics
+    symbolmanager
     synthresult
     term
+    termmanager
     unknownexplanation
+
+----
+
+Classes
+-------
+
+- :doc:`command`
+- :doc:`datatype`
+- :doc:`datatypeconstructor`
+- :doc:`datatypeconstructordecl`
+- :doc:`datatypedecl`
+- :doc:`datatypeselector`
+- :doc:`grammar`
+- :doc:`inputparser`
+- :doc:`op`
+- :doc:`plugin`
+- :doc:`proof`
+- :doc:`result`
+- :doc:`solver`
+- :doc:`sort`
+- :doc:`statistics`
+- :doc:`symbolmanager`
+- :doc:`synthresult`
+- :doc:`term`
+
+Enums
+-----
+
+- :doc:`kind`
+- :doc:`proofrule`
+- :doc:`roundingmode`
+- :doc:`unknownexplanation`
+
+- enums for :doc:`configuration modes <modes>`
+
+  - :py:obj:`BlockModelsMode <cvc5.BlockModelsMode>`
+  - :py:obj:`LearnedLitType <cvc5.LearnedLitType>`
+  - :py:obj:`ProofComponent <cvc5.ProofComponent>`
+  - :py:obj:`ProofFormat <cvc5.ProofFormat>`
+

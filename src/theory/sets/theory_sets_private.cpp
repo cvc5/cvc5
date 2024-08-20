@@ -390,6 +390,7 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
+
     // check map up rules
     checkMapUp();
     d_im.doPendingLemmas();
@@ -750,7 +751,6 @@ void TheorySetsPrivate::checkFilterDown()
   {
     Node p = term[0];
     Node A = term[1];
-
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(term));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
@@ -1579,8 +1579,6 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
 }
 
 /********************** Helper functions ***************************/
-/********************** Helper functions ***************************/
-/********************** Helper functions ***************************/
 
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
@@ -1614,7 +1612,8 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
 
 bool TheorySetsPrivate::isHigherOrderKind(Kind k)
 {
-  return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_FOLD;
+  return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_ALL
+         || k == Kind::SET_SOME || k == Kind::SET_FOLD;
 }
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)
@@ -1710,40 +1709,15 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 {
   Assert(node.getKind() == Kind::SET_IS_SINGLETON);
+  Assert(rewrite(node) == node);
 
-  // we call the rewriter here to handle the pattern
-  // (is_singleton (singleton x)) because the rewriter is called after expansion
-  Node rewritten = rewrite(node);
-  if (rewritten.getKind() != Kind::SET_IS_SINGLETON)
-  {
-    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
-  }
-
-  // (is_singleton A) is expanded as
-  // (exists ((x: T)) (= A (singleton x)))
-  // where T is the sort of elements of A
+  // (is_singleton A) is expanded as (= A (set.singleton (set.choose A)))
 
   NodeManager* nm = nodeManager();
-  Node set = rewritten[0];
-
-  std::map<Node, Node>::iterator it = d_isSingletonNodes.find(rewritten);
-
-  if (it != d_isSingletonNodes.end())
-  {
-    return TrustNode::mkTrustRewrite(rewritten, it->second, nullptr);
-  }
-
-  TypeNode setType = set.getType();
-  ensureFirstClassSetType(setType);
-  Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkNode(Kind::SET_SINGLETON, boundVar);
-  Node equal = set.eqNode(singleton);
-  std::vector<Node> variables = {boundVar};
-  Node boundVars = nm->mkNode(Kind::BOUND_VAR_LIST, variables);
-  Node exists = nm->mkNode(Kind::EXISTS, boundVars, equal);
-  d_isSingletonNodes[rewritten] = exists;
-
-  return TrustNode::mkTrustRewrite(node, exists, nullptr);
+  Node choose = nm->mkNode(Kind::SET_CHOOSE, node[0]);
+  Node ss = nm->mkNode(Kind::SET_SINGLETON, choose);
+  Node ret = nm->mkNode(Kind::EQUAL, node[0], ss);
+  return TrustNode::mkTrustRewrite(node, ret, nullptr);
 }
 
 void TheorySetsPrivate::ensureFirstClassSetType(TypeNode tn) const

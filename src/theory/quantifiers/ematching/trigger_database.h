@@ -51,14 +51,16 @@ class TriggerDatabase : protected EnvObj
   /** mkTrigger method
    *
    * This makes an instance of a trigger object.
-   *  qe     : pointer to the quantifier engine;
-   *  q      : the quantified formula we are making a trigger for
-   *  nodes  : the nodes comprising the (multi-)trigger
-   *  keepAll: don't remove unneeded patterns;
-   *  trOption : policy for dealing with triggers that already exist
-   *             (see below)
-   *  useNVars : number of variables that should be bound by the trigger
-   *             typically, the number of quantified variables in q.
+   * @param qe Pointer to the quantifier engine;
+   * @param q The quantified formula we are making a trigger for
+   * @param nodes The nodes comprising the (multi-)trigger
+   * @param keepAll Don't remove unneeded patterns;
+   * @param trOption Policy for dealing with triggers that already exist (see
+   * below)
+   * @param useNVars Number of variables that should be bound by the trigger
+   * typically, the number of variables in q (0 defaults to the number of
+   * variables in q).
+   * @param isUser Whether this is a user trigger (for output trace).
    */
   enum
   {
@@ -70,13 +72,15 @@ class TriggerDatabase : protected EnvObj
                      const std::vector<Node>& nodes,
                      bool keepAll = true,
                      int trOption = TR_MAKE_NEW,
-                     size_t useNVars = 0);
+                     size_t useNVars = 0,
+                     bool isUser = false);
   /** single trigger version that calls the above function */
   Trigger* mkTrigger(Node q,
                      Node n,
                      bool keepAll = true,
                      int trOption = TR_MAKE_NEW,
-                     size_t useNVars = 0);
+                     size_t useNVars = 0,
+                     bool isUser = false);
 
   /** make trigger terms
    *

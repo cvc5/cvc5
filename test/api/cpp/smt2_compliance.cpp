@@ -27,31 +27,10 @@ using namespace std;
 
 void testGetInfo(cvc5::Solver* solver, const char* s);
 
-int main()
+void testGetInfo(cvc5::Solver& solver, const char* s)
 {
-  cvc5::TermManager tm;
-  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>(tm);
-  solver->setOption("input-language", "smtlib2");
-  solver->setOption("output-language", "smtlib2");
-  testGetInfo(solver.get(), ":error-behavior");
-  testGetInfo(solver.get(), ":name");
-  testGetInfo(solver.get(), ":authors");
-  testGetInfo(solver.get(), ":version");
-  testGetInfo(solver.get(), ":status");
-  testGetInfo(solver.get(), ":reason-unknown");
-  testGetInfo(solver.get(), ":arbitrary-undefined-keyword");
-  testGetInfo(solver.get(), ":<=");  // legal
-  testGetInfo(solver.get(), ":->");  // legal
-  testGetInfo(solver.get(), ":all-statistics");
-
-  return 0;
-}
-
-void testGetInfo(cvc5::Solver* solver, const char* s)
-{
-  std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
-
-  InputParser p(solver, symman.get());
+  SymbolManager sm(solver.getTermManager());
+  InputParser p(&solver, &sm);
   std::stringstream ssi;
   ssi << "(get-info " << s << ")";
   p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ssi, "<internal>");
@@ -59,8 +38,28 @@ void testGetInfo(cvc5::Solver* solver, const char* s)
   assert(!c.isNull());
   std::cout << c << std::endl;
   std::stringstream ss;
-  c.invoke(solver, symman.get(), ss);
+  c.invoke(&solver, &sm, ss);
   c = p.nextCommand();
   assert(c.isNull());
-  std::cout << ss.str() << std::endl << std::endl;
+  std::cout << ss.str();
+}
+
+int main()
+{
+  cvc5::TermManager tm;
+  cvc5::Solver solver(tm);
+  solver.setOption("input-language", "smtlib2");
+  solver.setOption("output-language", "smtlib2");
+  testGetInfo(solver, ":error-behavior");
+  testGetInfo(solver, ":name");
+  testGetInfo(solver, ":authors");
+  testGetInfo(solver, ":version");
+  testGetInfo(solver, ":status");
+  testGetInfo(solver, ":reason-unknown");
+  testGetInfo(solver, ":arbitrary-undefined-keyword");
+  testGetInfo(solver, ":<=");  // legal
+  testGetInfo(solver, ":->");  // legal
+  testGetInfo(solver, ":all-statistics");
+
+  return 0;
 }

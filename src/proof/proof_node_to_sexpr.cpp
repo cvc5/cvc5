@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
@@ -333,6 +333,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
       break;
     case ProofRule::DSL_REWRITE:
+    case ProofRule::THEORY_REWRITE:
       if (i == 0)
       {
         return ArgFormat::DSL_REWRITE_ID;
@@ -346,12 +347,6 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
     }
     break;
-    case ProofRule::ANNOTATION:
-      if (i == 0)
-      {
-        return ArgFormat::INFERENCE_ID;
-      }
-      break;
     case ProofRule::TRUST:
     {
       if (i == 0)

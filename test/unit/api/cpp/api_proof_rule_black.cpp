@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Jörg Schurr
+ *   Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -24,11 +24,11 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiProofRule : public ::testing::Test
+class TestApiBlackProofRule : public ::testing::Test
 {
 };
 
-TEST_F(TestApiProofRule, proofRuleToString)
+TEST_F(TestApiBlackProofRule, proofRuleToString)
 {
   for (int32_t r = static_cast<int32_t>(ProofRule::ASSUME);
        r <= static_cast<int32_t>(ProofRule::UNKNOWN);
@@ -44,7 +44,7 @@ TEST_F(TestApiProofRule, proofRuleToString)
   }
 }
 
-TEST_F(TestApiProofRule, ProofRuleHash)
+TEST_F(TestApiBlackProofRule, ProofRuleHash)
 {
   ASSERT_EQ(std::hash<cvc5::ProofRule>()(ProofRule::UNKNOWN),
             static_cast<size_t>(ProofRule::UNKNOWN));

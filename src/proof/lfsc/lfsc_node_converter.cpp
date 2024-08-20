@@ -393,17 +393,18 @@ Node LfscNodeConverter::postConvert(Node n)
     Node n2 = nm->mkConstInt(Rational(op.d_loopMaxOcc));
     return mkApplyUf(mkApplyUf(rop, {n1, n2}), {n[0]});
   }
-  else if (k == Kind::BITVECTOR_BB_TERM)
+  else if (k == Kind::BITVECTOR_FROM_BOOLS)
   {
     TypeNode btn = nm->booleanType();
-    // (bbT t1 ... tn) is (bbT t1 (bbT t2 ... (bbT tn emptybv)))
-    // where notice that each bbT has a different type
+    // (from_bools t1 ... tn) is
+    // (from_bools t1 (from_bools t2 ... (from_bools tn emptybv)))
+    // where notice that each from_bools has a different type
     Node curr = getNullTerminator(Kind::BITVECTOR_CONCAT, tn);
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
       TypeNode bvt = nm->mkBitVectorType(i + 1);
       TypeNode ftype = nm->mkFunctionType({btn, curr.getType()}, bvt);
-      Node bbt = getSymbolInternal(k, ftype, "bbT");
+      Node bbt = getSymbolInternal(k, ftype, "from_bools");
       curr = mkApplyUf(bbt, {n[nchild - (i + 1)], curr});
     }
     return curr;
@@ -1022,9 +1023,9 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         opName << "to_fp_real";
       }
-      else if (k == Kind::BITVECTOR_BITOF)
+      else if (k == Kind::BITVECTOR_BIT)
       {
-        opName << "bitOf";
+        opName << "bit";
       }
       else
       {
@@ -1109,11 +1110,6 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     opName << "u";
   }
   opName << printer::smt2::Smt2Printer::smtKindString(k);
-  if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-      || k == Kind::INTS_MODULUS_TOTAL)
-  {
-    opName << "_total";
-  }
   return getSymbolInternal(k, ftype, opName.str());
 }
 
