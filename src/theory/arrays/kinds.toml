@@ -90,5 +90,6 @@ name               = "EQ_RANGE"
 type_checker_class = "::cvc5::internal::theory::arrays::ArrayEqRangeTypeRule"
 
 # store operations that are ordered (by index) over a store-all are constant
-# what is exactly this?
-# construle STORE ::cvc5::internal::theory::arrays::ArrayStoreTypeRule
+[[construles]]
+name               = "STORE"
+type_checker_class = "::cvc5::internal::theory::arrays::ArrayStoreTypeRule"
