@@ -1,0 +1,524 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+[theory]
+id                 = "THEORY_STRINGS"
+base_class         = "::cvc5::internal::theory::strings::TheoryStrings"
+base_class_header  = "theory/strings/theory_strings.h"
+properties         = ["properties", "check", "parametric", "presolve"]
+typechecker_header = "theory/strings/theory_strings_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::strings::SequencesRewriter"
+header = "theory/strings/sequences_rewriter.h"
+
+[[operators]]
+name     = "STRING_CONCAT"
+children = "2:"
+comment  = "string concat (N-ary)"
+
+[[operators]]
+name     = "STRING_IN_REGEXP"
+children = 2
+comment  = "membership"
+
+[[operators]]
+name     = "STRING_LENGTH"
+children = 1
+comment  = "string length"
+
+[[operators]]
+name     = "STRING_SUBSTR"
+children = 3
+comment  = "string substr"
+
+[[operators]]
+name     = "STRING_UPDATE"
+children = 3
+comment  = "string update"
+
+[[operators]]
+name     = "STRING_CHARAT"
+children = 2
+comment  = "string charat"
+
+[[operators]]
+name     = "STRING_CONTAINS"
+children = 2
+comment  = "string contains"
+
+[[operators]]
+name     = "STRING_LT"
+children = 2
+comment  = "string less than"
+
+[[operators]]
+name     = "STRING_LEQ"
+children = 2
+comment  = "string less than or equal"
+
+[[operators]]
+name     = "STRING_INDEXOF"
+children = 3
+comment  = "string index of substring"
+
+[[operators]]
+name     = "STRING_INDEXOF_RE"
+children = 3
+comment  = "string index of regular expression match"
+
+[[operators]]
+name     = "STRING_REPLACE"
+children = 3
+comment  = "string replace"
+
+[[operators]]
+name     = "STRING_REPLACE_ALL"
+children = 3
+comment  = "string replace all"
+
+[[operators]]
+name     = "STRING_REPLACE_RE"
+children = 3
+comment  = "string replace regular expression match"
+
+[[operators]]
+name     = "STRING_REPLACE_RE_ALL"
+children = 3
+comment  = "string replace all regular expression matches"
+
+[[operators]]
+name     = "STRING_PREFIX"
+children = 2
+comment  = "string prefixof"
+
+[[operators]]
+name     = "STRING_SUFFIX"
+children = 2
+comment  = "string suffixof"
+
+[[operators]]
+name     = "STRING_IS_DIGIT"
+children = 1
+comment  = "string isdigit, returns true if argument is a string of length one that represents a digit"
+
+[[operators]]
+name     = "STRING_ITOS"
+children = 1
+comment  = "integer to string"
+
+[[operators]]
+name     = "STRING_STOI"
+children = 1
+comment  = "string to integer (total function)"
+
+[[operators]]
+name     = "STRING_TO_CODE"
+children = 1
+comment  = "string to code, returns the code of the first character of the string if it has length one, -1 otherwise"
+
+[[operators]]
+name     = "STRING_FROM_CODE"
+children = 1
+comment  = "string from code, returns a string containing a single character whose code point matches the argument to this function, empty string if the argument is not a valid code point"
+
+[[operators]]
+name     = "STRING_UNIT"
+children = 1
+comment  = "string unit, returns a string containing a single character whose code point matches the argument to this function, arbitrary string of length one if the argument is not a valid code point"
+
+[[operators]]
+name     = "STRING_TO_LOWER"
+children = 1
+comment  = "string to lowercase conversion"
+
+[[operators]]
+name     = "STRING_TO_UPPER"
+children = 1
+comment  = "string to uppercase conversion"
+
+[[operators]]
+name     = "STRING_REV"
+children = 1
+comment  = "string reverse"
+
+[[sorts]]
+name          = "STRING_TYPE"
+cardinality   = "Cardinality::INTEGERS"
+well_founded  = true
+ground-term   = "NodeManager::currentNM()->mkConst(::cvc5::internal::String())"
+header        = "util/string.h"
+comment       = "String type"
+
+[[sorts]]
+name          = "REGEXP_TYPE"
+cardinality   = "Cardinality::INTEGERS"
+well_founded  = true
+ground-term   = "NodeManager::currentNM()->mkNode(Kind::REGEXP_NONE)"
+header        = "util/string.h"
+comment       = "RegExp type"
+
+[[enumerators]]
+name   = "STRING_TYPE"
+class  = "::cvc5::internal::theory::strings::StringEnumerator"
+header = "theory/strings/type_enumerator.h"
+
+[[enumerators]]
+name   = "REGEXP_TYPE"
+class  = "::cvc5::internal::theory::strings::RegExpEnumerator"
+header = "theory/strings/regexp_enumerator.h"
+
+[[constants]]
+name    = "CONST_STRING"
+F       = "class"
+T       = "String"
+hasher  = "::cvc5::internal::strings::StringHashFunction"
+header  = "util/string.h"
+comment = "a string of characters"
+
+# the type
+[[operators]]
+name     = "SEQUENCE_TYPE"
+children = 1
+comment  = "sequence type, takes as parameter the type of the elements"
+
+[[cardinalities]]
+name     = "SEQUENCE_TYPE"
+computer = "::cvc5::internal::theory::strings::SequenceProperties::computeCardinality(%TYPE%)"
+header   = "theory/strings/theory_strings_type_rules.h"
+
+[[well-founded]]
+name                     = "SEQUENCE_TYPE"
+wellfoundedness-computer = "::cvc5::internal::theory::strings::SequenceProperties::isWellFounded(%TYPE%)"
+ground-term-computer     = "::cvc5::internal::theory::strings::SequenceProperties::mkGroundTerm(%TYPE%)"
+header                   = "theory/strings/theory_strings_type_rules.h"
+
+[[enumerators]]
+name   = "SEQUENCE_TYPE"
+class  = "::cvc5::internal::theory::strings::SequenceEnumerator"
+header = "theory/strings/type_enumerator.h"
+
+[[constants]]
+name    = "CONST_SEQUENCE"
+F       = "class"
+T       = "Sequence"
+hasher  = "::cvc5::internal::SequenceHashFunction"
+header  = "expr/sequence.h"
+comment = "a sequence of characters"
+
+[[operators]]
+name     = "SEQ_UNIT"
+children = 1
+comment  = "a sequence of length one. First parameter is a term"
+
+[[operators]]
+name     = "SEQ_NTH"
+children = 2
+comment  = "The nth element of a sequence"
+
+# equal equal / less than / output
+[[operators]]
+name     = "STRING_TO_REGEXP"
+children = 1
+comment  = "convert string to regexp"
+
+[[operators]]
+name     = "REGEXP_CONCAT"
+children = "2:"
+comment  = "regexp concat"
+
+[[operators]]
+name     = "REGEXP_UNION"
+children = "2:"
+comment  = "regexp union"
+
+[[operators]]
+name     = "REGEXP_INTER"
+children = "2:"
+comment  = "regexp intersection"
+
+[[operators]]
+name     = "REGEXP_DIFF"
+children = 2
+comment  = "regexp difference"
+
+[[operators]]
+name     = "REGEXP_STAR"
+children = 1
+comment  = "regexp *"
+
+[[operators]]
+name     = "REGEXP_PLUS"
+children = 1
+comment  = "regexp +"
+
+[[operators]]
+name     = "REGEXP_OPT"
+children = 1
+comment  = "regexp ?"
+
+[[operators]]
+name     = "REGEXP_RANGE"
+children = 2
+comment  = "regexp range"
+
+[[operators]]
+name     = "REGEXP_COMPLEMENT"
+children = 1
+comment  = "regexp complement"
+
+[[operators]]
+name     = "REGEXP_NONE"
+children = 0
+comment  = "regexp empty"
+
+[[operators]]
+name     = "REGEXP_ALL"
+children = 0
+comment  = "regexp all"
+
+[[operators]]
+name     = "REGEXP_ALLCHAR"
+children = 0
+comment  = "regexp all characters"
+
+[[constants]]
+name    = "REGEXP_REPEAT_OP"
+F       = "struct"
+T       = "RegExpRepeat"
+hasher  = "::cvc5::internal::RegExpRepeatHashFunction"
+header  = "util/regexp.h"
+comment = "operator for regular expression repeat; payload is an instance of the cvc5::internal::RegExpRepeat class"
+
+[[parameterized]]
+K1       = "REGEXP_REPEAT"
+K2       = "REGEXP_REPEAT_OP"
+children = 1
+comment  = "regular expression repeat; first parameter is a REGEXP_REPEAT_OP, second is a regular expression term"
+
+[[constants]]
+name    = "REGEXP_LOOP_OP"
+F       = "struct"
+T       = "RegExpLoop"
+hasher  = "::cvc5::internal::RegExpLoopHashFunction"
+header  = "util/regexp.h"
+comment = "operator for regular expression loop; payload is an instance of the cvc5::internal::RegExpLoop class"
+
+[[parameterized]]
+K1       = "REGEXP_LOOP"
+K2       = "REGEXP_LOOP_OP"
+children = 1
+comment  = "regular expression loop; first parameter is a REGEXP_LOOP_OP, second is a regular expression term"
+
+#internal
+[[operators]]
+name     = "REGEXP_RV"
+children = 1
+comment  = "regexp rv (internal use only)"
+
+[[typerules]]
+name               = "REGEXP_RV"
+type_checker_class = "SimpleTypeRule<RRegExp, AInteger>"
+
+# regular expressions
+
+[[typerules]]
+name               = "REGEXP_CONCAT"
+type_checker_class = "SimpleTypeRuleVar<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_UNION"
+type_checker_class = "SimpleTypeRuleVar<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_INTER"
+type_checker_class = "SimpleTypeRuleVar<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_DIFF"
+type_checker_class = "SimpleTypeRuleVar<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_STAR"
+type_checker_class = "SimpleTypeRule<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_PLUS"
+type_checker_class = "SimpleTypeRule<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_OPT"
+type_checker_class = "SimpleTypeRule<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_RANGE"
+type_checker_class = "::cvc5::internal::theory::strings::RegExpRangeTypeRule"
+
+[[typerules]]
+name               = "REGEXP_REPEAT_OP"
+type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
+
+[[typerules]]
+name               = "REGEXP_REPEAT"
+type_checker_class = "SimpleTypeRule<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_LOOP_OP"
+type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
+
+[[typerules]]
+name               = "REGEXP_LOOP"
+type_checker_class = "SimpleTypeRule<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_COMPLEMENT"
+type_checker_class = "SimpleTypeRule<RRegExp, ARegExp>"
+
+[[typerules]]
+name               = "STRING_TO_REGEXP"
+type_checker_class = "::cvc5::internal::theory::strings::StringToRegExpTypeRule"
+
+[[typerules]]
+name               = "STRING_IN_REGEXP"
+type_checker_class = "SimpleTypeRule<RBool, AString, ARegExp>"
+
+[[typerules]]
+name               = "REGEXP_NONE"
+type_checker_class = "SimpleTypeRule<RRegExp>"
+
+[[typerules]]
+name               = "REGEXP_ALL"
+type_checker_class = "SimpleTypeRule<RRegExp>"
+
+[[typerules]]
+name               = "REGEXP_ALLCHAR"
+type_checker_class = "SimpleTypeRule<RRegExp>"
+
+# we return isConst for some regular expressions, including all that we enumerate
+[[construles]]
+name               = "STRING_TO_REGEXP"
+type_checker_class = "::cvc5::internal::theory::strings::StringToRegExpTypeRule"
+
+### operators that apply to both strings and sequences
+
+[[typerules]]
+name               = "STRING_CONCAT"
+type_checker_class = "::cvc5::internal::theory::strings::StringConcatTypeRule"
+
+[[typerules]]
+name               = "STRING_LENGTH"
+type_checker_class = "::cvc5::internal::theory::strings::StringStrToIntTypeRule"
+
+[[typerules]]
+name               = "STRING_SUBSTR"
+type_checker_class = "::cvc5::internal::theory::strings::StringSubstrTypeRule"
+
+[[typerules]]
+name               = "STRING_UPDATE"
+type_checker_class = "::cvc5::internal::theory::strings::StringUpdateTypeRule"
+
+[[typerules]]
+name               = "STRING_CHARAT"
+type_checker_class = "::cvc5::internal::theory::strings::StringAtTypeRule"
+
+[[typerules]]
+name               = "STRING_CONTAINS"
+type_checker_class = "::cvc5::internal::theory::strings::StringRelationTypeRule"
+
+[[typerules]]
+name               = "STRING_INDEXOF"
+type_checker_class = "::cvc5::internal::theory::strings::StringIndexOfTypeRule"
+
+[[typerules]]
+name               = "STRING_INDEXOF_RE"
+type_checker_class = "SimpleTypeRule<RInteger, AString, ARegExp, AInteger>"
+
+[[typerules]]
+name               = "STRING_REPLACE"
+type_checker_class = "::cvc5::internal::theory::strings::StringReplaceTypeRule"
+
+[[typerules]]
+name               = "STRING_REPLACE_ALL"
+type_checker_class = "::cvc5::internal::theory::strings::StringReplaceTypeRule"
+
+[[typerules]]
+name               = "STRING_REPLACE_RE"
+type_checker_class = "SimpleTypeRule<RString, AString, ARegExp, AString>"
+
+[[typerules]]
+name               = "STRING_REPLACE_RE_ALL"
+type_checker_class = "SimpleTypeRule<RString, AString, ARegExp, AString>"
+
+[[typerules]]
+name               = "STRING_PREFIX"
+type_checker_class = "::cvc5::internal::theory::strings::StringStrToBoolTypeRule"
+
+[[typerules]]
+name               = "STRING_SUFFIX"
+type_checker_class = "::cvc5::internal::theory::strings::StringStrToBoolTypeRule"
+
+[[typerules]]
+name               = "STRING_REV"
+type_checker_class = "::cvc5::internal::theory::strings::StringStrToStrTypeRule" 
+
+### string specific operators
+
+[[typerules]]
+name               = "CONST_STRING"
+type_checker_class = "SimpleTypeRule<RString>"
+
+[[typerules]]
+name               = "STRING_LT"
+type_checker_class = "SimpleTypeRule<RBool, AString, AString>"
+
+[[typerules]]
+name               = "STRING_LEQ"
+type_checker_class = "SimpleTypeRule<RBool, AString, AString>" 
+
+[[typerules]]
+name               = "STRING_IS_DIGIT"
+type_checker_class = "SimpleTypeRule<RBool, AString>"
+
+[[typerules]]
+name               = "STRING_ITOS"
+type_checker_class = "SimpleTypeRule<RString, AInteger>"
+
+[[typerules]]
+name               = "STRING_STOI"
+type_checker_class = "SimpleTypeRule<RInteger, AString>"
+
+[[typerules]]
+name               = "STRING_TO_CODE"
+type_checker_class = "SimpleTypeRule<RInteger, AString>"
+
+[[typerules]]
+name               = "STRING_FROM_CODE"
+type_checker_class = "SimpleTypeRule<RString, AInteger>"
+
+[[typerules]]
+name               = "STRING_UNIT"
+type_checker_class = "SimpleTypeRule<RString, AInteger>"
+
+[[typerules]]
+name               = "STRING_TO_UPPER"
+type_checker_class = "SimpleTypeRule<RString, AString>"
+
+[[typerules]]
+name               = "STRING_TO_LOWER"
+type_checker_class = "SimpleTypeRule<RString, AString>"
+
+### sequence specific operators
+[[typerules]]
+name               = "CONST_SEQUENCE"
+type_checker_class = "::cvc5::internal::theory::strings::ConstSequenceTypeRule"
+
+[[typerules]]
+name               = "SEQ_UNIT"
+type_checker_class = "::cvc5::internal::theory::strings::SeqUnitTypeRule"
+
+[[typerules]]
+name               = "SEQ_NTH"
+type_checker_class = "::cvc5::internal::theory::strings::SeqNthTypeRule"
