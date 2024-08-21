@@ -507,7 +507,10 @@ void PropPfManager::getProofInternal(CDProof* cdp)
   std::stringstream dinputFile;
   dinputFile << options().driver.filename << ".drat_input.cnf";
   // the stream which stores the DIMACS of the computed clauses
-  std::fstream dout(dinputFile.str(), std::ios::out);
+  // TODO (wishue #154): should set this to the given file stream.
+  //std::fstream dfout(dinputFile.str(), std::ios::out);
+  //dout = &dfout;
+  std::ostream* dout = nullptr;
   options::PropProofMode pmode = options().proof.propProofMode;
   // minimize only if SAT_EXTERNAL_PROVE and satProofMinDimacs is true.
   bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE
@@ -520,10 +523,10 @@ void PropPfManager::getProofInternal(CDProof* cdp)
     std::shared_ptr<ProofNode> satPf = d_satSolver->getProof();
     if (satPf != nullptr)
     {
-      clauses = getUnsatCoreClauses(&dout);
+      clauses = getUnsatCoreClauses(dout);
       computedClauses = true;
     }
-    else if (reproveUnsatCore(cset, clauses, &dout))
+    else if (reproveUnsatCore(cset, clauses, dout))
     {
       computedClauses = true;
     }
