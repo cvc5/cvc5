@@ -187,10 +187,11 @@ void Smt2Printer::toStream(std::ostream& out,
 
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,
-                           const LetBinding* lbind) const
+                           const LetBinding* lbind,
+                       bool lbindTop) const
 {
   int toDepth = options::ioutils::getNodeDepth(out);
-  toStream(out, n, lbind, toDepth);
+  toStream(out, n, lbind, toDepth, lbindTop);
 }
 
 void Smt2Printer::toStream(std::ostream& out, TNode n) const

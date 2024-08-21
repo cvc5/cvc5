@@ -160,7 +160,7 @@ void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
   if (d_lbind)
   {
     // use the toStream with custom letification method
-    Printer::getPrinter(out)->toStream(out, n, d_lbind);
+    Printer::getPrinter(out)->toStream(out, n, d_lbind, true);
   }
   else
   {

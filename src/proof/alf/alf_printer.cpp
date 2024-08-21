@@ -535,10 +535,11 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
   {
     Node n = letList[i];
-    Node def = lbind.convert(n, false);
-    Node f = lbind.convert(n, true);
     // use define command which does not invoke type checking
-    out << "(define " << f << " () " << def << ")" << std::endl;
+    out << "(define " << d_termLetPrefix << lbind.getId(n);
+    out << " () ";
+    Printer::getPrinter(out)->toStream(out, n, &lbind, false);
+    out << ")" << std::endl;
   }
 }
 

@@ -46,7 +46,8 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStream(std::ostream& out, TNode n, int toDepth, size_t dag) const;
   void toStream(std::ostream& out,
                 TNode n,
-                const LetBinding* lbind) const override;
+                const LetBinding* lbind,
+                bool lbindTop) const override;
   void toStream(std::ostream& out, Kind k) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**

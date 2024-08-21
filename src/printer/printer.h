@@ -68,7 +68,8 @@ class CVC5_EXPORT Printer
    */
   virtual void toStream(std::ostream& out,
                         TNode n,
-                        const LetBinding* lbind) const;
+                        const LetBinding* lbind,
+                        bool lbindTop) const;
 
   /** Write a Kind out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, Kind k) const = 0;
