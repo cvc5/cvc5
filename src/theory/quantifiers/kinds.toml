@@ -127,5 +127,5 @@ type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotatio
 name               = "INST_ADD_TO_POOL"
 type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 [[typerules]]
-name               = "typerule SKOLEM_ADD_TO_POOL"
+name               = "SKOLEM_ADD_TO_POOL"
 type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
