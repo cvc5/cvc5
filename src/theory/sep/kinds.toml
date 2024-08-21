@@ -15,10 +15,13 @@ typechecker_header = "theory/sep/theory_sep_type_rules.h"
 class  = "::cvc5::internal::theory::sep::TheorySepRewriter"
 header = "theory/sep/theory_sep_rewriter.h"
 
-# ???
-#nullaryoperator SEP_NIL "separation nil"
-# ???
-#nullaryoperator SEP_EMP "separation logic empty heap constraint"
+[[nullaryoperators]]
+name     = "SEP_NIL"
+comment  = "separation nil"
+
+[[nullaryoperators]]
+name     = "SEP_EMP"
+comment  = "separation logic empty heap constraint"
 
 [[operators]]
 name     = "SEP_PTO"
