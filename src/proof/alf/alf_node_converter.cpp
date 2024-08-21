@@ -330,6 +330,29 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
   {
     if (isHandledSkolemId(sfi))
     {
+      if (!cacheVal.isNull())
+      {
+        std::vector<Node> vals;
+        if (cacheVal.getKind()==Kind::SEXPR)
+        {
+          vals.insert(vals.end(), cacheVal.begin(), cacheVal.end());
+        }
+        else
+        {
+          vals.push_back(cacheVal); 
+        }
+        bool hasChanged = false;
+        for (Node& v : vals)
+        {
+          Node orig = v;
+          v = convert(v);
+          hasChanged = hasChanged || v!=orig;
+        }
+        if (hasChanged)
+        {
+          return sm->mkSkolemFunction(sfi, vals);
+        }
+      }
       return k;
     }
   }
