@@ -116,16 +116,6 @@ Node LetBinding::convert(Node n, bool letTop) const
         // do not convert beneath quantifiers
         visited[cur] = cur;
       }
-      else if (d_traverseSkolems && cur.getKind()==Kind::SKOLEM)
-      {
-        visited[cur] = Node::null();
-        SkolemId skid;
-        Node cacheVal;
-        SkolemManager* sm = nm->getSkolemManager();
-        sm->isSkolemFunction(cur, skid, cacheVal);
-        visit.push_back(cur);
-        visit.push_back(cacheVal);
-      }
       else
       {
         visited[cur] = Node::null();
@@ -172,8 +162,18 @@ void LetBinding::updateCounts(Node n)
   {
     cur = visit.back();
     it = d_count.find(cur);
+    if (d_traverseSkolems && cur.getKind()==Kind::SKOLEM)
+    {
+      SkolemId skid;
+      Node cacheVal;
+      SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+      if (sm->isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
+      {
+        visit.push_back(cacheVal);
+      }
+    }
     // do not traverse beneath quantifiers if d_traverseBinders is false.
-    if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST
+    else if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST
         || (!d_traverseBinders && cur.isClosure()))
     {
       visit.pop_back();
