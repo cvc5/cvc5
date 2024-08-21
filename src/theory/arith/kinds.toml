@@ -398,8 +398,9 @@ type_checker_class = "SimpleTypeRule<RInteger, AInteger>"
 name               = "SQRT"
 type_checker_class = "SimpleTypeRule<RReal, AReal>"
 
-# not sure how to properly store this
-# nullaryoperator PI "pi"
+[[nullaryoperators]]
+name     = "PI"
+comment  = "pi"
 
 [[typerules]]
 name               = "PI"
