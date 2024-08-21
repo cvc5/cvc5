@@ -188,7 +188,7 @@ void Smt2Printer::toStream(std::ostream& out,
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,
                            const LetBinding* lbind,
-                       bool lbindTop) const
+                           bool lbindTop) const
 {
   int toDepth = options::ioutils::getNodeDepth(out);
   toStream(out, n, lbind, toDepth, lbindTop);
@@ -610,7 +610,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         }
         else if (options::ioutils::getPrintSkolemDefinitions(out))
         {
-          toStreamSkolem(out, cacheVal, id, /*isApplied=*/false, toDepth, lbind);
+          toStreamSkolem(
+              out, cacheVal, id, /*isApplied=*/false, toDepth, lbind);
           printed = true;
         }
       }
@@ -2152,7 +2153,7 @@ void Smt2Printer::toStreamSkolem(std::ostream& out,
                                  SkolemId id,
                                  bool isApplied,
                                  int toDepth,
-                      const LetBinding* lbind) const
+                                 const LetBinding* lbind) const
 {
   auto delim = isApplied ? " " : ")";
 

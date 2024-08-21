@@ -16,6 +16,7 @@
 #include "printer/let_binding.h"
 
 #include <sstream>
+
 #include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
@@ -162,13 +163,13 @@ void LetBinding::updateCounts(Node n)
   {
     cur = visit.back();
     it = d_count.find(cur);
-    bool isSkolem = (d_traverseSkolems && cur.getKind()==Kind::SKOLEM);
+    bool isSkolem = (d_traverseSkolems && cur.getKind() == Kind::SKOLEM);
     if (isSkolem)
     {
     }
     // do not traverse beneath quantifiers if d_traverseBinders is false.
     else if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST
-        || (!d_traverseBinders && cur.isClosure()))
+             || (!d_traverseBinders && cur.isClosure()))
     {
       visit.pop_back();
       continue;
