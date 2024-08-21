@@ -1,5 +1,3 @@
-;; slow conversion
-; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-info :source "Source unknown
 This benchmark was automatically translated into SMT-LIB format from

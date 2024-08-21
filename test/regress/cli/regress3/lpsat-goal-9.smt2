@@ -1,5 +1,3 @@
-;; slow conversion
-; DISABLE-TESTER: alethe
 (set-logic QF_IDL)
 (set-info :source |
 Queuing lock algorithm by Kazuhiro Ogata (ogata@jaist.ac.jp).

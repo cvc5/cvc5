@@ -1,5 +1,3 @@
-;; slow conversion
-; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-info :source "CADE ATP System competition. See http://www.cs.miami.edu/~tptp/CASC
  for more information.

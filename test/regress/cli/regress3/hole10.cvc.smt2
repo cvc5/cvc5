@@ -1,5 +1,3 @@
-;; slow conversion
-; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic ALL)
 (set-option :incremental false)
