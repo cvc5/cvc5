@@ -541,7 +541,10 @@ void PropPfManager::getProofInternal(CDProof* cdp)
     // if no minimization is necessary, just include all
     clauses.insert(clauses.end(), cset.begin(), cset.end());
     std::vector<Node> auxUnits = computeAuxiliaryUnits(clauses);
-    d_pfCnfStream.dumpDimacs(dout, clauses, auxUnits);
+    if (dout!=nullptr)
+    {
+      d_pfCnfStream.dumpDimacs(*dout, clauses, auxUnits);
+    }
     // include the auxiliary units if any
     clauses.insert(clauses.end(), auxUnits.begin(), auxUnits.end());
   }
