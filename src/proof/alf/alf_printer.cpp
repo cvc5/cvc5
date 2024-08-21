@@ -548,6 +548,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // ensures options are set once and for all
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   options::ioutils::applyPrintArithLitToken(out, true);
+  options::ioutils::applyPrintSkolemDefinitions(out, true);
   d_pfIdCounter = 0;
 
   // Get the definitions and assertions and print the declarations from them
@@ -559,7 +560,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // We can traverse binders due to the way we print global declare-var, since
   // terms beneath binders will always have their variables in scope and hence
   // can be printed in define commands.
-  LetBinding lbind(d_termLetPrefix, 2, true);
+  LetBinding lbind(d_termLetPrefix, 2, true, true);
   LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
   AlfPrintChannelPre aletify(lbindUse);
   AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
