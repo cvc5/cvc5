@@ -296,7 +296,9 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamSkolem(std::ostream& out,
                       Node cacheVal,
                       SkolemId id,
-                      bool isApplied) const;
+                      bool isApplied,
+                      int toDepth,
+                      const LetBinding* lbind) const;
 
   /**
    * Get the string for a kind k, which returns how the kind k is printed in

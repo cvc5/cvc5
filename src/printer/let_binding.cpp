@@ -16,15 +16,18 @@
 #include "printer/let_binding.h"
 
 #include <sstream>
+#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 
 LetBinding::LetBinding(const std::string& prefix,
                        uint32_t thresh,
-                       bool traverseBinders)
+                       bool traverseBinders,
+                       bool traverseSkolems)
     : d_prefix(prefix),
       d_thresh(thresh),
       d_traverseBinders(traverseBinders),
+      d_traverseSkolems(traverseSkolems),
       d_context(),
       d_visitList(&d_context),
       d_count(&d_context),
@@ -112,6 +115,16 @@ Node LetBinding::convert(Node n, bool letTop) const
       {
         // do not convert beneath quantifiers
         visited[cur] = cur;
+      }
+      else if (d_traverseSkolems && cur.getKind()==Kind::SKOLEM)
+      {
+        visited[cur] = Node::null();
+        SkolemId skid;
+        Node cacheVal;
+        SkolemManager* sm = nm->getSkolemManager();
+        sm->isSkolemFunction(cur, skid, cacheVal);
+        visit.push_back(cur);
+        visit.push_back(cacheVal);
       }
       else
       {
