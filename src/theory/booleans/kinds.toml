@@ -71,10 +71,6 @@ name               = "CONST_BOOLEAN"
 type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
 
 [[typerules]]
-name               = "CONST_BOOLEAN"
-type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
-
-[[typerules]]
 name               = "NOT"
 type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
 
