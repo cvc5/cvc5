@@ -368,7 +368,16 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       // follows:
       //   - remove all lhsElim from lhsClause
       //   - remove all rhsElim from rhsClause and add the lits to lhsClause
-      lhsClause.erase(std::remove(lhsClause.begin(), lhsClause.end(), lhsElim), lhsClause.end());
+      //
+      // Note that to remove the elements from lhsClaus we use the
+      // "erase-remove" idiom in C++: the std::remove call shuffles the elements
+      // different from lhsElim to the beginning of the container, returning an
+      // iterator to the beginning of the "rest" of the container (with
+      // occurrences of lhsElim). Then the call to erase removes the range from
+      // there to the end. Once C++ 20 is allowed in the cvc5 code base, this
+      // could be done with a single call to std::erase.
+      lhsClause.erase(std::remove(lhsClause.begin(), lhsClause.end(), lhsElim),
+                      lhsClause.end());
       for (const Node& l : rhsClause)
       {
         // only add if literal does not occur in elimination set
@@ -382,8 +391,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
 
     Trace("bool-pfcheck") << "clause: " << lhsClause << "\n";
     // check that set representation is the same as of the given conclusion
-    std::unordered_set<Node> clauseComputed{lhsClause.begin(),
-                                            lhsClause.end()};
+    std::unordered_set<Node> clauseComputed{lhsClause.begin(), lhsClause.end()};
     Trace("bool-pfcheck") << "clauseSet: " << clauseComputed << "\n" << pop;
     if (clauseComputed.empty())
     {

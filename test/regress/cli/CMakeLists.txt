@@ -2971,7 +2971,7 @@ set(regress_1_tests
   regress1/seq/issue8936-nth-eager-red.smt2
   regress1/sets/all1.smt2
   regress1/sets/all2.smt2
-  regress1/sets/all3.smt2  
+  regress1/sets/all3.smt2
   regress1/sets/choose.cvc.smt2
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2
@@ -3971,7 +3971,7 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
-    --carcara-binary /home/hbarbosa/carcara/wt-cvc5/target/release/carcara
+    --carcara-binary ${CMAKE_SOURCE_DIR}/deps/bin/carcara
     --ethos-binary ${CMAKE_SOURCE_DIR}/deps/bin/ethos
     --cpc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/eo
     ${wrapper}
