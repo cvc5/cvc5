@@ -64,6 +64,25 @@ TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm,
                                            EagerProofGenerator* epg)
     : TheoryRewriter(nm), d_rewriter(r), d_epg(epg)
 {
+  registerProofRewriteRule(ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND,
+                           TheoryRewriteCtx::PRE_DSL);
+}
+
+Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
+    {
+      if (n.getKind() == Kind::EQ_RANGE)
+      {
+        return expandEqRange(n);
+      }
+    break;
+    }
+    default: break;
+  }
+  return Node::null();
 }
 
 Node TheoryArraysRewriter::normalizeConstant(TNode node)
@@ -692,11 +711,8 @@ TrustNode TheoryArraysRewriter::expandDefinition(Node node)
     Node expandedEqRange = expandEqRange(node);
     if (d_epg)
     {
-      TrustNode tn = d_epg->mkTrustNode(node.eqNode(expandedEqRange),
-                                        ProofRule::ARRAYS_EQ_RANGE_EXPAND,
-                                        {},
-                                        {node});
-      return TrustNode::mkTrustRewrite(node, expandedEqRange, d_epg);
+      return d_epg->mkTrustNodeRewrite(
+          node, expandedEqRange, ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND);
     }
     return TrustNode::mkTrustRewrite(node, expandedEqRange, nullptr);
   }

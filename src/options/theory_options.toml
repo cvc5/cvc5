@@ -68,6 +68,24 @@ name   = "Theory Layer"
   help = "Use care graphs for theory combination."
 
 [[option]]
+  name       = "conflictProcessMode"
+  category   = "expert"
+  long       = "conflict-process=MODE"
+  type       = "ConflictProcessMode"
+  default    = "NONE"
+  help       = "mode for processing theory conflicts"
+  help_mode  = "Defines mode for processing theory conflicts."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not post-process conflicts from theory solvers."
+[[option.mode.MINIMIZE]]
+  name = "min"
+  help = "Do simple minimization for conflicts from theory solvers."
+[[option.mode.MINIMIZE_EXT]]
+  name = "min-ext"
+  help = "Do minimization for conflicts from theory solvers, relying on the extended rewriter."
+
+[[option]]
   name       = "lemmaInprocess"
   category   = "expert"
   long       = "lemma-inprocess=MODE"

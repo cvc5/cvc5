@@ -16,7 +16,7 @@ import cvc5
 import sys
 from math import isnan
 
-from cvc5 import Kind, SortKind, TermManager, Solver
+from cvc5 import Kind, SortKind, TermManager, Solver, Plugin
 from cvc5 import RoundingMode
 from cvc5 import BlockModelsMode, LearnedLitType, FindSynthTarget
 from cvc5 import ProofComponent, ProofFormat
@@ -584,7 +584,7 @@ def test_get_unsat_core_and_proof(tm, solver):
 
 
 def test_get_unsat_core_and_proof_to_string(tm, solver):
-    solver.setOption("produce-proofs", "true");
+    solver.setOption("produce-proofs", "true")
 
     uSort = tm.mkUninterpretedSort("u")
     intSort = tm.getIntegerSort()
@@ -620,6 +620,31 @@ def test_get_unsat_core_and_proof_to_string(tm, solver):
     proofs = solver.getProof(ProofComponent.SAT)
     printedProof = solver.proofToString(proofs[0], ProofFormat.NONE)
     assert len(printedProof) > 0
+
+
+def test_proof_to_string_assertion_names(tm, solver):
+    solver.setOption("produce-proofs", "true")
+    uSort = tm.mkUninterpretedSort("u")
+    x = tm.mkConst(uSort, "x")
+    y = tm.mkConst(uSort, "y")
+
+    x_eq_y = tm.mkTerm(Kind.EQUAL, x, y)
+    not_x_eq_y = tm.mkTerm(Kind.NOT, x_eq_y)
+
+    names = {x_eq_y: "as1", not_x_eq_y: "as2"}
+
+    solver.assertFormula(x_eq_y)
+    solver.assertFormula(not_x_eq_y)
+
+    assert solver.checkSat().isUnsat()
+
+    proofs = solver.getProof()
+    assert len(proofs) > 0
+    printedProof = solver.proofToString(proofs[0], ProofFormat.ALETHE, names)
+    assert len(printedProof) > 0
+    assert b"as1" in printedProof
+    assert b"as2" in printedProof
+
 
 def test_learned_literals(solver):
     solver.setOption("produce-learned-literals", "true")
@@ -1042,6 +1067,7 @@ def test_get_statistics(tm, solver):
     assert len([s for s in stats]) > 0
 
     for s in stats:
+        str(s)
         if s[0] == 'theory::arrays::avgIndexListLength':
             assert s[1]['internal']
             assert s[1]['default']
@@ -1159,6 +1185,17 @@ def test_simplify(tm, solver):
     #with pytest.raises(RuntimeError):
     slv.simplify(x)
 
+def test_simplify_apply_subs(tm, solver):
+    solver.setOption("incremental", "true")
+    intSort = tm.getIntegerSort()
+    x = tm.mkConst(intSort, "x")
+    zero = tm.mkInteger(0)
+    eq = tm.mkTerm(Kind.EQUAL, x, zero)
+    solver.assertFormula(eq)
+    solver.checkSat()
+
+    assert solver.simplify(x, False) == x
+    assert solver.simplify(x, True) == zero
 
 def test_assert_formula(tm, solver):
     solver.assertFormula(tm.mkTrue())
@@ -2285,3 +2322,63 @@ def test_get_quantifier_elimination_disjunct(tm, solver):
 def test_get_version(solver):
     print(solver.getVersion())
 
+class PluginUnsat(Plugin):
+    def __init__(self, tm):
+        super().__init__(tm)
+        self.tm = tm
+
+    def check(self):
+        lemmas = [self.tm.mkBoolean(False)]
+        return lemmas
+
+    def getName(self):
+        return "PluginUnsat"
+
+def test_plugin_unsat(tm, solver):
+    p = PluginUnsat(tm)
+    solver.addPlugin(p)
+    assert solver.checkSat().isUnsat()
+
+
+class PluginListen(Plugin):
+    def __init__(self, tm):
+        super().__init__(tm)
+        self.has_seen_theory_lemma = False
+        self.has_seen_sat_clause = False
+
+    def notifySatClause(self, cl):
+        super().notifySatClause(cl)
+        self.has_seen_sat_clause = True
+
+    def hasSeenSatClause(self):
+        return self.has_seen_sat_clause
+
+    def notifyTheoryLemma(self, lem):
+        super().notifyTheoryLemma(lem)
+        self.has_seen_theory_lemma = True
+
+    def hasSeenTheoryLemma(self):
+        return self.has_seen_theory_lemma
+
+    def getName(self):
+        return "PluginListen"
+
+def test_plugin_listen(tm, solver):
+    # NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
+    solver.setOption("plugin-notify-sat-clause-in-solve", "false")
+    pl = PluginListen(tm)
+    solver.addPlugin(pl)
+    stringSort = tm.getStringSort()
+    x = tm.mkConst(stringSort, "x")
+    y = tm.mkConst(stringSort, "y")
+    ctn1 = tm.mkTerm(Kind.STRING_CONTAINS, x, y)
+    ctn2 = tm.mkTerm(Kind.STRING_CONTAINS, y, x)
+    solver.assertFormula(tm.mkTerm(Kind.OR, ctn1, ctn2))
+    lx = tm.mkTerm(Kind.STRING_LENGTH, x)
+    ly = tm.mkTerm(Kind.STRING_LENGTH, y)
+    lc = tm.mkTerm(Kind.GT, lx, ly)
+    solver.assertFormula(lc)
+    assert solver.checkSat().isSat()
+    # above input formulas should induce a theory lemma and SAT clause learning
+    assert pl.hasSeenTheoryLemma()
+    assert pl.hasSeenSatClause()

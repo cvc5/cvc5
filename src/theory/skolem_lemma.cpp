@@ -23,6 +23,7 @@ namespace theory {
 SkolemLemma::SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k)
 {
   Assert(lem.getKind() == TrustNodeKind::LEMMA);
+  Assert(k.getKind() == Kind::SKOLEM);
 }
 
 Node SkolemLemma::getProven() const { return d_lemma.getProven(); }

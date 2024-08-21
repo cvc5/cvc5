@@ -141,7 +141,7 @@
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
   (bvand xs x ys x zs)
   (bvand xs x ys zs))
-(define-rule* bv-and-simplify-2
+(define-rule bv-and-simplify-2
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
   (bvand xs x ys (bvnot x) zs)
   (@bv 0 (@bvsize x)))
@@ -150,7 +150,7 @@
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
   (bvor xs x ys x zs)
   (bvor xs x ys zs))
-(define-rule* bv-or-simplify-2
+(define-rule bv-or-simplify-2
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
   (bvor xs x ys (bvnot x) zs)
   (bvnot (@bv 0 (@bvsize x))))
@@ -159,11 +159,11 @@
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
   (bvxor xs x ys x zs)
   (bvxor xs ys zs))
-(define-rule* bv-xor-simplify-2
+(define-rule bv-xor-simplify-2
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
   (bvxor xs x ys (bvnot x) zs)
   (bvnot (bvxor xs ys zs)))
-(define-rule* bv-xor-simplify-3
+(define-rule bv-xor-simplify-3
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
   (bvxor xs (bvnot x) ys x zs)
   (bvnot (bvxor xs ys zs)))

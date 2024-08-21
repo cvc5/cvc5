@@ -20,6 +20,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/elim_shadow_converter.h"
 #include "options/sets_options.h"
+#include "theory/bags/bags_utils.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
@@ -33,7 +34,30 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm)
+{
+  // Needs to be a subcall in DSL reconstruction since set.is_empty is used
+  // as a premise to test emptiness of a set.
+  registerProofRewriteRule(ProofRewriteRule::SETS_IS_EMPTY_EVAL,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+}
+
+Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    {
+      if (n.getKind() == Kind::SET_IS_EMPTY && n[0].isConst())
+      {
+        return nodeManager()->mkConst(n[0].getKind() == Kind::SET_EMPTY);
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
+}
 
 bool TheorySetsRewriter::checkConstantMembership(TNode elementTerm, TNode setTerm)
 {
@@ -91,21 +115,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                || node[1].getKind() == Kind::SET_INTER
                || node[1].getKind() == Kind::SET_MINUS)
       {
-        std::vector<Node> children;
-        for (unsigned i = 0; i < node[1].getNumChildren(); i++)
-        {
-          Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
-          if (node[1].getKind() == Kind::SET_MINUS && i == 1)
-          {
-            nc = nc.negate();
-          }
-          children.push_back(nc);
-        }
-        return RewriteResponse(
-            REWRITE_AGAIN_FULL,
-            nm->mkNode(
-                node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
-                children));
+        Node ret = rewriteMembershipBinaryOp(node);
+        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
       break;
     }  // Kind::SET_MEMBER
@@ -329,6 +340,23 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     break;
   }  // Kind::SET_CHOOSE
+  case Kind::SET_IS_EMPTY:
+  {
+    if (node[0].isConst())
+    {
+      // (set.is_empty c) ---> true if c is emptyset
+      // (set.is_empty c) ---> false if c is a constant that is not the emptyset
+      return RewriteResponse(
+          REWRITE_DONE,
+          nodeManager()->mkConst(node[0].getKind() == Kind::SET_EMPTY));
+    }
+    // (set.is_empty x) ----> (= x (as set.empty (Set T))).
+    Node eq = nodeManager()->mkNode(
+        Kind::EQUAL,
+        node[0],
+        nodeManager()->mkConst(EmptySet(node[0].getType())));
+    return RewriteResponse(REWRITE_AGAIN, eq);
+  }
   case Kind::SET_IS_SINGLETON:
   {
     Kind nk = node[0].getKind();
@@ -347,8 +375,11 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
   case Kind::SET_COMPREHENSION: return postRewriteComprehension(node); break;
 
+  case Kind::RELATION_TABLE_JOIN: return postRewriteTableJoin(node); break;
   case Kind::SET_MAP: return postRewriteMap(node);
   case Kind::SET_FILTER: return postRewriteFilter(node);
+  case Kind::SET_ALL: return postRewriteAll(node);
+  case Kind::SET_SOME: return postRewriteSome(node);
   case Kind::SET_FOLD: return postRewriteFold(node);
 
   case Kind::RELATION_TRANSPOSE:
@@ -615,6 +646,26 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   return RewriteResponse(REWRITE_DONE, node);
 }
 
+Node TheorySetsRewriter::rewriteMembershipBinaryOp(const Node& node)
+{
+  Assert(node.getKind() == Kind::SET_MEMBER);
+  Assert(node[1].getKind() == Kind::SET_UNION
+         || node[1].getKind() == Kind::SET_INTER
+         || node[1].getKind() == Kind::SET_MINUS);
+  NodeManager* nm = nodeManager();
+  std::vector<Node> children;
+  for (size_t i = 0, nchild = node[1].getNumChildren(); i < nchild; i++)
+  {
+    Node nc = nm->mkNode(Kind::SET_MEMBER, node[0], node[1][i]);
+    if (node[1].getKind() == Kind::SET_MINUS && i == 1)
+    {
+      nc = nc.negate();
+    }
+    children.push_back(nc);
+  }
+  return nm->mkNode(node[1].getKind() == Kind::SET_UNION ? Kind::OR : Kind::AND,
+                    children);
+}
 
 // static
 RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
@@ -662,6 +713,51 @@ RewriteResponse TheorySetsRewriter::postRewriteComprehension(TNode n)
   if (ne != n)
   {
     return RewriteResponse(REWRITE_AGAIN_FULL, ne);
+  }
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteTableJoin(TNode n)
+{
+  Assert(n.getKind() == Kind::RELATION_TABLE_JOIN);
+
+  Node A = n[0];
+  Node B = n[1];
+  TypeNode tupleType = n.getType().getSetElementType();
+  if (A.isConst() && B.isConst())
+  {
+    auto [aIndices, bIndices] = bags::BagsUtils::splitTableJoinIndices(n);
+
+    std::set<Node> elementsA = NormalForm::getElementsFromNormalConstant(A);
+    std::set<Node> elementsB = NormalForm::getElementsFromNormalConstant(B);
+    std::set<Node> newSet;
+
+    for (const auto& a : elementsA)
+    {
+      for (const auto& b : elementsB)
+      {
+        bool notMatched = false;
+        for (size_t i = 0; i < aIndices.size(); i++)
+        {
+          Node aElement = TupleUtils::nthElementOfTuple(a, aIndices[i]);
+          Node bElement = TupleUtils::nthElementOfTuple(b, bIndices[i]);
+          if (aElement != bElement)
+          {
+            notMatched = true;
+          }
+        }
+        if (notMatched)
+        {
+          continue;
+        }
+        Node element = TupleUtils::concatTuples(tupleType, a, b);
+        newSet.insert(element);
+      }
+    }
+
+    Node ret = NormalForm::elementsToSet(newSet, n.getType());
+
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }
@@ -732,6 +828,81 @@ RewriteResponse TheorySetsRewriter::postRewriteFilter(TNode n)
     }
 
     default: return RewriteResponse(REWRITE_DONE, n);
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteAll(TNode n)
+{
+  Assert(n.getKind() == Kind::SET_ALL);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // (set.all p (as set.empty (Set T)) = true)
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // (set.all p (set.singleton x)) = (p x)
+      Node ret = nm->mkNode(Kind::APPLY_UF, n[0], n[1][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case Kind::SET_UNION:
+    {
+      // (set.all p (set.union A B)) =
+      //   (and (set.all p A) (set.all p B))
+      Node a = nm->mkNode(Kind::SET_ALL, n[0], n[1][0]);
+      Node b = nm->mkNode(Kind::SET_ALL, n[0], n[1][1]);
+      Node ret = a.andNode(b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    default:
+    {
+      // (set.all p A) is rewritten as (set.filter p A) = A
+      Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
+      Node all = filter.eqNode(n[1]);
+      return RewriteResponse(REWRITE_DONE, all);
+    }
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteSome(TNode n)
+{
+  Assert(n.getKind() == Kind::SET_SOME);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // (set.some p (as set.empty (Set T)) = false)
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // (set.some p (set.singleton x)) = (p x)
+      Node ret = nm->mkNode(Kind::APPLY_UF, n[0], n[1][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case Kind::SET_UNION:
+    {
+      // (set.some p (set.union A B)) =
+      //   (or (set.some p A) (set.some p B))
+      Node a = nm->mkNode(Kind::SET_SOME, n[0], n[1][0]);
+      Node b = nm->mkNode(Kind::SET_SOME, n[0], n[1][1]);
+      Node ret = a.orNode(b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    default:
+    {
+      // (set.some p A) is rewritten as (distinct (set.filter p A) set.empty))
+      Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
+      Node empty = nm->mkConst(EmptySet(n[1].getType()));
+      Node some = filter.eqNode(empty).notNode();
+      return RewriteResponse(REWRITE_DONE, some);
+    }
   }
 }
 

@@ -149,6 +149,32 @@ TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
   return d_theoryRewriters[theoryId];
 }
 
+Node Rewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  // dispatches to the appropriate theory
+  TheoryId tid = theoryOf(n);
+  TheoryRewriter* tr = getTheoryRewriter(tid);
+  if (tr != nullptr)
+  {
+    return tr->rewriteViaRule(id, n);
+  }
+  return Node::null();
+}
+
+ProofRewriteRule Rewriter::findRule(const Node& a,
+                                    const Node& b,
+                                    TheoryRewriteCtx ctx)
+{
+  // dispatches to the appropriate theory
+  TheoryId tid = theoryOf(a);
+  TheoryRewriter* tr = getTheoryRewriter(tid);
+  if (tr != nullptr)
+  {
+    return tr->findRule(a, b, ctx);
+  }
+  return ProofRewriteRule::NONE;
+}
+
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          Node node,
                          TConvProofGenerator* tcpg)

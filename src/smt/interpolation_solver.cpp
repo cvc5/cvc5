@@ -93,7 +93,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
 
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
-  subOptions.writeSmt().produceInterpolants = false;
+  subOptions.write_smt().produceInterpolants = false;
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
   // two checks: first, axioms imply interpol, second, interpol implies conj.

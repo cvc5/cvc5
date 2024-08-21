@@ -32,6 +32,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "expr/elim_witness_converter.h"
 #include "util/rational.h"
 
 using namespace std;
@@ -130,7 +131,7 @@ CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
       || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION
       || k == Kind::INTS_DIVISION_TOTAL || k == Kind::INTS_MODULUS
       || k == Kind::INTS_MODULUS_TOTAL || k == Kind::TO_INTEGER
-      || k == Kind::IS_INTEGER || k == Kind::TO_REAL)
+      || k == Kind::IS_INTEGER || k == Kind::TO_REAL || k == Kind::ABS)
   {
     return CEG_HANDLED;
   }
@@ -940,6 +941,34 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
   }
 }
 
+/**
+ * A class for eliminating witness terms. We require overriding the method of
+ * the base class to ensure that quantified formulas have been run through
+ * theory preprocessing. This ensures that the skolem variables introduced
+ * align exactly with the quantified formula we will assert in the corresponding
+ * QUANTIFIERS_CEGQI_WITNESS lemma.
+ */
+class PreprocessElimWitnessNodeConverter : public ElimWitnessNodeConverter
+{
+ public:
+  PreprocessElimWitnessNodeConverter(Env& env, Valuation& val)
+      : ElimWitnessNodeConverter(env), d_val(val)
+  {
+  }
+  /**
+   * Get the normal form for quantified formula q, which must perform theory
+   * preprocessing.
+   */
+  Node getNormalFormFor(const Node& q) override
+  {
+    return d_val.getPreprocessedTerm(q);
+  }
+
+ private:
+  /** Reference to a valuation */
+  Valuation& d_val;
+};
+
 bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
                                          std::vector<Node>& subs)
 {
@@ -975,24 +1004,48 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
 
+  // construct the final instantiation by eliminating witness terms
+  std::vector<Node> svec;
+  std::vector<Node> exists;
+  for (const Node& s : subs)
+  {
+    if (expr::hasSubtermKind(Kind::WITNESS, s))
+    {
+      PreprocessElimWitnessNodeConverter ewc(d_env, d_qstate.getValuation());
+      Node sc = ewc.convert(s);
+      const std::vector<Node>& wexists = ewc.getExistentials();
+      exists.insert(exists.end(), wexists.begin(), wexists.end());
+      svec.push_back(sc);
+    }
+    else
+    {
+      svec.push_back(s);
+    }
+  }
+  
   Assert(!d_quant.isNull());
   // check if we need virtual term substitution (if used delta or infinity)
   VtsTermCache* vtc = d_treg.getVtsTermCache();
-  bool usedVts = vtc->containsVtsTerm(subs, false);
+  bool usedVts = vtc->containsVtsTerm(svec, false);
   Instantiate* inst = d_qim.getInstantiate();
   // if doing partial quantifier elimination, record the instantiation and set
   // the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_quant))
   {
-    inst->recordInstantiation(d_quant, subs, usedVts);
+    inst->recordInstantiation(d_quant, svec, usedVts);
     return true;
   }
   else if (inst->addInstantiation(d_quant,
-                                  subs,
+                                  svec,
                                   InferenceId::QUANTIFIERS_INST_CEGQI,
                                   Node::null(),
                                   usedVts))
   {
+    // add the existentials, if any witness term was eliminated
+    for (const Node& q : exists)
+    {
+      d_qim.addPendingLemma(q, InferenceId::QUANTIFIERS_CEGQI_WITNESS);
+    }
     return true;
   }
   // this should never happen for monotonic selection strategies

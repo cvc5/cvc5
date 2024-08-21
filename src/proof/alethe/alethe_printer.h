@@ -18,7 +18,10 @@
 #ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
 #define CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
 
+#include "context/cdhashset.h"
 #include "proof/alethe/alethe_let_binding.h"
+#include "proof/alethe/alethe_node_converter.h"
+#include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_updater.h"
 #include "smt/env_obj.h"
@@ -30,7 +33,7 @@ namespace proof {
 /** A callback for populating a let binder.
  *
  * This callback does not actually update the proof node, but rather just
- * consider the terms in the proof nodes for sharing. This is done in
+ * considers the terms in the proof nodes for sharing. This is done in
  * `shouldUpdate`, which is called on every proof node and always returns false.
  */
 class LetUpdaterPfCallback : public ProofNodeUpdaterCallback
@@ -52,20 +55,19 @@ class LetUpdaterPfCallback : public ProofNodeUpdaterCallback
 };
 
 /**
- * The Alethe printer, which prints proof nodes in a Alethe proof, according to
+ * The Alethe printer, which prints proof nodes in an Alethe proof, according to
  * the proof rules defined in alethe_proof_rule.h.
  *
- * It expects to print proof nodes that have processed by the Alethe proof post
- * processor.
+ * It expects to print proof nodes that have been processed by the Alethe proof
+ * post-processor.
  */
 class AletheProofPrinter : protected EnvObj
 {
  public:
-  AletheProofPrinter(Env& env);
+  AletheProofPrinter(Env& env, AletheNodeConverter& anc);
   ~AletheProofPrinter() {}
   /**
-   * This method prints a proof node that has been transformed into the Alethe
-   * proof format
+   * Prints a proof node in the Alethe proof format
    *
    * @param out The stream to write to
    * @param pfn The proof node to be printed
@@ -77,43 +79,69 @@ class AletheProofPrinter : protected EnvObj
              const std::map<Node, std::string>& assertionNames);
 
  private:
-  /** Used for printing the proof node after the initial Alethe anchor has been
-   * printed
+  /** The printing context */
+  context::Context d_context;
+  /** Assumptions in context */
+  context::CDHashMap<Node, std::string> d_assumptionsMap;
+  /** Printed steps in context */
+  context::CDHashMap<ProofNode*, std::string> d_pfMap;
+
+  /** Prints an Alethe proof node
    *
-   * The initial anchor introduces the initial assumptions of the problem, which
-   * correspond to the problem assertions.
+   * The printing is parameterized by a prefix to be used in the step ids, as
+   * well as by the current id (which will be incremented after this proof node,
+   * if it is fresh, is printed). The prefix is used to facilitate identifying
+   * that steps are under a given anchor.
    *
    * @param out The stream to write to
+   * @param prefix The prefix to be used in step ids.
+   * @param id The current id being used for printing step ids
    * @param pfn The proof node to be printed
-   * @param assumptions The list of assumptions made before the current step,
-   * that are visible as premises to that step
-   * @param steps The list of steps occurring before the current step, that are
-   * visible as premises to that step
-   * @param current_prefix The current prefix which is updated whenever a
-   * subproof is encountered E.g., the prefix "t19.t2." is used when we are
-   * under a subproof started at step "t19" and another at "t2" without leaving
-   * the first subproof.
-   * @param current_step_id The id of a step within a subproof (without the
-   * prefix).
-   * @return The full id (including the prefix) of the last step of pfn.
    */
-  std::string printInternal(
-      std::ostream& out,
-      std::shared_ptr<ProofNode> pfn,
-      std::unordered_map<Node, std::string>& assumptions,
-      std::unordered_map<std::shared_ptr<ProofNode>, std::string>& steps,
-      std::string current_prefix,
-      uint32_t& current_step_id);
+  void printInternal(std::ostream& out,
+                     const std::string& prefix,
+                     size_t& id,
+                     std::shared_ptr<ProofNode> pfn);
 
   /** Print term into stream
    *
    * The printing is done separately because it uses the let binder (d_lbind)
    * for converting the term before printing.
+   *
+   * @param out The stream to write to
+   * @param n The node to be printed
    */
   void printTerm(std::ostream& out, TNode n);
 
+  /** Print the id for the previously printed step/assumption of the given proof
+   * node.
+   *
+   * @param out The stream to write to
+   * @param pfn The proof node
+   * @param assumptionsMap Map from assumptions to their ids
+   * @param pfMap Map from proof nodes to their ids
+   */
+  void printStepId(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+
+  /** Print the step with respective id, rule, premises and arguments.
+   *
+   * @param out The stream to write to
+   * @param stepId The id of the step
+   * @param rule The Alethe rule of the step
+   * @param pfArgs The arguments of this step
+   * @param pfChildren The premises of this step
+   */
+  void printStep(std::ostream& out,
+                 const std::string& stepId,
+                 AletheRule arule,
+                 const std::vector<Node>& pfArgs,
+                 const std::vector<std::shared_ptr<ProofNode>>& pfChildren);
+
   /** The let binder for printing with sharing. */
   AletheLetBinding d_lbind;
+
+  /** The Alethe node converter */
+  AletheNodeConverter& d_anc;
 
   /** The callback used for computing the let binding. */
   std::unique_ptr<LetUpdaterPfCallback> d_cb;

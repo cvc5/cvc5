@@ -36,6 +36,7 @@
 #include "smt/proof_post_processor.h"
 #include "smt/smt_solver.h"
 
+using namespace cvc5::internal::rewriter;
 namespace cvc5::internal {
 namespace smt {
 
@@ -48,9 +49,31 @@ PfManager::PfManager(Env& env)
 {
   // construct the rewrite db only if DSL rewrites are enabled
   if (options().proof.proofGranularityMode
-      == options::ProofGranularityMode::DSL_REWRITE)
+          == options::ProofGranularityMode::DSL_REWRITE
+      || options().proof.proofGranularityMode
+             == options::ProofGranularityMode::DSL_REWRITE_STRICT)
   {
-    d_rewriteDb.reset(new rewriter::RewriteDb);
+    d_rewriteDb.reset(new RewriteDb);
+    if (isOutputOn(OutputTag::RARE_DB))
+    {
+      if (options().proof.proofFormatMode != options::ProofFormatMode::CPC)
+      {
+        Warning()
+            << "WARNING: Assuming --proof-format=cpc when printing the RARE "
+               "database with -o rare-db"
+            << std::endl;
+      }
+      proof::AlfNodeConverter atp(nodeManager());
+      proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
+      const std::map<ProofRewriteRule, RewriteProofRule>& rules =
+          d_rewriteDb->getAllRules();
+      std::stringstream ss;
+      for (const std::pair<const ProofRewriteRule, RewriteProofRule>& r : rules)
+      {
+        alfp.printDslRule(ss, r.first);
+      }
+      output(OutputTag::RARE_DB) << ss.str();
+    }
   }
   // enable the proof checker and the proof node manager
   d_pchecker.reset(
@@ -90,14 +113,19 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
-    d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION_TRUST);
-    d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION);
+    // Alethe does not require macro resolution to be expanded
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
+    {
+      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION_TRUST);
+      d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION);
+    }
     d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)
     {
       d_pfpp->setEliminateRule(ProofRule::SUBS);
       d_pfpp->setEliminateRule(ProofRule::MACRO_REWRITE);
+      // if in a DSL rewrite mode
       if (options().proof.proofGranularityMode
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
@@ -109,6 +137,8 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
     d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
+  // always try to eliminate TRUST
+  d_pfpp->setEliminateRule(ProofRule::TRUST);
   d_false = nodeManager()->mkConst(false);
 }
 
@@ -246,7 +276,7 @@ void PfManager::printProof(std::ostream& out,
   // user asks for the proof again (in non-incremental mode). We don't need to
   // clone if the printing below does not modify the proof, which is the case
   // for proof formats ALF and NONE.
-  if (mode != options::ProofFormatMode::ALF
+  if (mode != options::ProofFormatMode::CPC
       && mode != options::ProofFormatMode::NONE)
   {
     fp = fp->clone();
@@ -258,21 +288,30 @@ void PfManager::printProof(std::ostream& out,
     proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
-  else if (mode == options::ProofFormatMode::ALF)
+  else if (mode == options::ProofFormatMode::CPC)
   {
     Assert(fp->getRule() == ProofRule::SCOPE);
     proof::AlfNodeConverter atp(nodeManager());
-    proof::AlfPrinter alfp(d_env, atp);
+    proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
     alfp.print(out, fp);
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
-    proof::AletheNodeConverter anc(nodeManager());
-    proof::AletheProofPostprocess vpfpp(
-        d_env, anc, options().proof.proofAletheResPivots);
-    vpfpp.process(fp);
-    proof::AletheProofPrinter vpp(d_env);
-    vpp.print(out, fp, assertionNames);
+    options::ProofCheckMode oldMode = options().proof.proofCheck;
+    d_pnm->getChecker()->setProofCheckMode(options::ProofCheckMode::NONE);
+    proof::AletheNodeConverter anc(nodeManager(),
+                                   options().proof.proofAletheDefineSkolems);
+    proof::AletheProofPostprocess vpfpp(d_env, anc);
+    if (vpfpp.process(fp))
+    {
+      proof::AletheProofPrinter vpp(d_env, anc);
+      vpp.print(out, fp, assertionNames);
+    }
+    else
+    {
+      out << "(error " << vpfpp.getError() << ")";
+    }
+    d_pnm->getChecker()->setProofCheckMode(oldMode);
   }
   else if (mode == options::ProofFormatMode::LFSC)
   {

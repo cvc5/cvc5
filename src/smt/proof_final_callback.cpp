@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Mathias Preiner
+ *   Andrew Reynolds, Hans-Joerg Schurr, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
@@ -39,16 +39,16 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
           "finalProof::ruleCount")),
       d_instRuleIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
           "finalProof::instRuleId")),
-      d_annotationRuleIds(
-          statisticsRegistry().registerHistogram<theory::InferenceId>(
-              "finalProof::annotationRuleId")),
-      d_dslRuleCount(
-          statisticsRegistry().registerHistogram<rewriter::DslProofRule>(
-              "finalProof::dslRuleCount")),
+      d_dslRuleCount(statisticsRegistry().registerHistogram<ProofRewriteRule>(
+          "finalProof::dslRuleCount")),
+      d_theoryRewriteRuleCount(
+          statisticsRegistry().registerHistogram<ProofRewriteRule>(
+              "finalProof::theoryRewriteRuleCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
-      d_trustTheoryIdCount(statisticsRegistry().registerHistogram<theory::TheoryId>(
-          "finalProof::trustTheoryIdCount")),
+      d_trustTheoryIdCount(
+          statisticsRegistry().registerHistogram<theory::TheoryId>(
+              "finalProof::trustTheoryIdCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -99,13 +99,20 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   d_ruleCount << r;
   ++d_totalRuleCount;
   // if a DSL rewrite, take DSL stat
-  if (r == ProofRule::DSL_REWRITE)
+  if (r == ProofRule::DSL_REWRITE || r == ProofRule::THEORY_REWRITE)
   {
     const std::vector<Node>& args = pn->getArguments();
-    rewriter::DslProofRule di;
-    if (rewriter::getDslProofRule(args[0], di))
+    ProofRewriteRule di;
+    if (rewriter::getRewriteRule(args[0], di))
     {
-      d_dslRuleCount << di;
+      if (r == ProofRule::DSL_REWRITE)
+      {
+        d_dslRuleCount << di;
+      }
+      else
+      {
+        d_theoryRewriteRuleCount << di;
+      }
     }
   }
   // take stats on the instantiations in the proof
@@ -119,25 +126,6 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       if (getInferenceId(args[1], id))
       {
         d_instRuleIds << id;
-      }
-    }
-  }
-  else if (r == ProofRule::ANNOTATION)
-  {
-    // we currently assume the annotation is a single inference id
-    const std::vector<Node>& args = pn->getArguments();
-    if (args.size() > 0)
-    {
-      InferenceId id;
-      if (getInferenceId(args[0], id))
-      {
-        d_annotationRuleIds << id;
-        // Use e.g. `--check-proofs --proof-annotate -t im-pf` to see a list of
-        // inference that appear in the final proof.
-        Trace("im-pf") << "(inference-pf " << id << " " << pn->getResult()
-                       << ")" << std::endl;
-        Trace("im-pf-assert")
-            << "(assert " << pn->getResult() << ") ; " << id << std::endl;
       }
     }
   }

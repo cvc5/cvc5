@@ -81,10 +81,7 @@ class InstStrategyEnum : public QuantifiersModule
    */
   void check(Theory::Effort e, QEffort quant_e) override;
   /** Identify. */
-  std::string identify() const override
-  {
-    return std::string("InstStrategyEnum");
-  }
+  std::string identify() const override;
 
  private:
   /** Pointer to the relevant domain utility of quantifiers engine */

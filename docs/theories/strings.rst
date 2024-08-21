@@ -2,7 +2,7 @@ Theory Reference: Strings
 =========================
 
 cvc5 supports all operators of the `SMT-LIB standard for strings
-<https://smtlib.cs.uiowa.edu/theories-UnicodeStrings.shtml>`_. It additionally
+<https://smt-lib.org/theories-UnicodeStrings.shtml>`_. It additionally
 supports some non-standard operators that are described below.
 
 Semantics

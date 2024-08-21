@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -74,6 +74,7 @@ class Solver;
 class Statistics;
 struct APIStatistics;
 class Term;
+class PluginInternal;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -287,6 +288,21 @@ class CVC5_EXPORT Result
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Result& r);
 
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for results.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Result>
+{
+  size_t operator()(const cvc5::Result& result) const;
+};
+}  // namespace std
+
+namespace cvc5 {
+
 /* -------------------------------------------------------------------------- */
 /* SynthResult                                                                */
 /* -------------------------------------------------------------------------- */
@@ -334,6 +350,20 @@ class CVC5_EXPORT SynthResult
   bool isUnknown() const;
 
   /**
+   * Operator overloading for equality of two synthesis results.
+   * @param r The synthesis result to compare to for equality.
+   * @return True if the synthesis results are equal.
+   */
+  bool operator==(const SynthResult& r) const;
+
+  /**
+   * Operator overloading for disequality of two synthesis results.
+   * @param r The synthesis result to compare to for disequality.
+   * @return True if the synthesis results are disequal.
+   */
+  bool operator!=(const SynthResult& r) const;
+
+  /**
    * @return A string representation of this synthesis result.
    */
   std::string toString() const;
@@ -362,6 +392,21 @@ class CVC5_EXPORT SynthResult
  * @return The output stream.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const SynthResult& r);
+
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for synthesis results.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::SynthResult>
+{
+  size_t operator()(const cvc5::SynthResult& result) const;
+};
+}  // namespace std
+
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -1150,6 +1195,7 @@ class CVC5_EXPORT Term
   friend class TermManager;
   friend class Solver;
   friend class Grammar;
+  friend class PluginInternal;
   friend class SynthResult;
   friend struct std::hash<Term>;
 
@@ -2085,7 +2131,7 @@ class CVC5_EXPORT DatatypeConstructorDecl
  private:
   /**
    * Constructor.
-   * @param nm The associated node manager.
+   * @param tm   The associated term manager.
    * @param name The name of the datatype constructor.
    * @return The DatatypeConstructorDecl.
    */
@@ -2167,7 +2213,7 @@ class CVC5_EXPORT DatatypeDecl
    * @param decl The datatype declaration to compare to for equality.
    * @return True if the datatype declarations are equal.
    */
-  bool operator==(const DatatypeDecl& decll) const;
+  bool operator==(const DatatypeDecl& decl) const;
 
   /**
    * Add datatype constructor declaration.
@@ -3062,8 +3108,40 @@ class CVC5_EXPORT Grammar
 {
   friend class parser::Cmd;
   friend class Solver;
+  friend struct std::hash<Grammar>;
+  friend std::ostream& operator<<(std::ostream& out, const Grammar& grammar);
 
  public:
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Grammar();
+
+  /**
+   * Destructor for bookeeping.
+   */
+  ~Grammar();
+
+  /**
+   * Determine if this is the null grammar (Grammar::Grammar()).
+   * @return True if this grammar is the null grammar.
+   */
+  bool isNull() const;
+
+  /**
+   * Operator overloading for referential equality of two grammars.
+   * @param grammar The grammarto compare to for equality.
+   * @return True if both grammars point to the same internal grammar object.
+   */
+  bool operator==(const Grammar& grammar) const;
+
+  /**
+   * Referential disequality operator.
+   * @param grammar The grammar to compare to for disequality.
+   * @return True if both grammars point to different internal grammar objects.
+   */
+  bool operator!=(const Grammar& grammar) const;
+
   /**
    * Add `rule` to the set of rules corresponding to `ntSymbol`.
    * @param ntSymbol The non-terminal to which the rule is added.
@@ -3096,16 +3174,6 @@ class CVC5_EXPORT Grammar
    */
   std::string toString() const;
 
-  /**
-   * Nullary constructor. Needed for the Cython API.
-   */
-  Grammar();
-
-  /**
-   * Destructor for bookeeping.
-   */
-  ~Grammar();
-
  private:
   /**
    * Constructor.
@@ -3129,16 +3197,31 @@ class CVC5_EXPORT Grammar
    */
   TermManager* d_tm;
   /** The internal representation of this grammar. */
-  std::shared_ptr<internal::SygusGrammar> d_sg;
+  std::shared_ptr<internal::SygusGrammar> d_grammar;
 };
 
 /**
  * Serialize a grammar to given stream.
- * @param out The output stream.
- * @param g The grammar to be serialized to the given output stream.
+ * @param out     The output stream.
+ * @param grammar The grammar to be serialized to the given output stream.
  * @return The output stream.
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Grammar& g);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, const Grammar& grammar);
+
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for grammar.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Grammar>
+{
+  size_t operator()(const cvc5::Grammar& grammar) const;
+};
+}  // namespace std
+
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 /* Options                                                                    */
@@ -3175,7 +3258,7 @@ class CVC5_EXPORT DriverOptions
 
 /**
  * \verbatim embed:rst:leading-asterisk
- * Holds some description about a particular option, including its name, its
+ * Holds information about a specific option, including its name, its
  * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. It can be obtained via
  * :cpp:func:`Solver::getOptionInfo() <cvc5::Solver::getOptionInfo()>` and
@@ -3303,10 +3386,18 @@ struct CVC5_EXPORT OptionInfo
    * @return The current value as a `double`.
    */
   double doubleValue() const;
+  /**
+   * Get a string representation of an option info.
+   * @return The string representation.
+   */
+  std::string toString() const;
 };
 
 /**
- * Print an `OptionInfo` object to an ``std::ostream``.
+ * Print an `OptionInfo` object to an output stream.
+ * @param os The output stream.
+ * @param oi The option info.
+ * @return The output stream.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const OptionInfo& oi);
 
@@ -3351,56 +3442,62 @@ class CVC5_EXPORT Stat
   Stat& operator=(const Stat& s);
 
   /**
-   * Determine if this value is intended for internal use only.
+   * Determine if this statistic is intended for internal use only.
    * @return True if this is an internal statistic.
    */
   bool isInternal() const;
   /**
-   * Determine if this value holds the default value.
+   * Determine if this statistic holds the default value.
    * @return True if this is a defaulted statistic.
    */
   bool isDefault() const;
 
   /**
-   * Determine if  this value is an integer.
+   * Determine if this statistic holds an integer value.
    * @return True if this value is an integer.
    */
   bool isInt() const;
   /**
-   * Return the integer value.
+   * Get the value of an integer statistic.
    * @return The integer value.
    */
   int64_t getInt() const;
   /**
-   * Determine if this value is a double.
+   * Determine if this statistic holds a double value.
    * @return True if this value is a double.
    */
   bool isDouble() const;
   /**
-   * Return the double value.
+   * Get the value of a double statistic.
    * @return The double value.
    */
   double getDouble() const;
   /**
-   * Determine if this value is a string.
+   * Determine if this statistic holds a string value.
    * @return True if this value is a string.
    */
   bool isString() const;
   /**
-   * Return the string value.
+   * Get the value of a string statistic.
    * @return The string value.
    */
   const std::string& getString() const;
   /**
-   * Determine if this value is a histogram.
+   * Determine if this statistics holds a histogram.
    * @return True if this value is a histogram.
    */
   bool isHistogram() const;
   /**
-   * Return the histogram value.
+   * Get the value of a histogram statistic.
    * @return The histogram value.
    */
   const HistogramData& getHistogram() const;
+
+  /**
+   * Get a string represenation of this statistic.
+   * @return The string represenation.
+   */
+  std::string toString() const;
 
  private:
   Stat(bool internal, bool def, StatData&& sd);
@@ -3414,7 +3511,7 @@ class CVC5_EXPORT Stat
 /**
  * Print a `Stat` object to an ``std::ostream``.
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& sv);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& stat);
 
 /**
  * \verbatim embed:rst:leading-asterisk
@@ -3494,6 +3591,12 @@ class CVC5_EXPORT Statistics
   /** End iteration */
   iterator end() const;
 
+  /**
+   * Get a string represenation of this statistics object.
+   * @return The string represenation.
+   */
+  std::string toString() const;
+
  private:
   Statistics(const internal::StatisticsRegistry& reg);
   /** Internal data */
@@ -3501,6 +3604,48 @@ class CVC5_EXPORT Statistics
 };
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out,
                                      const Statistics& stats);
+
+/* -------------------------------------------------------------------------- */
+/* Plugin                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A cvc5 plugin.
+ */
+class CVC5_EXPORT Plugin
+{
+  friend class Solver;
+
+ public:
+  Plugin(TermManager& tm);
+  virtual ~Plugin() = default;
+  /**
+   * Call to check, return vector of lemmas to add to the SAT solver.
+   * This method is called periodically, roughly at every SAT decision.
+   *
+   * @return The vector of lemmas to add to the SAT solver.
+   */
+  virtual std::vector<Term> check();
+  /**
+   * Notify SAT clause, called when `clause` is learned by the SAT solver.
+   * @param clause The learned clause.
+   */
+  virtual void notifySatClause(const Term& clause);
+  /**
+   * Notify theory lemma, called when `lemma` is sent by a theory solver.
+   * @param lemma The theory lemma.
+   */
+  virtual void notifyTheoryLemma(const Term& lemma);
+  /**
+   * Get the name of the plugin (for debugging).
+   * @return The name of the plugin.
+   */
+  virtual std::string getName() = 0;
+
+ private:
+  /** Converter to external */
+  std::shared_ptr<cvc5::PluginInternal> d_pExtToInt;
+};
 
 /* -------------------------------------------------------------------------- */
 /* Proof                                                                      */
@@ -3514,6 +3659,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out,
 class CVC5_EXPORT Proof
 {
   friend class Solver;
+  friend struct std::hash<Proof>;
 
  public:
   /**
@@ -3525,8 +3671,28 @@ class CVC5_EXPORT Proof
    */
   ~Proof();
 
-  /** @return The proof rule used by the root step of the proof. */
+  /**
+   * Determine if this is the null proof (Proof::Proof()).
+   * @return True if this grammar is the null proof.
+   */
+  bool isNull() const;
+
+  /**
+   * Get the proof rule used by the root step of the proof.
+   * @return The proof rule.
+   */
   ProofRule getRule() const;
+
+  /**
+   * Get the proof rewrite rule used  by the root step of the proof.
+   *
+   * Requires that `getRule()` does not return #DSL_REWRITE or
+   * #THEORY_REWRITE.
+   *
+   * @return The proof rewrite rule.
+   *
+   */
+  ProofRewriteRule getRewriteRule() const;
 
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;
@@ -3540,15 +3706,26 @@ class CVC5_EXPORT Proof
    */
   const std::vector<Term> getArguments() const;
 
+  /**
+   * Operator overloading for referential equality of two proofs.
+   * @param p The proof to compare to for equality.
+   * @return True if both proofs point to the same internal proof object.
+   */
+  bool operator==(const Proof& p) const;
+
+  /**
+   * Referential disequality operator.
+   * @param p The proof to compare to for disequality.
+   * @return True if both proofs point to different internal proof objects.
+   */
+  bool operator!=(const Proof& p) const;
+
  private:
   /** Construct a proof by wrapping a ProofNode. */
   Proof(TermManager* tm, const std::shared_ptr<internal::ProofNode> p);
 
-  /** @return The internal proof node wrapped by this proof object. */
-  const std::shared_ptr<internal::ProofNode>& getProofNode(void) const;
-
   /** The internal proof node wrapped by this proof object. */
-  std::shared_ptr<internal::ProofNode> d_proof_node;
+  std::shared_ptr<internal::ProofNode> d_proofNode;
   /**
    * The associated term manager.
    * @note This is only needed temporarily until deprecated term/sort handling
@@ -3557,10 +3734,28 @@ class CVC5_EXPORT Proof
   TermManager* d_tm;
 };
 
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for proofs.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Proof>
+{
+  size_t operator()(const cvc5::Proof& p) const;
+};
+}  // namespace std
+
+namespace cvc5 {
+
 /* -------------------------------------------------------------------------- */
 /* TermManager                                                                */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * A cvc5 term manager.
+ */
 class CVC5_EXPORT TermManager
 {
   friend class Sort;
@@ -3569,6 +3764,7 @@ class CVC5_EXPORT TermManager
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
   friend class Grammar;
+  friend class Plugin;
   friend class Solver;
 
  public:
@@ -3673,11 +3869,24 @@ class CVC5_EXPORT TermManager
       const std::vector<DatatypeDecl>& dtypedecls);
   /**
    * Create function sort.
-   * @param sorts The sort of the function arguments.
+   * @param sorts    The sort of the function arguments.
    * @param codomain The sort of the function return value.
    * @return The function sort.
    */
   Sort mkFunctionSort(const std::vector<Sort>& sorts, const Sort& codomain);
+  /**
+   * Create a skolem.
+   * @param id      The skolem identifier.
+   * @param indices The indices of the skolem.
+   * @return The skolem.
+   */
+  Term mkSkolem(SkolemId id, const std::vector<Term>& indices);
+  /**
+   * Get the number of indices for a skolem id.
+   * @param id The skolem id.
+   * @return The number of indices for the skolem id.
+   */
+  size_t getNumIndicesForSkolemId(SkolemId id);
   /**
    * Create a sort parameter.
    *
@@ -3842,7 +4051,7 @@ class CVC5_EXPORT TermManager
    * Create n-ary term of given kind.
    * @param kind     The kind of the term.
    * @param children The children of the term.
-   * @return The Term
+   * @return The term.
    */
   Term mkTerm(Kind kind, const std::vector<Term>& children = {});
   /**
@@ -4256,7 +4465,7 @@ class CVC5_EXPORT TermManager
   /**
    * Helper for calls to mkVar from the TermManager and Solver. Ensures that
    * API statistics are collected.
-   * @param sort   The internal type of the variable.
+   * @param type   The internal type of the variable.
    * @param symbol The symbol of the variable.
    */
   internal::Node mkVarHelper(
@@ -4265,7 +4474,7 @@ class CVC5_EXPORT TermManager
   /**
    * Helper for calls to mkConst from the TermManager and Solver. Ensures that
    * API statistics are collected.
-   * @param sort   The internal type of the const.
+   * @param type   The internal type of the const.
    * @param symbol The symbol of the const.
    * @param fresh  True to return a fresh variable. If false, it returns the
    *               same variable for the given type and name.
@@ -4379,6 +4588,7 @@ class CVC5_EXPORT Solver
   friend class DatatypeSelector;
   friend class DriverOptions;
   friend class Grammar;
+  friend class Plugin;
   friend class Op;
   friend class parser::Cmd;
   friend class Proof;
@@ -5402,18 +5612,19 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Simplify a formula without doing "much" work.
+   * Simplify a term or formula based on rewriting and (optionally) applying
+   * substitutions for solved variables.
    *
-   * Does not involve the SAT Engine in the simplification, but uses the
-   * current definitions, and assertions.  It also involves theory
-   * normalization.
+   * If applySubs is true, then for example, if `(= x 0)` was asserted to this
+   * solver, this method may replace occurrences of `x` with `0`.
    *
    * @warning This function is experimental and may change in future versions.
    *
-   * @param t The formula to simplify.
-   * @return The simplified formula.
+   * @param t         The term to simplify.
+   * @param applySubs True to apply substitutions for solved variables.
+   * @return The simplified term.
    */
-  Term simplify(const Term& t);
+  Term simplify(const Term& t, bool applySubs = false);
 
   /**
    * Assert a formula.
@@ -5773,7 +5984,7 @@ class CVC5_EXPORT Solver
    *     (get-unsat-core-lemmas)
    *
    * Requires the SAT proof unsat core mode, so to enable option
-   * :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
+   * :ref:`unsat-cores-mode=sat-proof <lbl-option-unsat-cores-mode>`.
    *
    * \endverbatim
    *
@@ -5797,9 +6008,22 @@ class CVC5_EXPORT Solver
   std::map<Term, Term> getDifficulty() const;
 
   /**
-   * Get a timeout core, which computes a subset of the current assertions that
-   * cause a timeout. Note it does not require being proceeded by a call to
-   * checkSat.
+   * Get a timeout core.
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * This function computes a subset of the current assertions that cause a
+   * timeout. It may make multiple checks for satisfiability internally, each
+   * limited by the timeout value given by
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   *
+   * If the result is unknown and the reason is timeout, then returned the set
+   * of assertions corresponds to a subset of the current assertions that cause
+   * a timeout in the specified time :ref:`timeout-core-timeout
+   * <lbl-option-timeout-core-timeout>`. If the result is unsat, then the list
+   * of formulas correspond to an unsat core for the current assertions.
+   * Otherwise, the result is sat, indicating that the current assertions are
+   * satisfiable, and the returned set of assertions is empty.
+   * \endverbatim
    *
    * SMT-LIB:
    *
@@ -5812,25 +6036,30 @@ class CVC5_EXPORT Solver
    * @warning This function is experimental and may change in future versions.
    *
    * @return The result of the timeout core computation. This is a pair
-   * containing a result and a list of formulas. If the result is unknown
-   * and the reason is timeout, then the list of formulas correspond to a
-   * subset of the current assertions that cause a timeout in the specified
-   * time :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-   * If the result is unsat, then the list of formulas correspond to an
-   * unsat core for the current assertions. Otherwise, the result is sat,
-   * indicating that the current assertions are satisfiable, and
-   * the list of formulas is empty.
-   *
-   * This function may make multiple checks for satisfiability internally, each
-   * limited by the timeout value given by
-   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   *         containing a result and a set of assertions.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
   /**
-   * Get a timeout core, which computes a subset of the given assumptions that
-   * cause a timeout when added to the current assertions. Note it does not
-   * require being proceeded by a call to checkSat.
+   * Get a timeout core of the given assumptions.
+   *
+   * This function computes a subset of the given assumptions that cause a
+   * timeout when added to the current assertions.
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * If the result is unknown and the reason is timeout, then the set of
+   * assumptions corresponds to a subset of the given assumptions that cause a
+   * timeout when added to the current assertions in the specified time
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`. If the
+   * result is unsat, then the set of assumptions together with the current
+   * assertions correspond to an unsat core for the current assertions.
+   * Otherwise, the result is sat, indicating that the given assumptions plus
+   * the current assertions are satisfiable, and the returned set of
+   * assumptions is empty.
+   * \endverbatim
+   *
+   * @note This command does not require being preceeded by a call to
+   *       `checkSat()`.
    *
    * SMT-LIB:
    *
@@ -5843,16 +6072,9 @@ class CVC5_EXPORT Solver
    * @warning This function is experimental and may change in future versions.
    *
    * @param assumptions The (non-empty) set of formulas to assume.
+   *
    * @return The result of the timeout core computation. This is a pair
-   * containing a result and a list of formulas. If the result is unknown
-   * and the reason is timeout, then the list of formulas correspond to a
-   * subset of assumptions that cause a timeout when added to the current
-   * assertions in the specified time
-   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-   * If the result is unsat, then the list of formulas plus the current
-   * assertions correspond to an unsat core for the current assertions.
-   * Otherwise, the result is sat, indicating that the given assumptions plus
-   * the current assertions are satisfiable, and the list of formulas is empty.
+   *         containing a result and a set of assumptions.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCoreAssuming(
       const std::vector<Term>& assumptions) const;
@@ -5891,7 +6113,7 @@ class CVC5_EXPORT Solver
    * `modes::ProofFormat::NONE` if the proof is from a component other than
    * `modes::ProofComponent::FULL`.
    * @param assertionNames Mapping between assertions and names, if they were
-   * given by the user.
+   * given by the user.  This is used by the Alethe proof format.
    * @return The string representation of the proof in the given format.
    */
   std::string proofToString(
@@ -5955,13 +6177,14 @@ class CVC5_EXPORT Solver
   std::vector<Term> getModelDomainElements(const Sort& s) const;
 
   /**
-   * This returns false if the model value of free constant v was not essential
-   * for showing the satisfiability of the last call to checkSat using the
-   * current model. This function will only return false (for any `v`) if
-   * option
-   * \verbatim embed:rst:inline :ref:`model-cores
-   * <lbl-option-model-cores>`\endverbatim has been set.
+   * Determine if the model value of the given free constant was essential for
+   * showing satisfiability of the last `checkSat()` query based on the current
+   * model.
    *
+   * For any free constant `v`, this will only return false if
+   * \verbatim embed:rst:inline :ref:`model-cores
+   * <lbl-option-model-cores>`\endverbatim
+   * has been set to true.
    * @warning This function is experimental and may change in future versions.
    *
    * @param v The term in question.
@@ -6157,6 +6380,13 @@ class CVC5_EXPORT Solver
                         const std::vector<Sort>& sorts,
                         const Sort& sort,
                         std::function<Term(const std::vector<Term>&)> fn) const;
+  /**
+   * Add plugin to this solver. Its callbacks will be called throughout the
+   * lifetime of this solver.
+   * @warning This function is experimental and may change in future versions.
+   * @param p The plugin to add to this solver.
+   */
+  void addPlugin(Plugin& p);
   /**
    * Pop (a) level(s) from the assertion stack.
    *
@@ -6434,9 +6664,10 @@ class CVC5_EXPORT Solver
   void setLogic(const std::string& logic) const;
 
   /**
-   * Is logic set? Returns whether we called setLogic yet for this solver.
+   * Determine if `setLogic()` has been called.
    *
-   * @return whether we called setLogic yet for this solver.
+   * @return True if `setLogic()` has already been called for this solver
+   *         instance.
    */
   bool isLogicSet() const;
 
@@ -6736,15 +6967,22 @@ class CVC5_EXPORT Solver
   /**
    * Determines if the output stream for the given tag is enabled. Tags can be
    * enabled with the `output` option (and `-o <tag>` on the command line).
-   * Raises an exception when an invalid tag is given.
+   *
+   * Requires that a valid tag is given.
+   *
    * @return True if the given tag is enabled.
    */
   bool isOutputOn(const std::string& tag) const;
 
   /**
-   * Get an output stream for the given tag. Tags can be enabled with the
-   * `output` option (and `-o <tag>` on the command line). Raises an exception
-   * when an invalid tag is given.
+   * Get an output stream for the given tag.
+   *
+   * Tags can be enabled with the `output` option (and `-o <tag>` on the
+   * command line). Raises an exception when an invalid tag is given.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param tag The output tag.
    * @return The output stream.
    */
   std::ostream& getOutput(const std::string& tag) const;
@@ -6765,6 +7003,7 @@ class CVC5_EXPORT Solver
   /**
    * Constructs a solver with the given original options. This should only be
    * used internally when the Solver is reset.
+   * @param tm       The associated term manager.
    * @param original The original set of configuration options.
    */
   Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original);

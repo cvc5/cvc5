@@ -1,15 +1,23 @@
 API Documentation
 =================
 
-In addition to using cvc5 :doc:`as a binary <../binary/binary>`, cvc5 features APIs
-for several different programming languages.
-While the :doc:`C++ API <cpp/cpp>` is considered the primary interface to cvc5, both the :doc:`Java API <java/java>` and the :doc:`base Python API <python/base/python>` implement a thin wrapper around it.
-Additionally, a more pythonic Python API is available at https://github.com/cvc5/cvc5_pythonic_api
-and documented :doc:`here <python/pythonic/pythonic>`.
+Alternatively to using cvc5 :doc:`as a binary <../binary/binary>`, cvc5 can be
+integrated at the back end of other tools via one of its rich and comprehensive
+APIs.
+
+The primary interface of cvc5 is its :doc:`C++ API <cpp/cpp>`.
+Its :doc:`C API <c/c>`, :doc:`Java API <java/java>` and
+:doc:`base Python API <python/base/python>` implement a thin wrapper around
+the C++ API.
+In addition to the base Python API, cvc5 also provides a more :doc:`pythonic
+Python API <python/pythonic/pythonic>` at
+https://github.com/cvc5/cvc5_pythonic_api,
+documented :doc:`here <python/pythonic/pythonic>`.
 
 .. toctree::
    :maxdepth: 1
 
    cpp/cpp
+   c/c
    java/java
    python/python

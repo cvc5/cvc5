@@ -43,6 +43,16 @@ class OpTest
   }
 
   @Test
+  void hash() throws CVC5ApiException
+  {
+    Op ext1 = d_tm.mkOp(BITVECTOR_EXTRACT, 31, 1);
+    Op ext2 = d_tm.mkOp(BITVECTOR_EXTRACT, 31, 2);
+    assertEquals(ext1.hashCode(), ext1.hashCode());
+    assertNotEquals(ext1.hashCode(), ext2.hashCode());
+    assertNotEquals(ext1.hashCode(), (new Op()).hashCode());
+  }
+
+  @Test
   void getKind() throws CVC5ApiException
   {
     Op x;

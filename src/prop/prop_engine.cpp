@@ -83,16 +83,19 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
 
-  if (options().prop.satSolver == options::SatSolverMode::MINISAT
-      || d_env.isSatProofProducing())
+  if (options().prop.satSolver == options::SatSolverMode::MINISAT)
   {
     d_satSolver =
         SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
   }
   else
   {
+    // log DRAT proofs if the mode is SKETCH.
+    bool logProofs =
+        (env.isSatProofProducing()
+         && options().proof.propProofMode == options::PropProofMode::SKETCH);
     d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager());
+        d_env, statisticsRegistry(), env.getResourceManager(), "", logProofs);
   }
 
   // CNF stream and theory proxy required pointers to each other, make the
@@ -110,7 +113,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   bool satProofs = d_env.isSatProofProducing();
   if (satProofs)
   {
-    d_ppm.reset(new PropPfManager(env, d_satSolver, *d_cnfStream));
+    d_ppm.reset(
+        new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
   }
   // connect SAT solver
   d_satSolver->initialize(
@@ -252,33 +256,42 @@ void PropEngine::assertInternal(theory::InferenceId id,
                                 bool input,
                                 ProofGenerator* pg)
 {
-  // Assert as (possibly) removable
-  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
+  bool addAssumption = false;
+  if (isProofEnabled())
   {
-    if (input)
+    if (input
+        && options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
     {
-      d_cnfStream->ensureLiteral(node);
-      if (negated)
-      {
-        d_assumptions.push_back(node.notNode());
-      }
-      else
-      {
-        d_assumptions.push_back(node);
-      }
+      // use the proof CNF stream to ensure the literal
+      d_ppm->ensureLiteral(node);
+      addAssumption = true;
     }
     else
     {
-      d_cnfStream->convertAndAssert(node, removable, negated);
+      d_ppm->convertAndAssert(id, node, negated, removable, input, pg);
     }
   }
-  else if (isProofEnabled())
+  else if (input
+           && options().smt.unsatCoresMode
+                  == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    d_ppm->convertAndAssert(id, node, negated, removable, input, pg);
+    d_cnfStream->ensureLiteral(node);
+    addAssumption = true;
   }
   else
   {
     d_cnfStream->convertAndAssert(node, removable, negated);
+  }
+  if (addAssumption)
+  {
+    if (negated)
+    {
+      d_assumptions.push_back(node.notNode());
+    }
+    else
+    {
+      d_assumptions.push_back(node);
+    }
   }
 }
 
@@ -751,14 +764,36 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
     // need to connect the SAT proof to the CNF proof becuase we need the
     // preprocessed input as leaves, not the clauses derived from them.
     std::shared_ptr<ProofNode> pfn = getProof();
+    Trace("unsat-core") << "Proof is " << *pfn.get() << std::endl;
     expr::getFreeAssumptions(pfn.get(), core);
+    Trace("unsat-core") << "Core is " << core << std::endl;
   }
 }
 
 std::vector<Node> PropEngine::getUnsatCoreLemmas()
 {
   Assert(d_env.isSatProofProducing());
-  return d_ppm->getUnsatCoreLemmas();
+  std::vector<Node> lems = d_ppm->getUnsatCoreLemmas();
+  if (isOutputOn(OutputTag::UNSAT_CORE_LEMMAS))
+  {
+    output(OutputTag::UNSAT_CORE_LEMMAS)
+        << ";; unsat core lemmas start" << std::endl;
+    for (const Node& lem : lems)
+    {
+      output(OutputTag::UNSAT_CORE_LEMMAS) << "(unsat-core-lemma ";
+      output(OutputTag::UNSAT_CORE_LEMMAS)
+          << SkolemManager::getOriginalForm(lem);
+      theory::InferenceId id = d_ppm->getInferenceIdFor(lem);
+      if (id != theory::InferenceId::NONE)
+      {
+        output(OutputTag::UNSAT_CORE_LEMMAS) << " :source " << id;
+      }
+      output(OutputTag::UNSAT_CORE_LEMMAS) << ")" << std::endl;
+    }
+    output(OutputTag::UNSAT_CORE_LEMMAS)
+        << ";; unsat core lemmas end" << std::endl;
+  }
+  return lems;
 }
 
 std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(

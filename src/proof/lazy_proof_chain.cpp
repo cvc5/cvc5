@@ -114,12 +114,11 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       if (d_cyclic)
       {
         // First check for a trivial cycle, which is when cur is a free
-        // assumption of curPfn. Note that in the special case in the special
-        // case in which curPfn has cur as an assumption and cur is actually the
-        // initial fact that getProofFor is called on, the general cycle
-        // detection below would prevent this method from generating a proof for
-        // cur, which would be wrong since there is a justification for it in
-        // curPfn.
+        // assumption of curPfn. Note that in the special case in which curPfn
+        // has cur as an assumption and cur is actually the initial fact that
+        // getProofFor is called on, the general cycle detection below would
+        // prevent this method from generating a proof for cur, which would be
+        // wrong since there is a justification for it in curPfn.
         bool isCyclic = false;
         for (const auto& fap : famap)
         {
@@ -172,24 +171,27 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           auto itToConnect = toConnect.find(fap.first);
           if (itToConnect != toConnect.end() && !visited[fap.first])
           {
-            // Since we have a cycle with an assumption, cur will be an
-            // assumption in the final proof node produced by this
-            // method.
+            // Since we have a cycle with an assumption, we must:
+            // - remove that assumption from toConnect, since this class cannot
+            //   generate a well-formed proof to it.
+            // - remove curr from toConnect, since its proof will no longer be
+            //   needed. Note that nothing prevents cur from appearing as a
+            //   dependency in another chain and being then expanded,
+            //   podentially without a cycle.
+            isCyclic = true;
             Trace("lazy-cdproofchain")
                 << "LazyCDProofChain::getProofFor: cyclic assumption "
-                << fap.first << "\n";
-            isCyclic = true;
+                << fap.first << "; removing it from toConnect\n";
+            toConnect.erase(itToConnect);
             break;
           }
         }
         if (isCyclic)
         {
-          visited[cur] = true;
           Trace("lazy-cdproofchain")
               << "LazyCDProofChain::getProofFor: Removing " << cur
               << " from toConnect\n";
-          auto itToConnect = toConnect.find(cur);
-          toConnect.erase(itToConnect);
+          toConnect.erase(toConnect.find(cur));
           continue;
         }
         visit.push_back(cur);

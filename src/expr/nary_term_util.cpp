@@ -16,6 +16,8 @@
 #include "expr/nary_term_util.h"
 
 #include "expr/attribute.h"
+#include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
@@ -172,6 +174,11 @@ Node getNullTerminator(Kind k, TypeNode tn)
         nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       }
       break;
+    case Kind::BITVECTOR_CONCAT:
+    {
+      nullTerm = nm->getSkolemManager()->mkSkolemFunction(SkolemId::BV_EMPTY);
+    }
+    break;
     case Kind::FINITE_FIELD_ADD:
       if (tn.isFiniteField())
       {
@@ -217,6 +224,12 @@ Node narySubstitute(Node src,
     it = visited.find(cur);
     if (it == visited.end())
     {
+      if (!expr::hasBoundVar(cur))
+      {
+        visited[cur] = cur;
+        visit.pop_back();
+        continue;
+      }
       // if it is a non-list variable, do the replacement
       itv = std::find(vars.begin(), vars.end(), cur);
       if (itv != vars.end())

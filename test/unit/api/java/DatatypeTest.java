@@ -102,6 +102,60 @@ class DatatypeTest
   }
 
   @Test
+  void equalHash() throws CVC5ApiException
+  {
+    DatatypeDecl decl1 = d_tm.mkDatatypeDecl("list");
+    DatatypeConstructorDecl cons1 = d_tm.mkDatatypeConstructorDecl("cons");
+    cons1.addSelector("head", d_tm.getIntegerSort());
+    decl1.addConstructor(cons1);
+    DatatypeConstructorDecl nil1 = d_tm.mkDatatypeConstructorDecl("nil");
+    decl1.addConstructor(nil1);
+    Sort list1 = d_tm.mkDatatypeSort(decl1);
+    Datatype dt1 = list1.getDatatype();
+    DatatypeConstructor consConstr1 = dt1.getConstructor(0);
+    DatatypeConstructor nilConstr1 = dt1.getConstructor(1);
+    DatatypeSelector head1 = consConstr1.getSelector("head");
+
+    DatatypeDecl decl2 = d_tm.mkDatatypeDecl("list");
+    DatatypeConstructorDecl cons2 = d_tm.mkDatatypeConstructorDecl("cons");
+    cons2.addSelector("head", d_tm.getIntegerSort());
+    decl2.addConstructor(cons2);
+    DatatypeConstructorDecl nil2 = d_tm.mkDatatypeConstructorDecl("nil");
+    decl2.addConstructor(nil2);
+    Sort list2 = d_tm.mkDatatypeSort(decl2);
+    Datatype dt2 = list2.getDatatype();
+    DatatypeConstructor consConstr2 = dt2.getConstructor(0);
+    DatatypeConstructor nilConstr2 = dt2.getConstructor(1);
+    DatatypeSelector head2 = consConstr2.getSelector("head");
+
+    assertTrue(decl1.equals(decl1));
+    assertFalse(decl1.equals(decl2));
+    assertTrue(cons1.equals(cons1));
+    assertFalse(cons1.equals(cons2));
+    assertTrue(nil1.equals(nil1));
+    assertFalse(nil1.equals(nil2));
+    assertTrue(consConstr1.equals(consConstr1));
+    assertFalse(consConstr1.equals(consConstr2));
+    assertTrue(head1.equals(head1));
+    assertFalse(head1.equals(head2));
+    assertTrue(dt1.equals(dt1));
+    assertFalse(dt1.equals(dt2));
+
+    assertEquals(decl1.hashCode(), decl1.hashCode());
+    assertEquals(decl1.hashCode(), decl2.hashCode());
+    assertEquals(cons1.hashCode(), cons1.hashCode());
+    assertEquals(cons1.hashCode(), cons2.hashCode());
+    assertEquals(nil1.hashCode(), nil1.hashCode());
+    assertEquals(nil1.hashCode(), nil2.hashCode());
+    assertEquals(consConstr1.hashCode(), consConstr1.hashCode());
+    assertEquals(consConstr1.hashCode(), consConstr2.hashCode());
+    assertEquals(head1.hashCode(), head1.hashCode());
+    assertEquals(head1.hashCode(), head2.hashCode());
+    assertEquals(dt1.hashCode(), dt1.hashCode());
+    assertEquals(dt1.hashCode(), dt2.hashCode());
+  }
+
+  @Test
   void mkDatatypeSorts() throws CVC5ApiException
   {
     /* Create two mutual datatypes corresponding to this definition

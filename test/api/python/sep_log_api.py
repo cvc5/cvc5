@@ -64,7 +64,7 @@ def validate_exception():
 
     # The exception message we expect to obtain
     expected = \
-        "Cannot obtain separation logic expressions if not using the separation " \
+        "cannot obtain separation logic expressions if not using the separation " \
         "logic theory."
 
     # test the heap expression
