@@ -84,7 +84,7 @@ Node AlfNodeConverter::postConvert(Node n)
     return n;
   }
   TypeNode tn = n.getType();
-  if (k == Kind::DUMMY_SKOLEM)
+  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -94,6 +94,12 @@ Node AlfNodeConverter::postConvert(Node n)
       // note these are not converted to their user named (cvc.) symbols here,
       // to avoid type errors when constructing terms for postConvert
       return n;
+    }
+    // might be a skolem function
+    Node ns = maybeMkSkolemFun(n);
+    if (!ns.isNull())
+    {
+      return ns;
     }
     // Otherwise, it is an uncategorized skolem, must use a fresh variable.
     // This case will only apply for terms originating from places with no
@@ -324,24 +330,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
   {
     if (isHandledSkolemId(sfi))
     {
-      // convert every skolem function to its name applied to arguments
-      std::stringstream ss;
-      ss << "@" << sfi;
-      std::vector<Node> args;
-      if (cacheVal.getKind() == Kind::SEXPR)
-      {
-        for (const Node& cv : cacheVal)
-        {
-          args.push_back(convert(cv));
-        }
-      }
-      else if (!cacheVal.isNull())
-      {
-        args.push_back(convert(cacheVal));
-      }
-      // must convert all arguments
-      Node app = mkInternalApp(ss.str(), args, k.getType());
-      return app;
+      return k;
     }
   }
   return Node::null();
