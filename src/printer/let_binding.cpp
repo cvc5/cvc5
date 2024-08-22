@@ -193,6 +193,10 @@ void LetBinding::updateCounts(Node n)
       }
       else
       {
+        if (cur.hasOperator())
+        {
+          visit.push_back(cur.getOperator());
+        }
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
