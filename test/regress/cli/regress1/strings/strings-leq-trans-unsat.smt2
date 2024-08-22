@@ -2,8 +2,6 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; timeout with unsat cores
-;; introduces fresh Skolem in a trusted step
-; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (set-info :status unsat)
 (declare-fun x () String)

@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
-; DISABLE-TESTER: alethe
 
 ;; produced by cvc4_16.drv ;;
 (set-logic AUFBVDTNIRA)

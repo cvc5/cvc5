@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
-;; introduces div_by_zero Skolem
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (assert

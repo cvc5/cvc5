@@ -1,5 +1,3 @@
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_NRAT)
 (set-info :status unsat)
 (set-option :arith-no-partial-fun true)

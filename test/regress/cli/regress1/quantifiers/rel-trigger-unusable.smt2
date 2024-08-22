@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --relational-triggers --full-saturate-quant
 ; EXPECT: unsat
-;; introduces mod_by_zero Skolem
-; DISABLE-TESTER: alethe
 (set-logic UFNIA)
 (set-info :status unsat)
 

@@ -1,5 +1,3 @@
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_ALL)
 (set-option :sets-ext true)
 (set-info :status unsat)

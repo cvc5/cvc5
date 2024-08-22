@@ -1,8 +1,6 @@
 ; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --sets-ext --full-saturate-quant
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 

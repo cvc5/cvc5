@@ -1,5 +1,3 @@
-;; introduces STOI Skolem
-; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (set-info :status unsat)
 (declare-const x Bool)

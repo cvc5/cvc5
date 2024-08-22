@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --dt-nested-rec
 ; EXPECT: unsat
-;; introduces arrays Skolem
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((E 0)(T 0)) (

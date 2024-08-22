@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --sygus-inst
 ; EXPECT: unsat
-;; unsupported str.to_upper operator
-; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (declare-const x Bool)
 (declare-fun T () String)

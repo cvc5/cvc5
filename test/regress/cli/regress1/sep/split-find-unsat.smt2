@@ -1,7 +1,5 @@
 ; COMMAND-LINE:
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_ALL)
 (set-info :status unsat)
 (declare-heap (Int Int))

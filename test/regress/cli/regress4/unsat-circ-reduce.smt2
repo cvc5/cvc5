@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
-;; introduces RE Skolem
-; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (set-info :status unsat)
 (declare-fun x () String)

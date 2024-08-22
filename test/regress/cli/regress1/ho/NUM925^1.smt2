@@ -1,6 +1,4 @@
 ; COMMAND-LINE: --ho-elim
-;; HO not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (set-info :status unsat)
 (declare-sort $$unsorted 0)

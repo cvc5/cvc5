@@ -1,7 +1,5 @@
 ; DISABLE-TESTER: lfsc
 ; Disabled since rel.group is not supported in LFSC
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 
 (set-info :status unsat)

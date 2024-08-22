@@ -1,5 +1,3 @@
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_ALL)
 (set-info :source | CVC4 - Andrew Reynolds |)
 (set-info :smt-lib-version 2.6)

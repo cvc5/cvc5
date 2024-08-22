@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --fmf-bound
 ; EXPECT: unsat
-;; Sets are not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 
 (declare-const A (Set Int))

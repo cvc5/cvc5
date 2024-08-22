@@ -1,5 +1,3 @@
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (set-info :status unsat)
 

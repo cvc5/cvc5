@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --sygus-inst
 ; EXPECT: unsat
-;; introduces fresh Skolem in a trusted step
-; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-sort u 0)
 (declare-fun tptp.funcImageSingleton () Bool)

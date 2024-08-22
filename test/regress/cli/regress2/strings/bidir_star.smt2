@@ -1,6 +1,4 @@
 ; COMMAND-LINE: --strings-exp
-;; introduces RE Skolem
-; DISABLE-TESTER: alethe
 (set-logic SLIA)
 (declare-fun a () String)
 (assert (>= (str.len a) 2))

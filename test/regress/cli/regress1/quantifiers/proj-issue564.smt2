@@ -1,7 +1,5 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :sets-ext true)
 (set-option :ieval use-learn)

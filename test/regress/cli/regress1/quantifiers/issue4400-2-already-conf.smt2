@@ -1,6 +1,4 @@
 ; DISABLE-TESTER: cpc
-;; introduces fresh Skolem in a trusted step
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((ap 0)) (((bp) (cp (p (_ BitVec 2)) (dp (_ BitVec 2))

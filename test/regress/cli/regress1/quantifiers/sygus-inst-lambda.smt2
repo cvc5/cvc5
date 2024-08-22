@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --sygus-inst
 ; EXPECT: unsat
-;; HO not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (define-sort a () Int)
 (declare-fun z ((-> a a)) a)

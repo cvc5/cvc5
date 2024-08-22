@@ -1,7 +1,5 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: cpc
-;; introduces fresh Skolem in a trusted step
-; DISABLE-TESTER: alethe
 (set-logic QF_ALL)
 (set-info :status unsat)
 (declare-datatypes

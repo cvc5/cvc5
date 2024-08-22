@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --nl-ext=full
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_NRAT)
 (set-info :status unsat)
 (declare-fun t@0 () Real)

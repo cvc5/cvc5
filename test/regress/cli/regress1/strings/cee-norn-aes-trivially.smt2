@@ -1,8 +1,6 @@
 ; COMMAND-LINE: --arith-eq-solver --ee-mode=distributed --strings-exp
 ; COMMAND-LINE: --arith-eq-solver --ee-mode=central --strings-exp
 ; EXPECT: unsat
-;; introduces RE Skolem
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun v () String)
 (assert (str.in_re (str.++ "" v) (re.* (str.to_re "z"))))

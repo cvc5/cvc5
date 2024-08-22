@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental false)
 (set-option :finite-model-find true)

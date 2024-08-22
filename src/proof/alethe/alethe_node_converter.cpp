@@ -24,7 +24,6 @@
 namespace cvc5::internal {
 namespace proof {
 
-
 Node AletheNodeConverter::maybeConvert(Node n, bool isAssumption)
 {
   d_error = "";
@@ -406,10 +405,12 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::TABLE_JOIN:
     case Kind::TABLE_GROUP_OP:
     case Kind::TABLE_GROUP:
-      // strings
+    // strings
+    case Kind::STRING_UPDATE:
     case Kind::STRING_INDEXOF_RE:
-      case Kind::STRING_TO_LOWER:
-      case Kind::STRING_TO_UPPER:
+    case Kind::STRING_TO_LOWER:
+    case Kind::STRING_TO_UPPER:
+    case Kind::STRING_REV:
     case Kind::SEQ_UNIT:
     case Kind::SEQ_NTH:
     // other

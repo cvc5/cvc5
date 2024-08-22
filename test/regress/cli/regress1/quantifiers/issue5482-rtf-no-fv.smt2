@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --fmf-bound
 ; EXPECT: unsat
-;; introduces div_by_zero Skolem
-; DISABLE-TESTER: alethe
 (set-logic AUFNIA)
 (declare-fun a () Int)
 (declare-fun b () (Array Int Int))

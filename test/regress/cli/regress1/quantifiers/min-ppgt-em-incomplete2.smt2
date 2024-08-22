@@ -1,5 +1,3 @@
-;; Non-standard Datatypes syntax not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort U 0)

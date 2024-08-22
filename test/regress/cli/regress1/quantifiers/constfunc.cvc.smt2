@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; introduces fresh Skolem in a trusted step
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental false)
 (set-option :fmf-fun true)

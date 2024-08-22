@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --strings-exp -q
 ; EXPECT: unsat
-;; introduces STRINGS_OCCUR_INDEX Skolem
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun a () String)

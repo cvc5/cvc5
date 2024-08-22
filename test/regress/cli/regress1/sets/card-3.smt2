@@ -1,5 +1,3 @@
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_UFLIAFS)
 (set-info :status unsat)
 (declare-sort E 0)

@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --cegqi-all --no-relational-triggers --no-sygus-inst
 ; EXPECT: unsat
-;; introduces mod_by_zero Skolem
-; DISABLE-TESTER: alethe
 (set-logic NIA)
 (declare-fun a () Int)
 (declare-fun b () Int)

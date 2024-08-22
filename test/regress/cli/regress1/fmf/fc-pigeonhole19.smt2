@@ -1,5 +1,3 @@
-;; introduces fresh Skolem in a trusted step
-; DISABLE-TESTER: alethe
 (set-logic UFC)
 (set-info :status unsat)
 

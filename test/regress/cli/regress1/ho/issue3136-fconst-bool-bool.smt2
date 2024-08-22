@@ -1,7 +1,5 @@
 ; COMMAND-LINE:  --ho-elim
 ; EXPECT: unsat
-;; HO not supported in Alethe
-; DISABLE-TESTER: alethe
 
 (set-logic HO_ALL)
 (declare-sort $$unsorted 0)

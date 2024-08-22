@@ -1,8 +1,6 @@
 ; REQUIRES: poly
 ; COMMAND-LINE: --nl-ext-tplanes
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_NRA)
 (set-info :status unsat)
 (declare-fun x () Real)
