@@ -6,23 +6,6 @@ try:
 except ImportError:
     import tomli as tomllib
 
-kinds_input_files = [
-    "../theory/builtin/kinds.toml",
-    "../theory/booleans/kinds.toml",
-    "../theory/uf/kinds.toml",
-    "../theory/arith/kinds.toml",
-    "../theory/bv/kinds.toml",
-    "../theory/ff/kinds.toml",
-    "../theory/fp/kinds.toml",
-    "../theory/arrays/kinds.toml",
-    "../theory/datatypes/kinds.toml",
-    "../theory/sep/kinds.toml",
-    "../theory/sets/kinds.toml",
-    "../theory/bags/kinds.toml",
-    "../theory/strings/kinds.toml",
-    "../theory/quantifiers/kinds.toml"
-]
-
 class CodeGenerator:
     def __init__(self, type_checker_template, type_checker_template_output, input_command):
         self.typerules             = ""
@@ -102,9 +85,10 @@ class CodeGenerator:
             f.write(self.template_data)
 
 def mkexpr_main():
-    type_checker_template = 'type_checker_template.cpp'
-    type_checker_template_output = 'type_checker_output.cpp'
-    input_command = ' '.join(sys.argv)               
+    type_checker_template = sys.argv[1]
+    type_checker_template_output = sys.argv[2]
+    kinds_input_files = sys.argv[3:]
+    input_command = ' '.join(sys.argv)
     
     cg = CodeGenerator(type_checker_template, type_checker_template_output, input_command)
     cg.read_template_data()
@@ -113,7 +97,7 @@ def mkexpr_main():
     # Check if given configuration files exist.
     for file in kinds_input_files:
         if not os.path.exists(file):
-            die("Kinds file '{}' does not exist".format(file))
+            exit("Kinds file '{}' does not exist".format(file))
 
     # Parse and check toml files
     for filename in kinds_input_files:
