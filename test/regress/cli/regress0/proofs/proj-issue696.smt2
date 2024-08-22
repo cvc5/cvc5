@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; unsupported real.pi operator
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :proof-mode sat-proof)
 (set-option :produce-unsat-assumptions true)

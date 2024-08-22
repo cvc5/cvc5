@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --finite-model-find --fmf-bound
 ; EXPECT: unsat
-;; Sets are not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort U 0)

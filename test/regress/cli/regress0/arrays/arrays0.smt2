@@ -1,5 +1,3 @@
-;; introduces arrays Skolem
-; DISABLE-TESTER: alethe
 (set-logic QF_AX)
 (set-info :source |
 Benchmarks used in the followin paper:

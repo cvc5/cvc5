@@ -1,5 +1,3 @@
-;; introduces arrays Skolem
-; DISABLE-TESTER: alethe
 (set-logic QF_ABV)
 (set-info :status unsat)
 (declare-fun x2 () (_ BitVec 32))

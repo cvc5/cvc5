@@ -1,5 +1,3 @@
-;; introduces arrays Skolem
-; DISABLE-TESTER: alethe
 (set-option :incremental false)
 (set-info :source "Benchmarks used in the followin paper:
 Big proof engines as little proof engines: new results on rewrite-based satisfiability procedure

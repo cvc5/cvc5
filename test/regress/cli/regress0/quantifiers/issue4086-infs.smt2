@@ -1,4 +1,3 @@
-; DISABLE-TESTER: alethe
 (set-logic LIRA)
 (set-info :status unsat)
 (set-option :cegqi-inf-int true)

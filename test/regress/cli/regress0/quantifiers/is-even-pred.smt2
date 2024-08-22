@@ -1,5 +1,3 @@
-;; operator is-even not supported
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 

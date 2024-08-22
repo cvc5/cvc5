@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --ieval=use
 ; EXPECT: unsat
-;; introduces fresh Skolem in a trusted step
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort s 0)
 (declare-datatypes ((ms 0)) (((a))))

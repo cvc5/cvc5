@@ -1,6 +1,4 @@
 ; DISABLE-TESTER: lfsc
-;; FP is not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :sets-ext true)
 (declare-datatype d ((c (s RoundingMode))))

@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: unsat
-;; FP is not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_BVFP)
 (declare-const x (_ BitVec 1))
 (declare-const rm RoundingMode)

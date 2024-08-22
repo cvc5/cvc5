@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; HO not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-sort Nat$ 0)
 (declare-sort Complex$ 0)

@@ -1,5 +1,3 @@
-;; introduces fresh Skolem in a trusted step
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun c () (_ BitVec 3))

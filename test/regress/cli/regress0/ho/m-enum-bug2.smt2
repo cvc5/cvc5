@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --mbqi --mbqi-fast-sygus
 ; EXPECT: unsat
-;; HO not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic HO_ALL)
 (declare-sort a 0)
 (declare-fun f (a) a)

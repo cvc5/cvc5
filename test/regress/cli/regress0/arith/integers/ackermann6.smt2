@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --ackermann
 ; EXPECT: unsat
-;; introduces fresh Skolem in a trusted step
-; DISABLE-TESTER: alethe
 (set-logic QF_UFLIA)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")

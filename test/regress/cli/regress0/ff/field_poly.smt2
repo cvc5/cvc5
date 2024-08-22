@@ -1,7 +1,5 @@
 ; REQUIRES: cocoa
 ; EXPECT: unsat
-;; FF not supported in Alethe
-; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --ff-field-polys
 ; COMMAND-LINE:
 (set-info :smt-lib-version 2.6)

@@ -1,5 +1,3 @@
-;; introduces arrays Skolem
-; DISABLE-TESTER: alethe
 (set-logic QF_AUFLIA)
 (set-info :source | This is based on an example in Section 6.2 of "A Decision
 Procedure for an Extensional Theory of Arrays" by Stump, Barrett, Dill, and

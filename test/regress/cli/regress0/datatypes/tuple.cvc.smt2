@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; Datatypes are not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-option :incremental false)
 (define-fun x () (Tuple Real Int Real) (tuple (/ 4 5) 9 (/ 11 9)))
