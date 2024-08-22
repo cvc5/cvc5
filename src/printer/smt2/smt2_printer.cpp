@@ -2179,7 +2179,7 @@ void Smt2Printer::toStreamSkolem(std::ostream& out,
     toStream(out, cacheVal, lbind, toDepth);
     out << ")";
   }
-  else if (isApplied)
+  if (isApplied)
   {
     out << " ";
   }
