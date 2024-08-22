@@ -177,14 +177,17 @@ class SkolemManager
    * @return The skolem function.
    */
   Node mkSkolemFunction(SkolemId id, Node cacheVal = Node::null());
-  /** 
+  /**
    * Same as above, with multiple cache values.
    * @param id The identifier of the skolem function
-   * @param cacheVals A cache value. 
-   * @param sortVals Whether to sort the values in cacheVals if id is a commutative skolem identifier.
+   * @param cacheVals A cache value.
+   * @param sortVals Whether to sort the values in cacheVals if id is a
+   * commutative skolem identifier.
    * @return The skolem function.
    */
-  Node mkSkolemFunction(SkolemId id, const std::vector<Node>& cacheVals, bool sortVals=false);
+  Node mkSkolemFunction(SkolemId id,
+                        const std::vector<Node>& cacheVals,
+                        bool sortVals = false);
   /**
    * Same as above, with multiple cache values and an internal skolem id.
    * This will call mkSkolemFunction where the (external) id is

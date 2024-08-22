@@ -473,7 +473,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       // justify this as a REFL step. This happens with trusted purification
       // steps, for example.
       Node resConv = d_anc.maybeConvert(res);
-      if (!resConv.isNull() && resConv.getKind() == Kind::EQUAL && resConv[0] == resConv[1])
+      if (!resConv.isNull() && resConv.getKind() == Kind::EQUAL
+          && resConv[0] == resConv[1])
       {
         return addAletheStep(AletheRule::REFL,
                              res,

@@ -231,7 +231,7 @@ void AlfPrintChannelPre::processInternal(const Node& n)
   }
   d_keep.insert(n);  // probably not necessary
   expr::getVariables(n, d_vars, d_varsVisited);
-  if (n.getKind()==Kind::SKOLEM)
+  if (n.getKind() == Kind::SKOLEM)
   {
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();

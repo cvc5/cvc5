@@ -94,7 +94,8 @@ Node SkolemManager::mkSkolemFunction(SkolemId id, Node cacheVal)
 }
 
 Node SkolemManager::mkSkolemFunction(SkolemId id,
-                                     const std::vector<Node>& cacheVals, bool sortVals)
+                                     const std::vector<Node>& cacheVals,
+                                     bool sortVals)
 {
   TypeNode ctn = getTypeFor(id, cacheVals);
   Assert(!ctn.isNull());
