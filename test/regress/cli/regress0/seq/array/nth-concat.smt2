@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --incremental --strings-exp --seq-array=eager
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 
 (set-logic QF_SLIA)
 (set-info :status unsat)

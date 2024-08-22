@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --incremental --strings-exp --seq-array=eager
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 
 (set-info :smt-lib-version 2.6)
 (set-logic ALL)

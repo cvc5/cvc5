@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_UFNRA)
 (declare-fun a () Real)
 (declare-fun b () Real)

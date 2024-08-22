@@ -1,5 +1,3 @@
-;; introduces div_by_zero Skolem
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun x () Real)

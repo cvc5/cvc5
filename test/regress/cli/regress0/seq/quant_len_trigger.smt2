@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 
 (set-option :strings-exp true)
 (set-logic ALL)

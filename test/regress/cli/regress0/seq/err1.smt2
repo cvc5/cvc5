@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --strings-exp --seq-array=lazy
 ; EXPECT: unsat
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort E 0)
 (declare-fun a () (Seq E))

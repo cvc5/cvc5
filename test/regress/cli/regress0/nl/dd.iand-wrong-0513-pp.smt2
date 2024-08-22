@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; unsupported iand operator
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun x () Int)
 (declare-fun i () Int)

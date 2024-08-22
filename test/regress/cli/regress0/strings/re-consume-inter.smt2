@@ -1,6 +1,4 @@
 ; EXPECT: unsat
-;; introduces RE Skolem
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun k () String)
 (assert (str.in_re

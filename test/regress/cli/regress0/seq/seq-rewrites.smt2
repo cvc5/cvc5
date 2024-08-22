@@ -1,5 +1,3 @@
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_UFSLIA)
 (set-info :status unsat)
 (declare-fun x () (Seq Int))

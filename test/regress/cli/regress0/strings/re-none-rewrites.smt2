@@ -1,5 +1,3 @@
-;; operator str.indexof_re not supported
-; DISABLE-TESTER: alethe
 (set-logic QF_SLIA)
 (set-info :status unsat)
 

@@ -1,6 +1,4 @@
 ; COMMAND-LINE: --strings-exp --seq-array=lazy
-;; Logic not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic QF_UFSLIA)
 (declare-sort E 0)
 (declare-fun x () (Seq E))

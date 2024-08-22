@@ -1,7 +1,5 @@
 ; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
-;; operator str.to_lower not supported
-; DISABLE-TESTER: alethe
 (set-info :smt-lib-version 2.6)
 (set-logic ALL)
 (set-info :status unsat)
