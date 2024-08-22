@@ -237,19 +237,20 @@ void AlfPrintChannelPre::processInternal(const Node& n)
   SkolemId sfi;
   Node cacheVal;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     if (d_varsVisited.find(cur) == d_varsVisited.end())
     {
       d_varsVisited.insert(cur);
       Kind ck = cur.getKind();
-      if (ck==Kind::BOUND_VARIABLE)
+      if (ck == Kind::BOUND_VARIABLE)
       {
         d_vars.insert(cur);
         continue;
       }
-      else if (ck==Kind::SKOLEM)
+      else if (ck == Kind::SKOLEM)
       {
         if (sm->isSkolemFunction(cur, sfi, cacheVal) && !cacheVal.isNull())
         {
