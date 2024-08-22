@@ -350,7 +350,8 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
         }
         if (hasChanged)
         {
-          return sm->mkSkolemFunction(sfi, vals);
+          // do not sort the indices
+          return sm->mkSkolemFunction(sfi, vals, false);
         }
       }
       return k;

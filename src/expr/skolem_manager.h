@@ -187,7 +187,7 @@ class SkolemManager
    */
   Node mkSkolemFunction(SkolemId id,
                         const std::vector<Node>& cacheVals,
-                        bool sortVals = false);
+                        bool sortVals = true);
   /**
    * Same as above, with multiple cache values and an internal skolem id.
    * This will call mkSkolemFunction where the (external) id is
