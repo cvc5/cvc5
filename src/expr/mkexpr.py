@@ -84,6 +84,41 @@ class CodeGenerator:
         with open(self.type_checker_template_output, 'wb') as f:
             f.write(self.template_data)
 
+class TheoryValidator:
+    def __init__(self):
+        self.seen_theory_builtin = False
+    
+    def validateTheory(self, filename, kinds):
+        theory = kinds.get("theory")
+
+        if not theory:
+            print(f"{filename}: error: theory not defined")
+            exit(1)
+
+        theory_id = theory.get("id")
+        theory_class = theory.get("base_class")
+        theory_header = theory.get("base_class_header")
+
+        if not theory_id:
+            print(f"{filename}: error: theory id not defined")
+            exit(1)
+        
+        if theory_id == 'THEORY_BUILTIN':
+            if self.seen_theory_builtin:
+                print(f"{filename}: error: \"builtin\" theory redefined")
+                exit(1)
+            self.seen_theory_builtin = True
+        
+        if not theory_class or not theory_header:
+            print(f"{filename}: error: \"theory\" directive missing class or header argument")
+            exit(1)
+
+        if not theory_class.startswith("::"):
+            print(f"{filename}: warning: theory class `{theory_class}` isn't fully-qualified (e.g., ::cvc5::internal::theory::foo)")
+        
+        if not theory_class.startswith("::cvc5::internal::theory::"):
+            print(f"{filename}: warning: theory class not under ::cvc5::internal::theory namespace")
+
 def mkexpr_main():
     type_checker_template = sys.argv[1]
     type_checker_template_output = sys.argv[2]
@@ -94,25 +129,28 @@ def mkexpr_main():
     cg.read_template_data()
     cg.generate_file_header()
 
-    # Check if given configuration files exist.
+    tv = TheoryValidator()
+
+    # Check if given kinds files exist.
     for file in kinds_input_files:
         if not os.path.exists(file):
-            exit("Kinds file '{}' does not exist".format(file))
+            exit(f"Kinds file '{file}' does not exist")
 
     # Parse and check toml files
     for filename in kinds_input_files:
         try:
             with open(filename, "rb") as f:
-                data = tomllib.load(f)
-                print(f"### Managed to get data from {filename} ###")
+                kinds_data = tomllib.load(f)
                 
-                typerules_input = data.get("typerules", [])
+                tv.validateTheory(filename, kinds_data)
+
+                typerules_input = kinds_data.get("typerules", [])
                 cg.generate_code_for_typerules(typerules_input)
                 
-                type_checker_include = data["theory"]["typechecker_header"]
+                type_checker_include = kinds_data["theory"]["typechecker_header"]
                 cg.generate_code_for_type_checker_includes(type_checker_include)
                 
-                const_rules = data.get("construles", [])
+                const_rules = kinds_data.get("construles", [])
                 cg.generate_code_for_const_rules(const_rules)
         except Exception as e:
             print(f"Could not parse file {filename}")
@@ -125,4 +163,4 @@ def mkexpr_main():
 
 if __name__ == "__main__":
     mkexpr_main()
-    sys.exit(0)
+    exit(0)
