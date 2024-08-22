@@ -58,7 +58,7 @@ class TheoryBVRewriter : public TheoryRewriter
    *
    * The other overflow operators, namely
    * nego and sdivo, are eliminated by the rewriter,
-   * regradless of whether int-blasting is enabled
+   * regardless of whether int-blasting is enabled
    * or disabled, because their elimination
    * produces simple equalities.
    */
