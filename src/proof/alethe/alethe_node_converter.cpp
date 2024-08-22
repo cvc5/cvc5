@@ -43,6 +43,8 @@ Node AletheNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
+  Trace("alethe-conv") << "AletheNodeConverter: convert " << n << ", kind " << k
+                       << "\n";
   switch (k)
   {
     case Kind::BITVECTOR_BIT:
@@ -193,8 +195,8 @@ Node AletheNodeConverter::postConvert(Node n)
         return witness;
       }
       std::stringstream ss;
-      ss << "Proof contains Skolem (kind " << sfi << ", term " << n
-         << ") is not supported by Alethe.";
+      ss << "\"Proof unsupported by Alethe: contains Skolem (kind " << sfi
+         << ", term " << n << "\"";
       d_error = ss.str();
       return Node::null();
     }
@@ -217,6 +219,208 @@ Node AletheNodeConverter::postConvert(Node n)
       Node converted = nm->mkNode(Kind::APPLY_UF, choiceOp, n[0], n[1]);
       Trace("alethe-conv") << ".. converted to choice: " << converted << "\n";
       return converted;
+    }
+    /* from uf */
+    case Kind::CARDINALITY_CONSTRAINT_OP:
+    case Kind::CARDINALITY_CONSTRAINT:
+    case Kind::COMBINED_CARDINALITY_CONSTRAINT_OP:
+    case Kind::COMBINED_CARDINALITY_CONSTRAINT:
+    /* from BV */
+    case Kind::BITVECTOR_REDAND:
+    case Kind::BITVECTOR_REDOR:
+    case Kind::BITVECTOR_NEGO:
+    case Kind::BITVECTOR_UADDO:
+    case Kind::BITVECTOR_SADDO:
+    case Kind::BITVECTOR_UMULO:
+    case Kind::BITVECTOR_SMULO:
+    case Kind::BITVECTOR_USUBO:
+    case Kind::BITVECTOR_SSUBO:
+    case Kind::BITVECTOR_SDIVO:
+    case Kind::BITVECTOR_ITE:
+      /* from arith */
+    case Kind::POW:
+    case Kind::POW2:
+    case Kind::EXPONENTIAL:
+    case Kind::SINE:
+    case Kind::COSINE:
+    case Kind::TANGENT:
+    case Kind::COSECANT:
+    case Kind::SECANT:
+    case Kind::COTANGENT:
+    case Kind::ARCSINE:
+    case Kind::ARCCOSINE:
+    case Kind::ARCTANGENT:
+    case Kind::ARCCOSECANT:
+    case Kind::ARCSECANT:
+    case Kind::ARCCOTANGENT:
+    case Kind::SQRT:
+    case Kind::PI:
+    case Kind::REAL_ALGEBRAIC_NUMBER_OP:
+    case Kind::REAL_ALGEBRAIC_NUMBER:
+    case Kind::INDEXED_ROOT_PREDICATE_OP:
+    case Kind::INDEXED_ROOT_PREDICATE:
+    case Kind::IAND_OP:
+    case Kind::IAND:
+    /* from ff */
+    case Kind::FINITE_FIELD_TYPE:
+    case Kind::CONST_FINITE_FIELD:
+    case Kind::FINITE_FIELD_MULT:
+    case Kind::FINITE_FIELD_NEG:
+    case Kind::FINITE_FIELD_ADD:
+    case Kind::FINITE_FIELD_BITSUM:
+    /* from fp */
+    case Kind::CONST_FLOATINGPOINT:
+    case Kind::CONST_ROUNDINGMODE:
+    case Kind::FLOATINGPOINT_TYPE:
+    case Kind::FLOATINGPOINT_FP:
+    case Kind::FLOATINGPOINT_EQ:
+    case Kind::FLOATINGPOINT_ABS:
+    case Kind::FLOATINGPOINT_NEG:
+    case Kind::FLOATINGPOINT_ADD:
+    case Kind::FLOATINGPOINT_SUB:
+    case Kind::FLOATINGPOINT_MULT:
+    case Kind::FLOATINGPOINT_DIV:
+    case Kind::FLOATINGPOINT_FMA:
+    case Kind::FLOATINGPOINT_SQRT:
+    case Kind::FLOATINGPOINT_REM:
+    case Kind::FLOATINGPOINT_RTI:
+    case Kind::FLOATINGPOINT_MIN:
+    case Kind::FLOATINGPOINT_MAX:
+    case Kind::FLOATINGPOINT_MIN_TOTAL:
+    case Kind::FLOATINGPOINT_MAX_TOTAL:
+    case Kind::FLOATINGPOINT_LEQ:
+    case Kind::FLOATINGPOINT_LT:
+    case Kind::FLOATINGPOINT_GEQ:
+    case Kind::FLOATINGPOINT_GT:
+    case Kind::FLOATINGPOINT_IS_NORMAL:
+    case Kind::FLOATINGPOINT_IS_SUBNORMAL:
+    case Kind::FLOATINGPOINT_IS_ZERO:
+    case Kind::FLOATINGPOINT_IS_INF:
+    case Kind::FLOATINGPOINT_IS_NAN:
+    case Kind::FLOATINGPOINT_IS_NEG:
+    case Kind::FLOATINGPOINT_IS_POS:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_FP_OP:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_FP:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_REAL_OP:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_REAL:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_SBV_OP:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_SBV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_UBV:
+    case Kind::FLOATINGPOINT_TO_UBV_OP:
+    case Kind::FLOATINGPOINT_TO_UBV:
+    case Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP:
+    case Kind::FLOATINGPOINT_TO_UBV_TOTAL:
+    case Kind::FLOATINGPOINT_TO_SBV_OP:
+    case Kind::FLOATINGPOINT_TO_SBV:
+    case Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP:
+    case Kind::FLOATINGPOINT_TO_SBV_TOTAL:
+    case Kind::FLOATINGPOINT_TO_REAL:
+    case Kind::FLOATINGPOINT_TO_REAL_TOTAL:
+    case Kind::FLOATINGPOINT_COMPONENT_NAN:
+    case Kind::FLOATINGPOINT_COMPONENT_INF:
+    case Kind::FLOATINGPOINT_COMPONENT_ZERO:
+    case Kind::FLOATINGPOINT_COMPONENT_SIGN:
+    case Kind::FLOATINGPOINT_COMPONENT_EXPONENT:
+    case Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND:
+    case Kind::ROUNDINGMODE_BITBLAST:
+    /* from arrays */
+    case Kind::EQ_RANGE:
+    /* from datatypes */
+    case Kind::APPLY_UPDATER:
+    case Kind::UPDATER_TYPE:
+    case Kind::TUPLE_TYPE:
+    case Kind::DT_SYGUS_BOUND:
+    case Kind::DT_SYGUS_EVAL:
+    case Kind::TUPLE_PROJECT_OP:
+    case Kind::TUPLE_PROJECT:
+    case Kind::CODATATYPE_BOUND_VARIABLE:
+    case Kind::NULLABLE_TYPE:
+    case Kind::NULLABLE_LIFT:
+    /* from sep */
+    case Kind::SEP_NIL:
+    case Kind::SEP_EMP:
+    case Kind::SEP_PTO:
+    case Kind::SEP_STAR:
+    case Kind::SEP_WAND:
+    case Kind::SEP_LABEL:
+    /* from sets */
+    case Kind::SET_EMPTY:
+    case Kind::SET_TYPE:
+    case Kind::SET_UNION:
+    case Kind::SET_INTER:
+    case Kind::SET_MINUS:
+    case Kind::SET_SUBSET:
+    case Kind::SET_MEMBER:
+    case Kind::SET_SINGLETON:
+    case Kind::SET_INSERT:
+    case Kind::SET_CARD:
+    case Kind::SET_COMPLEMENT:
+    case Kind::SET_UNIVERSE:
+    case Kind::SET_COMPREHENSION:
+    case Kind::SET_CHOOSE:
+    case Kind::SET_IS_SINGLETON:
+    case Kind::SET_MAP:
+    case Kind::SET_FILTER:
+    case Kind::SET_FOLD:
+    case Kind::RELATION_GROUP_OP:
+    case Kind::RELATION_GROUP:
+    case Kind::RELATION_AGGREGATE_OP:
+    case Kind::RELATION_AGGREGATE:
+    case Kind::RELATION_PROJECT_OP:
+    case Kind::RELATION_PROJECT:
+    case Kind::RELATION_JOIN:
+    case Kind::RELATION_PRODUCT:
+    case Kind::RELATION_TRANSPOSE:
+    case Kind::RELATION_TCLOSURE:
+    case Kind::RELATION_JOIN_IMAGE:
+    case Kind::RELATION_IDEN:
+    /* from bags */
+    case Kind::BAG_EMPTY:
+    case Kind::BAG_TYPE:
+    case Kind::BAG_UNION_MAX:
+    case Kind::BAG_UNION_DISJOINT:
+    case Kind::BAG_INTER_MIN:
+    case Kind::BAG_DIFFERENCE_SUBTRACT:
+    case Kind::BAG_DIFFERENCE_REMOVE:
+    case Kind::BAG_SUBBAG:
+    case Kind::BAG_COUNT:
+    case Kind::BAG_MEMBER:
+    case Kind::BAG_SETOF:
+    case Kind::BAG_MAKE:
+    case Kind::BAG_CARD:
+    case Kind::BAG_CHOOSE:
+    case Kind::BAG_MAP:
+    case Kind::BAG_FILTER:
+    case Kind::BAG_FOLD:
+    case Kind::BAG_PARTITION:
+    case Kind::TABLE_PRODUCT:
+    case Kind::TABLE_PROJECT_OP:
+    case Kind::TABLE_PROJECT:
+    case Kind::TABLE_AGGREGATE_OP:
+    case Kind::TABLE_AGGREGATE:
+    case Kind::TABLE_JOIN_OP:
+    case Kind::TABLE_JOIN:
+    case Kind::TABLE_GROUP_OP:
+    case Kind::TABLE_GROUP:
+    // strings
+    case Kind::STRING_UPDATE:
+    case Kind::STRING_INDEXOF_RE:
+    case Kind::STRING_TO_LOWER:
+    case Kind::STRING_TO_UPPER:
+    case Kind::STRING_REV:
+    case Kind::SEQ_UNIT:
+    case Kind::SEQ_NTH:
+    // other
+    case Kind::DUMMY_SKOLEM:
+    {
+      Trace("alethe-conv") << "AletheNodeConverter: ...unsupported kind\n";
+      std::stringstream ss;
+      ss << "\"Proof unsupported by Alethe: contains operator " << k << "\"";
+      d_error = ss.str();
+      return Node::null();
     }
     default:
     {
