@@ -57,12 +57,8 @@ std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
 };
 
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    Env& env,
-    AletheNodeConverter& anc,
-    bool resPivots)
-    : EnvObj(env),
-      d_anc(anc),
-      d_resPivots(resPivots)
+    Env& env, AletheNodeConverter& anc, bool resPivots)
+    : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
 {
   NodeManager* nm = nodeManager();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());
