@@ -106,32 +106,29 @@ TrustNode TheoryBVRewriter::expandDefinition(Node node)
 Node TheoryBVRewriter::eliminateOverflows(Node node)
 {
   Node res = node;
-  if (true)
+  if (RewriteRule<UaddoEliminate>::applies(node))
   {
-    if (RewriteRule<UaddoEliminate>::applies(node))
-    {
-      res = RewriteRule<UaddoEliminate>::run<false>(node);
-    }
-    else if (RewriteRule<SaddoEliminate>::applies(node))
-    {
-      res = RewriteRule<SaddoEliminate>::run<false>(node);
-    }
-    else if (RewriteRule<UmuloEliminate>::applies(node))
-    {
-      res = RewriteRule<UmuloEliminate>::run<false>(node);
-    }
-    else if (RewriteRule<SmuloEliminate>::applies(node))
-    {
-      res = RewriteRule<SmuloEliminate>::run<false>(node);
-    }
-    else if (RewriteRule<UsuboEliminate>::applies(node))
-    {
-      res = RewriteRule<UsuboEliminate>::run<false>(node);
-    }
-    else if (RewriteRule<SsuboEliminate>::applies(node))
-    {
-      res = RewriteRule<SsuboEliminate>::run<false>(node);
-    }
+    res = RewriteRule<UaddoEliminate>::run<false>(node);
+  }
+  else if (RewriteRule<SaddoEliminate>::applies(node))
+  {
+    res = RewriteRule<SaddoEliminate>::run<false>(node);
+  }
+  else if (RewriteRule<UmuloEliminate>::applies(node))
+  {
+    res = RewriteRule<UmuloEliminate>::run<false>(node);
+  }
+  else if (RewriteRule<SmuloEliminate>::applies(node))
+  {
+    res = RewriteRule<SmuloEliminate>::run<false>(node);
+  }
+  else if (RewriteRule<UsuboEliminate>::applies(node))
+  {
+    res = RewriteRule<UsuboEliminate>::run<false>(node);
+  }
+  else if (RewriteRule<SsuboEliminate>::applies(node))
+  {
+    res = RewriteRule<SsuboEliminate>::run<false>(node);
   }
   return res;
 }
