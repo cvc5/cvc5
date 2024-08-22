@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "rewriter/rewrite_db.h"
 
@@ -230,6 +231,17 @@ void AlfPrintChannelPre::processInternal(const Node& n)
   }
   d_keep.insert(n);  // probably not necessary
   expr::getVariables(n, d_vars, d_varsVisited);
+  if (n.getKind()==Kind::SKOLEM)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    SkolemId sfi = SkolemId::NONE;
+    Node cacheVal;
+    if (sm->isSkolemFunction(n, sfi, cacheVal) && !cacheVal.isNull())
+    {
+      expr::getVariables(cacheVal, d_vars, d_varsVisited);
+    }
+  }
 }
 
 const std::unordered_set<Node>& AlfPrintChannelPre::getVariables() const

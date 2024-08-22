@@ -5830,8 +5830,9 @@ Term TermManager::mkSkolem(SkolemId id, const std::vector<Term>& indices)
   //////// all checks before this line
   // iterate over indices and convert the Terms to Nodes
   std::vector<internal::Node> nodeIndices = Term::termVectorToNodes(indices);
+  // we sort the indices
   internal::Node res =
-      d_nm->getSkolemManager()->mkSkolemFunction(id, nodeIndices);
+      d_nm->getSkolemManager()->mkSkolemFunction(id, nodeIndices, true);
   return Term(this, res);
   ////////
   CVC5_API_TRY_CATCH_END;

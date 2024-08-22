@@ -94,11 +94,11 @@ Node SkolemManager::mkSkolemFunction(SkolemId id, Node cacheVal)
 }
 
 Node SkolemManager::mkSkolemFunction(SkolemId id,
-                                     const std::vector<Node>& cacheVals)
+                                     const std::vector<Node>& cacheVals, bool sortVals)
 {
   TypeNode ctn = getTypeFor(id, cacheVals);
   Assert(!ctn.isNull());
-  if (isCommutativeSkolemId(id))
+  if (sortVals && isCommutativeSkolemId(id))
   {
     // sort arguments if commutative, which should not impact its type
     std::vector<Node> cvs = cacheVals;
